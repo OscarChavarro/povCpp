@@ -1,7 +1,7 @@
 #ifndef __HEIGHT_FIELD_BLOCK_H__
 #define __HEIGHT_FIELD_BLOCK_H__
 
-#include "common/frame.h"
+#include "common/Frame.h"
 
 class HeightFieldBlock {
   public:

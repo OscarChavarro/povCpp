@@ -1,9 +1,9 @@
 #ifndef __TRIANGLE_CLASS_H__
 #define __TRIANGLE_CLASS_H__
 
-#include "common/frame.h"
-#include "common/vector.h"
-#include "geom/geometry.h"
+#include "common/Frame.h"
+#include "common/Vector.h"
+#include "geom/Geometry.h"
 
 class Triangle : public Geometry {
   public:

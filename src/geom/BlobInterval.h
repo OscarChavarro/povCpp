@@ -1,7 +1,7 @@
 #ifndef __BLOB_INTERVAL_H__
 #define __BLOB_INTERVAL_H__
 
-#include "common/frame.h"
+#include "common/Frame.h"
 
 class BlobInterval {
   public:

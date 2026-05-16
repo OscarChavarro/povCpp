@@ -1,9 +1,9 @@
 #ifndef __HEIGHT_FIELD_H__
 #define __HEIGHT_FIELD_H__
 
-#include "common/frame.h"
+#include "common/Frame.h"
 #include "geom/HeightFieldBlock.h"
-#include "geom/boxes.h"
+#include "geom/Boxes.h"
 
 class HeightField : public Geometry {
   public:

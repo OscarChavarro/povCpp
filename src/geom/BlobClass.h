@@ -1,10 +1,10 @@
 #ifndef __BLOB_CLASS_H__
 #define __BLOB_CLASS_H__
 
-#include "common/frame.h"
+#include "common/Frame.h"
 #include "geom/BlobElement.h"
 #include "geom/BlobInterval.h"
-#include "geom/geometry.h"
+#include "geom/Geometry.h"
 
 class Blob : public Geometry {
   public:

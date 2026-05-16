@@ -1,8 +1,8 @@
 #ifndef __METHODS_CLASS_H__
 #define __METHODS_CLASS_H__
 
-#include "common/matrices.h"
-#include "common/ray.h"
+#include "common/Matrices.h"
+#include "common/Ray.h"
 
 class PriorityQueueNode;
 class Intersection;

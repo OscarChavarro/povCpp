@@ -1,7 +1,7 @@
 #ifndef __GEOMETRY_CLASS_H__
 #define __GEOMETRY_CLASS_H__
 
-#include "common/frame.h"
+#include "common/Frame.h"
 
 class Methods;
 class SimpleBody;

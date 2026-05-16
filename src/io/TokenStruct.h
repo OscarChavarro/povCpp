@@ -1,7 +1,7 @@
 #ifndef __TOKEN_STRUCT_H__
 #define __TOKEN_STRUCT_H__
 
-#include "common/frame.h"
+#include "common/Frame.h"
 
 class TokenStruct {
   public:

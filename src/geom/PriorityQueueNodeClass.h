@@ -15,7 +15,7 @@ class PriorityQueueNode {
     void add(Intersection *queue_entry);
     Intersection *getHighest();
     void deleteHighest();
-    void PushBackToPool();
+    void pushBackToPool();
 };
 
 #endif
