@@ -7,13 +7,36 @@ static constexpr int READ_MODE = 0;
 static constexpr int WRITE_MODE = 1;
 static constexpr int APPEND_MODE = 2;
 
-#define defaultFileName(h) ((*((h)->Default_File_Name_p))())
-#define openFile(h, n, wd, ht, sz, m)                                         \
-    ((*((h)->Open_File_p))(h, n, wd, ht, sz, m))
-#define writeLine(h, l, n) ((*((h)->Write_Line_p))(h, l, n))
-#define readLine(h, l, n) ((*((h)->Read_Line_p))(h, l, n))
-#define readImage(h, i) ((*((h)->Read_Image_p))(h, i))
-#define closeFile(h) ((*((h)->Close_File_p))(h))
+inline char *defaultFileName(FileHandle *h)
+{
+    return ((*((h)->Default_File_Name_p))());
+}
+
+inline int openFile(
+    FileHandle *h, char *n, int *wd, int *ht, int sz, int m)
+{
+    return ((*((h)->Open_File_p))(h, n, wd, ht, sz, m));
+}
+
+inline void writeLine(FileHandle *h, RGBAColor *l, int n)
+{
+    ((*((h)->Write_Line_p))(h, l, n));
+}
+
+inline int readLine(FileHandle *h, RGBAColor *l, int *n)
+{
+    return ((*((h)->Read_Line_p))(h, l, n));
+}
+
+inline void readImage(FileHandle *h, RGBAImage *i)
+{
+    (((*((h)->Read_Image_p))(i, (h)->filename)));
+}
+
+inline void closeFile(FileHandle *h)
+{
+    ((*((h)->Close_File_p))(h));
+}
 
 extern FileHandle *getDumpFileHandle(void);
 extern char *defaultDumpFileName(void);

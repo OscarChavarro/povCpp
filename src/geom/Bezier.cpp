@@ -30,9 +30,7 @@
 /*===========================================================================*/
 
 #undef EPSILON
-#ifndef EPSILON
 static constexpr double EPSILON = 1.0e-10;
-#endif
 
 Methods Bicubic_Patch_Methods = {objectIntersect,
     allBicubicPatchIntersections, insideBicubicPatch, bicubicPatchNormal,
@@ -1589,7 +1587,8 @@ translateBicubicPatch(SimpleBody *object, Vector3D *vector)
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             VAdd(patch->Control_Points[i][j], patch->Control_Points[i][j],
-                *vector) precomputePatchValues(patch);
+                *vector);
+    precomputePatchValues(patch);
     translateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
 }
 

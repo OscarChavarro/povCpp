@@ -80,8 +80,8 @@ MakeBlob(
     /* Initialize the blob data */
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
-        if (fabs(temp->elem.coeffs[2]) < EPSILON ||
-            temp->elem.radius2 < EPSILON) {
+        if (fabs(temp->elem.coeffs[2]) < kEpsilon ||
+            temp->elem.radius2 < kEpsilon) {
             perror("Degenerate blob element\n");
         }
         /* Store blob specific information */
@@ -133,7 +133,7 @@ determineInfluences(Vector3D *p, Vector3D *d, Blob *blob, DBL mindist)
         VDot(b, v, *d);
         VDot(t, v, v);
         disc = b * b - t + blob->list[i].radius2;
-        if (disc < EPSILON) {
+        if (disc < kEpsilon) {
             continue;
         }
         disc = sqrt(disc);
@@ -257,7 +257,7 @@ validateHit(Blob *blob, Vector3D *p)
         }
     }
     VDot(val, n, n);
-    if (val < EPSILON) {
+    if (val < kEpsilon) {
         return 0;
     }
     return 1;
@@ -532,7 +532,7 @@ blobNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
     }
     val =
         (result->x * result->x + result->y * result->y + result->z * result->z);
-    if (val < EPSILON) {
+    if (val < kEpsilon) {
         result->x = 1.0;
         result->y = 0.0;
         result->z = 0.0;

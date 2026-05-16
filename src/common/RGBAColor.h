@@ -1,9 +1,7 @@
 #ifndef __RGBA_COLOR_H__
 #define __RGBA_COLOR_H__
 
-#ifndef DBL
-#define DBL double
-#endif
+using DBL = double;
 
 class RGBAColor {
   public:

@@ -129,12 +129,6 @@ static int globalIncludeFileIndex;
 
 TokenStruct globalToken;
 
-#define CALL(x)                                                                \
-    {                                                                          \
-        if (!(x))                                                              \
-            return (FALSE);                                                    \
-    }
-
 void
 initializeTokenizer(char *filename)
 {
@@ -200,7 +194,7 @@ getToken()
 {
     register int c;
     register int c2;
-    COOPERATE
+    cooperate();
     if (stopFlag) {
         closeAll();
         exit(1);
@@ -586,8 +580,11 @@ DataFile::parseComments()
             this->Line_Number++;
         }
 
-        if (c == (int)'{')
-            CALL(this->parseComments())
+        if (c == (int)'{') {
+            if (!this->parseComments()) {
+                return (FALSE);
+            }
+        }
         else {
             endOfComment = (c == (int)'}');
         }

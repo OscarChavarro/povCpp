@@ -134,7 +134,7 @@ initializeNoise()
     for (i = 0; i < NUMBER_OF_WAVES; i++) {
         DNoise(&point, (DBL)i, 0.0, 0.0);
         VNormalize(Wave_Sources[i], point);
-        frequency[i] = (rand() & RNDMASK) / RNDDIVISOR + 0.01;
+        frequency[i] = (rand() & RNDMASK) / rndDivisor + 0.01;
     }
 }
 
@@ -180,7 +180,7 @@ InitRTable()
 
     for (i = 0; i < MAXSIZE; i++) {
         rp.x = rp.y = rp.z = (DBL)i;
-        RTable[i] = (unsigned int)R(&rp) * REALSCALE - 1.0;
+        RTable[i] = (unsigned int)R(&rp) * realScale - 1.0;
     }
 }
 
@@ -233,9 +233,9 @@ setupLattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz, long *jx,
     *jy = *iy + 1;
     *jz = *iz + 1;
 
-    *sx = SCURVE(*x - *ix);
-    *sy = SCURVE(*y - *iy);
-    *sz = SCURVE(*z - *iz);
+    *sx = sCurve(*x - *ix);
+    *sy = sCurve(*y - *iy);
+    *sz = sCurve(*z - *iz);
 
     /* the complement values of sx,sy,sz */
     *tx = 1.0 - *sx;
@@ -264,29 +264,29 @@ Noise(DBL x, DBL y, DBL z)
     /*
      *  interpolate!
      */
-    m = Hash3d(ix, iy, iz) & 0xFF;
-    sum = INCRSUM(m, (tx * ty * tz), (x - ix), (y - iy), (z - iz));
+    m = hash3d(ix, iy, iz) & 0xFF;
+    sum = incrSum(m, (tx * ty * tz), (x - ix), (y - iy), (z - iz));
 
-    m = Hash3d(jx, iy, iz) & 0xFF;
-    sum += INCRSUM(m, (sx * ty * tz), (x - jx), (y - iy), (z - iz));
+    m = hash3d(jx, iy, iz) & 0xFF;
+    sum += incrSum(m, (sx * ty * tz), (x - jx), (y - iy), (z - iz));
 
-    m = Hash3d(ix, jy, iz) & 0xFF;
-    sum += INCRSUM(m, (tx * sy * tz), (x - ix), (y - jy), (z - iz));
+    m = hash3d(ix, jy, iz) & 0xFF;
+    sum += incrSum(m, (tx * sy * tz), (x - ix), (y - jy), (z - iz));
 
-    m = Hash3d(jx, jy, iz) & 0xFF;
-    sum += INCRSUM(m, (sx * sy * tz), (x - jx), (y - jy), (z - iz));
+    m = hash3d(jx, jy, iz) & 0xFF;
+    sum += incrSum(m, (sx * sy * tz), (x - jx), (y - jy), (z - iz));
 
-    m = Hash3d(ix, iy, jz) & 0xFF;
-    sum += INCRSUM(m, (tx * ty * sz), (x - ix), (y - iy), (z - jz));
+    m = hash3d(ix, iy, jz) & 0xFF;
+    sum += incrSum(m, (tx * ty * sz), (x - ix), (y - iy), (z - jz));
 
-    m = Hash3d(jx, iy, jz) & 0xFF;
-    sum += INCRSUM(m, (sx * ty * sz), (x - jx), (y - iy), (z - jz));
+    m = hash3d(jx, iy, jz) & 0xFF;
+    sum += incrSum(m, (sx * ty * sz), (x - jx), (y - iy), (z - jz));
 
-    m = Hash3d(ix, jy, jz) & 0xFF;
-    sum += INCRSUM(m, (tx * sy * sz), (x - ix), (y - jy), (z - jz));
+    m = hash3d(ix, jy, jz) & 0xFF;
+    sum += incrSum(m, (tx * sy * sz), (x - ix), (y - jy), (z - jz));
 
-    m = Hash3d(jx, jy, jz) & 0xFF;
-    sum += INCRSUM(m, (sx * sy * sz), (x - jx), (y - jy), (z - jz));
+    m = hash3d(jx, jy, jz) & 0xFF;
+    sum += incrSum(m, (sx * sy * sz), (x - jx), (y - jy), (z - jz));
 
     sum = sum + 0.5; /* range at this point -0.5 - 0.5... */
 
@@ -324,63 +324,63 @@ DNoise(Vector3D *result, DBL x, DBL y, DBL z)
     /*
      *  interpolate!
      */
-    m = Hash3d(ix, iy, iz) & 0xFF;
+    m = hash3d(ix, iy, iz) & 0xFF;
     px = x - ix;
     py = y - iy;
     pz = z - iz;
     s = tx * ty * tz;
-    result->x = INCRSUM(m, s, px, py, pz);
-    result->y = INCRSUM(m + 4, s, px, py, pz);
-    result->z = INCRSUM(m + 8, s, px, py, pz);
+    result->x = incrSum(m, s, px, py, pz);
+    result->y = incrSum(m + 4, s, px, py, pz);
+    result->z = incrSum(m + 8, s, px, py, pz);
 
-    m = Hash3d(jx, iy, iz) & 0xFF;
+    m = hash3d(jx, iy, iz) & 0xFF;
     px = x - jx;
     s = sx * ty * tz;
-    result->x += INCRSUM(m, s, px, py, pz);
-    result->y += INCRSUM(m + 4, s, px, py, pz);
-    result->z += INCRSUM(m + 8, s, px, py, pz);
+    result->x += incrSum(m, s, px, py, pz);
+    result->y += incrSum(m + 4, s, px, py, pz);
+    result->z += incrSum(m + 8, s, px, py, pz);
 
-    m = Hash3d(jx, jy, iz) & 0xFF;
+    m = hash3d(jx, jy, iz) & 0xFF;
     py = y - jy;
     s = sx * sy * tz;
-    result->x += INCRSUM(m, s, px, py, pz);
-    result->y += INCRSUM(m + 4, s, px, py, pz);
-    result->z += INCRSUM(m + 8, s, px, py, pz);
+    result->x += incrSum(m, s, px, py, pz);
+    result->y += incrSum(m + 4, s, px, py, pz);
+    result->z += incrSum(m + 8, s, px, py, pz);
 
-    m = Hash3d(ix, jy, iz) & 0xFF;
+    m = hash3d(ix, jy, iz) & 0xFF;
     px = x - ix;
     s = tx * sy * tz;
-    result->x += INCRSUM(m, s, px, py, pz);
-    result->y += INCRSUM(m + 4, s, px, py, pz);
-    result->z += INCRSUM(m + 8, s, px, py, pz);
+    result->x += incrSum(m, s, px, py, pz);
+    result->y += incrSum(m + 4, s, px, py, pz);
+    result->z += incrSum(m + 8, s, px, py, pz);
 
-    m = Hash3d(ix, jy, jz) & 0xFF;
+    m = hash3d(ix, jy, jz) & 0xFF;
     pz = z - jz;
     s = tx * sy * sz;
-    result->x += INCRSUM(m, s, px, py, pz);
-    result->y += INCRSUM(m + 4, s, px, py, pz);
-    result->z += INCRSUM(m + 8, s, px, py, pz);
+    result->x += incrSum(m, s, px, py, pz);
+    result->y += incrSum(m + 4, s, px, py, pz);
+    result->z += incrSum(m + 8, s, px, py, pz);
 
-    m = Hash3d(jx, jy, jz) & 0xFF;
+    m = hash3d(jx, jy, jz) & 0xFF;
     px = x - jx;
     s = sx * sy * sz;
-    result->x += INCRSUM(m, s, px, py, pz);
-    result->y += INCRSUM(m + 4, s, px, py, pz);
-    result->z += INCRSUM(m + 8, s, px, py, pz);
+    result->x += incrSum(m, s, px, py, pz);
+    result->y += incrSum(m + 4, s, px, py, pz);
+    result->z += incrSum(m + 8, s, px, py, pz);
 
-    m = Hash3d(jx, iy, jz) & 0xFF;
+    m = hash3d(jx, iy, jz) & 0xFF;
     py = y - iy;
     s = sx * ty * sz;
-    result->x += INCRSUM(m, s, px, py, pz);
-    result->y += INCRSUM(m + 4, s, px, py, pz);
-    result->z += INCRSUM(m + 8, s, px, py, pz);
+    result->x += incrSum(m, s, px, py, pz);
+    result->y += incrSum(m + 4, s, px, py, pz);
+    result->z += incrSum(m + 8, s, px, py, pz);
 
-    m = Hash3d(ix, iy, jz) & 0xFF;
+    m = hash3d(ix, iy, jz) & 0xFF;
     px = x - ix;
     s = tx * ty * sz;
-    result->x += INCRSUM(m, s, px, py, pz);
-    result->y += INCRSUM(m + 4, s, px, py, pz);
-    result->z += INCRSUM(m + 8, s, px, py, pz);
+    result->x += incrSum(m, s, px, py, pz);
+    result->y += incrSum(m + 4, s, px, py, pz);
+    result->z += incrSum(m + 8, s, px, py, pz);
 }
 
 DBL
@@ -393,7 +393,7 @@ Turbulence(DBL x, DBL y, DBL z, int octaves)
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
         value = Noise(x / scale, y / scale, z / scale);
-        t += FABS(value) * scale;
+        t += fabsInline(value) * scale;
     }
     return (t);
 }

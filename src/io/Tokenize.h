@@ -136,9 +136,7 @@ static constexpr int BUMPSIZE_TOKEN = 123;
 static constexpr int MATERIAL_MAP_TOKEN = 124;
 static constexpr int ONION_TOKEN = 125;
 static constexpr int LEOPARD_TOKEN = 126;
-#define DUMMY_TOKEN                                                            \
-    127 /* Dummy token to pad list because some colour_tokens are used twice   \
-         */
+static constexpr int DUMMY_TOKEN = 127; // Dummy token to pad list because some colour_tokens are used twice
 static constexpr int INTERPOLATE_TOKEN = 128;
 static constexpr int HEIGHT_FIELD_TOKEN = 129;
 static constexpr int POT_TOKEN = 130;

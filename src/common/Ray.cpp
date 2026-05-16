@@ -26,12 +26,12 @@
 
 /*===========================================================================*/
 
-#define Mix(a, b, c)                                                           \
-    {                                                                          \
-        (a).x = (b).x * (c).y;                                                 \
-        (a).y = (b).x * (c).z;                                                 \
-        (a).z = (b).y * (c).z;                                                 \
-    }
+inline void mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c)
+{
+    a.x = b.x * c.y;
+    a.y = b.x * c.z;
+    a.z = b.y * c.z;
+}
 
 /*===========================================================================*/
 
@@ -43,10 +43,10 @@ Ray::makeRay()
     VSquareTerms(this->Initial_2, this->Initial);
     VSquareTerms(this->Direction_2, this->Direction);
     VEvaluate(this->Initial_Direction, this->Initial, this->Direction);
-    Mix(this->Mixed_Initial_Initial, this->Initial, this->Initial);
-    Mix(this->Mixed_Dir_Dir, this->Direction, this->Direction);
-    Mix(tempInitDir, this->Initial, this->Direction);
-    Mix(this->Mixed_Init_Dir, this->Direction, this->Initial);
+    mixVectorTerms(this->Mixed_Initial_Initial, this->Initial, this->Initial);
+    mixVectorTerms(this->Mixed_Dir_Dir, this->Direction, this->Direction);
+    mixVectorTerms(tempInitDir, this->Initial, this->Direction);
+    mixVectorTerms(this->Mixed_Init_Dir, this->Direction, this->Initial);
     VAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, tempInitDir);
     this->Quadric_Constants_Cached = TRUE;
 }

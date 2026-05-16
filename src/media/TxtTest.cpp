@@ -63,7 +63,7 @@ painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
         DNoise(&colourVector, x, y, z);
         temp = Noise(colourVector.x * 4 * scale, colourVector.y * 4 * scale,
             colourVector.z * 4 * scale);
-        temp = FABS(temp);
+        temp = fabsInline(temp);
         result.x += temp / scale;
         result.y += temp / scale;
         result.z += temp / scale;
@@ -114,7 +114,7 @@ painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
         z += textureTurbulence.z * turb;
     }
 
-    brkindx = (int)FLOOR(x) + (int)FLOOR(z);
+    brkindx = (int)floorInline(x) + (int)floorInline(z);
 
     if (Options & DEBUGGING) {
         printf("checker %g %g %g\n", x, y, z);

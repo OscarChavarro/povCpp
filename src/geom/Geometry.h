@@ -32,23 +32,56 @@ class Methods;
 class Geometry;
 class SimpleBody;
 
-#define allIntersections(x, y, z)                                             \
-    ((*((x)->methods->All_Intersections_Method))(x, y, z))
-#define Intersection(x, y)                                                     \
-    ((Intersection *)((*((x)->methods->Intersection_Method))(x, y)))
-#define Inside(x, y) ((*((y)->methods->Inside_Method))(x, y))
-#define Normal(x, y, z) ((*((y)->methods->Normal_Method))(x, y, z))
-#define Copy(x) ((*((x)->methods->Copy_Method))(x))
-#define Translate(x, y) ((*((x)->methods->Translate_Method))(x, y))
-#define Scale(x, y) ((*((x)->methods->Scale_Method))(x, y))
-#define Rotate(x, y) ((*((x)->methods->Rotate_Method))(x, y))
-#define Invert(x) ((*((x)->methods->Invert_Method))(x))
-
 #include "geom/GeometryClass.h"
 #include "geom/MethodsClass.h"
 #include "geom/SimpleBody.h"
 
 #include "geom/PrioQ.h"
 #include "media/Texture.h"
+
+inline int allIntersections(SimpleBody *x, Ray *y, PriorityQueueNode *z)
+{
+    return ((*((x)->methods->All_Intersections_Method))(x, y, z));
+}
+
+inline Intersection *intersect(SimpleBody *x, Ray *y)
+{
+    return (Intersection *)((*((x)->methods->Intersection_Method))(x, y));
+}
+
+inline int Inside(Vector3D *x, SimpleBody *y)
+{
+    return ((*((y)->methods->Inside_Method))(x, y));
+}
+
+inline void Normal(Vector3D *x, SimpleBody *y, Vector3D *z)
+{
+    ((*((y)->methods->Normal_Method))(x, y, z));
+}
+
+inline void *Copy(SimpleBody *x)
+{
+    return ((*((x)->methods->Copy_Method))(x));
+}
+
+inline void Translate(SimpleBody *x, Vector3D *y)
+{
+    ((*((x)->methods->Translate_Method))(x, y));
+}
+
+inline void Scale(SimpleBody *x, Vector3D *y)
+{
+    ((*((x)->methods->Scale_Method))(x, y));
+}
+
+inline void Rotate(SimpleBody *x, Vector3D *y)
+{
+    ((*((x)->methods->Rotate_Method))(x, y));
+}
+
+inline void Invert(SimpleBody *x)
+{
+    ((*((x)->methods->Invert_Method))(x));
+}
 
 #endif

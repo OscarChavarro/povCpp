@@ -26,37 +26,22 @@
 /* Generic header for all modules */
 #include "common/Config.h"
 #include <cmath>
+#include <ctime>
 #include <cstdio>
 #include <cstring>
 
-#ifndef DBL
-#define DBL double
-#endif
-
 #include "common/Colour.h"
 
-#ifndef READ_ENV_VAR_BEFORE
-#define READ_ENV_VAR_BEFORE
-#endif
-#ifndef READ_ENV_VAR_AFTER
-#define READ_ENV_VAR_AFTER                                                     \
-    if ((Option_String_Ptr = getenv("POVRAYOPT")) != NULL)                     \
-        readOptions(Option_String_Ptr);
-#endif
+static inline void readEnvVarBefore() {}
 
-#ifndef CONFIG_MATH
-#define CONFIG_MATH
-#endif
+static inline void readEnvVarAfter(char *optionStringPtr)
+{
+    (void)optionStringPtr;
+}
 
-#ifndef EPSILON
-#define EPSILON 1.0e-10
-#endif
+static inline void configMath() {}
 
 static constexpr int FILE_NAME_LENGTH = 150;
-
-#ifndef HUGE_VAL
-#define HUGE_VAL 1.0e+17
-#endif
 
 static constexpr const char *DBL_FORMAT_STRING = "%lf";
 
@@ -83,102 +68,50 @@ static constexpr char NORMAL = '0';
 
 static constexpr char GREY = 'G';
 
-#ifndef START_TIME
-#define START_TIME time(&tstart);
-#endif
+static inline void startTime(time_t *tstart) { std::time(tstart); }
 
-#ifndef STOP_TIME
-#define STOP_TIME time(&tstop);
-#endif
+static inline void stopTime(time_t *tstop) { std::time(tstop); }
+static inline void printOtherCredits() {}
 
-#ifndef TIME_ELAPSED
-#define TIME_ELAPSED difftime(tstop, tstart);
-#endif
+static inline void testAbort() {}
 
-#ifndef STARTUP_POVRAY
-#define STARTUP_POVRAY
-#endif
+static inline void finishPovray() {}
 
-#ifndef PRINT_OTHER_CREDITS
-#define PRINT_OTHER_CREDITS
-#endif
+static inline void cooperate() {}
 
-#ifndef TEST_ABORT
-#define TEST_ABORT
-#endif
+static inline DBL acosInline(DBL value) { return acos(value); }
 
-#ifndef FINISH_POVRAY
-#define FINISH_POVRAY
-#endif
+static inline DBL sqrtInline(DBL value) { return sqrt(value); }
 
-#ifndef COOPERATE
-#define COOPERATE
-#endif
+static inline DBL powInline(DBL base, DBL exp) { return pow(base, exp); }
 
-#ifndef ACOS
-#define ACOS acos
-#endif
+static inline DBL cosInline(DBL value) { return cos(value); }
 
-#ifndef SQRT
-#define SQRT sqrt
-#endif
+static inline DBL sinInline(DBL value) { return sin(value); }
 
-#ifndef POW
-#define POW pow
-#endif
+inline long labsInline(long x)
+{
+    return (x < 0) ? -x : x;
+}
 
-#ifndef COS
-#define COS cos
-#endif
+template <typename T>
+inline T maxInline(T x, T y)
+{
+    return (x < y) ? y : x;
+}
 
-#ifndef SIN
-#define SIN sin
-#endif
-
-#ifndef labs
-#define labs(x) (long)((x < 0) ? -x : x)
-#endif
-
-#ifndef max
-#define max(x, y) ((x < y) ? y : x)
-#endif
-
-#ifndef STRLN
-#define STRLN(x) x
-#endif
-
-#ifndef PARAMS
-#define PARAMS(x) x
-#endif
-
-#ifndef ANSIFUNC
-#define ANSIFUNC 1
-#endif
-
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626
-#endif
+static constexpr int ansiFunc = 1;
 
 static constexpr int TRUE = 1;
 static constexpr int FALSE = 0;
 
-#ifndef IFF_SWITCH_CAST
-#define IFF_SWITCH_CAST (int)
-#endif
+static inline void printCreditsInline() {}
 
-#ifndef PRINT_CREDITS
-#define PRINT_CREDITS printCredits();
-#endif
-
-#ifndef PRINT_STATS
-#define PRINT_STATS printStats();
-#endif
+static inline void printStatsInline() {}
 
 static constexpr int MAX_CONSTANTS = 1000;
 
-#ifndef WAIT_FOR_KEYPRESS
-#define WAIT_FOR_KEYPRESS
-#endif
+static inline void waitForKeypress() {}
 
 /* If compiler version is undefined, then make it 'u' for unknown */
 static constexpr const char *COMPILER_VER = ".u";

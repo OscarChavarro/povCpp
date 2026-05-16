@@ -50,10 +50,12 @@ extern long numberOfPixels, numberOfRays, numberOfPixelsSupersampled;
 
 extern short *hashTable;
 extern unsigned short crctab[256];
-#define rand3d(a, b)                                                           \
-    crctab[(int)(hashTable[(int)(hashTable[(int)((a)&0xfff)] ^ (b)) &          \
-                           0xfff]) &                                           \
-           0xff]
+inline unsigned short rand3dInline(int a, int b)
+{
+    return crctab[(int)(hashTable[(int)(hashTable[(int)(a & 0xfff)] ^ b) &
+                                  0xfff]) &
+                  0xff];
+}
 
 Frame globalFrame;
 Ray *vpRay;
@@ -115,9 +117,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
 
     makeColour(result, 0.0, 0.0, 0.0);
 
-    jitterX = (rand3d(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+    jitterX = (rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+    jitterY = (rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
               0.16666666;
     createRay(vpRay, globalFrame.Screen_Width, globalFrame.Screen_Height,
         dx + jitterX, dy + jitterY);
@@ -129,10 +131,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX - 0.3333333,
@@ -144,10 +146,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
@@ -158,10 +160,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX - 0.3333333,
@@ -173,10 +175,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
@@ -187,10 +189,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
@@ -201,10 +203,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX + 0.3333333,
@@ -216,10 +218,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
@@ -230,10 +232,10 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     addColour(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     createRay(vpRay, width, height, dx + jitterX + 0.3333333,
@@ -279,7 +281,7 @@ readRenderedPart()
                     blue = (unsigned char)(previousLine[x].Blue * maxclr);
                 }
                 displayPlot(x, lineNumber, red, green, blue);
-                COOPERATE /* Moved inside loop JLN 12/91 */
+                cooperate(); /* Moved inside loop JLN 12/91 */
             }
         }
     }
@@ -318,11 +320,11 @@ startTracing()
 
         for (x = 0; x < globalFrame.Screen_Width; x++) {
 
-            TEST_ABORT
+            testAbort();
 
             if (stopFlag) {
                 closeAll();
-                PRINT_STATS
+                printStatsInline();
                 /* exit with error if image not completed/user abort*/
                 exit(2);
             }
@@ -528,7 +530,7 @@ Trace(Ray *ray, RGBAColor *colour)
     Intersection *newIntersection;
     register int intersectionFound;
 
-    COOPERATE
+    cooperate();
     numberOfRays++;
     makeColour(colour, 0.0, 0.0, 0.0);
 
@@ -552,8 +554,8 @@ Trace(Ray *ray, RGBAColor *colour)
     /* What objects does this ray intersect? */
     for (object = globalFrame.Objects; object != nullptr;
          object = object->Next_Object) {
-        COOPERATE
-        if ((newIntersection = Intersection(object, ray)) != nullptr) {
+        cooperate();
+        if ((newIntersection = intersect(object, ray)) != nullptr) {
             if (intersectionFound) {
                 if (localIntersection->Depth > newIntersection->Depth) {
                     delete localIntersection;
