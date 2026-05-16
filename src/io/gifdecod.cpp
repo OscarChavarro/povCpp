@@ -1,22 +1,22 @@
 /****************************************************************************
-*                         gifdecod.c
-*
-*  from Persistence of Vision Raytracer 
-*  Copyright 1992 Persistence of Vision Team
-*---------------------------------------------------------------------------
-*  Copying, distribution and legal info is in the file povlegal.doc which
-*  should be distributed with this file. If povlegal.doc is not available
-*  or for more info please contact:
-*
-*         Drew Wells [POV-Team Leader] 
-*         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
-*         Phone: (213) 254-4041
-* 
-* This program is based on the popular DKB raytracer version 2.12.
-* DKBTrace was originally written by David K. Buck.
-* DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
-*
-*****************************************************************************/
+ *                         gifdecod.c
+ *
+ *  from Persistence of Vision Raytracer
+ *  Copyright 1992 Persistence of Vision Team
+ *---------------------------------------------------------------------------
+ *  Copying, distribution and legal info is in the file povlegal.doc which
+ *  should be distributed with this file. If povlegal.doc is not available
+ *  or for more info please contact:
+ *
+ *         Drew Wells [POV-Team Leader]
+ *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
+ *         Phone: (213) 254-4041
+ *
+ * This program is based on the popular DKB raytracer version 2.12.
+ * DKBTrace was originally written by David K. Buck.
+ * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
+ *
+ *****************************************************************************/
 
 /*
     This module was freely borrowed from FRACTINT, so here is their entire
@@ -40,7 +40,7 @@
  * It is, however, somewhat noticably faster in most cases.
  *
  == This routine was modified for use in FRACTINT in two ways.
- == 
+ ==
  == 1) The original #includes were folded into the routine strictly to hold
  ==     down the number of files we were dealing with.
  ==
@@ -49,8 +49,8 @@
  ==     program could use the same array space for several independent
  ==     chunks of code.  Also, 'stack' was renamed to 'dstack' for TASM
  ==     compatibility.
- == 
- == 3) The 'out_line()' external function has been changed to reference 
+ ==
+ == 3) The 'out_line()' external function has been changed to reference
  ==     '*outln()' for flexibility (in particular, 3D transformations)
  ==
  == 4) A call to 'keypressed()' has been added after the 'outln()' calls
@@ -59,19 +59,21 @@
  == (Bert Tyler and Timothy Wegner)
 */
 
-/* 
-    This routine was modified for Persistence of Vision Raytracer in the following ways:
+/*
+    This routine was modified for Persistence of Vision Raytracer in the
+   following ways:
 
     1)  Removed calls to buzzer() and keypressed() to get rid of ASM files.
 
     2)  The dstack, suffix, and prefix arrays were made STATIC once again.
 
-    3)  Added the usual ANSI function prototypes, etc. in the Persistence of Vision Raytracer headers.
+    3)  Added the usual ANSI function prototypes, etc. in the Persistence of
+   Vision Raytracer headers.
 */
 
+#include "io/gifdecod.h"
 #include "common/frame.h"
 #include "common/povproto.h"
-#include "io/gifdecod.h"
 #include "io/gif.h"
 
 #define LOCAL static
@@ -87,7 +89,6 @@ typedef long LONG;
 typedef unsigned long ULONG;
 typedef int INT;
 
-
 /* Various error codes used by decoder
  * and my own routines...    It's okay
  * for you to define whatever you want,
@@ -101,7 +102,6 @@ typedef int INT;
 #define WRITE_ERROR -2
 #define OPEN_ERROR -3
 #define CREATE_ERROR -4
-
 
 /* IMPORT INT get_byte()
  *
@@ -120,35 +120,27 @@ IMPORT INT get_byte();
  */
 INT bad_code_count;
 
-#define MAX_CODES    4095
+#define MAX_CODES 4095
 
 /* Static variables */
-LOCAL WORD curr_size;                            /* The current code size */
-LOCAL WORD clear;                                 /* Value for a clear code */
-LOCAL WORD ending;                                /* Value for a ending code */
-LOCAL WORD newcodes;                             /* First available code */
-LOCAL WORD top_slot;                             /* Highest code for current size */
-LOCAL WORD slot;                                  /* Last read code */
+LOCAL WORD curr_size; /* The current code size */
+LOCAL WORD clear;     /* Value for a clear code */
+LOCAL WORD ending;    /* Value for a ending code */
+LOCAL WORD newcodes;  /* First available code */
+LOCAL WORD top_slot;  /* Highest code for current size */
+LOCAL WORD slot;      /* Last read code */
 
 /* The following static variables are used
  * for seperating out codes
  */
-LOCAL WORD navail_bytes = 0;                  /* # bytes left in block */
-LOCAL WORD nbits_left = 0;                     /* # bits left in current byte */
-LOCAL UTINY b1;                                    /* Current byte */
-LOCAL UTINY byte_buff[257];                    /* Current block */
-LOCAL UTINY *pbytes;                             /* Pointer to next byte in block */
+LOCAL WORD navail_bytes = 0; /* # bytes left in block */
+LOCAL WORD nbits_left = 0;   /* # bits left in current byte */
+LOCAL UTINY b1;              /* Current byte */
+LOCAL UTINY byte_buff[257];  /* Current block */
+LOCAL UTINY *pbytes;         /* Pointer to next byte in block */
 
-LOCAL LONG code_mask[13] = {
-    0,
-    0x0001, 0x0003,
-    0x0007, 0x000F,
-    0x001F, 0x003F,
-    0x007F, 0x00FF,
-    0x01FF, 0x03FF,
-    0x07FF, 0x0FFF
-};
-
+LOCAL LONG code_mask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
+    0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF};
 
 /* This function initializes the decoder for reading a new image.
  */
@@ -163,7 +155,7 @@ init_exp(int i_size)
     ending = clear + 1;
     slot = newcodes = ending + 1;
     navail_bytes = nbits_left = 0;
-    return(0);
+    return (0);
 }
 
 /* get_next_code()
@@ -176,23 +168,20 @@ get_next_code()
     WORD i, x;
     ULONG ret;
 
-    if (nbits_left == 0)
-    {
-        if (navail_bytes <= 0)
-        {
+    if (nbits_left == 0) {
+        if (navail_bytes <= 0) {
 
             /* Out of bytes in current block, so read next block
              */
             pbytes = byte_buff;
-            if ((navail_bytes = get_byte()) < 0)
-                return(navail_bytes);
-            else if (navail_bytes)
-            {
-                for (i = 0; i < navail_bytes; ++i)
-                {
+            if ((navail_bytes = get_byte()) < 0) {
+                return (navail_bytes);
+            }
+            if (navail_bytes) {
+                for (i = 0; i < navail_bytes; ++i) {
                     if ((x = get_byte()) < 0)
-                        return(x);
-                    byte_buff[i] = (UTINY) x;
+                        return (x);
+                    byte_buff[i] = (UTINY)x;
                 }
             }
         }
@@ -202,23 +191,20 @@ get_next_code()
     }
 
     ret = b1 >> (8 - nbits_left);
-    while (curr_size > nbits_left)
-    {
-        if (navail_bytes <= 0)
-        {
+    while (curr_size > nbits_left) {
+        if (navail_bytes <= 0) {
 
             /* Out of bytes in current block, so read next block
              */
             pbytes = byte_buff;
-            if ((navail_bytes = get_byte()) < 0)
-                return(navail_bytes);
-            else if (navail_bytes)
-            {
-                for (i = 0; i < navail_bytes; ++i)
-                {
+            if ((navail_bytes = get_byte()) < 0) {
+                return (navail_bytes);
+            }
+            if (navail_bytes) {
+                for (i = 0; i < navail_bytes; ++i) {
                     if ((x = get_byte()) < 0)
-                        return(x);
-                    byte_buff[i] = (UTINY) x;
+                        return (x);
+                    byte_buff[i] = (UTINY)x;
                 }
             }
         }
@@ -229,9 +215,8 @@ get_next_code()
     }
     nbits_left -= curr_size;
     ret &= code_mask[curr_size];
-    return((WORD)(ret));
+    return ((WORD)(ret));
 }
-
 
 /* The reason we have these seperated like this instead of using
  * a structure like the original Wilhite code did, is because this
@@ -248,10 +233,10 @@ The arrays are actually declared in the assembler source.
                                                                      Bert Tyler
 */
 
-LOCAL UTINY *dstack;        /* Stack for storing pixels */
-LOCAL UTINY *suffix;        /* Suffix table */
-LOCAL UWORD *prefix;        /* Prefix linked list */
-extern UTINY *decoderline;                  /* decoded line goes here */
+LOCAL UTINY *dstack;       /* Stack for storing pixels */
+LOCAL UTINY *suffix;       /* Suffix table */
+LOCAL UWORD *prefix;       /* Prefix linked list */
+extern UTINY *decoderline; /* decoded line goes here */
 
 /* WORD decoder(linewidth)
  *     WORD linewidth;                    * Pixels per line of image *
@@ -273,7 +258,8 @@ extern UTINY *decoderline;                  /* decoded line goes here */
  */
 
 void
-cleanup_gif_decoder() {
+cleanup_gif_decoder()
+{
     delete dstack;
     delete suffix;
     delete prefix;
@@ -292,11 +278,13 @@ decoder(int i_linewidth)
 
     /* Initialize for decoding a new image...
      */
-    if ((size = get_byte()) < 0)
-        return(size);
-    if (size < 2 || 9 < size)
-        return(BAD_CODE_SIZE);
-    init_exp((int)size);          /* changed param to int */
+    if ((size = get_byte()) < 0) {
+        return (size);
+    }
+    if (size < 2 || 9 < size) {
+        return (BAD_CODE_SIZE);
+    }
+    init_exp((int)size); /* changed param to int */
 
     dstack = new UTINY[MAX_CODES + 1];
     suffix = new UTINY[MAX_CODES + 1];
@@ -325,20 +313,18 @@ decoder(int i_linewidth)
      * included for the clear code, and the whole thing ends when we get
      * an ending code.
      */
-    while ((c = get_next_code()) != ending)
-    {
+    while ((c = get_next_code()) != ending) {
 
         /* If we had a file error, return without completing the decode
          */
         if (c < 0) {
             cleanup_gif_decoder();
-            return(0);
+            return (0);
         }
 
         /* If the code is a clear code, reinitialize all necessary items.
          */
-        if (c == clear)
-        {
+        if (c == clear) {
             curr_size = size + 1;
             slot = newcodes;
             top_slot = 1 << curr_size;
@@ -346,22 +332,25 @@ decoder(int i_linewidth)
             /* Continue reading codes until we get a non-clear code
              * (Another unlikely, but possible case...)
              */
-            while ((c = get_next_code()) == clear)
+            while ((c = get_next_code()) == clear) {
                 ;
+            }
 
             /* If we get an ending code immediately after a clear code
              * (Yet another unlikely case), then break out of the loop.
              */
-            if (c == ending)
+            if (c == ending) {
                 break;
+            }
 
             /* Finally, if the code is beyond the range of already set codes,
              * (This one had better NOT happen...  I have no idea what will
              * result from this, but I doubt it will look good...) then set it
              * to color zero.
              */
-            if (c >= slot)
+            if (c >= slot) {
                 c = 0;
+            }
 
             oc = fc = c;
 
@@ -370,21 +359,18 @@ decoder(int i_linewidth)
              * of the line, we have to send the buffer to the out_line()
              * routine...
              */
-            *bufptr++ = (UTINY) c;
-            if (--bufcnt == 0)
-            {
+            *bufptr++ = (UTINY)c;
+            if (--bufcnt == 0) {
                 COOPERATE
                 if ((ret = out_line(buf, linewidth)) < 0) {
                     cleanup_gif_decoder();
-                    return(ret);
+                    return (ret);
                 }
 
                 bufptr = buf;
                 bufcnt = linewidth;
             }
-        }
-        else
-        {
+        } else {
 
             /* In this case, it's not a clear code or an ending code, so
              * it must be a code code...  So we can now decode the code into
@@ -398,19 +384,18 @@ decoder(int i_linewidth)
              * the decoder into thinking it actually got the last code read.
              * (Hmmn... I'm not sure why this works...  But it does...)
              */
-            if (code >= slot)
-            {
-                if (code > slot)
+            if (code >= slot) {
+                if (code > slot) {
                     ++bad_code_count;
+                }
                 code = oc;
-                *sp++ = (UTINY) fc;
+                *sp++ = (UTINY)fc;
             }
 
             /* Here we scan back along the linked list of prefixes, pushing
              * helpless characters (ie. suffixes) onto the stack as we do so.
              */
-            while (code >= newcodes)
-            {
+            while (code >= newcodes) {
                 *sp++ = suffix[code];
                 code = prefix[code];
             }
@@ -422,35 +407,32 @@ decoder(int i_linewidth)
              * suffix and prefix...  I'm not certain if this is correct...
              * it might be more proper to overwrite the last code...
              */
-            *sp++ = (UTINY) code;
-            if (slot < top_slot)
-            {
+            *sp++ = (UTINY)code;
+            if (slot < top_slot) {
                 fc = code;
-                suffix[slot] = (UTINY) fc;
+                suffix[slot] = (UTINY)fc;
                 prefix[slot++] = oc;
                 oc = c;
             }
-            if (slot >= top_slot)
-                if (curr_size < 12)
-                {
+            if (slot >= top_slot) {
+                if (curr_size < 12) {
                     top_slot <<= 1;
                     ++curr_size;
                 }
+            }
 
             /* Now that we've pushed the decoded string (in reverse order)
              * onto the stack, lets pop it off and put it into our decode
              * buffer...  And when the decode buffer is full, write another
              * line...
              */
-            while (sp > dstack)
-            {
+            while (sp > dstack) {
                 *bufptr++ = *(--sp);
-                if (--bufcnt == 0)
-                {
+                if (--bufcnt == 0) {
                     COOPERATE
                     if ((ret = out_line(buf, linewidth)) < 0) {
                         cleanup_gif_decoder();
-                        return(ret);
+                        return (ret);
                     }
                     bufptr = buf;
                     bufcnt = linewidth;
@@ -459,9 +441,10 @@ decoder(int i_linewidth)
         }
     }
     ret = 0;
-    if (bufcnt != linewidth)
+    if (bufcnt != linewidth) {
         ret = out_line(buf, (linewidth - bufcnt));
+    }
 
     cleanup_gif_decoder();
-    return(ret);
+    return (ret);
 }

@@ -2,8 +2,8 @@
 #define __BEZIER_H__
 
 #include "common/frame.h"
-#include "common/vector.h"
 #include "common/povproto.h"
+#include "common/vector.h"
 #include "geom/geometry.h"
 
 #define BEZIER_INTERIOR_NODE 0
@@ -13,30 +13,26 @@
 class BezierVertices;
 class BezierNode;
 
-class BezierChild
-{
+class BezierChild {
   public:
     BezierNode *Children[4];
 };
 
-class BezierVertices
-{
+class BezierVertices {
   public:
     Vector3D Vertices[4];
 };
 
-class BezierNode
-{
+class BezierNode {
   public:
-    int Node_Type;        /* Is this an interior node, or a leaf */
-    Vector3D Center;        /* Center of sphere bounding the (sub)patch */
+    int Node_Type;      /* Is this an interior node, or a leaf */
+    Vector3D Center;    /* Center of sphere bounding the (sub)patch */
     DBL Radius_Squared; /* Radius of bounding sphere (squared) */
-    int Count;             /* # of subpatches associated with this node */
-    void *Data_Ptr;      /* Either pointer to vertices or pointer to children */
+    int Count;          /* # of subpatches associated with this node */
+    void *Data_Ptr;     /* Either pointer to vertices or pointer to children */
 };
 
-class BicubicPatch : public Geometry
-{
+class BicubicPatch : public Geometry {
   public:
     int Patch_Type, U_Steps, V_Steps;
     Vector3D Control_Points[4][4];
@@ -54,9 +50,11 @@ class BicubicPatch : public Geometry
 extern Methods Bicubic_Patch_Methods;
 extern BicubicPatch *Get_Bicubic_Patch_Shape();
 extern void Precompute_Patch_Values(BicubicPatch *Shape);
-extern int All_Bicubic_Patch_Intersections(SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
+extern int All_Bicubic_Patch_Intersections(
+    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
 extern int Inside_Bicubic_Patch(Vector3D *point, SimpleBody *Object);
-extern void Bicubic_Patch_Normal(Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
+extern void Bicubic_Patch_Normal(
+    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
 extern void *Copy_Bicubic_Patch(SimpleBody *Object);
 extern void Translate_Bicubic_Patch(SimpleBody *Object, Vector3D *Vector);
 extern void Rotate_Bicubic_Patch(SimpleBody *Object, Vector3D *Vector);

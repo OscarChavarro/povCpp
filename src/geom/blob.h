@@ -2,8 +2,8 @@
 #define __BLOB_H__
 
 #include "common/frame.h"
-#include "common/vector.h"
 #include "common/povproto.h"
+#include "common/vector.h"
 #include "geom/geometry.h"
 
 /* Blob types */
@@ -18,7 +18,7 @@ class BlobElement {
 class BlobList {
   public:
     BlobElement elem;
-    BlobList * next;
+    BlobList *next;
 };
 
 class BlobInterval {
@@ -27,8 +27,7 @@ class BlobInterval {
     DBL bound;
 };
 
-class Blob : public Geometry
-{
+class Blob : public Geometry {
   public:
     Transformation *Transform;
     short Inverted;
@@ -40,11 +39,14 @@ class Blob : public Geometry
 };
 
 extern Methods Blob_Methods;
-extern Blob *Get_Blob_Shape (void);
-extern void MakeBlob(SimpleBody *obj, DBL threshold, BlobList * bloblist, int npoints, int sflag);
-extern int All_Blob_Intersections(SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
+extern Blob *Get_Blob_Shape(void);
+extern void MakeBlob(
+    SimpleBody *obj, DBL threshold, BlobList *bloblist, int npoints, int sflag);
+extern int All_Blob_Intersections(
+    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
 extern int Inside_Blob(Vector3D *point, SimpleBody *Object);
-extern void Blob_Normal(Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
+extern void Blob_Normal(
+    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
 extern void *Copy_Blob(SimpleBody *Object);
 extern void Translate_Blob(SimpleBody *Object, Vector3D *Vector);
 extern void Rotate_Blob(SimpleBody *Object, Vector3D *Vector);

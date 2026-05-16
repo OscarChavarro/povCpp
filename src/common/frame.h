@@ -1,33 +1,33 @@
 #ifndef __FRAME_H__
 #define __FRAME_H__
 /****************************************************************************
-*                         frame.h
-*
-*  This header file is included by all C modules in POV-Ray. It defines all
-*  globally-accessible types and constants.
-*
-*  from Persistence of Vision Raytracer 
-*  Copyright 1992 Persistence of Vision Team
-*---------------------------------------------------------------------------
-*  Copying, distribution and legal info is in the file povlegal.doc which
-*  should be distributed with this file. If povlegal.doc is not available
-*  or for more info please contact:
-*
-*         Drew Wells [POV-Team Leader] 
-*         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
-*         Phone: (213) 254-4041
-* 
-* This program is based on the popular DKB raytracer version 2.12.
-* DKBTrace was originally written by David K. Buck.
-* DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
-*
-*****************************************************************************/
+ *                         frame.h
+ *
+ *  This header file is included by all C modules in POV-Ray. It defines all
+ *  globally-accessible types and constants.
+ *
+ *  from Persistence of Vision Raytracer
+ *  Copyright 1992 Persistence of Vision Team
+ *---------------------------------------------------------------------------
+ *  Copying, distribution and legal info is in the file povlegal.doc which
+ *  should be distributed with this file. If povlegal.doc is not available
+ *  or for more info please contact:
+ *
+ *         Drew Wells [POV-Team Leader]
+ *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
+ *         Phone: (213) 254-4041
+ *
+ * This program is based on the popular DKB raytracer version 2.12.
+ * DKBTrace was originally written by David K. Buck.
+ * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
+ *
+ *****************************************************************************/
 
 /* Generic header for all modules */
+#include "common/config.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include "common/config.h"
 
 #ifndef DBL
 #define DBL double
@@ -35,11 +35,13 @@
 
 #include "common/colour.h"
 
-#ifndef READ_ENV_VAR_BEFORE 
-#define READ_ENV_VAR_BEFORE 
+#ifndef READ_ENV_VAR_BEFORE
+#define READ_ENV_VAR_BEFORE
 #endif
 #ifndef READ_ENV_VAR_AFTER
-#define READ_ENV_VAR_AFTER if ((Option_String_Ptr = getenv("POVRAYOPT")) != NULL) read_options(Option_String_Ptr);    
+#define READ_ENV_VAR_AFTER                                                     \
+    if ((Option_String_Ptr = getenv("POVRAYOPT")) != NULL)                     \
+        read_options(Option_String_Ptr);
 #endif
 
 #ifndef CONFIG_MATH
@@ -63,7 +65,7 @@
 #endif
 
 #ifndef DEFAULT_OUTPUT_FORMAT
-#define DEFAULT_OUTPUT_FORMAT    'd'
+#define DEFAULT_OUTPUT_FORMAT 'd'
 #endif
 
 #ifndef RED_RAW_FILE_EXTENSION
@@ -84,7 +86,7 @@
 
 /* 0==yes 1==no 2==opt */
 #ifndef CASE_SENSITIVE_DEFAULT
-#define CASE_SENSITIVE_DEFAULT 0 
+#define CASE_SENSITIVE_DEFAULT 0
 #endif
 
 #ifndef READ_FILE_STRING
@@ -104,19 +106,19 @@
 #endif
 
 #ifndef GREY
-#define GREY    'G'
+#define GREY 'G'
 #endif
 
 #ifndef START_TIME
-#define START_TIME time(&tstart);      
+#define START_TIME time(&tstart);
 #endif
 
 #ifndef STOP_TIME
-#define STOP_TIME  time(&tstop);
+#define STOP_TIME time(&tstop);
 #endif
 
 #ifndef TIME_ELAPSED
-#define TIME_ELAPSED difftime (tstop, tstart);
+#define TIME_ELAPSED difftime(tstop, tstart);
 #endif
 
 #ifndef STARTUP_POVRAY
@@ -136,7 +138,7 @@
 #endif
 
 #ifndef COOPERATE
-#define COOPERATE 
+#define COOPERATE
 #endif
 
 #ifndef ACOS
@@ -160,11 +162,11 @@
 #endif
 
 #ifndef labs
-#define labs(x) (long) ((x<0)?-x:x)
+#define labs(x) (long)((x < 0) ? -x : x)
 #endif
 
 #ifndef max
-#define max(x,y) ((x<y)?y:x)
+#define max(x, y) ((x < y) ? y : x)
 #endif
 
 #ifndef STRLN
@@ -212,7 +214,6 @@
 #ifndef COMPILER_VER
 #define COMPILER_VER ".u"
 #endif
-
 
 /* These values determine the minumum and maximum distances
     that qualify as ray-object intersections */

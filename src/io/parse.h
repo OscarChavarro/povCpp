@@ -1,37 +1,39 @@
 #ifndef __PARSE_H__
 #define __PARSE_H__
 
-#include "io/tokenize.h"
-#include "io/targa.h"
-#include "io/raw.h"
+#include "common/frame.h"
 #include "geom/csg.h"
+#include "geom/viewpnt.h"
+#include "io/raw.h"
+#include "io/targa.h"
+#include "io/tokenize.h"
+#include "render/render.h"
 
 /* Types of constants allowed in DECLARE statement (fm. PARSE.C) */
 
-#define OBJECT_CONSTANT                0
-#define VIEW_POINT_CONSTANT          1
-#define VECTOR_CONSTANT                2
-#define FLOAT_CONSTANT                 3
-#define COLOUR_CONSTANT                4
-#define QUADRIC_CONSTANT              5
-#define POLY_CONSTANT                  6
-#define BICUBIC_PATCH_CONSTANT      7
-#define SPHERE_CONSTANT                8
-#define PLANE_CONSTANT                 9
-#define TRIANGLE_CONSTANT            10
-#define SMOOTH_TRIANGLE_CONSTANT  11  
-#define CSG_INTERSECTION_CONSTANT 12    
-#define CSG_UNION_CONSTANT          13
-#define CSG_DIFFERENCE_CONSTANT    14
-#define COMPOSITE_CONSTANT          15
-#define TEXTURE_CONSTANT             16
-#define HEIGHT_FIELD_CONSTANT      17
-#define BOX_CONSTANT                  18
-#define BLOB_CONSTANT                 19
-#define LIGHT_SOURCE_CONSTANT      20
+#define OBJECT_CONSTANT 0
+#define VIEW_POINT_CONSTANT 1
+#define VECTOR_CONSTANT 2
+#define FLOAT_CONSTANT 3
+#define COLOUR_CONSTANT 4
+#define QUADRIC_CONSTANT 5
+#define POLY_CONSTANT 6
+#define BICUBIC_PATCH_CONSTANT 7
+#define SPHERE_CONSTANT 8
+#define PLANE_CONSTANT 9
+#define TRIANGLE_CONSTANT 10
+#define SMOOTH_TRIANGLE_CONSTANT 11
+#define CSG_INTERSECTION_CONSTANT 12
+#define CSG_UNION_CONSTANT 13
+#define CSG_DIFFERENCE_CONSTANT 14
+#define COMPOSITE_CONSTANT 15
+#define TEXTURE_CONSTANT 16
+#define HEIGHT_FIELD_CONSTANT 17
+#define BOX_CONSTANT 18
+#define BLOB_CONSTANT 19
+#define LIGHT_SOURCE_CONSTANT 20
 
-class Constant
-{
+class Constant {
   public:
     int Identifier_Number;
     CONSTANT Constant_Type;

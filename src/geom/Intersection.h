@@ -3,8 +3,7 @@
 
 #include "geom/geometry.h"
 
-class Intersection
-{
+class Intersection {
   public:
     DBL Depth;
     SimpleBody *Object;

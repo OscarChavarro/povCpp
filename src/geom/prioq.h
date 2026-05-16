@@ -3,8 +3,7 @@
 
 #include "geom/Intersection.h"
 
-class PriorityQueueNode
-{
+class PriorityQueueNode {
   private:
     void balance(unsigned int entry_pos1);
 
@@ -14,14 +13,14 @@ class PriorityQueueNode
     PriorityQueueNode *next_pq;
 
     void add(Intersection *queue_entry);
-    Intersection * getHighest();
+    Intersection *getHighest();
     void deleteHighest();
 };
 
-class PriorityQueue
-{
+class PriorityQueue {
   private:
     PriorityQueueNode *head;
+
   public:
     PriorityQueue();
 

@@ -2,13 +2,12 @@
 #define __RENDER_H__
 
 #include "common/frame.h"
-#include "common/vector.h"
 #include "common/povproto.h"
+#include "common/vector.h"
 #include "geom/light.h"
 #include "geom/viewpnt.h"
 
-class Frame
-{
+class Frame {
   public:
     Viewpoint View_Point;
     int Screen_Height, Screen_Width;
@@ -20,7 +19,7 @@ class Frame
 };
 
 extern void Read_Rendered_Part(void);
-extern void Supersample(RGBAColor *result, int x, int y, int Width,int Height);
+extern void Supersample(RGBAColor *result, int x, int y, int Width, int Height);
 extern void Start_Tracing(void);
 extern void Trace(Ray *ray, RGBAColor *Colour);
 extern void Initialize_Renderer(void);
