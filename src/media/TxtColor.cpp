@@ -53,7 +53,7 @@ colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
     switch (texture->Texture_Number) {
     case NO_TEXTURE:
         /* No colouring texture has been specified - make it black. */
-        makeColour(colour, 0.0, 0.0, 0.0);
+        Color::makeColor(colour, 0.0, 0.0, 0.0);
         colour->Alpha = 0.0;
         break;
 

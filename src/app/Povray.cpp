@@ -95,7 +95,7 @@ char colorBits;
 int
 main(int argc, char *argv[])
 {
-    unixInitPovray();
+    UnixPlatform::initPovray();
     PovApp::initializeFromCommandLine(argc, argv);
     PovApp::configureOutputTarget();
     PovApp::parseSceneDescription();
@@ -199,7 +199,7 @@ PovApp::prepareRendering()
 {
     if (Options & DISPLAY) {
         printf("Displaying...\n");
-        displayInit(globalFrame.Screen_Width, globalFrame.Screen_Height);
+        UnixPlatform::displayInit(globalFrame.Screen_Width, globalFrame.Screen_Height);
         displayStarted = TRUE;
     }
 
@@ -279,7 +279,7 @@ PovApp::finalizeRun()
     time(&tstop);
     tused = (tstop - tstart);
 
-    displayFinished();
+    UnixPlatform::displayFinished();
     closeAll();
     printStats();
 
@@ -384,7 +384,7 @@ void
 PovApp::closeAll()
 {
     if ((Options & DISPLAY) && displayStarted) {
-        displayClose();
+        UnixPlatform::displayClose();
     }
 
     if (globalOutputFileHandle) {

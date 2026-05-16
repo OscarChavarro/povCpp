@@ -57,7 +57,7 @@ imageMap(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     int regNumber;
 
     if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor)) {
-        makeColour(colour, 1.0, 1.0, 1.0);
+        Color::makeColor(colour, 1.0, 1.0, 1.0);
         colour->Alpha = 1.0;
         return;
     }
@@ -81,7 +81,7 @@ materialMap(Vector3D *intersectionPoint, Texture *texture)
     Texture *tempTex;
     int numtex;
 
-    makeColour(&colour, 0.0, 0.0, 0.0);
+    Color::makeColor(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
 
     if (texture->Texture_Transformation) {
@@ -147,18 +147,18 @@ bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     Vector3D zprime;
     Vector3D temp;
     DBL length;
-    makeColour(&colour, 0.0, 0.0, 0.0);
+    Color::makeColor(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
-    makeColour(&colour2, 0.0, 0.0, 0.0);
+    Color::makeColor(&colour2, 0.0, 0.0, 0.0);
     colour2.Alpha = 0.0;
-    makeColour(&colour3, 0.0, 0.0, 0.0);
+    Color::makeColor(&colour3, 0.0, 0.0, 0.0);
     colour3.Alpha = 0.0;
 
     /* going to have to change this */
     /* need to know if bump point is off of image for all 3 points */
 
     if (map(x, y, z, texture, texture->Bump_Image, &xcoor, &ycoor)) {
-        makeColour(&colour, 1.0, 1.0, 1.0);
+        Color::makeColor(&colour, 1.0, 1.0, 1.0);
         colour.Alpha = 1.0;
         index = 255;
         return;
@@ -595,7 +595,7 @@ interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
     for (i = 0; i < 4; i++) {
-        makeColour(&cornerColour[i], 0.0, 0.0, 0.0);
+        Color::makeColor(&cornerColour[i], 0.0, 0.0, 0.0);
         cornerColour[i].Alpha = 0.0;
     }
     /* OK, now that you have the corners, what are you going to do with them? */

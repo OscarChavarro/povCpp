@@ -10,27 +10,27 @@
 #include <cmath>
 
 void
-unixInitPovray()
+UnixPlatform::initPovray()
 {
 }
 
 void
-displayFinished()
+UnixPlatform::displayFinished()
 {
 }
 
 void
-displayInit(int width, int height)
+UnixPlatform::displayInit(int width, int height)
 {
 }
 
 void
-displayClose()
+UnixPlatform::displayClose()
 {
 }
 
 void
-displayPlot(
+UnixPlatform::displayPlot(
     int x, int y, unsigned char red, unsigned char green, unsigned char blue)
 {
 }

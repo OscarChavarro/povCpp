@@ -86,9 +86,9 @@ painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
         computeColour(&colour1, texture->Colour_Map, 0.1);
         computeColour(&colour2, texture->Colour_Map, 0.9);
     } else {
-        makeColour(&colour1, 1.0, 1.0, 1.0);
+        Color::makeColor(&colour1, 1.0, 1.0, 1.0);
         colour1.Alpha = 0.0;
-        makeColour(&colour2, 0.0, 1.0, 0.0);
+        Color::makeColor(&colour2, 0.0, 1.0, 0.0);
         colour2.Alpha = 0.0;
     }
 

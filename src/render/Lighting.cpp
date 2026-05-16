@@ -233,7 +233,7 @@ doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
 
     /* Get the light source colour. */
     if (lightSource->Shape_Colour == nullptr) {
-        makeColour(lightColour, 1.0, 1.0, 1.0);
+        Color::makeColor(lightColour, 1.0, 1.0, 1.0);
     } else {
         *lightColour = *lightSource->Shape_Colour;
     }
@@ -433,7 +433,7 @@ Reflect(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
 
         copyRayContainers(&newRay, ray);
         traceLevel++;
-        makeColour(&tempColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
         Trace(&newRay, &tempColour);
         traceLevel--;
@@ -463,7 +463,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         copyRayContainers(&newRay, ray);
         traceLevel++;
         transmittedRaysTraced++;
-        makeColour(&tempColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
         Trace(&newRay, &tempColour);
         traceLevel--;
@@ -530,7 +530,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
 
         newRay.Initial = *intersectionPoint;
         traceLevel++;
-        makeColour(&tempColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
 
         Trace(&newRay, &tempColour);
@@ -568,7 +568,7 @@ computeReflectedColour(Ray *ray, Texture *texture,
     /* This variable keeps track of how much colour comes from the surface
 of the object and how much is transmited through. */
 
-    makeColour(&emittedColour, 0.0, 0.0, 0.0);
+    Color::makeColor(&emittedColour, 0.0, 0.0, 0.0);
 
     if (texture == nullptr) {
         texture = rayIntersection->Object->Object_Texture;
@@ -624,7 +624,7 @@ determineSurfaceColour(
     int surface;
 
     if (!shadowRay)
-        makeColour(colour, 0.0, 0.0, 0.0);
+        Color::makeColor(colour, 0.0, 0.0, 0.0);
 
     if (Options & DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
@@ -639,7 +639,7 @@ determineSurfaceColour(
         }
     }
 
-    makeColour(&surfaceColour, 0.0, 0.0, 0.0);
+    Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
@@ -659,7 +659,7 @@ determineSurfaceColour(
         return;
     }
 
-    makeColour(&filterColour, 1.0, 1.0, 1.0);
+    Color::makeColor(&filterColour, 1.0, 1.0, 1.0);
     filterColour.Alpha = 1.0;
 
     /* Now, we perform the lighting calculations. */
@@ -667,14 +667,14 @@ determineSurfaceColour(
          (tempTexture != nullptr) && (filterColour.Alpha > 0.01);
          surface++, tempTexture = tempTexture->Next_Texture) {
 
-        makeColour(&surfaceColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
         if (quality <= 5) {
             if (rayIntersection->Shape->Shape_Colour != nullptr) {
                 surfaceColour = *rayIntersection->Shape->Shape_Colour;
             } else if (rayIntersection->Object->Object_Colour != nullptr) {
                 surfaceColour = *rayIntersection->Object->Object_Colour;
             } else {
-                makeColour(&surfaceColour, 0.5, 0.5, 0.5);
+                Color::makeColor(&surfaceColour, 0.5, 0.5, 0.5);
             }
         } else {
             colourAt(&surfaceColour, tempTexture, &rayIntersection->Point);
@@ -708,7 +708,7 @@ determineSurfaceColour(
     if (shadowRay) {
 
         if (filterColour.Alpha < 0.01) {
-            makeColour(colour, 0.0, 0.0, 0.0);
+            Color::makeColor(colour, 0.0, 0.0, 0.0);
             return;
         }
 
@@ -728,7 +728,7 @@ determineSurfaceColour(
     }
 
     if ((filterColour.Alpha > 0.01) && (quality > 5)) {
-        makeColour(&refractedColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
 
         if (texture->Object_Refraction > 0.0) {
             Normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
@@ -761,7 +761,7 @@ determineSurfaceColour(
 
         if (texture->Object_Refraction > 0.0 &&
             texture->Object_Transmit > 0.0) {
-            makeColour(&refractedColour, 0.0, 0.0, 0.0);
+            Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
             Refract(texture, &rayIntersection->Point, ray, nullptr,
                 &refractedColour);
             colour->Red +=

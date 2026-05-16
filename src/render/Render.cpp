@@ -13,7 +13,8 @@
  *****************************************************************************/
 
 #include "render/Render.h"
-#include "common/Colour.h"
+#include "app/Unix.h"
+#include "common/Color.h"
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
@@ -100,7 +101,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
 
     numberOfPixelsSupersampled++;
 
-    makeColour(result, 0.0, 0.0, 0.0);
+    Color::makeColor(result, 0.0, 0.0, 0.0);
 
     jitterX = (rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
               0.16666666;
@@ -111,9 +112,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
 
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -126,9 +127,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY - 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -140,9 +141,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -155,9 +156,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY + 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -169,9 +170,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -183,9 +184,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -198,9 +199,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY - 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -212,9 +213,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -227,15 +228,15 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY + 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    clipColour(&colour, &colour);
-    scaleColour(&colour, &colour, 0.11111111);
-    addColour(result, result, &colour);
+    Color::clipColor(&colour, &colour);
+    Color::scaleColor(&colour, &colour, 0.11111111);
+    Color::addColor(result, result, &colour);
 
     if ((y != firstLine - 1) && (Options & DISPLAY)) {
         red = (unsigned char)(result->Red * maxclr);
         green = (unsigned char)(result->Green * maxclr);
         blue = (unsigned char)(result->Blue * maxclr);
-        displayPlot(x, y, red, green, blue);
+        UnixPlatform::displayPlot(x, y, red, green, blue);
     }
 }
 
@@ -265,7 +266,7 @@ readRenderedPart()
                     green = (unsigned char)(previousLine[x].Green * maxclr);
                     blue = (unsigned char)(previousLine[x].Blue * maxclr);
                 }
-                displayPlot(x, lineNumber, red, green, blue);
+                UnixPlatform::displayPlot(x, lineNumber, red, green, blue);
                 cooperate(); /* Moved inside loop JLN 12/91 */
             }
         }
@@ -320,7 +321,7 @@ startTracing()
                 globalFrame.Screen_Height, (DBL)x, (DBL)y);
             traceLevel = 0;
             Trace(&ray, &colour);
-            clipColour(&colour, &colour);
+            Color::clipColor(&colour, &colour);
 
             currentLine[x] = colour;
 
@@ -340,7 +341,7 @@ startTracing()
                     blue = (unsigned char)(colour.Blue * maxclr);
                 }
                 if (Options & DISPLAY) {
-                    displayPlot(x, y, red, green, blue);
+                    UnixPlatform::displayPlot(x, y, red, green, blue);
                 }
             }
         }
@@ -404,7 +405,7 @@ doAntiAliasing(register int x, register int y, RGBAColor *colour)
     currentLineAntialiasedFlags[x] = 0;
 
     if (x != 0) {
-        if (colourDistance(&currentLine[x - 1], &currentLine[x]) >=
+        if (Color::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
             globalFrame.Antialias_Threshold) {
             antialiasCenterFlag = 1;
             if (!(currentLineAntialiasedFlags[x - 1])) {
@@ -417,7 +418,7 @@ doAntiAliasing(register int x, register int y, RGBAColor *colour)
     }
 
     if (y != firstLine - 1) {
-        if (colourDistance(&previousLine[x], &currentLine[x]) >=
+        if (Color::colorDistance(&previousLine[x], &currentLine[x]) >=
             globalFrame.Antialias_Threshold) {
             antialiasCenterFlag = 1;
             if (!(previousLineAntialiasedFlags[x])) {
@@ -517,7 +518,7 @@ Trace(Ray *ray, RGBAColor *colour)
 
     cooperate();
     numberOfRays++;
-    makeColour(colour, 0.0, 0.0, 0.0);
+    Color::makeColor(colour, 0.0, 0.0, 0.0);
 
     intersectionFound = FALSE;
     localIntersection = nullptr;
@@ -527,7 +528,7 @@ Trace(Ray *ray, RGBAColor *colour)
     }
 
     if (globalFrame.Fog_Distance == 0.0) {
-        makeColour(colour, 0.0, 0.0, 0.0);
+        Color::makeColor(colour, 0.0, 0.0, 0.0);
     } else {
         *colour = globalFrame.Fog_Colour;
     }

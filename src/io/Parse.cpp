@@ -105,7 +105,7 @@ frameInit()
     parsingFramePtr->Atmosphere_IOR = 1.0;
     parsingFramePtr->Antialias_Threshold = antialiasThreshold;
     parsingFramePtr->Fog_Distance = 0.0;
-    makeColour(&(parsingFramePtr->Fog_Colour), 0.0, 0.0, 0.0);
+    Color::makeColor(&(parsingFramePtr->Fog_Colour), 0.0, 0.0, 0.0);
 }
 
 /* Allocate and initialize a composite object. */
@@ -173,7 +173,7 @@ getLightSourceShape()
     newShape->Inverted = FALSE; /* needed so CSG routines don't blow up */
     newShape->Shape_Texture = nullptr;     /* always NULL */
     newShape->Shape_Colour = getColour(); /* becomes light colour */
-    makeColour(newShape->Shape_Colour, 1.0, 1.0, 1.0);
+    Color::makeColor(newShape->Shape_Colour, 1.0, 1.0, 1.0);
     newShape->Shape_Colour->Alpha = 0.0;
     newShape->Coeff = 10.0;
     newShape->Radius = 0.35;
@@ -470,7 +470,7 @@ getColour()
         Error("Out of memory. Cannot allocate colour");
     }
 
-    makeColour(newColour, 0.0, 0.0, 0.0);
+    Color::makeColor(newColour, 0.0, 0.0, 0.0);
     return (newColour);
 }
 
@@ -634,7 +634,7 @@ void
 parseColour(RGBAColor *givenColour)
 {
     CONSTANT constantId;
-    makeColour(givenColour, 0.0, 0.0, 0.0);
+    Color::makeColor(givenColour, 0.0, 0.0, 0.0);
     {
         int Exit_Flag;
         Exit_Flag = FALSE;
@@ -1702,7 +1702,7 @@ parseLightSource()
     localShape = getLightSourceShape();
     parseVector(&(localShape->Center));
     localShape->Shape_Colour = getColour();
-    makeColour(localShape->Shape_Colour, 1.0, 1.0, 1.0);
+    Color::makeColor(localShape->Shape_Colour, 1.0, 1.0, 1.0);
     localShape->Shape_Colour->Alpha = 0.0;
     getExpectedToken(COLOUR_TOKEN);
     parseColour(localShape->Shape_Colour);

@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "common/Colour.h"
+#include "common/Color.h"
 
 static inline void readEnvVarBefore() {}
 
