@@ -10,20 +10,8 @@
 #define POT 1 /* height field. */
 #define TGA 2
 
-class HeightFieldBlock {
-  public:
-    DBL min_y, max_y;
-};
-
-class HeightField : public Geometry {
-  public:
-    Transformation *transformation;
-    Box *bounding_box;
-    DBL Block_Size;
-    DBL Inv_Blk_Size;
-    HeightFieldBlock **Block;
-    float **Map;
-};
+#include "geom/HeightFieldBlock.h"
+#include "geom/HeightField.h"
 
 extern Methods Height_Field_Methods;
 extern HeightField *Get_Height_Field_Shape(void);

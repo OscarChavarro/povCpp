@@ -5,23 +5,9 @@
 #define DBL double
 #endif
 
-class RGBAColor {
-  public:
-    DBL Red, Green, Blue, Alpha;
-};
-
-class RGBAColorPaletteSpan {
-  public:
-    DBL start, end;
-    RGBAColor Start_Colour, End_Colour;
-};
-
-class RGBAColorPalette {
-  public:
-    int Number_Of_Entries;
-    RGBAColorPaletteSpan *Colour_Map_Entries;
-    int Transparency_Flag;
-};
+#include "common/RGBAColor.h"
+#include "common/RGBAColorPaletteSpan.h"
+#include "common/RGBAColorPalette.h"
 
 #define Make_Colour(c, r, g, b)                                                \
     {                                                                          \

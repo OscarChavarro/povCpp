@@ -30,48 +30,7 @@ class PriorityQueueNode;
 class Intersection;
 class Methods;
 class Geometry;
-
-class SimpleBody {
-  public:
-    Methods *methods;
-    int Type;
-    SimpleBody *Next_Object;
-    /*SimpleBody *Next_Light_Source; */
-    Geometry *Bounding_Shapes;
-    Geometry *Clipping_Shapes;
-    Geometry *Shape;
-    char No_Shadow_Flag;
-    RGBAColor *Object_Colour;
-    Texture *Object_Texture;
-};
-
-//===========================================================================
-// Note how this code implements object oriented inheritance model for C
-// All of these should be methods of a "Geometry" superclass
-
-typedef Intersection *(*INTERSECTION_METHOD)(SimpleBody *, Ray *);
-typedef int (*ALL_INTERSECTIONS_METHOD)(
-    SimpleBody *, Ray *, PriorityQueueNode *);
-typedef int (*INSIDE_METHOD)(Vector3D *, SimpleBody *);
-typedef void (*NORMAL_METHOD)(Vector3D *, SimpleBody *, Vector3D *);
-typedef void *(*COPY_METHOD)(SimpleBody *);
-typedef void (*TRANSLATE_METHOD)(SimpleBody *, Vector3D *);
-typedef void (*ROTATE_METHOD)(SimpleBody *, Vector3D *);
-typedef void (*SCALE_METHOD)(SimpleBody *, Vector3D *);
-typedef void (*INVERT_METHOD)(SimpleBody *);
-
-class Methods {
-  public:
-    INTERSECTION_METHOD Intersection_Method;
-    ALL_INTERSECTIONS_METHOD All_Intersections_Method;
-    INSIDE_METHOD Inside_Method;
-    NORMAL_METHOD Normal_Method;
-    COPY_METHOD Copy_Method;
-    TRANSLATE_METHOD Translate_Method;
-    ROTATE_METHOD Rotate_Method;
-    SCALE_METHOD Scale_Method;
-    INVERT_METHOD Invert_Method;
-};
+class SimpleBody;
 
 #define All_Intersections(x, y, z)                                             \
     ((*((x)->methods->All_Intersections_Method))(x, y, z))
@@ -85,17 +44,9 @@ class Methods {
 #define Rotate(x, y) ((*((x)->methods->Rotate_Method))(x, y))
 #define Invert(x) ((*((x)->methods->Invert_Method))(x))
 
-//===========================================================================
-
-class Geometry {
-  public:
-    Methods *methods;
-    int Type;
-    Geometry *Next_Object;
-    SimpleBody *Parent_Object;
-    Texture *Shape_Texture;
-    RGBAColor *Shape_Colour;
-};
+#include "geom/MethodsClass.h"
+#include "geom/SimpleBody.h"
+#include "geom/GeometryClass.h"
 
 #include "geom/prioq.h"
 #include "media/texture.h"

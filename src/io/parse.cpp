@@ -62,7 +62,7 @@ extern ReservedWord GLOBAL_reservedWords[];
 extern DBL Antialias_Threshold;
 
 extern int term_counts[MAX_ORDER + 1];
-extern struct TokenStruct GLOBAL_token;
+extern TokenStruct GLOBAL_token;
 
 RGBAColorPaletteSpan *Construction_Map =
     NULL; /* moved here to allow reinitialization */

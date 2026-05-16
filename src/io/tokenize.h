@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 #include "common/frame.h"
+#include "io/DataFile.h"
+#include "io/ReservedWord.h"
+#include "io/TokenStruct.h"
 
 /* Token Definitions for Parser */
 /* This list must have the same number of tokens as list in tokenize.c */
@@ -166,31 +169,8 @@
 
 typedef int TOKEN;
 
-class ReservedWord {
-  public:
-    TOKEN Token_Number;
-    const char *Token_Name;
-};
-
 /* Here's where you dump the information on the current token (fm. PARSE.C) */
 
-class TokenStruct {
-  public:
-    TOKEN Token_Id;
-    int Token_Line_No;
-    char *Token_String;
-    DBL Token_Float;
-    int Identifier_Number;
-    int Unget_Token, End_Of_File;
-    char *Filename;
-};
-
-class DataFile {
-  public:
-    FILE *File;
-    char *Filename;
-    int Line_Number;
-};
 
 extern void Initialize_Tokenizer(char *Input_File_Name);
 extern void Terminate_Tokenizer(void);

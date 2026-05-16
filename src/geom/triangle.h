@@ -6,33 +6,8 @@
 #include "common/vector.h"
 #include "geom/geometry.h"
 
-class Triangle : public Geometry {
-  public:
-    Vector3D Normal_Vector;
-    DBL Distance;
-    DBL VPNormDotOrigin;
-    unsigned int VPCached : 1;
-    unsigned int Dominant_Axis : 2;
-    unsigned int Inverted : 1;
-    unsigned int vAxis : 2; /* used only for smooth triangles */
-    Vector3D P1, P2, P3;
-    short int Degenerate_Flag;
-};
-
-class SmoothTriangle : public Geometry {
-  public:
-    Vector3D Normal_Vector;
-    DBL Distance;
-    DBL VPNormDotOrigin;
-    unsigned int VPCached : 1;
-    unsigned int Dominant_Axis : 2;
-    unsigned int Inverted : 1;
-    unsigned int vAxis : 2; /* used only for smooth triangles */
-    Vector3D P1, P2, P3;
-    short int Degenerate_Flag; /* do not move this field */
-    Vector3D N1, N2, N3, Perp;
-    DBL BaseDelta;
-};
+#include "geom/TriangleClass.h"
+#include "geom/SmoothTriangle.h"
 
 extern Methods Triangle_Methods;
 extern Triangle *Get_Triangle_Shape(void);
