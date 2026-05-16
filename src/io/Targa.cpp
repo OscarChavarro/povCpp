@@ -4,21 +4,6 @@
  *  This module contains the code to read and write the Targa output file
  *  format.
  *
- *  from Persistence of Vision Raytracer
- *  Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  *****************************************************************************/
 
 #include "io/Targa.h"
@@ -253,7 +238,7 @@ readTargaIntLine(FileHandle *handle, ImageLine *lineData)
         ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
         fprintf(stderr, "Cannot allocate memory for picture: %s\n",
             handle->filename);
-        closeAll();
+        PovApp::closeAll();
         exit(1);
     }
 
@@ -283,9 +268,9 @@ readTargaImage(RGBAImage *image, char *name)
     int row;
     FileHandle handle;
 
-    if ((handle.file = locateFile(name, READ_FILE_STRING)) == nullptr) {
+    if ((handle.file = PovApp::locateFile(name, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open Targa file %s\n", name);
-        closeAll();
+        PovApp::closeAll();
         exit(1);
     }
 

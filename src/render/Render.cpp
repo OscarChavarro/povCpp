@@ -3,21 +3,6 @@
  *
  *  This module implements the main raytracing loop.
  *
- *  from Persistence of Vision Raytracer
- *  Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  * 01/16/92 dfm     Added David Buck's bug fix to add a different offset
  *                      to x and y coordinates for each call to Rand3D() in the
  *                      subsampling routine.  Said to smooth the anti-aliasing.
@@ -323,7 +308,7 @@ startTracing()
             testAbort();
 
             if (stopFlag) {
-                closeAll();
+                PovApp::closeAll();
                 printStatsInline();
                 /* exit with error if image not completed/user abort*/
                 exit(2);

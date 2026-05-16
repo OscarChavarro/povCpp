@@ -3,38 +3,17 @@
  *
  *  This module implements the code pertaining to rays.
  *
- *  from Persistence of Vision Raytracer
- *  Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  *****************************************************************************/
 
 #include "common/Ray.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
-
-/*===========================================================================*/
-
 inline void mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c)
 {
     a.x = b.x * c.y;
     a.y = b.x * c.z;
     a.z = b.y * c.z;
 }
-
-/*===========================================================================*/
-
 void
 Ray::makeRay()
 {
@@ -65,7 +44,7 @@ copyRayContainers(Ray *destRay, Ray *sourceRay)
     if ((destRay->Containing_Index = sourceRay->Containing_Index) >=
         MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "ERROR - Containing Index too high\n");
-        closeAll();
+        PovApp::closeAll();
         exit(1);
     }
 
@@ -82,7 +61,7 @@ rayEnter(Ray *ray, Texture *texture)
 
     if ((index = ++(ray->Containing_Index)) >= MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "Too many nested refracting objects\n");
-        closeAll();
+        PovApp::closeAll();
         exit(1);
     }
 
@@ -95,7 +74,7 @@ Ray::exitContainingMedium()
 {
     if (--(this->Containing_Index) < -1) {
         fprintf(stderr, "Too many exits from refractions\n");
-        closeAll();
+        PovApp::closeAll();
         exit(1);
     }
 }

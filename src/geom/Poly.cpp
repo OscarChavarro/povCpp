@@ -6,29 +6,11 @@
  *  This file was written by Alexander Enzmann.  He wrote the code for
  *  4th - 6th order shapes and generously provided us these enhancements.
  *
- *  from Persistence of Vision Raytracer
- *  Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  *****************************************************************************/
 
 #include "geom/Poly.h"
 #include "geom/Objects.h"
 #include "media/Vect.h"
-
-/*===========================================================================*/
-
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+
@@ -74,9 +56,6 @@ static void normalp(
     Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint);
 static DBL doPartialTerm(
     MATRIX *q, int row, int pwr, int i, int j, int k, int l);
-
-/*===========================================================================*/
-
 int
 allPolyIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)

@@ -4,23 +4,9 @@
  *  This module contains the entry routine for the raytracer and the code to
  *  parse the parameters on the command line.
  *
- *  from Persistence of Vision Raytracer
- *         Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  *****************************************************************************/
 #include "app/Unix.h"
+#include "app/PovApp.h"
 #include "common/Frame.h" /* common to ALL modules in this program */
 #include "common/PovProto.h"
 #include "geom/PrioQ.h"
@@ -39,14 +25,6 @@ FILE *bfp;
 extern Frame globalFrame;
 extern PriorityQueue *GLOBAL_priorityQueue;
 PriorityQueueNode *GLOBAL_priorityQueuesHead;
-extern void usage(void);
-extern void initVars(void);
-extern void getDefaults(void);
-extern void readOptions(char *fileName);
-extern void parseOption(char *optionString);
-extern void parseFileName(char *fileName);
-extern void printOptions(void);
-extern void printCredits(void);
 
 char inputFileName[FILE_NAME_LENGTH];
 char outputFileName[FILE_NAME_LENGTH];
@@ -117,28 +95,31 @@ char colorBits;
 int
 main(int argc, char *argv[])
 {
-    register int i;
-    FILE *statFile;
-
     unixInitPovray();
+    PovApp::initializeFromCommandLine(argc, argv);
+    PovApp::configureOutputTarget();
+    PovApp::parseSceneDescription();
+    PovApp::prepareRendering();
+    PovApp::runRenderLoop();
+    PovApp::finalizeRun();
 
-    /*PRINT_CREDITS
+    return 0;
+}
 
-       PRINT_OTHER_CREDITS*/
+void
+PovApp::initializeFromCommandLine(int argc, char *argv[])
+{
+    register int i;
 
-    /* Parse the command line parameters */
     if (argc == 1) {
         usage();
     }
 
     initVars();
-
     outputFileName[0] = '\0';
-
     libraryPaths[0] = nullptr;
     libraryPathIndex = 0;
 
-    /* Read the default parameters from povray.def */
     getDefaults();
 
     for (i = 1; i < argc; i++) {
@@ -152,41 +133,52 @@ main(int argc, char *argv[])
     if (lastLine == -1) {
         lastLine = globalFrame.Screen_Height;
     }
+}
 
-    if (Options & DISKWRITE) {
-        switch (outputFormat) {
-        case '\0':
-        case 'd':
-        case 'D':
-            if ((globalOutputFileHandle = getDumpFileHandle()) == nullptr) {
-                closeAll();
-                exit(1);
-            }
-            break;
-        case 'r':
-        case 'R':
-            if ((globalOutputFileHandle = getRawFileHandle()) == nullptr) {
-                closeAll();
-                exit(1);
-            }
-            break;
+void
+PovApp::configureOutputTarget()
+{
+    if (!(Options & DISKWRITE)) {
+        return;
+    }
 
-        case 't':
-        case 'T':
-            if ((globalOutputFileHandle = getTargaFileHandle()) == nullptr) {
-                closeAll();
-                exit(1);
-            }
-            break;
-        default:
-            fprintf(
-                stderr, "Unrecognized output file format %c\n", outputFormat);
+    switch (outputFormat) {
+    case '\0':
+    case 'd':
+    case 'D':
+        if ((globalOutputFileHandle = getDumpFileHandle()) == nullptr) {
+            closeAll();
             exit(1);
         }
-        if (outputFileName[0] == '\0') {
-            strcpy(outputFileName, defaultFileName(globalOutputFileHandle));
+        break;
+    case 'r':
+    case 'R':
+        if ((globalOutputFileHandle = getRawFileHandle()) == nullptr) {
+            closeAll();
+            exit(1);
         }
+        break;
+    case 't':
+    case 'T':
+        if ((globalOutputFileHandle = getTargaFileHandle()) == nullptr) {
+            closeAll();
+            exit(1);
+        }
+        break;
+    default:
+        fprintf(stderr, "Unrecognized output file format %c\n", outputFormat);
+        exit(1);
     }
+
+    if (outputFileName[0] == '\0') {
+        strcpy(outputFileName, defaultFileName(globalOutputFileHandle));
+    }
+}
+
+void
+PovApp::parseSceneDescription()
+{
+    FILE *statFile;
 
     printOptions();
 
@@ -197,26 +189,28 @@ main(int argc, char *argv[])
         fprintf(statFile, "Parsing...\n");
         fclose(statFile);
     }
+
     Parse(&globalFrame);
     terminateTokenizer();
-    /* fprintf (stderr,"\n"); */
+}
 
+void
+PovApp::prepareRendering()
+{
     if (Options & DISPLAY) {
         printf("Displaying...\n");
         displayInit(globalFrame.Screen_Width, globalFrame.Screen_Height);
         displayStarted = TRUE;
     }
 
-    /* Get things ready for ray tracing */
     if (Options & DISKWRITE) {
         if (Options & CONTINUE_TRACE) {
             if (openFile(globalOutputFileHandle, outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                     fileBufferSize, READ_MODE) != 1) {
                 fprintf(stderr, "Error opening continue trace output file\n");
-                fprintf(
-                    stderr, "Opening new output file %s.\n", outputFileName);
-                Options &= ~CONTINUE_TRACE; /* Turn off continue trace */
+                fprintf(stderr, "Opening new output file %s.\n", outputFileName);
+                Options &= ~CONTINUE_TRACE;
 
                 if (openFile(globalOutputFileHandle, outputFileName,
                         &globalFrame.Screen_Width, &globalFrame.Screen_Height,
@@ -248,23 +242,25 @@ main(int argc, char *argv[])
 
     GLOBAL_priorityQueuesHead = pqInit();
     initializeNoise();
+}
+
+void
+PovApp::runRenderLoop()
+{
+    FILE *statFile;
 
     time(&tstart);
 
-        /* Ok, go for it - trace the picture */
-        if ((Options & VERBOSE) && (verboseFormat != '1'))
-    {
+    if ((Options & VERBOSE) && (verboseFormat != '1')) {
         printf("Rendering...\n");
-    }
-    else if ((Options & VERBOSE) && (verboseFormat == '1'))
-    {
+    } else if ((Options & VERBOSE) && (verboseFormat == '1')) {
         fprintf(stderr, "POV-Ray rendering %s to %s :\n", inputFileName,
             outputFileName);
     }
     if (Options & VERBOSE_FILE) {
         statFile = fopen(statFileName, "w+t");
-        fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n",
-            inputFileName, outputFileName);
+        fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n", inputFileName,
+            outputFileName);
         fclose(statFile);
     }
 
@@ -273,17 +269,18 @@ main(int argc, char *argv[])
     if (Options & VERBOSE && verboseFormat == '1') {
         fprintf(stderr, "\n");
     }
+}
 
-    /* Record the time so well spent... */
+void
+PovApp::finalizeRun()
+{
+    FILE *statFile;
+
     time(&tstop);
     tused = (tstop - tstart);
-        /* 0 in your specific CONFIG.H if unsupported */
 
-        /* Clean up and leave */
-        displayFinished();
-
+    displayFinished();
     closeAll();
-
     printStats();
 
     if (Options & VERBOSE_FILE) {
@@ -291,13 +288,11 @@ main(int argc, char *argv[])
         fprintf(statFile, "Done Tracing\n");
         fclose(statFile);
     }
-
-    return 0;
 }
 
 /* Print out usage error message */
 void
-usage()
+PovApp::usage()
 {
     fprintf(stdout, "\nUsage:");
     fprintf(stdout, "\n    povray  [+/-] Option1 [+/-] Option2 ...");
@@ -331,7 +326,7 @@ usage()
 }
 
 void
-initVars()
+PovApp::initVars()
 {
     globalOutputFileHandle = nullptr;
     fileBufferSize = 0;
@@ -386,7 +381,7 @@ initVars()
 
 /* Close all the stuff that has been opened. */
 void
-closeAll()
+PovApp::closeAll()
 {
     if ((Options & DISPLAY) && displayStarted) {
         displayClose();
@@ -399,7 +394,7 @@ closeAll()
 
 /* Read the default parameters from povray.def */
 void
-getDefaults()
+PovApp::getDefaults()
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -415,18 +410,18 @@ getDefaults()
     outputFormat = DEFAULT_OUTPUT_FORMAT;
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
-        readOptions(Option_String_Ptr);
+        PovApp::readOptions(Option_String_Ptr);
     }
-    if ((defaultsFile = locateFile("povray.def", "r")) != nullptr) {
+    if ((defaultsFile = PovApp::locateFile("povray.def", "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString);
+            PovApp::readOptions(optionString);
         }
         fclose(defaultsFile);
     }
 }
 
 void
-readOptions(char *optionLine)
+PovApp::readOptions(char *optionLine)
 {
     register int c;
     register int stringIndex;
@@ -440,7 +435,7 @@ readOptions(char *optionLine)
         if (optionStarted) {
             if (isspace(c)) {
                 optionString[stringIndex] = '\0';
-                parseOption(optionString);
+                PovApp::parseOption(optionString);
                 optionStarted = FALSE;
                 stringIndex = 0;
             } else {
@@ -463,13 +458,13 @@ readOptions(char *optionLine)
 
     if (optionStarted) {
         optionString[stringIndex] = '\0';
-        parseOption(optionString);
+        PovApp::parseOption(optionString);
     }
 }
 
 /* parse the command line parameters */
 void
-parseOption(char *optionString)
+PovApp::parseOption(char *optionString)
 {
     register int addOption;
     unsigned int optionNumber = 0;
@@ -685,7 +680,7 @@ parseOption(char *optionString)
 }
 
 void
-printOptions()
+PovApp::printOptions()
 {
     int i;
 
@@ -747,7 +742,7 @@ printOptions()
 }
 
 void
-parseFileName(char *fileName)
+PovApp::parseFileName(char *fileName)
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -777,9 +772,9 @@ parseFileName(char *fileName)
         exit(1);
     }
 
-    if ((defaultsFile = locateFile(fileName, "r")) != nullptr) {
+    if ((defaultsFile = PovApp::locateFile(fileName, "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString);
+            PovApp::readOptions(optionString);
         }
         fclose(defaultsFile);
     } else {
@@ -788,7 +783,7 @@ parseFileName(char *fileName)
 }
 
 void
-printStats()
+PovApp::printStats()
 {
     int hours;
     int min;
@@ -930,7 +925,7 @@ printStats()
 
 /* Find a file in the search path. */
 FILE *
-locateFile(const char *filename, const char *mode)
+PovApp::locateFile(const char *filename, const char *mode)
 {
     FILE *f;
     int i;
@@ -956,7 +951,7 @@ locateFile(const char *filename, const char *mode)
 }
 
 void
-printCredits()
+PovApp::printCredits()
 {
     fprintf(stderr, "\n");
     fprintf(
