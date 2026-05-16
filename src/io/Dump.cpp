@@ -45,9 +45,9 @@ Get_Dump_File_Handle()
     FileHandle *handle;
 
     handle = new FileHandle;
-    if (handle == NULL) {
+    if (handle == nullptr) {
         fprintf(stderr, "Cannot allocate memory for output file handle\n");
-        return (NULL);
+        return (nullptr);
     }
 
     handle->Default_File_Name_p = Default_Dump_File_Name;
@@ -67,26 +67,27 @@ Default_Dump_File_Name()
 
 int
 Open_Dump_File(FileHandle *handle, char *name, int *width, int *height,
-    int buffer_size, int mode)
+    int bufferSize, int mode)
 {
-    int data1, data2;
+    int data1;
+    int data2;
 
     handle->mode = mode;
     handle->filename = name;
 
     switch (mode) {
     case READ_MODE:
-        if ((handle->file = fopen(name, READ_FILE_STRING)) == NULL) {
+        if ((handle->file = fopen(name, READ_FILE_STRING)) == nullptr) {
             return 0;
         }
 
-        if (buffer_size != 0) {
-            handle->buffer = new char[buffer_size];
-            if (handle->buffer == NULL) {
+        if (bufferSize != 0) {
+            handle->buffer = new char[bufferSize];
+            if (handle->buffer == nullptr) {
                 return 0;
             }
 
-            setvbuf(handle->file, handle->buffer, _IOFBF, buffer_size);
+            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
         }
 
         if (((data1 = getc(handle->file)) == EOF) ||
@@ -104,20 +105,20 @@ Open_Dump_File(FileHandle *handle, char *name, int *width, int *height,
         *height = data2 * 256 + data1;
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
         break;
 
     case WRITE_MODE:
-        if ((handle->file = fopen(name, WRITE_FILE_STRING)) == NULL) {
+        if ((handle->file = fopen(name, WRITE_FILE_STRING)) == nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            handle->buffer = new char[buffer_size];
-            if (handle->buffer == NULL) {
+        if (bufferSize != 0) {
+            handle->buffer = new char[bufferSize];
+            if (handle->buffer == nullptr) {
                 return (0);
             }
-            setvbuf(handle->file, handle->buffer, _IOFBF, buffer_size);
+            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
         }
 
         putc(*width % 256, handle->file); /* write to either type of file */
@@ -127,48 +128,48 @@ Open_Dump_File(FileHandle *handle, char *name, int *width, int *height,
 
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
 
         break;
 
     case APPEND_MODE:
-        if ((handle->file = fopen(name, APPEND_FILE_STRING)) == NULL) {
+        if ((handle->file = fopen(name, APPEND_FILE_STRING)) == nullptr) {
             return 0;
         }
 
-        if (buffer_size != 0) {
-            handle->buffer = new char[buffer_size];
-            if (handle->buffer == NULL) {
+        if (bufferSize != 0) {
+            handle->buffer = new char[bufferSize];
+            if (handle->buffer == nullptr) {
                 return 0;
             }
 
-            setvbuf(handle->file, handle->buffer, _IOFBF, buffer_size);
+            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
         }
 
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
         break;
     }
     return 1;
 }
 
 void
-Write_Dump_Line(FileHandle *handle, RGBAColor *line_data, int line_number)
+Write_Dump_Line(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
     register int x;
 
-    putc(line_number % 256, handle->file);
-    putc(line_number / 256, handle->file);
+    putc(lineNumber % 256, handle->file);
+    putc(lineNumber / 256, handle->file);
 
     for (x = 0; x < handle->width; x++) {
-        putc((int)floor(line_data[x].Red * 255.0), handle->file);
+        putc((int)floor(lineData[x].Red * 255.0), handle->file);
     }
 
     for (x = 0; x < handle->width; x++) {
-        putc((int)floor(line_data[x].Green * 255.0), handle->file);
+        putc((int)floor(lineData[x].Green * 255.0), handle->file);
     }
 
     for (x = 0; x < handle->width; x++) {
-        putc((int)floor(line_data[x].Blue * 255.0), handle->file);
+        putc((int)floor(lineData[x].Blue * 255.0), handle->file);
     }
 
     if (handle->buffer_size == 0) {
@@ -179,28 +180,30 @@ Write_Dump_Line(FileHandle *handle, RGBAColor *line_data, int line_number)
 }
 
 int
-Read_Dump_Line(FileHandle *handle, RGBAColor *line_data, int *line_number)
+Read_Dump_Line(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
-    int data, i, c;
+    int data;
+    int i;
+    int c;
 
     if ((c = getc(handle->file)) == EOF) {
         return (0);
     }
 
-    *line_number = c;
+    *lineNumber = c;
 
     if ((c = getc(handle->file)) == EOF) {
         return (-1);
     }
 
-    *line_number += c * 256;
+    *lineNumber += c * 256;
 
     for (i = 0; i < handle->width; i++) {
         if ((data = getc(handle->file)) == EOF) {
             return (-1);
         }
 
-        line_data[i].Red = (DBL)data / 255.0;
+        lineData[i].Red = (DBL)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -208,7 +211,7 @@ Read_Dump_Line(FileHandle *handle, RGBAColor *line_data, int *line_number)
             return (-1);
         }
 
-        line_data[i].Green = (DBL)data / 255.0;
+        lineData[i].Green = (DBL)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -216,32 +219,34 @@ Read_Dump_Line(FileHandle *handle, RGBAColor *line_data, int *line_number)
             return (-1);
         }
 
-        line_data[i].Blue = (DBL)data / 255.0;
+        lineData[i].Blue = (DBL)data / 255.0;
     }
 
     return (1);
 }
 
 int
-Read_Dump_Int_Line(FileHandle *handle, ImageLine *line_data, int *line_number)
+Read_Dump_Int_Line(FileHandle *handle, ImageLine *lineData, int *lineNumber)
 {
-    int data, i, c;
+    int data;
+    int i;
+    int c;
 
     if ((c = getc(handle->file)) == EOF) {
         return (0);
     }
 
-    *line_number = c;
+    *lineNumber = c;
 
     if ((c = getc(handle->file)) == EOF) {
         return (-1);
     }
 
-    *line_number += c * 256;
+    *lineNumber += c * 256;
 
-    if (((line_data->red = new unsigned char[handle->width]) == NULL) ||
-        ((line_data->green = new unsigned char[handle->width]) == NULL) ||
-        ((line_data->blue = new unsigned char[handle->width]) == NULL)) {
+    if (((lineData->red = new unsigned char[handle->width]) == nullptr) ||
+        ((lineData->green = new unsigned char[handle->width]) == nullptr) ||
+        ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
         fprintf(stderr, "Cannot allocate memory for picture: %s\n",
             handle->filename);
         close_all();
@@ -249,9 +254,9 @@ Read_Dump_Int_Line(FileHandle *handle, ImageLine *line_data, int *line_number)
     }
 
     for (i = 0; i < handle->width; i++) {
-        line_data->red[i] = 0;
-        line_data->green[i] = 0;
-        line_data->blue[i] = 0;
+        lineData->red[i] = 0;
+        lineData->green[i] = 0;
+        lineData->blue[i] = 0;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -259,7 +264,7 @@ Read_Dump_Int_Line(FileHandle *handle, ImageLine *line_data, int *line_number)
             return (-1);
         }
 
-        line_data->red[i] = (unsigned char)data;
+        lineData->red[i] = (unsigned char)data;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -267,7 +272,7 @@ Read_Dump_Int_Line(FileHandle *handle, ImageLine *line_data, int *line_number)
             return (-1);
         }
 
-        line_data->green[i] = (unsigned char)data;
+        lineData->green[i] = (unsigned char)data;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -275,7 +280,7 @@ Read_Dump_Int_Line(FileHandle *handle, ImageLine *line_data, int *line_number)
             return (-1);
         }
 
-        line_data->blue[i] = (unsigned char)data;
+        lineData->blue[i] = (unsigned char)data;
     }
 
     return (1);
@@ -293,13 +298,16 @@ Close_Dump_File(FileHandle *handle)
 }
 
 void
-Read_Dump_Image(RGBAImage *Image, char *name)
+Read_Dump_Image(RGBAImage *image, char *name)
 {
-    int rc, row, data1, data2;
+    int rc;
+    int row;
+    int data1;
+    int data2;
     ImageLine line;
     FileHandle handle;
 
-    if ((handle.file = Locate_File(name, READ_FILE_STRING)) == NULL) {
+    if ((handle.file = Locate_File(name, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open dump file %s\n", name);
         close_all();
         exit(1);
@@ -313,8 +321,8 @@ Read_Dump_Image(RGBAImage *Image, char *name)
         exit(1);
     }
 
-    Image->iwidth = data2 * 256 + data1;
-    handle.width = Image->iwidth;
+    image->iwidth = data2 * 256 + data1;
+    handle.width = image->iwidth;
 
     if (((data1 = getc(handle.file)) == EOF) ||
         ((data2 = getc(handle.file)) == EOF)) {
@@ -324,23 +332,23 @@ Read_Dump_Image(RGBAImage *Image, char *name)
         exit(1);
     }
 
-    Image->iheight = data2 * 256 + data1;
-    handle.height = Image->iheight;
+    image->iheight = data2 * 256 + data1;
+    handle.height = image->iheight;
 
-    Image->width = (DBL)Image->iwidth;
-    Image->height = (DBL)Image->iheight;
+    image->width = (DBL)image->iwidth;
+    image->height = (DBL)image->iheight;
 
-    Image->Colour_Map_Size = 0;
-    Image->Colour_Map = NULL;
+    image->Colour_Map_Size = 0;
+    image->Colour_Map = nullptr;
 
-    Image->data.rgb_lines = new ImageLine[Image->iheight];
-    if (Image->data.rgb_lines == NULL) {
+    image->data.rgb_lines = new ImageLine[image->iheight];
+    if (image->data.rgb_lines == nullptr) {
         fprintf(stderr, "Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }
 
     while ((rc = Read_Dump_Int_Line(&handle, &line, &row)) == 1) {
-        Image->data.rgb_lines[row] = line;
+        image->data.rgb_lines[row] = line;
     }
 
     fclose(handle.file);

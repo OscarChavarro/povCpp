@@ -29,8 +29,8 @@ Methods Sphere_Methods = {Object_Intersect, All_Sphere_Intersections,
     Scale_Sphere, Invert_Sphere};
 
 extern Sphere *Get_Sphere_Shape();
-extern Ray *VP_Ray;
-extern long Ray_Sphere_Tests, Ray_Sphere_Tests_Succeeded;
+extern Ray *vpRay;
+extern long raySphereTests, raySphereTestsSucceeded;
 
 //===========================================================================
 
@@ -38,182 +38,181 @@ extern long Ray_Sphere_Tests, Ray_Sphere_Tests_Succeeded;
 Study closely this method!
 */
 int
-Intersect_Sphere(Ray *Ray, Sphere *Sphere, DBL *Depth1, DBL *Depth2)
+Intersect_Sphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2)
 {
-    Ray_Sphere_Tests++;
+    raySphereTests++;
 
     //--------------------------------------------------------------------------
-    Vector3D Origin_To_Center;
-    DBL OCSquared, t_Closest_Approach, Half_Chord, t_Half_Chord_Squared;
+    Vector3D originToCenter;
+    DBL ocSquared, tClosestApproach, halfChord, tHalfChordSquared;
     short inside;
 
-    if (Ray == VP_Ray) {
-        if (!Sphere->VPCached) {
-            VSub(Sphere->VPOtoC, Sphere->Center, Ray->Initial);
-            VDot(Sphere->VPOCSquared, Sphere->VPOtoC, Sphere->VPOtoC);
-            Sphere->VPinside = (Sphere->VPOCSquared < Sphere->Radius_Squared);
-            Sphere->VPCached = TRUE;
+    if (ray == vpRay) {
+        if (!sphere->VPCached) {
+            VSub(sphere->VPOtoC, sphere->Center, ray->Initial);
+            VDot(sphere->VPOCSquared, sphere->VPOtoC, sphere->VPOtoC);
+            sphere->VPinside = (sphere->VPOCSquared < sphere->Radius_Squared);
+            sphere->VPCached = TRUE;
         }
-        VDot(t_Closest_Approach, Sphere->VPOtoC, Ray->Direction);
-        if (!Sphere->VPinside && (t_Closest_Approach < Small_Tolerance)) {
+        VDot(tClosestApproach, sphere->VPOtoC, ray->Direction);
+        if (!sphere->VPinside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
-        t_Half_Chord_Squared = Sphere->Radius_Squared - Sphere->VPOCSquared +
-                               (t_Closest_Approach * t_Closest_Approach);
+        tHalfChordSquared = sphere->Radius_Squared - sphere->VPOCSquared +
+                            (tClosestApproach * tClosestApproach);
     } else {
-        VSub(Origin_To_Center, Sphere->Center, Ray->Initial);
-        VDot(OCSquared, Origin_To_Center, Origin_To_Center);
-        inside = (OCSquared < Sphere->Radius_Squared);
-        VDot(t_Closest_Approach, Origin_To_Center, Ray->Direction);
-        if (!inside && (t_Closest_Approach < Small_Tolerance)) {
+        VSub(originToCenter, sphere->Center, ray->Initial);
+        VDot(ocSquared, originToCenter, originToCenter);
+        inside = (ocSquared < sphere->Radius_Squared);
+        VDot(tClosestApproach, originToCenter, ray->Direction);
+        if (!inside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
 
-        t_Half_Chord_Squared = Sphere->Radius_Squared - OCSquared +
-                               (t_Closest_Approach * t_Closest_Approach);
+        tHalfChordSquared = sphere->Radius_Squared - ocSquared +
+                            (tClosestApproach * tClosestApproach);
     }
 
-    if (t_Half_Chord_Squared < Small_Tolerance) {
+    if (tHalfChordSquared < Small_Tolerance) {
         return FALSE;
     }
 
-    Half_Chord = sqrt(t_Half_Chord_Squared);
-    *Depth1 = t_Closest_Approach + Half_Chord;
-    *Depth2 = t_Closest_Approach - Half_Chord;
+    halfChord = sqrt(tHalfChordSquared);
+    *depth1 = tClosestApproach + halfChord;
+    *depth2 = tClosestApproach - halfChord;
 
-    if ((*Depth1 < Small_Tolerance) || (*Depth1 > Max_Distance)) {
-        if ((*Depth2 < Small_Tolerance) || (*Depth2 > Max_Distance)) {
+    if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
+        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
             return FALSE;
         }
-        *Depth1 = *Depth2;
+        *depth1 = *depth2;
 
     } else {
-        if ((*Depth2 < Small_Tolerance) || (*Depth2 > Max_Distance)) {
-            *Depth2 = *Depth1;
+        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+            *depth2 = *depth1;
         }
     }
 
     //--------------------------------------------------------------------------
-    Ray_Sphere_Tests_Succeeded++;
+    raySphereTestsSucceeded++;
     return TRUE;
 }
 
 int
 All_Sphere_Intersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    DBL Depth1, Depth2;
-    Vector3D Intersection_Point;
-    Intersection Local_Element;
-    register int Intersection_Found;
-    Sphere *Shape = (Sphere *)Object;
+    DBL depth1, depth2;
+    Vector3D intersectionPoint;
+    Intersection localElement;
+    register int intersectionFound;
+    Sphere *shape = (Sphere *)object;
 
-    Intersection_Found = FALSE;
-    if (Intersect_Sphere(Ray, Shape, &Depth1, &Depth2)) {
-        Local_Element.Depth = Depth1;
-        Local_Element.Object = Shape->Parent_Object;
-        VScale(Intersection_Point, Ray->Direction, Depth1);
-        VAdd(Intersection_Point, Intersection_Point, Ray->Initial);
-        Local_Element.Point = Intersection_Point;
-        Local_Element.Shape = (Geometry *)Shape;
-        Depth_Queue->add(&Local_Element);
-        Intersection_Found = TRUE;
+    intersectionFound = FALSE;
+    if (Intersect_Sphere(ray, shape, &depth1, &depth2)) {
+        localElement.Depth = depth1;
+        localElement.Object = shape->Parent_Object;
+        VScale(intersectionPoint, ray->Direction, depth1);
+        VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        localElement.Point = intersectionPoint;
+        localElement.Shape = (Geometry *)shape;
+        depthQueue->add(&localElement);
+        intersectionFound = TRUE;
 
-        if (Depth2 != Depth1) {
-            Local_Element.Depth = Depth2;
-            Local_Element.Object = Shape->Parent_Object;
-            VScale(Intersection_Point, Ray->Direction, Depth2);
-            VAdd(Intersection_Point, Intersection_Point, Ray->Initial);
-            Local_Element.Point = Intersection_Point;
-            Local_Element.Shape = (Geometry *)Shape;
-            Depth_Queue->add(&Local_Element);
-            Intersection_Found = TRUE;
+        if (depth2 != depth1) {
+            localElement.Depth = depth2;
+            localElement.Object = shape->Parent_Object;
+            VScale(intersectionPoint, ray->Direction, depth2);
+            VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            localElement.Point = intersectionPoint;
+            localElement.Shape = (Geometry *)shape;
+            depthQueue->add(&localElement);
+            intersectionFound = TRUE;
         }
     }
-    return Intersection_Found;
+    return intersectionFound;
 }
 
 int
-Inside_Sphere(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Sphere(Vector3D *testPoint, SimpleBody *object)
 {
-    Vector3D Origin_To_Center;
-    DBL OCSquared;
-    Sphere *sphere = (Sphere *)Object;
+    Vector3D originToCenter;
+    DBL ocSquared;
+    Sphere *sphere = (Sphere *)object;
 
-    VSub(Origin_To_Center, sphere->Center, *Test_Point);
-    VDot(OCSquared, Origin_To_Center, Origin_To_Center);
+    VSub(originToCenter, sphere->Center, *testPoint);
+    VDot(ocSquared, originToCenter, originToCenter);
 
     if (sphere->Inverted) {
-        return (OCSquared - sphere->Radius_Squared > Small_Tolerance);
+        return (ocSquared - sphere->Radius_Squared > Small_Tolerance);
     }
-    return (OCSquared - sphere->Radius_Squared < Small_Tolerance);
+    return (ocSquared - sphere->Radius_Squared < Small_Tolerance);
 }
 
 void
-Sphere_Normal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+Sphere_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    Sphere *sphere = (Sphere *)Object;
+    Sphere *sphere = (Sphere *)object;
 
-    VSub(*Result, *Intersection_Point, sphere->Center);
-    VScale(*Result, *Result, sphere->Inverse_Radius);
+    VSub(*result, *intersectionPoint, sphere->Center);
+    VScale(*result, *result, sphere->Inverse_Radius);
 }
 
 void *
-Copy_Sphere(SimpleBody *Object)
+Copy_Sphere(SimpleBody *object)
 {
-    Sphere *New_Shape;
+    Sphere *newShape;
 
-    New_Shape = Get_Sphere_Shape();
-    *New_Shape = *((Sphere *)Object);
-    New_Shape->Next_Object = NULL;
+    newShape = Get_Sphere_Shape();
+    *newShape = *((Sphere *)object);
+    newShape->Next_Object = nullptr;
 
-    if (New_Shape->Shape_Texture != NULL) {
-        New_Shape->Shape_Texture = Copy_Texture(New_Shape->Shape_Texture);
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
     }
 
-    return (New_Shape);
+    return (newShape);
 }
 
 void
-Translate_Sphere(SimpleBody *Object, Vector3D *Vector)
+Translate_Sphere(SimpleBody *object, Vector3D *vector)
 {
-    VAdd(((Sphere *)Object)->Center, ((Sphere *)Object)->Center, *Vector);
-    Translate_Texture(&((Sphere *)Object)->Shape_Texture, Vector);
+    VAdd(((Sphere *)object)->Center, ((Sphere *)object)->Center, *vector);
+    Translate_Texture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Sphere(SimpleBody *Object, Vector3D *Vector)
+Rotate_Sphere(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Rotation_Transformation(&transformation, Vector);
-    MTransformVector(&((Sphere *)Object)->Center, &((Sphere *)Object)->Center,
+    Get_Rotation_Transformation(&transformation, vector);
+    MTransformVector(&((Sphere *)object)->Center, &((Sphere *)object)->Center,
         &transformation);
-    Rotate_Texture(&((Sphere *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Sphere(SimpleBody *Object, Vector3D *Vector)
+Scale_Sphere(SimpleBody *object, Vector3D *vector)
 {
-    Sphere *sphere = (Sphere *)Object;
+    Sphere *sphere = (Sphere *)object;
 
-    if ((Vector->x != Vector->y) || (Vector->x != Vector->z)) {
+    if ((vector->x != vector->y) || (vector->x != vector->z)) {
         fprintf(stderr, "Error - you cannot scale a sphere unevenly\n");
         exit(1);
     }
 
-    VScale(sphere->Center, sphere->Center, Vector->x);
-    sphere->Radius *= Vector->x;
+    VScale(sphere->Center, sphere->Center, vector->x);
+    sphere->Radius *= vector->x;
     sphere->Radius_Squared = sphere->Radius * sphere->Radius;
     sphere->Inverse_Radius = 1.0 / sphere->Radius;
-    Scale_Texture(&((Sphere *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Sphere(SimpleBody *Object)
+Invert_Sphere(SimpleBody *object)
 {
-    ((Sphere *)Object)->Inverted ^= TRUE;
+    ((Sphere *)object)->Inverted ^= TRUE;
 }
 
 //===========================================================================

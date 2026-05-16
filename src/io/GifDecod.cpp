@@ -118,43 +118,43 @@ IMPORT INT get_byte();
  * When this value is non-zero after a decode, your GIF file is probably
  * corrupt in some way...
  */
-INT bad_code_count;
+INT badCodeCount;
 
 #define MAX_CODES 4095
 
 /* Static variables */
-LOCAL WORD curr_size; /* The current code size */
-LOCAL WORD clear;     /* Value for a clear code */
-LOCAL WORD ending;    /* Value for a ending code */
-LOCAL WORD newcodes;  /* First available code */
-LOCAL WORD top_slot;  /* Highest code for current size */
-LOCAL WORD slot;      /* Last read code */
+LOCAL WORD currSize; /* The current code size */
+LOCAL WORD clear;    /* Value for a clear code */
+LOCAL WORD ending;   /* Value for a ending code */
+LOCAL WORD newcodes; /* First available code */
+LOCAL WORD topSlot;  /* Highest code for current size */
+LOCAL WORD slot;     /* Last read code */
 
 /* The following static variables are used
  * for seperating out codes
  */
-LOCAL WORD navail_bytes = 0; /* # bytes left in block */
-LOCAL WORD nbits_left = 0;   /* # bits left in current byte */
-LOCAL UTINY b1;              /* Current byte */
-LOCAL UTINY byte_buff[257];  /* Current block */
-LOCAL UTINY *pbytes;         /* Pointer to next byte in block */
+LOCAL WORD navailBytes = 0; /* # bytes left in block */
+LOCAL WORD nbitsLeft = 0;   /* # bits left in current byte */
+LOCAL UTINY b1;             /* Current byte */
+LOCAL UTINY byteBuff[257];  /* Current block */
+LOCAL UTINY *pbytes;        /* Pointer to next byte in block */
 
-LOCAL LONG code_mask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
+LOCAL LONG codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
     0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF};
 
 /* This function initializes the decoder for reading a new image.
  */
 WORD
-init_exp(int i_size)
+init_exp(int iSize)
 {
     WORD size;
-    size = (WORD)i_size;
-    curr_size = size + 1;
-    top_slot = 1 << curr_size;
+    size = (WORD)iSize;
+    currSize = size + 1;
+    topSlot = 1 << currSize;
     clear = 1 << size;
     ending = clear + 1;
     slot = newcodes = ending + 1;
-    navail_bytes = nbits_left = 0;
+    navailBytes = nbitsLeft = 0;
     return (0);
 }
 
@@ -165,56 +165,59 @@ init_exp(int i_size)
 WORD
 get_next_code()
 {
-    WORD i, x;
+    WORD i;
+    WORD x;
     ULONG ret;
 
-    if (nbits_left == 0) {
-        if (navail_bytes <= 0) {
+    if (nbitsLeft == 0) {
+        if (navailBytes <= 0) {
 
             /* Out of bytes in current block, so read next block
              */
-            pbytes = byte_buff;
-            if ((navail_bytes = get_byte()) < 0) {
-                return (navail_bytes);
+            pbytes = byteBuff;
+            if ((navailBytes = get_byte()) < 0) {
+                return (navailBytes);
             }
-            if (navail_bytes) {
-                for (i = 0; i < navail_bytes; ++i) {
-                    if ((x = get_byte()) < 0)
+            if (navailBytes) {
+                for (i = 0; i < navailBytes; ++i) {
+                    if ((x = get_byte()) < 0) {
                         return (x);
-                    byte_buff[i] = (UTINY)x;
+                    }
+                    byteBuff[i] = (UTINY)x;
                 }
             }
         }
         b1 = *pbytes++;
-        nbits_left = 8;
-        --navail_bytes;
+        nbitsLeft = 8;
+        --navailBytes;
     }
 
-    ret = b1 >> (8 - nbits_left);
-    while (curr_size > nbits_left) {
-        if (navail_bytes <= 0) {
+    ret = b1 >> (8 - nbitsLeft);
+    while (currSize > nbitsLeft) {
+        if (navailBytes <= 0) {
 
             /* Out of bytes in current block, so read next block
              */
-            pbytes = byte_buff;
-            if ((navail_bytes = get_byte()) < 0) {
-                return (navail_bytes);
+            pbytes = byteBuff;
+            if ((navailBytes = get_byte()) < 0) {
+                return (navailBytes);
             }
-            if (navail_bytes) {
-                for (i = 0; i < navail_bytes; ++i) {
-                    if ((x = get_byte()) < 0)
+            if (navailBytes) {
+                for (i = 0; i < navailBytes; ++i) {
+                    if ((x = get_byte()) < 0) {
                         return (x);
-                    byte_buff[i] = (UTINY)x;
+                    }
+                    byteBuff[i] = (UTINY)x;
                 }
             }
         }
         b1 = *pbytes++;
-        ret |= b1 << nbits_left;
-        nbits_left += 8;
-        --navail_bytes;
+        ret |= b1 << nbitsLeft;
+        nbitsLeft += 8;
+        --navailBytes;
     }
-    nbits_left -= curr_size;
-    ret &= code_mask[curr_size];
+    nbitsLeft -= currSize;
+    ret &= codeMask[currSize];
     return ((WORD)(ret));
 }
 
@@ -266,15 +269,17 @@ cleanup_gif_decoder()
 }
 
 WORD
-decoder(int i_linewidth)
+decoder(int iLinewidth)
 {
     WORD linewidth;
     FAST UTINY *sp, *bufptr;
     UTINY *buf;
     FAST WORD code, fc, oc, bufcnt;
-    WORD c, size, ret;
+    WORD c;
+    WORD size;
+    WORD ret;
 
-    linewidth = (WORD)i_linewidth;
+    linewidth = (WORD)iLinewidth;
 
     /* Initialize for decoding a new image...
      */
@@ -297,7 +302,7 @@ decoder(int i_linewidth)
 
     buf = decoderline;
 
-    bad_code_count = 0;
+    badCodeCount = 0;
 
     /* Set up the stack pointer and decode buffer pointer
      */
@@ -325,9 +330,9 @@ decoder(int i_linewidth)
         /* If the code is a clear code, reinitialize all necessary items.
          */
         if (c == clear) {
-            curr_size = size + 1;
+            currSize = size + 1;
             slot = newcodes;
-            top_slot = 1 << curr_size;
+            topSlot = 1 << currSize;
 
             /* Continue reading codes until we get a non-clear code
              * (Another unlikely, but possible case...)
@@ -386,7 +391,7 @@ decoder(int i_linewidth)
              */
             if (code >= slot) {
                 if (code > slot) {
-                    ++bad_code_count;
+                    ++badCodeCount;
                 }
                 code = oc;
                 *sp++ = (UTINY)fc;
@@ -408,16 +413,16 @@ decoder(int i_linewidth)
              * it might be more proper to overwrite the last code...
              */
             *sp++ = (UTINY)code;
-            if (slot < top_slot) {
+            if (slot < topSlot) {
                 fc = code;
                 suffix[slot] = (UTINY)fc;
                 prefix[slot++] = oc;
                 oc = c;
             }
-            if (slot >= top_slot) {
-                if (curr_size < 12) {
-                    top_slot <<= 1;
-                    ++curr_size;
+            if (slot >= topSlot) {
+                if (currSize < 12) {
+                    topSlot <<= 1;
+                    ++currSize;
                 }
             }
 

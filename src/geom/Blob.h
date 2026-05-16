@@ -7,10 +7,10 @@
 #include "geom/Geometry.h"
 
 /* Blob types */
-#include "geom/BlobElement.h"
-#include "geom/BlobList.h"
-#include "geom/BlobInterval.h"
 #include "geom/BlobClass.h"
+#include "geom/BlobElement.h"
+#include "geom/BlobInterval.h"
+#include "geom/BlobList.h"
 
 extern Methods Blob_Methods;
 extern Blob *Get_Blob_Shape(void);

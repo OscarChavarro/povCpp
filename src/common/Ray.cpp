@@ -38,16 +38,16 @@
 void
 Ray::makeRay()
 {
-    Vector3D Temp_Init_Dir;
+    Vector3D tempInitDir;
 
     VSquareTerms(this->Initial_2, this->Initial);
     VSquareTerms(this->Direction_2, this->Direction);
     VEvaluate(this->Initial_Direction, this->Initial, this->Direction);
     Mix(this->Mixed_Initial_Initial, this->Initial, this->Initial);
     Mix(this->Mixed_Dir_Dir, this->Direction, this->Direction);
-    Mix(Temp_Init_Dir, this->Initial, this->Direction);
+    Mix(tempInitDir, this->Initial, this->Direction);
     Mix(this->Mixed_Init_Dir, this->Direction, this->Initial);
-    VAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, Temp_Init_Dir);
+    VAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, tempInitDir);
     this->Quadric_Constants_Cached = TRUE;
 }
 
@@ -58,11 +58,11 @@ Ray::initializeContainers()
 }
 
 void
-Copy_Ray_Containers(Ray *Dest_Ray, Ray *Source_Ray)
+Copy_Ray_Containers(Ray *destRay, Ray *sourceRay)
 {
     register int i;
 
-    if ((Dest_Ray->Containing_Index = Source_Ray->Containing_Index) >=
+    if ((destRay->Containing_Index = sourceRay->Containing_Index) >=
         MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "ERROR - Containing Index too high\n");
         close_all();
@@ -70,8 +70,8 @@ Copy_Ray_Containers(Ray *Dest_Ray, Ray *Source_Ray)
     }
 
     for (i = 0; i < MAX_CONTAINING_OBJECTS; i++) {
-        Dest_Ray->Containing_Textures[i] = Source_Ray->Containing_Textures[i];
-        Dest_Ray->Containing_IORs[i] = Source_Ray->Containing_IORs[i];
+        destRay->Containing_Textures[i] = sourceRay->Containing_Textures[i];
+        destRay->Containing_IORs[i] = sourceRay->Containing_IORs[i];
     }
 }
 

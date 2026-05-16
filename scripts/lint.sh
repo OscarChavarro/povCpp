@@ -81,7 +81,7 @@ if [[ ! -f "$DB_VISIBLE" ]]; then
   fi
 fi
 
-if ! grep -q '/src/app/povray.cpp"' "$DB_VISIBLE"; then
+if ! grep -q '/src/.*\.cpp"' "$DB_VISIBLE"; then
   echo "compile_commands.json does not belong to this project: $DB_VISIBLE" >&2
   echo "Run ./scripts/compile.sh to regenerate it." >&2
   exit 1

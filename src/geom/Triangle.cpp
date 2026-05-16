@@ -36,8 +36,8 @@ Methods Smooth_Triangle_Methods = {Object_Intersect, All_Triangle_Intersections,
 
 extern Triangle *Get_Triangle_Shape();
 
-extern Ray *VP_Ray;
-extern long Ray_Triangle_Tests, Ray_Triangle_Tests_Succeeded;
+extern Ray *vpRay;
+extern long rayTriangleTests, rayTriangleTestsSucceeded;
 
 #define max3(x, y, z) ((x > y) ? ((x > z) ? 1 : 3) : ((y > z) ? 2 : 3))
 #define X_AXIS 0
@@ -47,7 +47,7 @@ extern long Ray_Triangle_Tests, Ray_Triangle_Tests_Succeeded;
 /*===========================================================================*/
 
 static void
-Find_Triangle_Dominant_Axis(Triangle *triangle)
+findTriangleDominantAxis(Triangle *triangle)
 {
     DBL x, y, z;
 
@@ -68,41 +68,43 @@ Find_Triangle_Dominant_Axis(Triangle *triangle)
 }
 
 static void
-Compute_Smooth_Triangle(SmoothTriangle *triangle)
+computeSmoothTriangle(SmoothTriangle *triangle)
 {
-    Vector3D P3MinusP2, VTemp1, VTemp2;
-    DBL x, y, z, uDenominator, Proj;
+    Vector3D p3MinusP2;
+    Vector3D vTemp1;
+    Vector3D vTemp2;
+    DBL x, y, z, uDenominator, proj;
 
-    VSub(P3MinusP2, triangle->P3, triangle->P2);
-    x = fabs(P3MinusP2.x);
-    y = fabs(P3MinusP2.y);
-    z = fabs(P3MinusP2.z);
+    VSub(p3MinusP2, triangle->P3, triangle->P2);
+    x = fabs(p3MinusP2.x);
+    y = fabs(p3MinusP2.y);
+    z = fabs(p3MinusP2.z);
 
     switch (max3(x, y, z)) {
     case 1:
         triangle->vAxis = X_AXIS;
-        triangle->BaseDelta = P3MinusP2.x;
+        triangle->BaseDelta = p3MinusP2.x;
         break;
 
     case 2:
         triangle->vAxis = Y_AXIS;
-        triangle->BaseDelta = P3MinusP2.y;
+        triangle->BaseDelta = p3MinusP2.y;
         break;
 
     case 3:
         triangle->vAxis = Z_AXIS;
-        triangle->BaseDelta = P3MinusP2.z;
+        triangle->BaseDelta = p3MinusP2.z;
         break;
     }
 
-    VSub(VTemp1, triangle->P2, triangle->P3);
-    VNormalize(VTemp1, VTemp1);
-    VSub(VTemp2, triangle->P1, triangle->P3);
-    VDot(Proj, VTemp2, VTemp1);
-    VScale(VTemp1, VTemp1, Proj);
-    VSub(triangle->Perp, VTemp1, VTemp2);
+    VSub(vTemp1, triangle->P2, triangle->P3);
+    VNormalize(vTemp1, vTemp1);
+    VSub(vTemp2, triangle->P1, triangle->P3);
+    VDot(proj, vTemp2, vTemp1);
+    VScale(vTemp1, vTemp1, proj);
+    VSub(triangle->Perp, vTemp1, vTemp2);
     VNormalize(triangle->Perp, triangle->Perp);
-    VDot(uDenominator, VTemp2, triangle->Perp);
+    VDot(uDenominator, vTemp2, triangle->Perp);
     uDenominator = -1.0 / uDenominator;
     VScale(triangle->Perp, triangle->Perp, uDenominator);
 }
@@ -110,25 +112,27 @@ Compute_Smooth_Triangle(SmoothTriangle *triangle)
 int
 Compute_Triangle(Triangle *triangle)
 {
-    Vector3D V1, V2, Temp;
-    DBL Length;
+    Vector3D v1;
+    Vector3D v2;
+    Vector3D temp;
+    DBL length;
 
-    VSub(V1, triangle->P1, triangle->P2);
-    VSub(V2, triangle->P3, triangle->P2);
-    VCross(triangle->Normal_Vector, V1, V2);
-    VLength(Length, triangle->Normal_Vector);
+    VSub(v1, triangle->P1, triangle->P2);
+    VSub(v2, triangle->P3, triangle->P2);
+    VCross(triangle->Normal_Vector, v1, v2);
+    VLength(length, triangle->Normal_Vector);
     /* Set up a flag so we can ignore degenerate triangles */
-    if (Length < 1.0e-9) {
+    if (length < 1.0e-9) {
         triangle->Degenerate_Flag = TRUE;
         return (0);
     }
 
     /* Normalize the normal vector. */
-    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / Length);
+    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
 
     VDot(triangle->Distance, triangle->Normal_Vector, triangle->P1);
     triangle->Distance *= -1.0;
-    Find_Triangle_Dominant_Axis(triangle);
+    findTriangleDominantAxis(triangle);
 
     switch (triangle->Dominant_Axis) {
     case X_AXIS:
@@ -137,14 +141,14 @@ Compute_Triangle(Triangle *triangle)
             (triangle->P2.z - triangle->P3.z) *
                 (triangle->P2.y - triangle->P1.y)) {
 
-            Temp = triangle->P2;
+            temp = triangle->P2;
             triangle->P2 = triangle->P1;
-            triangle->P1 = Temp;
+            triangle->P1 = temp;
             if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
-                Temp = ((SmoothTriangle *)triangle)->N2;
+                temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
-                ((SmoothTriangle *)triangle)->N1 = Temp;
+                ((SmoothTriangle *)triangle)->N1 = temp;
             }
         }
         break;
@@ -155,14 +159,14 @@ Compute_Triangle(Triangle *triangle)
             (triangle->P2.z - triangle->P3.z) *
                 (triangle->P2.x - triangle->P1.x)) {
 
-            Temp = triangle->P2;
+            temp = triangle->P2;
             triangle->P2 = triangle->P1;
-            triangle->P1 = Temp;
+            triangle->P1 = temp;
             if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
-                Temp = ((SmoothTriangle *)triangle)->N2;
+                temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
-                ((SmoothTriangle *)triangle)->N1 = Temp;
+                ((SmoothTriangle *)triangle)->N1 = temp;
             }
         }
         break;
@@ -173,105 +177,105 @@ Compute_Triangle(Triangle *triangle)
             (triangle->P2.y - triangle->P3.y) *
                 (triangle->P2.x - triangle->P1.x)) {
 
-            Temp = triangle->P2;
+            temp = triangle->P2;
             triangle->P2 = triangle->P1;
-            triangle->P1 = Temp;
+            triangle->P1 = temp;
             if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
-                Temp = ((SmoothTriangle *)triangle)->N2;
+                temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
-                ((SmoothTriangle *)triangle)->N1 = Temp;
+                ((SmoothTriangle *)triangle)->N1 = temp;
             }
         }
         break;
     }
 
     if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
-        Compute_Smooth_Triangle((SmoothTriangle *)triangle);
+        computeSmoothTriangle((SmoothTriangle *)triangle);
     }
     return (1);
 }
 
 int
 All_Triangle_Intersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    Triangle *Shape = (Triangle *)Object;
-    DBL Depth;
-    Vector3D Intersection_Point;
-    Intersection Local_Element;
+    Triangle *shape = (Triangle *)object;
+    DBL depth;
+    Vector3D intersectionPoint;
+    Intersection localElement;
 
-    if (Shape->Degenerate_Flag) {
+    if (shape->Degenerate_Flag) {
         return (FALSE);
     }
 
-    if (Intersect_Triangle(Ray, Shape, &Depth)) {
-        Local_Element.Depth = Depth;
-        Local_Element.Object = Shape->Parent_Object;
-        VScale(Intersection_Point, Ray->Direction, Depth);
-        VAdd(Intersection_Point, Intersection_Point, Ray->Initial);
-        Local_Element.Point = Intersection_Point;
-        Local_Element.Shape = (Geometry *)Shape;
-        Depth_Queue->add(&Local_Element);
+    if (Intersect_Triangle(ray, shape, &depth)) {
+        localElement.Depth = depth;
+        localElement.Object = shape->Parent_Object;
+        VScale(intersectionPoint, ray->Direction, depth);
+        VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        localElement.Point = intersectionPoint;
+        localElement.Shape = (Geometry *)shape;
+        depthQueue->add(&localElement);
         return (TRUE);
     }
     return (FALSE);
 }
 
 int
-Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
+Intersect_Triangle(Ray *ray, Triangle *triangle, DBL *depth)
 {
-    DBL NormalDotOrigin, NormalDotDirection;
+    DBL normalDotOrigin, normalDotDirection;
     DBL s, t;
 
-    Ray_Triangle_Tests++;
+    rayTriangleTests++;
     if (triangle->Degenerate_Flag) {
         return (FALSE);
     }
 
-    if (Ray == VP_Ray) {
+    if (ray == vpRay) {
         if (!triangle->VPCached) {
             VDot(triangle->VPNormDotOrigin, triangle->Normal_Vector,
-                Ray->Initial);
+                ray->Initial);
             triangle->VPNormDotOrigin += triangle->Distance;
             triangle->VPNormDotOrigin *= -1.0;
             triangle->VPCached = TRUE;
         }
 
-        VDot(NormalDotDirection, triangle->Normal_Vector, Ray->Direction);
-        if ((NormalDotDirection < Small_Tolerance) &&
-            (NormalDotDirection > -Small_Tolerance)) {
+        VDot(normalDotDirection, triangle->Normal_Vector, ray->Direction);
+        if ((normalDotDirection < Small_Tolerance) &&
+            (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
         }
 
-        *Depth = triangle->VPNormDotOrigin / NormalDotDirection;
+        *depth = triangle->VPNormDotOrigin / normalDotDirection;
     } else {
-        VDot(NormalDotOrigin, triangle->Normal_Vector, Ray->Initial);
-        NormalDotOrigin += triangle->Distance;
-        NormalDotOrigin *= -1.0;
+        VDot(normalDotOrigin, triangle->Normal_Vector, ray->Initial);
+        normalDotOrigin += triangle->Distance;
+        normalDotOrigin *= -1.0;
 
-        VDot(NormalDotDirection, triangle->Normal_Vector, Ray->Direction);
-        if ((NormalDotDirection < Small_Tolerance) &&
-            (NormalDotDirection > -Small_Tolerance)) {
+        VDot(normalDotDirection, triangle->Normal_Vector, ray->Direction);
+        if ((normalDotDirection < Small_Tolerance) &&
+            (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
         }
 
-        *Depth = NormalDotOrigin / NormalDotDirection;
+        *depth = normalDotOrigin / normalDotDirection;
     }
 
-    if ((*Depth < Small_Tolerance) || (*Depth > Max_Distance)) {
+    if ((*depth < Small_Tolerance) || (*depth > Max_Distance)) {
         return (FALSE);
     }
 
     switch (triangle->Dominant_Axis) {
     case X_AXIS:
-        s = Ray->Initial.y + *Depth * Ray->Direction.y;
-        t = Ray->Initial.z + *Depth * Ray->Direction.z;
+        s = ray->Initial.y + *depth * ray->Direction.y;
+        t = ray->Initial.z + *depth * ray->Direction.z;
 
         if (((triangle->P2.y - s) * (triangle->P2.z - triangle->P1.z)) <
             ((triangle->P2.z - t) * (triangle->P2.y - triangle->P1.y))) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
@@ -280,7 +284,7 @@ Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
         if (((triangle->P3.y - s) * (triangle->P3.z - triangle->P2.z)) <
             ((triangle->P3.z - t) * (triangle->P3.y - triangle->P2.y))) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
@@ -289,26 +293,26 @@ Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
         if (((triangle->P1.y - s) * (triangle->P1.z - triangle->P3.z)) <
             ((triangle->P1.z - t) * (triangle->P1.y - triangle->P3.y))) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
         }
 
         if (!(int)triangle->Inverted) {
-            Ray_Triangle_Tests_Succeeded++;
+            rayTriangleTestsSucceeded++;
             return (TRUE);
         }
         return (FALSE);
 
     case Y_AXIS:
-        s = Ray->Initial.x + *Depth * Ray->Direction.x;
-        t = Ray->Initial.z + *Depth * Ray->Direction.z;
+        s = ray->Initial.x + *depth * ray->Direction.x;
+        t = ray->Initial.z + *depth * ray->Direction.z;
 
         if ((triangle->P2.x - s) * (triangle->P2.z - triangle->P1.z) <
             (triangle->P2.z - t) * (triangle->P2.x - triangle->P1.x)) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
@@ -317,7 +321,7 @@ Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
         if ((triangle->P3.x - s) * (triangle->P3.z - triangle->P2.z) <
             (triangle->P3.z - t) * (triangle->P3.x - triangle->P2.x)) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
@@ -326,26 +330,26 @@ Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
         if ((triangle->P1.x - s) * (triangle->P1.z - triangle->P3.z) <
             (triangle->P1.z - t) * (triangle->P1.x - triangle->P3.x)) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
         }
 
         if (!(int)triangle->Inverted) {
-            Ray_Triangle_Tests_Succeeded++;
+            rayTriangleTestsSucceeded++;
             return (TRUE);
         }
         return (FALSE);
 
     case Z_AXIS:
-        s = Ray->Initial.x + *Depth * Ray->Direction.x;
-        t = Ray->Initial.y + *Depth * Ray->Direction.y;
+        s = ray->Initial.x + *depth * ray->Direction.x;
+        t = ray->Initial.y + *depth * ray->Direction.y;
 
         if ((triangle->P2.x - s) * (triangle->P2.y - triangle->P1.y) <
             (triangle->P2.y - t) * (triangle->P2.x - triangle->P1.x)) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
@@ -354,7 +358,7 @@ Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
         if ((triangle->P3.x - s) * (triangle->P3.y - triangle->P2.y) <
             (triangle->P3.y - t) * (triangle->P3.x - triangle->P2.x)) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
@@ -363,14 +367,14 @@ Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
         if ((triangle->P1.x - s) * (triangle->P1.y - triangle->P3.y) <
             (triangle->P1.y - t) * (triangle->P1.x - triangle->P3.x)) {
             if ((int)triangle->Inverted) {
-                Ray_Triangle_Tests_Succeeded++;
+                rayTriangleTestsSucceeded++;
                 return (TRUE);
             }
             return (FALSE);
         }
 
         if (!(int)triangle->Inverted) {
-            Ray_Triangle_Tests_Succeeded++;
+            rayTriangleTestsSucceeded++;
             return (TRUE);
         }
         return (FALSE);
@@ -379,58 +383,58 @@ Intersect_Triangle(Ray *Ray, Triangle *triangle, DBL *Depth)
 }
 
 int
-Inside_Triangle(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Triangle(Vector3D *testPoint, SimpleBody *object)
 {
     return (FALSE);
 }
 
 void
 Triangle_Normal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    Triangle *triangle = (Triangle *)Object;
+    Triangle *triangle = (Triangle *)object;
 
-    *Result = triangle->Normal_Vector;
+    *result = triangle->Normal_Vector;
 }
 
 void *
-Copy_Triangle(SimpleBody *Object)
+Copy_Triangle(SimpleBody *object)
 {
-    Triangle *New_Shape;
+    Triangle *newShape;
 
-    New_Shape = Get_Triangle_Shape();
-    *New_Shape = *((Triangle *)Object);
-    New_Shape->Next_Object = NULL;
+    newShape = Get_Triangle_Shape();
+    *newShape = *((Triangle *)object);
+    newShape->Next_Object = nullptr;
 
-    if (New_Shape->Shape_Texture != NULL) {
-        New_Shape->Shape_Texture = Copy_Texture(New_Shape->Shape_Texture);
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
     }
 
-    return (New_Shape);
+    return (newShape);
 }
 
 void
-Translate_Triangle(SimpleBody *Object, Vector3D *Vector)
+Translate_Triangle(SimpleBody *object, Vector3D *vector)
 {
-    Triangle *triangle = (Triangle *)Object;
-    Vector3D Translation;
+    Triangle *triangle = (Triangle *)object;
+    Vector3D translation;
 
-    VEvaluate(Translation, triangle->Normal_Vector, *Vector);
-    triangle->Distance -= Translation.x + Translation.y + Translation.z;
-    VAdd(triangle->P1, triangle->P1, *Vector)
-        VAdd(triangle->P2, triangle->P2, *Vector)
-            VAdd(triangle->P3, triangle->P3, *Vector)
+    VEvaluate(translation, triangle->Normal_Vector, *vector);
+    triangle->Distance -= translation.x + translation.y + translation.z;
+    VAdd(triangle->P1, triangle->P1, *vector)
+        VAdd(triangle->P2, triangle->P2, *vector)
+            VAdd(triangle->P3, triangle->P3, *vector)
 
-                Translate_Texture(&((Triangle *)Object)->Shape_Texture, Vector);
+                Translate_Texture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Triangle(SimpleBody *Object, Vector3D *Vector)
+Rotate_Triangle(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    Triangle *triangle = (Triangle *)Object;
+    Triangle *triangle = (Triangle *)object;
 
-    Get_Rotation_Transformation(&transformation, Vector);
+    Get_Rotation_Transformation(&transformation, vector);
     MTransformVector(
         &triangle->Normal_Vector, &triangle->Normal_Vector, &transformation);
     MTransformVector(&triangle->P1, &triangle->P1, &transformation);
@@ -438,34 +442,34 @@ Rotate_Triangle(SimpleBody *Object, Vector3D *Vector)
     MTransformVector(&triangle->P3, &triangle->P3, &transformation);
     Compute_Triangle(triangle);
 
-    Rotate_Texture(&((Triangle *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Triangle(SimpleBody *Object, Vector3D *Vector)
+Scale_Triangle(SimpleBody *object, Vector3D *vector)
 {
-    Triangle *triangle = (Triangle *)Object;
-    DBL Length;
+    Triangle *triangle = (Triangle *)object;
+    DBL length;
 
-    triangle->Normal_Vector.x = triangle->Normal_Vector.x / Vector->x;
-    triangle->Normal_Vector.y = triangle->Normal_Vector.y / Vector->y;
-    triangle->Normal_Vector.z = triangle->Normal_Vector.z / Vector->z;
+    triangle->Normal_Vector.x = triangle->Normal_Vector.x / vector->x;
+    triangle->Normal_Vector.y = triangle->Normal_Vector.y / vector->y;
+    triangle->Normal_Vector.z = triangle->Normal_Vector.z / vector->z;
 
-    VLength(Length, triangle->Normal_Vector);
-    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / Length);
-    triangle->Distance /= Length;
+    VLength(length, triangle->Normal_Vector);
+    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
+    triangle->Distance /= length;
 
-    VEvaluate(triangle->P1, triangle->P1, *Vector);
-    VEvaluate(triangle->P2, triangle->P2, *Vector);
-    VEvaluate(triangle->P3, triangle->P3, *Vector);
+    VEvaluate(triangle->P1, triangle->P1, *vector);
+    VEvaluate(triangle->P2, triangle->P2, *vector);
+    VEvaluate(triangle->P3, triangle->P3, *vector);
 
-    Scale_Texture(&((Triangle *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Triangle(SimpleBody *Object)
+Invert_Triangle(SimpleBody *object)
 {
-    Triangle *triangle = (Triangle *)Object;
+    Triangle *triangle = (Triangle *)object;
 
     triangle->Inverted ^= TRUE;
 }
@@ -513,16 +517,18 @@ Invert_Triangle(SimpleBody *Object)
 
 void
 Smooth_Triangle_Normal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)Object;
-    Vector3D PIMinusP1, NTemp1, NTemp2;
+    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    Vector3D piMinusP1;
+    Vector3D nTemp1;
+    Vector3D nTemp2;
     DBL u = 0.0, v = 0.0;
 
-    VSub(PIMinusP1, *Intersection_Point, triangle->P1);
-    VDot(u, PIMinusP1, triangle->Perp);
+    VSub(piMinusP1, *intersectionPoint, triangle->P1);
+    VDot(u, piMinusP1, triangle->Perp);
     if (u < 1.0e-9) {
-        *Result = triangle->N1;
+        *result = triangle->N1;
         return;
     }
 
@@ -531,56 +537,56 @@ Smooth_Triangle_Normal(
 
     switch (triangle->vAxis) {
     case X_AXIS:
-        v = (PIMinusP1.x / u + triangle->P1.x - triangle->P2.x) /
+        v = (piMinusP1.x / u + triangle->P1.x - triangle->P2.x) /
             triangle->BaseDelta;
         break;
 
     case Y_AXIS:
-        v = (PIMinusP1.y / u + triangle->P1.y - triangle->P2.y) /
+        v = (piMinusP1.y / u + triangle->P1.y - triangle->P2.y) /
             triangle->BaseDelta;
         break;
 
     case Z_AXIS:
-        v = (PIMinusP1.z / u + triangle->P1.z - triangle->P2.z) /
+        v = (piMinusP1.z / u + triangle->P1.z - triangle->P2.z) /
             triangle->BaseDelta;
         break;
     }
 
-    VSub(NTemp1, triangle->N2, triangle->N1);
-    VScale(NTemp1, NTemp1, u);
-    VAdd(NTemp1, NTemp1, triangle->N1);
-    VSub(NTemp2, triangle->N3, triangle->N1);
-    VScale(NTemp2, NTemp2, u);
-    VAdd(NTemp2, NTemp2, triangle->N1);
-    VSub(*Result, NTemp2, NTemp1);
-    VScale(*Result, *Result, v);
-    VAdd(*Result, *Result, NTemp1);
-    VNormalize(*Result, *Result);
+    VSub(nTemp1, triangle->N2, triangle->N1);
+    VScale(nTemp1, nTemp1, u);
+    VAdd(nTemp1, nTemp1, triangle->N1);
+    VSub(nTemp2, triangle->N3, triangle->N1);
+    VScale(nTemp2, nTemp2, u);
+    VAdd(nTemp2, nTemp2, triangle->N1);
+    VSub(*result, nTemp2, nTemp1);
+    VScale(*result, *result, v);
+    VAdd(*result, *result, nTemp1);
+    VNormalize(*result, *result);
 }
 
 void *
-Copy_Smooth_Triangle(SimpleBody *Object)
+Copy_Smooth_Triangle(SimpleBody *object)
 {
-    SmoothTriangle *New_Shape;
+    SmoothTriangle *newShape;
 
-    New_Shape = Get_Smooth_Triangle_Shape();
-    *New_Shape = *((SmoothTriangle *)Object);
-    New_Shape->Next_Object = NULL;
+    newShape = Get_Smooth_Triangle_Shape();
+    *newShape = *((SmoothTriangle *)object);
+    newShape->Next_Object = nullptr;
 
-    if (New_Shape->Shape_Texture != NULL) {
-        New_Shape->Shape_Texture = Copy_Texture(New_Shape->Shape_Texture);
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
     }
 
-    return (New_Shape);
+    return (newShape);
 }
 
 void
-Rotate_Smooth_Triangle(SimpleBody *Object, Vector3D *Vector)
+Rotate_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    SmoothTriangle *triangle = (SmoothTriangle *)Object;
+    SmoothTriangle *triangle = (SmoothTriangle *)object;
 
-    Get_Rotation_Transformation(&transformation, Vector);
+    Get_Rotation_Transformation(&transformation, vector);
     MTransformVector(
         &triangle->Normal_Vector, &triangle->Normal_Vector, &transformation);
     MTransformVector(&triangle->P1, &triangle->P1, &transformation);
@@ -591,51 +597,51 @@ Rotate_Smooth_Triangle(SimpleBody *Object, Vector3D *Vector)
     MTransformVector(&triangle->N3, &triangle->N3, &transformation);
     Compute_Triangle((Triangle *)triangle);
 
-    Rotate_Texture(&((Triangle *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Translate_Smooth_Triangle(SimpleBody *Object, Vector3D *Vector)
+Translate_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)Object;
-    Vector3D Translation;
+    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    Vector3D translation;
 
-    VEvaluate(Translation, triangle->Normal_Vector, *Vector);
-    triangle->Distance -= Translation.x + Translation.y + Translation.z;
-    VAdd(triangle->P1, triangle->P1, *Vector)
-        VAdd(triangle->P2, triangle->P2, *Vector)
-            VAdd(triangle->P3, triangle->P3, *Vector)
+    VEvaluate(translation, triangle->Normal_Vector, *vector);
+    triangle->Distance -= translation.x + translation.y + translation.z;
+    VAdd(triangle->P1, triangle->P1, *vector)
+        VAdd(triangle->P2, triangle->P2, *vector)
+            VAdd(triangle->P3, triangle->P3, *vector)
                 Compute_Triangle((Triangle *)triangle);
 
-    Translate_Texture(&((Triangle *)Object)->Shape_Texture, Vector);
+    Translate_Texture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Smooth_Triangle(SimpleBody *Object, Vector3D *Vector)
+Scale_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)Object;
-    DBL Length;
+    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    DBL length;
 
-    triangle->Normal_Vector.x = triangle->Normal_Vector.x / Vector->x;
-    triangle->Normal_Vector.y = triangle->Normal_Vector.y / Vector->y;
-    triangle->Normal_Vector.z = triangle->Normal_Vector.z / Vector->z;
+    triangle->Normal_Vector.x = triangle->Normal_Vector.x / vector->x;
+    triangle->Normal_Vector.y = triangle->Normal_Vector.y / vector->y;
+    triangle->Normal_Vector.z = triangle->Normal_Vector.z / vector->z;
 
-    VLength(Length, triangle->Normal_Vector);
-    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / Length);
-    triangle->Distance /= Length;
+    VLength(length, triangle->Normal_Vector);
+    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
+    triangle->Distance /= length;
 
-    VEvaluate(triangle->P1, triangle->P1, *Vector);
-    VEvaluate(triangle->P2, triangle->P2, *Vector);
-    VEvaluate(triangle->P3, triangle->P3, *Vector);
+    VEvaluate(triangle->P1, triangle->P1, *vector);
+    VEvaluate(triangle->P2, triangle->P2, *vector);
+    VEvaluate(triangle->P3, triangle->P3, *vector);
     Compute_Triangle((Triangle *)triangle);
 
-    Scale_Texture(&((SmoothTriangle *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((SmoothTriangle *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Smooth_Triangle(SimpleBody *Object)
+Invert_Smooth_Triangle(SimpleBody *object)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)Object;
+    SmoothTriangle *triangle = (SmoothTriangle *)object;
 
     triangle->Inverted ^= TRUE;
 }

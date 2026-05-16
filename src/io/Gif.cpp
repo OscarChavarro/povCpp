@@ -36,13 +36,13 @@
 #include "common/PovProto.h"
 #include "io/GifDecod.h"
 
-static RGBAImage *Current_Image;
-static int Bitmap_Line;
-static FILE *Bit_File;
+static RGBAImage *currentImage;
+static int bitmapLine;
+static FILE *bitFile;
 unsigned char *decoderline /*  [2049] */; /* write-line routines use this */
 
-static RGBAPixel *gif_colour_map;
-static int colourmap_size;
+static RGBAPixel *gifColourMap;
+static int colourmapSize;
 
 /* IMPORT INT out_line(pixels, linelen)
  *      UBYTE pixels[];
@@ -63,10 +63,10 @@ out_line(unsigned char *pixels, int linelen)
     register int x;
     register unsigned char *line;
 
-    line = Current_Image->data.map_lines[Bitmap_Line++];
+    line = currentImage->data.map_lines[bitmapLine++];
 
     for (x = 0; x < linelen; x++) {
-        if ((int)(*pixels) > Current_Image->Colour_Map_Size) {
+        if ((int)(*pixels) > currentImage->Colour_Map_Size) {
             fprintf(stderr, "Error - GIF Image Map Colour out of range\n");
             exit(1);
         }
@@ -85,7 +85,7 @@ get_byte() /* get byte from file, return the next byte or an error */
 {
     register int byte;
 
-    if ((byte = getc(Bit_File)) != EOF) {
+    if ((byte = getc(bitFile)) != EOF) {
         return (byte);
     }
     fprintf(stderr, "Premature End Of File reading GIF image\n");
@@ -97,25 +97,28 @@ get_byte() /* get byte from file, return the next byte or an error */
 /* Main GIF file decoder.  */
 
 void
-Read_Gif_Image(RGBAImage *Image, char *filename)
+Read_Gif_Image(RGBAImage *image, char *filename)
 {
-    register int i, j, status;
-    unsigned finished, planes;
+    register int i;
+    register int j;
+    register int status;
+    unsigned finished;
+    unsigned planes;
     unsigned char buffer[16];
 
     status = 0;
-    Current_Image = Image;
+    currentImage = image;
 
-    if ((Bit_File = Locate_File(filename, READ_FILE_STRING)) == NULL) {
+    if ((bitFile = Locate_File(filename, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open GIF file %s\n", filename);
         exit(1);
     }
 
     /* zero out the full write-line */
     decoderline = new unsigned char[2049];
-    if (decoderline == NULL) {
+    if (decoderline == nullptr) {
         fprintf(stderr, "Cannot allocate space for GIF decoder line\n");
-        fclose(Bit_File);
+        fclose(bitFile);
         exit(1);
     }
 
@@ -133,31 +136,31 @@ Read_Gif_Image(RGBAImage *Image, char *filename)
         buffer[4] > '9' || buffer[5] < 'A' || buffer[5] > 'z') {
 
         fprintf(stderr, "Invalid GIF file format: %s\n", filename);
-        fclose(Bit_File);
+        fclose(bitFile);
         exit(1);
     }
 
     planes = ((unsigned)buffer[10] & 0x0F) + 1;
-    colourmap_size = (int)(1 << planes);
+    colourmapSize = (int)(1 << planes);
 
-    gif_colour_map = new RGBAPixel[colourmap_size];
-    if (gif_colour_map == NULL) {
+    gifColourMap = new RGBAPixel[colourmapSize];
+    if (gifColourMap == nullptr) {
         fprintf(stderr, "Cannot allocate GIF Colour Map\n");
-        fclose(Bit_File);
+        fclose(bitFile);
         exit(1);
     }
 
     if ((buffer[10] & 0x80) == 0) { /* color map (better be!) */
         fprintf(stderr, "Invalid GIF file format: %s\n", filename);
-        fclose(Bit_File);
+        fclose(bitFile);
         exit(1);
     }
 
-    for (i = 0; i < colourmap_size; i++) {
-        gif_colour_map[i].Red = (unsigned char)get_byte();
-        gif_colour_map[i].Green = (unsigned char)get_byte();
-        gif_colour_map[i].Blue = (unsigned char)get_byte();
-        gif_colour_map[i].Alpha = 0;
+    for (i = 0; i < colourmapSize; i++) {
+        gifColourMap[i].Red = (unsigned char)get_byte();
+        gifColourMap[i].Green = (unsigned char)get_byte();
+        gifColourMap[i].Blue = (unsigned char)get_byte();
+        gifColourMap[i].Alpha = 0;
     }
 
     /* Now display one or more GIF objects */
@@ -192,32 +195,32 @@ Read_Gif_Image(RGBAImage *Image, char *filename)
                 break;
             }
 
-            Image->iwidth = buffer[4] | (buffer[5] << 8);
-            Image->iheight = buffer[6] | (buffer[7] << 8);
-            Image->width = (DBL)Image->iwidth;
-            Image->height = (DBL)Image->iheight;
+            image->iwidth = buffer[4] | (buffer[5] << 8);
+            image->iheight = buffer[6] | (buffer[7] << 8);
+            image->width = (DBL)image->iwidth;
+            image->height = (DBL)image->iheight;
 
-            Bitmap_Line = 0;
+            bitmapLine = 0;
 
-            Image->Colour_Map_Size = colourmap_size;
-            Image->Colour_Map = gif_colour_map;
+            image->Colour_Map_Size = colourmapSize;
+            image->Colour_Map = gifColourMap;
 
-            Image->data.map_lines = new unsigned char *[Image->iheight];
-            if (Image->data.map_lines == NULL) {
+            image->data.map_lines = new unsigned char *[image->iheight];
+            if (image->data.map_lines == nullptr) {
                 fprintf(stderr, "Cannot allocate memory for picture\n");
                 exit(1);
             }
 
-            for (i = 0; i < Image->iheight; i++) {
-                Image->data.map_lines[i] = new unsigned char[Image->iwidth];
-                if (Image->data.map_lines[i] == NULL) {
+            for (i = 0; i < image->iheight; i++) {
+                image->data.map_lines[i] = new unsigned char[image->iwidth];
+                if (image->data.map_lines[i] == nullptr) {
                     fprintf(stderr, "Cannot allocate memory for picture\n");
                     exit(1);
                 }
             }
 
             /* Setup the color palette for the image */
-            status = decoder(Image->iwidth); /*put bytes in Buf*/
+            status = decoder(image->iwidth); /*put bytes in Buf*/
             /* changed param to int */
             finished = TRUE;
             break;
@@ -230,5 +233,5 @@ Read_Gif_Image(RGBAImage *Image, char *filename)
     }
 
     delete decoderline;
-    fclose(Bit_File);
+    fclose(bitFile);
 }

@@ -26,95 +26,97 @@
 /*===========================================================================*/
 
 Methods CSG_Union_Methods = {Object_Intersect, All_CSG_Union_Intersections,
-    Inside_CSG_Union, NULL, Copy_CSG, Translate_CSG, Rotate_CSG, Scale_CSG,
+    Inside_CSG_Union, nullptr, Copy_CSG, Translate_CSG, Rotate_CSG, Scale_CSG,
     Invert_CSG};
 
 Methods CSG_Intersection_Methods = {Object_Intersect,
-    All_CSG_Intersect_Intersections, Inside_CSG_Intersection, NULL, Copy_CSG,
+    All_CSG_Intersect_Intersections, Inside_CSG_Intersection, nullptr, Copy_CSG,
     Translate_CSG, Rotate_CSG, Scale_CSG, Invert_CSG};
 
-extern Ray *VP_Ray;
+extern Ray *vpRay;
 
 /*===========================================================================*/
 
 int
 All_CSG_Union_Intersections(
-    SimpleBody *Object, Ray *ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    register int Intersection_Found;
-    CSG *Shape = (CSG *)Object;
-    Geometry *Local_Shape;
+    register int intersectionFound;
+    CSG *shape = (CSG *)object;
+    Geometry *localShape;
 
-    Intersection_Found = FALSE;
-    for (Local_Shape = Shape->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
-        if (All_Intersections((SimpleBody *)Local_Shape, ray, Depth_Queue)) {
-            Intersection_Found = TRUE;
+    intersectionFound = FALSE;
+    for (localShape = shape->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
+        if (All_Intersections((SimpleBody *)localShape, ray, depthQueue)) {
+            intersectionFound = TRUE;
         }
     }
 
-    return (Intersection_Found);
+    return (intersectionFound);
 }
 
 int
 All_CSG_Intersect_Intersections(
-    SimpleBody *Object, Ray *ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    int Intersection_Found, Any_Intersection_Found;
-    CSG *Shape = (CSG *)Object;
-    Geometry *Local_Shape, *Shape2;
-    PriorityQueueNode *Local_Depth_Queue;
-    Intersection *Local_Intersection;
+    int intersectionFound;
+    int anyIntersectionFound;
+    CSG *shape = (CSG *)object;
+    Geometry *localShape;
+    Geometry *shape2;
+    PriorityQueueNode *localDepthQueue;
+    Intersection *localIntersection;
 
-    Local_Depth_Queue = pq_pop(128);
+    localDepthQueue = pq_pop(128);
 
-    Any_Intersection_Found = FALSE;
+    anyIntersectionFound = FALSE;
 
-    for (Local_Shape = Shape->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = shape->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        All_Intersections((SimpleBody *)Local_Shape, ray, Local_Depth_Queue);
+        All_Intersections((SimpleBody *)localShape, ray, localDepthQueue);
 
-        for (Local_Intersection = Local_Depth_Queue->getHighest();
-             Local_Intersection != NULL; Local_Depth_Queue->deleteHighest(),
-            Local_Intersection = Local_Depth_Queue->getHighest()) {
+        for (localIntersection = localDepthQueue->getHighest();
+             localIntersection != nullptr; localDepthQueue->deleteHighest(),
+            localIntersection = localDepthQueue->getHighest()) {
 
-            Intersection_Found = TRUE;
+            intersectionFound = TRUE;
 
-            for (Shape2 = Shape->Shapes; Shape2 != NULL;
-                 Shape2 = Shape2->Next_Object) {
+            for (shape2 = shape->Shapes; shape2 != nullptr;
+                 shape2 = shape2->Next_Object) {
 
-                if (Shape2 != Local_Shape) {
+                if (shape2 != localShape) {
                     if (!Inside(
-                            &Local_Intersection->Point, (SimpleBody *)Shape2)) {
-                        Intersection_Found = FALSE;
+                            &localIntersection->Point, (SimpleBody *)shape2)) {
+                        intersectionFound = FALSE;
                         break;
                     }
                 }
             }
 
-            if (Intersection_Found) {
-                Depth_Queue->add(Local_Intersection);
-                Any_Intersection_Found = TRUE;
+            if (intersectionFound) {
+                depthQueue->add(localIntersection);
+                anyIntersectionFound = TRUE;
             }
         }
     }
 
-    Local_Depth_Queue->pushBackToPool();
+    localDepthQueue->pushBackToPool();
 
-    return (Any_Intersection_Found);
+    return (anyIntersectionFound);
 }
 
 int
-Inside_CSG_Union(Vector3D *Test_Point, SimpleBody *Object)
+Inside_CSG_Union(Vector3D *testPoint, SimpleBody *object)
 {
-    CSG *Shape = (CSG *)Object;
-    Geometry *Local_Shape;
+    CSG *shape = (CSG *)object;
+    Geometry *localShape;
 
-    for (Local_Shape = Shape->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = shape->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        if (Inside(Test_Point, (SimpleBody *)Local_Shape)) {
+        if (Inside(testPoint, (SimpleBody *)localShape)) {
             return (TRUE);
         }
     }
@@ -122,15 +124,15 @@ Inside_CSG_Union(Vector3D *Test_Point, SimpleBody *Object)
 }
 
 int
-Inside_CSG_Intersection(Vector3D *Test_Point, SimpleBody *Object)
+Inside_CSG_Intersection(Vector3D *testPoint, SimpleBody *object)
 {
-    Geometry *Local_Shape;
-    CSG *Shape = (CSG *)Object;
+    Geometry *localShape;
+    CSG *shape = (CSG *)object;
 
-    for (Local_Shape = Shape->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = shape->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        if (!Inside(Test_Point, (SimpleBody *)Local_Shape)) {
+        if (!Inside(testPoint, (SimpleBody *)localShape)) {
             return (FALSE);
         }
     }
@@ -139,98 +141,99 @@ Inside_CSG_Intersection(Vector3D *Test_Point, SimpleBody *Object)
 }
 
 void *
-Copy_CSG(SimpleBody *Object)
+Copy_CSG(SimpleBody *object)
 {
-    CSG *Shape = (CSG *)Object;
-    CSG *New_Shape;
-    Geometry *Local_Shape, *Copied_Shape;
+    CSG *shape = (CSG *)object;
+    CSG *newShape;
+    Geometry *localShape;
+    Geometry *copiedShape;
 
-    New_Shape = Get_CSG_Shape();
-    New_Shape->methods = Shape->methods;
-    New_Shape->Type = Shape->Type;
-    New_Shape->Next_Object = NULL;
-    New_Shape->Shapes = NULL;
+    newShape = Get_CSG_Shape();
+    newShape->methods = shape->methods;
+    newShape->Type = shape->Type;
+    newShape->Next_Object = nullptr;
+    newShape->Shapes = nullptr;
 
-    for (Local_Shape = Shape->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = shape->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Copied_Shape = (Geometry *)Copy((SimpleBody *)Local_Shape);
-        Link((SimpleBody *)Copied_Shape,
-            (SimpleBody **)&(Copied_Shape->Next_Object),
-            (SimpleBody **)&(New_Shape->Shapes));
+        copiedShape = (Geometry *)Copy((SimpleBody *)localShape);
+        Link((SimpleBody *)copiedShape,
+            (SimpleBody **)&(copiedShape->Next_Object),
+            (SimpleBody **)&(newShape->Shapes));
     }
-    return ((void *)New_Shape);
+    return ((void *)newShape);
 }
 
 void
-Translate_CSG(SimpleBody *Object, Vector3D *Vector)
+Translate_CSG(SimpleBody *object, Vector3D *vector)
 {
-    Geometry *Local_Shape;
+    Geometry *localShape;
 
-    for (Local_Shape = ((CSG *)Object)->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Translate((SimpleBody *)Local_Shape, Vector);
-    }
-}
-
-void
-Rotate_CSG(SimpleBody *Object, Vector3D *Vector)
-{
-    Geometry *Local_Shape;
-
-    for (Local_Shape = ((CSG *)Object)->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
-
-        Rotate((SimpleBody *)Local_Shape, Vector);
+        Translate((SimpleBody *)localShape, vector);
     }
 }
 
 void
-Scale_CSG(SimpleBody *Object, Vector3D *Vector)
+Rotate_CSG(SimpleBody *object, Vector3D *vector)
 {
-    Geometry *Local_Shape;
+    Geometry *localShape;
 
-    for (Local_Shape = ((CSG *)Object)->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Scale((SimpleBody *)Local_Shape, Vector);
+        Rotate((SimpleBody *)localShape, vector);
     }
 }
 
 void
-Invert_CSG(SimpleBody *Object)
+Scale_CSG(SimpleBody *object, Vector3D *vector)
 {
-    Geometry *Local_Shape;
-    CSG *Csg = (CSG *)Object;
+    Geometry *localShape;
 
-    if (Csg->Type == CSG_INTERSECTION_TYPE) {
-        Csg->Type = CSG_UNION_TYPE;
-        Csg->methods = &CSG_Union_Methods;
-    } else if (Csg->Type == CSG_UNION_TYPE) {
-        Csg->Type = CSG_INTERSECTION_TYPE;
-        Csg->methods = &CSG_Intersection_Methods;
-    }
+    for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-    for (Local_Shape = Csg->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
-
-        Invert((SimpleBody *)Local_Shape);
+        Scale((SimpleBody *)localShape, vector);
     }
 }
 
 void
-Set_CSG_Parents(CSG *Shape, SimpleBody *Object)
+Invert_CSG(SimpleBody *object)
 {
-    Geometry *Local_Shape;
+    Geometry *localShape;
+    CSG *csg = (CSG *)object;
 
-    for (Local_Shape = Shape->Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    if (csg->Type == CSG_INTERSECTION_TYPE) {
+        csg->Type = CSG_UNION_TYPE;
+        csg->methods = &CSG_Union_Methods;
+    } else if (csg->Type == CSG_UNION_TYPE) {
+        csg->Type = CSG_INTERSECTION_TYPE;
+        csg->methods = &CSG_Intersection_Methods;
+    }
 
-        Local_Shape->Parent_Object = Object;
-        if ((Local_Shape->Type == CSG_UNION_TYPE) ||
-            (Local_Shape->Type == CSG_INTERSECTION_TYPE)) {
-            Set_CSG_Parents((CSG *)Local_Shape, Object);
+    for (localShape = csg->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
+
+        Invert((SimpleBody *)localShape);
+    }
+}
+
+void
+Set_CSG_Parents(CSG *shape, SimpleBody *object)
+{
+    Geometry *localShape;
+
+    for (localShape = shape->Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
+
+        localShape->Parent_Object = object;
+        if ((localShape->Type == CSG_UNION_TYPE) ||
+            (localShape->Type == CSG_INTERSECTION_TYPE)) {
+            Set_CSG_Parents((CSG *)localShape, object);
         }
     }
 }

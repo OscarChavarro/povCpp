@@ -29,148 +29,156 @@ Methods Quadric_Methods = {Object_Intersect, All_Quadric_Intersections,
     Inside_Quadric, Quadric_Normal, Copy_Quadric, Translate_Quadric,
     Rotate_Quadric, Scale_Quadric, Invert_Quadric};
 
-extern Ray *VP_Ray;
-extern long Ray_Quadric_Tests, Ray_Quadric_Tests_Succeeded;
+extern Ray *vpRay;
+extern long rayQuadricTests, rayQuadricTestsSucceeded;
 
 /*===========================================================================*/
 
 int
 All_Quadric_Intersections(
-    SimpleBody *Object, Ray *ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    Quadric *Shape = (Quadric *)Object;
-    DBL Depth1, Depth2;
-    Vector3D Intersection_Point;
-    Intersection Local_Element;
-    register int Intersection_Found;
+    Quadric *shape = (Quadric *)object;
+    DBL depth1, depth2;
+    Vector3D intersectionPoint;
+    Intersection localElement;
+    register int intersectionFound;
 
-    Intersection_Found = FALSE;
-    if (Intersect_Quadric(ray, Shape, &Depth1, &Depth2)) {
-        Local_Element.Depth = Depth1;
-        Local_Element.Object = Shape->Parent_Object;
-        VScale(Intersection_Point, ray->Direction, Depth1);
-        VAdd(Intersection_Point, Intersection_Point, ray->Initial);
-        Local_Element.Point = Intersection_Point;
-        Local_Element.Shape = (Geometry *)Shape;
-        Depth_Queue->add(&Local_Element);
-        Intersection_Found = TRUE;
+    intersectionFound = FALSE;
+    if (Intersect_Quadric(ray, shape, &depth1, &depth2)) {
+        localElement.Depth = depth1;
+        localElement.Object = shape->Parent_Object;
+        VScale(intersectionPoint, ray->Direction, depth1);
+        VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        localElement.Point = intersectionPoint;
+        localElement.Shape = (Geometry *)shape;
+        depthQueue->add(&localElement);
+        intersectionFound = TRUE;
 
-        if (Depth2 != Depth1) {
-            Local_Element.Depth = Depth2;
-            Local_Element.Object = Shape->Parent_Object;
-            VScale(Intersection_Point, ray->Direction, Depth2);
-            VAdd(Intersection_Point, Intersection_Point, ray->Initial);
-            Local_Element.Point = Intersection_Point;
-            Local_Element.Shape = (Geometry *)Shape;
-            Depth_Queue->add(&Local_Element);
-            Intersection_Found = TRUE;
+        if (depth2 != depth1) {
+            localElement.Depth = depth2;
+            localElement.Object = shape->Parent_Object;
+            VScale(intersectionPoint, ray->Direction, depth2);
+            VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            localElement.Point = intersectionPoint;
+            localElement.Shape = (Geometry *)shape;
+            depthQueue->add(&localElement);
+            intersectionFound = TRUE;
         }
     }
-    return (Intersection_Found);
+    return (intersectionFound);
 }
 
 int
-Intersect_Quadric(Ray *ray, Quadric *Shape, DBL *Depth1, DBL *Depth2)
+Intersect_Quadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
 {
-    register DBL Square_Term, Linear_Term, Constant_Term, Temp_Term;
-    register DBL Determinant, Determinant_2, A2, BMinus;
+    register DBL squareTerm;
+    register DBL linearTerm;
+    register DBL constantTerm;
+    register DBL tempTerm;
+    register DBL determinant;
+    register DBL determinant2;
+    register DBL a2;
+    register DBL bMinus;
 
-    Ray_Quadric_Tests++;
+    rayQuadricTests++;
     if (!ray->Quadric_Constants_Cached) {
         ray->makeRay();
     }
 
-    if (Shape->Non_Zero_Square_Term) {
-        VDot(Square_Term, Shape->Object_2_Terms, ray->Direction_2);
-        VDot(Temp_Term, Shape->Object_Mixed_Terms, ray->Mixed_Dir_Dir);
-        Square_Term += Temp_Term;
+    if (shape->Non_Zero_Square_Term) {
+        VDot(squareTerm, shape->Object_2_Terms, ray->Direction_2);
+        VDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Dir_Dir);
+        squareTerm += tempTerm;
     } else {
-        Square_Term = 0.0;
+        squareTerm = 0.0;
     }
 
-    VDot(Linear_Term, Shape->Object_2_Terms, ray->Initial_Direction);
-    Linear_Term *= 2.0;
-    VDot(Temp_Term, Shape->Object_Terms, ray->Direction);
-    Linear_Term += Temp_Term;
-    VDot(Temp_Term, Shape->Object_Mixed_Terms, ray->Mixed_Init_Dir);
-    Linear_Term += Temp_Term;
+    VDot(linearTerm, shape->Object_2_Terms, ray->Initial_Direction);
+    linearTerm *= 2.0;
+    VDot(tempTerm, shape->Object_Terms, ray->Direction);
+    linearTerm += tempTerm;
+    VDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Init_Dir);
+    linearTerm += tempTerm;
 
-    if (ray == VP_Ray) {
-        if (!Shape->Constant_Cached) {
-            VDot(Constant_Term, Shape->Object_2_Terms, ray->Initial_2);
-            VDot(Temp_Term, Shape->Object_Terms, ray->Initial);
-            Constant_Term += Temp_Term + Shape->Object_Constant;
-            Shape->Object_VP_Constant = Constant_Term;
-            Shape->Constant_Cached = TRUE;
+    if (ray == vpRay) {
+        if (!shape->Constant_Cached) {
+            VDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
+            VDot(tempTerm, shape->Object_Terms, ray->Initial);
+            constantTerm += tempTerm + shape->Object_Constant;
+            shape->Object_VP_Constant = constantTerm;
+            shape->Constant_Cached = TRUE;
         } else {
-            Constant_Term = Shape->Object_VP_Constant;
+            constantTerm = shape->Object_VP_Constant;
         }
     } else {
-        VDot(Constant_Term, Shape->Object_2_Terms, ray->Initial_2);
-        VDot(Temp_Term, Shape->Object_Terms, ray->Initial);
-        Constant_Term += Temp_Term + Shape->Object_Constant;
+        VDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
+        VDot(tempTerm, shape->Object_Terms, ray->Initial);
+        constantTerm += tempTerm + shape->Object_Constant;
     }
 
-    VDot(Temp_Term, Shape->Object_Mixed_Terms, ray->Mixed_Initial_Initial);
-    Constant_Term += Temp_Term;
+    VDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Initial_Initial);
+    constantTerm += tempTerm;
 
-    if (Square_Term != 0.0) {
+    if (squareTerm != 0.0) {
         /* The equation is quadratic - find its roots */
 
-        Determinant_2 =
-            Linear_Term * Linear_Term - 4.0 * Square_Term * Constant_Term;
+        determinant2 =
+            linearTerm * linearTerm - 4.0 * squareTerm * constantTerm;
 
-        if (Determinant_2 < 0.0) {
+        if (determinant2 < 0.0) {
             return (FALSE);
         }
 
-        Determinant = sqrt(Determinant_2);
-        A2 = Square_Term * 2.0;
-        BMinus = Linear_Term * -1.0;
+        determinant = sqrt(determinant2);
+        a2 = squareTerm * 2.0;
+        bMinus = linearTerm * -1.0;
 
-        *Depth1 = (BMinus + Determinant) / A2;
-        *Depth2 = (BMinus - Determinant) / A2;
+        *depth1 = (bMinus + determinant) / a2;
+        *depth2 = (bMinus - determinant) / a2;
     } else {
         /* There are no quadratic terms.  Solve the linear equation instead. */
-        if (Linear_Term == 0.0) {
+        if (linearTerm == 0.0) {
             return (FALSE);
         }
 
-        *Depth1 = Constant_Term * -1.0 / Linear_Term;
-        *Depth2 = *Depth1;
+        *depth1 = constantTerm * -1.0 / linearTerm;
+        *depth2 = *depth1;
     }
 
-    if ((*Depth1 < Small_Tolerance) || (*Depth1 > Max_Distance)) {
-        if ((*Depth2 < Small_Tolerance) || (*Depth2 > Max_Distance)) {
+    if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
+        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
             return (FALSE);
-        } else {
-            *Depth1 = *Depth2;
         }
-    } else if ((*Depth2 < Small_Tolerance) || (*Depth2 > Max_Distance)) {
-        *Depth2 = *Depth1;
+        *depth1 = *depth2;
+
+    } else if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+        *depth2 = *depth1;
     }
 
-    Ray_Quadric_Tests_Succeeded++;
+    rayQuadricTestsSucceeded++;
     return (TRUE);
 }
 
 int
-Inside_Quadric(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Quadric(Vector3D *testPoint, SimpleBody *object)
 {
-    Quadric *Shape = (Quadric *)Object;
-    Vector3D New_Point;
-    register DBL Result, Linear_Term, Square_Term;
+    Quadric *shape = (Quadric *)object;
+    Vector3D newPoint;
+    register DBL result;
+    register DBL linearTerm;
+    register DBL squareTerm;
 
-    VDot(Linear_Term, *Test_Point, Shape->Object_Terms);
-    Result = Linear_Term + Shape->Object_Constant;
-    VSquareTerms(New_Point, *Test_Point);
-    VDot(Square_Term, New_Point, Shape->Object_2_Terms);
-    Result += Square_Term;
-    Result += Shape->Object_Mixed_Terms.x * (Test_Point->x) * (Test_Point->y) +
-              Shape->Object_Mixed_Terms.y * (Test_Point->x) * (Test_Point->z) +
-              Shape->Object_Mixed_Terms.z * (Test_Point->y) * (Test_Point->z);
+    VDot(linearTerm, *testPoint, shape->Object_Terms);
+    result = linearTerm + shape->Object_Constant;
+    VSquareTerms(newPoint, *testPoint);
+    VDot(squareTerm, newPoint, shape->Object_2_Terms);
+    result += squareTerm;
+    result += shape->Object_Mixed_Terms.x * (testPoint->x) * (testPoint->y) +
+              shape->Object_Mixed_Terms.y * (testPoint->x) * (testPoint->z) +
+              shape->Object_Mixed_Terms.z * (testPoint->y) * (testPoint->z);
 
-    if (Result < Small_Tolerance) {
+    if (result < Small_Tolerance) {
         return (TRUE);
     }
 
@@ -179,146 +187,147 @@ Inside_Quadric(Vector3D *Test_Point, SimpleBody *Object)
 
 void
 Quadric_Normal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    Quadric *Intersection_Shape = (Quadric *)Object;
-    Vector3D Derivative_Linear;
-    DBL Len;
+    Quadric *intersectionShape = (Quadric *)object;
+    Vector3D derivativeLinear;
+    DBL len;
 
-    VScale(Derivative_Linear, Intersection_Shape->Object_2_Terms, 2.0);
-    VEvaluate(*Result, Derivative_Linear, *Intersection_Point);
-    VAdd(*Result, *Result, Intersection_Shape->Object_Terms);
+    VScale(derivativeLinear, intersectionShape->Object_2_Terms, 2.0);
+    VEvaluate(*result, derivativeLinear, *intersectionPoint);
+    VAdd(*result, *result, intersectionShape->Object_Terms);
 
-    Result->x +=
-        Intersection_Shape->Object_Mixed_Terms.x * Intersection_Point->y +
-        Intersection_Shape->Object_Mixed_Terms.y * Intersection_Point->z;
+    result->x +=
+        intersectionShape->Object_Mixed_Terms.x * intersectionPoint->y +
+        intersectionShape->Object_Mixed_Terms.y * intersectionPoint->z;
 
-    Result->y +=
-        Intersection_Shape->Object_Mixed_Terms.x * Intersection_Point->x +
-        Intersection_Shape->Object_Mixed_Terms.z * Intersection_Point->z;
+    result->y +=
+        intersectionShape->Object_Mixed_Terms.x * intersectionPoint->x +
+        intersectionShape->Object_Mixed_Terms.z * intersectionPoint->z;
 
-    Result->z +=
-        Intersection_Shape->Object_Mixed_Terms.y * Intersection_Point->x +
-        Intersection_Shape->Object_Mixed_Terms.z * Intersection_Point->y;
+    result->z +=
+        intersectionShape->Object_Mixed_Terms.y * intersectionPoint->x +
+        intersectionShape->Object_Mixed_Terms.z * intersectionPoint->y;
 
-    Len = Result->x * Result->x + Result->y * Result->y + Result->z * Result->z;
-    Len = sqrt(Len);
-    if (Len == 0.0) {
+    len = result->x * result->x + result->y * result->y + result->z * result->z;
+    len = sqrt(len);
+    if (len == 0.0) {
         /* The normal is not defined at this point of the surface.  Set it
             to any arbitrary direction. */
-        Result->x = 1.0;
-        Result->y = 0.0;
-        Result->z = 0.0;
+        result->x = 1.0;
+        result->y = 0.0;
+        result->z = 0.0;
     } else {
-        Result->x /= Len; /* normalize the normal */
-        Result->y /= Len;
-        Result->z /= Len;
+        result->x /= len; /* normalize the normal */
+        result->y /= len;
+        result->z /= len;
     }
 }
 
 void *
-Copy_Quadric(SimpleBody *Object)
+Copy_Quadric(SimpleBody *object)
 {
-    Quadric *New_Shape;
+    Quadric *newShape;
 
-    New_Shape = Get_Quadric_Shape();
-    *New_Shape = *((Quadric *)Object);
-    New_Shape->Next_Object = NULL;
+    newShape = Get_Quadric_Shape();
+    *newShape = *((Quadric *)object);
+    newShape->Next_Object = nullptr;
 
-    if (New_Shape->Shape_Texture != NULL) {
-        New_Shape->Shape_Texture = Copy_Texture(New_Shape->Shape_Texture);
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
     }
 
-    return (New_Shape);
+    return (newShape);
 }
 
 static void
-Quadric_To_Matrix(Quadric *Quadric, MATRIX *Matrix)
+quadricToMatrix(Quadric *quadric, MATRIX *matrix)
 {
-    MZero(Matrix);
-    (*Matrix)[0][0] = Quadric->Object_2_Terms.x;
-    (*Matrix)[1][1] = Quadric->Object_2_Terms.y;
-    (*Matrix)[2][2] = Quadric->Object_2_Terms.z;
-    (*Matrix)[0][1] = Quadric->Object_Mixed_Terms.x;
-    (*Matrix)[0][2] = Quadric->Object_Mixed_Terms.y;
-    (*Matrix)[0][3] = Quadric->Object_Terms.x;
-    (*Matrix)[1][2] = Quadric->Object_Mixed_Terms.z;
-    (*Matrix)[1][3] = Quadric->Object_Terms.y;
-    (*Matrix)[2][3] = Quadric->Object_Terms.z;
-    (*Matrix)[3][3] = Quadric->Object_Constant;
+    MZero(matrix);
+    (*matrix)[0][0] = quadric->Object_2_Terms.x;
+    (*matrix)[1][1] = quadric->Object_2_Terms.y;
+    (*matrix)[2][2] = quadric->Object_2_Terms.z;
+    (*matrix)[0][1] = quadric->Object_Mixed_Terms.x;
+    (*matrix)[0][2] = quadric->Object_Mixed_Terms.y;
+    (*matrix)[0][3] = quadric->Object_Terms.x;
+    (*matrix)[1][2] = quadric->Object_Mixed_Terms.z;
+    (*matrix)[1][3] = quadric->Object_Terms.y;
+    (*matrix)[2][3] = quadric->Object_Terms.z;
+    (*matrix)[3][3] = quadric->Object_Constant;
 }
 
 static void
-Matrix_To_Quadric(MATRIX *Matrix, Quadric *Quadric)
+matrixToQuadric(MATRIX *matrix, Quadric *quadric)
 {
-    Quadric->Object_2_Terms.x = (*Matrix)[0][0];
-    Quadric->Object_2_Terms.y = (*Matrix)[1][1];
-    Quadric->Object_2_Terms.z = (*Matrix)[2][2];
-    Quadric->Object_Mixed_Terms.x = (*Matrix)[0][1] + (*Matrix)[1][0];
-    Quadric->Object_Mixed_Terms.y = (*Matrix)[0][2] + (*Matrix)[2][0];
-    Quadric->Object_Terms.x = (*Matrix)[0][3] + (*Matrix)[3][0];
-    Quadric->Object_Mixed_Terms.z = (*Matrix)[1][2] + (*Matrix)[2][1];
-    Quadric->Object_Terms.y = (*Matrix)[1][3] + (*Matrix)[3][1];
-    Quadric->Object_Terms.z = (*Matrix)[2][3] + (*Matrix)[3][2];
-    Quadric->Object_Constant = (*Matrix)[3][3];
+    quadric->Object_2_Terms.x = (*matrix)[0][0];
+    quadric->Object_2_Terms.y = (*matrix)[1][1];
+    quadric->Object_2_Terms.z = (*matrix)[2][2];
+    quadric->Object_Mixed_Terms.x = (*matrix)[0][1] + (*matrix)[1][0];
+    quadric->Object_Mixed_Terms.y = (*matrix)[0][2] + (*matrix)[2][0];
+    quadric->Object_Terms.x = (*matrix)[0][3] + (*matrix)[3][0];
+    quadric->Object_Mixed_Terms.z = (*matrix)[1][2] + (*matrix)[2][1];
+    quadric->Object_Terms.y = (*matrix)[1][3] + (*matrix)[3][1];
+    quadric->Object_Terms.z = (*matrix)[2][3] + (*matrix)[3][2];
+    quadric->Object_Constant = (*matrix)[3][3];
 }
 
 static void
-Transform_Quadric(Quadric *Shape, Transformation *transformation)
+transformQuadric(Quadric *shape, Transformation *transformation)
 {
-    MATRIX Quadric_Matrix, Transform_Transposed;
+    MATRIX quadricMatrix;
+    MATRIX transformTransposed;
 
-    Quadric_To_Matrix(Shape, (MATRIX *)&Quadric_Matrix[0][0]);
-    MTimes((MATRIX *)&Quadric_Matrix[0][0],
+    quadricToMatrix(shape, (MATRIX *)&quadricMatrix[0][0]);
+    MTimes((MATRIX *)&quadricMatrix[0][0],
         (MATRIX *)&(transformation->inverse[0][0]),
-        (MATRIX *)&Quadric_Matrix[0][0]);
-    MTranspose((MATRIX *)&Transform_Transposed[0][0],
+        (MATRIX *)&quadricMatrix[0][0]);
+    MTranspose((MATRIX *)&transformTransposed[0][0],
         (MATRIX *)&(transformation->inverse[0][0]));
-    MTimes((MATRIX *)&Quadric_Matrix[0][0], (MATRIX *)&Quadric_Matrix[0][0],
-        (MATRIX *)&Transform_Transposed[0][0]);
-    Matrix_To_Quadric((MATRIX *)&Quadric_Matrix[0][0], Shape);
+    MTimes((MATRIX *)&quadricMatrix[0][0], (MATRIX *)&quadricMatrix[0][0],
+        (MATRIX *)&transformTransposed[0][0]);
+    matrixToQuadric((MATRIX *)&quadricMatrix[0][0], shape);
 }
 
 void
-Translate_Quadric(SimpleBody *Object, Vector3D *Vector)
+Translate_Quadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Translation_Transformation(&transformation, Vector);
-    Transform_Quadric((Quadric *)Object, &transformation);
+    Get_Translation_Transformation(&transformation, vector);
+    transformQuadric((Quadric *)object, &transformation);
 
-    Translate_Texture(&((Quadric *)Object)->Shape_Texture, Vector);
+    Translate_Texture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Quadric(SimpleBody *Object, Vector3D *Vector)
+Rotate_Quadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Rotation_Transformation(&transformation, Vector);
-    Transform_Quadric((Quadric *)Object, &transformation);
+    Get_Rotation_Transformation(&transformation, vector);
+    transformQuadric((Quadric *)object, &transformation);
 
-    Rotate_Texture(&((Quadric *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Quadric(SimpleBody *Object, Vector3D *Vector)
+Scale_Quadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Scaling_Transformation(&transformation, Vector);
-    Transform_Quadric((Quadric *)Object, &transformation);
+    Get_Scaling_Transformation(&transformation, vector);
+    transformQuadric((Quadric *)object, &transformation);
 
-    Scale_Texture(&((Quadric *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Quadric(SimpleBody *Object)
+Invert_Quadric(SimpleBody *object)
 {
-    Quadric *Shape = (Quadric *)Object;
+    Quadric *shape = (Quadric *)object;
 
-    VScale(Shape->Object_2_Terms, Shape->Object_2_Terms, -1.0);
-    VScale(Shape->Object_Mixed_Terms, Shape->Object_Mixed_Terms, -1.0);
-    VScale(Shape->Object_Terms, Shape->Object_Terms, -1.0);
-    Shape->Object_Constant *= -1.0;
+    VScale(shape->Object_2_Terms, shape->Object_2_Terms, -1.0);
+    VScale(shape->Object_Mixed_Terms, shape->Object_Mixed_Terms, -1.0);
+    VScale(shape->Object_Terms, shape->Object_Terms, -1.0);
+    shape->Object_Constant *= -1.0;
 }

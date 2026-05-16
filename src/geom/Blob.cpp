@@ -35,13 +35,13 @@ Methods Blob_Methods = {Object_Intersect, All_Blob_Intersections, Inside_Blob,
 
 extern Blob *Get_Blob_Shape();
 
-extern Ray *VP_Ray;
-extern long Ray_Blob_Tests, Ray_Blob_Tests_Succeeded;
+extern Ray *vpRay;
+extern long rayBlobTests, rayBlobTestsSucceeded;
 
-static int determine_influences(
-    Vector3D *P, Vector3D *D, Blob *blob, DBL mindist);
-static DBL calculate_field_value(SimpleBody *obj, Vector3D *Pos);
-static int validate_hit(Blob *blob, Vector3D *P);
+static int determineInfluences(
+    Vector3D *p, Vector3D *d, Blob *blob, DBL mindist);
+static DBL calculateFieldValue(SimpleBody *obj, Vector3D *pos);
+static int validateHit(Blob *blob, Vector3D *p);
 
 #define COEFF_LIMIT 1.0e-20
 #define INSIDE_TOLERANCE 1.0e-6
@@ -70,7 +70,7 @@ MakeBlob(
     }
     blob->threshold = threshold;
     blob->list = new BlobElement[npoints];
-    if (blob->list == NULL) {
+    if (blob->list == nullptr) {
         printf("Failed to allocate blob data\n");
         exit(1);
     }
@@ -103,7 +103,7 @@ MakeBlob(
     /*  Allocate memory for intersection intervals */
     npoints *= 2;
     blob->intervals = new BlobInterval[npoints];
-    if (blob->intervals == NULL) {
+    if (blob->intervals == nullptr) {
         printf("Failed to allocate blob data\n");
         exit(1);
     }
@@ -114,11 +114,14 @@ MakeBlob(
     a very complex blob (with many components along the current ray)
     to warrant the overhead of using a faster sort technique. */
 static int
-determine_influences(Vector3D *P, Vector3D *D, Blob *blob, DBL mindist)
+determineInfluences(Vector3D *p, Vector3D *d, Blob *blob, DBL mindist)
 {
-    int i, j, k, cnt;
+    int i;
+    int j;
+    int k;
+    int cnt;
     DBL b, t, t0, t1, disc;
-    Vector3D V;
+    Vector3D v;
     BlobInterval *intervals = blob->intervals;
 
     cnt = 0;
@@ -126,9 +129,9 @@ determine_influences(Vector3D *P, Vector3D *D, Blob *blob, DBL mindist)
         /* Use standard sphere intersection routine
             to determine where the ray hits the volume
             of influence of each component of the blob. */
-        VSub(V, blob->list[i].pos, *P);
-        VDot(b, V, *D);
-        VDot(t, V, V);
+        VSub(v, blob->list[i].pos, *p);
+        VDot(b, v, *d);
+        VDot(t, v, v);
         disc = b * b - t + blob->list[i].radius2;
         if (disc < EPSILON) {
             continue;
@@ -207,18 +210,18 @@ determine_influences(Vector3D *P, Vector3D *D, Blob *blob, DBL mindist)
 /* Calculate the field value of a blob - the position vector
     "Pos" must already have been transformed into blob space. */
 static DBL
-calculate_field_value(SimpleBody *obj, Vector3D *Pos)
+calculateFieldValue(SimpleBody *obj, Vector3D *pos)
 {
     int i;
     DBL len, density;
-    Vector3D V;
+    Vector3D v;
     BlobElement *ptr;
     Blob *blob = (Blob *)obj;
 
     density = 0.0;
     for (i = 0, ptr = &(blob->list[0]); i < blob->count; i++, ptr++) {
-        VSub(V, ptr->pos, *Pos);
-        VDot(len, V, V);
+        VSub(v, ptr->pos, *pos);
+        VDot(len, v, v);
         if (len < ptr->radius2) {
             /* Inside the radius of influence of this
                 component, add it's contribution */
@@ -231,28 +234,29 @@ calculate_field_value(SimpleBody *obj, Vector3D *Pos)
 
 /* See if the hit in question really is a hit. */
 static int
-validate_hit(Blob *blob, Vector3D *P)
+validateHit(Blob *blob, Vector3D *p)
 {
     int i;
     BlobElement *temp;
     DBL val, dist;
-    Vector3D V, N;
+    Vector3D v;
+    Vector3D n;
 
-    N.x = 0.0;
-    N.y = 0.0;
-    N.z = 0.0;
+    n.x = 0.0;
+    n.y = 0.0;
+    n.z = 0.0;
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
-        VSub(V, *P, temp->pos);
-        VDot(dist, V, V);
+        VSub(v, *p, temp->pos);
+        VDot(dist, v, v);
         if (dist <= temp->radius2) {
             val = -2.0 * (2.0 * temp->coeffs[0] * dist + temp->coeffs[1]);
-            N.x += val * V.x;
-            N.y += val * V.y;
-            N.z += val * V.z;
+            n.x += val * v.x;
+            n.y += val * v.y;
+            n.z += val * v.z;
         }
     }
-    VDot(val, N, N);
+    VDot(val, n, n);
     if (val < EPSILON) {
         return 0;
     }
@@ -316,46 +320,52 @@ validate_hit(Blob *blob, Vector3D *P)
 */
 int
 All_Blob_Intersections(
-    SimpleBody *Object, Ray *ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    Blob *blob = (Blob *)Object;
-    Intersection Local_Element;
+    Blob *blob = (Blob *)object;
+    Intersection localElement;
     DBL dist, len, *tcoeffs, coeffs[5], roots[4];
-    int i, j, cnt;
-    Vector3D P, D, V;
-    int root_count, in_flag;
+    int i;
+    int j;
+    int cnt;
+    Vector3D p;
+    Vector3D d;
+    Vector3D v;
+    int rootCount;
+    int inFlag;
     BlobElement *element;
     DBL t0, t1, c0, c1, c2;
-    Vector3D Intersection_Point, dv;
+    Vector3D intersectionPoint;
+    Vector3D dv;
     BlobInterval *intervals = blob->intervals;
-    int Intersection_Found = FALSE;
+    int intersectionFound = FALSE;
 
-    Ray_Blob_Tests++;
+    rayBlobTests++;
 
     /* Transform the ray into the blob space */
-    if (blob->Transform != NULL) {
-        MInverseTransformVector(&P, &ray->Initial, blob->Transform);
-        MInvTransVector(&D, &ray->Direction, blob->Transform);
+    if (blob->Transform != nullptr) {
+        MInverseTransformVector(&p, &ray->Initial, blob->Transform);
+        MInvTransVector(&d, &ray->Direction, blob->Transform);
     } else {
-        P.x = ray->Initial.x;
-        P.y = ray->Initial.y;
-        P.z = ray->Initial.z;
-        D.x = ray->Direction.x;
-        D.y = ray->Direction.y;
-        D.z = ray->Direction.z;
+        p.x = ray->Initial.x;
+        p.y = ray->Initial.y;
+        p.z = ray->Initial.z;
+        d.x = ray->Direction.x;
+        d.y = ray->Direction.y;
+        d.z = ray->Direction.z;
     }
 
-    len = sqrt(D.x * D.x + D.y * D.y + D.z * D.z);
+    len = sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
     if (len == 0.0) {
         return 0;
     }
-    D.x /= len;
-    D.y /= len;
-    D.z /= len;
+    d.x /= len;
+    d.y /= len;
+    d.z /= len;
 
     /* Figure out the intervals along the ray where each
     component of the blob has an effect. */
-    if ((cnt = determine_influences(&P, &D, blob, 0.01)) == 0) {
+    if ((cnt = determineInfluences(&p, &d, blob, 0.01)) == 0) {
         /* Ray doesn't hit the sphere of influence of any of
         its component elements */
         return 0;
@@ -369,20 +379,20 @@ All_Blob_Intersections(
 
     /* Step through the list of influence points, adding the
         influence of each blob component as it appears */
-    for (i = 0, in_flag = 0; i < cnt; i++) {
+    for (i = 0, inFlag = 0; i < cnt; i++) {
         if (intervals[i].type == 0) {
             /* Something is just starting to influence the ray,
                 so calculate its coefficients and add them
             into the pot. */
-            in_flag++;
+            inFlag++;
             element = blob->list + intervals[i].index;
 
-            VSub(V, P, element->pos);
+            VSub(v, p, element->pos);
             c0 = element->coeffs[0];
             c1 = element->coeffs[1];
             c2 = element->coeffs[2];
-            VDot(t0, V, V);
-            VDot(t1, V, D);
+            VDot(t0, v, v);
+            VDot(t1, v, d);
             tcoeffs = &(element->tcoeffs[0]);
 
             tcoeffs[0] = c0;
@@ -401,7 +411,7 @@ All_Blob_Intersections(
             for (j = 0; j < 5; j++) {
                 coeffs[j] -= tcoeffs[j];
             }
-            if (--in_flag == 0) {
+            if (--inFlag == 0) {
                 /* None of the components are currently affecting
                     the ray - skip ahead. */
                 continue;
@@ -411,70 +421,70 @@ All_Blob_Intersections(
         /* Figure out which root solver to use */
         if (blob->Sturm_Flag == 0) {
             /* Use Ferrari's method */
-            root_count = solve_quartic(coeffs, &roots[0]);
+            rootCount = solve_quartic(coeffs, &roots[0]);
         } else
             /* Sturm sequences */
             if (fabs(coeffs[0]) < COEFF_LIMIT) {
                 if (fabs(coeffs[1]) < COEFF_LIMIT) {
-                    root_count = solve_quadratic(&coeffs[2], &roots[0]);
+                    rootCount = solve_quadratic(&coeffs[2], &roots[0]);
                 } else {
-                    root_count = polysolve(3, &coeffs[1], &roots[0]);
+                    rootCount = polysolve(3, &coeffs[1], &roots[0]);
                 }
             } else {
-                root_count = polysolve(4, coeffs, &roots[0]);
+                rootCount = polysolve(4, coeffs, &roots[0]);
             }
 
         /* See if any of the roots are valid */
-        for (j = 0; j < root_count; j++) {
+        for (j = 0; j < rootCount; j++) {
             dist = roots[j];
             /* First see if the root is in the interval of influence of
                 the currently active components of the blob */
             if ((dist >= intervals[i].bound) &&
                 (dist <= intervals[i + 1].bound)) {
-                VScale(Intersection_Point, D, dist);
-                VAdd(Intersection_Point, Intersection_Point, P);
-                if (true || validate_hit(blob, &Intersection_Point)) {
+                VScale(intersectionPoint, d, dist);
+                VAdd(intersectionPoint, intersectionPoint, p);
+                if (true || validateHit(blob, &intersectionPoint)) {
                     /* Only add this hit if it really is near the surface, we
                        can get fooled by numerical inaccuracies */
                     /* Transform the point into world space */
-                    if (blob->Transform != NULL) {
-                        MTransformVector(&Intersection_Point,
-                            &Intersection_Point, blob->Transform);
+                    if (blob->Transform != nullptr) {
+                        MTransformVector(&intersectionPoint, &intersectionPoint,
+                            blob->Transform);
                     }
-                    VSub(dv, Intersection_Point, ray->Initial);
+                    VSub(dv, intersectionPoint, ray->Initial);
                     VLength(len, dv);
-                    Local_Element.Depth = len;
-                    Local_Element.Object = blob->Parent_Object;
-                    Local_Element.Point = Intersection_Point;
-                    Local_Element.Shape = (Geometry *)blob;
-                    Depth_Queue->add(&Local_Element);
-                    Intersection_Found = TRUE;
+                    localElement.Depth = len;
+                    localElement.Object = blob->Parent_Object;
+                    localElement.Point = intersectionPoint;
+                    localElement.Shape = (Geometry *)blob;
+                    depthQueue->add(&localElement);
+                    intersectionFound = TRUE;
                 }
             }
         }
     }
-    if (Intersection_Found) {
-        Ray_Blob_Tests_Succeeded++;
+    if (intersectionFound) {
+        rayBlobTestsSucceeded++;
     }
-    return Intersection_Found;
+    return intersectionFound;
 }
 
 /* Calculate the density at this point, then compare to
     the threshold to see if we are in or out of the blob */
 int
-Inside_Blob(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Blob(Vector3D *testPoint, SimpleBody *object)
 {
-    Vector3D New_Point;
-    Blob *blob = (Blob *)Object;
+    Vector3D newPoint;
+    Blob *blob = (Blob *)object;
 
     /* Transform the point into blob space */
-    if (blob->Transform != NULL) {
-        MInverseTransformVector(&New_Point, Test_Point, blob->Transform);
+    if (blob->Transform != nullptr) {
+        MInverseTransformVector(&newPoint, testPoint, blob->Transform);
     } else {
-        New_Point = *Test_Point;
+        newPoint = *testPoint;
     }
 
-    if (calculate_field_value(Object, &New_Point) >
+    if (calculateFieldValue(object, &newPoint) >
         blob->threshold - INSIDE_TOLERANCE) {
         return ((int)1 - blob->Inverted);
     }
@@ -482,97 +492,97 @@ Inside_Blob(Vector3D *Test_Point, SimpleBody *Object)
 }
 
 void
-Blob_Normal(Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+Blob_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    Vector3D New_Point, V;
+    Vector3D newPoint;
+    Vector3D v;
     int i;
     DBL dist, val;
-    Blob *blob = (Blob *)Object;
+    Blob *blob = (Blob *)object;
     BlobElement *temp;
 
     /* Transform the point into the blobs space */
-    if (blob->Transform != NULL) {
-        MInverseTransformVector(
-            &New_Point, Intersection_Point, blob->Transform);
+    if (blob->Transform != nullptr) {
+        MInverseTransformVector(&newPoint, intersectionPoint, blob->Transform);
     } else {
-        New_Point.x = Intersection_Point->x;
-        New_Point.y = Intersection_Point->y;
-        New_Point.z = Intersection_Point->z;
+        newPoint.x = intersectionPoint->x;
+        newPoint.y = intersectionPoint->y;
+        newPoint.z = intersectionPoint->z;
     }
 
-    Result->x = 0.0;
-    Result->y = 0.0;
-    Result->z = 0.0;
+    result->x = 0.0;
+    result->y = 0.0;
+    result->z = 0.0;
 
     /* For each component that contributes to this point, add
         its bit to the normal */
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
-        V.x = New_Point.x - temp->pos.x;
-        V.y = New_Point.y - temp->pos.y;
-        V.z = New_Point.z - temp->pos.z;
-        dist = (V.x * V.x + V.y * V.y + V.z * V.z);
+        v.x = newPoint.x - temp->pos.x;
+        v.y = newPoint.y - temp->pos.y;
+        v.z = newPoint.z - temp->pos.z;
+        dist = (v.x * v.x + v.y * v.y + v.z * v.z);
 
         if (dist <= temp->radius2) {
             val = -2.0 * (2.0 * temp->coeffs[0] * dist + temp->coeffs[1]);
-            Result->x += val * V.x;
-            Result->y += val * V.y;
-            Result->z += val * V.z;
+            result->x += val * v.x;
+            result->y += val * v.y;
+            result->z += val * v.z;
         }
     }
     val =
-        (Result->x * Result->x + Result->y * Result->y + Result->z * Result->z);
+        (result->x * result->x + result->y * result->y + result->z * result->z);
     if (val < EPSILON) {
-        Result->x = 1.0;
-        Result->y = 0.0;
-        Result->z = 0.0;
+        result->x = 1.0;
+        result->y = 0.0;
+        result->z = 0.0;
     } else {
         val = 1.0 / sqrt(val);
-        Result->x *= val;
-        Result->y *= val;
-        Result->z *= val;
+        result->x *= val;
+        result->y *= val;
+        result->z *= val;
     }
 
     /* Transform back to world space */
-    if (blob->Transform != NULL) {
-        MTransNormal(Result, Result, blob->Transform);
+    if (blob->Transform != nullptr) {
+        MTransNormal(result, result, blob->Transform);
     }
-    VNormalize(*Result, *Result);
+    VNormalize(*result, *result);
 }
 
 void *
-Copy_Blob(SimpleBody *Object)
+Copy_Blob(SimpleBody *object)
 {
     Blob *blob;
-    Blob *Old_Shape = (Blob *)Object;
-    Transformation *Tr;
+    Blob *oldShape = (Blob *)object;
+    Transformation *tr;
 
     blob = Get_Blob_Shape();
-    memcpy(blob, Old_Shape, sizeof(Blob));
-    blob->Next_Object = NULL;
+    memcpy(blob, oldShape, sizeof(Blob));
+    blob->Next_Object = nullptr;
 
     /* Allocate space and copy the blob specific data */
-    blob->list = new BlobElement[Old_Shape->count];
-    if (blob->list == NULL) {
+    blob->list = new BlobElement[oldShape->count];
+    if (blob->list == nullptr) {
         printf("Failed to allocate blob data\n");
         exit(1);
     }
-    memcpy(blob->list, Old_Shape->list, Old_Shape->count * sizeof(BlobElement));
+    memcpy(blob->list, oldShape->list, oldShape->count * sizeof(BlobElement));
     blob->intervals = new BlobInterval[2 * blob->count];
-    if (blob->intervals == NULL) {
+    if (blob->intervals == nullptr) {
         printf("Failed to allocate blob data\n");
         exit(1);
     }
 
     /* Copy any associated transformation */
-    if (blob->Transform != NULL) {
-        Tr = Get_Transformation();
-        memcpy(Tr, blob->Transform, sizeof(Transformation));
-        blob->Transform = Tr;
+    if (blob->Transform != nullptr) {
+        tr = Get_Transformation();
+        memcpy(tr, blob->Transform, sizeof(Transformation));
+        blob->Transform = tr;
     }
 
     /* Copy any associated texture */
-    if (blob->Shape_Texture != NULL) {
+    if (blob->Shape_Texture != nullptr) {
         blob->Shape_Texture = Copy_Texture(blob->Shape_Texture);
     }
 
@@ -580,49 +590,49 @@ Copy_Blob(SimpleBody *Object)
 }
 
 void
-Translate_Blob(SimpleBody *Object, Vector3D *Vector)
+Translate_Blob(SimpleBody *object, Vector3D *vector)
 {
-    Transformation Transform;
-    Blob *blob = (Blob *)Object;
-    if (blob->Transform == NULL) {
+    Transformation transform;
+    Blob *blob = (Blob *)object;
+    if (blob->Transform == nullptr) {
         blob->Transform = Get_Transformation();
     }
-    Get_Translation_Transformation(&Transform, Vector);
-    Compose_Transformations(blob->Transform, &Transform);
+    Get_Translation_Transformation(&transform, vector);
+    Compose_Transformations(blob->Transform, &transform);
 
-    Translate_Texture(&((Blob *)Object)->Shape_Texture, Vector);
+    Translate_Texture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Blob(SimpleBody *Object, Vector3D *Vector)
+Rotate_Blob(SimpleBody *object, Vector3D *vector)
 {
-    Transformation Transform;
-    Blob *blob = (Blob *)Object;
-    if (blob->Transform == NULL) {
+    Transformation transform;
+    Blob *blob = (Blob *)object;
+    if (blob->Transform == nullptr) {
         blob->Transform = Get_Transformation();
     }
-    Get_Rotation_Transformation(&Transform, Vector);
-    Compose_Transformations(blob->Transform, &Transform);
+    Get_Rotation_Transformation(&transform, vector);
+    Compose_Transformations(blob->Transform, &transform);
 
-    Rotate_Texture(&((Blob *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Blob(SimpleBody *Object, Vector3D *Vector)
+Scale_Blob(SimpleBody *object, Vector3D *vector)
 {
-    Transformation Transform;
-    Blob *blob = (Blob *)Object;
-    if (blob->Transform == NULL) {
+    Transformation transform;
+    Blob *blob = (Blob *)object;
+    if (blob->Transform == nullptr) {
         blob->Transform = Get_Transformation();
     }
-    Get_Scaling_Transformation(&Transform, Vector);
-    Compose_Transformations(blob->Transform, &Transform);
+    Get_Scaling_Transformation(&transform, vector);
+    Compose_Transformations(blob->Transform, &transform);
 
-    Scale_Texture(&((Blob *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Blob(SimpleBody *Object)
+Invert_Blob(SimpleBody *object)
 {
-    ((Blob *)Object)->Inverted = 1 - ((Blob *)Object)->Inverted;
+    ((Blob *)object)->Inverted = 1 - ((Blob *)object)->Inverted;
 }

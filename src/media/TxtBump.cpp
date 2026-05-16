@@ -35,11 +35,13 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 extern unsigned short crctab[256];
 
 void
-ripples(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
+ripples(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
-    register DBL length, scalar, index;
+    register DBL length;
+    register DBL scalar;
+    register DBL index;
 
     if (Options & DEBUGGING) {
         printf("ripples %g %g %g", x, y, z);
@@ -56,8 +58,8 @@ ripples(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
         }
 
         length = sqrt(length);
-        index = length * Texture->Frequency + Texture->Phase;
-        scalar = cycloidal(index) * Texture->Bump_Amount;
+        index = length * texture->Frequency + texture->Phase;
+        scalar = cycloidal(index) * texture->Bump_Amount;
 
         if (Options & DEBUGGING) {
             printf(" index %g scalar %g length %g\n", index, scalar, length);
@@ -70,11 +72,14 @@ ripples(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
 }
 
 void
-waves(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
+waves(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
-    register DBL length, scalar, index, sinValue;
+    register DBL length;
+    register DBL scalar;
+    register DBL index;
+    register DBL sinValue;
 
     if (Options & DEBUGGING) {
         printf("waves %g %g %g\n", x, y, z);
@@ -91,10 +96,10 @@ waves(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
         }
 
         length = sqrt(length);
-        index = (length * Texture->Frequency * frequency[i]) + Texture->Phase;
+        index = (length * texture->Frequency * frequency[i]) + texture->Phase;
         sinValue = cycloidal(index);
 
-        scalar = sinValue * Texture->Bump_Amount / frequency[i];
+        scalar = sinValue * texture->Bump_Amount / frequency[i];
         VScale(point, point, scalar / length / (DBL)NUMBER_OF_WAVES);
         VAdd(*normal, *normal, point);
     }
@@ -102,11 +107,11 @@ waves(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
 }
 
 void
-bumps(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
+bumps(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
-    Vector3D bump_turb;
+    Vector3D bumpTurb;
 
-    if (Texture->Bump_Amount == 0.0) {
+    if (texture->Bump_Amount == 0.0) {
         return; /* why are we here?? */
     }
 
@@ -114,10 +119,10 @@ bumps(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
         printf("bumps %g %g %g\n", x, y, z);
     }
 
-    DNoise(&bump_turb, x, y, z); /* Get Normal Displacement Val. */
-    VScale(bump_turb, bump_turb, Texture->Bump_Amount);
-    VAdd(*normal, *normal, bump_turb); /* displace "normal" */
-    VNormalize(*normal, *normal);      /* normalize normal! */
+    DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
+    VScale(bumpTurb, bumpTurb, texture->Bump_Amount);
+    VAdd(*normal, *normal, bumpTurb); /* displace "normal" */
+    VNormalize(*normal, *normal);     /* normalize normal! */
 }
 
 /*
@@ -125,28 +130,28 @@ dents is similar to bumps, but uses noise() to control the amount of
 dnoise() perturbation of the object normal...
 */
 void
-dents(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
+dents(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
-    Vector3D stucco_turb;
+    Vector3D stuccoTurb;
     DBL noise;
 
-    if (Texture->Bump_Amount == 0.0) {
+    if (texture->Bump_Amount == 0.0) {
         return; /* why are we here?? */
     }
 
     noise = Noise(x, y, z);
 
-    noise = noise * noise * noise * Texture->Bump_Amount;
+    noise = noise * noise * noise * texture->Bump_Amount;
 
     if (Options & DEBUGGING) {
         printf("dents %g %g %g noise %g\n", x, y, z, noise);
     }
 
-    DNoise(&stucco_turb, x, y, z); /* Get Normal Displacement Val. */
+    DNoise(&stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
 
-    VScale(stucco_turb, stucco_turb, noise);
-    VAdd(*normal, *normal, stucco_turb); /* displace "normal" */
-    VNormalize(*normal, *normal);        /* normalize normal! */
+    VScale(stuccoTurb, stuccoTurb, noise);
+    VAdd(*normal, *normal, stuccoTurb); /* displace "normal" */
+    VNormalize(*normal, *normal);       /* normalize normal! */
 }
 
 /*
@@ -163,13 +168,14 @@ dents(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
 */
 
 void
-wrinkles(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
+wrinkles(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     register int i;
     register DBL scale = 1.0;
-    Vector3D result, value;
+    Vector3D result;
+    Vector3D value;
 
-    if (Texture->Bump_Amount == 0.0) {
+    if (texture->Bump_Amount == 0.0) {
         return; /* why are we here?? */
     }
 
@@ -188,7 +194,7 @@ wrinkles(DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal)
         result.z += FABS(value.z / scale);
     }
 
-    VScale(result, result, Texture->Bump_Amount);
+    VScale(result, result, texture->Bump_Amount);
     VAdd(*normal, *normal, result); /* displace "normal" */
     VNormalize(*normal, *normal);   /* normalize normal! */
 }

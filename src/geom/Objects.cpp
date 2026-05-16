@@ -25,232 +25,230 @@
 
 /*===========================================================================*/
 
-extern Ray *VP_Ray;
-extern long Bounding_Region_Tests, Bounding_Region_Tests_Succeeded;
-extern long Clipping_Region_Tests, Clipping_Region_Tests_Succeeded;
+extern Ray *vpRay;
+extern long boundingRegionTests, boundingRegionTestsSucceeded;
+extern long clippingRegionTests, clippingRegionTestsSucceeded;
 extern unsigned int Options;
 
 Methods Composite_Methods = {Object_Intersect, All_Composite_Intersections,
-    Inside_Composite_Object, NULL, Copy_Composite_Object,
+    Inside_Composite_Object, nullptr, Copy_Composite_Object,
     Translate_Composite_Object, Rotate_Composite_Object, Scale_Composite_Object,
     Invert_Composite_Object};
 
 Methods Basic_Object_Methods = {Object_Intersect, All_Object_Intersections,
-    Inside_Basic_Object, NULL, Copy_Basic_Object, Translate_Basic_Object,
+    Inside_Basic_Object, nullptr, Copy_Basic_Object, Translate_Basic_Object,
     Rotate_Basic_Object, Scale_Basic_Object, Invert_Basic_Object};
 
 /*===========================================================================*/
 
 Intersection *
-Object_Intersect(SimpleBody *Object, Ray *ray)
+Object_Intersect(SimpleBody *object, Ray *ray)
 {
-    Intersection *Local_Intersection, *Queue_Element;
-    PriorityQueueNode *Depth_Queue;
+    Intersection *localIntersection;
+    Intersection *queueElement;
+    PriorityQueueNode *depthQueue;
 
-    Depth_Queue = pq_pop(128);
+    depthQueue = pq_pop(128);
 
-    if ((All_Intersections(Object, ray, Depth_Queue)) &&
-        ((Queue_Element = Depth_Queue->getHighest()) != NULL)) {
-        if ((Local_Intersection = new Intersection) == NULL) {
+    if ((All_Intersections(object, ray, depthQueue)) &&
+        ((queueElement = depthQueue->getHighest()) != nullptr)) {
+        if ((localIntersection = new Intersection) == nullptr) {
             printf("Cannot allocate memory for local intersection\n");
             exit(1);
         }
-        Local_Intersection->Point = Queue_Element->Point;
-        Local_Intersection->Shape = Queue_Element->Shape;
-        Local_Intersection->Depth = Queue_Element->Depth;
-        Local_Intersection->Object = Queue_Element->Object;
-        Depth_Queue->pushBackToPool();
-        return Local_Intersection;
+        localIntersection->Point = queueElement->Point;
+        localIntersection->Shape = queueElement->Shape;
+        localIntersection->Depth = queueElement->Depth;
+        localIntersection->Object = queueElement->Object;
+        depthQueue->pushBackToPool();
+        return localIntersection;
     }
-    Depth_Queue->pushBackToPool();
-    return NULL;
+    depthQueue->pushBackToPool();
+    return nullptr;
 }
 
 int
 All_Composite_Intersections(
-    SimpleBody *Object, Ray *ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    register int Intersection_Found, Any_Intersection_Found;
-    Geometry *Bounding_Shape;
-    Geometry *Clipping_Shape;
-    Intersection *Local_Intersection;
-    SimpleBody *Local_Object;
-    PriorityQueueNode *Local_Depth_Queue;
+    register int intersectionFound;
+    register int anyIntersectionFound;
+    Geometry *boundingShape;
+    Geometry *clippingShape;
+    Intersection *localIntersection;
+    SimpleBody *localObject;
+    PriorityQueueNode *localDepthQueue;
 
-    for (Bounding_Shape = ((Composite *)Object)->Bounding_Shapes;
-         Bounding_Shape != NULL;
-         Bounding_Shape = Bounding_Shape->Next_Object) {
+    for (boundingShape = ((Composite *)object)->Bounding_Shapes;
+         boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
 
-        Bounding_Region_Tests++;
+        boundingRegionTests++;
         COOPERATE
-        if ((Local_Intersection = Intersection(
-                 (SimpleBody *)Bounding_Shape, ray)) != NULL) {
-            delete Local_Intersection;
-        } else if (!Inside(&ray->Initial, (SimpleBody *)Bounding_Shape)) {
+        if ((localIntersection = Intersection(
+                 (SimpleBody *)boundingShape, ray)) != nullptr) {
+            delete localIntersection;
+        } else if (!Inside(&ray->Initial, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
-        Bounding_Region_Tests_Succeeded++;
+        boundingRegionTestsSucceeded++;
     }
 
-    Local_Depth_Queue = pq_pop(128);
-    Any_Intersection_Found = FALSE;
+    localDepthQueue = pq_pop(128);
+    anyIntersectionFound = FALSE;
 
-    for (Local_Object = ((Composite *)Object)->Objects; Local_Object != NULL;
-         Local_Object = Local_Object->Next_Object) {
+    for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
+         localObject = localObject->Next_Object) {
 
-        All_Intersections(Local_Object, ray, Local_Depth_Queue);
+        All_Intersections(localObject, ray, localDepthQueue);
     }
 
-    for (Local_Intersection = Local_Depth_Queue->getHighest();
-         Local_Intersection != NULL; Local_Depth_Queue->deleteHighest(),
-        Local_Intersection = Local_Depth_Queue->getHighest()) {
+    for (localIntersection = localDepthQueue->getHighest();
+         localIntersection != nullptr; localDepthQueue->deleteHighest(),
+        localIntersection = localDepthQueue->getHighest()) {
 
-        Intersection_Found = TRUE;
+        intersectionFound = TRUE;
 
-        for (Clipping_Shape = Object->Clipping_Shapes;
-             Clipping_Shape != NULL;
-             Clipping_Shape = Clipping_Shape->Next_Object) {
-            Clipping_Region_Tests++;
+        for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
+             clippingShape = clippingShape->Next_Object) {
+            clippingRegionTests++;
             if (!Inside(
-                    &Local_Intersection->Point, (SimpleBody *)Clipping_Shape)) {
-                Intersection_Found = FALSE;
+                    &localIntersection->Point, (SimpleBody *)clippingShape)) {
+                intersectionFound = FALSE;
                 break;
             }
-            Clipping_Region_Tests_Succeeded++;
+            clippingRegionTestsSucceeded++;
         }
 
-        if (Intersection_Found) {
-            Depth_Queue->add(Local_Intersection);
-            Any_Intersection_Found = TRUE;
+        if (intersectionFound) {
+            depthQueue->add(localIntersection);
+            anyIntersectionFound = TRUE;
         }
     }
-    Local_Depth_Queue->pushBackToPool();
-    return (Any_Intersection_Found);
+    localDepthQueue->pushBackToPool();
+    return (anyIntersectionFound);
 }
 
 int
 All_Object_Intersections(
-    SimpleBody *Object, Ray *ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    int Intersection_Found, Any_Intersection_Found;
-    Intersection *Local_Intersection;
-    Geometry *Bounding_Shape;
-    Geometry *Clipping_Shape;
-    PriorityQueueNode *Local_Depth_Queue;
+    int intersectionFound;
+    int anyIntersectionFound;
+    Intersection *localIntersection;
+    Geometry *boundingShape;
+    Geometry *clippingShape;
+    PriorityQueueNode *localDepthQueue;
 
-    for (Bounding_Shape = Object->Bounding_Shapes; Bounding_Shape != NULL;
-         Bounding_Shape = Bounding_Shape->Next_Object) {
+    for (boundingShape = object->Bounding_Shapes; boundingShape != nullptr;
+         boundingShape = boundingShape->Next_Object) {
 
-        Bounding_Region_Tests++;
+        boundingRegionTests++;
         COOPERATE
-        if ((Local_Intersection = Intersection(
-                 (SimpleBody *)Bounding_Shape, ray)) != NULL) {
-            delete Local_Intersection;
-        } else if (!Inside(&ray->Initial, (SimpleBody *)Bounding_Shape)) {
+        if ((localIntersection = Intersection(
+                 (SimpleBody *)boundingShape, ray)) != nullptr) {
+            delete localIntersection;
+        } else if (!Inside(&ray->Initial, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
-        Bounding_Region_Tests_Succeeded++;
+        boundingRegionTestsSucceeded++;
     }
 
-    Local_Depth_Queue = pq_pop(128);
-    Any_Intersection_Found = FALSE;
-    All_Intersections((SimpleBody *)Object->Shape, ray, Local_Depth_Queue);
+    localDepthQueue = pq_pop(128);
+    anyIntersectionFound = FALSE;
+    All_Intersections((SimpleBody *)object->Shape, ray, localDepthQueue);
 
-    for (Local_Intersection = Local_Depth_Queue->getHighest();
-         Local_Intersection != NULL; Local_Depth_Queue->deleteHighest(),
-        Local_Intersection = Local_Depth_Queue->getHighest()) {
+    for (localIntersection = localDepthQueue->getHighest();
+         localIntersection != nullptr; localDepthQueue->deleteHighest(),
+        localIntersection = localDepthQueue->getHighest()) {
 
-        Intersection_Found = TRUE;
+        intersectionFound = TRUE;
 
-        for (Clipping_Shape = Object->Clipping_Shapes;
-             Clipping_Shape != NULL;
-             Clipping_Shape = Clipping_Shape->Next_Object) {
+        for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
+             clippingShape = clippingShape->Next_Object) {
 
-            Clipping_Region_Tests++;
+            clippingRegionTests++;
             if (Options & DEBUGGING) {
-                printf("Test (%.4f, %.4f, %.4f)\n", Local_Intersection->Point.x,
-                    Local_Intersection->Point.y, Local_Intersection->Point.z);
+                printf("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x,
+                    localIntersection->Point.y, localIntersection->Point.z);
             }
             if (!Inside(
-                    &Local_Intersection->Point, (SimpleBody *)Clipping_Shape)) {
+                    &localIntersection->Point, (SimpleBody *)clippingShape)) {
                 if (Options & DEBUGGING) {
                     printf("not ok\n");
                 }
-                Intersection_Found = FALSE;
+                intersectionFound = FALSE;
                 break;
             }
-            Clipping_Region_Tests_Succeeded++;
+            clippingRegionTestsSucceeded++;
         }
 
-        if (Intersection_Found) {
+        if (intersectionFound) {
             if (Options & DEBUGGING) {
                 printf("ok\n");
             }
-            Depth_Queue->add(Local_Intersection);
-            Any_Intersection_Found = TRUE;
+            depthQueue->add(localIntersection);
+            anyIntersectionFound = TRUE;
         }
     }
-    Local_Depth_Queue->pushBackToPool();
-    return (Any_Intersection_Found);
+    localDepthQueue->pushBackToPool();
+    return (anyIntersectionFound);
 }
 
 int
-Inside_Basic_Object(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Basic_Object(Vector3D *testPoint, SimpleBody *object)
 {
-    Geometry *Bounding_Shape;
-    Geometry *Clipping_Shape;
+    Geometry *boundingShape;
+    Geometry *clippingShape;
 
-    for (Bounding_Shape = Object->Bounding_Shapes; Bounding_Shape != NULL;
-         Bounding_Shape = Bounding_Shape->Next_Object) {
+    for (boundingShape = object->Bounding_Shapes; boundingShape != nullptr;
+         boundingShape = boundingShape->Next_Object) {
 
-        if (!Inside(Test_Point, (SimpleBody *)Bounding_Shape)) {
+        if (!Inside(testPoint, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
     }
 
-    for (Clipping_Shape = Object->Clipping_Shapes; Clipping_Shape != NULL;
-         Clipping_Shape = Clipping_Shape->Next_Object) {
+    for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
+         clippingShape = clippingShape->Next_Object) {
 
-        if (!Inside(Test_Point, (SimpleBody *)Clipping_Shape)) {
+        if (!Inside(testPoint, (SimpleBody *)clippingShape)) {
             return (FALSE);
         }
     }
 
-    if (Inside(Test_Point, (SimpleBody *)Object->Shape)) {
+    if (Inside(testPoint, (SimpleBody *)object->Shape)) {
         return (TRUE);
     }
     return (FALSE);
 }
 
 int
-Inside_Composite_Object(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Composite_Object(Vector3D *testPoint, SimpleBody *object)
 {
-    Geometry *Bounding_Shape;
-    Geometry *Clipping_Shape;
-    SimpleBody *Local_Object;
+    Geometry *boundingShape;
+    Geometry *clippingShape;
+    SimpleBody *localObject;
 
-    for (Bounding_Shape = ((Composite *)Object)->Bounding_Shapes;
-         Bounding_Shape != NULL;
-         Bounding_Shape = Bounding_Shape->Next_Object) {
+    for (boundingShape = ((Composite *)object)->Bounding_Shapes;
+         boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
 
-        if (!Inside(Test_Point, (SimpleBody *)Bounding_Shape)) {
+        if (!Inside(testPoint, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
     }
 
-    for (Clipping_Shape = ((Composite *)Object)->Clipping_Shapes;
-         Clipping_Shape != NULL;
-         Clipping_Shape = Clipping_Shape->Next_Object) {
+    for (clippingShape = ((Composite *)object)->Clipping_Shapes;
+         clippingShape != nullptr; clippingShape = clippingShape->Next_Object) {
 
-        if (!Inside(Test_Point, (SimpleBody *)Clipping_Shape)) {
+        if (!Inside(testPoint, (SimpleBody *)clippingShape)) {
             return (FALSE);
         }
     }
 
-    for (Local_Object = ((Composite *)Object)->Objects; Local_Object != NULL;
-         Local_Object = Local_Object->Next_Object) {
+    for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
+         localObject = localObject->Next_Object) {
 
-        if (Inside(Test_Point, Local_Object)) {
+        if (Inside(testPoint, localObject)) {
             return (TRUE);
         }
     }
@@ -259,309 +257,310 @@ Inside_Composite_Object(Vector3D *Test_Point, SimpleBody *Object)
 }
 
 void *
-Copy_Basic_Object(SimpleBody *Object)
+Copy_Basic_Object(SimpleBody *object)
 {
-    Geometry *Local_Shape, *Copied_Shape;
-    SimpleBody *New_Object;
+    Geometry *localShape;
+    Geometry *copiedShape;
+    SimpleBody *newObject;
 
-    New_Object = Get_Object();
-    *New_Object = *Object;
-    New_Object->Next_Object = NULL;
-    New_Object->Bounding_Shapes = NULL;
-    New_Object->Clipping_Shapes = NULL;
-    for (Local_Shape = Object->Bounding_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    newObject = Get_Object();
+    *newObject = *object;
+    newObject->Next_Object = nullptr;
+    newObject->Bounding_Shapes = nullptr;
+    newObject->Clipping_Shapes = nullptr;
+    for (localShape = object->Bounding_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Copied_Shape = (Geometry *)Copy((SimpleBody *)Local_Shape);
-        Link((SimpleBody *)Copied_Shape,
-            (SimpleBody **)&(Copied_Shape->Next_Object),
-            (SimpleBody **)&(New_Object->Bounding_Shapes));
+        copiedShape = (Geometry *)Copy((SimpleBody *)localShape);
+        Link((SimpleBody *)copiedShape,
+            (SimpleBody **)&(copiedShape->Next_Object),
+            (SimpleBody **)&(newObject->Bounding_Shapes));
 
-        if ((Copied_Shape->Type == CSG_UNION_TYPE) ||
-            (Copied_Shape->Type == CSG_INTERSECTION_TYPE) ||
-            (Copied_Shape->Type == CSG_DIFFERENCE_TYPE)) {
-            Set_CSG_Parents((CSG *)Copied_Shape, New_Object);
+        if ((copiedShape->Type == CSG_UNION_TYPE) ||
+            (copiedShape->Type == CSG_INTERSECTION_TYPE) ||
+            (copiedShape->Type == CSG_DIFFERENCE_TYPE)) {
+            Set_CSG_Parents((CSG *)copiedShape, newObject);
         }
     }
 
-    for (Local_Shape = Object->Clipping_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = object->Clipping_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Copied_Shape = (Geometry *)Copy((SimpleBody *)Local_Shape);
-        Link((SimpleBody *)Copied_Shape,
-            (SimpleBody **)&(Copied_Shape->Next_Object),
-            (SimpleBody **)&(New_Object->Clipping_Shapes));
+        copiedShape = (Geometry *)Copy((SimpleBody *)localShape);
+        Link((SimpleBody *)copiedShape,
+            (SimpleBody **)&(copiedShape->Next_Object),
+            (SimpleBody **)&(newObject->Clipping_Shapes));
 
-        if ((Copied_Shape->Type == CSG_UNION_TYPE) ||
-            (Copied_Shape->Type == CSG_INTERSECTION_TYPE) ||
-            (Copied_Shape->Type == CSG_DIFFERENCE_TYPE)) {
-            Set_CSG_Parents((CSG *)Copied_Shape, New_Object);
+        if ((copiedShape->Type == CSG_UNION_TYPE) ||
+            (copiedShape->Type == CSG_INTERSECTION_TYPE) ||
+            (copiedShape->Type == CSG_DIFFERENCE_TYPE)) {
+            Set_CSG_Parents((CSG *)copiedShape, newObject);
         }
     }
 
-    New_Object->Shape = (Geometry *)Copy((SimpleBody *)Object->Shape);
-    if ((New_Object->Shape->Type == CSG_UNION_TYPE) ||
-        (New_Object->Shape->Type == CSG_INTERSECTION_TYPE) ||
-        (New_Object->Shape->Type == CSG_DIFFERENCE_TYPE)) {
-        Set_CSG_Parents((CSG *)New_Object->Shape, New_Object);
+    newObject->Shape = (Geometry *)Copy((SimpleBody *)object->Shape);
+    if ((newObject->Shape->Type == CSG_UNION_TYPE) ||
+        (newObject->Shape->Type == CSG_INTERSECTION_TYPE) ||
+        (newObject->Shape->Type == CSG_DIFFERENCE_TYPE)) {
+        Set_CSG_Parents((CSG *)newObject->Shape, newObject);
     } else {
-        New_Object->Shape->Parent_Object = New_Object;
+        newObject->Shape->Parent_Object = newObject;
     }
 
-    if (New_Object->Object_Texture != NULL) {
-        New_Object->Object_Texture = Copy_Texture(New_Object->Object_Texture);
+    if (newObject->Object_Texture != nullptr) {
+        newObject->Object_Texture = Copy_Texture(newObject->Object_Texture);
     }
 
-    return ((void *)New_Object);
+    return ((void *)newObject);
 }
 
 void *
-Copy_Composite_Object(SimpleBody *Object)
+Copy_Composite_Object(SimpleBody *object)
 {
-    Composite *New_Object;
-    Geometry *Local_Shape;
-    SimpleBody *Local_Object, *Copied_Object;
+    Composite *newObject;
+    Geometry *localShape;
+    SimpleBody *localObject;
+    SimpleBody *copiedObject;
 
-    New_Object = Get_Composite_Object();
-    *New_Object = *((Composite *)Object);
-    New_Object->Next_Object = NULL;
-    New_Object->Objects = NULL;
-    for (Local_Object = ((Composite *)Object)->Objects; Local_Object != NULL;
-         Local_Object = Local_Object->Next_Object) {
+    newObject = Get_Composite_Object();
+    *newObject = *((Composite *)object);
+    newObject->Next_Object = nullptr;
+    newObject->Objects = nullptr;
+    for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
+         localObject = localObject->Next_Object) {
 
-        Copied_Object = (SimpleBody *)Copy(Local_Object);
-        Link(Copied_Object, &(Copied_Object->Next_Object),
-            &(New_Object->Objects));
+        copiedObject = (SimpleBody *)Copy(localObject);
+        Link(copiedObject, &(copiedObject->Next_Object), &(newObject->Objects));
     }
 
-    New_Object->Bounding_Shapes = NULL;
-    for (Local_Shape = ((Composite *)Object)->Bounding_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
+    newObject->Bounding_Shapes = nullptr;
+    for (localShape = ((Composite *)object)->Bounding_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-        Copied_Object = (SimpleBody *)Copy((SimpleBody *)Local_Shape);
-        Link(Copied_Object, &(Copied_Object->Next_Object),
-            (SimpleBody **)&(New_Object->Bounding_Shapes));
+        copiedObject = (SimpleBody *)Copy((SimpleBody *)localShape);
+        Link(copiedObject, &(copiedObject->Next_Object),
+            (SimpleBody **)&(newObject->Bounding_Shapes));
     }
-    New_Object->Clipping_Shapes = NULL;
-    for (Local_Shape = ((Composite *)Object)->Clipping_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
+    newObject->Clipping_Shapes = nullptr;
+    for (localShape = ((Composite *)object)->Clipping_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-        Copied_Object = (SimpleBody *)Copy((SimpleBody *)Local_Shape);
-        Link(Copied_Object, &(Copied_Object->Next_Object),
-            (SimpleBody **)&(New_Object->Clipping_Shapes));
+        copiedObject = (SimpleBody *)Copy((SimpleBody *)localShape);
+        Link(copiedObject, &(copiedObject->Next_Object),
+            (SimpleBody **)&(newObject->Clipping_Shapes));
     }
-    return ((void *)New_Object);
+    return ((void *)newObject);
 }
 
 void
-Translate_Basic_Object(SimpleBody *Object, Vector3D *Vector)
+Translate_Basic_Object(SimpleBody *object, Vector3D *vector)
 {
-    Geometry *Local_Shape;
+    Geometry *localShape;
 
-    for (Local_Shape = Object->Bounding_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = object->Bounding_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Translate((SimpleBody *)Local_Shape, Vector);
+        Translate((SimpleBody *)localShape, vector);
     }
 
-    for (Local_Shape = Object->Clipping_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = object->Clipping_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Translate((SimpleBody *)Local_Shape, Vector);
+        Translate((SimpleBody *)localShape, vector);
     }
 
-    Translate((SimpleBody *)Object->Shape, Vector);
+    Translate((SimpleBody *)object->Shape, vector);
 
-    Translate_Texture(&Object->Object_Texture, Vector);
+    Translate_Texture(&object->Object_Texture, vector);
 }
 
 void
-Rotate_Basic_Object(SimpleBody *Object, Vector3D *Vector)
+Rotate_Basic_Object(SimpleBody *object, Vector3D *vector)
 {
-    Geometry *Local_Shape;
+    Geometry *localShape;
     Transformation transformation;
 
-    for (Local_Shape = Object->Bounding_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = object->Bounding_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Rotate((SimpleBody *)Local_Shape, Vector);
+        Rotate((SimpleBody *)localShape, vector);
     }
 
-    for (Local_Shape = Object->Clipping_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = object->Clipping_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Rotate((SimpleBody *)Local_Shape, Vector);
+        Rotate((SimpleBody *)localShape, vector);
     }
 
-    Rotate((SimpleBody *)Object->Shape, Vector);
-    Get_Rotation_Transformation(&transformation, Vector);
+    Rotate((SimpleBody *)object->Shape, vector);
+    Get_Rotation_Transformation(&transformation, vector);
 
-    Rotate_Texture(&Object->Object_Texture, Vector);
+    Rotate_Texture(&object->Object_Texture, vector);
 }
 
 void
-Scale_Basic_Object(SimpleBody *Object, Vector3D *Vector)
+Scale_Basic_Object(SimpleBody *object, Vector3D *vector)
 {
-    Geometry *Local_Shape;
+    Geometry *localShape;
 
-    for (Local_Shape = Object->Bounding_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = object->Bounding_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Scale((SimpleBody *)Local_Shape, Vector);
+        Scale((SimpleBody *)localShape, vector);
     }
 
-    for (Local_Shape = Object->Clipping_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = object->Clipping_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
 
-        Scale((SimpleBody *)Local_Shape, Vector);
+        Scale((SimpleBody *)localShape, vector);
     }
 
-    Scale((SimpleBody *)Object->Shape, Vector);
+    Scale((SimpleBody *)object->Shape, vector);
 
-    Scale_Texture(&Object->Object_Texture, Vector);
+    Scale_Texture(&object->Object_Texture, vector);
 }
 
 void
-Translate_Composite_Object(SimpleBody *Object, Vector3D *Vector)
+Translate_Composite_Object(SimpleBody *object, Vector3D *vector)
 {
-    SimpleBody *Local_Object;
-    Geometry *Local_Shape;
+    SimpleBody *localObject;
+    Geometry *localShape;
 
-    for (Local_Object = ((Composite *)Object)->Objects; Local_Object != NULL;
-         Local_Object = Local_Object->Next_Object) {
+    for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
+         localObject = localObject->Next_Object) {
 
-        Translate(Local_Object, Vector);
+        Translate(localObject, vector);
     }
 
-    for (Local_Shape = ((Composite *)Object)->Bounding_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = ((Composite *)object)->Bounding_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-        Translate((SimpleBody *)Local_Shape, Vector);
+        Translate((SimpleBody *)localShape, vector);
     }
 
-    for (Local_Shape = ((Composite *)Object)->Clipping_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = ((Composite *)object)->Clipping_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-        Translate((SimpleBody *)Local_Shape, Vector);
-    }
-}
-
-void
-Rotate_Composite_Object(SimpleBody *Object, Vector3D *Vector)
-{
-    SimpleBody *Local_Object;
-    Geometry *Local_Shape;
-
-    for (Local_Object = ((Composite *)Object)->Objects; Local_Object != NULL;
-         Local_Object = Local_Object->Next_Object) {
-
-        Rotate(Local_Object, Vector);
-    }
-
-    for (Local_Shape = ((Composite *)Object)->Bounding_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
-
-        Rotate((SimpleBody *)Local_Shape, Vector);
-    }
-
-    for (Local_Shape = ((Composite *)Object)->Clipping_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
-
-        Rotate((SimpleBody *)Local_Shape, Vector);
+        Translate((SimpleBody *)localShape, vector);
     }
 }
 
 void
-Scale_Composite_Object(SimpleBody *Object, Vector3D *Vector)
+Rotate_Composite_Object(SimpleBody *object, Vector3D *vector)
 {
-    SimpleBody *Local_Object;
-    Geometry *Local_Shape;
+    SimpleBody *localObject;
+    Geometry *localShape;
 
-    for (Local_Object = ((Composite *)Object)->Objects; Local_Object != NULL;
-         Local_Object = Local_Object->Next_Object) {
+    for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
+         localObject = localObject->Next_Object) {
 
-        Scale(Local_Object, Vector);
+        Rotate(localObject, vector);
     }
 
-    for (Local_Shape = ((Composite *)Object)->Bounding_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = ((Composite *)object)->Bounding_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-        Scale((SimpleBody *)Local_Shape, Vector);
+        Rotate((SimpleBody *)localShape, vector);
     }
 
-    for (Local_Shape = ((Composite *)Object)->Clipping_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
+    for (localShape = ((Composite *)object)->Clipping_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-        Scale((SimpleBody *)Local_Shape, Vector);
+        Rotate((SimpleBody *)localShape, vector);
     }
 }
 
 void
-Invert_Basic_Object(SimpleBody *Object)
+Scale_Composite_Object(SimpleBody *object, Vector3D *vector)
 {
-    Geometry *Local_Shape;
+    SimpleBody *localObject;
+    Geometry *localShape;
 
-    for (Local_Shape = Object->Bounding_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
-        Invert((SimpleBody *)Local_Shape);
+    for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
+         localObject = localObject->Next_Object) {
+
+        Scale(localObject, vector);
     }
 
-    for (Local_Shape = Object->Clipping_Shapes; Local_Shape != NULL;
-         Local_Shape = Local_Shape->Next_Object) {
-        Invert((SimpleBody *)Local_Shape);
-    }
-    Invert((SimpleBody *)Object->Shape);
-}
+    for (localShape = ((Composite *)object)->Bounding_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-void
-Invert_Composite_Object(SimpleBody *Object)
-{
-    SimpleBody *Local_Object;
-    Geometry *Local_Shape;
-
-    for (Local_Object = ((Composite *)Object)->Objects; Local_Object != NULL;
-         Local_Object = Local_Object->Next_Object) {
-        Invert(Local_Object);
+        Scale((SimpleBody *)localShape, vector);
     }
 
-    for (Local_Shape = ((Composite *)Object)->Bounding_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
-        Invert((SimpleBody *)Local_Shape);
-    }
+    for (localShape = ((Composite *)object)->Clipping_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
 
-    for (Local_Shape = ((Composite *)Object)->Clipping_Shapes;
-         Local_Shape != NULL; Local_Shape = Local_Shape->Next_Object) {
-        Invert((SimpleBody *)Local_Shape);
+        Scale((SimpleBody *)localShape, vector);
     }
 }
 
 void
-Link(SimpleBody *New_Object, SimpleBody **Field, SimpleBody **Old_Object_List)
+Invert_Basic_Object(SimpleBody *object)
 {
-    *Field = *Old_Object_List;
-    *Old_Object_List = New_Object;
+    Geometry *localShape;
+
+    for (localShape = object->Bounding_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
+        Invert((SimpleBody *)localShape);
+    }
+
+    for (localShape = object->Clipping_Shapes; localShape != nullptr;
+         localShape = localShape->Next_Object) {
+        Invert((SimpleBody *)localShape);
+    }
+    Invert((SimpleBody *)object->Shape);
+}
+
+void
+Invert_Composite_Object(SimpleBody *object)
+{
+    SimpleBody *localObject;
+    Geometry *localShape;
+
+    for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
+         localObject = localObject->Next_Object) {
+        Invert(localObject);
+    }
+
+    for (localShape = ((Composite *)object)->Bounding_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
+        Invert((SimpleBody *)localShape);
+    }
+
+    for (localShape = ((Composite *)object)->Clipping_Shapes;
+         localShape != nullptr; localShape = localShape->Next_Object) {
+        Invert((SimpleBody *)localShape);
+    }
+}
+
+void
+Link(SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList)
+{
+    *field = *oldObjectList;
+    *oldObjectList = newObject;
 }
 
 SimpleBody *
 Get_Object()
 {
-    SimpleBody *New_Object;
+    SimpleBody *newObject;
 
-    if ((New_Object = new SimpleBody()) == NULL) {
+    if ((newObject = new SimpleBody()) == nullptr) {
         Error("Out of memory. Cannot allocate object");
     }
 
-    New_Object->Next_Object = NULL;
+    newObject->Next_Object = nullptr;
     /*  New_Object -> Next_Light_Source = NULL;*/
-    New_Object->Shape = NULL;
-    New_Object->Bounding_Shapes = NULL;
-    New_Object->Clipping_Shapes = NULL;
-    New_Object->Object_Texture = Default_Texture;
+    newObject->Shape = nullptr;
+    newObject->Bounding_Shapes = nullptr;
+    newObject->Clipping_Shapes = nullptr;
+    newObject->Object_Texture = Default_Texture;
 
-    New_Object->Object_Colour = NULL;
+    newObject->Object_Colour = nullptr;
 
-    New_Object->No_Shadow_Flag = FALSE;
-    New_Object->Type = OBJECT_TYPE;
-    New_Object->methods = &Basic_Object_Methods;
-    return (New_Object);
+    newObject->No_Shadow_Flag = FALSE;
+    newObject->Type = OBJECT_TYPE;
+    newObject->methods = &Basic_Object_Methods;
+    return (newObject);
 }

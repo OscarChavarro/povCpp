@@ -33,42 +33,43 @@
 //===========================================================================
 
 void
-PriorityQueueNode::balance(unsigned int entry_pos1)
+PriorityQueueNode::balance(unsigned int entryPos1)
 {
-    register Intersection *entry1, *entry2;
-    Intersection temp_entry;
-    register unsigned int entry_pos2;
+    register Intersection *entry1;
+    register Intersection *entry2;
+    Intersection tempEntry;
+    register unsigned int entryPos2;
 
-    entry1 = &this->queue[entry_pos1];
+    entry1 = &this->queue[entryPos1];
 
-    if ((entry_pos1 * 2 < this->queue_size) &&
-        (entry_pos1 * 2 <= this->current_entry)) {
-        if ((entry_pos1 * 2 + 1 > this->current_entry) ||
-            (this->queue[entry_pos1 * 2].Depth <
-                this->queue[entry_pos1 * 2 + 1].Depth)) {
-            entry_pos2 = entry_pos1 * 2;
+    if ((entryPos1 * 2 < this->queue_size) &&
+        (entryPos1 * 2 <= this->current_entry)) {
+        if ((entryPos1 * 2 + 1 > this->current_entry) ||
+            (this->queue[entryPos1 * 2].Depth <
+                this->queue[entryPos1 * 2 + 1].Depth)) {
+            entryPos2 = entryPos1 * 2;
         } else {
-            entry_pos2 = entry_pos1 * 2 + 1;
+            entryPos2 = entryPos1 * 2 + 1;
         }
 
-        entry2 = &this->queue[entry_pos2];
+        entry2 = &this->queue[entryPos2];
 
         if (entry1->Depth > entry2->Depth) {
-            temp_entry = *entry1;
+            tempEntry = *entry1;
             *entry1 = *entry2;
-            *entry2 = temp_entry;
-            this->balance(entry_pos2);
+            *entry2 = tempEntry;
+            this->balance(entryPos2);
         }
     }
 
-    if (entry_pos1 / 2 >= 1) {
-        entry_pos2 = entry_pos1 / 2;
-        entry2 = &this->queue[entry_pos2];
+    if (entryPos1 / 2 >= 1) {
+        entryPos2 = entryPos1 / 2;
+        entry2 = &this->queue[entryPos2];
         if (entry1->Depth < entry2->Depth) {
-            temp_entry = *entry1;
+            tempEntry = *entry1;
             *entry1 = *entry2;
-            *entry2 = temp_entry;
-            this->balance(entry_pos2);
+            *entry2 = tempEntry;
+            this->balance(entryPos2);
         }
     }
 }
@@ -77,13 +78,13 @@ PriorityQueueNode::balance(unsigned int entry_pos1)
 Called from all geometries
 */
 void
-PriorityQueueNode::add(Intersection *queue_entry)
+PriorityQueueNode::add(Intersection *queueEntry)
 {
     this->current_entry++;
     if (this->current_entry >= this->queue_size) {
         this->current_entry--;
     }
-    this->queue[this->current_entry] = (*queue_entry);
+    this->queue[this->current_entry] = (*queueEntry);
     this->balance(this->current_entry);
 }
 
@@ -96,7 +97,7 @@ PriorityQueueNode::getHighest()
     if (this->current_entry >= 1) {
         return (&(this->queue[1]));
     }
-    return NULL;
+    return nullptr;
 }
 
 /**
@@ -122,11 +123,11 @@ pq_init()
     PriorityQueueNode *newNode;
     PriorityQueueNode *head;
 
-    head = NULL;
+    head = nullptr;
 
     for (i = 0; i < NUMBER_OF_PRIOQS; i++) {
         newNode = new PriorityQueueNode();
-        if (newNode == NULL) {
+        if (newNode == nullptr) {
             fprintf(stderr, "\nOut of memory. Cannot allocate queues");
             close_all();
             exit(1);
@@ -136,7 +137,7 @@ pq_init()
         head = newNode;
 
         newNode->queue = new Intersection[MAX_NUMBER_OF_INTERSECTIONS];
-        if (newNode->queue == NULL) {
+        if (newNode->queue == nullptr) {
             fprintf(stderr, "\nOut of memory. Cannot allocate queue entries");
             close_all();
             exit(1);
@@ -159,16 +160,16 @@ PriorityQueueNode::pushBackToPool()
 }
 
 PriorityQueueNode *
-pq_pop(int index_size)
+pq_pop(int indexSize)
 {
-    if (index_size >= MAX_NUMBER_OF_INTERSECTIONS) {
-        index_size = MAX_NUMBER_OF_INTERSECTIONS - 1;
+    if (indexSize >= MAX_NUMBER_OF_INTERSECTIONS) {
+        indexSize = MAX_NUMBER_OF_INTERSECTIONS - 1;
     }
 
     //- pq_alloc ---------------------------------------------------------------
     PriorityQueueNode *pq;
 
-    if (GLOBAL_priorityQueuesHead == NULL) {
+    if (GLOBAL_priorityQueuesHead == nullptr) {
         fprintf(stderr, "\nOut of prioqs");
         close_all();
         exit(1);
@@ -176,12 +177,12 @@ pq_pop(int index_size)
     pq = GLOBAL_priorityQueuesHead;
 
     //--------------------------------------------------------------------------
-    if (pq == NULL) {
-        return NULL;
+    if (pq == nullptr) {
+        return nullptr;
     }
 
     GLOBAL_priorityQueuesHead = pq->next_pq;
-    pq->queue_size = index_size;
+    pq->queue_size = indexSize;
     pq->current_entry = 0;
     return pq;
 }

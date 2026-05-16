@@ -6,8 +6,8 @@
 #endif
 
 #include "common/RGBAColor.h"
-#include "common/RGBAColorPaletteSpan.h"
 #include "common/RGBAColorPalette.h"
+#include "common/RGBAColorPaletteSpan.h"
 
 #define Make_Colour(c, r, g, b)                                                \
     {                                                                          \

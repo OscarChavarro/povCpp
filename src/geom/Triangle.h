@@ -6,8 +6,8 @@
 #include "common/Vector.h"
 #include "geom/Geometry.h"
 
-#include "geom/TriangleClass.h"
 #include "geom/SmoothTriangle.h"
+#include "geom/TriangleClass.h"
 
 extern Methods Triangle_Methods;
 extern Triangle *Get_Triangle_Shape(void);

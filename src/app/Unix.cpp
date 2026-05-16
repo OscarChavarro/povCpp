@@ -45,7 +45,7 @@ display_close()
 }
 
 void
-display_plot(
-    int x, int y, unsigned char Red, unsigned char Green, unsigned char Blue)
+displayPlot(
+    int x, int y, unsigned char red, unsigned char green, unsigned char blue)
 {
 }

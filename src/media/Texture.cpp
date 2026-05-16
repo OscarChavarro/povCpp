@@ -73,10 +73,10 @@ unsigned short crctab[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
 
 void
-Compute_Colour(RGBAColor *Colour, RGBAColorPalette *Colour_Map, DBL value)
+Compute_Colour(RGBAColor *colour, RGBAColorPalette *colourMap, DBL value)
 {
     register int i;
-    RGBAColorPaletteSpan *Ent;
+    RGBAColorPaletteSpan *ent;
     register DBL fraction;
 
     if (value > 1.0) {
@@ -87,30 +87,30 @@ Compute_Colour(RGBAColor *Colour, RGBAColorPalette *Colour_Map, DBL value)
         value = 0.0;
     }
 
-    for (i = 0, Ent = &(Colour_Map->Colour_Map_Entries[0]);
-         i < Colour_Map->Number_Of_Entries; i++, Ent++) {
-        if ((value >= Ent->start) && (value <= Ent->end)) {
-            fraction = (value - Ent->start) / (Ent->end - Ent->start);
-            Colour->Red =
-                Ent->Start_Colour.Red +
-                fraction * (Ent->End_Colour.Red - Ent->Start_Colour.Red);
-            Colour->Green =
-                Ent->Start_Colour.Green +
-                fraction * (Ent->End_Colour.Green - Ent->Start_Colour.Green);
-            Colour->Blue =
-                Ent->Start_Colour.Blue +
-                fraction * (Ent->End_Colour.Blue - Ent->Start_Colour.Blue);
-            Colour->Alpha =
-                Ent->Start_Colour.Alpha +
-                fraction * (Ent->End_Colour.Alpha - Ent->Start_Colour.Alpha);
+    for (i = 0, ent = &(colourMap->Colour_Map_Entries[0]);
+         i < colourMap->Number_Of_Entries; i++, ent++) {
+        if ((value >= ent->start) && (value <= ent->end)) {
+            fraction = (value - ent->start) / (ent->end - ent->start);
+            colour->Red =
+                ent->Start_Colour.Red +
+                fraction * (ent->End_Colour.Red - ent->Start_Colour.Red);
+            colour->Green =
+                ent->Start_Colour.Green +
+                fraction * (ent->End_Colour.Green - ent->Start_Colour.Green);
+            colour->Blue =
+                ent->Start_Colour.Blue +
+                fraction * (ent->End_Colour.Blue - ent->Start_Colour.Blue);
+            colour->Alpha =
+                ent->Start_Colour.Alpha +
+                fraction * (ent->End_Colour.Alpha - ent->Start_Colour.Alpha);
             return;
         }
     }
 
-    Colour->Red = 0.0;
-    Colour->Green = 0.0;
-    Colour->Blue = 0.0;
-    Colour->Alpha = 0.0;
+    colour->Red = 0.0;
+    colour->Green = 0.0;
+    colour->Blue = 0.0;
+    colour->Alpha = 0.0;
     printf("No colour for value: %g\n", value);
 }
 
@@ -122,7 +122,7 @@ Initialize_Noise()
 
     InitRTable();
 
-    if ((sintab = new DBL[SINTABSIZE]) == NULL) {
+    if ((sintab = new DBL[SINTABSIZE]) == nullptr) {
         printf("Cannot allocate memory for sine table\n");
         exit(1);
     }
@@ -141,12 +141,14 @@ Initialize_Noise()
 void
 InitTextureTable()
 {
-    int i, j, temp;
+    int i;
+    int j;
+    int temp;
 
     srand(0);
 
     hashTable = new short int[4096];
-    if (hashTable == NULL) {
+    if (hashTable == nullptr) {
         printf("Cannot allocate memory for hash table\n");
         exit(1);
     }
@@ -171,7 +173,7 @@ InitRTable()
     InitTextureTable();
 
     RTable = new DBL[MAXSIZE];
-    if (RTable == NULL) {
+    if (RTable == nullptr) {
         printf("Cannot allocate memory for RTable\n");
         exit(1);
     }
@@ -244,12 +246,17 @@ setup_lattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz, long *jx,
 DBL
 Noise(DBL x, DBL y, DBL z)
 {
-    long ix, iy, iz, jx, jy, jz;
+    long ix;
+    long iy;
+    long iz;
+    long jx;
+    long jy;
+    long jz;
     DBL sx, sy, sz, tx, ty, tz;
     DBL sum;
     short m;
 
-    Calls_To_Noise++;
+    callsToNoise++;
 
     setup_lattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
@@ -299,12 +306,17 @@ Vector-valued version of "Noise"
 void
 DNoise(Vector3D *result, DBL x, DBL y, DBL z)
 {
-    long ix, iy, iz, jx, jy, jz;
+    long ix;
+    long iy;
+    long iz;
+    long jx;
+    long jy;
+    long jz;
     DBL px, py, pz, s;
     DBL sx, sy, sz, tx, ty, tz;
     short m;
 
-    Calls_To_DNoise++;
+    callsToDNoise++;
 
     setup_lattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
@@ -376,7 +388,8 @@ Turbulence(DBL x, DBL y, DBL z, int octaves)
 {
     int i; /* added -dmf */
     register DBL t = 0.0;
-    register DBL scale, value;
+    register DBL scale;
+    register DBL value;
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
         value = Noise(x / scale, y / scale, z / scale);
@@ -423,7 +436,8 @@ cycloidal(DBL value)
 DBL
 Triangle_Wave(DBL value)
 {
-    register DBL offset, temp1;
+    register DBL offset;
+    register DBL temp1;
 
     if (value >= 0.0) {
         offset = value - floor(value);
@@ -438,34 +452,34 @@ Triangle_Wave(DBL value)
 }
 
 void
-Translate_Texture(Texture **Texture_Ptr, Vector3D *Vector)
+Translate_Texture(Texture **texturePtr, Vector3D *vector)
 {
-    Texture *texture = *Texture_Ptr;
+    Texture *texture = *texturePtr;
     Transformation transformation;
 
-    while (texture != NULL) {
+    while (texture != nullptr) {
         if (((texture->Texture_Number != NO_TEXTURE) &&
                 (texture->Texture_Number != COLOUR_TEXTURE)) ||
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
                 texture = Copy_Texture(texture);
-                *Texture_Ptr = texture;
+                *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
                 texture->Texture_Transformation = Get_Transformation();
             }
-            Get_Translation_Transformation(&transformation, Vector);
+            Get_Translation_Transformation(&transformation, vector);
             Compose_Transformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                Translate_Texture((Texture **)&texture->Colour1, Vector);
-                Translate_Texture((Texture **)&texture->Colour2, Vector);
+                Translate_Texture((Texture **)&texture->Colour1, vector);
+                Translate_Texture((Texture **)&texture->Colour2, vector);
             }
         }
-        Texture_Ptr = &texture->Next_Texture;
+        texturePtr = &texture->Next_Texture;
         texture = texture->Next_Texture;
     }
 }
@@ -473,113 +487,113 @@ Translate_Texture(Texture **Texture_Ptr, Vector3D *Vector)
 Texture *
 Get_Texture()
 {
-    Texture *New_Texture;
+    Texture *newTexture;
 
-    New_Texture = new Texture;
-    if (New_Texture == NULL) {
+    newTexture = new Texture;
+    if (newTexture == nullptr) {
         Error("Out of memory. Cannot allocate object");
     }
 
-    New_Texture->Next_Texture = NULL;
-    New_Texture->Next_Material = NULL;
-    New_Texture->Number_Of_Materials = 0;
-    New_Texture->Object_Reflection = 0.0;
-    New_Texture->Object_Ambient = 0.1;
-    New_Texture->Object_Diffuse = 0.6;
-    New_Texture->Object_Brilliance = 1.0;
-    New_Texture->Object_Specular = 0.0;
-    New_Texture->Object_Roughness = 0.05;
-    New_Texture->Object_Phong = 0.0;
-    New_Texture->Object_PhongSize = 40;
+    newTexture->Next_Texture = nullptr;
+    newTexture->Next_Material = nullptr;
+    newTexture->Number_Of_Materials = 0;
+    newTexture->Object_Reflection = 0.0;
+    newTexture->Object_Ambient = 0.1;
+    newTexture->Object_Diffuse = 0.6;
+    newTexture->Object_Brilliance = 1.0;
+    newTexture->Object_Specular = 0.0;
+    newTexture->Object_Roughness = 0.05;
+    newTexture->Object_Phong = 0.0;
+    newTexture->Object_PhongSize = 40;
 
-    New_Texture->Texture_Randomness = 0.0;
-    New_Texture->Bump_Amount = 0.0;
-    New_Texture->Phase = 0.0;
-    New_Texture->Frequency = 1.0;
-    New_Texture->Texture_Number = NO_TEXTURE;
-    New_Texture->Texture_Transformation = NULL;
-    New_Texture->Bump_Number = NO_BUMPS;
-    New_Texture->Turbulence = 0.0;
-    New_Texture->Colour_Map = NULL;
-    New_Texture->Once_Flag = FALSE;
-    New_Texture->Metallic_Flag = FALSE;
-    New_Texture->Octaves = 6;  /* dmf, for turbulence functs */
-    New_Texture->Mortar = 0.2; /* rha, for brick texture */
+    newTexture->Texture_Randomness = 0.0;
+    newTexture->Bump_Amount = 0.0;
+    newTexture->Phase = 0.0;
+    newTexture->Frequency = 1.0;
+    newTexture->Texture_Number = NO_TEXTURE;
+    newTexture->Texture_Transformation = nullptr;
+    newTexture->Bump_Number = NO_BUMPS;
+    newTexture->Turbulence = 0.0;
+    newTexture->Colour_Map = nullptr;
+    newTexture->Once_Flag = FALSE;
+    newTexture->Metallic_Flag = FALSE;
+    newTexture->Octaves = 6;  /* dmf, for turbulence functs */
+    newTexture->Mortar = 0.2; /* rha, for brick texture */
 
-    New_Texture->Constant_Flag = TRUE;
-    New_Texture->Colour1 = NULL;
-    New_Texture->Colour2 = NULL;
-    Make_Vector(&New_Texture->Texture_Gradient, 0.0, 0.0, 0.0);
+    newTexture->Constant_Flag = TRUE;
+    newTexture->Colour1 = nullptr;
+    newTexture->Colour2 = nullptr;
+    Make_Vector(&newTexture->Texture_Gradient, 0.0, 0.0, 0.0);
 
-    New_Texture->Object_Index_Of_Refraction = 1.0;
-    New_Texture->Object_Transmit = 0.0;
-    New_Texture->Object_Refraction = 0.0;
-    return (New_Texture);
+    newTexture->Object_Index_Of_Refraction = 1.0;
+    newTexture->Object_Transmit = 0.0;
+    newTexture->Object_Refraction = 0.0;
+    return (newTexture);
 }
 
 void
-Rotate_Texture(Texture **Texture_Ptr, Vector3D *Vector)
+Rotate_Texture(Texture **texturePtr, Vector3D *vector)
 {
-    Texture *texture = *Texture_Ptr;
+    Texture *texture = *texturePtr;
     Transformation transformation;
 
-    while (texture != NULL) {
+    while (texture != nullptr) {
         if (((texture->Texture_Number != NO_TEXTURE) &&
                 (texture->Texture_Number != COLOUR_TEXTURE)) ||
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
                 texture = Copy_Texture(texture);
-                *Texture_Ptr = texture;
+                *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
                 texture->Texture_Transformation = Get_Transformation();
             }
-            Get_Rotation_Transformation(&transformation, Vector);
+            Get_Rotation_Transformation(&transformation, vector);
             Compose_Transformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                Rotate_Texture((Texture **)&texture->Colour1, Vector);
-                Rotate_Texture((Texture **)&texture->Colour2, Vector);
+                Rotate_Texture((Texture **)&texture->Colour1, vector);
+                Rotate_Texture((Texture **)&texture->Colour2, vector);
             }
         }
-        Texture_Ptr = &texture->Next_Texture;
+        texturePtr = &texture->Next_Texture;
         texture = texture->Next_Texture;
     }
 }
 
 void
-Scale_Texture(Texture **Texture_Ptr, Vector3D *Vector)
+Scale_Texture(Texture **texturePtr, Vector3D *vector)
 {
-    Texture *texture = *Texture_Ptr;
+    Texture *texture = *texturePtr;
     Transformation transformation;
 
-    while (texture != NULL) {
+    while (texture != nullptr) {
         if (((texture->Texture_Number != NO_TEXTURE) &&
                 (texture->Texture_Number != COLOUR_TEXTURE)) ||
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
                 texture = Copy_Texture(texture);
-                *Texture_Ptr = texture;
+                *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
                 texture->Texture_Transformation = Get_Transformation();
             }
-            Get_Scaling_Transformation(&transformation, Vector);
+            Get_Scaling_Transformation(&transformation, vector);
             Compose_Transformations(
                 texture->Texture_Transformation, &transformation);
 
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                Scale_Texture((Texture **)&texture->Colour1, Vector);
-                Scale_Texture((Texture **)&texture->Colour2, Vector);
+                Scale_Texture((Texture **)&texture->Colour1, vector);
+                Scale_Texture((Texture **)&texture->Colour2, vector);
             }
         }
-        Texture_Ptr = &texture->Next_Texture;
+        texturePtr = &texture->Next_Texture;
         texture = texture->Next_Texture;
     }
 }

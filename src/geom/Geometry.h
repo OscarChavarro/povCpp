@@ -44,9 +44,9 @@ class SimpleBody;
 #define Rotate(x, y) ((*((x)->methods->Rotate_Method))(x, y))
 #define Invert(x) ((*((x)->methods->Invert_Method))(x))
 
+#include "geom/GeometryClass.h"
 #include "geom/MethodsClass.h"
 #include "geom/SimpleBody.h"
-#include "geom/GeometryClass.h"
 
 #include "geom/PrioQ.h"
 #include "media/Texture.h"

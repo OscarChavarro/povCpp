@@ -44,10 +44,12 @@ painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
     /* Swirled()  */
 
-    Vector3D colour_vector, result;
+    Vector3D colourVector;
+    Vector3D result;
     register int i;
-    register DBL scale = 1.0, temp;
-    RGBAColor New_Colour;
+    register DBL scale = 1.0;
+    register DBL temp;
+    RGBAColor newColour;
 
     if (Options & DEBUGGING) {
         printf("painted1 %g %g %g\n", x, y, z);
@@ -58,9 +60,9 @@ painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     result.z = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        DNoise(&colour_vector, x, y, z);
-        temp = Noise(colour_vector.x * 4 * scale, colour_vector.y * 4 * scale,
-            colour_vector.z * 4 * scale);
+        DNoise(&colourVector, x, y, z);
+        temp = Noise(colourVector.x * 4 * scale, colourVector.y * 4 * scale,
+            colourVector.z * 4 * scale);
         temp = FABS(temp);
         result.x += temp / scale;
         result.y += temp / scale;
@@ -68,12 +70,12 @@ painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     temp = result.x;
-    if (texture->Colour_Map != NULL) {
-        Compute_Colour(&New_Colour, texture->Colour_Map, temp);
-        colour->Red += New_Colour.Red;
-        colour->Green += New_Colour.Green;
-        colour->Blue += New_Colour.Blue;
-        colour->Alpha += New_Colour.Alpha;
+    if (texture->Colour_Map != nullptr) {
+        Compute_Colour(&newColour, texture->Colour_Map, temp);
+        colour->Red += newColour.Red;
+        colour->Green += newColour.Green;
+        colour->Blue += newColour.Blue;
+        colour->Alpha += newColour.Alpha;
         return;
     }
 
@@ -87,28 +89,29 @@ painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     DBL turb;
-    Vector3D TextureTurbulence;
-    RGBAColor Colour1, Colour2;
+    Vector3D textureTurbulence;
+    RGBAColor colour1;
+    RGBAColor colour2;
 
     /* You could change the parser to take two colors after PAINTED2, */
     /* but since the colormap is already parsed it's easier to use it during */
     /* testing. If the texture works out right you can change the parser later.
      */
-    if (texture->Colour_Map != NULL) {
-        Compute_Colour(&Colour1, texture->Colour_Map, 0.1);
-        Compute_Colour(&Colour2, texture->Colour_Map, 0.9);
+    if (texture->Colour_Map != nullptr) {
+        Compute_Colour(&colour1, texture->Colour_Map, 0.1);
+        Compute_Colour(&colour2, texture->Colour_Map, 0.9);
     } else {
-        Make_Colour(&Colour1, 1.0, 1.0, 1.0);
-        Colour1.Alpha = 0.0;
-        Make_Colour(&Colour2, 0.0, 1.0, 0.0);
-        Colour2.Alpha = 0.0;
+        Make_Colour(&colour1, 1.0, 1.0, 1.0);
+        colour1.Alpha = 0.0;
+        Make_Colour(&colour2, 0.0, 1.0, 0.0);
+        colour2.Alpha = 0.0;
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        DTurbulence(&TextureTurbulence, x, y, z, texture->Octaves);
-        x += TextureTurbulence.x * turb;
-        y += TextureTurbulence.y * turb;
-        z += TextureTurbulence.z * turb;
+        DTurbulence(&textureTurbulence, x, y, z, texture->Octaves);
+        x += textureTurbulence.x * turb;
+        y += textureTurbulence.y * turb;
+        z += textureTurbulence.z * turb;
     }
 
     brkindx = (int)FLOOR(x) + (int)FLOOR(z);
@@ -118,15 +121,15 @@ painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     if (brkindx & 1) {
-        colour->Red = Colour1.Red;
-        colour->Green = Colour1.Green;
-        colour->Blue = Colour1.Blue;
-        colour->Alpha = Colour1.Alpha;
+        colour->Red = colour1.Red;
+        colour->Green = colour1.Green;
+        colour->Blue = colour1.Blue;
+        colour->Alpha = colour1.Alpha;
     } else {
-        colour->Red = Colour2.Red;
-        colour->Green = Colour2.Green;
-        colour->Blue = Colour2.Blue;
-        colour->Alpha = Colour2.Alpha;
+        colour->Red = colour2.Red;
+        colour->Green = colour2.Green;
+        colour->Blue = colour2.Blue;
+        colour->Alpha = colour2.Alpha;
     }
     return;
 

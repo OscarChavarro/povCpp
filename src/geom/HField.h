@@ -10,8 +10,8 @@
 #define POT 1 /* height field. */
 #define TGA 2
 
-#include "geom/HeightFieldBlock.h"
 #include "geom/HeightField.h"
+#include "geom/HeightFieldBlock.h"
 
 extern Methods Height_Field_Methods;
 extern HeightField *Get_Height_Field_Shape(void);
