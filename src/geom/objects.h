@@ -2,13 +2,12 @@
 #define __OBJECTS_H__
 
 #include "common/frame.h"
-#include "common/vector.h"
 #include "common/povproto.h"
-#include "geom/geometry.h"
+#include "common/vector.h"
 #include "geom/csg.h"
+#include "geom/geometry.h"
 
-class Composite
-{
+class Composite {
   public:
     Methods *methods;
     int Type;
@@ -22,9 +21,11 @@ class Composite
 extern Methods Composite_Methods;
 extern Methods Basic_Object_Methods;
 extern Intersection *Object_Intersect(SimpleBody *Object, Ray *Ray);
-extern int All_Composite_Intersections(SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int All_Object_Intersections(SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Inside_Basic_Object(Vector3D *point, SimpleBody *Object); 
+extern int All_Composite_Intersections(
+    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
+extern int All_Object_Intersections(
+    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
+extern int Inside_Basic_Object(Vector3D *point, SimpleBody *Object);
 extern int Inside_Composite_Object(Vector3D *point, SimpleBody *Object);
 extern void *Copy_Basic_Object(SimpleBody *Object);
 extern void *Copy_Composite_Object(SimpleBody *Object);
@@ -39,7 +40,8 @@ extern void Invert_Composite_Object(SimpleBody *Object);
 
 extern void Set_CSG_Parents(CSG *Shape, SimpleBody *Object);
 
-extern void Link(SimpleBody *New_Object,SimpleBody **Field,SimpleBody **Old_Object_List);
+extern void Link(
+    SimpleBody *New_Object, SimpleBody **Field, SimpleBody **Old_Object_List);
 
 extern SimpleBody *Get_Object(void);
 extern Composite *Get_Composite_Object(void);

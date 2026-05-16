@@ -2,14 +2,13 @@
 #define __POINT_H__
 
 #include "common/frame.h"
-#include "common/vector.h"
 #include "common/povproto.h"
+#include "common/vector.h"
 #include "geom/geometry.h"
 
-class Light : public Geometry
-{
+class Light : public Geometry {
   public:
-    Vector3D  Center, Points_At;
+    Vector3D Center, Points_At;
     Light *Next_Light_Source;
     short Inverted;
     DBL Coeff, Radius, Falloff;
@@ -17,7 +16,8 @@ class Light : public Geometry
 
 extern Methods Point_Methods;
 extern Light *Get_Light_Source_Shape(void);
-extern int All_Point_Intersections(SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
+extern int All_Point_Intersections(
+    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
 extern int Inside_Point(Vector3D *Test_Point, SimpleBody *Object);
 extern void *Copy_Point(SimpleBody *Object);
 extern void Translate_Point(SimpleBody *Object, Vector3D *Vector);

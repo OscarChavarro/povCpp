@@ -2,12 +2,11 @@
 #define __CSG_H__
 
 #include "common/frame.h"
-#include "common/vector.h"
 #include "common/povproto.h"
+#include "common/vector.h"
 #include "geom/geometry.h"
 
-class CSG : public Geometry
-{
+class CSG : public Geometry {
   public:
     Geometry *Shapes;
 };
@@ -17,8 +16,10 @@ extern Methods CSG_Intersection_Methods;
 extern CSG *Get_CSG_Shape(void);
 extern CSG *Get_CSG_Union(void);
 extern CSG *Get_CSG_Intersection(void);
-extern int All_CSG_Union_Intersections(SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int All_CSG_Intersect_Intersections(SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue); 
+extern int All_CSG_Union_Intersections(
+    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
+extern int All_CSG_Intersect_Intersections(
+    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
 extern int Inside_CSG_Union(Vector3D *point, SimpleBody *Object);
 extern int Inside_CSG_Intersection(Vector3D *point, SimpleBody *Object);
 void *Copy_CSG(SimpleBody *Object);

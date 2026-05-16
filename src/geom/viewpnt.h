@@ -2,12 +2,11 @@
 #define __VIEWPNT_H__
 
 #include "common/frame.h"
-#include "common/vector.h"
 #include "common/povproto.h"
+#include "common/vector.h"
 #include "geom/geometry.h"
 
-class Viewpoint
-{
+class Viewpoint {
   public:
     Methods *methods;
     int Type;

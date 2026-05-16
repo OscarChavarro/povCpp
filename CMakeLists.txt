@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(povray LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 98)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -46,6 +46,6 @@ add_executable(povray
 )
 
 target_include_directories(povray PRIVATE src)
-target_compile_options(povray PRIVATE -Wall -pedantic)
+target_compile_options(povray PRIVATE -O3 -Wall -pedantic)
 
 target_link_libraries(povray PRIVATE m)
