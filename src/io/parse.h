@@ -73,7 +73,6 @@ extern void Parse_Fog(void);
 extern void Parse_Frame(void);
 extern void Parse_Viewpoint(Viewpoint *Given_Vp);
 extern void Parse_Declare(void);
-extern void Init_Viewpoint(Viewpoint *vp);
 extern CONSTANT Find_Constant(void);
 extern char *Get_Token_String(TOKEN Token_Id);
 extern void Parse_Error(TOKEN Token_Id);

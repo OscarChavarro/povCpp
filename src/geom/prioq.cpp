@@ -152,10 +152,10 @@ pq_init()
 Used from objects.cpp, csg.cpp and lighting.cpp
 */
 void
-pq_push(PriorityQueueNode *pq)
+PriorityQueueNode::PushBackToPool()
 {
-    pq->next_pq = GLOBAL_priorityQueuesHead;
-    GLOBAL_priorityQueuesHead = pq;
+    this->next_pq = GLOBAL_priorityQueuesHead;
+    GLOBAL_priorityQueuesHead = this;
 }
 
 PriorityQueueNode *

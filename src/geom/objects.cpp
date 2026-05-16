@@ -59,10 +59,10 @@ Object_Intersect(SimpleBody *Object, Ray *ray)
         Local_Intersection->Shape = Queue_Element->Shape;
         Local_Intersection->Depth = Queue_Element->Depth;
         Local_Intersection->Object = Queue_Element->Object;
-        pq_push(Depth_Queue);
+        Depth_Queue->PushBackToPool();
         return Local_Intersection;
     }
-    pq_push(Depth_Queue);
+    Depth_Queue->PushBackToPool();
     return NULL;
 }
 
@@ -124,7 +124,7 @@ All_Composite_Intersections(
             Any_Intersection_Found = TRUE;
         }
     }
-    pq_push(Local_Depth_Queue);
+    Local_Depth_Queue->PushBackToPool();
     return (Any_Intersection_Found);
 }
 
@@ -190,7 +190,7 @@ All_Object_Intersections(
             Any_Intersection_Found = TRUE;
         }
     }
-    pq_push(Local_Depth_Queue);
+    Local_Depth_Queue->PushBackToPool();
     return (Any_Intersection_Found);
 }
 

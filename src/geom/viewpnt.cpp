@@ -45,6 +45,18 @@ Copy_Viewpoint(SimpleBody *Object)
 }
 
 void
+Viewpoint::InitializeDefaults()
+{
+    this->methods = (Methods *)&Viewpoint_Methods;
+    this->Type = VIEWPOINT_TYPE;
+    Make_Vector(&this->Location, 0.0, 0.0, 0.0);
+    Make_Vector(&this->Direction, 0.0, 0.0, 1.0);
+    Make_Vector(&this->Up, 0.0, 1.0, 0.0);
+    Make_Vector(&this->Right, 1.33, 0.0, 0.0);
+    Make_Vector(&this->Sky, 0.0, 1.0, 0.0);
+}
+
+void
 Translate_Viewpoint(SimpleBody *Object, Vector3D *Vector)
 {
     VAdd(((Viewpoint *)Object)->Location, ((Viewpoint *)Object)->Location,

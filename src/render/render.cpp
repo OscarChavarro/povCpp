@@ -89,7 +89,7 @@ Create_Ray(Ray *ray, int width, int height, DBL x, DBL y)
     VAdd(ray->Direction, Temp_Vect_1, Temp_Vect_2);
     VAdd(ray->Direction, ray->Direction, GLOBAL_frame.View_Point.Direction);
     VNormalize(ray->Direction, ray->Direction);
-    Initialize_Ray_Containers(ray);
+    ray->InitializeContainers();
     ray->Quadric_Constants_Cached = FALSE;
 }
 

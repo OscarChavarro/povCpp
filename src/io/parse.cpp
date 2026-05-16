@@ -156,7 +156,7 @@ void
 Frame_Init()
 {
     Default_Texture = Get_Texture();
-    Init_Viewpoint(&(Parsing_Frame_Ptr->View_Point));
+    Parsing_Frame_Ptr->View_Point.InitializeDefaults();
     Parsing_Frame_Ptr->Light_Sources = NULL;
     Parsing_Frame_Ptr->Objects = NULL;
     Parsing_Frame_Ptr->Atmosphere_IOR = 1.0;
@@ -513,7 +513,7 @@ Get_Viewpoint()
         Error("Out of memory. Cannot allocate viewpoint");
     }
 
-    Init_Viewpoint(New_Viewpoint);
+    New_Viewpoint->InitializeDefaults();
     return (New_Viewpoint);
 }
 
@@ -3441,7 +3441,7 @@ Parse_Viewpoint(Viewpoint *Given_Vp)
     Vector3D Local_Vector, Temp_Vector;
     DBL Direction_Length, Up_Length, Right_Length, Handedness;
 
-    Init_Viewpoint(Given_Vp);
+    Given_Vp->InitializeDefaults();
 
     GET(LEFT_CURLY_TOKEN);
 
@@ -3719,18 +3719,6 @@ Parse_Declare()
         OTHERWISE Parse_Error(OBJECT_TOKEN);
     END_CASE
     END_EXPECT
-}
-
-void
-Init_Viewpoint(Viewpoint *vp)
-{
-    vp->methods = (Methods *)&Viewpoint_Methods;
-    vp->Type = VIEWPOINT_TYPE;
-    Make_Vector(&vp->Location, 0.0, 0.0, 0.0);
-    Make_Vector(&vp->Direction, 0.0, 0.0, 1.0);
-    Make_Vector(&vp->Up, 0.0, 1.0, 0.0);
-    Make_Vector(&vp->Right, 1.33, 0.0, 0.0);
-    Make_Vector(&vp->Sky, 0.0, 1.0, 0.0);
 }
 
 static void

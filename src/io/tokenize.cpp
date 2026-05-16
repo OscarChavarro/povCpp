@@ -217,7 +217,7 @@ Get_Token()
 
     while (GLOBAL_token.Token_Id == END_OF_FILE_TOKEN) {
 
-        Skip_Spaces(GLOBAL_dataFile);
+        GLOBAL_dataFile->SkipSpaces();
 
         c = getc(GLOBAL_dataFile->File);
         if (c == EOF) {
@@ -358,7 +358,7 @@ Get_Token()
                 break;
             }
             if (c2 == (int)'*') {
-                Parse_C_Comments(GLOBAL_dataFile);
+                GLOBAL_dataFile->ParseCComments();
                 break;
             }
             while (c2 != (int)'\n') {
@@ -380,7 +380,7 @@ Get_Token()
             break;
 
         case '"':
-            Parse_String(GLOBAL_dataFile);
+            GLOBAL_dataFile->ParseString();
             break;
 
         case '0':
@@ -395,7 +395,7 @@ Get_Token()
         case '9':
         case '.':
             ungetc(c, GLOBAL_dataFile->File);
-            if (Read_Float(GLOBAL_dataFile) != TRUE) {
+            if (GLOBAL_dataFile->ReadFloat() != TRUE) {
                 return;
             }
             break;
@@ -454,7 +454,7 @@ Get_Token()
         case 'Z':
         case '_':
             ungetc(c, GLOBAL_dataFile->File);
-            if (Read_Symbol(GLOBAL_dataFile) != TRUE) {
+            if (GLOBAL_dataFile->ReadSymbol() != TRUE) {
                 return;
             }
             break;
@@ -472,7 +472,7 @@ Get_Token()
             break;
         }
         if (GLOBAL_token.Token_Id == INCLUDE_TOKEN) {
-            if (Skip_Spaces(GLOBAL_dataFile) != TRUE) {
+            if (GLOBAL_dataFile->SkipSpaces() != TRUE) {
                 Token_Error(
                     GLOBAL_dataFile, "Expecting a string after INCLUDE\n");
             }
@@ -482,7 +482,7 @@ Get_Token()
                     GLOBAL_dataFile, "Expecting a string after INCLUDE\n");
             }
 
-            Parse_String(GLOBAL_dataFile);
+            GLOBAL_dataFile->ParseString();
             GLOBAL_includeFileIndex++;
             if (GLOBAL_includeFileIndex > MAX_INCLUDE_FILES) {
                 Token_Error(GLOBAL_dataFile, "Too many nested include files\n");
@@ -537,12 +537,12 @@ Unget_Token()
 /* Skip over spaces in the input file */
 
 int
-Skip_Spaces(DataFile *GLOBAL_dataFile)
+DataFile::SkipSpaces()
 {
     register int c;
 
     while (TRUE) {
-        c = getc(GLOBAL_dataFile->File);
+        c = getc(this->File);
         if (c == EOF) {
             return (FALSE);
         }
@@ -552,11 +552,11 @@ Skip_Spaces(DataFile *GLOBAL_dataFile)
         }
 
         if (c == '\n') {
-            GLOBAL_dataFile->Line_Number++;
+            this->Line_Number++;
         }
     }
 
-    ungetc(c, GLOBAL_dataFile->File);
+    ungetc(c, this->File);
     return (TRUE);
 }
 
@@ -568,25 +568,25 @@ Skip_Spaces(DataFile *GLOBAL_dataFile)
     things) */
 
 int
-Parse_Comments(DataFile *GLOBAL_dataFile)
+DataFile::ParseComments()
 {
     register int c;
     int End_Of_Comment;
 
     End_Of_Comment = FALSE;
     while (!End_Of_Comment) {
-        c = getc(GLOBAL_dataFile->File);
+        c = getc(this->File);
         if (c == EOF) {
             Token_Error(GLOBAL_dataFile, "No closing comment found");
             return (FALSE);
         }
 
         if (c == (int)'\n') {
-            GLOBAL_dataFile->Line_Number++;
+            this->Line_Number++;
         }
 
         if (c == (int)'{')
-            CALL(Parse_Comments(GLOBAL_dataFile))
+            CALL(this->ParseComments())
         else {
             End_Of_Comment = (c == (int)'}');
         }
@@ -598,38 +598,38 @@ Parse_Comments(DataFile *GLOBAL_dataFile)
 /* C style comments with asterik and slash - CdW 8/91 */
 
 int
-Parse_C_Comments(DataFile *GLOBAL_dataFile)
+DataFile::ParseCComments()
 {
     register int c, c2;
     int End_Of_Comment;
 
     End_Of_Comment = FALSE;
     while (!End_Of_Comment) {
-        c = getc(GLOBAL_dataFile->File);
+        c = getc(this->File);
         if (c == EOF) {
             Token_Error(GLOBAL_dataFile, "No */ closing comment found");
             return (FALSE);
         }
 
         if (c == (int)'\n') {
-            GLOBAL_dataFile->Line_Number++;
+            this->Line_Number++;
         }
 
         if (c == (int)'*') {
-            c2 = getc(GLOBAL_dataFile->File);
+            c2 = getc(this->File);
             if (c2 != (int)'/') {
-                ungetc(c2, GLOBAL_dataFile->File);
+                ungetc(c2, this->File);
             } else {
                 End_Of_Comment = TRUE;
             }
         }
         /* Check for and handle nested comments */
         if (c == (int)'/') {
-            c2 = getc(GLOBAL_dataFile->File);
+            c2 = getc(this->File);
             if (c2 != (int)'*') {
-                ungetc(c2, GLOBAL_dataFile->File);
+                ungetc(c2, this->File);
             } else {
-                Parse_C_Comments(GLOBAL_dataFile);
+                this->ParseCComments();
             }
         }
     }
@@ -661,7 +661,7 @@ Stuff_Character(int c, DataFile *GLOBAL_dataFile)
 }
 
 void
-End_String(DataFile *GLOBAL_dataFile)
+DataFile::EndString()
 {
     Stuff_Character((int)'\0', GLOBAL_dataFile);
 }
@@ -673,7 +673,7 @@ End_String(DataFile *GLOBAL_dataFile)
     that the number is formatted properly. E format added 9/91 CEY */
 
 int
-Read_Float(DataFile *GLOBAL_dataFile)
+DataFile::ReadFloat()
 {
     register int c, Finished, Phase;
 
@@ -682,7 +682,7 @@ Read_Float(DataFile *GLOBAL_dataFile)
 
     Begin_String();
     while (!Finished) {
-        c = getc(GLOBAL_dataFile->File);
+        c = getc(this->File);
         if (c == EOF) {
             Token_Error(GLOBAL_dataFile, "Unexpected end of file");
             return (FALSE);
@@ -694,7 +694,7 @@ Read_Float(DataFile *GLOBAL_dataFile)
                 Stuff_Character(c, GLOBAL_dataFile);
             } else if (c == '.') {
                 Stuff_Character('0', GLOBAL_dataFile);
-                ungetc(c, GLOBAL_dataFile->File);
+                ungetc(c, this->File);
             } else {
                 Token_Error(GLOBAL_dataFile, "Error in decimal number");
             }
@@ -745,8 +745,8 @@ Read_Float(DataFile *GLOBAL_dataFile)
         }
     }
 
-    ungetc(c, GLOBAL_dataFile->File);
-    End_String(GLOBAL_dataFile);
+    ungetc(c, this->File);
+    this->EndString();
 
     Write_Token(FLOAT_TOKEN, GLOBAL_dataFile);
     if (sscanf(String, DBL_FORMAT_STRING, &GLOBAL_token.Token_Float) == 0) {
@@ -758,13 +758,13 @@ Read_Float(DataFile *GLOBAL_dataFile)
 
 /* Parse a string from the input file into a token. */
 void
-Parse_String(DataFile *GLOBAL_dataFile)
+DataFile::ParseString()
 {
     register int c;
 
     Begin_String();
     while (TRUE) {
-        c = getc(GLOBAL_dataFile->File);
+        c = getc(this->File);
         if (c == EOF) {
             Token_Error(GLOBAL_dataFile, "No end quote for string");
         }
@@ -775,7 +775,7 @@ Parse_String(DataFile *GLOBAL_dataFile)
             break;
         }
     }
-    End_String(GLOBAL_dataFile);
+    this->EndString();
 
     Write_Token(STRING_TOKEN, GLOBAL_dataFile);
     GLOBAL_token.Token_String = String;
@@ -788,13 +788,13 @@ Parse_String(DataFile *GLOBAL_dataFile)
     highest reserved word. */
 
 int
-Read_Symbol(DataFile *GLOBAL_dataFile)
+DataFile::ReadSymbol()
 {
     register int c, Symbol_Id;
 
     Begin_String();
     while (TRUE) {
-        c = getc(GLOBAL_dataFile->File);
+        c = getc(this->File);
         if (c == EOF) {
             Token_Error(GLOBAL_dataFile, "Unexpected end of file");
             return (FALSE);
@@ -803,11 +803,11 @@ Read_Symbol(DataFile *GLOBAL_dataFile)
         if (isalpha(c) || isdigit(c) || c == (int)'_') {
             Stuff_Character(c, GLOBAL_dataFile);
         } else {
-            ungetc(c, GLOBAL_dataFile->File);
+            ungetc(c, this->File);
             break;
         }
     }
-    End_String(GLOBAL_dataFile);
+    this->EndString();
 
     /* Ignore the symbol if it was meant for the tokenizer (-2) */
     if ((Symbol_Id = Find_Reserved()) != -1 && Symbol_Id != -2) {

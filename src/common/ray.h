@@ -20,12 +20,13 @@ class Ray {
     Texture *Containing_Textures[MAX_CONTAINING_OBJECTS];
     DBL Containing_IORs[MAX_CONTAINING_OBJECTS];
     int Quadric_Constants_Cached;
+
+    void MakeRay();
+    void InitializeContainers();
+    void ExitContainingMedium();
 };
 
-extern void Make_Ray(Ray *r);
-extern void Initialize_Ray_Containers(Ray *Ray);
 extern void Copy_Ray_Containers(Ray *Dest_Ray, Ray *Source_Ray);
 extern void Ray_Enter(Ray *ray, Texture *texture);
-extern void Ray_Exit(Ray *ray);
 
 #endif

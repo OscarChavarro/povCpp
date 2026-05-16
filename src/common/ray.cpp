@@ -36,25 +36,25 @@
 /*===========================================================================*/
 
 void
-Make_Ray(Ray *r)
+Ray::MakeRay()
 {
     Vector3D Temp_Init_Dir;
 
-    VSquareTerms(r->Initial_2, r->Initial);
-    VSquareTerms(r->Direction_2, r->Direction);
-    VEvaluate(r->Initial_Direction, r->Initial, r->Direction);
-    Mix(r->Mixed_Initial_Initial, r->Initial, r->Initial);
-    Mix(r->Mixed_Dir_Dir, r->Direction, r->Direction);
-    Mix(Temp_Init_Dir, r->Initial, r->Direction);
-    Mix(r->Mixed_Init_Dir, r->Direction, r->Initial);
-    VAdd(r->Mixed_Init_Dir, r->Mixed_Init_Dir, Temp_Init_Dir);
-    r->Quadric_Constants_Cached = TRUE;
+    VSquareTerms(this->Initial_2, this->Initial);
+    VSquareTerms(this->Direction_2, this->Direction);
+    VEvaluate(this->Initial_Direction, this->Initial, this->Direction);
+    Mix(this->Mixed_Initial_Initial, this->Initial, this->Initial);
+    Mix(this->Mixed_Dir_Dir, this->Direction, this->Direction);
+    Mix(Temp_Init_Dir, this->Initial, this->Direction);
+    Mix(this->Mixed_Init_Dir, this->Direction, this->Initial);
+    VAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, Temp_Init_Dir);
+    this->Quadric_Constants_Cached = TRUE;
 }
 
 void
-Initialize_Ray_Containers(Ray *Ray)
+Ray::InitializeContainers()
 {
-    Ray->Containing_Index = -1;
+    this->Containing_Index = -1;
 }
 
 void
@@ -91,9 +91,9 @@ Ray_Enter(Ray *ray, Texture *texture)
 }
 
 void
-Ray_Exit(Ray *ray)
+Ray::ExitContainingMedium()
 {
-    if (--(ray->Containing_Index) < -1) {
+    if (--(this->Containing_Index) < -1) {
         fprintf(stderr, "Too many exits from refractions\n");
         close_all();
         exit(1);
