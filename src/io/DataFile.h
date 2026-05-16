@@ -8,6 +8,14 @@ class DataFile {
     FILE *File;
     char *Filename;
     int Line_Number;
+
+    int SkipSpaces();
+    int ParseComments();
+    int ParseCComments();
+    void EndString();
+    int ReadFloat();
+    void ParseString();
+    int ReadSymbol();
 };
 
 #endif

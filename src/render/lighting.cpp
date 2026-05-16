@@ -238,7 +238,7 @@ Diffuse(Texture *Texture, Vector3D *Intersection_Point, Ray *Eye,
             }
         }
     }
-    pq_push(Local_Queue);
+    Local_Queue->PushBackToPool();
 }
 
 static void
@@ -513,7 +513,7 @@ Refract(Texture *Texture, Vector3D *Intersection_Point, Ray *ray,
             /*            if (inside) */
             {
                 /* The ray is leaving the current object */
-                Ray_Exit(&New_Ray);
+                New_Ray.ExitContainingMedium();
                 if (New_Ray.Containing_Index == -1) {
                     /* The ray is leaving into the atmosphere */
                     Temp_IOR = GLOBAL_frame.Atmosphere_IOR;

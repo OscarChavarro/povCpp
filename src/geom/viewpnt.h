@@ -15,6 +15,8 @@ class Viewpoint {
     Vector3D Up;
     Vector3D Right;
     Vector3D Sky;
+
+    void InitializeDefaults();
 };
 
 extern Methods Viewpoint_Methods;

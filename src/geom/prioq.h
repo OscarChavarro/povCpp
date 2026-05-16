@@ -10,6 +10,5 @@ extern PriorityQueue *GLOBAL_priorityQueue;
 extern PriorityQueueNode *GLOBAL_priorityQueuesHead;
 extern PriorityQueueNode *pq_init(void);
 extern PriorityQueueNode *pq_pop(int index_size);
-extern void pq_push(PriorityQueueNode *pq);
 
 #endif

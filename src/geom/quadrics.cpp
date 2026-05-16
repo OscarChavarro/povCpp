@@ -77,7 +77,7 @@ Intersect_Quadric(Ray *ray, Quadric *Shape, DBL *Depth1, DBL *Depth2)
 
     Ray_Quadric_Tests++;
     if (!ray->Quadric_Constants_Cached) {
-        Make_Ray(ray);
+        ray->MakeRay();
     }
 
     if (Shape->Non_Zero_Square_Term) {

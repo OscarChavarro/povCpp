@@ -100,7 +100,7 @@ All_CSG_Intersect_Intersections(
         }
     }
 
-    pq_push(Local_Depth_Queue);
+    Local_Depth_Queue->PushBackToPool();
 
     return (Any_Intersection_Found);
 }
