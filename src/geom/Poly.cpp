@@ -38,10 +38,10 @@
     a27*y*z^2+a28*y*z+a29*y+a30*z^4+a31*z^3+a32*z^2+a33*z+a34
 */
 
-#define COEFF_LIMIT 1.0e-20
+static constexpr double COEFF_LIMIT = 1.0e-20;
 
-#define LEFT_MARGIN 0
-#define RIGHT_MARGIN 72
+static constexpr int LEFT_MARGIN = 0;
+static constexpr int RIGHT_MARGIN = 72;
 
 int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},

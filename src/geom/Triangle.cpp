@@ -40,9 +40,9 @@ extern Ray *vpRay;
 extern long rayTriangleTests, rayTriangleTestsSucceeded;
 
 #define max3(x, y, z) ((x > y) ? ((x > z) ? 1 : 3) : ((y > z) ? 2 : 3))
-#define X_AXIS 0
-#define Y_AXIS 1
-#define Z_AXIS 2
+static constexpr int X_AXIS = 0;
+static constexpr int Y_AXIS = 1;
+static constexpr int Z_AXIS = 2;
 
 /*===========================================================================*/
 

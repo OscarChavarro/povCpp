@@ -78,7 +78,7 @@ outLine(unsigned char *pixels, int linelen)
     return (0);
 }
 
-#define READ_ERROR -1
+static constexpr int READ_ERROR = -1;
 
 int
 getByte() /* get byte from file, return the next byte or an error */

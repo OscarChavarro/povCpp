@@ -3,9 +3,9 @@
 
 #include "io/FileHandle.h"
 
-#define READ_MODE 0
-#define WRITE_MODE 1
-#define APPEND_MODE 2
+static constexpr int READ_MODE = 0;
+static constexpr int WRITE_MODE = 1;
+static constexpr int APPEND_MODE = 2;
 
 #define defaultFileName(h) ((*((h)->Default_File_Name_p))())
 #define openFile(h, n, wd, ht, sz, m)                                         \

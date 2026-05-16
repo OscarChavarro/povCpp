@@ -28,15 +28,15 @@ static RGBAPixel *iffColourMap;
 static int colourmapSize;
 static ChunkHeader globalChunkHeader;
 
-#define FORM 0x464f524dL
-#define ILBM 0x494c424dL
-#define BMHD 0x424d4844L
-#define CAMG 0x43414d47L
-#define CMAP 0x434d4150L
-#define BODY 0x424f4459L
-#define CMPNONE 0
+static constexpr long FORM = 0x464f524dL;
+static constexpr long ILBM = 0x494c424dL;
+static constexpr long BMHD = 0x424d4844L;
+static constexpr long CAMG = 0x43414d47L;
+static constexpr long CMAP = 0x434d4150L;
+static constexpr long BODY = 0x424f4459L;
+static constexpr int CMPNONE = 0;
 
-#define HAM 0x800
+static constexpr int HAM = 0x800;
 
 void
 iffError()

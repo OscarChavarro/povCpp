@@ -52,62 +52,36 @@
 #define EPSILON 1.0e-10
 #endif
 
-#ifndef FILE_NAME_LENGTH
-#define FILE_NAME_LENGTH 150
-#endif
+static constexpr int FILE_NAME_LENGTH = 150;
 
 #ifndef HUGE_VAL
 #define HUGE_VAL 1.0e+17
 #endif
 
-#ifndef DBL_FORMAT_STRING
-#define DBL_FORMAT_STRING "%lf"
-#endif
+static constexpr const char *DBL_FORMAT_STRING = "%lf";
 
-#ifndef DEFAULT_OUTPUT_FORMAT
-#define DEFAULT_OUTPUT_FORMAT 'd'
-#endif
+static constexpr char DEFAULT_OUTPUT_FORMAT = 'd';
 
-#ifndef RED_RAW_FILE_EXTENSION
-#define RED_RAW_FILE_EXTENSION ".red"
-#endif
+static constexpr const char *RED_RAW_FILE_EXTENSION = ".red";
 
-#ifndef GREEN_RAW_FILE_EXTENSION
-#define GREEN_RAW_FILE_EXTENSION ".grn"
-#endif
+static constexpr const char *GREEN_RAW_FILE_EXTENSION = ".grn";
 
-#ifndef BLUE_RAW_FILE_EXTENSION
-#define BLUE_RAW_FILE_EXTENSION ".blu"
-#endif
+static constexpr const char *BLUE_RAW_FILE_EXTENSION = ".blu";
 
-#ifndef FILENAME_SEPARATOR
-#define FILENAME_SEPARATOR "/"
-#endif
+static constexpr const char *FILENAME_SEPARATOR = "/";
 
 /* 0==yes 1==no 2==opt */
-#ifndef CASE_SENSITIVE_DEFAULT
-#define CASE_SENSITIVE_DEFAULT 0
-#endif
+static constexpr int CASE_SENSITIVE_DEFAULT = 0;
 
-#ifndef READ_FILE_STRING
-#define READ_FILE_STRING "rb"
-#endif
+static constexpr const char *READ_FILE_STRING = "rb";
 
-#ifndef WRITE_FILE_STRING
-#define WRITE_FILE_STRING "wb"
-#endif
+static constexpr const char *WRITE_FILE_STRING = "wb";
 
-#ifndef APPEND_FILE_STRING
-#define APPEND_FILE_STRING "ab"
-#endif
+static constexpr const char *APPEND_FILE_STRING = "ab";
 
-#ifndef NORMAL
-#define NORMAL '0'
-#endif
+static constexpr char NORMAL = '0';
 
-#ifndef GREY
-#define GREY 'G'
-#endif
+static constexpr char GREY = 'G';
 
 #ifndef START_TIME
 #define START_TIME time(&tstart);
@@ -185,10 +159,8 @@
 #define M_PI 3.1415926535897932384626
 #endif
 
-#ifndef TRUE
-#define TRUE 1
-#define FALSE 0
-#endif
+static constexpr int TRUE = 1;
+static constexpr int FALSE = 0;
 
 #ifndef IFF_SWITCH_CAST
 #define IFF_SWITCH_CAST (int)
@@ -202,36 +174,32 @@
 #define PRINT_STATS printStats();
 #endif
 
-#ifndef MAX_CONSTANTS
-#define MAX_CONSTANTS 1000
-#endif
+static constexpr int MAX_CONSTANTS = 1000;
 
 #ifndef WAIT_FOR_KEYPRESS
 #define WAIT_FOR_KEYPRESS
 #endif
 
 /* If compiler version is undefined, then make it 'u' for unknown */
-#ifndef COMPILER_VER
-#define COMPILER_VER ".u"
-#endif
+static constexpr const char *COMPILER_VER = ".u";
 
 /* These values determine the minumum and maximum distances
     that qualify as ray-object intersections */
-#define Small_Tolerance 0.001
-#define Max_Distance 1.0e7
+static constexpr DBL Small_Tolerance = 0.001;
+static constexpr DBL Max_Distance = 1.0e7;
 
-#define MAX_ORDER 7
+static constexpr int MAX_ORDER = 7;
 
-#define DISPLAY 1
-#define VERBOSE 2
-#define DISKWRITE 4
-#define PROMPTEXIT 8
-#define ANTIALIAS 16
-#define DEBUGGING 32
-#define RGBSEPARATE 64
-#define EXITENABLE 128
-#define CONTINUE_TRACE 256
-#define VERBOSE_FILE 512
+static constexpr unsigned int DISPLAY = 1u;
+static constexpr unsigned int VERBOSE = 2u;
+static constexpr unsigned int DISKWRITE = 4u;
+static constexpr unsigned int PROMPTEXIT = 8u;
+static constexpr unsigned int ANTIALIAS = 16u;
+static constexpr unsigned int DEBUGGING = 32u;
+static constexpr unsigned int RGBSEPARATE = 64u;
+static constexpr unsigned int EXITENABLE = 128u;
+static constexpr unsigned int CONTINUE_TRACE = 256u;
+static constexpr unsigned int VERBOSE_FILE = 512u;
 
 typedef DBL MATRIX[4][4];
 typedef int CONSTANT;

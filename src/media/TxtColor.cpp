@@ -35,7 +35,7 @@
 #include "media/TxtMap.h"
 #include "media/TxtTest.h"
 
-#define COORDINATE_LIMIT 1.0e17
+static constexpr double COORDINATE_LIMIT = 1.0e17;
 
 void
 colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
