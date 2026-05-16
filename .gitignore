@@ -1,0 +1,14 @@
+# Build outputs
+build/
+
+# Generated renders
+*.tga
+
+# CLion / JetBrains
+.idea/
+cmake-build-*/
+
+# AI assistant artifacts
+.codex/
+.claude/
+AGENTS.md
