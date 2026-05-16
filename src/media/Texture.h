@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-#include "common/Colour.h"
+#include "common/Color.h"
 #include "common/Frame.h"
 #include "common/Matrices.h"
 #include "common/Vector.h"

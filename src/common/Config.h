@@ -7,6 +7,4 @@
 
 static constexpr double kEpsilon = 1.0e-5;
 
-extern void unixInitPovray();
-
 #endif

@@ -10,5 +10,3 @@ find . -type f -name '#*' -delete
 
 # Remove build directory
 rm -rf build
-
-echo "Cleanup completed: removed .tga, *~, #* files, and build/."

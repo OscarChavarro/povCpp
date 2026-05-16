@@ -10,7 +10,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 add_executable(povray
   src/app/Povray.cpp
   src/app/Unix.cpp
-  src/common/Colour.cpp
+  src/common/Color.cpp
   src/common/RGBAColor.cpp
   src/common/RGBAColorPalette.cpp
   src/common/RGBAColorPaletteSpan.cpp
