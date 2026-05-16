@@ -127,11 +127,9 @@ main(int argc, char *argv[])
        PRINT_OTHER_CREDITS*/
 
     /* Parse the command line parameters */
-#ifndef NOCMDLINE
     if (argc == 1) {
         usage();
     }
-#endif
 
     initVars();
 
@@ -143,7 +141,6 @@ main(int argc, char *argv[])
     /* Read the default parameters from povray.def */
     getDefaults();
 
-#ifndef NOCMDLINE
     for (i = 1; i < argc; i++) {
         if ((*argv[i] == '+') || (*argv[i] == '-')) {
             parseOption(argv[i]);
@@ -151,7 +148,6 @@ main(int argc, char *argv[])
             parseFileName(argv[i]);
         }
     }
-#endif
 
     if (lastLine == -1) {
         lastLine = globalFrame.Screen_Height;
@@ -913,9 +909,9 @@ printStats()
     }
 
     if (tused == 0) {
-        STOP_TIME /* Get trace done time. */
-            tused =
-                TIME_ELAPSED /* Calc. elapsed time. Define TIME_ELAPSED as */
+        stopTime(&tstop); /* Get trace done time. */
+        tused = difftime(tstop, tstart);
+        /* Calc. elapsed time. */
         /* 0 in your specific CONFIG.H if unsupported */
     }
     if (tused != 0) {

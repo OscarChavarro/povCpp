@@ -699,7 +699,10 @@ bilinear(DBL *corners, DBL x, DBL y)
 }
 
 static constexpr int MAX_PTS = 4;
-#define PYTHAGOREAN_SQ(a, b) ((a) * (a) + (b) * (b))
+inline DBL pythagoreanSq(DBL a, DBL b)
+{
+    return a * a + b * b;
+}
 
 DBL
 normDist(DBL *corners, DBL x, DBL y)
@@ -718,10 +721,10 @@ normDist(DBL *corners, DBL x, DBL y)
         return (*corners); /* upper left */
     }
 
-    wts[0] = PYTHAGOREAN_SQ(p, q);
-    wts[1] = PYTHAGOREAN_SQ(1 - p, q);
-    wts[2] = PYTHAGOREAN_SQ(p, 1 - q);
-    wts[3] = PYTHAGOREAN_SQ(1 - p, 1 - q);
+    wts[0] = pythagoreanSq(p, q);
+    wts[1] = pythagoreanSq(1 - p, q);
+    wts[2] = pythagoreanSq(p, 1 - q);
+    wts[3] = pythagoreanSq(1 - p, 1 - q);
 
     for (i = 0; i < MAX_PTS; i++) {
         sumInvWts += 1 / wts[i];

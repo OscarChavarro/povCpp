@@ -26,16 +26,19 @@
 
 /*===========================================================================*/
 
-#define FABS(x) ((x) < 0.0 ? (0.0 - (x)) : (x))
+inline DBL fabsInline(DBL x)
+{
+    return (x < 0.0) ? (0.0 - x) : x;
+}
 
 /*===========================================================================*/
 
 DBL
 colourDistance(RGBAColor *colour1, RGBAColor *colour2)
 {
-    return (FABS(colour1->Red - colour2->Red) +
-            FABS(colour1->Green - colour2->Green) +
-            FABS(colour1->Blue - colour2->Blue));
+    return (fabsInline(colour1->Red - colour2->Red) +
+            fabsInline(colour1->Green - colour2->Green) +
+            fabsInline(colour1->Blue - colour2->Blue));
 }
 
 void

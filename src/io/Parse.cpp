@@ -70,54 +70,13 @@ Constant constants[MAX_CONSTANTS];
 int numberOfConstants;
 int degenerateTriangles;
 
-/* Here we create our own little language for doing the parsing.  It
-makes the code easier to read. */
-
-#define EXPECT                                                                 \
-    {                                                                          \
-        int Exit_Flag;                                                         \
-        Exit_Flag = FALSE;                                                     \
-        while (!Exit_Flag) {                                                   \
-            getToken();                                                       \
-            switch (globalToken.Token_Id) {
-#define CASE(x) case x:
-#define CASE2(x, y)                                                            \
-    case x:                                                                    \
-    case y:
-#define CASE3(x, y, z)                                                         \
-    case x:                                                                    \
-    case y:                                                                    \
-    case z:
-#define CASE4(w, x, y, z)                                                      \
-    case w:                                                                    \
-    case x:                                                                    \
-    case y:                                                                    \
-    case z:
-#define CASE5(v, w, x, y, z)                                                   \
-    case v:                                                                    \
-    case w:                                                                    \
-    case x:                                                                    \
-    case y:                                                                    \
-    case z:
-#define CASE6(u, v, w, x, y, z)                                                \
-    case u:                                                                    \
-    case v:                                                                    \
-    case w:                                                                    \
-    case x:                                                                    \
-    case y:                                                                    \
-    case z:
-#define END_CASE break;
-#define EXIT Exit_Flag = TRUE;
-#define OTHERWISE default:
-#define END_EXPECT                                                             \
-    }                                                                          \
-    }                                                                          \
+static inline void getExpectedToken(int tokenId)
+{
+    getToken();
+    if (globalToken.Token_Id != tokenId) {
+        parseError(tokenId);
     }
-#define GET(x)                                                                 \
-    getToken();                                                               \
-    if (globalToken.Token_Id != x)                                             \
-    parseError(x)
-#define UNGET ungetToken();
+}
 
 /* Parse the file into the given frame. */
 void
@@ -572,8 +531,13 @@ parseFloat()
     negative = FALSE;
     signParsed = FALSE;
 
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == FLOAT_CONSTANT) {
             localFloat = *((DBL *)constants[(int)constantId].Constant_Data);
@@ -586,33 +550,35 @@ parseFloat()
     } else {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(PLUS_TOKEN) if (signParsed)
+    case PLUS_TOKEN: if (signParsed)
     {
         parseError(FLOAT_TOKEN);
     }
     signParsed = TRUE;
-    END_CASE
+    break;
 
-    CASE(DASH_TOKEN)
+    case DASH_TOKEN:
     if (signParsed) {
         parseError(FLOAT_TOKEN);
     }
     negative = TRUE;
     signParsed = TRUE;
-    END_CASE
+    break;
 
-    CASE(FLOAT_TOKEN)
+    case FLOAT_TOKEN:
     localFloat = globalToken.Token_Float;
     if (negative) {
         localFloat *= -1.0;
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(FLOAT_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(FLOAT_TOKEN);
+    break;
+    }
+        }
+    }
 
     return (localFloat);
 }
@@ -622,8 +588,13 @@ parseVector(Vector3D *givenVector)
 {
     CONSTANT constantId;
 
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == VECTOR_CONSTANT) {
             *givenVector =
@@ -634,17 +605,19 @@ parseVector(Vector3D *givenVector)
     } else {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(LEFT_ANGLE_TOKEN)(givenVector->x) = parseFloat();
+        case LEFT_ANGLE_TOKEN:(givenVector->x) = parseFloat();
     (givenVector->y) = parseFloat();
     (givenVector->z) = parseFloat();
-    GET(RIGHT_ANGLE_TOKEN);
-    EXIT END_CASE
+    getExpectedToken(RIGHT_ANGLE_TOKEN);
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 }
 
 void
@@ -652,17 +625,24 @@ parseCoeffs(int order, DBL *givenCoeffs)
 {
     int i;
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
     for (i = 0; i < termCounts[order]; i++) {
         givenCoeffs[i] = parseFloat();
     }
-    GET(RIGHT_ANGLE_TOKEN);
-    EXIT END_CASE
+    getExpectedToken(RIGHT_ANGLE_TOKEN);
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 }
 
 void
@@ -670,8 +650,13 @@ parseColour(RGBAColor *givenColour)
 {
     CONSTANT constantId;
     makeColour(givenColour, 0.0, 0.0, 0.0);
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == COLOUR_CONSTANT) {
             *givenColour =
@@ -682,27 +667,29 @@ parseColour(RGBAColor *givenColour)
     } else {
         Undeclared();
     }
-    END_CASE
+    break;
 
-    CASE(RED_TOKEN)
+    case RED_TOKEN:
     (givenColour->Red) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(GREEN_TOKEN)
+    case GREEN_TOKEN:
     (givenColour->Green) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(BLUE_TOKEN)
+    case BLUE_TOKEN:
     (givenColour->Blue) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(ALPHA_TOKEN)
+    case ALPHA_TOKEN:
     (givenColour->Alpha) = parseFloat();
-    END_CASE
+    break;
 
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    }
 }
 
 RGBAColorPalette *
@@ -727,19 +714,24 @@ static constexpr int MAX_ENTRIES = 20;
 
     i = 0;
     newColourMap->Transparency_Flag = FALSE;
-    GET(LEFT_CURLY_TOKEN);
-    EXPECT
-    CASE(LEFT_SQUARE_TOKEN)
+    getExpectedToken(LEFT_CURLY_TOKEN);
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_SQUARE_TOKEN:
     constructionMap[i].start = parseFloat();
     constructionMap[i].end = parseFloat();
 
-    GET(COLOUR_TOKEN);
+    getExpectedToken(COLOUR_TOKEN);
     parseColour(&(constructionMap[i].Start_Colour));
     if (constructionMap[i].Start_Colour.Alpha != 0.0) {
         newColourMap->Transparency_Flag = TRUE;
     }
 
-    GET(COLOUR_TOKEN);
+    getExpectedToken(COLOUR_TOKEN);
     parseColour(&(constructionMap[i].End_Colour));
     if (constructionMap[i].End_Colour.Alpha != 0.0) {
         newColourMap->Transparency_Flag = TRUE;
@@ -749,10 +741,10 @@ static constexpr int MAX_ENTRIES = 20;
     if (i > MAX_ENTRIES) {
         Error("Colour_Map too long.");
     }
-    GET(RIGHT_SQUARE_TOKEN);
-    END_CASE
+    getExpectedToken(RIGHT_SQUARE_TOKEN);
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
+    case RIGHT_CURLY_TOKEN:
     newColourMap->Number_Of_Entries = i;
 
     newColourMap->Colour_Map_Entries = new RGBAColorPaletteSpan[i];
@@ -764,11 +756,13 @@ static constexpr int MAX_ENTRIES = 20;
         newColourMap->Colour_Map_Entries[j] = constructionMap[j];
     }
 
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(RIGHT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
 
     return (newColourMap);
 }
@@ -823,10 +817,15 @@ parseTexture()
 
     texture = Default_Texture;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == TEXTURE_CONSTANT) {
             texture = ((Texture *)constants[(int)constantId].Constant_Data);
@@ -836,34 +835,34 @@ parseTexture()
     } else {
         Undeclared();
     }
-    END_CASE
+    break;
 
-    CASE(FLOAT_TOKEN)
-    UNGET
+    case FLOAT_TOKEN:
+    ungetToken();
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Randomness = parseFloat();
-    END_CASE
+    break;
 
-    CASE(ONCE_TOKEN)
+    case ONCE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Once_Flag = TRUE;
-    END_CASE
+    break;
 
-    CASE(TURBULENCE_TOKEN)
+    case TURBULENCE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Turbulence = parseFloat();
-    END_CASE
+    break;
 
-    CASE(OCTAVES_TOKEN) /* dmf 02/05 for turb */
+    case OCTAVES_TOKEN: /* dmf 02/05 for turb */
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
@@ -875,17 +874,17 @@ parseTexture()
     if (texture->Octaves > 10) { /* Avoid DOMAIN errors */
         texture->Octaves = 10;
     }
-    END_CASE
+    break;
 
-    CASE(BOZO_TOKEN)
+    case BOZO_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = BOZO_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(MORTAR_TOKEN)
+    case MORTAR_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
@@ -894,57 +893,76 @@ parseTexture()
     if (texture->Mortar < 0) {
         texture->Mortar = 0.2;
     }
-    END_CASE
+    break;
 
-    CASE(BRICK_TOKEN)
+    case BRICK_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = BRICK_TEXTURE;
-    EXPECT
-    CASE(COLOUR_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case COLOUR_TOKEN:
     texture->Colour1 = getColour();
     texture->Colour2 = getColour();
     parseColour(texture->Colour1);
-    GET(COLOUR_TOKEN);
+    getExpectedToken(COLOUR_TOKEN);
     parseColour(texture->Colour2);
-    END_CASE
+    break;
 
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT END_CASE
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    } break;
 
-    CASE(CHECKER_TOKEN) if (texture->Constant_Flag)
+    case CHECKER_TOKEN: if (texture->Constant_Flag)
     {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = CHECKER_TEXTURE;
-    EXPECT
-    CASE(COLOUR_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case COLOUR_TOKEN:
     texture->Colour1 = getColour();
     texture->Colour2 = getColour();
     parseColour(texture->Colour1);
-    GET(COLOUR_TOKEN);
+    getExpectedToken(COLOUR_TOKEN);
     parseColour(texture->Colour2);
-    END_CASE
+    break;
 
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT END_CASE
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    } break;
 
-    CASE(CHECKER_TEXTURE_TOKEN) if (texture->Constant_Flag)
+    case CHECKER_TEXTURE_TOKEN: if (texture->Constant_Flag)
     {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = CHECKER_TEXTURE_TEXTURE;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(TEXTURE_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -957,14 +975,21 @@ parseTexture()
         tempTexture->Next_Texture = (Texture *)texture->Colour1;
         texture->Colour1 = (RGBAColor *)localTexture;
     }
-    END_CASE
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT
+    break;
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    }
 
-        GET(TILE2_TOKEN);
-    EXPECT
-    CASE(TEXTURE_TOKEN)
+        getExpectedToken(TILE2_TOKEN);
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -978,78 +1003,80 @@ parseTexture()
         tempTexture->Next_Texture = (Texture *)texture->Colour2;
         texture->Colour2 = (RGBAColor *)localTexture;
     }
-    END_CASE
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT GET(RIGHT_CURLY_TOKEN);
-    END_CASE
+    break;
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    } getExpectedToken(RIGHT_CURLY_TOKEN);
+    break;
 
-    CASE(MARBLE_TOKEN)
+    case MARBLE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = MARBLE_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(WOOD_TOKEN)
+    case WOOD_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = WOOD_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(SPOTTED_TOKEN)
+    case SPOTTED_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = SPOTTED_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(AGATE_TOKEN)
+    case AGATE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = AGATE_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(GRANITE_TOKEN)
+    case GRANITE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = GRANITE_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(GRADIENT_TOKEN)
+    case GRADIENT_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = GRADIENT_TEXTURE;
     parseVector(&(texture->Texture_Gradient));
-    END_CASE
+    break;
 
-    CASE(AMBIENT_TOKEN)
+    case AMBIENT_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Ambient) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(BRILLIANCE_TOKEN)
+    case BRILLIANCE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Brilliance) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(ROUGHNESS_TOKEN)
+    case ROUGHNESS_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
@@ -1060,9 +1087,9 @@ parseTexture()
         texture -> Object_Roughness = 1.0;
     if (texture -> Object_Roughness < 0.001)
         texture -> Object_Roughness = 0.001; */
-    END_CASE
+    break;
 
-    CASE(PHONGSIZE_TOKEN)
+    case PHONGSIZE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
@@ -1073,73 +1100,73 @@ parseTexture()
         texture -> Object_PhongSize = 1.0;
     if (texture -> Object_PhongSize > 100)
         texture -> Object_PhongSize = 100; */
-    END_CASE
+    break;
 
-    CASE(DIFFUSE_TOKEN)
+    case DIFFUSE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Diffuse) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(SPECULAR_TOKEN)
+    case SPECULAR_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Specular) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(PHONG_TOKEN)
+    case PHONG_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Phong) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(METALLIC_TOKEN)
+    case METALLIC_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Metallic_Flag = TRUE;
-    END_CASE
+    break;
 
-    CASE(IOR_TOKEN)
+    case IOR_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Index_Of_Refraction) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(REFRACTION_TOKEN)
+    case REFRACTION_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Refraction) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(TRANSMIT_TOKEN)
+    case TRANSMIT_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Transmit) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(REFLECTION_TOKEN)
+    case REFLECTION_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Reflection) = parseFloat();
-    END_CASE
+    break;
 
-    CASE(IMAGEMAP_TOKEN)
+    case IMAGEMAP_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
@@ -1155,63 +1182,82 @@ parseTexture()
     texture->Image->Once_Flag = FALSE;
     texture->Image->Use_Colour_Flag = TRUE;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET(texture->Image->Map_Type) = (int)parseFloat();
-    END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case DASH_TOKEN:
+    case PLUS_TOKEN:
+    case FLOAT_TOKEN:
+    ungetToken();(texture->Image->Map_Type) = (int)parseFloat();
+    break;
 
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     parseVector(&(texture->Image->Image_Gradient));
-    END_CASE
+    break;
 
-    CASE(IFF_TOKEN)
-    GET(STRING_TOKEN);
+    case IFF_TOKEN:
+    getExpectedToken(STRING_TOKEN);
     readIffImage(texture->Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(GIF_TOKEN) GET(STRING_TOKEN);
+        case GIF_TOKEN: getExpectedToken(STRING_TOKEN);
     readGifImage(texture->Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(TGA_TOKEN) GET(STRING_TOKEN);
+        case TGA_TOKEN: getExpectedToken(STRING_TOKEN);
     readTargaImage(texture->Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(DUMP_TOKEN) GET(STRING_TOKEN);
+        case DUMP_TOKEN: getExpectedToken(STRING_TOKEN);
     readDumpImage(texture->Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(GIF_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(GIF_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(ONCE_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case ONCE_TOKEN:
     texture->Image->Once_Flag = TRUE;
-    END_CASE
+    break;
 
-    CASE(INTERPOLATE_TOKEN)
+    case INTERPOLATE_TOKEN:
     texture->Image->Interpolation_Type = (int)parseFloat();
-    END_CASE
+    break;
 
-    CASE(MAPTYPE_TOKEN)
+    case MAPTYPE_TOKEN:
     (texture->Image->Map_Type) = (int)parseFloat();
-    END_CASE
+    break;
 
-    CASE(USE_COLOUR_TOKEN)
+    case USE_COLOUR_TOKEN:
     texture->Image->Use_Colour_Flag = TRUE;
-    END_CASE
+    break;
 
-    CASE(USE_INDEX_TOKEN)
+    case USE_INDEX_TOKEN:
     texture->Image->Use_Colour_Flag = FALSE;
-    END_CASE
+    break;
 
-    CASE(ALPHA_TOKEN)
-    EXPECT
-    CASE(FLOAT_TOKEN)
+    case ALPHA_TOKEN:
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case FLOAT_TOKEN:
     reg = (int)(globalToken.Token_Float + 0.01);
     if (texture->Image->Colour_Map == nullptr) {
         Error("Can't apply ALPHA to a non colour-mapped image\n");
@@ -1223,9 +1269,9 @@ parseTexture()
 
     texture->Image->Colour_Map[reg].Alpha =
         (unsigned short)(255.0 * parseFloat());
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(ALL_TOKEN)
+    case ALL_TOKEN:
     {
         DBL alpha;
         alpha = parseFloat();
@@ -1234,115 +1280,126 @@ parseTexture()
             texture->Image->Colour_Map[reg].Alpha =
                 (unsigned short)(alpha * 255.0);
         }
-        EXIT
+        Exit_Flag = TRUE;
     }
 
-    END_CASE
-    END_EXPECT
-    END_CASE
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
-    END_CASE
+        default: parseError(RIGHT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(WAVES_TOKEN)
+    case WAVES_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = WAVES;
     texture->Bump_Amount = parseFloat();
-    EXPECT
-    CASE(PHASE_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case PHASE_TOKEN:
     texture->Phase = parseFloat();
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE UNGET EXIT END_CASE END_EXPECT END_CASE
+        default: ungetToken(); Exit_Flag = TRUE; break; }
+        }
+    } break;
 
-        CASE(FREQUENCY_TOKEN) if (texture->Constant_Flag)
+        case FREQUENCY_TOKEN: if (texture->Constant_Flag)
     {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Frequency = parseFloat();
-    END_CASE
+    break;
 
-    CASE(PHASE_TOKEN)
+    case PHASE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Phase = parseFloat();
-    END_CASE
+    break;
 
-    CASE(RIPPLES_TOKEN)
+    case RIPPLES_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = RIPPLES;
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(WRINKLES_TOKEN)
+    case WRINKLES_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = WRINKLES;
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(BUMPS_TOKEN)
+    case BUMPS_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPS;
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(DENTS_TOKEN)
+    case DENTS_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = DENTS;
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(TRANSLATE_TOKEN)
+    case TRANSLATE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     parseVector(&localVector);
     translateTexture(&texture, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     parseVector(&localVector);
     rotateTexture(&texture, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     parseVector(&localVector);
     scaleTexture(&texture, &localVector);
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
@@ -1350,85 +1407,85 @@ parseTexture()
     texture->Colour1 = getColour();
     parseColour(texture->Colour1);
     texture->Texture_Number = COLOUR_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(COLOUR_MAP_TOKEN)
+    case COLOUR_MAP_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Colour_Map = parseColourMap();
-    END_CASE
+    break;
 
-    CASE(ONION_TOKEN)
+    case ONION_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = ONION_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(LEOPARD_TOKEN)
+    case LEOPARD_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = LEOPARD_TEXTURE;
-    END_CASE
+    break;
 
     /* New Texture Parsing - Cdw */
-    CASE(PAINTED1_TOKEN)
+    case PAINTED1_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED1_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(PAINTED2_TOKEN)
+    case PAINTED2_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED2_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(PAINTED3_TOKEN)
+    case PAINTED3_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED3_TEXTURE;
-    END_CASE
+    break;
 
-    CASE(BUMPY1_TOKEN)
+    case BUMPY1_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY1;
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(BUMPY2_TOKEN)
+    case BUMPY2_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY2;
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(BUMPY3_TOKEN)
+    case BUMPY3_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY3;
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(BUMPMAP_TOKEN)
+    case BUMPMAP_TOKEN:
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
@@ -1444,70 +1501,86 @@ parseTexture()
     texture->Bump_Image->Once_Flag = FALSE;
     texture->Bump_Image->Use_Colour_Flag = TRUE;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET(texture->Bump_Image->Map_Type) = (int)parseFloat();
-    END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case DASH_TOKEN:
+    case PLUS_TOKEN:
+    case FLOAT_TOKEN:
+    ungetToken();(texture->Bump_Image->Map_Type) = (int)parseFloat();
+    break;
 
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     parseVector(&(texture->Bump_Image->Image_Gradient));
-    END_CASE
+    break;
 
-    CASE(IFF_TOKEN)
-    GET(STRING_TOKEN);
+    case IFF_TOKEN:
+    getExpectedToken(STRING_TOKEN);
     readIffImage(texture->Bump_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(GIF_TOKEN) GET(STRING_TOKEN);
+        case GIF_TOKEN: getExpectedToken(STRING_TOKEN);
     readGifImage(texture->Bump_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(TGA_TOKEN) GET(STRING_TOKEN);
+        case TGA_TOKEN: getExpectedToken(STRING_TOKEN);
     readTargaImage(texture->Bump_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(DUMP_TOKEN) GET(STRING_TOKEN);
+        case DUMP_TOKEN: getExpectedToken(STRING_TOKEN);
     readDumpImage(texture->Bump_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(GIF_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(GIF_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(ONCE_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case ONCE_TOKEN:
     texture->Bump_Image->Once_Flag = TRUE;
-    END_CASE
+    break;
 
-    CASE(MAPTYPE_TOKEN)
+    case MAPTYPE_TOKEN:
     (texture->Bump_Image->Map_Type) = (int)parseFloat();
-    END_CASE
+    break;
 
-    CASE(INTERPOLATE_TOKEN)
+    case INTERPOLATE_TOKEN:
     texture->Bump_Image->Interpolation_Type = (int)parseFloat();
-    END_CASE
+    break;
 
-    CASE(BUMPSIZE_TOKEN)
+    case BUMPSIZE_TOKEN:
     texture->Bump_Amount = parseFloat();
-    END_CASE
+    break;
 
-    CASE(USE_COLOUR_TOKEN)
+    case USE_COLOUR_TOKEN:
     texture->Bump_Image->Use_Colour_Flag = TRUE;
-    END_CASE
-    CASE(USE_INDEX_TOKEN)
+    break;
+    case USE_INDEX_TOKEN:
     texture->Bump_Image->Use_Colour_Flag = FALSE;
-    END_CASE
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
-    END_CASE
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break; default: parseError(RIGHT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(MATERIAL_MAP_TOKEN)
+    case MATERIAL_MAP_TOKEN:
 
     if (texture->Constant_Flag) {
         texture = copyTexture(texture);
@@ -1524,85 +1597,103 @@ parseTexture()
     texture->Material_Image->Once_Flag = FALSE;
     texture->Material_Image->Use_Colour_Flag = FALSE;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET(texture->Image->Map_Type) = (int)parseFloat();
-    END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case DASH_TOKEN:
+    case PLUS_TOKEN:
+    case FLOAT_TOKEN:
+    ungetToken();(texture->Image->Map_Type) = (int)parseFloat();
+    break;
 
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     parseVector(&(texture->Material_Image->Image_Gradient));
-    END_CASE
+    break;
 
-    CASE(IFF_TOKEN)
-    GET(STRING_TOKEN);
+    case IFF_TOKEN:
+    getExpectedToken(STRING_TOKEN);
     readIffImage(texture->Material_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(GIF_TOKEN) GET(STRING_TOKEN);
+        case GIF_TOKEN: getExpectedToken(STRING_TOKEN);
     readGifImage(texture->Material_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(TGA_TOKEN) GET(STRING_TOKEN);
+        case TGA_TOKEN: getExpectedToken(STRING_TOKEN);
     readTargaImage(texture->Material_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(DUMP_TOKEN) GET(STRING_TOKEN);
+        case DUMP_TOKEN: getExpectedToken(STRING_TOKEN);
     readDumpImage(texture->Material_Image, globalToken.Token_String);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(GIF_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(GIF_TOKEN);
+    break;
+    }
+        }
+    }
 
     /* remember where the First_Texture is */
     firstTexture = texture;
 
-    EXPECT
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
 
-    CASE(MAPTYPE_TOKEN)
+    case MAPTYPE_TOKEN:
     (texture->Material_Image->Map_Type) = (int)parseFloat();
-    END_CASE
+    break;
 
-    CASE(INTERPOLATE_TOKEN)
+    case INTERPOLATE_TOKEN:
     texture->Material_Image->Interpolation_Type = (int)parseFloat();
-    END_CASE
+    break;
 
-    CASE(ONCE_TOKEN)
+    case ONCE_TOKEN:
     texture->Material_Image->Once_Flag = TRUE;
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     {
         texture->Next_Material = parseTexture();
         firstTexture->Number_Of_Materials++;
         texture = texture->Next_Material;
     }
 
-    END_CASE
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
+    case RIGHT_CURLY_TOKEN:
     {
         texture->Next_Material = nullptr;
         texture = firstTexture;
-        EXIT
+        Exit_Flag = TRUE;
     }
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
-    END_CASE
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(RIGHT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
     return (texture);
 }
 
@@ -1613,21 +1704,26 @@ parseLightSource()
     Vector3D localVector;
     CONSTANT constantId;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     localShape = getLightSourceShape();
     parseVector(&(localShape->Center));
     localShape->Shape_Colour = getColour();
     makeColour(localShape->Shape_Colour, 1.0, 1.0, 1.0);
     localShape->Shape_Colour->Alpha = 0.0;
-    GET(COLOUR_TOKEN);
+    getExpectedToken(COLOUR_TOKEN);
     parseColour(localShape->Shape_Colour);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == LIGHT_SOURCE_CONSTANT) {
             localShape = (Light *)Copy(
@@ -1640,60 +1736,69 @@ parseLightSource()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
     /* Point that the spot is pointed at */
-    CASE(POINT_AT_TOKEN)
+    case POINT_AT_TOKEN:
     parseVector(&(localShape->Points_At));
-    END_CASE
+    break;
 
-    CASE(TIGHTNESS_TOKEN)
+    case TIGHTNESS_TOKEN:
     localShape->Coeff = parseFloat();
-    END_CASE
+    break;
 
-    CASE(RADIUS_TOKEN)
+    case RADIUS_TOKEN:
     localShape->Radius = cos(parseFloat() * M_PI / 180.0);
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    CASE(FALLOFF_TOKEN)
+    case FALLOFF_TOKEN:
     localShape->Falloff = cos(parseFloat() * M_PI / 180.0);
-    END_CASE
+    break;
 
-    CASE(SPOTLIGHT_TOKEN)
+    case SPOTLIGHT_TOKEN:
     localShape->Type = SPOT_LIGHT_TYPE;
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
+    break;
 
-    END_EXPECT
+    }
+        }
+    }
     /*  linkShapes (Local_Shape, &(Local_Shape -> Next_Light_Source),
             &(Parsing_Frame_Ptr -> Light_Sources));
 */
@@ -1711,19 +1816,24 @@ parseSphere()
 
     localShape = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     localShape = getSphereShape();
     parseVector(&(localShape->Center));
     localShape->Radius = parseFloat();
     localShape->Radius_Squared = localShape->Radius * localShape->Radius;
     localShape->Inverse_Radius = 1.0 / localShape->Radius;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == SPHERE_CONSTANT) {
             localShape = (Sphere *)Copy(
@@ -1736,35 +1846,42 @@ parseSphere()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -1778,17 +1895,19 @@ parseSphere()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -1804,18 +1923,23 @@ parsePlane()
 
     localShape = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     localShape = getPlaneShape();
     parseVector(&(localShape->Normal_Vector));
     localShape->Distance = parseFloat();
     localShape->Distance *= -1.0;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == PLANE_CONSTANT) {
             localShape = (InfinitePlane *)Copy(
@@ -1828,35 +1952,42 @@ parsePlane()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -1868,17 +1999,19 @@ parsePlane()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -1895,17 +2028,22 @@ parseHeightField()
 
     localShape = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT /* This should be modified to include other image types - CdW */
-        CASE(GIF_TOKEN) imageType = GIF;
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) { /* This should be modified to include other image types - CdW */
+        case GIF_TOKEN: imageType = GIF;
     localShape = getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Out of memory. Cannot allocate space for Height Field (1st "
               "message).");
     }
-    GET(STRING_TOKEN);
+    getExpectedToken(STRING_TOKEN);
     readGifImage(image, globalToken.Token_String);
     localShape->bounding_box->bounds[0].x = 1.0;
     localShape->bounding_box->bounds[0].y = 0.0;
@@ -1916,16 +2054,16 @@ parseHeightField()
     makeVector(
         &localVector, 1.0 / (image->width), 1.0 / 256.0, 1.0 / (image->height));
     getScalingTransformation(localShape->transformation, &localVector);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(POT_TOKEN) imageType = POT;
+        case POT_TOKEN: imageType = POT;
     localShape = getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Out of memory. Cannot allocate space for Height Field (1st "
               "message).");
     }
-    GET(STRING_TOKEN);
+    getExpectedToken(STRING_TOKEN);
     readGifImage(image, globalToken.Token_String);
     localShape->bounding_box->bounds[0].x = 1.0;
     localShape->bounding_box->bounds[0].y = 0.0;
@@ -1936,15 +2074,15 @@ parseHeightField()
     makeVector(
         &localVector, 2.0 / image->width, 1.0 / 256.0, 1.0 / image->height);
     getScalingTransformation(localShape->transformation, &localVector);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(TGA_TOKEN) imageType = TGA;
+        case TGA_TOKEN: imageType = TGA;
     localShape = getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Cannot allocate space for Height Field (1st message).");
     }
-    GET(STRING_TOKEN);
+    getExpectedToken(STRING_TOKEN);
     readTargaImage(image, globalToken.Token_String);
     localShape->bounding_box->bounds[0].x = 1.0;
     localShape->bounding_box->bounds[0].y = 0.0;
@@ -1955,9 +2093,9 @@ parseHeightField()
     makeVector(
         &localVector, 1.0 / image->width, 1.0 / 256.0, 1.0 / image->height);
     getScalingTransformation(localShape->transformation, &localVector);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == HEIGHT_FIELD_CONSTANT) {
             localShape = (HeightField *)Copy(
@@ -1970,40 +2108,47 @@ parseHeightField()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(GIF_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(GIF_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(WATER_LEVEL_TOKEN) localShape->bounding_box->bounds[0]
+        case WATER_LEVEL_TOKEN: localShape->bounding_box->bounds[0]
             .y = parseFloat();
-    END_CASE
+    break;
 
-    CASE(TRANSLATE_TOKEN)
+    case TRANSLATE_TOKEN:
     parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2019,17 +2164,19 @@ parseHeightField()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     findHfMinMax(localShape, image, imageType);
     return ((Geometry *)localShape);
@@ -2046,11 +2193,16 @@ parseTriangle()
 
     localShape = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     localShape = getTriangleShape();
     parseVector(&localShape->P1);
     parseVector(&localShape->P2);
@@ -2060,9 +2212,9 @@ parseTriangle()
             globalToken.Token_Line_No);
         degenerateTriangles = TRUE;
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == TRIANGLE_CONSTANT) {
             localShape = (Triangle *)Copy(
@@ -2075,35 +2227,42 @@ parseTriangle()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2116,17 +2275,19 @@ parseTriangle()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -2142,28 +2303,35 @@ parseSmoothTriangle()
 
     localShape = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     localShape = (SmoothTriangle *)getSmoothTriangleShape();
     parseVector(&localShape->P1);
     parseVector(&localShape->N1);
-    VNormalize(localShape->N1, localShape->N1) parseVector(&localShape->P2);
+    VNormalize(localShape->N1, localShape->N1);
+    parseVector(&localShape->P2);
     parseVector(&localShape->N2);
-    VNormalize(localShape->N2, localShape->N2) parseVector(&localShape->P3);
+    VNormalize(localShape->N2, localShape->N2);
+    parseVector(&localShape->P3);
     parseVector(&localShape->N3);
-    VNormalize(localShape->N3,
-        localShape->N3) if (!computeTriangle((Triangle *)localShape))
+    VNormalize(localShape->N3, localShape->N3);
+    if (!computeTriangle((Triangle *)localShape))
     {
         fprintf(stderr, "Degenerate triangle on line %d.  Please remove.\n",
             globalToken.Token_Line_No);
         degenerateTriangles = TRUE;
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type ==
             SMOOTH_TRIANGLE_CONSTANT) {
@@ -2177,35 +2345,42 @@ parseSmoothTriangle()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2219,17 +2394,19 @@ parseSmoothTriangle()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -2245,11 +2422,16 @@ parseQuadric()
 
     localShape = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     localShape = getQuadricShape();
     parseVector(&(localShape->Object_2_Terms));
     parseVector(&(localShape->Object_Mixed_Terms));
@@ -2262,9 +2444,9 @@ parseQuadric()
             (localShape->Object_Mixed_Terms.x == 0.0) &&
             (localShape->Object_Mixed_Terms.y == 0.0) &&
             (localShape->Object_Mixed_Terms.z == 0.0));
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == QUADRIC_CONSTANT) {
             localShape = (Quadric *)Copy(
@@ -2277,35 +2459,42 @@ parseQuadric()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2318,17 +2507,19 @@ parseQuadric()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -2348,11 +2539,18 @@ parsePoly(int knownOrder)
         localShape = nullptr;
     }
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case DASH_TOKEN:
+    case PLUS_TOKEN:
+    case FLOAT_TOKEN:
+    ungetToken();
     if (localShape != nullptr) {
         Error("The order of a polynomial may not be specified twice");
     }
@@ -2361,17 +2559,17 @@ parsePoly(int knownOrder)
         Error("Order of Poly is out of range");
     }
     localShape = getPolyShape(order);
-    END_CASE
+    break;
 
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     if (localShape == nullptr) {
         printf("Need the order of the Poly");
     }
     parseCoeffs(localShape->Order, &(localShape->Coeffs[0]));
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == POLY_CONSTANT) {
             localShape = (Poly *)Copy(
@@ -2384,39 +2582,46 @@ parsePoly(int knownOrder)
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(STURM_TOKEN) localShape->Sturm_Flag = 1;
-    END_CASE
+        case STURM_TOKEN: localShape->Sturm_Flag = 1;
+    break;
 
-    CASE(TRANSLATE_TOKEN)
+    case TRANSLATE_TOKEN:
     parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2424,17 +2629,19 @@ parsePoly(int knownOrder)
 
     Link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
         (SimpleBody **)&localShape->Shape_Texture);
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -2449,11 +2656,18 @@ parseBicubicPatch()
     int i;
     int j;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case DASH_TOKEN:
+    case PLUS_TOKEN:
+    case FLOAT_TOKEN:
+    ungetToken();
     localShape = getBicubicPatchShape();
     localShape->Patch_Type = (int)parseFloat();
     if (localShape->Patch_Type == 2 || localShape->Patch_Type == 3) {
@@ -2469,9 +2683,9 @@ parseBicubicPatch()
         }
     }
     precomputePatchValues(localShape); /* interpolated mesh coords */
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type ==
             BICUBIC_PATCH_CONSTANT) {
@@ -2485,35 +2699,42 @@ parseBicubicPatch()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2521,17 +2742,19 @@ parseBicubicPatch()
 
     Link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
         (SimpleBody **)&localShape->Shape_Texture);
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -2546,21 +2769,33 @@ parseBox()
     Texture *tempTexture;
 
     localShape = nullptr;
-    EXPECT
-    CASE(LEFT_CURLY_TOKEN)
-    EXIT END_CASE OTHERWISE parseError(LEFT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break; default: parseError(LEFT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(LEFT_ANGLE_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_ANGLE_TOKEN:
+    ungetToken();
     localShape = getBoxShape();
     parseVector(&(localShape->bounds[0]));
     parseVector(&(localShape->bounds[1]));
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == BOX_CONSTANT) {
             localShape = (Box *)Copy(
@@ -2573,35 +2808,42 @@ parseBox()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(LEFT_ANGLE_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+        case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2614,17 +2856,19 @@ parseBox()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -2643,27 +2887,45 @@ parseBlob()
     BlobList *blobComponent;
 
     localShape = nullptr;
-    EXPECT
-    CASE(LEFT_CURLY_TOKEN)
-    EXIT END_CASE OTHERWISE parseError(LEFT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LEFT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break; default: parseError(LEFT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE2(THRESHOLD_TOKEN, COMPONENT_TOKEN)
-    UNGET
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case THRESHOLD_TOKEN:
+    case COMPONENT_TOKEN:
+    ungetToken();
     localShape = getBlobShape();
     blobComponents = nullptr;
     npoints = 0;
     threshold = 1.0;
 
     /* Here is where we get the blob coefficients */
-    EXPECT
-    CASE(THRESHOLD_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case THRESHOLD_TOKEN:
     threshold = parseFloat();
-    END_CASE
+    break;
 
-    CASE(COMPONENT_TOKEN)
+    case COMPONENT_TOKEN:
     blobComponent = new BlobList;
     if (blobComponent == nullptr) {
         Error("Out of Memory! Cannot allocate blob component");
@@ -2674,18 +2936,20 @@ parseBlob()
     blobComponent->next = blobComponents;
     blobComponents = blobComponent;
     npoints++;
-    END_CASE
+    break;
 
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    }
 
         /* Finally, process the information */
         MakeBlob(
             (SimpleBody *)localShape, threshold, blobComponents, npoints, 0);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
+    case IDENTIFIER_TOKEN: if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == BLOB_CONSTANT) {
             localShape = (Blob *)Copy(
@@ -2698,39 +2962,46 @@ parseBlob()
     {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(FLOAT_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(FLOAT_TOKEN);
+    break;
+    }
+        }
+    }
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        CASE(STURM_TOKEN) localShape->Sturm_Flag = 1;
-    END_CASE
+        case STURM_TOKEN: localShape->Sturm_Flag = 1;
+    break;
 
-    CASE(TRANSLATE_TOKEN)
+    case TRANSLATE_TOKEN:
     parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localShape);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -2743,17 +3014,19 @@ parseBlob()
         tempTexture->Next_Texture = localShape->Shape_Texture;
         localShape->Shape_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     localShape->Shape_Colour = getColour();
     parseColour(localShape->Shape_Colour);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((Geometry *)localShape);
 }
@@ -2777,10 +3050,15 @@ parseCsg(int type, SimpleBody *parentObject)
 
     container->Parent_Object = parentObject;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if ((constants[(int)constantId].Constant_Type ==
                 CSG_INTERSECTION_CONSTANT) ||
@@ -2797,9 +3075,9 @@ parseCsg(int type, SimpleBody *parentObject)
     } else {
         Undeclared();
     }
-    END_CASE
+    break;
 
-    CASE(LIGHT_SOURCE_TOKEN)
+    case LIGHT_SOURCE_TOKEN:
     localShape = parseLightSource();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2808,9 +3086,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(SPHERE_TOKEN)
+    case SPHERE_TOKEN:
     localShape = parseSphere();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2819,9 +3097,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(PLANE_TOKEN)
+    case PLANE_TOKEN:
     localShape = parsePlane();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2830,9 +3108,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(TRIANGLE_TOKEN)
+    case TRIANGLE_TOKEN:
     localShape = parseTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2841,9 +3119,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(SMOOTH_TRIANGLE_TOKEN)
+    case SMOOTH_TRIANGLE_TOKEN:
     localShape = parseSmoothTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2852,9 +3130,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(QUADRIC_TOKEN)
+    case QUADRIC_TOKEN:
     localShape = parseQuadric();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2863,9 +3141,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(HEIGHT_FIELD_TOKEN)
+    case HEIGHT_FIELD_TOKEN:
     localShape = parseHeightField();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2874,9 +3152,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(CUBIC_TOKEN)
+    case CUBIC_TOKEN:
     localShape = parsePoly(3);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2885,9 +3163,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(QUARTIC_TOKEN)
+    case QUARTIC_TOKEN:
     localShape = parsePoly(4);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2896,9 +3174,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(POLY_TOKEN)
+    case POLY_TOKEN:
     localShape = parsePoly(0);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2907,9 +3185,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(BOX_TOKEN)
+    case BOX_TOKEN:
     localShape = parseBox();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2918,9 +3196,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(BLOB_TOKEN)
+    case BLOB_TOKEN:
     localShape = parseBlob();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2929,9 +3207,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(BICUBIC_PATCH_TOKEN)
+    case BICUBIC_PATCH_TOKEN:
     localShape = parseBicubicPatch();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
@@ -2940,9 +3218,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(UNION_TOKEN)
+    case UNION_TOKEN:
     localShape = (Geometry *)parseCsg(CSG_UNION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2950,9 +3228,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(INTERSECTION_TOKEN)
+    case INTERSECTION_TOKEN:
     localShape = (Geometry *)parseCsg(CSG_INTERSECTION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2960,9 +3238,9 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    CASE(DIFFERENCE_TOKEN)
+    case DIFFERENCE_TOKEN:
     localShape = (Geometry *)parseCsg(CSG_DIFFERENCE_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2970,33 +3248,40 @@ parseCsg(int type, SimpleBody *parentObject)
     firstShapeParsed = TRUE;
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
-    END_CASE
+    break;
 
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    }
 
-        EXPECT CASE(RIGHT_CURLY_TOKEN) EXIT END_CASE
+        {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) { case RIGHT_CURLY_TOKEN: Exit_Flag = TRUE; break;
 
-            CASE(TRANSLATE_TOKEN) parseVector(&localVector);
+            case TRANSLATE_TOKEN: parseVector(&localVector);
     Translate((SimpleBody *)container, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)container, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)container, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)container);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     if (type == CSG_UNION_TYPE) {
         parseError(RIGHT_CURLY_TOKEN);
     } else if (type == CSG_INTERSECTION_TYPE) {
@@ -3004,8 +3289,10 @@ parseCsg(int type, SimpleBody *parentObject)
     } else {
         parseError(RIGHT_CURLY_TOKEN);
     }
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((CSG *)container);
 }
@@ -3015,75 +3302,82 @@ parseShape(SimpleBody *object)
 {
     Geometry *localShape = nullptr;
 
-    EXPECT
-    CASE(LIGHT_SOURCE_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case LIGHT_SOURCE_TOKEN:
     localShape = parseLightSource();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(SPHERE_TOKEN) localShape = parseSphere();
+        case SPHERE_TOKEN: localShape = parseSphere();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(PLANE_TOKEN) localShape = parsePlane();
+        case PLANE_TOKEN: localShape = parsePlane();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(TRIANGLE_TOKEN) localShape = parseTriangle();
+        case TRIANGLE_TOKEN: localShape = parseTriangle();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(SMOOTH_TRIANGLE_TOKEN) localShape = parseSmoothTriangle();
+        case SMOOTH_TRIANGLE_TOKEN: localShape = parseSmoothTriangle();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(QUADRIC_TOKEN) localShape = parseQuadric();
+        case QUADRIC_TOKEN: localShape = parseQuadric();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(HEIGHT_FIELD_TOKEN) localShape = parseHeightField();
+        case HEIGHT_FIELD_TOKEN: localShape = parseHeightField();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(CUBIC_TOKEN) localShape = parsePoly(3);
+        case CUBIC_TOKEN: localShape = parsePoly(3);
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(QUARTIC_TOKEN) localShape = parsePoly(4);
+        case QUARTIC_TOKEN: localShape = parsePoly(4);
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(POLY_TOKEN) localShape = parsePoly(0);
+        case POLY_TOKEN: localShape = parsePoly(0);
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(BOX_TOKEN) localShape = parseBox();
+        case BOX_TOKEN: localShape = parseBox();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(BLOB_TOKEN) localShape = parseBlob();
+        case BLOB_TOKEN: localShape = parseBlob();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(BICUBIC_PATCH_TOKEN) localShape = parseBicubicPatch();
+        case BICUBIC_PATCH_TOKEN: localShape = parseBicubicPatch();
     localShape->Parent_Object = object;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(UNION_TOKEN) localShape =
+        case UNION_TOKEN: localShape =
             (Geometry *)parseCsg(CSG_UNION_TYPE, object);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(INTERSECTION_TOKEN) localShape =
+        case INTERSECTION_TOKEN: localShape =
             (Geometry *)parseCsg(CSG_INTERSECTION_TYPE, object);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(DIFFERENCE_TOKEN) localShape =
+        case DIFFERENCE_TOKEN: localShape =
             (Geometry *)parseCsg(CSG_DIFFERENCE_TYPE, object);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(QUADRIC_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(QUADRIC_TOKEN);
+    break;
+    }
+        }
+    }
     return (localShape);
 }
 
@@ -3099,10 +3393,15 @@ parseObject()
 
     object = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == OBJECT_CONSTANT) {
             object = (SimpleBody *)Copy(
@@ -3113,14 +3412,25 @@ parseObject()
     } else {
         Undeclared();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-    CASE6(SPHERE_TOKEN, QUADRIC_TOKEN, QUARTIC_TOKEN, UNION_TOKEN,
-        INTERSECTION_TOKEN, DIFFERENCE_TOKEN)
-        CASE6(TRIANGLE_TOKEN, SMOOTH_TRIANGLE_TOKEN, PLANE_TOKEN, CUBIC_TOKEN,
-            POLY_TOKEN, BICUBIC_PATCH_TOKEN)
-            CASE4(HEIGHT_FIELD_TOKEN, LIGHT_SOURCE_TOKEN, BOX_TOKEN, BLOB_TOKEN)
-                UNGET if (object == nullptr)
+    case SPHERE_TOKEN:
+    case QUADRIC_TOKEN:
+    case QUARTIC_TOKEN:
+    case UNION_TOKEN:
+    case INTERSECTION_TOKEN:
+    case DIFFERENCE_TOKEN:
+        case TRIANGLE_TOKEN:
+    case SMOOTH_TRIANGLE_TOKEN:
+    case PLANE_TOKEN:
+    case CUBIC_TOKEN:
+    case POLY_TOKEN:
+    case BICUBIC_PATCH_TOKEN:
+            case HEIGHT_FIELD_TOKEN:
+    case LIGHT_SOURCE_TOKEN:
+    case BOX_TOKEN:
+    case BLOB_TOKEN:
+                ungetToken(); if (object == nullptr)
     {
         object = getObject();
     }
@@ -3128,47 +3438,68 @@ parseObject()
     localShape = parseShape(object);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Shape));
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(SHAPE_TOKEN);
-    EXIT END_CASE END_EXPECT
+        default: parseError(SHAPE_TOKEN);
+    Exit_Flag = TRUE; break; }
+        }
+    }
 
-        EXPECT CASE(BOUNDED_TOKEN)
+        {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) { case BOUNDED_TOKEN:
 
-            GET(LEFT_CURLY_TOKEN);
+            getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE UNGET localShape = parseShape(object);
+        default: ungetToken(); localShape = parseShape(object);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Bounding_Shapes));
-    END_CASE
-    END_EXPECT
-    END_CASE
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(CLIPPED_TOKEN)
+    case CLIPPED_TOKEN:
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE UNGET localShape = parseShape(object);
+        default: ungetToken(); localShape = parseShape(object);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Clipping_Shapes));
-    END_CASE
-    END_EXPECT
-    END_CASE
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(COLOUR_TOKEN)
+    case COLOUR_TOKEN:
     object->Object_Colour = getColour();
     parseColour(object->Object_Colour);
-    END_CASE
+    break;
 
-    CASE(TEXTURE_TOKEN)
+    case TEXTURE_TOKEN:
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
         localTexture = copyTexture(localTexture);
@@ -3184,42 +3515,44 @@ parseObject()
         tempTexture->Next_Texture = object->Object_Texture;
         object->Object_Texture = localTexture;
     }
-    END_CASE
+    break;
 
-    CASE(NO_SHADOW_TOKEN)
+    case NO_SHADOW_TOKEN:
     object->No_Shadow_Flag = TRUE;
-    END_CASE
+    break;
 
-    CASE(LIGHT_SOURCE_TOKEN)
+    case LIGHT_SOURCE_TOKEN:
     Error("Light source must be defined using new syntax");
-    END_CASE
+    break;
 
-    CASE(TRANSLATE_TOKEN)
+    case TRANSLATE_TOKEN:
     parseVector(&localVector);
     Translate(object, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate(object, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale(object, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert(object);
-    END_CASE
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
+        default: parseError(RIGHT_CURLY_TOKEN);
+    break;
 
-    END_EXPECT
+    }
+        }
+    }
 
     return (object);
 }
@@ -3235,10 +3568,15 @@ parseComposite()
 
     localComposite = nullptr;
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == COMPOSITE_CONSTANT) {
             localComposite = (Composite *)Copy(
@@ -3249,9 +3587,9 @@ parseComposite()
     } else {
         Undeclared();
     }
-    END_CASE
+    break;
 
-    CASE(COMPOSITE_TOKEN)
+    case COMPOSITE_TOKEN:
     if (localComposite == nullptr) {
         localComposite = getCompositeObject();
     }
@@ -3259,80 +3597,103 @@ parseComposite()
     localObject = parseComposite();
     Link((SimpleBody *)localObject, (SimpleBody **)&(localObject->Next_Object),
         (SimpleBody **)&(localComposite->Objects));
-    END_CASE
+    break;
 
-    CASE(OBJECT_TOKEN)
+    case OBJECT_TOKEN:
     if (localComposite == nullptr) {
         localComposite = getCompositeObject();
     }
     localObject = parseObject();
     Link(localObject, &(localObject->Next_Object), &(localComposite->Objects));
-    END_CASE
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
-    UNGET
+    case RIGHT_CURLY_TOKEN:
+    ungetToken();
     if (localComposite == nullptr) {
         localComposite = getCompositeObject();
     }
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE UNGET EXIT END_CASE END_EXPECT
+        default: ungetToken(); Exit_Flag = TRUE; break; }
+        }
+    }
 
-            EXPECT CASE(RIGHT_CURLY_TOKEN) EXIT END_CASE
+            {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) { case RIGHT_CURLY_TOKEN: Exit_Flag = TRUE; break;
 
-                CASE(BOUNDED_TOKEN)
+                case BOUNDED_TOKEN:
 
-                    GET(LEFT_CURLY_TOKEN);
+                    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE UNGET localShape = parseShape((SimpleBody *)localComposite);
+        default: ungetToken(); localShape = parseShape((SimpleBody *)localComposite);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(localComposite->Bounding_Shapes));
-    END_CASE
-    END_EXPECT
-    END_CASE
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(CLIPPED_TOKEN)
+    case CLIPPED_TOKEN:
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE UNGET localShape = parseShape((SimpleBody *)localComposite);
+        default: ungetToken(); localShape = parseShape((SimpleBody *)localComposite);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(localComposite->Clipping_Shapes));
-    END_CASE
-    END_EXPECT
-    END_CASE
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(TRANSLATE_TOKEN)
+    case TRANSLATE_TOKEN:
     parseVector(&localVector);
     Translate((SimpleBody *)localComposite, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)localComposite, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)localComposite, &localVector);
-    END_CASE
+    break;
 
-    CASE(INVERSE_TOKEN)
+    case INVERSE_TOKEN:
     Invert((SimpleBody *)localComposite);
-    END_CASE
+    break;
 
-    OTHERWISE
+    default:
     parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+    break;
+    }
+        }
+    }
 
     return ((SimpleBody *)localComposite);
 }
@@ -3340,23 +3701,30 @@ parseComposite()
 void
 parseFog()
 {
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(COLOUR_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case COLOUR_TOKEN:
     parseColour(&parsingFramePtr->Fog_Colour);
-    END_CASE
+    break;
 
-    CASE(FLOAT_TOKEN)
+    case FLOAT_TOKEN:
     parsingFramePtr->Fog_Distance = globalToken.Token_Float;
-    END_CASE
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(RIGHT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
 }
 
 void
@@ -3364,32 +3732,44 @@ parseFrame()
 {
     SimpleBody *localObject;
 
-    EXPECT
-    CASE(FOG_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case FOG_TOKEN:
     parseFog();
-    END_CASE
+    break;
 
-    CASE(DEFAULT_TOKEN)
-    GET(LEFT_CURLY_TOKEN);
-    EXPECT
-    CASE(TEXTURE_TOKEN)
+    case DEFAULT_TOKEN:
+    getExpectedToken(LEFT_CURLY_TOKEN);
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case TEXTURE_TOKEN:
     Default_Texture->Constant_Flag = FALSE;
     Default_Texture = parseTexture();
     Default_Texture->Constant_Flag = TRUE;
-    END_CASE
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    break;
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
-    END_CASE
+        default: parseError(RIGHT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
+    break;
 
-    CASE(MAX_TRACE_LEVEL_TOKEN)
+    case MAX_TRACE_LEVEL_TOKEN:
     maxTraceLevel = parseFloat();
-    END_CASE
+    break;
 
-    CASE(OBJECT_TOKEN)
+    case OBJECT_TOKEN:
     localObject = parseObject();
     Link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
 
@@ -3397,28 +3777,30 @@ parseFrame()
     /* if (Local_Object -> Light_Source_Flag)
     Link(Local_Object, &(Local_Object -> Next_Light_Source),
             &(Parsing_Frame_Ptr -> Light_Sources)); */
-    END_CASE
+    break;
 
-    CASE(COMPOSITE_TOKEN)
+    case COMPOSITE_TOKEN:
     localObject = parseComposite();
     Link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
     /*        addCompositeLightSource ((Composite *)Local_Object);*/
-    END_CASE
+    break;
 
-    CASE(VIEW_POINT_TOKEN)
+    case VIEW_POINT_TOKEN:
     parseViewpoint(&(parsingFramePtr->View_Point));
-    END_CASE
+    break;
 
-    CASE(DECLARE_TOKEN)
+    case DECLARE_TOKEN:
     parseDeclare();
-    END_CASE
+    break;
 
-    CASE(END_OF_FILE_TOKEN)
-    EXIT END_CASE
+    case END_OF_FILE_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(OBJECT_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(OBJECT_TOKEN);
+    break;
+    }
+        }
+    }
 }
 
 void
@@ -3431,10 +3813,15 @@ parseViewpoint(Viewpoint *givenVp)
 
     givenVp->initializeDefaults();
 
-    GET(LEFT_CURLY_TOKEN);
+    getExpectedToken(LEFT_CURLY_TOKEN);
 
-    EXPECT
-    CASE(IDENTIFIER_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case IDENTIFIER_TOKEN:
     if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == VIEW_POINT_CONSTANT) {
             *givenVp = *((Viewpoint *)constants[(int)constantId].Constant_Data);
@@ -3444,29 +3831,29 @@ parseViewpoint(Viewpoint *givenVp)
     } else {
         Undeclared();
     }
-    END_CASE
+    break;
 
-    CASE(LOCATION_TOKEN)
+    case LOCATION_TOKEN:
     parseVector(&(givenVp->Location));
-    END_CASE
+    break;
 
-    CASE(DIRECTION_TOKEN)
+    case DIRECTION_TOKEN:
     parseVector(&(givenVp->Direction));
-    END_CASE
+    break;
 
-    CASE(UP_TOKEN)
+    case UP_TOKEN:
     parseVector(&(givenVp->Up));
-    END_CASE
+    break;
 
-    CASE(RIGHT_TOKEN)
+    case RIGHT_TOKEN:
     parseVector(&(givenVp->Right));
-    END_CASE
+    break;
 
-    CASE(SKY_TOKEN)
+    case SKY_TOKEN:
     parseVector(&(givenVp->Sky));
-    END_CASE
+    break;
 
-    CASE(LOOK_AT_TOKEN)
+    case LOOK_AT_TOKEN:
     VLength(directionLength, givenVp->Direction);
     VLength(upLength, givenVp->Up);
     VLength(rightLength, givenVp->Right);
@@ -3487,29 +3874,31 @@ parseViewpoint(Viewpoint *givenVp)
     }
 
     VScale(givenVp->Up, givenVp->Up, upLength);
-    END_CASE
+    break;
 
-    CASE(TRANSLATE_TOKEN)
+    case TRANSLATE_TOKEN:
     parseVector(&localVector);
     Translate((SimpleBody *)givenVp, &localVector);
-    END_CASE
+    break;
 
-    CASE(ROTATE_TOKEN)
+    case ROTATE_TOKEN:
     parseVector(&localVector);
     Rotate((SimpleBody *)givenVp, &localVector);
-    END_CASE
+    break;
 
-    CASE(SCALE_TOKEN)
+    case SCALE_TOKEN:
     parseVector(&localVector);
     Scale((SimpleBody *)givenVp, &localVector);
-    END_CASE
+    break;
 
-    CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE
+    case RIGHT_CURLY_TOKEN:
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(RIGHT_CURLY_TOKEN);
+    break;
+    }
+        }
+    }
 }
 
 void
@@ -3520,7 +3909,7 @@ parseDeclare()
     Texture *tempTexture;
     Constant *constantPtr;
 
-    GET(IDENTIFIER_TOKEN);
+    getExpectedToken(IDENTIFIER_TOKEN);
     if ((constantId = findConstant()) == -1) {
         if (++numberOfConstants >= MAX_CONSTANTS) {
             Error("Too many constants \"declared\"");
@@ -3530,121 +3919,131 @@ parseDeclare()
     }
 
     constantPtr = &(constants[(int)constantId]);
-    GET(EQUALS_TOKEN);
+    getExpectedToken(EQUALS_TOKEN);
 
-    EXPECT
-    CASE(OBJECT_TOKEN)
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case OBJECT_TOKEN:
     constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseObject();
     constantPtr->Constant_Type = OBJECT_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(SPHERE_TOKEN)
+        case SPHERE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseSphere();
     constantPtr->Constant_Type = SPHERE_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(PLANE_TOKEN)
+        case PLANE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parsePlane();
     constantPtr->Constant_Type = PLANE_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(TRIANGLE_TOKEN)
+        case TRIANGLE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseTriangle();
     constantPtr->Constant_Type = TRIANGLE_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(SMOOTH_TRIANGLE_TOKEN)
+        case SMOOTH_TRIANGLE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseSmoothTriangle();
     constantPtr->Constant_Type = SMOOTH_TRIANGLE_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(QUADRIC_TOKEN)
+        case QUADRIC_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseQuadric();
     constantPtr->Constant_Type = QUADRIC_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(CUBIC_TOKEN)
+        case CUBIC_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parsePoly(3);
     constantPtr->Constant_Type = POLY_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(QUARTIC_TOKEN)
+        case QUARTIC_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parsePoly(4);
     constantPtr->Constant_Type = POLY_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(HEIGHT_FIELD_TOKEN)
+        case HEIGHT_FIELD_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseHeightField();
     constantPtr->Constant_Type = HEIGHT_FIELD_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(POLY_TOKEN)
+        case POLY_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parsePoly(0);
     constantPtr->Constant_Type = POLY_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(BOX_TOKEN)
+        case BOX_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseBox();
     constantPtr->Constant_Type = BOX_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(BLOB_TOKEN)
+        case BLOB_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseBlob();
     constantPtr->Constant_Type = BLOB_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(BICUBIC_PATCH_TOKEN)
+        case BICUBIC_PATCH_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseBicubicPatch();
     constantPtr->Constant_Type = BICUBIC_PATCH_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(INTERSECTION_TOKEN)
+        case INTERSECTION_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data =
         (char *)parseCsg(CSG_INTERSECTION_TYPE, nullptr);
     constantPtr->Constant_Type = CSG_INTERSECTION_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(UNION_TOKEN)
+        case UNION_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseCsg(CSG_UNION_TYPE, nullptr);
     constantPtr->Constant_Type = CSG_UNION_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(DIFFERENCE_TOKEN)
+        case DIFFERENCE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data =
         (char *)parseCsg(CSG_DIFFERENCE_TYPE, nullptr);
     constantPtr->Constant_Type = CSG_DIFFERENCE_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(COMPOSITE_TOKEN)
+        case COMPOSITE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseComposite();
     constantPtr->Constant_Type = COMPOSITE_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(TEXTURE_TOKEN)
+        case TEXTURE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     localTexture = nullptr;
     constantPtr->Constant_Data = (char *)localTexture;
     constantPtr->Constant_Type = TEXTURE_CONSTANT;
-    UNGET
-    EXPECT
-    CASE(TEXTURE_TOKEN)
+    ungetToken();
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            getToken();
+            switch (globalToken.Token_Id) {
+    case TEXTURE_TOKEN:
     localTexture = Default_Texture;
     localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
@@ -3661,50 +4060,56 @@ parseDeclare()
         tempTexture->Next_Texture = (Texture *)constantPtr->Constant_Data;
         constantPtr->Constant_Data = (char *)localTexture;
     }
-    END_CASE
+    break;
 
-    OTHERWISE
-    UNGET
-    EXIT END_CASE END_EXPECT EXIT END_CASE
+    default:
+    ungetToken();
+    Exit_Flag = TRUE; break; }
+        }
+    } Exit_Flag = TRUE; break;
 
-        CASE(VIEW_POINT_TOKEN)
+        case VIEW_POINT_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)getViewpoint();
     constantPtr->Constant_Type = VIEW_POINT_CONSTANT;
     parseViewpoint((Viewpoint *)constantPtr->Constant_Data);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(COLOUR_TOKEN)
+        case COLOUR_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)getColour();
     constantPtr->Constant_Type = COLOUR_CONSTANT;
     parseColour((RGBAColor *)constantPtr->Constant_Data);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(LIGHT_SOURCE_TOKEN)
+        case LIGHT_SOURCE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)parseLightSource();
     constantPtr->Constant_Type = LIGHT_SOURCE_CONSTANT;
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE(LEFT_ANGLE_TOKEN) UNGET constantPtr->Identifier_Number =
+        case LEFT_ANGLE_TOKEN: ungetToken(); constantPtr->Identifier_Number =
         globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)getVector();
     constantPtr->Constant_Type = VECTOR_CONSTANT;
     parseVector((Vector3D *)constantPtr->Constant_Data);
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-            UNGET constantPtr->Identifier_Number =
+        case DASH_TOKEN:
+    case PLUS_TOKEN:
+    case FLOAT_TOKEN:
+            ungetToken(); constantPtr->Identifier_Number =
         globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)getFloat();
     constantPtr->Constant_Type = FLOAT_CONSTANT;
     *((DBL *)constantPtr->Constant_Data) = parseFloat();
-    EXIT END_CASE
+    Exit_Flag = TRUE; break;
 
-        OTHERWISE parseError(OBJECT_TOKEN);
-    END_CASE
-    END_EXPECT
+        default: parseError(OBJECT_TOKEN);
+    break;
+    }
+        }
+    }
 }
 
 static void

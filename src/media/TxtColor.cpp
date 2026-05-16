@@ -281,7 +281,7 @@ checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
     /* AAC: was just x + z */
     /* AAC: Small_Tolerance added to get around Microsoft C (int) bug */
-    brkindx = (int)(FLOOR(x) + FLOOR(y) + FLOOR(z));
+    brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
 
     if (Options & DEBUGGING) {
         printf("checker %g %g %g\n", x, y, z);
@@ -305,7 +305,7 @@ checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     y += Small_Tolerance;
     z += Small_Tolerance;
 
-    brkindx = (int)(FLOOR(x) + FLOOR(y) + FLOOR(z));
+    brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
 
     if (Options & DEBUGGING) {
         printf("checker_texture %g %g %g\n", x, y, z);
@@ -346,16 +346,16 @@ gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
         return;
     }
     if (texture->Texture_Gradient.x != 0.0) {
-        x = FABS(x);
-        value += x - FLOOR(x); /* obtain fractional X component */
+        x = fabsInline(x);
+        value += x - floorInline(x); /* obtain fractional X component */
     }
     if (texture->Texture_Gradient.y != 0.0) {
-        y = FABS(y);
-        value += y - FLOOR(y); /* obtain fractional Y component */
+        y = fabsInline(y);
+        value += y - floorInline(y); /* obtain fractional Y component */
     }
     if (texture->Texture_Gradient.z != 0.0) {
-        z = FABS(z);
-        value += z - FLOOR(z); /* obtain fractional Z component */
+        z = fabsInline(z);
+        value += z - floorInline(z); /* obtain fractional Z component */
     }
     value = ((value > 1.0) ? fmod(value, 1.0) : value); /* clamp to 1.0 */
 
@@ -386,7 +386,7 @@ granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
         temp = 0.5 - Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
-        temp = FABS(temp);
+        temp = fabsInline(temp);
         noise += temp / freq;
     }
 

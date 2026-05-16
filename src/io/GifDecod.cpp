@@ -76,10 +76,6 @@
 #include "common/PovProto.h"
 #include "io/Gif.h"
 
-#define LOCAL static
-#define IMPORT extern
-
-#define FAST register
 
 /* typedef short WORD; */
 typedef unsigned short UWORD;
@@ -103,15 +99,15 @@ static constexpr int WRITE_ERROR = -2;
 static constexpr int OPEN_ERROR = -3;
 static constexpr int CREATE_ERROR = -4;
 
-/* IMPORT INT getByte()
+/* extern INT getByte()
  *
  *    - This external (machine specific) function is expected to return
  * either the next byte from the GIF file, or a negative number, as
  * defined in ERRS.H.
  */
-IMPORT INT getByte();
+extern INT getByte();
 
-/* IMPORT INT bad_code_count;
+/* extern INT bad_code_count;
  *
  * This value is the only other global required by the using program, and
  * is incremented each time an out of range code is read by the decoder.
@@ -123,23 +119,23 @@ INT badCodeCount;
 static constexpr int MAX_CODES = 4095;
 
 /* Static variables */
-LOCAL WORD currSize; /* The current code size */
-LOCAL WORD clear;    /* Value for a clear code */
-LOCAL WORD ending;   /* Value for a ending code */
-LOCAL WORD newcodes; /* First available code */
-LOCAL WORD topSlot;  /* Highest code for current size */
-LOCAL WORD slot;     /* Last read code */
+static WORD currSize; /* The current code size */
+static WORD clear;    /* Value for a clear code */
+static WORD ending;   /* Value for a ending code */
+static WORD newcodes; /* First available code */
+static WORD topSlot;  /* Highest code for current size */
+static WORD slot;     /* Last read code */
 
 /* The following static variables are used
  * for seperating out codes
  */
-LOCAL WORD navailBytes = 0; /* # bytes left in block */
-LOCAL WORD nbitsLeft = 0;   /* # bits left in current byte */
-LOCAL UTINY b1;             /* Current byte */
-LOCAL UTINY byteBuff[257];  /* Current block */
-LOCAL UTINY *pbytes;        /* Pointer to next byte in block */
+static WORD navailBytes = 0; /* # bytes left in block */
+static WORD nbitsLeft = 0;   /* # bits left in current byte */
+static UTINY b1;             /* Current byte */
+static UTINY byteBuff[257];  /* Current block */
+static UTINY *pbytes;        /* Pointer to next byte in block */
 
-LOCAL LONG codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
+static LONG codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
     0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF};
 
 /* This function initializes the decoder for reading a new image.
@@ -230,15 +226,15 @@ getNextCode()
  */
 
 /*
-I removed the LOCAL identifiers in the arrays below and replaced them
+I removed the static identifiers in the arrays below and replaced them
 with 'extern's so as to declare (and re-use) the space elsewhere.
 The arrays are actually declared in the assembler source.
                                                                      Bert Tyler
 */
 
-LOCAL UTINY *dstack;       /* Stack for storing pixels */
-LOCAL UTINY *suffix;       /* Suffix table */
-LOCAL UWORD *prefix;       /* Prefix linked list */
+static UTINY *dstack;       /* Stack for storing pixels */
+static UTINY *suffix;       /* Suffix table */
+static UWORD *prefix;       /* Prefix linked list */
 extern UTINY *decoderline; /* decoded line goes here */
 
 /* WORD decoder(linewidth)
@@ -272,9 +268,9 @@ WORD
 decoder(int iLinewidth)
 {
     WORD linewidth;
-    FAST UTINY *sp, *bufptr;
+    register UTINY *sp, *bufptr;
     UTINY *buf;
-    FAST WORD code, fc, oc, bufcnt;
+    register WORD code, fc, oc, bufcnt;
     WORD c;
     WORD size;
     WORD ret;
@@ -366,7 +362,7 @@ decoder(int iLinewidth)
              */
             *bufptr++ = (UTINY)c;
             if (--bufcnt == 0) {
-                COOPERATE
+                cooperate();
                 if ((ret = outLine(buf, linewidth)) < 0) {
                     cleanupGifDecoder();
                     return (ret);
@@ -434,7 +430,7 @@ decoder(int iLinewidth)
             while (sp > dstack) {
                 *bufptr++ = *(--sp);
                 if (--bufcnt == 0) {
-                    COOPERATE
+                    cooperate();
                     if ((ret = outLine(buf, linewidth)) < 0) {
                         cleanupGifDecoder();
                         return (ret);

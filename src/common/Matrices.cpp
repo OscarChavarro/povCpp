@@ -92,7 +92,7 @@ MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
         }
     }
 
-    COOPERATE
+    cooperate();
 }
 
 void
@@ -325,81 +325,3 @@ getTransformation()
     return (newTransformation);
 }
 
-/* AAC - These are not used, so they are commented out to save code space... */
-#ifdef NOT_USED_MATRIX_OPS
-void
-MAdd(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
-{
-    register int i, j;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            (*result)[i][j] = (*matrix1)[i][j] + (*matrix2)[i][j];
-        }
-    }
-}
-
-void
-MSub(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
-{
-    register int i, j;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            (*result)[i][j] = (*matrix1)[i][j] - (*matrix2)[i][j];
-        }
-    }
-}
-
-void
-MScale(MATRIX *result, MATRIX *matrix1, DBL amount)
-{
-    register int i, j;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            if (amount == 1.0) {
-                (*result)[i][j] = (*matrix1)[i][j]; /* just copy */
-            } else {
-                (*result)[i][j] = (*matrix1)[i][j]; /* amount */
-            }
-        }
-    }
-    return;
-}
-
-void
-getInversionTransformation(Transformation *result)
-{
-    MIdentity((MATRIX *)result->matrix);
-    (result->matrix)[0][0] = -1.0;
-    (result->matrix)[1][1] = -1.0;
-    (result->matrix)[2][2] = -1.0;
-    (result->matrix)[3][3] = -1.0;
-
-    (result->inverse)[0][0] = -1.0;
-    (result->inverse)[1][1] = -1.0;
-    (result->inverse)[2][2] = -1.0;
-    (result->inverse)[3][3] = -1.0;
-}
-
-void
-getLookAtTransformation(
-    Transformation *result, Vector3D *Look_At, Vector3D *Up, Vector3D *Right)
-{
-    MIdentity((MATRIX *)result->inverse);
-    (result->matrix)[0][0] = Right->x;
-    (result->matrix)[0][1] = Right->y;
-    (result->matrix)[0][2] = Right->z;
-    (result->matrix)[1][0] = Up->x;
-    (result->matrix)[1][1] = Up->y;
-    (result->matrix)[1][2] = Up->z;
-    (result->matrix)[2][0] = Look_At->x;
-    (result->matrix)[2][1] = Look_At->y;
-    (result->matrix)[2][2] = Look_At->z;
-
-    MIdentity((MATRIX *)result->matrix);
-    MTranspose((MATRIX *)result->matrix, (MATRIX *)result->inverse);
-}
-
-#endif

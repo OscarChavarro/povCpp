@@ -39,7 +39,10 @@ extern Triangle *getTriangleShape();
 extern Ray *vpRay;
 extern long rayTriangleTests, rayTriangleTestsSucceeded;
 
-#define max3(x, y, z) ((x > y) ? ((x > z) ? 1 : 3) : ((y > z) ? 2 : 3))
+inline int max3Axis(DBL x, DBL y, DBL z)
+{
+    return (x > y) ? ((x > z) ? 1 : 3) : ((y > z) ? 2 : 3);
+}
 static constexpr int X_AXIS = 0;
 static constexpr int Y_AXIS = 1;
 static constexpr int Z_AXIS = 2;
@@ -54,7 +57,7 @@ findTriangleDominantAxis(Triangle *triangle)
     x = fabs(triangle->Normal_Vector.x);
     y = fabs(triangle->Normal_Vector.y);
     z = fabs(triangle->Normal_Vector.z);
-    switch (max3(x, y, z)) {
+    switch (max3Axis(x, y, z)) {
     case 1:
         triangle->Dominant_Axis = X_AXIS;
         break;
@@ -80,7 +83,7 @@ computeSmoothTriangle(SmoothTriangle *triangle)
     y = fabs(p3MinusP2.y);
     z = fabs(p3MinusP2.z);
 
-    switch (max3(x, y, z)) {
+    switch (max3Axis(x, y, z)) {
     case 1:
         triangle->vAxis = X_AXIS;
         triangle->BaseDelta = p3MinusP2.x;
@@ -421,11 +424,10 @@ translateTriangle(SimpleBody *object, Vector3D *vector)
 
     VEvaluate(translation, triangle->Normal_Vector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
-    VAdd(triangle->P1, triangle->P1, *vector)
-        VAdd(triangle->P2, triangle->P2, *vector)
-            VAdd(triangle->P3, triangle->P3, *vector)
-
-                translateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    VAdd(triangle->P1, triangle->P1, *vector);
+    VAdd(triangle->P2, triangle->P2, *vector);
+    VAdd(triangle->P3, triangle->P3, *vector);
+    translateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -608,10 +610,10 @@ translateSmoothTriangle(SimpleBody *object, Vector3D *vector)
 
     VEvaluate(translation, triangle->Normal_Vector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
-    VAdd(triangle->P1, triangle->P1, *vector)
-        VAdd(triangle->P2, triangle->P2, *vector)
-            VAdd(triangle->P3, triangle->P3, *vector)
-                computeTriangle((Triangle *)triangle);
+    VAdd(triangle->P1, triangle->P1, *vector);
+    VAdd(triangle->P2, triangle->P2, *vector);
+    VAdd(triangle->P3, triangle->P3, *vector);
+    computeTriangle((Triangle *)triangle);
 
     translateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }

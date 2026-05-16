@@ -36,7 +36,10 @@ extern Box *getBoxShape();
 extern Ray *vpRay;
 extern long rayBoxTests, rayBoxTestsSucceeded;
 
-#define close(x, y) (fabs(x - y) < EPSILON ? 1 : 0)
+inline int closeTo(DBL x, DBL y)
+{
+    return fabs(x - y) < kEpsilon ? 1 : 0;
+}
 
 /*===========================================================================*/
 
@@ -101,7 +104,7 @@ intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
     tmax = HUGE_VAL;
 
     /* Sides first */
-    if (d.x < -EPSILON) {
+    if (d.x < -kEpsilon) {
         t = (box->bounds[0].x - p.x) / d.x;
         if (t < tmin) {
             return 0;
@@ -116,7 +119,7 @@ intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
             }
             tmin = t;
         }
-    } else if (d.x > EPSILON) {
+    } else if (d.x > kEpsilon) {
         t = (box->bounds[1].x - p.x) / d.x;
         if (t < tmin) {
             return 0;
@@ -136,7 +139,7 @@ intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
     }
 
     /* Check Top/Bottom */
-    if (d.y < -EPSILON) {
+    if (d.y < -kEpsilon) {
         t = (box->bounds[0].y - p.y) / d.y;
         if (t < tmin) {
             return 0;
@@ -151,7 +154,7 @@ intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
             }
             tmin = t;
         }
-    } else if (d.y > EPSILON) {
+    } else if (d.y > kEpsilon) {
         t = (box->bounds[1].y - p.y) / d.y;
         if (t < tmin) {
             return 0;
@@ -171,7 +174,7 @@ intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
     }
 
     /* Now front/back */
-    if (d.z < -EPSILON) {
+    if (d.z < -kEpsilon) {
         t = (box->bounds[0].z - p.z) / d.z;
         if (t < tmin) {
             return 0;
@@ -186,7 +189,7 @@ intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
             }
             tmin = t;
         }
-    } else if (d.z > EPSILON) {
+    } else if (d.z > kEpsilon) {
         t = (box->bounds[1].z - p.z) / d.z;
         if (t < tmin) {
             return 0;
@@ -268,17 +271,17 @@ boxNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
     result->x = 0.0;
     result->y = 0.0;
     result->z = 0.0;
-    if (close(newPoint.x, box->bounds[1].x)) {
+    if (closeTo(newPoint.x, box->bounds[1].x)) {
         result->x = 1.0;
-    } else if (close(newPoint.x, box->bounds[0].x)) {
+    } else if (closeTo(newPoint.x, box->bounds[0].x)) {
         result->x = -1.0;
-    } else if (close(newPoint.y, box->bounds[1].y)) {
+    } else if (closeTo(newPoint.y, box->bounds[1].y)) {
         result->y = 1.0;
-    } else if (close(newPoint.y, box->bounds[0].y)) {
+    } else if (closeTo(newPoint.y, box->bounds[0].y)) {
         result->y = -1.0;
-    } else if (close(newPoint.z, box->bounds[1].z)) {
+    } else if (closeTo(newPoint.z, box->bounds[1].z)) {
         result->z = 1.0;
-    } else if (close(newPoint.z, box->bounds[0].z)) {
+    } else if (closeTo(newPoint.z, box->bounds[0].z)) {
         result->z = -1.0;
     } else {
         /* Bad result, should we do something with it? */

@@ -26,14 +26,6 @@
 #include "common/PovProto.h"
 #include "common/Vector.h"
 
-#ifdef ABS
-#undef ABS
-#endif
-
-#ifdef MAX
-#undef MAX
-#endif
-
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 static constexpr double COEFF_LIMIT = 1.0e-20;
@@ -69,8 +61,15 @@ static constexpr double FUDGE_FACTOR1 = 1.0e11;
 static constexpr double FUDGE_FACTOR2 = -1.0e-5;
 static constexpr double FUDGE_FACTOR3 = 1.0e-7;
 
-#define ABS(x) ((x) < 0.0 ? (0.0 - x) : (x))
-#define MAX(x, y) (x < y ? y : x)
+inline DBL absInline(DBL x)
+{
+    return (x < 0.0) ? (0.0 - x) : x;
+}
+
+inline DBL maxInline(DBL x, DBL y)
+{
+    return (x < y) ? y : x;
+}
 static constexpr double TWO_PI = 6.283185207179586476925286766560;
 static constexpr double TWO_PI_3 = 2.0943951023931954923084;
 static constexpr double TWO_PI_43 = 4.1887902047863909846168;
@@ -482,7 +481,7 @@ solveCubic(DBL *x, DBL *y)
         y[2] = sQ * cos(theta + TWO_PI_43) - an;
         return 3;
     }
-    sQ = pow(sqrt(r2 - q3) + ABS(r), 1.0 / 3.0);
+    sQ = pow(sqrt(r2 - q3) + absInline(r), 1.0 / 3.0);
     if (r < 0) {
         y[0] = (sQ + q / sQ) - an;
     } else {

@@ -83,8 +83,8 @@ allCompositeIntersections(
          boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
 
         boundingRegionTests++;
-        COOPERATE
-        if ((localIntersection = Intersection(
+        cooperate();
+        if ((localIntersection = intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
         } else if (!Inside(&ray->Initial, (SimpleBody *)boundingShape)) {
@@ -143,8 +143,8 @@ allObjectIntersections(
          boundingShape = boundingShape->Next_Object) {
 
         boundingRegionTests++;
-        COOPERATE
-        if ((localIntersection = Intersection(
+        cooperate();
+        if ((localIntersection = intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
         } else if (!Inside(&ray->Initial, (SimpleBody *)boundingShape)) {

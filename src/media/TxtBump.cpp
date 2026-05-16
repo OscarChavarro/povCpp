@@ -189,9 +189,9 @@ wrinkles(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
         DNoise(&value, x * scale, y * scale, z * scale); /* * scale,*/
-        result.x += FABS(value.x / scale);
-        result.y += FABS(value.y / scale);
-        result.z += FABS(value.z / scale);
+        result.x += fabsInline(value.x / scale);
+        result.y += fabsInline(value.y / scale);
+        result.z += fabsInline(value.z / scale);
     }
 
     VScale(result, result, texture->Bump_Amount);

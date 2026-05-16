@@ -34,14 +34,20 @@
 
 /*===========================================================================*/
 
-#define sign(x) (((x) > 0.0) ? 1 : (((x) == 0) ? 0 : (-1)))
+inline int signInline(DBL x)
+{
+    return (x > 0.0) ? 1 : ((x == 0.0) ? 0 : -1);
+}
 
-#ifndef min_value
-#define minValue(x, y) ((x) > (y) ? (y) : (x))
-#endif
-#ifndef max_value
-#define maxValue(x, y) ((x) < (y) ? (y) : (x))
-#endif
+inline DBL minValue(DBL x, DBL y)
+{
+    return (x > y) ? y : x;
+}
+
+inline DBL maxValue(DBL x, DBL y)
+{
+    return (x < y) ? y : x;
+}
 
 Methods Height_Field_Methods = {objectIntersect, allHeightfldIntersections,
     insideHeightfld, heightFldNormal, copyHeightfld, translateHeightfld,
@@ -59,7 +65,10 @@ Intersection *hfIntersection;
 PriorityQueueNode *hfQueue;
 Ray *rRay;
 
-#define getHeight(x, z, H_Field) ((DBL)(H_Field)->Map[(z)][(x)])
+inline DBL getHeightAt(int x, int z, HeightField *hField)
+{
+    return (DBL)hField->Map[z][x];
+}
 
 /*===========================================================================*/
 
@@ -80,10 +89,10 @@ intersectPixel(
     depth1 = HUGE_VAL;
     depth2 = HUGE_VAL;
 
-    y1 = getHeight(x, z, hField);
-    y2 = getHeight(x + 1, z, hField);
-    y3 = getHeight(x, z + 1, hField);
-    y4 = getHeight(x + 1, z + 1, hField);
+    y1 = getHeightAt(x, z, hField);
+    y2 = getHeightAt(x + 1, z, hField);
+    y3 = getHeightAt(x, z + 1, hField);
+    y4 = getHeightAt(x + 1, z + 1, hField);
 
     makeVector(&t1V1, (DBL)x, y1, (DBL)z);
     makeVector(&t1V2, 1.0, y2 - y1, 0.0);
@@ -102,7 +111,7 @@ intersectPixel(
         VCross(localNormal, t1V3, t1V2);
         VDot(dot, localNormal, ray->Direction);
 
-        if ((dot > EPSILON) || (dot < -EPSILON)) {
+        if ((dot > kEpsilon) || (dot < -kEpsilon)) {
             VDot(pos1, localNormal, t1V1);
 
             VDot(pos2, localNormal, ray->Initial);
@@ -115,8 +124,8 @@ intersectPixel(
                 s = ray->Initial.x + (depth1 * ray->Direction.x) - (DBL)x;
                 t = ray->Initial.z + (depth1 * ray->Direction.z) - (DBL)z;
 
-                if ((s < -EPSILON) || (t < -EPSILON) ||
-                    ((s + t) > 1.0 + EPSILON)) {
+                if ((s < -kEpsilon) || (t < -kEpsilon) ||
+                    ((s + t) > 1.0 + kEpsilon)) {
                     depth1 = HUGE_VAL;
                 }
             } else {
@@ -139,7 +148,7 @@ intersectPixel(
         VCross(localNormal, t2V3, t2V2);
         VDot(dot, localNormal, ray->Direction);
 
-        if ((dot > EPSILON) || (dot < -EPSILON)) {
+        if ((dot > kEpsilon) || (dot < -kEpsilon)) {
             VDot(pos1, localNormal, t2V1);
 
             VDot(pos2, localNormal, ray->Initial);
@@ -151,8 +160,8 @@ intersectPixel(
                 s = ray->Initial.x + (depth2 * ray->Direction.x) - (DBL)x;
                 t = ray->Initial.z + (depth2 * ray->Direction.z) - (DBL)z;
 
-                if ((s > 1.0 + EPSILON) || (t > 1.0 + EPSILON) ||
-                    ((s + t) < 1.0 - EPSILON)) {
+                if ((s > 1.0 + kEpsilon) || (t > 1.0 + kEpsilon) ||
+                    ((s + t) < 1.0 - kEpsilon)) {
                     depth2 = HUGE_VAL;
                 }
             } else {
@@ -725,7 +734,7 @@ allHeightfldIntersections(
         return (FALSE);
     }
 
-    /*    if(      fabs(depth1 - depth2) < Small_Tolerance) { Try EPSILON if
+    /*    if(      fabs(depth1 - depth2) < Small_Tolerance) { Try kEpsilon if
      * next line doesn't work */
 
     if (depth1 == depth2) {
@@ -741,27 +750,27 @@ allHeightfldIntersections(
         VAdd(temp2, temp2, tempRay.Initial);
     }
 
-    if (fabs(tempRay.Direction.x) > EPSILON) {
+    if (fabs(tempRay.Direction.x) > kEpsilon) {
         mzx = tempRay.Direction.z / tempRay.Direction.x;
         myx = tempRay.Direction.y / tempRay.Direction.x;
     } else {
-        mzx = tempRay.Direction.z / EPSILON;
-        myx = tempRay.Direction.y / EPSILON;
+        mzx = tempRay.Direction.z / kEpsilon;
+        myx = tempRay.Direction.y / kEpsilon;
     }
-    if (fabs(tempRay.Direction.z) > EPSILON) {
+    if (fabs(tempRay.Direction.z) > kEpsilon) {
         mxz = tempRay.Direction.x / tempRay.Direction.z;
         myz = tempRay.Direction.y / tempRay.Direction.z;
     } else {
-        mxz = tempRay.Direction.x / EPSILON;
-        myz = tempRay.Direction.y / EPSILON;
+        mxz = tempRay.Direction.x / kEpsilon;
+        myz = tempRay.Direction.y / kEpsilon;
     }
 
     hfQueue = depthQueue;
     hfIntersection = &localElement;
     rRay = ray;
 
-    isdx = sign(tempRay.Direction.x);
-    isdz = sign(tempRay.Direction.z);
+    isdx = signInline(tempRay.Direction.x);
+    isdz = signInline(tempRay.Direction.z);
 
     xDom = FALSE;
     if (fabs(tempRay.Direction.x) >= fabs(tempRay.Direction.z)) {
@@ -790,6 +799,8 @@ insideHeightfld(Vector3D *testPoint, SimpleBody *object)
     int pz;
     int dot1;
     int dot2;
+    DBL dot1Value;
+    DBL dot2Value;
     DBL x, z, y1, y2, y3;
     Vector3D localOrigin;
     Vector3D temp1;
@@ -805,9 +816,9 @@ insideHeightfld(Vector3D *testPoint, SimpleBody *object)
     z = test.z - (DBL)pz;
 
     if ((x + z) < 1.0) {
-        y1 = getHeight(px, pz, hField);
-        y2 = getHeight(px + 1, pz, hField);
-        y3 = getHeight(px, pz + 1, hField);
+        y1 = getHeightAt(px, pz, hField);
+        y2 = getHeightAt(px + 1, pz, hField);
+        y3 = getHeightAt(px, pz + 1, hField);
         makeVector(&localOrigin, (DBL)px, y1, (DBL)pz);
         temp1.x = 1.0;
         temp1.z = 0.0;
@@ -818,9 +829,9 @@ insideHeightfld(Vector3D *testPoint, SimpleBody *object)
     } else {
         px = ceil(test.x);
         pz = ceil(test.z);
-        y1 = getHeight(px, pz, hField);
-        y2 = getHeight(px - 1, pz, hField);
-        y3 = getHeight(px, pz - 1, hField);
+        y1 = getHeightAt(px, pz, hField);
+        y2 = getHeightAt(px - 1, pz, hField);
+        y3 = getHeightAt(px, pz - 1, hField);
         makeVector(&localOrigin, (DBL)px, y1, (DBL)pz);
         temp1.x = -1.0;
         temp1.z = 0.0;
@@ -833,8 +844,10 @@ insideHeightfld(Vector3D *testPoint, SimpleBody *object)
     if (localNormal.y < 0.0) {
         VScale(localNormal, localNormal, -1.0);
     }
-    VDot(dot1, test, localNormal);
-    VDot(dot2, localOrigin, localNormal);
+    VDot(dot1Value, test, localNormal);
+    VDot(dot2Value, localOrigin, localNormal);
+    dot1 = (int)dot1Value;
+    dot2 = (int)dot2Value;
     if ((dot1 < dot2) && (test.y > (hField->bounding_box->bounds[0].y) + 1.0)) {
         return (TRUE);
     }
@@ -862,9 +875,9 @@ heightFldNormal(
     z = localOrigin.z - (DBL)pz;
 
     if ((x + z) <= 1) {
-        y1 = getHeight(px, pz, hField);
-        y2 = getHeight(px + 1, pz, hField);
-        y3 = getHeight(px, pz + 1, hField);
+        y1 = getHeightAt(px, pz, hField);
+        y2 = getHeightAt(px + 1, pz, hField);
+        y3 = getHeightAt(px, pz + 1, hField);
         temp1.x = 1.0;
         temp1.z = 0.0;
         temp1.y = y2 - y1;
@@ -872,9 +885,9 @@ heightFldNormal(
         temp2.z = 1.0;
         temp2.y = y3 - y1;
     } else {
-        y1 = getHeight(px + 1, pz + 1, hField);
-        y2 = getHeight(px, pz + 1, hField);
-        y3 = getHeight(px + 1, pz, hField);
+        y1 = getHeightAt(px + 1, pz + 1, hField);
+        y2 = getHeightAt(px, pz + 1, hField);
+        y3 = getHeightAt(px + 1, pz, hField);
         temp1.x = -1.0;
         temp1.z = 0.0;
         temp1.y = y2 - y1;

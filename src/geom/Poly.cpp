@@ -307,7 +307,7 @@ inside(Vector3D *point, int order, DBL *coeffs)
 
     /* The Epsilon fudge factor is so that points really near the
         surface are considered inside the surface */
-    return (result > -EPSILON ? (result < EPSILON ? 0.0 : result) : result);
+    return (result > -kEpsilon ? (result < kEpsilon ? 0.0 : result) : result);
 }
 
 /* Normal to a polynomial */
