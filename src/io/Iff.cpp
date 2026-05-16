@@ -39,55 +39,55 @@ static ChunkHeader globalChunkHeader;
 #define HAM 0x800
 
 void
-iff_error()
+iffError()
 {
     fprintf(stderr, "Invalid IFF file\n");
     exit(1);
 }
 
 int
-read_byte(FILE *f)
+readByte(FILE *f)
 {
     int c;
     if ((c = getc(f)) == EOF) {
-        iff_error();
+        iffError();
     }
     return (c);
 }
 
 int
-read_word(FILE *f)
+readWord(FILE *f)
 {
     int result;
 
-    result = read_byte(f) * 256;
-    result += read_byte(f);
+    result = readByte(f) * 256;
+    result += readByte(f);
     return (result);
 }
 
 long
-read_long(FILE *f)
+readLong(FILE *f)
 {
     int i;
     long result;
 
     result = 0;
     for (i = 0; i < 4; i++) {
-        result = result * 256 + read_byte(f);
+        result = result * 256 + readByte(f);
     }
 
     return (result);
 }
 
 void
-Read_Chunk_Header(FILE *f, ChunkHeader *dest)
+readChunkHeader(FILE *f, ChunkHeader *dest)
 {
-    dest->name = read_long(f);
-    dest->size = read_long(f);
+    dest->name = readLong(f);
+    dest->size = readLong(f);
 }
 
 void
-Read_Iff_Image(RGBAImage *image, char *filename)
+readIffImage(RGBAImage *image, char *filename)
 {
     FILE *f;
     unsigned char **rowBytes;
@@ -108,7 +108,7 @@ Read_Iff_Image(RGBAImage *image, char *filename)
     ImageLine *line;
     unsigned long creg;
 
-    if ((f = Locate_File(filename, READ_FILE_STRING)) == nullptr) {
+    if ((f = locateFile(filename, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open IFF file %s\n", filename);
         exit(1);
     }
@@ -119,35 +119,35 @@ Read_Iff_Image(RGBAImage *image, char *filename)
     iffColourMap = nullptr;
 
     while (true) {
-        Read_Chunk_Header(f, &globalChunkHeader);
-        switch (IFF_SWITCH_CAST globalChunkHeader.name) {
+        readChunkHeader(f, &globalChunkHeader);
+        switch (static_cast<int>(globalChunkHeader.name)) {
         case FORM:
-            if (read_long(f) != ILBM) {
-                iff_error();
+            if (readLong(f) != ILBM) {
+                iffError();
             }
             break;
 
         case BMHD:
-            image->iwidth = read_word(f);
+            image->iwidth = readWord(f);
             image->width = (DBL)image->iwidth;
-            image->iheight = read_word(f);
+            image->iheight = readWord(f);
             image->height = (DBL)image->iheight;
 
-            read_word(f); /* x position ignored */
-            read_word(f); /* y position ignored */
-            nPlanes = read_byte(f);
+            readWord(f); /* x position ignored */
+            readWord(f); /* y position ignored */
+            nPlanes = readByte(f);
             colourmapSize = 1 << nPlanes;
-            read_byte(f);               /* masking ignored */
-            compression = read_byte(f); /* masking ignored */
-            read_byte(f);               /* pad */
-            read_word(f);               /* Transparent colour ignored */
-            read_word(f);               /* Aspect ratio ignored */
-            read_word(f);               /* page width ignored */
-            read_word(f);               /* page height ignored */
+            readByte(f);               /* masking ignored */
+            compression = readByte(f); /* masking ignored */
+            readByte(f);               /* pad */
+            readWord(f);               /* Transparent colour ignored */
+            readWord(f);               /* Aspect ratio ignored */
+            readWord(f);               /* page width ignored */
+            readWord(f);               /* page height ignored */
             break;
 
         case CAMG:
-            viewmodes = (int)read_long(f); /* Viewmodes */
+            viewmodes = (int)readLong(f); /* Viewmodes */
             if (viewmodes & HAM) {
                 colourmapSize = 16;
             }
@@ -163,9 +163,9 @@ Read_Iff_Image(RGBAImage *image, char *filename)
             }
 
             for (i = 0; i < colourmapSize; i++) {
-                iffColourMap[i].Red = read_byte(f);
-                iffColourMap[i].Green = read_byte(f);
-                iffColourMap[i].Blue = read_byte(f);
+                iffColourMap[i].Red = readByte(f);
+                iffColourMap[i].Green = readByte(f);
+                iffColourMap[i].Blue = readByte(f);
                 iffColourMap[i].Alpha = 0;
             }
 
@@ -173,7 +173,7 @@ Read_Iff_Image(RGBAImage *image, char *filename)
             previousGreen = iffColourMap[0].Green;
             previousBlue = iffColourMap[0].Blue;
             for (i = colourmapSize * 3; (long)i < globalChunkHeader.size; i++) {
-                read_byte(f);
+                readByte(f);
             }
 
             break;
@@ -241,25 +241,25 @@ Read_Iff_Image(RGBAImage *image, char *filename)
                 for (j = 0; j < nPlanes; j++) {
                     if (compression == CMPNONE) {
                         for (k = 0; k < (image->iwidth + 7) / 8; k++) {
-                            rowBytes[j][k] = (unsigned char)read_byte(f);
+                            rowBytes[j][k] = (unsigned char)readByte(f);
                         }
                         if ((k & 1) != 0) {
-                            read_byte(f);
+                            readByte(f);
                         }
                     }
 
                     else {
                         nBytes = 0;
                         while (nBytes != (image->iwidth + 7) / 8) {
-                            c = read_byte(f);
+                            c = readByte(f);
                             if ((c >= 0) && (c <= 127)) {
                                 for (k = 0; k <= c; k++) {
                                     rowBytes[j][nBytes++] =
-                                        (unsigned char)read_byte(f);
+                                        (unsigned char)readByte(f);
                                 }
                             } else if ((c >= 129) && (c <= 255)) {
                                 count = 257 - c;
-                                c = read_byte(f);
+                                c = readByte(f);
                                 for (k = 0; k < count; k++) {
                                     rowBytes[j][nBytes++] = (unsigned char)c;
                                 }
@@ -347,7 +347,7 @@ Read_Iff_Image(RGBAImage *image, char *filename)
         default:
             for (i = 0; (long)i < globalChunkHeader.size; i++) {
                 if (getc(f) == EOF) {
-                    iff_error();
+                    iffError();
                 }
             }
             break;

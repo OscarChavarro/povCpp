@@ -50,7 +50,7 @@
  ==     chunks of code.  Also, 'stack' was renamed to 'dstack' for TASM
  ==     compatibility.
  ==
- == 3) The 'out_line()' external function has been changed to reference
+ == 3) The 'outLine()' external function has been changed to reference
  ==     '*outln()' for flexibility (in particular, 3D transformations)
  ==
  == 4) A call to 'keypressed()' has been added after the 'outln()' calls
@@ -103,13 +103,13 @@ typedef int INT;
 #define OPEN_ERROR -3
 #define CREATE_ERROR -4
 
-/* IMPORT INT get_byte()
+/* IMPORT INT getByte()
  *
  *    - This external (machine specific) function is expected to return
  * either the next byte from the GIF file, or a negative number, as
  * defined in ERRS.H.
  */
-IMPORT INT get_byte();
+IMPORT INT getByte();
 
 /* IMPORT INT bad_code_count;
  *
@@ -145,7 +145,7 @@ LOCAL LONG codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
 /* This function initializes the decoder for reading a new image.
  */
 WORD
-init_exp(int iSize)
+initExp(int iSize)
 {
     WORD size;
     size = (WORD)iSize;
@@ -158,12 +158,12 @@ init_exp(int iSize)
     return (0);
 }
 
-/* get_next_code()
+/* getNextCode()
  * - gets the next code from the GIF file.  Returns the code, or else
  * a negative number in case of file errors...
  */
 WORD
-get_next_code()
+getNextCode()
 {
     WORD i;
     WORD x;
@@ -175,12 +175,12 @@ get_next_code()
             /* Out of bytes in current block, so read next block
              */
             pbytes = byteBuff;
-            if ((navailBytes = get_byte()) < 0) {
+            if ((navailBytes = getByte()) < 0) {
                 return (navailBytes);
             }
             if (navailBytes) {
                 for (i = 0; i < navailBytes; ++i) {
-                    if ((x = get_byte()) < 0) {
+                    if ((x = getByte()) < 0) {
                         return (x);
                     }
                     byteBuff[i] = (UTINY)x;
@@ -199,12 +199,12 @@ get_next_code()
             /* Out of bytes in current block, so read next block
              */
             pbytes = byteBuff;
-            if ((navailBytes = get_byte()) < 0) {
+            if ((navailBytes = getByte()) < 0) {
                 return (navailBytes);
             }
             if (navailBytes) {
                 for (i = 0; i < navailBytes; ++i) {
-                    if ((x = get_byte()) < 0) {
+                    if ((x = getByte()) < 0) {
                         return (x);
                     }
                     byteBuff[i] = (UTINY)x;
@@ -246,10 +246,10 @@ extern UTINY *decoderline; /* decoded line goes here */
  *
  * - This function decodes an LZW image, according to the method used
  * in the GIF spec.  Every *linewidth* "characters" (ie. pixels) decoded
- * will generate a call to out_line(), which is a user specific function
+ * will generate a call to outLine(), which is a user specific function
  * to display a line of pixels.  The function gets its codes from
- * get_next_code() which is responsible for reading blocks of data and
- * seperating them into the proper size codes.  Finally, get_byte() is
+ * getNextCode() which is responsible for reading blocks of data and
+ * seperating them into the proper size codes.  Finally, getByte() is
  * the global routine to read the next byte from the GIF file.
  *
  * It is generally a good idea to have linewidth correspond to the actual
@@ -261,7 +261,7 @@ extern UTINY *decoderline; /* decoded line goes here */
  */
 
 void
-cleanup_gif_decoder()
+cleanupGifDecoder()
 {
     delete dstack;
     delete suffix;
@@ -283,13 +283,13 @@ decoder(int iLinewidth)
 
     /* Initialize for decoding a new image...
      */
-    if ((size = get_byte()) < 0) {
+    if ((size = getByte()) < 0) {
         return (size);
     }
     if (size < 2 || 9 < size) {
         return (BAD_CODE_SIZE);
     }
-    init_exp((int)size); /* changed param to int */
+    initExp((int)size); /* changed param to int */
 
     dstack = new UTINY[MAX_CODES + 1];
     suffix = new UTINY[MAX_CODES + 1];
@@ -318,12 +318,12 @@ decoder(int iLinewidth)
      * included for the clear code, and the whole thing ends when we get
      * an ending code.
      */
-    while ((c = get_next_code()) != ending) {
+    while ((c = getNextCode()) != ending) {
 
         /* If we had a file error, return without completing the decode
          */
         if (c < 0) {
-            cleanup_gif_decoder();
+            cleanupGifDecoder();
             return (0);
         }
 
@@ -337,7 +337,7 @@ decoder(int iLinewidth)
             /* Continue reading codes until we get a non-clear code
              * (Another unlikely, but possible case...)
              */
-            while ((c = get_next_code()) == clear) {
+            while ((c = getNextCode()) == clear) {
                 ;
             }
 
@@ -361,14 +361,14 @@ decoder(int iLinewidth)
 
             /* And let us not forget to put the char into the buffer... And
              * if, on the off chance, we were exactly one pixel from the end
-             * of the line, we have to send the buffer to the out_line()
+             * of the line, we have to send the buffer to the outLine()
              * routine...
              */
             *bufptr++ = (UTINY)c;
             if (--bufcnt == 0) {
                 COOPERATE
-                if ((ret = out_line(buf, linewidth)) < 0) {
-                    cleanup_gif_decoder();
+                if ((ret = outLine(buf, linewidth)) < 0) {
+                    cleanupGifDecoder();
                     return (ret);
                 }
 
@@ -435,8 +435,8 @@ decoder(int iLinewidth)
                 *bufptr++ = *(--sp);
                 if (--bufcnt == 0) {
                     COOPERATE
-                    if ((ret = out_line(buf, linewidth)) < 0) {
-                        cleanup_gif_decoder();
+                    if ((ret = outLine(buf, linewidth)) < 0) {
+                        cleanupGifDecoder();
                         return (ret);
                     }
                     bufptr = buf;
@@ -447,9 +447,9 @@ decoder(int iLinewidth)
     }
     ret = 0;
     if (bufcnt != linewidth) {
-        ret = out_line(buf, (linewidth - bufcnt));
+        ret = outLine(buf, (linewidth - bufcnt));
     }
 
-    cleanup_gif_decoder();
+    cleanupGifDecoder();
     return (ret);
 }

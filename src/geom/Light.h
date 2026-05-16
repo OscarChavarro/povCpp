@@ -15,15 +15,15 @@ class Light : public Geometry {
 };
 
 extern Methods Point_Methods;
-extern Light *Get_Light_Source_Shape(void);
-extern int All_Point_Intersections(
+extern Light *getLightSourceShape(void);
+extern int allPointIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Inside_Point(Vector3D *Test_Point, SimpleBody *Object);
-extern void *Copy_Point(SimpleBody *Object);
-extern void Translate_Point(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Point(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Point(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Point(SimpleBody *Object);
-extern DBL Attenuate_Light(Light *Light_Source, Ray *Light_Source_Ray);
+extern int insidePoint(Vector3D *Test_Point, SimpleBody *Object);
+extern void *copyPoint(SimpleBody *Object);
+extern void translatePoint(SimpleBody *Object, Vector3D *Vector);
+extern void rotatePoint(SimpleBody *Object, Vector3D *Vector);
+extern void scalePoint(SimpleBody *Object, Vector3D *Vector);
+extern void invertPoint(SimpleBody *Object);
+extern DBL attenuateLight(Light *Light_Source, Ray *Light_Source_Ray);
 
 #endif

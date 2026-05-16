@@ -62,7 +62,7 @@ B. Specialized shape projection variations by Alexander Enzmann:
 */
 
 void
-image_map(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+imageMap(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -72,7 +72,7 @@ image_map(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     int regNumber;
 
     if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor)) {
-        Make_Colour(colour, 1.0, 1.0, 1.0);
+        makeColour(colour, 1.0, 1.0, 1.0);
         colour->Alpha = 1.0;
         return;
     }
@@ -83,7 +83,7 @@ image_map(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 /* an intersection point and a texture and returns a new texture based on */
 /* the index/color of that point in an image/materials map. CdW 7/91        */
 Texture *
-material_map(Vector3D *intersectionPoint, Texture *texture)
+materialMap(Vector3D *intersectionPoint, Texture *texture)
 {
     Vector3D transformedPoint;
     register DBL x;
@@ -96,7 +96,7 @@ material_map(Vector3D *intersectionPoint, Texture *texture)
     Texture *tempTex;
     int numtex;
 
-    Make_Colour(&colour, 0.0, 0.0, 0.0);
+    makeColour(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
 
     if (texture->Texture_Transformation) {
@@ -144,7 +144,7 @@ material_map(Vector3D *intersectionPoint, Texture *texture)
 }
 
 void
-bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     DBL xcoor = 0.0, ycoor = 0.0;
     int index;
@@ -162,18 +162,18 @@ bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     Vector3D zprime;
     Vector3D temp;
     DBL length;
-    Make_Colour(&colour, 0.0, 0.0, 0.0);
+    makeColour(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
-    Make_Colour(&colour2, 0.0, 0.0, 0.0);
+    makeColour(&colour2, 0.0, 0.0, 0.0);
     colour2.Alpha = 0.0;
-    Make_Colour(&colour3, 0.0, 0.0, 0.0);
+    makeColour(&colour3, 0.0, 0.0, 0.0);
     colour3.Alpha = 0.0;
 
     /* going to have to change this */
     /* need to know if bump point is off of image for all 3 points */
 
     if (map(x, y, z, texture, texture->Bump_Image, &xcoor, &ycoor)) {
-        Make_Colour(&colour, 1.0, 1.0, 1.0);
+        makeColour(&colour, 1.0, 1.0, 1.0);
         colour.Alpha = 1.0;
         index = 255;
         return;
@@ -242,18 +242,18 @@ bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     VCross(bumpNormal, yprime, xprime);
     VNormalize(bumpNormal, bumpNormal);
 
-    Make_Vector(&yprime, normal->x, normal->y, normal->z);
-    Make_Vector(&temp, 0.0, 1.0, 0.0);
+    makeVector(&yprime, normal->x, normal->y, normal->z);
+    makeVector(&temp, 0.0, 1.0, 0.0);
     VCross(xprime, yprime, temp);
     VLength(length, xprime);
     if (length < 1.0e-9) {
         if (fabs(normal->y - 1.0) < Small_Tolerance) {
-            Make_Vector(&yprime, 0.0, 1.0, 0.0);
-            Make_Vector(&xprime, 1.0, 0.0, 0.0);
+            makeVector(&yprime, 0.0, 1.0, 0.0);
+            makeVector(&xprime, 1.0, 0.0, 0.0);
             length = 1.0;
         } else {
-            Make_Vector(&yprime, 0.0, -1.0, 0.0);
-            Make_Vector(&xprime, 1.0, 0.0, 0.0);
+            makeVector(&yprime, 0.0, -1.0, 0.0);
+            makeVector(&xprime, 1.0, 0.0, 0.0);
             length = 1.0;
         }
     }
@@ -538,7 +538,7 @@ map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *xcoor,
     if ((*xcoor >= (DBL)image->iwidth) || (*ycoor >= (DBL)image->iheight) ||
         (*xcoor < 0.0) || (*ycoor < 0.0)) {
         printf("\nPicture index out of range\n");
-        close_all();
+        closeAll();
         exit(1);
     }
 
@@ -610,7 +610,7 @@ interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
     for (i = 0; i < 4; i++) {
-        Make_Colour(&cornerColour[i], 0.0, 0.0, 0.0);
+        makeColour(&cornerColour[i], 0.0, 0.0, 0.0);
         cornerColour[i].Alpha = 0.0;
     }
     /* OK, now that you have the corners, what are you going to do with them? */

@@ -44,7 +44,7 @@ unsigned char *decoderline /*  [2049] */; /* write-line routines use this */
 static RGBAPixel *gifColourMap;
 static int colourmapSize;
 
-/* IMPORT INT out_line(pixels, linelen)
+/* IMPORT INT outLine(pixels, linelen)
  *      UBYTE pixels[];
  *      INT linelen;
  *
@@ -58,7 +58,7 @@ static int colourmapSize;
  * equal to the number of pixels passed...
  */
 int
-out_line(unsigned char *pixels, int linelen)
+outLine(unsigned char *pixels, int linelen)
 {
     register int x;
     register unsigned char *line;
@@ -81,7 +81,7 @@ out_line(unsigned char *pixels, int linelen)
 #define READ_ERROR -1
 
 int
-get_byte() /* get byte from file, return the next byte or an error */
+getByte() /* get byte from file, return the next byte or an error */
 {
     register int byte;
 
@@ -97,7 +97,7 @@ get_byte() /* get byte from file, return the next byte or an error */
 /* Main GIF file decoder.  */
 
 void
-Read_Gif_Image(RGBAImage *image, char *filename)
+readGifImage(RGBAImage *image, char *filename)
 {
     register int i;
     register int j;
@@ -109,7 +109,7 @@ Read_Gif_Image(RGBAImage *image, char *filename)
     status = 0;
     currentImage = image;
 
-    if ((bitFile = Locate_File(filename, READ_FILE_STRING)) == nullptr) {
+    if ((bitFile = locateFile(filename, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open GIF file %s\n", filename);
         exit(1);
     }
@@ -128,7 +128,7 @@ Read_Gif_Image(RGBAImage *image, char *filename)
 
     /* Get the screen description */
     for (i = 0; i < 13; i++) {
-        buffer[i] = (unsigned char)get_byte();
+        buffer[i] = (unsigned char)getByte();
     }
 
     if (strncmp((char *)buffer, "GIF", 3) || /* use updated GIF specs */
@@ -157,33 +157,33 @@ Read_Gif_Image(RGBAImage *image, char *filename)
     }
 
     for (i = 0; i < colourmapSize; i++) {
-        gifColourMap[i].Red = (unsigned char)get_byte();
-        gifColourMap[i].Green = (unsigned char)get_byte();
-        gifColourMap[i].Blue = (unsigned char)get_byte();
+        gifColourMap[i].Red = (unsigned char)getByte();
+        gifColourMap[i].Green = (unsigned char)getByte();
+        gifColourMap[i].Blue = (unsigned char)getByte();
         gifColourMap[i].Alpha = 0;
     }
 
     /* Now display one or more GIF objects */
     finished = FALSE;
     while (!finished) {
-        switch (get_byte()) {
+        switch (getByte()) {
         case ';': /* End of the GIF dataset */
             finished = TRUE;
             status = 0;
             break;
 
         case '!':                          /* GIF Extension Block */
-            get_byte();                    /* read (and ignore) the ID */
-            while ((i = get_byte()) > 0) { /* get data len*/
+            getByte();                    /* read (and ignore) the ID */
+            while ((i = getByte()) > 0) { /* get data len*/
                 for (j = 0; j < i; j++) {
-                    get_byte(); /* flush data */
+                    getByte(); /* flush data */
                 }
             }
             break;
 
         case ',': /* Start of image object. get description */
             for (i = 0; i < 9; i++) {
-                if ((j = get_byte()) < 0) { /* EOF test (?) */
+                if ((j = getByte()) < 0) { /* EOF test (?) */
                     status = -1;
                     break;
                 }

@@ -25,9 +25,9 @@
 
 /*===========================================================================*/
 
-Methods Quadric_Methods = {Object_Intersect, All_Quadric_Intersections,
-    Inside_Quadric, Quadric_Normal, Copy_Quadric, Translate_Quadric,
-    Rotate_Quadric, Scale_Quadric, Invert_Quadric};
+Methods Quadric_Methods = {objectIntersect, allQuadricIntersections,
+    insideQuadric, quadricNormal, copyQuadric, translateQuadric,
+    rotateQuadric, scaleQuadric, invertQuadric};
 
 extern Ray *vpRay;
 extern long rayQuadricTests, rayQuadricTestsSucceeded;
@@ -35,7 +35,7 @@ extern long rayQuadricTests, rayQuadricTestsSucceeded;
 /*===========================================================================*/
 
 int
-All_Quadric_Intersections(
+allQuadricIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Quadric *shape = (Quadric *)object;
@@ -45,7 +45,7 @@ All_Quadric_Intersections(
     register int intersectionFound;
 
     intersectionFound = FALSE;
-    if (Intersect_Quadric(ray, shape, &depth1, &depth2)) {
+    if (intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
         VScale(intersectionPoint, ray->Direction, depth1);
@@ -70,7 +70,7 @@ All_Quadric_Intersections(
 }
 
 int
-Intersect_Quadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
+intersectQuadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
 {
     register DBL squareTerm;
     register DBL linearTerm;
@@ -161,7 +161,7 @@ Intersect_Quadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
 }
 
 int
-Inside_Quadric(Vector3D *testPoint, SimpleBody *object)
+insideQuadric(Vector3D *testPoint, SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
     Vector3D newPoint;
@@ -186,7 +186,7 @@ Inside_Quadric(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-Quadric_Normal(
+quadricNormal(
     Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Quadric *intersectionShape = (Quadric *)object;
@@ -225,16 +225,16 @@ Quadric_Normal(
 }
 
 void *
-Copy_Quadric(SimpleBody *object)
+copyQuadric(SimpleBody *object)
 {
     Quadric *newShape;
 
-    newShape = Get_Quadric_Shape();
+    newShape = getQuadricShape();
     *newShape = *((Quadric *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -289,40 +289,40 @@ transformQuadric(Quadric *shape, Transformation *transformation)
 }
 
 void
-Translate_Quadric(SimpleBody *object, Vector3D *vector)
+translateQuadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Translation_Transformation(&transformation, vector);
+    getTranslationTransformation(&transformation, vector);
     transformQuadric((Quadric *)object, &transformation);
 
-    Translate_Texture(&((Quadric *)object)->Shape_Texture, vector);
+    translateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Quadric(SimpleBody *object, Vector3D *vector)
+rotateQuadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Rotation_Transformation(&transformation, vector);
+    getRotationTransformation(&transformation, vector);
     transformQuadric((Quadric *)object, &transformation);
 
-    Rotate_Texture(&((Quadric *)object)->Shape_Texture, vector);
+    rotateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Quadric(SimpleBody *object, Vector3D *vector)
+scaleQuadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Scaling_Transformation(&transformation, vector);
+    getScalingTransformation(&transformation, vector);
     transformQuadric((Quadric *)object, &transformation);
 
-    Scale_Texture(&((Quadric *)object)->Shape_Texture, vector);
+    scaleTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Quadric(SimpleBody *object)
+invertQuadric(SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
 

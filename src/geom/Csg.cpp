@@ -25,20 +25,20 @@
 
 /*===========================================================================*/
 
-Methods CSG_Union_Methods = {Object_Intersect, All_CSG_Union_Intersections,
-    Inside_CSG_Union, nullptr, Copy_CSG, Translate_CSG, Rotate_CSG, Scale_CSG,
-    Invert_CSG};
+Methods CSG_Union_Methods = {objectIntersect, allCsgUnionIntersections,
+    insideCsgUnion, nullptr, copyCsg, translateCsg, rotateCsg, scaleCsg,
+    invertCsg};
 
-Methods CSG_Intersection_Methods = {Object_Intersect,
-    All_CSG_Intersect_Intersections, Inside_CSG_Intersection, nullptr, Copy_CSG,
-    Translate_CSG, Rotate_CSG, Scale_CSG, Invert_CSG};
+Methods CSG_Intersection_Methods = {objectIntersect,
+    allCsgIntersectIntersections, insideCsgIntersection, nullptr, copyCsg,
+    translateCsg, rotateCsg, scaleCsg, invertCsg};
 
 extern Ray *vpRay;
 
 /*===========================================================================*/
 
 int
-All_CSG_Union_Intersections(
+allCsgUnionIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     register int intersectionFound;
@@ -48,7 +48,7 @@ All_CSG_Union_Intersections(
     intersectionFound = FALSE;
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
-        if (All_Intersections((SimpleBody *)localShape, ray, depthQueue)) {
+        if (allIntersections((SimpleBody *)localShape, ray, depthQueue)) {
             intersectionFound = TRUE;
         }
     }
@@ -57,7 +57,7 @@ All_CSG_Union_Intersections(
 }
 
 int
-All_CSG_Intersect_Intersections(
+allCsgIntersectIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     int intersectionFound;
@@ -68,14 +68,14 @@ All_CSG_Intersect_Intersections(
     PriorityQueueNode *localDepthQueue;
     Intersection *localIntersection;
 
-    localDepthQueue = pq_pop(128);
+    localDepthQueue = pqPop(128);
 
     anyIntersectionFound = FALSE;
 
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        All_Intersections((SimpleBody *)localShape, ray, localDepthQueue);
+        allIntersections((SimpleBody *)localShape, ray, localDepthQueue);
 
         for (localIntersection = localDepthQueue->getHighest();
              localIntersection != nullptr; localDepthQueue->deleteHighest(),
@@ -108,7 +108,7 @@ All_CSG_Intersect_Intersections(
 }
 
 int
-Inside_CSG_Union(Vector3D *testPoint, SimpleBody *object)
+insideCsgUnion(Vector3D *testPoint, SimpleBody *object)
 {
     CSG *shape = (CSG *)object;
     Geometry *localShape;
@@ -124,7 +124,7 @@ Inside_CSG_Union(Vector3D *testPoint, SimpleBody *object)
 }
 
 int
-Inside_CSG_Intersection(Vector3D *testPoint, SimpleBody *object)
+insideCsgIntersection(Vector3D *testPoint, SimpleBody *object)
 {
     Geometry *localShape;
     CSG *shape = (CSG *)object;
@@ -141,14 +141,14 @@ Inside_CSG_Intersection(Vector3D *testPoint, SimpleBody *object)
 }
 
 void *
-Copy_CSG(SimpleBody *object)
+copyCsg(SimpleBody *object)
 {
     CSG *shape = (CSG *)object;
     CSG *newShape;
     Geometry *localShape;
     Geometry *copiedShape;
 
-    newShape = Get_CSG_Shape();
+    newShape = getCsgShape();
     newShape->methods = shape->methods;
     newShape->Type = shape->Type;
     newShape->Next_Object = nullptr;
@@ -166,7 +166,7 @@ Copy_CSG(SimpleBody *object)
 }
 
 void
-Translate_CSG(SimpleBody *object, Vector3D *vector)
+translateCsg(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -178,7 +178,7 @@ Translate_CSG(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Rotate_CSG(SimpleBody *object, Vector3D *vector)
+rotateCsg(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -190,7 +190,7 @@ Rotate_CSG(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Scale_CSG(SimpleBody *object, Vector3D *vector)
+scaleCsg(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -202,7 +202,7 @@ Scale_CSG(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Invert_CSG(SimpleBody *object)
+invertCsg(SimpleBody *object)
 {
     Geometry *localShape;
     CSG *csg = (CSG *)object;
@@ -223,7 +223,7 @@ Invert_CSG(SimpleBody *object)
 }
 
 void
-Set_CSG_Parents(CSG *shape, SimpleBody *object)
+setCsgParents(CSG *shape, SimpleBody *object)
 {
     Geometry *localShape;
 
@@ -233,7 +233,7 @@ Set_CSG_Parents(CSG *shape, SimpleBody *object)
         localShape->Parent_Object = object;
         if ((localShape->Type == CSG_UNION_TYPE) ||
             (localShape->Type == CSG_INTERSECTION_TYPE)) {
-            Set_CSG_Parents((CSG *)localShape, object);
+            setCsgParents((CSG *)localShape, object);
         }
     }
 }

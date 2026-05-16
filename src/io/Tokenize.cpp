@@ -24,7 +24,7 @@
 #include "io/Tokenize.h"
 #include "common/Frame.h"
 #include "common/PovProto.h"
-#include <ctype.h>
+#include <cctype>
 
 /* This module tokenizes the input file and sends the tokens created
 to the parser (the second stage).  Tokens sent to the parser contain a
@@ -136,7 +136,7 @@ TokenStruct globalToken;
     }
 
 void
-Initialize_Tokenizer(char *filename)
+initializeTokenizer(char *filename)
 {
     symbolTable = nullptr;
     globalDataFile = nullptr;
@@ -144,7 +144,7 @@ Initialize_Tokenizer(char *filename)
     globalIncludeFileIndex = 0;
     globalDataFile = &globalIncludeFiles[0];
 
-    globalDataFile->File = Locate_File(filename, "r");
+    globalDataFile->File = locateFile(filename, "r");
     if (globalDataFile->File == nullptr) {
         fprintf(stderr, "Cannot open input file\n");
         exit(1);
@@ -165,7 +165,7 @@ Initialize_Tokenizer(char *filename)
 }
 
 void
-Terminate_Tokenizer()
+terminateTokenizer()
 {
     int i;
 
@@ -196,13 +196,13 @@ If the token is an INCLUDE token, then set the include file name and
 read another token. */
 
 void
-Get_Token()
+getToken()
 {
     register int c;
     register int c2;
     COOPERATE
     if (stopFlag) {
-        close_all();
+        closeAll();
         exit(1);
     }
     if (globalToken.Unget_Token) {
@@ -246,108 +246,108 @@ Get_Token()
             break;
 
         case '{':
-            Write_Token(LEFT_CURLY_TOKEN, globalDataFile);
-            /* Parse_Comments(GLOBAL_dataFile); */
+            writeToken(LEFT_CURLY_TOKEN, globalDataFile);
+            /* parseComments(GLOBAL_dataFile); */
             break;
 
         case '}':
-            Write_Token(RIGHT_CURLY_TOKEN, globalDataFile);
+            writeToken(RIGHT_CURLY_TOKEN, globalDataFile);
             break;
 
         case '@':
-            Write_Token(AT_TOKEN, globalDataFile);
+            writeToken(AT_TOKEN, globalDataFile);
             break;
 
         case '&':
-            Write_Token(AMPERSAND_TOKEN, globalDataFile);
+            writeToken(AMPERSAND_TOKEN, globalDataFile);
             break;
 
         case '`':
-            Write_Token(BACK_QUOTE_TOKEN, globalDataFile);
+            writeToken(BACK_QUOTE_TOKEN, globalDataFile);
             break;
 
         case '\\':
-            Write_Token(BACK_SLASH_TOKEN, globalDataFile);
+            writeToken(BACK_SLASH_TOKEN, globalDataFile);
             break;
 
         case '|':
-            Write_Token(BAR_TOKEN, globalDataFile);
+            writeToken(BAR_TOKEN, globalDataFile);
             break;
 
         case ':':
-            Write_Token(COLON_TOKEN, globalDataFile);
+            writeToken(COLON_TOKEN, globalDataFile);
             break;
 
         case ',':
-            Write_Token(COMMA_TOKEN, globalDataFile);
+            writeToken(COMMA_TOKEN, globalDataFile);
             break;
 
         case '-':
-            Write_Token(DASH_TOKEN, globalDataFile);
+            writeToken(DASH_TOKEN, globalDataFile);
             break;
 
         case '$':
-            Write_Token(DOLLAR_TOKEN, globalDataFile);
+            writeToken(DOLLAR_TOKEN, globalDataFile);
             break;
 
         case '=':
-            Write_Token(EQUALS_TOKEN, globalDataFile);
+            writeToken(EQUALS_TOKEN, globalDataFile);
             break;
 
         case '!':
-            Write_Token(EXCLAMATION_TOKEN, globalDataFile);
+            writeToken(EXCLAMATION_TOKEN, globalDataFile);
             break;
 
         case '#': /* Parser doesn't use it, so let's ignore it */
-            /* Write_Token (HASH_TOKEN, GLOBAL_dataFile); */
+            /* writeToken (HASH_TOKEN, GLOBAL_dataFile); */
             break;
 
         case '^':
-            Write_Token(HAT_TOKEN, globalDataFile);
+            writeToken(HAT_TOKEN, globalDataFile);
             break;
 
         case '<':
-            Write_Token(LEFT_ANGLE_TOKEN, globalDataFile);
+            writeToken(LEFT_ANGLE_TOKEN, globalDataFile);
             break;
 
         case '(':
-            Write_Token(LEFT_PAREN_TOKEN, globalDataFile);
+            writeToken(LEFT_PAREN_TOKEN, globalDataFile);
             break;
 
         case '[':
-            Write_Token(LEFT_SQUARE_TOKEN, globalDataFile);
+            writeToken(LEFT_SQUARE_TOKEN, globalDataFile);
             break;
 
         case '%':
-            Write_Token(PERCENT_TOKEN, globalDataFile);
+            writeToken(PERCENT_TOKEN, globalDataFile);
             break;
 
         case '+':
-            Write_Token(PLUS_TOKEN, globalDataFile);
+            writeToken(PLUS_TOKEN, globalDataFile);
             break;
 
         case '?':
-            Write_Token(QUESTION_TOKEN, globalDataFile);
+            writeToken(QUESTION_TOKEN, globalDataFile);
             break;
 
         case '>':
-            Write_Token(RIGHT_ANGLE_TOKEN, globalDataFile);
+            writeToken(RIGHT_ANGLE_TOKEN, globalDataFile);
             break;
 
         case ')':
-            Write_Token(RIGHT_PAREN_TOKEN, globalDataFile);
+            writeToken(RIGHT_PAREN_TOKEN, globalDataFile);
             break;
 
         case ']':
-            Write_Token(RIGHT_SQUARE_TOKEN, globalDataFile);
+            writeToken(RIGHT_SQUARE_TOKEN, globalDataFile);
             break;
 
         case ';': /* Parser doesn't use it, so let's ignore it */
-            /* Write_Token (SEMI_COLON_TOKEN, GLOBAL_dataFile); */
+            /* writeToken (SEMI_COLON_TOKEN, GLOBAL_dataFile); */
             break;
 
         case '\'':
-            Write_Token(SINGLE_QUOTE_TOKEN, globalDataFile);
+            writeToken(SINGLE_QUOTE_TOKEN, globalDataFile);
             break;
 
             /* enable C++ style commenting */
@@ -355,7 +355,7 @@ Get_Token()
             c2 = getc(globalDataFile->File);
             if (c2 != (int)'/' && c2 != (int)'*') {
                 ungetc(c2, globalDataFile->File);
-                Write_Token(SLASH_TOKEN, globalDataFile);
+                writeToken(SLASH_TOKEN, globalDataFile);
                 break;
             }
             if (c2 == (int)'*') {
@@ -373,11 +373,11 @@ Get_Token()
             break;
 
         case '*':
-            Write_Token(STAR_TOKEN, globalDataFile);
+            writeToken(STAR_TOKEN, globalDataFile);
             break;
 
         case '~':
-            Write_Token(TILDE_TOKEN, globalDataFile);
+            writeToken(TILDE_TOKEN, globalDataFile);
             break;
 
         case '"':
@@ -474,19 +474,19 @@ Get_Token()
         }
         if (globalToken.Token_Id == INCLUDE_TOKEN) {
             if (globalDataFile->skipSpaces() != TRUE) {
-                Token_Error(
+                tokenError(
                     globalDataFile, "Expecting a string after INCLUDE\n");
             }
 
             if ((c = getc(globalDataFile->File)) != '"') {
-                Token_Error(
+                tokenError(
                     globalDataFile, "Expecting a string after INCLUDE\n");
             }
 
             globalDataFile->parseString();
             globalIncludeFileIndex++;
             if (globalIncludeFileIndex > MAX_INCLUDE_FILES) {
-                Token_Error(globalDataFile, "Too many nested include files\n");
+                tokenError(globalDataFile, "Too many nested include files\n");
             }
 
             globalDataFile = &globalIncludeFiles[globalIncludeFileIndex];
@@ -502,7 +502,7 @@ Get_Token()
 
             strcpy(globalDataFile->Filename, globalToken.Token_String);
 
-            if ((globalDataFile->File = Locate_File(
+            if ((globalDataFile->File = locateFile(
                      globalToken.Token_String, "r")) == nullptr) {
                 fprintf(stderr, "Cannot open include file: %s\n",
                     globalToken.Token_String);
@@ -530,7 +530,7 @@ call to Get_Token will return the last-read token instead of reading a
 new one from the file. */
 
 void
-Unget_Token()
+ungetToken()
 {
     globalToken.Unget_Token = TRUE;
 }
@@ -578,7 +578,7 @@ DataFile::parseComments()
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
-            Token_Error(globalDataFile, "No closing comment found");
+            tokenError(globalDataFile, "No closing comment found");
             return (FALSE);
         }
 
@@ -609,7 +609,7 @@ DataFile::parseCComments()
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
-            Token_Error(globalDataFile, "No */ closing comment found");
+            tokenError(globalDataFile, "No */ closing comment found");
             return (FALSE);
         }
 
@@ -645,18 +645,18 @@ DataFile::parseCComments()
     the final string. */
 
 void
-Begin_String()
+beginString()
 {
     stringIndex = 0;
 }
 
 void
-Stuff_Character(int c, DataFile *globalDataFile)
+stuffCharacter(int c, DataFile *globalDataFile)
 {
     if (stringIndex < MAX_STRING_INDEX) {
         string[stringIndex++] = (char)c;
         if (stringIndex >= MAX_STRING_INDEX) {
-            Token_Error(globalDataFile, "String too long");
+            tokenError(globalDataFile, "String too long");
             string[stringIndex - 1] = '\0';
         }
     }
@@ -665,7 +665,7 @@ Stuff_Character(int c, DataFile *globalDataFile)
 void
 DataFile::endString()
 {
-    Stuff_Character((int)'\0', globalDataFile);
+    stuffCharacter((int)'\0', globalDataFile);
 }
 
 /* Read a float from the input file and tokenize it as one token. The phase
@@ -684,35 +684,35 @@ DataFile::readFloat()
     finished = FALSE;
     phase = 0;
 
-    Begin_String();
+    beginString();
     while (!finished) {
         c = getc(this->File);
         if (c == EOF) {
-            Token_Error(globalDataFile, "Unexpected end of file");
+            tokenError(globalDataFile, "Unexpected end of file");
             return (FALSE);
         }
 
         switch (phase) {
         case 0:
             if (isdigit(c)) {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
             } else if (c == '.') {
-                Stuff_Character('0', globalDataFile);
+                stuffCharacter('0', globalDataFile);
                 ungetc(c, this->File);
             } else {
-                Token_Error(globalDataFile, "Error in decimal number");
+                tokenError(globalDataFile, "Error in decimal number");
             }
             phase = 1;
             break;
 
         case 1:
             if (isdigit(c)) {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
             } else if (c == (int)'.') {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
                 phase = 2;
             } else if ((c == 'e') || (c == 'E')) {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
                 phase = 3;
             } else {
                 finished = TRUE;
@@ -721,9 +721,9 @@ DataFile::readFloat()
 
         case 2:
             if (isdigit(c)) {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
             } else if ((c == 'e') || (c == 'E')) {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
                 phase = 3;
             } else {
                 finished = TRUE;
@@ -732,7 +732,7 @@ DataFile::readFloat()
 
         case 3:
             if (isdigit(c) || (c == '+') || (c == '-')) {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
                 phase = 4;
             } else {
                 finished = TRUE;
@@ -741,7 +741,7 @@ DataFile::readFloat()
 
         case 4:
             if (isdigit(c)) {
-                Stuff_Character(c, globalDataFile);
+                stuffCharacter(c, globalDataFile);
             } else {
                 finished = TRUE;
             }
@@ -752,7 +752,7 @@ DataFile::readFloat()
     ungetc(c, this->File);
     this->endString();
 
-    Write_Token(FLOAT_TOKEN, globalDataFile);
+    writeToken(FLOAT_TOKEN, globalDataFile);
     if (sscanf(string, DBL_FORMAT_STRING, &globalToken.Token_Float) == 0) {
         return (FALSE);
     }
@@ -766,22 +766,22 @@ DataFile::parseString()
 {
     register int c;
 
-    Begin_String();
+    beginString();
     while (TRUE) {
         c = getc(this->File);
         if (c == EOF) {
-            Token_Error(globalDataFile, "No end quote for string");
+            tokenError(globalDataFile, "No end quote for string");
         }
 
         if (c != (int)'"') {
-            Stuff_Character(c, globalDataFile);
+            stuffCharacter(c, globalDataFile);
         } else {
             break;
         }
     }
     this->endString();
 
-    Write_Token(STRING_TOKEN, globalDataFile);
+    writeToken(STRING_TOKEN, globalDataFile);
     globalToken.Token_String = string;
 }
 
@@ -797,16 +797,16 @@ DataFile::readSymbol()
     register int c;
     register int symbolId;
 
-    Begin_String();
+    beginString();
     while (TRUE) {
         c = getc(this->File);
         if (c == EOF) {
-            Token_Error(globalDataFile, "Unexpected end of file");
+            tokenError(globalDataFile, "Unexpected end of file");
             return (FALSE);
         }
 
         if (isalpha(c) || isdigit(c) || c == (int)'_') {
-            Stuff_Character(c, globalDataFile);
+            stuffCharacter(c, globalDataFile);
         } else {
             ungetc(c, this->File);
             break;
@@ -815,19 +815,19 @@ DataFile::readSymbol()
     this->endString();
 
     /* Ignore the symbol if it was meant for the tokenizer (-2) */
-    if ((symbolId = Find_Reserved()) != -1 && symbolId != -2) {
-        Write_Token(symbolId, globalDataFile);
+    if ((symbolId = findReserved()) != -1 && symbolId != -2) {
+        writeToken(symbolId, globalDataFile);
     } else {
         /* Ignore the symbol if it was meant for the tokenizer (-2) */
         if (symbolId == -2) {
             return (TRUE);
         }
 
-        if ((symbolId = Find_Symbol()) == -1) {
+        if ((symbolId = findSymbol()) == -1) {
             if (++numberOfSymbols < maxSymbols) {
                 if ((symbolTable[numberOfSymbols] =
                             new char[strlen(string) + 1]) == nullptr) {
-                    Token_Error(globalDataFile,
+                    tokenError(globalDataFile,
                         "Out of memory. Cannot allocate space for identifier");
                 }
 
@@ -841,7 +841,7 @@ DataFile::readSymbol()
             }
         }
 
-        Write_Token(LAST_TOKEN + symbolId, globalDataFile);
+        writeToken(LAST_TOKEN + symbolId, globalDataFile);
     }
 
     return (TRUE);
@@ -850,7 +850,7 @@ DataFile::readSymbol()
 /* Return the index the token in the reserved words table or -1 if it
     isn't there. */
 int
-Find_Reserved()
+findReserved()
 {
     register int i;
 
@@ -889,7 +889,7 @@ Find_Reserved()
      its symbol ID. */
 
 int
-Find_Symbol()
+findSymbol()
 {
     register int i;
 
@@ -911,7 +911,7 @@ Find_Symbol()
 
 /* Write a token out to the token file */
 void
-Write_Token(TOKEN tokenId, DataFile *globalDataFile)
+writeToken(TOKEN tokenId, DataFile *globalDataFile)
 {
     globalToken.Token_Id = tokenId;
     globalToken.Token_Line_No = globalDataFile->Line_Number;
@@ -927,7 +927,7 @@ Write_Token(TOKEN tokenId, DataFile *globalDataFile)
 
 /* Report an error */
 void
-Token_Error(DataFile *globalDataFile, const char *str)
+tokenError(DataFile *globalDataFile, const char *str)
 {
     fprintf(stderr, "Error in %s line %d\n", globalDataFile->Filename,
         globalDataFile->Line_Number);

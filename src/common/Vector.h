@@ -130,7 +130,7 @@ extern DBL VTemp;
         (a).z = 0.5 * ((b).z + (c).z);                                         \
     }
 
-#define Make_Vector(v, a, b, c)                                                \
+#define makeVector(v, a, b, c)                                                \
     {                                                                          \
         (v)->x = (a);                                                          \
         (v)->y = (b);                                                          \

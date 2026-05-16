@@ -219,7 +219,7 @@ MTransNormal(Vector3D *result, Vector3D *vector, Transformation *transformation)
 }
 
 void
-Get_Scaling_Transformation(Transformation *result, Vector3D *vector)
+getScalingTransformation(Transformation *result, Vector3D *vector)
 {
     MIdentity((MATRIX *)result->matrix);
     (result->matrix)[0][0] = vector->x;
@@ -233,7 +233,7 @@ Get_Scaling_Transformation(Transformation *result, Vector3D *vector)
 }
 
 void
-Get_Translation_Transformation(Transformation *transformation, Vector3D *vector)
+getTranslationTransformation(Transformation *transformation, Vector3D *vector)
 {
     MIdentity((MATRIX *)transformation->matrix);
     (transformation->matrix)[3][0] = vector->x;
@@ -247,7 +247,7 @@ Get_Translation_Transformation(Transformation *transformation, Vector3D *vector)
 }
 
 void
-Get_Rotation_Transformation(Transformation *transformation, Vector3D *vector)
+getRotationTransformation(Transformation *transformation, Vector3D *vector)
 {
     MATRIX matrix;
     Vector3D radianVector;
@@ -298,7 +298,7 @@ Get_Rotation_Transformation(Transformation *transformation, Vector3D *vector)
 }
 
 void
-Compose_Transformations(
+composeTransformations(
     Transformation *originalTransformation, Transformation *newTransformation)
 {
     MTimes((MATRIX *)originalTransformation->matrix,
@@ -311,7 +311,7 @@ Compose_Transformations(
 }
 
 Transformation *
-Get_Transformation()
+getTransformation()
 {
     Transformation *newTransformation;
 
@@ -369,7 +369,7 @@ MScale(MATRIX *result, MATRIX *matrix1, DBL amount)
 }
 
 void
-Get_Inversion_Transformation(Transformation *result)
+getInversionTransformation(Transformation *result)
 {
     MIdentity((MATRIX *)result->matrix);
     (result->matrix)[0][0] = -1.0;
@@ -384,7 +384,7 @@ Get_Inversion_Transformation(Transformation *result)
 }
 
 void
-Get_Look_At_Transformation(
+getLookAtTransformation(
     Transformation *result, Vector3D *Look_At, Vector3D *Up, Vector3D *Right)
 {
     MIdentity((MATRIX *)result->inverse);

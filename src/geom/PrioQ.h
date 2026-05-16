@@ -8,7 +8,7 @@ class PriorityQueue;
 
 extern PriorityQueue *GLOBAL_priorityQueue;
 extern PriorityQueueNode *GLOBAL_priorityQueuesHead;
-extern PriorityQueueNode *pq_init(void);
-extern PriorityQueueNode *pq_pop(int index_size);
+extern PriorityQueueNode *pqInit(void);
+extern PriorityQueueNode *pqPop(int index_size);
 
 #endif

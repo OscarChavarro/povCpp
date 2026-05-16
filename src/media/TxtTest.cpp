@@ -71,7 +71,7 @@ painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
     temp = result.x;
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, temp);
+        computeColour(&newColour, texture->Colour_Map, temp);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -98,12 +98,12 @@ painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     /* testing. If the texture works out right you can change the parser later.
      */
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&colour1, texture->Colour_Map, 0.1);
-        Compute_Colour(&colour2, texture->Colour_Map, 0.9);
+        computeColour(&colour1, texture->Colour_Map, 0.1);
+        computeColour(&colour2, texture->Colour_Map, 0.9);
     } else {
-        Make_Colour(&colour1, 1.0, 1.0, 1.0);
+        makeColour(&colour1, 1.0, 1.0, 1.0);
         colour1.Alpha = 0.0;
-        Make_Colour(&colour2, 0.0, 1.0, 0.0);
+        makeColour(&colour2, 0.0, 1.0, 0.0);
         colour2.Alpha = 0.0;
     }
 

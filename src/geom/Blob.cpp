@@ -29,11 +29,11 @@
 
 /*===========================================================================*/
 
-Methods Blob_Methods = {Object_Intersect, All_Blob_Intersections, Inside_Blob,
-    Blob_Normal, Copy_Blob, Translate_Blob, Rotate_Blob, Scale_Blob,
-    Invert_Blob};
+Methods Blob_Methods = {objectIntersect, allBlobIntersections, insideBlob,
+    blobNormal, copyBlob, translateBlob, rotateBlob, scaleBlob,
+    invertBlob};
 
-extern Blob *Get_Blob_Shape();
+extern Blob *getBlobShape();
 
 extern Ray *vpRay;
 extern long rayBlobTests, rayBlobTestsSucceeded;
@@ -319,7 +319,7 @@ validateHit(Blob *blob, Vector3D *p)
     root solvers that are available.
 */
 int
-All_Blob_Intersections(
+allBlobIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Blob *blob = (Blob *)object;
@@ -421,12 +421,12 @@ All_Blob_Intersections(
         /* Figure out which root solver to use */
         if (blob->Sturm_Flag == 0) {
             /* Use Ferrari's method */
-            rootCount = solve_quartic(coeffs, &roots[0]);
+            rootCount = solveQuartic(coeffs, &roots[0]);
         } else
             /* Sturm sequences */
             if (fabs(coeffs[0]) < COEFF_LIMIT) {
                 if (fabs(coeffs[1]) < COEFF_LIMIT) {
-                    rootCount = solve_quadratic(&coeffs[2], &roots[0]);
+                    rootCount = solveQuadratic(&coeffs[2], &roots[0]);
                 } else {
                     rootCount = polysolve(3, &coeffs[1], &roots[0]);
                 }
@@ -472,7 +472,7 @@ All_Blob_Intersections(
 /* Calculate the density at this point, then compare to
     the threshold to see if we are in or out of the blob */
 int
-Inside_Blob(Vector3D *testPoint, SimpleBody *object)
+insideBlob(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D newPoint;
     Blob *blob = (Blob *)object;
@@ -492,7 +492,7 @@ Inside_Blob(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-Blob_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+blobNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Vector3D newPoint;
     Vector3D v;
@@ -551,13 +551,13 @@ Blob_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 }
 
 void *
-Copy_Blob(SimpleBody *object)
+copyBlob(SimpleBody *object)
 {
     Blob *blob;
     Blob *oldShape = (Blob *)object;
     Transformation *tr;
 
-    blob = Get_Blob_Shape();
+    blob = getBlobShape();
     memcpy(blob, oldShape, sizeof(Blob));
     blob->Next_Object = nullptr;
 
@@ -576,63 +576,63 @@ Copy_Blob(SimpleBody *object)
 
     /* Copy any associated transformation */
     if (blob->Transform != nullptr) {
-        tr = Get_Transformation();
+        tr = getTransformation();
         memcpy(tr, blob->Transform, sizeof(Transformation));
         blob->Transform = tr;
     }
 
     /* Copy any associated texture */
     if (blob->Shape_Texture != nullptr) {
-        blob->Shape_Texture = Copy_Texture(blob->Shape_Texture);
+        blob->Shape_Texture = copyTexture(blob->Shape_Texture);
     }
 
     return (blob);
 }
 
 void
-Translate_Blob(SimpleBody *object, Vector3D *vector)
+translateBlob(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
     if (blob->Transform == nullptr) {
-        blob->Transform = Get_Transformation();
+        blob->Transform = getTransformation();
     }
-    Get_Translation_Transformation(&transform, vector);
-    Compose_Transformations(blob->Transform, &transform);
+    getTranslationTransformation(&transform, vector);
+    composeTransformations(blob->Transform, &transform);
 
-    Translate_Texture(&((Blob *)object)->Shape_Texture, vector);
+    translateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Blob(SimpleBody *object, Vector3D *vector)
+rotateBlob(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
     if (blob->Transform == nullptr) {
-        blob->Transform = Get_Transformation();
+        blob->Transform = getTransformation();
     }
-    Get_Rotation_Transformation(&transform, vector);
-    Compose_Transformations(blob->Transform, &transform);
+    getRotationTransformation(&transform, vector);
+    composeTransformations(blob->Transform, &transform);
 
-    Rotate_Texture(&((Blob *)object)->Shape_Texture, vector);
+    rotateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Blob(SimpleBody *object, Vector3D *vector)
+scaleBlob(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
     if (blob->Transform == nullptr) {
-        blob->Transform = Get_Transformation();
+        blob->Transform = getTransformation();
     }
-    Get_Scaling_Transformation(&transform, vector);
-    Compose_Transformations(blob->Transform, &transform);
+    getScalingTransformation(&transform, vector);
+    composeTransformations(blob->Transform, &transform);
 
-    Scale_Texture(&((Blob *)object)->Shape_Texture, vector);
+    scaleTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Blob(SimpleBody *object)
+invertBlob(SimpleBody *object)
 {
     ((Blob *)object)->Inverted = 1 - ((Blob *)object)->Inverted;
 }

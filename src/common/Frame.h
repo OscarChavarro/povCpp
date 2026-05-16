@@ -25,9 +25,9 @@
 
 /* Generic header for all modules */
 #include "common/Config.h"
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #ifndef DBL
 #define DBL double
@@ -195,11 +195,11 @@
 #endif
 
 #ifndef PRINT_CREDITS
-#define PRINT_CREDITS print_credits();
+#define PRINT_CREDITS printCredits();
 #endif
 
 #ifndef PRINT_STATS
-#define PRINT_STATS print_stats();
+#define PRINT_STATS printStats();
 #endif
 
 #ifndef MAX_CONSTANTS

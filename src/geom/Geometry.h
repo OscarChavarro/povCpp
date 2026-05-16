@@ -32,7 +32,7 @@ class Methods;
 class Geometry;
 class SimpleBody;
 
-#define All_Intersections(x, y, z)                                             \
+#define allIntersections(x, y, z)                                             \
     ((*((x)->methods->All_Intersections_Method))(x, y, z))
 #define Intersection(x, y)                                                     \
     ((Intersection *)((*((x)->methods->Intersection_Method))(x, y)))

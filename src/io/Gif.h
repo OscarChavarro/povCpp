@@ -3,8 +3,8 @@
 
 #include "geom/Geometry.h"
 
-extern int out_line(unsigned char *pixels, int linelen);
-extern int get_byte(void);
-extern void Read_Gif_Image(RGBAImage *Image, char *filename);
+extern int outLine(unsigned char *pixels, int linelen);
+extern int getByte(void);
+extern void readGifImage(RGBAImage *Image, char *filename);
 
 #endif

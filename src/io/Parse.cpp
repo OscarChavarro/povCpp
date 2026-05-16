@@ -78,7 +78,7 @@ makes the code easier to read. */
         int Exit_Flag;                                                         \
         Exit_Flag = FALSE;                                                     \
         while (!Exit_Flag) {                                                   \
-            Get_Token();                                                       \
+            getToken();                                                       \
             switch (globalToken.Token_Id) {
 #define CASE(x) case x:
 #define CASE2(x, y)                                                            \
@@ -114,10 +114,10 @@ makes the code easier to read. */
     }                                                                          \
     }
 #define GET(x)                                                                 \
-    Get_Token();                                                               \
+    getToken();                                                               \
     if (globalToken.Token_Id != x)                                             \
-    Parse_Error(x)
-#define UNGET Unget_Token();
+    parseError(x)
+#define UNGET ungetToken();
 
 /* Parse the file into the given frame. */
 void
@@ -127,9 +127,9 @@ Parse(Frame *framePtr)
     parsingFramePtr = framePtr;
 
     degenerateTriangles = FALSE;
-    Token_Init();
-    Frame_Init();
-    Parse_Frame();
+    tokenInit();
+    frameInit();
+    parseFrame();
     for (object = parsingFramePtr->Objects; object != nullptr;
          object = object->Next_Object) {
         postProcessObject(object);
@@ -142,7 +142,7 @@ Parse(Frame *framePtr)
 }
 
 void
-Token_Init()
+tokenInit()
 {
     numberOfConstants = 0;
     /*
@@ -152,21 +152,21 @@ Token_Init()
 
 /* Set up the fields in the frame to default values. */
 void
-Frame_Init()
+frameInit()
 {
-    Default_Texture = Get_Texture();
+    Default_Texture = getTexture();
     parsingFramePtr->View_Point.initializeDefaults();
     parsingFramePtr->Light_Sources = nullptr;
     parsingFramePtr->Objects = nullptr;
     parsingFramePtr->Atmosphere_IOR = 1.0;
     parsingFramePtr->Antialias_Threshold = antialiasThreshold;
     parsingFramePtr->Fog_Distance = 0.0;
-    Make_Colour(&(parsingFramePtr->Fog_Colour), 0.0, 0.0, 0.0);
+    makeColour(&(parsingFramePtr->Fog_Colour), 0.0, 0.0, 0.0);
 }
 
 /* Allocate and initialize a composite object. */
 Composite *
-Get_Composite_Object()
+getCompositeObject()
 {
     Composite *newComposite;
 
@@ -187,7 +187,7 @@ Get_Composite_Object()
 
 /* Allocate and initialize a sphere. */
 Sphere *
-Get_Sphere_Shape()
+getSphereShape()
 {
     Sphere *newShape;
 
@@ -196,7 +196,7 @@ Get_Sphere_Shape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    Make_Vector(&(newShape->Center), 0.0, 0.0, 0.0);
+    makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
     newShape->Radius = 1.0;
     newShape->Radius_Squared = 1.0;
     newShape->Inverse_Radius = 1.0;
@@ -213,7 +213,7 @@ Get_Sphere_Shape()
 /* Allocate and initialize a light source. */
 /* A point light source has no shape, but we'll treat it like it does */
 Light *
-Get_Light_Source_Shape()
+getLightSourceShape()
 {
     Light *newShape;
 
@@ -221,15 +221,15 @@ Get_Light_Source_Shape()
     if (newShape == nullptr) {
         Error("Out of memory. Cannot allocate shape");
     }
-    Make_Vector(&(newShape->Center), 0.0, 0.0, 0.0);
-    Make_Vector(&(newShape->Points_At), 0.0, 0.0, 1.0);
+    makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
+    makeVector(&(newShape->Points_At), 0.0, 0.0, 1.0);
     newShape->Type = POINT_LIGHT_TYPE;
     newShape->methods = &Point_Methods;
     newShape->Next_Object = nullptr;
     newShape->Inverted = FALSE; /* needed so CSG routines don't blow up */
     newShape->Shape_Texture = nullptr;     /* always NULL */
-    newShape->Shape_Colour = Get_Colour(); /* becomes light colour */
-    Make_Colour(newShape->Shape_Colour, 1.0, 1.0, 1.0);
+    newShape->Shape_Colour = getColour(); /* becomes light colour */
+    makeColour(newShape->Shape_Colour, 1.0, 1.0, 1.0);
     newShape->Shape_Colour->Alpha = 0.0;
     newShape->Coeff = 10.0;
     newShape->Radius = 0.35;
@@ -239,7 +239,7 @@ Get_Light_Source_Shape()
 
 /* Allocate and initialize a quadric surface. */
 Quadric *
-Get_Quadric_Shape()
+getQuadricShape()
 {
     Quadric *newShape;
 
@@ -248,9 +248,9 @@ Get_Quadric_Shape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    Make_Vector(&(newShape->Object_2_Terms), 1.0, 1.0, 1.0);
-    Make_Vector(&(newShape->Object_Mixed_Terms), 0.0, 0.0, 0.0);
-    Make_Vector(&(newShape->Object_Terms), 0.0, 0.0, 0.0);
+    makeVector(&(newShape->Object_2_Terms), 1.0, 1.0, 1.0);
+    makeVector(&(newShape->Object_Mixed_Terms), 0.0, 0.0, 0.0);
+    makeVector(&(newShape->Object_Terms), 0.0, 0.0, 0.0);
     newShape->Object_Constant = 1.0;
     newShape->Object_VP_Constant = HUGE_VAL;
     newShape->Constant_Cached = FALSE;
@@ -265,7 +265,7 @@ Get_Quadric_Shape()
 
 /* Allocate and initialize a polynomial surface. */
 Poly *
-Get_Poly_Shape(int order)
+getPolyShape(int order)
 {
     Poly *newShape;
     int i;
@@ -296,7 +296,7 @@ Get_Poly_Shape(int order)
 
 /* Allocate and initialize a box. */
 Box *
-Get_Box_Shape()
+getBoxShape()
 {
     Box *newShape;
 
@@ -305,8 +305,8 @@ Get_Box_Shape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    Make_Vector(&(newShape->bounds[0]), -1.0, -1.0, -1.0);
-    Make_Vector(&(newShape->bounds[1]), 1.0, 1.0, 1.0);
+    makeVector(&(newShape->bounds[0]), -1.0, -1.0, -1.0);
+    makeVector(&(newShape->bounds[1]), 1.0, 1.0, 1.0);
     newShape->Transform = nullptr;
     newShape->Type = BOX_TYPE;
     newShape->Next_Object = nullptr;
@@ -319,7 +319,7 @@ Get_Box_Shape()
 
 /* Allocate a blob. */
 Blob *
-Get_Blob_Shape()
+getBlobShape()
 {
     Blob *newShape;
 
@@ -340,7 +340,7 @@ Get_Blob_Shape()
 
 /* Allocate and initialize a bicubic patch surface. */
 BicubicPatch *
-Get_Bicubic_Patch_Shape()
+getBicubicPatchShape()
 {
     BicubicPatch *newShape;
 
@@ -366,7 +366,7 @@ Get_Bicubic_Patch_Shape()
 
 /* Allocate and intialize a Height Field */
 HeightField *
-Get_Height_Field_Shape()
+getHeightFieldShape()
 {
     HeightField *newShape;
 
@@ -374,9 +374,9 @@ Get_Height_Field_Shape()
     if (newShape == nullptr) {
         Error("Out of memory. Cannot allocate shape");
     }
-    newShape->bounding_box = Get_Box_Shape();
+    newShape->bounding_box = getBoxShape();
     newShape->Map = nullptr;
-    newShape->transformation = Get_Transformation();
+    newShape->transformation = getTransformation();
     newShape->Type = HEIGHT_FIELD_TYPE;
     newShape->Next_Object = nullptr;
     newShape->methods = &Height_Field_Methods;
@@ -387,7 +387,7 @@ Get_Height_Field_Shape()
 
 /* Allocate and initialize a plane. */
 InfinitePlane *
-Get_Plane_Shape()
+getPlaneShape()
 {
     InfinitePlane *newShape;
 
@@ -396,7 +396,7 @@ Get_Plane_Shape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    Make_Vector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = PLANE_TYPE;
     newShape->Next_Object = nullptr;
@@ -409,7 +409,7 @@ Get_Plane_Shape()
 
 /* Allocate and initialize a triangle. */
 Triangle *
-Get_Triangle_Shape()
+getTriangleShape()
 {
     Triangle *newShape;
 
@@ -418,10 +418,10 @@ Get_Triangle_Shape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    Make_Vector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
-    Make_Vector(&(newShape->P1), 0.0, 0.0, 0.0);
-    Make_Vector(&(newShape->P2), 1.0, 0.0, 0.0);
-    Make_Vector(&(newShape->P3), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
+    makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
+    makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Inverted = FALSE;
     newShape->Type = TRIANGLE_TYPE;
@@ -436,7 +436,7 @@ Get_Triangle_Shape()
 
 /* Allocate and initialize a smooth triangle. */
 SmoothTriangle *
-Get_Smooth_Triangle_Shape()
+getSmoothTriangleShape()
 {
     SmoothTriangle *newShape;
 
@@ -445,13 +445,13 @@ Get_Smooth_Triangle_Shape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    Make_Vector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
-    Make_Vector(&(newShape->P1), 0.0, 0.0, 0.0);
-    Make_Vector(&(newShape->P2), 1.0, 0.0, 0.0);
-    Make_Vector(&(newShape->P3), 0.0, 1.0, 0.0);
-    Make_Vector(&(newShape->N1), 0.0, 1.0, 0.0);
-    Make_Vector(&(newShape->N2), 0.0, 1.0, 0.0);
-    Make_Vector(&(newShape->N3), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
+    makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
+    makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->N1), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->N2), 0.0, 1.0, 0.0);
+    makeVector(&(newShape->N3), 0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = FALSE;
@@ -465,7 +465,7 @@ Get_Smooth_Triangle_Shape()
 }
 
 CSG *
-Get_CSG_Shape()
+getCsgShape()
 {
     CSG *newShape;
 
@@ -481,29 +481,29 @@ Get_CSG_Shape()
 }
 
 CSG *
-Get_CSG_Union()
+getCsgUnion()
 {
     CSG *newShape;
 
-    newShape = Get_CSG_Shape();
+    newShape = getCsgShape();
     newShape->methods = &CSG_Union_Methods;
     newShape->Type = CSG_UNION_TYPE;
     return (newShape);
 }
 
 CSG *
-Get_CSG_Intersection()
+getCsgIntersection()
 {
     CSG *newShape;
 
-    newShape = Get_CSG_Shape();
+    newShape = getCsgShape();
     newShape->methods = &CSG_Intersection_Methods;
     newShape->Type = CSG_INTERSECTION_TYPE;
     return (newShape);
 }
 
 Viewpoint *
-Get_Viewpoint()
+getViewpoint()
 {
     Viewpoint *newViewpoint;
 
@@ -517,7 +517,7 @@ Get_Viewpoint()
 }
 
 RGBAColor *
-Get_Colour()
+getColour()
 {
     RGBAColor *newColour;
 
@@ -526,12 +526,12 @@ Get_Colour()
         Error("Out of memory. Cannot allocate colour");
     }
 
-    Make_Colour(newColour, 0.0, 0.0, 0.0);
+    makeColour(newColour, 0.0, 0.0, 0.0);
     return (newColour);
 }
 
 Vector3D *
-Get_Vector()
+getVector()
 {
     Vector3D *newVector;
 
@@ -547,7 +547,7 @@ Get_Vector()
 }
 
 DBL *
-Get_Float()
+getFloat()
 {
     DBL *newFloat;
 
@@ -562,7 +562,7 @@ Get_Float()
 
 /* Parse a float.  Doesn't handle exponentiation. */
 DBL
-Parse_Float()
+parseFloat()
 {
     DBL localFloat = 0.0;
     CONSTANT constantId;
@@ -574,14 +574,14 @@ Parse_Float()
 
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == FLOAT_CONSTANT) {
             localFloat = *((DBL *)constants[(int)constantId].Constant_Data);
             if (negative) {
                 localFloat *= -1.0;
             }
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
@@ -590,14 +590,14 @@ Parse_Float()
 
     CASE(PLUS_TOKEN) if (signParsed)
     {
-        Parse_Error(FLOAT_TOKEN);
+        parseError(FLOAT_TOKEN);
     }
     signParsed = TRUE;
     END_CASE
 
     CASE(DASH_TOKEN)
     if (signParsed) {
-        Parse_Error(FLOAT_TOKEN);
+        parseError(FLOAT_TOKEN);
     }
     negative = TRUE;
     signParsed = TRUE;
@@ -610,7 +610,7 @@ Parse_Float()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(FLOAT_TOKEN);
+        OTHERWISE parseError(FLOAT_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -618,66 +618,66 @@ Parse_Float()
 }
 
 void
-Parse_Vector(Vector3D *givenVector)
+parseVector(Vector3D *givenVector)
 {
     CONSTANT constantId;
 
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == VECTOR_CONSTANT) {
             *givenVector =
                 *((Vector3D *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
     }
     EXIT END_CASE
 
-        CASE(LEFT_ANGLE_TOKEN)(givenVector->x) = Parse_Float();
-    (givenVector->y) = Parse_Float();
-    (givenVector->z) = Parse_Float();
+        CASE(LEFT_ANGLE_TOKEN)(givenVector->x) = parseFloat();
+    (givenVector->y) = parseFloat();
+    (givenVector->z) = parseFloat();
     GET(RIGHT_ANGLE_TOKEN);
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 }
 
 void
-Parse_Coeffs(int order, DBL *givenCoeffs)
+parseCoeffs(int order, DBL *givenCoeffs)
 {
     int i;
 
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     for (i = 0; i < termCounts[order]; i++) {
-        givenCoeffs[i] = Parse_Float();
+        givenCoeffs[i] = parseFloat();
     }
     GET(RIGHT_ANGLE_TOKEN);
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 }
 
 void
-Parse_Colour(RGBAColor *givenColour)
+parseColour(RGBAColor *givenColour)
 {
     CONSTANT constantId;
-    Make_Colour(givenColour, 0.0, 0.0, 0.0);
+    makeColour(givenColour, 0.0, 0.0, 0.0);
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == COLOUR_CONSTANT) {
             *givenColour =
                 *((RGBAColor *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
@@ -685,19 +685,19 @@ Parse_Colour(RGBAColor *givenColour)
     END_CASE
 
     CASE(RED_TOKEN)
-    (givenColour->Red) = Parse_Float();
+    (givenColour->Red) = parseFloat();
     END_CASE
 
     CASE(GREEN_TOKEN)
-    (givenColour->Green) = Parse_Float();
+    (givenColour->Green) = parseFloat();
     END_CASE
 
     CASE(BLUE_TOKEN)
-    (givenColour->Blue) = Parse_Float();
+    (givenColour->Blue) = parseFloat();
     END_CASE
 
     CASE(ALPHA_TOKEN)
-    (givenColour->Alpha) = Parse_Float();
+    (givenColour->Alpha) = parseFloat();
     END_CASE
 
     OTHERWISE
@@ -706,7 +706,7 @@ Parse_Colour(RGBAColor *givenColour)
 }
 
 RGBAColorPalette *
-Parse_Colour_Map()
+parseColourMap()
 {
 #define MAX_ENTRIES 20
     RGBAColorPalette *newColourMap;
@@ -730,17 +730,17 @@ Parse_Colour_Map()
     GET(LEFT_CURLY_TOKEN);
     EXPECT
     CASE(LEFT_SQUARE_TOKEN)
-    constructionMap[i].start = Parse_Float();
-    constructionMap[i].end = Parse_Float();
+    constructionMap[i].start = parseFloat();
+    constructionMap[i].end = parseFloat();
 
     GET(COLOUR_TOKEN);
-    Parse_Colour(&(constructionMap[i].Start_Colour));
+    parseColour(&(constructionMap[i].Start_Colour));
     if (constructionMap[i].Start_Colour.Alpha != 0.0) {
         newColourMap->Transparency_Flag = TRUE;
     }
 
     GET(COLOUR_TOKEN);
-    Parse_Colour(&(constructionMap[i].End_Colour));
+    parseColour(&(constructionMap[i].End_Colour));
     if (constructionMap[i].End_Colour.Alpha != 0.0) {
         newColourMap->Transparency_Flag = TRUE;
     }
@@ -766,7 +766,7 @@ Parse_Colour_Map()
 
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -774,7 +774,7 @@ Parse_Colour_Map()
 }
 
 Texture *
-Copy_Texture(Texture *texture)
+copyTexture(Texture *texture)
 {
     Texture *newTexture;
     Texture *localTexture;
@@ -785,7 +785,7 @@ Copy_Texture(Texture *texture)
 
     for (localTexture = texture; localTexture != nullptr;
          localTexture = localTexture->Next_Texture) {
-        newTexture = Get_Texture();
+        newTexture = getTexture();
         *newTexture = *localTexture;
 
         if (firstTexture == nullptr) {
@@ -811,7 +811,7 @@ Copy_Texture(Texture *texture)
 }
 
 Texture *
-Parse_Texture()
+parseTexture()
 {
     Vector3D localVector;
     CONSTANT constantId;
@@ -827,11 +827,11 @@ Parse_Texture()
 
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == TEXTURE_CONSTANT) {
             texture = ((Texture *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
@@ -841,15 +841,15 @@ Parse_Texture()
     CASE(FLOAT_TOKEN)
     UNGET
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Texture_Randomness = Parse_Float();
+    texture->Texture_Randomness = parseFloat();
     END_CASE
 
     CASE(ONCE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Once_Flag = TRUE;
@@ -857,18 +857,18 @@ Parse_Texture()
 
     CASE(TURBULENCE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Turbulence = Parse_Float();
+    texture->Turbulence = parseFloat();
     END_CASE
 
     CASE(OCTAVES_TOKEN) /* dmf 02/05 for turb */
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Octaves = (int)Parse_Float();
+    texture->Octaves = (int)parseFloat();
     if (texture->Octaves < 1) {
         texture->Octaves = 6;
     }
@@ -879,7 +879,7 @@ Parse_Texture()
 
     CASE(BOZO_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = BOZO_TEXTURE;
@@ -887,10 +887,10 @@ Parse_Texture()
 
     CASE(MORTAR_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Mortar = Parse_Float();
+    texture->Mortar = parseFloat();
     if (texture->Mortar < 0) {
         texture->Mortar = 0.2;
     }
@@ -898,17 +898,17 @@ Parse_Texture()
 
     CASE(BRICK_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = BRICK_TEXTURE;
     EXPECT
     CASE(COLOUR_TOKEN)
-    texture->Colour1 = Get_Colour();
-    texture->Colour2 = Get_Colour();
-    Parse_Colour(texture->Colour1);
+    texture->Colour1 = getColour();
+    texture->Colour2 = getColour();
+    parseColour(texture->Colour1);
     GET(COLOUR_TOKEN);
-    Parse_Colour(texture->Colour2);
+    parseColour(texture->Colour2);
     END_CASE
 
     OTHERWISE
@@ -917,17 +917,17 @@ Parse_Texture()
 
     CASE(CHECKER_TOKEN) if (texture->Constant_Flag)
     {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = CHECKER_TEXTURE;
     EXPECT
     CASE(COLOUR_TOKEN)
-    texture->Colour1 = Get_Colour();
-    texture->Colour2 = Get_Colour();
-    Parse_Colour(texture->Colour1);
+    texture->Colour1 = getColour();
+    texture->Colour2 = getColour();
+    parseColour(texture->Colour1);
     GET(COLOUR_TOKEN);
-    Parse_Colour(texture->Colour2);
+    parseColour(texture->Colour2);
     END_CASE
 
     OTHERWISE
@@ -936,7 +936,7 @@ Parse_Texture()
 
     CASE(CHECKER_TEXTURE_TOKEN) if (texture->Constant_Flag)
     {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = CHECKER_TEXTURE_TEXTURE;
@@ -945,9 +945,9 @@ Parse_Texture()
 
     EXPECT
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -965,9 +965,9 @@ Parse_Texture()
         GET(TILE2_TOKEN);
     EXPECT
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     {
@@ -986,7 +986,7 @@ Parse_Texture()
 
     CASE(MARBLE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = MARBLE_TEXTURE;
@@ -994,7 +994,7 @@ Parse_Texture()
 
     CASE(WOOD_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = WOOD_TEXTURE;
@@ -1002,7 +1002,7 @@ Parse_Texture()
 
     CASE(SPOTTED_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = SPOTTED_TEXTURE;
@@ -1010,7 +1010,7 @@ Parse_Texture()
 
     CASE(AGATE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = AGATE_TEXTURE;
@@ -1018,7 +1018,7 @@ Parse_Texture()
 
     CASE(GRANITE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = GRANITE_TEXTURE;
@@ -1026,35 +1026,35 @@ Parse_Texture()
 
     CASE(GRADIENT_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = GRADIENT_TEXTURE;
-    Parse_Vector(&(texture->Texture_Gradient));
+    parseVector(&(texture->Texture_Gradient));
     END_CASE
 
     CASE(AMBIENT_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Ambient) = Parse_Float();
+    (texture->Object_Ambient) = parseFloat();
     END_CASE
 
     CASE(BRILLIANCE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Brilliance) = Parse_Float();
+    (texture->Object_Brilliance) = parseFloat();
     END_CASE
 
     CASE(ROUGHNESS_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Roughness) = Parse_Float();
+    (texture->Object_Roughness) = parseFloat();
     /* No training wheels */
     /* if (texture -> Object_Roughness > 1.0)
         texture -> Object_Roughness = 1.0;
@@ -1064,10 +1064,10 @@ Parse_Texture()
 
     CASE(PHONGSIZE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_PhongSize) = Parse_Float();
+    (texture->Object_PhongSize) = parseFloat();
     /* No training wheels */
     /*if (texture -> Object_PhongSize < 1.0)
         texture -> Object_PhongSize = 1.0;
@@ -1077,31 +1077,31 @@ Parse_Texture()
 
     CASE(DIFFUSE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Diffuse) = Parse_Float();
+    (texture->Object_Diffuse) = parseFloat();
     END_CASE
 
     CASE(SPECULAR_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Specular) = Parse_Float();
+    (texture->Object_Specular) = parseFloat();
     END_CASE
 
     CASE(PHONG_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Phong) = Parse_Float();
+    (texture->Object_Phong) = parseFloat();
     END_CASE
 
     CASE(METALLIC_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Metallic_Flag = TRUE;
@@ -1109,39 +1109,39 @@ Parse_Texture()
 
     CASE(IOR_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Index_Of_Refraction) = Parse_Float();
+    (texture->Object_Index_Of_Refraction) = parseFloat();
     END_CASE
 
     CASE(REFRACTION_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Refraction) = Parse_Float();
+    (texture->Object_Refraction) = parseFloat();
     END_CASE
 
     CASE(TRANSMIT_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Transmit) = Parse_Float();
+    (texture->Object_Transmit) = parseFloat();
     END_CASE
 
     CASE(REFLECTION_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    (texture->Object_Reflection) = Parse_Float();
+    (texture->Object_Reflection) = parseFloat();
     END_CASE
 
     CASE(IMAGEMAP_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = IMAGEMAP_TEXTURE;
@@ -1149,7 +1149,7 @@ Parse_Texture()
     if (texture->Image == nullptr) {
         Error("Out of memory. Cannot allocate imagemap texture");
     }
-    Make_Vector(&texture->Image->Image_Gradient, 1.0, -1.0, 0.0);
+    makeVector(&texture->Image->Image_Gradient, 1.0, -1.0, 0.0);
     texture->Image->Map_Type = PLANAR_MAP;
     texture->Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Image->Once_Flag = FALSE;
@@ -1159,32 +1159,32 @@ Parse_Texture()
 
     EXPECT
     CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET(texture->Image->Map_Type) = (int)Parse_Float();
+    UNGET(texture->Image->Map_Type) = (int)parseFloat();
     END_CASE
 
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    Parse_Vector(&(texture->Image->Image_Gradient));
+    parseVector(&(texture->Image->Image_Gradient));
     END_CASE
 
     CASE(IFF_TOKEN)
     GET(STRING_TOKEN);
-    Read_Iff_Image(texture->Image, globalToken.Token_String);
+    readIffImage(texture->Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(GIF_TOKEN) GET(STRING_TOKEN);
-    Read_Gif_Image(texture->Image, globalToken.Token_String);
+    readGifImage(texture->Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(TGA_TOKEN) GET(STRING_TOKEN);
-    Read_Targa_Image(texture->Image, globalToken.Token_String);
+    readTargaImage(texture->Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(DUMP_TOKEN) GET(STRING_TOKEN);
-    Read_Dump_Image(texture->Image, globalToken.Token_String);
+    readDumpImage(texture->Image, globalToken.Token_String);
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(GIF_TOKEN);
+        OTHERWISE parseError(GIF_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1194,11 +1194,11 @@ Parse_Texture()
     END_CASE
 
     CASE(INTERPOLATE_TOKEN)
-    texture->Image->Interpolation_Type = (int)Parse_Float();
+    texture->Image->Interpolation_Type = (int)parseFloat();
     END_CASE
 
     CASE(MAPTYPE_TOKEN)
-    (texture->Image->Map_Type) = (int)Parse_Float();
+    (texture->Image->Map_Type) = (int)parseFloat();
     END_CASE
 
     CASE(USE_COLOUR_TOKEN)
@@ -1222,13 +1222,13 @@ Parse_Texture()
     }
 
     texture->Image->Colour_Map[reg].Alpha =
-        (unsigned short)(255.0 * Parse_Float());
+        (unsigned short)(255.0 * parseFloat());
     EXIT END_CASE
 
     CASE(ALL_TOKEN)
     {
         DBL alpha;
-        alpha = Parse_Float();
+        alpha = parseFloat();
 
         for (reg = 0; reg < texture->Image->Colour_Map_Size; reg++) {
             texture->Image->Colour_Map[reg].Alpha =
@@ -1244,125 +1244,125 @@ Parse_Texture()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
     END_CASE
 
     CASE(WAVES_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = WAVES;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     EXPECT
     CASE(PHASE_TOKEN)
-    texture->Phase = Parse_Float();
+    texture->Phase = parseFloat();
     EXIT END_CASE
 
         OTHERWISE UNGET EXIT END_CASE END_EXPECT END_CASE
 
         CASE(FREQUENCY_TOKEN) if (texture->Constant_Flag)
     {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Frequency = Parse_Float();
+    texture->Frequency = parseFloat();
     END_CASE
 
     CASE(PHASE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Phase = Parse_Float();
+    texture->Phase = parseFloat();
     END_CASE
 
     CASE(RIPPLES_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = RIPPLES;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(WRINKLES_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = WRINKLES;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(BUMPS_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPS;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(DENTS_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = DENTS;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(TRANSLATE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    Parse_Vector(&localVector);
-    Translate_Texture(&texture, &localVector);
+    parseVector(&localVector);
+    translateTexture(&texture, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    Parse_Vector(&localVector);
-    Rotate_Texture(&texture, &localVector);
+    parseVector(&localVector);
+    rotateTexture(&texture, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    Parse_Vector(&localVector);
-    Scale_Texture(&texture, &localVector);
+    parseVector(&localVector);
+    scaleTexture(&texture, &localVector);
     END_CASE
 
     CASE(COLOUR_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Colour1 = Get_Colour();
-    Parse_Colour(texture->Colour1);
+    texture->Colour1 = getColour();
+    parseColour(texture->Colour1);
     texture->Texture_Number = COLOUR_TEXTURE;
     END_CASE
 
     CASE(COLOUR_MAP_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Colour_Map = Parse_Colour_Map();
+    texture->Colour_Map = parseColourMap();
     END_CASE
 
     CASE(ONION_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = ONION_TEXTURE;
@@ -1370,7 +1370,7 @@ Parse_Texture()
 
     CASE(LEOPARD_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = LEOPARD_TEXTURE;
@@ -1379,7 +1379,7 @@ Parse_Texture()
     /* New Texture Parsing - Cdw */
     CASE(PAINTED1_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED1_TEXTURE;
@@ -1387,7 +1387,7 @@ Parse_Texture()
 
     CASE(PAINTED2_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED2_TEXTURE;
@@ -1395,7 +1395,7 @@ Parse_Texture()
 
     CASE(PAINTED3_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED3_TEXTURE;
@@ -1403,34 +1403,34 @@ Parse_Texture()
 
     CASE(BUMPY1_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY1;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(BUMPY2_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY2;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(BUMPY3_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY3;
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(BUMPMAP_TOKEN)
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPMAP;
@@ -1438,7 +1438,7 @@ Parse_Texture()
     if (texture->Bump_Image == nullptr) {
         Error("Out of memory. Cannot allocate bumpmap texture");
     }
-    Make_Vector(&texture->Bump_Image->Image_Gradient, 1.0, -1.0, 0.0);
+    makeVector(&texture->Bump_Image->Image_Gradient, 1.0, -1.0, 0.0);
     texture->Bump_Image->Map_Type = PLANAR_MAP;
     texture->Bump_Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Bump_Image->Once_Flag = FALSE;
@@ -1448,32 +1448,32 @@ Parse_Texture()
 
     EXPECT
     CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET(texture->Bump_Image->Map_Type) = (int)Parse_Float();
+    UNGET(texture->Bump_Image->Map_Type) = (int)parseFloat();
     END_CASE
 
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    Parse_Vector(&(texture->Bump_Image->Image_Gradient));
+    parseVector(&(texture->Bump_Image->Image_Gradient));
     END_CASE
 
     CASE(IFF_TOKEN)
     GET(STRING_TOKEN);
-    Read_Iff_Image(texture->Bump_Image, globalToken.Token_String);
+    readIffImage(texture->Bump_Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(GIF_TOKEN) GET(STRING_TOKEN);
-    Read_Gif_Image(texture->Bump_Image, globalToken.Token_String);
+    readGifImage(texture->Bump_Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(TGA_TOKEN) GET(STRING_TOKEN);
-    Read_Targa_Image(texture->Bump_Image, globalToken.Token_String);
+    readTargaImage(texture->Bump_Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(DUMP_TOKEN) GET(STRING_TOKEN);
-    Read_Dump_Image(texture->Bump_Image, globalToken.Token_String);
+    readDumpImage(texture->Bump_Image, globalToken.Token_String);
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(GIF_TOKEN);
+        OTHERWISE parseError(GIF_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1483,15 +1483,15 @@ Parse_Texture()
     END_CASE
 
     CASE(MAPTYPE_TOKEN)
-    (texture->Bump_Image->Map_Type) = (int)Parse_Float();
+    (texture->Bump_Image->Map_Type) = (int)parseFloat();
     END_CASE
 
     CASE(INTERPOLATE_TOKEN)
-    texture->Bump_Image->Interpolation_Type = (int)Parse_Float();
+    texture->Bump_Image->Interpolation_Type = (int)parseFloat();
     END_CASE
 
     CASE(BUMPSIZE_TOKEN)
-    texture->Bump_Amount = Parse_Float();
+    texture->Bump_Amount = parseFloat();
     END_CASE
 
     CASE(USE_COLOUR_TOKEN)
@@ -1502,7 +1502,7 @@ Parse_Texture()
     END_CASE
 
     CASE(RIGHT_CURLY_TOKEN)
-    EXIT END_CASE OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+    EXIT END_CASE OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
     END_CASE
@@ -1510,7 +1510,7 @@ Parse_Texture()
     CASE(MATERIAL_MAP_TOKEN)
 
     if (texture->Constant_Flag) {
-        texture = Copy_Texture(texture);
+        texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = MATERIAL_MAP_TEXTURE;
@@ -1518,7 +1518,7 @@ Parse_Texture()
     if (texture->Material_Image == nullptr) {
         Error("Out of memory. Cannot allocate material map texture");
     }
-    Make_Vector(&texture->Texture_Gradient, 1.0, -1.0, 0.0);
+    makeVector(&texture->Texture_Gradient, 1.0, -1.0, 0.0);
     texture->Material_Image->Map_Type = PLANAR_MAP;
     texture->Material_Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Material_Image->Once_Flag = FALSE;
@@ -1528,32 +1528,32 @@ Parse_Texture()
 
     EXPECT
     CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
-    UNGET(texture->Image->Map_Type) = (int)Parse_Float();
+    UNGET(texture->Image->Map_Type) = (int)parseFloat();
     END_CASE
 
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    Parse_Vector(&(texture->Material_Image->Image_Gradient));
+    parseVector(&(texture->Material_Image->Image_Gradient));
     END_CASE
 
     CASE(IFF_TOKEN)
     GET(STRING_TOKEN);
-    Read_Iff_Image(texture->Material_Image, globalToken.Token_String);
+    readIffImage(texture->Material_Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(GIF_TOKEN) GET(STRING_TOKEN);
-    Read_Gif_Image(texture->Material_Image, globalToken.Token_String);
+    readGifImage(texture->Material_Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(TGA_TOKEN) GET(STRING_TOKEN);
-    Read_Targa_Image(texture->Material_Image, globalToken.Token_String);
+    readTargaImage(texture->Material_Image, globalToken.Token_String);
     EXIT END_CASE
 
         CASE(DUMP_TOKEN) GET(STRING_TOKEN);
-    Read_Dump_Image(texture->Material_Image, globalToken.Token_String);
+    readDumpImage(texture->Material_Image, globalToken.Token_String);
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(GIF_TOKEN);
+        OTHERWISE parseError(GIF_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1563,11 +1563,11 @@ Parse_Texture()
     EXPECT
 
     CASE(MAPTYPE_TOKEN)
-    (texture->Material_Image->Map_Type) = (int)Parse_Float();
+    (texture->Material_Image->Map_Type) = (int)parseFloat();
     END_CASE
 
     CASE(INTERPOLATE_TOKEN)
-    texture->Material_Image->Interpolation_Type = (int)Parse_Float();
+    texture->Material_Image->Interpolation_Type = (int)parseFloat();
     END_CASE
 
     CASE(ONCE_TOKEN)
@@ -1576,7 +1576,7 @@ Parse_Texture()
 
     CASE(TEXTURE_TOKEN)
     {
-        texture->Next_Material = Parse_Texture();
+        texture->Next_Material = parseTexture();
         firstTexture->Number_Of_Materials++;
         texture = texture->Next_Material;
     }
@@ -1592,7 +1592,7 @@ Parse_Texture()
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
     END_CASE
@@ -1600,14 +1600,14 @@ Parse_Texture()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
     return (texture);
 }
 
 Geometry *
-Parse_Light_Source()
+parseLightSource()
 {
     Light *localShape = nullptr;
     Vector3D localVector;
@@ -1618,22 +1618,22 @@ Parse_Light_Source()
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    localShape = Get_Light_Source_Shape();
-    Parse_Vector(&(localShape->Center));
-    localShape->Shape_Colour = Get_Colour();
-    Make_Colour(localShape->Shape_Colour, 1.0, 1.0, 1.0);
+    localShape = getLightSourceShape();
+    parseVector(&(localShape->Center));
+    localShape->Shape_Colour = getColour();
+    makeColour(localShape->Shape_Colour, 1.0, 1.0, 1.0);
     localShape->Shape_Colour->Alpha = 0.0;
     GET(COLOUR_TOKEN);
-    Parse_Colour(localShape->Shape_Colour);
+    parseColour(localShape->Shape_Colour);
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == LIGHT_SOURCE_CONSTANT) {
             localShape = (Light *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -1642,7 +1642,7 @@ Parse_Light_Source()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1650,39 +1650,39 @@ Parse_Light_Source()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
     /* Point that the spot is pointed at */
     CASE(POINT_AT_TOKEN)
-    Parse_Vector(&(localShape->Points_At));
+    parseVector(&(localShape->Points_At));
     END_CASE
 
     CASE(TIGHTNESS_TOKEN)
-    localShape->Coeff = Parse_Float();
+    localShape->Coeff = parseFloat();
     END_CASE
 
     CASE(RADIUS_TOKEN)
-    localShape->Radius = cos(Parse_Float() * M_PI / 180.0);
+    localShape->Radius = cos(parseFloat() * M_PI / 180.0);
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    Parse_Colour(localShape->Shape_Colour);
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     CASE(FALLOFF_TOKEN)
-    localShape->Falloff = cos(Parse_Float() * M_PI / 180.0);
+    localShape->Falloff = cos(parseFloat() * M_PI / 180.0);
     END_CASE
 
     CASE(SPOTLIGHT_TOKEN)
@@ -1690,18 +1690,18 @@ Parse_Light_Source()
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
 
     END_EXPECT
-    /*  Link_Shapes (Local_Shape, &(Local_Shape -> Next_Light_Source),
+    /*  linkShapes (Local_Shape, &(Local_Shape -> Next_Light_Source),
             &(Parsing_Frame_Ptr -> Light_Sources));
 */
     return ((Geometry *)localShape);
 }
 
 Geometry *
-Parse_Sphere()
+parseSphere()
 {
     Sphere *localShape;
     CONSTANT constantId;
@@ -1716,20 +1716,20 @@ Parse_Sphere()
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    localShape = Get_Sphere_Shape();
-    Parse_Vector(&(localShape->Center));
-    localShape->Radius = Parse_Float();
+    localShape = getSphereShape();
+    parseVector(&(localShape->Center));
+    localShape->Radius = parseFloat();
     localShape->Radius_Squared = localShape->Radius * localShape->Radius;
     localShape->Inverse_Radius = 1.0 / localShape->Radius;
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == SPHERE_CONSTANT) {
             localShape = (Sphere *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -1738,7 +1738,7 @@ Parse_Sphere()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1746,17 +1746,17 @@ Parse_Sphere()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -1765,9 +1765,9 @@ Parse_Sphere()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     {
@@ -1781,12 +1781,12 @@ Parse_Sphere()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1794,7 +1794,7 @@ Parse_Sphere()
 }
 
 Geometry *
-Parse_Plane()
+parsePlane()
 {
     InfinitePlane *localShape;
     CONSTANT constantId;
@@ -1809,19 +1809,19 @@ Parse_Plane()
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    localShape = Get_Plane_Shape();
-    Parse_Vector(&(localShape->Normal_Vector));
-    localShape->Distance = Parse_Float();
+    localShape = getPlaneShape();
+    parseVector(&(localShape->Normal_Vector));
+    localShape->Distance = parseFloat();
     localShape->Distance *= -1.0;
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == PLANE_CONSTANT) {
             localShape = (InfinitePlane *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -1830,7 +1830,7 @@ Parse_Plane()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1838,17 +1838,17 @@ Parse_Plane()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -1857,9 +1857,9 @@ Parse_Plane()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -1871,12 +1871,12 @@ Parse_Plane()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1884,7 +1884,7 @@ Parse_Plane()
 }
 
 Geometry *
-Parse_Height_Field()
+parseHeightField()
 {
     HeightField *localShape;
     CONSTANT constantId;
@@ -1899,71 +1899,71 @@ Parse_Height_Field()
 
     EXPECT /* This should be modified to include other image types - CdW */
         CASE(GIF_TOKEN) imageType = GIF;
-    localShape = Get_Height_Field_Shape();
+    localShape = getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Out of memory. Cannot allocate space for Height Field (1st "
               "message).");
     }
     GET(STRING_TOKEN);
-    Read_Gif_Image(image, globalToken.Token_String);
+    readGifImage(image, globalToken.Token_String);
     localShape->bounding_box->bounds[0].x = 1.0;
     localShape->bounding_box->bounds[0].y = 0.0;
     localShape->bounding_box->bounds[0].z = 1.0;
     localShape->bounding_box->bounds[1].x = image->width - 2.0;
     localShape->bounding_box->bounds[1].y = 256.0;
     localShape->bounding_box->bounds[1].z = image->height - 2.0;
-    Make_Vector(
+    makeVector(
         &localVector, 1.0 / (image->width), 1.0 / 256.0, 1.0 / (image->height));
-    Get_Scaling_Transformation(localShape->transformation, &localVector);
+    getScalingTransformation(localShape->transformation, &localVector);
     EXIT END_CASE
 
         CASE(POT_TOKEN) imageType = POT;
-    localShape = Get_Height_Field_Shape();
+    localShape = getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Out of memory. Cannot allocate space for Height Field (1st "
               "message).");
     }
     GET(STRING_TOKEN);
-    Read_Gif_Image(image, globalToken.Token_String);
+    readGifImage(image, globalToken.Token_String);
     localShape->bounding_box->bounds[0].x = 1.0;
     localShape->bounding_box->bounds[0].y = 0.0;
     localShape->bounding_box->bounds[0].z = 1.0;
     localShape->bounding_box->bounds[1].x = image->width / 2.0 - 2.0;
     localShape->bounding_box->bounds[1].y = 256.0;
     localShape->bounding_box->bounds[1].z = image->height - 2.0;
-    Make_Vector(
+    makeVector(
         &localVector, 2.0 / image->width, 1.0 / 256.0, 1.0 / image->height);
-    Get_Scaling_Transformation(localShape->transformation, &localVector);
+    getScalingTransformation(localShape->transformation, &localVector);
     EXIT END_CASE
 
         CASE(TGA_TOKEN) imageType = TGA;
-    localShape = Get_Height_Field_Shape();
+    localShape = getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Cannot allocate space for Height Field (1st message).");
     }
     GET(STRING_TOKEN);
-    Read_Targa_Image(image, globalToken.Token_String);
+    readTargaImage(image, globalToken.Token_String);
     localShape->bounding_box->bounds[0].x = 1.0;
     localShape->bounding_box->bounds[0].y = 0.0;
     localShape->bounding_box->bounds[0].z = 1.0;
     localShape->bounding_box->bounds[1].x = image->width - 2.0;
     localShape->bounding_box->bounds[1].y = 256.0;
     localShape->bounding_box->bounds[1].z = image->height - 2.0;
-    Make_Vector(
+    makeVector(
         &localVector, 1.0 / image->width, 1.0 / 256.0, 1.0 / image->height);
-    Get_Scaling_Transformation(localShape->transformation, &localVector);
+    getScalingTransformation(localShape->transformation, &localVector);
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == HEIGHT_FIELD_CONSTANT) {
             localShape = (HeightField *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -1972,7 +1972,7 @@ Parse_Height_Field()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(GIF_TOKEN);
+        OTHERWISE parseError(GIF_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -1981,21 +1981,21 @@ Parse_Height_Field()
     EXIT END_CASE
 
         CASE(WATER_LEVEL_TOKEN) localShape->bounding_box->bounds[0]
-            .y = Parse_Float();
+            .y = parseFloat();
     END_CASE
 
     CASE(TRANSLATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2004,9 +2004,9 @@ Parse_Height_Field()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     {
@@ -2022,21 +2022,21 @@ Parse_Height_Field()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
-    Find_Hf_Min_Max(localShape, image, imageType);
+    findHfMinMax(localShape, image, imageType);
     return ((Geometry *)localShape);
 }
 
 Geometry *
-Parse_Triangle()
+parseTriangle()
 {
     Triangle *localShape;
     CONSTANT constantId;
@@ -2051,24 +2051,24 @@ Parse_Triangle()
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    localShape = Get_Triangle_Shape();
-    Parse_Vector(&localShape->P1);
-    Parse_Vector(&localShape->P2);
-    Parse_Vector(&localShape->P3);
-    if (!Compute_Triangle(localShape)) {
+    localShape = getTriangleShape();
+    parseVector(&localShape->P1);
+    parseVector(&localShape->P2);
+    parseVector(&localShape->P3);
+    if (!computeTriangle(localShape)) {
         fprintf(stderr, "Degenerate triangle on line %d.  Please remove.\n",
             globalToken.Token_Line_No);
         degenerateTriangles = TRUE;
     }
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == TRIANGLE_CONSTANT) {
             localShape = (Triangle *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -2077,7 +2077,7 @@ Parse_Triangle()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2085,17 +2085,17 @@ Parse_Triangle()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2104,9 +2104,9 @@ Parse_Triangle()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2119,12 +2119,12 @@ Parse_Triangle()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2132,7 +2132,7 @@ Parse_Triangle()
 }
 
 Geometry *
-Parse_Smooth_Triangle()
+parseSmoothTriangle()
 {
     SmoothTriangle *localShape;
     CONSTANT constantId;
@@ -2147,15 +2147,15 @@ Parse_Smooth_Triangle()
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    localShape = (SmoothTriangle *)Get_Smooth_Triangle_Shape();
-    Parse_Vector(&localShape->P1);
-    Parse_Vector(&localShape->N1);
-    VNormalize(localShape->N1, localShape->N1) Parse_Vector(&localShape->P2);
-    Parse_Vector(&localShape->N2);
-    VNormalize(localShape->N2, localShape->N2) Parse_Vector(&localShape->P3);
-    Parse_Vector(&localShape->N3);
+    localShape = (SmoothTriangle *)getSmoothTriangleShape();
+    parseVector(&localShape->P1);
+    parseVector(&localShape->N1);
+    VNormalize(localShape->N1, localShape->N1) parseVector(&localShape->P2);
+    parseVector(&localShape->N2);
+    VNormalize(localShape->N2, localShape->N2) parseVector(&localShape->P3);
+    parseVector(&localShape->N3);
     VNormalize(localShape->N3,
-        localShape->N3) if (!Compute_Triangle((Triangle *)localShape))
+        localShape->N3) if (!computeTriangle((Triangle *)localShape))
     {
         fprintf(stderr, "Degenerate triangle on line %d.  Please remove.\n",
             globalToken.Token_Line_No);
@@ -2163,14 +2163,14 @@ Parse_Smooth_Triangle()
     }
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type ==
             SMOOTH_TRIANGLE_CONSTANT) {
             localShape = (SmoothTriangle *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -2179,7 +2179,7 @@ Parse_Smooth_Triangle()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2187,17 +2187,17 @@ Parse_Smooth_Triangle()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2206,9 +2206,9 @@ Parse_Smooth_Triangle()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     {
@@ -2222,12 +2222,12 @@ Parse_Smooth_Triangle()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2235,7 +2235,7 @@ Parse_Smooth_Triangle()
 }
 
 Geometry *
-Parse_Quadric()
+parseQuadric()
 {
     Quadric *localShape;
     Vector3D localVector;
@@ -2250,11 +2250,11 @@ Parse_Quadric()
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    localShape = Get_Quadric_Shape();
-    Parse_Vector(&(localShape->Object_2_Terms));
-    Parse_Vector(&(localShape->Object_Mixed_Terms));
-    Parse_Vector(&(localShape->Object_Terms));
-    (localShape->Object_Constant) = Parse_Float();
+    localShape = getQuadricShape();
+    parseVector(&(localShape->Object_2_Terms));
+    parseVector(&(localShape->Object_Mixed_Terms));
+    parseVector(&(localShape->Object_Terms));
+    (localShape->Object_Constant) = parseFloat();
     localShape->Non_Zero_Square_Term =
         !((localShape->Object_2_Terms.x == 0.0) &&
             (localShape->Object_2_Terms.y == 0.0) &&
@@ -2264,13 +2264,13 @@ Parse_Quadric()
             (localShape->Object_Mixed_Terms.z == 0.0));
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == QUADRIC_CONSTANT) {
             localShape = (Quadric *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -2279,7 +2279,7 @@ Parse_Quadric()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2287,17 +2287,17 @@ Parse_Quadric()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2306,9 +2306,9 @@ Parse_Quadric()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2321,12 +2321,12 @@ Parse_Quadric()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2334,7 +2334,7 @@ Parse_Quadric()
 }
 
 Geometry *
-Parse_Poly(int knownOrder)
+parsePoly(int knownOrder)
 {
     Poly *localShape;
     Vector3D localVector;
@@ -2343,7 +2343,7 @@ Parse_Poly(int knownOrder)
     Texture *localTexture;
 
     if (knownOrder > 0) {
-        localShape = Get_Poly_Shape(knownOrder);
+        localShape = getPolyShape(knownOrder);
     } else {
         localShape = nullptr;
     }
@@ -2356,11 +2356,11 @@ Parse_Poly(int knownOrder)
     if (localShape != nullptr) {
         Error("The order of a polynomial may not be specified twice");
     }
-    order = (int)Parse_Float();
+    order = (int)parseFloat();
     if (order < 2 || order > MAX_ORDER) {
         Error("Order of Poly is out of range");
     }
-    localShape = Get_Poly_Shape(order);
+    localShape = getPolyShape(order);
     END_CASE
 
     CASE(LEFT_ANGLE_TOKEN)
@@ -2368,16 +2368,16 @@ Parse_Poly(int knownOrder)
     if (localShape == nullptr) {
         printf("Need the order of the Poly");
     }
-    Parse_Coeffs(localShape->Order, &(localShape->Coeffs[0]));
+    parseCoeffs(localShape->Order, &(localShape->Coeffs[0]));
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == POLY_CONSTANT) {
             localShape = (Poly *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -2386,7 +2386,7 @@ Parse_Poly(int knownOrder)
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2398,17 +2398,17 @@ Parse_Poly(int knownOrder)
     END_CASE
 
     CASE(TRANSLATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2417,9 +2417,9 @@ Parse_Poly(int knownOrder)
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     Link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
@@ -2427,12 +2427,12 @@ Parse_Poly(int knownOrder)
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2440,7 +2440,7 @@ Parse_Poly(int knownOrder)
 }
 
 Geometry *
-Parse_Bicubic_Patch()
+parseBicubicPatch()
 {
     BicubicPatch *localShape = nullptr;
     Vector3D localVector;
@@ -2454,31 +2454,31 @@ Parse_Bicubic_Patch()
     EXPECT
     CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
     UNGET
-    localShape = Get_Bicubic_Patch_Shape();
-    localShape->Patch_Type = (int)Parse_Float();
+    localShape = getBicubicPatchShape();
+    localShape->Patch_Type = (int)parseFloat();
     if (localShape->Patch_Type == 2 || localShape->Patch_Type == 3) {
-        localShape->Flatness_Value = Parse_Float();
+        localShape->Flatness_Value = parseFloat();
     } else {
         localShape->Flatness_Value = 0.1;
     }
-    localShape->U_Steps = (int)Parse_Float();
-    localShape->V_Steps = (int)Parse_Float();
+    localShape->U_Steps = (int)parseFloat();
+    localShape->V_Steps = (int)parseFloat();
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            Parse_Vector(&(localShape->Control_Points[i][j]));
+            parseVector(&(localShape->Control_Points[i][j]));
         }
     }
-    Precompute_Patch_Values(localShape); /* interpolated mesh coords */
+    precomputePatchValues(localShape); /* interpolated mesh coords */
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type ==
             BICUBIC_PATCH_CONSTANT) {
             localShape = (BicubicPatch *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -2487,7 +2487,7 @@ Parse_Bicubic_Patch()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2495,17 +2495,17 @@ Parse_Bicubic_Patch()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2514,9 +2514,9 @@ Parse_Bicubic_Patch()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     Link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
@@ -2524,12 +2524,12 @@ Parse_Bicubic_Patch()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2537,7 +2537,7 @@ Parse_Bicubic_Patch()
 }
 
 Geometry *
-Parse_Box()
+parseBox()
 {
     Box *localShape;
     CONSTANT constantId;
@@ -2548,25 +2548,25 @@ Parse_Box()
     localShape = nullptr;
     EXPECT
     CASE(LEFT_CURLY_TOKEN)
-    EXIT END_CASE OTHERWISE Parse_Error(LEFT_CURLY_TOKEN);
+    EXIT END_CASE OTHERWISE parseError(LEFT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
     EXPECT
     CASE(LEFT_ANGLE_TOKEN)
     UNGET
-    localShape = Get_Box_Shape();
-    Parse_Vector(&(localShape->bounds[0]));
-    Parse_Vector(&(localShape->bounds[1]));
+    localShape = getBoxShape();
+    parseVector(&(localShape->bounds[0]));
+    parseVector(&(localShape->bounds[1]));
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == BOX_CONSTANT) {
             localShape = (Box *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -2575,7 +2575,7 @@ Parse_Box()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(LEFT_ANGLE_TOKEN);
+        OTHERWISE parseError(LEFT_ANGLE_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2583,17 +2583,17 @@ Parse_Box()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+        CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2602,9 +2602,9 @@ Parse_Box()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2617,12 +2617,12 @@ Parse_Box()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2630,7 +2630,7 @@ Parse_Box()
 }
 
 Geometry *
-Parse_Blob()
+parseBlob()
 {
     Blob *localShape;
     CONSTANT constantId;
@@ -2645,14 +2645,14 @@ Parse_Blob()
     localShape = nullptr;
     EXPECT
     CASE(LEFT_CURLY_TOKEN)
-    EXIT END_CASE OTHERWISE Parse_Error(LEFT_CURLY_TOKEN);
+    EXIT END_CASE OTHERWISE parseError(LEFT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
     EXPECT
     CASE2(THRESHOLD_TOKEN, COMPONENT_TOKEN)
     UNGET
-    localShape = Get_Blob_Shape();
+    localShape = getBlobShape();
     blobComponents = nullptr;
     npoints = 0;
     threshold = 1.0;
@@ -2660,7 +2660,7 @@ Parse_Blob()
     /* Here is where we get the blob coefficients */
     EXPECT
     CASE(THRESHOLD_TOKEN)
-    threshold = Parse_Float();
+    threshold = parseFloat();
     END_CASE
 
     CASE(COMPONENT_TOKEN)
@@ -2668,9 +2668,9 @@ Parse_Blob()
     if (blobComponent == nullptr) {
         Error("Out of Memory! Cannot allocate blob component");
     }
-    blobComponent->elem.coeffs[2] = Parse_Float();
-    blobComponent->elem.radius2 = Parse_Float();
-    Parse_Vector(&blobComponent->elem.pos);
+    blobComponent->elem.coeffs[2] = parseFloat();
+    blobComponent->elem.radius2 = parseFloat();
+    parseVector(&blobComponent->elem.pos);
     blobComponent->next = blobComponents;
     blobComponents = blobComponent;
     npoints++;
@@ -2685,13 +2685,13 @@ Parse_Blob()
             (SimpleBody *)localShape, threshold, blobComponents, npoints, 0);
     EXIT END_CASE
 
-    CASE(IDENTIFIER_TOKEN) if ((constantId = Find_Constant()) != -1)
+    CASE(IDENTIFIER_TOKEN) if ((constantId = findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == BLOB_CONSTANT) {
             localShape = (Blob *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     }
     else
@@ -2700,7 +2700,7 @@ Parse_Blob()
     }
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(FLOAT_TOKEN);
+        OTHERWISE parseError(FLOAT_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2712,17 +2712,17 @@ Parse_Blob()
     END_CASE
 
     CASE(TRANSLATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Translate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localShape, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localShape, &localVector);
     END_CASE
 
@@ -2731,9 +2731,9 @@ Parse_Blob()
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2746,12 +2746,12 @@ Parse_Blob()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    localShape->Shape_Colour = Get_Colour();
-    Parse_Colour(localShape->Shape_Colour);
+    localShape->Shape_Colour = getColour();
+    parseColour(localShape->Shape_Colour);
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -2759,7 +2759,7 @@ Parse_Blob()
 }
 
 CSG *
-Parse_CSG(int type, SimpleBody *parentObject)
+parseCsg(int type, SimpleBody *parentObject)
 {
     CSG *container = nullptr;
     Geometry *localShape;
@@ -2768,11 +2768,11 @@ Parse_CSG(int type, SimpleBody *parentObject)
     int firstShapeParsed = FALSE;
 
     if (type == CSG_UNION_TYPE) {
-        container = Get_CSG_Union();
+        container = getCsgUnion();
 
     } else if ((type == CSG_INTERSECTION_TYPE) ||
                (type == CSG_DIFFERENCE_TYPE)) {
-        container = Get_CSG_Intersection();
+        container = getCsgIntersection();
     }
 
     container->Parent_Object = parentObject;
@@ -2781,7 +2781,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
 
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if ((constants[(int)constantId].Constant_Type ==
                 CSG_INTERSECTION_CONSTANT) ||
             (constants[(int)constantId].Constant_Type == CSG_UNION_CONSTANT) ||
@@ -2790,9 +2790,9 @@ Parse_CSG(int type, SimpleBody *parentObject)
             delete container;
             container = (CSG *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
-            Set_CSG_Parents(container, parentObject);
+            setCsgParents(container, parentObject);
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
@@ -2800,7 +2800,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(LIGHT_SOURCE_TOKEN)
-    localShape = Parse_Light_Source();
+    localShape = parseLightSource();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2811,7 +2811,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(SPHERE_TOKEN)
-    localShape = Parse_Sphere();
+    localShape = parseSphere();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2822,7 +2822,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(PLANE_TOKEN)
-    localShape = Parse_Plane();
+    localShape = parsePlane();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2833,7 +2833,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(TRIANGLE_TOKEN)
-    localShape = Parse_Triangle();
+    localShape = parseTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2844,7 +2844,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(SMOOTH_TRIANGLE_TOKEN)
-    localShape = Parse_Smooth_Triangle();
+    localShape = parseSmoothTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2855,7 +2855,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(QUADRIC_TOKEN)
-    localShape = Parse_Quadric();
+    localShape = parseQuadric();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2866,7 +2866,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(HEIGHT_FIELD_TOKEN)
-    localShape = Parse_Height_Field();
+    localShape = parseHeightField();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2877,7 +2877,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(CUBIC_TOKEN)
-    localShape = Parse_Poly(3);
+    localShape = parsePoly(3);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2888,7 +2888,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(QUARTIC_TOKEN)
-    localShape = Parse_Poly(4);
+    localShape = parsePoly(4);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2899,7 +2899,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(POLY_TOKEN)
-    localShape = Parse_Poly(0);
+    localShape = parsePoly(0);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2910,7 +2910,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(BOX_TOKEN)
-    localShape = Parse_Box();
+    localShape = parseBox();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2921,7 +2921,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(BLOB_TOKEN)
-    localShape = Parse_Blob();
+    localShape = parseBlob();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2932,7 +2932,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(BICUBIC_PATCH_TOKEN)
-    localShape = Parse_Bicubic_Patch();
+    localShape = parseBicubicPatch();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
@@ -2943,7 +2943,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(UNION_TOKEN)
-    localShape = (Geometry *)Parse_CSG(CSG_UNION_TYPE, parentObject);
+    localShape = (Geometry *)parseCsg(CSG_UNION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
     }
@@ -2953,7 +2953,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(INTERSECTION_TOKEN)
-    localShape = (Geometry *)Parse_CSG(CSG_INTERSECTION_TYPE, parentObject);
+    localShape = (Geometry *)parseCsg(CSG_INTERSECTION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
     }
@@ -2963,7 +2963,7 @@ Parse_CSG(int type, SimpleBody *parentObject)
     END_CASE
 
     CASE(DIFFERENCE_TOKEN)
-    localShape = (Geometry *)Parse_CSG(CSG_DIFFERENCE_TYPE, parentObject);
+    localShape = (Geometry *)parseCsg(CSG_DIFFERENCE_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
         Invert((SimpleBody *)localShape);
     }
@@ -2978,17 +2978,17 @@ Parse_CSG(int type, SimpleBody *parentObject)
 
         EXPECT CASE(RIGHT_CURLY_TOKEN) EXIT END_CASE
 
-            CASE(TRANSLATE_TOKEN) Parse_Vector(&localVector);
+            CASE(TRANSLATE_TOKEN) parseVector(&localVector);
     Translate((SimpleBody *)container, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)container, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)container, &localVector);
     END_CASE
 
@@ -2998,11 +2998,11 @@ Parse_CSG(int type, SimpleBody *parentObject)
 
     OTHERWISE
     if (type == CSG_UNION_TYPE) {
-        Parse_Error(RIGHT_CURLY_TOKEN);
+        parseError(RIGHT_CURLY_TOKEN);
     } else if (type == CSG_INTERSECTION_TYPE) {
-        Parse_Error(RIGHT_CURLY_TOKEN);
+        parseError(RIGHT_CURLY_TOKEN);
     } else {
-        Parse_Error(RIGHT_CURLY_TOKEN);
+        parseError(RIGHT_CURLY_TOKEN);
     }
     END_CASE
     END_EXPECT
@@ -3011,84 +3011,84 @@ Parse_CSG(int type, SimpleBody *parentObject)
 }
 
 Geometry *
-Parse_Shape(SimpleBody *object)
+parseShape(SimpleBody *object)
 {
     Geometry *localShape = nullptr;
 
     EXPECT
     CASE(LIGHT_SOURCE_TOKEN)
-    localShape = Parse_Light_Source();
+    localShape = parseLightSource();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(SPHERE_TOKEN) localShape = Parse_Sphere();
+        CASE(SPHERE_TOKEN) localShape = parseSphere();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(PLANE_TOKEN) localShape = Parse_Plane();
+        CASE(PLANE_TOKEN) localShape = parsePlane();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(TRIANGLE_TOKEN) localShape = Parse_Triangle();
+        CASE(TRIANGLE_TOKEN) localShape = parseTriangle();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(SMOOTH_TRIANGLE_TOKEN) localShape = Parse_Smooth_Triangle();
+        CASE(SMOOTH_TRIANGLE_TOKEN) localShape = parseSmoothTriangle();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(QUADRIC_TOKEN) localShape = Parse_Quadric();
+        CASE(QUADRIC_TOKEN) localShape = parseQuadric();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(HEIGHT_FIELD_TOKEN) localShape = Parse_Height_Field();
+        CASE(HEIGHT_FIELD_TOKEN) localShape = parseHeightField();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(CUBIC_TOKEN) localShape = Parse_Poly(3);
+        CASE(CUBIC_TOKEN) localShape = parsePoly(3);
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(QUARTIC_TOKEN) localShape = Parse_Poly(4);
+        CASE(QUARTIC_TOKEN) localShape = parsePoly(4);
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(POLY_TOKEN) localShape = Parse_Poly(0);
+        CASE(POLY_TOKEN) localShape = parsePoly(0);
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(BOX_TOKEN) localShape = Parse_Box();
+        CASE(BOX_TOKEN) localShape = parseBox();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(BLOB_TOKEN) localShape = Parse_Blob();
+        CASE(BLOB_TOKEN) localShape = parseBlob();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
-        CASE(BICUBIC_PATCH_TOKEN) localShape = Parse_Bicubic_Patch();
+        CASE(BICUBIC_PATCH_TOKEN) localShape = parseBicubicPatch();
     localShape->Parent_Object = object;
     EXIT END_CASE
 
         CASE(UNION_TOKEN) localShape =
-            (Geometry *)Parse_CSG(CSG_UNION_TYPE, object);
+            (Geometry *)parseCsg(CSG_UNION_TYPE, object);
     EXIT END_CASE
 
         CASE(INTERSECTION_TOKEN) localShape =
-            (Geometry *)Parse_CSG(CSG_INTERSECTION_TYPE, object);
+            (Geometry *)parseCsg(CSG_INTERSECTION_TYPE, object);
     EXIT END_CASE
 
         CASE(DIFFERENCE_TOKEN) localShape =
-            (Geometry *)Parse_CSG(CSG_DIFFERENCE_TYPE, object);
+            (Geometry *)parseCsg(CSG_DIFFERENCE_TYPE, object);
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(QUADRIC_TOKEN);
+        OTHERWISE parseError(QUADRIC_TOKEN);
     END_CASE
     END_EXPECT
     return (localShape);
 }
 
 SimpleBody *
-Parse_Object()
+parseObject()
 {
     SimpleBody *object;
     Geometry *localShape;
@@ -3103,12 +3103,12 @@ Parse_Object()
 
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == OBJECT_CONSTANT) {
             object = (SimpleBody *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
@@ -3122,15 +3122,15 @@ Parse_Object()
             CASE4(HEIGHT_FIELD_TOKEN, LIGHT_SOURCE_TOKEN, BOX_TOKEN, BLOB_TOKEN)
                 UNGET if (object == nullptr)
     {
-        object = Get_Object();
+        object = getObject();
     }
 
-    localShape = Parse_Shape(object);
+    localShape = parseShape(object);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Shape));
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(SHAPE_TOKEN);
+        OTHERWISE parseError(SHAPE_TOKEN);
     EXIT END_CASE END_EXPECT
 
         EXPECT CASE(BOUNDED_TOKEN)
@@ -3141,7 +3141,7 @@ Parse_Object()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE UNGET localShape = Parse_Shape(object);
+        OTHERWISE UNGET localShape = parseShape(object);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Bounding_Shapes));
     END_CASE
@@ -3156,7 +3156,7 @@ Parse_Object()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE UNGET localShape = Parse_Shape(object);
+        OTHERWISE UNGET localShape = parseShape(object);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Clipping_Shapes));
     END_CASE
@@ -3164,14 +3164,14 @@ Parse_Object()
     END_CASE
 
     CASE(COLOUR_TOKEN)
-    object->Object_Colour = Get_Colour();
-    Parse_Colour(object->Object_Colour);
+    object->Object_Colour = getColour();
+    parseColour(object->Object_Colour);
     END_CASE
 
     CASE(TEXTURE_TOKEN)
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     if (object->Object_Texture == Default_Texture) {
@@ -3195,17 +3195,17 @@ Parse_Object()
     END_CASE
 
     CASE(TRANSLATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Translate(object, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate(object, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale(object, &localVector);
     END_CASE
 
@@ -3216,7 +3216,7 @@ Parse_Object()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
 
     END_EXPECT
@@ -3225,7 +3225,7 @@ Parse_Object()
 }
 
 SimpleBody *
-Parse_Composite()
+parseComposite()
 {
     Composite *localComposite;
     SimpleBody *localObject;
@@ -3239,12 +3239,12 @@ Parse_Composite()
 
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == COMPOSITE_CONSTANT) {
             localComposite = (Composite *)Copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
@@ -3253,26 +3253,26 @@ Parse_Composite()
 
     CASE(COMPOSITE_TOKEN)
     if (localComposite == nullptr) {
-        localComposite = Get_Composite_Object();
+        localComposite = getCompositeObject();
     }
 
-    localObject = Parse_Composite();
+    localObject = parseComposite();
     Link((SimpleBody *)localObject, (SimpleBody **)&(localObject->Next_Object),
         (SimpleBody **)&(localComposite->Objects));
     END_CASE
 
     CASE(OBJECT_TOKEN)
     if (localComposite == nullptr) {
-        localComposite = Get_Composite_Object();
+        localComposite = getCompositeObject();
     }
-    localObject = Parse_Object();
+    localObject = parseObject();
     Link(localObject, &(localObject->Next_Object), &(localComposite->Objects));
     END_CASE
 
     CASE(RIGHT_CURLY_TOKEN)
     UNGET
     if (localComposite == nullptr) {
-        localComposite = Get_Composite_Object();
+        localComposite = getCompositeObject();
     }
     EXIT END_CASE
 
@@ -3288,7 +3288,7 @@ Parse_Composite()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE UNGET localShape = Parse_Shape((SimpleBody *)localComposite);
+        OTHERWISE UNGET localShape = parseShape((SimpleBody *)localComposite);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(localComposite->Bounding_Shapes));
     END_CASE
@@ -3303,7 +3303,7 @@ Parse_Composite()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE UNGET localShape = Parse_Shape((SimpleBody *)localComposite);
+        OTHERWISE UNGET localShape = parseShape((SimpleBody *)localComposite);
     Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(localComposite->Clipping_Shapes));
     END_CASE
@@ -3311,17 +3311,17 @@ Parse_Composite()
     END_CASE
 
     CASE(TRANSLATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Translate((SimpleBody *)localComposite, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)localComposite, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)localComposite, &localVector);
     END_CASE
 
@@ -3330,7 +3330,7 @@ Parse_Composite()
     END_CASE
 
     OTHERWISE
-    Parse_Error(RIGHT_CURLY_TOKEN);
+    parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 
@@ -3338,13 +3338,13 @@ Parse_Composite()
 }
 
 void
-Parse_Fog()
+parseFog()
 {
     GET(LEFT_CURLY_TOKEN);
 
     EXPECT
     CASE(COLOUR_TOKEN)
-    Parse_Colour(&parsingFramePtr->Fog_Colour);
+    parseColour(&parsingFramePtr->Fog_Colour);
     END_CASE
 
     CASE(FLOAT_TOKEN)
@@ -3354,19 +3354,19 @@ Parse_Fog()
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 }
 
 void
-Parse_Frame()
+parseFrame()
 {
     SimpleBody *localObject;
 
     EXPECT
     CASE(FOG_TOKEN)
-    Parse_Fog();
+    parseFog();
     END_CASE
 
     CASE(DEFAULT_TOKEN)
@@ -3374,23 +3374,23 @@ Parse_Frame()
     EXPECT
     CASE(TEXTURE_TOKEN)
     Default_Texture->Constant_Flag = FALSE;
-    Default_Texture = Parse_Texture();
+    Default_Texture = parseTexture();
     Default_Texture->Constant_Flag = TRUE;
     END_CASE
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
     END_CASE
 
     CASE(MAX_TRACE_LEVEL_TOKEN)
-    maxTraceLevel = Parse_Float();
+    maxTraceLevel = parseFloat();
     END_CASE
 
     CASE(OBJECT_TOKEN)
-    localObject = Parse_Object();
+    localObject = parseObject();
     Link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
 
     /* light sources are now linked in object parsing */
@@ -3400,29 +3400,29 @@ Parse_Frame()
     END_CASE
 
     CASE(COMPOSITE_TOKEN)
-    localObject = Parse_Composite();
+    localObject = parseComposite();
     Link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
-    /*        Add_Composite_Light_Source ((Composite *)Local_Object);*/
+    /*        addCompositeLightSource ((Composite *)Local_Object);*/
     END_CASE
 
     CASE(VIEW_POINT_TOKEN)
-    Parse_Viewpoint(&(parsingFramePtr->View_Point));
+    parseViewpoint(&(parsingFramePtr->View_Point));
     END_CASE
 
     CASE(DECLARE_TOKEN)
-    Parse_Declare();
+    parseDeclare();
     END_CASE
 
     CASE(END_OF_FILE_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(OBJECT_TOKEN);
+        OTHERWISE parseError(OBJECT_TOKEN);
     END_CASE
     END_EXPECT
 }
 
 void
-Parse_Viewpoint(Viewpoint *givenVp)
+parseViewpoint(Viewpoint *givenVp)
 {
     CONSTANT constantId;
     Vector3D localVector;
@@ -3435,11 +3435,11 @@ Parse_Viewpoint(Viewpoint *givenVp)
 
     EXPECT
     CASE(IDENTIFIER_TOKEN)
-    if ((constantId = Find_Constant()) != -1) {
+    if ((constantId = findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == VIEW_POINT_CONSTANT) {
             *givenVp = *((Viewpoint *)constants[(int)constantId].Constant_Data);
         } else {
-            Type_Error();
+            typeError();
         }
     } else {
         Undeclared();
@@ -3447,23 +3447,23 @@ Parse_Viewpoint(Viewpoint *givenVp)
     END_CASE
 
     CASE(LOCATION_TOKEN)
-    Parse_Vector(&(givenVp->Location));
+    parseVector(&(givenVp->Location));
     END_CASE
 
     CASE(DIRECTION_TOKEN)
-    Parse_Vector(&(givenVp->Direction));
+    parseVector(&(givenVp->Direction));
     END_CASE
 
     CASE(UP_TOKEN)
-    Parse_Vector(&(givenVp->Up));
+    parseVector(&(givenVp->Up));
     END_CASE
 
     CASE(RIGHT_TOKEN)
-    Parse_Vector(&(givenVp->Right));
+    parseVector(&(givenVp->Right));
     END_CASE
 
     CASE(SKY_TOKEN)
-    Parse_Vector(&(givenVp->Sky));
+    parseVector(&(givenVp->Sky));
     END_CASE
 
     CASE(LOOK_AT_TOKEN)
@@ -3472,7 +3472,7 @@ Parse_Viewpoint(Viewpoint *givenVp)
     VLength(rightLength, givenVp->Right);
     VCross(tempVector, givenVp->Direction, givenVp->Up);
     VDot(handedness, tempVector, givenVp->Right);
-    Parse_Vector(&givenVp->Direction);
+    parseVector(&givenVp->Direction);
 
     VSub(givenVp->Direction, givenVp->Direction, givenVp->Location);
     VNormalize(givenVp->Direction, givenVp->Direction);
@@ -3490,30 +3490,30 @@ Parse_Viewpoint(Viewpoint *givenVp)
     END_CASE
 
     CASE(TRANSLATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Translate((SimpleBody *)givenVp, &localVector);
     END_CASE
 
     CASE(ROTATE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Rotate((SimpleBody *)givenVp, &localVector);
     END_CASE
 
     CASE(SCALE_TOKEN)
-    Parse_Vector(&localVector);
+    parseVector(&localVector);
     Scale((SimpleBody *)givenVp, &localVector);
     END_CASE
 
     CASE(RIGHT_CURLY_TOKEN)
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(RIGHT_CURLY_TOKEN);
+        OTHERWISE parseError(RIGHT_CURLY_TOKEN);
     END_CASE
     END_EXPECT
 }
 
 void
-Parse_Declare()
+parseDeclare()
 {
     CONSTANT constantId;
     Texture *localTexture;
@@ -3521,7 +3521,7 @@ Parse_Declare()
     Constant *constantPtr;
 
     GET(IDENTIFIER_TOKEN);
-    if ((constantId = Find_Constant()) == -1) {
+    if ((constantId = findConstant()) == -1) {
         if (++numberOfConstants >= MAX_CONSTANTS) {
             Error("Too many constants \"declared\"");
         } else {
@@ -3535,105 +3535,105 @@ Parse_Declare()
     EXPECT
     CASE(OBJECT_TOKEN)
     constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Object();
+    constantPtr->Constant_Data = (char *)parseObject();
     constantPtr->Constant_Type = OBJECT_CONSTANT;
     EXIT END_CASE
 
         CASE(SPHERE_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Sphere();
+    constantPtr->Constant_Data = (char *)parseSphere();
     constantPtr->Constant_Type = SPHERE_CONSTANT;
     EXIT END_CASE
 
         CASE(PLANE_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Plane();
+    constantPtr->Constant_Data = (char *)parsePlane();
     constantPtr->Constant_Type = PLANE_CONSTANT;
     EXIT END_CASE
 
         CASE(TRIANGLE_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Triangle();
+    constantPtr->Constant_Data = (char *)parseTriangle();
     constantPtr->Constant_Type = TRIANGLE_CONSTANT;
     EXIT END_CASE
 
         CASE(SMOOTH_TRIANGLE_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Smooth_Triangle();
+    constantPtr->Constant_Data = (char *)parseSmoothTriangle();
     constantPtr->Constant_Type = SMOOTH_TRIANGLE_CONSTANT;
     EXIT END_CASE
 
         CASE(QUADRIC_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Quadric();
+    constantPtr->Constant_Data = (char *)parseQuadric();
     constantPtr->Constant_Type = QUADRIC_CONSTANT;
     EXIT END_CASE
 
         CASE(CUBIC_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Poly(3);
+    constantPtr->Constant_Data = (char *)parsePoly(3);
     constantPtr->Constant_Type = POLY_CONSTANT;
     EXIT END_CASE
 
         CASE(QUARTIC_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Poly(4);
+    constantPtr->Constant_Data = (char *)parsePoly(4);
     constantPtr->Constant_Type = POLY_CONSTANT;
     EXIT END_CASE
 
         CASE(HEIGHT_FIELD_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Height_Field();
+    constantPtr->Constant_Data = (char *)parseHeightField();
     constantPtr->Constant_Type = HEIGHT_FIELD_CONSTANT;
     EXIT END_CASE
 
         CASE(POLY_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Poly(0);
+    constantPtr->Constant_Data = (char *)parsePoly(0);
     constantPtr->Constant_Type = POLY_CONSTANT;
     EXIT END_CASE
 
         CASE(BOX_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Box();
+    constantPtr->Constant_Data = (char *)parseBox();
     constantPtr->Constant_Type = BOX_CONSTANT;
     EXIT END_CASE
 
         CASE(BLOB_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Blob();
+    constantPtr->Constant_Data = (char *)parseBlob();
     constantPtr->Constant_Type = BLOB_CONSTANT;
     EXIT END_CASE
 
         CASE(BICUBIC_PATCH_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Bicubic_Patch();
+    constantPtr->Constant_Data = (char *)parseBicubicPatch();
     constantPtr->Constant_Type = BICUBIC_PATCH_CONSTANT;
     EXIT END_CASE
 
         CASE(INTERSECTION_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data =
-        (char *)Parse_CSG(CSG_INTERSECTION_TYPE, nullptr);
+        (char *)parseCsg(CSG_INTERSECTION_TYPE, nullptr);
     constantPtr->Constant_Type = CSG_INTERSECTION_CONSTANT;
     EXIT END_CASE
 
         CASE(UNION_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_CSG(CSG_UNION_TYPE, nullptr);
+    constantPtr->Constant_Data = (char *)parseCsg(CSG_UNION_TYPE, nullptr);
     constantPtr->Constant_Type = CSG_UNION_CONSTANT;
     EXIT END_CASE
 
         CASE(DIFFERENCE_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
     constantPtr->Constant_Data =
-        (char *)Parse_CSG(CSG_DIFFERENCE_TYPE, nullptr);
+        (char *)parseCsg(CSG_DIFFERENCE_TYPE, nullptr);
     constantPtr->Constant_Type = CSG_DIFFERENCE_CONSTANT;
     EXIT END_CASE
 
         CASE(COMPOSITE_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Composite();
+    constantPtr->Constant_Data = (char *)parseComposite();
     constantPtr->Constant_Type = COMPOSITE_CONSTANT;
     EXIT END_CASE
 
@@ -3646,9 +3646,9 @@ Parse_Declare()
     EXPECT
     CASE(TEXTURE_TOKEN)
     localTexture = Default_Texture;
-    localTexture = Parse_Texture();
+    localTexture = parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = Copy_Texture(localTexture);
+        localTexture = copyTexture(localTexture);
     }
 
     localTexture->Constant_Flag = TRUE;
@@ -3669,40 +3669,40 @@ Parse_Declare()
 
         CASE(VIEW_POINT_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Get_Viewpoint();
+    constantPtr->Constant_Data = (char *)getViewpoint();
     constantPtr->Constant_Type = VIEW_POINT_CONSTANT;
-    Parse_Viewpoint((Viewpoint *)constantPtr->Constant_Data);
+    parseViewpoint((Viewpoint *)constantPtr->Constant_Data);
     EXIT END_CASE
 
         CASE(COLOUR_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Get_Colour();
+    constantPtr->Constant_Data = (char *)getColour();
     constantPtr->Constant_Type = COLOUR_CONSTANT;
-    Parse_Colour((RGBAColor *)constantPtr->Constant_Data);
+    parseColour((RGBAColor *)constantPtr->Constant_Data);
     EXIT END_CASE
 
         CASE(LIGHT_SOURCE_TOKEN)
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Parse_Light_Source();
+    constantPtr->Constant_Data = (char *)parseLightSource();
     constantPtr->Constant_Type = LIGHT_SOURCE_CONSTANT;
     EXIT END_CASE
 
         CASE(LEFT_ANGLE_TOKEN) UNGET constantPtr->Identifier_Number =
         globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Get_Vector();
+    constantPtr->Constant_Data = (char *)getVector();
     constantPtr->Constant_Type = VECTOR_CONSTANT;
-    Parse_Vector((Vector3D *)constantPtr->Constant_Data);
+    parseVector((Vector3D *)constantPtr->Constant_Data);
     EXIT END_CASE
 
         CASE3(DASH_TOKEN, PLUS_TOKEN, FLOAT_TOKEN)
             UNGET constantPtr->Identifier_Number =
         globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)Get_Float();
+    constantPtr->Constant_Data = (char *)getFloat();
     constantPtr->Constant_Type = FLOAT_CONSTANT;
-    *((DBL *)constantPtr->Constant_Data) = Parse_Float();
+    *((DBL *)constantPtr->Constant_Data) = parseFloat();
     EXIT END_CASE
 
-        OTHERWISE Parse_Error(OBJECT_TOKEN);
+        OTHERWISE parseError(OBJECT_TOKEN);
     END_CASE
     END_EXPECT
 }
@@ -3715,7 +3715,7 @@ linkShapes(Light *newObject, Light **field, Light **oldObjectList)
 }
 
 CONSTANT
-Find_Constant()
+findConstant()
 {
     register int i;
 
@@ -3729,7 +3729,7 @@ Find_Constant()
 }
 
 char *
-Get_Token_String(TOKEN tokenId)
+getTokenString(TOKEN tokenId)
 {
     register int i;
 
@@ -3742,15 +3742,15 @@ Get_Token_String(TOKEN tokenId)
 }
 
 void
-Parse_Error(TOKEN tokenId)
+parseError(TOKEN tokenId)
 {
     char *expected;
     char *found;
     FILE *statFile;
     fprintf(stderr, "Error in file %s line %d\n", globalToken.Filename,
         globalToken.Token_Line_No + 1);
-    expected = Get_Token_String(tokenId);
-    found = Get_Token_String(globalToken.Token_Id);
+    expected = getTokenString(tokenId);
+    found = getTokenString(globalToken.Token_Id);
     fprintf(stderr, "%s expected but %s found instead\n", expected, found);
     if (Options & VERBOSE_FILE) {
         statFile = fopen(statFileName, "w+t");
@@ -3763,7 +3763,7 @@ Parse_Error(TOKEN tokenId)
 }
 
 void
-Type_Error()
+typeError()
 {
     FILE *statFile;
     fprintf(stderr, "Error in file %s line %d\n", globalToken.Filename,

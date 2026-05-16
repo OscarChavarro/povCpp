@@ -17,17 +17,17 @@ class BezierNode;
 #include "geom/BicubicPatch.h"
 
 extern Methods Bicubic_Patch_Methods;
-extern BicubicPatch *Get_Bicubic_Patch_Shape();
-extern void Precompute_Patch_Values(BicubicPatch *Shape);
-extern int All_Bicubic_Patch_Intersections(
+extern BicubicPatch *getBicubicPatchShape();
+extern void precomputePatchValues(BicubicPatch *Shape);
+extern int allBicubicPatchIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Inside_Bicubic_Patch(Vector3D *point, SimpleBody *Object);
-extern void Bicubic_Patch_Normal(
+extern int insideBicubicPatch(Vector3D *point, SimpleBody *Object);
+extern void bicubicPatchNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Bicubic_Patch(SimpleBody *Object);
-extern void Translate_Bicubic_Patch(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Bicubic_Patch(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Bicubic_Patch(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Bicubic_Patch(SimpleBody *Object);
+extern void *copyBicubicPatch(SimpleBody *Object);
+extern void translateBicubicPatch(SimpleBody *Object, Vector3D *Vector);
+extern void rotateBicubicPatch(SimpleBody *Object, Vector3D *Vector);
+extern void scaleBicubicPatch(SimpleBody *Object, Vector3D *Vector);
+extern void invertBicubicPatch(SimpleBody *Object);
 
 #endif

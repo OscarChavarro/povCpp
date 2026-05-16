@@ -38,7 +38,7 @@
 #define COORDINATE_LIMIT 1.0e17
 
 void
-Colour_At(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
+colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
 {
     register DBL x;
     register DBL y;
@@ -51,7 +51,7 @@ Colour_At(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
         (intersectionPoint->x < -COORDINATE_LIMIT) ||
         (intersectionPoint->y < -COORDINATE_LIMIT) ||
         (intersectionPoint->z < -COORDINATE_LIMIT)) {
-        Make_Vector(&transformedPoint, 0.0, 0.0, 0.0);
+        makeVector(&transformedPoint, 0.0, 0.0, 0.0);
     } else {
         if (texture->Texture_Transformation) {
             MInverseTransformVector(&transformedPoint, intersectionPoint,
@@ -68,7 +68,7 @@ Colour_At(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
     switch (texture->Texture_Number) {
     case NO_TEXTURE:
         /* No colouring texture has been specified - make it black. */
-        Make_Colour(colour, 0.0, 0.0, 0.0);
+        makeColour(colour, 0.0, 0.0, 0.0);
         colour->Alpha = 0.0;
         break;
 
@@ -100,7 +100,7 @@ Colour_At(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
         break;
 
     case CHECKER_TEXTURE_TEXTURE:
-        checker_texture(x, y, z, texture, colour);
+        checkerTexture(x, y, z, texture, colour);
         break;
 
     case SPOTTED_TEXTURE:
@@ -120,7 +120,7 @@ Colour_At(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
         break;
 
     case IMAGEMAP_TEXTURE:
-        image_map(x, y, z, texture, colour);
+        imageMap(x, y, z, texture, colour);
         break;
 
     case ONION_TEXTURE:
@@ -162,7 +162,7 @@ agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -213,7 +213,7 @@ bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -295,7 +295,7 @@ checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-checker_texture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     Vector3D point;
@@ -311,12 +311,12 @@ checker_texture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
         printf("checker_texture %g %g %g\n", x, y, z);
     }
 
-    Make_Vector(&point, x, y, z);
+    makeVector(&point, x, y, z);
 
     if (brkindx & 1) {
-        Colour_At(colour, ((Texture *)texture->Colour1), &point);
+        colourAt(colour, ((Texture *)texture->Colour1), &point);
     } else {
-        Colour_At(colour, ((Texture *)texture->Colour2), &point);
+        colourAt(colour, ((Texture *)texture->Colour2), &point);
     }
 }
 
@@ -363,7 +363,7 @@ gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
         printf("gradient %g %g %g value %g\n", x, y, z, value);
     }
 
-    Compute_Colour(&newColour, texture->Colour_Map, value);
+    computeColour(&newColour, texture->Colour_Map, value);
     colour->Red += newColour.Red;
     colour->Green += newColour.Green;
     colour->Blue += newColour.Blue;
@@ -395,7 +395,7 @@ granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -415,7 +415,7 @@ marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     register DBL hue;
     RGBAColor newColour;
 
-    noise = Triangle_Wave(
+    noise = triangleWave(
         x + Turbulence(x, y, z, texture->Octaves) * texture->Turbulence);
 
     if (Options & DEBUGGING) {
@@ -423,7 +423,7 @@ marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -461,7 +461,7 @@ spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -500,14 +500,14 @@ wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
     VLength(length, point);
 
-    noise = Triangle_Wave(length);
+    noise = triangleWave(length);
 
     if (Options & DEBUGGING) {
         printf("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -567,7 +567,7 @@ leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -602,19 +602,19 @@ onion(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     /* This ramp goes 0-1,1-0,0-1,1-0...
-    noise = (fmod(SQRT(Sqr(x)+Sqr(y)+Sqr(z)),2.0)-1.0);
+    noise = (fmod(std::sqrt(Sqr(x)+Sqr(y)+Sqr(z)),2.0)-1.0);
     if (noise<0.0) {noise = 0.0-noise;}
     */
 
     /* This ramp goes 0-1,0-1,0-1,0-1... */
-    noise = (fmod(SQRT(Sqr(x) + Sqr(y) + Sqr(z)), 1.0));
+    noise = (fmod(std::sqrt(Sqr(x) + Sqr(y) + Sqr(z)), 1.0));
 
     if (Options & DEBUGGING) {
         printf("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
-        Compute_Colour(&newColour, texture->Colour_Map, noise);
+        computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;

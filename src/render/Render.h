@@ -18,10 +18,10 @@ class Frame {
     RGBAColor Fog_Colour;
 };
 
-extern void Read_Rendered_Part(void);
+extern void readRenderedPart(void);
 extern void Supersample(RGBAColor *result, int x, int y, int Width, int Height);
-extern void Start_Tracing(void);
+extern void startTracing(void);
 extern void Trace(Ray *ray, RGBAColor *Colour);
-extern void Initialize_Renderer(void);
+extern void initializeRenderer(void);
 
 #endif

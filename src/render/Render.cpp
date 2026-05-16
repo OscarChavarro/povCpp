@@ -113,7 +113,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
 
     numberOfPixelsSupersampled++;
 
-    Make_Colour(result, 0.0, 0.0, 0.0);
+    makeColour(result, 0.0, 0.0, 0.0);
 
     jitterX = (rand3d(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
               0.16666666;
@@ -124,9 +124,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
 
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -139,9 +139,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY - 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -153,9 +153,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -168,9 +168,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY + 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -182,9 +182,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -196,9 +196,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -211,9 +211,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY - 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -225,9 +225,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     createRay(vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
     jittOffset += 10;
 
     jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
@@ -240,9 +240,9 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dy + jitterY + 0.3333333);
     traceLevel = 0;
     Trace(vpRay, &colour);
-    Clip_Colour(&colour, &colour);
-    Scale_Colour(&colour, &colour, 0.11111111);
-    Add_Colour(result, result, &colour);
+    clipColour(&colour, &colour);
+    scaleColour(&colour, &colour, 0.11111111);
+    addColour(result, result, &colour);
 
     if ((y != firstLine - 1) && (Options & DISPLAY)) {
         red = (unsigned char)(result->Red * maxclr);
@@ -253,7 +253,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
 }
 
 void
-Read_Rendered_Part()
+readRenderedPart()
 {
     int rc;
     int x;
@@ -264,7 +264,7 @@ Read_Rendered_Part()
     DBL grey;
 
     maxclr = (DBL)(1 << colorBits) - 1.0;
-    while ((rc = Read_Line(
+    while ((rc = readLine(
                 globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
         if (Options & DISPLAY) {
             for (x = 0; x < globalFrame.Screen_Width; x++) {
@@ -287,8 +287,8 @@ Read_Rendered_Part()
     firstLine = lineNumber + 1;
 
     if (rc == 0) {
-        Close_File(globalOutputFileHandle);
-        if (Open_File(globalOutputFileHandle, outputFileName,
+        closeFile(globalOutputFileHandle);
+        if (openFile(globalOutputFileHandle, outputFileName,
                 &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                 fileBufferSize, APPEND_MODE) != 1) {
             fprintf(stderr, "Error opening output file\n");
@@ -301,7 +301,7 @@ Read_Rendered_Part()
 }
 
 void
-Start_Tracing()
+startTracing()
 {
     RGBAColor colour;
     register int x;
@@ -321,7 +321,7 @@ Start_Tracing()
             TEST_ABORT
 
             if (stopFlag) {
-                close_all();
+                closeAll();
                 PRINT_STATS
                 /* exit with error if image not completed/user abort*/
                 exit(2);
@@ -333,7 +333,7 @@ Start_Tracing()
                 globalFrame.Screen_Height, (DBL)x, (DBL)y);
             traceLevel = 0;
             Trace(&ray, &colour);
-            Clip_Colour(&colour, &colour);
+            clipColour(&colour, &colour);
 
             currentLine[x] = colour;
 
@@ -361,7 +361,7 @@ Start_Tracing()
     }
 
     if (Options & DISKWRITE) {
-        Write_Line(globalOutputFileHandle, previousLine, lastLine - 1);
+        writeLine(globalOutputFileHandle, previousLine, lastLine - 1);
     }
 }
 
@@ -417,7 +417,7 @@ doAntiAliasing(register int x, register int y, RGBAColor *colour)
     currentLineAntialiasedFlags[x] = 0;
 
     if (x != 0) {
-        if (Colour_Distance(&currentLine[x - 1], &currentLine[x]) >=
+        if (colourDistance(&currentLine[x - 1], &currentLine[x]) >=
             globalFrame.Antialias_Threshold) {
             antialiasCenterFlag = 1;
             if (!(currentLineAntialiasedFlags[x - 1])) {
@@ -430,7 +430,7 @@ doAntiAliasing(register int x, register int y, RGBAColor *colour)
     }
 
     if (y != firstLine - 1) {
-        if (Colour_Distance(&previousLine[x], &currentLine[x]) >=
+        if (colourDistance(&previousLine[x], &currentLine[x]) >=
             globalFrame.Antialias_Threshold) {
             antialiasCenterFlag = 1;
             if (!(previousLineAntialiasedFlags[x])) {
@@ -452,7 +452,7 @@ doAntiAliasing(register int x, register int y, RGBAColor *colour)
 }
 
 void
-Initialize_Renderer()
+initializeRenderer()
 {
     register int i;
 
@@ -493,7 +493,7 @@ outputLine(register int y)
 
     if (Options & DISKWRITE) {
         if (y > firstLine) {
-            Write_Line(globalOutputFileHandle, previousLine, y - 1);
+            writeLine(globalOutputFileHandle, previousLine, y - 1);
         }
     }
 
@@ -530,7 +530,7 @@ Trace(Ray *ray, RGBAColor *colour)
 
     COOPERATE
     numberOfRays++;
-    Make_Colour(colour, 0.0, 0.0, 0.0);
+    makeColour(colour, 0.0, 0.0, 0.0);
 
     intersectionFound = FALSE;
     localIntersection = nullptr;
@@ -540,7 +540,7 @@ Trace(Ray *ray, RGBAColor *colour)
     }
 
     if (globalFrame.Fog_Distance == 0.0) {
-        Make_Colour(colour, 0.0, 0.0, 0.0);
+        makeColour(colour, 0.0, 0.0, 0.0);
     } else {
         *colour = globalFrame.Fog_Colour;
     }
@@ -570,7 +570,7 @@ Trace(Ray *ray, RGBAColor *colour)
     }
 
     if (intersectionFound) {
-        Determine_Surface_Colour(localIntersection, colour, ray, FALSE);
+        determineSurfaceColour(localIntersection, colour, ray, FALSE);
         delete localIntersection;
     }
 }

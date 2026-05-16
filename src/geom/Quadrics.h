@@ -18,18 +18,18 @@ class Quadric : public Geometry {
 };
 
 extern Methods Quadric_Methods;
-extern Quadric *Get_Quadric_Shape(void);
-extern int All_Quadric_Intersections(
+extern Quadric *getQuadricShape(void);
+extern int allQuadricIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Intersect_Quadric(
+extern int intersectQuadric(
     Ray *Ray, Quadric *Shape, DBL *Depth1, DBL *Depth2);
-extern int Inside_Quadric(Vector3D *point, SimpleBody *Object);
-extern void Quadric_Normal(
+extern int insideQuadric(Vector3D *point, SimpleBody *Object);
+extern void quadricNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Quadric(SimpleBody *Object);
-extern void Translate_Quadric(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Quadric(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Quadric(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Quadric(SimpleBody *Object);
+extern void *copyQuadric(SimpleBody *Object);
+extern void translateQuadric(SimpleBody *Object, Vector3D *Vector);
+extern void rotateQuadric(SimpleBody *Object, Vector3D *Vector);
+extern void scaleQuadric(SimpleBody *Object, Vector3D *Vector);
+extern void invertQuadric(SimpleBody *Object);
 
 #endif

@@ -94,9 +94,9 @@
  *needed. #define ALTMAIN 1 #define NOCMDLINE 1
  ****************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /* needed for Poly.c */
 #ifdef SYSTEM_V
@@ -105,9 +105,9 @@
 
 #define EPSILON 1.0e-5
 
-#define STARTUP_POVRAY unix_init_POVRAY();
+#define STARTUP_POVRAY unixInitPovray();
 #define TIME_ELAPSED (tstop - tstart);
 
-extern void unix_init_POVRAY();
+extern void unixInitPovray();
 
 #endif

@@ -58,14 +58,14 @@ Ray::initializeContainers()
 }
 
 void
-Copy_Ray_Containers(Ray *destRay, Ray *sourceRay)
+copyRayContainers(Ray *destRay, Ray *sourceRay)
 {
     register int i;
 
     if ((destRay->Containing_Index = sourceRay->Containing_Index) >=
         MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "ERROR - Containing Index too high\n");
-        close_all();
+        closeAll();
         exit(1);
     }
 
@@ -76,13 +76,13 @@ Copy_Ray_Containers(Ray *destRay, Ray *sourceRay)
 }
 
 void
-Ray_Enter(Ray *ray, Texture *texture)
+rayEnter(Ray *ray, Texture *texture)
 {
     register int index;
 
     if ((index = ++(ray->Containing_Index)) >= MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "Too many nested refracting objects\n");
-        close_all();
+        closeAll();
         exit(1);
     }
 
@@ -95,7 +95,7 @@ Ray::exitContainingMedium()
 {
     if (--(this->Containing_Index) < -1) {
         fprintf(stderr, "Too many exits from refractions\n");
-        close_all();
+        closeAll();
         exit(1);
     }
 }

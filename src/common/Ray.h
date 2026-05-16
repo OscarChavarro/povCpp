@@ -26,7 +26,7 @@ class Ray {
     void exitContainingMedium();
 };
 
-extern void Copy_Ray_Containers(Ray *Dest_Ray, Ray *Source_Ray);
-extern void Ray_Enter(Ray *ray, Texture *texture);
+extern void copyRayContainers(Ray *Dest_Ray, Ray *Source_Ray);
+extern void rayEnter(Ray *ray, Texture *texture);
 
 #endif

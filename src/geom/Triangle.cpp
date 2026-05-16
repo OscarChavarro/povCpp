@@ -25,16 +25,16 @@
 
 /*===========================================================================*/
 
-Methods Triangle_Methods = {Object_Intersect, All_Triangle_Intersections,
-    Inside_Triangle, Triangle_Normal, Copy_Triangle, Translate_Triangle,
-    Rotate_Triangle, Scale_Triangle, Invert_Triangle};
+Methods Triangle_Methods = {objectIntersect, allTriangleIntersections,
+    insideTriangle, triangleNormal, copyTriangle, translateTriangle,
+    rotateTriangle, scaleTriangle, invertTriangle};
 
-Methods Smooth_Triangle_Methods = {Object_Intersect, All_Triangle_Intersections,
-    Inside_Triangle, Smooth_Triangle_Normal, Copy_Smooth_Triangle,
-    Translate_Smooth_Triangle, Rotate_Smooth_Triangle, Scale_Smooth_Triangle,
-    Invert_Smooth_Triangle};
+Methods Smooth_Triangle_Methods = {objectIntersect, allTriangleIntersections,
+    insideTriangle, smoothTriangleNormal, copySmoothTriangle,
+    translateSmoothTriangle, rotateSmoothTriangle, scaleSmoothTriangle,
+    invertSmoothTriangle};
 
-extern Triangle *Get_Triangle_Shape();
+extern Triangle *getTriangleShape();
 
 extern Ray *vpRay;
 extern long rayTriangleTests, rayTriangleTestsSucceeded;
@@ -110,7 +110,7 @@ computeSmoothTriangle(SmoothTriangle *triangle)
 }
 
 int
-Compute_Triangle(Triangle *triangle)
+computeTriangle(Triangle *triangle)
 {
     Vector3D v1;
     Vector3D v2;
@@ -197,7 +197,7 @@ Compute_Triangle(Triangle *triangle)
 }
 
 int
-All_Triangle_Intersections(
+allTriangleIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Triangle *shape = (Triangle *)object;
@@ -209,7 +209,7 @@ All_Triangle_Intersections(
         return (FALSE);
     }
 
-    if (Intersect_Triangle(ray, shape, &depth)) {
+    if (intersectTriangle(ray, shape, &depth)) {
         localElement.Depth = depth;
         localElement.Object = shape->Parent_Object;
         VScale(intersectionPoint, ray->Direction, depth);
@@ -223,7 +223,7 @@ All_Triangle_Intersections(
 }
 
 int
-Intersect_Triangle(Ray *ray, Triangle *triangle, DBL *depth)
+intersectTriangle(Ray *ray, Triangle *triangle, DBL *depth)
 {
     DBL normalDotOrigin, normalDotDirection;
     DBL s, t;
@@ -383,13 +383,13 @@ Intersect_Triangle(Ray *ray, Triangle *triangle, DBL *depth)
 }
 
 int
-Inside_Triangle(Vector3D *testPoint, SimpleBody *object)
+insideTriangle(Vector3D *testPoint, SimpleBody *object)
 {
     return (FALSE);
 }
 
 void
-Triangle_Normal(
+triangleNormal(
     Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Triangle *triangle = (Triangle *)object;
@@ -398,23 +398,23 @@ Triangle_Normal(
 }
 
 void *
-Copy_Triangle(SimpleBody *object)
+copyTriangle(SimpleBody *object)
 {
     Triangle *newShape;
 
-    newShape = Get_Triangle_Shape();
+    newShape = getTriangleShape();
     *newShape = *((Triangle *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
 }
 
 void
-Translate_Triangle(SimpleBody *object, Vector3D *vector)
+translateTriangle(SimpleBody *object, Vector3D *vector)
 {
     Triangle *triangle = (Triangle *)object;
     Vector3D translation;
@@ -425,28 +425,28 @@ Translate_Triangle(SimpleBody *object, Vector3D *vector)
         VAdd(triangle->P2, triangle->P2, *vector)
             VAdd(triangle->P3, triangle->P3, *vector)
 
-                Translate_Texture(&((Triangle *)object)->Shape_Texture, vector);
+                translateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Triangle(SimpleBody *object, Vector3D *vector)
+rotateTriangle(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
     Triangle *triangle = (Triangle *)object;
 
-    Get_Rotation_Transformation(&transformation, vector);
+    getRotationTransformation(&transformation, vector);
     MTransformVector(
         &triangle->Normal_Vector, &triangle->Normal_Vector, &transformation);
     MTransformVector(&triangle->P1, &triangle->P1, &transformation);
     MTransformVector(&triangle->P2, &triangle->P2, &transformation);
     MTransformVector(&triangle->P3, &triangle->P3, &transformation);
-    Compute_Triangle(triangle);
+    computeTriangle(triangle);
 
-    Rotate_Texture(&((Triangle *)object)->Shape_Texture, vector);
+    rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Triangle(SimpleBody *object, Vector3D *vector)
+scaleTriangle(SimpleBody *object, Vector3D *vector)
 {
     Triangle *triangle = (Triangle *)object;
     DBL length;
@@ -463,11 +463,11 @@ Scale_Triangle(SimpleBody *object, Vector3D *vector)
     VEvaluate(triangle->P2, triangle->P2, *vector);
     VEvaluate(triangle->P3, triangle->P3, *vector);
 
-    Scale_Texture(&((Triangle *)object)->Shape_Texture, vector);
+    scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Triangle(SimpleBody *object)
+invertTriangle(SimpleBody *object)
 {
     Triangle *triangle = (Triangle *)object;
 
@@ -516,7 +516,7 @@ Invert_Triangle(SimpleBody *object)
 */
 
 void
-Smooth_Triangle_Normal(
+smoothTriangleNormal(
     Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
@@ -565,28 +565,28 @@ Smooth_Triangle_Normal(
 }
 
 void *
-Copy_Smooth_Triangle(SimpleBody *object)
+copySmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *newShape;
 
-    newShape = Get_Smooth_Triangle_Shape();
+    newShape = getSmoothTriangleShape();
     *newShape = *((SmoothTriangle *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
 }
 
 void
-Rotate_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
+rotateSmoothTriangle(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
     SmoothTriangle *triangle = (SmoothTriangle *)object;
 
-    Get_Rotation_Transformation(&transformation, vector);
+    getRotationTransformation(&transformation, vector);
     MTransformVector(
         &triangle->Normal_Vector, &triangle->Normal_Vector, &transformation);
     MTransformVector(&triangle->P1, &triangle->P1, &transformation);
@@ -595,13 +595,13 @@ Rotate_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
     MTransformVector(&triangle->N1, &triangle->N1, &transformation);
     MTransformVector(&triangle->N2, &triangle->N2, &transformation);
     MTransformVector(&triangle->N3, &triangle->N3, &transformation);
-    Compute_Triangle((Triangle *)triangle);
+    computeTriangle((Triangle *)triangle);
 
-    Rotate_Texture(&((Triangle *)object)->Shape_Texture, vector);
+    rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Translate_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
+translateSmoothTriangle(SimpleBody *object, Vector3D *vector)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     Vector3D translation;
@@ -611,13 +611,13 @@ Translate_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
     VAdd(triangle->P1, triangle->P1, *vector)
         VAdd(triangle->P2, triangle->P2, *vector)
             VAdd(triangle->P3, triangle->P3, *vector)
-                Compute_Triangle((Triangle *)triangle);
+                computeTriangle((Triangle *)triangle);
 
-    Translate_Texture(&((Triangle *)object)->Shape_Texture, vector);
+    translateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
+scaleSmoothTriangle(SimpleBody *object, Vector3D *vector)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     DBL length;
@@ -633,13 +633,13 @@ Scale_Smooth_Triangle(SimpleBody *object, Vector3D *vector)
     VEvaluate(triangle->P1, triangle->P1, *vector);
     VEvaluate(triangle->P2, triangle->P2, *vector);
     VEvaluate(triangle->P3, triangle->P3, *vector);
-    Compute_Triangle((Triangle *)triangle);
+    computeTriangle((Triangle *)triangle);
 
-    Scale_Texture(&((SmoothTriangle *)object)->Shape_Texture, vector);
+    scaleTexture(&((SmoothTriangle *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Smooth_Triangle(SimpleBody *object)
+invertSmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
 

@@ -15,17 +15,17 @@ class InfinitePlane : public Geometry {
 };
 
 extern Methods Plane_Methods;
-extern InfinitePlane *Get_Plane_Shape(void);
-extern int All_Plane_Intersections(
+extern InfinitePlane *getPlaneShape(void);
+extern int allPlaneIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Intersect_Plane(Ray *Ray, InfinitePlane *Plane, DBL *Depth);
-extern int Inside_Plane(Vector3D *point, SimpleBody *Object);
-extern void Plane_Normal(
+extern int intersectPlane(Ray *Ray, InfinitePlane *Plane, DBL *Depth);
+extern int insidePlane(Vector3D *point, SimpleBody *Object);
+extern void planeNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Plane(SimpleBody *Object);
-extern void Translate_Plane(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Plane(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Plane(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Plane(SimpleBody *Object);
+extern void *copyPlane(SimpleBody *Object);
+extern void translatePlane(SimpleBody *Object, Vector3D *Vector);
+extern void rotatePlane(SimpleBody *Object, Vector3D *Vector);
+extern void scalePlane(SimpleBody *Object, Vector3D *Vector);
+extern void invertPlane(SimpleBody *Object);
 
 #endif

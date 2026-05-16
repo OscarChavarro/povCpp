@@ -5,13 +5,13 @@
 #include "common/Vector.h"
 #include "media/Texture.h"
 
-extern void Colour_At(
+extern void colourAt(
     RGBAColor *Colour, Texture *Texture, Vector3D *Intersection_Point);
 extern void agate(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
 extern void bozo(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
 extern void brick(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
 extern void checker(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void checker_texture(
+extern void checkerTexture(
     DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
 extern void gradient(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
 extern void granite(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);

@@ -14,17 +14,17 @@ class Box : public Geometry {
 };
 
 extern Methods Box_Methods;
-extern Box *Get_Box_Shape();
-extern int All_Box_Intersections(
+extern Box *getBoxShape();
+extern int allBoxIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Intersect_Boxx(Ray *Ray, Box *box, DBL *Depth1, DBL *Depth2);
-extern int Inside_Box(Vector3D *point, SimpleBody *Object);
-extern void Box_Normal(
+extern int intersectBoxx(Ray *Ray, Box *box, DBL *Depth1, DBL *Depth2);
+extern int insideBox(Vector3D *point, SimpleBody *Object);
+extern void boxNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Box(SimpleBody *Object);
-extern void Translate_Box(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Box(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Box(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Box(SimpleBody *Object);
+extern void *copyBox(SimpleBody *Object);
+extern void translateBox(SimpleBody *Object, Vector3D *Vector);
+extern void rotateBox(SimpleBody *Object, Vector3D *Vector);
+extern void scaleBox(SimpleBody *Object, Vector3D *Vector);
+extern void invertBox(SimpleBody *Object);
 
 #endif
