@@ -3,9 +3,6 @@
 
 #include "common/Matrices.h"
 #include "common/Ray.h"
-
-/*===========================================================================*/
-
 /* Object/shape types */
 static constexpr int SPHERE_TYPE = 0;
 static constexpr int TRIANGLE_TYPE = 1;

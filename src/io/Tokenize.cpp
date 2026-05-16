@@ -4,21 +4,6 @@
  *  This module implements the first part of a two part parser for the scene
  *  description files.  This phase changes the input file into tokens.
  *
- *  from Persistence of Vision Raytracer
- *  Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  *****************************************************************************/
 
 #include "io/Tokenize.h"
@@ -138,7 +123,7 @@ initializeTokenizer(char *filename)
     globalIncludeFileIndex = 0;
     globalDataFile = &globalIncludeFiles[0];
 
-    globalDataFile->File = locateFile(filename, "r");
+    globalDataFile->File = PovApp::locateFile(filename, "r");
     if (globalDataFile->File == nullptr) {
         fprintf(stderr, "Cannot open input file\n");
         exit(1);
@@ -196,7 +181,7 @@ getToken()
     register int c2;
     cooperate();
     if (stopFlag) {
-        closeAll();
+        PovApp::closeAll();
         exit(1);
     }
     if (globalToken.Unget_Token) {
@@ -496,7 +481,7 @@ getToken()
 
             strcpy(globalDataFile->Filename, globalToken.Token_String);
 
-            if ((globalDataFile->File = locateFile(
+            if ((globalDataFile->File = PovApp::locateFile(
                      globalToken.Token_String, "r")) == nullptr) {
                 fprintf(stderr, "Cannot open include file: %s\n",
                     globalToken.Token_String);

@@ -3,21 +3,6 @@
  *
  *  This module implements a priority queue using a heap.
  *
- *  from Persistence of Vision Raytracer
- *  Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  *****************************************************************************/
 
 #include "geom/PrioQ.h"
@@ -129,7 +114,7 @@ pqInit()
         newNode = new PriorityQueueNode();
         if (newNode == nullptr) {
             fprintf(stderr, "\nOut of memory. Cannot allocate queues");
-            closeAll();
+            PovApp::closeAll();
             exit(1);
         }
 
@@ -139,7 +124,7 @@ pqInit()
         newNode->queue = new Intersection[MAX_NUMBER_OF_INTERSECTIONS];
         if (newNode->queue == nullptr) {
             fprintf(stderr, "\nOut of memory. Cannot allocate queue entries");
-            closeAll();
+            PovApp::closeAll();
             exit(1);
         }
         newNode->current_entry = 0;
@@ -171,7 +156,7 @@ pqPop(int indexSize)
 
     if (GLOBAL_priorityQueuesHead == nullptr) {
         fprintf(stderr, "\nOut of prioqs");
-        closeAll();
+        PovApp::closeAll();
         exit(1);
     }
     pq = GLOBAL_priorityQueuesHead;

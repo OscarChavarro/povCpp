@@ -6,29 +6,11 @@
  *  This file was written by Alexander Enzmann.  He wrote the code for
  *  blobs and generously provided us these enhancements.
  *
- *  from Persistence of Vision Raytracer
- *         Copyright 1992 Persistence of Vision Team
- *---------------------------------------------------------------------------
- *  Copying, distribution and legal info is in the file povlegal.doc which
- *  should be distributed with this file. If povlegal.doc is not available
- *  or for more info please contact:
- *
- *         Drew Wells [POV-Team Leader]
- *         CIS: 73767,1244  Internet: 73767.1244@compuserve.com
- *         Phone: (213) 254-4041
- *
- * This program is based on the popular DKB raytracer version 2.12.
- * DKBTrace was originally written by David K. Buck.
- * DKBTrace Ver 2.0-2.12 were written by David K. Buck & Aaron A. Collins.
- *
  *****************************************************************************/
 
 #include "geom/Blob.h"
 #include "geom/Objects.h"
 #include "media/Vect.h"
-
-/*===========================================================================*/
-
 Methods Blob_Methods = {objectIntersect, allBlobIntersections, insideBlob,
     blobNormal, copyBlob, translateBlob, rotateBlob, scaleBlob,
     invertBlob};
@@ -45,9 +27,6 @@ static int validateHit(Blob *blob, Vector3D *p);
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
-
-/*===========================================================================*/
-
 /* Starting with the density function: (1-r^2)^2, we have a field
     that varies in strength from 1 at r = 0 to 0 at r = 1.  By
     substituting r/rad for r, we can adjust the range of influence
