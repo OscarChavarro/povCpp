@@ -43,6 +43,12 @@ class ImageLine {
 
 class RGBAImage {
   public:
+    class ImageData {
+      public:
+        ImageLine *rgb_lines;
+        unsigned char **map_lines;
+    };
+
     DBL width, height;
     int iwidth, iheight;
     int Map_Type;
@@ -52,10 +58,7 @@ class RGBAImage {
     Vector3D Image_Gradient;
     short Colour_Map_Size;
     RGBAPixel *Colour_Map;
-    union {
-        ImageLine *rgb_lines;
-        unsigned char **map_lines;
-    } data;
+    ImageData data;
 };
 
 class Texture {

@@ -16,6 +16,21 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/common/RGBAColor.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/RGBAColor.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/RGBAColor.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/common/RGBAColorPalette.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/RGBAColorPalette.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/RGBAColorPalette.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/common/RGBAColorPaletteSpan.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/RGBAColorPaletteSpan.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/RGBAColorPaletteSpan.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/common/matrices.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/matrices.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/common/matrices.cpp"
 },
@@ -31,8 +46,48 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BezierChild.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BezierChild.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BezierChild.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BezierNode.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BezierNode.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BezierNode.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BezierVertices.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BezierVertices.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BezierVertices.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BicubicPatch.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BicubicPatch.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BicubicPatch.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/blob.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/blob.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/blob.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BlobClass.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobClass.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobClass.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BlobElement.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobElement.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobElement.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BlobInterval.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobInterval.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobInterval.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/BlobList.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobList.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/BlobList.cpp"
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
@@ -46,6 +101,21 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/GeometryClass.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/GeometryClass.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/GeometryClass.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/HeightField.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/HeightField.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/HeightField.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/HeightFieldBlock.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/HeightFieldBlock.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/HeightFieldBlock.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/hfield.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/hfield.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/hfield.cpp"
 },
@@ -53,6 +123,11 @@
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/light.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/light.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/light.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/MethodsClass.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/MethodsClass.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/MethodsClass.cpp"
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
@@ -71,6 +146,16 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/PriorityQueue.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/PriorityQueue.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/PriorityQueue.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/PriorityQueueNodeClass.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/PriorityQueueNodeClass.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/PriorityQueueNodeClass.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/prioq.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/prioq.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/prioq.cpp"
 },
@@ -81,8 +166,23 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/SimpleBody.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/SimpleBody.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/SimpleBody.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/SmoothTriangle.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/SmoothTriangle.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/SmoothTriangle.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/spheres.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/spheres.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/spheres.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/geom/TriangleClass.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/TriangleClass.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/geom/TriangleClass.cpp"
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
@@ -101,8 +201,18 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/FileHandle.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/FileHandle.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/FileHandle.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/gif.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/gif.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/gif.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/ChunkHeader.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/ChunkHeader.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/ChunkHeader.cpp"
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
@@ -128,6 +238,21 @@
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/targa.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/targa.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/targa.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/DataFile.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/DataFile.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/DataFile.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/ReservedWord.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/ReservedWord.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/ReservedWord.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/TokenStruct.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/TokenStruct.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/TokenStruct.cpp"
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",

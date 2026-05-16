@@ -7,36 +7,10 @@
 #include "geom/geometry.h"
 
 /* Blob types */
-class BlobElement {
-  public:
-    Vector3D pos;
-    DBL radius2;
-    DBL coeffs[3];
-    DBL tcoeffs[5];
-};
-
-class BlobList {
-  public:
-    BlobElement elem;
-    BlobList *next;
-};
-
-class BlobInterval {
-  public:
-    int type, index;
-    DBL bound;
-};
-
-class Blob : public Geometry {
-  public:
-    Transformation *Transform;
-    short Inverted;
-    int count;
-    DBL threshold;
-    BlobElement *list;
-    BlobInterval *intervals;
-    int Sturm_Flag;
-};
+#include "geom/BlobElement.h"
+#include "geom/BlobList.h"
+#include "geom/BlobInterval.h"
+#include "geom/BlobClass.h"
 
 extern Methods Blob_Methods;
 extern Blob *Get_Blob_Shape(void);

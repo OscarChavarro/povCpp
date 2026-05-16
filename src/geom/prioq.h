@@ -2,30 +2,9 @@
 #define __PRIOQ_H__
 
 #include "geom/Intersection.h"
+#include "geom/PriorityQueueNodeClass.h"
 
-class PriorityQueueNode {
-  private:
-    void balance(unsigned int entry_pos1);
-
-  public:
-    Intersection *queue;
-    unsigned int current_entry, queue_size;
-    PriorityQueueNode *next_pq;
-
-    void add(Intersection *queue_entry);
-    Intersection *getHighest();
-    void deleteHighest();
-};
-
-class PriorityQueue {
-  private:
-    PriorityQueueNode *head;
-
-  public:
-    PriorityQueue();
-
-    friend class PriorityQueueNode;
-};
+class PriorityQueue;
 
 extern PriorityQueue *GLOBAL_priorityQueue;
 extern PriorityQueueNode *GLOBAL_priorityQueuesHead;

@@ -2,12 +2,7 @@
 #define __IFF_H__
 
 #include "geom/geometry.h"
-
-class ChunkHeader {
-  public:
-    long name;
-    long size;
-};
+#include "io/ChunkHeader.h"
 
 extern void iff_error(void);
 extern int read_byte(FILE *f);

@@ -1,0 +1,16 @@
+#ifndef __BEZIER_NODE_H__
+#define __BEZIER_NODE_H__
+
+#include "common/frame.h"
+#include "common/vector.h"
+
+class BezierNode {
+  public:
+    int Node_Type;
+    Vector3D Center;
+    DBL Radius_Squared;
+    int Count;
+    void *Data_Ptr;
+};
+
+#endif

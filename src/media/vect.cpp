@@ -77,10 +77,11 @@
 #define MAX_ITERATIONS 50
 #define MAXPOW 32
 
-typedef struct p {
+class polynomial {
+  public:
     int ord;
     DBL coef[MAX_ORDER + 1];
-} polynomial;
+};
 
 static int modp(polynomial *u, polynomial *v, polynomial *r);
 int regula_falsa(int order, DBL *coef, DBL a, DBL b, DBL *val);

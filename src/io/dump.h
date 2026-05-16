@@ -1,30 +1,11 @@
 #ifndef __DUMP_H__
 #define __DUMP_H__
 
-#include "geom/geometry.h"
+#include "io/FileHandle.h"
 
 #define READ_MODE 0
 #define WRITE_MODE 1
 #define APPEND_MODE 2
-
-class FileHandle {
-  public:
-    char *filename;
-    int mode;
-    int width, height;
-    int buffer_size;
-    char *buffer;
-    FILE *file;
-    char *(*Default_File_Name_p)(void);
-    int (*Open_File_p)(FileHandle *handle, char *name, int *width, int *height,
-        int buffer_size, int mode);
-    void (*Write_Line_p)(
-        FileHandle *handle, RGBAColor *line_data, int line_number);
-    int (*Read_Line_p)(
-        FileHandle *handle, RGBAColor *line_data, int *line_number);
-    void (*Read_Image_p)(RGBAImage *Image, char *filename);
-    void (*Close_File_p)(FileHandle *handle);
-};
 
 #define Default_File_Name(h) ((*((h)->Default_File_Name_p))())
 #define Open_File(h, n, wd, ht, sz, m)                                         \

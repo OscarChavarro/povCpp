@@ -127,7 +127,7 @@ static DataFile GLOBAL_includeFiles[MAX_INCLUDE_FILES];
 static DataFile *GLOBAL_dataFile;
 static int GLOBAL_includeFileIndex;
 
-struct TokenStruct GLOBAL_token;
+TokenStruct GLOBAL_token;
 
 #define CALL(x)                                                                \
     {                                                                          \

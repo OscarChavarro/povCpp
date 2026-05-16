@@ -38,14 +38,13 @@
 #include "common/frame.h"
 #include "common/povproto.h"
 
-struct Raw_File_Handle_Struct {
+class RAW_FILE_HANDLE {
+  public:
     FileHandle root;
     FILE *Red_File, *Green_File, *Blue_File;
     char *Red_Buffer, *Green_Buffer, *Blue_Buffer;
     int line_number;
 };
-
-typedef struct Raw_File_Handle_Struct RAW_FILE_HANDLE;
 
 FileHandle *
 Get_Raw_File_Handle()
