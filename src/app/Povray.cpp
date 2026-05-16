@@ -26,8 +26,8 @@
 #include "geom/PrioQ.h"
 #include "io/Parse.h"
 #include "render/Render.h"
-#include <ctype.h>
-#include <time.h> /* BP */
+#include <cctype>
+#include <ctime> /* BP */
 
 #define MAX_FILE_NAMES 1
 unsigned int Options;
@@ -120,7 +120,7 @@ main(int argc, char *argv[])
     register int i;
     FILE *statFile;
 
-    STARTUP_POVRAY
+    unixInitPovray();
 
     /*PRINT_CREDITS
 
@@ -162,23 +162,23 @@ main(int argc, char *argv[])
         case '\0':
         case 'd':
         case 'D':
-            if ((globalOutputFileHandle = Get_Dump_File_Handle()) == nullptr) {
-                close_all();
+            if ((globalOutputFileHandle = getDumpFileHandle()) == nullptr) {
+                closeAll();
                 exit(1);
             }
             break;
         case 'r':
         case 'R':
-            if ((globalOutputFileHandle = Get_Raw_File_Handle()) == nullptr) {
-                close_all();
+            if ((globalOutputFileHandle = getRawFileHandle()) == nullptr) {
+                closeAll();
                 exit(1);
             }
             break;
 
         case 't':
         case 'T':
-            if ((globalOutputFileHandle = Get_Targa_File_Handle()) == nullptr) {
-                close_all();
+            if ((globalOutputFileHandle = getTargaFileHandle()) == nullptr) {
+                closeAll();
                 exit(1);
             }
             break;
@@ -188,13 +188,13 @@ main(int argc, char *argv[])
             exit(1);
         }
         if (outputFileName[0] == '\0') {
-            strcpy(outputFileName, Default_File_Name(globalOutputFileHandle));
+            strcpy(outputFileName, defaultFileName(globalOutputFileHandle));
         }
     }
 
     printOptions();
 
-    Initialize_Tokenizer(inputFileName);
+    initializeTokenizer(inputFileName);
     fprintf(stderr, "Parsing...");
     if (Options & VERBOSE_FILE) {
         statFile = fopen(statFileName, "w+t");
@@ -202,19 +202,19 @@ main(int argc, char *argv[])
         fclose(statFile);
     }
     Parse(&globalFrame);
-    Terminate_Tokenizer();
+    terminateTokenizer();
     /* fprintf (stderr,"\n"); */
 
     if (Options & DISPLAY) {
         printf("Displaying...\n");
-        display_init(globalFrame.Screen_Width, globalFrame.Screen_Height);
+        displayInit(globalFrame.Screen_Width, globalFrame.Screen_Height);
         displayStarted = TRUE;
     }
 
     /* Get things ready for ray tracing */
     if (Options & DISKWRITE) {
         if (Options & CONTINUE_TRACE) {
-            if (Open_File(globalOutputFileHandle, outputFileName,
+            if (openFile(globalOutputFileHandle, outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                     fileBufferSize, READ_MODE) != 1) {
                 fprintf(stderr, "Error opening continue trace output file\n");
@@ -222,38 +222,38 @@ main(int argc, char *argv[])
                     stderr, "Opening new output file %s.\n", outputFileName);
                 Options &= ~CONTINUE_TRACE; /* Turn off continue trace */
 
-                if (Open_File(globalOutputFileHandle, outputFileName,
+                if (openFile(globalOutputFileHandle, outputFileName,
                         &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                         fileBufferSize, WRITE_MODE) != 1) {
                     fprintf(stderr, "Error opening output file\n");
-                    close_all();
+                    closeAll();
                     exit(1);
                 }
             }
 
-            Initialize_Renderer();
+            initializeRenderer();
             if (Options & CONTINUE_TRACE) {
-                Read_Rendered_Part();
+                readRenderedPart();
             }
         } else {
-            if (Open_File(globalOutputFileHandle, outputFileName,
+            if (openFile(globalOutputFileHandle, outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                     fileBufferSize, WRITE_MODE) != 1) {
                 fprintf(stderr, "Error opening output file\n");
-                close_all();
+                closeAll();
                 exit(1);
             }
 
-            Initialize_Renderer();
+            initializeRenderer();
         }
     } else {
-        Initialize_Renderer();
+        initializeRenderer();
     }
 
-    GLOBAL_priorityQueuesHead = pq_init();
-    Initialize_Noise();
+    GLOBAL_priorityQueuesHead = pqInit();
+    initializeNoise();
 
-    START_TIME /* Store start time for trace. Timer macro in CONFIG.H */
+    time(&tstart);
 
         /* Ok, go for it - trace the picture */
         if ((Options & VERBOSE) && (verboseFormat != '1'))
@@ -272,32 +272,29 @@ main(int argc, char *argv[])
         fclose(statFile);
     }
 
-    CONFIG_MATH /* Macro for setting up any special FP options */
-    Start_Tracing();
+    startTracing();
 
     if (Options & VERBOSE && verboseFormat == '1') {
         fprintf(stderr, "\n");
     }
 
     /* Record the time so well spent... */
-    STOP_TIME                /* Get trace done time. */
-        tused = TIME_ELAPSED /* Calc. elapsed time. Define TIME_ELAPSED as */
+    time(&tstop);
+    tused = (tstop - tstart);
         /* 0 in your specific CONFIG.H if unsupported */
 
         /* Clean up and leave */
-        display_finished();
+        displayFinished();
 
-    close_all();
+    closeAll();
 
-    PRINT_STATS
+    printStats();
 
     if (Options & VERBOSE_FILE) {
         statFile = fopen(statFileName, "a+t");
         fprintf(statFile, "Done Tracing\n");
         fclose(statFile);
     }
-
-    FINISH_POVRAY
 
     return 0;
 }
@@ -306,7 +303,6 @@ main(int argc, char *argv[])
 void
 usage()
 {
-    WAIT_FOR_KEYPRESS
     fprintf(stdout, "\nUsage:");
     fprintf(stdout, "\n    povray  [+/-] Option1 [+/-] Option2 ...");
     fprintf(stdout, "\n");
@@ -394,14 +390,14 @@ initVars()
 
 /* Close all the stuff that has been opened. */
 void
-close_all()
+closeAll()
 {
     if ((Options & DISPLAY) && displayStarted) {
-        display_close();
+        displayClose();
     }
 
     if (globalOutputFileHandle) {
-        Close_File(globalOutputFileHandle);
+        closeFile(globalOutputFileHandle);
     }
 }
 
@@ -422,14 +418,15 @@ getDefaults()
     Options |= DISKWRITE;
     outputFormat = DEFAULT_OUTPUT_FORMAT;
 
-    READ_ENV_VAR_BEFORE
-    if ((defaultsFile = Locate_File("povray.def", "r")) != nullptr) {
+    if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
+        readOptions(Option_String_Ptr);
+    }
+    if ((defaultsFile = locateFile("povray.def", "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
             readOptions(optionString);
         }
         fclose(defaultsFile);
     }
-    READ_ENV_VAR_AFTER
 }
 
 void
@@ -784,7 +781,7 @@ parseFileName(char *fileName)
         exit(1);
     }
 
-    if ((defaultsFile = Locate_File(fileName, "r")) != nullptr) {
+    if ((defaultsFile = locateFile(fileName, "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
             readOptions(optionString);
         }
@@ -795,7 +792,7 @@ parseFileName(char *fileName)
 }
 
 void
-print_stats()
+printStats()
 {
     int hours;
     int min;
@@ -937,7 +934,7 @@ print_stats()
 
 /* Find a file in the search path. */
 FILE *
-Locate_File(const char *filename, const char *mode)
+locateFile(const char *filename, const char *mode)
 {
     FILE *f;
     int i;

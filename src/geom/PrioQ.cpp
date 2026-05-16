@@ -117,7 +117,7 @@ Creates a list with NUMBER_OF_PRIOQS positions, each one holding a dynamic
 array of MAX_NUMBER_OF_INTERSECTIONS Intersections.
 */
 PriorityQueueNode *
-pq_init()
+pqInit()
 {
     int i;
     PriorityQueueNode *newNode;
@@ -129,7 +129,7 @@ pq_init()
         newNode = new PriorityQueueNode();
         if (newNode == nullptr) {
             fprintf(stderr, "\nOut of memory. Cannot allocate queues");
-            close_all();
+            closeAll();
             exit(1);
         }
 
@@ -139,7 +139,7 @@ pq_init()
         newNode->queue = new Intersection[MAX_NUMBER_OF_INTERSECTIONS];
         if (newNode->queue == nullptr) {
             fprintf(stderr, "\nOut of memory. Cannot allocate queue entries");
-            close_all();
+            closeAll();
             exit(1);
         }
         newNode->current_entry = 0;
@@ -160,7 +160,7 @@ PriorityQueueNode::pushBackToPool()
 }
 
 PriorityQueueNode *
-pq_pop(int indexSize)
+pqPop(int indexSize)
 {
     if (indexSize >= MAX_NUMBER_OF_INTERSECTIONS) {
         indexSize = MAX_NUMBER_OF_INTERSECTIONS - 1;
@@ -171,7 +171,7 @@ pq_pop(int indexSize)
 
     if (GLOBAL_priorityQueuesHead == nullptr) {
         fprintf(stderr, "\nOut of prioqs");
-        close_all();
+        closeAll();
         exit(1);
     }
     pq = GLOBAL_priorityQueuesHead;

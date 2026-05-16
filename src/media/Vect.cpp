@@ -401,7 +401,7 @@ regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
     The roots themselves are returned in y[0], y[1].
 */
 int
-solve_quadratic(DBL *x, DBL *y)
+solveQuadratic(DBL *x, DBL *y)
 {
     DBL d, t, a, b, c;
     a = x[0];
@@ -444,7 +444,7 @@ solve_quadratic(DBL *x, DBL *y)
     not rely on transcendentals this code will be replaced.
 */
 int
-solve_cubic(DBL *x, DBL *y)
+solveCubic(DBL *x, DBL *y)
 {
     DBL q, r, q3, r2, sQ, d, an, theta;
     DBL a0;
@@ -454,7 +454,7 @@ solve_cubic(DBL *x, DBL *y)
     DBL a1Squared;
     a0 = x[0];
     if (a0 == 0.0) {
-        return solve_quadratic(&x[1], y);
+        return solveQuadratic(&x[1], y);
     }
     if (a0 != 1.0) {
         a1 = x[1] / a0;
@@ -523,7 +523,7 @@ difficultCoeffs(int n, DBL *x)
 }
 
 int
-solve_quartic(DBL *x, DBL *results)
+solveQuartic(DBL *x, DBL *results)
 {
     DBL cubic[4], roots[3];
     DBL a0, a1, y, d1, x1, t1, t2;
@@ -534,9 +534,9 @@ solve_quartic(DBL *x, DBL *results)
     if (difficultCoeffs(4, x)) {
         if (fabs(x[0]) < COEFF_LIMIT) {
             if (fabs(x[1]) < COEFF_LIMIT) {
-                return solve_quadratic(&x[2], results);
+                return solveQuadratic(&x[2], results);
             }
-            return solve_cubic(&x[1], results);
+            return solveCubic(&x[1], results);
 
         } else {
             return polysolve(4, x, results);
@@ -545,10 +545,10 @@ solve_quartic(DBL *x, DBL *results)
 
     c0 = x[0];
     if (fabs(c0) < COEFF_LIMIT) {
-        return solve_cubic(&x[1], results);
+        return solveCubic(&x[1], results);
     }
     if (fabs(x[4]) < COEFF_LIMIT) {
-        return solve_cubic(x, results);
+        return solveCubic(x, results);
     }
     if (c0 != 1.0) {
         c1 = x[1] / c0;
@@ -590,7 +590,7 @@ solve_quartic(DBL *x, DBL *results)
     cubic[1] = -1.0 * c2;
     cubic[2] = c1 * c3 - a0;
     cubic[3] = a0 * c2 - c1 * c1 * c4 - c3 * c3;
-    i = solve_cubic(&cubic[0], &roots[0]);
+    i = solveCubic(&cubic[0], &roots[0]);
     if (i > 0) {
         y = roots[0];
     } else {

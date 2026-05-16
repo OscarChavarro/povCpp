@@ -15,16 +15,16 @@ class Poly : public Geometry {
 };
 
 extern Methods Poly_Methods;
-extern Poly *Get_Poly_Shape(int);
-extern int All_Poly_Intersections(
+extern Poly *getPolyShape(int);
+extern int allPolyIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Inside_Poly(Vector3D *point, SimpleBody *Object);
-extern void Poly_Normal(
+extern int insidePoly(Vector3D *point, SimpleBody *Object);
+extern void polyNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Poly(SimpleBody *Object);
-extern void Translate_Poly(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Poly(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Poly(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Poly(SimpleBody *Object);
+extern void *copyPoly(SimpleBody *Object);
+extern void translatePoly(SimpleBody *Object, Vector3D *Vector);
+extern void rotatePoly(SimpleBody *Object, Vector3D *Vector);
+extern void scalePoly(SimpleBody *Object, Vector3D *Vector);
+extern void invertPoly(SimpleBody *Object);
 
 #endif

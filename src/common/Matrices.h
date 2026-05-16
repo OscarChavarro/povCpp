@@ -26,17 +26,17 @@ extern void MInvTransVector(
     Vector3D *result, Vector3D *vector, Transformation *transformation);
 extern void MTransNormal(
     Vector3D *result, Vector3D *vector, Transformation *transformation);
-extern void Get_Scaling_Transformation(
+extern void getScalingTransformation(
     Transformation *result, Vector3D *vector);
-extern void Get_Inversion_Transformation(Transformation *result);
-extern void Get_Translation_Transformation(
+extern void getInversionTransformation(Transformation *result);
+extern void getTranslationTransformation(
     Transformation *transformation, Vector3D *vector);
-extern void Get_Rotation_Transformation(
+extern void getRotationTransformation(
     Transformation *transformation, Vector3D *vector);
-extern void Get_Look_At_Transformation(Transformation *transformation,
+extern void getLookAtTransformation(Transformation *transformation,
     Vector3D *Look_At, Vector3D *Up, Vector3D *Right);
-extern void Compose_Transformations(Transformation *Original_Transformation,
+extern void composeTransformations(Transformation *Original_Transformation,
     Transformation *New_Transformation);
-extern Transformation *Get_Transformation(void);
+extern Transformation *getTransformation(void);
 
 #endif

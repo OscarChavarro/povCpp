@@ -22,25 +22,25 @@
 
 #include "app/Unix.h"
 #include "common/Config.h"
-#include <math.h>
+#include <cmath>
 
 void
-unix_init_POVRAY()
+unixInitPovray()
 {
 }
 
 void
-display_finished()
+displayFinished()
 {
 }
 
 void
-display_init(int width, int height)
+displayInit(int width, int height)
 {
 }
 
 void
-display_close()
+displayClose()
 {
 }
 

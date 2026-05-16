@@ -5,7 +5,7 @@
 #include "io/DataFile.h"
 #include "io/ReservedWord.h"
 #include "io/TokenStruct.h"
-#include <stdio.h>
+#include <cstdio>
 
 /* Token Definitions for Parser */
 /* This list must have the same number of tokens as list in tokenize.c */
@@ -171,17 +171,17 @@ typedef int TOKEN;
 
 /* Here's where you dump the information on the current token (fm. PARSE.C) */
 
-extern void Initialize_Tokenizer(char *Input_File_Name);
-extern void Terminate_Tokenizer(void);
+extern void initializeTokenizer(char *Input_File_Name);
+extern void terminateTokenizer(void);
 extern void Tokenize(char *name);
-extern int Process_Token(void);
-extern void Begin_String(void);
-extern void Stuff_Character(int c, DataFile *Data_File);
-extern int Find_Reserved(void);
-extern int Find_Symbol(void);
-extern void Write_Token(int Token_Id, DataFile *Data_File);
-extern void Token_Error(DataFile *Data_File, const char *str);
-extern void Get_Token(void);
-extern void Unget_Token(void);
+extern int processToken(void);
+extern void beginString(void);
+extern void stuffCharacter(int c, DataFile *Data_File);
+extern int findReserved(void);
+extern int findSymbol(void);
+extern void writeToken(int Token_Id, DataFile *Data_File);
+extern void tokenError(DataFile *Data_File, const char *str);
+extern void getToken(void);
+extern void ungetToken(void);
 
 #endif

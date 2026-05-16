@@ -30,27 +30,27 @@ extern long boundingRegionTests, boundingRegionTestsSucceeded;
 extern long clippingRegionTests, clippingRegionTestsSucceeded;
 extern unsigned int Options;
 
-Methods Composite_Methods = {Object_Intersect, All_Composite_Intersections,
-    Inside_Composite_Object, nullptr, Copy_Composite_Object,
-    Translate_Composite_Object, Rotate_Composite_Object, Scale_Composite_Object,
-    Invert_Composite_Object};
+Methods Composite_Methods = {objectIntersect, allCompositeIntersections,
+    insideCompositeObject, nullptr, copyCompositeObject,
+    translateCompositeObject, rotateCompositeObject, scaleCompositeObject,
+    invertCompositeObject};
 
-Methods Basic_Object_Methods = {Object_Intersect, All_Object_Intersections,
-    Inside_Basic_Object, nullptr, Copy_Basic_Object, Translate_Basic_Object,
-    Rotate_Basic_Object, Scale_Basic_Object, Invert_Basic_Object};
+Methods Basic_Object_Methods = {objectIntersect, allObjectIntersections,
+    insideBasicObject, nullptr, copyBasicObject, translateBasicObject,
+    rotateBasicObject, scaleBasicObject, invertBasicObject};
 
 /*===========================================================================*/
 
 Intersection *
-Object_Intersect(SimpleBody *object, Ray *ray)
+objectIntersect(SimpleBody *object, Ray *ray)
 {
     Intersection *localIntersection;
     Intersection *queueElement;
     PriorityQueueNode *depthQueue;
 
-    depthQueue = pq_pop(128);
+    depthQueue = pqPop(128);
 
-    if ((All_Intersections(object, ray, depthQueue)) &&
+    if ((allIntersections(object, ray, depthQueue)) &&
         ((queueElement = depthQueue->getHighest()) != nullptr)) {
         if ((localIntersection = new Intersection) == nullptr) {
             printf("Cannot allocate memory for local intersection\n");
@@ -68,7 +68,7 @@ Object_Intersect(SimpleBody *object, Ray *ray)
 }
 
 int
-All_Composite_Intersections(
+allCompositeIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     register int intersectionFound;
@@ -93,13 +93,13 @@ All_Composite_Intersections(
         boundingRegionTestsSucceeded++;
     }
 
-    localDepthQueue = pq_pop(128);
+    localDepthQueue = pqPop(128);
     anyIntersectionFound = FALSE;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
          localObject = localObject->Next_Object) {
 
-        All_Intersections(localObject, ray, localDepthQueue);
+        allIntersections(localObject, ray, localDepthQueue);
     }
 
     for (localIntersection = localDepthQueue->getHighest();
@@ -129,7 +129,7 @@ All_Composite_Intersections(
 }
 
 int
-All_Object_Intersections(
+allObjectIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     int intersectionFound;
@@ -153,9 +153,9 @@ All_Object_Intersections(
         boundingRegionTestsSucceeded++;
     }
 
-    localDepthQueue = pq_pop(128);
+    localDepthQueue = pqPop(128);
     anyIntersectionFound = FALSE;
-    All_Intersections((SimpleBody *)object->Shape, ray, localDepthQueue);
+    allIntersections((SimpleBody *)object->Shape, ray, localDepthQueue);
 
     for (localIntersection = localDepthQueue->getHighest();
          localIntersection != nullptr; localDepthQueue->deleteHighest(),
@@ -195,7 +195,7 @@ All_Object_Intersections(
 }
 
 int
-Inside_Basic_Object(Vector3D *testPoint, SimpleBody *object)
+insideBasicObject(Vector3D *testPoint, SimpleBody *object)
 {
     Geometry *boundingShape;
     Geometry *clippingShape;
@@ -223,7 +223,7 @@ Inside_Basic_Object(Vector3D *testPoint, SimpleBody *object)
 }
 
 int
-Inside_Composite_Object(Vector3D *testPoint, SimpleBody *object)
+insideCompositeObject(Vector3D *testPoint, SimpleBody *object)
 {
     Geometry *boundingShape;
     Geometry *clippingShape;
@@ -257,13 +257,13 @@ Inside_Composite_Object(Vector3D *testPoint, SimpleBody *object)
 }
 
 void *
-Copy_Basic_Object(SimpleBody *object)
+copyBasicObject(SimpleBody *object)
 {
     Geometry *localShape;
     Geometry *copiedShape;
     SimpleBody *newObject;
 
-    newObject = Get_Object();
+    newObject = getObject();
     *newObject = *object;
     newObject->Next_Object = nullptr;
     newObject->Bounding_Shapes = nullptr;
@@ -279,7 +279,7 @@ Copy_Basic_Object(SimpleBody *object)
         if ((copiedShape->Type == CSG_UNION_TYPE) ||
             (copiedShape->Type == CSG_INTERSECTION_TYPE) ||
             (copiedShape->Type == CSG_DIFFERENCE_TYPE)) {
-            Set_CSG_Parents((CSG *)copiedShape, newObject);
+            setCsgParents((CSG *)copiedShape, newObject);
         }
     }
 
@@ -294,7 +294,7 @@ Copy_Basic_Object(SimpleBody *object)
         if ((copiedShape->Type == CSG_UNION_TYPE) ||
             (copiedShape->Type == CSG_INTERSECTION_TYPE) ||
             (copiedShape->Type == CSG_DIFFERENCE_TYPE)) {
-            Set_CSG_Parents((CSG *)copiedShape, newObject);
+            setCsgParents((CSG *)copiedShape, newObject);
         }
     }
 
@@ -302,27 +302,27 @@ Copy_Basic_Object(SimpleBody *object)
     if ((newObject->Shape->Type == CSG_UNION_TYPE) ||
         (newObject->Shape->Type == CSG_INTERSECTION_TYPE) ||
         (newObject->Shape->Type == CSG_DIFFERENCE_TYPE)) {
-        Set_CSG_Parents((CSG *)newObject->Shape, newObject);
+        setCsgParents((CSG *)newObject->Shape, newObject);
     } else {
         newObject->Shape->Parent_Object = newObject;
     }
 
     if (newObject->Object_Texture != nullptr) {
-        newObject->Object_Texture = Copy_Texture(newObject->Object_Texture);
+        newObject->Object_Texture = copyTexture(newObject->Object_Texture);
     }
 
     return ((void *)newObject);
 }
 
 void *
-Copy_Composite_Object(SimpleBody *object)
+copyCompositeObject(SimpleBody *object)
 {
     Composite *newObject;
     Geometry *localShape;
     SimpleBody *localObject;
     SimpleBody *copiedObject;
 
-    newObject = Get_Composite_Object();
+    newObject = getCompositeObject();
     *newObject = *((Composite *)object);
     newObject->Next_Object = nullptr;
     newObject->Objects = nullptr;
@@ -353,7 +353,7 @@ Copy_Composite_Object(SimpleBody *object)
 }
 
 void
-Translate_Basic_Object(SimpleBody *object, Vector3D *vector)
+translateBasicObject(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -371,11 +371,11 @@ Translate_Basic_Object(SimpleBody *object, Vector3D *vector)
 
     Translate((SimpleBody *)object->Shape, vector);
 
-    Translate_Texture(&object->Object_Texture, vector);
+    translateTexture(&object->Object_Texture, vector);
 }
 
 void
-Rotate_Basic_Object(SimpleBody *object, Vector3D *vector)
+rotateBasicObject(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
     Transformation transformation;
@@ -393,13 +393,13 @@ Rotate_Basic_Object(SimpleBody *object, Vector3D *vector)
     }
 
     Rotate((SimpleBody *)object->Shape, vector);
-    Get_Rotation_Transformation(&transformation, vector);
+    getRotationTransformation(&transformation, vector);
 
-    Rotate_Texture(&object->Object_Texture, vector);
+    rotateTexture(&object->Object_Texture, vector);
 }
 
 void
-Scale_Basic_Object(SimpleBody *object, Vector3D *vector)
+scaleBasicObject(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -417,11 +417,11 @@ Scale_Basic_Object(SimpleBody *object, Vector3D *vector)
 
     Scale((SimpleBody *)object->Shape, vector);
 
-    Scale_Texture(&object->Object_Texture, vector);
+    scaleTexture(&object->Object_Texture, vector);
 }
 
 void
-Translate_Composite_Object(SimpleBody *object, Vector3D *vector)
+translateCompositeObject(SimpleBody *object, Vector3D *vector)
 {
     SimpleBody *localObject;
     Geometry *localShape;
@@ -446,7 +446,7 @@ Translate_Composite_Object(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Rotate_Composite_Object(SimpleBody *object, Vector3D *vector)
+rotateCompositeObject(SimpleBody *object, Vector3D *vector)
 {
     SimpleBody *localObject;
     Geometry *localShape;
@@ -471,7 +471,7 @@ Rotate_Composite_Object(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Scale_Composite_Object(SimpleBody *object, Vector3D *vector)
+scaleCompositeObject(SimpleBody *object, Vector3D *vector)
 {
     SimpleBody *localObject;
     Geometry *localShape;
@@ -496,7 +496,7 @@ Scale_Composite_Object(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Invert_Basic_Object(SimpleBody *object)
+invertBasicObject(SimpleBody *object)
 {
     Geometry *localShape;
 
@@ -513,7 +513,7 @@ Invert_Basic_Object(SimpleBody *object)
 }
 
 void
-Invert_Composite_Object(SimpleBody *object)
+invertCompositeObject(SimpleBody *object)
 {
     SimpleBody *localObject;
     Geometry *localShape;
@@ -542,7 +542,7 @@ Link(SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList)
 }
 
 SimpleBody *
-Get_Object()
+getObject()
 {
     SimpleBody *newObject;
 

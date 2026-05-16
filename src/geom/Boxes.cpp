@@ -28,10 +28,10 @@
 
 /*===========================================================================*/
 
-Methods Box_Methods = {Object_Intersect, All_Box_Intersections, Inside_Box,
-    Box_Normal, Copy_Box, Translate_Box, Rotate_Box, Scale_Box, Invert_Box};
+Methods Box_Methods = {objectIntersect, allBoxIntersections, insideBox,
+    boxNormal, copyBox, translateBox, rotateBox, scaleBox, invertBox};
 
-extern Box *Get_Box_Shape();
+extern Box *getBoxShape();
 
 extern Ray *vpRay;
 extern long rayBoxTests, rayBoxTestsSucceeded;
@@ -41,7 +41,7 @@ extern long rayBoxTests, rayBoxTestsSucceeded;
 /*===========================================================================*/
 
 int
-All_Box_Intersections(
+allBoxIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     DBL depth1, depth2;
@@ -51,7 +51,7 @@ All_Box_Intersections(
     Box *shape = (Box *)object;
 
     intersectionFound = FALSE;
-    if (Intersect_Boxx(ray, shape, &depth1, &depth2)) {
+    if (intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
         VScale(intersectionPoint, ray->Direction, depth1);
@@ -76,7 +76,7 @@ All_Box_Intersections(
 }
 
 int
-Intersect_Boxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
+intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
 {
     DBL t, tmin, tmax;
     Vector3D p;
@@ -224,7 +224,7 @@ Intersect_Boxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
 }
 
 int
-Inside_Box(Vector3D *testPoint, SimpleBody *object)
+insideBox(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D newPoint;
     Box *box = (Box *)object;
@@ -251,7 +251,7 @@ Inside_Box(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-Box_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+boxNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Vector3D newPoint;
     Box *box = (Box *)object;
@@ -293,73 +293,73 @@ Box_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 }
 
 void *
-Copy_Box(SimpleBody *object)
+copyBox(SimpleBody *object)
 {
     Box *newShape;
     Transformation *tr;
 
-    newShape = Get_Box_Shape();
+    newShape = getBoxShape();
     *newShape = *((Box *)object);
     newShape->Next_Object = nullptr;
 
     /* Copy any associated transformation */
     if (newShape->Transform != nullptr) {
-        tr = Get_Transformation();
+        tr = getTransformation();
         memcpy(tr, newShape->Transform, sizeof(Transformation));
         newShape->Transform = tr;
     }
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
 }
 
 void
-Translate_Box(SimpleBody *object, Vector3D *vector)
+translateBox(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Box *box = (Box *)object;
     if (box->Transform == nullptr) {
-        box->Transform = Get_Transformation();
+        box->Transform = getTransformation();
     }
-    Get_Translation_Transformation(&transform, vector);
-    Compose_Transformations(box->Transform, &transform);
+    getTranslationTransformation(&transform, vector);
+    composeTransformations(box->Transform, &transform);
 
-    Translate_Texture(&((Box *)object)->Shape_Texture, vector);
+    translateTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Box(SimpleBody *object, Vector3D *vector)
+rotateBox(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Box *box = (Box *)object;
     if (box->Transform == nullptr) {
-        box->Transform = Get_Transformation();
+        box->Transform = getTransformation();
     }
-    Get_Rotation_Transformation(&transform, vector);
-    Compose_Transformations(box->Transform, &transform);
+    getRotationTransformation(&transform, vector);
+    composeTransformations(box->Transform, &transform);
 
-    Rotate_Texture(&((Box *)object)->Shape_Texture, vector);
+    rotateTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Box(SimpleBody *object, Vector3D *vector)
+scaleBox(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Box *box = (Box *)object;
     if (box->Transform == nullptr) {
-        box->Transform = Get_Transformation();
+        box->Transform = getTransformation();
     }
-    Get_Scaling_Transformation(&transform, vector);
-    Compose_Transformations(box->Transform, &transform);
+    getScalingTransformation(&transform, vector);
+    composeTransformations(box->Transform, &transform);
 
-    Scale_Texture(&((Box *)object)->Shape_Texture, vector);
+    scaleTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Box(SimpleBody *object)
+invertBox(SimpleBody *object)
 {
     ((Box *)object)->Inverted = 1 - ((Box *)object)->Inverted;
 }

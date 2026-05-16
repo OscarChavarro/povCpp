@@ -13,18 +13,18 @@
 #include "geom/BlobList.h"
 
 extern Methods Blob_Methods;
-extern Blob *Get_Blob_Shape(void);
+extern Blob *getBlobShape(void);
 extern void MakeBlob(
     SimpleBody *obj, DBL threshold, BlobList *bloblist, int npoints, int sflag);
-extern int All_Blob_Intersections(
+extern int allBlobIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Inside_Blob(Vector3D *point, SimpleBody *Object);
-extern void Blob_Normal(
+extern int insideBlob(Vector3D *point, SimpleBody *Object);
+extern void blobNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Blob(SimpleBody *Object);
-extern void Translate_Blob(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Blob(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Blob(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Blob(SimpleBody *Object);
+extern void *copyBlob(SimpleBody *Object);
+extern void translateBlob(SimpleBody *Object, Vector3D *Vector);
+extern void rotateBlob(SimpleBody *Object, Vector3D *Vector);
+extern void scaleBlob(SimpleBody *Object, Vector3D *Vector);
+extern void invertBlob(SimpleBody *Object);
 
 #endif

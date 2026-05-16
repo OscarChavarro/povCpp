@@ -37,17 +37,17 @@
 #define sign(x) (((x) > 0.0) ? 1 : (((x) == 0) ? 0 : (-1)))
 
 #ifndef min_value
-#define min_value(x, y) ((x) > (y) ? (y) : (x))
+#define minValue(x, y) ((x) > (y) ? (y) : (x))
 #endif
 #ifndef max_value
-#define max_value(x, y) ((x) < (y) ? (y) : (x))
+#define maxValue(x, y) ((x) < (y) ? (y) : (x))
 #endif
 
-Methods Height_Field_Methods = {Object_Intersect, All_HeightFld_Intersections,
-    Inside_HeightFld, HeightFld_Normal, Copy_HeightFld, Translate_HeightFld,
-    Rotate_HeightFld, Scale_HeightFld, Invert_HeightFld};
+Methods Height_Field_Methods = {objectIntersect, allHeightfldIntersections,
+    insideHeightfld, heightFldNormal, copyHeightfld, translateHeightfld,
+    rotateHeightfld, scaleHeightfld, invertHeightfld};
 
-extern HeightField *Get_Height_Field_Shape();
+extern HeightField *getHeightFieldShape();
 
 extern long rayHtFieldTests, rayHtFieldTestsSucceeded;
 extern long rayHtFieldBoxTests, rayHFieldBoxTestsSucceeded;
@@ -59,7 +59,7 @@ Intersection *hfIntersection;
 PriorityQueueNode *hfQueue;
 Ray *rRay;
 
-#define Get_Height(x, z, H_Field) ((DBL)(H_Field)->Map[(z)][(x)])
+#define getHeight(x, z, H_Field) ((DBL)(H_Field)->Map[(z)][(x)])
 
 /*===========================================================================*/
 
@@ -80,25 +80,25 @@ intersectPixel(
     depth1 = HUGE_VAL;
     depth2 = HUGE_VAL;
 
-    y1 = Get_Height(x, z, hField);
-    y2 = Get_Height(x + 1, z, hField);
-    y3 = Get_Height(x, z + 1, hField);
-    y4 = Get_Height(x + 1, z + 1, hField);
+    y1 = getHeight(x, z, hField);
+    y2 = getHeight(x + 1, z, hField);
+    y3 = getHeight(x, z + 1, hField);
+    y4 = getHeight(x + 1, z + 1, hField);
 
-    Make_Vector(&t1V1, (DBL)x, y1, (DBL)z);
-    Make_Vector(&t1V2, 1.0, y2 - y1, 0.0);
-    Make_Vector(&t1V3, 0.0, y3 - y1, 1.0);
-    Make_Vector(&t2V1, (DBL)(x + 1), y4, (DBL)(z + 1));
-    Make_Vector(&t2V2, -1.0, y3 - y4, 0.0);
-    Make_Vector(&t2V3, 0.0, y2 - y4, -1.0);
+    makeVector(&t1V1, (DBL)x, y1, (DBL)z);
+    makeVector(&t1V2, 1.0, y2 - y1, 0.0);
+    makeVector(&t1V3, 0.0, y3 - y1, 1.0);
+    makeVector(&t2V1, (DBL)(x + 1), y4, (DBL)(z + 1));
+    makeVector(&t2V2, -1.0, y3 - y4, 0.0);
+    makeVector(&t2V3, 0.0, y2 - y4, -1.0);
 
     /*
      * first, we check to see if it is even possible for the ray to
      * intersect the triangle.
      */
 
-    if ((max_value(y1, max_value(y2, y3)) >= height1) &&
-        (min_value(y1, min_value(y2, y3)) <= height2)) {
+    if ((maxValue(y1, maxValue(y2, y3)) >= height1) &&
+        (minValue(y1, minValue(y2, y3)) <= height2)) {
         VCross(localNormal, t1V3, t1V2);
         VDot(dot, localNormal, ray->Direction);
 
@@ -130,11 +130,11 @@ intersectPixel(
      * intersect the triangle.
         Rewritten to get around Code Builder FP stack problem.
         Original code:
-             if((max_value(y4,max_value(y2,y3)) >= height1) &&
-                 (min_value(y4,min_value(y2,y3)) <= height2))                */
+             if((maxValue(y4,maxValue(y2,y3)) >= height1) &&
+                 (minValue(y4,minValue(y2,y3)) <= height2))                */
 
-    maxHeight = max_value(y4, max_value(y2, y3));
-    minHeight = min_value(y4, min_value(y2, y3));
+    maxHeight = maxValue(y4, maxValue(y2, y3));
+    minHeight = minValue(y4, minValue(y2, y3));
     if ((maxHeight >= height1) && (minHeight <= height2)) {
         VCross(localNormal, t2V3, t2V2);
         VDot(dot, localNormal, ray->Direction);
@@ -197,11 +197,11 @@ intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *hField,
     int length;
     int i;
 
-    if (min_value(start->y, end->y) > block->max_y) {
+    if (minValue(start->y, end->y) > block->max_y) {
         return (FALSE);
     }
 
-    if (max_value(start->y, end->y) < block->min_y) {
+    if (maxValue(start->y, end->y) < block->min_y) {
         return (FALSE);
     }
 
@@ -351,7 +351,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
 
     curr = &temp1;
     next = &temp2;
-    Make_Vector(curr, x, y, z);
+    makeVector(curr, x, y, z);
     t = 0.0;
 
     if (xDom) {
@@ -372,7 +372,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     x = sx + t;
                     y = sy + myx * t;
                     z = sz + mzx * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -387,7 +387,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     x = sx + t;
                     y = sy + myx * t;
                     z = sz + mzx * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -421,7 +421,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     x = sx - t;
                     y = sy - myx * t;
                     z = sz - mzx * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -436,7 +436,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     x = sx - t;
                     y = sy - myx * t;
                     z = sz - mzx * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -471,7 +471,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     z = sz + t;
                     y = sy + myz * t;
                     x = sx + mxz * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -486,7 +486,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     z = sz + t;
                     y = sy + myz * t;
                     x = sx + mxz * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -519,7 +519,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     z = sz - t;
                     y = sy - myz * t;
                     x = sx - mxz * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -534,7 +534,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
                     z = sz - t;
                     y = sy - myz * t;
                     x = sx - mxz * t;
-                    Make_Vector(next, x, y, z);
+                    makeVector(next, x, y, z);
                     if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -552,7 +552,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
             }
         }
     }
-    Make_Vector(next, ex, ey, ez);
+    makeVector(next, ex, ey, ez);
     if (isdx >= 0) {
         ix = (int)floor(ex * invBlkSize);
     } else {
@@ -570,7 +570,7 @@ intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
 }
 
 void
-Find_Hf_Min_Max(HeightField *hField, RGBAImage *image, int imageType)
+findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
 {
     int n;
     int i;
@@ -594,7 +594,7 @@ Find_Hf_Min_Max(HeightField *hField, RGBAImage *image, int imageType)
     }
     maxZ = image->iheight;
 
-    size = (DBL)max_value(maxX, maxZ);
+    size = (DBL)maxValue(maxX, maxZ);
     hField->Block_Size = blockSize = ceil(sqrt(size + 1.0));
     hField->Inv_Blk_Size = invBlkSize = 1.0 / blockSize;
     n = (int)blockSize;
@@ -703,7 +703,7 @@ Find_Hf_Min_Max(HeightField *hField, RGBAImage *image, int imageType)
 }
 
 int
-All_HeightFld_Intersections(
+allHeightfldIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Vector3D temp1;
@@ -721,7 +721,7 @@ All_HeightFld_Intersections(
     MInvTransVector(
         &(tempRay.Direction), &(ray->Direction), hField->transformation);
 
-    if (!Intersect_Boxx(&tempRay, hField->bounding_box, &depth1, &depth2)) {
+    if (!intersectBoxx(&tempRay, hField->bounding_box, &depth1, &depth2)) {
         return (FALSE);
     }
 
@@ -783,7 +783,7 @@ All_HeightFld_Intersections(
 }
 
 int
-Inside_HeightFld(Vector3D *testPoint, SimpleBody *object)
+insideHeightfld(Vector3D *testPoint, SimpleBody *object)
 {
     HeightField *hField = (HeightField *)object;
     int px;
@@ -805,10 +805,10 @@ Inside_HeightFld(Vector3D *testPoint, SimpleBody *object)
     z = test.z - (DBL)pz;
 
     if ((x + z) < 1.0) {
-        y1 = Get_Height(px, pz, hField);
-        y2 = Get_Height(px + 1, pz, hField);
-        y3 = Get_Height(px, pz + 1, hField);
-        Make_Vector(&localOrigin, (DBL)px, y1, (DBL)pz);
+        y1 = getHeight(px, pz, hField);
+        y2 = getHeight(px + 1, pz, hField);
+        y3 = getHeight(px, pz + 1, hField);
+        makeVector(&localOrigin, (DBL)px, y1, (DBL)pz);
         temp1.x = 1.0;
         temp1.z = 0.0;
         temp1.y = y2 - y1;
@@ -818,10 +818,10 @@ Inside_HeightFld(Vector3D *testPoint, SimpleBody *object)
     } else {
         px = ceil(test.x);
         pz = ceil(test.z);
-        y1 = Get_Height(px, pz, hField);
-        y2 = Get_Height(px - 1, pz, hField);
-        y3 = Get_Height(px, pz - 1, hField);
-        Make_Vector(&localOrigin, (DBL)px, y1, (DBL)pz);
+        y1 = getHeight(px, pz, hField);
+        y2 = getHeight(px - 1, pz, hField);
+        y3 = getHeight(px, pz - 1, hField);
+        makeVector(&localOrigin, (DBL)px, y1, (DBL)pz);
         temp1.x = -1.0;
         temp1.z = 0.0;
         temp1.y = y2 - y1;
@@ -842,7 +842,7 @@ Inside_HeightFld(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-HeightFld_Normal(
+heightFldNormal(
     Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     HeightField *hField = (HeightField *)object;
@@ -862,9 +862,9 @@ HeightFld_Normal(
     z = localOrigin.z - (DBL)pz;
 
     if ((x + z) <= 1) {
-        y1 = Get_Height(px, pz, hField);
-        y2 = Get_Height(px + 1, pz, hField);
-        y3 = Get_Height(px, pz + 1, hField);
+        y1 = getHeight(px, pz, hField);
+        y2 = getHeight(px + 1, pz, hField);
+        y3 = getHeight(px, pz + 1, hField);
         temp1.x = 1.0;
         temp1.z = 0.0;
         temp1.y = y2 - y1;
@@ -872,9 +872,9 @@ HeightFld_Normal(
         temp2.z = 1.0;
         temp2.y = y3 - y1;
     } else {
-        y1 = Get_Height(px + 1, pz + 1, hField);
-        y2 = Get_Height(px, pz + 1, hField);
-        y3 = Get_Height(px + 1, pz, hField);
+        y1 = getHeight(px + 1, pz + 1, hField);
+        y2 = getHeight(px, pz + 1, hField);
+        y3 = getHeight(px + 1, pz, hField);
         temp1.x = -1.0;
         temp1.z = 0.0;
         temp1.y = y2 - y1;
@@ -890,67 +890,67 @@ HeightFld_Normal(
 }
 
 void *
-Copy_HeightFld(SimpleBody *object)
+copyHeightfld(SimpleBody *object)
 {
     HeightField *newShape;
 
-    newShape = Get_Height_Field_Shape();
+    newShape = getHeightFieldShape();
     *newShape = *((HeightField *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
 }
 
 void
-Translate_HeightFld(SimpleBody *object, Vector3D *vector)
+translateHeightfld(SimpleBody *object, Vector3D *vector)
 {
     HeightField *hField = (HeightField *)object;
     Transformation transformation;
 
     if (!hField->transformation) {
-        hField->transformation = Get_Transformation();
+        hField->transformation = getTransformation();
     }
-    Get_Translation_Transformation(&transformation, vector);
-    Compose_Transformations(hField->transformation, &transformation);
+    getTranslationTransformation(&transformation, vector);
+    composeTransformations(hField->transformation, &transformation);
 
-    Translate_Texture(&((HeightField *)object)->Shape_Texture, vector);
+    translateTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_HeightFld(SimpleBody *object, Vector3D *vector)
+rotateHeightfld(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
     HeightField *hField = (HeightField *)object;
 
     if (!hField->transformation) {
-        hField->transformation = Get_Transformation();
+        hField->transformation = getTransformation();
     }
-    Get_Rotation_Transformation(&transformation, vector);
-    Compose_Transformations(hField->transformation, &transformation);
+    getRotationTransformation(&transformation, vector);
+    composeTransformations(hField->transformation, &transformation);
 
-    Rotate_Texture(&((HeightField *)object)->Shape_Texture, vector);
+    rotateTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_HeightFld(SimpleBody *object, Vector3D *vector)
+scaleHeightfld(SimpleBody *object, Vector3D *vector)
 {
     HeightField *hField = (HeightField *)object;
     Transformation transformation;
 
     if (!hField->transformation) {
-        hField->transformation = Get_Transformation();
+        hField->transformation = getTransformation();
     }
-    Get_Scaling_Transformation(&transformation, vector);
-    Compose_Transformations(hField->transformation, &transformation);
+    getScalingTransformation(&transformation, vector);
+    composeTransformations(hField->transformation, &transformation);
 
-    Scale_Texture(&((HeightField *)object)->Shape_Texture, vector);
+    scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_HeightFld(SimpleBody *object)
+invertHeightfld(SimpleBody *object)
 {
 }

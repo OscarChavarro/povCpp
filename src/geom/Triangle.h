@@ -10,27 +10,27 @@
 #include "geom/TriangleClass.h"
 
 extern Methods Triangle_Methods;
-extern Triangle *Get_Triangle_Shape(void);
-extern SmoothTriangle *Get_Smooth_Triangle_Shape(void);
+extern Triangle *getTriangleShape(void);
+extern SmoothTriangle *getSmoothTriangleShape(void);
 extern Methods Smooth_Triangle_Methods;
-extern int Compute_Triangle(Triangle *Triangle);
-extern int All_Triangle_Intersections(
+extern int computeTriangle(Triangle *Triangle);
+extern int allTriangleIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Intersect_Triangle(Ray *Ray, Triangle *Triangle, DBL *Depth);
-extern int Inside_Triangle(Vector3D *point, SimpleBody *Object);
-extern void Triangle_Normal(
+extern int intersectTriangle(Ray *Ray, Triangle *Triangle, DBL *Depth);
+extern int insideTriangle(Vector3D *point, SimpleBody *Object);
+extern void triangleNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Triangle(SimpleBody *Object);
-extern void Translate_Triangle(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Triangle(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Triangle(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Triangle(SimpleBody *Object);
-extern void Smooth_Triangle_Normal(
+extern void *copyTriangle(SimpleBody *Object);
+extern void translateTriangle(SimpleBody *Object, Vector3D *Vector);
+extern void rotateTriangle(SimpleBody *Object, Vector3D *Vector);
+extern void scaleTriangle(SimpleBody *Object, Vector3D *Vector);
+extern void invertTriangle(SimpleBody *Object);
+extern void smoothTriangleNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_Smooth_Triangle(SimpleBody *Object);
-extern void Translate_Smooth_Triangle(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Smooth_Triangle(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Smooth_Triangle(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Smooth_Triangle(SimpleBody *Object);
+extern void *copySmoothTriangle(SimpleBody *Object);
+extern void translateSmoothTriangle(SimpleBody *Object, Vector3D *Vector);
+extern void rotateSmoothTriangle(SimpleBody *Object, Vector3D *Vector);
+extern void scaleSmoothTriangle(SimpleBody *Object, Vector3D *Vector);
+extern void invertSmoothTriangle(SimpleBody *Object);
 
 #endif

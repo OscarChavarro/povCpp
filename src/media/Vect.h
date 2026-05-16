@@ -3,9 +3,9 @@
 
 #include "common/Frame.h"
 
-extern int solve_quadratic(DBL *x, DBL *y);
-extern int solve_cubic(DBL *x, DBL *y);
-extern int solve_quartic(DBL *x, DBL *y);
+extern int solveQuadratic(DBL *x, DBL *y);
+extern int solveCubic(DBL *x, DBL *y);
+extern int solveQuartic(DBL *x, DBL *y);
 extern int polysolve(int order, DBL *Coeffs, DBL *roots);
 
 #endif

@@ -14,19 +14,19 @@
 #include "geom/HeightFieldBlock.h"
 
 extern Methods Height_Field_Methods;
-extern HeightField *Get_Height_Field_Shape(void);
-extern void Find_Hf_Min_Max(
+extern HeightField *getHeightFieldShape(void);
+extern void findHfMinMax(
     HeightField *H_Field, RGBAImage *Image, int Image_Type);
-extern int All_HeightFld_Intersections(
+extern int allHeightfldIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Intersect_HeightFld(Ray *Ray, HeightField *H_Field, DBL *Depth);
-extern int Inside_HeightFld(Vector3D *Test_Point, SimpleBody *Object);
-extern void HeightFld_Normal(
+extern int intersectHeightfld(Ray *Ray, HeightField *H_Field, DBL *Depth);
+extern int insideHeightfld(Vector3D *Test_Point, SimpleBody *Object);
+extern void heightFldNormal(
     Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *Copy_HeightFld(SimpleBody *Object);
-extern void Translate_HeightFld(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_HeightFld(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_HeightFld(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_HeightFld(SimpleBody *Object);
+extern void *copyHeightfld(SimpleBody *Object);
+extern void translateHeightfld(SimpleBody *Object, Vector3D *Vector);
+extern void rotateHeightfld(SimpleBody *Object, Vector3D *Vector);
+extern void scaleHeightfld(SimpleBody *Object, Vector3D *Vector);
+extern void invertHeightfld(SimpleBody *Object);
 
 #endif

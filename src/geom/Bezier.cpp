@@ -34,10 +34,10 @@
 #define EPSILON 1.0e-10
 #endif
 
-Methods Bicubic_Patch_Methods = {Object_Intersect,
-    All_Bicubic_Patch_Intersections, Inside_Bicubic_Patch, Bicubic_Patch_Normal,
-    Copy_Bicubic_Patch, Translate_Bicubic_Patch, Rotate_Bicubic_Patch,
-    Scale_Bicubic_Patch, Invert_Bicubic_Patch};
+Methods Bicubic_Patch_Methods = {objectIntersect,
+    allBicubicPatchIntersections, insideBicubicPatch, bicubicPatchNormal,
+    copyBicubicPatch, translateBicubicPatch, rotateBicubicPatch,
+    scaleBicubicPatch, invertBicubicPatch};
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern Ray *vpRay;
@@ -671,7 +671,7 @@ bezierBoundingSphere(Vector3D (*patch)[4][4], Vector3D *center, DBL *radius)
 
 /* Precompute grid points and normals for a bezier patch */
 void
-Precompute_Patch_Values(BicubicPatch *shape)
+precomputePatchValues(BicubicPatch *shape)
 {
     int i;
     int j;
@@ -1479,7 +1479,7 @@ intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, DBL *depths)
 }
 
 int
-All_Bicubic_Patch_Intersections(
+allBicubicPatchIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     BicubicPatch *shape = (BicubicPatch *)object;
@@ -1528,13 +1528,13 @@ All_Bicubic_Patch_Intersections(
 
 /* A patch is not a solid, so an inside test doesn't make sense. */
 int
-Inside_Bicubic_Patch(Vector3D *testPoint, SimpleBody *object)
+insideBicubicPatch(Vector3D *testPoint, SimpleBody *object)
 {
     return 0;
 }
 
 void
-Bicubic_Patch_Normal(
+bicubicPatchNormal(
     Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     BicubicPatch *patch = (BicubicPatch *)object;
@@ -1563,25 +1563,25 @@ Bicubic_Patch_Normal(
 }
 
 void *
-Copy_Bicubic_Patch(SimpleBody *object)
+copyBicubicPatch(SimpleBody *object)
 {
     BicubicPatch *newShape;
 
-    newShape = Get_Bicubic_Patch_Shape();
+    newShape = getBicubicPatchShape();
     *newShape = *((BicubicPatch *)object);
     newShape->Next_Object = nullptr;
 
     newShape->Interpolated_Grid = nullptr;
-    Precompute_Patch_Values(newShape);
+    precomputePatchValues(newShape);
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (void *)(newShape);
 }
 
 void
-Translate_Bicubic_Patch(SimpleBody *object, Vector3D *vector)
+translateBicubicPatch(SimpleBody *object, Vector3D *vector)
 {
     BicubicPatch *patch = (BicubicPatch *)object;
     int i;
@@ -1589,31 +1589,31 @@ Translate_Bicubic_Patch(SimpleBody *object, Vector3D *vector)
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             VAdd(patch->Control_Points[i][j], patch->Control_Points[i][j],
-                *vector) Precompute_Patch_Values(patch);
-    Translate_Texture(&((BicubicPatch *)object)->Shape_Texture, vector);
+                *vector) precomputePatchValues(patch);
+    translateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Bicubic_Patch(SimpleBody *object, Vector3D *vector)
+rotateBicubicPatch(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
     BicubicPatch *patch = (BicubicPatch *)object;
     int i;
     int j;
 
-    Get_Rotation_Transformation(&transformation, vector);
+    getRotationTransformation(&transformation, vector);
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
             MTransformVector(&(patch->Control_Points[i][j]),
                 &(patch->Control_Points[i][j]), &transformation);
         }
     }
-    Precompute_Patch_Values(patch);
-    Rotate_Texture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    precomputePatchValues(patch);
+    rotateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Bicubic_Patch(SimpleBody *object, Vector3D *vector)
+scaleBicubicPatch(SimpleBody *object, Vector3D *vector)
 {
     BicubicPatch *patch = (BicubicPatch *)object;
     int i;
@@ -1622,13 +1622,13 @@ Scale_Bicubic_Patch(SimpleBody *object, Vector3D *vector)
         for (j = 0; j < 4; j++)
             VEvaluate(patch->Control_Points[i][j], patch->Control_Points[i][j],
                 *vector);
-    Precompute_Patch_Values(patch);
-    Scale_Texture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    precomputePatchValues(patch);
+    scaleTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
 }
 
 /* Inversion of a patch really doesn't make sense. */
 void
-Invert_Bicubic_Patch(SimpleBody *object)
+invertBicubicPatch(SimpleBody *object)
 {
     ;
 }

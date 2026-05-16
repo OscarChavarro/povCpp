@@ -9,7 +9,7 @@
 #include "common/RGBAColorPalette.h"
 #include "common/RGBAColorPaletteSpan.h"
 
-#define Make_Colour(c, r, g, b)                                                \
+#define makeColour(c, r, g, b)                                                \
     {                                                                          \
         (c)->Red = (r);                                                        \
         (c)->Green = (g);                                                      \
@@ -17,10 +17,10 @@
         (c)->Alpha = 0.0;                                                      \
     }
 
-extern DBL Colour_Distance(RGBAColor *colour1, RGBAColor *colour2);
-extern void Add_Colour(
+extern DBL colourDistance(RGBAColor *colour1, RGBAColor *colour2);
+extern void addColour(
     RGBAColor *result, RGBAColor *colour1, RGBAColor *colour2);
-extern void Scale_Colour(RGBAColor *result, RGBAColor *colour, DBL factor);
-extern void Clip_Colour(RGBAColor *result, RGBAColor *colour);
+extern void scaleColour(RGBAColor *result, RGBAColor *colour, DBL factor);
+extern void clipColour(RGBAColor *result, RGBAColor *colour);
 
 #endif

@@ -73,7 +73,7 @@ unsigned short crctab[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
 
 void
-Compute_Colour(RGBAColor *colour, RGBAColorPalette *colourMap, DBL value)
+computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, DBL value)
 {
     register int i;
     RGBAColorPaletteSpan *ent;
@@ -115,7 +115,7 @@ Compute_Colour(RGBAColor *colour, RGBAColorPalette *colourMap, DBL value)
 }
 
 void
-Initialize_Noise()
+initializeNoise()
 {
     register int i = 0;
     Vector3D point;
@@ -217,7 +217,7 @@ Robert's Skinner's Perlin-style "Noise" function - modified by AAC
 to ensure uniformly distributed clamped values between 0 and 1.0...
 */
 void
-setup_lattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz, long *jx,
+setupLattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz, long *jx,
     long *jy, long *jz, DBL *sx, DBL *sy, DBL *sz, DBL *tx, DBL *ty, DBL *tz)
 {
     /* ensures the values are positive. */
@@ -258,7 +258,7 @@ Noise(DBL x, DBL y, DBL z)
 
     callsToNoise++;
 
-    setup_lattice(
+    setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
 
     /*
@@ -318,7 +318,7 @@ DNoise(Vector3D *result, DBL x, DBL y, DBL z)
 
     callsToDNoise++;
 
-    setup_lattice(
+    setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
 
     /*
@@ -434,7 +434,7 @@ cycloidal(DBL value)
 }
 
 DBL
-Triangle_Wave(DBL value)
+triangleWave(DBL value)
 {
     register DBL offset;
     register DBL temp1;
@@ -452,7 +452,7 @@ Triangle_Wave(DBL value)
 }
 
 void
-Translate_Texture(Texture **texturePtr, Vector3D *vector)
+translateTexture(Texture **texturePtr, Vector3D *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -463,20 +463,20 @@ Translate_Texture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = Copy_Texture(texture);
+                texture = copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = Get_Transformation();
+                texture->Texture_Transformation = getTransformation();
             }
-            Get_Translation_Transformation(&transformation, vector);
-            Compose_Transformations(
+            getTranslationTransformation(&transformation, vector);
+            composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                Translate_Texture((Texture **)&texture->Colour1, vector);
-                Translate_Texture((Texture **)&texture->Colour2, vector);
+                translateTexture((Texture **)&texture->Colour1, vector);
+                translateTexture((Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
@@ -485,7 +485,7 @@ Translate_Texture(Texture **texturePtr, Vector3D *vector)
 }
 
 Texture *
-Get_Texture()
+getTexture()
 {
     Texture *newTexture;
 
@@ -523,7 +523,7 @@ Get_Texture()
     newTexture->Constant_Flag = TRUE;
     newTexture->Colour1 = nullptr;
     newTexture->Colour2 = nullptr;
-    Make_Vector(&newTexture->Texture_Gradient, 0.0, 0.0, 0.0);
+    makeVector(&newTexture->Texture_Gradient, 0.0, 0.0, 0.0);
 
     newTexture->Object_Index_Of_Refraction = 1.0;
     newTexture->Object_Transmit = 0.0;
@@ -532,7 +532,7 @@ Get_Texture()
 }
 
 void
-Rotate_Texture(Texture **texturePtr, Vector3D *vector)
+rotateTexture(Texture **texturePtr, Vector3D *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -543,20 +543,20 @@ Rotate_Texture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = Copy_Texture(texture);
+                texture = copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = Get_Transformation();
+                texture->Texture_Transformation = getTransformation();
             }
-            Get_Rotation_Transformation(&transformation, vector);
-            Compose_Transformations(
+            getRotationTransformation(&transformation, vector);
+            composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                Rotate_Texture((Texture **)&texture->Colour1, vector);
-                Rotate_Texture((Texture **)&texture->Colour2, vector);
+                rotateTexture((Texture **)&texture->Colour1, vector);
+                rotateTexture((Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
@@ -565,7 +565,7 @@ Rotate_Texture(Texture **texturePtr, Vector3D *vector)
 }
 
 void
-Scale_Texture(Texture **texturePtr, Vector3D *vector)
+scaleTexture(Texture **texturePtr, Vector3D *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -576,21 +576,21 @@ Scale_Texture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = Copy_Texture(texture);
+                texture = copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = Get_Transformation();
+                texture->Texture_Transformation = getTransformation();
             }
-            Get_Scaling_Transformation(&transformation, vector);
-            Compose_Transformations(
+            getScalingTransformation(&transformation, vector);
+            composeTransformations(
                 texture->Texture_Transformation, &transformation);
 
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                Scale_Texture((Texture **)&texture->Colour1, vector);
-                Scale_Texture((Texture **)&texture->Colour2, vector);
+                scaleTexture((Texture **)&texture->Colour1, vector);
+                scaleTexture((Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;

@@ -31,7 +31,7 @@
 /*===========================================================================*/
 
 DBL
-Colour_Distance(RGBAColor *colour1, RGBAColor *colour2)
+colourDistance(RGBAColor *colour1, RGBAColor *colour2)
 {
     return (FABS(colour1->Red - colour2->Red) +
             FABS(colour1->Green - colour2->Green) +
@@ -39,7 +39,7 @@ Colour_Distance(RGBAColor *colour1, RGBAColor *colour2)
 }
 
 void
-Add_Colour(RGBAColor *result, RGBAColor *colour1, RGBAColor *colour2)
+addColour(RGBAColor *result, RGBAColor *colour1, RGBAColor *colour2)
 {
     result->Red = colour1->Red + colour2->Red;
     result->Green = colour1->Green + colour2->Green;
@@ -48,7 +48,7 @@ Add_Colour(RGBAColor *result, RGBAColor *colour1, RGBAColor *colour2)
 }
 
 void
-Scale_Colour(RGBAColor *result, RGBAColor *colour, DBL factor)
+scaleColour(RGBAColor *result, RGBAColor *colour, DBL factor)
 {
     result->Red = colour->Red * factor;
     result->Green = colour->Green * factor;
@@ -57,7 +57,7 @@ Scale_Colour(RGBAColor *result, RGBAColor *colour, DBL factor)
 }
 
 void
-Clip_Colour(RGBAColor *result, RGBAColor *colour)
+clipColour(RGBAColor *result, RGBAColor *colour)
 {
     if (colour->Red > 1.0) {
         result->Red = 1.0;

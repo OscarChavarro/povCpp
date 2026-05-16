@@ -175,27 +175,27 @@ extern short *hashTable;
 extern unsigned short crctab[256];
 extern Texture *Default_Texture;
 
-extern void Compute_Colour(
+extern void computeColour(
     RGBAColor *Colour, RGBAColorPalette *Colour_Map, DBL value);
-extern void Initialize_Noise(void);
+extern void initializeNoise(void);
 extern void InitTextureTable(void);
 extern void InitRTable(void);
 extern int R(Vector3D *v);
 extern int Crc16(char *buf, int count);
-extern void setup_lattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz,
+extern void setupLattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz,
     long *jx, long *jy, long *jz, DBL *sx, DBL *sy, DBL *sz, DBL *tx, DBL *ty,
     DBL *tz);
 extern DBL Noise(DBL x, DBL y, DBL z);
 extern void DNoise(Vector3D *result, DBL x, DBL y, DBL z);
 extern DBL cycloidal(DBL value);
-extern DBL Triangle_Wave(DBL value);
+extern DBL triangleWave(DBL value);
 extern DBL Turbulence(DBL x, DBL y, DBL z, int octaves);
 extern void DTurbulence(Vector3D *result, DBL x, DBL y, DBL z, int octaves);
-extern void Translate_Texture(Texture **Texture_Ptr, Vector3D *Vector);
-extern void Rotate_Texture(Texture **Texture_Ptr, Vector3D *Vector);
-extern void Scale_Texture(Texture **Texture_Ptr, Vector3D *Vector);
+extern void translateTexture(Texture **Texture_Ptr, Vector3D *Vector);
+extern void rotateTexture(Texture **Texture_Ptr, Vector3D *Vector);
+extern void scaleTexture(Texture **Texture_Ptr, Vector3D *Vector);
 
-extern Texture *Copy_Texture(Texture *Texture);
-extern Texture *Get_Texture();
+extern Texture *copyTexture(Texture *Texture);
+extern Texture *getTexture();
 
 #endif

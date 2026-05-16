@@ -20,10 +20,10 @@ class Viewpoint {
 };
 
 extern Methods Viewpoint_Methods;
-extern Viewpoint *Get_Viewpoint(void);
-extern void *Copy_Viewpoint(SimpleBody *Object);
-extern void Translate_Viewpoint(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Viewpoint(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Viewpoint(SimpleBody *Object, Vector3D *Vector);
+extern Viewpoint *getViewpoint(void);
+extern void *copyViewpoint(SimpleBody *Object);
+extern void translateViewpoint(SimpleBody *Object, Vector3D *Vector);
+extern void rotateViewpoint(SimpleBody *Object, Vector3D *Vector);
+extern void scaleViewpoint(SimpleBody *Object, Vector3D *Vector);
 
 #endif

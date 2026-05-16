@@ -40,7 +40,7 @@
 #include "geom/Geometry.h"
 
 FileHandle *
-Get_Dump_File_Handle()
+getDumpFileHandle()
 {
     FileHandle *handle;
 
@@ -50,23 +50,23 @@ Get_Dump_File_Handle()
         return (nullptr);
     }
 
-    handle->Default_File_Name_p = Default_Dump_File_Name;
-    handle->Open_File_p = Open_Dump_File;
-    handle->Write_Line_p = Write_Dump_Line;
-    handle->Read_Line_p = Read_Dump_Line;
-    handle->Read_Image_p = Read_Dump_Image;
-    handle->Close_File_p = Close_Dump_File;
+    handle->Default_File_Name_p = defaultDumpFileName;
+    handle->Open_File_p = openDumpFile;
+    handle->Write_Line_p = writeDumpLine;
+    handle->Read_Line_p = readDumpLine;
+    handle->Read_Image_p = readDumpImage;
+    handle->Close_File_p = closeDumpFile;
     return (handle);
 }
 
 char *
-Default_Dump_File_Name()
+defaultDumpFileName()
 {
     return (char *)("data.dis");
 }
 
 int
-Open_Dump_File(FileHandle *handle, char *name, int *width, int *height,
+openDumpFile(FileHandle *handle, char *name, int *width, int *height,
     int bufferSize, int mode)
 {
     int data1;
@@ -153,7 +153,7 @@ Open_Dump_File(FileHandle *handle, char *name, int *width, int *height,
 }
 
 void
-Write_Dump_Line(FileHandle *handle, RGBAColor *lineData, int lineNumber)
+writeDumpLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
     register int x;
 
@@ -180,7 +180,7 @@ Write_Dump_Line(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 }
 
 int
-Read_Dump_Line(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -226,7 +226,7 @@ Read_Dump_Line(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 }
 
 int
-Read_Dump_Int_Line(FileHandle *handle, ImageLine *lineData, int *lineNumber)
+readDumpIntLine(FileHandle *handle, ImageLine *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -249,7 +249,7 @@ Read_Dump_Int_Line(FileHandle *handle, ImageLine *lineData, int *lineNumber)
         ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
         fprintf(stderr, "Cannot allocate memory for picture: %s\n",
             handle->filename);
-        close_all();
+        closeAll();
         exit(1);
     }
 
@@ -287,7 +287,7 @@ Read_Dump_Int_Line(FileHandle *handle, ImageLine *lineData, int *lineNumber)
 }
 
 void
-Close_Dump_File(FileHandle *handle)
+closeDumpFile(FileHandle *handle)
 {
     if (handle->file) {
         fclose(handle->file);
@@ -298,7 +298,7 @@ Close_Dump_File(FileHandle *handle)
 }
 
 void
-Read_Dump_Image(RGBAImage *image, char *name)
+readDumpImage(RGBAImage *image, char *name)
 {
     int rc;
     int row;
@@ -307,9 +307,9 @@ Read_Dump_Image(RGBAImage *image, char *name)
     ImageLine line;
     FileHandle handle;
 
-    if ((handle.file = Locate_File(name, READ_FILE_STRING)) == nullptr) {
+    if ((handle.file = locateFile(name, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open dump file %s\n", name);
-        close_all();
+        closeAll();
         exit(1);
     }
 
@@ -317,7 +317,7 @@ Read_Dump_Image(RGBAImage *image, char *name)
         ((data2 = getc(handle.file)) == EOF)) {
 
         fprintf(stderr, "Cannot open dump file %s\n", name);
-        close_all();
+        closeAll();
         exit(1);
     }
 
@@ -328,7 +328,7 @@ Read_Dump_Image(RGBAImage *image, char *name)
         ((data2 = getc(handle.file)) == EOF)) {
 
         fprintf(stderr, "Cannot open dump file %s\n", name);
-        close_all();
+        closeAll();
         exit(1);
     }
 
@@ -347,7 +347,7 @@ Read_Dump_Image(RGBAImage *image, char *name)
         exit(1);
     }
 
-    while ((rc = Read_Dump_Int_Line(&handle, &line, &row)) == 1) {
+    while ((rc = readDumpIntLine(&handle, &line, &row)) == 1) {
         image->data.rgb_lines[row] = line;
     }
 
@@ -356,6 +356,6 @@ Read_Dump_Image(RGBAImage *image, char *name)
     if (rc == 0) {
         return;
     }
-    close_all();
+    closeAll();
     exit(1);
 }

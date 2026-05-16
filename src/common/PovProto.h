@@ -24,9 +24,9 @@
 
 /* Some extrange globally used functions */
 extern void Error(const char *str);
-extern void close_all(void);
-extern void print_stats(void);
-extern FILE *Locate_File(const char *filename, const char *mode);
+extern void closeAll(void);
+extern void printStats(void);
+extern FILE *locateFile(const char *filename, const char *mode);
 extern void displayPlot(
     int x, int y, unsigned char Red, unsigned char Green, unsigned char Blue);
 

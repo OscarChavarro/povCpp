@@ -65,7 +65,7 @@ static void doDiffuse(Texture *texture, Ray *lightSourceRay,
     RGBAColor *surfaceColour, DBL attenuation);
 
 void
-Perturb_Normal(Vector3D *newNormal, Texture *texture,
+perturbNormal(Vector3D *newNormal, Texture *texture,
     Vector3D *intersectionPoint, Vector3D *surfaceNormal)
 {
     Vector3D transformedPoint;
@@ -124,7 +124,7 @@ Perturb_Normal(Vector3D *newNormal, Texture *texture,
         break;
 
     case BUMPMAP:
-        bump_map(x, y, z, texture, newNormal);
+        bumpMap(x, y, z, texture, newNormal);
         break;
     }
 }
@@ -173,7 +173,7 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
         rEye.z = -eye->Direction.z;
     }
 
-    localQueue = pq_pop(128);
+    localQueue = pqPop(128);
 
     for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
          lightSource = lightSource->Next_Light_Source) {
@@ -190,7 +190,7 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
                  blockingObject = blockingObject->Next_Object) {
 
                 shadowRayTests++;
-                for (All_Intersections(
+                for (allIntersections(
                          blockingObject, &lightSourceRay, localQueue);
                      (localIntersection = localQueue->getHighest()) != nullptr;
                      localQueue->deleteHighest()) {
@@ -248,7 +248,7 @@ doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
 
     /* Get the light source colour. */
     if (lightSource->Shape_Colour == nullptr) {
-        Make_Colour(lightColour, 1.0, 1.0, 1.0);
+        makeColour(lightColour, 1.0, 1.0, 1.0);
     } else {
         *lightColour = *lightSource->Shape_Colour;
     }
@@ -263,7 +263,7 @@ doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
     VScale(lightSourceRay->Direction, lightSourceRay->Direction,
         1.0 / (*lightSourceDepth));
 
-    attenuation = Attenuate_Light(lightSource, lightSourceRay);
+    attenuation = attenuateLight(lightSource, lightSourceRay);
 
     /* Now scale the color by the attenuation */
     lightColour->Red *= attenuation;
@@ -277,7 +277,7 @@ doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
 {
     shadowRaysSucceeded++;
 
-    Determine_Surface_Colour(localIntersection, lightColour, nullptr, TRUE);
+    determineSurfaceColour(localIntersection, lightColour, nullptr, TRUE);
 
     if ((lightColour->Red < 0.01) && (lightColour->Green < 0.01) &&
         (lightColour->Blue < 0.01)) {
@@ -446,9 +446,9 @@ Reflect(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         VScale(surfaceOffset, newRay.Direction, 2.0 * Small_Tolerance);
         VAdd(newRay.Initial, newRay.Initial, surfaceOffset);
 
-        Copy_Ray_Containers(&newRay, ray);
+        copyRayContainers(&newRay, ray);
         traceLevel++;
-        Make_Colour(&tempColour, 0.0, 0.0, 0.0);
+        makeColour(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
         Trace(&newRay, &tempColour);
         traceLevel--;
@@ -475,10 +475,10 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         newRay.Initial = *intersectionPoint;
         newRay.Direction = ray->Direction;
 
-        Copy_Ray_Containers(&newRay, ray);
+        copyRayContainers(&newRay, ray);
         traceLevel++;
         transmittedRaysTraced++;
-        Make_Colour(&tempColour, 0.0, 0.0, 0.0);
+        makeColour(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
         Trace(&newRay, &tempColour);
         traceLevel--;
@@ -497,11 +497,11 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
             VScale(localNormal, *surfaceNormal, -1.0);
         }
 
-        Copy_Ray_Containers(&newRay, ray);
+        copyRayContainers(&newRay, ray);
 
         if (ray->Containing_Index == -1) {
             /* The ray is entering from the atmosphere */
-            Ray_Enter(&newRay, texture);
+            rayEnter(&newRay, texture);
             ior = (globalFrame.Atmosphere_IOR) /
                   (texture->Object_Index_Of_Refraction);
         } else {
@@ -523,7 +523,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
             } else {
                 /* The ray is entering a new object */
                 tempIor = newRay.Containing_IORs[newRay.Containing_Index];
-                Ray_Enter(&newRay, texture);
+                rayEnter(&newRay, texture);
 
                 ior = tempIor / (texture->Object_Index_Of_Refraction);
             }
@@ -545,7 +545,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
 
         newRay.Initial = *intersectionPoint;
         traceLevel++;
-        Make_Colour(&tempColour, 0.0, 0.0, 0.0);
+        makeColour(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
 
         Trace(&newRay, &tempColour);
@@ -572,7 +572,7 @@ Fog(DBL distance, RGBAColor *fogColour, DBL fogDistance, RGBAColor *colour)
 }
 
 void
-Compute_Reflected_Colour(Ray *ray, Texture *texture,
+computeReflectedColour(Ray *ray, Texture *texture,
     Intersection *rayIntersection, RGBAColor *surfaceColour,
     RGBAColor *filterColour, RGBAColor *colour)
 {
@@ -583,7 +583,7 @@ Compute_Reflected_Colour(Ray *ray, Texture *texture,
     /* This variable keeps track of how much colour comes from the surface
 of the object and how much is transmited through. */
 
-    Make_Colour(&emittedColour, 0.0, 0.0, 0.0);
+    makeColour(&emittedColour, 0.0, 0.0, 0.0);
 
     if (texture == nullptr) {
         texture = rayIntersection->Object->Object_Texture;
@@ -602,7 +602,7 @@ of the object and how much is transmited through. */
         &rayIntersection->Point);
 
     if (quality >= 8) {
-        Perturb_Normal(
+        perturbNormal(
             &surfaceNormal, texture, &rayIntersection->Point, &surfaceNormal);
     }
 
@@ -626,7 +626,7 @@ of the object and how much is transmited through. */
 }
 
 void
-Determine_Surface_Colour(
+determineSurfaceColour(
     Intersection *rayIntersection, RGBAColor *colour, Ray *ray, int shadowRay)
 {
     RGBAColor surfaceColour;
@@ -639,7 +639,7 @@ Determine_Surface_Colour(
     int surface;
 
     if (!shadowRay)
-        Make_Colour(colour, 0.0, 0.0, 0.0);
+        makeColour(colour, 0.0, 0.0, 0.0);
 
     if (Options & DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
@@ -654,7 +654,7 @@ Determine_Surface_Colour(
         }
     }
 
-    Make_Colour(&surfaceColour, 0.0, 0.0, 0.0);
+    makeColour(&surfaceColour, 0.0, 0.0, 0.0);
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
@@ -664,7 +664,7 @@ Determine_Surface_Colour(
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
-        texture = material_map(&rayIntersection->Point, texture);
+        texture = materialMap(&rayIntersection->Point, texture);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
@@ -674,7 +674,7 @@ Determine_Surface_Colour(
         return;
     }
 
-    Make_Colour(&filterColour, 1.0, 1.0, 1.0);
+    makeColour(&filterColour, 1.0, 1.0, 1.0);
     filterColour.Alpha = 1.0;
 
     /* Now, we perform the lighting calculations. */
@@ -682,22 +682,22 @@ Determine_Surface_Colour(
          (tempTexture != nullptr) && (filterColour.Alpha > 0.01);
          surface++, tempTexture = tempTexture->Next_Texture) {
 
-        Make_Colour(&surfaceColour, 0.0, 0.0, 0.0);
+        makeColour(&surfaceColour, 0.0, 0.0, 0.0);
         if (quality <= 5) {
             if (rayIntersection->Shape->Shape_Colour != nullptr) {
                 surfaceColour = *rayIntersection->Shape->Shape_Colour;
             } else if (rayIntersection->Object->Object_Colour != nullptr) {
                 surfaceColour = *rayIntersection->Object->Object_Colour;
             } else {
-                Make_Colour(&surfaceColour, 0.5, 0.5, 0.5);
+                makeColour(&surfaceColour, 0.5, 0.5, 0.5);
             }
         } else {
-            Colour_At(&surfaceColour, tempTexture, &rayIntersection->Point);
+            colourAt(&surfaceColour, tempTexture, &rayIntersection->Point);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
         if (!shadowRay) {
-            Compute_Reflected_Colour(ray, tempTexture, rayIntersection,
+            computeReflectedColour(ray, tempTexture, rayIntersection,
                 &surfaceColour, &filterColour, colour);
         }
 
@@ -723,7 +723,7 @@ Determine_Surface_Colour(
     if (shadowRay) {
 
         if (filterColour.Alpha < 0.01) {
-            Make_Colour(colour, 0.0, 0.0, 0.0);
+            makeColour(colour, 0.0, 0.0, 0.0);
             return;
         }
 
@@ -743,14 +743,14 @@ Determine_Surface_Colour(
     }
 
     if ((filterColour.Alpha > 0.01) && (quality > 5)) {
-        Make_Colour(&refractedColour, 0.0, 0.0, 0.0);
+        makeColour(&refractedColour, 0.0, 0.0, 0.0);
 
         if (texture->Object_Refraction > 0.0) {
             Normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
                 &rayIntersection->Point);
 
             if (quality > 7) {
-                Perturb_Normal(&surfaceNormal, texture, &rayIntersection->Point,
+                perturbNormal(&surfaceNormal, texture, &rayIntersection->Point,
                     &surfaceNormal);
             }
 
@@ -776,7 +776,7 @@ Determine_Surface_Colour(
 
         if (texture->Object_Refraction > 0.0 &&
             texture->Object_Transmit > 0.0) {
-            Make_Colour(&refractedColour, 0.0, 0.0, 0.0);
+            makeColour(&refractedColour, 0.0, 0.0, 0.0);
             Refract(texture, &rayIntersection->Point, ray, nullptr,
                 &refractedColour);
             colour->Red +=

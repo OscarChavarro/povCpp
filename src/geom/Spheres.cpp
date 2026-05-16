@@ -24,11 +24,11 @@
 
 //===========================================================================
 
-Methods Sphere_Methods = {Object_Intersect, All_Sphere_Intersections,
-    Inside_Sphere, Sphere_Normal, Copy_Sphere, Translate_Sphere, Rotate_Sphere,
-    Scale_Sphere, Invert_Sphere};
+Methods Sphere_Methods = {objectIntersect, allSphereIntersections,
+    insideSphere, sphereNormal, copySphere, translateSphere, rotateSphere,
+    scaleSphere, invertSphere};
 
-extern Sphere *Get_Sphere_Shape();
+extern Sphere *getSphereShape();
 extern Ray *vpRay;
 extern long raySphereTests, raySphereTestsSucceeded;
 
@@ -38,7 +38,7 @@ extern long raySphereTests, raySphereTestsSucceeded;
 Study closely this method!
 */
 int
-Intersect_Sphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2)
+intersectSphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2)
 {
     raySphereTests++;
 
@@ -99,7 +99,7 @@ Intersect_Sphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2)
 }
 
 int
-All_Sphere_Intersections(
+allSphereIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     DBL depth1, depth2;
@@ -109,7 +109,7 @@ All_Sphere_Intersections(
     Sphere *shape = (Sphere *)object;
 
     intersectionFound = FALSE;
-    if (Intersect_Sphere(ray, shape, &depth1, &depth2)) {
+    if (intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
         VScale(intersectionPoint, ray->Direction, depth1);
@@ -134,7 +134,7 @@ All_Sphere_Intersections(
 }
 
 int
-Inside_Sphere(Vector3D *testPoint, SimpleBody *object)
+insideSphere(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D originToCenter;
     DBL ocSquared;
@@ -150,7 +150,7 @@ Inside_Sphere(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-Sphere_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+sphereNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Sphere *sphere = (Sphere *)object;
 
@@ -159,41 +159,41 @@ Sphere_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 }
 
 void *
-Copy_Sphere(SimpleBody *object)
+copySphere(SimpleBody *object)
 {
     Sphere *newShape;
 
-    newShape = Get_Sphere_Shape();
+    newShape = getSphereShape();
     *newShape = *((Sphere *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
 }
 
 void
-Translate_Sphere(SimpleBody *object, Vector3D *vector)
+translateSphere(SimpleBody *object, Vector3D *vector)
 {
     VAdd(((Sphere *)object)->Center, ((Sphere *)object)->Center, *vector);
-    Translate_Texture(&((Sphere *)object)->Shape_Texture, vector);
+    translateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Sphere(SimpleBody *object, Vector3D *vector)
+rotateSphere(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Rotation_Transformation(&transformation, vector);
+    getRotationTransformation(&transformation, vector);
     MTransformVector(&((Sphere *)object)->Center, &((Sphere *)object)->Center,
         &transformation);
-    Rotate_Texture(&((Sphere *)object)->Shape_Texture, vector);
+    rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Sphere(SimpleBody *object, Vector3D *vector)
+scaleSphere(SimpleBody *object, Vector3D *vector)
 {
     Sphere *sphere = (Sphere *)object;
 
@@ -206,11 +206,11 @@ Scale_Sphere(SimpleBody *object, Vector3D *vector)
     sphere->Radius *= vector->x;
     sphere->Radius_Squared = sphere->Radius * sphere->Radius;
     sphere->Inverse_Radius = 1.0 / sphere->Radius;
-    Scale_Texture(&((Sphere *)object)->Shape_Texture, vector);
+    scaleTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Sphere(SimpleBody *object)
+invertSphere(SimpleBody *object)
 {
     ((Sphere *)object)->Inverted ^= TRUE;
 }

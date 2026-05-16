@@ -20,30 +20,30 @@ class Composite {
 
 extern Methods Composite_Methods;
 extern Methods Basic_Object_Methods;
-extern Intersection *Object_Intersect(SimpleBody *Object, Ray *Ray);
-extern int All_Composite_Intersections(
+extern Intersection *objectIntersect(SimpleBody *Object, Ray *Ray);
+extern int allCompositeIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int All_Object_Intersections(
+extern int allObjectIntersections(
     SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int Inside_Basic_Object(Vector3D *point, SimpleBody *Object);
-extern int Inside_Composite_Object(Vector3D *point, SimpleBody *Object);
-extern void *Copy_Basic_Object(SimpleBody *Object);
-extern void *Copy_Composite_Object(SimpleBody *Object);
-extern void Translate_Basic_Object(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Basic_Object(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Basic_Object(SimpleBody *Object, Vector3D *Vector);
-extern void Translate_Composite_Object(SimpleBody *Object, Vector3D *Vector);
-extern void Rotate_Composite_Object(SimpleBody *Object, Vector3D *Vector);
-extern void Scale_Composite_Object(SimpleBody *Object, Vector3D *Vector);
-extern void Invert_Basic_Object(SimpleBody *Object);
-extern void Invert_Composite_Object(SimpleBody *Object);
+extern int insideBasicObject(Vector3D *point, SimpleBody *Object);
+extern int insideCompositeObject(Vector3D *point, SimpleBody *Object);
+extern void *copyBasicObject(SimpleBody *Object);
+extern void *copyCompositeObject(SimpleBody *Object);
+extern void translateBasicObject(SimpleBody *Object, Vector3D *Vector);
+extern void rotateBasicObject(SimpleBody *Object, Vector3D *Vector);
+extern void scaleBasicObject(SimpleBody *Object, Vector3D *Vector);
+extern void translateCompositeObject(SimpleBody *Object, Vector3D *Vector);
+extern void rotateCompositeObject(SimpleBody *Object, Vector3D *Vector);
+extern void scaleCompositeObject(SimpleBody *Object, Vector3D *Vector);
+extern void invertBasicObject(SimpleBody *Object);
+extern void invertCompositeObject(SimpleBody *Object);
 
-extern void Set_CSG_Parents(CSG *Shape, SimpleBody *Object);
+extern void setCsgParents(CSG *Shape, SimpleBody *Object);
 
 extern void Link(
     SimpleBody *New_Object, SimpleBody **Field, SimpleBody **Old_Object_List);
 
-extern SimpleBody *Get_Object(void);
-extern Composite *Get_Composite_Object(void);
+extern SimpleBody *getObject(void);
+extern Composite *getCompositeObject(void);
 
 #endif

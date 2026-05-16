@@ -25,55 +25,55 @@
 
 /*===========================================================================*/
 
-Methods Point_Methods = {Object_Intersect, All_Point_Intersections,
-    Inside_Point, nullptr, Copy_Point, Translate_Point, Rotate_Point,
-    Scale_Point, Invert_Point};
+Methods Point_Methods = {objectIntersect, allPointIntersections,
+    insidePoint, nullptr, copyPoint, translatePoint, rotatePoint,
+    scalePoint, invertPoint};
 
-extern Light *Get_Light_Source_Shape();
+extern Light *getLightSourceShape();
 
 /*===========================================================================*/
 
 int
-All_Point_Intersections(
+allPointIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     return (FALSE);
 }
 
 int
-Inside_Point(Vector3D *testPoint, SimpleBody *object)
+insidePoint(Vector3D *testPoint, SimpleBody *object)
 {
     return (FALSE);
 }
 
 void *
-Copy_Point(SimpleBody *object)
+copyPoint(SimpleBody *object)
 {
     Light *newShape;
 
-    newShape = Get_Light_Source_Shape();
+    newShape = getLightSourceShape();
     *newShape = *((Light *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
 }
 
 void
-Translate_Point(SimpleBody *object, Vector3D *vector)
+translatePoint(SimpleBody *object, Vector3D *vector)
 {
     VAdd(((Light *)object)->Center, ((Light *)object)->Center, *vector);
     VAdd(((Light *)object)->Points_At, ((Light *)object)->Points_At, *vector);
 }
 
 void
-Rotate_Point(SimpleBody *object, Vector3D *vector)
+rotatePoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    Get_Rotation_Transformation(&transformation, vector);
+    getRotationTransformation(&transformation, vector);
     MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
         &transformation);
     MTransformVector(&((Light *)object)->Points_At,
@@ -81,19 +81,19 @@ Rotate_Point(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Scale_Point(SimpleBody *object, Vector3D *vector)
+scalePoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    Get_Scaling_Transformation(&transformation, vector);
+    getScalingTransformation(&transformation, vector);
     MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
         &transformation);
     MTransformVector(&((Light *)object)->Points_At,
         &((Light *)object)->Points_At, &transformation);
-    Scale_Texture(&((Light *)object)->Shape_Texture, vector);
+    scaleTexture(&((Light *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Point(SimpleBody *object)
+invertPoint(SimpleBody *object)
 {
     ((Light *)object)->Inverted ^= TRUE;
 }
@@ -122,7 +122,7 @@ cubicSpline(DBL low, DBL high, DBL pos)
 }
 
 DBL
-Attenuate_Light(Light *lightSource, Ray *lightSourceRay)
+attenuateLight(Light *lightSource, Ray *lightSourceRay)
 {
     DBL len, costheta;
     DBL attenuation = 1.0;

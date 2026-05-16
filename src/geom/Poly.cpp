@@ -56,9 +56,9 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 int factorials[MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 int termCounts[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
-Methods Poly_Methods = {Object_Intersect, All_Poly_Intersections, Inside_Poly,
-    Poly_Normal, Copy_Poly, Translate_Poly, Rotate_Poly, Scale_Poly,
-    Invert_Poly};
+Methods Poly_Methods = {objectIntersect, allPolyIntersections, insidePoly,
+    polyNormal, copyPoly, translatePoly, rotatePoly, scalePoly,
+    invertPoly};
 
 extern long rayPolyTests, rayPolyTestsSucceeded;
 
@@ -78,7 +78,7 @@ static DBL doPartialTerm(
 /*===========================================================================*/
 
 int
-All_Poly_Intersections(
+allPolyIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Poly *shape = (Poly *)object;
@@ -274,7 +274,7 @@ intersect(Ray *ray, int order, DBL *coeffs, DBL *depths)
         return polysolve(j, &t[i], depths);
     }
     if (j > 0) {
-        return solve_quadratic(&t[i], depths);
+        return solveQuadratic(&t[i], depths);
     }
     return 0;
 }
@@ -681,7 +681,7 @@ intersectQuartic(Ray *ray, Poly *shape, DBL *depths)
     if (shape->Sturm_Flag) {
         if (t[0] == 0.0) {
             if (t[1] == 0.0) {
-                return solve_quadratic(&t[2], depths);
+                return solveQuadratic(&t[2], depths);
             }
             return polysolve(3, &t[1], depths);
 
@@ -689,7 +689,7 @@ intersectQuartic(Ray *ray, Poly *shape, DBL *depths)
             return polysolve(4, &t[0], depths);
         }
     } else {
-        return solve_quartic(&t[0], depths);
+        return solveQuartic(&t[0], depths);
     }
 }
 
@@ -746,7 +746,7 @@ quarticNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 }
 
 int
-Inside_Poly(Vector3D *testPoint, SimpleBody *object)
+insidePoly(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D newPoint;
     Poly *shape = (Poly *)object;
@@ -768,7 +768,7 @@ Inside_Poly(Vector3D *testPoint, SimpleBody *object)
 
 /* Normal to a polynomial */
 void
-Poly_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+polyNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Poly *shape = (Poly *)object;
     Vector3D newPoint;
@@ -797,10 +797,10 @@ Poly_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 
 /* Make a copy of a polynomial object */
 void *
-Copy_Poly(SimpleBody *object)
+copyPoly(SimpleBody *object)
 {
     Poly *shape = (Poly *)object;
-    Poly *newShape = Get_Poly_Shape(shape->Order);
+    Poly *newShape = getPolyShape(shape->Order);
     int i;
 
     newShape->Shape_Texture = shape->Shape_Texture;
@@ -811,7 +811,7 @@ Copy_Poly(SimpleBody *object)
 
     /* Copy any associated transformation */
     if (shape->Transform != nullptr) {
-        newShape->Transform = Get_Transformation();
+        newShape->Transform = getTransformation();
         memcpy(newShape->Transform, shape->Transform, sizeof(Transformation));
     }
     for (i = 0; i < termCounts[newShape->Order]; i++) {
@@ -820,56 +820,56 @@ Copy_Poly(SimpleBody *object)
 
     /* Copy any associated texture */
     if (shape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = Copy_Texture(shape->Shape_Texture);
+        newShape->Shape_Texture = copyTexture(shape->Shape_Texture);
     }
 
     return (void *)(newShape);
 }
 
 void
-Translate_Poly(SimpleBody *object, Vector3D *vector)
+translatePoly(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Poly *shape = (Poly *)object;
     if (shape->Transform == nullptr) {
-        shape->Transform = Get_Transformation();
+        shape->Transform = getTransformation();
     }
-    Get_Translation_Transformation(&transform, vector);
-    Compose_Transformations(shape->Transform, &transform);
+    getTranslationTransformation(&transform, vector);
+    composeTransformations(shape->Transform, &transform);
 
-    Translate_Texture(&shape->Shape_Texture, vector);
+    translateTexture(&shape->Shape_Texture, vector);
 }
 
 void
-Rotate_Poly(SimpleBody *object, Vector3D *vector)
+rotatePoly(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Poly *shape = (Poly *)object;
     if (shape->Transform == nullptr) {
-        shape->Transform = Get_Transformation();
+        shape->Transform = getTransformation();
     }
-    Get_Rotation_Transformation(&transform, vector);
-    Compose_Transformations(shape->Transform, &transform);
+    getRotationTransformation(&transform, vector);
+    composeTransformations(shape->Transform, &transform);
 
-    Rotate_Texture(&shape->Shape_Texture, vector);
+    rotateTexture(&shape->Shape_Texture, vector);
 }
 
 void
-Scale_Poly(SimpleBody *object, Vector3D *vector)
+scalePoly(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Poly *shape = (Poly *)object;
     if (shape->Transform == nullptr) {
-        shape->Transform = Get_Transformation();
+        shape->Transform = getTransformation();
     }
-    Get_Scaling_Transformation(&transform, vector);
-    Compose_Transformations(shape->Transform, &transform);
+    getScalingTransformation(&transform, vector);
+    composeTransformations(shape->Transform, &transform);
 
-    Scale_Texture(&shape->Shape_Texture, vector);
+    scaleTexture(&shape->Shape_Texture, vector);
 }
 
 void
-Invert_Poly(SimpleBody *object)
+invertPoly(SimpleBody *object)
 {
     ((Poly *)object)->Inverted = 1 - ((Poly *)object)->Inverted;
 }

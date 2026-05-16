@@ -7,24 +7,24 @@
 #define WRITE_MODE 1
 #define APPEND_MODE 2
 
-#define Default_File_Name(h) ((*((h)->Default_File_Name_p))())
-#define Open_File(h, n, wd, ht, sz, m)                                         \
+#define defaultFileName(h) ((*((h)->Default_File_Name_p))())
+#define openFile(h, n, wd, ht, sz, m)                                         \
     ((*((h)->Open_File_p))(h, n, wd, ht, sz, m))
-#define Write_Line(h, l, n) ((*((h)->Write_Line_p))(h, l, n))
-#define Read_Line(h, l, n) ((*((h)->Read_Line_p))(h, l, n))
-#define Read_Image(h, i) ((*((h)->Read_Image_p))(h, i))
-#define Close_File(h) ((*((h)->Close_File_p))(h))
+#define writeLine(h, l, n) ((*((h)->Write_Line_p))(h, l, n))
+#define readLine(h, l, n) ((*((h)->Read_Line_p))(h, l, n))
+#define readImage(h, i) ((*((h)->Read_Image_p))(h, i))
+#define closeFile(h) ((*((h)->Close_File_p))(h))
 
-extern FileHandle *Get_Dump_File_Handle(void);
-extern char *Default_Dump_File_Name(void);
-extern int Open_Dump_File(FileHandle *handle, char *name, int *width,
+extern FileHandle *getDumpFileHandle(void);
+extern char *defaultDumpFileName(void);
+extern int openDumpFile(FileHandle *handle, char *name, int *width,
     int *height, int buffer_size, int mode);
-void Write_Dump_Line(FileHandle *handle, RGBAColor *line_data, int line_number);
-extern int Read_Dump_Line(
+void writeDumpLine(FileHandle *handle, RGBAColor *line_data, int line_number);
+extern int readDumpLine(
     FileHandle *handle, RGBAColor *line_data, int *line_number);
-extern int Read_Dump_Int_Line(
+extern int readDumpIntLine(
     FileHandle *handle, ImageLine *line_data, int *line_number);
-extern void Read_Dump_Image(RGBAImage *Image, char *filename);
-extern void Close_Dump_File(FileHandle *handle);
+extern void readDumpImage(RGBAImage *Image, char *filename);
+extern void closeDumpFile(FileHandle *handle);
 
 #endif

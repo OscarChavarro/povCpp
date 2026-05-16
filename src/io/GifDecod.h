@@ -3,11 +3,11 @@
 
 #include "common/Frame.h"
 
-extern void cleanup_gif_decoder(void);
-extern WORD init_exp(int i_size); /* changed param to int to avoid
+extern void cleanupGifDecoder(void);
+extern WORD initExp(int i_size); /* changed param to int to avoid
                                                    problems with 32bit int ANSI
                                                    compilers. */
-extern WORD get_next_code(void);
+extern WORD getNextCode(void);
 extern WORD decoder(int i_linewidth); /* same as above */
 
 #endif
