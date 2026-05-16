@@ -41,7 +41,7 @@
 #ifndef READ_ENV_VAR_AFTER
 #define READ_ENV_VAR_AFTER                                                     \
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != NULL)                     \
-        read_options(Option_String_Ptr);
+        readOptions(Option_String_Ptr);
 #endif
 
 #ifndef CONFIG_MATH

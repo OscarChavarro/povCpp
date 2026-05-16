@@ -31,29 +31,29 @@ Methods Plane_Methods = {Object_Intersect, All_Plane_Intersections,
 
 extern InfinitePlane *Get_Plane_Shape();
 
-extern Ray *VP_Ray;
-extern long Ray_Plane_Tests, Ray_Plane_Tests_Succeeded;
+extern Ray *vpRay;
+extern long rayPlaneTests, rayPlaneTestsSucceeded;
 
 /*===========================================================================*/
 
 int
 All_Plane_Intersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    InfinitePlane *Shape = (InfinitePlane *)Object;
-    DBL Depth;
-    Vector3D Intersection_Point;
-    Intersection Local_Element;
+    InfinitePlane *shape = (InfinitePlane *)object;
+    DBL depth;
+    Vector3D intersectionPoint;
+    Intersection localElement;
 
-    if (Intersect_Plane(Ray, Shape, &Depth)) {
-        if (Depth > Small_Tolerance) {
-            Local_Element.Depth = Depth;
-            Local_Element.Object = Shape->Parent_Object;
-            VScale(Intersection_Point, Ray->Direction, Depth);
-            VAdd(Intersection_Point, Intersection_Point, Ray->Initial);
-            Local_Element.Point = Intersection_Point;
-            Local_Element.Shape = (Geometry *)Shape;
-            Depth_Queue->add(&Local_Element);
+    if (Intersect_Plane(ray, shape, &depth)) {
+        if (depth > Small_Tolerance) {
+            localElement.Depth = depth;
+            localElement.Object = shape->Parent_Object;
+            VScale(intersectionPoint, ray->Direction, depth);
+            VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            localElement.Point = intersectionPoint;
+            localElement.Shape = (Geometry *)shape;
+            depthQueue->add(&localElement);
             return (TRUE);
         }
     }
@@ -62,131 +62,130 @@ All_Plane_Intersections(
 }
 
 int
-Intersect_Plane(Ray *ray, InfinitePlane *Plane, DBL *Depth)
+Intersect_Plane(Ray *ray, InfinitePlane *plane, DBL *depth)
 {
-    DBL NormalDotOrigin, NormalDotDirection;
+    DBL normalDotOrigin, normalDotDirection;
 
-    Ray_Plane_Tests++;
-    if (ray == VP_Ray) {
-        if (!Plane->VPCached) {
-            VDot(Plane->VPNormDotOrigin, Plane->Normal_Vector, ray->Initial);
-            Plane->VPNormDotOrigin += Plane->Distance;
-            Plane->VPNormDotOrigin *= -1.0;
-            Plane->VPCached = TRUE;
+    rayPlaneTests++;
+    if (ray == vpRay) {
+        if (!plane->VPCached) {
+            VDot(plane->VPNormDotOrigin, plane->Normal_Vector, ray->Initial);
+            plane->VPNormDotOrigin += plane->Distance;
+            plane->VPNormDotOrigin *= -1.0;
+            plane->VPCached = TRUE;
         }
 
-        VDot(NormalDotDirection, Plane->Normal_Vector, ray->Direction);
-        if ((NormalDotDirection < Small_Tolerance) &&
-            (NormalDotDirection > -Small_Tolerance)) {
+        VDot(normalDotDirection, plane->Normal_Vector, ray->Direction);
+        if ((normalDotDirection < Small_Tolerance) &&
+            (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
         }
 
-        *Depth = Plane->VPNormDotOrigin / NormalDotDirection;
-        if ((*Depth >= Small_Tolerance) && (*Depth <= Max_Distance)) {
-            Ray_Plane_Tests_Succeeded++;
-            return (TRUE);
-        }
-        return (FALSE);
-    } else {
-        VDot(NormalDotOrigin, Plane->Normal_Vector, ray->Initial);
-        NormalDotOrigin += Plane->Distance;
-        NormalDotOrigin *= -1.0;
-
-        VDot(NormalDotDirection, Plane->Normal_Vector, ray->Direction);
-        if ((NormalDotDirection < Small_Tolerance) &&
-            (NormalDotDirection > -Small_Tolerance)) {
-            return (FALSE);
-        }
-
-        *Depth = NormalDotOrigin / NormalDotDirection;
-        if ((*Depth >= Small_Tolerance) && (*Depth <= Max_Distance)) {
-            Ray_Plane_Tests_Succeeded++;
+        *depth = plane->VPNormDotOrigin / normalDotDirection;
+        if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
+            rayPlaneTestsSucceeded++;
             return (TRUE);
         }
         return (FALSE);
     }
+    VDot(normalDotOrigin, plane->Normal_Vector, ray->Initial);
+    normalDotOrigin += plane->Distance;
+    normalDotOrigin *= -1.0;
+
+    VDot(normalDotDirection, plane->Normal_Vector, ray->Direction);
+    if ((normalDotDirection < Small_Tolerance) &&
+        (normalDotDirection > -Small_Tolerance)) {
+        return (FALSE);
+    }
+
+    *depth = normalDotOrigin / normalDotDirection;
+    if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
+        rayPlaneTestsSucceeded++;
+        return (TRUE);
+    }
+    return (FALSE);
 }
 
 int
-Inside_Plane(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Plane(Vector3D *testPoint, SimpleBody *object)
 {
-    InfinitePlane *Plane = (InfinitePlane *)Object;
-    DBL Temp;
+    InfinitePlane *plane = (InfinitePlane *)object;
+    DBL temp;
 
-    VDot(Temp, *Test_Point, Plane->Normal_Vector);
-    return ((Temp + Plane->Distance) <= Small_Tolerance);
+    VDot(temp, *testPoint, plane->Normal_Vector);
+    return ((temp + plane->Distance) <= Small_Tolerance);
 }
 
 void
-Plane_Normal(Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+Plane_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    InfinitePlane *Plane = (InfinitePlane *)Object;
+    InfinitePlane *plane = (InfinitePlane *)object;
 
-    *Result = Plane->Normal_Vector;
+    *result = plane->Normal_Vector;
 }
 
 void *
-Copy_Plane(SimpleBody *Object)
+Copy_Plane(SimpleBody *object)
 {
-    InfinitePlane *New_Shape;
+    InfinitePlane *newShape;
 
-    New_Shape = Get_Plane_Shape();
-    *New_Shape = *((InfinitePlane *)Object);
-    New_Shape->Next_Object = NULL;
+    newShape = Get_Plane_Shape();
+    *newShape = *((InfinitePlane *)object);
+    newShape->Next_Object = nullptr;
 
-    if (New_Shape->Shape_Texture != NULL) {
-        New_Shape->Shape_Texture = Copy_Texture(New_Shape->Shape_Texture);
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
     }
 
-    return (New_Shape);
+    return (newShape);
 }
 
 void
-Translate_Plane(SimpleBody *Object, Vector3D *Vector)
+Translate_Plane(SimpleBody *object, Vector3D *vector)
 {
-    InfinitePlane *Plane = (InfinitePlane *)Object;
-    Vector3D Translation;
+    InfinitePlane *plane = (InfinitePlane *)object;
+    Vector3D translation;
 
-    VEvaluate(Translation, Plane->Normal_Vector, *Vector);
-    Plane->Distance -= Translation.x + Translation.y + Translation.z;
+    VEvaluate(translation, plane->Normal_Vector, *vector);
+    plane->Distance -= translation.x + translation.y + translation.z;
 
-    Translate_Texture(&Plane->Shape_Texture, Vector);
+    Translate_Texture(&plane->Shape_Texture, vector);
 }
 
 void
-Rotate_Plane(SimpleBody *Object, Vector3D *Vector)
+Rotate_Plane(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    Get_Rotation_Transformation(&transformation, Vector);
-    MTransformVector(&((InfinitePlane *)Object)->Normal_Vector,
-        &((InfinitePlane *)Object)->Normal_Vector, &transformation);
+    Get_Rotation_Transformation(&transformation, vector);
+    MTransformVector(&((InfinitePlane *)object)->Normal_Vector,
+        &((InfinitePlane *)object)->Normal_Vector, &transformation);
 
-    Rotate_Texture(&((InfinitePlane *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Plane(SimpleBody *Object, Vector3D *Vector)
+Scale_Plane(SimpleBody *object, Vector3D *vector)
 {
-    DBL Length;
-    InfinitePlane *Plane = (InfinitePlane *)Object;
+    DBL length;
+    InfinitePlane *plane = (InfinitePlane *)object;
 
-    Plane->Normal_Vector.x = Plane->Normal_Vector.x / Vector->x;
-    Plane->Normal_Vector.y = Plane->Normal_Vector.y / Vector->y;
-    Plane->Normal_Vector.z = Plane->Normal_Vector.z / Vector->z;
+    plane->Normal_Vector.x = plane->Normal_Vector.x / vector->x;
+    plane->Normal_Vector.y = plane->Normal_Vector.y / vector->y;
+    plane->Normal_Vector.z = plane->Normal_Vector.z / vector->z;
 
-    VLength(Length, Plane->Normal_Vector);
-    VScale(Plane->Normal_Vector, Plane->Normal_Vector, 1.0 / Length);
-    Plane->Distance /= Length;
+    VLength(length, plane->Normal_Vector);
+    VScale(plane->Normal_Vector, plane->Normal_Vector, 1.0 / length);
+    plane->Distance /= length;
 
-    Scale_Texture(&((InfinitePlane *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Plane(SimpleBody *Object)
+Invert_Plane(SimpleBody *object)
 {
-    InfinitePlane *Plane = (InfinitePlane *)Object;
+    InfinitePlane *plane = (InfinitePlane *)object;
 
-    VScale(Plane->Normal_Vector, Plane->Normal_Vector, -1.0);
-    Plane->Distance *= -1.0;
+    VScale(plane->Normal_Vector, plane->Normal_Vector, -1.0);
+    plane->Distance *= -1.0;
 }

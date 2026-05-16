@@ -24,9 +24,9 @@
 #include "common/Frame.h"
 #include "common/PovProto.h"
 
-static RGBAPixel *iff_colour_map;
-static int colourmap_size;
-static ChunkHeader GLOBAL_chunkHeader;
+static RGBAPixel *iffColourMap;
+static int colourmapSize;
+static ChunkHeader globalChunkHeader;
 
 #define FORM 0x464f524dL
 #define ILBM 0x494c424dL
@@ -90,26 +90,37 @@ void
 Read_Iff_Image(RGBAImage *image, char *filename)
 {
     FILE *f;
-    unsigned char **row_bytes;
-    int c, i, j, k, nBytes, nPlanes = 0, compression = 0, mask, byte_index,
-                            count, viewmodes;
-    int Previous_Red, Previous_Green, Previous_Blue;
+    unsigned char **rowBytes;
+    int c;
+    int i;
+    int j;
+    int k;
+    int nBytes;
+    int nPlanes = 0;
+    int compression = 0;
+    int mask;
+    int byteIndex;
+    int count;
+    int viewmodes;
+    int previousRed;
+    int previousGreen;
+    int previousBlue;
     ImageLine *line;
     unsigned long creg;
 
-    if ((f = Locate_File(filename, READ_FILE_STRING)) == NULL) {
+    if ((f = Locate_File(filename, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open IFF file %s\n", filename);
         exit(1);
     }
 
-    Previous_Red = Previous_Green = Previous_Blue = 0;
+    previousRed = previousGreen = previousBlue = 0;
 
     viewmodes = 0;
-    iff_colour_map = NULL;
+    iffColourMap = nullptr;
 
     while (true) {
-        Read_Chunk_Header(f, &GLOBAL_chunkHeader);
-        switch (IFF_SWITCH_CAST GLOBAL_chunkHeader.name) {
+        Read_Chunk_Header(f, &globalChunkHeader);
+        switch (IFF_SWITCH_CAST globalChunkHeader.name) {
         case FORM:
             if (read_long(f) != ILBM) {
                 iff_error();
@@ -125,7 +136,7 @@ Read_Iff_Image(RGBAImage *image, char *filename)
             read_word(f); /* x position ignored */
             read_word(f); /* y position ignored */
             nPlanes = read_byte(f);
-            colourmap_size = 1 << nPlanes;
+            colourmapSize = 1 << nPlanes;
             read_byte(f);               /* masking ignored */
             compression = read_byte(f); /* masking ignored */
             read_byte(f);               /* pad */
@@ -138,68 +149,67 @@ Read_Iff_Image(RGBAImage *image, char *filename)
         case CAMG:
             viewmodes = (int)read_long(f); /* Viewmodes */
             if (viewmodes & HAM) {
-                colourmap_size = 16;
+                colourmapSize = 16;
             }
 
             break;
 
         case CMAP:
-            colourmap_size = (int)GLOBAL_chunkHeader.size / 3;
-            iff_colour_map = new RGBAPixel[colourmap_size];
-            if (iff_colour_map == NULL) {
+            colourmapSize = (int)globalChunkHeader.size / 3;
+            iffColourMap = new RGBAPixel[colourmapSize];
+            if (iffColourMap == nullptr) {
                 fprintf(stderr, "Cannot allocate memory for IFF colour map\n");
                 exit(1);
             }
 
-            for (i = 0; i < colourmap_size; i++) {
-                iff_colour_map[i].Red = read_byte(f);
-                iff_colour_map[i].Green = read_byte(f);
-                iff_colour_map[i].Blue = read_byte(f);
-                iff_colour_map[i].Alpha = 0;
+            for (i = 0; i < colourmapSize; i++) {
+                iffColourMap[i].Red = read_byte(f);
+                iffColourMap[i].Green = read_byte(f);
+                iffColourMap[i].Blue = read_byte(f);
+                iffColourMap[i].Alpha = 0;
             }
 
-            Previous_Red = iff_colour_map[0].Red;
-            Previous_Green = iff_colour_map[0].Green;
-            Previous_Blue = iff_colour_map[0].Blue;
-            for (i = colourmap_size * 3; (long)i < GLOBAL_chunkHeader.size;
-                 i++) {
+            previousRed = iffColourMap[0].Red;
+            previousGreen = iffColourMap[0].Green;
+            previousBlue = iffColourMap[0].Blue;
+            for (i = colourmapSize * 3; (long)i < globalChunkHeader.size; i++) {
                 read_byte(f);
             }
 
             break;
 
         case BODY:
-            if ((iff_colour_map == NULL) || (viewmodes & HAM)) {
+            if ((iffColourMap == nullptr) || (viewmodes & HAM)) {
                 image->Colour_Map_Size = 0;
-                image->Colour_Map = NULL;
+                image->Colour_Map = nullptr;
             } else {
-                image->Colour_Map_Size = colourmap_size;
-                image->Colour_Map = iff_colour_map;
+                image->Colour_Map_Size = colourmapSize;
+                image->Colour_Map = iffColourMap;
             }
-            row_bytes = new unsigned char *[nPlanes];
-            if (row_bytes == NULL) {
+            rowBytes = new unsigned char *[nPlanes];
+            if (rowBytes == nullptr) {
                 fprintf(stderr, "Cannot allocate memory for row bytes\n");
                 exit(1);
             }
 
             for (i = 0; i < nPlanes; i++) {
-                if ((row_bytes[i] =
+                if ((rowBytes[i] =
                             new unsigned char[((image->iwidth + 7) / 8)]) ==
-                    NULL) {
+                    nullptr) {
                     fprintf(stderr, "Cannot allocate memory for row bytes\n");
                     exit(1);
                 }
             }
 
-            if (image->Colour_Map == NULL) {
+            if (image->Colour_Map == nullptr) {
                 image->data.rgb_lines = new ImageLine[image->iheight];
-                if (image->data.rgb_lines == NULL) {
+                if (image->data.rgb_lines == nullptr) {
                     fprintf(stderr, "Cannot allocate memory for picture\n");
                     exit(1);
                 }
             } else {
                 image->data.map_lines = new unsigned char *[image->iheight];
-                if (image->data.map_lines == NULL) {
+                if (image->data.map_lines == nullptr) {
                     fprintf(stderr, "Cannot allocate memory for picture\n");
                     exit(1);
                 }
@@ -207,22 +217,22 @@ Read_Iff_Image(RGBAImage *image, char *filename)
 
             for (i = 0; i < image->iheight; i++) {
 
-                if (image->Colour_Map == NULL) {
+                if (image->Colour_Map == nullptr) {
                     if (((image->data.rgb_lines[i].red =
                                  new unsigned char[image->iwidth]) ==
-                            NULL) ||
+                            nullptr) ||
                         ((image->data.rgb_lines[i].green =
                                  new unsigned char[image->iwidth]) ==
-                            NULL) ||
+                            nullptr) ||
                         ((image->data.rgb_lines[i].blue =
                                  new unsigned char[image->iwidth]) ==
-                            NULL)) {
+                            nullptr)) {
                         fprintf(stderr, "Cannot allocate memory for picture\n");
                         exit(1);
                     }
                 } else {
                     image->data.map_lines[i] = new unsigned char[image->iwidth];
-                    if (image->data.map_lines[i] == NULL) {
+                    if (image->data.map_lines[i] == nullptr) {
                         fprintf(stderr, "Cannot allocate memory for picture\n");
                         exit(1);
                     }
@@ -231,7 +241,7 @@ Read_Iff_Image(RGBAImage *image, char *filename)
                 for (j = 0; j < nPlanes; j++) {
                     if (compression == CMPNONE) {
                         for (k = 0; k < (image->iwidth + 7) / 8; k++) {
-                            row_bytes[j][k] = (unsigned char)read_byte(f);
+                            rowBytes[j][k] = (unsigned char)read_byte(f);
                         }
                         if ((k & 1) != 0) {
                             read_byte(f);
@@ -244,14 +254,14 @@ Read_Iff_Image(RGBAImage *image, char *filename)
                             c = read_byte(f);
                             if ((c >= 0) && (c <= 127)) {
                                 for (k = 0; k <= c; k++) {
-                                    row_bytes[j][nBytes++] =
+                                    rowBytes[j][nBytes++] =
                                         (unsigned char)read_byte(f);
                                 }
                             } else if ((c >= 129) && (c <= 255)) {
                                 count = 257 - c;
                                 c = read_byte(f);
                                 for (k = 0; k < count; k++) {
-                                    row_bytes[j][nBytes++] = (unsigned char)c;
+                                    rowBytes[j][nBytes++] = (unsigned char)c;
                                 }
                             }
                         }
@@ -259,11 +269,11 @@ Read_Iff_Image(RGBAImage *image, char *filename)
                 }
 
                 mask = 0x80;
-                byte_index = 0;
+                byteIndex = 0;
                 for (j = 0; j < image->iwidth; j++) {
                     creg = 0;
                     for (k = nPlanes - 1; k >= 0; k--) {
-                        if (row_bytes[k][byte_index] & mask) {
+                        if (rowBytes[k][byteIndex] & mask) {
                             creg = creg * 2 + 1;
                         } else {
                             creg *= 2;
@@ -274,38 +284,38 @@ Read_Iff_Image(RGBAImage *image, char *filename)
                         line = &image->data.rgb_lines[i];
                         switch (creg >> 4) {
                         case 0:
-                            Previous_Red = line->red[j] =
-                                (unsigned char)iff_colour_map[creg].Red;
-                            Previous_Green = line->green[j] =
-                                (unsigned char)iff_colour_map[creg].Green;
-                            Previous_Blue = line->blue[j] =
-                                (unsigned char)iff_colour_map[creg].Blue;
+                            previousRed = line->red[j] =
+                                (unsigned char)iffColourMap[creg].Red;
+                            previousGreen = line->green[j] =
+                                (unsigned char)iffColourMap[creg].Green;
+                            previousBlue = line->blue[j] =
+                                (unsigned char)iffColourMap[creg].Blue;
                             break;
 
                         case 1:
-                            line->red[j] = (unsigned char)Previous_Red;
-                            line->green[j] = (unsigned char)Previous_Green;
+                            line->red[j] = (unsigned char)previousRed;
+                            line->green[j] = (unsigned char)previousGreen;
                             line->blue[j] =
                                 (unsigned char)(((creg & 0xf) << 4) +
                                                 (creg & 0xf));
-                            Previous_Blue = (int)line->blue[j];
+                            previousBlue = (int)line->blue[j];
                             break;
 
                         case 2:
                             line->red[j] = (unsigned char)(((creg & 0xf) << 4) +
                                                            (creg & 0xf));
-                            Previous_Red = (int)line->red[j];
-                            line->green[j] = (unsigned char)Previous_Green;
-                            line->blue[j] = (unsigned char)Previous_Blue;
+                            previousRed = (int)line->red[j];
+                            line->green[j] = (unsigned char)previousGreen;
+                            line->blue[j] = (unsigned char)previousBlue;
                             break;
 
                         case 3:
-                            line->red[j] = (unsigned char)Previous_Red;
+                            line->red[j] = (unsigned char)previousRed;
                             line->green[j] =
                                 (unsigned char)(((creg & 0xf) << 4) +
                                                 (creg & 0xf));
-                            Previous_Green = (int)line->green[j];
-                            line->blue[j] = (unsigned char)Previous_Blue;
+                            previousGreen = (int)line->green[j];
+                            line->blue[j] = (unsigned char)previousBlue;
                             break;
                         }
                     } else if (nPlanes == 24) {
@@ -325,17 +335,17 @@ Read_Iff_Image(RGBAImage *image, char *filename)
                     mask >>= 1;
                     if (mask == 0) {
                         mask = 0x80;
-                        byte_index++;
+                        byteIndex++;
                     }
                 }
             }
 
-            delete row_bytes;
+            delete rowBytes;
             fclose(f);
             return;
 
         default:
-            for (i = 0; (long)i < GLOBAL_chunkHeader.size; i++) {
+            for (i = 0; (long)i < globalChunkHeader.size; i++) {
                 if (getc(f) == EOF) {
                     iff_error();
                 }

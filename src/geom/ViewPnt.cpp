@@ -24,24 +24,24 @@
 
 /*===========================================================================*/
 
-Methods Viewpoint_Methods = {NULL, NULL, NULL, NULL, Copy_Viewpoint,
-    Translate_Viewpoint, Rotate_Viewpoint, Scale_Viewpoint, NULL};
+Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, Copy_Viewpoint,
+    Translate_Viewpoint, Rotate_Viewpoint, Scale_Viewpoint, nullptr};
 
 /*===========================================================================*/
 
 void *
-Copy_Viewpoint(SimpleBody *Object)
+Copy_Viewpoint(SimpleBody *object)
 {
-    Viewpoint *viewpoint = (Viewpoint *)Object;
-    Viewpoint *New_Viewpoint;
+    Viewpoint *viewpoint = (Viewpoint *)object;
+    Viewpoint *newViewpoint;
 
-    New_Viewpoint = Get_Viewpoint();
+    newViewpoint = Get_Viewpoint();
 
-    New_Viewpoint->Location = viewpoint->Location;
-    New_Viewpoint->Direction = viewpoint->Direction;
-    New_Viewpoint->Right = viewpoint->Right;
-    New_Viewpoint->Up = viewpoint->Up;
-    return (New_Viewpoint);
+    newViewpoint->Location = viewpoint->Location;
+    newViewpoint->Direction = viewpoint->Direction;
+    newViewpoint->Right = viewpoint->Right;
+    newViewpoint->Up = viewpoint->Up;
+    return (newViewpoint);
 }
 
 void
@@ -57,19 +57,19 @@ Viewpoint::initializeDefaults()
 }
 
 void
-Translate_Viewpoint(SimpleBody *Object, Vector3D *Vector)
+Translate_Viewpoint(SimpleBody *object, Vector3D *vector)
 {
-    VAdd(((Viewpoint *)Object)->Location, ((Viewpoint *)Object)->Location,
-        *Vector);
+    VAdd(((Viewpoint *)object)->Location, ((Viewpoint *)object)->Location,
+        *vector);
 }
 
 void
-Rotate_Viewpoint(SimpleBody *Object, Vector3D *Vector)
+Rotate_Viewpoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    Viewpoint *viewpoint = (Viewpoint *)Object;
+    Viewpoint *viewpoint = (Viewpoint *)object;
 
-    Get_Rotation_Transformation(&transformation, Vector);
+    Get_Rotation_Transformation(&transformation, vector);
     MTransformVector(
         &(viewpoint->Location), &(viewpoint->Location), &transformation);
 
@@ -82,12 +82,12 @@ Rotate_Viewpoint(SimpleBody *Object, Vector3D *Vector)
 }
 
 void
-Scale_Viewpoint(SimpleBody *Object, Vector3D *Vector)
+Scale_Viewpoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    Viewpoint *viewpoint = (Viewpoint *)Object;
+    Viewpoint *viewpoint = (Viewpoint *)object;
 
-    Get_Scaling_Transformation(&transformation, Vector);
+    Get_Scaling_Transformation(&transformation, vector);
     MTransformVector(
         &(viewpoint->Location), &(viewpoint->Location), &transformation);
 

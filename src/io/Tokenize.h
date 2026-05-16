@@ -1,11 +1,11 @@
 #ifndef __TOKENIZE_H__
 #define __TOKENIZE_H__
 
-#include <stdio.h>
 #include "common/Frame.h"
 #include "io/DataFile.h"
 #include "io/ReservedWord.h"
 #include "io/TokenStruct.h"
+#include <stdio.h>
 
 /* Token Definitions for Parser */
 /* This list must have the same number of tokens as list in tokenize.c */
@@ -170,7 +170,6 @@
 typedef int TOKEN;
 
 /* Here's where you dump the information on the current token (fm. PARSE.C) */
-
 
 extern void Initialize_Tokenizer(char *Input_File_Name);
 extern void Terminate_Tokenizer(void);

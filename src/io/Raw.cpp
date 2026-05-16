@@ -41,9 +41,9 @@
 class RAW_FILE_HANDLE {
   public:
     FileHandle root;
-    FILE *Red_File, *Green_File, *Blue_File;
-    char *Red_Buffer, *Green_Buffer, *Blue_Buffer;
-    int line_number;
+    FILE *redFile, *greenFile, *blueFile;
+    char *redBuffer, *greenBuffer, *blueBuffer;
+    int lineNumber;
 };
 
 FileHandle *
@@ -52,9 +52,9 @@ Get_Raw_File_Handle()
     RAW_FILE_HANDLE *handle;
 
     handle = new RAW_FILE_HANDLE;
-    if (handle == NULL) {
+    if (handle == nullptr) {
         fprintf(stderr, "Cannot allocate memory for output file handle\n");
-        return (NULL);
+        return (nullptr);
     }
 
     handle->root.Default_File_Name_p = Default_Raw_File_Name;
@@ -75,196 +75,196 @@ Default_Raw_File_Name()
 
 int
 Open_Raw_File(FileHandle *handle, char *name, int *width, int *height,
-    int buffer_size, int mode)
+    int bufferSize, int mode)
 {
-    RAW_FILE_HANDLE *raw_handle;
-    char file_name[256];
+    RAW_FILE_HANDLE *rawHandle;
+    char fileName[256];
 
     handle->mode = mode;
     handle->filename = name;
-    raw_handle = (RAW_FILE_HANDLE *)handle;
-    raw_handle->line_number = 0;
+    rawHandle = (RAW_FILE_HANDLE *)handle;
+    rawHandle->lineNumber = 0;
 
     switch (mode) {
     case READ_MODE:
-        strcpy(file_name, name);
-        strcat(file_name, RED_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, RED_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Red_File = fopen(file_name, READ_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->redFile = fopen(fileName, READ_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        strcpy(file_name, name);
-        strcat(file_name, GREEN_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, GREEN_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Green_File = fopen(file_name, READ_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->greenFile = fopen(fileName, READ_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        strcpy(file_name, name);
-        strcat(file_name, BLUE_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, BLUE_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Blue_File = fopen(file_name, READ_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->blueFile = fopen(fileName, READ_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Red_Buffer = new char[buffer_size];
-            if (raw_handle->Red_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->redBuffer = new char[bufferSize];
+            if (rawHandle->redBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Red_File, raw_handle->Red_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(
+                rawHandle->redFile, rawHandle->redBuffer, _IOFBF, bufferSize);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Green_Buffer = new char[buffer_size];
-            if (raw_handle->Green_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->greenBuffer = new char[bufferSize];
+            if (rawHandle->greenBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Green_File, raw_handle->Green_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(rawHandle->greenFile, rawHandle->greenBuffer, _IOFBF,
+                bufferSize);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Blue_Buffer = new char[buffer_size];
-            if (raw_handle->Blue_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->blueBuffer = new char[bufferSize];
+            if (rawHandle->blueBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Blue_File, raw_handle->Blue_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(
+                rawHandle->blueFile, rawHandle->blueBuffer, _IOFBF, bufferSize);
         }
 
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
         break;
 
     case WRITE_MODE:
-        strcpy(file_name, name);
-        strcat(file_name, RED_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, RED_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Red_File = fopen(file_name, WRITE_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->redFile = fopen(fileName, WRITE_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Red_Buffer = new char[buffer_size];
-            if (raw_handle->Red_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->redBuffer = new char[bufferSize];
+            if (rawHandle->redBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Red_File, raw_handle->Red_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(
+                rawHandle->redFile, rawHandle->redBuffer, _IOFBF, bufferSize);
         }
 
-        strcpy(file_name, name);
-        strcat(file_name, GREEN_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, GREEN_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Green_File = fopen(file_name, WRITE_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->greenFile = fopen(fileName, WRITE_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Green_Buffer = new char[buffer_size];
-            if (raw_handle->Green_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->greenBuffer = new char[bufferSize];
+            if (rawHandle->greenBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Green_File, raw_handle->Green_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(rawHandle->greenFile, rawHandle->greenBuffer, _IOFBF,
+                bufferSize);
         }
 
-        strcpy(file_name, name);
-        strcat(file_name, BLUE_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, BLUE_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Blue_File = fopen(file_name, WRITE_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->blueFile = fopen(fileName, WRITE_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Blue_Buffer = new char[buffer_size];
-            if (raw_handle->Blue_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->blueBuffer = new char[bufferSize];
+            if (rawHandle->blueBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Blue_File, raw_handle->Blue_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(
+                rawHandle->blueFile, rawHandle->blueBuffer, _IOFBF, bufferSize);
         }
 
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
 
         break;
 
     case APPEND_MODE:
-        strcpy(file_name, name);
-        strcat(file_name, RED_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, RED_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Red_File = fopen(file_name, APPEND_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->redFile = fopen(fileName, APPEND_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Red_Buffer = new char[buffer_size];
-            if (raw_handle->Red_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->redBuffer = new char[bufferSize];
+            if (rawHandle->redBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Red_File, raw_handle->Red_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(
+                rawHandle->redFile, rawHandle->redBuffer, _IOFBF, bufferSize);
         }
 
-        strcpy(file_name, name);
-        strcat(file_name, GREEN_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, GREEN_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Green_File = fopen(file_name, APPEND_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->greenFile = fopen(fileName, APPEND_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Green_Buffer = new char[buffer_size];
-            if (raw_handle->Green_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->greenBuffer = new char[bufferSize];
+            if (rawHandle->greenBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Green_File, raw_handle->Green_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(rawHandle->greenFile, rawHandle->greenBuffer, _IOFBF,
+                bufferSize);
         }
 
-        strcpy(file_name, name);
-        strcat(file_name, BLUE_RAW_FILE_EXTENSION);
+        strcpy(fileName, name);
+        strcat(fileName, BLUE_RAW_FILE_EXTENSION);
 
-        if ((raw_handle->Blue_File = fopen(file_name, APPEND_FILE_STRING)) ==
-            NULL) {
+        if ((rawHandle->blueFile = fopen(fileName, APPEND_FILE_STRING)) ==
+            nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            raw_handle->Blue_Buffer = new char[buffer_size];
-            if (raw_handle->Blue_Buffer == NULL) {
+        if (bufferSize != 0) {
+            rawHandle->blueBuffer = new char[bufferSize];
+            if (rawHandle->blueBuffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(raw_handle->Blue_File, raw_handle->Blue_Buffer, _IOFBF,
-                buffer_size);
+            setvbuf(
+                rawHandle->blueFile, rawHandle->blueBuffer, _IOFBF, bufferSize);
         }
 
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
 
         break;
     }
@@ -272,105 +272,106 @@ Open_Raw_File(FileHandle *handle, char *name, int *width, int *height,
 }
 
 void
-Write_Raw_Line(FileHandle *handle, RGBAColor *line_data, int line_number)
+Write_Raw_Line(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
     register int x;
-    RAW_FILE_HANDLE *raw_handle;
-    char file_name[256];
+    RAW_FILE_HANDLE *rawHandle;
+    char fileName[256];
 
-    raw_handle = (RAW_FILE_HANDLE *)handle;
+    rawHandle = (RAW_FILE_HANDLE *)handle;
 
     for (x = 0; x < handle->width; x++) {
-        putc((int)floor(line_data[x].Red * 255.0), raw_handle->Red_File);
+        putc((int)floor(lineData[x].Red * 255.0), rawHandle->redFile);
     }
 
     for (x = 0; x < handle->width; x++) {
-        putc((int)floor(line_data[x].Green * 255.0), raw_handle->Green_File);
+        putc((int)floor(lineData[x].Green * 255.0), rawHandle->greenFile);
     }
 
     for (x = 0; x < handle->width; x++) {
-        putc((int)floor(line_data[x].Blue * 255.0), raw_handle->Blue_File);
+        putc((int)floor(lineData[x].Blue * 255.0), rawHandle->blueFile);
     }
 
     if (handle->buffer_size == 0) {
-        fflush(raw_handle->Red_File); /* close and reopen file for */
-        strcpy(file_name, handle->filename);
-        strcat(file_name, RED_RAW_FILE_EXTENSION);
-        raw_handle->Red_File = freopen(file_name, APPEND_FILE_STRING,
-            raw_handle->Red_File); /* integrity in case we crash*/
+        fflush(rawHandle->redFile); /* close and reopen file for */
+        strcpy(fileName, handle->filename);
+        strcat(fileName, RED_RAW_FILE_EXTENSION);
+        rawHandle->redFile = freopen(fileName, APPEND_FILE_STRING,
+            rawHandle->redFile); /* integrity in case we crash*/
 
-        fflush(raw_handle->Green_File); /* close and reopen file for */
-        strcpy(file_name, handle->filename);
-        strcat(file_name, GREEN_RAW_FILE_EXTENSION);
-        raw_handle->Green_File = freopen(file_name, APPEND_FILE_STRING,
-            raw_handle->Green_File); /* integrity in case we crash*/
+        fflush(rawHandle->greenFile); /* close and reopen file for */
+        strcpy(fileName, handle->filename);
+        strcat(fileName, GREEN_RAW_FILE_EXTENSION);
+        rawHandle->greenFile = freopen(fileName, APPEND_FILE_STRING,
+            rawHandle->greenFile); /* integrity in case we crash*/
 
-        fflush(raw_handle->Blue_File); /* close and reopen file for */
-        strcpy(file_name, handle->filename);
-        strcat(file_name, BLUE_RAW_FILE_EXTENSION);
-        raw_handle->Blue_File = freopen(file_name, APPEND_FILE_STRING,
-            raw_handle->Blue_File); /* integrity in case we crash*/
+        fflush(rawHandle->blueFile); /* close and reopen file for */
+        strcpy(fileName, handle->filename);
+        strcat(fileName, BLUE_RAW_FILE_EXTENSION);
+        rawHandle->blueFile = freopen(fileName, APPEND_FILE_STRING,
+            rawHandle->blueFile); /* integrity in case we crash*/
     }
 }
 
 int
-Read_Raw_Line(FileHandle *handle, RGBAColor *line_data, int *line_number)
+Read_Raw_Line(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
-    int data, i;
-    RAW_FILE_HANDLE *raw_handle;
+    int data;
+    int i;
+    RAW_FILE_HANDLE *rawHandle;
 
-    raw_handle = (RAW_FILE_HANDLE *)handle;
+    rawHandle = (RAW_FILE_HANDLE *)handle;
 
     for (i = 0; i < handle->width; i++) {
-        if ((data = getc(raw_handle->Red_File)) == EOF) {
+        if ((data = getc(rawHandle->redFile)) == EOF) {
             if (i == 0) {
                 return (0);
             }
             return (-1);
         }
 
-        line_data[i].Red = (DBL)data / 255.0;
+        lineData[i].Red = (DBL)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
-        if ((data = getc(raw_handle->Green_File)) == EOF) {
+        if ((data = getc(rawHandle->greenFile)) == EOF) {
             return (-1);
         }
 
-        line_data[i].Green = (DBL)data / 255.0;
+        lineData[i].Green = (DBL)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
-        if ((data = getc(raw_handle->Blue_File)) == EOF) {
+        if ((data = getc(rawHandle->blueFile)) == EOF) {
             return (-1);
         }
 
-        line_data[i].Blue = (DBL)data / 255.0;
+        lineData[i].Blue = (DBL)data / 255.0;
     }
 
-    *line_number = raw_handle->line_number++;
+    *lineNumber = rawHandle->lineNumber++;
     return (1);
 }
 
 void
 Close_Raw_File(FileHandle *handle)
 {
-    RAW_FILE_HANDLE *raw_handle;
+    RAW_FILE_HANDLE *rawHandle;
 
-    raw_handle = (RAW_FILE_HANDLE *)handle;
-    if (raw_handle->Red_File) {
-        fclose(raw_handle->Red_File);
+    rawHandle = (RAW_FILE_HANDLE *)handle;
+    if (rawHandle->redFile) {
+        fclose(rawHandle->redFile);
     }
-    if (raw_handle->Green_File) {
-        fclose(raw_handle->Green_File);
+    if (rawHandle->greenFile) {
+        fclose(rawHandle->greenFile);
     }
-    if (raw_handle->Blue_File) {
-        fclose(raw_handle->Blue_File);
+    if (rawHandle->blueFile) {
+        fclose(rawHandle->blueFile);
     }
 
     if (handle->buffer_size != 0) {
-        delete raw_handle->Red_Buffer;
-        delete raw_handle->Green_Buffer;
-        delete raw_handle->Blue_Buffer;
+        delete rawHandle->redBuffer;
+        delete rawHandle->greenBuffer;
+        delete rawHandle->blueBuffer;
     }
 }

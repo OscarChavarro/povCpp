@@ -84,16 +84,16 @@ class polynomial {
 };
 
 static int modp(polynomial *u, polynomial *v, polynomial *r);
-int regula_falsa(int order, DBL *coef, DBL a, DBL b, DBL *val);
+int regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val);
 void sbisect(int np, polynomial *sseq, DBL min, DBL max, int atmin, int atmax,
     DBL *roots);
 int numchanges(int np, polynomial *sseq, DBL a);
-DBL polyeval(DBL x, int n, DBL *Coeffs);
+DBL polyeval(DBL x, int n, DBL *coeffs);
 int buildsturm(int ord, polynomial *sseq);
-int visible_roots(int np, polynomial *sseq, int *atneg, int *atpos);
-static int difficult_coeffs(int n, DBL *x);
+int visibleRoots(int np, polynomial *sseq, int *atneg, int *atpos);
+static int difficultCoeffs(int n, DBL *x);
 
-extern int Shadow_Test_Flag;
+extern int shadowTestFlag;
 
 /*
  * modp
@@ -106,7 +106,9 @@ extern int Shadow_Test_Flag;
 static int
 modp(polynomial *u, polynomial *v, polynomial *r)
 {
-    int i, k, j;
+    int i;
+    int k;
+    int j;
     for (i = 0; i < u->ord; i++) {
         r[i] = u[i];
     }
@@ -170,9 +172,10 @@ buildsturm(int ord, polynomial *sseq)
 
 /* Find out how many visible intersections there are */
 int
-visible_roots(int np, polynomial *sseq, int *atzer, int *atpos)
+visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
 {
-    int atposinf, atzero;
+    int atposinf;
+    int atzero;
     polynomial *s;
     DBL f, lf;
 
@@ -240,32 +243,37 @@ Note: This routine has one severe bug: When the interval containing the
 
  */
 void
-sbisect(int np, polynomial *sseq, DBL min_value, DBL max_value, int atmin,
+sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, int atmin,
     int atmax, DBL *roots)
 {
     DBL mid;
-    int n1, n2, its, atmid, nroot;
+    int n1;
+    int n2;
+    int its;
+    int atmid;
+    int nroot;
 
     if ((nroot = atmin - atmax) == 1) {
         /* first try using regula-falsa to find the root.  */
-        if (regula_falsa(sseq->ord, sseq->coef, min_value, max_value, roots)) {
+        if (regulaFalsa(sseq->ord, sseq->coef, minValue, maxValue, roots)) {
             return;
         } /* That failed, so now find it by bisection */
         for (its = 0; its < MAX_ITERATIONS; its++) {
-            mid = (min_value + max_value) / 2;
+            mid = (minValue + maxValue) / 2;
             atmid = numchanges(np, sseq, mid);
             if (fabs(mid) > EPSILON) {
-                if (fabs((max_value - min_value) / mid) < EPSILON) {
+                if (fabs((maxValue - minValue) / mid) < EPSILON) {
                     roots[0] = mid;
                     return;
                 }
-            } else if (fabs(max_value - min_value) < EPSILON) {
+            } else if (fabs(maxValue - minValue) < EPSILON) {
                 roots[0] = mid;
                 return;
-            } else if ((atmin - atmid) == 0)
-                min_value = mid;
-            else
-                max_value = mid;
+            } else if ((atmin - atmid) == 0) {
+                minValue = mid;
+            } else {
+                maxValue = mid;
+            }
         }
         /* Bisection took too long - just return what we got */
         roots[0] = mid;
@@ -275,19 +283,19 @@ sbisect(int np, polynomial *sseq, DBL min_value, DBL max_value, int atmin,
     /* There is more than one root in the interval.
         Bisect to find new intervals */
     for (its = 0; its < MAX_ITERATIONS; its++) {
-        mid = (min_value + max_value) / 2;
+        mid = (minValue + maxValue) / 2;
         atmid = numchanges(np, sseq, mid);
         n1 = atmin - atmid;
         n2 = atmid - atmax;
         if (n1 != 0 && n2 != 0) {
-            sbisect(np, sseq, min_value, mid, atmin, atmid, roots);
-            sbisect(np, sseq, mid, max_value, atmid, atmax, &roots[n1]);
+            sbisect(np, sseq, minValue, mid, atmin, atmid, roots);
+            sbisect(np, sseq, mid, maxValue, atmid, atmax, &roots[n1]);
             return;
         }
         if (n1 == 0) {
-            min_value = mid;
+            minValue = mid;
         } else {
-            max_value = mid;
+            maxValue = mid;
         }
     }
 
@@ -298,20 +306,20 @@ sbisect(int np, polynomial *sseq, DBL min_value, DBL max_value, int atmin,
 }
 
 DBL
-polyeval(DBL x, int n, DBL *Coeffs)
+polyeval(DBL x, int n, DBL *coeffs)
 {
     register int i;
     DBL val;
-    val = Coeffs[n];
+    val = coeffs[n];
     for (i = n - 1; i >= 0; i--) {
-        val = val * x + Coeffs[i];
+        val = val * x + coeffs[i];
     }
     return val;
 }
 
 /* Close in on a root by using regula-falsa */
 int
-regula_falsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
+regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
 {
     int its;
     DBL fa, fb, x, fx, lfx;
@@ -438,8 +446,12 @@ solve_quadratic(DBL *x, DBL *y)
 int
 solve_cubic(DBL *x, DBL *y)
 {
-    DBL Q, R, Q3, R2, sQ, d, an, theta;
-    DBL A2, a0, a1, a2, a3;
+    DBL q, r, q3, r2, sQ, d, an, theta;
+    DBL a0;
+    DBL a1;
+    DBL a2;
+    DBL a3;
+    DBL a1Squared;
     a0 = x[0];
     if (a0 == 0.0) {
         return solve_quadratic(&x[1], y);
@@ -453,35 +465,36 @@ solve_cubic(DBL *x, DBL *y)
         a2 = x[2];
         a3 = x[3];
     }
-    A2 = a1 * a1;
-    Q = (A2 - 3.0 * a2) / 9.0;
-    R = (2.0 * A2 * a1 - 9.0 * a1 * a2 + 27.0 * a3) / 54.0;
-    Q3 = Q * Q * Q;
-    R2 = R * R;
-    d = Q3 - R2;
+    a1Squared = a1 * a1;
+    q = (a1Squared - 3.0 * a2) / 9.0;
+    r = (2.0 * a1Squared * a1 - 9.0 * a1 * a2 + 27.0 * a3) / 54.0;
+    q3 = q * q * q;
+    r2 = r * r;
+    d = q3 - r2;
     an = a1 / 3.0;
     if (d >= 0.0) {
         /* Three real roots. */
-        d = R / sqrt(Q3);
+        d = r / sqrt(q3);
         theta = acos(d) / 3.0;
-        sQ = -2.0 * sqrt(Q);
+        sQ = -2.0 * sqrt(q);
         y[0] = sQ * cos(theta) - an;
         y[1] = sQ * cos(theta + TWO_PI_3) - an;
         y[2] = sQ * cos(theta + TWO_PI_43) - an;
         return 3;
     }
-    sQ = pow(sqrt(R2 - Q3) + ABS(R), 1.0 / 3.0);
-    if (R < 0)
-        y[0] = (sQ + Q / sQ) - an;
-    else
-        y[0] = -(sQ + Q / sQ) - an;
+    sQ = pow(sqrt(r2 - q3) + ABS(r), 1.0 / 3.0);
+    if (r < 0) {
+        y[0] = (sQ + q / sQ) - an;
+    } else {
+        y[0] = -(sQ + q / sQ) - an;
+    }
     return 1;
 }
 
 /* Test to see if any coeffs are more than 6 orders of magnitude
     larger than the smallest */
 static int
-difficult_coeffs(int n, DBL *x)
+difficultCoeffs(int n, DBL *x)
 {
     int i;
     DBL biggest;
@@ -518,13 +531,13 @@ solve_quartic(DBL *x, DBL *results)
     int i;
 
     /* Figure out the size difference between coefficients */
-    if (difficult_coeffs(4, x)) {
+    if (difficultCoeffs(4, x)) {
         if (fabs(x[0]) < COEFF_LIMIT) {
             if (fabs(x[1]) < COEFF_LIMIT) {
                 return solve_quadratic(&x[2], results);
-            } else {
-                return solve_cubic(&x[1], results);
             }
+            return solve_cubic(&x[1], results);
+
         } else {
             return polysolve(4, x, results);
         }
@@ -536,7 +549,8 @@ solve_quartic(DBL *x, DBL *results)
     }
     if (fabs(x[4]) < COEFF_LIMIT) {
         return solve_cubic(x, results);
-    } else if (c0 != 1.0) {
+    }
+    if (c0 != 1.0) {
         c1 = x[1] / c0;
         c2 = x[2] / c0;
         c3 = x[3] / c0;
@@ -649,42 +663,46 @@ solve_quartic(DBL *x, DBL *results)
 
 /* Root solver based on the Sturm sequences for a polynomial. */
 int
-polysolve(int order, DBL *Coeffs, DBL *roots)
+polysolve(int order, DBL *coeffs, DBL *roots)
 {
     polynomial sseq[MAX_ORDER + 1];
-    DBL min_value, max_value;
-    int i, nroots, np, atmin, atmax;
+    DBL minValue, maxValue;
+    int i;
+    int nroots;
+    int np;
+    int atmin;
+    int atmax;
 
     /* Put the coefficients into the top of the stack. */
     for (i = 0; i <= order; i++) {
-        sseq[0].coef[order - i] = Coeffs[i];
+        sseq[0].coef[order - i] = coeffs[i];
     }
 
     /* Build the Sturm sequence */
     np = buildsturm(order, &sseq[0]);
 
     /* Get the total number of visible roots */
-    if ((nroots = visible_roots(np, sseq, &atmin, &atmax)) == 0) {
+    if ((nroots = visibleRoots(np, sseq, &atmin, &atmax)) == 0) {
         return 0;
     }
 
     /* Bracket the roots */
-    if (Shadow_Test_Flag) {
-        min_value = 0.05;
+    if (shadowTestFlag) {
+        minValue = 0.05;
     } else {
-        min_value = 0.0;
+        minValue = 0.0;
     }
-    max_value = Max_Distance;
+    maxValue = Max_Distance;
 
-    atmin = numchanges(np, sseq, min_value);
-    atmax = numchanges(np, sseq, max_value);
+    atmin = numchanges(np, sseq, minValue);
+    atmax = numchanges(np, sseq, maxValue);
     nroots = atmin - atmax;
     if (nroots == 0) {
         return 0;
     }
 
     /* perform the bisection. */
-    sbisect(np, sseq, min_value, max_value, atmin, atmax, roots);
+    sbisect(np, sseq, minValue, maxValue, atmin, atmax, roots);
 
     return nroots;
 }

@@ -12,8 +12,8 @@
 class BezierVertices;
 class BezierNode;
 #include "geom/BezierChild.h"
-#include "geom/BezierVertices.h"
 #include "geom/BezierNode.h"
+#include "geom/BezierVertices.h"
 #include "geom/BicubicPatch.h"
 
 extern Methods Bicubic_Patch_Methods;

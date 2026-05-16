@@ -23,12 +23,13 @@
  *
  *****************************************************************************/
 
-#include "common/Frame.h"
 #include "common/Colour.h"
+#include "common/Frame.h"
 #include "common/Matrices.h"
 #include "common/Vector.h"
 
-extern long Calls_To_Noise, Calls_To_DNoise;
+extern long callsToNoise;
+extern long callsToDNoise;
 
 /* Types for reading IFF files. */
 class RGBAPixel {

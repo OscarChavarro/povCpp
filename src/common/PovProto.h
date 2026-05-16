@@ -27,7 +27,7 @@ extern void Error(const char *str);
 extern void close_all(void);
 extern void print_stats(void);
 extern FILE *Locate_File(const char *filename, const char *mode);
-extern void display_plot(
+extern void displayPlot(
     int x, int y, unsigned char Red, unsigned char Green, unsigned char Blue);
 
 #endif

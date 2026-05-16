@@ -33,8 +33,8 @@ Methods Box_Methods = {Object_Intersect, All_Box_Intersections, Inside_Box,
 
 extern Box *Get_Box_Shape();
 
-extern Ray *VP_Ray;
-extern long Ray_Box_Tests, Ray_Box_Tests_Succeeded;
+extern Ray *vpRay;
+extern long rayBoxTests, rayBoxTestsSucceeded;
 
 #define close(x, y) (fabs(x - y) < EPSILON ? 1 : 0)
 
@@ -42,207 +42,208 @@ extern long Ray_Box_Tests, Ray_Box_Tests_Succeeded;
 
 int
 All_Box_Intersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    DBL Depth1, Depth2;
-    Vector3D Intersection_Point;
-    Intersection Local_Element;
-    register int Intersection_Found;
-    Box *Shape = (Box *)Object;
+    DBL depth1, depth2;
+    Vector3D intersectionPoint;
+    Intersection localElement;
+    register int intersectionFound;
+    Box *shape = (Box *)object;
 
-    Intersection_Found = FALSE;
-    if (Intersect_Boxx(Ray, Shape, &Depth1, &Depth2)) {
-        Local_Element.Depth = Depth1;
-        Local_Element.Object = Shape->Parent_Object;
-        VScale(Intersection_Point, Ray->Direction, Depth1);
-        VAdd(Intersection_Point, Intersection_Point, Ray->Initial);
-        Local_Element.Point = Intersection_Point;
-        Local_Element.Shape = (Geometry *)Shape;
-        Depth_Queue->add(&Local_Element);
-        Intersection_Found = TRUE;
+    intersectionFound = FALSE;
+    if (Intersect_Boxx(ray, shape, &depth1, &depth2)) {
+        localElement.Depth = depth1;
+        localElement.Object = shape->Parent_Object;
+        VScale(intersectionPoint, ray->Direction, depth1);
+        VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        localElement.Point = intersectionPoint;
+        localElement.Shape = (Geometry *)shape;
+        depthQueue->add(&localElement);
+        intersectionFound = TRUE;
 
-        if (Depth2 != Depth1) {
-            Local_Element.Depth = Depth2;
-            Local_Element.Object = Shape->Parent_Object;
-            VScale(Intersection_Point, Ray->Direction, Depth2);
-            VAdd(Intersection_Point, Intersection_Point, Ray->Initial);
-            Local_Element.Point = Intersection_Point;
-            Local_Element.Shape = (Geometry *)Shape;
-            Depth_Queue->add(&Local_Element);
-            Intersection_Found = TRUE;
+        if (depth2 != depth1) {
+            localElement.Depth = depth2;
+            localElement.Object = shape->Parent_Object;
+            VScale(intersectionPoint, ray->Direction, depth2);
+            VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            localElement.Point = intersectionPoint;
+            localElement.Shape = (Geometry *)shape;
+            depthQueue->add(&localElement);
+            intersectionFound = TRUE;
         }
     }
-    return (Intersection_Found);
+    return (intersectionFound);
 }
 
 int
-Intersect_Boxx(Ray *Ray, Box *box, DBL *Depth1, DBL *Depth2)
+Intersect_Boxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
 {
     DBL t, tmin, tmax;
-    Vector3D P, D;
+    Vector3D p;
+    Vector3D d;
 
-    Ray_Box_Tests++;
+    rayBoxTests++;
 
     /* Transform the point into the boxes space */
-    if (box->Transform != NULL) {
-        MInverseTransformVector(&P, &Ray->Initial, box->Transform);
-        MInvTransVector(&D, &Ray->Direction, box->Transform);
+    if (box->Transform != nullptr) {
+        MInverseTransformVector(&p, &ray->Initial, box->Transform);
+        MInvTransVector(&d, &ray->Direction, box->Transform);
     } else {
-        P.x = Ray->Initial.x;
-        P.y = Ray->Initial.y;
-        P.z = Ray->Initial.z;
-        D.x = Ray->Direction.x;
-        D.y = Ray->Direction.y;
-        D.z = Ray->Direction.z;
+        p.x = ray->Initial.x;
+        p.y = ray->Initial.y;
+        p.z = ray->Initial.z;
+        d.x = ray->Direction.x;
+        d.y = ray->Direction.y;
+        d.z = ray->Direction.z;
     }
 
     tmin = 0.0;
     tmax = HUGE_VAL;
 
     /* Sides first */
-    if (D.x < -EPSILON) {
-        t = (box->bounds[0].x - P.x) / D.x;
+    if (d.x < -EPSILON) {
+        t = (box->bounds[0].x - p.x) / d.x;
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[1].x - P.x) / D.x;
+        t = (box->bounds[1].x - p.x) / d.x;
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (D.x > EPSILON) {
-        t = (box->bounds[1].x - P.x) / D.x;
+    } else if (d.x > EPSILON) {
+        t = (box->bounds[1].x - p.x) / d.x;
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[0].x - P.x) / D.x;
+        t = (box->bounds[0].x - p.x) / d.x;
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (P.x < box->bounds[0].x || P.x > box->bounds[1].x) {
+    } else if (p.x < box->bounds[0].x || p.x > box->bounds[1].x) {
         return 0;
     }
 
     /* Check Top/Bottom */
-    if (D.y < -EPSILON) {
-        t = (box->bounds[0].y - P.y) / D.y;
+    if (d.y < -EPSILON) {
+        t = (box->bounds[0].y - p.y) / d.y;
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[1].y - P.y) / D.y;
+        t = (box->bounds[1].y - p.y) / d.y;
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (D.y > EPSILON) {
-        t = (box->bounds[1].y - P.y) / D.y;
+    } else if (d.y > EPSILON) {
+        t = (box->bounds[1].y - p.y) / d.y;
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[0].y - P.y) / D.y;
+        t = (box->bounds[0].y - p.y) / d.y;
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (P.y < box->bounds[0].y || P.y > box->bounds[1].y) {
+    } else if (p.y < box->bounds[0].y || p.y > box->bounds[1].y) {
         return 0;
     }
 
     /* Now front/back */
-    if (D.z < -EPSILON) {
-        t = (box->bounds[0].z - P.z) / D.z;
+    if (d.z < -EPSILON) {
+        t = (box->bounds[0].z - p.z) / d.z;
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[1].z - P.z) / D.z;
+        t = (box->bounds[1].z - p.z) / d.z;
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (D.z > EPSILON) {
-        t = (box->bounds[1].z - P.z) / D.z;
+    } else if (d.z > EPSILON) {
+        t = (box->bounds[1].z - p.z) / d.z;
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[0].z - P.z) / D.z;
+        t = (box->bounds[0].z - p.z) / d.z;
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (P.z < box->bounds[0].z || P.z > box->bounds[1].z) {
+    } else if (p.z < box->bounds[0].z || p.z > box->bounds[1].z) {
         return 0;
     }
 
-    *Depth1 = tmin;
-    *Depth2 = tmax;
+    *depth1 = tmin;
+    *depth2 = tmax;
 
     /* printf("Box intersects: %g, %g\n", *Depth1, *Depth2); */
-    if ((*Depth1 < Small_Tolerance) || (*Depth1 > Max_Distance)) {
-        if ((*Depth2 < Small_Tolerance) || (*Depth2 > Max_Distance)) {
+    if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
+        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
             return (FALSE);
-        } else {
-            *Depth1 = *Depth2;
         }
-    } else if ((*Depth2 < Small_Tolerance) || (*Depth2 > Max_Distance)) {
-        *Depth2 = *Depth1;
+        *depth1 = *depth2;
+
+    } else if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+        *depth2 = *depth1;
     }
 
-    Ray_Box_Tests_Succeeded++;
+    rayBoxTestsSucceeded++;
     return (TRUE);
 }
 
 int
-Inside_Box(Vector3D *Test_Point, SimpleBody *Object)
+Inside_Box(Vector3D *testPoint, SimpleBody *object)
 {
-    Vector3D New_Point;
-    Box *box = (Box *)Object;
+    Vector3D newPoint;
+    Box *box = (Box *)object;
 
     /* Transform the point into the boxes space */
-    if (box->Transform != NULL) {
-        MInverseTransformVector(&New_Point, Test_Point, box->Transform);
+    if (box->Transform != nullptr) {
+        MInverseTransformVector(&newPoint, testPoint, box->Transform);
     } else {
-        New_Point = *Test_Point;
+        newPoint = *testPoint;
     }
 
     /* Test to see if we are inside the box */
-    if (New_Point.x < box->bounds[0].x || New_Point.x > box->bounds[1].x) {
+    if (newPoint.x < box->bounds[0].x || newPoint.x > box->bounds[1].x) {
         return ((int)box->Inverted);
     }
-    if (New_Point.y < box->bounds[0].y || New_Point.y > box->bounds[1].y) {
+    if (newPoint.y < box->bounds[0].y || newPoint.y > box->bounds[1].y) {
         return ((int)box->Inverted);
     }
-    if (New_Point.z < box->bounds[0].z || New_Point.z > box->bounds[1].z) {
+    if (newPoint.z < box->bounds[0].z || newPoint.z > box->bounds[1].z) {
         return ((int)box->Inverted);
     }
     /* Inside the box */
@@ -250,115 +251,115 @@ Inside_Box(Vector3D *Test_Point, SimpleBody *Object)
 }
 
 void
-Box_Normal(Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+Box_Normal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    Vector3D New_Point;
-    Box *box = (Box *)Object;
+    Vector3D newPoint;
+    Box *box = (Box *)object;
 
     /* Transform the point into the boxes space */
-    if (box->Transform != NULL) {
-        MInverseTransformVector(&New_Point, Intersection_Point, box->Transform);
+    if (box->Transform != nullptr) {
+        MInverseTransformVector(&newPoint, intersectionPoint, box->Transform);
     } else {
-        New_Point.x = Intersection_Point->x;
-        New_Point.y = Intersection_Point->y;
-        New_Point.z = Intersection_Point->z;
+        newPoint.x = intersectionPoint->x;
+        newPoint.y = intersectionPoint->y;
+        newPoint.z = intersectionPoint->z;
     }
 
-    Result->x = 0.0;
-    Result->y = 0.0;
-    Result->z = 0.0;
-    if (close(New_Point.x, box->bounds[1].x)) {
-        Result->x = 1.0;
-    } else if (close(New_Point.x, box->bounds[0].x)) {
-        Result->x = -1.0;
-    } else if (close(New_Point.y, box->bounds[1].y)) {
-        Result->y = 1.0;
-    } else if (close(New_Point.y, box->bounds[0].y)) {
-        Result->y = -1.0;
-    } else if (close(New_Point.z, box->bounds[1].z)) {
-        Result->z = 1.0;
-    } else if (close(New_Point.z, box->bounds[0].z)) {
-        Result->z = -1.0;
+    result->x = 0.0;
+    result->y = 0.0;
+    result->z = 0.0;
+    if (close(newPoint.x, box->bounds[1].x)) {
+        result->x = 1.0;
+    } else if (close(newPoint.x, box->bounds[0].x)) {
+        result->x = -1.0;
+    } else if (close(newPoint.y, box->bounds[1].y)) {
+        result->y = 1.0;
+    } else if (close(newPoint.y, box->bounds[0].y)) {
+        result->y = -1.0;
+    } else if (close(newPoint.z, box->bounds[1].z)) {
+        result->z = 1.0;
+    } else if (close(newPoint.z, box->bounds[0].z)) {
+        result->z = -1.0;
     } else {
         /* Bad result, should we do something with it? */
-        Result->x = 1.0;
+        result->x = 1.0;
     }
 
     /* Transform the point into the boxes space */
-    if (box->Transform != NULL) {
-        MTransNormal(Result, Result, box->Transform);
-        VNormalize(*Result, *Result);
+    if (box->Transform != nullptr) {
+        MTransNormal(result, result, box->Transform);
+        VNormalize(*result, *result);
     }
 }
 
 void *
-Copy_Box(SimpleBody *Object)
+Copy_Box(SimpleBody *object)
 {
-    Box *New_Shape;
-    Transformation *Tr;
+    Box *newShape;
+    Transformation *tr;
 
-    New_Shape = Get_Box_Shape();
-    *New_Shape = *((Box *)Object);
-    New_Shape->Next_Object = NULL;
+    newShape = Get_Box_Shape();
+    *newShape = *((Box *)object);
+    newShape->Next_Object = nullptr;
 
     /* Copy any associated transformation */
-    if (New_Shape->Transform != NULL) {
-        Tr = Get_Transformation();
-        memcpy(Tr, New_Shape->Transform, sizeof(Transformation));
-        New_Shape->Transform = Tr;
+    if (newShape->Transform != nullptr) {
+        tr = Get_Transformation();
+        memcpy(tr, newShape->Transform, sizeof(Transformation));
+        newShape->Transform = tr;
     }
 
-    if (New_Shape->Shape_Texture != NULL) {
-        New_Shape->Shape_Texture = Copy_Texture(New_Shape->Shape_Texture);
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
     }
 
-    return (New_Shape);
+    return (newShape);
 }
 
 void
-Translate_Box(SimpleBody *Object, Vector3D *Vector)
+Translate_Box(SimpleBody *object, Vector3D *vector)
 {
-    Transformation Transform;
-    Box *box = (Box *)Object;
-    if (box->Transform == NULL) {
+    Transformation transform;
+    Box *box = (Box *)object;
+    if (box->Transform == nullptr) {
         box->Transform = Get_Transformation();
     }
-    Get_Translation_Transformation(&Transform, Vector);
-    Compose_Transformations(box->Transform, &Transform);
+    Get_Translation_Transformation(&transform, vector);
+    Compose_Transformations(box->Transform, &transform);
 
-    Translate_Texture(&((Box *)Object)->Shape_Texture, Vector);
+    Translate_Texture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_Box(SimpleBody *Object, Vector3D *Vector)
+Rotate_Box(SimpleBody *object, Vector3D *vector)
 {
-    Transformation Transform;
-    Box *box = (Box *)Object;
-    if (box->Transform == NULL) {
+    Transformation transform;
+    Box *box = (Box *)object;
+    if (box->Transform == nullptr) {
         box->Transform = Get_Transformation();
     }
-    Get_Rotation_Transformation(&Transform, Vector);
-    Compose_Transformations(box->Transform, &Transform);
+    Get_Rotation_Transformation(&transform, vector);
+    Compose_Transformations(box->Transform, &transform);
 
-    Rotate_Texture(&((Box *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_Box(SimpleBody *Object, Vector3D *Vector)
+Scale_Box(SimpleBody *object, Vector3D *vector)
 {
-    Transformation Transform;
-    Box *box = (Box *)Object;
-    if (box->Transform == NULL) {
+    Transformation transform;
+    Box *box = (Box *)object;
+    if (box->Transform == nullptr) {
         box->Transform = Get_Transformation();
     }
-    Get_Scaling_Transformation(&Transform, Vector);
-    Compose_Transformations(box->Transform, &Transform);
+    Get_Scaling_Transformation(&transform, vector);
+    Compose_Transformations(box->Transform, &transform);
 
-    Scale_Texture(&((Box *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_Box(SimpleBody *Object)
+Invert_Box(SimpleBody *object)
 {
-    ((Box *)Object)->Inverted = 1 - ((Box *)Object)->Inverted;
+    ((Box *)object)->Inverted = 1 - ((Box *)object)->Inverted;
 }

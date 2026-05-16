@@ -49,42 +49,48 @@ Methods Height_Field_Methods = {Object_Intersect, All_HeightFld_Intersections,
 
 extern HeightField *Get_Height_Field_Shape();
 
-extern long Ray_Ht_Field_Tests, Ray_Ht_Field_Tests_Succeeded;
-extern long Ray_Ht_Field_Box_Tests, Ray_HField_Box_Tests_Succeeded;
+extern long rayHtFieldTests, rayHtFieldTestsSucceeded;
+extern long rayHtFieldBoxTests, rayHFieldBoxTestsSucceeded;
 
-int isdx, isdz, X_Dom;
-DBL Gdx, Gdy, Gdz;
-DBL Myx, Mxz, Mzx, Myz;
-Intersection *Hf_Intersection;
-PriorityQueueNode *Hf_Queue;
-Ray *RRay;
+int isdx, isdz, xDom;
+DBL gdx, gdy, gdz;
+DBL myx, mxz, mzx, myz;
+Intersection *hfIntersection;
+PriorityQueueNode *hfQueue;
+Ray *rRay;
 
 #define Get_Height(x, z, H_Field) ((DBL)(H_Field)->Map[(z)][(x)])
 
 /*===========================================================================*/
 
 static int
-Intersect_Pixel(
-    int x, int z, Ray *Ray, HeightField *H_Field, DBL height1, DBL height2)
+intersectPixel(
+    int x, int z, Ray *ray, HeightField *hField, DBL height1, DBL height2)
 {
-    Vector3D T1V1, T1V2, T1V3, T2V1, T2V2, T2V3, Local_Normal;
+    Vector3D t1V1;
+    Vector3D t1V2;
+    Vector3D t1V3;
+    Vector3D t2V1;
+    Vector3D t2V2;
+    Vector3D t2V3;
+    Vector3D localNormal;
     DBL pos1, pos2, dot, depth1, depth2, s, t, y1, y2, y3, y4;
-    DBL max_height, min_height;
+    DBL maxHeight, minHeight;
 
     depth1 = HUGE_VAL;
     depth2 = HUGE_VAL;
 
-    y1 = Get_Height(x, z, H_Field);
-    y2 = Get_Height(x + 1, z, H_Field);
-    y3 = Get_Height(x, z + 1, H_Field);
-    y4 = Get_Height(x + 1, z + 1, H_Field);
+    y1 = Get_Height(x, z, hField);
+    y2 = Get_Height(x + 1, z, hField);
+    y3 = Get_Height(x, z + 1, hField);
+    y4 = Get_Height(x + 1, z + 1, hField);
 
-    Make_Vector(&T1V1, (DBL)x, y1, (DBL)z);
-    Make_Vector(&T1V2, 1.0, y2 - y1, 0.0);
-    Make_Vector(&T1V3, 0.0, y3 - y1, 1.0);
-    Make_Vector(&T2V1, (DBL)(x + 1), y4, (DBL)(z + 1));
-    Make_Vector(&T2V2, -1.0, y3 - y4, 0.0);
-    Make_Vector(&T2V3, 0.0, y2 - y4, -1.0);
+    Make_Vector(&t1V1, (DBL)x, y1, (DBL)z);
+    Make_Vector(&t1V2, 1.0, y2 - y1, 0.0);
+    Make_Vector(&t1V3, 0.0, y3 - y1, 1.0);
+    Make_Vector(&t2V1, (DBL)(x + 1), y4, (DBL)(z + 1));
+    Make_Vector(&t2V2, -1.0, y3 - y4, 0.0);
+    Make_Vector(&t2V3, 0.0, y2 - y4, -1.0);
 
     /*
      * first, we check to see if it is even possible for the ray to
@@ -93,21 +99,21 @@ Intersect_Pixel(
 
     if ((max_value(y1, max_value(y2, y3)) >= height1) &&
         (min_value(y1, min_value(y2, y3)) <= height2)) {
-        VCross(Local_Normal, T1V3, T1V2);
-        VDot(dot, Local_Normal, Ray->Direction);
+        VCross(localNormal, t1V3, t1V2);
+        VDot(dot, localNormal, ray->Direction);
 
         if ((dot > EPSILON) || (dot < -EPSILON)) {
-            VDot(pos1, Local_Normal, T1V1);
+            VDot(pos1, localNormal, t1V1);
 
-            VDot(pos2, Local_Normal, Ray->Initial);
+            VDot(pos2, localNormal, ray->Initial);
 
             pos1 -= pos2;
 
             depth1 = pos1 / dot;
 
             if ((depth1 > Small_Tolerance) && (depth1 < Max_Distance)) {
-                s = Ray->Initial.x + (depth1 * Ray->Direction.x) - (DBL)x;
-                t = Ray->Initial.z + (depth1 * Ray->Direction.z) - (DBL)z;
+                s = ray->Initial.x + (depth1 * ray->Direction.x) - (DBL)x;
+                t = ray->Initial.z + (depth1 * ray->Direction.z) - (DBL)z;
 
                 if ((s < -EPSILON) || (t < -EPSILON) ||
                     ((s + t) > 1.0 + EPSILON)) {
@@ -127,23 +133,23 @@ Intersect_Pixel(
              if((max_value(y4,max_value(y2,y3)) >= height1) &&
                  (min_value(y4,min_value(y2,y3)) <= height2))                */
 
-    max_height = max_value(y4, max_value(y2, y3));
-    min_height = min_value(y4, min_value(y2, y3));
-    if ((max_height >= height1) && (min_height <= height2)) {
-        VCross(Local_Normal, T2V3, T2V2);
-        VDot(dot, Local_Normal, Ray->Direction);
+    maxHeight = max_value(y4, max_value(y2, y3));
+    minHeight = min_value(y4, min_value(y2, y3));
+    if ((maxHeight >= height1) && (minHeight <= height2)) {
+        VCross(localNormal, t2V3, t2V2);
+        VDot(dot, localNormal, ray->Direction);
 
         if ((dot > EPSILON) || (dot < -EPSILON)) {
-            VDot(pos1, Local_Normal, T2V1);
+            VDot(pos1, localNormal, t2V1);
 
-            VDot(pos2, Local_Normal, Ray->Initial);
+            VDot(pos2, localNormal, ray->Initial);
             pos1 -= pos2;
 
             depth2 = pos1 / dot;
 
             if ((depth2 > Small_Tolerance) && (depth2 < Max_Distance)) {
-                s = Ray->Initial.x + (depth2 * Ray->Direction.x) - (DBL)x;
-                t = Ray->Initial.z + (depth2 * Ray->Direction.z) - (DBL)z;
+                s = ray->Initial.x + (depth2 * ray->Direction.x) - (DBL)x;
+                t = ray->Initial.z + (depth2 * ray->Direction.z) - (DBL)z;
 
                 if ((s > 1.0 + EPSILON) || (t > 1.0 + EPSILON) ||
                     ((s + t) < 1.0 - EPSILON)) {
@@ -160,39 +166,42 @@ Intersect_Pixel(
     }
 
     if (depth2 < depth1) {
-        Hf_Intersection->Depth = depth2;
-        Hf_Intersection->Object = H_Field->Parent_Object;
-        VScale(T1V1, RRay->Direction, depth2);
-        VAdd(T1V1, T1V1, RRay->Initial);
-        Hf_Intersection->Point = T1V1;
-        Hf_Intersection->Shape = (Geometry *)H_Field;
-        Hf_Queue->add(Hf_Intersection);
+        hfIntersection->Depth = depth2;
+        hfIntersection->Object = hField->Parent_Object;
+        VScale(t1V1, rRay->Direction, depth2);
+        VAdd(t1V1, t1V1, rRay->Initial);
+        hfIntersection->Point = t1V1;
+        hfIntersection->Shape = (Geometry *)hField;
+        hfQueue->add(hfIntersection);
     } else {
-        Hf_Intersection->Depth = depth1;
-        Hf_Intersection->Object = H_Field->Parent_Object;
-        VScale(T1V1, RRay->Direction, depth1);
-        VAdd(T1V1, T1V1, RRay->Initial);
-        Hf_Intersection->Point = T1V1;
-        Hf_Intersection->Shape = (Geometry *)H_Field;
-        Hf_Queue->add(Hf_Intersection);
+        hfIntersection->Depth = depth1;
+        hfIntersection->Object = hField->Parent_Object;
+        VScale(t1V1, rRay->Direction, depth1);
+        VAdd(t1V1, t1V1, rRay->Initial);
+        hfIntersection->Point = t1V1;
+        hfIntersection->Shape = (Geometry *)hField;
+        hfQueue->add(hfIntersection);
     }
-    Ray_Ht_Field_Tests_Succeeded++;
+    rayHtFieldTestsSucceeded++;
     return (TRUE);
 }
 
 static int
-Intersect_Sub_Block(HeightFieldBlock *Block, Ray *Ray, HeightField *H_Field,
+intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *hField,
     Vector3D *start, Vector3D *end)
 {
     DBL y1, y2;
     DBL sx, sy, sz, ex, ez, f;
-    int ix, iz, length, i;
+    int ix;
+    int iz;
+    int length;
+    int i;
 
-    if (min_value(start->y, end->y) > Block->max_y) {
+    if (min_value(start->y, end->y) > block->max_y) {
         return (FALSE);
     }
 
-    if (max_value(start->y, end->y) < Block->min_y) {
+    if (max_value(start->y, end->y) < block->min_y) {
         return (FALSE);
     }
 
@@ -202,19 +211,19 @@ Intersect_Sub_Block(HeightFieldBlock *Block, Ray *Ray, HeightField *H_Field,
     ex = end->x;
     ez = end->z;
 
-    if (X_Dom) {
+    if (xDom) {
         if (isdx >= 0) {
             f = floor(sx) - sx;
             sx = floor(sx);
-            sy += Myx * f;
-            sz += Mzx * f;
+            sy += myx * f;
+            sz += mzx * f;
             ex = floor(ex);
             ix = (int)sx;
         } else {
             f = ceil(sx) - sx;
             sx = ceil(sx);
-            sy += Myx * f;
-            sz += Mzx * f;
+            sy += myx * f;
+            sz += mzx * f;
             ex = ceil(ex);
             ix = (int)sx - 1;
         }
@@ -229,44 +238,44 @@ Intersect_Sub_Block(HeightFieldBlock *Block, Ray *Ray, HeightField *H_Field,
             iz = (int)ceil(sz) - 1;
         }
 
-        if (Gdy >= 0.0) {
+        if (gdy >= 0.0) {
             y1 = sy;
-            y2 = sy + Gdy;
+            y2 = sy + gdy;
         } else {
-            y1 = sy + Gdy;
+            y1 = sy + gdy;
             y2 = sy;
         }
 
         for (i = 0; i <= length; i++) {
-            if (Intersect_Pixel(ix, iz, Ray, H_Field, y1, y2)) {
+            if (intersectPixel(ix, iz, ray, hField, y1, y2)) {
                 return (TRUE);
             }
-            f += Gdz;
+            f += gdz;
             if (f >= 0.0) {
                 iz += isdz;
-                if (Intersect_Pixel(ix, iz, Ray, H_Field, y1, y2)) {
+                if (intersectPixel(ix, iz, ray, hField, y1, y2)) {
                     return (TRUE);
                 }
                 f -= 1.0;
             }
             ix += isdx;
-            y1 += Gdy;
-            y2 += Gdy;
+            y1 += gdy;
+            y2 += gdy;
         }
     } else {
 
         if (isdz >= 0) {
             f = floor(sz) - sz;
             sz = floor(sz);
-            sy += Myz * f;
-            sx += Mxz * f;
+            sy += myz * f;
+            sx += mxz * f;
             ez = floor(ez);
             iz = (int)sz;
         } else {
             f = ceil(sz) - sz;
             sz = ceil(sz);
-            sy += Myz * f;
-            sx += Mxz * f;
+            sy += myz * f;
+            sx += mxz * f;
             ez = ceil(ez);
             iz = (int)sz - 1;
         }
@@ -281,42 +290,50 @@ Intersect_Sub_Block(HeightFieldBlock *Block, Ray *Ray, HeightField *H_Field,
             ix = (int)ceil(sx) - 1;
         }
 
-        if (Gdy >= 0.0) {
+        if (gdy >= 0.0) {
             y1 = sy;
-            y2 = sy + Gdy;
+            y2 = sy + gdy;
         } else {
-            y1 = sy + Gdy;
+            y1 = sy + gdy;
             y2 = sy;
         }
 
         for (i = 0; i <= length; i++) {
-            if (Intersect_Pixel(ix, iz, Ray, H_Field, y1, y2)) {
+            if (intersectPixel(ix, iz, ray, hField, y1, y2)) {
                 return (TRUE);
             }
-            f += Gdx;
+            f += gdx;
             if (f >= 0.0) {
                 ix += isdx;
-                if (Intersect_Pixel(ix, iz, Ray, H_Field, y1, y2)) {
+                if (intersectPixel(ix, iz, ray, hField, y1, y2)) {
                     return (TRUE);
                 }
                 f -= 1.0;
             }
             iz += isdz;
-            y1 += Gdy;
-            y2 += Gdy;
+            y1 += gdy;
+            y2 += gdy;
         }
     }
     return (FALSE);
 }
 
 static int
-Intersect_Hf_Node(
-    Ray *Ray, HeightField *H_Field, Vector3D *start, Vector3D *end)
+intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
 {
-    Vector3D *curr, *next, *temp, temp1, temp2;
+    Vector3D *curr;
+    Vector3D *next;
+    Vector3D *temp;
+    Vector3D temp1;
+    Vector3D temp2;
     DBL sx, sy, sz, ex, ey, ez, x, y, z;
-    DBL tnear, tfar, t, Block_Size, Inv_Blk_Size;
-    int ix, iz, x_size, z_size, length, i;
+    DBL tnear, tfar, t, blockSize, invBlkSize;
+    int ix;
+    int iz;
+    int xSize;
+    int zSize;
+    int length;
+    int i;
 
     x = sx = start->x;
     y = sy = start->y;
@@ -325,54 +342,54 @@ Intersect_Hf_Node(
     ey = end->y;
     ez = end->z;
 
-    Block_Size = H_Field->Block_Size;
-    Inv_Blk_Size = H_Field->Inv_Blk_Size;
+    blockSize = hField->Block_Size;
+    invBlkSize = hField->Inv_Blk_Size;
 
-    x_size = abs((int)(ex * Inv_Blk_Size) - (int)(sx * Inv_Blk_Size));
-    z_size = abs((int)(ez * Inv_Blk_Size) - (int)(sz * Inv_Blk_Size));
-    length = x_size + z_size;
+    xSize = abs((int)(ex * invBlkSize) - (int)(sx * invBlkSize));
+    zSize = abs((int)(ez * invBlkSize) - (int)(sz * invBlkSize));
+    length = xSize + zSize;
 
     curr = &temp1;
     next = &temp2;
     Make_Vector(curr, x, y, z);
     t = 0.0;
 
-    if (X_Dom) {
+    if (xDom) {
         if (isdx >= 0) {
-            ix = (int)floor(sx * Inv_Blk_Size);
-            tnear = Block_Size * (ix + 1) - sx;
+            ix = (int)floor(sx * invBlkSize);
+            tnear = blockSize * (ix + 1) - sx;
 
             if (isdz >= 0) {
-                iz = (int)floor(sz * Inv_Blk_Size);
-                tfar = Gdx * (Block_Size * (iz + 1) - sz);
+                iz = (int)floor(sz * invBlkSize);
+                tfar = gdx * (blockSize * (iz + 1) - sz);
             } else {
-                iz = (int)ceil(sz * Inv_Blk_Size) - 1;
-                tfar = Gdx * (sz - Block_Size * (iz));
+                iz = (int)ceil(sz * invBlkSize) - 1;
+                tfar = gdx * (sz - blockSize * (iz));
             }
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     x = sx + t;
-                    y = sy + Myx * t;
-                    z = sz + Mzx * t;
+                    y = sy + myx * t;
+                    z = sz + mzx * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
                     ix++;
-                    tnear = Block_Size * (ix + 1) - sx;
+                    tnear = blockSize * (ix + 1) - sx;
                 } else {
                     t = tfar;
                     x = sx + t;
-                    y = sy + Myx * t;
-                    z = sz + Mzx * t;
+                    y = sy + myx * t;
+                    z = sz + mzx * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -380,48 +397,48 @@ Intersect_Hf_Node(
                     next = temp;
                     iz += isdz;
                     if (isdz >= 0) {
-                        tfar = Gdx * (Block_Size * (iz + 1) - sz);
+                        tfar = gdx * (blockSize * (iz + 1) - sz);
                     } else {
-                        tfar = Gdx * (sz - Block_Size * (iz));
+                        tfar = gdx * (sz - blockSize * (iz));
                     }
                 }
             }
         } else {
-            ix = (int)ceil(sx * Inv_Blk_Size) - 1;
-            tnear = sx - Block_Size * (ix);
+            ix = (int)ceil(sx * invBlkSize) - 1;
+            tnear = sx - blockSize * (ix);
 
             if (isdz >= 0) {
-                iz = (int)floor(sz * Inv_Blk_Size);
-                tfar = Gdx * (Block_Size * (iz + 1) - sz);
+                iz = (int)floor(sz * invBlkSize);
+                tfar = gdx * (blockSize * (iz + 1) - sz);
             } else {
-                iz = (int)ceil(sz * Inv_Blk_Size) - 1;
-                tfar = Gdx * (sz - Block_Size * (iz));
+                iz = (int)ceil(sz * invBlkSize) - 1;
+                tfar = gdx * (sz - blockSize * (iz));
             }
 
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     x = sx - t;
-                    y = sy - Myx * t;
-                    z = sz - Mzx * t;
+                    y = sy - myx * t;
+                    z = sz - mzx * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
                     ix--;
-                    tnear = sx - Block_Size * (ix);
+                    tnear = sx - blockSize * (ix);
                 } else {
                     t = tfar;
                     x = sx - t;
-                    y = sy - Myx * t;
-                    z = sz - Mzx * t;
+                    y = sy - myx * t;
+                    z = sz - mzx * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -429,49 +446,49 @@ Intersect_Hf_Node(
                     next = temp;
                     iz += isdz;
                     if (isdz >= 0) {
-                        tfar = Gdx * (Block_Size * (iz + 1) - sz);
+                        tfar = gdx * (blockSize * (iz + 1) - sz);
                     } else {
-                        tfar = Gdx * (sz - Block_Size * (iz));
+                        tfar = gdx * (sz - blockSize * (iz));
                     }
                 }
             }
         }
     } else {
         if (isdz >= 0) {
-            iz = (int)floor(sz * Inv_Blk_Size);
-            tnear = Block_Size * (iz + 1) - sz;
+            iz = (int)floor(sz * invBlkSize);
+            tnear = blockSize * (iz + 1) - sz;
 
             if (isdx >= 0) {
-                ix = (int)floor(sx * Inv_Blk_Size);
-                tfar = Gdz * (Block_Size * (ix + 1) - sx);
+                ix = (int)floor(sx * invBlkSize);
+                tfar = gdz * (blockSize * (ix + 1) - sx);
             } else {
-                ix = (int)ceil(sx * Inv_Blk_Size) - 1;
-                tfar = Gdz * (sx - Block_Size * (ix));
+                ix = (int)ceil(sx * invBlkSize) - 1;
+                tfar = gdz * (sx - blockSize * (ix));
             }
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     z = sz + t;
-                    y = sy + Myz * t;
-                    x = sx + Mxz * t;
+                    y = sy + myz * t;
+                    x = sx + mxz * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
                     iz++;
-                    tnear = Block_Size * (iz + 1) - sz;
+                    tnear = blockSize * (iz + 1) - sz;
                 } else {
                     t = tfar;
                     z = sz + t;
-                    y = sy + Myz * t;
-                    x = sx + Mxz * t;
+                    y = sy + myz * t;
+                    x = sx + mxz * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -479,47 +496,47 @@ Intersect_Hf_Node(
                     next = temp;
                     ix += isdx;
                     if (isdx >= 0) {
-                        tfar = Gdz * (Block_Size * (ix + 1) - sx);
+                        tfar = gdz * (blockSize * (ix + 1) - sx);
                     } else {
-                        tfar = Gdz * (sx - Block_Size * (ix));
+                        tfar = gdz * (sx - blockSize * (ix));
                     }
                 }
             }
         } else {
-            iz = (int)ceil(sz * Inv_Blk_Size) - 1;
-            tnear = sz - Block_Size * (iz);
+            iz = (int)ceil(sz * invBlkSize) - 1;
+            tnear = sz - blockSize * (iz);
 
             if (isdx >= 0) {
-                ix = (int)floor(sx * Inv_Blk_Size);
-                tfar = Gdz * (Block_Size * (ix + 1) - sx);
+                ix = (int)floor(sx * invBlkSize);
+                tfar = gdz * (blockSize * (ix + 1) - sx);
             } else {
-                ix = (int)ceil(sx * Inv_Blk_Size) - 1;
-                tfar = Gdz * (sx - Block_Size * (ix));
+                ix = (int)ceil(sx * invBlkSize) - 1;
+                tfar = gdz * (sx - blockSize * (ix));
             }
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     z = sz - t;
-                    y = sy - Myz * t;
-                    x = sx - Mxz * t;
+                    y = sy - myz * t;
+                    x = sx - mxz * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
                     iz--;
-                    tnear = sz - Block_Size * iz;
+                    tnear = sz - blockSize * iz;
                 } else {
                     t = tfar;
                     z = sz - t;
-                    y = sy - Myz * t;
-                    x = sx - Mxz * t;
+                    y = sy - myz * t;
+                    x = sx - mxz * t;
                     Make_Vector(next, x, y, z);
-                    if (Intersect_Sub_Block(&(H_Field->Block[ix][iz]), Ray,
-                            H_Field, curr, next)) {
+                    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
+                            curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -527,9 +544,9 @@ Intersect_Hf_Node(
                     next = temp;
                     ix += isdx;
                     if (isdx >= 0) {
-                        tfar = Gdz * (Block_Size * (ix + 1) - sx);
+                        tfar = gdz * (blockSize * (ix + 1) - sx);
                     } else {
-                        tfar = Gdz * (sx - Block_Size * (ix));
+                        tfar = gdz * (sx - blockSize * (ix));
                     }
                 }
             }
@@ -537,136 +554,147 @@ Intersect_Hf_Node(
     }
     Make_Vector(next, ex, ey, ez);
     if (isdx >= 0) {
-        ix = (int)floor(ex * Inv_Blk_Size);
+        ix = (int)floor(ex * invBlkSize);
     } else {
-        ix = (int)ceil(ex * Inv_Blk_Size) - 1;
+        ix = (int)ceil(ex * invBlkSize) - 1;
     }
     if (isdz >= 0) {
-        iz = (int)floor(ez * Inv_Blk_Size);
+        iz = (int)floor(ez * invBlkSize);
     } else {
-        iz = (int)ceil(ez * Inv_Blk_Size) - 1;
+        iz = (int)ceil(ez * invBlkSize) - 1;
     }
-    if (Intersect_Sub_Block(
-            &(H_Field->Block[ix][iz]), Ray, H_Field, curr, next)) {
+    if (intersectSubBlock(&(hField->Block[ix][iz]), ray, hField, curr, next)) {
         return (TRUE);
     }
     return (FALSE);
 }
 
 void
-Find_Hf_Min_Max(HeightField *H_Field, RGBAImage *image, int Image_Type)
+Find_Hf_Min_Max(HeightField *hField, RGBAImage *image, int imageType)
 {
-    int n, i, i2, j, j2, x, z, w, h, max_x, max_z, temp1, temp2;
+    int n;
+    int i;
+    int i2;
+    int j;
+    int j2;
+    int x;
+    int z;
+    int w;
+    int h;
+    int maxX;
+    int maxZ;
+    int temp1;
+    int temp2;
     DBL size;
-    DBL temp_y = 0, Block_Size, Inv_Blk_Size;
+    DBL tempY = 0, blockSize, invBlkSize;
 
-    max_x = image->iwidth;
-    if (Image_Type == POT) {
-        max_x = max_x / 2;
+    maxX = image->iwidth;
+    if (imageType == POT) {
+        maxX = maxX / 2;
     }
-    max_z = image->iheight;
+    maxZ = image->iheight;
 
-    size = (DBL)max_value(max_x, max_z);
-    H_Field->Block_Size = Block_Size = ceil(sqrt(size + 1.0));
-    H_Field->Inv_Blk_Size = Inv_Blk_Size = 1.0 / Block_Size;
-    n = (int)Block_Size;
+    size = (DBL)max_value(maxX, maxZ);
+    hField->Block_Size = blockSize = ceil(sqrt(size + 1.0));
+    hField->Inv_Blk_Size = invBlkSize = 1.0 / blockSize;
+    n = (int)blockSize;
 
-    w = (int)ceil((image->width + 1.0) * Inv_Blk_Size);
-    h = (int)ceil((image->height + 1.0) * Inv_Blk_Size);
+    w = (int)ceil((image->width + 1.0) * invBlkSize);
+    h = (int)ceil((image->height + 1.0) * invBlkSize);
 
-    H_Field->Map = (float **)calloc(max_z + 1, sizeof(float *));
-    if (H_Field->Map == NULL) {
+    hField->Map = (float **)calloc(maxZ + 1, sizeof(float *));
+    if (hField->Map == nullptr) {
         fprintf(stderr, "Cannot allocate memory for height field\n");
     }
 
-    H_Field->Block = (HeightFieldBlock **)calloc(w, sizeof(HeightFieldBlock *));
-    if (H_Field->Block == NULL) {
+    hField->Block = (HeightFieldBlock **)calloc(w, sizeof(HeightFieldBlock *));
+    if (hField->Block == nullptr) {
         fprintf(stderr, "Cannot allocate memory for height field buffer\n");
     }
     for (i = 0; i < w; i++) {
-        H_Field->Block[i] =
+        hField->Block[i] =
             (HeightFieldBlock *)calloc(h, sizeof(HeightFieldBlock));
-        if (H_Field->Block[i] == NULL) {
+        if (hField->Block[i] == nullptr) {
             fprintf(stderr,
                 "Cannot allocate memory for height field buffer line\n");
         }
         for (j = 0; j < h; j++) {
-            H_Field->Block[i][j].min_y = 65536.0;
-            H_Field->Block[i][j].max_y = 0.0;
+            hField->Block[i][j].min_y = 65536.0;
+            hField->Block[i][j].max_y = 0.0;
         }
     }
 
-    H_Field->Map[0] = (float *)calloc(max_x + 1, sizeof(float));
-    if (H_Field->Map[0] == NULL) {
+    hField->Map[0] = (float *)calloc(maxX + 1, sizeof(float));
+    if (hField->Map[0] == nullptr) {
         fprintf(stderr, "Cannot allocate memory for height field\n");
     }
 
     for (j = 0; j < h; j++) {
-        for (j2 = 0; (j2 <= n) && (j * n + j2 <= max_z); j2++) {
+        for (j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
             z = j * n + j2;
             if (j2 != 0) {
-                H_Field->Map[z] = (float *)calloc(max_x + 1, sizeof(float));
-                if (H_Field->Map[z] == NULL) {
+                hField->Map[z] = (float *)calloc(maxX + 1, sizeof(float));
+                if (hField->Map[z] == nullptr) {
                     fprintf(
                         stderr, "Cannot allocate memory for height field\n");
                 }
             }
             for (i = 0; i < w; i++) {
-                for (i2 = 0; (i2 <= n) && (i * n + i2 <= max_x); i2++) {
+                for (i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
                     x = i * n + i2;
-                    if ((x > 1) && (x < max_x - 1) && (z > 1) &&
-                        (z < max_z - 1)) {
-                        switch (Image_Type) {
+                    if ((x > 1) && (x < maxX - 1) && (z > 1) &&
+                        (z < maxZ - 1)) {
+                        switch (imageType) {
                         case GIF:
-                            temp1 = image->data.map_lines[max_z - z - 1][x];
-                            temp_y = (DBL)(temp1);
+                            temp1 = image->data.map_lines[maxZ - z - 1][x];
+                            tempY = (DBL)(temp1);
                             break;
                         case POT:
-                            temp1 = image->data.map_lines[max_z - z - 1][x];
+                            temp1 = image->data.map_lines[maxZ - z - 1][x];
                             temp2 =
-                                image->data.map_lines[max_z - z - 1][x + max_x];
-                            temp_y = (DBL)((DBL)temp1 + (DBL)temp2 / 256.0);
+                                image->data.map_lines[maxZ - z - 1][x + maxX];
+                            tempY = (DBL)((DBL)temp1 + (DBL)temp2 / 256.0);
                             break;
                         case TGA:
-                            temp1 = image->data.rgb_lines[max_z - z - 1].red[x];
+                            temp1 = image->data.rgb_lines[maxZ - z - 1].red[x];
                             temp2 =
-                                image->data.rgb_lines[max_z - z - 1].green[x];
-                            temp_y = (DBL)((DBL)temp1 + (DBL)temp2 / 256.0);
+                                image->data.rgb_lines[maxZ - z - 1].green[x];
+                            tempY = (DBL)((DBL)temp1 + (DBL)temp2 / 256.0);
                             break;
                         }
-                        if (temp_y <= H_Field->bounding_box->bounds[0].y) {
-                            H_Field->Map[z][x] = -10000.0;
+                        if (tempY <= hField->bounding_box->bounds[0].y) {
+                            hField->Map[z][x] = -10000.0;
                         } else {
-                            H_Field->Map[z][x] = (float)temp_y;
+                            hField->Map[z][x] = (float)tempY;
                         }
                     } else {
-                        temp_y = -10000.0;
-                        H_Field->Map[z][x] = (float)temp_y;
+                        tempY = -10000.0;
+                        hField->Map[z][x] = (float)tempY;
                     }
 
-                    if (temp_y < H_Field->bounding_box->bounds[0].y) {
-                        temp_y = H_Field->bounding_box->bounds[0].y;
+                    if (tempY < hField->bounding_box->bounds[0].y) {
+                        tempY = hField->bounding_box->bounds[0].y;
                     }
-                    if (temp_y < H_Field->Block[i][j].min_y) {
-                        H_Field->Block[i][j].min_y = temp_y;
+                    if (tempY < hField->Block[i][j].min_y) {
+                        hField->Block[i][j].min_y = tempY;
                     }
-                    if (temp_y > H_Field->Block[i][j].max_y) {
-                        H_Field->Block[i][j].max_y = temp_y;
+                    if (tempY > hField->Block[i][j].max_y) {
+                        hField->Block[i][j].max_y = tempY;
                     }
                 }
             }
-            if ((z >= 0) && (z < max_z) && (j2 != n)) {
-                switch (Image_Type) {
+            if ((z >= 0) && (z < maxZ) && (j2 != n)) {
+                switch (imageType) {
                 case GIF:
-                    delete image->data.map_lines[max_z - z - 1];
+                    delete image->data.map_lines[maxZ - z - 1];
                     break;
                 case POT:
-                    delete image->data.map_lines[max_z - z - 1];
+                    delete image->data.map_lines[maxZ - z - 1];
                     break;
                 case TGA:
-                    delete image->data.rgb_lines[max_z - z - 1].blue;
-                    delete image->data.rgb_lines[max_z - z - 1].green;
-                    delete image->data.rgb_lines[max_z - z - 1].red;
+                    delete image->data.rgb_lines[maxZ - z - 1].blue;
+                    delete image->data.rgb_lines[maxZ - z - 1].green;
+                    delete image->data.rgb_lines[maxZ - z - 1].red;
                     break;
                 }
             }
@@ -676,23 +704,24 @@ Find_Hf_Min_Max(HeightField *H_Field, RGBAImage *image, int Image_Type)
 
 int
 All_HeightFld_Intersections(
-    SimpleBody *Object, Ray *ray, PriorityQueueNode *Depth_Queue)
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    Vector3D Temp1, Temp2;
-    Ray Temp_Ray;
+    Vector3D temp1;
+    Vector3D temp2;
+    Ray tempRay;
     DBL depth1, depth2;
-    int ret_val = FALSE;
-    HeightField *H_Field = (HeightField *)Object;
-    Intersection Local_Element;
+    int retVal = FALSE;
+    HeightField *hField = (HeightField *)object;
+    Intersection localElement;
 
-    Ray_Ht_Field_Tests++;
+    rayHtFieldTests++;
 
     MInverseTransformVector(
-        &(Temp_Ray.Initial), &(ray->Initial), H_Field->transformation);
+        &(tempRay.Initial), &(ray->Initial), hField->transformation);
     MInvTransVector(
-        &(Temp_Ray.Direction), &(ray->Direction), H_Field->transformation);
+        &(tempRay.Direction), &(ray->Direction), hField->transformation);
 
-    if (!Intersect_Boxx(&Temp_Ray, H_Field->bounding_box, &depth1, &depth2)) {
+    if (!Intersect_Boxx(&tempRay, hField->bounding_box, &depth1, &depth2)) {
         return (FALSE);
     }
 
@@ -701,106 +730,112 @@ All_HeightFld_Intersections(
 
     if (depth1 == depth2) {
         depth1 = 0.0;
-        VScale(Temp1, Temp_Ray.Direction, depth1);
-        VAdd(Temp1, Temp1, Temp_Ray.Initial);
-        VScale(Temp2, Temp_Ray.Direction, depth2);
-        VAdd(Temp2, Temp2, Temp_Ray.Initial);
+        VScale(temp1, tempRay.Direction, depth1);
+        VAdd(temp1, temp1, tempRay.Initial);
+        VScale(temp2, tempRay.Direction, depth2);
+        VAdd(temp2, temp2, tempRay.Initial);
     } else {
-        VScale(Temp1, Temp_Ray.Direction, depth1);
-        VAdd(Temp1, Temp1, Temp_Ray.Initial);
-        VScale(Temp2, Temp_Ray.Direction, depth2);
-        VAdd(Temp2, Temp2, Temp_Ray.Initial);
+        VScale(temp1, tempRay.Direction, depth1);
+        VAdd(temp1, temp1, tempRay.Initial);
+        VScale(temp2, tempRay.Direction, depth2);
+        VAdd(temp2, temp2, tempRay.Initial);
     }
 
-    if (fabs(Temp_Ray.Direction.x) > EPSILON) {
-        Mzx = Temp_Ray.Direction.z / Temp_Ray.Direction.x;
-        Myx = Temp_Ray.Direction.y / Temp_Ray.Direction.x;
+    if (fabs(tempRay.Direction.x) > EPSILON) {
+        mzx = tempRay.Direction.z / tempRay.Direction.x;
+        myx = tempRay.Direction.y / tempRay.Direction.x;
     } else {
-        Mzx = Temp_Ray.Direction.z / EPSILON;
-        Myx = Temp_Ray.Direction.y / EPSILON;
+        mzx = tempRay.Direction.z / EPSILON;
+        myx = tempRay.Direction.y / EPSILON;
     }
-    if (fabs(Temp_Ray.Direction.z) > EPSILON) {
-        Mxz = Temp_Ray.Direction.x / Temp_Ray.Direction.z;
-        Myz = Temp_Ray.Direction.y / Temp_Ray.Direction.z;
+    if (fabs(tempRay.Direction.z) > EPSILON) {
+        mxz = tempRay.Direction.x / tempRay.Direction.z;
+        myz = tempRay.Direction.y / tempRay.Direction.z;
     } else {
-        Mxz = Temp_Ray.Direction.x / EPSILON;
-        Myz = Temp_Ray.Direction.y / EPSILON;
+        mxz = tempRay.Direction.x / EPSILON;
+        myz = tempRay.Direction.y / EPSILON;
     }
 
-    Hf_Queue = Depth_Queue;
-    Hf_Intersection = &Local_Element;
-    RRay = ray;
+    hfQueue = depthQueue;
+    hfIntersection = &localElement;
+    rRay = ray;
 
-    isdx = sign(Temp_Ray.Direction.x);
-    isdz = sign(Temp_Ray.Direction.z);
+    isdx = sign(tempRay.Direction.x);
+    isdz = sign(tempRay.Direction.z);
 
-    X_Dom = FALSE;
-    if (fabs(Temp_Ray.Direction.x) >= fabs(Temp_Ray.Direction.z)) {
-        X_Dom = TRUE;
+    xDom = FALSE;
+    if (fabs(tempRay.Direction.x) >= fabs(tempRay.Direction.z)) {
+        xDom = TRUE;
     }
 
-    Gdx = fabs(Mxz);
-    Gdz = fabs(Mzx);
-    if (X_Dom) {
-        Gdy = Myx * (DBL)isdx;
+    gdx = fabs(mxz);
+    gdz = fabs(mzx);
+    if (xDom) {
+        gdy = myx * (DBL)isdx;
     } else {
-        Gdy = Myz * (DBL)isdz;
+        gdy = myz * (DBL)isdz;
     }
 
-    if (Intersect_Hf_Node(&Temp_Ray, H_Field, &Temp1, &Temp2)) {
-        ret_val = TRUE;
+    if (intersectHfNode(&tempRay, hField, &temp1, &temp2)) {
+        retVal = TRUE;
     }
-    return (ret_val);
+    return (retVal);
 }
 
 int
-Inside_HeightFld(Vector3D *Test_Point, SimpleBody *Object)
+Inside_HeightFld(Vector3D *testPoint, SimpleBody *object)
 {
-    HeightField *H_Field = (HeightField *)Object;
-    int px, pz, dot1, dot2;
+    HeightField *hField = (HeightField *)object;
+    int px;
+    int pz;
+    int dot1;
+    int dot2;
     DBL x, z, y1, y2, y3;
-    Vector3D Local_Origin, Temp1, Temp2, Local_Normal, Test;
+    Vector3D localOrigin;
+    Vector3D temp1;
+    Vector3D temp2;
+    Vector3D localNormal;
+    Vector3D test;
 
-    MInverseTransformVector(&Test, Test_Point, H_Field->transformation);
+    MInverseTransformVector(&test, testPoint, hField->transformation);
 
-    px = (int)Test.x;
-    pz = (int)Test.z;
-    x = Test.x - (DBL)px;
-    z = Test.z - (DBL)pz;
+    px = (int)test.x;
+    pz = (int)test.z;
+    x = test.x - (DBL)px;
+    z = test.z - (DBL)pz;
 
     if ((x + z) < 1.0) {
-        y1 = Get_Height(px, pz, H_Field);
-        y2 = Get_Height(px + 1, pz, H_Field);
-        y3 = Get_Height(px, pz + 1, H_Field);
-        Make_Vector(&Local_Origin, (DBL)px, y1, (DBL)pz);
-        Temp1.x = 1.0;
-        Temp1.z = 0.0;
-        Temp1.y = y2 - y1;
-        Temp2.x = 0.0;
-        Temp2.z = 1.0;
-        Temp2.y = y3 - y1;
+        y1 = Get_Height(px, pz, hField);
+        y2 = Get_Height(px + 1, pz, hField);
+        y3 = Get_Height(px, pz + 1, hField);
+        Make_Vector(&localOrigin, (DBL)px, y1, (DBL)pz);
+        temp1.x = 1.0;
+        temp1.z = 0.0;
+        temp1.y = y2 - y1;
+        temp2.x = 0.0;
+        temp2.z = 1.0;
+        temp2.y = y3 - y1;
     } else {
-        px = ceil(Test.x);
-        pz = ceil(Test.z);
-        y1 = Get_Height(px, pz, H_Field);
-        y2 = Get_Height(px - 1, pz, H_Field);
-        y3 = Get_Height(px, pz - 1, H_Field);
-        Make_Vector(&Local_Origin, (DBL)px, y1, (DBL)pz);
-        Temp1.x = -1.0;
-        Temp1.z = 0.0;
-        Temp1.y = y2 - y1;
-        Temp2.x = 0.0;
-        Temp2.z = -1.0;
-        Temp2.y = y3 - y1;
+        px = ceil(test.x);
+        pz = ceil(test.z);
+        y1 = Get_Height(px, pz, hField);
+        y2 = Get_Height(px - 1, pz, hField);
+        y3 = Get_Height(px, pz - 1, hField);
+        Make_Vector(&localOrigin, (DBL)px, y1, (DBL)pz);
+        temp1.x = -1.0;
+        temp1.z = 0.0;
+        temp1.y = y2 - y1;
+        temp2.x = 0.0;
+        temp2.z = -1.0;
+        temp2.y = y3 - y1;
     }
-    VCross(Local_Normal, Temp2, Temp1);
-    if (Local_Normal.y < 0.0) {
-        VScale(Local_Normal, Local_Normal, -1.0);
+    VCross(localNormal, temp2, temp1);
+    if (localNormal.y < 0.0) {
+        VScale(localNormal, localNormal, -1.0);
     }
-    VDot(dot1, Test, Local_Normal);
-    VDot(dot2, Local_Origin, Local_Normal);
-    if ((dot1 < dot2) &&
-        (Test.y > (H_Field->bounding_box->bounds[0].y) + 1.0)) {
+    VDot(dot1, test, localNormal);
+    VDot(dot2, localOrigin, localNormal);
+    if ((dot1 < dot2) && (test.y > (hField->bounding_box->bounds[0].y) + 1.0)) {
         return (TRUE);
     }
     return (FALSE);
@@ -808,111 +843,114 @@ Inside_HeightFld(Vector3D *Test_Point, SimpleBody *Object)
 
 void
 HeightFld_Normal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point)
+    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
-    HeightField *H_Field = (HeightField *)Object;
-    int px, pz;
+    HeightField *hField = (HeightField *)object;
+    int px;
+    int pz;
     DBL x, z, y1, y2, y3;
-    Vector3D Local_Origin, Temp1, Temp2;
+    Vector3D localOrigin;
+    Vector3D temp1;
+    Vector3D temp2;
 
     MInverseTransformVector(
-        &Local_Origin, Intersection_Point, H_Field->transformation);
+        &localOrigin, intersectionPoint, hField->transformation);
 
-    px = (int)Local_Origin.x;
-    pz = (int)Local_Origin.z;
-    x = Local_Origin.x - (DBL)px;
-    z = Local_Origin.z - (DBL)pz;
+    px = (int)localOrigin.x;
+    pz = (int)localOrigin.z;
+    x = localOrigin.x - (DBL)px;
+    z = localOrigin.z - (DBL)pz;
 
     if ((x + z) <= 1) {
-        y1 = Get_Height(px, pz, H_Field);
-        y2 = Get_Height(px + 1, pz, H_Field);
-        y3 = Get_Height(px, pz + 1, H_Field);
-        Temp1.x = 1.0;
-        Temp1.z = 0.0;
-        Temp1.y = y2 - y1;
-        Temp2.x = 0.0;
-        Temp2.z = 1.0;
-        Temp2.y = y3 - y1;
+        y1 = Get_Height(px, pz, hField);
+        y2 = Get_Height(px + 1, pz, hField);
+        y3 = Get_Height(px, pz + 1, hField);
+        temp1.x = 1.0;
+        temp1.z = 0.0;
+        temp1.y = y2 - y1;
+        temp2.x = 0.0;
+        temp2.z = 1.0;
+        temp2.y = y3 - y1;
     } else {
-        y1 = Get_Height(px + 1, pz + 1, H_Field);
-        y2 = Get_Height(px, pz + 1, H_Field);
-        y3 = Get_Height(px + 1, pz, H_Field);
-        Temp1.x = -1.0;
-        Temp1.z = 0.0;
-        Temp1.y = y2 - y1;
-        Temp2.x = 0.0;
-        Temp2.z = -1.0;
-        Temp2.y = y3 - y1;
+        y1 = Get_Height(px + 1, pz + 1, hField);
+        y2 = Get_Height(px, pz + 1, hField);
+        y3 = Get_Height(px + 1, pz, hField);
+        temp1.x = -1.0;
+        temp1.z = 0.0;
+        temp1.y = y2 - y1;
+        temp2.x = 0.0;
+        temp2.z = -1.0;
+        temp2.y = y3 - y1;
     }
 
-    MTransVector(&Temp1, &Temp1, H_Field->transformation);
-    MTransVector(&Temp2, &Temp2, H_Field->transformation);
-    VCross(*Result, Temp2, Temp1);
-    VNormalize(*Result, *Result);
+    MTransVector(&temp1, &temp1, hField->transformation);
+    MTransVector(&temp2, &temp2, hField->transformation);
+    VCross(*result, temp2, temp1);
+    VNormalize(*result, *result);
 }
 
 void *
-Copy_HeightFld(SimpleBody *Object)
+Copy_HeightFld(SimpleBody *object)
 {
-    HeightField *New_Shape;
+    HeightField *newShape;
 
-    New_Shape = Get_Height_Field_Shape();
-    *New_Shape = *((HeightField *)Object);
-    New_Shape->Next_Object = NULL;
+    newShape = Get_Height_Field_Shape();
+    *newShape = *((HeightField *)object);
+    newShape->Next_Object = nullptr;
 
-    if (New_Shape->Shape_Texture != NULL) {
-        New_Shape->Shape_Texture = Copy_Texture(New_Shape->Shape_Texture);
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = Copy_Texture(newShape->Shape_Texture);
     }
 
-    return (New_Shape);
+    return (newShape);
 }
 
 void
-Translate_HeightFld(SimpleBody *Object, Vector3D *Vector)
+Translate_HeightFld(SimpleBody *object, Vector3D *vector)
 {
-    HeightField *H_Field = (HeightField *)Object;
+    HeightField *hField = (HeightField *)object;
     Transformation transformation;
 
-    if (!H_Field->transformation) {
-        H_Field->transformation = Get_Transformation();
+    if (!hField->transformation) {
+        hField->transformation = Get_Transformation();
     }
-    Get_Translation_Transformation(&transformation, Vector);
-    Compose_Transformations(H_Field->transformation, &transformation);
+    Get_Translation_Transformation(&transformation, vector);
+    Compose_Transformations(hField->transformation, &transformation);
 
-    Translate_Texture(&((HeightField *)Object)->Shape_Texture, Vector);
+    Translate_Texture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
-Rotate_HeightFld(SimpleBody *Object, Vector3D *Vector)
+Rotate_HeightFld(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    HeightField *H_Field = (HeightField *)Object;
+    HeightField *hField = (HeightField *)object;
 
-    if (!H_Field->transformation) {
-        H_Field->transformation = Get_Transformation();
+    if (!hField->transformation) {
+        hField->transformation = Get_Transformation();
     }
-    Get_Rotation_Transformation(&transformation, Vector);
-    Compose_Transformations(H_Field->transformation, &transformation);
+    Get_Rotation_Transformation(&transformation, vector);
+    Compose_Transformations(hField->transformation, &transformation);
 
-    Rotate_Texture(&((HeightField *)Object)->Shape_Texture, Vector);
+    Rotate_Texture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
-Scale_HeightFld(SimpleBody *Object, Vector3D *Vector)
+Scale_HeightFld(SimpleBody *object, Vector3D *vector)
 {
-    HeightField *H_Field = (HeightField *)Object;
+    HeightField *hField = (HeightField *)object;
     Transformation transformation;
 
-    if (!H_Field->transformation) {
-        H_Field->transformation = Get_Transformation();
+    if (!hField->transformation) {
+        hField->transformation = Get_Transformation();
     }
-    Get_Scaling_Transformation(&transformation, Vector);
-    Compose_Transformations(H_Field->transformation, &transformation);
+    Get_Scaling_Transformation(&transformation, vector);
+    Compose_Transformations(hField->transformation, &transformation);
 
-    Scale_Texture(&((HeightField *)Object)->Shape_Texture, Vector);
+    Scale_Texture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
-Invert_HeightFld(SimpleBody *Object)
+Invert_HeightFld(SimpleBody *object)
 {
 }

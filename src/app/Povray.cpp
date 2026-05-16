@@ -31,70 +31,94 @@
 
 #define MAX_FILE_NAMES 1
 unsigned int Options;
-int Quality;
-int Case_Sensitive_Flag = CASE_SENSITIVE_DEFAULT;
+int quality;
+int caseSensitiveFlag = CASE_SENSITIVE_DEFAULT;
 
 FILE *bfp;
 
-extern Frame GLOBAL_frame;
+extern Frame globalFrame;
 extern PriorityQueue *GLOBAL_priorityQueue;
 PriorityQueueNode *GLOBAL_priorityQueuesHead;
 extern void usage(void);
-extern void init_vars(void);
-extern void get_defaults(void);
-extern void read_options(char *file_name);
-extern void parse_option(char *Option_String);
-extern void parse_file_name(char *File_Name);
-extern void Print_Options(void);
-extern void print_credits(void);
+extern void initVars(void);
+extern void getDefaults(void);
+extern void readOptions(char *fileName);
+extern void parseOption(char *optionString);
+extern void parseFileName(char *fileName);
+extern void printOptions(void);
+extern void printCredits(void);
 
-char Input_File_Name[FILE_NAME_LENGTH], Output_File_Name[FILE_NAME_LENGTH],
-    Stat_File_Name[FILE_NAME_LENGTH];
+char inputFileName[FILE_NAME_LENGTH];
+char outputFileName[FILE_NAME_LENGTH];
+char statFileName[FILE_NAME_LENGTH];
 
 #define MAX_LIBRARIES 10
-char *Library_Paths[MAX_LIBRARIES];
-int Library_Path_Index;
+char *libraryPaths[MAX_LIBRARIES];
+int libraryPathIndex;
 
-int Max_Symbols = 500;
+int maxSymbols = 500;
 
-FileHandle *GLOBAL_outputFileHandle;
-int File_Buffer_Size;
-static int Number_Of_Files;
-static int inflag, outflag;
+FileHandle *globalOutputFileHandle;
+int fileBufferSize;
+static int numberOfFiles;
+static int inFlag;
+static int outFlag;
 DBL VTemp;
-DBL Antialias_Threshold;
-int First_Line, Last_Line;
-int Display_Started = FALSE;
-int Shadow_Test_Flag = FALSE;
+DBL antialiasThreshold;
+int firstLine, lastLine;
+int displayStarted = FALSE;
+int shadowTestFlag = FALSE;
 
 /* Stats kept by the ray tracer: */
-long Number_Of_Pixels, Number_Of_Rays, Number_Of_Pixels_Supersampled;
-long Ray_Sphere_Tests, Ray_Sphere_Tests_Succeeded;
-long Ray_Box_Tests, Ray_Box_Tests_Succeeded;
-long Ray_Blob_Tests, Ray_Blob_Tests_Succeeded;
-long Ray_Plane_Tests, Ray_Plane_Tests_Succeeded;
-long Ray_Triangle_Tests, Ray_Triangle_Tests_Succeeded;
-long Ray_Quadric_Tests, Ray_Quadric_Tests_Succeeded;
-long Ray_Poly_Tests, Ray_Poly_Tests_Succeeded;
-long Ray_Bicubic_Tests, Ray_Bicubic_Tests_Succeeded;
-long Ray_Ht_Field_Tests, Ray_Ht_Field_Tests_Succeeded;
-long Ray_Ht_Field_Box_Tests, Ray_HField_Box_Tests_Succeeded;
-long Bounding_Region_Tests, Bounding_Region_Tests_Succeeded;
-long Clipping_Region_Tests, Clipping_Region_Tests_Succeeded;
-long Calls_To_Noise, Calls_To_DNoise;
-long Shadow_Ray_Tests, Shadow_Rays_Succeeded;
-long Reflected_Rays_Traced, Refracted_Rays_Traced;
-long Transmitted_Rays_Traced;
-time_t tstart, tstop;
+long numberOfPixels;
+long numberOfRays;
+long numberOfPixelsSupersampled;
+long raySphereTests;
+long raySphereTestsSucceeded;
+long rayBoxTests;
+long rayBoxTestsSucceeded;
+long rayBlobTests;
+long rayBlobTestsSucceeded;
+long rayPlaneTests;
+long rayPlaneTestsSucceeded;
+long rayTriangleTests;
+long rayTriangleTestsSucceeded;
+long rayQuadricTests;
+long rayQuadricTestsSucceeded;
+long rayPolyTests;
+long rayPolyTestsSucceeded;
+long rayBicubicTests;
+long rayBicubicTestsSucceeded;
+long rayHtFieldTests;
+long rayHtFieldTestsSucceeded;
+long rayHtFieldBoxTests;
+long rayHFieldBoxTestsSucceeded;
+long boundingRegionTests;
+long boundingRegionTestsSucceeded;
+long clippingRegionTests;
+long clippingRegionTestsSucceeded;
+long callsToNoise;
+long callsToDNoise;
+long shadowRayTests;
+long shadowRaysSucceeded;
+long reflectedRaysTraced;
+long refractedRaysTraced;
+long transmittedRaysTraced;
+time_t tstart;
+time_t tstop;
 DBL tused; /* Trace timer variables. - BP */
 
-char DisplayFormat, OutputFormat, VerboseFormat, PaletteOption, Color_Bits;
+char displayFormat;
+char outputFormat;
+char verboseFormat;
+char paletteOption;
+char colorBits;
 
 int
 main(int argc, char *argv[])
 {
     register int i;
-    FILE *stat_file;
+    FILE *statFile;
 
     STARTUP_POVRAY
 
@@ -109,43 +133,43 @@ main(int argc, char *argv[])
     }
 #endif
 
-    init_vars();
+    initVars();
 
-    Output_File_Name[0] = '\0';
+    outputFileName[0] = '\0';
 
-    Library_Paths[0] = NULL;
-    Library_Path_Index = 0;
+    libraryPaths[0] = nullptr;
+    libraryPathIndex = 0;
 
     /* Read the default parameters from povray.def */
-    get_defaults();
+    getDefaults();
 
 #ifndef NOCMDLINE
     for (i = 1; i < argc; i++) {
         if ((*argv[i] == '+') || (*argv[i] == '-')) {
-            parse_option(argv[i]);
+            parseOption(argv[i]);
         } else {
-            parse_file_name(argv[i]);
+            parseFileName(argv[i]);
         }
     }
 #endif
 
-    if (Last_Line == -1) {
-        Last_Line = GLOBAL_frame.Screen_Height;
+    if (lastLine == -1) {
+        lastLine = globalFrame.Screen_Height;
     }
 
     if (Options & DISKWRITE) {
-        switch (OutputFormat) {
+        switch (outputFormat) {
         case '\0':
         case 'd':
         case 'D':
-            if ((GLOBAL_outputFileHandle = Get_Dump_File_Handle()) == NULL) {
+            if ((globalOutputFileHandle = Get_Dump_File_Handle()) == nullptr) {
                 close_all();
                 exit(1);
             }
             break;
         case 'r':
         case 'R':
-            if ((GLOBAL_outputFileHandle = Get_Raw_File_Handle()) == NULL) {
+            if ((globalOutputFileHandle = Get_Raw_File_Handle()) == nullptr) {
                 close_all();
                 exit(1);
             }
@@ -153,56 +177,54 @@ main(int argc, char *argv[])
 
         case 't':
         case 'T':
-            if ((GLOBAL_outputFileHandle = Get_Targa_File_Handle()) ==
-                NULL) {
+            if ((globalOutputFileHandle = Get_Targa_File_Handle()) == nullptr) {
                 close_all();
                 exit(1);
             }
             break;
         default:
             fprintf(
-                stderr, "Unrecognized output file format %c\n", OutputFormat);
+                stderr, "Unrecognized output file format %c\n", outputFormat);
             exit(1);
         }
-        if (Output_File_Name[0] == '\0') {
-            strcpy(
-                Output_File_Name, Default_File_Name(GLOBAL_outputFileHandle));
+        if (outputFileName[0] == '\0') {
+            strcpy(outputFileName, Default_File_Name(globalOutputFileHandle));
         }
     }
 
-    Print_Options();
+    printOptions();
 
-    Initialize_Tokenizer(Input_File_Name);
+    Initialize_Tokenizer(inputFileName);
     fprintf(stderr, "Parsing...");
     if (Options & VERBOSE_FILE) {
-        stat_file = fopen(Stat_File_Name, "w+t");
-        fprintf(stat_file, "Parsing...\n");
-        fclose(stat_file);
+        statFile = fopen(statFileName, "w+t");
+        fprintf(statFile, "Parsing...\n");
+        fclose(statFile);
     }
-    Parse(&GLOBAL_frame);
+    Parse(&globalFrame);
     Terminate_Tokenizer();
     /* fprintf (stderr,"\n"); */
 
     if (Options & DISPLAY) {
         printf("Displaying...\n");
-        display_init(GLOBAL_frame.Screen_Width, GLOBAL_frame.Screen_Height);
-        Display_Started = TRUE;
+        display_init(globalFrame.Screen_Width, globalFrame.Screen_Height);
+        displayStarted = TRUE;
     }
 
     /* Get things ready for ray tracing */
     if (Options & DISKWRITE) {
         if (Options & CONTINUE_TRACE) {
-            if (Open_File(GLOBAL_outputFileHandle, Output_File_Name,
-                    &GLOBAL_frame.Screen_Width, &GLOBAL_frame.Screen_Height,
-                    File_Buffer_Size, READ_MODE) != 1) {
+            if (Open_File(globalOutputFileHandle, outputFileName,
+                    &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                    fileBufferSize, READ_MODE) != 1) {
                 fprintf(stderr, "Error opening continue trace output file\n");
                 fprintf(
-                    stderr, "Opening new output file %s.\n", Output_File_Name);
+                    stderr, "Opening new output file %s.\n", outputFileName);
                 Options &= ~CONTINUE_TRACE; /* Turn off continue trace */
 
-                if (Open_File(GLOBAL_outputFileHandle, Output_File_Name,
-                        &GLOBAL_frame.Screen_Width, &GLOBAL_frame.Screen_Height,
-                        File_Buffer_Size, WRITE_MODE) != 1) {
+                if (Open_File(globalOutputFileHandle, outputFileName,
+                        &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                        fileBufferSize, WRITE_MODE) != 1) {
                     fprintf(stderr, "Error opening output file\n");
                     close_all();
                     exit(1);
@@ -214,9 +236,9 @@ main(int argc, char *argv[])
                 Read_Rendered_Part();
             }
         } else {
-            if (Open_File(GLOBAL_outputFileHandle, Output_File_Name,
-                    &GLOBAL_frame.Screen_Width, &GLOBAL_frame.Screen_Height,
-                    File_Buffer_Size, WRITE_MODE) != 1) {
+            if (Open_File(globalOutputFileHandle, outputFileName,
+                    &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                    fileBufferSize, WRITE_MODE) != 1) {
                 fprintf(stderr, "Error opening output file\n");
                 close_all();
                 exit(1);
@@ -234,26 +256,26 @@ main(int argc, char *argv[])
     START_TIME /* Store start time for trace. Timer macro in CONFIG.H */
 
         /* Ok, go for it - trace the picture */
-        if ((Options & VERBOSE) && (VerboseFormat != '1'))
+        if ((Options & VERBOSE) && (verboseFormat != '1'))
     {
         printf("Rendering...\n");
     }
-    else if ((Options & VERBOSE) && (VerboseFormat == '1'))
+    else if ((Options & VERBOSE) && (verboseFormat == '1'))
     {
-        fprintf(stderr, "POV-Ray rendering %s to %s :\n", Input_File_Name,
-            Output_File_Name);
+        fprintf(stderr, "POV-Ray rendering %s to %s :\n", inputFileName,
+            outputFileName);
     }
     if (Options & VERBOSE_FILE) {
-        stat_file = fopen(Stat_File_Name, "w+t");
-        fprintf(stat_file, "Parsed ok. Now rendering %s to %s :\n",
-            Input_File_Name, Output_File_Name);
-        fclose(stat_file);
+        statFile = fopen(statFileName, "w+t");
+        fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n",
+            inputFileName, outputFileName);
+        fclose(statFile);
     }
 
     CONFIG_MATH /* Macro for setting up any special FP options */
     Start_Tracing();
 
-    if (Options & VERBOSE && VerboseFormat == '1') {
+    if (Options & VERBOSE && verboseFormat == '1') {
         fprintf(stderr, "\n");
     }
 
@@ -270,9 +292,9 @@ main(int argc, char *argv[])
     PRINT_STATS
 
     if (Options & VERBOSE_FILE) {
-        stat_file = fopen(Stat_File_Name, "a+t");
-        fprintf(stat_file, "Done Tracing\n");
-        fclose(stat_file);
+        statFile = fopen(statFileName, "a+t");
+        fprintf(statFile, "Done Tracing\n");
+        fclose(statFile);
     }
 
     FINISH_POVRAY
@@ -317,78 +339,79 @@ usage()
 }
 
 void
-init_vars()
+initVars()
 {
-    GLOBAL_outputFileHandle = NULL;
-    File_Buffer_Size = 0;
+    globalOutputFileHandle = nullptr;
+    fileBufferSize = 0;
     Options = 0;
-    Quality = 9;
-    Number_Of_Files = 0;
-    First_Line = 0;
-    Last_Line = -1;
-    Color_Bits = 8;
+    quality = 9;
+    numberOfFiles = 0;
+    firstLine = 0;
+    lastLine = -1;
+    colorBits = 8;
 
-    Number_Of_Pixels = 0L;
-    Number_Of_Rays = 0L;
-    Number_Of_Pixels_Supersampled = 0L;
-    Ray_Ht_Field_Tests = 0L;
-    Ray_Ht_Field_Tests_Succeeded = 0L;
-    Ray_Ht_Field_Box_Tests = 0L;
-    Ray_HField_Box_Tests_Succeeded = 0L;
-    Ray_Bicubic_Tests = 0L;
-    Ray_Bicubic_Tests_Succeeded = 0L;
-    Ray_Blob_Tests = 0L;
-    Ray_Blob_Tests_Succeeded = 0L;
-    Ray_Box_Tests = 0L;
-    Ray_Box_Tests_Succeeded = 0L;
-    Ray_Sphere_Tests = 0L;
-    Ray_Sphere_Tests_Succeeded = 0L;
-    Ray_Plane_Tests = 0L;
-    Ray_Plane_Tests_Succeeded = 0L;
-    Ray_Triangle_Tests = 0L;
-    Ray_Triangle_Tests_Succeeded = 0L;
-    Ray_Quadric_Tests = 0L;
-    Ray_Quadric_Tests_Succeeded = 0L;
-    Ray_Poly_Tests = 0L;
-    Ray_Poly_Tests_Succeeded = 0L;
-    Bounding_Region_Tests = 0L;
-    Bounding_Region_Tests_Succeeded = 0L;
-    Clipping_Region_Tests = 0L;
-    Clipping_Region_Tests_Succeeded = 0L;
-    Calls_To_Noise = 0L;
-    Calls_To_DNoise = 0L;
-    Shadow_Ray_Tests = 0L;
-    Shadow_Rays_Succeeded = 0L;
-    Reflected_Rays_Traced = 0L;
-    Refracted_Rays_Traced = 0L;
-    Transmitted_Rays_Traced = 0L;
+    numberOfPixels = 0L;
+    numberOfRays = 0L;
+    numberOfPixelsSupersampled = 0L;
+    rayHtFieldTests = 0L;
+    rayHtFieldTestsSucceeded = 0L;
+    rayHtFieldBoxTests = 0L;
+    rayHFieldBoxTestsSucceeded = 0L;
+    rayBicubicTests = 0L;
+    rayBicubicTestsSucceeded = 0L;
+    rayBlobTests = 0L;
+    rayBlobTestsSucceeded = 0L;
+    rayBoxTests = 0L;
+    rayBoxTestsSucceeded = 0L;
+    raySphereTests = 0L;
+    raySphereTestsSucceeded = 0L;
+    rayPlaneTests = 0L;
+    rayPlaneTestsSucceeded = 0L;
+    rayTriangleTests = 0L;
+    rayTriangleTestsSucceeded = 0L;
+    rayQuadricTests = 0L;
+    rayQuadricTestsSucceeded = 0L;
+    rayPolyTests = 0L;
+    rayPolyTestsSucceeded = 0L;
+    boundingRegionTests = 0L;
+    boundingRegionTestsSucceeded = 0L;
+    clippingRegionTests = 0L;
+    clippingRegionTestsSucceeded = 0L;
+    callsToNoise = 0L;
+    callsToDNoise = 0L;
+    shadowRayTests = 0L;
+    shadowRaysSucceeded = 0L;
+    reflectedRaysTraced = 0L;
+    refractedRaysTraced = 0L;
+    transmittedRaysTraced = 0L;
 
-    GLOBAL_frame.Screen_Height = 100;
-    GLOBAL_frame.Screen_Width = 100;
+    globalFrame.Screen_Height = 100;
+    globalFrame.Screen_Width = 100;
 
-    Antialias_Threshold = 0.3;
-    strcpy(Input_File_Name, "object.dat");
+    antialiasThreshold = 0.3;
+    strcpy(inputFileName, "object.dat");
 }
 
 /* Close all the stuff that has been opened. */
 void
 close_all()
 {
-    if ((Options & DISPLAY) && Display_Started) {
+    if ((Options & DISPLAY) && displayStarted) {
         display_close();
     }
 
-    if (GLOBAL_outputFileHandle) {
-        Close_File(GLOBAL_outputFileHandle);
+    if (globalOutputFileHandle) {
+        Close_File(globalOutputFileHandle);
     }
 }
 
 /* Read the default parameters from povray.def */
 void
-get_defaults()
+getDefaults()
 {
-    FILE *defaults_file;
-    char Option_String[256], *Option_String_Ptr;
+    FILE *defaultsFile;
+    char optionString[256];
+    char *Option_String_Ptr;
     /* READ_ENV_VAR_? should be defined in config.h */
     /* Only one READ_ENV_VAR_? should ever be defined. */
     /* This allows some machines to read environment variable before */
@@ -397,43 +420,45 @@ get_defaults()
     /* defined in config.h. CDW 2/92 */
     /* Set Diskwrite as default */
     Options |= DISKWRITE;
-    OutputFormat = DEFAULT_OUTPUT_FORMAT;
+    outputFormat = DEFAULT_OUTPUT_FORMAT;
 
     READ_ENV_VAR_BEFORE
-    if ((defaults_file = Locate_File("povray.def", "r")) != NULL) {
-        while (fgets(Option_String, 256, defaults_file) != NULL) {
-            read_options(Option_String);
+    if ((defaultsFile = Locate_File("povray.def", "r")) != nullptr) {
+        while (fgets(optionString, 256, defaultsFile) != nullptr) {
+            readOptions(optionString);
         }
-        fclose(defaults_file);
+        fclose(defaultsFile);
     }
     READ_ENV_VAR_AFTER
 }
 
 void
-read_options(char *Option_Line)
+readOptions(char *optionLine)
 {
-    register int c, String_Index, Option_Started;
-    short Option_Line_Index = 0;
-    char Option_String[80];
+    register int c;
+    register int stringIndex;
+    register int optionStarted;
+    short optionLineIndex = 0;
+    char optionString[80];
 
-    String_Index = 0;
-    Option_Started = FALSE;
-    while ((c = Option_Line[Option_Line_Index++]) != '\0') {
-        if (Option_Started) {
+    stringIndex = 0;
+    optionStarted = FALSE;
+    while ((c = optionLine[optionLineIndex++]) != '\0') {
+        if (optionStarted) {
             if (isspace(c)) {
-                Option_String[String_Index] = '\0';
-                parse_option(Option_String);
-                Option_Started = FALSE;
-                String_Index = 0;
+                optionString[stringIndex] = '\0';
+                parseOption(optionString);
+                optionStarted = FALSE;
+                stringIndex = 0;
             } else {
-                Option_String[String_Index++] = (char)c;
+                optionString[stringIndex++] = (char)c;
             }
 
         } else /* Option_Started */
             if ((c == (int)'-') || (c == (int)'+')) {
-                String_Index = 0;
-                Option_String[String_Index++] = (char)c;
-                Option_Started = TRUE;
+                stringIndex = 0;
+                optionString[stringIndex++] = (char)c;
+                optionStarted = TRUE;
             } else if (!isspace(c)) {
                 fprintf(stderr,
                     "\nBad default file format.  Offending char: (%c), val: "
@@ -443,197 +468,197 @@ read_options(char *Option_Line)
             }
     }
 
-    if (Option_Started) {
-        Option_String[String_Index] = '\0';
-        parse_option(Option_String);
+    if (optionStarted) {
+        optionString[stringIndex] = '\0';
+        parseOption(optionString);
     }
 }
 
 /* parse the command line parameters */
 void
-parse_option(char *Option_String)
+parseOption(char *optionString)
 {
-    register int Add_Option;
-    unsigned int Option_Number = 0;
+    register int addOption;
+    unsigned int optionNumber = 0;
     DBL threshold;
 
-    inflag = outflag = FALSE; /* if these flags aren't immediately used, reset
+    inFlag = outFlag = FALSE; /* if these flags aren't immediately used, reset
                                  them on next -/+ option! */
-    if (*(Option_String++) == '-') {
-        Add_Option = FALSE;
+    if (*(optionString++) == '-') {
+        addOption = FALSE;
     } else {
-        Add_Option = TRUE;
+        addOption = TRUE;
     }
 
-    switch (*Option_String) {
+    switch (*optionString) {
     case 'B':
     case 'b':
-        sscanf(&Option_String[1], "%d", &File_Buffer_Size);
-        File_Buffer_Size *= 1024;
-        if (File_Buffer_Size < BUFSIZ) {
-            File_Buffer_Size = BUFSIZ;
+        sscanf(&optionString[1], "%d", &fileBufferSize);
+        fileBufferSize *= 1024;
+        if (fileBufferSize < BUFSIZ) {
+            fileBufferSize = BUFSIZ;
         }
-        Option_Number = 0;
+        optionNumber = 0;
         break;
 
     case 'C':
     case 'c':
-        Option_Number = CONTINUE_TRACE;
+        optionNumber = CONTINUE_TRACE;
         break;
 
     case 'D':
     case 'd':
-        Option_Number = DISPLAY;
-        DisplayFormat = '0';
-        PaletteOption = '3';
-        if (Option_String[1] != '\0') {
-            DisplayFormat = (char)toupper(Option_String[1]);
+        optionNumber = DISPLAY;
+        displayFormat = '0';
+        paletteOption = '3';
+        if (optionString[1] != '\0') {
+            displayFormat = (char)toupper(optionString[1]);
         }
 
-        if (Option_String[1] != '\0' && Option_String[2] != '\0') {
-            PaletteOption = (char)toupper(Option_String[2]);
+        if (optionString[1] != '\0' && optionString[2] != '\0') {
+            paletteOption = (char)toupper(optionString[2]);
         }
         break;
 
     case '@':
-        Option_Number = VERBOSE_FILE;
-        if (Option_String[1] == '\0') {
-            strcpy(Stat_File_Name, "POVSTAT.OUT");
+        optionNumber = VERBOSE_FILE;
+        if (optionString[1] == '\0') {
+            strcpy(statFileName, "POVSTAT.OUT");
         } else {
-            strncpy(Stat_File_Name, &Option_String[1], FILE_NAME_LENGTH - 1);
-            Stat_File_Name[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(statFileName, &optionString[1], FILE_NAME_LENGTH - 1);
+            statFileName[FILE_NAME_LENGTH - 1] = '\0';
         }
         break;
     case 'V':
     case 'v':
-        Option_Number = VERBOSE;
-        VerboseFormat = (char)toupper(Option_String[1]);
-        if (VerboseFormat == '\0') {
-            VerboseFormat = '1';
+        optionNumber = VERBOSE;
+        verboseFormat = (char)toupper(optionString[1]);
+        if (verboseFormat == '\0') {
+            verboseFormat = '1';
         }
         break;
 
     case 'W':
     case 'w':
-        sscanf(&Option_String[1], "%d", &GLOBAL_frame.Screen_Width);
-        Option_Number = 0;
+        sscanf(&optionString[1], "%d", &globalFrame.Screen_Width);
+        optionNumber = 0;
         break;
 
     case 'H':
     case 'h':
-        sscanf(&Option_String[1], "%d", &GLOBAL_frame.Screen_Height);
-        Option_Number = 0;
+        sscanf(&optionString[1], "%d", &globalFrame.Screen_Height);
+        optionNumber = 0;
         break;
 
     case 'F':
     case 'f':
-        Option_Number = DISKWRITE;
-        if (isupper(Option_String[1])) {
-            OutputFormat = (char)tolower(Option_String[1]);
+        optionNumber = DISKWRITE;
+        if (isupper(optionString[1])) {
+            outputFormat = (char)tolower(optionString[1]);
         } else {
-            OutputFormat = Option_String[1];
+            outputFormat = optionString[1];
         }
 
         /* Default the output format to the default in the config file */
-        if (OutputFormat == '\0') {
-            OutputFormat = DEFAULT_OUTPUT_FORMAT;
+        if (outputFormat == '\0') {
+            outputFormat = DEFAULT_OUTPUT_FORMAT;
         }
         break;
 
     case 'P':
     case 'p':
-        Option_Number = PROMPTEXIT;
+        optionNumber = PROMPTEXIT;
         break;
 
     case 'I':
     case 'i':
-        if (Option_String[1] == '\0') {
-            inflag = TRUE;
+        if (optionString[1] == '\0') {
+            inFlag = TRUE;
         } else {
-            strncpy(Input_File_Name, &Option_String[1], FILE_NAME_LENGTH - 1);
-            Input_File_Name[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(inputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
+            inputFileName[FILE_NAME_LENGTH - 1] = '\0';
         }
-        Option_Number = 0;
+        optionNumber = 0;
         break;
 
     case 'O':
     case 'o':
-        if (Option_String[1] == '\0') {
-            outflag = TRUE;
+        if (optionString[1] == '\0') {
+            outFlag = TRUE;
         } else {
-            strncpy(Output_File_Name, &Option_String[1], FILE_NAME_LENGTH - 1);
-            Output_File_Name[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(outputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
+            outputFileName[FILE_NAME_LENGTH - 1] = '\0';
         }
-        Option_Number = 0;
+        optionNumber = 0;
         break;
 
     case 'A':
     case 'a':
-        Option_Number = ANTIALIAS;
-        if (sscanf(&Option_String[1], DBL_FORMAT_STRING, &threshold) != EOF) {
-            Antialias_Threshold = threshold;
+        optionNumber = ANTIALIAS;
+        if (sscanf(&optionString[1], DBL_FORMAT_STRING, &threshold) != EOF) {
+            antialiasThreshold = threshold;
         }
         break;
 
     case 'X':
     case 'x':
-        Option_Number = EXITENABLE;
+        optionNumber = EXITENABLE;
         break;
 
     case 'L':
     case 'l':
-        if (Library_Path_Index >= MAX_LIBRARIES) {
+        if (libraryPathIndex >= MAX_LIBRARIES) {
             fprintf(stderr, "Too many library directories specified\n");
             exit(1);
         }
-        Library_Paths[Library_Path_Index] = new char[strlen(Option_String) + 1];
-        if (Library_Paths[Library_Path_Index] == NULL) {
+        libraryPaths[libraryPathIndex] = new char[strlen(optionString) + 1];
+        if (libraryPaths[libraryPathIndex] == nullptr) {
             fprintf(stderr,
                 "Out of memory. Cannot allocate memory for library pathname\n");
             exit(1);
         }
-        strcpy(Library_Paths[Library_Path_Index], &Option_String[1]);
-        Library_Path_Index++;
-        Option_Number = 0;
+        strcpy(libraryPaths[libraryPathIndex], &optionString[1]);
+        libraryPathIndex++;
+        optionNumber = 0;
         break;
     case 'T':
     case 't':
-        switch (toupper(Option_String[1])) {
+        switch (toupper(optionString[1])) {
         case 'Y':
-            Case_Sensitive_Flag = 0;
+            caseSensitiveFlag = 0;
             break;
         case 'N':
-            Case_Sensitive_Flag = 1;
+            caseSensitiveFlag = 1;
             break;
         case 'O':
-            Case_Sensitive_Flag = 2;
+            caseSensitiveFlag = 2;
             break;
         default:
-            Case_Sensitive_Flag = 2;
+            caseSensitiveFlag = 2;
             break;
         }
-        Option_Number = 0;
+        optionNumber = 0;
         break;
 
     case 'S':
     case 's':
-        sscanf(&Option_String[1], "%d", &First_Line);
-        Option_Number = 0;
+        sscanf(&optionString[1], "%d", &firstLine);
+        optionNumber = 0;
         break;
 
     case 'E':
     case 'e':
-        sscanf(&Option_String[1], "%d", &Last_Line);
-        Option_Number = 0;
+        sscanf(&optionString[1], "%d", &lastLine);
+        optionNumber = 0;
         break;
 
     case 'M': /* Switch used so other max values can be inserted easily */
     case 'm':
-        switch (Option_String[1]) {
+        switch (optionString[1]) {
         case 's': /* Max Symbols */
         case 'S':
-            sscanf(&Option_String[2], "%d", &Max_Symbols);
-            Option_Number = 0;
+            sscanf(&optionString[2], "%d", &maxSymbols);
+            optionNumber = 0;
             break;
         default:
             break;
@@ -642,32 +667,32 @@ parse_option(char *Option_String)
 
     case 'Q':
     case 'q':
-        sscanf(&Option_String[1], "%d", &Quality);
-        Option_Number = 0;
+        sscanf(&optionString[1], "%d", &quality);
+        optionNumber = 0;
         break;
 
         /* Turn on debugging print statements. */
     case 'Z':
     case 'z':
-        Option_Number = DEBUGGING;
+        optionNumber = DEBUGGING;
         break;
 
     default:
-        fprintf(stderr, "\nInvalid option: %s\n\n", --Option_String);
-        Option_Number = 0;
+        fprintf(stderr, "\nInvalid option: %s\n\n", --optionString);
+        optionNumber = 0;
     }
 
-    if (Option_Number != 0) {
-        if (Add_Option) {
-            Options |= Option_Number;
+    if (optionNumber != 0) {
+        if (addOption) {
+            Options |= optionNumber;
         } else {
-            Options &= ~Option_Number;
+            Options &= ~optionNumber;
         }
     }
 }
 
 void
-Print_Options()
+printOptions()
 {
     int i;
 
@@ -678,19 +703,19 @@ Print_Options()
     }
 
     if (Options & DISPLAY) {
-        fprintf(stdout, "+d%c%c ", DisplayFormat, PaletteOption);
+        fprintf(stdout, "+d%c%c ", displayFormat, paletteOption);
     }
 
     if (Options & VERBOSE) {
-        fprintf(stdout, "+v%c ", VerboseFormat);
+        fprintf(stdout, "+v%c ", verboseFormat);
     }
 
     if (Options & VERBOSE_FILE) {
-        fprintf(stdout, "+@%s ", Stat_File_Name);
+        fprintf(stdout, "+@%s ", statFileName);
     }
 
     if (Options & DISKWRITE) {
-        fprintf(stdout, "+f%c ", OutputFormat);
+        fprintf(stdout, "+f%c ", outputFormat);
     }
 
     if (Options & PROMPTEXIT) {
@@ -702,202 +727,192 @@ Print_Options()
     }
 
     if (Options & ANTIALIAS) {
-        fprintf(stdout, "+a%f ", Antialias_Threshold);
+        fprintf(stdout, "+a%f ", antialiasThreshold);
     }
 
     if (Options & DEBUGGING) {
         fprintf(stdout, "+z ");
     }
 
-    if (File_Buffer_Size != 0) {
-        fprintf(stdout, "-b%d ", File_Buffer_Size / 1024);
+    if (fileBufferSize != 0) {
+        fprintf(stdout, "-b%d ", fileBufferSize / 1024);
     }
 
-    fprintf(stdout, "-q%d -w%d -h%d -s%d -e%d\n-i%s ", Quality,
-        GLOBAL_frame.Screen_Width, GLOBAL_frame.Screen_Height, First_Line,
-        Last_Line, Input_File_Name);
+    fprintf(stdout, "-q%d -w%d -h%d -s%d -e%d\n-i%s ", quality,
+        globalFrame.Screen_Width, globalFrame.Screen_Height, firstLine,
+        lastLine, inputFileName);
 
     if (Options & DISKWRITE) {
-        fprintf(stdout, "-o%s ", Output_File_Name);
+        fprintf(stdout, "-o%s ", outputFileName);
     }
 
-    for (i = 0; i < Library_Path_Index; i++) {
-        fprintf(stdout, "-l%s ", Library_Paths[i]);
+    for (i = 0; i < libraryPathIndex; i++) {
+        fprintf(stdout, "-l%s ", libraryPaths[i]);
     }
 
     fprintf(stdout, "\n");
 }
 
 void
-parse_file_name(char *File_Name)
+parseFileName(char *fileName)
 {
-    FILE *defaults_file;
-    char Option_String[256];
+    FILE *defaultsFile;
+    char optionString[256];
 
-    if (inflag) /* file names may now be separated by spaces from cmdline option
+    if (inFlag) /* file names may now be separated by spaces from cmdline option
                  */
     {
-        strncpy(Input_File_Name, File_Name, FILE_NAME_LENGTH - 1);
-        Input_File_Name[FILE_NAME_LENGTH - 1] = '\0';
-        inflag = FALSE;
+        strncpy(inputFileName, fileName, FILE_NAME_LENGTH - 1);
+        inputFileName[FILE_NAME_LENGTH - 1] = '\0';
+        inFlag = FALSE;
         return;
     }
 
-    if (outflag) /* file names may now be separated by spaces from cmdline
+    if (outFlag) /* file names may now be separated by spaces from cmdline
                     option */
     {
-        strncpy(Output_File_Name, File_Name, FILE_NAME_LENGTH - 1);
-        Output_File_Name[FILE_NAME_LENGTH - 1] = '\0';
-        outflag = FALSE;
+        strncpy(outputFileName, fileName, FILE_NAME_LENGTH - 1);
+        outputFileName[FILE_NAME_LENGTH - 1] = '\0';
+        outFlag = FALSE;
         return;
     }
 
-    if (++Number_Of_Files > MAX_FILE_NAMES) {
+    if (++numberOfFiles > MAX_FILE_NAMES) {
         fprintf(stderr,
             "\nOnly %d option file names are allowed in a command line.",
             MAX_FILE_NAMES);
         exit(1);
     }
 
-    if ((defaults_file = Locate_File(File_Name, "r")) != NULL) {
-        while (fgets(Option_String, 256, defaults_file) != NULL) {
-            read_options(Option_String);
+    if ((defaultsFile = Locate_File(fileName, "r")) != nullptr) {
+        while (fgets(optionString, 256, defaultsFile) != nullptr) {
+            readOptions(optionString);
         }
-        fclose(defaults_file);
+        fclose(defaultsFile);
     } else {
-        printf("\nError opening option file %s.", File_Name);
+        printf("\nError opening option file %s.", fileName);
     }
 }
 
 void
 print_stats()
 {
-    int hours, min;
+    int hours;
+    int min;
     DBL sec;
-    FILE *stat_out;
-    long Pixels_In_Image;
+    FILE *statOut;
+    long pixelsInImage;
 
     if (Options & VERBOSE_FILE) {
-        stat_out = fopen(Stat_File_Name, "w+t");
+        statOut = fopen(statFileName, "w+t");
     } else {
-        stat_out = stdout;
+        statOut = stdout;
     }
 
-    Pixels_In_Image =
-        (long)GLOBAL_frame.Screen_Width * (long)GLOBAL_frame.Screen_Height;
+    pixelsInImage =
+        (long)globalFrame.Screen_Width * (long)globalFrame.Screen_Height;
 
-    fprintf(stat_out, "\n%s statistics\n", Input_File_Name);
-    if (Pixels_In_Image > Number_Of_Pixels) {
-        fprintf(stat_out, "  Partial Image Rendered");
+    fprintf(statOut, "\n%s statistics\n", inputFileName);
+    if (pixelsInImage > numberOfPixels) {
+        fprintf(statOut, "  Partial Image Rendered");
     }
 
-    fprintf(stat_out, "--------------------------------------\n");
-    fprintf(stat_out, "Resolution %d x %d\n", GLOBAL_frame.Screen_Width,
-        GLOBAL_frame.Screen_Height);
-    fprintf(stat_out,
+    fprintf(statOut, "--------------------------------------\n");
+    fprintf(statOut, "Resolution %d x %d\n", globalFrame.Screen_Width,
+        globalFrame.Screen_Height);
+    fprintf(statOut,
         "# Rays:  %10ld     # Pixels:  %10ld  # Pixels supersampled: %10ld\n",
-        Number_Of_Rays, Number_Of_Pixels, Number_Of_Pixels_Supersampled);
+        numberOfRays, numberOfPixels, numberOfPixelsSupersampled);
 
-    fprintf(stat_out, "  Ray->Shape Intersection Tests:\n");
-    fprintf(stat_out,
+    fprintf(statOut, "  Ray->Shape Intersection Tests:\n");
+    fprintf(statOut,
         "    Type                 Tests     Succeeded    Percentage\n");
-    fprintf(stat_out,
+    fprintf(statOut,
         "  -----------------------------------------------------------\n");
-    if (Ray_Sphere_Tests) {
-        fprintf(stat_out, "  Sphere         %10ld  %10ld  %10.2f\n",
-            Ray_Sphere_Tests, Ray_Sphere_Tests_Succeeded,
-            (((DBL)Ray_Sphere_Tests_Succeeded / (DBL)Ray_Sphere_Tests) *
+    if (raySphereTests) {
+        fprintf(statOut, "  Sphere         %10ld  %10ld  %10.2f\n",
+            raySphereTests, raySphereTestsSucceeded,
+            (((DBL)raySphereTestsSucceeded / (DBL)raySphereTests) * 100.0));
+    }
+    if (rayPlaneTests) {
+        fprintf(statOut, "  Plane          %10ld  %10ld  %10.2f\n",
+            rayPlaneTests, rayPlaneTestsSucceeded,
+            (((DBL)rayPlaneTestsSucceeded / (DBL)rayPlaneTests) * 100.0));
+    }
+    if (rayTriangleTests) {
+        fprintf(statOut, "  Triangle      %10ld  %10ld  %10.2f\n",
+            rayTriangleTests, rayTriangleTestsSucceeded,
+            (((DBL)rayTriangleTestsSucceeded / (DBL)rayTriangleTests) * 100.0));
+    }
+    if (rayQuadricTests) {
+        fprintf(statOut, "  Quadric        %10ld  %10ld  %10.2f\n",
+            rayQuadricTests, rayQuadricTestsSucceeded,
+            (((DBL)rayQuadricTestsSucceeded / (DBL)rayQuadricTests) * 100.0));
+    }
+    if (rayBlobTests) {
+        fprintf(statOut, "  Blob            %10ld  %10ld  %10.2f\n",
+            rayBlobTests, rayBlobTestsSucceeded,
+            (((DBL)rayBlobTestsSucceeded / (DBL)rayBlobTests) * 100.0));
+    }
+    if (rayBoxTests) {
+        fprintf(statOut, "  Box             %10ld  %10ld  %10.2f\n",
+            rayBoxTests, rayBoxTestsSucceeded,
+            (((DBL)rayBoxTestsSucceeded / (DBL)rayBoxTests) * 100.0));
+    }
+    if (rayPolyTests) {
+        fprintf(statOut, "  Quartic\\Poly %10ld  %10ld  %10.2f\n", rayPolyTests,
+            rayPolyTestsSucceeded,
+            (((DBL)rayPolyTestsSucceeded / (DBL)rayPolyTests) * 100.0));
+    }
+    if (rayBicubicTests) {
+        fprintf(statOut, "  Bezier Patch %10ld  %10ld  %10.2f\n",
+            rayBicubicTests, rayBicubicTestsSucceeded,
+            (((DBL)rayBicubicTestsSucceeded / (DBL)rayBicubicTests) * 100.0));
+    }
+    if (rayHtFieldTests) {
+        fprintf(statOut, "  Height Fld    %10ld  %10ld  %10.2f\n",
+            rayHtFieldTests, rayHtFieldTestsSucceeded,
+            (((DBL)rayHtFieldTestsSucceeded / (DBL)rayHtFieldTests) * 100.0));
+    }
+    if (rayHtFieldBoxTests) {
+        fprintf(statOut, "  Hght Fld Box %10ld  %10ld  %10.2f\n",
+            rayHtFieldBoxTests, rayHFieldBoxTestsSucceeded,
+            (((DBL)rayHFieldBoxTestsSucceeded / (DBL)rayHtFieldBoxTests) *
                 100.0));
     }
-    if (Ray_Plane_Tests) {
-        fprintf(stat_out, "  Plane          %10ld  %10ld  %10.2f\n",
-            Ray_Plane_Tests, Ray_Plane_Tests_Succeeded,
-            (((DBL)Ray_Plane_Tests_Succeeded / (DBL)Ray_Plane_Tests) * 100.0));
-    }
-    if (Ray_Triangle_Tests) {
-        fprintf(stat_out, "  Triangle      %10ld  %10ld  %10.2f\n",
-            Ray_Triangle_Tests, Ray_Triangle_Tests_Succeeded,
-            (((DBL)Ray_Triangle_Tests_Succeeded / (DBL)Ray_Triangle_Tests) *
+    if (boundingRegionTests) {
+        fprintf(statOut, "  Bounds         %10ld  %10ld  %10.2f\n",
+            boundingRegionTests, boundingRegionTestsSucceeded,
+            (((DBL)boundingRegionTestsSucceeded / (DBL)boundingRegionTests) *
                 100.0));
     }
-    if (Ray_Quadric_Tests) {
-        fprintf(stat_out, "  Quadric        %10ld  %10ld  %10.2f\n",
-            Ray_Quadric_Tests, Ray_Quadric_Tests_Succeeded,
-            (((DBL)Ray_Quadric_Tests_Succeeded / (DBL)Ray_Quadric_Tests) *
-                100.0));
-    }
-    if (Ray_Blob_Tests) {
-        fprintf(stat_out, "  Blob            %10ld  %10ld  %10.2f\n",
-            Ray_Blob_Tests, Ray_Blob_Tests_Succeeded,
-            (((DBL)Ray_Blob_Tests_Succeeded / (DBL)Ray_Blob_Tests) * 100.0));
-    }
-    if (Ray_Box_Tests) {
-        fprintf(stat_out, "  Box             %10ld  %10ld  %10.2f\n",
-            Ray_Box_Tests, Ray_Box_Tests_Succeeded,
-            (((DBL)Ray_Box_Tests_Succeeded / (DBL)Ray_Box_Tests) * 100.0));
-    }
-    if (Ray_Poly_Tests) {
-        fprintf(stat_out, "  Quartic\\Poly %10ld  %10ld  %10.2f\n",
-            Ray_Poly_Tests, Ray_Poly_Tests_Succeeded,
-            (((DBL)Ray_Poly_Tests_Succeeded / (DBL)Ray_Poly_Tests) * 100.0));
-    }
-    if (Ray_Bicubic_Tests) {
-        fprintf(stat_out, "  Bezier Patch %10ld  %10ld  %10.2f\n",
-            Ray_Bicubic_Tests, Ray_Bicubic_Tests_Succeeded,
-            (((DBL)Ray_Bicubic_Tests_Succeeded / (DBL)Ray_Bicubic_Tests) *
-                100.0));
-    }
-    if (Ray_Ht_Field_Tests) {
-        fprintf(stat_out, "  Height Fld    %10ld  %10ld  %10.2f\n",
-            Ray_Ht_Field_Tests, Ray_Ht_Field_Tests_Succeeded,
-            (((DBL)Ray_Ht_Field_Tests_Succeeded / (DBL)Ray_Ht_Field_Tests) *
-                100.0));
-    }
-    if (Ray_Ht_Field_Box_Tests) {
-        fprintf(stat_out, "  Hght Fld Box %10ld  %10ld  %10.2f\n",
-            Ray_Ht_Field_Box_Tests, Ray_HField_Box_Tests_Succeeded,
-            (((DBL)Ray_HField_Box_Tests_Succeeded /
-                 (DBL)Ray_Ht_Field_Box_Tests) *
-                100.0));
-    }
-    if (Bounding_Region_Tests) {
-        fprintf(stat_out, "  Bounds         %10ld  %10ld  %10.2f\n",
-            Bounding_Region_Tests, Bounding_Region_Tests_Succeeded,
-            (((DBL)Bounding_Region_Tests_Succeeded /
-                 (DBL)Bounding_Region_Tests) *
-                100.0));
-    }
-    if (Clipping_Region_Tests) {
-        fprintf(stat_out, "  Clips          %10ld  %10ld  %10.2f\n",
-            Clipping_Region_Tests, Clipping_Region_Tests_Succeeded,
-            (((DBL)Clipping_Region_Tests_Succeeded /
-                 (DBL)Clipping_Region_Tests) *
+    if (clippingRegionTests) {
+        fprintf(statOut, "  Clips          %10ld  %10ld  %10.2f\n",
+            clippingRegionTests, clippingRegionTestsSucceeded,
+            (((DBL)clippingRegionTestsSucceeded / (DBL)clippingRegionTests) *
                 100.0));
     }
 
-    if (Calls_To_Noise) {
+    if (callsToNoise) {
 
-        fprintf(stat_out, "  Calls to Noise:    %10ld\n", Calls_To_Noise);
+        fprintf(statOut, "  Calls to Noise:    %10ld\n", callsToNoise);
     }
-    if (Calls_To_DNoise) {
-        fprintf(stat_out, "  Calls to DNoise:  %10ld\n", Calls_To_DNoise);
+    if (callsToDNoise) {
+        fprintf(statOut, "  Calls to DNoise:  %10ld\n", callsToDNoise);
     }
-    if (Shadow_Ray_Tests) {
-        fprintf(stat_out,
+    if (shadowRayTests) {
+        fprintf(statOut,
             "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld\n",
-            Shadow_Ray_Tests, Shadow_Rays_Succeeded);
+            shadowRayTests, shadowRaysSucceeded);
     }
-    if (Reflected_Rays_Traced) {
-        fprintf(
-            stat_out, "  Reflected Rays:    %10ld\n", Reflected_Rays_Traced);
+    if (reflectedRaysTraced) {
+        fprintf(statOut, "  Reflected Rays:    %10ld\n", reflectedRaysTraced);
     }
-    if (Refracted_Rays_Traced) {
-        fprintf(
-            stat_out, "  Refracted Rays:    %10ld\n", Refracted_Rays_Traced);
+    if (refractedRaysTraced) {
+        fprintf(statOut, "  Refracted Rays:    %10ld\n", refractedRaysTraced);
     }
-    if (Transmitted_Rays_Traced) {
-        fprintf(
-            stat_out, "  Transmitted Rays: %10ld\n", Transmitted_Rays_Traced);
+    if (transmittedRaysTraced) {
+        fprintf(statOut, "  Transmitted Rays: %10ld\n", transmittedRaysTraced);
     }
 
     if (tused == 0) {
@@ -911,12 +926,12 @@ print_stats()
         hours = (int)tused / 3600;
         min = (int)(tused - hours * 3600) / 60;
         sec = tused - (DBL)(hours * 3600 + min * 60);
-        fprintf(stat_out,
+        fprintf(statOut,
             "  Time For Trace:    %2d hours %2d minutes %4.2f seconds\n", hours,
             min, sec);
     }
     if (Options & VERBOSE_FILE) {
-        fclose(stat_out);
+        fclose(statOut);
     }
 }
 
@@ -929,26 +944,26 @@ Locate_File(const char *filename, const char *mode)
     char pathname[FILE_NAME_LENGTH];
 
     /* Check the current directory first. */
-    if ((f = fopen(filename, mode)) != NULL) {
+    if ((f = fopen(filename, mode)) != nullptr) {
         return (f);
     }
 
-    for (i = 0; i < Library_Path_Index; i++) {
-        strcpy(pathname, Library_Paths[i]);
-        if (FILENAME_SEPARATOR != NULL) {
+    for (i = 0; i < libraryPathIndex; i++) {
+        strcpy(pathname, libraryPaths[i]);
+        if (FILENAME_SEPARATOR != nullptr) {
             strcat(pathname, FILENAME_SEPARATOR);
         }
         strcat(pathname, filename);
-        if ((f = fopen(pathname, mode)) != NULL) {
+        if ((f = fopen(pathname, mode)) != nullptr) {
             return (f);
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void
-print_credits()
+printCredits()
 {
     fprintf(stderr, "\n");
     fprintf(

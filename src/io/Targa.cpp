@@ -25,9 +25,9 @@
 #include "common/Frame.h"
 #include "common/PovProto.h"
 
-int Targa_Line_Number = 0;
+int targaLineNumber = 0;
 
-extern int First_Line;
+extern int firstLine;
 
 FileHandle *
 Get_Targa_File_Handle()
@@ -35,9 +35,9 @@ Get_Targa_File_Handle()
     FileHandle *handle;
 
     handle = new FileHandle;
-    if (handle == NULL) {
+    if (handle == nullptr) {
         fprintf(stderr, "Cannot allocate memory for output file handle\n");
-        return (NULL);
+        return (nullptr);
     }
 
     handle->Default_File_Name_p = Default_Targa_File_Name;
@@ -46,9 +46,9 @@ Get_Targa_File_Handle()
     handle->Read_Line_p = Read_Targa_Line;
     handle->Read_Image_p = Read_Targa_Image;
     handle->Close_File_p = Close_Targa_File;
-    handle->file = NULL;
+    handle->file = nullptr;
     handle->buffer_size = 0;
-    handle->buffer = NULL;
+    handle->buffer = nullptr;
     return (handle);
 }
 
@@ -62,26 +62,28 @@ Default_Targa_File_Name()
 
 int
 Open_Targa_File(FileHandle *handle, char *name, int *width, int *height,
-    int buffer_size, int mode)
+    int bufferSize, int mode)
 {
-    int data1, data2, i;
+    int data1;
+    int data2;
+    int i;
 
     handle->mode = mode;
     handle->filename = name;
 
     switch (mode) {
     case READ_MODE:
-        if ((handle->file = fopen(name, READ_FILE_STRING)) == NULL) {
+        if ((handle->file = fopen(name, READ_FILE_STRING)) == nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            handle->buffer = new char[buffer_size];
-            if (handle->buffer == NULL) {
+        if (bufferSize != 0) {
+            handle->buffer = new char[bufferSize];
+            if (handle->buffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(handle->file, handle->buffer, _IOFBF, buffer_size);
+            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
         }
 
         for (i = 0; i < 12; i++) {
@@ -111,21 +113,21 @@ Open_Targa_File(FileHandle *handle, char *name, int *width, int *height,
         *height = data2 * 256 + data1;
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
         break;
 
     case WRITE_MODE:
-        if ((handle->file = fopen(name, WRITE_FILE_STRING)) == NULL) {
+        if ((handle->file = fopen(name, WRITE_FILE_STRING)) == nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            handle->buffer = new char[buffer_size];
-            if (handle->buffer == NULL) {
+        if (bufferSize != 0) {
+            handle->buffer = new char[bufferSize];
+            if (handle->buffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(handle->file, handle->buffer, _IOFBF, buffer_size);
+            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
         }
 
         for (i = 0; i < 10; i++) { /* 00, 00, 02, then 7 00's... */
@@ -136,9 +138,9 @@ Open_Targa_File(FileHandle *handle, char *name, int *width, int *height,
             }
         }
 
-        putc(First_Line % 256, handle->file); /* y origin set to "First_Line" */
+        putc(firstLine % 256, handle->file); /* y origin set to "First_Line" */
 
-        putc(First_Line / 256, handle->file);
+        putc(firstLine / 256, handle->file);
 
         putc(*width % 256, handle->file); /* write width and height */
         putc(*width / 256, handle->file);
@@ -149,22 +151,22 @@ Open_Targa_File(FileHandle *handle, char *name, int *width, int *height,
 
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = buffer_size;
+        handle->buffer_size = bufferSize;
 
         break;
 
     case APPEND_MODE:
-        if ((handle->file = fopen(name, APPEND_FILE_STRING)) == NULL) {
+        if ((handle->file = fopen(name, APPEND_FILE_STRING)) == nullptr) {
             return (0);
         }
 
-        if (buffer_size != 0) {
-            handle->buffer = new char[buffer_size];
-            if (handle->buffer == NULL) {
+        if (bufferSize != 0) {
+            handle->buffer = new char[bufferSize];
+            if (handle->buffer == nullptr) {
                 return (0);
             }
 
-            setvbuf(handle->file, handle->buffer, _IOFBF, buffer_size);
+            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
         }
 
         break;
@@ -174,14 +176,14 @@ Open_Targa_File(FileHandle *handle, char *name, int *width, int *height,
 }
 
 void
-Write_Targa_Line(FileHandle *handle, RGBAColor *line_data, int line_number)
+Write_Targa_Line(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
     register int x;
 
     for (x = 0; x < handle->width; x++) {
-        putc((int)floor(line_data[x].Blue * 255.0), handle->file);
-        putc((int)floor(line_data[x].Green * 255.0), handle->file);
-        putc((int)floor(line_data[x].Red * 255.0), handle->file);
+        putc((int)floor(lineData[x].Blue * 255.0), handle->file);
+        putc((int)floor(lineData[x].Green * 255.0), handle->file);
+        putc((int)floor(lineData[x].Red * 255.0), handle->file);
     }
 
     if (handle->buffer_size == 0) {
@@ -192,9 +194,10 @@ Write_Targa_Line(FileHandle *handle, RGBAColor *line_data, int line_number)
 }
 
 int
-Read_Targa_Line(FileHandle *handle, RGBAColor *line_data, int *line_number)
+Read_Targa_Line(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
-    int x, data;
+    int x;
+    int data;
 
     for (x = 0; x < handle->width; x++) {
 
@@ -209,22 +212,22 @@ Read_Targa_Line(FileHandle *handle, RGBAColor *line_data, int *line_number)
             return (-1);
         }
 
-        line_data[x].Blue = (DBL)data / 255.0;
+        lineData[x].Blue = (DBL)data / 255.0;
 
         /* Read the GREEN data byte. */
         if ((data = getc(handle->file)) == EOF) {
             return (-1);
         }
-        line_data[x].Green = (DBL)data / 255.0;
+        lineData[x].Green = (DBL)data / 255.0;
 
         /* Read the RED data byte. */
         if ((data = getc(handle->file)) == EOF) {
             return (-1);
         }
-        line_data[x].Red = (DBL)data / 255.0;
+        lineData[x].Red = (DBL)data / 255.0;
     }
 
-    *line_number = Targa_Line_Number++;
+    *lineNumber = targaLineNumber++;
     return (1);
 }
 
@@ -240,13 +243,14 @@ Close_Targa_File(FileHandle *handle)
 }
 
 int
-Read_Targa_Int_Line(FileHandle *handle, ImageLine *line_data)
+Read_Targa_Int_Line(FileHandle *handle, ImageLine *lineData)
 {
-    int x, data;
+    int x;
+    int data;
 
-    if (((line_data->red = new unsigned char[handle->width]) == NULL) ||
-        ((line_data->green = new unsigned char[handle->width]) == NULL) ||
-        ((line_data->blue = new unsigned char[handle->width]) == NULL)) {
+    if (((lineData->red = new unsigned char[handle->width]) == nullptr) ||
+        ((lineData->green = new unsigned char[handle->width]) == nullptr) ||
+        ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
         fprintf(stderr, "Cannot allocate memory for picture: %s\n",
             handle->filename);
         close_all();
@@ -260,15 +264,15 @@ Read_Targa_Int_Line(FileHandle *handle, ImageLine *line_data)
             }
             return (-1);
         }
-        line_data->blue[x] = data;
+        lineData->blue[x] = data;
         if ((data = getc(handle->file)) == EOF) {
             return (-1);
         }
-        line_data->green[x] = data;
+        lineData->green[x] = data;
         if ((data = getc(handle->file)) == EOF) {
             return (-1);
         }
-        line_data->red[x] = data;
+        lineData->red[x] = data;
     }
     return (1);
 }
@@ -279,7 +283,7 @@ Read_Targa_Image(RGBAImage *image, char *name)
     int row;
     FileHandle handle;
 
-    if ((handle.file = Locate_File(name, READ_FILE_STRING)) == NULL) {
+    if ((handle.file = Locate_File(name, READ_FILE_STRING)) == nullptr) {
         fprintf(stderr, "Cannot open Targa file %s\n", name);
         close_all();
         exit(1);
@@ -293,10 +297,10 @@ Read_Targa_Image(RGBAImage *image, char *name)
     image->width = (DBL)image->iwidth;
     image->height = (DBL)image->iheight;
     image->Colour_Map_Size = 0;
-    image->Colour_Map = NULL;
+    image->Colour_Map = nullptr;
 
     image->data.rgb_lines = new ImageLine[image->iheight];
-    if (image->data.rgb_lines == NULL) {
+    if (image->data.rgb_lines == nullptr) {
         fprintf(stderr, "Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }

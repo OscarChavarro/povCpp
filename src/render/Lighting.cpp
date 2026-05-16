@@ -34,14 +34,14 @@
 #include "media/TxtTest.h"
 #include "render/Render.h"
 
-extern int Trace_Level;
-extern Frame GLOBAL_frame;
+extern int traceLevel;
+extern Frame globalFrame;
 extern unsigned int Options;
-extern int Quality;
-extern int Shadow_Test_Flag;
-extern long Shadow_Ray_Tests, Shadow_Rays_Succeeded;
-extern long Reflected_Rays_Traced, Refracted_Rays_Traced;
-extern long Transmitted_Rays_Traced;
+extern int quality;
+extern int shadowTestFlag;
+extern long shadowRayTests, shadowRaysSucceeded;
+extern long reflectedRaysTraced, refractedRaysTraced;
+extern long transmittedRaysTraced;
 
 /* "Small_Tolerance" is just too tight for higher order polynomial equations.
     this value should probably be a variable of some sort, but for now just
@@ -50,242 +50,240 @@ extern long Transmitted_Rays_Traced;
     having SHADOW_TOLERANCE as large as this won't affect images. */
 #define SHADOW_TOLERANCE 0.05
 
-static void do_light(Light *Light_Source, DBL *Light_Source_Depth,
-    Ray *Light_Source_Ray, Vector3D *Intersection_Point,
-    RGBAColor *Light_Colour);
-static int do_blocking(Intersection *Local_Intersection,
-    RGBAColor *Light_Colour, PriorityQueueNode *Local_Queue);
-static void do_phong(Texture *Texture, Ray *Light_Source_Ray, Vector3D Eye,
-    Vector3D *Surface_Normal, RGBAColor *Colour, RGBAColor *Light_Colour,
-    RGBAColor *Surface_Colour);
-static void do_specular(Texture *Texture, Ray *Light_Source_Ray, Vector3D REye,
-    Vector3D *Surface_Normal, RGBAColor *Colour, RGBAColor *Light_Colour,
-    RGBAColor *Surface_Colour);
-static void do_diffuse(Texture *Texture, Ray *Light_Source_Ray,
-    Vector3D *Surface_Normal, RGBAColor *Colour, RGBAColor *Light_Colour,
-    RGBAColor *Surface_Colour, DBL Attenuation);
+static void doLight(Light *lightSource, DBL *lightSourceDepth,
+    Ray *lightSourceRay, Vector3D *intersectionPoint, RGBAColor *lightColour);
+static int doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
+    PriorityQueueNode *localQueue);
+static void doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
+    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+    RGBAColor *surfaceColour);
+static void doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
+    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+    RGBAColor *surfaceColour);
+static void doDiffuse(Texture *texture, Ray *lightSourceRay,
+    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+    RGBAColor *surfaceColour, DBL attenuation);
 
 void
-Perturb_Normal(Vector3D *New_Normal, Texture *Texture,
-    Vector3D *Intersection_Point, Vector3D *Surface_Normal)
+Perturb_Normal(Vector3D *newNormal, Texture *texture,
+    Vector3D *intersectionPoint, Vector3D *surfaceNormal)
 {
-    Vector3D Transformed_Point;
-    register DBL x, y, z;
+    Vector3D transformedPoint;
+    register DBL x;
+    register DBL y;
+    register DBL z;
 
-    if (Texture->Bump_Number == NO_BUMPS) {
-        *New_Normal = *Surface_Normal;
+    if (texture->Bump_Number == NO_BUMPS) {
+        *newNormal = *surfaceNormal;
         return;
     }
 
-    if (Texture->Texture_Transformation) {
-        MInverseTransformVector(&Transformed_Point, Intersection_Point,
-            Texture->Texture_Transformation);
+    if (texture->Texture_Transformation) {
+        MInverseTransformVector(&transformedPoint, intersectionPoint,
+            texture->Texture_Transformation);
     } else {
-        Transformed_Point = *Intersection_Point;
+        transformedPoint = *intersectionPoint;
     }
 
-    x = Transformed_Point.x;
-    y = Transformed_Point.y;
-    z = Transformed_Point.z;
+    x = transformedPoint.x;
+    y = transformedPoint.y;
+    z = transformedPoint.z;
 
-    switch (Texture->Bump_Number) {
+    switch (texture->Bump_Number) {
 
     case WAVES:
-        waves(x, y, z, Texture, New_Normal);
+        waves(x, y, z, texture, newNormal);
         break;
 
     case RIPPLES:
-        ripples(x, y, z, Texture, New_Normal);
+        ripples(x, y, z, texture, newNormal);
         break;
 
     case WRINKLES:
-        wrinkles(x, y, z, Texture, New_Normal);
+        wrinkles(x, y, z, texture, newNormal);
         break;
 
     case BUMPS:
-        bumps(x, y, z, Texture, New_Normal);
+        bumps(x, y, z, texture, newNormal);
         break;
 
     case DENTS:
-        dents(x, y, z, Texture, New_Normal);
+        dents(x, y, z, texture, newNormal);
         break;
 
     case BUMPY1:
-        bumpy1(x, y, z, Texture, New_Normal);
+        bumpy1(x, y, z, texture, newNormal);
         break;
 
     case BUMPY2:
-        bumpy2(x, y, z, Texture, New_Normal);
+        bumpy2(x, y, z, texture, newNormal);
         break;
 
     case BUMPY3:
-        bumpy3(x, y, z, Texture, New_Normal);
+        bumpy3(x, y, z, texture, newNormal);
         break;
 
     case BUMPMAP:
-        bump_map(x, y, z, Texture, New_Normal);
+        bump_map(x, y, z, texture, newNormal);
         break;
     }
 }
 
 void
-Ambient(Texture *Texture, RGBAColor *Surface_Colour, RGBAColor *Colour,
-    DBL Attenuation)
+Ambient(Texture *texture, RGBAColor *surfaceColour, RGBAColor *colour,
+    DBL attenuation)
 {
-    if (Texture->Object_Ambient == 0.0) {
+    if (texture->Object_Ambient == 0.0) {
         return;
     }
 
-    Colour->Red += Surface_Colour->Red * Texture->Object_Ambient * Attenuation;
-    Colour->Green +=
-        Surface_Colour->Green * Texture->Object_Ambient * Attenuation;
-    Colour->Blue +=
-        Surface_Colour->Blue * Texture->Object_Ambient * Attenuation;
+    colour->Red += surfaceColour->Red * texture->Object_Ambient * attenuation;
+    colour->Green +=
+        surfaceColour->Green * texture->Object_Ambient * attenuation;
+    colour->Blue += surfaceColour->Blue * texture->Object_Ambient * attenuation;
 }
 
 void
-Diffuse(Texture *Texture, Vector3D *Intersection_Point, Ray *Eye,
-    Vector3D *Surface_Normal, RGBAColor *Surface_Colour, RGBAColor *Colour,
-    DBL Attenuation)
+Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
+    Vector3D *surfaceNormal, RGBAColor *surfaceColour, RGBAColor *colour,
+    DBL attenuation)
 {
-    DBL Light_Source_Depth;
-    Ray Light_Source_Ray;
-    Light *Light_Source;
-    SimpleBody *Blocking_Object;
-    int Intersection_Found;
-    Intersection *Local_Intersection;
-    Vector3D REye;
-    RGBAColor Light_Colour;
-    PriorityQueueNode *Local_Queue;
+    DBL lightSourceDepth;
+    Ray lightSourceRay;
+    Light *lightSource;
+    SimpleBody *blockingObject;
+    int intersectionFound;
+    Intersection *localIntersection;
+    Vector3D rEye;
+    RGBAColor lightColour;
+    PriorityQueueNode *localQueue;
 
-    REye.x = 0;
-    REye.y = 0;
-    REye.z = 0;
+    rEye.x = 0;
+    rEye.y = 0;
+    rEye.z = 0;
 
-    if ((Texture->Object_Diffuse == 0.0) && (Texture->Object_Specular == 0.0) &&
-        (Texture->Object_Phong == 0.0)) {
+    if ((texture->Object_Diffuse == 0.0) && (texture->Object_Specular == 0.0) &&
+        (texture->Object_Phong == 0.0)) {
         return;
     }
 
-    if (Texture->Object_Specular != 0.0) {
-        REye.x = -Eye->Direction.x;
-        REye.y = -Eye->Direction.y;
-        REye.z = -Eye->Direction.z;
+    if (texture->Object_Specular != 0.0) {
+        rEye.x = -eye->Direction.x;
+        rEye.y = -eye->Direction.y;
+        rEye.z = -eye->Direction.z;
     }
 
-    Local_Queue = pq_pop(128);
+    localQueue = pq_pop(128);
 
-    for (Light_Source = GLOBAL_frame.Light_Sources; Light_Source != NULL;
-         Light_Source = Light_Source->Next_Light_Source) {
-        Intersection_Found = FALSE;
+    for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
+         lightSource = lightSource->Next_Light_Source) {
+        intersectionFound = FALSE;
 
-        do_light(Light_Source, &Light_Source_Depth, &Light_Source_Ray,
-            Intersection_Point, &Light_Colour);
+        doLight(lightSource, &lightSourceDepth, &lightSourceRay,
+            intersectionPoint, &lightColour);
 
         /* What objects does this ray intersect? */
-        if (Quality > 3) {
-            Shadow_Test_Flag = TRUE;
-            for (Blocking_Object = GLOBAL_frame.Objects;
-                 Blocking_Object != NULL;
-                 Blocking_Object = Blocking_Object->Next_Object) {
+        if (quality > 3) {
+            shadowTestFlag = TRUE;
+            for (blockingObject = globalFrame.Objects;
+                 blockingObject != nullptr;
+                 blockingObject = blockingObject->Next_Object) {
 
-                Shadow_Ray_Tests++;
+                shadowRayTests++;
                 for (All_Intersections(
-                         Blocking_Object, &Light_Source_Ray, Local_Queue);
-                     (Local_Intersection = Local_Queue->getHighest()) !=
-                     NULL;
-                     Local_Queue->deleteHighest()) {
+                         blockingObject, &lightSourceRay, localQueue);
+                     (localIntersection = localQueue->getHighest()) != nullptr;
+                     localQueue->deleteHighest()) {
 
-                    if ((Local_Intersection->Depth <
-                            Light_Source_Depth - Small_Tolerance) &&
-                        (Local_Intersection->Depth > SHADOW_TOLERANCE)) {
+                    if ((localIntersection->Depth <
+                            lightSourceDepth - Small_Tolerance) &&
+                        (localIntersection->Depth > SHADOW_TOLERANCE)) {
 
                         /* Does the object not cast a shadow? */
-                        if (!Local_Intersection->Object->No_Shadow_Flag) {
-                            if (do_blocking(Local_Intersection, &Light_Colour,
-                                    Local_Queue)) {
-                                Intersection_Found = TRUE;
+                        if (!localIntersection->Object->No_Shadow_Flag) {
+                            if (doBlocking(localIntersection, &lightColour,
+                                    localQueue)) {
+                                intersectionFound = TRUE;
                                 break;
                             }
                         }
                     }
                 }
-                if (Intersection_Found) {
+                if (intersectionFound) {
                     break;
                 }
             }
-            Shadow_Test_Flag = FALSE;
+            shadowTestFlag = FALSE;
         }
 
         /* If light source was not blocked by any intervening object, then
               calculate it's contribution to the object's overall illumination
          */
 
-        if (!Intersection_Found) {
-            if (Texture->Object_Phong > 0.0) { /* Phong Hilite */
-                do_phong(Texture, &Light_Source_Ray, Eye->Direction,
-                    Surface_Normal, Colour, &Light_Colour, Surface_Colour);
+        if (!intersectionFound) {
+            if (texture->Object_Phong > 0.0) { /* Phong Hilite */
+                doPhong(texture, &lightSourceRay, eye->Direction, surfaceNormal,
+                    colour, &lightColour, surfaceColour);
             }
 
-            if (Texture->Object_Specular > 0.0) { /* Specular Hilite */
-                do_specular(Texture, &Light_Source_Ray, REye, Surface_Normal,
-                    Colour, &Light_Colour, Surface_Colour);
+            if (texture->Object_Specular > 0.0) { /* Specular Hilite */
+                doSpecular(texture, &lightSourceRay, rEye, surfaceNormal,
+                    colour, &lightColour, surfaceColour);
             }
 
-            if (Texture->Object_Diffuse > 0.0) { /* Normal Diffuse Illum. */
-                do_diffuse(Texture, &Light_Source_Ray, Surface_Normal, Colour,
-                    &Light_Colour, Surface_Colour, Attenuation);
+            if (texture->Object_Diffuse > 0.0) { /* Normal Diffuse Illum. */
+                doDiffuse(texture, &lightSourceRay, surfaceNormal, colour,
+                    &lightColour, surfaceColour, attenuation);
             }
         }
     }
-    Local_Queue->pushBackToPool();
+    localQueue->pushBackToPool();
 }
 
 static void
-do_light(Light *Light_Source, DBL *Light_Source_Depth, Ray *Light_Source_Ray,
-    Vector3D *Intersection_Point, RGBAColor *Light_Colour)
+doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
+    Vector3D *intersectionPoint, RGBAColor *lightColour)
 {
-    DBL Attenuation = 1.0;
+    DBL attenuation = 1.0;
 
     /* Get the light source colour. */
-    if (Light_Source->Shape_Colour == NULL) {
-        Make_Colour(Light_Colour, 1.0, 1.0, 1.0);
+    if (lightSource->Shape_Colour == nullptr) {
+        Make_Colour(lightColour, 1.0, 1.0, 1.0);
     } else {
-        *Light_Colour = *Light_Source->Shape_Colour;
+        *lightColour = *lightSource->Shape_Colour;
     }
 
-    Light_Source_Ray->Initial = *Intersection_Point;
-    Light_Source_Ray->Quadric_Constants_Cached = FALSE;
+    lightSourceRay->Initial = *intersectionPoint;
+    lightSourceRay->Quadric_Constants_Cached = FALSE;
 
-    VSub(
-        Light_Source_Ray->Direction, Light_Source->Center, *Intersection_Point);
+    VSub(lightSourceRay->Direction, lightSource->Center, *intersectionPoint);
 
-    VLength(*Light_Source_Depth, Light_Source_Ray->Direction);
+    VLength(*lightSourceDepth, lightSourceRay->Direction);
 
-    VScale(Light_Source_Ray->Direction, Light_Source_Ray->Direction,
-        1.0 / (*Light_Source_Depth));
+    VScale(lightSourceRay->Direction, lightSourceRay->Direction,
+        1.0 / (*lightSourceDepth));
 
-    Attenuation = Attenuate_Light(Light_Source, Light_Source_Ray);
+    attenuation = Attenuate_Light(lightSource, lightSourceRay);
 
     /* Now scale the color by the attenuation */
-    Light_Colour->Red *= Attenuation;
-    Light_Colour->Green *= Attenuation;
-    Light_Colour->Blue *= Attenuation;
+    lightColour->Red *= attenuation;
+    lightColour->Green *= attenuation;
+    lightColour->Blue *= attenuation;
 }
 
 static int
-do_blocking(Intersection *Local_Intersection, RGBAColor *Light_Colour,
-    PriorityQueueNode *Local_Queue)
+doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
+    PriorityQueueNode *localQueue)
 {
-    Shadow_Rays_Succeeded++;
+    shadowRaysSucceeded++;
 
-    Determine_Surface_Colour(Local_Intersection, Light_Colour, NULL, TRUE);
+    Determine_Surface_Colour(localIntersection, lightColour, nullptr, TRUE);
 
-    if ((Light_Colour->Red < 0.01) && (Light_Colour->Green < 0.01) &&
-        (Light_Colour->Blue < 0.01)) {
+    if ((lightColour->Red < 0.01) && (lightColour->Green < 0.01) &&
+        (lightColour->Blue < 0.01)) {
 
-        while (Local_Queue->getHighest()) {
-            Local_Queue->deleteHighest();
+        while (localQueue->getHighest()) {
+            localQueue->deleteHighest();
         }
         return TRUE;
     }
@@ -293,247 +291,245 @@ do_blocking(Intersection *Local_Intersection, RGBAColor *Light_Colour,
 }
 
 static void
-do_phong(Texture *Texture, Ray *Light_Source_Ray, Vector3D Eye,
-    Vector3D *Surface_Normal, RGBAColor *Colour, RGBAColor *Light_Colour,
-    RGBAColor *Surface_Colour)
+doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
+    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+    RGBAColor *surfaceColour)
 {
-    DBL Cos_Angle_Of_Incidence, Normal_Length, Intensity;
-    Vector3D Local_Normal, Normal_Projection, Reflect_Direction;
+    DBL cosAngleOfIncidence, normalLength, intensity;
+    Vector3D localNormal;
+    Vector3D normalProjection;
+    Vector3D reflectDirection;
 
-    VDot(Cos_Angle_Of_Incidence, Eye, *Surface_Normal);
+    VDot(cosAngleOfIncidence, eye, *surfaceNormal);
 
-    if (Cos_Angle_Of_Incidence < 0.0) {
-        Local_Normal = *Surface_Normal;
-        Cos_Angle_Of_Incidence = -Cos_Angle_Of_Incidence;
+    if (cosAngleOfIncidence < 0.0) {
+        localNormal = *surfaceNormal;
+        cosAngleOfIncidence = -cosAngleOfIncidence;
     } else {
-        VScale(Local_Normal, *Surface_Normal, -1.0);
+        VScale(localNormal, *surfaceNormal, -1.0);
     }
 
-    VScale(Normal_Projection, Local_Normal, Cos_Angle_Of_Incidence);
-    VScale(Normal_Projection, Normal_Projection, 2.0);
-    VAdd(Reflect_Direction, Eye, Normal_Projection);
+    VScale(normalProjection, localNormal, cosAngleOfIncidence);
+    VScale(normalProjection, normalProjection, 2.0);
+    VAdd(reflectDirection, eye, normalProjection);
 
-    VDot(
-        Cos_Angle_Of_Incidence, Reflect_Direction, Light_Source_Ray->Direction);
-    VLength(Normal_Length, Light_Source_Ray->Direction);
+    VDot(cosAngleOfIncidence, reflectDirection, lightSourceRay->Direction);
+    VLength(normalLength, lightSourceRay->Direction);
 
-    if (Normal_Length == 0.0) {
-        Cos_Angle_Of_Incidence = 0.0;
+    if (normalLength == 0.0) {
+        cosAngleOfIncidence = 0.0;
     } else {
-        Cos_Angle_Of_Incidence /= Normal_Length;
+        cosAngleOfIncidence /= normalLength;
     }
 
-    if (Cos_Angle_Of_Incidence < 0.0) {
-        Cos_Angle_Of_Incidence = 0;
+    if (cosAngleOfIncidence < 0.0) {
+        cosAngleOfIncidence = 0;
     }
 
-    if (Texture->Object_PhongSize != 1.0) {
-        Intensity = pow(Cos_Angle_Of_Incidence, Texture->Object_PhongSize);
+    if (texture->Object_PhongSize != 1.0) {
+        intensity = pow(cosAngleOfIncidence, texture->Object_PhongSize);
     } else {
-        Intensity = Cos_Angle_Of_Incidence;
+        intensity = cosAngleOfIncidence;
     }
 
-    Intensity *= Texture->Object_Phong;
+    intensity *= texture->Object_Phong;
 
-    if (Texture->Metallic_Flag) {
-        Colour->Red += Intensity * (Surface_Colour->Red);
-        Colour->Green += Intensity * (Surface_Colour->Green);
-        Colour->Blue += Intensity * (Surface_Colour->Blue);
+    if (texture->Metallic_Flag) {
+        colour->Red += intensity * (surfaceColour->Red);
+        colour->Green += intensity * (surfaceColour->Green);
+        colour->Blue += intensity * (surfaceColour->Blue);
     } else {
-        Colour->Red += Intensity * (Light_Colour->Red);
-        Colour->Green += Intensity * (Light_Colour->Green);
-        Colour->Blue += Intensity * (Light_Colour->Blue);
+        colour->Red += intensity * (lightColour->Red);
+        colour->Green += intensity * (lightColour->Green);
+        colour->Blue += intensity * (lightColour->Blue);
     }
 }
 
 static void
-do_specular(Texture *Texture, Ray *Light_Source_Ray, Vector3D REye,
-    Vector3D *Surface_Normal, RGBAColor *Colour, RGBAColor *Light_Colour,
-    RGBAColor *Surface_Colour)
+doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
+    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+    RGBAColor *surfaceColour)
 {
-    DBL Cos_Angle_Of_Incidence, Normal_Length, Intensity, Halfway_Length,
-        Roughness;
-    Vector3D Halfway;
+    DBL cosAngleOfIncidence, normalLength, intensity, halfwayLength, roughness;
+    Vector3D halfway;
 
-    VHalf(Halfway, REye, Light_Source_Ray->Direction);
-    VLength(Normal_Length, *Surface_Normal);
-    VLength(Halfway_Length, Halfway);
-    VDot(Cos_Angle_Of_Incidence, Halfway, *Surface_Normal);
+    VHalf(halfway, rEye, lightSourceRay->Direction);
+    VLength(normalLength, *surfaceNormal);
+    VLength(halfwayLength, halfway);
+    VDot(cosAngleOfIncidence, halfway, *surfaceNormal);
 
-    if (Normal_Length == 0.0 || Halfway_Length == 0.0) {
-        Cos_Angle_Of_Incidence = 0.0;
+    if (normalLength == 0.0 || halfwayLength == 0.0) {
+        cosAngleOfIncidence = 0.0;
     } else {
-        Cos_Angle_Of_Incidence /= (Normal_Length * Halfway_Length);
+        cosAngleOfIncidence /= (normalLength * halfwayLength);
     }
 
-    if (Cos_Angle_Of_Incidence < 0.0) {
-        Cos_Angle_Of_Incidence = 0.0;
+    if (cosAngleOfIncidence < 0.0) {
+        cosAngleOfIncidence = 0.0;
     }
 
-    Roughness = 1.0 / Texture->Object_Roughness;
+    roughness = 1.0 / texture->Object_Roughness;
 
-    if (Roughness != 1.0) {
-        Intensity = pow(Cos_Angle_Of_Incidence, Roughness);
+    if (roughness != 1.0) {
+        intensity = pow(cosAngleOfIncidence, roughness);
     } else {
-        Intensity = Cos_Angle_Of_Incidence;
+        intensity = cosAngleOfIncidence;
     }
-    Intensity *= Texture->Object_Specular;
-    if (Texture->Metallic_Flag) {
-        Colour->Red += Intensity * (Surface_Colour->Red);
-        Colour->Green += Intensity * (Surface_Colour->Green);
-        Colour->Blue += Intensity * (Surface_Colour->Blue);
+    intensity *= texture->Object_Specular;
+    if (texture->Metallic_Flag) {
+        colour->Red += intensity * (surfaceColour->Red);
+        colour->Green += intensity * (surfaceColour->Green);
+        colour->Blue += intensity * (surfaceColour->Blue);
     } else {
-        Colour->Red += Intensity * (Light_Colour->Red);
-        Colour->Green += Intensity * (Light_Colour->Green);
-        Colour->Blue += Intensity * (Light_Colour->Blue);
+        colour->Red += intensity * (lightColour->Red);
+        colour->Green += intensity * (lightColour->Green);
+        colour->Blue += intensity * (lightColour->Blue);
     }
 }
 
 static void
-do_diffuse(Texture *Texture, Ray *Light_Source_Ray, Vector3D *Surface_Normal,
-    RGBAColor *Colour, RGBAColor *Light_Colour, RGBAColor *Surface_Colour,
-    DBL Attenuation)
+doDiffuse(Texture *texture, Ray *lightSourceRay, Vector3D *surfaceNormal,
+    RGBAColor *colour, RGBAColor *lightColour, RGBAColor *surfaceColour,
+    DBL attenuation)
 {
-    DBL Cos_Angle_Of_Incidence, Intensity, RandomNumber;
+    DBL cosAngleOfIncidence, intensity, randomNumber;
 
-    VDot(Cos_Angle_Of_Incidence, *Surface_Normal, Light_Source_Ray->Direction);
-    if (Cos_Angle_Of_Incidence < 0.0) {
-        Cos_Angle_Of_Incidence = -Cos_Angle_Of_Incidence;
+    VDot(cosAngleOfIncidence, *surfaceNormal, lightSourceRay->Direction);
+    if (cosAngleOfIncidence < 0.0) {
+        cosAngleOfIncidence = -cosAngleOfIncidence;
     }
 
-    if (Texture->Object_Brilliance != 1.0) {
-        Intensity = pow(Cos_Angle_Of_Incidence, Texture->Object_Brilliance);
+    if (texture->Object_Brilliance != 1.0) {
+        intensity = pow(cosAngleOfIncidence, texture->Object_Brilliance);
     } else {
-        Intensity = Cos_Angle_Of_Incidence;
+        intensity = cosAngleOfIncidence;
     }
 
-    Intensity *= Texture->Object_Diffuse * Attenuation;
+    intensity *= texture->Object_Diffuse * attenuation;
 
-    RandomNumber = (rand() & 0x7FFF) / (DBL)0x7FFF;
+    randomNumber = (rand() & 0x7FFF) / (DBL)0x7FFF;
 
-    Intensity -= RandomNumber * Texture->Texture_Randomness;
+    intensity -= randomNumber * texture->Texture_Randomness;
 
-    Colour->Red += Intensity * (Surface_Colour->Red) * (Light_Colour->Red);
-    Colour->Green +=
-        Intensity * (Surface_Colour->Green) * (Light_Colour->Green);
-    Colour->Blue += Intensity * (Surface_Colour->Blue) * (Light_Colour->Blue);
+    colour->Red += intensity * (surfaceColour->Red) * (lightColour->Red);
+    colour->Green += intensity * (surfaceColour->Green) * (lightColour->Green);
+    colour->Blue += intensity * (surfaceColour->Blue) * (lightColour->Blue);
 }
 
 void
-Reflect(Texture *Texture, Vector3D *Intersection_Point, Ray *ray,
-    Vector3D *Surface_Normal, RGBAColor *Colour)
+Reflect(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
+    Vector3D *surfaceNormal, RGBAColor *colour)
 {
-    Ray New_Ray;
-    RGBAColor Temp_Colour;
-    Vector3D Local_Normal;
-    Vector3D Normal_Projection;
-    Vector3D Surface_Offset;
-    register DBL Normal_Component;
+    Ray newRay;
+    RGBAColor tempColour;
+    Vector3D localNormal;
+    Vector3D normalProjection;
+    Vector3D surfaceOffset;
+    register DBL normalComponent;
 
-    if (Texture->Object_Reflection != 0.0) {
-        Reflected_Rays_Traced++;
-        VDot(Normal_Component, ray->Direction, *Surface_Normal);
-        if (Normal_Component < 0.0) {
-            Local_Normal = *Surface_Normal;
-            Normal_Component *= -1.0;
+    if (texture->Object_Reflection != 0.0) {
+        reflectedRaysTraced++;
+        VDot(normalComponent, ray->Direction, *surfaceNormal);
+        if (normalComponent < 0.0) {
+            localNormal = *surfaceNormal;
+            normalComponent *= -1.0;
         } else
-            VScale(Local_Normal, *Surface_Normal, -1.0);
+            VScale(localNormal, *surfaceNormal, -1.0);
 
-        VScale(Normal_Projection, Local_Normal, Normal_Component);
-        VScale(Normal_Projection, Normal_Projection, 2.0);
-        VAdd(New_Ray.Direction, ray->Direction, Normal_Projection);
-        New_Ray.Initial = *Intersection_Point;
+        VScale(normalProjection, localNormal, normalComponent);
+        VScale(normalProjection, normalProjection, 2.0);
+        VAdd(newRay.Direction, ray->Direction, normalProjection);
+        newRay.Initial = *intersectionPoint;
 
         /* ARE 08/25/91 */
 
-        VScale(Surface_Offset, New_Ray.Direction, 2.0 * Small_Tolerance);
-        VAdd(New_Ray.Initial, New_Ray.Initial, Surface_Offset);
+        VScale(surfaceOffset, newRay.Direction, 2.0 * Small_Tolerance);
+        VAdd(newRay.Initial, newRay.Initial, surfaceOffset);
 
-        Copy_Ray_Containers(&New_Ray, ray);
-        Trace_Level++;
-        Make_Colour(&Temp_Colour, 0.0, 0.0, 0.0);
-        New_Ray.Quadric_Constants_Cached = FALSE;
-        Trace(&New_Ray, &Temp_Colour);
-        Trace_Level--;
+        Copy_Ray_Containers(&newRay, ray);
+        traceLevel++;
+        Make_Colour(&tempColour, 0.0, 0.0, 0.0);
+        newRay.Quadric_Constants_Cached = FALSE;
+        Trace(&newRay, &tempColour);
+        traceLevel--;
 
-        Colour->Red += Temp_Colour.Red * Texture->Object_Reflection;
-        Colour->Green += Temp_Colour.Green * Texture->Object_Reflection;
-        Colour->Blue += Temp_Colour.Blue * Texture->Object_Reflection;
+        colour->Red += tempColour.Red * texture->Object_Reflection;
+        colour->Green += tempColour.Green * texture->Object_Reflection;
+        colour->Blue += tempColour.Blue * texture->Object_Reflection;
     }
 }
 
 void
-Refract(Texture *Texture, Vector3D *Intersection_Point, Ray *ray,
-    Vector3D *Surface_Normal, RGBAColor *Colour)
+Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
+    Vector3D *surfaceNormal, RGBAColor *colour)
 {
-    Ray New_Ray;
-    RGBAColor Temp_Colour;
-    Vector3D Local_Normal;
-    Vector3D Ray_Direction;
-    register DBL Normal_Component, Temp_IOR;
+    Ray newRay;
+    RGBAColor tempColour;
+    Vector3D localNormal;
+    Vector3D rayDirection;
+    register DBL normalComponent;
+    register DBL tempIor;
     DBL temp, ior;
 
-    if (Surface_Normal == NULL) {
-        New_Ray.Initial = *Intersection_Point;
-        New_Ray.Direction = ray->Direction;
+    if (surfaceNormal == nullptr) {
+        newRay.Initial = *intersectionPoint;
+        newRay.Direction = ray->Direction;
 
-        Copy_Ray_Containers(&New_Ray, ray);
-        Trace_Level++;
-        Transmitted_Rays_Traced++;
-        Make_Colour(&Temp_Colour, 0.0, 0.0, 0.0);
-        New_Ray.Quadric_Constants_Cached = FALSE;
-        Trace(&New_Ray, &Temp_Colour);
-        Trace_Level--;
-        (Colour->Red) += Temp_Colour.Red;
-        (Colour->Green) += Temp_Colour.Green;
-        (Colour->Blue) += Temp_Colour.Blue;
+        Copy_Ray_Containers(&newRay, ray);
+        traceLevel++;
+        transmittedRaysTraced++;
+        Make_Colour(&tempColour, 0.0, 0.0, 0.0);
+        newRay.Quadric_Constants_Cached = FALSE;
+        Trace(&newRay, &tempColour);
+        traceLevel--;
+        (colour->Red) += tempColour.Red;
+        (colour->Green) += tempColour.Green;
+        (colour->Blue) += tempColour.Blue;
     } else {
-        Refracted_Rays_Traced++;
-        VDot(Normal_Component, ray->Direction, *Surface_Normal);
-        if (Normal_Component <= 0.0) {
-            Local_Normal.x = Surface_Normal->x;
-            Local_Normal.y = Surface_Normal->y;
-            Local_Normal.z = Surface_Normal->z;
-            Normal_Component *= -1.0;
+        refractedRaysTraced++;
+        VDot(normalComponent, ray->Direction, *surfaceNormal);
+        if (normalComponent <= 0.0) {
+            localNormal.x = surfaceNormal->x;
+            localNormal.y = surfaceNormal->y;
+            localNormal.z = surfaceNormal->z;
+            normalComponent *= -1.0;
         } else {
-            VScale(Local_Normal, *Surface_Normal, -1.0);
+            VScale(localNormal, *surfaceNormal, -1.0);
         }
 
-        Copy_Ray_Containers(&New_Ray, ray);
+        Copy_Ray_Containers(&newRay, ray);
 
         if (ray->Containing_Index == -1) {
             /* The ray is entering from the atmosphere */
-            Ray_Enter(&New_Ray, Texture);
-            ior = (GLOBAL_frame.Atmosphere_IOR) /
-                  (Texture->Object_Index_Of_Refraction);
+            Ray_Enter(&newRay, texture);
+            ior = (globalFrame.Atmosphere_IOR) /
+                  (texture->Object_Index_Of_Refraction);
         } else {
             /* The ray is currently inside an object */
-            if (New_Ray.Containing_Textures[New_Ray.Containing_Index] ==
-                Texture)
+            if (newRay.Containing_Textures[newRay.Containing_Index] == texture)
             /*            if (inside) */
             {
                 /* The ray is leaving the current object */
-                New_Ray.exitContainingMedium();
-                if (New_Ray.Containing_Index == -1) {
+                newRay.exitContainingMedium();
+                if (newRay.Containing_Index == -1) {
                     /* The ray is leaving into the atmosphere */
-                    Temp_IOR = GLOBAL_frame.Atmosphere_IOR;
+                    tempIor = globalFrame.Atmosphere_IOR;
                 } else {
                     /* The ray is leaving into another object */
-                    Temp_IOR =
-                        New_Ray.Containing_IORs[New_Ray.Containing_Index];
+                    tempIor = newRay.Containing_IORs[newRay.Containing_Index];
                 }
 
-                ior = (Texture->Object_Index_Of_Refraction) / Temp_IOR;
+                ior = (texture->Object_Index_Of_Refraction) / tempIor;
             } else {
                 /* The ray is entering a new object */
-                Temp_IOR = New_Ray.Containing_IORs[New_Ray.Containing_Index];
-                Ray_Enter(&New_Ray, Texture);
+                tempIor = newRay.Containing_IORs[newRay.Containing_Index];
+                Ray_Enter(&newRay, texture);
 
-                ior = Temp_IOR / (Texture->Object_Index_Of_Refraction);
+                ior = tempIor / (texture->Object_Index_Of_Refraction);
             }
         }
 
-        temp = 1.0 + ior * ior * (Normal_Component * Normal_Component - 1.0);
+        temp = 1.0 + ior * ior * (normalComponent * normalComponent - 1.0);
         if (temp < 0.0) {
             /* Total internal reflection - not yet implemented.
     Reflect (Texture, Intersection_Point, ray, Surface_Normal, Color);
@@ -541,259 +537,259 @@ Refract(Texture *Texture, Vector3D *Intersection_Point, Ray *ray,
             return;
         }
 
-        temp = ior * Normal_Component - sqrt(temp);
-        VScale(Local_Normal, Local_Normal, temp);
-        VScale(Ray_Direction, ray->Direction, ior);
-        VAdd(New_Ray.Direction, Local_Normal, Ray_Direction);
-        VNormalize(New_Ray.Direction, New_Ray.Direction);
+        temp = ior * normalComponent - sqrt(temp);
+        VScale(localNormal, localNormal, temp);
+        VScale(rayDirection, ray->Direction, ior);
+        VAdd(newRay.Direction, localNormal, rayDirection);
+        VNormalize(newRay.Direction, newRay.Direction);
 
-        New_Ray.Initial = *Intersection_Point;
-        Trace_Level++;
-        Make_Colour(&Temp_Colour, 0.0, 0.0, 0.0);
-        New_Ray.Quadric_Constants_Cached = FALSE;
+        newRay.Initial = *intersectionPoint;
+        traceLevel++;
+        Make_Colour(&tempColour, 0.0, 0.0, 0.0);
+        newRay.Quadric_Constants_Cached = FALSE;
 
-        Trace(&New_Ray, &Temp_Colour);
-        Trace_Level--;
+        Trace(&newRay, &tempColour);
+        traceLevel--;
 
-        (Colour->Red) += (Temp_Colour.Red) * (Texture->Object_Refraction);
-        (Colour->Green) += (Temp_Colour.Green) * (Texture->Object_Refraction);
-        (Colour->Blue) += (Temp_Colour.Blue) * (Texture->Object_Refraction);
+        (colour->Red) += (tempColour.Red) * (texture->Object_Refraction);
+        (colour->Green) += (tempColour.Green) * (texture->Object_Refraction);
+        (colour->Blue) += (tempColour.Blue) * (texture->Object_Refraction);
     }
 }
 
 void
-Fog(DBL Distance, RGBAColor *Fog_Colour, DBL Fog_Distance, RGBAColor *Colour)
+Fog(DBL distance, RGBAColor *fogColour, DBL fogDistance, RGBAColor *colour)
 {
-    DBL Fog_Factor, Fog_Factor_Inverse;
+    DBL fogFactor, fogFactorInverse;
 
-    Fog_Factor = exp(-1.0 * Distance / Fog_Distance);
-    Fog_Factor_Inverse = 1.0 - Fog_Factor;
-    Colour->Red =
-        Colour->Red * Fog_Factor + Fog_Colour->Red * Fog_Factor_Inverse;
-    Colour->Green =
-        Colour->Green * Fog_Factor + Fog_Colour->Green * Fog_Factor_Inverse;
-    Colour->Blue =
-        Colour->Blue * Fog_Factor + Fog_Colour->Blue * Fog_Factor_Inverse;
+    fogFactor = exp(-1.0 * distance / fogDistance);
+    fogFactorInverse = 1.0 - fogFactor;
+    colour->Red = colour->Red * fogFactor + fogColour->Red * fogFactorInverse;
+    colour->Green =
+        colour->Green * fogFactor + fogColour->Green * fogFactorInverse;
+    colour->Blue =
+        colour->Blue * fogFactor + fogColour->Blue * fogFactorInverse;
 }
 
 void
-Compute_Reflected_Colour(Ray *ray, Texture *Texture,
-    Intersection *Ray_Intersection, RGBAColor *Surface_Colour,
-    RGBAColor *Filter_Colour, RGBAColor *Colour)
+Compute_Reflected_Colour(Ray *ray, Texture *texture,
+    Intersection *rayIntersection, RGBAColor *surfaceColour,
+    RGBAColor *filterColour, RGBAColor *colour)
 {
-    Vector3D Surface_Normal;
-    DBL Normal_Direction, Attenuation;
-    RGBAColor Emitted_Colour;
+    Vector3D surfaceNormal;
+    DBL normalDirection, attenuation;
+    RGBAColor emittedColour;
 
     /* This variable keeps track of how much colour comes from the surface
 of the object and how much is transmited through. */
 
-    Make_Colour(&Emitted_Colour, 0.0, 0.0, 0.0);
+    Make_Colour(&emittedColour, 0.0, 0.0, 0.0);
 
-    if (Texture == NULL) {
-        Texture = Ray_Intersection->Object->Object_Texture;
+    if (texture == nullptr) {
+        texture = rayIntersection->Object->Object_Texture;
     }
 
-    if (Quality <= 1) {
-        Surface_Colour->Alpha = 0.0;
+    if (quality <= 1) {
+        surfaceColour->Alpha = 0.0;
 
-        Colour->Red += Surface_Colour->Red * Filter_Colour->Alpha;
-        Colour->Green += Surface_Colour->Green * Filter_Colour->Alpha;
-        Colour->Blue += Surface_Colour->Blue * Filter_Colour->Alpha;
+        colour->Red += surfaceColour->Red * filterColour->Alpha;
+        colour->Green += surfaceColour->Green * filterColour->Alpha;
+        colour->Blue += surfaceColour->Blue * filterColour->Alpha;
         return;
     }
 
-    Normal(&Surface_Normal, (SimpleBody *)Ray_Intersection->Shape,
-        &Ray_Intersection->Point);
+    Normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
+        &rayIntersection->Point);
 
-    if (Quality >= 8) {
-        Perturb_Normal(&Surface_Normal, Texture, &Ray_Intersection->Point,
-            &Surface_Normal);
+    if (quality >= 8) {
+        Perturb_Normal(
+            &surfaceNormal, texture, &rayIntersection->Point, &surfaceNormal);
     }
 
     /* If the surface normal points away, flip its direction. */
-    VDot(Normal_Direction, Surface_Normal, ray->Direction);
-    if (Normal_Direction > 0.0) {
-        VScale(Surface_Normal, Surface_Normal, -1.0);
+    VDot(normalDirection, surfaceNormal, ray->Direction);
+    if (normalDirection > 0.0) {
+        VScale(surfaceNormal, surfaceNormal, -1.0);
     }
 
-    Attenuation = Filter_Colour->Alpha * (1.0 - Surface_Colour->Alpha);
+    attenuation = filterColour->Alpha * (1.0 - surfaceColour->Alpha);
 
-    Ambient(Texture, Surface_Colour, &Emitted_Colour, Attenuation);
-    Diffuse(Texture, &Ray_Intersection->Point, ray, &Surface_Normal,
-        Surface_Colour, &Emitted_Colour, Attenuation);
-    Colour->Red += Emitted_Colour.Red;
-    Colour->Green += Emitted_Colour.Green;
-    Colour->Blue += Emitted_Colour.Blue;
-    if (Quality >= 8) {
-        Reflect(
-            Texture, &Ray_Intersection->Point, ray, &Surface_Normal, Colour);
+    Ambient(texture, surfaceColour, &emittedColour, attenuation);
+    Diffuse(texture, &rayIntersection->Point, ray, &surfaceNormal,
+        surfaceColour, &emittedColour, attenuation);
+    colour->Red += emittedColour.Red;
+    colour->Green += emittedColour.Green;
+    colour->Blue += emittedColour.Blue;
+    if (quality >= 8) {
+        Reflect(texture, &rayIntersection->Point, ray, &surfaceNormal, colour);
     }
 }
 
 void
 Determine_Surface_Colour(
-    Intersection *Ray_Intersection, RGBAColor *Colour, Ray *ray, int Shadow_Ray)
+    Intersection *rayIntersection, RGBAColor *colour, Ray *ray, int shadowRay)
 {
-    RGBAColor Surface_Colour, Refracted_Colour, Filter_Colour;
-    Texture *Temp_Texture, *Texture;
-    Vector3D Surface_Normal;
-    DBL Normal_Direction;
+    RGBAColor surfaceColour;
+    RGBAColor refractedColour;
+    RGBAColor filterColour;
+    Texture *tempTexture;
+    Texture *texture;
+    Vector3D surfaceNormal;
+    DBL normalDirection;
     int surface;
 
-    if (!Shadow_Ray)
-        Make_Colour(Colour, 0.0, 0.0, 0.0);
+    if (!shadowRay)
+        Make_Colour(colour, 0.0, 0.0, 0.0);
 
     if (Options & DEBUGGING) {
-        if (Ray_Intersection->Shape->Shape_Colour) {
+        if (rayIntersection->Shape->Shape_Colour) {
             printf("Depth: %f Object %d Colour %f %f %f ",
-                Ray_Intersection->Depth, Ray_Intersection->Shape->Type,
-                Ray_Intersection->Shape->Shape_Colour->Red,
-                Ray_Intersection->Shape->Shape_Colour->Green,
-                Ray_Intersection->Shape->Shape_Colour->Blue);
+                rayIntersection->Depth, rayIntersection->Shape->Type,
+                rayIntersection->Shape->Shape_Colour->Red,
+                rayIntersection->Shape->Shape_Colour->Green,
+                rayIntersection->Shape->Shape_Colour->Blue);
         } else {
-            printf("Depth: %f Object %d Colour NIL ", Ray_Intersection->Depth,
-                Ray_Intersection->Shape->Type);
+            printf("Depth: %f Object %d Colour NIL ", rayIntersection->Depth,
+                rayIntersection->Shape->Type);
         }
     }
 
-    Make_Colour(&Surface_Colour, 0.0, 0.0, 0.0);
+    Make_Colour(&surfaceColour, 0.0, 0.0, 0.0);
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
-    if ((Texture = Ray_Intersection->Shape->Shape_Texture) == NULL) {
-        Texture = Ray_Intersection->Object->Object_Texture;
+    if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
+        texture = rayIntersection->Object->Object_Texture;
     }
     /* Check to see if this object/shape has a material_map texture, if so */
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
-    if (Texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
-        Texture = material_map(&Ray_Intersection->Point, Texture);
+    if (texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
+        texture = material_map(&rayIntersection->Point, texture);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
      */
 
-    if (Shadow_Ray && (Quality <= 5)) {
+    if (shadowRay && (quality <= 5)) {
         return;
     }
 
-    Make_Colour(&Filter_Colour, 1.0, 1.0, 1.0);
-    Filter_Colour.Alpha = 1.0;
+    Make_Colour(&filterColour, 1.0, 1.0, 1.0);
+    filterColour.Alpha = 1.0;
 
     /* Now, we perform the lighting calculations. */
-    for (surface = 1, Temp_Texture = Texture;
-         (Temp_Texture != NULL) && (Filter_Colour.Alpha > 0.01);
-         surface++, Temp_Texture = Temp_Texture->Next_Texture) {
+    for (surface = 1, tempTexture = texture;
+         (tempTexture != nullptr) && (filterColour.Alpha > 0.01);
+         surface++, tempTexture = tempTexture->Next_Texture) {
 
-        Make_Colour(&Surface_Colour, 0.0, 0.0, 0.0);
-        if (Quality <= 5) {
-            if (Ray_Intersection->Shape->Shape_Colour != NULL) {
-                Surface_Colour = *Ray_Intersection->Shape->Shape_Colour;
-            } else if (Ray_Intersection->Object->Object_Colour != NULL) {
-                Surface_Colour = *Ray_Intersection->Object->Object_Colour;
+        Make_Colour(&surfaceColour, 0.0, 0.0, 0.0);
+        if (quality <= 5) {
+            if (rayIntersection->Shape->Shape_Colour != nullptr) {
+                surfaceColour = *rayIntersection->Shape->Shape_Colour;
+            } else if (rayIntersection->Object->Object_Colour != nullptr) {
+                surfaceColour = *rayIntersection->Object->Object_Colour;
             } else {
-                Make_Colour(&Surface_Colour, 0.5, 0.5, 0.5);
+                Make_Colour(&surfaceColour, 0.5, 0.5, 0.5);
             }
         } else {
-            Colour_At(&Surface_Colour, Temp_Texture, &Ray_Intersection->Point);
+            Colour_At(&surfaceColour, tempTexture, &rayIntersection->Point);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
-        if (!Shadow_Ray) {
-            Compute_Reflected_Colour(ray, Temp_Texture, Ray_Intersection,
-                &Surface_Colour, &Filter_Colour, Colour);
+        if (!shadowRay) {
+            Compute_Reflected_Colour(ray, tempTexture, rayIntersection,
+                &surfaceColour, &filterColour, colour);
         }
 
         if (Options & DEBUGGING) {
             printf("Surface %d\n", surface);
-            printf("    Surf: %6.4f %6.4f %6.4f %6.4f\n", Surface_Colour.Red,
-                Surface_Colour.Green, Surface_Colour.Blue,
-                Surface_Colour.Alpha);
+            printf("    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,
+                surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);
             printf("    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "
                    "Colour: %6.4f %6.4f %6.4f %6.4f  \n",
-                Filter_Colour.Red, Filter_Colour.Green, Filter_Colour.Blue,
-                Filter_Colour.Alpha, Colour->Red, Colour->Green, Colour->Blue,
-                Colour->Alpha);
+                filterColour.Red, filterColour.Green, filterColour.Blue,
+                filterColour.Alpha, colour->Red, colour->Green, colour->Blue,
+                colour->Alpha);
         }
 
-        Filter_Colour.Red *= Surface_Colour.Red;
-        Filter_Colour.Green *= Surface_Colour.Green;
-        Filter_Colour.Blue *= Surface_Colour.Blue;
+        filterColour.Red *= surfaceColour.Red;
+        filterColour.Green *= surfaceColour.Green;
+        filterColour.Blue *= surfaceColour.Blue;
 
-        Filter_Colour.Alpha *= Surface_Colour.Alpha;
+        filterColour.Alpha *= surfaceColour.Alpha;
     }
 
     /* For shadow rays, we have the filter colour now - time to return */
-    if (Shadow_Ray) {
+    if (shadowRay) {
 
-        if (Filter_Colour.Alpha < 0.01) {
-            Make_Colour(Colour, 0.0, 0.0, 0.0);
+        if (filterColour.Alpha < 0.01) {
+            Make_Colour(colour, 0.0, 0.0, 0.0);
             return;
         }
 
-        if (Texture->Object_Refraction > 0.0) {
-            Colour->Red *= Filter_Colour.Red * Texture->Object_Refraction *
-                           Filter_Colour.Alpha;
-            Colour->Green *= Filter_Colour.Green * Texture->Object_Refraction *
-                             Filter_Colour.Alpha;
-            Colour->Blue *= Filter_Colour.Blue * Texture->Object_Refraction *
-                            Filter_Colour.Alpha;
+        if (texture->Object_Refraction > 0.0) {
+            colour->Red *= filterColour.Red * texture->Object_Refraction *
+                           filterColour.Alpha;
+            colour->Green *= filterColour.Green * texture->Object_Refraction *
+                             filterColour.Alpha;
+            colour->Blue *= filterColour.Blue * texture->Object_Refraction *
+                            filterColour.Alpha;
         } else {
-            Colour->Red *= Filter_Colour.Red * Filter_Colour.Alpha;
-            Colour->Green *= Filter_Colour.Green * Filter_Colour.Alpha;
-            Colour->Blue *= Filter_Colour.Blue * Filter_Colour.Alpha;
+            colour->Red *= filterColour.Red * filterColour.Alpha;
+            colour->Green *= filterColour.Green * filterColour.Alpha;
+            colour->Blue *= filterColour.Blue * filterColour.Alpha;
         }
         return;
     }
 
-    if ((Filter_Colour.Alpha > 0.01) && (Quality > 5)) {
-        Make_Colour(&Refracted_Colour, 0.0, 0.0, 0.0);
+    if ((filterColour.Alpha > 0.01) && (quality > 5)) {
+        Make_Colour(&refractedColour, 0.0, 0.0, 0.0);
 
-        if (Texture->Object_Refraction > 0.0) {
-            Normal(&Surface_Normal, (SimpleBody *)Ray_Intersection->Shape,
-                &Ray_Intersection->Point);
+        if (texture->Object_Refraction > 0.0) {
+            Normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
+                &rayIntersection->Point);
 
-            if (Quality > 7) {
-                Perturb_Normal(&Surface_Normal, Texture,
-                    &Ray_Intersection->Point, &Surface_Normal);
+            if (quality > 7) {
+                Perturb_Normal(&surfaceNormal, texture, &rayIntersection->Point,
+                    &surfaceNormal);
             }
 
             /* If the surface normal points away, flip its direction. */
-            VDot(Normal_Direction, Surface_Normal, ray->Direction);
-            if (Normal_Direction > 0.0) {
-                VScale(Surface_Normal, Surface_Normal, -1.0);
+            VDot(normalDirection, surfaceNormal, ray->Direction);
+            if (normalDirection > 0.0) {
+                VScale(surfaceNormal, surfaceNormal, -1.0);
             }
 
-            Refract(Texture, &Ray_Intersection->Point, ray, &Surface_Normal,
-                &Refracted_Colour);
+            Refract(texture, &rayIntersection->Point, ray, &surfaceNormal,
+                &refractedColour);
         } else {
-            Refract(Texture, &Ray_Intersection->Point, ray, NULL,
-                &Refracted_Colour);
+            Refract(texture, &rayIntersection->Point, ray, nullptr,
+                &refractedColour);
         }
 
-        Colour->Red +=
-            Filter_Colour.Red * Refracted_Colour.Red * Filter_Colour.Alpha;
-        Colour->Green +=
-            Filter_Colour.Green * Refracted_Colour.Green * Filter_Colour.Alpha;
-        Colour->Blue +=
-            Filter_Colour.Blue * Refracted_Colour.Blue * Filter_Colour.Alpha;
+        colour->Red +=
+            filterColour.Red * refractedColour.Red * filterColour.Alpha;
+        colour->Green +=
+            filterColour.Green * refractedColour.Green * filterColour.Alpha;
+        colour->Blue +=
+            filterColour.Blue * refractedColour.Blue * filterColour.Alpha;
 
-        if (Texture->Object_Refraction > 0.0 &&
-            Texture->Object_Transmit > 0.0) {
-            Make_Colour(&Refracted_Colour, 0.0, 0.0, 0.0);
-            Refract(Texture, &Ray_Intersection->Point, ray, NULL,
-                &Refracted_Colour);
-            Colour->Red +=
-                Filter_Colour.Red * Refracted_Colour.Red * Filter_Colour.Alpha;
-            Colour->Green += Filter_Colour.Green * Refracted_Colour.Green *
-                             Filter_Colour.Alpha;
-            Colour->Blue += Filter_Colour.Blue * Refracted_Colour.Blue *
-                            Filter_Colour.Alpha;
+        if (texture->Object_Refraction > 0.0 &&
+            texture->Object_Transmit > 0.0) {
+            Make_Colour(&refractedColour, 0.0, 0.0, 0.0);
+            Refract(texture, &rayIntersection->Point, ray, nullptr,
+                &refractedColour);
+            colour->Red +=
+                filterColour.Red * refractedColour.Red * filterColour.Alpha;
+            colour->Green +=
+                filterColour.Green * refractedColour.Green * filterColour.Alpha;
+            colour->Blue +=
+                filterColour.Blue * refractedColour.Blue * filterColour.Alpha;
         }
     }
 
-    if (GLOBAL_frame.Fog_Distance != 0.0) {
-        Fog(Ray_Intersection->Depth, &GLOBAL_frame.Fog_Colour,
-            GLOBAL_frame.Fog_Distance, Colour);
+    if (globalFrame.Fog_Distance != 0.0) {
+        Fog(rayIntersection->Depth, &globalFrame.Fog_Colour,
+            globalFrame.Fog_Distance, colour);
     }
 }

@@ -2,8 +2,8 @@
 #define __HEIGHT_FIELD_H__
 
 #include "common/Frame.h"
-#include "geom/HeightFieldBlock.h"
 #include "geom/Boxes.h"
+#include "geom/HeightFieldBlock.h"
 
 class HeightField : public Geometry {
   public:

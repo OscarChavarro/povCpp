@@ -35,18 +35,18 @@
 #include "io/Dump.h"
 #include "render/Lighting.h"
 
-extern FileHandle *GLOBAL_outputFileHandle;
-extern char Output_File_Name[FILE_NAME_LENGTH];
-extern char Input_File_Name[FILE_NAME_LENGTH];
-extern char Stat_File_Name[FILE_NAME_LENGTH];
-extern char OutputFormat, Color_Bits, PaletteOption;
-extern char VerboseFormat;
+extern FileHandle *globalOutputFileHandle;
+extern char outputFileName[FILE_NAME_LENGTH];
+extern char inputFileName[FILE_NAME_LENGTH];
+extern char statFileName[FILE_NAME_LENGTH];
+extern char outputFormat, colorBits, paletteOption;
+extern char verboseFormat;
 extern unsigned int Options;
-extern int File_Buffer_Size;
-extern int Quality;
-volatile int Stop_Flag;
-extern int First_Line, Last_Line;
-extern long Number_Of_Pixels, Number_Of_Rays, Number_Of_Pixels_Supersampled;
+extern int fileBufferSize;
+extern int quality;
+volatile int stopFlag;
+extern int firstLine, lastLine;
+extern long numberOfPixels, numberOfRays, numberOfPixelsSupersampled;
 
 extern short *hashTable;
 extern unsigned short crctab[256];
@@ -55,232 +55,242 @@ extern unsigned short crctab[256];
                            0xfff]) &                                           \
            0xff]
 
-Frame GLOBAL_frame;
-Ray *VP_Ray;
-int Trace_Level, SuperSampleCount;
+Frame globalFrame;
+Ray *vpRay;
+int traceLevel, superSampleCount;
 
-DBL Max_Trace_Level = 5;
+DBL maxTraceLevel = 5;
 DBL maxclr;
 
-static void check_stats(int y);
-static void do_anti_aliasing(int x, int y, RGBAColor *Colour);
-static void output_line(int y);
+static void checkStats(int y);
+static void doAntiAliasing(int x, int y, RGBAColor *colour);
+static void outputLine(int y);
 
-RGBAColor *Previous_Line, *Current_Line;
-char *Previous_Line_Antialiased_Flags, *Current_Line_Antialiased_Flags;
+RGBAColor *previousLine, *currentLine;
+char *previousLineAntialiasedFlags, *currentLineAntialiasedFlags;
 Ray ray;
 
 static void
-Create_Ray(Ray *ray, int width, int height, DBL x, DBL y)
+createRay(Ray *ray, int width, int height, DBL x, DBL y)
 {
-    register DBL X_Scalar, Y_Scalar;
-    Vector3D Temp_Vect_1, Temp_Vect_2;
+    register DBL xScalar;
+    register DBL yScalar;
+    Vector3D tempVect1;
+    Vector3D tempVect2;
 
     /* Convert the X Coordinate to be a DBL from 0.0 to 1.0 */
-    X_Scalar = (x - (DBL)width / 2.0) / (DBL)width;
+    xScalar = (x - (DBL)width / 2.0) / (DBL)width;
 
     /* Convert the Y Coordinate to be a DBL from 0.0 to 1.0 */
-    Y_Scalar =
-        (((DBL)(GLOBAL_frame.Screen_Height - 1) - y) - (DBL)height / 2.0) /
-        (DBL)height;
+    yScalar = (((DBL)(globalFrame.Screen_Height - 1) - y) - (DBL)height / 2.0) /
+              (DBL)height;
 
-    VScale(Temp_Vect_1, GLOBAL_frame.View_Point.Up, Y_Scalar);
-    VScale(Temp_Vect_2, GLOBAL_frame.View_Point.Right, X_Scalar);
-    VAdd(ray->Direction, Temp_Vect_1, Temp_Vect_2);
-    VAdd(ray->Direction, ray->Direction, GLOBAL_frame.View_Point.Direction);
+    VScale(tempVect1, globalFrame.View_Point.Up, yScalar);
+    VScale(tempVect2, globalFrame.View_Point.Right, xScalar);
+    VAdd(ray->Direction, tempVect1, tempVect2);
+    VAdd(ray->Direction, ray->Direction, globalFrame.View_Point.Direction);
     VNormalize(ray->Direction, ray->Direction);
     ray->initializeContainers();
     ray->Quadric_Constants_Cached = FALSE;
 }
 
 void
-Supersample(RGBAColor *result, int x, int y, int Width, int Height)
+Supersample(RGBAColor *result, int x, int y, int width, int height)
 {
     RGBAColor colour;
-    register DBL dx, dy, Jitter_X, Jitter_Y;
-    register int Jitt_Offset;
-    unsigned char Red, Green, Blue;
+    register DBL dx;
+    register DBL dy;
+    register DBL jitterX;
+    register DBL jitterY;
+    register int jittOffset;
+    unsigned char red;
+    unsigned char green;
+    unsigned char blue;
 
     dx = (DBL)x;
     dy = (DBL)y;
-    Jitt_Offset = 10;
+    jittOffset = 10;
 
-    Number_Of_Pixels_Supersampled++;
+    numberOfPixelsSupersampled++;
 
     Make_Colour(result, 0.0, 0.0, 0.0);
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, GLOBAL_frame.Screen_Width, GLOBAL_frame.Screen_Height,
-        dx + Jitter_X, dy + Jitter_Y);
+    jitterX = (rand3d(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+              0.16666666;
+    createRay(vpRay, globalFrame.Screen_Width, globalFrame.Screen_Height,
+        dx + jitterX, dy + jitterY);
 
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X - 0.3333333,
-        dy + Jitter_Y - 0.3333333);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX - 0.3333333,
+        dy + jitterY - 0.3333333);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X - 0.3333333, dy + Jitter_Y);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X - 0.3333333,
-        dy + Jitter_Y + 0.3333333);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX - 0.3333333,
+        dy + jitterY + 0.3333333);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X, dy + Jitter_Y - 0.3333333);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X, dy + Jitter_Y + 0.3333333);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X + 0.3333333,
-        dy + Jitter_Y - 0.3333333);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX + 0.3333333,
+        dy + jitterY - 0.3333333);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X + 0.3333333, dy + Jitter_Y);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
-    Jitt_Offset += 10;
+    jittOffset += 10;
 
-    Jitter_X = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Jitter_Y = (rand3d(x + Jitt_Offset, y + Jitt_Offset) & 0x7FFF) / 32768.0 *
-                   0.33333333 -
-               0.16666666;
-    Create_Ray(VP_Ray, Width, Height, dx + Jitter_X + 0.3333333,
-        dy + Jitter_Y + 0.3333333);
-    Trace_Level = 0;
-    Trace(VP_Ray, &colour);
+    jitterX = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    jitterY = (rand3d(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+                  0.33333333 -
+              0.16666666;
+    createRay(vpRay, width, height, dx + jitterX + 0.3333333,
+        dy + jitterY + 0.3333333);
+    traceLevel = 0;
+    Trace(vpRay, &colour);
     Clip_Colour(&colour, &colour);
     Scale_Colour(&colour, &colour, 0.11111111);
     Add_Colour(result, result, &colour);
 
-    if ((y != First_Line - 1) && (Options & DISPLAY)) {
-        Red = (unsigned char)(result->Red * maxclr);
-        Green = (unsigned char)(result->Green * maxclr);
-        Blue = (unsigned char)(result->Blue * maxclr);
-        display_plot(x, y, Red, Green, Blue);
+    if ((y != firstLine - 1) && (Options & DISPLAY)) {
+        red = (unsigned char)(result->Red * maxclr);
+        green = (unsigned char)(result->Green * maxclr);
+        blue = (unsigned char)(result->Blue * maxclr);
+        displayPlot(x, y, red, green, blue);
     }
 }
 
 void
 Read_Rendered_Part()
 {
-    int rc, x, line_number;
-    unsigned char Red, Green, Blue;
+    int rc;
+    int x;
+    int lineNumber;
+    unsigned char red;
+    unsigned char green;
+    unsigned char blue;
     DBL grey;
 
-    maxclr = (DBL)(1 << Color_Bits) - 1.0;
+    maxclr = (DBL)(1 << colorBits) - 1.0;
     while ((rc = Read_Line(
-                GLOBAL_outputFileHandle, Previous_Line, &line_number)) == 1) {
+                globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
         if (Options & DISPLAY) {
-            for (x = 0; x < GLOBAL_frame.Screen_Width; x++) {
-                if (PaletteOption == GREY) {
-                    grey = Previous_Line[x].Red * 0.287 +
-                           Previous_Line[x].Green * 0.589 +
-                           Previous_Line[x].Blue * 0.114;
-                    Red = Green = Blue = (unsigned char)(grey * maxclr);
+            for (x = 0; x < globalFrame.Screen_Width; x++) {
+                if (paletteOption == GREY) {
+                    grey = previousLine[x].Red * 0.287 +
+                           previousLine[x].Green * 0.589 +
+                           previousLine[x].Blue * 0.114;
+                    red = green = blue = (unsigned char)(grey * maxclr);
                 } else {
-                    Red = (unsigned char)(Previous_Line[x].Red * maxclr);
-                    Green = (unsigned char)(Previous_Line[x].Green * maxclr);
-                    Blue = (unsigned char)(Previous_Line[x].Blue * maxclr);
+                    red = (unsigned char)(previousLine[x].Red * maxclr);
+                    green = (unsigned char)(previousLine[x].Green * maxclr);
+                    blue = (unsigned char)(previousLine[x].Blue * maxclr);
                 }
-                display_plot(x, line_number, Red, Green, Blue);
+                displayPlot(x, lineNumber, red, green, blue);
                 COOPERATE /* Moved inside loop JLN 12/91 */
             }
         }
     }
 
-    First_Line = line_number + 1;
+    firstLine = lineNumber + 1;
 
     if (rc == 0) {
-        Close_File(GLOBAL_outputFileHandle);
-        if (Open_File(GLOBAL_outputFileHandle, Output_File_Name,
-                &GLOBAL_frame.Screen_Width, &GLOBAL_frame.Screen_Height,
-                File_Buffer_Size, APPEND_MODE) != 1) {
+        Close_File(globalOutputFileHandle);
+        if (Open_File(globalOutputFileHandle, outputFileName,
+                &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                fileBufferSize, APPEND_MODE) != 1) {
             fprintf(stderr, "Error opening output file\n");
             exit(1);
         }
@@ -293,148 +303,151 @@ Read_Rendered_Part()
 void
 Start_Tracing()
 {
-    RGBAColor Colour;
-    register int x, y;
-    unsigned char Red, Green, Blue;
+    RGBAColor colour;
+    register int x;
+    register int y;
+    unsigned char red;
+    unsigned char green;
+    unsigned char blue;
     DBL grey;
 
-    for (y = (Options & ANTIALIAS) ? First_Line - 1 : First_Line; y < Last_Line;
+    for (y = (Options & ANTIALIAS) ? firstLine - 1 : firstLine; y < lastLine;
          y++) {
 
-        check_stats(y);
+        checkStats(y);
 
-        for (x = 0; x < GLOBAL_frame.Screen_Width; x++) {
+        for (x = 0; x < globalFrame.Screen_Width; x++) {
 
             TEST_ABORT
 
-            if (Stop_Flag) {
+            if (stopFlag) {
                 close_all();
                 PRINT_STATS
                 /* exit with error if image not completed/user abort*/
                 exit(2);
             }
 
-            Number_Of_Pixels++;
+            numberOfPixels++;
 
-            Create_Ray(VP_Ray, GLOBAL_frame.Screen_Width,
-                GLOBAL_frame.Screen_Height, (DBL)x, (DBL)y);
-            Trace_Level = 0;
-            Trace(&ray, &Colour);
-            Clip_Colour(&Colour, &Colour);
+            createRay(vpRay, globalFrame.Screen_Width,
+                globalFrame.Screen_Height, (DBL)x, (DBL)y);
+            traceLevel = 0;
+            Trace(&ray, &colour);
+            Clip_Colour(&colour, &colour);
 
-            Current_Line[x] = Colour;
+            currentLine[x] = colour;
 
             if (Options & ANTIALIAS) {
-                do_anti_aliasing(x, y, &Colour);
+                doAntiAliasing(x, y, &colour);
             }
 
-            if (y != First_Line - 1) {
-                if (PaletteOption == GREY) {
-                    grey = Previous_Line[x].Red * 0.287 +
-                           Previous_Line[x].Green * 0.589 +
-                           Previous_Line[x].Blue * 0.114;
-                    Red = Green = Blue = (unsigned char)(grey * maxclr);
+            if (y != firstLine - 1) {
+                if (paletteOption == GREY) {
+                    grey = previousLine[x].Red * 0.287 +
+                           previousLine[x].Green * 0.589 +
+                           previousLine[x].Blue * 0.114;
+                    red = green = blue = (unsigned char)(grey * maxclr);
                 } else {
-                    Red = (unsigned char)(Colour.Red * maxclr);
-                    Green = (unsigned char)(Colour.Green * maxclr);
-                    Blue = (unsigned char)(Colour.Blue * maxclr);
+                    red = (unsigned char)(colour.Red * maxclr);
+                    green = (unsigned char)(colour.Green * maxclr);
+                    blue = (unsigned char)(colour.Blue * maxclr);
                 }
                 if (Options & DISPLAY) {
-                    display_plot(x, y, Red, Green, Blue);
+                    displayPlot(x, y, red, green, blue);
                 }
             }
         }
-        output_line(y);
+        outputLine(y);
     }
 
     if (Options & DISKWRITE) {
-        Write_Line(GLOBAL_outputFileHandle, Previous_Line, Last_Line - 1);
+        Write_Line(globalOutputFileHandle, previousLine, lastLine - 1);
     }
 }
 
 static void
-check_stats(register int y)
+checkStats(register int y)
 {
-    FILE *stat_file;
+    FILE *statFile;
 
     /* New verbose options CdW */
-    if (Options & VERBOSE && VerboseFormat == '0') {
-        printf("POV-Ray rendering %s to %s", Input_File_Name, Output_File_Name);
-        if ((First_Line != 0) || (Last_Line != GLOBAL_frame.Screen_Height)) {
-            printf(" from %4d to %4d:\n", First_Line, Last_Line);
+    if (Options & VERBOSE && verboseFormat == '0') {
+        printf("POV-Ray rendering %s to %s", inputFileName, outputFileName);
+        if ((firstLine != 0) || (lastLine != globalFrame.Screen_Height)) {
+            printf(" from %4d to %4d:\n", firstLine, lastLine);
         } else {
             printf(":\n");
         }
-        printf("Res %4d X %4d. Calc line %4d of %4d", GLOBAL_frame.Screen_Width,
-            GLOBAL_frame.Screen_Height, (y - First_Line) + 1,
-            Last_Line - First_Line);
+        printf("Res %4d X %4d. Calc line %4d of %4d", globalFrame.Screen_Width,
+            globalFrame.Screen_Height, (y - firstLine) + 1,
+            lastLine - firstLine);
         if (!(Options & ANTIALIAS)) {
             printf(".");
         }
     }
     if (Options & VERBOSE_FILE) {
-        stat_file = fopen(Stat_File_Name, "w+t");
-        fprintf(stat_file, "Line %4d.\n", y);
-        fclose(stat_file);
+        statFile = fopen(statFileName, "w+t");
+        fprintf(statFile, "Line %4d.\n", y);
+        fclose(statFile);
     }
 
     /* Use -vO for Old style verbose */
-    if (Options & VERBOSE && (VerboseFormat == 'O')) {
+    if (Options & VERBOSE && (verboseFormat == 'O')) {
         printf("Line %4d", y);
     }
-    if (Options & VERBOSE && VerboseFormat == '1') {
+    if (Options & VERBOSE && verboseFormat == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
-            GLOBAL_frame.Screen_Width, GLOBAL_frame.Screen_Height,
-            (y - First_Line) + 1, Last_Line - First_Line);
+            globalFrame.Screen_Width, globalFrame.Screen_Height,
+            (y - firstLine) + 1, lastLine - firstLine);
         if (!(Options & ANTIALIAS)) {
             fprintf(stderr, ".");
         }
     }
 
     if (Options & ANTIALIAS) {
-        SuperSampleCount = 0;
+        superSampleCount = 0;
     }
 }
 
 static void
-do_anti_aliasing(register int x, register int y, RGBAColor *Colour)
+doAntiAliasing(register int x, register int y, RGBAColor *colour)
 {
-    char Antialias_Center_Flag = 0;
+    char antialiasCenterFlag = 0;
 
-    Current_Line_Antialiased_Flags[x] = 0;
+    currentLineAntialiasedFlags[x] = 0;
 
     if (x != 0) {
-        if (Colour_Distance(&Current_Line[x - 1], &Current_Line[x]) >=
-            GLOBAL_frame.Antialias_Threshold) {
-            Antialias_Center_Flag = 1;
-            if (!(Current_Line_Antialiased_Flags[x - 1])) {
-                Supersample(&Current_Line[x - 1], x - 1, y,
-                    GLOBAL_frame.Screen_Width, GLOBAL_frame.Screen_Height);
-                Current_Line_Antialiased_Flags[x - 1] = 1;
-                SuperSampleCount++;
+        if (Colour_Distance(&currentLine[x - 1], &currentLine[x]) >=
+            globalFrame.Antialias_Threshold) {
+            antialiasCenterFlag = 1;
+            if (!(currentLineAntialiasedFlags[x - 1])) {
+                Supersample(&currentLine[x - 1], x - 1, y,
+                    globalFrame.Screen_Width, globalFrame.Screen_Height);
+                currentLineAntialiasedFlags[x - 1] = 1;
+                superSampleCount++;
             }
         }
     }
 
-    if (y != First_Line - 1) {
-        if (Colour_Distance(&Previous_Line[x], &Current_Line[x]) >=
-            GLOBAL_frame.Antialias_Threshold) {
-            Antialias_Center_Flag = 1;
-            if (!(Previous_Line_Antialiased_Flags[x])) {
-                Supersample(&Previous_Line[x], x, y - 1,
-                    GLOBAL_frame.Screen_Width, GLOBAL_frame.Screen_Height);
-                Previous_Line_Antialiased_Flags[x] = 1;
-                SuperSampleCount++;
+    if (y != firstLine - 1) {
+        if (Colour_Distance(&previousLine[x], &currentLine[x]) >=
+            globalFrame.Antialias_Threshold) {
+            antialiasCenterFlag = 1;
+            if (!(previousLineAntialiasedFlags[x])) {
+                Supersample(&previousLine[x], x, y - 1,
+                    globalFrame.Screen_Width, globalFrame.Screen_Height);
+                previousLineAntialiasedFlags[x] = 1;
+                superSampleCount++;
             }
         }
     }
 
-    if (Antialias_Center_Flag) {
-        Supersample(&Current_Line[x], x, y, GLOBAL_frame.Screen_Width,
-            GLOBAL_frame.Screen_Height);
-        Current_Line_Antialiased_Flags[x] = 1;
-        *Colour = Current_Line[x];
-        SuperSampleCount++;
+    if (antialiasCenterFlag) {
+        Supersample(&currentLine[x], x, y, globalFrame.Screen_Width,
+            globalFrame.Screen_Height);
+        currentLineAntialiasedFlags[x] = 1;
+        *colour = currentLine[x];
+        superSampleCount++;
     }
 }
 
@@ -443,122 +456,121 @@ Initialize_Renderer()
 {
     register int i;
 
-    VP_Ray = &ray;
-    maxclr = (DBL)(1 << Color_Bits) - 1.0;
+    vpRay = &ray;
+    maxclr = (DBL)(1 << colorBits) - 1.0;
 
-    Previous_Line = new RGBAColor[(GLOBAL_frame.Screen_Width + 1)];
-    Current_Line = new RGBAColor[(GLOBAL_frame.Screen_Width + 1)];
+    previousLine = new RGBAColor[(globalFrame.Screen_Width + 1)];
+    currentLine = new RGBAColor[(globalFrame.Screen_Width + 1)];
 
-    for (i = 0; i <= GLOBAL_frame.Screen_Width; i++) {
-        Previous_Line[i].Red = 0.0;
-        Previous_Line[i].Green = 0.0;
-        Previous_Line[i].Blue = 0.0;
+    for (i = 0; i <= globalFrame.Screen_Width; i++) {
+        previousLine[i].Red = 0.0;
+        previousLine[i].Green = 0.0;
+        previousLine[i].Blue = 0.0;
 
-        Current_Line[i].Red = 0.0;
-        Current_Line[i].Green = 0.0;
-        Current_Line[i].Blue = 0.0;
+        currentLine[i].Red = 0.0;
+        currentLine[i].Green = 0.0;
+        currentLine[i].Blue = 0.0;
     }
 
     if (Options & ANTIALIAS) {
-        Previous_Line_Antialiased_Flags =
-            new char[(GLOBAL_frame.Screen_Width + 1)];
-        Current_Line_Antialiased_Flags =
-            new char[(GLOBAL_frame.Screen_Width + 1)];
+        previousLineAntialiasedFlags = new char[(globalFrame.Screen_Width + 1)];
+        currentLineAntialiasedFlags = new char[(globalFrame.Screen_Width + 1)];
 
-        for (i = 0; i <= GLOBAL_frame.Screen_Width; i++) {
-            (Previous_Line_Antialiased_Flags)[i] = 0;
-            (Current_Line_Antialiased_Flags)[i] = 0;
+        for (i = 0; i <= globalFrame.Screen_Width; i++) {
+            (previousLineAntialiasedFlags)[i] = 0;
+            (currentLineAntialiasedFlags)[i] = 0;
         }
     }
 
-    ray.Initial = GLOBAL_frame.View_Point.Location;
+    ray.Initial = globalFrame.View_Point.Location;
 }
 
 static void
-output_line(register int y)
+outputLine(register int y)
 {
-    RGBAColor *Temp_Colour_Ptr;
-    char *Temp_Char_Ptr;
+    RGBAColor *tempColourPtr;
+    char *tempCharPtr;
 
     if (Options & DISKWRITE) {
-        if (y > First_Line) {
-            Write_Line(GLOBAL_outputFileHandle, Previous_Line, y - 1);
+        if (y > firstLine) {
+            Write_Line(globalOutputFileHandle, previousLine, y - 1);
         }
     }
 
     if (Options & VERBOSE) {
-        if (Options & ANTIALIAS && VerboseFormat != '1') {
-            printf(" supersampled %d times.", SuperSampleCount);
+        if (Options & ANTIALIAS && verboseFormat != '1') {
+            printf(" supersampled %d times.", superSampleCount);
         }
 
-        if (Options & ANTIALIAS && VerboseFormat == '1') {
-            fprintf(stderr, " supersampled %d times.", SuperSampleCount);
+        if (Options & ANTIALIAS && verboseFormat == '1') {
+            fprintf(stderr, " supersampled %d times.", superSampleCount);
         }
-        if (VerboseFormat == '1') {
+        if (verboseFormat == '1') {
             fprintf(stderr, "\r");
         } else {
             fprintf(stderr, "\n");
         }
     }
-    Temp_Colour_Ptr = Previous_Line;
-    Previous_Line = Current_Line;
-    Current_Line = Temp_Colour_Ptr;
+    tempColourPtr = previousLine;
+    previousLine = currentLine;
+    currentLine = tempColourPtr;
 
-    Temp_Char_Ptr = Previous_Line_Antialiased_Flags;
-    Previous_Line_Antialiased_Flags = Current_Line_Antialiased_Flags;
-    Current_Line_Antialiased_Flags = Temp_Char_Ptr;
+    tempCharPtr = previousLineAntialiasedFlags;
+    previousLineAntialiasedFlags = currentLineAntialiasedFlags;
+    currentLineAntialiasedFlags = tempCharPtr;
 }
 
 void
-Trace(Ray *Ray, RGBAColor *Colour)
+Trace(Ray *ray, RGBAColor *colour)
 {
-    SimpleBody *Object;
-    Intersection *Local_Intersection, *New_Intersection;
-    register int Intersection_Found;
+    SimpleBody *object;
+    Intersection *localIntersection;
+    Intersection *newIntersection;
+    register int intersectionFound;
 
     COOPERATE
-    Number_Of_Rays++;
-    Make_Colour(Colour, 0.0, 0.0, 0.0);
+    numberOfRays++;
+    Make_Colour(colour, 0.0, 0.0, 0.0);
 
-    Intersection_Found = FALSE;
-    Local_Intersection = NULL;
+    intersectionFound = FALSE;
+    localIntersection = nullptr;
 
-    if (Trace_Level > (int)Max_Trace_Level) {
+    if (traceLevel > (int)maxTraceLevel) {
         return;
     }
 
-    if (GLOBAL_frame.Fog_Distance == 0.0) {
-        Make_Colour(Colour, 0.0, 0.0, 0.0);
+    if (globalFrame.Fog_Distance == 0.0) {
+        Make_Colour(colour, 0.0, 0.0, 0.0);
     } else {
-        *Colour = GLOBAL_frame.Fog_Colour;
+        *colour = globalFrame.Fog_Colour;
     }
 
     if (Options & DEBUGGING) {
-        printf("Calculating intersections level %d\n", Trace_Level);
+        printf("Calculating intersections level %d\n", traceLevel);
     }
 
     /* What objects does this ray intersect? */
-    for (Object = GLOBAL_frame.Objects; Object != NULL;
-         Object = Object->Next_Object) {
+    for (object = globalFrame.Objects; object != nullptr;
+         object = object->Next_Object) {
         COOPERATE
-        if ((New_Intersection = Intersection(Object, Ray)) != NULL) {
-            if (Intersection_Found) {
-                if (Local_Intersection->Depth > New_Intersection->Depth) {
-                    delete Local_Intersection;
-                    Local_Intersection = New_Intersection;
+        if ((newIntersection = Intersection(object, ray)) != nullptr) {
+            if (intersectionFound) {
+                if (localIntersection->Depth > newIntersection->Depth) {
+                    delete localIntersection;
+                    localIntersection = newIntersection;
                 } else {
-                    delete New_Intersection;
+                    delete newIntersection;
                 }
             } else {
-                Local_Intersection = New_Intersection;
+                localIntersection = newIntersection;
             }
 
-            Intersection_Found = TRUE;
+            intersectionFound = TRUE;
         }
     }
 
-    if (Intersection_Found) {
-        Determine_Surface_Colour(Local_Intersection, Colour, Ray, FALSE);
-        delete Local_Intersection;
+    if (intersectionFound) {
+        Determine_Surface_Colour(localIntersection, colour, ray, FALSE);
+        delete localIntersection;
     }
 }

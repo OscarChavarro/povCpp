@@ -28,22 +28,21 @@
 #include "common/Vector.h"
 #include "media/Texture.h"
 
-extern int cylindrical_image_map(
-    DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v);
-extern int torus_image_map(
-    DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v);
-extern int spherical_image_map(
-    DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v);
-extern int planar_image_map(
-    DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v);
-extern void no_interpolation(
-    RGBAImage *Image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+extern int cylindricalImageMap(
+    DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+extern int torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+extern int sphericalImageMap(
+    DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+extern int planarImageMap(
+    DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+extern void noInterpolation(
+    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
 extern DBL bilinear(DBL *corners, DBL x, DBL y);
-extern DBL norm_dist(DBL *corners, DBL x, DBL y);
-extern void Interp(
-    RGBAImage *Image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
-extern void image_colour_at(
-    RGBAImage *Image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+extern DBL normDist(DBL *corners, DBL x, DBL y);
+extern void interp(
+    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+extern void imageColourAt(
+    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
 
 /*
     2-D to 3-D Procedural Texture Mapping of a Bitmapped Image onto an Object:
@@ -63,64 +62,66 @@ B. Specialized shape projection variations by Alexander Enzmann:
 */
 
 void
-image_map(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour)
+image_map(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
     /* return pixel color value at that posn on 2-d plane */
 
     DBL xcoor = 0.0, ycoor = 0.0;
-    int reg_number;
+    int regNumber;
 
-    if (map(x, y, z, Texture, Texture->Image, &xcoor, &ycoor)) {
+    if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor)) {
         Make_Colour(colour, 1.0, 1.0, 1.0);
         colour->Alpha = 1.0;
         return;
     }
-    image_colour_at(Texture->Image, xcoor, ycoor, colour, &reg_number);
+    imageColourAt(texture->Image, xcoor, ycoor, colour, &regNumber);
 }
 
 /* Very different stuff than the other routines here. This routine takes  */
 /* an intersection point and a texture and returns a new texture based on */
 /* the index/color of that point in an image/materials map. CdW 7/91        */
 Texture *
-material_map(Vector3D *Intersection_Point, Texture *texture)
+material_map(Vector3D *intersectionPoint, Texture *texture)
 {
-    Vector3D Transformed_Point;
-    register DBL x, y, z;
+    Vector3D transformedPoint;
+    register DBL x;
+    register DBL y;
+    register DBL z;
     DBL xcoor = 0.0, ycoor = 0.0;
-    int reg_number = 0;
+    int regNumber = 0;
     RGBAColor colour;
-    int Material_Number = 0;
-    Texture *Temp_Tex;
+    int materialNumber = 0;
+    Texture *tempTex;
     int numtex;
 
     Make_Colour(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
 
     if (texture->Texture_Transformation) {
-        MInverseTransformVector(&Transformed_Point, Intersection_Point,
+        MInverseTransformVector(&transformedPoint, intersectionPoint,
             texture->Texture_Transformation);
     } else {
-        Transformed_Point = *Intersection_Point;
+        transformedPoint = *intersectionPoint;
     }
 
-    x = Transformed_Point.x;
-    y = Transformed_Point.y;
-    z = Transformed_Point.z;
+    x = transformedPoint.x;
+    y = transformedPoint.y;
+    z = transformedPoint.z;
 
     /* now we have transformed x, y, z we use image mapping routine */
     /* to determine texture index */
     if (map(x, y, z, texture, texture->Material_Image, &xcoor, &ycoor)) {
-        Material_Number = 0;
+        materialNumber = 0;
     } else {
-        image_colour_at(
-            texture->Material_Image, xcoor, ycoor, &colour, &reg_number);
+        imageColourAt(
+            texture->Material_Image, xcoor, ycoor, &colour, &regNumber);
 
-        if (texture->Material_Image->Colour_Map == NULL) {
-            Material_Number = (int)colour.Red * 255;
+        if (texture->Material_Image->Colour_Map == nullptr) {
+            materialNumber = (int)colour.Red * 255;
         } else {
-            Material_Number = reg_number;
+            materialNumber = regNumber;
         }
     }
 
@@ -128,30 +129,39 @@ material_map(Vector3D *Intersection_Point, Texture *texture)
     /* texture linked list and return it to Determine_Surface_Colour    */
     /* printf("-B-Num Mt#%d Mn#%d\n",texture->Number_Of_Materials,
      * Material_Number);    */
-    if (Material_Number > texture->Number_Of_Materials) {
-        Material_Number %= texture->Number_Of_Materials;
+    if (materialNumber > texture->Number_Of_Materials) {
+        materialNumber %= texture->Number_Of_Materials;
     }
-    for (numtex = 0, Temp_Tex = texture->Next_Material;
-         Temp_Tex->Next_Material != NULL && numtex < Material_Number;
-         Temp_Tex = Temp_Tex->Next_Material, numtex++) {
+    for (numtex = 0, tempTex = texture->Next_Material;
+         tempTex->Next_Material != nullptr && numtex < materialNumber;
+         tempTex = tempTex->Next_Material, numtex++) {
         ; /* do nothing */
     }
 
     /* texture = Temp_Tex;  */
 
-    return (Temp_Tex);
+    return (tempTex);
 }
 
 void
 bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     DBL xcoor = 0.0, ycoor = 0.0;
-    int index, index2, index3;
-    RGBAColor colour, colour2, colour3;
-    Vector3D p1, p2, p3;
-    Vector3D bump_normal;
-    Vector3D xprime, yprime, zprime, Temp;
-    DBL Length;
+    int index;
+    int index2;
+    int index3;
+    RGBAColor colour;
+    RGBAColor colour2;
+    RGBAColor colour3;
+    Vector3D p1;
+    Vector3D p2;
+    Vector3D p3;
+    Vector3D bumpNormal;
+    Vector3D xprime;
+    Vector3D yprime;
+    Vector3D zprime;
+    Vector3D temp;
+    DBL length;
     Make_Colour(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
     Make_Colour(&colour2, 0.0, 0.0, 0.0);
@@ -168,7 +178,7 @@ bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
         index = 255;
         return;
     }
-    image_colour_at(texture->Bump_Image, xcoor, ycoor, &colour, &index);
+    imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour, &index);
 
     xcoor--;
     ycoor++;
@@ -182,7 +192,7 @@ bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     } else if (ycoor >= (DBL)texture->Bump_Image->iheight) {
         ycoor -= (DBL)texture->Bump_Image->iheight;
     }
-    image_colour_at(texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
+    imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
 
     xcoor += 2.0;
     if (xcoor < 0.0) {
@@ -191,13 +201,13 @@ bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
         xcoor -= (DBL)texture->Bump_Image->iwidth;
     }
 
-    image_colour_at(texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
+    imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
 
     if (Options & DEBUGGING) {
         printf("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
     }
 
-    if (texture->Bump_Image->Colour_Map == NULL ||
+    if (texture->Bump_Image->Colour_Map == nullptr ||
         texture->Bump_Image->Use_Colour_Flag) {
         p1.x = 0;
         p1.y =
@@ -229,45 +239,45 @@ bump_map(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
      */
     VSub(xprime, p1, p2);
     VSub(yprime, p3, p2);
-    VCross(bump_normal, yprime, xprime);
-    VNormalize(bump_normal, bump_normal);
+    VCross(bumpNormal, yprime, xprime);
+    VNormalize(bumpNormal, bumpNormal);
 
     Make_Vector(&yprime, normal->x, normal->y, normal->z);
-    Make_Vector(&Temp, 0.0, 1.0, 0.0);
-    VCross(xprime, yprime, Temp);
-    VLength(Length, xprime);
-    if (Length < 1.0e-9) {
+    Make_Vector(&temp, 0.0, 1.0, 0.0);
+    VCross(xprime, yprime, temp);
+    VLength(length, xprime);
+    if (length < 1.0e-9) {
         if (fabs(normal->y - 1.0) < Small_Tolerance) {
             Make_Vector(&yprime, 0.0, 1.0, 0.0);
             Make_Vector(&xprime, 1.0, 0.0, 0.0);
-            Length = 1.0;
+            length = 1.0;
         } else {
             Make_Vector(&yprime, 0.0, -1.0, 0.0);
             Make_Vector(&xprime, 1.0, 0.0, 0.0);
-            Length = 1.0;
+            length = 1.0;
         }
     }
-    VScale(xprime, xprime, 1.0 / Length);
+    VScale(xprime, xprime, 1.0 / length);
     VCross(zprime, xprime, yprime);
     VNormalize(zprime, zprime);
-    VScale(xprime, xprime, bump_normal.x);
-    VScale(yprime, yprime, bump_normal.y);
-    VScale(zprime, zprime, bump_normal.z);
-    VAdd(Temp, xprime, yprime);
-    VAdd(*normal, Temp, zprime);
+    VScale(xprime, xprime, bumpNormal.x);
+    VScale(yprime, yprime, bumpNormal.y);
+    VScale(zprime, zprime, bumpNormal.z);
+    VAdd(temp, xprime, yprime);
+    VAdd(*normal, temp, zprime);
     VNormalize(*normal, *normal);
 }
 
 void
-image_colour_at(
-    RGBAImage *Image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
+imageColourAt(
+    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
 {
-    switch (Image->Interpolation_Type) {
+    switch (image->Interpolation_Type) {
     case NO_INTERPOLATION:
-        no_interpolation(Image, xcoor, ycoor, colour, index);
+        noInterpolation(image, xcoor, ycoor, colour, index);
         break;
     default:
-        Interp(Image, xcoor, ycoor, colour, index);
+        interp(image, xcoor, ycoor, colour, index);
         break;
     }
 }
@@ -275,14 +285,14 @@ image_colour_at(
 /* Map a point (x, y, z) on a cylinder of radius 1, height 1, that has its
     axis of symmetry along the y-axis to the square [0,1]x[0,1]. */
 int
-cylindrical_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
+cylindricalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
     DBL len, theta;
 
-    if ((Image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
+    if ((image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
         return 0;
     }
-    *v = fmod(y * Image->height, Image->height);
+    *v = fmod(y * image->height, image->height);
 
     /* Make sure this vector is on the unit sphere. */
     len = sqrt(x * x + y * y + z * z);
@@ -297,45 +307,49 @@ cylindrical_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
     if (len == 0.0) {
         return 0;
     }
-    if (z == 0.0)
-        if (x > 0)
+    if (z == 0.0) {
+        if (x > 0) {
             theta = 0.0;
-        else
+        } else {
             theta = M_PI;
-    else {
+        }
+    } else {
         theta = acos(x / len);
-        if (z < 0.0)
+        if (z < 0.0) {
             theta = 2.0 * M_PI - theta;
+        }
     }
     theta /= 2.0 * M_PI; /* This will be from 0 to 1 */
 
-    *u = (theta * Image->width);
+    *u = (theta * image->width);
     return 1;
 }
 
 /* Map a point (x, y, z) on a torus  to a 2-d image. */
 int
-torus_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
+torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
     DBL len, phi, theta;
     DBL r0;
 
-    r0 = Image->Image_Gradient.x;
+    r0 = image->Image_Gradient.x;
 
     /* Determine its angle from the x-axis. */
     len = sqrt(x * x + z * z);
     if (len == 0.0) {
         return 0;
     }
-    if (z == 0.0)
-        if (x > 0)
+    if (z == 0.0) {
+        if (x > 0) {
             theta = 0.0;
-        else
+        } else {
             theta = M_PI;
-    else {
+        }
+    } else {
         theta = acos(x / len);
-        if (z < 0.0)
+        if (z < 0.0) {
             theta = 2.0 * M_PI - theta;
+        }
     }
 
     theta = 0.0 - theta;
@@ -352,15 +366,15 @@ torus_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
     /* Determine the parametric coordinates. */
     theta /= 2.0 * M_PI;
     phi /= 2.0 * M_PI;
-    *u = (-theta * Image->width);
-    *v = (phi * Image->height);
+    *u = (-theta * image->width);
+    *v = (phi * image->height);
     return 1;
 }
 
 /* Map a point (x, y, z) on a sphere of radius 1 to a 2-d image. (Or is it the
     other way around?) */
 int
-spherical_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
+sphericalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
     DBL len, phi, theta;
 
@@ -397,8 +411,8 @@ spherical_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
         }
         theta /= 2.0 * M_PI; /* This will be from 0 to 1 */
     }
-    *u = (theta * Image->width);
-    *v = (phi * Image->height);
+    *u = (theta * image->width);
+    *v = (phi * image->height);
     return 1;
 }
 
@@ -416,36 +430,36 @@ spherical_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
 /* Return 0 if there is no color at this point (i.e. invisible), return 1
     if a good mapping is found. */
 int
-planar_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
+planarImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
-    if (Image->Image_Gradient.x != 0.0) {
-        if ((Image->Once_Flag) && ((x < 0.0) || (x > 1.0))) {
+    if (image->Image_Gradient.x != 0.0) {
+        if ((image->Once_Flag) && ((x < 0.0) || (x > 1.0))) {
             return 0;
         }
-        if (Image->Image_Gradient.x > 0) {
-            *u = fmod(x * Image->width, Image->width);
+        if (image->Image_Gradient.x > 0) {
+            *u = fmod(x * image->width, image->width);
         } else {
-            *v = fmod(x * Image->height, Image->height);
+            *v = fmod(x * image->height, image->height);
         }
     }
-    if (Image->Image_Gradient.y != 0.0) {
-        if ((Image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
+    if (image->Image_Gradient.y != 0.0) {
+        if ((image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
             return 0;
         }
-        if (Image->Image_Gradient.y > 0) {
-            *u = fmod(y * Image->width, Image->width);
+        if (image->Image_Gradient.y > 0) {
+            *u = fmod(y * image->width, image->width);
         } else {
-            *v = fmod(y * Image->height, Image->height);
+            *v = fmod(y * image->height, image->height);
         }
     }
-    if (Image->Image_Gradient.z != 0.0) {
-        if ((Image->Once_Flag) && ((z < 0.0) || (z > 1.0))) {
+    if (image->Image_Gradient.z != 0.0) {
+        if ((image->Once_Flag) && ((z < 0.0) || (z > 1.0))) {
             return 0;
         }
-        if (Image->Image_Gradient.z > 0) {
-            *u = fmod(z * Image->width, Image->width);
+        if (image->Image_Gradient.z > 0) {
+            *u = fmod(z * image->width, image->width);
         } else {
-            *v = fmod(z * Image->height, Image->height);
+            *v = fmod(z * image->height, image->height);
         }
     }
     return 1;
@@ -453,7 +467,7 @@ planar_image_map(DBL x, DBL y, DBL z, RGBAImage *Image, DBL *u, DBL *v)
 
 /* Map returns 1 if no color found (invisible) or 0 if color found */
 int
-map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *Image, DBL *xcoor,
+map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *xcoor,
     DBL *ycoor)
 {
     /* determine local object 2-d coords from 3-d coords */
@@ -471,29 +485,29 @@ map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *Image, DBL *xcoor,
     */
 
     /* Now determine which mapper to use. */
-    switch (Image->Map_Type) {
+    switch (image->Map_Type) {
     case PLANAR_MAP:
-        if (!planar_image_map(x, y, z, Image, xcoor, ycoor)) {
+        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case SPHERICAL_MAP:
-        if (!spherical_image_map(x, y, z, Image, xcoor, ycoor)) {
+        if (!sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case CYLINDRICAL_MAP:
-        if (!cylindrical_image_map(x, y, z, Image, xcoor, ycoor)) {
+        if (!cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case TORUS_MAP:
-        if (!torus_image_map(x, y, z, Image, xcoor, ycoor)) {
+        if (!torusImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     default:
-        if (!planar_image_map(x, y, z, Image, xcoor, ycoor)) {
+        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
@@ -502,26 +516,26 @@ map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *Image, DBL *xcoor,
     *ycoor += Small_Tolerance;
     *xcoor += Small_Tolerance;
     /* Compensate for y coordinates on the images being upsidedown */
-    *ycoor = (DBL)Image->iheight - *ycoor;
+    *ycoor = (DBL)image->iheight - *ycoor;
 
     if (*xcoor < 0.0) {
-        *xcoor += (DBL)Image->iwidth;
-    } else if (*xcoor >= (DBL)Image->iwidth) {
-        *xcoor -= (DBL)Image->iwidth;
+        *xcoor += (DBL)image->iwidth;
+    } else if (*xcoor >= (DBL)image->iwidth) {
+        *xcoor -= (DBL)image->iwidth;
     }
 
     if (*ycoor < 0.0) {
-        *ycoor += (DBL)Image->iheight;
-    } else if (*ycoor >= (DBL)Image->iheight) {
-        *ycoor -= (DBL)Image->iheight;
+        *ycoor += (DBL)image->iheight;
+    } else if (*ycoor >= (DBL)image->iheight) {
+        *ycoor -= (DBL)image->iheight;
     }
 
     if (Options & DEBUGGING) {
         printf("\nmap %g %g %g xcoor %f ycoor %f ih %d iw %d\n", x, y, z,
-            *xcoor, *ycoor, Image->iheight, Image->iwidth);
+            *xcoor, *ycoor, image->iheight, image->iwidth);
     }
 
-    if ((*xcoor >= (DBL)Image->iwidth) || (*ycoor >= (DBL)Image->iheight) ||
+    if ((*xcoor >= (DBL)image->iwidth) || (*ycoor >= (DBL)image->iheight) ||
         (*xcoor < 0.0) || (*ycoor < 0.0)) {
         printf("\nPicture index out of range\n");
         close_all();
@@ -532,42 +546,43 @@ map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *Image, DBL *xcoor,
 }
 
 void
-no_interpolation(
-    RGBAImage *Image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
+noInterpolation(
+    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
 {
     ImageLine *line;
-    int iycoor, ixcoor;
-    RGBAPixel *map_colour;
+    int iycoor;
+    int ixcoor;
+    RGBAPixel *mapColour;
 
     if (xcoor < 0.0) {
-        xcoor += (DBL)Image->iwidth;
-    } else if (xcoor >= (DBL)Image->iwidth) {
-        xcoor -= (DBL)Image->iwidth;
+        xcoor += (DBL)image->iwidth;
+    } else if (xcoor >= (DBL)image->iwidth) {
+        xcoor -= (DBL)image->iwidth;
     }
     if (ycoor < 0.0) {
-        ycoor += (DBL)Image->iheight;
-    } else if (ycoor >= (DBL)Image->iheight) {
-        ycoor -= (DBL)Image->iheight;
+        ycoor += (DBL)image->iheight;
+    } else if (ycoor >= (DBL)image->iheight) {
+        ycoor -= (DBL)image->iheight;
     }
 
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
-    if (Image->Colour_Map == NULL) {
-        line = &Image->data.rgb_lines[iycoor];
+    if (image->Colour_Map == nullptr) {
+        line = &image->data.rgb_lines[iycoor];
         colour->Red += (DBL)line->red[ixcoor] / 255.0;
         colour->Green += (DBL)line->green[ixcoor] / 255.0;
         colour->Blue += (DBL)line->blue[ixcoor] / 255.0;
         *index = -1;
     } else {
-        *index = Image->data.map_lines[iycoor][ixcoor];
-        map_colour = &Image->Colour_Map[*index];
+        *index = image->data.map_lines[iycoor][ixcoor];
+        mapColour = &image->Colour_Map[*index];
         /*printf ("icat index %d xc %d yc %d  CLR %d %d %d
      %d\n",*index,ixcoor,iycoor,
      map_colour->Red,map_colour->Green,map_colour->Blue,map_colour->Alpha ); */
-        colour->Red += (DBL)map_colour->Red / 255.0;
-        colour->Green += (DBL)map_colour->Green / 255.0;
-        colour->Blue += (DBL)map_colour->Blue / 255.0;
-        colour->Alpha += (DBL)map_colour->Alpha / 255.0;
+        colour->Red += (DBL)mapColour->Red / 255.0;
+        colour->Green += (DBL)mapColour->Green / 255.0;
+        colour->Blue += (DBL)mapColour->Blue / 255.0;
+        colour->Alpha += (DBL)mapColour->Alpha / 255.0;
     }
 
     if (Options & DEBUGGING) {
@@ -578,70 +593,72 @@ no_interpolation(
 
 /* Interpolate color and alpha values when mapping */
 void
-Interp(RGBAImage *Image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
+interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
 {
-    int iycoor, ixcoor, i;
-    int Corners_Index[4];
-    DBL Index_Crn[4];
-    RGBAColor Corner_Colour[4];
-    DBL Red_Crn[4];
-    DBL Green_Crn[4];
-    DBL Blue_Crn[4];
-    DBL Alpha_Crn[4];
+    int iycoor;
+    int ixcoor;
+    int i;
+    int cornersIndex[4];
+    DBL indexCrn[4];
+    RGBAColor cornerColour[4];
+    DBL redCrn[4];
+    DBL greenCrn[4];
+    DBL blueCrn[4];
+    DBL alphaCrn[4];
     DBL val1 = 0, val2 = 0, val3 = 0, val4 = 0;
 
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
     for (i = 0; i < 4; i++) {
-        Make_Colour(&Corner_Colour[i], 0.0, 0.0, 0.0);
-        Corner_Colour[i].Alpha = 0.0;
+        Make_Colour(&cornerColour[i], 0.0, 0.0, 0.0);
+        cornerColour[i].Alpha = 0.0;
     }
     /* OK, now that you have the corners, what are you going to do with them? */
-    if (Image->Interpolation_Type == BILINEAR) {
-        no_interpolation(Image, (DBL)ixcoor + 1, (DBL)iycoor, &Corner_Colour[0],
-            &Corners_Index[0]);
-        no_interpolation(Image, (DBL)ixcoor, (DBL)iycoor, &Corner_Colour[1],
-            &Corners_Index[1]);
-        no_interpolation(Image, (DBL)ixcoor + 1, (DBL)iycoor - 1,
-            &Corner_Colour[2], &Corners_Index[2]);
-        no_interpolation(Image, (DBL)ixcoor, (DBL)iycoor - 1, &Corner_Colour[3],
-            &Corners_Index[3]);
+    if (image->Interpolation_Type == BILINEAR) {
+        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor, &cornerColour[0],
+            &cornersIndex[0]);
+        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor, &cornerColour[1],
+            &cornersIndex[1]);
+        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor - 1,
+            &cornerColour[2], &cornersIndex[2]);
+        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor - 1, &cornerColour[3],
+            &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
-            Red_Crn[i] = Corner_Colour[i].Red;
-            Green_Crn[i] = Corner_Colour[i].Green;
-            Blue_Crn[i] = Corner_Colour[i].Blue;
-            Alpha_Crn[i] = Corner_Colour[i].Alpha;
+            redCrn[i] = cornerColour[i].Red;
+            greenCrn[i] = cornerColour[i].Green;
+            blueCrn[i] = cornerColour[i].Blue;
+            alphaCrn[i] = cornerColour[i].Alpha;
             /* printf("Crn %d = %lf %lf
              * %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]); */
         }
 
-        val1 = bilinear(Red_Crn, xcoor, ycoor);
-        val2 = bilinear(Green_Crn, xcoor, ycoor);
-        val3 = bilinear(Blue_Crn, xcoor, ycoor);
-        val4 = bilinear(Alpha_Crn, xcoor, ycoor);
+        val1 = bilinear(redCrn, xcoor, ycoor);
+        val2 = bilinear(greenCrn, xcoor, ycoor);
+        val3 = bilinear(blueCrn, xcoor, ycoor);
+        val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
-    if (Image->Interpolation_Type == NORMALIZED_DIST) {
-        no_interpolation(Image, (DBL)ixcoor, (DBL)iycoor - 1, &Corner_Colour[0],
-            &Corners_Index[0]);
-        no_interpolation(Image, (DBL)ixcoor + 1, (DBL)iycoor - 1,
-            &Corner_Colour[1], &Corners_Index[1]);
-        no_interpolation(Image, (DBL)ixcoor, (DBL)iycoor, &Corner_Colour[2],
-            &Corners_Index[2]);
-        no_interpolation(Image, (DBL)ixcoor + 1, (DBL)iycoor, &Corner_Colour[3],
-            &Corners_Index[3]);
+    if (image->Interpolation_Type == NORMALIZED_DIST) {
+        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor - 1, &cornerColour[0],
+            &cornersIndex[0]);
+        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor - 1,
+            &cornerColour[1], &cornersIndex[1]);
+        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor, &cornerColour[2],
+            &cornersIndex[2]);
+        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor, &cornerColour[3],
+            &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
-            Red_Crn[i] = Corner_Colour[i].Red;
-            Green_Crn[i] = Corner_Colour[i].Green;
-            Blue_Crn[i] = Corner_Colour[i].Blue;
-            Alpha_Crn[i] = Corner_Colour[i].Alpha;
+            redCrn[i] = cornerColour[i].Red;
+            greenCrn[i] = cornerColour[i].Green;
+            blueCrn[i] = cornerColour[i].Blue;
+            alphaCrn[i] = cornerColour[i].Alpha;
             /* printf("Crn %d = %lf %lf
              * %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]); */
         }
 
-        val1 = norm_dist(Red_Crn, xcoor, ycoor);
-        val2 = norm_dist(Green_Crn, xcoor, ycoor);
-        val3 = norm_dist(Blue_Crn, xcoor, ycoor);
-        val4 = norm_dist(Alpha_Crn, xcoor, ycoor);
+        val1 = normDist(redCrn, xcoor, ycoor);
+        val2 = normDist(greenCrn, xcoor, ycoor);
+        val3 = normDist(blueCrn, xcoor, ycoor);
+        val4 = normDist(alphaCrn, xcoor, ycoor);
     }
 
     colour->Red += val1;
@@ -651,13 +668,13 @@ Interp(RGBAImage *Image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
     /* printf("Final = %lf %lf %lf\n",val1,val2,val3);  */
     /* use bilinear for index try average later */
     for (i = 0; i < 4; i++) {
-        Index_Crn[i] = (DBL)Corners_Index[i];
+        indexCrn[i] = (DBL)cornersIndex[i];
     }
-    if (Image->Interpolation_Type == BILINEAR) {
-        *index = (int)(bilinear(Index_Crn, xcoor, ycoor) + 0.5);
+    if (image->Interpolation_Type == BILINEAR) {
+        *index = (int)(bilinear(indexCrn, xcoor, ycoor) + 0.5);
     }
-    if (Image->Interpolation_Type == NORMALIZED_DIST) {
-        *index = (int)(norm_dist(Index_Crn, xcoor, ycoor) + 0.5);
+    if (image->Interpolation_Type == NORMALIZED_DIST) {
+        *index = (int)(normDist(indexCrn, xcoor, ycoor) + 0.5);
     }
 }
 
@@ -685,14 +702,14 @@ bilinear(DBL *corners, DBL x, DBL y)
 #define PYTHAGOREAN_SQ(a, b) ((a) * (a) + (b) * (b))
 
 DBL
-norm_dist(DBL *corners, DBL x, DBL y)
+normDist(DBL *corners, DBL x, DBL y)
 {
     register int i;
 
     DBL p, q;
     DBL wts[MAX_PTS];
-    DBL sum_inv_wts = 0.0;
-    DBL sum_I = 0.0;
+    DBL sumInvWts = 0.0;
+    DBL sumI = 0.0;
 
     p = x - (int)x;
     q = y - (int)y;
@@ -707,9 +724,9 @@ norm_dist(DBL *corners, DBL x, DBL y)
     wts[3] = PYTHAGOREAN_SQ(1 - p, 1 - q);
 
     for (i = 0; i < MAX_PTS; i++) {
-        sum_inv_wts += 1 / wts[i];
-        sum_I += *(corners + i) / wts[i];
+        sumInvWts += 1 / wts[i];
+        sumI += *(corners + i) / wts[i];
     }
 
-    return (sum_I / sum_inv_wts);
+    return (sumI / sumInvWts);
 }
