@@ -6,8 +6,8 @@
 #include "common/Vector.h"
 #include "geom/Geometry.h"
 
-#define BEZIER_INTERIOR_NODE 0
-#define BEZIER_LEAF_NODE 1
+static constexpr int BEZIER_INTERIOR_NODE = 0;
+static constexpr int BEZIER_LEAF_NODE = 1;
 
 class BezierVertices;
 class BezierNode;

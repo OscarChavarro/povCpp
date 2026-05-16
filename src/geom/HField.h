@@ -6,9 +6,9 @@
 #include "common/Vector.h"
 #include "geom/Boxes.h"
 
-#define GIF 0 /* These are the types of image maps which can be used as a */
-#define POT 1 /* height field. */
-#define TGA 2
+static constexpr int GIF = 0; /* These are the types of image maps which can be used as a */
+static constexpr int POT = 1; /* height field. */
+static constexpr int TGA = 2;
 
 #include "geom/HeightField.h"
 #include "geom/HeightFieldBlock.h"

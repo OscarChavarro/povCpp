@@ -96,12 +96,12 @@ typedef int INT;
  * returned intact up the various subroutine
  * levels...
  */
-#define OUT_OF_MEMORY -10
-#define BAD_CODE_SIZE -20
-#define READ_ERROR -1
-#define WRITE_ERROR -2
-#define OPEN_ERROR -3
-#define CREATE_ERROR -4
+static constexpr int OUT_OF_MEMORY = -10;
+static constexpr int BAD_CODE_SIZE = -20;
+static constexpr int READ_ERROR = -1;
+static constexpr int WRITE_ERROR = -2;
+static constexpr int OPEN_ERROR = -3;
+static constexpr int CREATE_ERROR = -4;
 
 /* IMPORT INT getByte()
  *
@@ -120,7 +120,7 @@ IMPORT INT getByte();
  */
 INT badCodeCount;
 
-#define MAX_CODES 4095
+static constexpr int MAX_CODES = 4095;
 
 /* Static variables */
 LOCAL WORD currSize; /* The current code size */

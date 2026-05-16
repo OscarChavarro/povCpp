@@ -698,7 +698,7 @@ bilinear(DBL *corners, DBL x, DBL y)
     return (val);
 }
 
-#define MAX_PTS 4
+static constexpr int MAX_PTS = 4;
 #define PYTHAGOREAN_SQ(a, b) ((a) * (a) + (b) * (b))
 
 DBL

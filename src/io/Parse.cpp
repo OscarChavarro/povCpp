@@ -708,7 +708,7 @@ parseColour(RGBAColor *givenColour)
 RGBAColorPalette *
 parseColourMap()
 {
-#define MAX_ENTRIES 20
+static constexpr int MAX_ENTRIES = 20;
     RGBAColorPalette *newColourMap;
     register int i;
     register int j;

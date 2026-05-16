@@ -48,7 +48,7 @@ extern long transmittedRaysTraced;
     use a reasonably small value.  If people render real small objects real
     close to each other then there may be some shading problems.  Otherwise
     having SHADOW_TOLERANCE as large as this won't affect images. */
-#define SHADOW_TOLERANCE 0.05
+static constexpr double SHADOW_TOLERANCE = 0.05;
 
 static void doLight(Light *lightSource, DBL *lightSourceDepth,
     Ray *lightSourceRay, Vector3D *intersectionPoint, RGBAColor *lightColour);

@@ -7,24 +7,24 @@
 /*===========================================================================*/
 
 /* Object/shape types */
-#define SPHERE_TYPE 0
-#define TRIANGLE_TYPE 1
-#define SMOOTH_TRIANGLE_TYPE 2
-#define PLANE_TYPE 3
-#define QUADRIC_TYPE 4
-#define POLY_TYPE 5
-#define BICUBIC_PATCH_TYPE 6
-#define COMPOSITE_TYPE 7
-#define OBJECT_TYPE 8
-#define CSG_UNION_TYPE 9
-#define CSG_INTERSECTION_TYPE 10
-#define CSG_DIFFERENCE_TYPE 11
-#define VIEWPOINT_TYPE 12
-#define HEIGHT_FIELD_TYPE 13
-#define POINT_LIGHT_TYPE 14
-#define SPOT_LIGHT_TYPE 15
-#define BOX_TYPE 16
-#define BLOB_TYPE 17
+static constexpr int SPHERE_TYPE = 0;
+static constexpr int TRIANGLE_TYPE = 1;
+static constexpr int SMOOTH_TRIANGLE_TYPE = 2;
+static constexpr int PLANE_TYPE = 3;
+static constexpr int QUADRIC_TYPE = 4;
+static constexpr int POLY_TYPE = 5;
+static constexpr int BICUBIC_PATCH_TYPE = 6;
+static constexpr int COMPOSITE_TYPE = 7;
+static constexpr int OBJECT_TYPE = 8;
+static constexpr int CSG_UNION_TYPE = 9;
+static constexpr int CSG_INTERSECTION_TYPE = 10;
+static constexpr int CSG_DIFFERENCE_TYPE = 11;
+static constexpr int VIEWPOINT_TYPE = 12;
+static constexpr int HEIGHT_FIELD_TYPE = 13;
+static constexpr int POINT_LIGHT_TYPE = 14;
+static constexpr int SPOT_LIGHT_TYPE = 15;
+static constexpr int BOX_TYPE = 16;
+static constexpr int BLOB_TYPE = 17;
 
 class PriorityQueueNode;
 class Intersection;

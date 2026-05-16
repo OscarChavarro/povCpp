@@ -29,7 +29,7 @@
 #include <cctype>
 #include <ctime> /* BP */
 
-#define MAX_FILE_NAMES 1
+static constexpr int MAX_FILE_NAMES = 1;
 unsigned int Options;
 int quality;
 int caseSensitiveFlag = CASE_SENSITIVE_DEFAULT;
@@ -52,7 +52,7 @@ char inputFileName[FILE_NAME_LENGTH];
 char outputFileName[FILE_NAME_LENGTH];
 char statFileName[FILE_NAME_LENGTH];
 
-#define MAX_LIBRARIES 10
+static constexpr int MAX_LIBRARIES = 10;
 char *libraryPaths[MAX_LIBRARIES];
 int libraryPathIndex;
 

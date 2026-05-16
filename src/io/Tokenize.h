@@ -9,163 +9,163 @@
 
 /* Token Definitions for Parser */
 /* This list must have the same number of tokens as list in tokenize.c */
-#define AGATE_TOKEN 0
-#define ALL_TOKEN 1
-#define ALPHA_TOKEN 2
-#define AMBIENT_TOKEN 3
-#define AMPERSAND_TOKEN 4
-#define AT_TOKEN 5
-#define BACK_QUOTE_TOKEN 6
-#define BACK_SLASH_TOKEN 7
-#define BAR_TOKEN 8
-#define BICUBIC_PATCH_TOKEN 9
-#define BLUE_TOKEN 10
-#define BRILLIANCE_TOKEN 11
-#define BOZO_TOKEN 12
-#define BOUNDED_TOKEN 13
-#define BUMPS_TOKEN 14
-#define CHECKER_TOKEN 15
-#define CHECKER_TEXTURE_TOKEN 16
-#define CLIPPED_TOKEN 17
-#define COLON_TOKEN 18
-#define COLOR_TOKEN 19
-#define COLOUR_TOKEN 20
-#define COLOR_MAP_TOKEN 21
-#define COLOUR_MAP_TOKEN 22
-#define COMMA_TOKEN 23
-#define COMPOSITE_TOKEN 24
-#define CONCENTRATION_TOKEN 25
-#define CUBIC_TOKEN 26
-#define DASH_TOKEN 27
-#define DECLARE_TOKEN 28
-#define DENTS_TOKEN 29
-#define DIFFERENCE_TOKEN 30
-#define DIFFUSE_TOKEN 31
-#define DIRECTION_TOKEN 32
-#define DOLLAR_TOKEN 33
-#define DUMP_TOKEN 34
-#define EQUALS_TOKEN 35
-#define EXCLAMATION_TOKEN 36
-#define FLOAT_TOKEN 37
-#define FOG_TOKEN 38
-#define FREQUENCY_TOKEN 39
-#define GIF_TOKEN 40
-#define GRADIENT_TOKEN 41
-#define GRANITE_TOKEN 42
-#define GREEN_TOKEN 43
-#define HASH_TOKEN 44
-#define HAT_TOKEN 45
-#define IDENTIFIER_TOKEN 46
-#define IFF_TOKEN 47
-#define IMAGEMAP_TOKEN 48
-#define INCLUDE_TOKEN 49
-#define INTERSECTION_TOKEN 50
-#define INVERSE_TOKEN 51
-#define IOR_TOKEN 52
-#define LEFT_ANGLE_TOKEN 53
-#define LEFT_CURLY_TOKEN 54
-#define LEFT_SQUARE_TOKEN 55
-#define LIGHT_SOURCE_TOKEN 56
-#define LOCATION_TOKEN 57
-#define LOOK_AT_TOKEN 58
-#define MARBLE_TOKEN 59
-#define METALLIC_TOKEN 60
-#define OBJECT_TOKEN 61
-#define ONCE_TOKEN 62
-#define PERCENT_TOKEN 63
-#define PHASE_TOKEN 64
-#define PHONG_TOKEN 65
-#define PHONGSIZE_TOKEN 66
-#define PLANE_TOKEN 67
-#define PLUS_TOKEN 68
-#define POINTS_TOKEN 69
-#define POINT_AT_TOKEN 70
-#define POLYGON_TOKEN 71
-#define POLY_TOKEN 72
-#define QUADRIC_TOKEN 73
-#define QUARTIC_TOKEN 74
-#define QUESTION_TOKEN 75
-#define RAW_TOKEN 76
-#define RED_TOKEN 77
-#define REFLECTION_TOKEN 78
-#define REFRACTION_TOKEN 79
-#define REVOLVE_TOKEN 80
-#define RIGHT_TOKEN 81
-#define RIGHT_ANGLE_TOKEN 82
-#define RIGHT_PAREN_TOKEN 83
-#define RIGHT_SQUARE_TOKEN 84
-#define RIPPLES_TOKEN 85
-#define ROTATE_TOKEN 86
-#define ROUGHNESS_TOKEN 87
-#define SCALE_TOKEN 88
-#define SEMI_COLON_TOKEN 89
-#define SHAPE_TOKEN 90
-#define SINGLE_QUOTE_TOKEN 91
-#define SIZE_TOKEN 92
-#define SKY_TOKEN 93
-#define SLASH_TOKEN 94
-#define SMOOTH_TRIANGLE_TOKEN 95
-#define SPECULAR_TOKEN 96
-#define SPHERE_TOKEN 97
-#define SPOTLIGHT_TOKEN 98
-#define SPOTTED_TOKEN 99
-#define STAR_TOKEN 100
-#define STRING_TOKEN 101
-#define STURM_TOKEN 102
-#define TEXTURE_TOKEN 103
-#define TILDE_TOKEN 104
-#define TILE2_TOKEN 105
-#define TRANSLATE_TOKEN 106
-#define TRANSMIT_TOKEN 107
-#define TRIANGLE_TOKEN 108
-#define TURBULENCE_TOKEN 109
-#define UNION_TOKEN 110
-#define UP_TOKEN 111
-#define VIEW_POINT_TOKEN 112
-#define WAVES_TOKEN 113
-#define WOOD_TOKEN 114
-#define WRINKLES_TOKEN 115
-#define PAINTED1_TOKEN 116
-#define PAINTED2_TOKEN 117
-#define PAINTED3_TOKEN 118
-#define BUMPY1_TOKEN 119
-#define BUMPY2_TOKEN 120
-#define BUMPY3_TOKEN 121
-#define BUMPMAP_TOKEN 122
-#define BUMPSIZE_TOKEN 123
-#define MATERIAL_MAP_TOKEN 124
-#define ONION_TOKEN 125
-#define LEOPARD_TOKEN 126
+static constexpr int AGATE_TOKEN = 0;
+static constexpr int ALL_TOKEN = 1;
+static constexpr int ALPHA_TOKEN = 2;
+static constexpr int AMBIENT_TOKEN = 3;
+static constexpr int AMPERSAND_TOKEN = 4;
+static constexpr int AT_TOKEN = 5;
+static constexpr int BACK_QUOTE_TOKEN = 6;
+static constexpr int BACK_SLASH_TOKEN = 7;
+static constexpr int BAR_TOKEN = 8;
+static constexpr int BICUBIC_PATCH_TOKEN = 9;
+static constexpr int BLUE_TOKEN = 10;
+static constexpr int BRILLIANCE_TOKEN = 11;
+static constexpr int BOZO_TOKEN = 12;
+static constexpr int BOUNDED_TOKEN = 13;
+static constexpr int BUMPS_TOKEN = 14;
+static constexpr int CHECKER_TOKEN = 15;
+static constexpr int CHECKER_TEXTURE_TOKEN = 16;
+static constexpr int CLIPPED_TOKEN = 17;
+static constexpr int COLON_TOKEN = 18;
+static constexpr int COLOR_TOKEN = 19;
+static constexpr int COLOUR_TOKEN = 20;
+static constexpr int COLOR_MAP_TOKEN = 21;
+static constexpr int COLOUR_MAP_TOKEN = 22;
+static constexpr int COMMA_TOKEN = 23;
+static constexpr int COMPOSITE_TOKEN = 24;
+static constexpr int CONCENTRATION_TOKEN = 25;
+static constexpr int CUBIC_TOKEN = 26;
+static constexpr int DASH_TOKEN = 27;
+static constexpr int DECLARE_TOKEN = 28;
+static constexpr int DENTS_TOKEN = 29;
+static constexpr int DIFFERENCE_TOKEN = 30;
+static constexpr int DIFFUSE_TOKEN = 31;
+static constexpr int DIRECTION_TOKEN = 32;
+static constexpr int DOLLAR_TOKEN = 33;
+static constexpr int DUMP_TOKEN = 34;
+static constexpr int EQUALS_TOKEN = 35;
+static constexpr int EXCLAMATION_TOKEN = 36;
+static constexpr int FLOAT_TOKEN = 37;
+static constexpr int FOG_TOKEN = 38;
+static constexpr int FREQUENCY_TOKEN = 39;
+static constexpr int GIF_TOKEN = 40;
+static constexpr int GRADIENT_TOKEN = 41;
+static constexpr int GRANITE_TOKEN = 42;
+static constexpr int GREEN_TOKEN = 43;
+static constexpr int HASH_TOKEN = 44;
+static constexpr int HAT_TOKEN = 45;
+static constexpr int IDENTIFIER_TOKEN = 46;
+static constexpr int IFF_TOKEN = 47;
+static constexpr int IMAGEMAP_TOKEN = 48;
+static constexpr int INCLUDE_TOKEN = 49;
+static constexpr int INTERSECTION_TOKEN = 50;
+static constexpr int INVERSE_TOKEN = 51;
+static constexpr int IOR_TOKEN = 52;
+static constexpr int LEFT_ANGLE_TOKEN = 53;
+static constexpr int LEFT_CURLY_TOKEN = 54;
+static constexpr int LEFT_SQUARE_TOKEN = 55;
+static constexpr int LIGHT_SOURCE_TOKEN = 56;
+static constexpr int LOCATION_TOKEN = 57;
+static constexpr int LOOK_AT_TOKEN = 58;
+static constexpr int MARBLE_TOKEN = 59;
+static constexpr int METALLIC_TOKEN = 60;
+static constexpr int OBJECT_TOKEN = 61;
+static constexpr int ONCE_TOKEN = 62;
+static constexpr int PERCENT_TOKEN = 63;
+static constexpr int PHASE_TOKEN = 64;
+static constexpr int PHONG_TOKEN = 65;
+static constexpr int PHONGSIZE_TOKEN = 66;
+static constexpr int PLANE_TOKEN = 67;
+static constexpr int PLUS_TOKEN = 68;
+static constexpr int POINTS_TOKEN = 69;
+static constexpr int POINT_AT_TOKEN = 70;
+static constexpr int POLYGON_TOKEN = 71;
+static constexpr int POLY_TOKEN = 72;
+static constexpr int QUADRIC_TOKEN = 73;
+static constexpr int QUARTIC_TOKEN = 74;
+static constexpr int QUESTION_TOKEN = 75;
+static constexpr int RAW_TOKEN = 76;
+static constexpr int RED_TOKEN = 77;
+static constexpr int REFLECTION_TOKEN = 78;
+static constexpr int REFRACTION_TOKEN = 79;
+static constexpr int REVOLVE_TOKEN = 80;
+static constexpr int RIGHT_TOKEN = 81;
+static constexpr int RIGHT_ANGLE_TOKEN = 82;
+static constexpr int RIGHT_PAREN_TOKEN = 83;
+static constexpr int RIGHT_SQUARE_TOKEN = 84;
+static constexpr int RIPPLES_TOKEN = 85;
+static constexpr int ROTATE_TOKEN = 86;
+static constexpr int ROUGHNESS_TOKEN = 87;
+static constexpr int SCALE_TOKEN = 88;
+static constexpr int SEMI_COLON_TOKEN = 89;
+static constexpr int SHAPE_TOKEN = 90;
+static constexpr int SINGLE_QUOTE_TOKEN = 91;
+static constexpr int SIZE_TOKEN = 92;
+static constexpr int SKY_TOKEN = 93;
+static constexpr int SLASH_TOKEN = 94;
+static constexpr int SMOOTH_TRIANGLE_TOKEN = 95;
+static constexpr int SPECULAR_TOKEN = 96;
+static constexpr int SPHERE_TOKEN = 97;
+static constexpr int SPOTLIGHT_TOKEN = 98;
+static constexpr int SPOTTED_TOKEN = 99;
+static constexpr int STAR_TOKEN = 100;
+static constexpr int STRING_TOKEN = 101;
+static constexpr int STURM_TOKEN = 102;
+static constexpr int TEXTURE_TOKEN = 103;
+static constexpr int TILDE_TOKEN = 104;
+static constexpr int TILE2_TOKEN = 105;
+static constexpr int TRANSLATE_TOKEN = 106;
+static constexpr int TRANSMIT_TOKEN = 107;
+static constexpr int TRIANGLE_TOKEN = 108;
+static constexpr int TURBULENCE_TOKEN = 109;
+static constexpr int UNION_TOKEN = 110;
+static constexpr int UP_TOKEN = 111;
+static constexpr int VIEW_POINT_TOKEN = 112;
+static constexpr int WAVES_TOKEN = 113;
+static constexpr int WOOD_TOKEN = 114;
+static constexpr int WRINKLES_TOKEN = 115;
+static constexpr int PAINTED1_TOKEN = 116;
+static constexpr int PAINTED2_TOKEN = 117;
+static constexpr int PAINTED3_TOKEN = 118;
+static constexpr int BUMPY1_TOKEN = 119;
+static constexpr int BUMPY2_TOKEN = 120;
+static constexpr int BUMPY3_TOKEN = 121;
+static constexpr int BUMPMAP_TOKEN = 122;
+static constexpr int BUMPSIZE_TOKEN = 123;
+static constexpr int MATERIAL_MAP_TOKEN = 124;
+static constexpr int ONION_TOKEN = 125;
+static constexpr int LEOPARD_TOKEN = 126;
 #define DUMMY_TOKEN                                                            \
     127 /* Dummy token to pad list because some colour_tokens are used twice   \
          */
-#define INTERPOLATE_TOKEN 128
-#define HEIGHT_FIELD_TOKEN 129
-#define POT_TOKEN 130
-#define WATER_LEVEL_TOKEN 131
-#define USE_COLOUR_TOKEN 132
-#define USE_INDEX_TOKEN 133
-#define MAPTYPE_TOKEN 134
-#define RIGHT_CURLY_TOKEN 135
-#define LEFT_PAREN_TOKEN 136
-#define TGA_TOKEN 137       /* ARE 11/91 for tga mapp/heights */
-#define CENTER_TOKEN 138    /* ARE 11/91 for spotlight */
-#define FALLOFF_TOKEN 139   /* ARE 11/91 for spotlight */
-#define TIGHTNESS_TOKEN 140 /* ARE 11/91 for spotlight */
-#define RADIUS_TOKEN 141    /* ARE 11/91 for spotlight */
-#define NO_SHADOW_TOKEN 142 /* CEY 12/91 for shadowless objects */
-#define END_OF_FILE_TOKEN 143
-#define MAX_TRACE_LEVEL_TOKEN 144
-#define DEFAULT_TOKEN 145
-#define BOX_TOKEN 146       /* ARE 1/92 for boxes */
-#define BLOB_TOKEN 147      /* ARE 1/92 for blobs */
-#define THRESHOLD_TOKEN 148 /* ARE 1/92 for blobs */
-#define COMPONENT_TOKEN 149 /* ARE 1/92 for blobs */
-#define OCTAVES_TOKEN 150   /* DMF 2/92 for turb  */
-#define BRICK_TOKEN 151     /* RHA 2/92 for brick */
-#define MORTAR_TOKEN 152    /* RHA 2/92 for brick */
-#define LOST_TOKEN 153
-#define LAST_TOKEN 154
+static constexpr int INTERPOLATE_TOKEN = 128;
+static constexpr int HEIGHT_FIELD_TOKEN = 129;
+static constexpr int POT_TOKEN = 130;
+static constexpr int WATER_LEVEL_TOKEN = 131;
+static constexpr int USE_COLOUR_TOKEN = 132;
+static constexpr int USE_INDEX_TOKEN = 133;
+static constexpr int MAPTYPE_TOKEN = 134;
+static constexpr int RIGHT_CURLY_TOKEN = 135;
+static constexpr int LEFT_PAREN_TOKEN = 136;
+static constexpr int TGA_TOKEN = 137; /* ARE 11/91 for tga mapp/heights */
+static constexpr int CENTER_TOKEN = 138; /* ARE 11/91 for spotlight */
+static constexpr int FALLOFF_TOKEN = 139; /* ARE 11/91 for spotlight */
+static constexpr int TIGHTNESS_TOKEN = 140; /* ARE 11/91 for spotlight */
+static constexpr int RADIUS_TOKEN = 141; /* ARE 11/91 for spotlight */
+static constexpr int NO_SHADOW_TOKEN = 142; /* CEY 12/91 for shadowless objects */
+static constexpr int END_OF_FILE_TOKEN = 143;
+static constexpr int MAX_TRACE_LEVEL_TOKEN = 144;
+static constexpr int DEFAULT_TOKEN = 145;
+static constexpr int BOX_TOKEN = 146; /* ARE 1/92 for boxes */
+static constexpr int BLOB_TOKEN = 147; /* ARE 1/92 for blobs */
+static constexpr int THRESHOLD_TOKEN = 148; /* ARE 1/92 for blobs */
+static constexpr int COMPONENT_TOKEN = 149; /* ARE 1/92 for blobs */
+static constexpr int OCTAVES_TOKEN = 150; /* DMF 2/92 for turb  */
+static constexpr int BRICK_TOKEN = 151; /* RHA 2/92 for brick */
+static constexpr int MORTAR_TOKEN = 152; /* RHA 2/92 for brick */
+static constexpr int LOST_TOKEN = 153;
+static constexpr int LAST_TOKEN = 154;
 
 typedef int TOKEN;
 

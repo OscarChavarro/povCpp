@@ -4,7 +4,7 @@
 #include "common/Vector.h"
 #include "media/Texture.h"
 
-#define MAX_CONTAINING_OBJECTS 10
+static constexpr int MAX_CONTAINING_OBJECTS = 10;
 
 class Ray {
   public:

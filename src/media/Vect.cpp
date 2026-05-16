@@ -35,8 +35,8 @@
 #endif
 
 #undef EPSILON
-#define EPSILON 1.0e-10
-#define COEFF_LIMIT 1.0e-20
+static constexpr double EPSILON = 1.0e-10;
+static constexpr double COEFF_LIMIT = 1.0e-20;
 
 /*                        WARNING      WARNING     WARNING
 
@@ -65,17 +65,17 @@
 
         factor3 - Similar to factor2 at a later stage of the algebraic solver.
 */
-#define FUDGE_FACTOR1 1.0e11
-#define FUDGE_FACTOR2 -1.0e-5
-#define FUDGE_FACTOR3 1.0e-7
+static constexpr double FUDGE_FACTOR1 = 1.0e11;
+static constexpr double FUDGE_FACTOR2 = -1.0e-5;
+static constexpr double FUDGE_FACTOR3 = 1.0e-7;
 
 #define ABS(x) ((x) < 0.0 ? (0.0 - x) : (x))
 #define MAX(x, y) (x < y ? y : x)
-#define TWO_PI 6.283185207179586476925286766560
-#define TWO_PI_3 2.0943951023931954923084
-#define TWO_PI_43 4.1887902047863909846168
-#define MAX_ITERATIONS 50
-#define MAXPOW 32
+static constexpr double TWO_PI = 6.283185207179586476925286766560;
+static constexpr double TWO_PI_3 = 2.0943951023931954923084;
+static constexpr double TWO_PI_43 = 4.1887902047863909846168;
+static constexpr int MAX_ITERATIONS = 50;
+static constexpr int MAXPOW = 32;
 
 class polynomial {
   public:

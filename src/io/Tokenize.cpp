@@ -31,7 +31,7 @@ to the parser (the second stage).  Tokens sent to the parser contain a
 token ID, the line number of the token, and if necessary, some data for
 the token.  */
 
-#define MAX_STRING_INDEX 41
+static constexpr int MAX_STRING_INDEX = 41;
 char string[MAX_STRING_INDEX];
 int stringIndex;
 extern char libraryPath[];
@@ -121,7 +121,7 @@ char **symbolTable;
 int numberOfSymbols;
 extern int caseSensitiveFlag; /* defined & init in povray.c */
 
-#define MAX_INCLUDE_FILES 10
+static constexpr int MAX_INCLUDE_FILES = 10;
 
 static DataFile globalIncludeFiles[MAX_INCLUDE_FILES];
 static DataFile *globalDataFile;

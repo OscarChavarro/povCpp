@@ -6,7 +6,7 @@
 #include "geom/BezierNode.h"
 #include "geom/Geometry.h"
 
-#define MAX_BICUBIC_INTERSECTIONS 32
+static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 
 class BicubicPatch : public Geometry {
   public:

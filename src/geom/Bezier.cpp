@@ -31,7 +31,7 @@
 
 #undef EPSILON
 #ifndef EPSILON
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 #endif
 
 Methods Bicubic_Patch_Methods = {objectIntersect,
@@ -81,8 +81,8 @@ static BezierNode *createNewBezierNode();
 static BezierVertices *createBezierVertexBlock();
 static BezierChild *createBezierChildBlock();
 
-#define SUBDIVISION_EPSILON 0.001
-#define MAX_RECURSION_DEPTH 20
+static constexpr double SUBDIVISION_EPSILON = 0.001;
+static constexpr int MAX_RECURSION_DEPTH = 20;
 
 /*===========================================================================*/
 

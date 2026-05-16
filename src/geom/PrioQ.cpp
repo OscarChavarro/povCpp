@@ -27,8 +27,8 @@
 //===========================================================================
 
 // used on pq_new and pq_init
-#define NUMBER_OF_PRIOQS 32
-#define MAX_NUMBER_OF_INTERSECTIONS 128
+static constexpr int NUMBER_OF_PRIOQS = 32;
+static constexpr int MAX_NUMBER_OF_INTERSECTIONS = 128;
 
 //===========================================================================
 

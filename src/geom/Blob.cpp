@@ -43,8 +43,8 @@ static int determineInfluences(
 static DBL calculateFieldValue(SimpleBody *obj, Vector3D *pos);
 static int validateHit(Blob *blob, Vector3D *p);
 
-#define COEFF_LIMIT 1.0e-20
-#define INSIDE_TOLERANCE 1.0e-6
+static constexpr double COEFF_LIMIT = 1.0e-20;
+static constexpr double INSIDE_TOLERANCE = 1.0e-6;
 
 /*===========================================================================*/
 
