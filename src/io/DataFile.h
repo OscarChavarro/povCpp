@@ -9,13 +9,13 @@ class DataFile {
     char *Filename;
     int Line_Number;
 
-    int SkipSpaces();
-    int ParseComments();
-    int ParseCComments();
-    void EndString();
-    int ReadFloat();
-    void ParseString();
-    int ReadSymbol();
+    int skipSpaces();
+    int parseComments();
+    int parseCComments();
+    void endString();
+    int readFloat();
+    void parseString();
+    int readSymbol();
 };
 
 #endif

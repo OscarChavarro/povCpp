@@ -1,9 +1,9 @@
 #ifndef __SMOOTH_TRIANGLE_H__
 #define __SMOOTH_TRIANGLE_H__
 
-#include "common/frame.h"
-#include "common/vector.h"
-#include "geom/geometry.h"
+#include "common/Frame.h"
+#include "common/Vector.h"
+#include "geom/Geometry.h"
 
 class SmoothTriangle : public Geometry {
   public:

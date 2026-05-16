@@ -1,10 +1,10 @@
 #ifndef __BICUBIC_PATCH_H__
 #define __BICUBIC_PATCH_H__
 
-#include "common/frame.h"
-#include "common/vector.h"
+#include "common/Frame.h"
+#include "common/Vector.h"
 #include "geom/BezierNode.h"
-#include "geom/geometry.h"
+#include "geom/Geometry.h"
 
 #define MAX_BICUBIC_INTERSECTIONS 32
 

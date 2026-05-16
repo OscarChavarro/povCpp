@@ -1,8 +1,8 @@
 #ifndef __BEZIER_NODE_H__
 #define __BEZIER_NODE_H__
 
-#include "common/frame.h"
-#include "common/vector.h"
+#include "common/Frame.h"
+#include "common/Vector.h"
 
 class BezierNode {
   public:
