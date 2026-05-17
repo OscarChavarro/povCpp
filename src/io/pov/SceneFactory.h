@@ -2,7 +2,7 @@
 #define __SCENE_FACTORY_H__
 
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "geom/Composite.h"
+#include "environment/geometry/Composite.h"
 
 class Composite;
 class Sphere;

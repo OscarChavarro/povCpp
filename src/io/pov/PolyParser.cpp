@@ -6,9 +6,9 @@
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "geom/PolynomialShape.h"
-#include "geom/GeometryOperations.h"
-#include "geom/ObjectUtils.h"
+#include "environment/geometry/PolynomialShape.h"
+#include "environment/geometry/GeometryOperations.h"
+#include "environment/scene/ObjectUtils.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
