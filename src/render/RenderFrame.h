@@ -4,7 +4,7 @@
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/light/Light.h"
-#include "environment/geometry/Viewpoint.h"
+#include "environment/camera/Viewpoint.h"
 
 class RenderFrame {
   public:

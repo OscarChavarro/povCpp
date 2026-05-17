@@ -5,9 +5,9 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/Quadric.h"
+#include "environment/geometry/volume/Quadric.h"
 #include "io/Parse.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 Methods Quadric_Methods = {Composite::objectIntersect, Quadric::allQuadricIntersections,
     Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,

@@ -10,7 +10,7 @@
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
-#include "environment/geometry/HeightField.h"
+#include "environment/geometry/volume/HeightField.h"
 #include "environment/geometry/GeometryOperations.h"
 
 extern TokenStruct globalToken;

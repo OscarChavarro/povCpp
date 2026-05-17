@@ -6,7 +6,7 @@
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Quadric.h"
+#include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/GeometryOperations.h"
 
 extern TokenStruct globalToken;

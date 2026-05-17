@@ -2,8 +2,8 @@
 #define __PRIOQ_H__
 
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/PriorityQueueNode.h"
-#include "environment/geometry/PriorityQueuePool.h"
+#include "common/dataStructures/PriorityQueueNode.h"
+#include "common/dataStructures/PriorityQueuePool.h"
 
 class PriorityQueue;
 

@@ -8,9 +8,9 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/PolynomialShape.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "io/Parse.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 /* Basic form of a quartic equation

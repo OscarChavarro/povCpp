@@ -5,7 +5,7 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/PriorityQueue.h"
+#include "common/dataStructures/PriorityQueue.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
 

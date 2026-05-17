@@ -2,7 +2,7 @@
 #define __SCENE_FACTORY_H__
 
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 
 class Composite;
 class Sphere;
@@ -18,7 +18,7 @@ class SmoothTriangle;
 class CSG;
 class Viewpoint;
 class RGBAColor;
-class BicubicPatch;
+class ParametricBiCubicPatch;
 
 class SceneFactory {
   public:
@@ -40,7 +40,7 @@ class SceneFactory {
     static RGBAColor *getColour();
     static Vector3Dd *getVector();
     static double *getFloat();
-    static BicubicPatch *getBicubicPatchShape();
+    static ParametricBiCubicPatch *getBicubicPatchShape();
 };
 
 #endif

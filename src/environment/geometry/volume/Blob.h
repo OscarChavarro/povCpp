@@ -2,9 +2,9 @@
 #define __BLOB_H__
 
 #include "common/FrameConfig.h"
-#include "environment/geometry/BlobElement.h"
-#include "environment/geometry/BlobList.h"
-#include "environment/geometry/BlobInterval.h"
+#include "environment/geometry/volume/BlobElement.h"
+#include "environment/geometry/volume/BlobList.h"
+#include "environment/geometry/volume/BlobInterval.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class Blob : public Geometry {

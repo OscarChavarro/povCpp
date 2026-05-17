@@ -1,12 +1,12 @@
-#ifndef __BEZIER_INTERSECTION_H__
-#define __BEZIER_INTERSECTION_H__
+#ifndef __PARAMETRIC_BICUBIC_INTERSECTION_H__
+#define __PARAMETRIC_BICUBIC_INTERSECTION_H__
 
 #include "environment/geometry/elements/Ray.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
-class BicubicPatch;
+class ParametricBiCubicPatch;
 
-class BezierIntersection {
+class ParametricBiCubicIntersection {
   public:
     static int intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1, Vector3Dd *v2,
         Vector3Dd *v3, Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2, Vector3Dd *n3,

@@ -13,23 +13,23 @@ add_executable(povray
   src/common/Color.cpp
   src/common/Transformation.cpp
   src/environment/geometry/elements/Ray.cpp
-  src/environment/geometry/Bezier.cpp
-  src/environment/geometry/BezierIntersection.cpp
-  src/environment/geometry/BezierPatch.cpp
-  src/environment/geometry/Blob.cpp
+  src/environment/geometry/surface/parametric/ParametricPatch.cpp
+  src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
+  src/environment/geometry/surface/parametric/ParametricBiCubicSolver.cpp
+  src/environment/geometry/volume/Blob.cpp
   src/environment/geometry/volume/Box.cpp
-  src/environment/geometry/CSG.cpp
-  src/environment/geometry/HeightField.cpp
+  src/environment/geometry/volume/compound/CSG.cpp
+  src/environment/geometry/volume/HeightField.cpp
   src/environment/light/Light.cpp
-  src/environment/geometry/Composite.cpp
+  src/environment/geometry/volume/compound/Composite.cpp
   src/environment/geometry/surface/InfinitePlane.cpp
-  src/environment/geometry/PolynomialShape.cpp
-  src/environment/geometry/PriorityQueue.cpp
-  src/environment/geometry/PriorityQueuePool.cpp
-  src/environment/geometry/Quadric.cpp
+  src/environment/geometry/volume/polynomial/PolynomialShape.cpp
+  src/common/dataStructures/PriorityQueue.cpp
+  src/common/dataStructures/PriorityQueuePool.cpp
+  src/environment/geometry/volume/Quadric.cpp
   src/environment/geometry/volume/Sphere.cpp
   src/environment/geometry/elements/Triangle.cpp
-  src/environment/geometry/Viewpoint.cpp
+  src/environment/camera/Viewpoint.cpp
   src/io/DumpFormat.cpp
   src/io/GifFormat.cpp
   src/io/GifDecoder.cpp

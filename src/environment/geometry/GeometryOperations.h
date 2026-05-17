@@ -35,7 +35,7 @@ class SimpleBody;
 #include "environment/scene/SimpleBody.h"
 #include "environment/geometry/Geometry.h"
 
-#include "environment/geometry/PriorityQueue.h"
+#include "common/dataStructures/PriorityQueue.h"
 #include "media/Texture.h"
 
 class GeometryOperations {
