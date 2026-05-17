@@ -38,8 +38,8 @@ Box::allBoxIntersections(
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
-        VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
-        intersectionPoint.add(ray->Initial);
+        VectorOps::vScale(intersectionPoint, ray->direction, depth1);
+        intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -48,8 +48,8 @@ Box::allBoxIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = shape->Parent_Object;
-            VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
-            intersectionPoint.add(ray->Initial);
+            VectorOps::vScale(intersectionPoint, ray->direction, depth2);
+            intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -70,15 +70,15 @@ Box::intersectBoxx(Ray *ray, Box *box, double *depth1, double *depth2)
 
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&p, &ray->Initial, box->Transform);
-        Transformation::MInvTransVector(&d, &ray->Direction, box->Transform);
+        Transformation::MInverseTransformVector(&p, &ray->position, box->Transform);
+        Transformation::MInvTransVector(&d, &ray->direction, box->Transform);
     } else {
-        p.x = ray->Initial.x;
-        p.y = ray->Initial.y;
-        p.z = ray->Initial.z;
-        d.x = ray->Direction.x;
-        d.y = ray->Direction.y;
-        d.z = ray->Direction.z;
+        p.x = ray->position.x;
+        p.y = ray->position.y;
+        p.z = ray->position.z;
+        d.x = ray->direction.x;
+        d.y = ray->direction.y;
+        d.z = ray->direction.z;
     }
 
     tmin = 0.0;

@@ -50,17 +50,17 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType, Ray *ray, Vector
     int crossings;
 
     /* Calculate the point of intersection and the depth. */
-    s = ray->Direction.dotProduct(*n);
+    s = ray->direction.dotProduct(*n);
     if (s == 0.0) {
         return 0;
     }
-    t = ray->Initial.dotProduct(*n);
+    t = ray->position.dotProduct(*n);
     *depth = 0.0 - (d + t) / s;
     if (*depth < Small_Tolerance) {
         return 0;
     }
-    VectorOps::vScale(*ip, ray->Direction, *depth);
-    (*ip).add(ray->Initial);
+    VectorOps::vScale(*ip, ray->direction, *depth);
+    (*ip).add(ray->position);
 
     /* Map the intersection point and the triangle onto a plane. */
     x = fabs(n->x);
@@ -227,15 +227,15 @@ int
 ParametricBiCubicIntersection::sphericalBoundsCheck(Ray *ray, Vector3Dd *center, double radius)
 {
     double x, y, z, dist1, dist2;
-    x = center->x - ray->Initial.x;
-    y = center->y - ray->Initial.y;
-    z = center->z - ray->Initial.z;
+    x = center->x - ray->position.x;
+    y = center->y - ray->position.y;
+    z = center->z - ray->position.z;
     dist1 = x * x + y * y + z * z;
     if (dist1 < radius) {
         /* ray starts inside sphere - assume it intersects. */
         return 1;
     }
-    dist2 = x * ray->Direction.x + y * ray->Direction.y + z * ray->Direction.z;
+    dist2 = x * ray->direction.x + y * ray->direction.y + z * ray->direction.z;
     dist2 = dist2 * dist2;
     if (dist2 > 0 && (dist1 - dist2 < radius)) {
         return 1;

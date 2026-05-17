@@ -319,15 +319,15 @@ Blob::allBlobIntersections(
 
     /* Transform the ray into the blob space */
     if (blob->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&p, &ray->Initial, blob->Transform);
-        Transformation::MInvTransVector(&d, &ray->Direction, blob->Transform);
+        Transformation::MInverseTransformVector(&p, &ray->position, blob->Transform);
+        Transformation::MInvTransVector(&d, &ray->direction, blob->Transform);
     } else {
-        p.x = ray->Initial.x;
-        p.y = ray->Initial.y;
-        p.z = ray->Initial.z;
-        d.x = ray->Direction.x;
-        d.y = ray->Direction.y;
-        d.z = ray->Direction.z;
+        p.x = ray->position.x;
+        p.y = ray->position.y;
+        p.z = ray->position.z;
+        d.x = ray->direction.x;
+        d.y = ray->direction.y;
+        d.z = ray->direction.z;
     }
 
     len = sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
@@ -426,7 +426,7 @@ Blob::allBlobIntersections(
                         Transformation::MTransformVector(&intersectionPoint, &intersectionPoint,
                             blob->Transform);
                     }
-                    VectorOps::vSub(dv, intersectionPoint, ray->Initial);
+                    VectorOps::vSub(dv, intersectionPoint, ray->position);
                     len = dv.length();
                     localElement.Depth = len;
                     localElement.Object = blob->Parent_Object;

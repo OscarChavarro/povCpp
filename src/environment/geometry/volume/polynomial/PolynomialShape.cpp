@@ -64,26 +64,26 @@ PolynomialShape::allPolyIntersections(
     /* Transform the ray into the polynomial's space */
     if (shape->Transform != nullptr) {
         Transformation::MInverseTransformVector(
-            &newRay.Initial, &ray->Initial, shape->Transform);
-        Transformation::MInvTransVector(&newRay.Direction, &ray->Direction, shape->Transform);
+            &newRay.position, &ray->position, shape->Transform);
+        Transformation::MInvTransVector(&newRay.direction, &ray->direction, shape->Transform);
     } else {
-        newRay.Initial.x = ray->Initial.x;
-        newRay.Initial.y = ray->Initial.y;
-        newRay.Initial.z = ray->Initial.z;
-        newRay.Direction.x = ray->Direction.x;
-        newRay.Direction.y = ray->Direction.y;
-        newRay.Direction.z = ray->Direction.z;
+        newRay.position.x = ray->position.x;
+        newRay.position.y = ray->position.y;
+        newRay.position.z = ray->position.z;
+        newRay.direction.x = ray->direction.x;
+        newRay.direction.y = ray->direction.y;
+        newRay.direction.z = ray->direction.z;
     }
 
-    len = sqrt(newRay.Direction.x * newRay.Direction.x +
-               newRay.Direction.y * newRay.Direction.y +
-               newRay.Direction.z * newRay.Direction.z);
+    len = sqrt(newRay.direction.x * newRay.direction.x +
+               newRay.direction.y * newRay.direction.y +
+               newRay.direction.z * newRay.direction.z);
     if (len == 0.0) {
         return 0;
     }
-    newRay.Direction.x /= len;
-    newRay.Direction.y /= len;
-    newRay.Direction.z /= len;
+    newRay.direction.x /= len;
+    newRay.direction.y /= len;
+    newRay.direction.z /= len;
 
     intersectionFound = FALSE;
     rayPolyTests++;
@@ -105,15 +105,15 @@ PolynomialShape::allPolyIntersections(
                 goto l0;
             }
         }
-        VectorOps::vScale(intersectionPoint, newRay.Direction, depths[j]);
-        intersectionPoint.add(newRay.Initial);
+        VectorOps::vScale(intersectionPoint, newRay.direction, depths[j]);
+        intersectionPoint.add(newRay.position);
         /* Transform the point into world space */
         if (shape->Transform != nullptr) {
             Transformation::MTransformVector(
                 &intersectionPoint, &intersectionPoint, shape->Transform);
         }
 
-        VectorOps::vSub(dv, intersectionPoint, ray->Initial);
+        VectorOps::vSub(dv, intersectionPoint, ray->position);
         len = dv.length();
         localElement.Depth = len;
         localElement.Object = shape->Parent_Object;
@@ -217,12 +217,12 @@ PolynomialShape::intersect(Ray *ray, int order, double *coeffs, double *depths)
         a[i] = coeffs[i];
     }
     Transformation::MZero((MATRIX *)&q[0][0]);
-    q[0][0] = ray->Direction.x;
-    q[3][0] = ray->Initial.x;
-    q[0][1] = ray->Direction.y;
-    q[3][1] = ray->Initial.y;
-    q[0][2] = ray->Direction.z;
-    q[3][2] = ray->Initial.z;
+    q[0][0] = ray->direction.x;
+    q[3][0] = ray->position.x;
+    q[0][1] = ray->direction.y;
+    q[3][1] = ray->position.y;
+    q[0][2] = ray->direction.z;
+    q[3][2] = ray->position.z;
     PolynomialShape::transform(order, a, (MATRIX *)&q[0][0]);
     /* The equation is now in terms of one variable.  Use numerical
         techniques to solve the polynomial that represents the intersections. */
@@ -463,12 +463,12 @@ PolynomialShape::intersectQuartic(Ray *ray, PolynomialShape *shape, double *dept
     double *a, t[5];
     double xZ, xZz, xxZ, xxZz, xY, xYy, xxY, xxYy, yZ, yZz, yyZ, yyZz, temp;
 
-    x = ray->Initial.x;
-    y = ray->Initial.y;
-    z = ray->Initial.z;
-    xx = ray->Direction.x;
-    yy = ray->Direction.y;
-    zz = ray->Direction.z;
+    x = ray->position.x;
+    y = ray->position.y;
+    z = ray->position.z;
+    xx = ray->direction.x;
+    yy = ray->direction.y;
+    zz = ray->direction.z;
     x2 = x * x;
     y2 = y * y;
     z2 = z * z;

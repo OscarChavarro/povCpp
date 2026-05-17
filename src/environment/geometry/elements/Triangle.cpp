@@ -196,8 +196,8 @@ Triangle::allTriangleIntersections(
     if (intersectTriangle(ray, shape, &depth)) {
         localElement.Depth = depth;
         localElement.Object = shape->Parent_Object;
-        VectorOps::vScale(intersectionPoint, ray->Direction, depth);
-        intersectionPoint.add(ray->Initial);
+        VectorOps::vScale(intersectionPoint, ray->direction, depth);
+        intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -220,13 +220,13 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
     if (ray == vpRay) {
         if (!triangle->VPCached) {
             VectorOps::vDot(triangle->VPNormDotOrigin, triangle->Normal_Vector,
-                ray->Initial);
+                ray->position);
             triangle->VPNormDotOrigin += triangle->Distance;
             triangle->VPNormDotOrigin *= -1.0;
             triangle->VPCached = TRUE;
         }
 
-        normalDotDirection = triangle->Normal_Vector.dotProduct(ray->Direction);
+        normalDotDirection = triangle->Normal_Vector.dotProduct(ray->direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -234,11 +234,11 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
 
         *depth = triangle->VPNormDotOrigin / normalDotDirection;
     } else {
-        normalDotOrigin = triangle->Normal_Vector.dotProduct(ray->Initial);
+        normalDotOrigin = triangle->Normal_Vector.dotProduct(ray->position);
         normalDotOrigin += triangle->Distance;
         normalDotOrigin *= -1.0;
 
-        normalDotDirection = triangle->Normal_Vector.dotProduct(ray->Direction);
+        normalDotDirection = triangle->Normal_Vector.dotProduct(ray->direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -253,8 +253,8 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
 
     switch (triangle->Dominant_Axis) {
     case X_AXIS:
-        s = ray->Initial.y + *depth * ray->Direction.y;
-        t = ray->Initial.z + *depth * ray->Direction.z;
+        s = ray->position.y + *depth * ray->direction.y;
+        t = ray->position.z + *depth * ray->direction.z;
 
         if (((triangle->P2.y - s) * (triangle->P2.z - triangle->P1.z)) <
             ((triangle->P2.z - t) * (triangle->P2.y - triangle->P1.y))) {
@@ -290,8 +290,8 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
         return (FALSE);
 
     case Y_AXIS:
-        s = ray->Initial.x + *depth * ray->Direction.x;
-        t = ray->Initial.z + *depth * ray->Direction.z;
+        s = ray->position.x + *depth * ray->direction.x;
+        t = ray->position.z + *depth * ray->direction.z;
 
         if ((triangle->P2.x - s) * (triangle->P2.z - triangle->P1.z) <
             (triangle->P2.z - t) * (triangle->P2.x - triangle->P1.x)) {
@@ -327,8 +327,8 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
         return (FALSE);
 
     case Z_AXIS:
-        s = ray->Initial.x + *depth * ray->Direction.x;
-        t = ray->Initial.y + *depth * ray->Direction.y;
+        s = ray->position.x + *depth * ray->direction.x;
+        t = ray->position.y + *depth * ray->direction.y;
 
         if ((triangle->P2.x - s) * (triangle->P2.y - triangle->P1.y) <
             (triangle->P2.y - t) * (triangle->P2.x - triangle->P1.x)) {

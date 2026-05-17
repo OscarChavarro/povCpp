@@ -114,7 +114,7 @@ Light::attenuateLight(Light *lightSource, Ray *lightSourceRay)
         len = spotDirection.length();
         if (len > 0.0) {
             spotDirection.inverseScale(len);
-            costheta = lightSourceRay->Direction.dotProduct(spotDirection);
+            costheta = lightSourceRay->direction.dotProduct(spotDirection);
             costheta *= -1.0;
             if (costheta > 0.0) {
                 attenuation = pow(costheta, lightSource->Coeff);

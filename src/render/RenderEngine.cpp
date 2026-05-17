@@ -74,11 +74,11 @@ RenderFrame::createRay(Ray *ray, int width, int height, double x, double y)
 
     VectorOps::vScale(tempVect1, globalFrame.View_Point.Up, yScalar);
     VectorOps::vScale(tempVect2, globalFrame.View_Point.Right, xScalar);
-    VectorOps::vAdd(ray->Direction, tempVect1, tempVect2);
-    ray->Direction.add(globalFrame.View_Point.Direction);
-    ray->Direction.normalize();
+    VectorOps::vAdd(ray->direction, tempVect1, tempVect2);
+    ray->direction.add(globalFrame.View_Point.Direction);
+    ray->direction.normalize();
     ray->initializeContainers();
-    ray->Quadric_Constants_Cached = FALSE;
+    ray->quadricConstantsCached = FALSE;
 }
 
 void
@@ -469,7 +469,7 @@ RenderEngine::initializeRenderer()
         }
     }
 
-    ray.Initial = globalFrame.View_Point.Location;
+    ray.position = globalFrame.View_Point.Location;
 }
 
 void

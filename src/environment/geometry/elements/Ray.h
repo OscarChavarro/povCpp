@@ -8,18 +8,18 @@ static constexpr int MAX_CONTAINING_OBJECTS = 10;
 
 class Ray {
   public:
-    Vector3Dd Initial;               /*  Xo  Yo  Zo  */
-    Vector3Dd Direction;             /*  Xv  Yv  Zv  */
-    Vector3Dd Initial_2;             /*  Xo^2  Yo^2  Zo^2  */
-    Vector3Dd Direction_2;           /*  Xv^2  Yv^2  Zv^2  */
-    Vector3Dd Initial_Direction;     /*  XoXv  YoYv  ZoZv  */
-    Vector3Dd Mixed_Initial_Initial; /*  XoYo  XoZo  YoZo  */
-    Vector3Dd Mixed_Dir_Dir;         /*  XvYv  XvZv  YvZv  */
-    Vector3Dd Mixed_Init_Dir;        /*  XoYv+XvYo  XoZv+XvZo  YoZv+YvZo  */
-    int Containing_Index;
-    Texture *Containing_Textures[MAX_CONTAINING_OBJECTS];
-    double Containing_IORs[MAX_CONTAINING_OBJECTS];
-    int Quadric_Constants_Cached;
+    Vector3Dd position;               /*  Xo  Yo  Zo  */
+    Vector3Dd direction;              /*  Xv  Yv  Zv  */
+    Vector3Dd position2;              /*  Xo^2  Yo^2  Zo^2  */
+    Vector3Dd direction2;             /*  Xv^2  Yv^2  Zv^2  */
+    Vector3Dd positionDirection;      /*  XoXv  YoYv  ZoZv  */
+    Vector3Dd mixedPositionPosition;  /*  XoYo  XoZo  YoZo  */
+    Vector3Dd mixedDirectionDirection; /*  XvYv  XvZv  YvZv  */
+    Vector3Dd mixedPositionDirection; /*  XoYv+XvYo  XoZv+XvZo  YoZv+YvZo  */
+    int containingIndex;
+    Texture *containingTextures[MAX_CONTAINING_OBJECTS];
+    double containingIORs[MAX_CONTAINING_OBJECTS];
+    int quadricConstantsCached;
 
     void makeRay();
     void initializeContainers();
