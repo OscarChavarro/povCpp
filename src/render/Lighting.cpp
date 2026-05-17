@@ -161,7 +161,7 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
                  blockingObject = blockingObject->Next_Object) {
 
                 shadowRayTests++;
-                for (allIntersections(
+                for (GeometryOps::allIntersections(
                          blockingObject, &lightSourceRay, localQueue);
                      (localIntersection = localQueue->getHighest()) != nullptr;
                      localQueue->deleteHighest()) {
@@ -421,7 +421,7 @@ Reflect(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         traceLevel++;
         Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
-        Trace(&newRay, &tempColour);
+        RenderEngine::trace(&newRay, &tempColour);
         traceLevel--;
 
         colour->Red += tempColour.Red * texture->Object_Reflection;
@@ -451,7 +451,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         transmittedRaysTraced++;
         Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
-        Trace(&newRay, &tempColour);
+        RenderEngine::trace(&newRay, &tempColour);
         traceLevel--;
         (colour->Red) += tempColour.Red;
         (colour->Green) += tempColour.Green;
@@ -519,7 +519,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
 
-        Trace(&newRay, &tempColour);
+        RenderEngine::trace(&newRay, &tempColour);
         traceLevel--;
 
         (colour->Red) += (tempColour.Red) * (texture->Object_Refraction);
@@ -529,7 +529,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
 }
 
 void
-Fog(double distance, RGBAColor *fogColour, double fogDistance, RGBAColor *colour)
+LightingEngine::fog(double distance, RGBAColor *fogColour, double fogDistance, RGBAColor *colour)
 {
     double fogFactor, fogFactorInverse;
 
@@ -569,7 +569,7 @@ of the object and how much is transmited through. */
         return;
     }
 
-    Normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
+    GeometryOps::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
         &rayIntersection->Point);
 
     if (quality >= 8) {
@@ -717,7 +717,7 @@ determineSurfaceColour(
         Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
 
         if (texture->Object_Refraction > 0.0) {
-            Normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
+            GeometryOps::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
                 &rayIntersection->Point);
 
             if (quality > 7) {
@@ -760,7 +760,7 @@ determineSurfaceColour(
     }
 
     if (globalFrame.Fog_Distance != 0.0) {
-        Fog(rayIntersection->Depth, &globalFrame.Fog_Colour,
+        LightingEngine::fog(rayIntersection->Depth, &globalFrame.Fog_Colour,
             globalFrame.Fog_Distance, colour);
     }
 }

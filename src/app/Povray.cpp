@@ -153,7 +153,7 @@ PovApp::configureOutputTarget()
         break;
     case 'r':
     case 'R':
-        if ((globalOutputFileHandle = getRawFileHandle()) == nullptr) {
+        if ((globalOutputFileHandle = RawFormat::getRawFileHandle()) == nullptr) {
             closeAll();
             exit(1);
         }
@@ -221,9 +221,9 @@ PovApp::prepareRendering()
                 }
             }
 
-            initializeRenderer();
+            RenderEngine::initializeRenderer();
             if (Options & CONTINUE_TRACE) {
-                readRenderedPart();
+                RenderEngine::readRenderedPart();
             }
         } else {
             if (openFile(globalOutputFileHandle, outputFileName,
@@ -234,10 +234,10 @@ PovApp::prepareRendering()
                 exit(1);
             }
 
-            initializeRenderer();
+            RenderEngine::initializeRenderer();
         }
     } else {
-        initializeRenderer();
+        RenderEngine::initializeRenderer();
     }
 
     GLOBAL_priorityQueuesHead = PriorityQueuePool::pqInit();
@@ -264,7 +264,7 @@ PovApp::runRenderLoop()
         fclose(statFile);
     }
 
-    startTracing();
+    RenderEngine::startTracing();
 
     if (Options & VERBOSE && verboseFormat == '1') {
         fprintf(stderr, "\n");

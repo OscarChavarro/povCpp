@@ -36,49 +36,52 @@ class SimpleBody;
 #include "geom/PrioQ.h"
 #include "media/Texture.h"
 
-inline int allIntersections(SimpleBody *x, Ray *y, PriorityQueueNode *z)
-{
-    return ((*((x)->methods->All_Intersections_Method))(x, y, z));
-}
+class GeometryOps {
+  public:
+    static inline int allIntersections(SimpleBody *x, Ray *y, PriorityQueueNode *z)
+    {
+        return ((*((x)->methods->All_Intersections_Method))(x, y, z));
+    }
 
-inline Intersection *intersect(SimpleBody *x, Ray *y)
-{
-    return (Intersection *)((*((x)->methods->Intersection_Method))(x, y));
-}
+    static inline Intersection *intersect(SimpleBody *x, Ray *y)
+    {
+        return (Intersection *)((*((x)->methods->Intersection_Method))(x, y));
+    }
 
-inline int Inside(Vector3D *x, SimpleBody *y)
-{
-    return ((*((y)->methods->Inside_Method))(x, y));
-}
+    static inline int inside(Vector3D *x, SimpleBody *y)
+    {
+        return ((*((y)->methods->Inside_Method))(x, y));
+    }
 
-inline void Normal(Vector3D *x, SimpleBody *y, Vector3D *z)
-{
-    ((*((y)->methods->Normal_Method))(x, y, z));
-}
+    static inline void normal(Vector3D *x, SimpleBody *y, Vector3D *z)
+    {
+        ((*((y)->methods->Normal_Method))(x, y, z));
+    }
 
-inline void *Copy(SimpleBody *x)
-{
-    return ((*((x)->methods->Copy_Method))(x));
-}
+    static inline void *copy(SimpleBody *x)
+    {
+        return ((*((x)->methods->Copy_Method))(x));
+    }
 
-inline void Translate(SimpleBody *x, Vector3D *y)
-{
-    ((*((x)->methods->Translate_Method))(x, y));
-}
+    static inline void translate(SimpleBody *x, Vector3D *y)
+    {
+        ((*((x)->methods->Translate_Method))(x, y));
+    }
 
-inline void Scale(SimpleBody *x, Vector3D *y)
-{
-    ((*((x)->methods->Scale_Method))(x, y));
-}
+    static inline void scale(SimpleBody *x, Vector3D *y)
+    {
+        ((*((x)->methods->Scale_Method))(x, y));
+    }
 
-inline void Rotate(SimpleBody *x, Vector3D *y)
-{
-    ((*((x)->methods->Rotate_Method))(x, y));
-}
+    static inline void rotate(SimpleBody *x, Vector3D *y)
+    {
+        ((*((x)->methods->Rotate_Method))(x, y));
+    }
 
-inline void Invert(SimpleBody *x)
-{
-    ((*((x)->methods->Invert_Method))(x));
-}
+    static inline void invert(SimpleBody *x)
+    {
+        ((*((x)->methods->Invert_Method))(x));
+    }
+};
 
 #endif

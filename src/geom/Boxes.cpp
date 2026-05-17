@@ -12,7 +12,7 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
-Methods Box_Methods = {objectIntersect, Box::allBoxIntersections, Box::insideBox,
+Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections, Box::insideBox,
     Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
 
 

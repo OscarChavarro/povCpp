@@ -11,6 +11,8 @@ class PriorityQueueNode;
 class Intersection;
 
 class LightingEngine {
+  public:
+    static void fog(double distance, RGBAColor *fogColour, double fogDistance, RGBAColor *colour);
   private:
     static void doLight(Light *lightSource, double *lightSourceDepth,
         Ray *lightSourceRay, Vector3D *intersectionPoint, RGBAColor *lightColour);
@@ -42,8 +44,6 @@ extern void Reflect(Texture *Texture, Vector3D *Intersection_Point, Ray *Ray,
     Vector3D *Surface_Normal, RGBAColor *Colour);
 extern void Refract(Texture *Texture, Vector3D *Intersection_Point, Ray *Ray,
     Vector3D *Surface_Normal, RGBAColor *Colour);
-extern void Fog(
-    double Distance, RGBAColor *Fog_Colour, double Fog_Distance, RGBAColor *Colour);
 extern void computeReflectedColour(Ray *Ray, Texture *Texture,
     Intersection *Ray_Intersection, RGBAColor *Surface_Colour,
     RGBAColor *Filter_Colour, RGBAColor *Colour);

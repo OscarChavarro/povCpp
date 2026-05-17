@@ -9,7 +9,7 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
-Methods Quadric_Methods = {objectIntersect, Quadric::allQuadricIntersections,
+Methods Quadric_Methods = {Composite::objectIntersect, Quadric::allQuadricIntersections,
     Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
 

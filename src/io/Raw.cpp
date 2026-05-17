@@ -32,7 +32,7 @@ class RAW_FILE_HANDLE {
 };
 
 FileHandle *
-getRawFileHandle()
+RawFormat::getRawFileHandle()
 {
     RAW_FILE_HANDLE *handle;
 
@@ -42,24 +42,24 @@ getRawFileHandle()
         return (nullptr);
     }
 
-    handle->root.Default_File_Name_p = defaultRawFileName;
-    handle->root.Open_File_p = openRawFile;
-    handle->root.Write_Line_p = writeRawLine;
-    handle->root.Read_Line_p = readRawLine;
-    handle->root.Close_File_p = closeRawFile;
+    handle->root.Default_File_Name_p = RawFormat::defaultRawFileName;
+    handle->root.Open_File_p = RawFormat::openRawFile;
+    handle->root.Write_Line_p = RawFormat::writeRawLine;
+    handle->root.Read_Line_p = RawFormat::readRawLine;
+    handle->root.Close_File_p = RawFormat::closeRawFile;
     return ((FileHandle *)handle);
 }
 
 static char defaultNameData[] = "data";
 
 char *
-defaultRawFileName()
+RawFormat::defaultRawFileName()
 {
     return defaultNameData;
 }
 
 int
-openRawFile(FileHandle *handle, char *name, int *width, int *height,
+RawFormat::openRawFile(FileHandle *handle, char *name, int *width, int *height,
     int bufferSize, int mode)
 {
     RAW_FILE_HANDLE *rawHandle;
@@ -257,7 +257,7 @@ openRawFile(FileHandle *handle, char *name, int *width, int *height,
 }
 
 void
-writeRawLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
+RawFormat::writeRawLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
     register int x;
     RAW_FILE_HANDLE *rawHandle;
@@ -299,7 +299,7 @@ writeRawLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 }
 
 int
-readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+RawFormat::readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -339,7 +339,7 @@ readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 }
 
 void
-closeRawFile(FileHandle *handle)
+RawFormat::closeRawFile(FileHandle *handle)
 {
     RAW_FILE_HANDLE *rawHandle;
 

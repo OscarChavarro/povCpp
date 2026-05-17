@@ -33,7 +33,7 @@ inline double maxValue(double x, double y)
     return (x < y) ? y : x;
 }
 
-Methods Height_Field_Methods = {objectIntersect, HeightField::allHeightfldIntersections,
+Methods Height_Field_Methods = {Composite::objectIntersect, HeightField::allHeightfldIntersections,
     HeightField::insideHeightfld, HeightField::heightFldNormal, HeightField::copyHeightfld, HeightField::translateHeightfld,
     HeightField::rotateHeightfld, HeightField::scaleHeightfld, HeightField::invertHeightfld};
 

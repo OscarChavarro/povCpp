@@ -41,7 +41,7 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 int factorials[MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 int termCounts[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
-Methods Poly_Methods = {objectIntersect, Poly::allPolyIntersections, Poly::insidePoly,
+Methods Poly_Methods = {Composite::objectIntersect, Poly::allPolyIntersections, Poly::insidePoly,
     Poly::polyNormal, Poly::copyPoly, Poly::translatePoly, Poly::rotatePoly, Poly::scalePoly,
     Poly::invertPoly};
 

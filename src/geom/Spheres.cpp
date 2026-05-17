@@ -11,7 +11,7 @@
 
 //===========================================================================
 
-Methods Sphere_Methods = {objectIntersect, Sphere::allSphereIntersections,
+Methods Sphere_Methods = {Composite::objectIntersect, Sphere::allSphereIntersections,
     Sphere::insideSphere, Sphere::sphereNormal, Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
     Sphere::scaleSphere, Sphere::invertSphere};
 

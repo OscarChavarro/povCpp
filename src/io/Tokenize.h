@@ -180,6 +180,7 @@ class Tokenizer {
     static int findSymbol(void);
     static void writeToken(TOKEN tokenId, DataFile *dataFile);
     static void tokenError(DataFile *dataFile, const char *str);
+    static void getToken(void);
 
   private:
     static int povStricmp(const char *s1, const char *s2);
@@ -187,6 +188,5 @@ class Tokenizer {
 
 extern void Tokenize(char *name);
 extern int processToken(void);
-extern void getToken(void);
 
 #endif

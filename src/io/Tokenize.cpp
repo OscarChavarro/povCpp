@@ -175,7 +175,7 @@ If the token is an INCLUDE token, then set the include file name and
 read another token. */
 
 void
-getToken()
+Tokenizer::getToken()
 {
     register int c;
     register int c2;

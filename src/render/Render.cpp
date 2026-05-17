@@ -79,7 +79,7 @@ Frame::createRay(Ray *ray, int width, int height, double x, double y)
 }
 
 void
-Supersample(RGBAColor *result, int x, int y, int width, int height)
+RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height)
 {
     RGBAColor colour;
     register double dx;
@@ -107,7 +107,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
         dx + jitterX, dy + jitterY);
 
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -122,7 +122,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     Frame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
         dy + jitterY - 0.3333333);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -136,7 +136,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -151,7 +151,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     Frame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
         dy + jitterY + 0.3333333);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -165,7 +165,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -179,7 +179,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -194,7 +194,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     Frame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
         dy + jitterY - 0.3333333);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -208,7 +208,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -223,7 +223,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
     Frame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
         dy + jitterY + 0.3333333);
     traceLevel = 0;
-    Trace(vpRay, &colour);
+    RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -237,7 +237,7 @@ Supersample(RGBAColor *result, int x, int y, int width, int height)
 }
 
 void
-readRenderedPart()
+RenderEngine::readRenderedPart()
 {
     int rc;
     int x;
@@ -285,7 +285,7 @@ readRenderedPart()
 }
 
 void
-startTracing()
+RenderEngine::startTracing()
 {
     RGBAColor colour;
     register int x;
@@ -316,7 +316,7 @@ startTracing()
             Frame::createRay(vpRay, globalFrame.Screen_Width,
                 globalFrame.Screen_Height, (double)x, (double)y);
             traceLevel = 0;
-            Trace(&ray, &colour);
+            RenderEngine::trace(&ray, &colour);
             Color::clipColor(&colour, &colour);
 
             currentLine[x] = colour;
@@ -405,7 +405,7 @@ Frame::doAntiAliasing(register int x, register int y, RGBAColor *colour)
             globalFrame.Antialias_Threshold) {
             antialiasCenterFlag = 1;
             if (!(currentLineAntialiasedFlags[x - 1])) {
-                Supersample(&currentLine[x - 1], x - 1, y,
+                RenderEngine::supersample(&currentLine[x - 1], x - 1, y,
                     globalFrame.Screen_Width, globalFrame.Screen_Height);
                 currentLineAntialiasedFlags[x - 1] = 1;
                 superSampleCount++;
@@ -418,7 +418,7 @@ Frame::doAntiAliasing(register int x, register int y, RGBAColor *colour)
             globalFrame.Antialias_Threshold) {
             antialiasCenterFlag = 1;
             if (!(previousLineAntialiasedFlags[x])) {
-                Supersample(&previousLine[x], x, y - 1,
+                RenderEngine::supersample(&previousLine[x], x, y - 1,
                     globalFrame.Screen_Width, globalFrame.Screen_Height);
                 previousLineAntialiasedFlags[x] = 1;
                 superSampleCount++;
@@ -427,7 +427,7 @@ Frame::doAntiAliasing(register int x, register int y, RGBAColor *colour)
     }
 
     if (antialiasCenterFlag) {
-        Supersample(&currentLine[x], x, y, globalFrame.Screen_Width,
+        RenderEngine::supersample(&currentLine[x], x, y, globalFrame.Screen_Width,
             globalFrame.Screen_Height);
         currentLineAntialiasedFlags[x] = 1;
         *colour = currentLine[x];
@@ -436,7 +436,7 @@ Frame::doAntiAliasing(register int x, register int y, RGBAColor *colour)
 }
 
 void
-initializeRenderer()
+RenderEngine::initializeRenderer()
 {
     register int i;
 
@@ -505,7 +505,7 @@ Frame::outputLine(register int y)
 }
 
 void
-Trace(Ray *ray, RGBAColor *colour)
+RenderEngine::trace(Ray *ray, RGBAColor *colour)
 {
     SimpleBody *object;
     Intersection *localIntersection;
@@ -537,7 +537,7 @@ Trace(Ray *ray, RGBAColor *colour)
     for (object = globalFrame.Objects; object != nullptr;
          object = object->Next_Object) {
         cooperate();
-        if ((newIntersection = intersect(object, ray)) != nullptr) {
+        if ((newIntersection = GeometryOps::intersect(object, ray)) != nullptr) {
             if (intersectionFound) {
                 if (localIntersection->Depth > newIntersection->Depth) {
                     delete localIntersection;
