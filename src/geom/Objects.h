@@ -6,6 +6,7 @@
 #include "common/Vector.h"
 #include "geom/Csg.h"
 #include "geom/Geometry.h"
+#include "ObjectUtils.h"
 
 class Composite {
   public:
@@ -39,11 +40,5 @@ class Composite {
 extern Methods Composite_Methods;
 extern Methods Basic_Object_Methods;
 extern void setCsgParents(CSG *Shape, SimpleBody *Object);
-
-class ObjectUtils {
-  public:
-    static void link(SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList);
-    static SimpleBody *getObject(void);
-};
 
 #endif

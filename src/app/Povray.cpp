@@ -16,6 +16,7 @@
 #include "io/Raw.h"
 #include "io/Targa.h"
 #include "render/Render.h"
+#include "render/RenderFrame.h"
 #include <cctype>
 #include <ctime> /* BP */
 
@@ -26,7 +27,7 @@ int caseSensitiveFlag = CASE_SENSITIVE_DEFAULT;
 
 FILE *bfp;
 
-extern Frame globalFrame;
+extern RenderFrame globalFrame;
 extern PriorityQueue *GLOBAL_priorityQueue;
 PriorityQueueNode *GLOBAL_priorityQueuesHead;
 

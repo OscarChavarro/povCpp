@@ -6,6 +6,8 @@
 #include "common/Vector.h"
 #include "geom/Geometry.h"
 #include "media/Texture.h"
+#include "render/RenderFrame.h"
+
 class Light;
 class PriorityQueueNode;
 class Intersection;

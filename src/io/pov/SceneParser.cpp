@@ -32,14 +32,14 @@ extern char verboseFormat;
 extern unsigned int Options;
 extern char statFileName[FILE_NAME_LENGTH];
 
-extern Frame *parsingFramePtr;
+extern RenderFrame *parsingFramePtr;
 extern Constant constants[MAX_CONSTANTS];
 extern int numberOfConstants;
 extern int degenerateTriangles;
 
 
 void
-SceneParser::Parse(Frame *framePtr)
+SceneParser::Parse(RenderFrame *framePtr)
 {
     SimpleBody *object;
     parsingFramePtr = framePtr;
