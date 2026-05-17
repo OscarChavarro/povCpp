@@ -12,22 +12,22 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
 #include "media/BumpTextureFixture.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 extern unsigned short crctab[256];
 
 void
-BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+BumpTextureFixture::ripples(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
-    register int i;
+    int i;
     Vector3Dd point;
-    register double length;
-    register double scalar;
-    register double index;
+    double length;
+    double scalar;
+    double index;
 
     if (Options & DEBUGGING) {
         printf("ripples %g %g %g", x, y, z);
@@ -51,21 +51,23 @@ BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vect
             printf(" index %g scalar %g length %g\n", index, scalar, length);
         }
 
-        VectorOps::vScale(point, point, scalar / length / (double)NUMBER_OF_WAVES);
+        VectorOps::vScale(
+            point, point, scalar / length / (double)NUMBER_OF_WAVES);
         (*normal).add(point);
     }
     (*normal).normalize();
 }
 
 void
-BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+BumpTextureFixture::waves(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
-    register int i;
+    int i;
     Vector3Dd point;
-    register double length;
-    register double scalar;
-    register double index;
-    register double sinValue;
+    double length;
+    double scalar;
+    double index;
+    double sinValue;
 
     if (Options & DEBUGGING) {
         printf("waves %g %g %g\n", x, y, z);
@@ -86,14 +88,16 @@ BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector
         sinValue = TextureUtils::cycloidal(index);
 
         scalar = sinValue * texture->Bump_Amount / frequency[i];
-        VectorOps::vScale(point, point, scalar / length / (double)NUMBER_OF_WAVES);
+        VectorOps::vScale(
+            point, point, scalar / length / (double)NUMBER_OF_WAVES);
         (*normal).add(point);
     }
     (*normal).normalize();
 }
 
 void
-BumpTextureFixture::bumps(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+BumpTextureFixture::bumps(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
     Vector3Dd bumpTurb;
 
@@ -108,7 +112,7 @@ BumpTextureFixture::bumps(double x, double y, double z, Texture *texture, Vector
     TextureUtils::DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
     bumpTurb.scale(texture->Bump_Amount);
     (*normal).add(bumpTurb); /* displace "normal" */
-    (*normal).normalize();     /* normalize normal! */
+    (*normal).normalize();   /* normalize normal! */
 }
 
 /*
@@ -116,7 +120,8 @@ dents is similar to bumps, but uses noise() to control the amount of
 dnoise() perturbation of the object normal...
 */
 void
-BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+BumpTextureFixture::dents(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
     Vector3Dd stuccoTurb;
     double noise;
@@ -133,11 +138,12 @@ BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector
         printf("dents %g %g %g noise %g\n", x, y, z, noise);
     }
 
-    TextureUtils::DNoise(&stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
+    TextureUtils::DNoise(
+        &stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
 
     stuccoTurb.scale(noise);
     (*normal).add(stuccoTurb); /* displace "normal" */
-    (*normal).normalize();       /* normalize normal! */
+    (*normal).normalize();     /* normalize normal! */
 }
 
 /*
@@ -149,15 +155,17 @@ BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector
 /*
     wrinkles - This is my implementation of the dented() routine, using
     a surface iterative fractal derived from DTurbulence.  This is a 3-D vers.
-    (thanks to TextureUtils::DNoise()...) of the usual version using the singular TextureUtils::Noise()...
-    Seems to look a lot like wrinkles, however... (hmmm)
+    (thanks to TextureUtils::DNoise()...) of the usual version using the
+   singular TextureUtils::Noise()... Seems to look a lot like wrinkles,
+   however... (hmmm)
 */
 
 void
-BumpTextureFixture::wrinkles(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+BumpTextureFixture::wrinkles(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
-    register int i;
-    register double scale = 1.0;
+    int i;
+    double scale = 1.0;
     Vector3Dd result;
     Vector3Dd value;
 
@@ -174,7 +182,8 @@ BumpTextureFixture::wrinkles(double x, double y, double z, Texture *texture, Vec
     result.z = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        TextureUtils::DNoise(&value, x * scale, y * scale, z * scale); /* * scale,*/
+        TextureUtils::DNoise(
+            &value, x * scale, y * scale, z * scale); /* * scale,*/
         result.x += fabsInline(value.x / scale);
         result.y += fabsInline(value.y / scale);
         result.z += fabsInline(value.z / scale);
@@ -182,5 +191,5 @@ BumpTextureFixture::wrinkles(double x, double y, double z, Texture *texture, Vec
 
     result.scale(texture->Bump_Amount);
     (*normal).add(result); /* displace "normal" */
-    (*normal).normalize();   /* normalize normal! */
+    (*normal).normalize(); /* normalize normal! */
 }

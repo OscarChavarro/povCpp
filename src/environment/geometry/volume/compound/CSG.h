@@ -1,8 +1,8 @@
 #ifndef ____
 #define ____
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -10,10 +10,10 @@ class CSG : public Geometry {
   public:
     Geometry *Shapes;
 
-    static int allCsgUnionIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
-    static int allCsgIntersectIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int allCsgUnionIntersections(SimpleBody *object,
+        RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int allCsgIntersectIntersections(SimpleBody *object,
+        RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insideCsgUnion(Vector3Dd *point, SimpleBody *object);
     static int insideCsgIntersection(Vector3Dd *point, SimpleBody *object);
     static void *copyCsg(SimpleBody *object);

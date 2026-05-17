@@ -17,8 +17,8 @@
 */
 
 #include "io/GifFormat.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "io/GifDecoder.h"
 
 static RGBAImage *currentImage;
@@ -45,8 +45,8 @@ static int colourmapSize;
 int
 GifFormat::outLine(unsigned char *pixels, int linelen)
 {
-    register int x;
-    register unsigned char *line;
+    int x;
+    unsigned char *line;
 
     line = currentImage->data.map_lines[bitmapLine++];
 
@@ -63,12 +63,10 @@ GifFormat::outLine(unsigned char *pixels, int linelen)
     return (0);
 }
 
-static constexpr int READ_ERROR = -1;
-
 int
 GifFormat::getByte() /* get byte from file, return the next byte or an error */
 {
-    register int byte;
+    int byte;
 
     if ((byte = getc(bitFile)) != EOF) {
         return (byte);
@@ -84,9 +82,9 @@ GifFormat::getByte() /* get byte from file, return the next byte or an error */
 void
 GifFormat::readGifImage(RGBAImage *image, char *filename)
 {
-    register int i;
-    register int j;
-    register int status;
+    int i;
+    int j;
+    int status;
     unsigned finished;
     unsigned planes;
     unsigned char buffer[16];
@@ -157,8 +155,8 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
             status = 0;
             break;
 
-        case '!':                          /* GIF Extension Block */
-            GifFormat::getByte();                    /* read (and ignore) the ID */
+        case '!':                 /* GIF Extension Block */
+            GifFormat::getByte(); /* read (and ignore) the ID */
             while ((i = GifFormat::getByte()) > 0) { /* get data len*/
                 for (j = 0; j < i; j++) {
                     GifFormat::getByte(); /* flush data */

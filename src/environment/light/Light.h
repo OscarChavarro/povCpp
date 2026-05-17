@@ -1,8 +1,8 @@
 #ifndef __POINT_H__
 #define __POINT_H__
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -13,15 +13,16 @@ class Light : public Geometry {
     short Inverted;
     double Coeff, Radius, Falloff;
 
-    static int allPointIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int allPointIntersections(SimpleBody *object, RayWithSegments *ray,
+        PriorityQueueNode *depthQueue);
     static int insidePoint(Vector3Dd *testPoint, SimpleBody *object);
     static void *copyPoint(SimpleBody *object);
     static void translatePoint(SimpleBody *object, Vector3Dd *vector);
     static void rotatePoint(SimpleBody *object, Vector3Dd *vector);
     static void scalePoint(SimpleBody *object, Vector3Dd *vector);
     static void invertPoint(SimpleBody *object);
-    static double attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay);
+    static double attenuateLight(
+        Light *lightSource, RayWithSegments *lightSourceRay);
 
   private:
     static double cubicSpline(double low, double high, double pos);

@@ -1,6 +1,6 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
-#include "environment/geometry/GeometryOperations.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/GeometryOperations.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
@@ -35,8 +35,9 @@ ParametricBiCubicIntersection::subpatchNormal(
     points v1, v2, v3 and the normal to the triangle n. If so, Depth will
     be set to the distance along Ray at which the intersection occurs. */
 int
-ParametricBiCubicIntersection::intersectSubpatch(int patchType, RayWithSegments *ray, Vector3Dd *v1, Vector3Dd *v2,
-    Vector3Dd *v3, Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2, Vector3Dd *n3,
+ParametricBiCubicIntersection::intersectSubpatch(int patchType,
+    RayWithSegments *ray, Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3,
+    Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2, Vector3Dd *n3,
     double *depth, Vector3Dd *ip, Vector3Dd *ipNorm)
 {
     Vector3Dd tempV1;
@@ -224,7 +225,8 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType, RayWithSegments 
 }
 
 int
-ParametricBiCubicIntersection::sphericalBoundsCheck(RayWithSegments *ray, Vector3Dd *center, double radius)
+ParametricBiCubicIntersection::sphericalBoundsCheck(
+    RayWithSegments *ray, Vector3Dd *center, double radius)
 {
     double x, y, z, dist1, dist2;
     x = center->x - ray->position.x;
@@ -246,7 +248,8 @@ ParametricBiCubicIntersection::sphericalBoundsCheck(RayWithSegments *ray, Vector
 
 /* Determine the distance from a point to a plane. */
 double
-ParametricBiCubicIntersection::pointPlaneDistance(Vector3Dd *p, Vector3Dd *n, double *d)
+ParametricBiCubicIntersection::pointPlaneDistance(
+    Vector3Dd *p, Vector3Dd *n, double *d)
 {
     double temp1, temp2;
 

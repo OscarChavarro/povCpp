@@ -1,8 +1,8 @@
 #ifndef __SPHERE_H__
 #define __SPHERE_H__
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -16,9 +16,10 @@ class Sphere : public Geometry {
     double VPOCSquared;
     short VPinside, VPCached, Inverted;
 
-    static int allSphereIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
-    static int intersectSphere(RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2);
+    static int allSphereIntersections(SimpleBody *object, RayWithSegments *ray,
+        PriorityQueueNode *depthQueue);
+    static int intersectSphere(
+        RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2);
     static int insideSphere(Vector3Dd *point, SimpleBody *object);
     static void sphereNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

@@ -1,14 +1,14 @@
 #include "io/pov/PolyParser.h"
+#include "app/PovApp.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/scene/ObjectUtils.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
-#include "app/PovApp.h"
-#include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/geometry/GeometryOperations.h"
-#include "environment/scene/ObjectUtils.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
@@ -37,46 +37,52 @@ PolyParser::parsePoly(int knownOrder)
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (globalToken.Token_Id) {
-    case DASH_TOKEN:
-    case PLUS_TOKEN:
-    case FLOAT_TOKEN:
-    Tokenizer::ungetToken();
-    if (localShape != nullptr) {
-        ParseErrorReporter::Error("The order of a polynomial may not be specified twice");
-    }
-    order = (int)PrimitiveParser::parseFloat();
-    if (order < 2 || order > MAX_ORDER) {
-        ParseErrorReporter::Error("Order of Poly is out of range");
-    }
-    localShape = SceneFactory::getPolyShape(order);
-    break;
+            case DASH_TOKEN:
+            case PLUS_TOKEN:
+            case FLOAT_TOKEN:
+                Tokenizer::ungetToken();
+                if (localShape != nullptr) {
+                    ParseErrorReporter::Error(
+                        "The order of a polynomial may not be specified twice");
+                }
+                order = (int)PrimitiveParser::parseFloat();
+                if (order < 2 || order > MAX_ORDER) {
+                    ParseErrorReporter::Error("Order of Poly is out of range");
+                }
+                localShape = SceneFactory::getPolyShape(order);
+                break;
 
-    case LEFT_ANGLE_TOKEN:
-    Tokenizer::ungetToken();
-    if (localShape == nullptr) {
-        printf("Need the order of the Poly");
-    }
-    PrimitiveParser::parseCoeffs(localShape->Order, &(localShape->Coeffs[0]));
-    Exit_Flag = TRUE; break;
+            case LEFT_ANGLE_TOKEN:
+                Tokenizer::ungetToken();
+                if (localShape == nullptr) {
+                    printf("Need the order of the Poly");
+                }
+                PrimitiveParser::parseCoeffs(
+                    localShape->Order, &(localShape->Coeffs[0]));
+                Exit_Flag = TRUE;
+                break;
 
-    case IDENTIFIER_TOKEN: if ((constantId = SceneConfigParser::findConstant()) != -1)
-    {
-        if (constants[(int)constantId].Constant_Type == POLY_CONSTANT) {
-            localShape = (PolynomialShape *)GeometryOperations::copy(
-                (SimpleBody *)constants[(int)constantId].Constant_Data);
-        } else {
-            ParseErrorReporter::typeError();
-        }
-    }
-    else
-    {
-        ParseErrorReporter::Undeclared();
-    }
-    Exit_Flag = TRUE; break;
+            case IDENTIFIER_TOKEN:
+                if ((constantId = SceneConfigParser::findConstant()) != -1) {
+                    if (constants[(int)constantId].Constant_Type ==
+                        POLY_CONSTANT) {
+                        localShape =
+                            (PolynomialShape *)GeometryOperations::copy(
+                                (SimpleBody *)constants[(int)constantId]
+                                    .Constant_Data);
+                    } else {
+                        ParseErrorReporter::typeError();
+                    }
+                } else {
+                    ParseErrorReporter::Undeclared();
+                }
+                Exit_Flag = TRUE;
+                break;
 
-        default: ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN);
-    break;
-    }
+            default:
+                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN);
+                break;
+            }
         }
     }
 
@@ -86,50 +92,56 @@ PolyParser::parsePoly(int knownOrder)
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (globalToken.Token_Id) {
-    case RIGHT_CURLY_TOKEN:
-    Exit_Flag = TRUE; break;
+            case RIGHT_CURLY_TOKEN:
+                Exit_Flag = TRUE;
+                break;
 
-        case STURM_TOKEN: localShape->Sturm_Flag = 1;
-    break;
+            case STURM_TOKEN:
+                localShape->Sturm_Flag = 1;
+                break;
 
-    case TRANSLATE_TOKEN:
-    PrimitiveParser::parseVector(&localVector);
-    GeometryOperations::translate((SimpleBody *)localShape, &localVector);
-    break;
+            case TRANSLATE_TOKEN:
+                PrimitiveParser::parseVector(&localVector);
+                GeometryOperations::translate(
+                    (SimpleBody *)localShape, &localVector);
+                break;
 
-    case ROTATE_TOKEN:
-    PrimitiveParser::parseVector(&localVector);
-    GeometryOperations::rotate((SimpleBody *)localShape, &localVector);
-    break;
+            case ROTATE_TOKEN:
+                PrimitiveParser::parseVector(&localVector);
+                GeometryOperations::rotate(
+                    (SimpleBody *)localShape, &localVector);
+                break;
 
-    case SCALE_TOKEN:
-    PrimitiveParser::parseVector(&localVector);
-    GeometryOperations::scale((SimpleBody *)localShape, &localVector);
-    break;
+            case SCALE_TOKEN:
+                PrimitiveParser::parseVector(&localVector);
+                GeometryOperations::scale(
+                    (SimpleBody *)localShape, &localVector);
+                break;
 
-    case INVERSE_TOKEN:
-    GeometryOperations::invert((SimpleBody *)localShape);
-    break;
+            case INVERSE_TOKEN:
+                GeometryOperations::invert((SimpleBody *)localShape);
+                break;
 
-    case TEXTURE_TOKEN:
-    localTexture = TextureParser::parseTexture();
-    if (localTexture->Constant_Flag) {
-        localTexture = TextureParser::copyTexture(localTexture);
-    }
+            case TEXTURE_TOKEN:
+                localTexture = TextureParser::parseTexture();
+                if (localTexture->Constant_Flag) {
+                    localTexture = TextureParser::copyTexture(localTexture);
+                }
 
-    ObjectUtils::link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
-        (SimpleBody **)&localShape->Shape_Texture);
-    break;
+                ObjectUtils::link((SimpleBody *)localTexture,
+                    (SimpleBody **)&localTexture->Next_Texture,
+                    (SimpleBody **)&localShape->Shape_Texture);
+                break;
 
-    case COLOUR_TOKEN:
-    localShape->Shape_Colour = SceneFactory::getColour();
-    PrimitiveParser::parseColour(localShape->Shape_Colour);
-    break;
+            case COLOUR_TOKEN:
+                localShape->Shape_Colour = SceneFactory::getColour();
+                PrimitiveParser::parseColour(localShape->Shape_Colour);
+                break;
 
-    default:
-    ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
-    break;
-    }
+            default:
+                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
+                break;
+            }
         }
     }
 

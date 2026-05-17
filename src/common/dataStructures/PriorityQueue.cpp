@@ -6,24 +6,18 @@
  *****************************************************************************/
 
 #include "common/dataStructures/PriorityQueue.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-
-//===========================================================================
-
-// used on pq_new and pq_init
-static constexpr int NUMBER_OF_PRIOQS = 32;
-static constexpr int MAX_NUMBER_OF_INTERSECTIONS = 128;
+#include "common/FrameConfig.h"
 
 //===========================================================================
 
 void
 PriorityQueueNode::balance(unsigned int entryPos1)
 {
-    register Intersection *entry1;
-    register Intersection *entry2;
+    Intersection *entry1;
+    Intersection *entry2;
     Intersection tempEntry;
-    register unsigned int entryPos2;
+    unsigned int entryPos2;
 
     entry1 = &this->queue[entryPos1];
 

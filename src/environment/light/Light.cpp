@@ -6,12 +6,13 @@
  *****************************************************************************/
 
 #include "environment/light/Light.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-Methods Point_Methods = {Composite::objectIntersect, Light::allPointIntersections,
-    Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,
-    Light::scalePoint, Light::invertPoint};
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
+Methods Point_Methods = {Composite::objectIntersect,
+    Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
+    Light::translatePoint, Light::rotatePoint, Light::scalePoint,
+    Light::invertPoint};
 
 int
 Light::allPointIntersections(
@@ -36,7 +37,8 @@ Light::copyPoint(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture =
+            TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -54,8 +56,8 @@ Light::rotatePoint(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
-        &transformation);
+    Transformation::MTransformVector(&((Light *)object)->Center,
+        &((Light *)object)->Center, &transformation);
     Transformation::MTransformVector(&((Light *)object)->Points_At,
         &((Light *)object)->Points_At, &transformation);
 }
@@ -65,8 +67,8 @@ Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     Transformation::getScalingTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
-        &transformation);
+    Transformation::MTransformVector(&((Light *)object)->Center,
+        &((Light *)object)->Center, &transformation);
     Transformation::MTransformVector(&((Light *)object)->Points_At,
         &((Light *)object)->Points_At, &transformation);
     TextureUtils::scaleTexture(&((Light *)object)->Shape_Texture, vector);
@@ -110,7 +112,8 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
 
     /* If this is a spotlight then attenuate based on the incidence angle */
     if (lightSource->Type == SPOT_LIGHT_TYPE) {
-        VectorOps::vSub(spotDirection, lightSource->Points_At, lightSource->Center);
+        VectorOps::vSub(
+            spotDirection, lightSource->Points_At, lightSource->Center);
         len = spotDirection.length();
         if (len > 0.0) {
             spotDirection.inverseScale(len);

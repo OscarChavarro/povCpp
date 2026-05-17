@@ -10,7 +10,8 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 
 inline void
-RayWithSegments::mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
+RayWithSegments::mixVectorTerms(
+    Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
 {
     a.x = b.x * c.y;
     a.y = b.x * c.z;
@@ -24,11 +25,16 @@ RayWithSegments::makeRay()
 
     VectorOps::vSquareTerms(this->position2, this->position);
     VectorOps::vSquareTerms(this->direction2, this->direction);
-    VectorOps::vEvaluate(this->positionDirection, this->position, this->direction);
-    RayWithSegments::mixVectorTerms(this->mixedPositionPosition, this->position, this->position);
-    RayWithSegments::mixVectorTerms(this->mixedDirectionDirection, this->direction, this->direction);
-    RayWithSegments::mixVectorTerms(tempInitDir, this->position, this->direction);
-    RayWithSegments::mixVectorTerms(this->mixedPositionDirection, this->direction, this->position);
+    VectorOps::vEvaluate(
+        this->positionDirection, this->position, this->direction);
+    RayWithSegments::mixVectorTerms(
+        this->mixedPositionPosition, this->position, this->position);
+    RayWithSegments::mixVectorTerms(
+        this->mixedDirectionDirection, this->direction, this->direction);
+    RayWithSegments::mixVectorTerms(
+        tempInitDir, this->position, this->direction);
+    RayWithSegments::mixVectorTerms(
+        this->mixedPositionDirection, this->direction, this->position);
     this->mixedPositionDirection.add(tempInitDir);
     this->quadricConstantsCached = TRUE;
 }
@@ -42,7 +48,7 @@ RayWithSegments::initializeContainers()
 void
 RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
 {
-    register int i;
+    int i;
 
     if ((this->containingIndex = sourceRay->containingIndex) >=
         MAX_CONTAINING_OBJECTS) {
@@ -60,7 +66,7 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
 void
 RayWithSegments::enterContainingMedium(Texture *texture)
 {
-    register int index;
+    int index;
 
     if ((index = ++(this->containingIndex)) >= MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "Too many nested refracting objects\n");

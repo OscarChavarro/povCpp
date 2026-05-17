@@ -9,10 +9,10 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
-#include "processing/PolynomialSolver.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
+#include "processing/PolynomialSolver.h"
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+
@@ -23,9 +23,6 @@
 */
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
-
-static constexpr int LEFT_MARGIN = 0;
-static constexpr int RIGHT_MARGIN = 72;
 
 int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -40,9 +37,11 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 int factorials[MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 int termCounts[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
-Methods Poly_Methods = {Composite::objectIntersect, PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
-    PolynomialShape::polyNormal, PolynomialShape::copyPoly, PolynomialShape::translatePoly, PolynomialShape::rotatePoly, PolynomialShape::scalePoly,
-    PolynomialShape::invertPoly};
+Methods Poly_Methods = {Composite::objectIntersect,
+    PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
+    PolynomialShape::polyNormal, PolynomialShape::copyPoly,
+    PolynomialShape::translatePoly, PolynomialShape::rotatePoly,
+    PolynomialShape::scalePoly, PolynomialShape::invertPoly};
 
 extern long rayPolyTests, rayPolyTestsSucceeded;
 
@@ -65,7 +64,8 @@ PolynomialShape::allPolyIntersections(
     if (shape->Transform != nullptr) {
         Transformation::MInverseTransformVector(
             &newRay.position, &ray->position, shape->Transform);
-        Transformation::MInvTransVector(&newRay.direction, &ray->direction, shape->Transform);
+        Transformation::MInvTransVector(
+            &newRay.direction, &ray->direction, shape->Transform);
     } else {
         newRay.position.x = ray->position.x;
         newRay.position.y = ray->position.y;
@@ -90,7 +90,8 @@ PolynomialShape::allPolyIntersections(
     if (shape->Order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
-        cnt = PolynomialShape::intersect(&newRay, shape->Order, shape->Coeffs, &depths[0]);
+        cnt = PolynomialShape::intersect(
+            &newRay, shape->Order, shape->Coeffs, &depths[0]);
     }
 
     if (cnt > 0) {
@@ -161,18 +162,17 @@ PolynomialShape::unroll(int order, int index, int *x, int *y, int *z, int *w)
             *z = 0;
             *w = 0;
             return;
-        } else {
-            *x = 0;
-            *y = 0;
-            *z = 3 - index;
-            *w = order - (*x + *y + *z);
-            return;
         }
-    } else {
-        for (i = 0; binomial[3 + i][i + 1] <= index; i++) {
-            ;
-        }
+        *x = 0;
+        *y = 0;
+        *z = 3 - index;
+        *w = order - (*x + *y + *z);
+        return;
     }
+    for (i = 0; binomial[3 + i][i + 1] <= index; i++) {
+        ;
+    }
+
     torder = order;
     *x = torder - i;
     index -= binomial[2 + i][i];
@@ -189,8 +189,9 @@ PolynomialShape::unroll(int order, int index, int *x, int *y, int *z, int *w)
         *w = order - (*x + *y + *z);
         return;
     }
-    for (i = 0; binomial[2 + i][i + 1] <= index; i++)
+    for (i = 0; binomial[2 + i][i + 1] <= index; i++) {
         ;
+    }
     *y = torder - i;
     index -= binomial[1 + i][i];
     torder = i;
@@ -200,7 +201,8 @@ PolynomialShape::unroll(int order, int index, int *x, int *y, int *z, int *w)
 
 /* Intersection of a ray and an arbitrary polynomial function */
 int
-PolynomialShape::intersect(RayWithSegments *ray, int order, double *coeffs, double *depths)
+PolynomialShape::intersect(
+    RayWithSegments *ray, int order, double *coeffs, double *depths)
 {
     MATRIX q;
     double *a, t[MAX_ORDER + 1];
@@ -210,7 +212,8 @@ PolynomialShape::intersect(RayWithSegments *ray, int order, double *coeffs, doub
         as (x,y,z) + (xx,yy,zz)*t.  */
     a = new double[termCounts[order]];
     if (a == nullptr) {
-        printf("Cannot allocate memory for coefficients in poly PolynomialShape::intersect()\n");
+        printf("Cannot allocate memory for coefficients in poly "
+               "PolynomialShape::intersect()\n");
         exit(1);
     }
     for (i = 0; i < termCounts[order]; i++) {
@@ -281,7 +284,8 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 
 /* Normal to a polynomial */
 void
-PolynomialShape::normalp(Vector3Dd *result, int order, double *coeffs, Vector3Dd *intersectionPoint)
+PolynomialShape::normalp(
+    Vector3Dd *result, int order, double *coeffs, Vector3Dd *intersectionPoint)
 {
     int i;
     int xp;
@@ -330,13 +334,14 @@ PolynomialShape::normalp(Vector3Dd *result, int order, double *coeffs, Vector3Dd
 }
 
 double
-PolynomialShape::doPartialTerm(MATRIX *q, int row, int pwr, int i, int j, int k, int l)
+PolynomialShape::doPartialTerm(
+    MATRIX *q, int row, int pwr, int i, int j, int k, int l)
 {
     double result;
     int n;
 
     result = (double)(factorials[pwr] / (factorials[i] * factorials[j] *
-                                         factorials[k] * factorials[l]));
+                                            factorials[k] * factorials[l]));
     if (i > 0) {
         for (n = 0; n < i; n++) {
             result *= (*q)[0][row];
@@ -399,7 +404,8 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
 
     b = new double[termCounts[order]];
     if (b == nullptr) {
-        printf("Cannot allocate memory for b in poly PolynomialShape::transform()\n");
+        printf("Cannot allocate memory for b in poly "
+               "PolynomialShape::transform()\n");
         exit(1);
     }
     for (i = 0; i < termCounts[order]; i++) {
@@ -412,27 +418,32 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
              */
             for (i = 0; i < termCounts[ip]; i++) {
                 PolynomialShape::unroll(ip, i, &i0, &i1, &i2, &i3);
-                tempx = PolynomialShape::doPartialTerm(q, 0, ip, i0, i1, i2, i3);
+                tempx =
+                    PolynomialShape::doPartialTerm(q, 0, ip, i0, i1, i2, i3);
                 if (tempx != 0.0) {
 
                     /* Step through terms in:
                                 (q[1][0]*x+q[1][1]*y+q[1][2]*z+q[1][3])^j */
                     for (j = 0; j < termCounts[jp]; j++) {
                         PolynomialShape::unroll(jp, j, &j0, &j1, &j2, &j3);
-                        tempy = PolynomialShape::doPartialTerm(q, 1, jp, j0, j1, j2, j3);
+                        tempy = PolynomialShape::doPartialTerm(
+                            q, 1, jp, j0, j1, j2, j3);
                         if (tempy != 0.0) {
 
                             /* Step through terms in:
                                         (q[2][0]*x+q[2][1]*y+q[2][2]*z+q[2][3])^k
                              */
                             for (k = 0; k < termCounts[kp]; k++) {
-                                PolynomialShape::unroll(kp, k, &k0, &k1, &k2, &k3);
-                                tempz = PolynomialShape::doPartialTerm(q, 2, kp, k0, k1, k2, k3);
+                                PolynomialShape::unroll(
+                                    kp, k, &k0, &k1, &k2, &k3);
+                                tempz = PolynomialShape::doPartialTerm(
+                                    q, 2, kp, k0, k1, k2, k3);
                                 if (tempz != 0.0) {
                                     /* Figure out it's index, and add into
                                      * result */
-                                    partialIndex = PolynomialShape::roll(order, i0 + j0 + k0,
-                                        i1 + j1 + k1, i2 + j2 + k2);
+                                    partialIndex = PolynomialShape::roll(order,
+                                        i0 + j0 + k0, i1 + j1 + k1,
+                                        i2 + j2 + k2);
                                     partialTerm = coeffs[termIndex] * tempx *
                                                   tempy * tempz;
                                     b[partialIndex] += partialTerm;
@@ -456,7 +467,8 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
 
 /* Intersection of a ray and a quartic */
 int
-PolynomialShape::intersectQuartic(RayWithSegments *ray, PolynomialShape *shape, double *depths)
+PolynomialShape::intersectQuartic(
+    RayWithSegments *ray, PolynomialShape *shape, double *depths)
 {
     double x, y, z, x2, y2, z2, x3, y3, z3, x4, y4, z4;
     double xx, yy, zz, xx2, yy2, zz2, xx3, yy3, zz3, xx4, yy4, zz4;
@@ -653,18 +665,16 @@ PolynomialShape::intersectQuartic(RayWithSegments *ray, PolynomialShape *shape, 
                 return PolynomialSolver::solveQuadratic(&t[2], depths);
             }
             return PolynomialSolver::polysolve(3, &t[1], depths);
-
-        } else {
-            return PolynomialSolver::polysolve(4, &t[0], depths);
         }
-    } else {
-        return PolynomialSolver::solveQuartic(&t[0], depths);
+        return PolynomialSolver::polysolve(4, &t[0], depths);
     }
+    return PolynomialSolver::solveQuartic(&t[0], depths);
 }
 
 /* Normal to a quartic */
 void
-PolynomialShape::quarticNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+PolynomialShape::quarticNormal(
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
     double *a, x, y, z, x2, y2, z2, x3, y3, z3;
@@ -723,7 +733,8 @@ PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
 
     /* Transform the point into polynomial's space */
     if (shape->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&newPoint, testPoint, shape->Transform);
+        Transformation::MInverseTransformVector(
+            &newPoint, testPoint, shape->Transform);
     } else {
         newPoint = *testPoint;
     }
@@ -737,14 +748,16 @@ PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
 
 /* Normal to a polynomial */
 void
-PolynomialShape::polyNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+PolynomialShape::polyNormal(
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
     Vector3Dd newPoint;
 
     /* Transform the point into the polynomials space */
     if (shape->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&newPoint, intersectionPoint, shape->Transform);
+        Transformation::MInverseTransformVector(
+            &newPoint, intersectionPoint, shape->Transform);
     } else {
         newPoint.x = intersectionPoint->x;
         newPoint.y = intersectionPoint->y;
@@ -754,7 +767,8 @@ PolynomialShape::polyNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *in
     if (shape->Order == 4) {
         PolynomialShape::quarticNormal(result, object, &newPoint);
     } else {
-        PolynomialShape::normalp(result, shape->Order, shape->Coeffs, &newPoint);
+        PolynomialShape::normalp(
+            result, shape->Order, shape->Coeffs, &newPoint);
     }
 
     /* Transform back to world space */
@@ -789,7 +803,8 @@ PolynomialShape::copyPoly(SimpleBody *object)
 
     /* Copy any associated texture */
     if (shape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = TextureParser::copyTexture(shape->Shape_Texture);
+        newShape->Shape_Texture =
+            TextureParser::copyTexture(shape->Shape_Texture);
     }
 
     return (void *)(newShape);
@@ -840,5 +855,6 @@ PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
 void
 PolynomialShape::invertPoly(SimpleBody *object)
 {
-    ((PolynomialShape *)object)->Inverted = 1 - ((PolynomialShape *)object)->Inverted;
+    ((PolynomialShape *)object)->Inverted =
+        1 - ((PolynomialShape *)object)->Inverted;
 }

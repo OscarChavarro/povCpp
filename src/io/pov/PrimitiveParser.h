@@ -3,7 +3,7 @@
 
 #include "common/linealAlgebra/Vector3Dd.h"
 
-struct RGBAColor;
+class RGBAColor;
 
 class PrimitiveParser {
   public:

@@ -12,8 +12,8 @@
 */
 
 #include "media/TextureFixture.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
@@ -24,16 +24,17 @@
 /* Similar routines are granite, agate, marble. See txtcolor.c for examples. */
 
 void
-TextureFixture::painted1(double x, double y, double z, Texture *texture, RGBAColor *colour)
+TextureFixture::painted1(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
 
     /* Swirled()  */
 
     Vector3Dd colourVector;
     Vector3Dd result;
-    register int i;
-    register double scale = 1.0;
-    register double temp;
+    int i;
+    double scale = 1.0;
+    double temp;
     RGBAColor newColour;
 
     if (Options & DEBUGGING) {
@@ -46,8 +47,8 @@ TextureFixture::painted1(double x, double y, double z, Texture *texture, RGBACol
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
         TextureUtils::DNoise(&colourVector, x, y, z);
-        temp = TextureUtils::Noise(colourVector.x * 4 * scale, colourVector.y * 4 * scale,
-            colourVector.z * 4 * scale);
+        temp = TextureUtils::Noise(colourVector.x * 4 * scale,
+            colourVector.y * 4 * scale, colourVector.z * 4 * scale);
         temp = fabsInline(temp);
         result.x += temp / scale;
         result.y += temp / scale;
@@ -70,7 +71,8 @@ TextureFixture::painted1(double x, double y, double z, Texture *texture, RGBACol
 }
 
 void
-TextureFixture::painted2(double x, double y, double z, Texture *texture, RGBAColor *colour)
+TextureFixture::painted2(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     double turb;
@@ -93,7 +95,8 @@ TextureFixture::painted2(double x, double y, double z, Texture *texture, RGBACol
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        TextureUtils::DTurbulence(&textureTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::DTurbulence(
+            &textureTurbulence, x, y, z, texture->Octaves);
         x += textureTurbulence.x * turb;
         y += textureTurbulence.y * turb;
         z += textureTurbulence.z * turb;
@@ -122,7 +125,8 @@ TextureFixture::painted2(double x, double y, double z, Texture *texture, RGBACol
 }
 
 void
-TextureFixture::painted3(double x, double y, double z, Texture *texture, RGBAColor *colour)
+TextureFixture::painted3(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* YOUR NAME HERE */
     ;
@@ -134,20 +138,23 @@ TextureFixture::painted3(double x, double y, double z, Texture *texture, RGBACol
 /* has been displaced. */
 /* Similar routines are ripples, dents, bumps. See txtbump.c for examples.  */
 void
-TextureFixture::bumpy1(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+TextureFixture::bumpy1(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy1 except use VAdd for both cases of brkindex */
 void
-TextureFixture::bumpy2(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+TextureFixture::bumpy2(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy2 except scale AFTER setting brkindex */
 void
-TextureFixture::bumpy3(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+TextureFixture::bumpy3(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }

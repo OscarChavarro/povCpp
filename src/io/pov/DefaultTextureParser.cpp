@@ -1,6 +1,6 @@
 #include "io/pov/DefaultTextureParser.h"
-#include "io/pov/Parse.h"
 #include "app/PovApp.h"
+#include "io/pov/Parse.h"
 #include "render/RenderFrame.h"
 
 extern TokenStruct globalToken;
@@ -16,17 +16,19 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr)
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (globalToken.Token_Id) {
-    case TEXTURE_TOKEN:
-    Default_Texture->Constant_Flag = FALSE;
-    Default_Texture = TextureParser::parseTexture();
-    Default_Texture->Constant_Flag = TRUE;
-    break;
-    case RIGHT_CURLY_TOKEN:
-    Exit_Flag = TRUE; break;
+            case TEXTURE_TOKEN:
+                Default_Texture->Constant_Flag = FALSE;
+                Default_Texture = TextureParser::parseTexture();
+                Default_Texture->Constant_Flag = TRUE;
+                break;
+            case RIGHT_CURLY_TOKEN:
+                Exit_Flag = TRUE;
+                break;
 
-        default: ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
-    break;
-    }
+            default:
+                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
+                break;
+            }
         }
     }
 }

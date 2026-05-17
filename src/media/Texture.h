@@ -12,8 +12,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "media/RGBAPixel.h"
 #include "media/RGBAImage.h"
+#include "media/RGBAPixel.h"
 #include "media/TextureUtils.h"
 
 extern long callsToNoise;
@@ -48,18 +48,21 @@ class Texture {
     RGBAImage *Bump_Image;
     RGBAImage *Material_Image;
     short Metallic_Flag, Once_Flag, Constant_Flag;
-    int Octaves; /* dmf, 1/92 for turb */
-    double Mortar;  /* rha, 2/92 for brick */
+    int Octaves;   /* dmf, 1/92 for turb */
+    double Mortar; /* rha, 2/92 for brick */
 
-    static inline double floorInline(double x)
+    static inline double
+    floorInline(double x)
     {
         return (x >= 0.0) ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
     }
-    static inline double fabsInline(double x)
+    static inline double
+    fabsInline(double x)
     {
         return (x < 0.0) ? (0.0 - x) : x;
     }
-    static inline double sCurve(double a)
+    static inline double
+    sCurve(double a)
     {
         return a * a * (3.0 - 2.0 * a);
     }
@@ -101,7 +104,8 @@ static constexpr int PAINTED3_TEXTURE = 14;
 static constexpr int ONION_TEXTURE = 15;
 static constexpr int LEOPARD_TEXTURE = 16;
 static constexpr int BRICK_TEXTURE = 17; /* RHA 2/92 for brick */
-static constexpr int MATERIAL_MAP_TEXTURE = 99; /* Not really colored, but... CdW */
+static constexpr int MATERIAL_MAP_TEXTURE =
+    99; /* Not really colored, but... CdW */
 
 /* Normal perturbation (bumpy) texture list  */
 static constexpr int NO_BUMPS = 0;
@@ -131,22 +135,36 @@ extern short *hashTable;
 static constexpr double realScale = (2.0 / 65535.0);
 
 // Deprecated: Use Texture:: methods instead
-inline double floorInline(double x) { return Texture::floorInline(x); }
-inline double fabsInline(double x) { return Texture::fabsInline(x); }
-inline double sCurve(double a) { return Texture::sCurve(a); }
-
-// These need to be global because they access external variables
-inline short hash3d(long a, long b, long c)
+inline double
+floorInline(double x)
 {
-    return hashTable[(int)(hashTable[(int)(hashTable[(int)(a & 0xfffL)] ^
-                                      (b & 0xfffL))] ^
-                           (c & 0xfffL))];
+    return Texture::floorInline(x);
+}
+inline double
+fabsInline(double x)
+{
+    return Texture::fabsInline(x);
+}
+inline double
+sCurve(double a)
+{
+    return Texture::sCurve(a);
 }
 
-inline double incrSum(int m, double s, double x, double y, double z)
+// These need to be global because they access external variables
+inline short
+hash3d(long a, long b, long c)
+{
+    return hashTable[(
+        int)(hashTable[(int)(hashTable[(int)(a & 0xfffL)] ^ (b & 0xfffL))] ^
+             (c & 0xfffL))];
+}
+
+inline double
+incrSum(int m, double s, double x, double y, double z)
 {
     return s * (RTable[m] * 0.5 + RTable[m + 1] * x + RTable[m + 2] * y +
-                RTable[m + 3] * z);
+                   RTable[m + 3] * z);
 }
 
 extern double *sintab;
@@ -164,15 +182,16 @@ extern void InitTextureTable(void);
 extern void InitRTable(void);
 extern int R(Vector3Dd *v);
 extern int Crc16(char *buf, int count);
-extern void setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
-    long *jx, long *jy, long *jz, double *sx, double *sy, double *sz, double *tx, double *ty,
-    double *tz);
+extern void setupLattice(double *x, double *y, double *z, long *ix, long *iy,
+    long *iz, long *jx, long *jy, long *jz, double *sx, double *sy, double *sz,
+    double *tx, double *ty, double *tz);
 extern double Noise(double x, double y, double z);
 extern void DNoise(Vector3Dd *result, double x, double y, double z);
 extern double cycloidal(double value);
 extern double triangleWave(double value);
 extern double Turbulence(double x, double y, double z, int octaves);
-extern void DTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
+extern void DTurbulence(
+    Vector3Dd *result, double x, double y, double z, int octaves);
 extern void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
 extern void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
 extern void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);

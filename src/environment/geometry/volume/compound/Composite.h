@@ -1,11 +1,11 @@
 #ifndef __COMPOSITE_H__
 #define __COMPOSITE_H__
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/volume/compound/CSG.h"
 #include "environment/scene/ObjectUtils.h"
 
 class Composite {
@@ -18,11 +18,12 @@ class Composite {
     Geometry *Clipping_Shapes;
     SimpleBody *Objects;
 
-    static Intersection *objectIntersect(SimpleBody *object, RayWithSegments *ray);
-    static int allCompositeIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
-    static int allObjectIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static Intersection *objectIntersect(
+        SimpleBody *object, RayWithSegments *ray);
+    static int allCompositeIntersections(SimpleBody *object,
+        RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int allObjectIntersections(SimpleBody *object, RayWithSegments *ray,
+        PriorityQueueNode *depthQueue);
     static int insideBasicObject(Vector3Dd *point, SimpleBody *object);
     static int insideCompositeObject(Vector3Dd *point, SimpleBody *object);
     static void *copyBasicObject(SimpleBody *object);

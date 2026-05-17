@@ -7,8 +7,8 @@
  *****************************************************************************/
 
 #include "io/Tokenizer.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include <cctype>
 
 /* This module tokenizes the input file and sends the tokens created
@@ -21,7 +21,6 @@ char string[MAX_STRING_INDEX];
 int stringIndex;
 extern char libraryPath[];
 extern int stopFlag;
- 
 
 /* Here are the reserved words.  If you need to add new words, be sure
 to declare them in frame.h */
@@ -177,8 +176,8 @@ read another token. */
 void
 Tokenizer::getToken()
 {
-    register int c;
-    register int c2;
+    int c;
+    int c2;
     cooperate();
     if (stopFlag) {
         PovApp::closeAll();
@@ -465,7 +464,8 @@ Tokenizer::getToken()
             globalDataFile->parseString();
             globalIncludeFileIndex++;
             if (globalIncludeFileIndex > MAX_INCLUDE_FILES) {
-                Tokenizer::tokenError(globalDataFile, "Too many nested include files\n");
+                Tokenizer::tokenError(
+                    globalDataFile, "Too many nested include files\n");
             }
 
             globalDataFile = &globalIncludeFiles[globalIncludeFileIndex];
@@ -519,7 +519,7 @@ Tokenizer::ungetToken()
 int
 DataFile::skipSpaces()
 {
-    register int c;
+    int c;
 
     while (TRUE) {
         c = getc(this->File);
@@ -550,7 +550,7 @@ DataFile::skipSpaces()
 int
 DataFile::parseComments()
 {
-    register int c;
+    int c;
     int endOfComment;
 
     endOfComment = FALSE;
@@ -569,8 +569,7 @@ DataFile::parseComments()
             if (!this->parseComments()) {
                 return (FALSE);
             }
-        }
-        else {
+        } else {
             endOfComment = (c == (int)'}');
         }
     }
@@ -583,15 +582,16 @@ DataFile::parseComments()
 int
 DataFile::parseCComments()
 {
-    register int c;
-    register int c2;
+    int c;
+    int c2;
     int endOfComment;
 
     endOfComment = FALSE;
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(globalDataFile, "No */ closing comment found");
+            Tokenizer::tokenError(
+                globalDataFile, "No */ closing comment found");
             return (FALSE);
         }
 
@@ -659,9 +659,9 @@ DataFile::endString()
 int
 DataFile::readFloat()
 {
-    register int c;
-    register int finished;
-    register int phase;
+    int c;
+    int finished;
+    int phase;
 
     finished = FALSE;
     phase = 0;
@@ -682,7 +682,8 @@ DataFile::readFloat()
                 Tokenizer::stuffCharacter('0', globalDataFile);
                 ungetc(c, this->File);
             } else {
-                Tokenizer::tokenError(globalDataFile, "Error in decimal number");
+                Tokenizer::tokenError(
+                    globalDataFile, "Error in decimal number");
             }
             phase = 1;
             break;
@@ -746,7 +747,7 @@ DataFile::readFloat()
 void
 DataFile::parseString()
 {
-    register int c;
+    int c;
 
     Tokenizer::beginString();
     while (TRUE) {
@@ -776,8 +777,8 @@ DataFile::parseString()
 int
 DataFile::readSymbol()
 {
-    register int c;
-    register int symbolId;
+    int c;
+    int symbolId;
 
     Tokenizer::beginString();
     while (TRUE) {
@@ -834,7 +835,7 @@ DataFile::readSymbol()
 int
 Tokenizer::findReserved()
 {
-    register int i;
+    int i;
 
     if (Tokenizer::povStricmp("case_sensitive_yes", &(string[0])) == 0) {
         caseSensitiveFlag = 0;
@@ -873,7 +874,7 @@ Tokenizer::findReserved()
 int
 Tokenizer::findSymbol()
 {
-    register int i;
+    int i;
 
     for (i = 1; i <= numberOfSymbols; i++) {
         if (caseSensitiveFlag == 0 || caseSensitiveFlag == 2) {
@@ -948,8 +949,6 @@ Tokenizer::povStricmp(const char *s1, const char *s2)
             return (0);
         }
         return (-1);
-
-    } else {
-        return (1);
     }
+    return (1);
 }

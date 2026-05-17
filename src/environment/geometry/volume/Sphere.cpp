@@ -5,14 +5,15 @@
  * *****************************************************************************/
 
 #include "environment/geometry/volume/Sphere.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
 
 //===========================================================================
 
-Methods Sphere_Methods = {Composite::objectIntersect, Sphere::allSphereIntersections,
-    Sphere::insideSphere, Sphere::sphereNormal, Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
+Methods Sphere_Methods = {Composite::objectIntersect,
+    Sphere::allSphereIntersections, Sphere::insideSphere, Sphere::sphereNormal,
+    Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
     Sphere::scaleSphere, Sphere::invertSphere};
 
 extern RayWithSegments *vpRay;
@@ -24,7 +25,8 @@ extern long raySphereTests, raySphereTestsSucceeded;
 Study closely this method!
 */
 int
-Sphere::intersectSphere(RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
+Sphere::intersectSphere(
+    RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
     raySphereTests++;
 
@@ -91,7 +93,7 @@ Sphere::allSphereIntersections(
     double depth1, depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    register int intersectionFound;
+    int intersectionFound;
     Sphere *shape = (Sphere *)object;
 
     intersectionFound = FALSE;
@@ -136,7 +138,8 @@ Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-Sphere::sphereNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Sphere::sphereNormal(
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     Sphere *sphere = (Sphere *)object;
 
@@ -154,7 +157,8 @@ Sphere::copySphere(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture =
+            TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -173,8 +177,8 @@ Sphere::rotateSphere(SimpleBody *object, Vector3Dd *vector)
     Transformation transformation;
 
     Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((Sphere *)object)->Center, &((Sphere *)object)->Center,
-        &transformation);
+    Transformation::MTransformVector(&((Sphere *)object)->Center,
+        &((Sphere *)object)->Center, &transformation);
     TextureUtils::rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 

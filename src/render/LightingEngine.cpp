@@ -6,15 +6,14 @@
  ****************************************************************************/
 
 #include "render/LightingEngine.h"
+#include "app/PovApp.h"
 #include "common/Color.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
-#include "app/PovApp.h"
-#include "common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/light/Light.h"
-#include "environment/geometry/Intersection.h"
 #include "common/dataStructures/PriorityQueue.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/Intersection.h"
+#include "environment/light/Light.h"
 #include "media/BumpTextureFixture.h"
 #include "media/ColorTextureFixture.h"
 #include "media/MapTextureFixture.h"
@@ -34,8 +33,9 @@ extern long transmittedRaysTraced;
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
 void
-LightingEngine::doLight(Light *lightSource, double *lightSourceDepth, RayWithSegments *lightSourceRay,
-    Vector3Dd *intersectionPoint, RGBAColor *lightColour)
+LightingEngine::doLight(Light *lightSource, double *lightSourceDepth,
+    RayWithSegments *lightSourceRay, Vector3Dd *intersectionPoint,
+    RGBAColor *lightColour)
 {
     double attenuation = 1.0;
 
@@ -49,7 +49,8 @@ LightingEngine::doLight(Light *lightSource, double *lightSourceDepth, RayWithSeg
     lightSourceRay->position = *intersectionPoint;
     lightSourceRay->quadricConstantsCached = FALSE;
 
-    VectorOps::vSub(lightSourceRay->direction, lightSource->Center, *intersectionPoint);
+    VectorOps::vSub(
+        lightSourceRay->direction, lightSource->Center, *intersectionPoint);
 
     *lightSourceDepth = lightSourceRay->direction.length();
 
@@ -65,8 +66,8 @@ LightingEngine::doLight(Light *lightSource, double *lightSourceDepth, RayWithSeg
 }
 
 int
-LightingEngine::doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
-    PriorityQueueNode *localQueue)
+LightingEngine::doBlocking(Intersection *localIntersection,
+    RGBAColor *lightColour, PriorityQueueNode *localQueue)
 {
     determineSurfaceColour(localIntersection, lightColour, nullptr, TRUE);
 
@@ -82,9 +83,9 @@ LightingEngine::doBlocking(Intersection *localIntersection, RGBAColor *lightColo
 }
 
 void
-LightingEngine::doPhong(Texture *texture, RayWithSegments *lightSourceRay, Vector3Dd eye,
-    Vector3Dd *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-    RGBAColor *surfaceColour)
+LightingEngine::doPhong(Texture *texture, RayWithSegments *lightSourceRay,
+    Vector3Dd eye, Vector3Dd *surfaceNormal, RGBAColor *colour,
+    RGBAColor *lightColour, RGBAColor *surfaceColour)
 {
     double cosAngleOfIncidence, normalLength, intensity;
     Vector3Dd localNormal;
@@ -104,7 +105,8 @@ LightingEngine::doPhong(Texture *texture, RayWithSegments *lightSourceRay, Vecto
     normalProjection.scale(2.0);
     VectorOps::vAdd(reflectDirection, eye, normalProjection);
 
-    cosAngleOfIncidence = reflectDirection.dotProduct(lightSourceRay->direction);
+    cosAngleOfIncidence =
+        reflectDirection.dotProduct(lightSourceRay->direction);
     normalLength = lightSourceRay->direction.length();
 
     if (normalLength == 0.0) {
@@ -137,11 +139,12 @@ LightingEngine::doPhong(Texture *texture, RayWithSegments *lightSourceRay, Vecto
 }
 
 void
-LightingEngine::doSpecular(Texture *texture, RayWithSegments *lightSourceRay, Vector3Dd rEye,
-    Vector3Dd *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-    RGBAColor *surfaceColour)
+LightingEngine::doSpecular(Texture *texture, RayWithSegments *lightSourceRay,
+    Vector3Dd rEye, Vector3Dd *surfaceNormal, RGBAColor *colour,
+    RGBAColor *lightColour, RGBAColor *surfaceColour)
 {
-    double cosAngleOfIncidence, normalLength, intensity, halfwayLength, roughness;
+    double cosAngleOfIncidence, normalLength, intensity, halfwayLength,
+        roughness;
     Vector3Dd halfway;
 
     halfway = rEye.half(lightSourceRay->direction);
@@ -179,13 +182,14 @@ LightingEngine::doSpecular(Texture *texture, RayWithSegments *lightSourceRay, Ve
 }
 
 void
-LightingEngine::doDiffuse(Texture *texture, RayWithSegments *lightSourceRay, Vector3Dd *surfaceNormal,
-    RGBAColor *colour, RGBAColor *lightColour, RGBAColor *surfaceColour,
-    double attenuation)
+LightingEngine::doDiffuse(Texture *texture, RayWithSegments *lightSourceRay,
+    Vector3Dd *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+    RGBAColor *surfaceColour, double attenuation)
 {
     double cosAngleOfIncidence, intensity, randomNumber;
 
-    cosAngleOfIncidence = (*surfaceNormal).dotProduct(lightSourceRay->direction);
+    cosAngleOfIncidence =
+        (*surfaceNormal).dotProduct(lightSourceRay->direction);
     if (cosAngleOfIncidence < 0.0) {
         cosAngleOfIncidence = -cosAngleOfIncidence;
     }
@@ -208,7 +212,8 @@ LightingEngine::doDiffuse(Texture *texture, RayWithSegments *lightSourceRay, Vec
 }
 
 void
-LightingEngine::fog(double distance, RGBAColor *fogColour, double fogDistance, RGBAColor *colour)
+LightingEngine::fog(double distance, RGBAColor *fogColour, double fogDistance,
+    RGBAColor *colour)
 {
     double fogFactor, fogFactorInverse;
 
@@ -226,9 +231,9 @@ LightingEngine::perturbNormal(Vector3Dd *newNormal, Texture *texture,
     Vector3Dd *intersectionPoint, Vector3Dd *surfaceNormal)
 {
     Vector3Dd transformedPoint;
-    register double x;
-    register double y;
-    register double z;
+    double x;
+    double y;
+    double z;
 
     if (texture->Bump_Number == NO_BUMPS) {
         *newNormal = *surfaceNormal;
@@ -236,8 +241,8 @@ LightingEngine::perturbNormal(Vector3Dd *newNormal, Texture *texture,
     }
 
     if (texture->Texture_Transformation) {
-        Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
-            texture->Texture_Transformation);
+        Transformation::MInverseTransformVector(&transformedPoint,
+            intersectionPoint, texture->Texture_Transformation);
     } else {
         transformedPoint = *intersectionPoint;
     }
@@ -287,8 +292,8 @@ LightingEngine::perturbNormal(Vector3Dd *newNormal, Texture *texture,
 }
 
 void
-LightingEngine::ambient(Texture *texture, RGBAColor *surfaceColour, RGBAColor *colour,
-    double attenuation)
+LightingEngine::ambient(Texture *texture, RGBAColor *surfaceColour,
+    RGBAColor *colour, double attenuation)
 {
     if (texture->Object_Ambient == 0.0) {
         return;
@@ -301,9 +306,9 @@ LightingEngine::ambient(Texture *texture, RGBAColor *surfaceColour, RGBAColor *c
 }
 
 void
-LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint, RayWithSegments *eye,
-    Vector3Dd *surfaceNormal, RGBAColor *surfaceColour, RGBAColor *colour,
-    double attenuation)
+LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
+    RayWithSegments *eye, Vector3Dd *surfaceNormal, RGBAColor *surfaceColour,
+    RGBAColor *colour, double attenuation)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
@@ -398,15 +403,15 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint, RayWithS
 }
 
 void
-LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint, RayWithSegments *ray,
-    Vector3Dd *surfaceNormal, RGBAColor *colour)
+LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint,
+    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *colour)
 {
     RayWithSegments newRay;
     RGBAColor tempColour;
     Vector3Dd localNormal;
     Vector3Dd normalProjection;
     Vector3Dd surfaceOffset;
-    register double normalComponent;
+    double normalComponent;
 
     if (texture->Object_Reflection != 0.0) {
         reflectedRaysTraced++;
@@ -414,8 +419,9 @@ LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint, RayWithS
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;
             normalComponent *= -1.0;
-        } else
+        } else {
             VectorOps::vScale(localNormal, *surfaceNormal, -1.0);
+        }
 
         VectorOps::vScale(normalProjection, localNormal, normalComponent);
         normalProjection.scale(2.0);
@@ -424,7 +430,8 @@ LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint, RayWithS
 
         /* ARE 08/25/91 */
 
-        VectorOps::vScale(surfaceOffset, newRay.direction, 2.0 * Small_Tolerance);
+        VectorOps::vScale(
+            surfaceOffset, newRay.direction, 2.0 * Small_Tolerance);
         newRay.position.add(surfaceOffset);
 
         newRay.copyContainersFrom(ray);
@@ -441,15 +448,15 @@ LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint, RayWithS
 }
 
 void
-LightingEngine::refract(Texture *texture, Vector3Dd *intersectionPoint, RayWithSegments *ray,
-    Vector3Dd *surfaceNormal, RGBAColor *colour)
+LightingEngine::refract(Texture *texture, Vector3Dd *intersectionPoint,
+    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *colour)
 {
     RayWithSegments newRay;
     RGBAColor tempColour;
     Vector3Dd localNormal;
     Vector3Dd rayDirection;
-    register double normalComponent;
-    register double tempIor;
+    double normalComponent;
+    double tempIor;
     double temp, ior;
 
     if (surfaceNormal == nullptr) {
@@ -565,8 +572,8 @@ of the object and how much is transmited through. */
         return;
     }
 
-    GeometryOperations::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
-        &rayIntersection->Point);
+    GeometryOperations::normal(&surfaceNormal,
+        (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
 
     if (quality >= 8) {
         perturbNormal(
@@ -593,8 +600,8 @@ of the object and how much is transmited through. */
 }
 
 void
-LightingEngine::determineSurfaceColour(
-    Intersection *rayIntersection, RGBAColor *colour, RayWithSegments *ray, int shadowRay)
+LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
+    RGBAColor *colour, RayWithSegments *ray, int shadowRay)
 {
     RGBAColor surfaceColour;
     RGBAColor refractedColour;
@@ -605,8 +612,9 @@ LightingEngine::determineSurfaceColour(
     double normalDirection;
     int surface;
 
-    if (!shadowRay)
+    if (!shadowRay) {
         Color::makeColor(colour, 0.0, 0.0, 0.0);
+    }
 
     if (Options & DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
@@ -631,7 +639,8 @@ LightingEngine::determineSurfaceColour(
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
-        texture = MapTextureFixture::materialMap(&rayIntersection->Point, texture);
+        texture =
+            MapTextureFixture::materialMap(&rayIntersection->Point, texture);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
@@ -659,7 +668,8 @@ LightingEngine::determineSurfaceColour(
                 Color::makeColor(&surfaceColour, 0.5, 0.5, 0.5);
             }
         } else {
-            ColorTextureFixture::colourAt(&surfaceColour, tempTexture, &rayIntersection->Point);
+            ColorTextureFixture::colourAt(
+                &surfaceColour, tempTexture, &rayIntersection->Point);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
@@ -713,8 +723,8 @@ LightingEngine::determineSurfaceColour(
         Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
 
         if (texture->Object_Refraction > 0.0) {
-            GeometryOperations::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
-                &rayIntersection->Point);
+            GeometryOperations::normal(&surfaceNormal,
+                (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
 
             if (quality > 7) {
                 perturbNormal(&surfaceNormal, texture, &rayIntersection->Point,

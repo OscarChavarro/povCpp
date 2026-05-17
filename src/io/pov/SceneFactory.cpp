@@ -1,28 +1,27 @@
-#include "io/pov/Parse.h"
+#include "app/PovApp.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
-#include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "io/DumpFormat.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
-#include "io/DumpFormat.h"
+#include "io/pov/Parse.h"
 #include "render/RenderEngine.h"
 
+#include "environment/camera/Viewpoint.h"
+#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
-#include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/HeightField.h"
-#include "environment/light/Light.h"
-#include "environment/geometry/volume/compound/Composite.h"
-#include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
-#include "environment/geometry/elements/Triangle.h"
-#include "environment/camera/Viewpoint.h"
+#include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/light/Light.h"
 
 extern ReservedWord globalReservedWords[];
 extern double antialiasThreshold;
@@ -37,7 +36,6 @@ extern RenderFrame *parsingFramePtr;
 extern Constant constants[MAX_CONSTANTS];
 extern int numberOfConstants;
 extern int degenerateTriangles;
-
 
 /* Allocate and initialize a composite object. */
 Composite *
@@ -102,8 +100,9 @@ SceneFactory::getLightSourceShape()
     newShape->methods = &Point_Methods;
     newShape->Next_Object = nullptr;
     newShape->Inverted = FALSE; /* needed so CSG routines don't blow up */
-    newShape->Shape_Texture = nullptr;     /* always NULL */
-    newShape->Shape_Colour = SceneFactory::getColour(); /* becomes light colour */
+    newShape->Shape_Texture = nullptr; /* always NULL */
+    newShape->Shape_Colour =
+        SceneFactory::getColour(); /* becomes light colour */
     Color::makeColor(newShape->Shape_Colour, 1.0, 1.0, 1.0);
     newShape->Shape_Colour->Alpha = 0.0;
     newShape->Coeff = 10.0;
@@ -161,7 +160,8 @@ SceneFactory::getPolyShape(int order)
     newShape->Sturm_Flag = 0;
     newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate coefficients for POLY");
+        ParseErrorReporter::Error(
+            "Out of memory. Cannot allocate coefficients for POLY");
     }
     for (i = 0; i < termCounts[order]; i++) {
         newShape->Coeffs[i] = 0.0;

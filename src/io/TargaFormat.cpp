@@ -7,8 +7,8 @@
  *****************************************************************************/
 
 #include "io/TargaFormat.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 
 int targaLineNumber = 0;
 
@@ -46,8 +46,8 @@ TargaFormat::defaultTargaFileName()
 }
 
 int
-TargaFormat::openTargaFile(FileHandle *handle, char *name, int *width, int *height,
-    int bufferSize, int mode)
+TargaFormat::openTargaFile(FileHandle *handle, char *name, int *width,
+    int *height, int bufferSize, int mode)
 {
     int data1;
     int data2;
@@ -161,9 +161,10 @@ TargaFormat::openTargaFile(FileHandle *handle, char *name, int *width, int *heig
 }
 
 void
-TargaFormat::writeTargaLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
+TargaFormat::writeTargaLine(
+    FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
-    register int x;
+    int x;
 
     for (x = 0; x < handle->width; x++) {
         putc((int)floor(lineData[x].Blue * 255.0), handle->file);
@@ -179,7 +180,8 @@ TargaFormat::writeTargaLine(FileHandle *handle, RGBAColor *lineData, int lineNum
 }
 
 int
-TargaFormat::readTargaLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+TargaFormat::readTargaLine(
+    FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
     int x;
     int data;
@@ -290,8 +292,8 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
         exit(1);
     }
 
-    for (row = 0; row < image->iheight &&
-                  TargaFormat::readTargaIntLine(&handle, &image->data.rgb_lines[row]);
+    for (row = 0; row < image->iheight && TargaFormat::readTargaIntLine(&handle,
+                                              &image->data.rgb_lines[row]);
          row++) {
     }
     fclose(handle.file);

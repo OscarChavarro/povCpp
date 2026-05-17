@@ -6,30 +6,31 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/compound/CSG.h"
-#include "io/Parse.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "io/Parse.h"
-Methods CSG_Union_Methods = {Composite::objectIntersect, CSG::allCsgUnionIntersections,
-    CSG::insideCsgUnion, nullptr, CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
-    CSG::invertCsg};
+Methods CSG_Union_Methods = {Composite::objectIntersect,
+    CSG::allCsgUnionIntersections, CSG::insideCsgUnion, nullptr, CSG::copyCsg,
+    CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
 
 Methods CSG_Intersection_Methods = {Composite::objectIntersect,
-    CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr, CSG::copyCsg,
-    CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
+    CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr,
+    CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
+    CSG::invertCsg};
 
 extern RayWithSegments *vpRay;
 int
 CSG::allCsgUnionIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    register int intersectionFound;
+    int intersectionFound;
     CSG *shape = (CSG *)object;
     Geometry *localShape;
 
     intersectionFound = FALSE;
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
-        if (GeometryOperations::allIntersections((SimpleBody *)localShape, ray, depthQueue)) {
+        if (GeometryOperations::allIntersections(
+                (SimpleBody *)localShape, ray, depthQueue)) {
             intersectionFound = TRUE;
         }
     }
@@ -56,7 +57,8 @@ CSG::allCsgIntersectIntersections(
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        GeometryOperations::allIntersections((SimpleBody *)localShape, ray, localDepthQueue);
+        GeometryOperations::allIntersections(
+            (SimpleBody *)localShape, ray, localDepthQueue);
 
         for (localIntersection = localDepthQueue->getHighest();
              localIntersection != nullptr; localDepthQueue->deleteHighest(),
@@ -138,7 +140,8 @@ CSG::copyCsg(SimpleBody *object)
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        copiedShape = (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
+        copiedShape =
+            (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
         ObjectUtils::link((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->Next_Object),
             (SimpleBody **)&(newShape->Shapes));

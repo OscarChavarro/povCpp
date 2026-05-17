@@ -24,7 +24,8 @@ class RayWithSegments : public Ray {
     void copyContainersFrom(RayWithSegments *sourceRay);
     void enterContainingMedium(Texture *texture);
     void exitContainingMedium();
-    static inline void mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c);
+    static inline void mixVectorTerms(
+        Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c);
 };
 
 #endif

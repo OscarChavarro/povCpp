@@ -28,8 +28,8 @@ class Transformation {
         Transformation *transformation, Vector3Dd *vector);
     static void getRotationTransformation(
         Transformation *transformation, Vector3Dd *vector);
-    static void composeTransformations(
-        Transformation *originalTransformation, Transformation *newTransformation);
+    static void composeTransformations(Transformation *originalTransformation,
+        Transformation *newTransformation);
     static Transformation *getTransformation(void);
 };
 

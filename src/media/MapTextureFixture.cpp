@@ -7,10 +7,9 @@
  *****************************************************************************/
 
 #include "media/MapTextureFixture.h"
+#include "app/PovApp.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
-#include "app/PovApp.h"
-#include "common/linealAlgebra/Vector3Dd.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
@@ -20,12 +19,12 @@ extern int sphericalImageMap(
     double x, double y, double z, RGBAImage *image, double *u, double *v);
 extern int planarImageMap(
     double x, double y, double z, RGBAImage *image, double *u, double *v);
-extern void noInterpolation(
-    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
-extern void interp(
-    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
-extern void imageColourAt(
-    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
+extern void noInterpolation(RGBAImage *image, double xcoor, double ycoor,
+    RGBAColor *colour, int *index);
+extern void interp(RGBAImage *image, double xcoor, double ycoor,
+    RGBAColor *colour, int *index);
+extern void imageColourAt(RGBAImage *image, double xcoor, double ycoor,
+    RGBAColor *colour, int *index);
 
 /*
     2-D to 3-D Procedural Texture Mapping of a Bitmapped Image onto an Object:
@@ -45,7 +44,8 @@ B. Specialized shape projection variations by Alexander Enzmann:
 */
 
 void
-MapTextureFixture::imageMap(double x, double y, double z, Texture *texture, RGBAColor *colour)
+MapTextureFixture::imageMap(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -69,9 +69,9 @@ Texture *
 MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
 {
     Vector3Dd transformedPoint;
-    register double x;
-    register double y;
-    register double z;
+    double x;
+    double y;
+    double z;
     double xcoor = 0.0, ycoor = 0.0;
     int regNumber = 0;
     RGBAColor colour;
@@ -83,8 +83,8 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
     colour.Alpha = 0.0;
 
     if (texture->Texture_Transformation) {
-        Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
-            texture->Texture_Transformation);
+        Transformation::MInverseTransformVector(&transformedPoint,
+            intersectionPoint, texture->Texture_Transformation);
     } else {
         transformedPoint = *intersectionPoint;
     }
@@ -127,7 +127,8 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
 }
 
 void
-MapTextureFixture::bumpMap(double x, double y, double z, Texture *texture, Vector3Dd *normal)
+MapTextureFixture::bumpMap(
+    double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
     double xcoor = 0.0, ycoor = 0.0;
     int index;
@@ -268,7 +269,8 @@ MapTextureFixture::imageColourAt(
 /* Map a point (x, y, z) on a cylinder of radius 1, height 1, that has its
     axis of symmetry along the y-axis to the square [0,1]x[0,1]. */
 int
-MapTextureFixture::cylindricalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::cylindricalImageMap(
+    double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     double len, theta;
 
@@ -310,7 +312,8 @@ MapTextureFixture::cylindricalImageMap(double x, double y, double z, RGBAImage *
 
 /* Map a point (x, y, z) on a torus  to a 2-d image. */
 int
-MapTextureFixture::torusImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::torusImageMap(
+    double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     double len, phi, theta;
     double r0;
@@ -357,7 +360,8 @@ MapTextureFixture::torusImageMap(double x, double y, double z, RGBAImage *image,
 /* Map a point (x, y, z) on a sphere of radius 1 to a 2-d image. (Or is it the
     other way around?) */
 int
-MapTextureFixture::sphericalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::sphericalImageMap(
+    double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     double len, phi, theta;
 
@@ -413,7 +417,8 @@ MapTextureFixture::sphericalImageMap(double x, double y, double z, RGBAImage *im
 /* Return 0 if there is no color at this point (i.e. invisible), return 1
     if a good mapping is found. */
 int
-MapTextureFixture::planarImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::planarImageMap(
+    double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     if (image->Image_Gradient.x != 0.0) {
         if ((image->Once_Flag) && ((x < 0.0) || (x > 1.0))) {
@@ -450,8 +455,8 @@ MapTextureFixture::planarImageMap(double x, double y, double z, RGBAImage *image
 
 /* Map returns 1 if no color found (invisible) or 0 if color found */
 int
-MapTextureFixture::map(double x, double y, double z, Texture *texture, RGBAImage *image, double *xcoor,
-    double *ycoor)
+MapTextureFixture::map(double x, double y, double z, Texture *texture,
+    RGBAImage *image, double *xcoor, double *ycoor)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -518,8 +523,9 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture, RGBAImage
             *xcoor, *ycoor, image->iheight, image->iwidth);
     }
 
-    if ((*xcoor >= (double)image->iwidth) || (*ycoor >= (double)image->iheight) ||
-        (*xcoor < 0.0) || (*ycoor < 0.0)) {
+    if ((*xcoor >= (double)image->iwidth) ||
+        (*ycoor >= (double)image->iheight) || (*xcoor < 0.0) ||
+        (*ycoor < 0.0)) {
         printf("\nPicture index out of range\n");
         PovApp::closeAll();
         exit(1);
@@ -576,7 +582,8 @@ MapTextureFixture::noInterpolation(
 
 /* Interpolate color and alpha values when mapping */
 void
-MapTextureFixture::interp(RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+MapTextureFixture::interp(
+    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     int iycoor;
     int ixcoor;
@@ -598,14 +605,14 @@ MapTextureFixture::interp(RGBAImage *image, double xcoor, double ycoor, RGBAColo
     }
     /* OK, now that you have the corners, what are you going to do with them? */
     if (image->Interpolation_Type == BILINEAR) {
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor, &cornerColour[0],
-            &cornersIndex[0]);
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+            &cornerColour[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
             &cornersIndex[1]);
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[2], &cornersIndex[2]);
-        noInterpolation(image, (double)ixcoor, (double)iycoor - 1, &cornerColour[3],
-            &cornersIndex[3]);
+        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+            &cornerColour[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;
             greenCrn[i] = cornerColour[i].Green;
@@ -621,14 +628,14 @@ MapTextureFixture::interp(RGBAImage *image, double xcoor, double ycoor, RGBAColo
         val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
     if (image->Interpolation_Type == NORMALIZED_DIST) {
-        noInterpolation(image, (double)ixcoor, (double)iycoor - 1, &cornerColour[0],
-            &cornersIndex[0]);
+        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+            &cornerColour[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[1], &cornersIndex[1]);
         noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[2],
             &cornersIndex[2]);
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor, &cornerColour[3],
-            &cornersIndex[3]);
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+            &cornerColour[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;
             greenCrn[i] = cornerColour[i].Green;
@@ -692,7 +699,7 @@ MapTextureFixture::MapTextureFixture::pythagoreanSq(double a, double b)
 double
 MapTextureFixture::normDist(double *corners, double x, double y)
 {
-    register int i;
+    int i;
 
     double p, q;
     double wts[MAX_PTS];

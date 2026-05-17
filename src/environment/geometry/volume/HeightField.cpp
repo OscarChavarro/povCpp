@@ -15,10 +15,10 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/HeightField.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
-#include "media/Texture.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
+#include "media/Texture.h"
 
 inline int
 HeightField::signInline(double x)
@@ -38,10 +38,11 @@ HeightField::maxValue(double x, double y)
     return (x < y) ? y : x;
 }
 
-Methods Height_Field_Methods = {Composite::objectIntersect, HeightField::allHeightfldIntersections,
-    HeightField::insideHeightfld, HeightField::heightFldNormal, HeightField::copyHeightfld, HeightField::translateHeightfld,
-    HeightField::rotateHeightfld, HeightField::scaleHeightfld, HeightField::invertHeightfld};
-
+Methods Height_Field_Methods = {Composite::objectIntersect,
+    HeightField::allHeightfldIntersections, HeightField::insideHeightfld,
+    HeightField::heightFldNormal, HeightField::copyHeightfld,
+    HeightField::translateHeightfld, HeightField::rotateHeightfld,
+    HeightField::scaleHeightfld, HeightField::invertHeightfld};
 
 extern long rayHtFieldTests, rayHtFieldTestsSucceeded;
 extern long rayHtFieldBoxTests, rayHFieldBoxTestsSucceeded;
@@ -59,8 +60,8 @@ HeightField::getHeightAt(int x, int z, HeightField *hField)
     return (double)hField->Map[z][x];
 }
 int
-HeightField::intersectPixel(
-    int x, int z, RayWithSegments *ray, HeightField *hField, double height1, double height2)
+HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
+    HeightField *hField, double height1, double height2)
 {
     Vector3Dd t1V1;
     Vector3Dd t1V2;
@@ -125,8 +126,9 @@ HeightField::intersectPixel(
      * intersect the triangle.
         Rewritten to get around Code Builder FP stack problem.
         Original code:
-             if((HeightField::maxValue(y4,HeightField::maxValue(y2,y3)) >= height1) &&
-                 (HeightField::minValue(y4,HeightField::minValue(y2,y3)) <= height2))                */
+             if((HeightField::maxValue(y4,HeightField::maxValue(y2,y3)) >=
+     height1) && (HeightField::minValue(y4,HeightField::minValue(y2,y3)) <=
+     height2))                */
 
     maxHeight = HeightField::maxValue(y4, HeightField::maxValue(y2, y3));
     minHeight = HeightField::minValue(y4, HeightField::minValue(y2, y3));
@@ -182,8 +184,8 @@ HeightField::intersectPixel(
 }
 
 int
-HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray, HeightField *hField,
-    Vector3Dd *start, Vector3Dd *end)
+HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
+    HeightField *hField, Vector3Dd *start, Vector3Dd *end)
 {
     double y1, y2;
     double sx, sy, sz, ex, ez, f;
@@ -314,7 +316,8 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray, He
 }
 
 int
-HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end)
+HeightField::intersectHfNode(
+    RayWithSegments *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end)
 {
     Vector3Dd *curr;
     Vector3Dd *next;
@@ -368,8 +371,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy + myx * t;
                     z = sz + mzx * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -383,8 +386,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy + myx * t;
                     z = sz + mzx * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -417,8 +420,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy - myx * t;
                     z = sz - mzx * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -432,8 +435,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy - myx * t;
                     z = sz - mzx * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -467,8 +470,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy + myz * t;
                     x = sx + mxz * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -482,8 +485,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy + myz * t;
                     x = sx + mxz * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -515,8 +518,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy - myz * t;
                     x = sx - mxz * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -530,8 +533,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
                     y = sy - myz * t;
                     x = sx - mxz * t;
                     *next = Vector3Dd(x, y, z);
-                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
-                            curr, next)) {
+                    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
+                            ray, hField, curr, next)) {
                         return (TRUE);
                     }
                     temp = curr;
@@ -558,7 +561,8 @@ HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3D
     } else {
         iz = (int)ceil(ez * invBlkSize) - 1;
     }
-    if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField, curr, next)) {
+    if (HeightField::intersectSubBlock(
+            &(hField->Block[ix][iz]), ray, hField, curr, next)) {
         return (TRUE);
     }
     return (FALSE);
@@ -648,13 +652,15 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                             temp1 = image->data.map_lines[maxZ - z - 1][x];
                             temp2 =
                                 image->data.map_lines[maxZ - z - 1][x + maxX];
-                            tempY = (double)((double)temp1 + (double)temp2 / 256.0);
+                            tempY =
+                                (double)((double)temp1 + (double)temp2 / 256.0);
                             break;
                         case TGA:
                             temp1 = image->data.rgb_lines[maxZ - z - 1].red[x];
                             temp2 =
                                 image->data.rgb_lines[maxZ - z - 1].green[x];
-                            tempY = (double)((double)temp1 + (double)temp2 / 256.0);
+                            tempY =
+                                (double)((double)temp1 + (double)temp2 / 256.0);
                             break;
                         }
                         if (tempY <= hField->bounding_box->bounds[0].y) {
@@ -794,7 +800,8 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
     Vector3Dd localNormal;
     Vector3Dd test;
 
-    Transformation::MInverseTransformVector(&test, testPoint, hField->transformation);
+    Transformation::MInverseTransformVector(
+        &test, testPoint, hField->transformation);
 
     px = (int)test.x;
     pz = (int)test.z;
@@ -898,7 +905,8 @@ HeightField::copyHeightfld(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture =
+            TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -914,9 +922,11 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
         hField->transformation = Transformation::getTransformation();
     }
     Transformation::getTranslationTransformation(&transformation, vector);
-    Transformation::composeTransformations(hField->transformation, &transformation);
+    Transformation::composeTransformations(
+        hField->transformation, &transformation);
 
-    TextureUtils::translateTexture(&((HeightField *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(
+        &((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
@@ -929,9 +939,11 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
         hField->transformation = Transformation::getTransformation();
     }
     Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::composeTransformations(hField->transformation, &transformation);
+    Transformation::composeTransformations(
+        hField->transformation, &transformation);
 
-    TextureUtils::rotateTexture(&((HeightField *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(
+        &((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
@@ -944,7 +956,8 @@ HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
         hField->transformation = Transformation::getTransformation();
     }
     Transformation::getScalingTransformation(&transformation, vector);
-    Transformation::composeTransformations(hField->transformation, &transformation);
+    Transformation::composeTransformations(
+        hField->transformation, &transformation);
 
     TextureUtils::scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
 }

@@ -2,10 +2,10 @@
 #define __BLOB_H__
 
 #include "common/FrameConfig.h"
-#include "environment/geometry/volume/BlobElement.h"
-#include "environment/geometry/volume/BlobList.h"
-#include "environment/geometry/volume/BlobInterval.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/volume/BlobElement.h"
+#include "environment/geometry/volume/BlobInterval.h"
+#include "environment/geometry/volume/BlobList.h"
 
 class Blob : public Geometry {
   public:
@@ -17,8 +17,8 @@ class Blob : public Geometry {
     BlobInterval *intervals;
     int Sturm_Flag;
 
-    static int allBlobIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int allBlobIntersections(SimpleBody *object, RayWithSegments *ray,
+        PriorityQueueNode *depthQueue);
     static int insideBlob(Vector3Dd *point, SimpleBody *object);
     static void blobNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

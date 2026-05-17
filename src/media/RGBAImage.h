@@ -2,8 +2,8 @@
 #define __RGBA_IMAGE_H__
 
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "media/RGBAPixel.h"
 #include "media/ImageData.h"
+#include "media/RGBAPixel.h"
 
 class RGBAImage {
   public:

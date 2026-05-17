@@ -13,11 +13,10 @@
  *****************************************************************************/
 
 #include "render/RenderEngine.h"
+#include "app/PovApp.h"
 #include "app/UnixPlatform.h"
 #include "common/Color.h"
 #include "common/FrameConfig.h"
-#include "app/PovApp.h"
-#include "common/linealAlgebra/Vector3Dd.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/DumpFormat.h"
 #include "render/LightingEngine.h"
@@ -58,10 +57,11 @@ char *previousLineAntialiasedFlags, *currentLineAntialiasedFlags;
 RayWithSegments ray;
 
 void
-RenderFrame::createRay(RayWithSegments *ray, int width, int height, double x, double y)
+RenderFrame::createRay(
+    RayWithSegments *ray, int width, int height, double x, double y)
 {
-    register double xScalar;
-    register double yScalar;
+    double xScalar;
+    double yScalar;
     Vector3Dd tempVect1;
     Vector3Dd tempVect2;
 
@@ -69,8 +69,9 @@ RenderFrame::createRay(RayWithSegments *ray, int width, int height, double x, do
     xScalar = (x - (double)width / 2.0) / (double)width;
 
     /* Convert the Y Coordinate to be a double from 0.0 to 1.0 */
-    yScalar = (((double)(globalFrame.Screen_Height - 1) - y) - (double)height / 2.0) /
-              (double)height;
+    yScalar =
+        (((double)(globalFrame.Screen_Height - 1) - y) - (double)height / 2.0) /
+        (double)height;
 
     VectorOps::vScale(tempVect1, globalFrame.View_Point.Up, yScalar);
     VectorOps::vScale(tempVect2, globalFrame.View_Point.Right, xScalar);
@@ -82,14 +83,15 @@ RenderFrame::createRay(RayWithSegments *ray, int width, int height, double x, do
 }
 
 void
-RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height)
+RenderEngine::supersample(
+    RGBAColor *result, int x, int y, int width, int height)
 {
     RGBAColor colour;
-    register double dx;
-    register double dy;
-    register double jitterX;
-    register double jitterY;
-    register int jittOffset;
+    double dx;
+    double dy;
+    double jitterX;
+    double jitterY;
+    int jittOffset;
     unsigned char red;
     unsigned char green;
     unsigned char blue;
@@ -102,12 +104,14 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
 
     Color::makeColor(result, 0.0, 0.0, 0.0);
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
+                  32768.0 * 0.33333333 -
               0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
+                  32768.0 * 0.33333333 -
               0.16666666;
-    RenderFrame::createRay(vpRay, globalFrame.Screen_Width, globalFrame.Screen_Height,
-        dx + jitterX, dy + jitterY);
+    RenderFrame::createRay(vpRay, globalFrame.Screen_Width,
+        globalFrame.Screen_Height, dx + jitterX, dy + jitterY);
 
     traceLevel = 0;
     RenderEngine::trace(vpRay, &colour);
@@ -116,12 +120,14 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
     RenderFrame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
         dy + jitterY - 0.3333333);
     traceLevel = 0;
@@ -131,13 +137,16 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    RenderFrame::createRay(
+        vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
     traceLevel = 0;
     RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
@@ -145,12 +154,14 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
     RenderFrame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
         dy + jitterY + 0.3333333);
     traceLevel = 0;
@@ -160,13 +171,16 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    RenderFrame::createRay(
+        vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
     traceLevel = 0;
     RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
@@ -174,13 +188,16 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    RenderFrame::createRay(
+        vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
     traceLevel = 0;
     RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
@@ -188,12 +205,14 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
     RenderFrame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
         dy + jitterY - 0.3333333);
     traceLevel = 0;
@@ -203,13 +222,16 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    RenderFrame::createRay(
+        vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
     traceLevel = 0;
     RenderEngine::trace(vpRay, &colour);
     Color::clipColor(&colour, &colour);
@@ -217,12 +239,14 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
-                  0.33333333 -
-              0.16666666;
+    jitterX =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
+    jitterY =
+        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+            32768.0 * 0.33333333 -
+        0.16666666;
     RenderFrame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
         dy + jitterY + 0.3333333);
     traceLevel = 0;
@@ -291,8 +315,8 @@ void
 RenderEngine::startTracing()
 {
     RGBAColor colour;
-    register int x;
-    register int y;
+    int x;
+    int y;
     unsigned char red;
     unsigned char green;
     unsigned char blue;
@@ -348,12 +372,13 @@ RenderEngine::startTracing()
     }
 
     if (Options & DISKWRITE) {
-        DumpFormat::writeLine(globalOutputFileHandle, previousLine, lastLine - 1);
+        DumpFormat::writeLine(
+            globalOutputFileHandle, previousLine, lastLine - 1);
     }
 }
 
 void
-RenderFrame::checkStats(register int y)
+RenderFrame::checkStats(int y)
 {
     FILE *statFile;
 
@@ -397,7 +422,7 @@ RenderFrame::checkStats(register int y)
 }
 
 void
-RenderFrame::doAntiAliasing(register int x, register int y, RGBAColor *colour)
+RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
 {
     char antialiasCenterFlag = 0;
 
@@ -430,8 +455,8 @@ RenderFrame::doAntiAliasing(register int x, register int y, RGBAColor *colour)
     }
 
     if (antialiasCenterFlag) {
-        RenderEngine::supersample(&currentLine[x], x, y, globalFrame.Screen_Width,
-            globalFrame.Screen_Height);
+        RenderEngine::supersample(&currentLine[x], x, y,
+            globalFrame.Screen_Width, globalFrame.Screen_Height);
         currentLineAntialiasedFlags[x] = 1;
         *colour = currentLine[x];
         superSampleCount++;
@@ -441,7 +466,7 @@ RenderFrame::doAntiAliasing(register int x, register int y, RGBAColor *colour)
 void
 RenderEngine::initializeRenderer()
 {
-    register int i;
+    int i;
 
     vpRay = &ray;
     maxclr = (double)(1 << colorBits) - 1.0;
@@ -473,7 +498,7 @@ RenderEngine::initializeRenderer()
 }
 
 void
-RenderFrame::outputLine(register int y)
+RenderFrame::outputLine(int y)
 {
     RGBAColor *tempColourPtr;
     char *tempCharPtr;
@@ -513,7 +538,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     SimpleBody *object;
     Intersection *localIntersection;
     Intersection *newIntersection;
-    register int intersectionFound;
+    int intersectionFound;
 
     cooperate();
     numberOfRays++;
@@ -540,7 +565,8 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     for (object = globalFrame.Objects; object != nullptr;
          object = object->Next_Object) {
         cooperate();
-        if ((newIntersection = GeometryOperations::intersect(object, ray)) != nullptr) {
+        if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
+            nullptr) {
             if (intersectionFound) {
                 if (localIntersection->Depth > newIntersection->Depth) {
                     delete localIntersection;
@@ -557,7 +583,8 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     }
 
     if (intersectionFound) {
-        LightingEngine::determineSurfaceColour(localIntersection, colour, ray, FALSE);
+        LightingEngine::determineSurfaceColour(
+            localIntersection, colour, ray, FALSE);
         delete localIntersection;
     }
 }

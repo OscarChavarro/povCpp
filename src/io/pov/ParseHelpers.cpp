@@ -1,27 +1,27 @@
-#include "io/pov/Parse.h"
+#include "app/PovApp.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
-#include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "io/DumpFormat.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
-#include "io/DumpFormat.h"
+#include "io/pov/Parse.h"
 #include "render/RenderEngine.h"
 
+#include "environment/camera/Viewpoint.h"
+#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
-#include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/HeightField.h"
-#include "environment/light/Light.h"
-#include "environment/geometry/volume/compound/Composite.h"
-#include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
-#include "environment/geometry/elements/Triangle.h"
-#include "environment/camera/Viewpoint.h"
+#include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/light/Light.h"
 
 extern ReservedWord globalReservedWords[];
 extern double antialiasThreshold;
@@ -80,7 +80,8 @@ ParseHelpers::postProcessShape(Geometry *shape)
         }
     } else if ((shape->Type == POINT_LIGHT_TYPE) ||
                (shape->Type == SPOT_LIGHT_TYPE)) {
-        ParseHelpers::linkShapes((Light *)shape, &(((Light *)shape)->Next_Light_Source),
+        ParseHelpers::linkShapes((Light *)shape,
+            &(((Light *)shape)->Next_Light_Source),
             &(parsingFramePtr->Light_Sources));
     }
 }

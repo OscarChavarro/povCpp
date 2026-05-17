@@ -6,10 +6,11 @@
  *****************************************************************************/
 
 #include "environment/camera/Viewpoint.h"
-#include "io/Parse.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, Viewpoint::copyViewpoint,
-    Viewpoint::translateViewpoint, Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
+#include "io/Parse.h"
+Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr,
+    Viewpoint::copyViewpoint, Viewpoint::translateViewpoint,
+    Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
 void *
 Viewpoint::copyViewpoint(SimpleBody *object)
 {
@@ -40,8 +41,8 @@ Viewpoint::initializeDefaults()
 void
 Viewpoint::translateViewpoint(SimpleBody *object, Vector3Dd *vector)
 {
-    VectorOps::vAdd(((Viewpoint *)object)->Location, ((Viewpoint *)object)->Location,
-        *vector);
+    VectorOps::vAdd(((Viewpoint *)object)->Location,
+        ((Viewpoint *)object)->Location, *vector);
 }
 
 void
@@ -57,9 +58,11 @@ Viewpoint::rotateViewpoint(SimpleBody *object, Vector3Dd *vector)
     Transformation::MTransformVector(
         &(viewpoint->Direction), &(viewpoint->Direction), &transformation);
 
-    Transformation::MTransformVector(&(viewpoint->Up), &(viewpoint->Up), &transformation);
+    Transformation::MTransformVector(
+        &(viewpoint->Up), &(viewpoint->Up), &transformation);
 
-    Transformation::MTransformVector(&(viewpoint->Right), &(viewpoint->Right), &transformation);
+    Transformation::MTransformVector(
+        &(viewpoint->Right), &(viewpoint->Right), &transformation);
 }
 
 void
@@ -75,7 +78,9 @@ Viewpoint::scaleViewpoint(SimpleBody *object, Vector3Dd *vector)
     Transformation::MTransformVector(
         &(viewpoint->Direction), &(viewpoint->Direction), &transformation);
 
-    Transformation::MTransformVector(&(viewpoint->Up), &(viewpoint->Up), &transformation);
+    Transformation::MTransformVector(
+        &(viewpoint->Up), &(viewpoint->Up), &transformation);
 
-    Transformation::MTransformVector(&(viewpoint->Right), &(viewpoint->Right), &transformation);
+    Transformation::MTransformVector(
+        &(viewpoint->Right), &(viewpoint->Right), &transformation);
 }
