@@ -9,8 +9,12 @@
 static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 class BezierVertices;
 class BezierChild;
+class BezierPatches;
+class BezierIntersection;
 
 class BicubicPatch : public Geometry {
+  friend class BezierPatches;
+  friend class BezierIntersection;
   public:
     int Patch_Type, U_Steps, V_Steps;
     Vector3D Control_Points[4][4];
@@ -26,8 +30,6 @@ class BicubicPatch : public Geometry {
 
     static BicubicPatch *getBicubicPatchShape();
     static void precomputePatchValues(BicubicPatch *shape);
-    static int allBicubicPatchIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
     static int insideBicubicPatch(Vector3D *point, SimpleBody *object);
     static void bicubicPatchNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
@@ -47,12 +49,6 @@ class BicubicPatch : public Geometry {
         Vector3D *n3, double *depth, Vector3D *ip, Vector3D *ipNorm);
     static void findAverage(
         int vectorCount, Vector3D *vectors, Vector3D *center, double *radius);
-    static int sphericalBoundsCheck(Ray *ray, Vector3D *center, double radius);
-    static int intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *depths);
-    static int intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *depths);
-    static int intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, double *depths);
-    static int intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, double *depths);
-    static int intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depths);
     static double pointPlaneDistance(Vector3D *point, Vector3D *normal, double *d);
     static double determineSubpatchFlatness(Vector3D (*patch)[4][4]);
     static int flatEnough(BicubicPatch *shape, Vector3D (*patch)[4][4]);

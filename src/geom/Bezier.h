@@ -12,6 +12,8 @@ static constexpr int BEZIER_LEAF_NODE = 1;
 class BezierVertices;
 class BezierNode;
 #include "geom/BezierChild.h"
+#include "geom/BezierIntersection.h"
+#include "geom/BezierPatches.h"
 #include "geom/BezierNode.h"
 #include "geom/BezierVertices.h"
 #include "geom/BicubicPatch.h"

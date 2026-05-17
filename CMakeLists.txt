@@ -14,6 +14,8 @@ add_executable(povray
   src/common/Matrices.cpp
   src/common/Ray.cpp
   src/geom/Bezier.cpp
+  src/geom/BezierIntersection.cpp
+  src/geom/BezierPatches.cpp
   src/geom/Blob.cpp
   src/geom/Boxes.cpp
   src/geom/Csg.cpp
