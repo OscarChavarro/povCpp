@@ -49,7 +49,7 @@ SceneParser::Parse(RenderFrame *framePtr)
     SceneParser::frameInit();
     SceneParser::parseFrame();
     for (object = parsingFramePtr->Objects; object != nullptr;
-         object = object->Next_Object) {
+        object = object->Next_Object) {
         ParseHelpers::postProcessObject(object);
     }
     if (degenerateTriangles) {

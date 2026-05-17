@@ -179,8 +179,8 @@ HeightFieldParser::parseHeightField()
                     Texture *tempTexture;
 
                     for (tempTexture = localTexture;
-                         tempTexture->Next_Texture != nullptr;
-                         tempTexture = tempTexture->Next_Texture) {
+                        tempTexture->Next_Texture != nullptr;
+                        tempTexture = tempTexture->Next_Texture) {
                     }
 
                     tempTexture->Next_Texture = localShape->Shape_Texture;

@@ -64,7 +64,7 @@ Composite::allCompositeIntersections(
     PriorityQueueNode *localDepthQueue;
 
     for (boundingShape = ((Composite *)object)->Bounding_Shapes;
-         boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
+        boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
 
         boundingRegionTests++;
         cooperate();
@@ -82,19 +82,19 @@ Composite::allCompositeIntersections(
     anyIntersectionFound = FALSE;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
-         localObject = localObject->Next_Object) {
+        localObject = localObject->Next_Object) {
 
         GeometryOperations::allIntersections(localObject, ray, localDepthQueue);
     }
 
     for (localIntersection = localDepthQueue->getHighest();
-         localIntersection != nullptr; localDepthQueue->deleteHighest(),
+        localIntersection != nullptr; localDepthQueue->deleteHighest(),
         localIntersection = localDepthQueue->getHighest()) {
 
         intersectionFound = TRUE;
 
         for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
-             clippingShape = clippingShape->Next_Object) {
+            clippingShape = clippingShape->Next_Object) {
             clippingRegionTests++;
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
@@ -125,7 +125,7 @@ Composite::allObjectIntersections(
     PriorityQueueNode *localDepthQueue;
 
     for (boundingShape = object->Bounding_Shapes; boundingShape != nullptr;
-         boundingShape = boundingShape->Next_Object) {
+        boundingShape = boundingShape->Next_Object) {
 
         boundingRegionTests++;
         cooperate();
@@ -145,13 +145,13 @@ Composite::allObjectIntersections(
         (SimpleBody *)object->Shape, ray, localDepthQueue);
 
     for (localIntersection = localDepthQueue->getHighest();
-         localIntersection != nullptr; localDepthQueue->deleteHighest(),
+        localIntersection != nullptr; localDepthQueue->deleteHighest(),
         localIntersection = localDepthQueue->getHighest()) {
 
         intersectionFound = TRUE;
 
         for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
-             clippingShape = clippingShape->Next_Object) {
+            clippingShape = clippingShape->Next_Object) {
 
             clippingRegionTests++;
             if (Options & DEBUGGING) {
@@ -188,7 +188,7 @@ Composite::insideBasicObject(Vector3Dd *testPoint, SimpleBody *object)
     Geometry *clippingShape;
 
     for (boundingShape = object->Bounding_Shapes; boundingShape != nullptr;
-         boundingShape = boundingShape->Next_Object) {
+        boundingShape = boundingShape->Next_Object) {
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)boundingShape)) {
@@ -197,7 +197,7 @@ Composite::insideBasicObject(Vector3Dd *testPoint, SimpleBody *object)
     }
 
     for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
-         clippingShape = clippingShape->Next_Object) {
+        clippingShape = clippingShape->Next_Object) {
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)clippingShape)) {
@@ -219,7 +219,7 @@ Composite::insideCompositeObject(Vector3Dd *testPoint, SimpleBody *object)
     SimpleBody *localObject;
 
     for (boundingShape = ((Composite *)object)->Bounding_Shapes;
-         boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
+        boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)boundingShape)) {
@@ -228,7 +228,7 @@ Composite::insideCompositeObject(Vector3Dd *testPoint, SimpleBody *object)
     }
 
     for (clippingShape = ((Composite *)object)->Clipping_Shapes;
-         clippingShape != nullptr; clippingShape = clippingShape->Next_Object) {
+        clippingShape != nullptr; clippingShape = clippingShape->Next_Object) {
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)clippingShape)) {
@@ -237,7 +237,7 @@ Composite::insideCompositeObject(Vector3Dd *testPoint, SimpleBody *object)
     }
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
-         localObject = localObject->Next_Object) {
+        localObject = localObject->Next_Object) {
 
         if (GeometryOperations::inside(testPoint, localObject)) {
             return (TRUE);
@@ -260,7 +260,7 @@ Composite::copyBasicObject(SimpleBody *object)
     newObject->Bounding_Shapes = nullptr;
     newObject->Clipping_Shapes = nullptr;
     for (localShape = object->Bounding_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
@@ -276,7 +276,7 @@ Composite::copyBasicObject(SimpleBody *object)
     }
 
     for (localShape = object->Clipping_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
@@ -322,7 +322,7 @@ Composite::copyCompositeObject(SimpleBody *object)
     newObject->Next_Object = nullptr;
     newObject->Objects = nullptr;
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
-         localObject = localObject->Next_Object) {
+        localObject = localObject->Next_Object) {
 
         copiedObject = (SimpleBody *)GeometryOperations::copy(localObject);
         ObjectUtils::link(
@@ -331,7 +331,7 @@ Composite::copyCompositeObject(SimpleBody *object)
 
     newObject->Bounding_Shapes = nullptr;
     for (localShape = ((Composite *)object)->Bounding_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         copiedObject =
             (SimpleBody *)GeometryOperations::copy((SimpleBody *)localShape);
@@ -340,7 +340,7 @@ Composite::copyCompositeObject(SimpleBody *object)
     }
     newObject->Clipping_Shapes = nullptr;
     for (localShape = ((Composite *)object)->Clipping_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         copiedObject =
             (SimpleBody *)GeometryOperations::copy((SimpleBody *)localShape);
@@ -356,13 +356,13 @@ Composite::translateBasicObject(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localShape = object->Bounding_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::translate((SimpleBody *)localShape, vector);
     }
 
     for (localShape = object->Clipping_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::translate((SimpleBody *)localShape, vector);
     }
@@ -379,13 +379,13 @@ Composite::rotateBasicObject(SimpleBody *object, Vector3Dd *vector)
     Transformation transformation;
 
     for (localShape = object->Bounding_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::rotate((SimpleBody *)localShape, vector);
     }
 
     for (localShape = object->Clipping_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::rotate((SimpleBody *)localShape, vector);
     }
@@ -402,13 +402,13 @@ Composite::scaleBasicObject(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localShape = object->Bounding_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::scale((SimpleBody *)localShape, vector);
     }
 
     for (localShape = object->Clipping_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::scale((SimpleBody *)localShape, vector);
     }
@@ -425,19 +425,19 @@ Composite::translateCompositeObject(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
-         localObject = localObject->Next_Object) {
+        localObject = localObject->Next_Object) {
 
         GeometryOperations::translate(localObject, vector);
     }
 
     for (localShape = ((Composite *)object)->Bounding_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         GeometryOperations::translate((SimpleBody *)localShape, vector);
     }
 
     for (localShape = ((Composite *)object)->Clipping_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         GeometryOperations::translate((SimpleBody *)localShape, vector);
     }
@@ -450,19 +450,19 @@ Composite::rotateCompositeObject(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
-         localObject = localObject->Next_Object) {
+        localObject = localObject->Next_Object) {
 
         GeometryOperations::rotate(localObject, vector);
     }
 
     for (localShape = ((Composite *)object)->Bounding_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         GeometryOperations::rotate((SimpleBody *)localShape, vector);
     }
 
     for (localShape = ((Composite *)object)->Clipping_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         GeometryOperations::rotate((SimpleBody *)localShape, vector);
     }
@@ -475,19 +475,19 @@ Composite::scaleCompositeObject(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
-         localObject = localObject->Next_Object) {
+        localObject = localObject->Next_Object) {
 
         GeometryOperations::scale(localObject, vector);
     }
 
     for (localShape = ((Composite *)object)->Bounding_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         GeometryOperations::scale((SimpleBody *)localShape, vector);
     }
 
     for (localShape = ((Composite *)object)->Clipping_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
 
         GeometryOperations::scale((SimpleBody *)localShape, vector);
     }
@@ -499,12 +499,12 @@ Composite::invertBasicObject(SimpleBody *object)
     Geometry *localShape;
 
     for (localShape = object->Bounding_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
         GeometryOperations::invert((SimpleBody *)localShape);
     }
 
     for (localShape = object->Clipping_Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
         GeometryOperations::invert((SimpleBody *)localShape);
     }
     GeometryOperations::invert((SimpleBody *)object->Shape);
@@ -517,17 +517,17 @@ Composite::invertCompositeObject(SimpleBody *object)
     Geometry *localShape;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
-         localObject = localObject->Next_Object) {
+        localObject = localObject->Next_Object) {
         GeometryOperations::invert(localObject);
     }
 
     for (localShape = ((Composite *)object)->Bounding_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
         GeometryOperations::invert((SimpleBody *)localShape);
     }
 
     for (localShape = ((Composite *)object)->Clipping_Shapes;
-         localShape != nullptr; localShape = localShape->Next_Object) {
+        localShape != nullptr; localShape = localShape->Next_Object) {
         GeometryOperations::invert((SimpleBody *)localShape);
     }
 }

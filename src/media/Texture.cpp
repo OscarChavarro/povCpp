@@ -75,7 +75,7 @@ TextureUtils::computeColour(
     }
 
     for (i = 0, ent = &(colourMap->Colour_Map_Entries[0]);
-         i < colourMap->Number_Of_Entries; i++, ent++) {
+        i < colourMap->Number_Of_Entries; i++, ent++) {
         if ((value >= ent->start) && (value <= ent->end)) {
             fraction = (value - ent->start) / (ent->end - ent->start);
             colour->Red =

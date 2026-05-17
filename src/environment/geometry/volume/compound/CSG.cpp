@@ -28,7 +28,7 @@ CSG::allCsgUnionIntersections(
 
     intersectionFound = FALSE;
     for (localShape = shape->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
         if (GeometryOperations::allIntersections(
                 (SimpleBody *)localShape, ray, depthQueue)) {
             intersectionFound = TRUE;
@@ -55,19 +55,19 @@ CSG::allCsgIntersectIntersections(
     anyIntersectionFound = FALSE;
 
     for (localShape = shape->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::allIntersections(
             (SimpleBody *)localShape, ray, localDepthQueue);
 
         for (localIntersection = localDepthQueue->getHighest();
-             localIntersection != nullptr; localDepthQueue->deleteHighest(),
+            localIntersection != nullptr; localDepthQueue->deleteHighest(),
             localIntersection = localDepthQueue->getHighest()) {
 
             intersectionFound = TRUE;
 
             for (shape2 = shape->Shapes; shape2 != nullptr;
-                 shape2 = shape2->Next_Object) {
+                shape2 = shape2->Next_Object) {
 
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
@@ -97,7 +97,7 @@ CSG::insideCsgUnion(Vector3Dd *testPoint, SimpleBody *object)
     Geometry *localShape;
 
     for (localShape = shape->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         if (GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
             return (TRUE);
@@ -113,7 +113,7 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
     CSG *shape = (CSG *)object;
 
     for (localShape = shape->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         if (!GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
             return (FALSE);
@@ -138,7 +138,7 @@ CSG::copyCsg(SimpleBody *object)
     newShape->Shapes = nullptr;
 
     for (localShape = shape->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
@@ -155,7 +155,7 @@ CSG::translateCsg(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::translate((SimpleBody *)localShape, vector);
     }
@@ -167,7 +167,7 @@ CSG::rotateCsg(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::rotate((SimpleBody *)localShape, vector);
     }
@@ -179,7 +179,7 @@ CSG::scaleCsg(SimpleBody *object, Vector3Dd *vector)
     Geometry *localShape;
 
     for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::scale((SimpleBody *)localShape, vector);
     }
@@ -200,7 +200,7 @@ CSG::invertCsg(SimpleBody *object)
     }
 
     for (localShape = csg->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         GeometryOperations::invert((SimpleBody *)localShape);
     }
@@ -212,7 +212,7 @@ CSG::setCsgParents(CSG *shape, SimpleBody *object)
     Geometry *localShape;
 
     for (localShape = shape->Shapes; localShape != nullptr;
-         localShape = localShape->Next_Object) {
+        localShape = localShape->Next_Object) {
 
         localShape->Parent_Object = object;
         if ((localShape->Type == CSG_UNION_TYPE) ||

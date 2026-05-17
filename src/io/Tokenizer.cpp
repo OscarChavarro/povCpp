@@ -209,7 +209,7 @@ Tokenizer::getToken()
             }
 
             fclose(globalDataFile
-                       ->File); /* added to fix open file buildup JLN 12/91 */
+                    ->File); /* added to fix open file buildup JLN 12/91 */
 
             globalDataFile = &globalIncludeFiles[--globalIncludeFileIndex];
             continue;

@@ -594,8 +594,8 @@ ObjectParser::parseObject()
                     object->Object_Texture = localTexture;
                 } else {
                     for (tempTexture = localTexture;
-                         tempTexture->Next_Texture != nullptr;
-                         tempTexture = tempTexture->Next_Texture) {
+                        tempTexture->Next_Texture != nullptr;
+                        tempTexture = tempTexture->Next_Texture) {
                     }
 
                     tempTexture->Next_Texture = object->Object_Texture;

@@ -323,7 +323,7 @@ RenderEngine::startTracing()
     double grey;
 
     for (y = (Options & ANTIALIAS) ? firstLine - 1 : firstLine; y < lastLine;
-         y++) {
+        y++) {
 
         RenderFrame::checkStats(y);
 
@@ -563,7 +563,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
 
     /* What objects does this ray intersect? */
     for (object = globalFrame.Objects; object != nullptr;
-         object = object->Next_Object) {
+        object = object->Next_Object) {
         cooperate();
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
             nullptr) {

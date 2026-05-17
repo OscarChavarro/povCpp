@@ -45,7 +45,7 @@ ViewPointParser::parseViewpoint(Viewpoint *givenVp)
                     if (constants[(int)constantId].Constant_Type ==
                         VIEW_POINT_CONSTANT) {
                         *givenVp = *((Viewpoint *)constants[(int)constantId]
-                                         .Constant_Data);
+                                .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();
                     }

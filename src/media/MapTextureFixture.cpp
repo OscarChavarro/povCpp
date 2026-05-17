@@ -116,8 +116,8 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
         materialNumber %= texture->Number_Of_Materials;
     }
     for (numtex = 0, tempTex = texture->Next_Material;
-         tempTex->Next_Material != nullptr && numtex < materialNumber;
-         tempTex = tempTex->Next_Material, numtex++) {
+        tempTex->Next_Material != nullptr && numtex < materialNumber;
+        tempTex = tempTex->Next_Material, numtex++) {
         ; /* do nothing */
     }
 
