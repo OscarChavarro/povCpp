@@ -9,9 +9,9 @@
  *****************************************************************************/
 
 #include "common/Color.h"
-#include "common/Frame.h"
-#include "common/Matrices.h"
-#include "common/Vector.h"
+#include "common/FrameConfig.h"
+#include "common/Transformation.h"
+#include "common/Vector3D.h"
 #include "media/RGBAPixel.h"
 #include "media/RGBAImage.h"
 #include "media/TextureUtils.h"

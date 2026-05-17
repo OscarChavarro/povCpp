@@ -10,7 +10,7 @@
 
 #include "geom/PolynomialShape.h"
 #include "io/Parse.h"
-#include "geom/Objects.h"
+#include "geom/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include "common/VectorOps.h"
 /* Basic form of a quartic equation

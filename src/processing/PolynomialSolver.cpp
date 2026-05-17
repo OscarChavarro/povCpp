@@ -7,9 +7,9 @@
  *****************************************************************************/
 
 #include "processing/PolynomialSolver.h"
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 #include "common/Polynomial.h"
 
 #undef EPSILON

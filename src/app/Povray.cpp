@@ -5,17 +5,17 @@
  *  parse the parameters on the command line.
  *
  *****************************************************************************/
-#include "app/Unix.h"
+#include "app/UnixPlatform.h"
 #include "app/PovApp.h"
-#include "common/Frame.h" /* common to ALL modules in this program */
+#include "common/FrameConfig.h" /* common to ALL modules in this program */
 #include "app/PovApp.h"
-#include "geom/PrioQ.h"
+#include "geom/PriorityQueue.h"
 #include "io/Parse.h"
 #include "io/FileHandle.h"
-#include "io/Dump.h"
-#include "io/Raw.h"
-#include "io/Targa.h"
-#include "render/Render.h"
+#include "io/DumpFormat.h"
+#include "io/RawFormat.h"
+#include "io/TargaFormat.h"
+#include "render/RenderEngine.h"
 #include "render/RenderFrame.h"
 #include <cctype>
 #include <ctime> /* BP */

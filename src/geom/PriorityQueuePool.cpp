@@ -7,7 +7,7 @@
 
 #include "geom/PriorityQueuePool.h"
 #include "geom/Intersection.h"
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 #include "app/PovApp.h"
 
 //===========================================================================

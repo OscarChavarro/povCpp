@@ -1,16 +1,13 @@
-#ifndef __PRIORITY_QUEUE_H__
-#define __PRIORITY_QUEUE_H__
+#ifndef __PRIOQ_H__
+#define __PRIOQ_H__
 
-#include "geom/PriorityQueueNodeClass.h"
+#include "geom/Intersection.h"
+#include "geom/PriorityQueueNode.h"
+#include "geom/PriorityQueuePool.h"
 
-class PriorityQueue {
-  private:
-    PriorityQueueNode *head;
+class PriorityQueue;
 
-  public:
-    PriorityQueue();
-
-    friend class PriorityQueueNode;
-};
+extern PriorityQueue *GLOBAL_priorityQueue;
+extern PriorityQueueNode *GLOBAL_priorityQueuesHead;
 
 #endif

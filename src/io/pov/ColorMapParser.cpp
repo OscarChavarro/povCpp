@@ -3,7 +3,7 @@
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 
 extern TokenStruct globalToken;
 extern RGBAColorPaletteSpan *constructionMap;

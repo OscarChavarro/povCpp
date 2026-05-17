@@ -1,7 +1,7 @@
 #ifndef __METHODS_H__
 #define __METHODS_H__
 
-#include "common/Matrices.h"
+#include "common/Transformation.h"
 #include "common/Ray.h"
 
 class PriorityQueueNode;

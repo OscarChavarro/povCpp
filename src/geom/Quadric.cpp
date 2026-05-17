@@ -1,0 +1,314 @@
+/****************************************************************************
+ *                     quadrics.c
+ *
+ *  This module implements the code for the quadric shape primitive.
+ *
+ *****************************************************************************/
+
+#include "geom/Quadric.h"
+#include "io/Parse.h"
+#include "geom/Composite.h"
+#include "common/VectorOps.h"
+Methods Quadric_Methods = {Composite::objectIntersect, Quadric::allQuadricIntersections,
+    Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
+    Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
+
+extern Ray *vpRay;
+extern long rayQuadricTests, rayQuadricTestsSucceeded;
+int
+Quadric::allQuadricIntersections(
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+{
+    Quadric *shape = (Quadric *)object;
+    double depth1, depth2;
+    Vector3D intersectionPoint;
+    Intersection localElement;
+    register int intersectionFound;
+
+    intersectionFound = FALSE;
+    if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
+        localElement.Depth = depth1;
+        localElement.Object = shape->Parent_Object;
+        VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
+        VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        localElement.Point = intersectionPoint;
+        localElement.Shape = (Geometry *)shape;
+        depthQueue->add(&localElement);
+        intersectionFound = TRUE;
+
+        if (depth2 != depth1) {
+            localElement.Depth = depth2;
+            localElement.Object = shape->Parent_Object;
+            VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
+            VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            localElement.Point = intersectionPoint;
+            localElement.Shape = (Geometry *)shape;
+            depthQueue->add(&localElement);
+            intersectionFound = TRUE;
+        }
+    }
+    return (intersectionFound);
+}
+
+int
+Quadric::intersectQuadric(Ray *ray, Quadric *shape, double *depth1, double *depth2)
+{
+    register double squareTerm;
+    register double linearTerm;
+    register double constantTerm;
+    register double tempTerm;
+    register double determinant;
+    register double determinant2;
+    register double a2;
+    register double bMinus;
+
+    rayQuadricTests++;
+    if (!ray->Quadric_Constants_Cached) {
+        ray->makeRay();
+    }
+
+    if (shape->Non_Zero_Square_Term) {
+        VectorOps::vDot(squareTerm, shape->Object_2_Terms, ray->Direction_2);
+        VectorOps::vDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Dir_Dir);
+        squareTerm += tempTerm;
+    } else {
+        squareTerm = 0.0;
+    }
+
+    VectorOps::vDot(linearTerm, shape->Object_2_Terms, ray->Initial_Direction);
+    linearTerm *= 2.0;
+    VectorOps::vDot(tempTerm, shape->Object_Terms, ray->Direction);
+    linearTerm += tempTerm;
+    VectorOps::vDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Init_Dir);
+    linearTerm += tempTerm;
+
+    if (ray == vpRay) {
+        if (!shape->Constant_Cached) {
+            VectorOps::vDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
+            VectorOps::vDot(tempTerm, shape->Object_Terms, ray->Initial);
+            constantTerm += tempTerm + shape->Object_Constant;
+            shape->Object_VP_Constant = constantTerm;
+            shape->Constant_Cached = TRUE;
+        } else {
+            constantTerm = shape->Object_VP_Constant;
+        }
+    } else {
+        VectorOps::vDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
+        VectorOps::vDot(tempTerm, shape->Object_Terms, ray->Initial);
+        constantTerm += tempTerm + shape->Object_Constant;
+    }
+
+    VectorOps::vDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Initial_Initial);
+    constantTerm += tempTerm;
+
+    if (squareTerm != 0.0) {
+        /* The equation is quadratic - find its roots */
+
+        determinant2 =
+            linearTerm * linearTerm - 4.0 * squareTerm * constantTerm;
+
+        if (determinant2 < 0.0) {
+            return (FALSE);
+        }
+
+        determinant = sqrt(determinant2);
+        a2 = squareTerm * 2.0;
+        bMinus = linearTerm * -1.0;
+
+        *depth1 = (bMinus + determinant) / a2;
+        *depth2 = (bMinus - determinant) / a2;
+    } else {
+        /* There are no quadratic terms.  Solve the linear equation instead. */
+        if (linearTerm == 0.0) {
+            return (FALSE);
+        }
+
+        *depth1 = constantTerm * -1.0 / linearTerm;
+        *depth2 = *depth1;
+    }
+
+    if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
+        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+            return (FALSE);
+        }
+        *depth1 = *depth2;
+
+    } else if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+        *depth2 = *depth1;
+    }
+
+    rayQuadricTestsSucceeded++;
+    return (TRUE);
+}
+
+int
+Quadric::insideQuadric(Vector3D *testPoint, SimpleBody *object)
+{
+    Quadric *shape = (Quadric *)object;
+    Vector3D newPoint;
+    register double result;
+    register double linearTerm;
+    register double squareTerm;
+
+    VectorOps::vDot(linearTerm, *testPoint, shape->Object_Terms);
+    result = linearTerm + shape->Object_Constant;
+    VectorOps::vSquareTerms(newPoint, *testPoint);
+    VectorOps::vDot(squareTerm, newPoint, shape->Object_2_Terms);
+    result += squareTerm;
+    result += shape->Object_Mixed_Terms.x * (testPoint->x) * (testPoint->y) +
+              shape->Object_Mixed_Terms.y * (testPoint->x) * (testPoint->z) +
+              shape->Object_Mixed_Terms.z * (testPoint->y) * (testPoint->z);
+
+    if (result < Small_Tolerance) {
+        return (TRUE);
+    }
+
+    return (FALSE);
+}
+
+void
+Quadric::quadricNormal(
+    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+{
+    Quadric *intersectionShape = (Quadric *)object;
+    Vector3D derivativeLinear;
+    double len;
+
+    VectorOps::vScale(derivativeLinear, intersectionShape->Object_2_Terms, 2.0);
+    VectorOps::vEvaluate(*result, derivativeLinear, *intersectionPoint);
+    VectorOps::vAdd(*result, *result, intersectionShape->Object_Terms);
+
+    result->x +=
+        intersectionShape->Object_Mixed_Terms.x * intersectionPoint->y +
+        intersectionShape->Object_Mixed_Terms.y * intersectionPoint->z;
+
+    result->y +=
+        intersectionShape->Object_Mixed_Terms.x * intersectionPoint->x +
+        intersectionShape->Object_Mixed_Terms.z * intersectionPoint->z;
+
+    result->z +=
+        intersectionShape->Object_Mixed_Terms.y * intersectionPoint->x +
+        intersectionShape->Object_Mixed_Terms.z * intersectionPoint->y;
+
+    len = result->x * result->x + result->y * result->y + result->z * result->z;
+    len = sqrt(len);
+    if (len == 0.0) {
+        /* The normal is not defined at this point of the surface.  Set it
+            to any arbitrary direction. */
+        result->x = 1.0;
+        result->y = 0.0;
+        result->z = 0.0;
+    } else {
+        result->x /= len; /* normalize the normal */
+        result->y /= len;
+        result->z /= len;
+    }
+}
+
+void *
+Quadric::copyQuadric(SimpleBody *object)
+{
+    Quadric *newShape;
+
+    newShape = SceneFactory::getQuadricShape();
+    *newShape = *((Quadric *)object);
+    newShape->Next_Object = nullptr;
+
+    if (newShape->Shape_Texture != nullptr) {
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
+    }
+
+    return (newShape);
+}
+
+void
+Quadric::quadricToMatrix(Quadric *quadric, MATRIX *matrix)
+{
+    Transformation::MZero(matrix);
+    (*matrix)[0][0] = quadric->Object_2_Terms.x;
+    (*matrix)[1][1] = quadric->Object_2_Terms.y;
+    (*matrix)[2][2] = quadric->Object_2_Terms.z;
+    (*matrix)[0][1] = quadric->Object_Mixed_Terms.x;
+    (*matrix)[0][2] = quadric->Object_Mixed_Terms.y;
+    (*matrix)[0][3] = quadric->Object_Terms.x;
+    (*matrix)[1][2] = quadric->Object_Mixed_Terms.z;
+    (*matrix)[1][3] = quadric->Object_Terms.y;
+    (*matrix)[2][3] = quadric->Object_Terms.z;
+    (*matrix)[3][3] = quadric->Object_Constant;
+}
+
+void
+Quadric::matrixToQuadric(MATRIX *matrix, Quadric *quadric)
+{
+    quadric->Object_2_Terms.x = (*matrix)[0][0];
+    quadric->Object_2_Terms.y = (*matrix)[1][1];
+    quadric->Object_2_Terms.z = (*matrix)[2][2];
+    quadric->Object_Mixed_Terms.x = (*matrix)[0][1] + (*matrix)[1][0];
+    quadric->Object_Mixed_Terms.y = (*matrix)[0][2] + (*matrix)[2][0];
+    quadric->Object_Terms.x = (*matrix)[0][3] + (*matrix)[3][0];
+    quadric->Object_Mixed_Terms.z = (*matrix)[1][2] + (*matrix)[2][1];
+    quadric->Object_Terms.y = (*matrix)[1][3] + (*matrix)[3][1];
+    quadric->Object_Terms.z = (*matrix)[2][3] + (*matrix)[3][2];
+    quadric->Object_Constant = (*matrix)[3][3];
+}
+
+void
+Quadric::transformQuadric(Quadric *shape, Transformation *transformation)
+{
+    MATRIX quadricMatrix;
+    MATRIX transformTransposed;
+
+    Quadric::quadricToMatrix(shape, (MATRIX *)&quadricMatrix[0][0]);
+    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0],
+        (MATRIX *)&(transformation->inverse[0][0]),
+        (MATRIX *)&quadricMatrix[0][0]);
+    Transformation::MTranspose((MATRIX *)&transformTransposed[0][0],
+        (MATRIX *)&(transformation->inverse[0][0]));
+    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0], (MATRIX *)&quadricMatrix[0][0],
+        (MATRIX *)&transformTransposed[0][0]);
+    Quadric::matrixToQuadric((MATRIX *)&quadricMatrix[0][0], shape);
+}
+
+void
+Quadric::translateQuadric(SimpleBody *object, Vector3D *vector)
+{
+    Transformation transformation;
+
+    Transformation::getTranslationTransformation(&transformation, vector);
+    Quadric::transformQuadric((Quadric *)object, &transformation);
+
+    TextureUtils::translateTexture(&((Quadric *)object)->Shape_Texture, vector);
+}
+
+void
+Quadric::rotateQuadric(SimpleBody *object, Vector3D *vector)
+{
+    Transformation transformation;
+
+    Transformation::getRotationTransformation(&transformation, vector);
+    Quadric::transformQuadric((Quadric *)object, &transformation);
+
+    TextureUtils::rotateTexture(&((Quadric *)object)->Shape_Texture, vector);
+}
+
+void
+Quadric::scaleQuadric(SimpleBody *object, Vector3D *vector)
+{
+    Transformation transformation;
+
+    Transformation::getScalingTransformation(&transformation, vector);
+    Quadric::transformQuadric((Quadric *)object, &transformation);
+
+    TextureUtils::scaleTexture(&((Quadric *)object)->Shape_Texture, vector);
+}
+
+void
+Quadric::invertQuadric(SimpleBody *object)
+{
+    Quadric *shape = (Quadric *)object;
+
+    VectorOps::vScale(shape->Object_2_Terms, shape->Object_2_Terms, -1.0);
+    VectorOps::vScale(shape->Object_Mixed_Terms, shape->Object_Mixed_Terms, -1.0);
+    VectorOps::vScale(shape->Object_Terms, shape->Object_Terms, -1.0);
+    shape->Object_Constant *= -1.0;
+}

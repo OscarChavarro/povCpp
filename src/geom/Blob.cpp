@@ -10,7 +10,7 @@
 
 #include "geom/Blob.h"
 #include "io/Parse.h"
-#include "geom/Objects.h"
+#include "geom/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include "common/VectorOps.h"
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,

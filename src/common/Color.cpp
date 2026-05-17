@@ -5,9 +5,9 @@
  *
  *****************************************************************************/
 
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 
 inline double
 Color::Color::fabsInline(double x)

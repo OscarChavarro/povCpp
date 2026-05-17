@@ -2,7 +2,7 @@
 #define __TEXTURE_UTILS_H__
 
 #include "common/Color.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 
 class RGBAColorPalette;
 class Texture;

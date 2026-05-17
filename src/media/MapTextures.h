@@ -1,8 +1,8 @@
 #ifndef __TXTMAP_H__
 #define __TXTMAP_H__
 
-#include "common/Frame.h"
-#include "common/Vector.h"
+#include "common/FrameConfig.h"
+#include "common/Vector3D.h"
 #include "media/Texture.h"
 
 class MapTextures {

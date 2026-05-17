@@ -1,7 +1,7 @@
 #ifndef __POV_APP_H__
 #define __POV_APP_H__
 
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 
 class PovApp {
   public:

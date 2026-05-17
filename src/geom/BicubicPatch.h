@@ -1,10 +1,10 @@
 #ifndef __BICUBIC_PATCH_H__
 #define __BICUBIC_PATCH_H__
 
-#include "common/Frame.h"
-#include "common/Vector.h"
+#include "common/FrameConfig.h"
+#include "common/Vector3D.h"
 #include "geom/BezierNode.h"
-#include "geom/Geometry.h"
+#include "geom/GeometryOps.h"
 
 static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 class BezierVertices;
