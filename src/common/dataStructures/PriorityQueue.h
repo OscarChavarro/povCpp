@@ -1,9 +1,9 @@
 #ifndef __PRIOQ_H__
 #define __PRIOQ_H__
 
-#include "environment/geometry/Intersection.h"
 #include "common/dataStructures/PriorityQueueNode.h"
 #include "common/dataStructures/PriorityQueuePool.h"
+#include "environment/geometry/Intersection.h"
 
 class PriorityQueue;
 

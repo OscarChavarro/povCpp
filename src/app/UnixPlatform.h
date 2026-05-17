@@ -7,8 +7,8 @@ class UnixPlatform {
     static void displayFinished();
     static void displayInit(int width, int height);
     static void displayClose();
-    static void displayPlot(
-        int x, int y, unsigned char red, unsigned char green, unsigned char blue);
+    static void displayPlot(int x, int y, unsigned char red,
+        unsigned char green, unsigned char blue);
 };
 
 #endif

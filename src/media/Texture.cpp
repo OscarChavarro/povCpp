@@ -15,10 +15,9 @@
 */
 
 #include "media/Texture.h"
+#include "app/PovApp.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
-#include "app/PovApp.h"
-#include "common/linealAlgebra/Vector3Dd.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/Parse.h"
 
@@ -60,11 +59,12 @@ unsigned short crctab[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
 
 void
-TextureUtils::computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value)
+TextureUtils::computeColour(
+    RGBAColor *colour, RGBAColorPalette *colourMap, double value)
 {
-    register int i;
+    int i;
     RGBAColorPaletteSpan *ent;
-    register double fraction;
+    double fraction;
 
     if (value > 1.0) {
         value = 1.0;
@@ -104,7 +104,7 @@ TextureUtils::computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, doub
 void
 TextureUtils::initializeNoise()
 {
-    register int i = 0;
+    int i = 0;
     Vector3Dd point;
 
     TextureUtils::InitRTable();
@@ -188,9 +188,9 @@ TextureUtils::R(Vector3Dd *v)
  */
 
 int
-TextureUtils::Crc16(register char *buf, register int count)
+TextureUtils::Crc16(char *buf, int count)
 {
-    register unsigned short crc = 0;
+    unsigned short crc = 0;
 
     while (count--) {
         crc = (crc >> 8) ^ crctab[(unsigned char)(crc ^ *buf++)];
@@ -204,8 +204,9 @@ Robert's Skinner's Perlin-style "Noise" function - modified by AAC
 to ensure uniformly distributed clamped values between 0 and 1.0...
 */
 void
-setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz, long *jx,
-    long *jy, long *jz, double *sx, double *sy, double *sz, double *tx, double *ty, double *tz)
+setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
+    long *jx, long *jy, long *jz, double *sx, double *sy, double *sz,
+    double *tx, double *ty, double *tz)
 {
     /* ensures the values are positive. */
     *x -= MINX;
@@ -374,9 +375,9 @@ double
 TextureUtils::Turbulence(double x, double y, double z, int octaves)
 {
     int i; /* added -dmf */
-    register double t = 0.0;
-    register double scale;
-    register double value;
+    double t = 0.0;
+    double scale;
+    double value;
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
         value = TextureUtils::Noise(x / scale, y / scale, z / scale);
@@ -386,10 +387,11 @@ TextureUtils::Turbulence(double x, double y, double z, int octaves)
 }
 
 void
-TextureUtils::DTurbulence(Vector3Dd *result, double x, double y, double z, int octaves)
+TextureUtils::DTurbulence(
+    Vector3Dd *result, double x, double y, double z, int octaves)
 {
     int i; /* added -dmf */
-    register double scale;
+    double scale;
     Vector3Dd value;
 
     result->x = 0.0;
@@ -409,7 +411,7 @@ TextureUtils::DTurbulence(Vector3Dd *result, double x, double y, double z, int o
 double
 TextureUtils::cycloidal(double value)
 {
-    register int indx;
+    int indx;
 
     if (value >= 0.0) {
         indx = (int)((value - floor(value)) * SINTABSIZE);
@@ -423,8 +425,8 @@ TextureUtils::cycloidal(double value)
 double
 TextureUtils::triangleWave(double value)
 {
-    register double offset;
-    register double temp1;
+    double offset;
+    double temp1;
 
     if (value >= 0.0) {
         offset = value - floor(value);
@@ -456,14 +458,18 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = Transformation::getTransformation();
+                texture->Texture_Transformation =
+                    Transformation::getTransformation();
             }
-            Transformation::getTranslationTransformation(&transformation, vector);
+            Transformation::getTranslationTransformation(
+                &transformation, vector);
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                TextureUtils::translateTexture((Texture **)&texture->Colour1, vector);
-                TextureUtils::translateTexture((Texture **)&texture->Colour2, vector);
+                TextureUtils::translateTexture(
+                    (Texture **)&texture->Colour1, vector);
+                TextureUtils::translateTexture(
+                    (Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
@@ -536,14 +542,17 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = Transformation::getTransformation();
+                texture->Texture_Transformation =
+                    Transformation::getTransformation();
             }
             Transformation::getRotationTransformation(&transformation, vector);
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                TextureUtils::rotateTexture((Texture **)&texture->Colour1, vector);
-                TextureUtils::rotateTexture((Texture **)&texture->Colour2, vector);
+                TextureUtils::rotateTexture(
+                    (Texture **)&texture->Colour1, vector);
+                TextureUtils::rotateTexture(
+                    (Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
@@ -569,19 +578,21 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = Transformation::getTransformation();
+                texture->Texture_Transformation =
+                    Transformation::getTransformation();
             }
             Transformation::getScalingTransformation(&transformation, vector);
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
 
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                TextureUtils::scaleTexture((Texture **)&texture->Colour1, vector);
-                TextureUtils::scaleTexture((Texture **)&texture->Colour2, vector);
+                TextureUtils::scaleTexture(
+                    (Texture **)&texture->Colour1, vector);
+                TextureUtils::scaleTexture(
+                    (Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
         texture = texture->Next_Texture;
     }
 }
-

@@ -5,6 +5,7 @@ set -f
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DB_VISIBLE="$ROOT_DIR/build/compile_commands.json"
 DB_FALLBACK="$ROOT_DIR/compile_commands.json"
+DB_LOCAL="$ROOT_DIR/compile_commands.rel.json"
 MODO="check"
 CHECKS_CHECK_DEFAULT="clang-analyzer-*"
 CHECKS_FIX_DEFAULT="-*,modernize-loop-convert,modernize-use-nullptr,modernize-use-override,modernize-use-bool-literals,readability-braces-around-statements,readability-container-size-empty,readability-else-after-return,readability-redundant-control-flow"
@@ -71,6 +72,11 @@ if ! command -v clang-format >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is not installed" >&2
+  exit 1
+fi
+
 if [[ ! -f "$DB_VISIBLE" ]]; then
   if [[ -f "$DB_FALLBACK" ]]; then
     DB_VISIBLE="$DB_FALLBACK"
@@ -86,6 +92,9 @@ if ! grep -q '/src/.*\.cpp"' "$DB_VISIBLE"; then
   echo "Run ./scripts/compile.sh to regenerate it." >&2
   exit 1
 fi
+
+jq 'map(.directory = "build")' "$DB_VISIBLE" > "$DB_LOCAL"
+DB_VISIBLE="$DB_LOCAL"
 
 cd "$ROOT_DIR"
 

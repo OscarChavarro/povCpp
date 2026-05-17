@@ -1,8 +1,8 @@
 #ifndef __QUADRIC_H__
 #define __QUADRIC_H__
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -16,8 +16,8 @@ class Quadric : public Geometry {
     int Constant_Cached;
     int Non_Zero_Square_Term;
 
-    static int allQuadricIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int allQuadricIntersections(SimpleBody *object, RayWithSegments *ray,
+        PriorityQueueNode *depthQueue);
     static int intersectQuadric(
         RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2);
     static int insideQuadric(Vector3Dd *point, SimpleBody *object);
@@ -32,7 +32,8 @@ class Quadric : public Geometry {
   private:
     static void quadricToMatrix(Quadric *quadric, MATRIX *matrix);
     static void matrixToQuadric(MATRIX *matrix, Quadric *quadric);
-    static void transformQuadric(Quadric *shape, Transformation *transformation);
+    static void transformQuadric(
+        Quadric *shape, Transformation *transformation);
 };
 
 extern Methods Quadric_Methods;

@@ -51,8 +51,8 @@ DumpFormat::defaultDumpFileName()
 }
 
 int
-DumpFormat::openDumpFile(FileHandle *handle, char *name, int *width, int *height,
-    int bufferSize, int mode)
+DumpFormat::openDumpFile(FileHandle *handle, char *name, int *width,
+    int *height, int bufferSize, int mode)
 {
     int data1;
     int data2;
@@ -138,9 +138,10 @@ DumpFormat::openDumpFile(FileHandle *handle, char *name, int *width, int *height
 }
 
 void
-DumpFormat::writeDumpLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
+DumpFormat::writeDumpLine(
+    FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
-    register int x;
+    int x;
 
     putc(lineNumber % 256, handle->file);
     putc(lineNumber / 256, handle->file);
@@ -165,7 +166,8 @@ DumpFormat::writeDumpLine(FileHandle *handle, RGBAColor *lineData, int lineNumbe
 }
 
 int
-DumpFormat::readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+DumpFormat::readDumpLine(
+    FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -211,7 +213,8 @@ DumpFormat::readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumbe
 }
 
 int
-DumpFormat::readDumpIntLine(FileHandle *handle, ImageLine *lineData, int *lineNumber)
+DumpFormat::readDumpIntLine(
+    FileHandle *handle, ImageLine *lineData, int *lineNumber)
 {
     int data;
     int i;

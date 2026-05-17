@@ -6,9 +6,9 @@
  ****************************************************************************/
 
 #include "common/dataStructures/PriorityQueuePool.h"
-#include "environment/geometry/Intersection.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
+#include "environment/geometry/Intersection.h"
 
 //===========================================================================
 

@@ -9,14 +9,13 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Blob.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
-#include "processing/PolynomialSolver.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
-    Blob::blobNormal, Blob::copyBlob, Blob::translateBlob, Blob::rotateBlob, Blob::scaleBlob,
-    Blob::invertBlob};
-
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
+#include "processing/PolynomialSolver.h"
+Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections,
+    Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
+    Blob::rotateBlob, Blob::scaleBlob, Blob::invertBlob};
 
 extern RayWithSegments *vpRay;
 extern long rayBlobTests, rayBlobTestsSucceeded;
@@ -31,8 +30,8 @@ static constexpr double INSIDE_TOLERANCE = 1.0e-6;
         coeff * (1 - (r/rad)^2)^2
     This varies in strength from coeff at r = 0, to 0 at r = rad. */
 void
-MakeBlob(
-    SimpleBody *obj, double threshold, BlobList *bloblist, int npoints, int sflag)
+MakeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
+    int sflag)
 {
     Blob *blob = (Blob *)obj;
     int i;
@@ -89,7 +88,8 @@ MakeBlob(
     a very complex blob (with many components along the current ray)
     to warrant the overhead of using a faster sort technique. */
 int
-Blob::determineInfluences(Vector3Dd *p, Vector3Dd *d, Blob *blob, double mindist)
+Blob::determineInfluences(
+    Vector3Dd *p, Vector3Dd *d, Blob *blob, double mindist)
 {
     int i;
     int j;
@@ -319,7 +319,8 @@ Blob::allBlobIntersections(
 
     /* Transform the ray into the blob space */
     if (blob->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&p, &ray->position, blob->Transform);
+        Transformation::MInverseTransformVector(
+            &p, &ray->position, blob->Transform);
         Transformation::MInvTransVector(&d, &ray->direction, blob->Transform);
     } else {
         p.x = ray->position.x;
@@ -401,9 +402,11 @@ Blob::allBlobIntersections(
             /* Sturm sequences */
             if (fabs(coeffs[0]) < COEFF_LIMIT) {
                 if (fabs(coeffs[1]) < COEFF_LIMIT) {
-                    rootCount = PolynomialSolver::solveQuadratic(&coeffs[2], &roots[0]);
+                    rootCount =
+                        PolynomialSolver::solveQuadratic(&coeffs[2], &roots[0]);
                 } else {
-                    rootCount = PolynomialSolver::polysolve(3, &coeffs[1], &roots[0]);
+                    rootCount =
+                        PolynomialSolver::polysolve(3, &coeffs[1], &roots[0]);
                 }
             } else {
                 rootCount = PolynomialSolver::polysolve(4, coeffs, &roots[0]);
@@ -423,8 +426,8 @@ Blob::allBlobIntersections(
                        can get fooled by numerical inaccuracies */
                     /* Transform the point into world space */
                     if (blob->Transform != nullptr) {
-                        Transformation::MTransformVector(&intersectionPoint, &intersectionPoint,
-                            blob->Transform);
+                        Transformation::MTransformVector(&intersectionPoint,
+                            &intersectionPoint, blob->Transform);
                     }
                     VectorOps::vSub(dv, intersectionPoint, ray->position);
                     len = dv.length();
@@ -454,7 +457,8 @@ Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
 
     /* Transform the point into blob space */
     if (blob->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&newPoint, testPoint, blob->Transform);
+        Transformation::MInverseTransformVector(
+            &newPoint, testPoint, blob->Transform);
     } else {
         newPoint = *testPoint;
     }
@@ -467,7 +471,8 @@ Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-Blob::blobNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Blob::blobNormal(
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     Vector3Dd newPoint;
     Vector3Dd v;
@@ -478,7 +483,8 @@ Blob::blobNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionP
 
     /* Transform the point into the blobs space */
     if (blob->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&newPoint, intersectionPoint, blob->Transform);
+        Transformation::MInverseTransformVector(
+            &newPoint, intersectionPoint, blob->Transform);
     } else {
         newPoint.x = intersectionPoint->x;
         newPoint.y = intersectionPoint->y;

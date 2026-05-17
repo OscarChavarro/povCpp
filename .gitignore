@@ -1,5 +1,6 @@
 # Build outputs
 build/
+compile_commands.rel.json
 
 # Render outputs
 output/

@@ -3,8 +3,8 @@
 
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/light/Light.h"
 #include "environment/camera/Viewpoint.h"
+#include "environment/light/Light.h"
 
 class RayWithSegments;
 
@@ -19,7 +19,8 @@ class RenderFrame {
     RGBAColor Fog_Colour;
 
   private:
-    static void createRay(RayWithSegments *ray, int width, int height, double x, double y);
+    static void createRay(
+        RayWithSegments *ray, int width, int height, double x, double y);
     static void checkStats(int y);
     static void doAntiAliasing(int x, int y, RGBAColor *color);
     static void outputLine(int y);

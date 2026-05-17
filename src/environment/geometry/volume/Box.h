@@ -1,8 +1,8 @@
 #ifndef __BOX_H__
 #define __BOX_H__
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -12,9 +12,10 @@ class Box : public Geometry {
     Vector3Dd bounds[2];
     short Inverted;
 
-    static int allBoxIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
-    static int intersectBoxx(RayWithSegments *ray, Box *box, double *depth1, double *depth2);
+    static int allBoxIntersections(SimpleBody *object, RayWithSegments *ray,
+        PriorityQueueNode *depthQueue);
+    static int intersectBoxx(
+        RayWithSegments *ray, Box *box, double *depth1, double *depth2);
     static int insideBox(Vector3Dd *point, SimpleBody *object);
     static void boxNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

@@ -16,9 +16,10 @@ class PolynomialSolver {
   private:
     static int modp(Polynomial *u, Polynomial *v, Polynomial *r);
     static int difficultCoeffs(int n, double *x);
-    static int regulaFalsa(int order, double *coef, double a, double b, double *val);
-    static void sbisect(int np, Polynomial *sseq, double minValue, double maxValue,
-        int atmin, int atmax, double *roots);
+    static int regulaFalsa(
+        int order, double *coef, double a, double b, double *val);
+    static void sbisect(int np, Polynomial *sseq, double minValue,
+        double maxValue, int atmin, int atmax, double *roots);
     static int numchanges(int np, Polynomial *sseq, double a);
     static double polyeval(double x, int n, double *coeffs);
     static int buildsturm(int ord, Polynomial *sseq);

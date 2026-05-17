@@ -6,13 +6,14 @@
  *****************************************************************************/
 
 #include "environment/geometry/surface/InfinitePlane.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-Methods Plane_Methods = {Composite::objectIntersect, InfinitePlane::allPlaneIntersections,
-    InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
+Methods Plane_Methods = {Composite::objectIntersect,
+    InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
+    InfinitePlane::planeNormal, InfinitePlane::copyPlane,
+    InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
-
 
 extern RayWithSegments *vpRay;
 extern long rayPlaneTests, rayPlaneTestsSucceeded;
@@ -42,14 +43,16 @@ InfinitePlane::allPlaneIntersections(
 }
 
 int
-InfinitePlane::intersectPlane(RayWithSegments *ray, InfinitePlane *plane, double *depth)
+InfinitePlane::intersectPlane(
+    RayWithSegments *ray, InfinitePlane *plane, double *depth)
 {
     double normalDotOrigin, normalDotDirection;
 
     rayPlaneTests++;
     if (ray == vpRay) {
         if (!plane->VPCached) {
-            plane->VPNormDotOrigin = plane->Normal_Vector.dotProduct(ray->position);
+            plane->VPNormDotOrigin =
+                plane->Normal_Vector.dotProduct(ray->position);
             plane->VPNormDotOrigin += plane->Distance;
             plane->VPNormDotOrigin *= -1.0;
             plane->VPCached = TRUE;
@@ -97,7 +100,8 @@ InfinitePlane::insidePlane(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-InfinitePlane::planeNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+InfinitePlane::planeNormal(
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
@@ -114,7 +118,8 @@ InfinitePlane::copyPlane(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture =
+            TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -141,7 +146,8 @@ InfinitePlane::rotatePlane(SimpleBody *object, Vector3Dd *vector)
     Transformation::MTransformVector(&((InfinitePlane *)object)->Normal_Vector,
         &((InfinitePlane *)object)->Normal_Vector, &transformation);
 
-    TextureUtils::rotateTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(
+        &((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
 void
@@ -158,7 +164,8 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
     plane->Normal_Vector.scale(1.0 / length);
     plane->Distance /= length;
 
-    TextureUtils::scaleTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(
+        &((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
 void

@@ -2,8 +2,8 @@
 #define __GEOMETRY_OPERATIONS_H__
 
 #include "common/Transformation.h"
-#include "environment/geometry/elements/RayWithSegments.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 
 /* Object/shape types */
 static constexpr int SPHERE_TYPE = 0;
@@ -31,56 +31,65 @@ class Methods;
 class Geometry;
 class SimpleBody;
 
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/Methods.h"
 #include "environment/scene/SimpleBody.h"
-#include "environment/geometry/Geometry.h"
 
 #include "common/dataStructures/PriorityQueue.h"
 #include "media/Texture.h"
 
 class GeometryOperations {
   public:
-    static inline int allIntersections(SimpleBody *x, RayWithSegments *y, PriorityQueueNode *z)
+    static inline int
+    allIntersections(SimpleBody *x, RayWithSegments *y, PriorityQueueNode *z)
     {
         return ((*((x)->methods->All_Intersections_Method))(x, y, z));
     }
 
-    static inline Intersection *intersect(SimpleBody *x, RayWithSegments *y)
+    static inline Intersection *
+    intersect(SimpleBody *x, RayWithSegments *y)
     {
         return (Intersection *)((*((x)->methods->Intersection_Method))(x, y));
     }
 
-    static inline int inside(Vector3Dd *x, SimpleBody *y)
+    static inline int
+    inside(Vector3Dd *x, SimpleBody *y)
     {
         return ((*((y)->methods->Inside_Method))(x, y));
     }
 
-    static inline void normal(Vector3Dd *x, SimpleBody *y, Vector3Dd *z)
+    static inline void
+    normal(Vector3Dd *x, SimpleBody *y, Vector3Dd *z)
     {
         ((*((y)->methods->Normal_Method))(x, y, z));
     }
 
-    static inline void *copy(SimpleBody *x)
+    static inline void *
+    copy(SimpleBody *x)
     {
         return ((*((x)->methods->Copy_Method))(x));
     }
 
-    static inline void translate(SimpleBody *x, Vector3Dd *y)
+    static inline void
+    translate(SimpleBody *x, Vector3Dd *y)
     {
         ((*((x)->methods->Translate_Method))(x, y));
     }
 
-    static inline void scale(SimpleBody *x, Vector3Dd *y)
+    static inline void
+    scale(SimpleBody *x, Vector3Dd *y)
     {
         ((*((x)->methods->Scale_Method))(x, y));
     }
 
-    static inline void rotate(SimpleBody *x, Vector3Dd *y)
+    static inline void
+    rotate(SimpleBody *x, Vector3Dd *y)
     {
         ((*((x)->methods->Rotate_Method))(x, y));
     }
 
-    static inline void invert(SimpleBody *x)
+    static inline void
+    invert(SimpleBody *x)
     {
         ((*((x)->methods->Invert_Method))(x));
     }

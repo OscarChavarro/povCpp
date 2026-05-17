@@ -7,10 +7,10 @@
  *****************************************************************************/
 
 #include "processing/PolynomialSolver.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/FrameConfig.h"
 #include "common/Polynomial.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
@@ -58,11 +58,9 @@ PolynomialSolver::PolynomialSolver::maxInline(double x, double y)
 {
     return (x < y) ? y : x;
 }
-static constexpr double TWO_PI = 6.283185207179586476925286766560;
 static constexpr double TWO_PI_3 = 2.0943951023931954923084;
 static constexpr double TWO_PI_43 = 4.1887902047863909846168;
 static constexpr int MAX_ITERATIONS = 50;
-static constexpr int MAXPOW = 32;
 
 extern int shadowTestFlag;
 
@@ -214,8 +212,8 @@ Note: This routine has one severe bug: When the interval containing the
 
  */
 void
-PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue, double maxValue, int atmin,
-    int atmax, double *roots)
+PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue,
+    double maxValue, int atmin, int atmax, double *roots)
 {
     double mid;
     int n1;
@@ -226,7 +224,8 @@ PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue, double maxV
 
     if ((nroot = atmin - atmax) == 1) {
         /* first try using regula-falsa to find the root.  */
-        if (PolynomialSolver::regulaFalsa(sseq->ord, sseq->coef, minValue, maxValue, roots)) {
+        if (PolynomialSolver::regulaFalsa(
+                sseq->ord, sseq->coef, minValue, maxValue, roots)) {
             return;
         } /* That failed, so now find it by bisection */
         for (its = 0; its < MAX_ITERATIONS; its++) {
@@ -259,8 +258,10 @@ PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue, double maxV
         n1 = atmin - atmid;
         n2 = atmid - atmax;
         if (n1 != 0 && n2 != 0) {
-            PolynomialSolver::sbisect(np, sseq, minValue, mid, atmin, atmid, roots);
-            PolynomialSolver::sbisect(np, sseq, mid, maxValue, atmid, atmax, &roots[n1]);
+            PolynomialSolver::sbisect(
+                np, sseq, minValue, mid, atmin, atmid, roots);
+            PolynomialSolver::sbisect(
+                np, sseq, mid, maxValue, atmid, atmax, &roots[n1]);
             return;
         }
         if (n1 == 0) {
@@ -279,7 +280,7 @@ PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue, double maxV
 double
 PolynomialSolver::polyeval(double x, int n, double *coeffs)
 {
-    register int i;
+    int i;
     double val;
     val = coeffs[n];
     for (i = n - 1; i >= 0; i--) {
@@ -290,7 +291,8 @@ PolynomialSolver::polyeval(double x, int n, double *coeffs)
 
 /* Close in on a root by using regula-falsa */
 int
-PolynomialSolver::regulaFalsa(int order, double *coef, double a, double b, double *val)
+PolynomialSolver::regulaFalsa(
+    int order, double *coef, double a, double b, double *val)
 {
     int its;
     double fa, fb, x, fx, lfx;
@@ -508,10 +510,8 @@ PolynomialSolver::solveQuartic(double *x, double *results)
                 return PolynomialSolver::solveQuadratic(&x[2], results);
             }
             return PolynomialSolver::solveCubic(&x[1], results);
-
-        } else {
-            return PolynomialSolver::polysolve(4, x, results);
         }
+        return PolynomialSolver::polysolve(4, x, results);
     }
 
     c0 = x[0];
@@ -653,7 +653,8 @@ PolynomialSolver::polysolve(int order, double *coeffs, double *roots)
     np = PolynomialSolver::buildsturm(order, &sseq[0]);
 
     /* Get the total number of visible roots */
-    if ((nroots = PolynomialSolver::visibleRoots(np, sseq, &atmin, &atmax)) == 0) {
+    if ((nroots = PolynomialSolver::visibleRoots(np, sseq, &atmin, &atmax)) ==
+        0) {
         return 0;
     }
 
@@ -673,7 +674,8 @@ PolynomialSolver::polysolve(int order, double *coeffs, double *roots)
     }
 
     /* perform the bisection. */
-    PolynomialSolver::sbisect(np, sseq, minValue, maxValue, atmin, atmax, roots);
+    PolynomialSolver::sbisect(
+        np, sseq, minValue, maxValue, atmin, atmax, roots);
 
     return nroots;
 }

@@ -20,8 +20,8 @@
  *****************************************************************************/
 
 #include "io/RawFormat.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 
 class RAW_FILE_HANDLE {
   public:
@@ -259,7 +259,7 @@ RawFormat::openRawFile(FileHandle *handle, char *name, int *width, int *height,
 void
 RawFormat::writeRawLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
-    register int x;
+    int x;
     RAW_FILE_HANDLE *rawHandle;
     char fileName[256];
 

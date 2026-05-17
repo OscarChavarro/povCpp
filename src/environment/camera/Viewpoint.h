@@ -1,8 +1,8 @@
 #ifndef __VIEWPNT_H__
 #define __VIEWPNT_H__
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 

@@ -6,11 +6,12 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Quadric.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-Methods Quadric_Methods = {Composite::objectIntersect, Quadric::allQuadricIntersections,
-    Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
+Methods Quadric_Methods = {Composite::objectIntersect,
+    Quadric::allQuadricIntersections, Quadric::insideQuadric,
+    Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
 
 extern RayWithSegments *vpRay;
@@ -23,7 +24,7 @@ Quadric::allQuadricIntersections(
     double depth1, depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    register int intersectionFound;
+    int intersectionFound;
 
     intersectionFound = FALSE;
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
@@ -51,16 +52,17 @@ Quadric::allQuadricIntersections(
 }
 
 int
-Quadric::intersectQuadric(RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2)
+Quadric::intersectQuadric(
+    RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2)
 {
-    register double squareTerm;
-    register double linearTerm;
-    register double constantTerm;
-    register double tempTerm;
-    register double determinant;
-    register double determinant2;
-    register double a2;
-    register double bMinus;
+    double squareTerm;
+    double linearTerm;
+    double constantTerm;
+    double tempTerm;
+    double determinant;
+    double determinant2;
+    double a2;
+    double bMinus;
 
     rayQuadricTests++;
     if (!ray->quadricConstantsCached) {
@@ -69,7 +71,8 @@ Quadric::intersectQuadric(RayWithSegments *ray, Quadric *shape, double *depth1, 
 
     if (shape->Non_Zero_Square_Term) {
         squareTerm = shape->Object_2_Terms.dotProduct(ray->direction2);
-        tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->mixedDirectionDirection);
+        tempTerm =
+            shape->Object_Mixed_Terms.dotProduct(ray->mixedDirectionDirection);
         squareTerm += tempTerm;
     } else {
         squareTerm = 0.0;
@@ -79,7 +82,8 @@ Quadric::intersectQuadric(RayWithSegments *ray, Quadric *shape, double *depth1, 
     linearTerm *= 2.0;
     tempTerm = shape->Object_Terms.dotProduct(ray->direction);
     linearTerm += tempTerm;
-    tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->mixedPositionDirection);
+    tempTerm =
+        shape->Object_Mixed_Terms.dotProduct(ray->mixedPositionDirection);
     linearTerm += tempTerm;
 
     if (ray == vpRay) {
@@ -146,9 +150,9 @@ Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
     Vector3Dd newPoint;
-    register double result;
-    register double linearTerm;
-    register double squareTerm;
+    double result;
+    double linearTerm;
+    double squareTerm;
 
     linearTerm = (*testPoint).dotProduct(shape->Object_Terms);
     result = linearTerm + shape->Object_Constant;
@@ -215,7 +219,8 @@ Quadric::copyQuadric(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture =
+            TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -264,8 +269,8 @@ Quadric::transformQuadric(Quadric *shape, Transformation *transformation)
         (MATRIX *)&quadricMatrix[0][0]);
     Transformation::MTranspose((MATRIX *)&transformTransposed[0][0],
         (MATRIX *)&(transformation->inverse[0][0]));
-    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0], (MATRIX *)&quadricMatrix[0][0],
-        (MATRIX *)&transformTransposed[0][0]);
+    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0],
+        (MATRIX *)&quadricMatrix[0][0], (MATRIX *)&transformTransposed[0][0]);
     Quadric::matrixToQuadric((MATRIX *)&quadricMatrix[0][0], shape);
 }
 

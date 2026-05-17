@@ -13,22 +13,22 @@
 */
 
 #include "media/ColorTextureFixture.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3Dd.h"
-#include "media/Texture.h"
 #include "media/MapTextureFixture.h"
+#include "media/Texture.h"
 #include "media/TextureFixture.h"
 
 static constexpr double COORDINATE_LIMIT = 1.0e17;
 
 void
-ColorTextureFixture::colourAt(RGBAColor *colour, Texture *texture, Vector3Dd *intersectionPoint)
+ColorTextureFixture::colourAt(
+    RGBAColor *colour, Texture *texture, Vector3Dd *intersectionPoint)
 {
-    register double x;
-    register double y;
-    register double z;
+    double x;
+    double y;
+    double z;
     Vector3Dd transformedPoint;
 
     if ((intersectionPoint->x > COORDINATE_LIMIT) ||
@@ -40,8 +40,8 @@ ColorTextureFixture::colourAt(RGBAColor *colour, Texture *texture, Vector3Dd *in
         *&transformedPoint = Vector3Dd(0.0, 0.0, 0.0);
     } else {
         if (texture->Texture_Transformation) {
-            Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
-                texture->Texture_Transformation);
+            Transformation::MInverseTransformVector(&transformedPoint,
+                intersectionPoint, texture->Texture_Transformation);
         } else {
             transformedPoint = *intersectionPoint;
         }
@@ -132,14 +132,17 @@ ColorTextureFixture::colourAt(RGBAColor *colour, Texture *texture, Vector3Dd *in
 }
 
 void
-ColorTextureFixture::agate(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::agate(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register double noise;
-    register double hue;
+    double noise;
+    double hue;
     RGBAColor newColour;
 
-    noise =
-        TextureUtils::cycloidal(1.3 * TextureUtils::Turbulence(x, y, z, texture->Octaves) + 1.1 * z) + 1;
+    noise = TextureUtils::cycloidal(
+                1.3 * TextureUtils::Turbulence(x, y, z, texture->Octaves) +
+                1.1 * z) +
+            1;
     noise *= 0.5;
     noise = pow(noise, 0.77);
 
@@ -174,10 +177,11 @@ ColorTextureFixture::agate(double x, double y, double z, Texture *texture, RGBAC
 }
 
 void
-ColorTextureFixture::bozo(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::bozo(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register double noise;
-    register double turb;
+    double noise;
+    double turb;
     RGBAColor newColour;
     Vector3Dd bozoTurbulence;
 
@@ -228,7 +232,8 @@ ColorTextureFixture::bozo(double x, double y, double z, Texture *texture, RGBACo
 }
 
 void
-ColorTextureFixture::brick(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::brick(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     double xr, yr, zr;
 
@@ -256,7 +261,8 @@ ColorTextureFixture::brick(double x, double y, double z, Texture *texture, RGBAC
 }
 
 void
-ColorTextureFixture::checker(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::checker(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
 
@@ -281,7 +287,8 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture, RGB
 }
 
 void
-ColorTextureFixture::checkerTexture(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::checkerTexture(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     Vector3Dd point;
@@ -300,9 +307,11 @@ ColorTextureFixture::checkerTexture(double x, double y, double z, Texture *textu
     *&point = Vector3Dd(x, y, z);
 
     if (brkindx & 1) {
-        ColorTextureFixture::colourAt(colour, ((Texture *)texture->Colour1), &point);
+        ColorTextureFixture::colourAt(
+            colour, ((Texture *)texture->Colour1), &point);
     } else {
-        ColorTextureFixture::colourAt(colour, ((Texture *)texture->Colour2), &point);
+        ColorTextureFixture::colourAt(
+            colour, ((Texture *)texture->Colour2), &point);
     }
 }
 
@@ -315,7 +324,8 @@ ColorTextureFixture::checkerTexture(double x, double y, double z, Texture *textu
     but Dave Wecker's only supports simple Y axis gradients.
 */
 void
-ColorTextureFixture::gradient(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::gradient(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     RGBAColor newColour;
     double value = 0.0, turb;
@@ -362,16 +372,18 @@ ColorTextureFixture::gradient(double x, double y, double z, Texture *texture, RG
     w/ small scaling values.  Should work with colour maps for pink granite...
 */
 void
-ColorTextureFixture::granite(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::granite(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register int i;
-    register double temp;
-    register double noise = 0.0;
-    register double freq = 1.0;
+    int i;
+    double temp;
+    double noise = 0.0;
+    double freq = 1.0;
     RGBAColor newColour;
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
-        temp = 0.5 - TextureUtils::Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
+        temp =
+            0.5 - TextureUtils::Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
         temp = fabsInline(temp);
         noise += temp / freq;
     }
@@ -395,14 +407,16 @@ ColorTextureFixture::granite(double x, double y, double z, Texture *texture, RGB
 }
 
 void
-ColorTextureFixture::marble(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::marble(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register double noise;
-    register double hue;
+    double noise;
+    double hue;
     RGBAColor newColour;
 
     noise = TextureUtils::triangleWave(
-        x + TextureUtils::Turbulence(x, y, z, texture->Octaves) * texture->Turbulence);
+        x + TextureUtils::Turbulence(x, y, z, texture->Octaves) *
+                texture->Turbulence);
 
     if (Options & DEBUGGING) {
         printf("marble %g %g %g noise %g \n", x, y, z, noise);
@@ -435,9 +449,10 @@ ColorTextureFixture::marble(double x, double y, double z, Texture *texture, RGBA
     Works with color maps.
 */
 void
-ColorTextureFixture::spotted(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::spotted(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register double noise;
+    double noise;
     RGBAColor newColour;
 
     noise = TextureUtils::Noise(x, y, z);
@@ -461,10 +476,11 @@ ColorTextureFixture::spotted(double x, double y, double z, Texture *texture, RGB
 }
 
 void
-ColorTextureFixture::wood(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::wood(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register double noise;
-    register double length;
+    double noise;
+    double length;
     Vector3Dd woodTurbulence;
     Vector3Dd point;
     RGBAColor newColour;
@@ -475,8 +491,10 @@ ColorTextureFixture::wood(double x, double y, double z, Texture *texture, RGBACo
         printf("wood %g %g %g", x, y, z);
     }
 
-    point.x = TextureUtils::cycloidal((x + woodTurbulence.x) * texture->Turbulence);
-    point.y = TextureUtils::cycloidal((y + woodTurbulence.y) * texture->Turbulence);
+    point.x =
+        TextureUtils::cycloidal((x + woodTurbulence.x) * texture->Turbulence);
+    point.y =
+        TextureUtils::cycloidal((y + woodTurbulence.y) * texture->Turbulence);
     point.z = 0.0;
 
     point.x += x;
@@ -515,14 +533,15 @@ ColorTextureFixture::wood(double x, double y, double z, Texture *texture, RGBACo
 /* Two new textures by Scott Taylor LEOPARD & ONION */
 /* SWT 7/18/91 */
 void
-ColorTextureFixture::leopard(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::leopard(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
-    register double noise;
-    register double turb;
-    register double temp1;
-    register double temp2;
-    register double temp3;
+    double noise;
+    double turb;
+    double temp1;
+    double temp2;
+    double temp3;
     RGBAColor newColour;
     Vector3Dd leopardTurbulence;
 
@@ -531,7 +550,8 @@ ColorTextureFixture::leopard(double x, double y, double z, Texture *texture, RGB
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        TextureUtils::DTurbulence(&leopardTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::DTurbulence(
+            &leopardTurbulence, x, y, z, texture->Octaves);
         x += leopardTurbulence.x * turb;
         y += leopardTurbulence.y * turb;
         z += leopardTurbulence.z * turb;
@@ -568,11 +588,12 @@ ColorTextureFixture::leopard(double x, double y, double z, Texture *texture, RGB
 
 /* SWT 7/18/91 */
 void
-ColorTextureFixture::onion(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::onion(
+    double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
-    register double noise;
-    register double turb;
+    double noise;
+    double turb;
     RGBAColor newColour;
     Vector3Dd onionTurbulence;
 
@@ -588,12 +609,15 @@ ColorTextureFixture::onion(double x, double y, double z, Texture *texture, RGBAC
     }
 
     /* This ramp goes 0-1,1-0,0-1,1-0...
-    noise = (fmod(std::sqrt(VectorOps::sqr(x)+VectorOps::sqr(y)+VectorOps::sqr(z)),2.0)-1.0);
+    noise =
+    (fmod(std::sqrt(VectorOps::sqr(x)+VectorOps::sqr(y)+VectorOps::sqr(z)),2.0)-1.0);
     if (noise<0.0) {noise = 0.0-noise;}
     */
 
     /* This ramp goes 0-1,0-1,0-1,0-1... */
-    noise = (fmod(std::sqrt(VectorOps::sqr(x) + VectorOps::sqr(y) + VectorOps::sqr(z)), 1.0));
+    noise = (fmod(
+        std::sqrt(VectorOps::sqr(x) + VectorOps::sqr(y) + VectorOps::sqr(z)),
+        1.0));
 
     if (Options & DEBUGGING) {
         printf("noise %g\n", noise);

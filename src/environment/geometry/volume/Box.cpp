@@ -9,12 +9,12 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Box.h"
-#include "io/Parse.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections, Box::insideBox,
-    Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
-
+#include "environment/geometry/volume/compound/Composite.h"
+#include "io/Parse.h"
+Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections,
+    Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
+    Box::rotateBox, Box::scaleBox, Box::invertBox};
 
 extern RayWithSegments *vpRay;
 extern long rayBoxTests, rayBoxTestsSucceeded;
@@ -31,7 +31,7 @@ Box::allBoxIntersections(
     double depth1, depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    register int intersectionFound;
+    int intersectionFound;
     Box *shape = (Box *)object;
 
     intersectionFound = FALSE;
@@ -60,7 +60,8 @@ Box::allBoxIntersections(
 }
 
 int
-Box::intersectBoxx(RayWithSegments *ray, Box *box, double *depth1, double *depth2)
+Box::intersectBoxx(
+    RayWithSegments *ray, Box *box, double *depth1, double *depth2)
 {
     double t, tmin, tmax;
     Vector3Dd p;
@@ -70,7 +71,8 @@ Box::intersectBoxx(RayWithSegments *ray, Box *box, double *depth1, double *depth
 
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&p, &ray->position, box->Transform);
+        Transformation::MInverseTransformVector(
+            &p, &ray->position, box->Transform);
         Transformation::MInvTransVector(&d, &ray->direction, box->Transform);
     } else {
         p.x = ray->position.x;
@@ -215,7 +217,8 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
 
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&newPoint, testPoint, box->Transform);
+        Transformation::MInverseTransformVector(
+            &newPoint, testPoint, box->Transform);
     } else {
         newPoint = *testPoint;
     }
@@ -235,14 +238,16 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-Box::boxNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Box::boxNormal(
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     Vector3Dd newPoint;
     Box *box = (Box *)object;
 
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
-        Transformation::MInverseTransformVector(&newPoint, intersectionPoint, box->Transform);
+        Transformation::MInverseTransformVector(
+            &newPoint, intersectionPoint, box->Transform);
     } else {
         newPoint.x = intersectionPoint->x;
         newPoint.y = intersectionPoint->y;
@@ -294,7 +299,8 @@ Box::copyBox(SimpleBody *object)
     }
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture =
+            TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

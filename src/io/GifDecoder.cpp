@@ -35,7 +35,8 @@
  ==     chunks of code.  Also, 'stack' was renamed to 'dstack' for TASM
  ==     compatibility.
  ==
- == 3) The 'GifFormat::outLine()' external function has been changed to reference
+ == 3) The 'GifFormat::outLine()' external function has been changed to
+ reference
  ==     '*outln()' for flexibility (in particular, 3D transformations)
  ==
  == 4) A call to 'keypressed()' has been added after the 'outln()' calls
@@ -57,10 +58,9 @@
 */
 
 #include "io/GifDecoder.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "io/GifFormat.h"
-
 
 /* typedef short WORD; */
 typedef unsigned short UWORD;
@@ -77,12 +77,7 @@ typedef int INT;
  * returned intact up the various subroutine
  * levels...
  */
-static constexpr int OUT_OF_MEMORY = -10;
 static constexpr int BAD_CODE_SIZE = -20;
-static constexpr int READ_ERROR = -1;
-static constexpr int WRITE_ERROR = -2;
-static constexpr int OPEN_ERROR = -3;
-static constexpr int CREATE_ERROR = -4;
 
 /* extern INT GifFormat::getByte()
  *
@@ -217,9 +212,9 @@ The arrays are actually declared in the assembler source.
                                                                      Bert Tyler
 */
 
-static UTINY *dstack;       /* Stack for storing pixels */
-static UTINY *suffix;       /* Suffix table */
-static UWORD *prefix;       /* Prefix linked list */
+static UTINY *dstack;      /* Stack for storing pixels */
+static UTINY *suffix;      /* Suffix table */
+static UWORD *prefix;      /* Prefix linked list */
 extern UTINY *decoderline; /* decoded line goes here */
 
 /* WORD decoder(linewidth)
@@ -227,8 +222,8 @@ extern UTINY *decoderline; /* decoded line goes here */
  *
  * - This function decodes an LZW image, according to the method used
  * in the GIF spec.  Every *linewidth* "characters" (ie. pixels) decoded
- * will generate a call to GifFormat::outLine(), which is a user specific function
- * to display a line of pixels.  The function gets its codes from
+ * will generate a call to GifFormat::outLine(), which is a user specific
+ * function to display a line of pixels.  The function gets its codes from
  * GifDecoder::getNextCode() which is responsible for reading blocks of data and
  * seperating them into the proper size codes.  Finally, GifFormat::getByte() is
  * the global routine to read the next byte from the GIF file.
@@ -253,9 +248,9 @@ WORD
 GifDecoder::decoder(int iLinewidth)
 {
     WORD linewidth;
-    register UTINY *sp, *bufptr;
+    UTINY *sp, *bufptr;
     UTINY *buf;
-    register WORD code, fc, oc, bufcnt;
+    WORD code, fc, oc, bufcnt;
     WORD c;
     WORD size;
     WORD ret;
@@ -342,8 +337,8 @@ GifDecoder::decoder(int iLinewidth)
 
             /* And let us not forget to put the char into the buffer... And
              * if, on the off chance, we were exactly one pixel from the end
-             * of the line, we have to send the buffer to the GifFormat::outLine()
-             * routine...
+             * of the line, we have to send the buffer to the
+             * GifFormat::outLine() routine...
              */
             *bufptr++ = (UTINY)c;
             if (--bufcnt == 0) {

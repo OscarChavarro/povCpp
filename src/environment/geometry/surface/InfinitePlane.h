@@ -1,8 +1,8 @@
 #ifndef __INFINITE_PLANE_H__
 #define __INFINITE_PLANE_H__
 
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -13,9 +13,10 @@ class InfinitePlane : public Geometry {
     double VPNormDotOrigin;
     int VPCached;
 
-    static int allPlaneIntersections(
-        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
-    static int intersectPlane(RayWithSegments *ray, InfinitePlane *plane, double *depth);
+    static int allPlaneIntersections(SimpleBody *object, RayWithSegments *ray,
+        PriorityQueueNode *depthQueue);
+    static int intersectPlane(
+        RayWithSegments *ray, InfinitePlane *plane, double *depth);
     static int insidePlane(Vector3Dd *point, SimpleBody *object);
     static void planeNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

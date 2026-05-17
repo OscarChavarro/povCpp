@@ -5,14 +5,13 @@
  *  parse the parameters on the command line.
  *
  *****************************************************************************/
+#include "app/PovApp.h"
 #include "app/UnixPlatform.h"
-#include "app/PovApp.h"
 #include "common/FrameConfig.h" /* common to ALL modules in this program */
-#include "app/PovApp.h"
 #include "common/dataStructures/PriorityQueue.h"
-#include "io/Parse.h"
-#include "io/FileHandle.h"
 #include "io/DumpFormat.h"
+#include "io/FileHandle.h"
+#include "io/Parse.h"
 #include "io/RawFormat.h"
 #include "io/TargaFormat.h"
 #include "render/RenderEngine.h"
@@ -114,7 +113,7 @@ main(int argc, char *argv[])
 void
 PovApp::initializeFromCommandLine(int argc, char *argv[])
 {
-    register int i;
+    int i;
 
     if (argc == 1) {
         usage();
@@ -151,21 +150,24 @@ PovApp::configureOutputTarget()
     case '\0':
     case 'd':
     case 'D':
-        if ((globalOutputFileHandle = DumpFormat::getDumpFileHandle()) == nullptr) {
+        if ((globalOutputFileHandle = DumpFormat::getDumpFileHandle()) ==
+            nullptr) {
             closeAll();
             exit(1);
         }
         break;
     case 'r':
     case 'R':
-        if ((globalOutputFileHandle = RawFormat::getRawFileHandle()) == nullptr) {
+        if ((globalOutputFileHandle = RawFormat::getRawFileHandle()) ==
+            nullptr) {
             closeAll();
             exit(1);
         }
         break;
     case 't':
     case 'T':
-        if ((globalOutputFileHandle = TargaFormat::getTargaFileHandle()) == nullptr) {
+        if ((globalOutputFileHandle = TargaFormat::getTargaFileHandle()) ==
+            nullptr) {
             closeAll();
             exit(1);
         }
@@ -204,7 +206,8 @@ PovApp::prepareRendering()
 {
     if (Options & DISPLAY) {
         printf("Displaying...\n");
-        UnixPlatform::displayInit(globalFrame.Screen_Width, globalFrame.Screen_Height);
+        UnixPlatform::displayInit(
+            globalFrame.Screen_Width, globalFrame.Screen_Height);
         displayStarted = TRUE;
     }
 
@@ -214,7 +217,8 @@ PovApp::prepareRendering()
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                     fileBufferSize, READ_MODE) != 1) {
                 fprintf(stderr, "Error opening continue trace output file\n");
-                fprintf(stderr, "Opening new output file %s.\n", outputFileName);
+                fprintf(
+                    stderr, "Opening new output file %s.\n", outputFileName);
                 Options &= ~CONTINUE_TRACE;
 
                 if (openFile(globalOutputFileHandle, outputFileName,
@@ -264,8 +268,8 @@ PovApp::runRenderLoop()
     }
     if (Options & VERBOSE_FILE) {
         statFile = fopen(statFileName, "w+t");
-        fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n", inputFileName,
-            outputFileName);
+        fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n",
+            inputFileName, outputFileName);
         fclose(statFile);
     }
 
@@ -428,9 +432,9 @@ PovApp::getDefaults()
 void
 PovApp::readOptions(char *optionLine)
 {
-    register int c;
-    register int stringIndex;
-    register int optionStarted;
+    int c;
+    int stringIndex;
+    int optionStarted;
     short optionLineIndex = 0;
     char optionString[80];
 
@@ -471,7 +475,7 @@ PovApp::readOptions(char *optionLine)
 void
 PovApp::parseOption(char *optionString)
 {
-    register int addOption;
+    int addOption;
     unsigned int optionNumber = 0;
     double threshold;
 
@@ -825,7 +829,8 @@ PovApp::printStats()
     if (raySphereTests) {
         fprintf(statOut, "  Sphere         %10ld  %10ld  %10.2f\n",
             raySphereTests, raySphereTestsSucceeded,
-            (((double)raySphereTestsSucceeded / (double)raySphereTests) * 100.0));
+            (((double)raySphereTestsSucceeded / (double)raySphereTests) *
+                100.0));
     }
     if (rayPlaneTests) {
         fprintf(statOut, "  Plane          %10ld  %10ld  %10.2f\n",
@@ -835,12 +840,14 @@ PovApp::printStats()
     if (rayTriangleTests) {
         fprintf(statOut, "  Triangle      %10ld  %10ld  %10.2f\n",
             rayTriangleTests, rayTriangleTestsSucceeded,
-            (((double)rayTriangleTestsSucceeded / (double)rayTriangleTests) * 100.0));
+            (((double)rayTriangleTestsSucceeded / (double)rayTriangleTests) *
+                100.0));
     }
     if (rayQuadricTests) {
         fprintf(statOut, "  Quadric        %10ld  %10ld  %10.2f\n",
             rayQuadricTests, rayQuadricTestsSucceeded,
-            (((double)rayQuadricTestsSucceeded / (double)rayQuadricTests) * 100.0));
+            (((double)rayQuadricTestsSucceeded / (double)rayQuadricTests) *
+                100.0));
     }
     if (rayBlobTests) {
         fprintf(statOut, "  Blob            %10ld  %10ld  %10.2f\n",
@@ -860,12 +867,14 @@ PovApp::printStats()
     if (rayBicubicTests) {
         fprintf(statOut, "  Bezier Patch %10ld  %10ld  %10.2f\n",
             rayBicubicTests, rayBicubicTestsSucceeded,
-            (((double)rayBicubicTestsSucceeded / (double)rayBicubicTests) * 100.0));
+            (((double)rayBicubicTestsSucceeded / (double)rayBicubicTests) *
+                100.0));
     }
     if (rayHtFieldTests) {
         fprintf(statOut, "  Height Fld    %10ld  %10ld  %10.2f\n",
             rayHtFieldTests, rayHtFieldTestsSucceeded,
-            (((double)rayHtFieldTestsSucceeded / (double)rayHtFieldTests) * 100.0));
+            (((double)rayHtFieldTestsSucceeded / (double)rayHtFieldTests) *
+                100.0));
     }
     if (rayHtFieldBoxTests) {
         fprintf(statOut, "  Hght Fld Box %10ld  %10ld  %10.2f\n",
@@ -876,13 +885,15 @@ PovApp::printStats()
     if (boundingRegionTests) {
         fprintf(statOut, "  Bounds         %10ld  %10ld  %10.2f\n",
             boundingRegionTests, boundingRegionTestsSucceeded,
-            (((double)boundingRegionTestsSucceeded / (double)boundingRegionTests) *
+            (((double)boundingRegionTestsSucceeded /
+                 (double)boundingRegionTests) *
                 100.0));
     }
     if (clippingRegionTests) {
         fprintf(statOut, "  Clips          %10ld  %10ld  %10.2f\n",
             clippingRegionTests, clippingRegionTestsSucceeded,
-            (((double)clippingRegionTestsSucceeded / (double)clippingRegionTests) *
+            (((double)clippingRegionTestsSucceeded /
+                 (double)clippingRegionTests) *
                 100.0));
     }
 

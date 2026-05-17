@@ -1,6 +1,6 @@
 #include "io/pov/FogParser.h"
-#include "io/pov/Parse.h"
 #include "app/PovApp.h"
+#include "io/pov/Parse.h"
 #include "render/RenderFrame.h"
 
 extern TokenStruct globalToken;
@@ -16,20 +16,22 @@ FogParser::parseFog(RenderFrame *framePtr)
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (globalToken.Token_Id) {
-    case COLOUR_TOKEN:
-    PrimitiveParser::parseColour(&framePtr->Fog_Colour);
-    break;
+            case COLOUR_TOKEN:
+                PrimitiveParser::parseColour(&framePtr->Fog_Colour);
+                break;
 
-    case FLOAT_TOKEN:
-    framePtr->Fog_Distance = globalToken.Token_Float;
-    break;
+            case FLOAT_TOKEN:
+                framePtr->Fog_Distance = globalToken.Token_Float;
+                break;
 
-    case RIGHT_CURLY_TOKEN:
-    Exit_Flag = TRUE; break;
+            case RIGHT_CURLY_TOKEN:
+                Exit_Flag = TRUE;
+                break;
 
-        default: ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
-    break;
-    }
+            default:
+                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
+                break;
+            }
         }
     }
 }

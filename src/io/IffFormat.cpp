@@ -6,8 +6,8 @@
  *****************************************************************************/
 
 #include "io/IffFormat.h"
-#include "common/FrameConfig.h"
 #include "app/PovApp.h"
+#include "common/FrameConfig.h"
 
 static RGBAPixel *iffColourMap;
 static int colourmapSize;
@@ -125,10 +125,10 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             IffFormat::readByte(f);               /* masking ignored */
             compression = IffFormat::readByte(f); /* masking ignored */
             IffFormat::readByte(f);               /* pad */
-            IffFormat::readWord(f);               /* Transparent colour ignored */
-            IffFormat::readWord(f);               /* Aspect ratio ignored */
-            IffFormat::readWord(f);               /* page width ignored */
-            IffFormat::readWord(f);               /* page height ignored */
+            IffFormat::readWord(f); /* Transparent colour ignored */
+            IffFormat::readWord(f); /* Aspect ratio ignored */
+            IffFormat::readWord(f); /* page width ignored */
+            IffFormat::readWord(f); /* page height ignored */
             break;
 
         case CAMG:
@@ -226,7 +226,8 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                 for (j = 0; j < nPlanes; j++) {
                     if (compression == CMPNONE) {
                         for (k = 0; k < (image->iwidth + 7) / 8; k++) {
-                            rowBytes[j][k] = (unsigned char)IffFormat::readByte(f);
+                            rowBytes[j][k] =
+                                (unsigned char)IffFormat::readByte(f);
                         }
                         if ((k & 1) != 0) {
                             IffFormat::readByte(f);
