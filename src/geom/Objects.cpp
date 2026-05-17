@@ -289,7 +289,7 @@ Composite::copyBasicObject(SimpleBody *object)
     }
 
     if (newObject->Object_Texture != nullptr) {
-        newObject->Object_Texture = copyTexture(newObject->Object_Texture);
+        newObject->Object_Texture = ParseEngine::copyTexture(newObject->Object_Texture);
     }
 
     return ((void *)newObject);
@@ -352,7 +352,7 @@ Composite::translateBasicObject(SimpleBody *object, Vector3D *vector)
 
     GeometryOps::translate((SimpleBody *)object->Shape, vector);
 
-    translateTexture(&object->Object_Texture, vector);
+    TextureUtils::translateTexture(&object->Object_Texture, vector);
 }
 
 void
@@ -376,7 +376,7 @@ Composite::rotateBasicObject(SimpleBody *object, Vector3D *vector)
     GeometryOps::rotate((SimpleBody *)object->Shape, vector);
     Transformation::getRotationTransformation(&transformation, vector);
 
-    rotateTexture(&object->Object_Texture, vector);
+    TextureUtils::rotateTexture(&object->Object_Texture, vector);
 }
 
 void
@@ -398,7 +398,7 @@ Composite::scaleBasicObject(SimpleBody *object, Vector3D *vector)
 
     GeometryOps::scale((SimpleBody *)object->Shape, vector);
 
-    scaleTexture(&object->Object_Texture, vector);
+    TextureUtils::scaleTexture(&object->Object_Texture, vector);
 }
 
 void
@@ -528,7 +528,7 @@ ObjectUtils::getObject()
     SimpleBody *newObject;
 
     if ((newObject = new SimpleBody()) == nullptr) {
-        Error("Out of memory. Cannot allocate object");
+        ParseEngine::Error("Out of memory. Cannot allocate object");
     }
 
     newObject->Next_Object = nullptr;

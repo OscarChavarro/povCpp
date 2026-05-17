@@ -11,6 +11,7 @@
 #include "geom/Bezier.h"
 #include "geom/Geometry.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
@@ -650,47 +651,47 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
     if (shape->Interpolated_Grid == nullptr) {
         shape->Interpolated_Grid = new Vector3D *[shape->U_Steps + 1];
         if (shape->Interpolated_Grid == nullptr) {
-            Error("Failed to allocate Interpolated_Grid");
+            ParseEngine::Error("Failed to allocate Interpolated_Grid");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_Grid[i] = new Vector3D[shape->V_Steps + 1];
             if (shape->Interpolated_Grid == nullptr) {
-                Error("Failed to allocate component of Interpolated_Grid");
+                ParseEngine::Error("Failed to allocate component of Interpolated_Grid");
             }
         }
         shape->Interpolated_Normals = new Vector3D *[shape->U_Steps + 1];
         if (shape->Interpolated_Normals == nullptr) {
-            Error("Failed to allocate Interpolated_Normals");
+            ParseEngine::Error("Failed to allocate Interpolated_Normals");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_Normals[i] =
                 new Vector3D[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_Normals == nullptr) {
-                Error("Failed to allocate component of Interpolated_Normals");
+                ParseEngine::Error("Failed to allocate component of Interpolated_Normals");
             }
         }
 
         if (shape->Patch_Type == 4) {
             shape->Smooth_Normals = new Vector3D *[shape->U_Steps + 1];
             if (shape->Smooth_Normals == nullptr) {
-                Error("Failed to allocate Smooth_Normals");
+                ParseEngine::Error("Failed to allocate Smooth_Normals");
             }
             for (i = 0; i <= shape->U_Steps; i++) {
                 shape->Smooth_Normals[i] = new Vector3D[shape->V_Steps + 1];
                 if (shape->Smooth_Normals == nullptr) {
-                    Error("Failed to allocate component of Smooth_Normals");
+                    ParseEngine::Error("Failed to allocate component of Smooth_Normals");
                 }
             }
         }
 
         shape->Interpolated_D = new double *[shape->U_Steps + 1];
         if (shape->Interpolated_D == nullptr) {
-            Error("Failed to allocate Interpolated_D");
+            ParseEngine::Error("Failed to allocate Interpolated_D");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_D[i] = new double[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_D == nullptr) {
-                Error("Failed to allocate component of Interpolated_D");
+                ParseEngine::Error("Failed to allocate component of Interpolated_D");
             }
         }
     }
@@ -1449,7 +1450,7 @@ BicubicPatch::allBicubicPatchIntersections(
     } else if (shape->Patch_Type == 4) {
         cnt = BicubicPatch::intersectBicubicPatch4(ray, shape, &depths[0]);
     } else {
-        Error("Bad patch type\n");
+        ParseEngine::Error("Bad patch type\n");
     }
     if (cnt > 0) {
         rayBicubicTestsSucceeded++;
@@ -1516,7 +1517,7 @@ BicubicPatch::copyBicubicPatch(SimpleBody *object)
     newShape->Interpolated_Grid = nullptr;
     BicubicPatch::precomputePatchValues(newShape);
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (void *)(newShape);
@@ -1533,7 +1534,7 @@ BicubicPatch::translateBicubicPatch(SimpleBody *object, Vector3D *vector)
             VectorOps::vAdd(patch->Control_Points[i][j], patch->Control_Points[i][j],
                 *vector);
     BicubicPatch::precomputePatchValues(patch);
-    translateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
 }
 
 void
@@ -1552,7 +1553,7 @@ BicubicPatch::rotateBicubicPatch(SimpleBody *object, Vector3D *vector)
         }
     }
     BicubicPatch::precomputePatchValues(patch);
-    rotateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
 }
 
 void
@@ -1566,7 +1567,7 @@ BicubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3D *vector)
             VectorOps::vEvaluate(patch->Control_Points[i][j], patch->Control_Points[i][j],
                 *vector);
     BicubicPatch::precomputePatchValues(patch);
-    scaleTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
 }
 
 /* Inversion of a patch really doesn't make sense. */

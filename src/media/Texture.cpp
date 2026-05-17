@@ -19,6 +19,7 @@
 #include "common/Matrices.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "io/Parse.h"
 
 double *sintab;
 double frequency[NUMBER_OF_WAVES];
@@ -58,7 +59,7 @@ unsigned short crctab[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
 
 void
-computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value)
+TextureUtils::computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value)
 {
     register int i;
     RGBAColorPaletteSpan *ent;
@@ -100,12 +101,12 @@ computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value)
 }
 
 void
-initializeNoise()
+TextureUtils::initializeNoise()
 {
     register int i = 0;
     Vector3D point;
 
-    InitRTable();
+    TextureUtils::InitRTable();
 
     if ((sintab = new double[SINTABSIZE]) == nullptr) {
         printf("Cannot allocate memory for sine table\n");
@@ -117,14 +118,14 @@ initializeNoise()
     }
 
     for (i = 0; i < NUMBER_OF_WAVES; i++) {
-        DNoise(&point, (double)i, 0.0, 0.0);
+        TextureUtils::DNoise(&point, (double)i, 0.0, 0.0);
         VectorOps::vNormalize(Wave_Sources[i], point);
         frequency[i] = (rand() & RNDMASK) / rndDivisor + 0.01;
     }
 }
 
 void
-InitTextureTable()
+TextureUtils::InitTextureTable()
 {
     int i;
     int j;
@@ -150,12 +151,12 @@ InitTextureTable()
 
 /* modified by AAC to work properly with little bitty integers (16 bits) */
 void
-InitRTable()
+TextureUtils::InitRTable()
 {
     int i;
     Vector3D rp;
 
-    InitTextureTable();
+    TextureUtils::InitTextureTable();
 
     RTable = new double[MAXSIZE];
     if (RTable == nullptr) {
@@ -165,28 +166,28 @@ InitRTable()
 
     for (i = 0; i < MAXSIZE; i++) {
         rp.x = rp.y = rp.z = (double)i;
-        RTable[i] = (unsigned int)R(&rp) * realScale - 1.0;
+        RTable[i] = (unsigned int)TextureUtils::R(&rp) * realScale - 1.0;
     }
 }
 
 int
-R(Vector3D *v)
+TextureUtils::R(Vector3D *v)
 {
     v->x *= .12345;
     v->y *= .12345;
     v->z *= .12345;
 
-    return (Crc16((char *)v, sizeof(Vector3D)));
+    return (TextureUtils::Crc16((char *)v, sizeof(Vector3D)));
 }
 
 /*
  * Note that passing a Vector3D array to Crc16 and interpreting it as
  * an array of chars means that machines with different floating-point
- * representation schemes will evaluate Noise(point) differently.
+ * representation schemes will evaluate TextureUtils::Noise(point) differently.
  */
 
 int
-Crc16(register char *buf, register int count)
+TextureUtils::Crc16(register char *buf, register int count)
 {
     register unsigned short crc = 0;
 
@@ -229,7 +230,7 @@ setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz, long
 }
 
 double
-Noise(double x, double y, double z)
+TextureUtils::Noise(double x, double y, double z)
 {
     long ix;
     long iy;
@@ -289,7 +290,7 @@ Noise(double x, double y, double z)
 Vector-valued version of "Noise"
 */
 void
-DNoise(Vector3D *result, double x, double y, double z)
+TextureUtils::DNoise(Vector3D *result, double x, double y, double z)
 {
     long ix;
     long iy;
@@ -369,7 +370,7 @@ DNoise(Vector3D *result, double x, double y, double z)
 }
 
 double
-Turbulence(double x, double y, double z, int octaves)
+TextureUtils::Turbulence(double x, double y, double z, int octaves)
 {
     int i; /* added -dmf */
     register double t = 0.0;
@@ -377,14 +378,14 @@ Turbulence(double x, double y, double z, int octaves)
     register double value;
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
-        value = Noise(x / scale, y / scale, z / scale);
+        value = TextureUtils::Noise(x / scale, y / scale, z / scale);
         t += fabsInline(value) * scale;
     }
     return (t);
 }
 
 void
-DTurbulence(Vector3D *result, double x, double y, double z, int octaves)
+TextureUtils::DTurbulence(Vector3D *result, double x, double y, double z, int octaves)
 {
     int i; /* added -dmf */
     register double scale;
@@ -397,7 +398,7 @@ DTurbulence(Vector3D *result, double x, double y, double z, int octaves)
     value.x = value.y = value.z = 0.0;
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
-        DNoise(&value, x / scale, y / scale, z / scale);
+        TextureUtils::DNoise(&value, x / scale, y / scale, z / scale);
         result->x += value.x * scale;
         result->y += value.y * scale;
         result->z += value.z * scale;
@@ -405,7 +406,7 @@ DTurbulence(Vector3D *result, double x, double y, double z, int octaves)
 }
 
 double
-cycloidal(double value)
+TextureUtils::cycloidal(double value)
 {
     register int indx;
 
@@ -419,7 +420,7 @@ cycloidal(double value)
 }
 
 double
-triangleWave(double value)
+TextureUtils::triangleWave(double value)
 {
     register double offset;
     register double temp1;
@@ -437,7 +438,7 @@ triangleWave(double value)
 }
 
 void
-translateTexture(Texture **texturePtr, Vector3D *vector)
+TextureUtils::translateTexture(Texture **texturePtr, Vector3D *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -448,7 +449,7 @@ translateTexture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = copyTexture(texture);
+                texture = ParseEngine::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
@@ -460,8 +461,8 @@ translateTexture(Texture **texturePtr, Vector3D *vector)
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                translateTexture((Texture **)&texture->Colour1, vector);
-                translateTexture((Texture **)&texture->Colour2, vector);
+                TextureUtils::translateTexture((Texture **)&texture->Colour1, vector);
+                TextureUtils::translateTexture((Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
@@ -470,13 +471,13 @@ translateTexture(Texture **texturePtr, Vector3D *vector)
 }
 
 Texture *
-getTexture()
+TextureUtils::getTexture()
 {
     Texture *newTexture;
 
     newTexture = new Texture;
     if (newTexture == nullptr) {
-        Error("Out of memory. Cannot allocate object");
+        ParseEngine::Error("Out of memory. Cannot allocate object");
     }
 
     newTexture->Next_Texture = nullptr;
@@ -517,7 +518,7 @@ getTexture()
 }
 
 void
-rotateTexture(Texture **texturePtr, Vector3D *vector)
+TextureUtils::rotateTexture(Texture **texturePtr, Vector3D *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -528,7 +529,7 @@ rotateTexture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = copyTexture(texture);
+                texture = ParseEngine::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
@@ -540,8 +541,8 @@ rotateTexture(Texture **texturePtr, Vector3D *vector)
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                rotateTexture((Texture **)&texture->Colour1, vector);
-                rotateTexture((Texture **)&texture->Colour2, vector);
+                TextureUtils::rotateTexture((Texture **)&texture->Colour1, vector);
+                TextureUtils::rotateTexture((Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
@@ -550,7 +551,7 @@ rotateTexture(Texture **texturePtr, Vector3D *vector)
 }
 
 void
-scaleTexture(Texture **texturePtr, Vector3D *vector)
+TextureUtils::scaleTexture(Texture **texturePtr, Vector3D *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -561,7 +562,7 @@ scaleTexture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = copyTexture(texture);
+                texture = ParseEngine::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
@@ -574,11 +575,12 @@ scaleTexture(Texture **texturePtr, Vector3D *vector)
                 texture->Texture_Transformation, &transformation);
 
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
-                scaleTexture((Texture **)&texture->Colour1, vector);
-                scaleTexture((Texture **)&texture->Colour2, vector);
+                TextureUtils::scaleTexture((Texture **)&texture->Colour1, vector);
+                TextureUtils::scaleTexture((Texture **)&texture->Colour2, vector);
             }
         }
         texturePtr = &texture->Next_Texture;
         texture = texture->Next_Texture;
     }
 }
+

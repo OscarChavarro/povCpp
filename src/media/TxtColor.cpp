@@ -138,7 +138,7 @@ ColorTextures::agate(double x, double y, double z, Texture *texture, RGBAColor *
     RGBAColor newColour;
 
     noise =
-        cycloidal(1.3 * Turbulence(x, y, z, texture->Octaves) + 1.1 * z) + 1;
+        TextureUtils::cycloidal(1.3 * TextureUtils::Turbulence(x, y, z, texture->Octaves) + 1.1 * z) + 1;
     noise *= 0.5;
     noise = pow(noise, 0.77);
 
@@ -147,7 +147,7 @@ ColorTextures::agate(double x, double y, double z, Texture *texture, RGBAColor *
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -185,20 +185,20 @@ ColorTextures::bozo(double x, double y, double z, Texture *texture, RGBAColor *c
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        DTurbulence(&bozoTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::DTurbulence(&bozoTurbulence, x, y, z, texture->Octaves);
         x += bozoTurbulence.x * turb;
         y += bozoTurbulence.y * turb;
         z += bozoTurbulence.z * turb;
     }
 
-    noise = Noise(x, y, z);
+    noise = TextureUtils::Noise(x, y, z);
 
     if (Options & DEBUGGING) {
         printf("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -321,7 +321,7 @@ ColorTextures::gradient(double x, double y, double z, Texture *texture, RGBAColo
     Vector3D gradTurbulence;
 
     if ((turb = texture->Turbulence) != 0.0) {
-        DTurbulence(&gradTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::DTurbulence(&gradTurbulence, x, y, z, texture->Octaves);
         x += gradTurbulence.x * turb;
         y += gradTurbulence.y * turb;
         z += gradTurbulence.z * turb;
@@ -348,7 +348,7 @@ ColorTextures::gradient(double x, double y, double z, Texture *texture, RGBAColo
         printf("gradient %g %g %g value %g\n", x, y, z, value);
     }
 
-    computeColour(&newColour, texture->Colour_Map, value);
+    TextureUtils::computeColour(&newColour, texture->Colour_Map, value);
     colour->Red += newColour.Red;
     colour->Green += newColour.Green;
     colour->Blue += newColour.Blue;
@@ -370,7 +370,7 @@ ColorTextures::granite(double x, double y, double z, Texture *texture, RGBAColor
     RGBAColor newColour;
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
-        temp = 0.5 - Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
+        temp = 0.5 - TextureUtils::Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
         temp = fabsInline(temp);
         noise += temp / freq;
     }
@@ -380,7 +380,7 @@ ColorTextures::granite(double x, double y, double z, Texture *texture, RGBAColor
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -400,15 +400,15 @@ ColorTextures::marble(double x, double y, double z, Texture *texture, RGBAColor 
     register double hue;
     RGBAColor newColour;
 
-    noise = triangleWave(
-        x + Turbulence(x, y, z, texture->Octaves) * texture->Turbulence);
+    noise = TextureUtils::triangleWave(
+        x + TextureUtils::Turbulence(x, y, z, texture->Octaves) * texture->Turbulence);
 
     if (Options & DEBUGGING) {
         printf("marble %g %g %g noise %g \n", x, y, z, noise);
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -439,14 +439,14 @@ ColorTextures::spotted(double x, double y, double z, Texture *texture, RGBAColor
     register double noise;
     RGBAColor newColour;
 
-    noise = Noise(x, y, z);
+    noise = TextureUtils::Noise(x, y, z);
 
     if (Options & DEBUGGING) {
         printf("spotted %g %g %g\n", x, y, z);
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -468,14 +468,14 @@ ColorTextures::wood(double x, double y, double z, Texture *texture, RGBAColor *c
     Vector3D point;
     RGBAColor newColour;
 
-    DTurbulence(&woodTurbulence, x, y, z, texture->Octaves);
+    TextureUtils::DTurbulence(&woodTurbulence, x, y, z, texture->Octaves);
 
     if (Options & DEBUGGING) {
         printf("wood %g %g %g", x, y, z);
     }
 
-    point.x = cycloidal((x + woodTurbulence.x) * texture->Turbulence);
-    point.y = cycloidal((y + woodTurbulence.y) * texture->Turbulence);
+    point.x = TextureUtils::cycloidal((x + woodTurbulence.x) * texture->Turbulence);
+    point.y = TextureUtils::cycloidal((y + woodTurbulence.y) * texture->Turbulence);
     point.z = 0.0;
 
     point.x += x;
@@ -485,14 +485,14 @@ ColorTextures::wood(double x, double y, double z, Texture *texture, RGBAColor *c
 
     VectorOps::vLength(length, point);
 
-    noise = triangleWave(length);
+    noise = TextureUtils::triangleWave(length);
 
     if (Options & DEBUGGING) {
         printf("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -530,7 +530,7 @@ ColorTextures::leopard(double x, double y, double z, Texture *texture, RGBAColor
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        DTurbulence(&leopardTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::DTurbulence(&leopardTurbulence, x, y, z, texture->Octaves);
         x += leopardTurbulence.x * turb;
         y += leopardTurbulence.y * turb;
         z += leopardTurbulence.z * turb;
@@ -552,7 +552,7 @@ ColorTextures::leopard(double x, double y, double z, Texture *texture, RGBAColor
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -580,7 +580,7 @@ ColorTextures::onion(double x, double y, double z, Texture *texture, RGBAColor *
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        DTurbulence(&onionTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::DTurbulence(&onionTurbulence, x, y, z, texture->Octaves);
         x += onionTurbulence.x * turb;
         y += onionTurbulence.y * turb;
         z += onionTurbulence.z * turb;
@@ -599,7 +599,7 @@ ColorTextures::onion(double x, double y, double z, Texture *texture, RGBAColor *
     }
 
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;

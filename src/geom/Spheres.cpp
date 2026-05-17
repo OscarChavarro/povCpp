@@ -154,7 +154,7 @@ Sphere::copySphere(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -164,7 +164,7 @@ void
 Sphere::translateSphere(SimpleBody *object, Vector3D *vector)
 {
     VectorOps::vAdd(((Sphere *)object)->Center, ((Sphere *)object)->Center, *vector);
-    translateTexture(&((Sphere *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
@@ -175,7 +175,7 @@ Sphere::rotateSphere(SimpleBody *object, Vector3D *vector)
     Transformation::getRotationTransformation(&transformation, vector);
     Transformation::MTransformVector(&((Sphere *)object)->Center, &((Sphere *)object)->Center,
         &transformation);
-    rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
@@ -192,7 +192,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3D *vector)
     sphere->Radius *= vector->x;
     sphere->Radius_Squared = sphere->Radius * sphere->Radius;
     sphere->Inverse_Radius = 1.0 / sphere->Radius;
-    scaleTexture(&((Sphere *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void

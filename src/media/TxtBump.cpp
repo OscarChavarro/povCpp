@@ -44,7 +44,7 @@ BumpTextures::ripples(double x, double y, double z, Texture *texture, Vector3D *
 
         length = sqrt(length);
         index = length * texture->Frequency + texture->Phase;
-        scalar = cycloidal(index) * texture->Bump_Amount;
+        scalar = TextureUtils::cycloidal(index) * texture->Bump_Amount;
 
         if (Options & DEBUGGING) {
             printf(" index %g scalar %g length %g\n", index, scalar, length);
@@ -82,7 +82,7 @@ BumpTextures::waves(double x, double y, double z, Texture *texture, Vector3D *no
 
         length = sqrt(length);
         index = (length * texture->Frequency * frequency[i]) + texture->Phase;
-        sinValue = cycloidal(index);
+        sinValue = TextureUtils::cycloidal(index);
 
         scalar = sinValue * texture->Bump_Amount / frequency[i];
         VectorOps::vScale(point, point, scalar / length / (double)NUMBER_OF_WAVES);
@@ -104,7 +104,7 @@ BumpTextures::bumps(double x, double y, double z, Texture *texture, Vector3D *no
         printf("bumps %g %g %g\n", x, y, z);
     }
 
-    DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
+    TextureUtils::DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
     VectorOps::vScale(bumpTurb, bumpTurb, texture->Bump_Amount);
     VectorOps::vAdd(*normal, *normal, bumpTurb); /* displace "normal" */
     VectorOps::vNormalize(*normal, *normal);     /* normalize normal! */
@@ -124,7 +124,7 @@ BumpTextures::dents(double x, double y, double z, Texture *texture, Vector3D *no
         return; /* why are we here?? */
     }
 
-    noise = Noise(x, y, z);
+    noise = TextureUtils::Noise(x, y, z);
 
     noise = noise * noise * noise * texture->Bump_Amount;
 
@@ -132,7 +132,7 @@ BumpTextures::dents(double x, double y, double z, Texture *texture, Vector3D *no
         printf("dents %g %g %g noise %g\n", x, y, z, noise);
     }
 
-    DNoise(&stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
+    TextureUtils::DNoise(&stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
 
     VectorOps::vScale(stuccoTurb, stuccoTurb, noise);
     VectorOps::vAdd(*normal, *normal, stuccoTurb); /* displace "normal" */
@@ -148,7 +148,7 @@ BumpTextures::dents(double x, double y, double z, Texture *texture, Vector3D *no
 /*
     wrinkles - This is my implementation of the dented() routine, using
     a surface iterative fractal derived from DTurbulence.  This is a 3-D vers.
-    (thanks to DNoise()...) of the usual version using the singular Noise()...
+    (thanks to TextureUtils::DNoise()...) of the usual version using the singular TextureUtils::Noise()...
     Seems to look a lot like wrinkles, however... (hmmm)
 */
 
@@ -173,7 +173,7 @@ BumpTextures::wrinkles(double x, double y, double z, Texture *texture, Vector3D 
     result.z = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        DNoise(&value, x * scale, y * scale, z * scale); /* * scale,*/
+        TextureUtils::DNoise(&value, x * scale, y * scale, z * scale); /* * scale,*/
         result.x += fabsInline(value.x / scale);
         result.y += fabsInline(value.y / scale);
         result.z += fabsInline(value.z / scale);

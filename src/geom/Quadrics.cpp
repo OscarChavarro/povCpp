@@ -215,7 +215,7 @@ Quadric::copyQuadric(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -277,7 +277,7 @@ Quadric::translateQuadric(SimpleBody *object, Vector3D *vector)
     Transformation::getTranslationTransformation(&transformation, vector);
     Quadric::transformQuadric((Quadric *)object, &transformation);
 
-    translateTexture(&((Quadric *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
@@ -288,7 +288,7 @@ Quadric::rotateQuadric(SimpleBody *object, Vector3D *vector)
     Transformation::getRotationTransformation(&transformation, vector);
     Quadric::transformQuadric((Quadric *)object, &transformation);
 
-    rotateTexture(&((Quadric *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
@@ -299,7 +299,7 @@ Quadric::scaleQuadric(SimpleBody *object, Vector3D *vector)
     Transformation::getScalingTransformation(&transformation, vector);
     Quadric::transformQuadric((Quadric *)object, &transformation);
 
-    scaleTexture(&((Quadric *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void

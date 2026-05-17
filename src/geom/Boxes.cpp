@@ -294,7 +294,7 @@ Box::copyBox(SimpleBody *object)
     }
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -311,7 +311,7 @@ Box::translateBox(SimpleBody *object, Vector3D *vector)
     Transformation::getTranslationTransformation(&transform, vector);
     Transformation::composeTransformations(box->Transform, &transform);
 
-    translateTexture(&((Box *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
@@ -325,7 +325,7 @@ Box::rotateBox(SimpleBody *object, Vector3D *vector)
     Transformation::getRotationTransformation(&transform, vector);
     Transformation::composeTransformations(box->Transform, &transform);
 
-    rotateTexture(&((Box *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
@@ -339,7 +339,7 @@ Box::scaleBox(SimpleBody *object, Vector3D *vector)
     Transformation::getScalingTransformation(&transform, vector);
     Transformation::composeTransformations(box->Transform, &transform);
 
-    scaleTexture(&((Box *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void

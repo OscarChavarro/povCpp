@@ -114,7 +114,7 @@ InfinitePlane::copyPlane(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -129,7 +129,7 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3D *vector)
     VectorOps::vEvaluate(translation, plane->Normal_Vector, *vector);
     plane->Distance -= translation.x + translation.y + translation.z;
 
-    translateTexture(&plane->Shape_Texture, vector);
+    TextureUtils::translateTexture(&plane->Shape_Texture, vector);
 }
 
 void
@@ -141,7 +141,7 @@ InfinitePlane::rotatePlane(SimpleBody *object, Vector3D *vector)
     Transformation::MTransformVector(&((InfinitePlane *)object)->Normal_Vector,
         &((InfinitePlane *)object)->Normal_Vector, &transformation);
 
-    rotateTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
 void
@@ -158,7 +158,7 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3D *vector)
     VectorOps::vScale(plane->Normal_Vector, plane->Normal_Vector, 1.0 / length);
     plane->Distance /= length;
 
-    scaleTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
 void

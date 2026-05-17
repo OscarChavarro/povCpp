@@ -102,7 +102,7 @@ ParseEngine::tokenInit()
 void
 ParseEngine::frameInit()
 {
-    Default_Texture = getTexture();
+    Default_Texture = TextureUtils::getTexture();
     parsingFramePtr->View_Point.initializeDefaults();
     parsingFramePtr->Light_Sources = nullptr;
     parsingFramePtr->Objects = nullptr;
@@ -757,7 +757,7 @@ static constexpr int MAX_ENTRIES = 20;
 }
 
 Texture *
-ParseEngine::ParseEngine::copyTexture(Texture *texture)
+ParseEngine::copyTexture(Texture *texture)
 {
     Texture *newTexture;
     Texture *localTexture;
@@ -768,7 +768,7 @@ ParseEngine::ParseEngine::copyTexture(Texture *texture)
 
     for (localTexture = texture; localTexture != nullptr;
          localTexture = localTexture->Next_Texture) {
-        newTexture = getTexture();
+        newTexture = TextureUtils::getTexture();
         *newTexture = *localTexture;
 
         if (firstTexture == nullptr) {
@@ -1368,7 +1368,7 @@ ParseEngine::parseTexture()
         texture->Constant_Flag = FALSE;
     }
     ParseEngine::parseVector(&localVector);
-    translateTexture(&texture, &localVector);
+    TextureUtils::translateTexture(&texture, &localVector);
     break;
 
     case ROTATE_TOKEN:
@@ -1377,7 +1377,7 @@ ParseEngine::parseTexture()
         texture->Constant_Flag = FALSE;
     }
     ParseEngine::parseVector(&localVector);
-    rotateTexture(&texture, &localVector);
+    TextureUtils::rotateTexture(&texture, &localVector);
     break;
 
     case SCALE_TOKEN:
@@ -1386,7 +1386,7 @@ ParseEngine::parseTexture()
         texture->Constant_Flag = FALSE;
     }
     ParseEngine::parseVector(&localVector);
-    scaleTexture(&texture, &localVector);
+    TextureUtils::scaleTexture(&texture, &localVector);
     break;
 
     case COLOUR_TOKEN:
@@ -4251,14 +4251,3 @@ ParseEngine::Error(const char *str)
     exit(1);
 }
 
-void
-Error(const char *str)
-{
-    ParseEngine::Error(str);
-}
-
-Texture *
-copyTexture(Texture *texture)
-{
-    return ParseEngine::copyTexture(texture);
-}
