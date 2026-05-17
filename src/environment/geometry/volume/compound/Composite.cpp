@@ -68,7 +68,7 @@ Composite::allCompositeIntersections(
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
-        } else if (!GeometryOperations::inside(&ray->Initial, (SimpleBody *)boundingShape)) {
+        } else if (!GeometryOperations::inside(&ray->position, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
         boundingRegionTestsSucceeded++;
@@ -128,7 +128,7 @@ Composite::allObjectIntersections(
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
-        } else if (!GeometryOperations::inside(&ray->Initial, (SimpleBody *)boundingShape)) {
+        } else if (!GeometryOperations::inside(&ray->position, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
         boundingRegionTestsSucceeded++;

@@ -29,8 +29,8 @@ InfinitePlane::allPlaneIntersections(
         if (depth > Small_Tolerance) {
             localElement.Depth = depth;
             localElement.Object = shape->Parent_Object;
-            VectorOps::vScale(intersectionPoint, ray->Direction, depth);
-            intersectionPoint.add(ray->Initial);
+            VectorOps::vScale(intersectionPoint, ray->direction, depth);
+            intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -49,13 +49,13 @@ InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, double *depth)
     rayPlaneTests++;
     if (ray == vpRay) {
         if (!plane->VPCached) {
-            plane->VPNormDotOrigin = plane->Normal_Vector.dotProduct(ray->Initial);
+            plane->VPNormDotOrigin = plane->Normal_Vector.dotProduct(ray->position);
             plane->VPNormDotOrigin += plane->Distance;
             plane->VPNormDotOrigin *= -1.0;
             plane->VPCached = TRUE;
         }
 
-        normalDotDirection = plane->Normal_Vector.dotProduct(ray->Direction);
+        normalDotDirection = plane->Normal_Vector.dotProduct(ray->direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -68,11 +68,11 @@ InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, double *depth)
         }
         return (FALSE);
     }
-    normalDotOrigin = plane->Normal_Vector.dotProduct(ray->Initial);
+    normalDotOrigin = plane->Normal_Vector.dotProduct(ray->position);
     normalDotOrigin += plane->Distance;
     normalDotOrigin *= -1.0;
 
-    normalDotDirection = plane->Normal_Vector.dotProduct(ray->Direction);
+    normalDotDirection = plane->Normal_Vector.dotProduct(ray->direction);
     if ((normalDotDirection < Small_Tolerance) &&
         (normalDotDirection > -Small_Tolerance)) {
         return (FALSE);

@@ -35,22 +35,22 @@ Sphere::intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2
 
     if (ray == vpRay) {
         if (!sphere->VPCached) {
-            VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->Initial);
+            VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->position);
             sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);
             sphere->VPinside = (sphere->VPOCSquared < sphere->Radius_Squared);
             sphere->VPCached = TRUE;
         }
-        tClosestApproach = sphere->VPOtoC.dotProduct(ray->Direction);
+        tClosestApproach = sphere->VPOtoC.dotProduct(ray->direction);
         if (!sphere->VPinside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
         tHalfChordSquared = sphere->Radius_Squared - sphere->VPOCSquared +
                             (tClosestApproach * tClosestApproach);
     } else {
-        VectorOps::vSub(originToCenter, sphere->Center, ray->Initial);
+        VectorOps::vSub(originToCenter, sphere->Center, ray->position);
         ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->Radius_Squared);
-        tClosestApproach = originToCenter.dotProduct(ray->Direction);
+        tClosestApproach = originToCenter.dotProduct(ray->direction);
         if (!inside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
@@ -98,8 +98,8 @@ Sphere::allSphereIntersections(
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
-        VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
-        intersectionPoint.add(ray->Initial);
+        VectorOps::vScale(intersectionPoint, ray->direction, depth1);
+        intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -108,8 +108,8 @@ Sphere::allSphereIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = shape->Parent_Object;
-            VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
-            intersectionPoint.add(ray->Initial);
+            VectorOps::vScale(intersectionPoint, ray->direction, depth2);
+            intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);

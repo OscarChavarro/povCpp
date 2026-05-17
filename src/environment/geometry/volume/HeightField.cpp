@@ -95,20 +95,20 @@ HeightField::intersectPixel(
     if ((HeightField::maxValue(y1, HeightField::maxValue(y2, y3)) >= height1) &&
         (HeightField::minValue(y1, HeightField::minValue(y2, y3)) <= height2)) {
         localNormal = t1V3.crossProduct(t1V2);
-        dot = localNormal.dotProduct(ray->Direction);
+        dot = localNormal.dotProduct(ray->direction);
 
         if ((dot > kEpsilon) || (dot < -kEpsilon)) {
             pos1 = localNormal.dotProduct(t1V1);
 
-            pos2 = localNormal.dotProduct(ray->Initial);
+            pos2 = localNormal.dotProduct(ray->position);
 
             pos1 -= pos2;
 
             depth1 = pos1 / dot;
 
             if ((depth1 > Small_Tolerance) && (depth1 < Max_Distance)) {
-                s = ray->Initial.x + (depth1 * ray->Direction.x) - (double)x;
-                t = ray->Initial.z + (depth1 * ray->Direction.z) - (double)z;
+                s = ray->position.x + (depth1 * ray->direction.x) - (double)x;
+                t = ray->position.z + (depth1 * ray->direction.z) - (double)z;
 
                 if ((s < -kEpsilon) || (t < -kEpsilon) ||
                     ((s + t) > 1.0 + kEpsilon)) {
@@ -132,19 +132,19 @@ HeightField::intersectPixel(
     minHeight = HeightField::minValue(y4, HeightField::minValue(y2, y3));
     if ((maxHeight >= height1) && (minHeight <= height2)) {
         localNormal = t2V3.crossProduct(t2V2);
-        dot = localNormal.dotProduct(ray->Direction);
+        dot = localNormal.dotProduct(ray->direction);
 
         if ((dot > kEpsilon) || (dot < -kEpsilon)) {
             pos1 = localNormal.dotProduct(t2V1);
 
-            pos2 = localNormal.dotProduct(ray->Initial);
+            pos2 = localNormal.dotProduct(ray->position);
             pos1 -= pos2;
 
             depth2 = pos1 / dot;
 
             if ((depth2 > Small_Tolerance) && (depth2 < Max_Distance)) {
-                s = ray->Initial.x + (depth2 * ray->Direction.x) - (double)x;
-                t = ray->Initial.z + (depth2 * ray->Direction.z) - (double)z;
+                s = ray->position.x + (depth2 * ray->direction.x) - (double)x;
+                t = ray->position.z + (depth2 * ray->direction.z) - (double)z;
 
                 if ((s > 1.0 + kEpsilon) || (t > 1.0 + kEpsilon) ||
                     ((s + t) < 1.0 - kEpsilon)) {
@@ -163,16 +163,16 @@ HeightField::intersectPixel(
     if (depth2 < depth1) {
         hfIntersection->Depth = depth2;
         hfIntersection->Object = hField->Parent_Object;
-        VectorOps::vScale(t1V1, rRay->Direction, depth2);
-        t1V1.add(rRay->Initial);
+        VectorOps::vScale(t1V1, rRay->direction, depth2);
+        t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
     } else {
         hfIntersection->Depth = depth1;
         hfIntersection->Object = hField->Parent_Object;
-        VectorOps::vScale(t1V1, rRay->Direction, depth1);
-        t1V1.add(rRay->Initial);
+        VectorOps::vScale(t1V1, rRay->direction, depth1);
+        t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
@@ -712,9 +712,9 @@ HeightField::allHeightfldIntersections(
     rayHtFieldTests++;
 
     Transformation::MInverseTransformVector(
-        &(tempRay.Initial), &(ray->Initial), hField->transformation);
+        &(tempRay.position), &(ray->position), hField->transformation);
     Transformation::MInvTransVector(
-        &(tempRay.Direction), &(ray->Direction), hField->transformation);
+        &(tempRay.direction), &(ray->direction), hField->transformation);
 
     if (!Box::intersectBoxx(&tempRay, hField->bounding_box, &depth1, &depth2)) {
         return (FALSE);
@@ -725,41 +725,41 @@ HeightField::allHeightfldIntersections(
 
     if (depth1 == depth2) {
         depth1 = 0.0;
-        VectorOps::vScale(temp1, tempRay.Direction, depth1);
-        temp1.add(tempRay.Initial);
-        VectorOps::vScale(temp2, tempRay.Direction, depth2);
-        temp2.add(tempRay.Initial);
+        VectorOps::vScale(temp1, tempRay.direction, depth1);
+        temp1.add(tempRay.position);
+        VectorOps::vScale(temp2, tempRay.direction, depth2);
+        temp2.add(tempRay.position);
     } else {
-        VectorOps::vScale(temp1, tempRay.Direction, depth1);
-        temp1.add(tempRay.Initial);
-        VectorOps::vScale(temp2, tempRay.Direction, depth2);
-        temp2.add(tempRay.Initial);
+        VectorOps::vScale(temp1, tempRay.direction, depth1);
+        temp1.add(tempRay.position);
+        VectorOps::vScale(temp2, tempRay.direction, depth2);
+        temp2.add(tempRay.position);
     }
 
-    if (fabs(tempRay.Direction.x) > kEpsilon) {
-        mzx = tempRay.Direction.z / tempRay.Direction.x;
-        myx = tempRay.Direction.y / tempRay.Direction.x;
+    if (fabs(tempRay.direction.x) > kEpsilon) {
+        mzx = tempRay.direction.z / tempRay.direction.x;
+        myx = tempRay.direction.y / tempRay.direction.x;
     } else {
-        mzx = tempRay.Direction.z / kEpsilon;
-        myx = tempRay.Direction.y / kEpsilon;
+        mzx = tempRay.direction.z / kEpsilon;
+        myx = tempRay.direction.y / kEpsilon;
     }
-    if (fabs(tempRay.Direction.z) > kEpsilon) {
-        mxz = tempRay.Direction.x / tempRay.Direction.z;
-        myz = tempRay.Direction.y / tempRay.Direction.z;
+    if (fabs(tempRay.direction.z) > kEpsilon) {
+        mxz = tempRay.direction.x / tempRay.direction.z;
+        myz = tempRay.direction.y / tempRay.direction.z;
     } else {
-        mxz = tempRay.Direction.x / kEpsilon;
-        myz = tempRay.Direction.y / kEpsilon;
+        mxz = tempRay.direction.x / kEpsilon;
+        myz = tempRay.direction.y / kEpsilon;
     }
 
     hfQueue = depthQueue;
     hfIntersection = &localElement;
     rRay = ray;
 
-    isdx = HeightField::signInline(tempRay.Direction.x);
-    isdz = HeightField::signInline(tempRay.Direction.z);
+    isdx = HeightField::signInline(tempRay.direction.x);
+    isdz = HeightField::signInline(tempRay.direction.z);
 
     xDom = FALSE;
-    if (fabs(tempRay.Direction.x) >= fabs(tempRay.Direction.z)) {
+    if (fabs(tempRay.direction.x) >= fabs(tempRay.direction.z)) {
         xDom = TRUE;
     }
 

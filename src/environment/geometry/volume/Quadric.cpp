@@ -29,8 +29,8 @@ Quadric::allQuadricIntersections(
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
-        VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
-        intersectionPoint.add(ray->Initial);
+        VectorOps::vScale(intersectionPoint, ray->direction, depth1);
+        intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -39,8 +39,8 @@ Quadric::allQuadricIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = shape->Parent_Object;
-            VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
-            intersectionPoint.add(ray->Initial);
+            VectorOps::vScale(intersectionPoint, ray->direction, depth2);
+            intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -63,29 +63,29 @@ Quadric::intersectQuadric(Ray *ray, Quadric *shape, double *depth1, double *dept
     register double bMinus;
 
     rayQuadricTests++;
-    if (!ray->Quadric_Constants_Cached) {
+    if (!ray->quadricConstantsCached) {
         ray->makeRay();
     }
 
     if (shape->Non_Zero_Square_Term) {
-        squareTerm = shape->Object_2_Terms.dotProduct(ray->Direction_2);
-        tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->Mixed_Dir_Dir);
+        squareTerm = shape->Object_2_Terms.dotProduct(ray->direction2);
+        tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->mixedDirectionDirection);
         squareTerm += tempTerm;
     } else {
         squareTerm = 0.0;
     }
 
-    linearTerm = shape->Object_2_Terms.dotProduct(ray->Initial_Direction);
+    linearTerm = shape->Object_2_Terms.dotProduct(ray->positionDirection);
     linearTerm *= 2.0;
-    tempTerm = shape->Object_Terms.dotProduct(ray->Direction);
+    tempTerm = shape->Object_Terms.dotProduct(ray->direction);
     linearTerm += tempTerm;
-    tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->Mixed_Init_Dir);
+    tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->mixedPositionDirection);
     linearTerm += tempTerm;
 
     if (ray == vpRay) {
         if (!shape->Constant_Cached) {
-            constantTerm = shape->Object_2_Terms.dotProduct(ray->Initial_2);
-            tempTerm = shape->Object_Terms.dotProduct(ray->Initial);
+            constantTerm = shape->Object_2_Terms.dotProduct(ray->position2);
+            tempTerm = shape->Object_Terms.dotProduct(ray->position);
             constantTerm += tempTerm + shape->Object_Constant;
             shape->Object_VP_Constant = constantTerm;
             shape->Constant_Cached = TRUE;
@@ -93,12 +93,12 @@ Quadric::intersectQuadric(Ray *ray, Quadric *shape, double *depth1, double *dept
             constantTerm = shape->Object_VP_Constant;
         }
     } else {
-        constantTerm = shape->Object_2_Terms.dotProduct(ray->Initial_2);
-        tempTerm = shape->Object_Terms.dotProduct(ray->Initial);
+        constantTerm = shape->Object_2_Terms.dotProduct(ray->position2);
+        tempTerm = shape->Object_Terms.dotProduct(ray->position);
         constantTerm += tempTerm + shape->Object_Constant;
     }
 
-    tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->Mixed_Initial_Initial);
+    tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->mixedPositionPosition);
     constantTerm += tempTerm;
 
     if (squareTerm != 0.0) {

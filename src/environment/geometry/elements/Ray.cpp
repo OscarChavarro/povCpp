@@ -22,21 +22,21 @@ Ray::makeRay()
 {
     Vector3Dd tempInitDir;
 
-    VectorOps::vSquareTerms(this->Initial_2, this->Initial);
-    VectorOps::vSquareTerms(this->Direction_2, this->Direction);
-    VectorOps::vEvaluate(this->Initial_Direction, this->Initial, this->Direction);
-    Ray::mixVectorTerms(this->Mixed_Initial_Initial, this->Initial, this->Initial);
-    Ray::mixVectorTerms(this->Mixed_Dir_Dir, this->Direction, this->Direction);
-    Ray::mixVectorTerms(tempInitDir, this->Initial, this->Direction);
-    Ray::mixVectorTerms(this->Mixed_Init_Dir, this->Direction, this->Initial);
-    this->Mixed_Init_Dir.add(tempInitDir);
-    this->Quadric_Constants_Cached = TRUE;
+    VectorOps::vSquareTerms(this->position2, this->position);
+    VectorOps::vSquareTerms(this->direction2, this->direction);
+    VectorOps::vEvaluate(this->positionDirection, this->position, this->direction);
+    Ray::mixVectorTerms(this->mixedPositionPosition, this->position, this->position);
+    Ray::mixVectorTerms(this->mixedDirectionDirection, this->direction, this->direction);
+    Ray::mixVectorTerms(tempInitDir, this->position, this->direction);
+    Ray::mixVectorTerms(this->mixedPositionDirection, this->direction, this->position);
+    this->mixedPositionDirection.add(tempInitDir);
+    this->quadricConstantsCached = TRUE;
 }
 
 void
 Ray::initializeContainers()
 {
-    this->Containing_Index = -1;
+    this->containingIndex = -1;
 }
 
 void
@@ -44,7 +44,7 @@ Ray::copyContainersFrom(Ray *sourceRay)
 {
     register int i;
 
-    if ((this->Containing_Index = sourceRay->Containing_Index) >=
+    if ((this->containingIndex = sourceRay->containingIndex) >=
         MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "ERROR - Containing Index too high\n");
         PovApp::closeAll();
@@ -52,8 +52,8 @@ Ray::copyContainersFrom(Ray *sourceRay)
     }
 
     for (i = 0; i < MAX_CONTAINING_OBJECTS; i++) {
-        this->Containing_Textures[i] = sourceRay->Containing_Textures[i];
-        this->Containing_IORs[i] = sourceRay->Containing_IORs[i];
+        this->containingTextures[i] = sourceRay->containingTextures[i];
+        this->containingIORs[i] = sourceRay->containingIORs[i];
     }
 }
 
@@ -62,20 +62,20 @@ Ray::enterContainingMedium(Texture *texture)
 {
     register int index;
 
-    if ((index = ++(this->Containing_Index)) >= MAX_CONTAINING_OBJECTS) {
+    if ((index = ++(this->containingIndex)) >= MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "Too many nested refracting objects\n");
         PovApp::closeAll();
         exit(1);
     }
 
-    this->Containing_Textures[index] = texture;
-    this->Containing_IORs[index] = texture->Object_Index_Of_Refraction;
+    this->containingTextures[index] = texture;
+    this->containingIORs[index] = texture->Object_Index_Of_Refraction;
 }
 
 void
 Ray::exitContainingMedium()
 {
-    if (--(this->Containing_Index) < -1) {
+    if (--(this->containingIndex) < -1) {
         fprintf(stderr, "Too many exits from refractions\n");
         PovApp::closeAll();
         exit(1);
