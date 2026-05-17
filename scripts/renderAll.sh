@@ -3,141 +3,190 @@ set -euo pipefail
 
 start_time=$(date +%s)
 
-POVRAY_BIN=`pwd`/build/povray
+POVRAY_BIN="$(pwd)/build/povray"
 
 cmake -S . -B build
 cmake --build build
 
+mkdir -p output/level1 output/level2 output/level3 output/math
+
+render_scene() {
+    local output_dir="$1"
+    local scene_file="$2"
+    local include_path="$3"
+    local base_name="${scene_file%.pov}"
+
+    "$POVRAY_BIN" \
+        "+l${include_path}" \
+        "+i${scene_file}" \
+        "+o${output_dir}/${base_name}.tga" \
+        +w1280 +h800 -d -v +x +ft \
+        >"${output_dir}/${base_name}_stdout.log" \
+        2>"${output_dir}/${base_name}_stderr.log" &
+}
+
 cd etc
 cd level1
 cd bumpmap
-"$POVRAY_BIN" +l../../include +ibumpmap.pov +obumpmap.tga +w1280 +h800 -d -v +x +ft &
+render_scene ../../../output/level1 bumpmap.pov ../../include
 cd ..
-"$POVRAY_BIN" +l../include +ialphafun.pov +oalphafun.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iballbox1.pov +oballbox1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ibasicvue.pov +obasicvue.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iblob.pov +oblob.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ibox.pov +obox.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +icantelop.pov +ocantelop.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ichecker2.pov +ochecker2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +icliptst2.pov +ocliptst2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +icolors.pov +ocolors.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +idish.pov +odish.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +idodec2.pov +ododec2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ifogtst.pov +ofogtst.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iglasdish.pov +oglasdish.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iglass.pov +oglass.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iimagetst.pov +oimagetst.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iintee1.pov +ointee1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ilaser.pov +olaser.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +imapper.pov +omapper.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +imappr2.pov +omappr2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +imatmap.pov +omatmap.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipvinterp.pov +opvinterp.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ishapes2.pov +oshapes2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ishapes.pov +oshapes.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ispotlite.pov +ospotlite.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +istone1.pov +ostone1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +istone2.pov +ostone2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +istone3.pov +ostone3.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +istone4.pov +ostone4.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +isunset1.pov +osunset1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +isunset.pov +osunset.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itexture1.pov +otexture1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itexture2.pov +otexture2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itexture3.pov +otexture3.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iwindow.pov +owindow.tga +w1280 +h800 -d -v +x +ft &
+render_scene ../../output/level1 alphafun.pov ../include
+render_scene ../../output/level1 ballbox1.pov ../include
+render_scene ../../output/level1 basicvue.pov ../include
+render_scene ../../output/level1 blob.pov ../include
+render_scene ../../output/level1 box.pov ../include
+render_scene ../../output/level1 cantelop.pov ../include
+render_scene ../../output/level1 checker2.pov ../include
+render_scene ../../output/level1 cliptst2.pov ../include
+render_scene ../../output/level1 colors.pov ../include
+render_scene ../../output/level1 dish.pov ../include
+render_scene ../../output/level1 dodec2.pov ../include
+render_scene ../../output/level1 fogtst.pov ../include
+render_scene ../../output/level1 glasdish.pov ../include
+render_scene ../../output/level1 glass.pov ../include
+render_scene ../../output/level1 imagetst.pov ../include
+render_scene ../../output/level1 intee1.pov ../include
+render_scene ../../output/level1 laser.pov ../include
+render_scene ../../output/level1 mapper.pov ../include
+render_scene ../../output/level1 mappr2.pov ../include
+render_scene ../../output/level1 matmap.pov ../include
+render_scene ../../output/level1 pvinterp.pov ../include
+render_scene ../../output/level1 shapes2.pov ../include
+render_scene ../../output/level1 shapes.pov ../include
+render_scene ../../output/level1 spotlite.pov ../include
+render_scene ../../output/level1 stone1.pov ../include
+render_scene ../../output/level1 stone2.pov ../include
+render_scene ../../output/level1 stone3.pov ../include
+render_scene ../../output/level1 stone4.pov ../include
+render_scene ../../output/level1 sunset1.pov ../include
+render_scene ../../output/level1 sunset.pov ../include
+render_scene ../../output/level1 texture1.pov ../include
+render_scene ../../output/level1 texture2.pov ../include
+render_scene ../../output/level1 texture3.pov ../include
+render_scene ../../output/level1 window.pov ../include
 cd ..
 cd level2
-"$POVRAY_BIN" +l../include +iarches.pov +oarches.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +icluster.pov +ocluster.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +icrystal.pov +ocrystal.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ieight.pov +oeight.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iesp01.pov +oesp01.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ihfclip.pov +ohfclip.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iillum1.pov +oillum1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iillum2.pov +oillum2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iiortest.pov +oiortest.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ilpops1.pov +olpops1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ilpops2.pov +olpops2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +imagglass.pov +omagglass.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +imtmand.pov +omtmand.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipacman.pov +opacman.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipawns.pov +opawns.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iplanet.pov +oplanet.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipoolball.pov +opoolball.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iromo.pov +oromo.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iroom.pov +oroom.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iskyvase.pov +oskyvase.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ismoke.pov +osmoke.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ispline.pov +ospline.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +istonewal.pov +ostonewal.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +isunsethf.pov +osunsethf.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itetra.pov +otetra.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iwaterbow.pov +owaterbow.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iwtorus.pov +owtorus.tga +w1280 +h800 -d -v +x +ft &
+render_scene ../../output/level2 arches.pov ../include
+render_scene ../../output/level2 cluster.pov ../include
+render_scene ../../output/level2 crystal.pov ../include
+render_scene ../../output/level2 eight.pov ../include
+render_scene ../../output/level2 esp01.pov ../include
+render_scene ../../output/level2 hfclip.pov ../include
+render_scene ../../output/level2 illum1.pov ../include
+render_scene ../../output/level2 illum2.pov ../include
+render_scene ../../output/level2 iortest.pov ../include
+render_scene ../../output/level2 lpops1.pov ../include
+render_scene ../../output/level2 lpops2.pov ../include
+render_scene ../../output/level2 magglass.pov ../include
+render_scene ../../output/level2 mtmand.pov ../include
+render_scene ../../output/level2 pacman.pov ../include
+render_scene ../../output/level2 pawns.pov ../include
+render_scene ../../output/level2 planet.pov ../include
+render_scene ../../output/level2 poolball.pov ../include
+render_scene ../../output/level2 romo.pov ../include
+render_scene ../../output/level2 room.pov ../include
+render_scene ../../output/level2 skyvase.pov ../include
+render_scene ../../output/level2 smoke.pov ../include
+render_scene ../../output/level2 spline.pov ../include
+render_scene ../../output/level2 stonewal.pov ../include
+render_scene ../../output/level2 sunsethf.pov ../include
+render_scene ../../output/level2 tetra.pov ../include
+render_scene ../../output/level2 waterbow.pov ../include
+render_scene ../../output/level2 wtorus.pov ../include
 cd ..
 cd level3
 cd car
-"$POVRAY_BIN" +l../../include +icar.pov +ocar.tga +w1280 +h800 -d -v +x +ft &
+render_scene ../../../output/level3 car.pov ../../include
 cd ..
-"$POVRAY_BIN" +l../include +ichess.pov +ochess.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +idesk.pov +odesk.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +idfwood.pov +odfwood.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +idrums.pov +odrums.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ifish13.pov +ofish13.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ifishbowl.pov +ofishbowl.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iionic5.pov +oionic5.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ikscope.pov +okscope.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ilamp.pov +olamp.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +intreal.pov +ontreal.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ioak2.pov +ooak2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipalace.pov +opalace.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipencil.pov +opencil.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipiece1.pov +opiece1.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipiece2.pov +opiece2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipiece3.pov +opiece3.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipool.pov +opool.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iroman.pov +oroman.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +isnack.pov +osnack.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +isnail.pov +osnail.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itakeoff.pov +otakeoff.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iteapot.pov +oteapot.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itomb.pov +otomb.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iwealth.pov +owealth.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iwg5.pov +owg5.tga +w1280 +h800 -d -v +x +ft &
+render_scene ../../output/level3 chess.pov ../include
+render_scene ../../output/level3 desk.pov ../include
+render_scene ../../output/level3 dfwood.pov ../include
+cd drums2
+render_scene ../../../output/level3 drums.pov ../../include
+cd ..
+cd fish13
+render_scene ../../../output/level3 fish13.pov ../../include
+cd ..
+render_scene ../../output/level3 fishbowl.pov ../include
+cd ionic5
+render_scene ../../../output/level3 ionic5.pov ../../include
+cd ..
+render_scene ../../output/level3 kscope.pov ../include
+render_scene ../../output/level3 lamp.pov ../include
+cd ntreal
+render_scene ../../../output/level3 ntreal.pov ../../include
+cd ..
+render_scene ../../output/level3 oak2.pov ../include
+render_scene ../../output/level3 palace.pov ../include
+cd pencil
+render_scene ../../../output/level3 pencil.pov ../../include
+cd ..
+render_scene ../../output/level3 piece1.pov ../include
+cd piece2
+render_scene ../../../output/level3 piece2.pov ../../include
+cd ..
+cd piece3
+render_scene ../../../output/level3 piece3.pov ../../include
+cd ..
+render_scene ../../output/level3 pool.pov ../include
+render_scene ../../output/level3 roman.pov ../include
+render_scene ../../output/level3 snack.pov ../include
+cd snail
+render_scene ../../../output/level3 snail.pov ../../include
+cd ..
+render_scene ../../output/level3 takeoff.pov ../include
+cd teapot
+render_scene ../../../output/level3 teapot.pov ../../include
+cd ..
+render_scene ../../output/level3 tomb.pov ../include
+render_scene ../../output/level3 wealth.pov ../include
+render_scene ../../output/level3 wg5.pov ../include
 cd ..
 cd math
-"$POVRAY_BIN" +l../include +ibezier0.pov +obezier0.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ibezier.pov +obezier.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ibicube.pov +obicube.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ifolium.pov +ofolium.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +igrafbic.pov +ografbic.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ihelix.pov +ohelix.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ihyptorus.pov +ohyptorus.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ilemnisc2.pov +olemnisc2.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ilemnisca.pov +olemnisca.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +imonkey.pov +omonkey.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipartorus.pov +opartorus.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +ipiriform.pov +opiriform.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iquarcyl.pov +oquarcyl.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iquarpara.pov +oquarpara.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +isteiner.pov +osteiner.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itcubic.pov +otcubic.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iteardrop.pov +oteardrop.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itorus.pov +otorus.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +itrough.pov +otrough.tga +w1280 +h800 -d -v +x +ft &
-"$POVRAY_BIN" +l../include +iwitch.pov +owitch.tga +w1280 +h800 -d -v +x +ft &
+render_scene ../../output/math bezier0.pov ../include
+render_scene ../../output/math bezier.pov ../include
+render_scene ../../output/math bicube.pov ../include
+render_scene ../../output/math folium.pov ../include
+render_scene ../../output/math grafbic.pov ../include
+render_scene ../../output/math helix.pov ../include
+render_scene ../../output/math hyptorus.pov ../include
+render_scene ../../output/math lemnisc2.pov ../include
+render_scene ../../output/math lemnisca.pov ../include
+render_scene ../../output/math monkey.pov ../include
+render_scene ../../output/math partorus.pov ../include
+render_scene ../../output/math piriform.pov ../include
+render_scene ../../output/math quarcyl.pov ../include
+render_scene ../../output/math quarpara.pov ../include
+render_scene ../../output/math steiner.pov ../include
+render_scene ../../output/math tcubic.pov ../include
+render_scene ../../output/math teardrop.pov ../include
+render_scene ../../output/math torus.pov ../include
+render_scene ../../output/math trough.pov ../include
+render_scene ../../output/math witch.pov ../include
 cd ..
 
 pids=($(jobs -p))
 failed_jobs=0
+completed_jobs=0
 
 for pid in "${pids[@]}"; do
     if ! wait "$pid"; then
         failed_jobs=$((failed_jobs + 1))
     fi
+
+    completed_jobs=$((completed_jobs + 1))
+    printf "." >&2
+
+    if ((completed_jobs % 50 == 0)); then
+        printf "\n" >&2
+    elif ((completed_jobs % 10 == 0)); then
+        printf " " >&2
+    fi
 done
+
+if ((completed_jobs % 50 != 0)); then
+    printf "\n" >&2
+fi
 
 end_time=$(date +%s)
 elapsed_seconds=$((end_time - start_time))

@@ -8,5 +8,6 @@ find . -type f -name '*.tga' -delete
 find . -type f -name '*~' -delete
 find . -type f -name '#*' -delete
 
-# Remove build directory
+# Remove build and output directories
 rm -rf build
+rm -rf output

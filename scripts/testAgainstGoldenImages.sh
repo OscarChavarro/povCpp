@@ -1,99 +1,50 @@
-diff ./etc/math/grafbic.tga ../referenceTestImages/etc/math/grafbic.tga
-diff ./etc/math/trough.tga ../referenceTestImages/etc/math/trough.tga
-diff ./etc/math/witch.tga ../referenceTestImages/etc/math/witch.tga
-diff ./etc/math/piriform.tga ../referenceTestImages/etc/math/piriform.tga
-diff ./etc/math/lemnisca.tga ../referenceTestImages/etc/math/lemnisca.tga
-diff ./etc/math/hyptorus.tga ../referenceTestImages/etc/math/hyptorus.tga
-diff ./etc/math/bicube.tga ../referenceTestImages/etc/math/bicube.tga
-diff ./etc/math/quarpara.tga ../referenceTestImages/etc/math/quarpara.tga
-diff ./etc/math/bezier.tga ../referenceTestImages/etc/math/bezier.tga
-diff ./etc/math/helix.tga ../referenceTestImages/etc/math/helix.tga
-diff ./etc/math/quarcyl.tga ../referenceTestImages/etc/math/quarcyl.tga
-diff ./etc/math/torus.tga ../referenceTestImages/etc/math/torus.tga
-diff ./etc/math/partorus.tga ../referenceTestImages/etc/math/partorus.tga
-diff ./etc/math/monkey.tga ../referenceTestImages/etc/math/monkey.tga
-diff ./etc/math/bezier0.tga ../referenceTestImages/etc/math/bezier0.tga
-diff ./etc/math/tcubic.tga ../referenceTestImages/etc/math/tcubic.tga
-diff ./etc/math/lemnisc2.tga ../referenceTestImages/etc/math/lemnisc2.tga
-diff ./etc/math/folium.tga ../referenceTestImages/etc/math/folium.tga
-diff ./etc/math/teardrop.tga ../referenceTestImages/etc/math/teardrop.tga
-diff ./etc/math/steiner.tga ../referenceTestImages/etc/math/steiner.tga
-diff ./etc/level3/palace.tga ../referenceTestImages/etc/level3/palace.tga
-diff ./etc/level3/snack.tga ../referenceTestImages/etc/level3/snack.tga
-diff ./etc/level3/roman.tga ../referenceTestImages/etc/level3/roman.tga
-diff ./etc/level3/wg5.tga ../referenceTestImages/etc/level3/wg5.tga
-diff ./etc/level3/lamp.tga ../referenceTestImages/etc/level3/lamp.tga
-diff ./etc/level3/oak2.tga ../referenceTestImages/etc/level3/oak2.tga
-diff ./etc/level3/takeoff.tga ../referenceTestImages/etc/level3/takeoff.tga
-diff ./etc/level3/pool.tga ../referenceTestImages/etc/level3/pool.tga
-diff ./etc/level3/tomb.tga ../referenceTestImages/etc/level3/tomb.tga
-diff ./etc/level3/desk.tga ../referenceTestImages/etc/level3/desk.tga
-diff ./etc/level3/dfwood.tga ../referenceTestImages/etc/level3/dfwood.tga
-diff ./etc/level3/wealth.tga ../referenceTestImages/etc/level3/wealth.tga
-diff ./etc/level3/chess.tga ../referenceTestImages/etc/level3/chess.tga
-diff ./etc/level3/piece1.tga ../referenceTestImages/etc/level3/piece1.tga
-diff ./etc/level3/fishbowl.tga ../referenceTestImages/etc/level3/fishbowl.tga
-diff ./etc/level3/kscope.tga ../referenceTestImages/etc/level3/kscope.tga
-diff ./etc/level3/car/car.tga ../referenceTestImages/etc/level3/car/car.tga
-diff ./etc/level2/tetra.tga ../referenceTestImages/etc/level2/tetra.tga
-diff ./etc/level2/poolball.tga ../referenceTestImages/etc/level2/poolball.tga
-diff ./etc/level2/mtmand.tga ../referenceTestImages/etc/level2/mtmand.tga
-diff ./etc/level2/wtorus.tga ../referenceTestImages/etc/level2/wtorus.tga
-diff ./etc/level2/spline.tga ../referenceTestImages/etc/level2/spline.tga
-diff ./etc/level2/crystal.tga ../referenceTestImages/etc/level2/crystal.tga
-diff ./etc/level2/pacman.tga ../referenceTestImages/etc/level2/pacman.tga
-diff ./etc/level2/hfclip.tga ../referenceTestImages/etc/level2/hfclip.tga
-diff ./etc/level2/arches.tga ../referenceTestImages/etc/level2/arches.tga
-diff ./etc/level2/skyvase.tga ../referenceTestImages/etc/level2/skyvase.tga
-diff ./etc/level2/magglass.tga ../referenceTestImages/etc/level2/magglass.tga
-diff ./etc/level2/esp01.tga ../referenceTestImages/etc/level2/esp01.tga
-diff ./etc/level2/stonewal.tga ../referenceTestImages/etc/level2/stonewal.tga
-diff ./etc/level2/sunsethf.tga ../referenceTestImages/etc/level2/sunsethf.tga
-diff ./etc/level2/eight.tga ../referenceTestImages/etc/level2/eight.tga
-diff ./etc/level2/waterbow.tga ../referenceTestImages/etc/level2/waterbow.tga
-diff ./etc/level2/illum2.tga ../referenceTestImages/etc/level2/illum2.tga
-diff ./etc/level2/lpops2.tga ../referenceTestImages/etc/level2/lpops2.tga
-diff ./etc/level2/cluster.tga ../referenceTestImages/etc/level2/cluster.tga
-diff ./etc/level2/room.tga ../referenceTestImages/etc/level2/room.tga
-diff ./etc/level2/iortest.tga ../referenceTestImages/etc/level2/iortest.tga
-diff ./etc/level2/illum1.tga ../referenceTestImages/etc/level2/illum1.tga
-diff ./etc/level2/pawns.tga ../referenceTestImages/etc/level2/pawns.tga
-diff ./etc/level2/romo.tga ../referenceTestImages/etc/level2/romo.tga
-diff ./etc/level2/planet.tga ../referenceTestImages/etc/level2/planet.tga
-diff ./etc/level2/smoke.tga ../referenceTestImages/etc/level2/smoke.tga
-diff ./etc/level2/lpops1.tga ../referenceTestImages/etc/level2/lpops1.tga
-diff ./etc/level1/spotlite.tga ../referenceTestImages/etc/level1/spotlite.tga
-diff ./etc/level1/cliptst2.tga ../referenceTestImages/etc/level1/cliptst2.tga
-diff ./etc/level1/shapes.tga ../referenceTestImages/etc/level1/shapes.tga
-diff ./etc/level1/colors.tga ../referenceTestImages/etc/level1/colors.tga
-diff ./etc/level1/glasdish.tga ../referenceTestImages/etc/level1/glasdish.tga
-diff ./etc/level1/stone1.tga ../referenceTestImages/etc/level1/stone1.tga
-diff ./etc/level1/alphafun.tga ../referenceTestImages/etc/level1/alphafun.tga
-diff ./etc/level1/box.tga ../referenceTestImages/etc/level1/box.tga
-diff ./etc/level1/ballbox1.tga ../referenceTestImages/etc/level1/ballbox1.tga
-diff ./etc/level1/texture2.tga ../referenceTestImages/etc/level1/texture2.tga
-diff ./etc/level1/dodec2.tga ../referenceTestImages/etc/level1/dodec2.tga
-diff ./etc/level1/laser.tga ../referenceTestImages/etc/level1/laser.tga
-diff ./etc/level1/sunset1.tga ../referenceTestImages/etc/level1/sunset1.tga
-diff ./etc/level1/stone2.tga ../referenceTestImages/etc/level1/stone2.tga
-diff ./etc/level1/dish.tga ../referenceTestImages/etc/level1/dish.tga
-diff ./etc/level1/texture1.tga ../referenceTestImages/etc/level1/texture1.tga
-diff ./etc/level1/checker2.tga ../referenceTestImages/etc/level1/checker2.tga
-diff ./etc/level1/intee1.tga ../referenceTestImages/etc/level1/intee1.tga
-diff ./etc/level1/stone4.tga ../referenceTestImages/etc/level1/stone4.tga
-diff ./etc/level1/fogtst.tga ../referenceTestImages/etc/level1/fogtst.tga
-diff ./etc/level1/stone3.tga ../referenceTestImages/etc/level1/stone3.tga
-diff ./etc/level1/mapper.tga ../referenceTestImages/etc/level1/mapper.tga
-diff ./etc/level1/shapes2.tga ../referenceTestImages/etc/level1/shapes2.tga
-diff ./etc/level1/pvinterp.tga ../referenceTestImages/etc/level1/pvinterp.tga
-diff ./etc/level1/mappr2.tga ../referenceTestImages/etc/level1/mappr2.tga
-diff ./etc/level1/glass.tga ../referenceTestImages/etc/level1/glass.tga
-diff ./etc/level1/cantelop.tga ../referenceTestImages/etc/level1/cantelop.tga
-diff ./etc/level1/bumpmap/bumpmap.tga ../referenceTestImages/etc/level1/bumpmap/bumpmap.tga
-diff ./etc/level1/blob.tga ../referenceTestImages/etc/level1/blob.tga
-diff ./etc/level1/imagetst.tga ../referenceTestImages/etc/level1/imagetst.tga
-diff ./etc/level1/window.tga ../referenceTestImages/etc/level1/window.tga
-diff ./etc/level1/texture3.tga ../referenceTestImages/etc/level1/texture3.tga
-diff ./etc/level1/matmap.tga ../referenceTestImages/etc/level1/matmap.tga
-diff ./etc/level1/sunset.tga ../referenceTestImages/etc/level1/sunset.tga
-diff ./etc/level1/basicvue.tga ../referenceTestImages/etc/level1/basicvue.tga
+#!/usr/bin/env bash
+set -euo pipefail
+
+output_dir="output"
+reference_dir="../referenceTestImages"
+
+if [[ ! -d "${output_dir}" ]]; then
+    echo "Missing output directory: ${output_dir}" >&2
+    exit 1
+fi
+
+if [[ ! -d "${reference_dir}" ]]; then
+    echo "Missing reference directory: ${reference_dir}" >&2
+    exit 1
+fi
+
+failures=0
+
+while IFS= read -r generated; do
+    rel_path="${generated#${output_dir}/}"
+    reference="${reference_dir}/${rel_path}"
+
+    if [[ ! -f "${reference}" ]]; then
+        echo "Missing reference image: ${reference}" >&2
+        failures=$((failures + 1))
+        continue
+    fi
+
+    if ! diff -q "${generated}" "${reference}" >/dev/null; then
+        echo "Different image: ${rel_path}" >&2
+        failures=$((failures + 1))
+    fi
+done < <(find "${output_dir}" -type f -name '*.tga' | sort)
+
+while IFS= read -r reference; do
+    rel_path="${reference#${reference_dir}/}"
+    generated="${output_dir}/${rel_path}"
+
+    if [[ ! -f "${generated}" ]]; then
+        echo "Missing generated image: ${generated}" >&2
+        failures=$((failures + 1))
+    fi
+done < <(find "${reference_dir}" -type f -name '*.tga' | sort)
+
+if ((failures == 0)); then
+    echo "Test passed."
+else
+    echo "Test failed with ${failures} issue(s)." >&2
+    exit 1
+fi
