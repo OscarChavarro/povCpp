@@ -18,9 +18,10 @@
 #include "media/TxtMap.h"
 #include "media/TxtTest.h"
 #include "render/Render.h"
+#include "render/RenderFrame.h"
 
 extern int traceLevel;
-extern Frame globalFrame;
+extern RenderFrame globalFrame;
 extern unsigned int Options;
 extern int quality;
 extern int shadowTestFlag;

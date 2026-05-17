@@ -15,6 +15,7 @@
 #include "io/Targa.h"
 #include "io/Dump.h"
 #include "render/Render.h"
+#include "render/RenderFrame.h"
 
 #include "geom/Bezier.h"
 #include "geom/Blob.h"
@@ -40,7 +41,7 @@ extern char statFileName[FILE_NAME_LENGTH];
 extern int termCounts[MAX_ORDER + 1];
 extern TokenStruct globalToken;
 
-Frame *parsingFramePtr;
+RenderFrame *parsingFramePtr;
 
 RGBAColorPaletteSpan *constructionMap = nullptr;
 

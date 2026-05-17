@@ -12,40 +12,12 @@
 #include "common/Frame.h"
 #include "common/Matrices.h"
 #include "common/Vector.h"
+#include "RGBAPixel.h"
+#include "RGBAImage.h"
+#include "TextureUtils.h"
 
 extern long callsToNoise;
 extern long callsToDNoise;
-
-/* Types for reading IFF files. */
-class RGBAPixel {
-  public:
-    unsigned short Red, Green, Blue, Alpha;
-};
-
-class ImageLine {
-  public:
-    unsigned char *red, *green, *blue;
-};
-
-class RGBAImage {
-  public:
-    class ImageData {
-      public:
-        ImageLine *rgb_lines;
-        unsigned char **map_lines;
-    };
-
-    double width, height;
-    int iwidth, iheight;
-    int Map_Type;
-    int Interpolation_Type;
-    short Once_Flag;
-    short Use_Colour_Flag;
-    Vector3D Image_Gradient;
-    short Colour_Map_Size;
-    RGBAPixel *Colour_Map;
-    ImageData data;
-};
 
 class Texture {
   public:
@@ -207,25 +179,5 @@ extern void scaleTexture(Texture **Texture_Ptr, Vector3D *Vector);
 
 extern Texture *copyTexture(Texture *Texture);
 extern Texture *getTexture();
-
-class TextureUtils {
-  public:
-    static void computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value);
-    static void initializeNoise(void);
-    static void InitTextureTable(void);
-    static void InitRTable(void);
-    static int R(Vector3D *v);
-    static int Crc16(char *buf, int count);
-    static double Noise(double x, double y, double z);
-    static void DNoise(Vector3D *result, double x, double y, double z);
-    static double cycloidal(double value);
-    static double triangleWave(double value);
-    static double Turbulence(double x, double y, double z, int octaves);
-    static void DTurbulence(Vector3D *result, double x, double y, double z, int octaves);
-    static void translateTexture(Texture **Texture_Ptr, Vector3D *Vector);
-    static void rotateTexture(Texture **Texture_Ptr, Vector3D *Vector);
-    static void scaleTexture(Texture **Texture_Ptr, Vector3D *Vector);
-    static Texture *getTexture();
-};
 
 #endif

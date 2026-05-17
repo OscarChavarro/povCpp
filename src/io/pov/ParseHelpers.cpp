@@ -32,7 +32,7 @@ extern char verboseFormat;
 extern unsigned int Options;
 extern char statFileName[FILE_NAME_LENGTH];
 
-extern Frame *parsingFramePtr;
+extern RenderFrame *parsingFramePtr;
 extern TokenStruct globalToken;
 
 void
