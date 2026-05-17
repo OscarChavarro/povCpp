@@ -38,7 +38,17 @@ add_executable(povray
   src/io/pov/ParseHelpers.cpp
   src/io/pov/PrimitiveParser.cpp
   src/io/pov/TextureParser.cpp
-  src/io/pov/ShapeParser.cpp
+  src/io/pov/SphereParser.cpp
+  src/io/pov/LightSourceParser.cpp
+  src/io/pov/PlaneParser.cpp
+  src/io/pov/TriangleParser.cpp
+  src/io/pov/SmoothTriangleParser.cpp
+  src/io/pov/QuadricParser.cpp
+  src/io/pov/PolyParser.cpp
+  src/io/pov/BicubicPatchParser.cpp
+  src/io/pov/BoxParser.cpp
+  src/io/pov/BlobParser.cpp
+  src/io/pov/HeightFieldParser.cpp
   src/io/pov/ObjectParser.cpp
   src/io/pov/SceneConfigParser.cpp
   src/io/pov/SceneParser.cpp

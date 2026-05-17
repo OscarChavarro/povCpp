@@ -57,73 +57,73 @@ DeclarationParser::parseDeclare()
 
         case SPHERE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseSphere();
+    constantPtr->Constant_Data = (char *)SphereParser::parseSphere();
     constantPtr->Constant_Type = SPHERE_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case PLANE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parsePlane();
+    constantPtr->Constant_Data = (char *)PlaneParser::parsePlane();
     constantPtr->Constant_Type = PLANE_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case TRIANGLE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseTriangle();
+    constantPtr->Constant_Data = (char *)TriangleParser::parseTriangle();
     constantPtr->Constant_Type = TRIANGLE_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case SMOOTH_TRIANGLE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseSmoothTriangle();
+    constantPtr->Constant_Data = (char *)SmoothTriangleParser::parseSmoothTriangle();
     constantPtr->Constant_Type = SMOOTH_TRIANGLE_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case QUADRIC_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseQuadric();
+    constantPtr->Constant_Data = (char *)QuadricParser::parseQuadric();
     constantPtr->Constant_Type = QUADRIC_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case CUBIC_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parsePoly(3);
+    constantPtr->Constant_Data = (char *)PolyParser::parsePoly(3);
     constantPtr->Constant_Type = POLY_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case QUARTIC_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parsePoly(4);
+    constantPtr->Constant_Data = (char *)PolyParser::parsePoly(4);
     constantPtr->Constant_Type = POLY_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case HEIGHT_FIELD_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseHeightField();
+    constantPtr->Constant_Data = (char *)HeightFieldParser::parseHeightField();
     constantPtr->Constant_Type = HEIGHT_FIELD_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case POLY_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parsePoly(0);
+    constantPtr->Constant_Data = (char *)PolyParser::parsePoly(0);
     constantPtr->Constant_Type = POLY_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case BOX_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseBox();
+    constantPtr->Constant_Data = (char *)BoxParser::parseBox();
     constantPtr->Constant_Type = BOX_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case BLOB_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseBlob();
+    constantPtr->Constant_Data = (char *)BlobParser::parseBlob();
     constantPtr->Constant_Type = BLOB_CONSTANT;
     Exit_Flag = TRUE; break;
 
         case BICUBIC_PATCH_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseBicubicPatch();
+    constantPtr->Constant_Data = (char *)BicubicPatchParser::parseBicubicPatch();
     constantPtr->Constant_Type = BICUBIC_PATCH_CONSTANT;
     Exit_Flag = TRUE; break;
 
@@ -206,7 +206,7 @@ DeclarationParser::parseDeclare()
 
         case LIGHT_SOURCE_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)ShapeParser::parseLightSource();
+    constantPtr->Constant_Data = (char *)LightSourceParser::parseLightSource();
     constantPtr->Constant_Type = LIGHT_SOURCE_CONSTANT;
     Exit_Flag = TRUE; break;
 

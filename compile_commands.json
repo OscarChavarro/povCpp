@@ -151,8 +151,58 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
-  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/ShapeParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/ShapeParser.cpp",
-  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/ShapeParser.cpp"
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/SphereParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/SphereParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/SphereParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/LightSourceParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/LightSourceParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/LightSourceParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/PlaneParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/PlaneParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/PlaneParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/TriangleParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/TriangleParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/TriangleParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/SmoothTriangleParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/SmoothTriangleParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/SmoothTriangleParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/QuadricParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/QuadricParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/QuadricParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/PolyParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/PolyParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/PolyParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/BicubicPatchParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/BicubicPatchParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/BicubicPatchParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/BoxParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/BoxParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/BoxParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/BlobParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/BlobParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/BlobParser.cpp"
+},
+{
+  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
+  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/io/pov/HeightFieldParser.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/HeightFieldParser.cpp",
+  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/io/pov/HeightFieldParser.cpp"
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
