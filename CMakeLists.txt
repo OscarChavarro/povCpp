@@ -31,7 +31,16 @@ add_executable(povray
   src/io/Gif.cpp
   src/io/GifDecod.cpp
   src/io/Iff.cpp
-  src/io/Parse.cpp
+  src/io/pov/Parse.cpp
+  src/io/pov/ParseErrorReporter.cpp
+  src/io/pov/ParseHelpers.cpp
+  src/io/pov/PrimitiveParser.cpp
+  src/io/pov/TextureParser.cpp
+  src/io/pov/ShapeParser.cpp
+  src/io/pov/ObjectParser.cpp
+  src/io/pov/SceneConfigParser.cpp
+  src/io/pov/SceneParser.cpp
+  src/io/pov/SceneFactory.cpp
   src/io/Raw.cpp
   src/io/Targa.cpp
   src/io/Tokenize.cpp
