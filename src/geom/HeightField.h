@@ -27,6 +27,9 @@ class HeightField : public Geometry {
     static void rotateHeightfld(SimpleBody *object, Vector3D *vector);
     static void scaleHeightfld(SimpleBody *object, Vector3D *vector);
     static void invertHeightfld(SimpleBody *object);
+    static inline int signInline(double x);
+    static inline double minValue(double x, double y);
+    static inline double maxValue(double x, double y);
 
   private:
     static double getHeightAt(int x, int z, HeightField *hField);

@@ -681,7 +681,9 @@ MapTextures::bilinear(double *corners, double x, double y)
 }
 
 static constexpr int MAX_PTS = 4;
-inline double pythagoreanSq(double a, double b)
+
+inline double
+MapTextures::MapTextures::pythagoreanSq(double a, double b)
 {
     return a * a + b * b;
 }
@@ -703,10 +705,10 @@ MapTextures::normDist(double *corners, double x, double y)
         return (*corners); /* upper left */
     }
 
-    wts[0] = pythagoreanSq(p, q);
-    wts[1] = pythagoreanSq(1 - p, q);
-    wts[2] = pythagoreanSq(p, 1 - q);
-    wts[3] = pythagoreanSq(1 - p, 1 - q);
+    wts[0] = MapTextures::pythagoreanSq(p, q);
+    wts[1] = MapTextures::pythagoreanSq(1 - p, q);
+    wts[2] = MapTextures::pythagoreanSq(p, 1 - q);
+    wts[3] = MapTextures::pythagoreanSq(1 - p, 1 - q);
 
     for (i = 0; i < MAX_PTS; i++) {
         sumInvWts += 1 / wts[i];

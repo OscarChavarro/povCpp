@@ -46,12 +46,14 @@ static constexpr double FUDGE_FACTOR1 = 1.0e11;
 static constexpr double FUDGE_FACTOR2 = -1.0e-5;
 static constexpr double FUDGE_FACTOR3 = 1.0e-7;
 
-inline double absInline(double x)
+inline double
+PolynomialSolver::PolynomialSolver::absInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
-inline double maxInline(double x, double y)
+inline double
+PolynomialSolver::PolynomialSolver::maxInline(double x, double y)
 {
     return (x < y) ? y : x;
 }
@@ -456,7 +458,7 @@ PolynomialSolver::solveCubic(double *x, double *y)
         y[2] = sQ * cos(theta + TWO_PI_43) - an;
         return 3;
     }
-    sQ = pow(sqrt(r2 - q3) + absInline(r), 1.0 / 3.0);
+    sQ = pow(sqrt(r2 - q3) + PolynomialSolver::absInline(r), 1.0 / 3.0);
     if (r < 0) {
         y[0] = (sQ + q / sQ) - an;
     } else {

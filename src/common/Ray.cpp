@@ -8,7 +8,9 @@
 #include "common/Ray.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
-inline void mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c)
+
+inline void
+Ray::mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c)
 {
     a.x = b.x * c.y;
     a.y = b.x * c.z;
@@ -22,10 +24,10 @@ Ray::makeRay()
     VectorOps::vSquareTerms(this->Initial_2, this->Initial);
     VectorOps::vSquareTerms(this->Direction_2, this->Direction);
     VectorOps::vEvaluate(this->Initial_Direction, this->Initial, this->Direction);
-    mixVectorTerms(this->Mixed_Initial_Initial, this->Initial, this->Initial);
-    mixVectorTerms(this->Mixed_Dir_Dir, this->Direction, this->Direction);
-    mixVectorTerms(tempInitDir, this->Initial, this->Direction);
-    mixVectorTerms(this->Mixed_Init_Dir, this->Direction, this->Initial);
+    Ray::mixVectorTerms(this->Mixed_Initial_Initial, this->Initial, this->Initial);
+    Ray::mixVectorTerms(this->Mixed_Dir_Dir, this->Direction, this->Direction);
+    Ray::mixVectorTerms(tempInitDir, this->Initial, this->Direction);
+    Ray::mixVectorTerms(this->Mixed_Init_Dir, this->Direction, this->Initial);
     VectorOps::vAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, tempInitDir);
     this->Quadric_Constants_Cached = TRUE;
 }

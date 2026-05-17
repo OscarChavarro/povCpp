@@ -36,7 +36,9 @@ extern long numberOfPixels, numberOfRays, numberOfPixelsSupersampled;
 
 extern short *hashTable;
 extern unsigned short crctab[256];
-inline unsigned short rand3dInline(int a, int b)
+
+inline unsigned short
+RenderEngine::RenderEngine::rand3dInline(int a, int b)
 {
     return crctab[(int)(hashTable[(int)(hashTable[(int)(a & 0xfff)] ^ b) &
                                   0xfff]) &
@@ -99,9 +101,9 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
 
     Color::makeColor(result, 0.0, 0.0, 0.0);
 
-    jitterX = (rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) / 32768.0 * 0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, globalFrame.Screen_Width, globalFrame.Screen_Height,
         dx + jitterX, dy + jitterY);
@@ -113,10 +115,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
@@ -128,10 +130,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
@@ -142,10 +144,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
@@ -157,10 +159,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
@@ -171,10 +173,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
@@ -185,10 +187,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
@@ -200,10 +202,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
@@ -214,10 +216,10 @@ RenderEngine::supersample(RGBAColor *result, int x, int y, int width, int height
     Color::addColor(result, result, &colour);
     jittOffset += 10;
 
-    jitterX = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
-    jitterY = (rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
+    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) / 32768.0 *
                   0.33333333 -
               0.16666666;
     Frame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
@@ -248,7 +250,7 @@ RenderEngine::readRenderedPart()
     double grey;
 
     maxclr = (double)(1 << colorBits) - 1.0;
-    while ((rc = readLine(
+    while ((rc = DumpFormat::readLine(
                 globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
         if (Options & DISPLAY) {
             for (x = 0; x < globalFrame.Screen_Width; x++) {
@@ -271,7 +273,7 @@ RenderEngine::readRenderedPart()
     firstLine = lineNumber + 1;
 
     if (rc == 0) {
-        closeFile(globalOutputFileHandle);
+        DumpFormat::closeFile(globalOutputFileHandle);
         if (openFile(globalOutputFileHandle, outputFileName,
                 &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                 fileBufferSize, APPEND_MODE) != 1) {
@@ -345,7 +347,7 @@ RenderEngine::startTracing()
     }
 
     if (Options & DISKWRITE) {
-        writeLine(globalOutputFileHandle, previousLine, lastLine - 1);
+        DumpFormat::writeLine(globalOutputFileHandle, previousLine, lastLine - 1);
     }
 }
 
@@ -477,7 +479,7 @@ Frame::outputLine(register int y)
 
     if (Options & DISKWRITE) {
         if (y > firstLine) {
-            writeLine(globalOutputFileHandle, previousLine, y - 1);
+            DumpFormat::writeLine(globalOutputFileHandle, previousLine, y - 1);
         }
     }
 

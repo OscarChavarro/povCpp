@@ -25,42 +25,6 @@ class ParseHelpers {
     static inline void getExpectedToken(int tokenId);
 };
 
-class ParseEngine {
-  public:
-    static void frameInit();
-    static double parseFloat();
-    static void parseVector(Vector3D *givenVector);
-    static void parseCoeffs(int order, double *givenCoeffs);
-    static void parseColour(RGBAColor *givenColour);
-    static RGBAColorPalette *parseColourMap();
-    static Texture *parseTexture();
-    static Geometry *parseSphere();
-    static Geometry *parseLightSource();
-    static Geometry *parsePlane();
-    static Geometry *parseTriangle();
-    static Geometry *parseSmoothTriangle();
-    static Geometry *parseQuadric();
-    static Geometry *parsePoly(int order);
-    static Geometry *parseBox();
-    static Geometry *parseBlob();
-    static Geometry *parseBicubicPatch();
-    static Geometry *parseHeightField();
-    static CSG *parseCsg(int type, SimpleBody *parentObject);
-    static Geometry *parseShape(SimpleBody *object);
-    static SimpleBody *parseObject();
-    static SimpleBody *parseComposite();
-    static void parseFog();
-    static void parseFrame();
-    static void parseViewpoint(Viewpoint *givenVp);
-    static void parseDeclare();
-    static CONSTANT findConstant();
-    static char *getTokenString(TOKEN tokenId);
-    static void parseError(TOKEN tokenId);
-    static void typeError();
-    static void Undeclared();
-};
-
-
 extern double maxTraceLevel;
 extern char verboseFormat;
 extern unsigned int Options;
@@ -104,15 +68,14 @@ ParseHelpers::getExpectedToken(int tokenId)
     }
 }
 
-/* Parse the file into the given frame. */
 void
-Parse(Frame *framePtr)
+ParseEngine::Parse(Frame *framePtr)
 {
     SimpleBody *object;
     parsingFramePtr = framePtr;
 
     degenerateTriangles = FALSE;
-    tokenInit();
+    ParseEngine::tokenInit();
     ParseEngine::frameInit();
     ParseEngine::parseFrame();
     for (object = parsingFramePtr->Objects; object != nullptr;
@@ -127,7 +90,7 @@ Parse(Frame *framePtr)
 }
 
 void
-tokenInit()
+ParseEngine::tokenInit()
 {
     numberOfConstants = 0;
     /*
@@ -157,7 +120,7 @@ ParseFactory::getCompositeObject()
 
     newComposite = new Composite;
     if (newComposite == nullptr) {
-        Error("Out of memory. Cannot allocate object");
+        ParseEngine::Error("Out of memory. Cannot allocate object");
     }
 
     newComposite->Objects = nullptr;
@@ -178,7 +141,7 @@ ParseFactory::getSphereShape()
 
     newShape = new Sphere();
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     VectorOps::makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
@@ -204,7 +167,7 @@ ParseFactory::getLightSourceShape()
 
     newShape = new Light;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
     VectorOps::makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
     VectorOps::makeVector(&(newShape->Points_At), 0.0, 0.0, 1.0);
@@ -230,7 +193,7 @@ ParseFactory::getQuadricShape()
 
     newShape = new Quadric;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     VectorOps::makeVector(&(newShape->Object_2_Terms), 1.0, 1.0, 1.0);
@@ -257,7 +220,7 @@ ParseFactory::getPolyShape(int order)
 
     newShape = new Poly;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     newShape->Type = POLY_TYPE;
@@ -271,7 +234,7 @@ ParseFactory::getPolyShape(int order)
     newShape->Sturm_Flag = 0;
     newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
-        Error("Out of memory. Cannot allocate coefficients for POLY");
+        ParseEngine::Error("Out of memory. Cannot allocate coefficients for POLY");
     }
     for (i = 0; i < termCounts[order]; i++) {
         newShape->Coeffs[i] = 0.0;
@@ -287,7 +250,7 @@ ParseFactory::getBoxShape()
 
     newShape = new Box;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     VectorOps::makeVector(&(newShape->bounds[0]), -1.0, -1.0, -1.0);
@@ -310,7 +273,7 @@ ParseFactory::getBlobShape()
 
     newShape = new Blob;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     newShape->Transform = nullptr;
@@ -331,7 +294,7 @@ BicubicPatch::getBicubicPatchShape()
 
     newShape = new BicubicPatch;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     newShape->Type = BICUBIC_PATCH_TYPE;
@@ -357,7 +320,7 @@ ParseFactory::getHeightFieldShape()
 
     newShape = new HeightField;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
     newShape->bounding_box = ParseFactory::getBoxShape();
     newShape->Map = nullptr;
@@ -378,7 +341,7 @@ ParseFactory::getPlaneShape()
 
     newShape = new InfinitePlane;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
@@ -400,7 +363,7 @@ ParseFactory::getTriangleShape()
 
     newShape = new Triangle;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
@@ -427,7 +390,7 @@ ParseFactory::getSmoothTriangleShape()
 
     newShape = new SmoothTriangle;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
@@ -456,7 +419,7 @@ ParseFactory::getCsgShape()
 
     newShape = new CSG;
     if (newShape == nullptr) {
-        Error("Out of memory. Cannot allocate shape");
+        ParseEngine::Error("Out of memory. Cannot allocate shape");
     }
 
     newShape->Parent_Object = nullptr;
@@ -494,7 +457,7 @@ ParseFactory::getViewpoint()
 
     newViewpoint = new Viewpoint;
     if (newViewpoint == nullptr) {
-        Error("Out of memory. Cannot allocate viewpoint");
+        ParseEngine::Error("Out of memory. Cannot allocate viewpoint");
     }
 
     newViewpoint->initializeDefaults();
@@ -508,7 +471,7 @@ ParseFactory::getColour()
 
     newColour = new RGBAColor;
     if (newColour == nullptr) {
-        Error("Out of memory. Cannot allocate colour");
+        ParseEngine::Error("Out of memory. Cannot allocate colour");
     }
 
     Color::makeColor(newColour, 0.0, 0.0, 0.0);
@@ -522,7 +485,7 @@ ParseFactory::getVector()
 
     newVector = new Vector3D;
     if (newVector == nullptr) {
-        Error("Out of memory. Cannot allocate vector");
+        ParseEngine::Error("Out of memory. Cannot allocate vector");
     }
 
     newVector->x = 0.0;
@@ -538,7 +501,7 @@ ParseFactory::getFloat()
 
     newFloat = new double;
     if (newFloat == nullptr) {
-        Error("Out of memory. Cannot allocate float");
+        ParseEngine::Error("Out of memory. Cannot allocate float");
     }
 
     *newFloat = 0.0;
@@ -728,13 +691,13 @@ static constexpr int MAX_ENTRIES = 20;
 
     newColourMap = new RGBAColorPalette;
     if (newColourMap == nullptr) {
-        Error("Not enough memory for colour map.");
+        ParseEngine::Error("Not enough memory for colour map.");
     }
 
     if (constructionMap == nullptr) {
         constructionMap = new RGBAColorPaletteSpan[MAX_ENTRIES];
         if (constructionMap == nullptr) {
-            Error("Not enough memory for colour map.");
+            ParseEngine::Error("Not enough memory for colour map.");
         }
     }
 
@@ -765,7 +728,7 @@ static constexpr int MAX_ENTRIES = 20;
 
     i++;
     if (i > MAX_ENTRIES) {
-        Error("Colour_Map too long.");
+        ParseEngine::Error("Colour_Map too long.");
     }
     ParseHelpers::getExpectedToken(RIGHT_SQUARE_TOKEN);
     break;
@@ -775,7 +738,7 @@ static constexpr int MAX_ENTRIES = 20;
 
     newColourMap->Colour_Map_Entries = new RGBAColorPaletteSpan[i];
     if (newColourMap == nullptr) {
-        Error("Not enough memory for colour map.");
+        ParseEngine::Error("Not enough memory for colour map.");
     }
 
     for (j = 0; j < i; j++) {
@@ -794,7 +757,7 @@ static constexpr int MAX_ENTRIES = 20;
 }
 
 Texture *
-copyTexture(Texture *texture)
+ParseEngine::ParseEngine::copyTexture(Texture *texture)
 {
     Texture *newTexture;
     Texture *localTexture;
@@ -819,7 +782,7 @@ copyTexture(Texture *texture)
         if (newTexture->Texture_Transformation) {
             newTexture->Texture_Transformation = new Transformation;
             if (newTexture->Texture_Transformation == nullptr) {
-                Error("Out of memory. Cannot allocate texture transformation");
+                ParseEngine::Error("Out of memory. Cannot allocate texture transformation");
             }
             *newTexture->Texture_Transformation =
                 *localTexture->Texture_Transformation;
@@ -866,7 +829,7 @@ ParseEngine::parseTexture()
     case FLOAT_TOKEN:
     Tokenizer::ungetToken();
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Randomness = ParseEngine::parseFloat();
@@ -874,7 +837,7 @@ ParseEngine::parseTexture()
 
     case ONCE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Once_Flag = TRUE;
@@ -882,7 +845,7 @@ ParseEngine::parseTexture()
 
     case TURBULENCE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Turbulence = ParseEngine::parseFloat();
@@ -890,7 +853,7 @@ ParseEngine::parseTexture()
 
     case OCTAVES_TOKEN: /* dmf 02/05 for turb */
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Octaves = (int)ParseEngine::parseFloat();
@@ -904,7 +867,7 @@ ParseEngine::parseTexture()
 
     case BOZO_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = BOZO_TEXTURE;
@@ -912,7 +875,7 @@ ParseEngine::parseTexture()
 
     case MORTAR_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Mortar = ParseEngine::parseFloat();
@@ -923,7 +886,7 @@ ParseEngine::parseTexture()
 
     case BRICK_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = BRICK_TEXTURE;
@@ -949,7 +912,7 @@ ParseEngine::parseTexture()
 
     case CHECKER_TOKEN: if (texture->Constant_Flag)
     {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = CHECKER_TEXTURE;
@@ -975,7 +938,7 @@ ParseEngine::parseTexture()
 
     case CHECKER_TEXTURE_TOKEN: if (texture->Constant_Flag)
     {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = CHECKER_TEXTURE_TEXTURE;
@@ -991,7 +954,7 @@ ParseEngine::parseTexture()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -1018,7 +981,7 @@ ParseEngine::parseTexture()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     {
@@ -1039,7 +1002,7 @@ ParseEngine::parseTexture()
 
     case MARBLE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = MARBLE_TEXTURE;
@@ -1047,7 +1010,7 @@ ParseEngine::parseTexture()
 
     case WOOD_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = WOOD_TEXTURE;
@@ -1055,7 +1018,7 @@ ParseEngine::parseTexture()
 
     case SPOTTED_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = SPOTTED_TEXTURE;
@@ -1063,7 +1026,7 @@ ParseEngine::parseTexture()
 
     case AGATE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = AGATE_TEXTURE;
@@ -1071,7 +1034,7 @@ ParseEngine::parseTexture()
 
     case GRANITE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = GRANITE_TEXTURE;
@@ -1079,7 +1042,7 @@ ParseEngine::parseTexture()
 
     case GRADIENT_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = GRADIENT_TEXTURE;
@@ -1088,7 +1051,7 @@ ParseEngine::parseTexture()
 
     case AMBIENT_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Ambient) = ParseEngine::parseFloat();
@@ -1096,7 +1059,7 @@ ParseEngine::parseTexture()
 
     case BRILLIANCE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Brilliance) = ParseEngine::parseFloat();
@@ -1104,7 +1067,7 @@ ParseEngine::parseTexture()
 
     case ROUGHNESS_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Roughness) = ParseEngine::parseFloat();
@@ -1117,7 +1080,7 @@ ParseEngine::parseTexture()
 
     case PHONGSIZE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_PhongSize) = ParseEngine::parseFloat();
@@ -1130,7 +1093,7 @@ ParseEngine::parseTexture()
 
     case DIFFUSE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Diffuse) = ParseEngine::parseFloat();
@@ -1138,7 +1101,7 @@ ParseEngine::parseTexture()
 
     case SPECULAR_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Specular) = ParseEngine::parseFloat();
@@ -1146,7 +1109,7 @@ ParseEngine::parseTexture()
 
     case PHONG_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Phong) = ParseEngine::parseFloat();
@@ -1154,7 +1117,7 @@ ParseEngine::parseTexture()
 
     case METALLIC_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Metallic_Flag = TRUE;
@@ -1162,7 +1125,7 @@ ParseEngine::parseTexture()
 
     case IOR_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Index_Of_Refraction) = ParseEngine::parseFloat();
@@ -1170,7 +1133,7 @@ ParseEngine::parseTexture()
 
     case REFRACTION_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Refraction) = ParseEngine::parseFloat();
@@ -1178,7 +1141,7 @@ ParseEngine::parseTexture()
 
     case TRANSMIT_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Transmit) = ParseEngine::parseFloat();
@@ -1186,7 +1149,7 @@ ParseEngine::parseTexture()
 
     case REFLECTION_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     (texture->Object_Reflection) = ParseEngine::parseFloat();
@@ -1194,13 +1157,13 @@ ParseEngine::parseTexture()
 
     case IMAGEMAP_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = IMAGEMAP_TEXTURE;
     texture->Image = new RGBAImage;
     if (texture->Image == nullptr) {
-        Error("Out of memory. Cannot allocate imagemap texture");
+        ParseEngine::Error("Out of memory. Cannot allocate imagemap texture");
     }
     VectorOps::makeVector(&texture->Image->Image_Gradient, 1.0, -1.0, 0.0);
     texture->Image->Map_Type = PLANAR_MAP;
@@ -1287,11 +1250,11 @@ ParseEngine::parseTexture()
     case FLOAT_TOKEN:
     reg = (int)(globalToken.Token_Float + 0.01);
     if (texture->Image->Colour_Map == nullptr) {
-        Error("Can't apply ALPHA to a non colour-mapped image\n");
+        ParseEngine::Error("Can't apply ALPHA to a non colour-mapped image\n");
     }
 
     if ((reg < 0) || (reg >= texture->Image->Colour_Map_Size)) {
-        Error("ALPHA colour register value out of range.\n");
+        ParseEngine::Error("ALPHA colour register value out of range.\n");
     }
 
     texture->Image->Colour_Map[reg].Alpha =
@@ -1328,7 +1291,7 @@ ParseEngine::parseTexture()
 
     case WAVES_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = WAVES;
@@ -1349,7 +1312,7 @@ ParseEngine::parseTexture()
 
         case FREQUENCY_TOKEN: if (texture->Constant_Flag)
     {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Frequency = ParseEngine::parseFloat();
@@ -1357,7 +1320,7 @@ ParseEngine::parseTexture()
 
     case PHASE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Phase = ParseEngine::parseFloat();
@@ -1365,7 +1328,7 @@ ParseEngine::parseTexture()
 
     case RIPPLES_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = RIPPLES;
@@ -1374,7 +1337,7 @@ ParseEngine::parseTexture()
 
     case WRINKLES_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = WRINKLES;
@@ -1383,7 +1346,7 @@ ParseEngine::parseTexture()
 
     case BUMPS_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPS;
@@ -1392,7 +1355,7 @@ ParseEngine::parseTexture()
 
     case DENTS_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = DENTS;
@@ -1401,7 +1364,7 @@ ParseEngine::parseTexture()
 
     case TRANSLATE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     ParseEngine::parseVector(&localVector);
@@ -1410,7 +1373,7 @@ ParseEngine::parseTexture()
 
     case ROTATE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     ParseEngine::parseVector(&localVector);
@@ -1419,7 +1382,7 @@ ParseEngine::parseTexture()
 
     case SCALE_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     ParseEngine::parseVector(&localVector);
@@ -1428,7 +1391,7 @@ ParseEngine::parseTexture()
 
     case COLOUR_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Colour1 = ParseFactory::getColour();
@@ -1438,7 +1401,7 @@ ParseEngine::parseTexture()
 
     case COLOUR_MAP_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Colour_Map = ParseEngine::parseColourMap();
@@ -1446,7 +1409,7 @@ ParseEngine::parseTexture()
 
     case ONION_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = ONION_TEXTURE;
@@ -1454,7 +1417,7 @@ ParseEngine::parseTexture()
 
     case LEOPARD_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = LEOPARD_TEXTURE;
@@ -1463,7 +1426,7 @@ ParseEngine::parseTexture()
     /* New Texture Parsing - Cdw */
     case PAINTED1_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED1_TEXTURE;
@@ -1471,7 +1434,7 @@ ParseEngine::parseTexture()
 
     case PAINTED2_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED2_TEXTURE;
@@ -1479,7 +1442,7 @@ ParseEngine::parseTexture()
 
     case PAINTED3_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = PAINTED3_TEXTURE;
@@ -1487,7 +1450,7 @@ ParseEngine::parseTexture()
 
     case BUMPY1_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY1;
@@ -1496,7 +1459,7 @@ ParseEngine::parseTexture()
 
     case BUMPY2_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY2;
@@ -1505,7 +1468,7 @@ ParseEngine::parseTexture()
 
     case BUMPY3_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPY3;
@@ -1514,13 +1477,13 @@ ParseEngine::parseTexture()
 
     case BUMPMAP_TOKEN:
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Bump_Number = BUMPMAP;
     texture->Bump_Image = new RGBAImage;
     if (texture->Bump_Image == nullptr) {
-        Error("Out of memory. Cannot allocate bumpmap texture");
+        ParseEngine::Error("Out of memory. Cannot allocate bumpmap texture");
     }
     VectorOps::makeVector(&texture->Bump_Image->Image_Gradient, 1.0, -1.0, 0.0);
     texture->Bump_Image->Map_Type = PLANAR_MAP;
@@ -1611,13 +1574,13 @@ ParseEngine::parseTexture()
     case MATERIAL_MAP_TOKEN:
 
     if (texture->Constant_Flag) {
-        texture = copyTexture(texture);
+        texture = ParseEngine::copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
     texture->Texture_Number = MATERIAL_MAP_TEXTURE;
     texture->Material_Image = new RGBAImage;
     if (texture->Material_Image == nullptr) {
-        Error("Out of memory. Cannot allocate material map texture");
+        ParseEngine::Error("Out of memory. Cannot allocate material map texture");
     }
     VectorOps::makeVector(&texture->Texture_Gradient, 1.0, -1.0, 0.0);
     texture->Material_Image->Map_Type = PLANAR_MAP;
@@ -1913,7 +1876,7 @@ ParseEngine::parseSphere()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     {
@@ -2019,7 +1982,7 @@ ParseEngine::parsePlane()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2069,7 +2032,7 @@ ParseEngine::parseHeightField()
     localShape = ParseFactory::getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
-        Error("Out of memory. Cannot allocate space for Height Field (1st "
+        ParseEngine::Error("Out of memory. Cannot allocate space for Height Field (1st "
               "message).");
     }
     ParseHelpers::getExpectedToken(STRING_TOKEN);
@@ -2089,7 +2052,7 @@ ParseEngine::parseHeightField()
     localShape = ParseFactory::getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
-        Error("Out of memory. Cannot allocate space for Height Field (1st "
+        ParseEngine::Error("Out of memory. Cannot allocate space for Height Field (1st "
               "message).");
     }
     ParseHelpers::getExpectedToken(STRING_TOKEN);
@@ -2109,7 +2072,7 @@ ParseEngine::parseHeightField()
     localShape = ParseFactory::getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
-        Error("Cannot allocate space for Height Field (1st message).");
+        ParseEngine::Error("Cannot allocate space for Height Field (1st message).");
     }
     ParseHelpers::getExpectedToken(STRING_TOKEN);
     TargaFormat::readTargaImage(image, globalToken.Token_String);
@@ -2180,7 +2143,7 @@ ParseEngine::parseHeightField()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     {
@@ -2294,7 +2257,7 @@ ParseEngine::parseTriangle()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2412,7 +2375,7 @@ ParseEngine::parseSmoothTriangle()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     {
@@ -2526,7 +2489,7 @@ ParseEngine::parseQuadric()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2581,11 +2544,11 @@ ParseEngine::parsePoly(int knownOrder)
     case FLOAT_TOKEN:
     Tokenizer::ungetToken();
     if (localShape != nullptr) {
-        Error("The order of a polynomial may not be specified twice");
+        ParseEngine::Error("The order of a polynomial may not be specified twice");
     }
     order = (int)ParseEngine::parseFloat();
     if (order < 2 || order > MAX_ORDER) {
-        Error("Order of Poly is out of range");
+        ParseEngine::Error("Order of Poly is out of range");
     }
     localShape = ParseFactory::getPolyShape(order);
     break;
@@ -2653,7 +2616,7 @@ ParseEngine::parsePoly(int knownOrder)
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     ObjectUtils::link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
@@ -2766,7 +2729,7 @@ ParseEngine::parseBicubicPatch()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     ObjectUtils::link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
@@ -2875,7 +2838,7 @@ ParseEngine::parseBox()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -2957,7 +2920,7 @@ ParseEngine::parseBlob()
     case COMPONENT_TOKEN:
     blobComponent = new BlobList;
     if (blobComponent == nullptr) {
-        Error("Out of Memory! Cannot allocate blob component");
+        ParseEngine::Error("Out of Memory! Cannot allocate blob component");
     }
     blobComponent->elem.coeffs[2] = ParseEngine::parseFloat();
     blobComponent->elem.radius2 = ParseEngine::parseFloat();
@@ -3033,7 +2996,7 @@ ParseEngine::parseBlob()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
     {
         for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
@@ -3531,7 +3494,7 @@ ParseEngine::parseObject()
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     if (object->Object_Texture == Default_Texture) {
@@ -3551,7 +3514,7 @@ ParseEngine::parseObject()
     break;
 
     case LIGHT_SOURCE_TOKEN:
-    Error("Light source must be defined using new syntax");
+    ParseEngine::Error("Light source must be defined using new syntax");
     break;
 
     case TRANSLATE_TOKEN:
@@ -3941,7 +3904,7 @@ ParseEngine::parseDeclare()
     ParseHelpers::getExpectedToken(IDENTIFIER_TOKEN);
     if ((constantId = ParseEngine::findConstant()) == -1) {
         if (++numberOfConstants >= MAX_CONSTANTS) {
-            Error("Too many constants \"declared\"");
+            ParseEngine::Error("Too many constants \"declared\"");
         } else {
             constantId = numberOfConstants;
         }
@@ -4076,7 +4039,7 @@ ParseEngine::parseDeclare()
     localTexture = Default_Texture;
     localTexture = ParseEngine::parseTexture();
     if (localTexture->Constant_Flag) {
-        localTexture = copyTexture(localTexture);
+        localTexture = ParseEngine::copyTexture(localTexture);
     }
 
     localTexture->Constant_Flag = TRUE;
@@ -4271,7 +4234,7 @@ ParseHelpers::postProcessShape(Geometry *shape)
 }
 
 void
-Error(const char *str)
+ParseEngine::Error(const char *str)
 {
     FILE *statFile;
     fprintf(stderr, "Error in file %s line %d\n", globalToken.Filename,
@@ -4286,4 +4249,16 @@ Error(const char *str)
         fclose(statFile);
     }
     exit(1);
+}
+
+void
+Error(const char *str)
+{
+    ParseEngine::Error(str);
+}
+
+Texture *
+copyTexture(Texture *texture)
+{
+    return ParseEngine::copyTexture(texture);
 }

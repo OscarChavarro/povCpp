@@ -9,6 +9,8 @@ class PolynomialSolver {
     static int solveCubic(double *x, double *y);
     static int solveQuartic(double *x, double *y);
     static int polysolve(int order, double *coeffs, double *roots);
+    static inline double absInline(double x);
+    static inline double maxInline(double x, double y);
 
   private:
     static int modp(class polynomial *u, class polynomial *v, class polynomial *r);

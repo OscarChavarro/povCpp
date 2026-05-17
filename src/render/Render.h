@@ -34,6 +34,7 @@ class RenderEngine {
     static void startTracing(void);
     static void trace(Ray *ray, RGBAColor *colour);
     static void initializeRenderer(void);
+    static inline unsigned short rand3dInline(int a, int b);
 };
 
 #endif
