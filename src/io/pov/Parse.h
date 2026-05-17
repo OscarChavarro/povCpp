@@ -6,6 +6,7 @@
 #include "io/pov/ParseErrorReporter.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/TextureParser.h"
+#include "io/pov/ColorMapParser.h"
 #include "io/pov/SphereParser.h"
 #include "io/pov/LightSourceParser.h"
 #include "io/pov/PlaneParser.h"

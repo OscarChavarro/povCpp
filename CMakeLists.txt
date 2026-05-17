@@ -38,6 +38,7 @@ add_executable(povray
   src/io/pov/ParseHelpers.cpp
   src/io/pov/PrimitiveParser.cpp
   src/io/pov/TextureParser.cpp
+  src/io/pov/ColorMapParser.cpp
   src/io/pov/SphereParser.cpp
   src/io/pov/LightSourceParser.cpp
   src/io/pov/PlaneParser.cpp
