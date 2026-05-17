@@ -25,7 +25,7 @@
 #include "geom/Geometry.h"
 
 FileHandle *
-getDumpFileHandle()
+DumpFormat::getDumpFileHandle()
 {
     FileHandle *handle;
 
@@ -35,23 +35,23 @@ getDumpFileHandle()
         return (nullptr);
     }
 
-    handle->Default_File_Name_p = defaultDumpFileName;
-    handle->Open_File_p = openDumpFile;
-    handle->Write_Line_p = writeDumpLine;
-    handle->Read_Line_p = readDumpLine;
-    handle->Read_Image_p = readDumpImage;
-    handle->Close_File_p = closeDumpFile;
+    handle->Default_File_Name_p = DumpFormat::defaultDumpFileName;
+    handle->Open_File_p = DumpFormat::openDumpFile;
+    handle->Write_Line_p = DumpFormat::writeDumpLine;
+    handle->Read_Line_p = DumpFormat::readDumpLine;
+    handle->Read_Image_p = DumpFormat::readDumpImage;
+    handle->Close_File_p = DumpFormat::closeDumpFile;
     return (handle);
 }
 
 char *
-defaultDumpFileName()
+DumpFormat::defaultDumpFileName()
 {
     return (char *)("data.dis");
 }
 
 int
-openDumpFile(FileHandle *handle, char *name, int *width, int *height,
+DumpFormat::openDumpFile(FileHandle *handle, char *name, int *width, int *height,
     int bufferSize, int mode)
 {
     int data1;
@@ -138,7 +138,7 @@ openDumpFile(FileHandle *handle, char *name, int *width, int *height,
 }
 
 void
-writeDumpLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
+DumpFormat::writeDumpLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
     register int x;
 
@@ -165,7 +165,7 @@ writeDumpLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 }
 
 int
-readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+DumpFormat::readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -211,7 +211,7 @@ readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 }
 
 int
-readDumpIntLine(FileHandle *handle, ImageLine *lineData, int *lineNumber)
+DumpFormat::readDumpIntLine(FileHandle *handle, ImageLine *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -272,7 +272,7 @@ readDumpIntLine(FileHandle *handle, ImageLine *lineData, int *lineNumber)
 }
 
 void
-closeDumpFile(FileHandle *handle)
+DumpFormat::closeDumpFile(FileHandle *handle)
 {
     if (handle->file) {
         fclose(handle->file);
@@ -283,7 +283,7 @@ closeDumpFile(FileHandle *handle)
 }
 
 void
-readDumpImage(RGBAImage *image, char *name)
+DumpFormat::readDumpImage(RGBAImage *image, char *name)
 {
     int rc;
     int row;
@@ -332,7 +332,7 @@ readDumpImage(RGBAImage *image, char *name)
         exit(1);
     }
 
-    while ((rc = readDumpIntLine(&handle, &line, &row)) == 1) {
+    while ((rc = DumpFormat::readDumpIntLine(&handle, &line, &row)) == 1) {
         image->data.rgb_lines[row] = line;
     }
 

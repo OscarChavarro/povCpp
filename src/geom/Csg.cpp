@@ -7,17 +7,17 @@
 
 #include "geom/Csg.h"
 #include "geom/Objects.h"
-Methods CSG_Union_Methods = {objectIntersect, allCsgUnionIntersections,
-    insideCsgUnion, nullptr, copyCsg, translateCsg, rotateCsg, scaleCsg,
-    invertCsg};
+Methods CSG_Union_Methods = {objectIntersect, CSG::allCsgUnionIntersections,
+    CSG::insideCsgUnion, nullptr, CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
+    CSG::invertCsg};
 
 Methods CSG_Intersection_Methods = {objectIntersect,
-    allCsgIntersectIntersections, insideCsgIntersection, nullptr, copyCsg,
-    translateCsg, rotateCsg, scaleCsg, invertCsg};
+    CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr, CSG::copyCsg,
+    CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
 
 extern Ray *vpRay;
 int
-allCsgUnionIntersections(
+CSG::allCsgUnionIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     register int intersectionFound;
@@ -36,7 +36,7 @@ allCsgUnionIntersections(
 }
 
 int
-allCsgIntersectIntersections(
+CSG::allCsgIntersectIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     int intersectionFound;
@@ -47,7 +47,7 @@ allCsgIntersectIntersections(
     PriorityQueueNode *localDepthQueue;
     Intersection *localIntersection;
 
-    localDepthQueue = pqPop(128);
+    localDepthQueue = PriorityQueuePool::pqPop(128);
 
     anyIntersectionFound = FALSE;
 
@@ -87,7 +87,7 @@ allCsgIntersectIntersections(
 }
 
 int
-insideCsgUnion(Vector3D *testPoint, SimpleBody *object)
+CSG::insideCsgUnion(Vector3D *testPoint, SimpleBody *object)
 {
     CSG *shape = (CSG *)object;
     Geometry *localShape;
@@ -103,7 +103,7 @@ insideCsgUnion(Vector3D *testPoint, SimpleBody *object)
 }
 
 int
-insideCsgIntersection(Vector3D *testPoint, SimpleBody *object)
+CSG::insideCsgIntersection(Vector3D *testPoint, SimpleBody *object)
 {
     Geometry *localShape;
     CSG *shape = (CSG *)object;
@@ -120,7 +120,7 @@ insideCsgIntersection(Vector3D *testPoint, SimpleBody *object)
 }
 
 void *
-copyCsg(SimpleBody *object)
+CSG::copyCsg(SimpleBody *object)
 {
     CSG *shape = (CSG *)object;
     CSG *newShape;
@@ -145,7 +145,7 @@ copyCsg(SimpleBody *object)
 }
 
 void
-translateCsg(SimpleBody *object, Vector3D *vector)
+CSG::translateCsg(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -157,7 +157,7 @@ translateCsg(SimpleBody *object, Vector3D *vector)
 }
 
 void
-rotateCsg(SimpleBody *object, Vector3D *vector)
+CSG::rotateCsg(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -169,7 +169,7 @@ rotateCsg(SimpleBody *object, Vector3D *vector)
 }
 
 void
-scaleCsg(SimpleBody *object, Vector3D *vector)
+CSG::scaleCsg(SimpleBody *object, Vector3D *vector)
 {
     Geometry *localShape;
 
@@ -181,7 +181,7 @@ scaleCsg(SimpleBody *object, Vector3D *vector)
 }
 
 void
-invertCsg(SimpleBody *object)
+CSG::invertCsg(SimpleBody *object)
 {
     Geometry *localShape;
     CSG *csg = (CSG *)object;
@@ -202,7 +202,7 @@ invertCsg(SimpleBody *object)
 }
 
 void
-setCsgParents(CSG *shape, SimpleBody *object)
+CSG::setCsgParents(CSG *shape, SimpleBody *object)
 {
     Geometry *localShape;
 
@@ -212,7 +212,7 @@ setCsgParents(CSG *shape, SimpleBody *object)
         localShape->Parent_Object = object;
         if ((localShape->Type == CSG_UNION_TYPE) ||
             (localShape->Type == CSG_INTERSECTION_TYPE)) {
-            setCsgParents((CSG *)localShape, object);
+            CSG::setCsgParents((CSG *)localShape, object);
         }
     }
 }

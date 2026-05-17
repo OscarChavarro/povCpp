@@ -102,7 +102,7 @@ Creates a list with NUMBER_OF_PRIOQS positions, each one holding a dynamic
 array of MAX_NUMBER_OF_INTERSECTIONS Intersections.
 */
 PriorityQueueNode *
-pqInit()
+PriorityQueuePool::pqInit()
 {
     int i;
     PriorityQueueNode *newNode;
@@ -145,7 +145,7 @@ PriorityQueueNode::pushBackToPool()
 }
 
 PriorityQueueNode *
-pqPop(int indexSize)
+PriorityQueuePool::pqPop(int indexSize)
 {
     if (indexSize >= MAX_NUMBER_OF_INTERSECTIONS) {
         indexSize = MAX_NUMBER_OF_INTERSECTIONS - 1;

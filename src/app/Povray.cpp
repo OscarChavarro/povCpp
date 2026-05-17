@@ -146,7 +146,7 @@ PovApp::configureOutputTarget()
     case '\0':
     case 'd':
     case 'D':
-        if ((globalOutputFileHandle = getDumpFileHandle()) == nullptr) {
+        if ((globalOutputFileHandle = DumpFormat::getDumpFileHandle()) == nullptr) {
             closeAll();
             exit(1);
         }
@@ -160,7 +160,7 @@ PovApp::configureOutputTarget()
         break;
     case 't':
     case 'T':
-        if ((globalOutputFileHandle = getTargaFileHandle()) == nullptr) {
+        if ((globalOutputFileHandle = TargaFormat::getTargaFileHandle()) == nullptr) {
             closeAll();
             exit(1);
         }
@@ -182,7 +182,7 @@ PovApp::parseSceneDescription()
 
     printOptions();
 
-    initializeTokenizer(inputFileName);
+    Tokenizer::initializeTokenizer(inputFileName);
     fprintf(stderr, "Parsing...");
     if (Options & VERBOSE_FILE) {
         statFile = fopen(statFileName, "w+t");
@@ -191,7 +191,7 @@ PovApp::parseSceneDescription()
     }
 
     Parse(&globalFrame);
-    terminateTokenizer();
+    Tokenizer::terminateTokenizer();
 }
 
 void
@@ -240,7 +240,7 @@ PovApp::prepareRendering()
         initializeRenderer();
     }
 
-    GLOBAL_priorityQueuesHead = pqInit();
+    GLOBAL_priorityQueuesHead = PriorityQueuePool::pqInit();
     initializeNoise();
 }
 

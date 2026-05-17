@@ -11,19 +11,14 @@
 #include "geom/Blob.h"
 #include "geom/Objects.h"
 #include "media/Vect.h"
-Methods Blob_Methods = {objectIntersect, allBlobIntersections, insideBlob,
-    blobNormal, copyBlob, translateBlob, rotateBlob, scaleBlob,
-    invertBlob};
+Methods Blob_Methods = {objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
+    Blob::blobNormal, Blob::copyBlob, Blob::translateBlob, Blob::rotateBlob, Blob::scaleBlob,
+    Blob::invertBlob};
 
 extern Blob *getBlobShape();
 
 extern Ray *vpRay;
 extern long rayBlobTests, rayBlobTestsSucceeded;
-
-static int determineInfluences(
-    Vector3D *p, Vector3D *d, Blob *blob, DBL mindist);
-static DBL calculateFieldValue(SimpleBody *obj, Vector3D *pos);
-static int validateHit(Blob *blob, Vector3D *p);
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
@@ -92,8 +87,8 @@ MakeBlob(
     components start and stop adding their influence.  It would take
     a very complex blob (with many components along the current ray)
     to warrant the overhead of using a faster sort technique. */
-static int
-determineInfluences(Vector3D *p, Vector3D *d, Blob *blob, DBL mindist)
+int
+Blob::determineInfluences(Vector3D *p, Vector3D *d, Blob *blob, DBL mindist)
 {
     int i;
     int j;
@@ -188,8 +183,8 @@ determineInfluences(Vector3D *p, Vector3D *d, Blob *blob, DBL mindist)
 
 /* Calculate the field value of a blob - the position vector
     "Pos" must already have been transformed into blob space. */
-static DBL
-calculateFieldValue(SimpleBody *obj, Vector3D *pos)
+DBL
+Blob::calculateFieldValue(SimpleBody *obj, Vector3D *pos)
 {
     int i;
     DBL len, density;
@@ -212,8 +207,8 @@ calculateFieldValue(SimpleBody *obj, Vector3D *pos)
 }
 
 /* See if the hit in question really is a hit. */
-static int
-validateHit(Blob *blob, Vector3D *p)
+int
+Blob::validateHit(Blob *blob, Vector3D *p)
 {
     int i;
     BlobElement *temp;
@@ -298,7 +293,7 @@ validateHit(Blob *blob, Vector3D *p)
     root solvers that are available.
 */
 int
-allBlobIntersections(
+Blob::allBlobIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Blob *blob = (Blob *)object;
@@ -323,8 +318,8 @@ allBlobIntersections(
 
     /* Transform the ray into the blob space */
     if (blob->Transform != nullptr) {
-        MInverseTransformVector(&p, &ray->Initial, blob->Transform);
-        MInvTransVector(&d, &ray->Direction, blob->Transform);
+        Transformation::MInverseTransformVector(&p, &ray->Initial, blob->Transform);
+        Transformation::MInvTransVector(&d, &ray->Direction, blob->Transform);
     } else {
         p.x = ray->Initial.x;
         p.y = ray->Initial.y;
@@ -344,7 +339,7 @@ allBlobIntersections(
 
     /* Figure out the intervals along the ray where each
     component of the blob has an effect. */
-    if ((cnt = determineInfluences(&p, &d, blob, 0.01)) == 0) {
+    if ((cnt = Blob::determineInfluences(&p, &d, blob, 0.01)) == 0) {
         /* Ray doesn't hit the sphere of influence of any of
         its component elements */
         return 0;
@@ -400,17 +395,17 @@ allBlobIntersections(
         /* Figure out which root solver to use */
         if (blob->Sturm_Flag == 0) {
             /* Use Ferrari's method */
-            rootCount = solveQuartic(coeffs, &roots[0]);
+            rootCount = PolynomialSolver::solveQuartic(coeffs, &roots[0]);
         } else
             /* Sturm sequences */
             if (fabs(coeffs[0]) < COEFF_LIMIT) {
                 if (fabs(coeffs[1]) < COEFF_LIMIT) {
-                    rootCount = solveQuadratic(&coeffs[2], &roots[0]);
+                    rootCount = PolynomialSolver::solveQuadratic(&coeffs[2], &roots[0]);
                 } else {
-                    rootCount = polysolve(3, &coeffs[1], &roots[0]);
+                    rootCount = PolynomialSolver::polysolve(3, &coeffs[1], &roots[0]);
                 }
             } else {
-                rootCount = polysolve(4, coeffs, &roots[0]);
+                rootCount = PolynomialSolver::polysolve(4, coeffs, &roots[0]);
             }
 
         /* See if any of the roots are valid */
@@ -422,12 +417,12 @@ allBlobIntersections(
                 (dist <= intervals[i + 1].bound)) {
                 VScale(intersectionPoint, d, dist);
                 VAdd(intersectionPoint, intersectionPoint, p);
-                if (true || validateHit(blob, &intersectionPoint)) {
+                if (true || Blob::validateHit(blob, &intersectionPoint)) {
                     /* Only add this hit if it really is near the surface, we
                        can get fooled by numerical inaccuracies */
                     /* Transform the point into world space */
                     if (blob->Transform != nullptr) {
-                        MTransformVector(&intersectionPoint, &intersectionPoint,
+                        Transformation::MTransformVector(&intersectionPoint, &intersectionPoint,
                             blob->Transform);
                     }
                     VSub(dv, intersectionPoint, ray->Initial);
@@ -451,19 +446,19 @@ allBlobIntersections(
 /* Calculate the density at this point, then compare to
     the threshold to see if we are in or out of the blob */
 int
-insideBlob(Vector3D *testPoint, SimpleBody *object)
+Blob::insideBlob(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D newPoint;
     Blob *blob = (Blob *)object;
 
     /* Transform the point into blob space */
     if (blob->Transform != nullptr) {
-        MInverseTransformVector(&newPoint, testPoint, blob->Transform);
+        Transformation::MInverseTransformVector(&newPoint, testPoint, blob->Transform);
     } else {
         newPoint = *testPoint;
     }
 
-    if (calculateFieldValue(object, &newPoint) >
+    if (Blob::calculateFieldValue(object, &newPoint) >
         blob->threshold - INSIDE_TOLERANCE) {
         return ((int)1 - blob->Inverted);
     }
@@ -471,7 +466,7 @@ insideBlob(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-blobNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+Blob::blobNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Vector3D newPoint;
     Vector3D v;
@@ -482,7 +477,7 @@ blobNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 
     /* Transform the point into the blobs space */
     if (blob->Transform != nullptr) {
-        MInverseTransformVector(&newPoint, intersectionPoint, blob->Transform);
+        Transformation::MInverseTransformVector(&newPoint, intersectionPoint, blob->Transform);
     } else {
         newPoint.x = intersectionPoint->x;
         newPoint.y = intersectionPoint->y;
@@ -524,13 +519,13 @@ blobNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 
     /* Transform back to world space */
     if (blob->Transform != nullptr) {
-        MTransNormal(result, result, blob->Transform);
+        Transformation::MTransNormal(result, result, blob->Transform);
     }
     VNormalize(*result, *result);
 }
 
 void *
-copyBlob(SimpleBody *object)
+Blob::copyBlob(SimpleBody *object)
 {
     Blob *blob;
     Blob *oldShape = (Blob *)object;
@@ -555,7 +550,7 @@ copyBlob(SimpleBody *object)
 
     /* Copy any associated transformation */
     if (blob->Transform != nullptr) {
-        tr = getTransformation();
+        tr = Transformation::getTransformation();
         memcpy(tr, blob->Transform, sizeof(Transformation));
         blob->Transform = tr;
     }
@@ -569,49 +564,49 @@ copyBlob(SimpleBody *object)
 }
 
 void
-translateBlob(SimpleBody *object, Vector3D *vector)
+Blob::translateBlob(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
     if (blob->Transform == nullptr) {
-        blob->Transform = getTransformation();
+        blob->Transform = Transformation::getTransformation();
     }
-    getTranslationTransformation(&transform, vector);
-    composeTransformations(blob->Transform, &transform);
+    Transformation::getTranslationTransformation(&transform, vector);
+    Transformation::composeTransformations(blob->Transform, &transform);
 
     translateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-rotateBlob(SimpleBody *object, Vector3D *vector)
+Blob::rotateBlob(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
     if (blob->Transform == nullptr) {
-        blob->Transform = getTransformation();
+        blob->Transform = Transformation::getTransformation();
     }
-    getRotationTransformation(&transform, vector);
-    composeTransformations(blob->Transform, &transform);
+    Transformation::getRotationTransformation(&transform, vector);
+    Transformation::composeTransformations(blob->Transform, &transform);
 
     rotateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-scaleBlob(SimpleBody *object, Vector3D *vector)
+Blob::scaleBlob(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
     if (blob->Transform == nullptr) {
-        blob->Transform = getTransformation();
+        blob->Transform = Transformation::getTransformation();
     }
-    getScalingTransformation(&transform, vector);
-    composeTransformations(blob->Transform, &transform);
+    Transformation::getScalingTransformation(&transform, vector);
+    Transformation::composeTransformations(blob->Transform, &transform);
 
     scaleTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
-invertBlob(SimpleBody *object)
+Blob::invertBlob(SimpleBody *object)
 {
     ((Blob *)object)->Inverted = 1 - ((Blob *)object)->Inverted;
 }

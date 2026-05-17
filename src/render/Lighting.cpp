@@ -35,20 +35,6 @@ extern long transmittedRaysTraced;
     having SHADOW_TOLERANCE as large as this won't affect images. */
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
-static void doLight(Light *lightSource, DBL *lightSourceDepth,
-    Ray *lightSourceRay, Vector3D *intersectionPoint, RGBAColor *lightColour);
-static int doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
-    PriorityQueueNode *localQueue);
-static void doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
-    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-    RGBAColor *surfaceColour);
-static void doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
-    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-    RGBAColor *surfaceColour);
-static void doDiffuse(Texture *texture, Ray *lightSourceRay,
-    Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-    RGBAColor *surfaceColour, DBL attenuation);
-
 void
 perturbNormal(Vector3D *newNormal, Texture *texture,
     Vector3D *intersectionPoint, Vector3D *surfaceNormal)
@@ -64,7 +50,7 @@ perturbNormal(Vector3D *newNormal, Texture *texture,
     }
 
     if (texture->Texture_Transformation) {
-        MInverseTransformVector(&transformedPoint, intersectionPoint,
+        Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
             texture->Texture_Transformation);
     } else {
         transformedPoint = *intersectionPoint;
@@ -77,39 +63,39 @@ perturbNormal(Vector3D *newNormal, Texture *texture,
     switch (texture->Bump_Number) {
 
     case WAVES:
-        waves(x, y, z, texture, newNormal);
+        BumpTextures::waves(x, y, z, texture, newNormal);
         break;
 
     case RIPPLES:
-        ripples(x, y, z, texture, newNormal);
+        BumpTextures::ripples(x, y, z, texture, newNormal);
         break;
 
     case WRINKLES:
-        wrinkles(x, y, z, texture, newNormal);
+        BumpTextures::wrinkles(x, y, z, texture, newNormal);
         break;
 
     case BUMPS:
-        bumps(x, y, z, texture, newNormal);
+        BumpTextures::bumps(x, y, z, texture, newNormal);
         break;
 
     case DENTS:
-        dents(x, y, z, texture, newNormal);
+        BumpTextures::dents(x, y, z, texture, newNormal);
         break;
 
     case BUMPY1:
-        bumpy1(x, y, z, texture, newNormal);
+        TestTextures::bumpy1(x, y, z, texture, newNormal);
         break;
 
     case BUMPY2:
-        bumpy2(x, y, z, texture, newNormal);
+        TestTextures::bumpy2(x, y, z, texture, newNormal);
         break;
 
     case BUMPY3:
-        bumpy3(x, y, z, texture, newNormal);
+        TestTextures::bumpy3(x, y, z, texture, newNormal);
         break;
 
     case BUMPMAP:
-        bumpMap(x, y, z, texture, newNormal);
+        MapTextures::bumpMap(x, y, z, texture, newNormal);
         break;
     }
 }
@@ -158,13 +144,13 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
         rEye.z = -eye->Direction.z;
     }
 
-    localQueue = pqPop(128);
+    localQueue = PriorityQueuePool::pqPop(128);
 
     for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
          lightSource = lightSource->Next_Light_Source) {
         intersectionFound = FALSE;
 
-        doLight(lightSource, &lightSourceDepth, &lightSourceRay,
+        LightingEngine::doLight(lightSource, &lightSourceDepth, &lightSourceRay,
             intersectionPoint, &lightColour);
 
         /* What objects does this ray intersect? */
@@ -186,7 +172,7 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
 
                         /* Does the object not cast a shadow? */
                         if (!localIntersection->Object->No_Shadow_Flag) {
-                            if (doBlocking(localIntersection, &lightColour,
+                            if (LightingEngine::doBlocking(localIntersection, &lightColour,
                                     localQueue)) {
                                 intersectionFound = TRUE;
                                 break;
@@ -207,17 +193,17 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
 
         if (!intersectionFound) {
             if (texture->Object_Phong > 0.0) { /* Phong Hilite */
-                doPhong(texture, &lightSourceRay, eye->Direction, surfaceNormal,
+                LightingEngine::doPhong(texture, &lightSourceRay, eye->Direction, surfaceNormal,
                     colour, &lightColour, surfaceColour);
             }
 
             if (texture->Object_Specular > 0.0) { /* Specular Hilite */
-                doSpecular(texture, &lightSourceRay, rEye, surfaceNormal,
+                LightingEngine::doSpecular(texture, &lightSourceRay, rEye, surfaceNormal,
                     colour, &lightColour, surfaceColour);
             }
 
             if (texture->Object_Diffuse > 0.0) { /* Normal Diffuse Illum. */
-                doDiffuse(texture, &lightSourceRay, surfaceNormal, colour,
+                LightingEngine::doDiffuse(texture, &lightSourceRay, surfaceNormal, colour,
                     &lightColour, surfaceColour, attenuation);
             }
         }
@@ -225,8 +211,8 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
     localQueue->pushBackToPool();
 }
 
-static void
-doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
+void
+LightingEngine::doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
     Vector3D *intersectionPoint, RGBAColor *lightColour)
 {
     DBL attenuation = 1.0;
@@ -248,7 +234,7 @@ doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
     VScale(lightSourceRay->Direction, lightSourceRay->Direction,
         1.0 / (*lightSourceDepth));
 
-    attenuation = attenuateLight(lightSource, lightSourceRay);
+    attenuation = Light::attenuateLight(lightSource, lightSourceRay);
 
     /* Now scale the color by the attenuation */
     lightColour->Red *= attenuation;
@@ -256,8 +242,8 @@ doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
     lightColour->Blue *= attenuation;
 }
 
-static int
-doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
+int
+LightingEngine::doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
     PriorityQueueNode *localQueue)
 {
     shadowRaysSucceeded++;
@@ -275,8 +261,8 @@ doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
     return FALSE;
 }
 
-static void
-doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
+void
+LightingEngine::doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
     Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
     RGBAColor *surfaceColour)
 {
@@ -330,8 +316,8 @@ doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
     }
 }
 
-static void
-doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
+void
+LightingEngine::doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
     Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
     RGBAColor *surfaceColour)
 {
@@ -372,8 +358,8 @@ doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
     }
 }
 
-static void
-doDiffuse(Texture *texture, Ray *lightSourceRay, Vector3D *surfaceNormal,
+void
+LightingEngine::doDiffuse(Texture *texture, Ray *lightSourceRay, Vector3D *surfaceNormal,
     RGBAColor *colour, RGBAColor *lightColour, RGBAColor *surfaceColour,
     DBL attenuation)
 {
@@ -431,7 +417,7 @@ Reflect(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         VScale(surfaceOffset, newRay.Direction, 2.0 * Small_Tolerance);
         VAdd(newRay.Initial, newRay.Initial, surfaceOffset);
 
-        copyRayContainers(&newRay, ray);
+        newRay.copyContainersFrom(ray);
         traceLevel++;
         Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.Quadric_Constants_Cached = FALSE;
@@ -460,7 +446,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         newRay.Initial = *intersectionPoint;
         newRay.Direction = ray->Direction;
 
-        copyRayContainers(&newRay, ray);
+        newRay.copyContainersFrom(ray);
         traceLevel++;
         transmittedRaysTraced++;
         Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
@@ -482,11 +468,11 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
             VScale(localNormal, *surfaceNormal, -1.0);
         }
 
-        copyRayContainers(&newRay, ray);
+        newRay.copyContainersFrom(ray);
 
         if (ray->Containing_Index == -1) {
             /* The ray is entering from the atmosphere */
-            rayEnter(&newRay, texture);
+            newRay.enterContainingMedium(texture);
             ior = (globalFrame.Atmosphere_IOR) /
                   (texture->Object_Index_Of_Refraction);
         } else {
@@ -508,7 +494,7 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
             } else {
                 /* The ray is entering a new object */
                 tempIor = newRay.Containing_IORs[newRay.Containing_Index];
-                rayEnter(&newRay, texture);
+                newRay.enterContainingMedium(texture);
 
                 ior = tempIor / (texture->Object_Index_Of_Refraction);
             }
@@ -649,7 +635,7 @@ determineSurfaceColour(
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
-        texture = materialMap(&rayIntersection->Point, texture);
+        texture = MapTextures::materialMap(&rayIntersection->Point, texture);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
@@ -677,7 +663,7 @@ determineSurfaceColour(
                 Color::makeColor(&surfaceColour, 0.5, 0.5, 0.5);
             }
         } else {
-            colourAt(&surfaceColour, tempTexture, &rayIntersection->Point);
+            ColorTextures::colourAt(&surfaceColour, tempTexture, &rayIntersection->Point);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */

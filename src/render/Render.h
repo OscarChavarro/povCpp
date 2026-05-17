@@ -16,6 +16,15 @@ class Frame {
     DBL Atmosphere_IOR, Antialias_Threshold;
     DBL Fog_Distance;
     RGBAColor Fog_Colour;
+
+  private:
+    static void createRay(Ray *ray, int width, int height, DBL x, DBL y);
+    static void checkStats(int y);
+    static void doAntiAliasing(int x, int y, RGBAColor *color);
+    static void outputLine(int y);
+
+    friend void Supersample(RGBAColor *result, int x, int y, int Width, int Height);
+    friend void startTracing(void);
 };
 
 extern void readRenderedPart(void);

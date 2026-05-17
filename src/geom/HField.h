@@ -15,18 +15,5 @@ static constexpr int TGA = 2;
 
 extern Methods Height_Field_Methods;
 extern HeightField *getHeightFieldShape(void);
-extern void findHfMinMax(
-    HeightField *H_Field, RGBAImage *Image, int Image_Type);
-extern int allHeightfldIntersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int intersectHeightfld(Ray *Ray, HeightField *H_Field, DBL *Depth);
-extern int insideHeightfld(Vector3D *Test_Point, SimpleBody *Object);
-extern void heightFldNormal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *copyHeightfld(SimpleBody *Object);
-extern void translateHeightfld(SimpleBody *Object, Vector3D *Vector);
-extern void rotateHeightfld(SimpleBody *Object, Vector3D *Vector);
-extern void scaleHeightfld(SimpleBody *Object, Vector3D *Vector);
-extern void invertHeightfld(SimpleBody *Object);
 
 #endif

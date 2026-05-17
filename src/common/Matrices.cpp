@@ -10,7 +10,7 @@
 #include "common/PovProto.h"
 #include "common/Vector.h"
 void
-MZero(MATRIX *result)
+Transformation::MZero(MATRIX *result)
 {
     /* Initialize the matrix to the following values:
     0.0    0.0    0.0    0.0
@@ -29,7 +29,7 @@ MZero(MATRIX *result)
 }
 
 void
-MIdentity(MATRIX *result)
+Transformation::MIdentity(MATRIX *result)
 {
     /* Initialize the matrix to the following values:
     1.0    0.0    0.0    0.0
@@ -52,7 +52,7 @@ MIdentity(MATRIX *result)
 }
 
 void
-MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
+Transformation::MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
 {
     register int i;
     register int j;
@@ -78,7 +78,7 @@ MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
 }
 
 void
-MTranspose(MATRIX *result, MATRIX *matrix1)
+Transformation::MTranspose(MATRIX *result, MATRIX *matrix1)
 {
     register int i;
     register int j;
@@ -98,7 +98,7 @@ MTranspose(MATRIX *result, MATRIX *matrix1)
 }
 
 void
-MTransformVector(
+Transformation::MTransformVector(
     Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
@@ -119,7 +119,7 @@ MTransformVector(
 }
 
 void
-MInverseTransformVector(
+Transformation::MInverseTransformVector(
     Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
@@ -140,7 +140,7 @@ MInverseTransformVector(
 }
 
 void
-MTransVector(Vector3D *result, Vector3D *vector, Transformation *transformation)
+Transformation::MTransVector(Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
     DBL answerArray[4];
@@ -160,7 +160,7 @@ MTransVector(Vector3D *result, Vector3D *vector, Transformation *transformation)
 }
 
 void
-MInvTransVector(
+Transformation::MInvTransVector(
     Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
@@ -181,7 +181,7 @@ MInvTransVector(
 }
 
 void
-MTransNormal(Vector3D *result, Vector3D *vector, Transformation *transformation)
+Transformation::MTransNormal(Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
     DBL answerArray[3];
@@ -201,35 +201,35 @@ MTransNormal(Vector3D *result, Vector3D *vector, Transformation *transformation)
 }
 
 void
-getScalingTransformation(Transformation *result, Vector3D *vector)
+Transformation::getScalingTransformation(Transformation *result, Vector3D *vector)
 {
-    MIdentity((MATRIX *)result->matrix);
+    Transformation::MIdentity((MATRIX *)result->matrix);
     (result->matrix)[0][0] = vector->x;
     (result->matrix)[1][1] = vector->y;
     (result->matrix)[2][2] = vector->z;
 
-    MIdentity((MATRIX *)result->inverse);
+    Transformation::MIdentity((MATRIX *)result->inverse);
     (result->inverse)[0][0] = 1.0 / vector->x;
     (result->inverse)[1][1] = 1.0 / vector->y;
     (result->inverse)[2][2] = 1.0 / vector->z;
 }
 
 void
-getTranslationTransformation(Transformation *transformation, Vector3D *vector)
+Transformation::getTranslationTransformation(Transformation *transformation, Vector3D *vector)
 {
-    MIdentity((MATRIX *)transformation->matrix);
+    Transformation::MIdentity((MATRIX *)transformation->matrix);
     (transformation->matrix)[3][0] = vector->x;
     (transformation->matrix)[3][1] = vector->y;
     (transformation->matrix)[3][2] = vector->z;
 
-    MIdentity((MATRIX *)transformation->inverse);
+    Transformation::MIdentity((MATRIX *)transformation->inverse);
     (transformation->inverse)[3][0] = 0.0 - vector->x;
     (transformation->inverse)[3][1] = 0.0 - vector->y;
     (transformation->inverse)[3][2] = 0.0 - vector->z;
 }
 
 void
-getRotationTransformation(Transformation *transformation, Vector3D *vector)
+Transformation::getRotationTransformation(Transformation *transformation, Vector3D *vector)
 {
     MATRIX matrix;
     Vector3D radianVector;
@@ -241,7 +241,7 @@ getRotationTransformation(Transformation *transformation, Vector3D *vector)
     register DBL sinz;
 
     VScale(radianVector, *vector, M_PI / 180.0);
-    MIdentity((MATRIX *)transformation->matrix);
+    Transformation::MIdentity((MATRIX *)transformation->matrix);
     cosx = cos(radianVector.x);
     sinx = sin(radianVector.x);
     cosy = cos(radianVector.y);
@@ -253,47 +253,47 @@ getRotationTransformation(Transformation *transformation, Vector3D *vector)
     (transformation->matrix)[2][2] = cosx;
     (transformation->matrix)[1][2] = sinx;
     (transformation->matrix)[2][1] = 0.0 - sinx;
-    MTranspose(
+    Transformation::MTranspose(
         (MATRIX *)transformation->inverse, (MATRIX *)transformation->matrix);
 
-    MIdentity((MATRIX *)matrix);
+    Transformation::MIdentity((MATRIX *)matrix);
     matrix[0][0] = cosy;
     matrix[2][2] = cosy;
     matrix[0][2] = 0.0 - siny;
     matrix[2][0] = siny;
-    MTimes((MATRIX *)transformation->matrix, (MATRIX *)transformation->matrix,
+    Transformation::MTimes((MATRIX *)transformation->matrix, (MATRIX *)transformation->matrix,
         (MATRIX *)matrix);
-    MTranspose((MATRIX *)matrix, (MATRIX *)matrix);
-    MTimes((MATRIX *)transformation->inverse, (MATRIX *)matrix,
+    Transformation::MTranspose((MATRIX *)matrix, (MATRIX *)matrix);
+    Transformation::MTimes((MATRIX *)transformation->inverse, (MATRIX *)matrix,
         (MATRIX *)transformation->inverse);
 
-    MIdentity((MATRIX *)matrix);
+    Transformation::MIdentity((MATRIX *)matrix);
     matrix[0][0] = cosz;
     matrix[1][1] = cosz;
     matrix[0][1] = sinz;
     matrix[1][0] = 0.0 - sinz;
-    MTimes((MATRIX *)transformation->matrix, (MATRIX *)transformation->matrix,
+    Transformation::MTimes((MATRIX *)transformation->matrix, (MATRIX *)transformation->matrix,
         (MATRIX *)matrix);
-    MTranspose((MATRIX *)matrix, (MATRIX *)matrix);
-    MTimes((MATRIX *)transformation->inverse, (MATRIX *)matrix,
+    Transformation::MTranspose((MATRIX *)matrix, (MATRIX *)matrix);
+    Transformation::MTimes((MATRIX *)transformation->inverse, (MATRIX *)matrix,
         (MATRIX *)transformation->inverse);
 }
 
 void
-composeTransformations(
+Transformation::composeTransformations(
     Transformation *originalTransformation, Transformation *newTransformation)
 {
-    MTimes((MATRIX *)originalTransformation->matrix,
+    Transformation::MTimes((MATRIX *)originalTransformation->matrix,
         (MATRIX *)originalTransformation->matrix,
         (MATRIX *)newTransformation->matrix);
 
-    MTimes((MATRIX *)originalTransformation->inverse,
+    Transformation::MTimes((MATRIX *)originalTransformation->inverse,
         (MATRIX *)newTransformation->inverse,
         (MATRIX *)originalTransformation->inverse);
 }
 
 Transformation *
-getTransformation()
+Transformation::getTransformation()
 {
     Transformation *newTransformation;
 
@@ -302,8 +302,8 @@ getTransformation()
         Error("Out of memory. Cannot allocate transformation");
     }
 
-    MIdentity((MATRIX *)&(newTransformation->matrix[0][0]));
-    MIdentity((MATRIX *)&(newTransformation->inverse[0][0]));
+    Transformation::MIdentity((MATRIX *)&(newTransformation->matrix[0][0]));
+    Transformation::MIdentity((MATRIX *)&(newTransformation->inverse[0][0]));
     return (newTransformation);
 }
 

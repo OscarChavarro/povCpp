@@ -454,10 +454,10 @@ translateTexture(Texture **texturePtr, Vector3D *vector)
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = getTransformation();
+                texture->Texture_Transformation = Transformation::getTransformation();
             }
-            getTranslationTransformation(&transformation, vector);
-            composeTransformations(
+            Transformation::getTranslationTransformation(&transformation, vector);
+            Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
                 translateTexture((Texture **)&texture->Colour1, vector);
@@ -534,10 +534,10 @@ rotateTexture(Texture **texturePtr, Vector3D *vector)
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = getTransformation();
+                texture->Texture_Transformation = Transformation::getTransformation();
             }
-            getRotationTransformation(&transformation, vector);
-            composeTransformations(
+            Transformation::getRotationTransformation(&transformation, vector);
+            Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
                 rotateTexture((Texture **)&texture->Colour1, vector);
@@ -567,10 +567,10 @@ scaleTexture(Texture **texturePtr, Vector3D *vector)
             }
 
             if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation = getTransformation();
+                texture->Texture_Transformation = Transformation::getTransformation();
             }
-            getScalingTransformation(&transformation, vector);
-            composeTransformations(
+            Transformation::getScalingTransformation(&transformation, vector);
+            Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
 
             if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {

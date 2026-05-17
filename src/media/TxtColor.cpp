@@ -23,7 +23,7 @@
 static constexpr double COORDINATE_LIMIT = 1.0e17;
 
 void
-colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
+ColorTextures::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
 {
     register DBL x;
     register DBL y;
@@ -39,7 +39,7 @@ colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
         makeVector(&transformedPoint, 0.0, 0.0, 0.0);
     } else {
         if (texture->Texture_Transformation) {
-            MInverseTransformVector(&transformedPoint, intersectionPoint,
+            Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
                 texture->Texture_Transformation);
         } else {
             transformedPoint = *intersectionPoint;
@@ -65,73 +65,73 @@ colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
         break;
 
     case BOZO_TEXTURE:
-        bozo(x, y, z, texture, colour);
+        ColorTextures::bozo(x, y, z, texture, colour);
         break;
 
     case MARBLE_TEXTURE:
-        marble(x, y, z, texture, colour);
+        ColorTextures::marble(x, y, z, texture, colour);
         break;
 
     case WOOD_TEXTURE:
-        wood(x, y, z, texture, colour);
+        ColorTextures::wood(x, y, z, texture, colour);
         break;
 
     case BRICK_TEXTURE:
-        brick(x, y, z, texture, colour);
+        ColorTextures::brick(x, y, z, texture, colour);
         break;
 
     case CHECKER_TEXTURE:
-        checker(x, y, z, texture, colour);
+        ColorTextures::checker(x, y, z, texture, colour);
         break;
 
     case CHECKER_TEXTURE_TEXTURE:
-        checkerTexture(x, y, z, texture, colour);
+        ColorTextures::checkerTexture(x, y, z, texture, colour);
         break;
 
     case SPOTTED_TEXTURE:
-        spotted(x, y, z, texture, colour);
+        ColorTextures::spotted(x, y, z, texture, colour);
         break;
 
     case AGATE_TEXTURE:
-        agate(x, y, z, texture, colour);
+        ColorTextures::agate(x, y, z, texture, colour);
         break;
 
     case GRANITE_TEXTURE:
-        granite(x, y, z, texture, colour);
+        ColorTextures::granite(x, y, z, texture, colour);
         break;
 
     case GRADIENT_TEXTURE:
-        gradient(x, y, z, texture, colour);
+        ColorTextures::gradient(x, y, z, texture, colour);
         break;
 
     case IMAGEMAP_TEXTURE:
-        imageMap(x, y, z, texture, colour);
+        MapTextures::imageMap(x, y, z, texture, colour);
         break;
 
     case ONION_TEXTURE:
-        onion(x, y, z, texture, colour);
+        ColorTextures::onion(x, y, z, texture, colour);
         break;
 
     case LEOPARD_TEXTURE:
-        leopard(x, y, z, texture, colour);
+        ColorTextures::leopard(x, y, z, texture, colour);
         break;
 
     case PAINTED1_TEXTURE:
-        painted1(x, y, z, texture, colour);
+        TestTextures::painted1(x, y, z, texture, colour);
         break;
 
     case PAINTED2_TEXTURE:
-        painted2(x, y, z, texture, colour);
+        TestTextures::painted2(x, y, z, texture, colour);
         break;
 
     case PAINTED3_TEXTURE:
-        painted3(x, y, z, texture, colour);
+        TestTextures::painted3(x, y, z, texture, colour);
         break;
     }
 }
 
 void
-agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     register DBL noise;
     register DBL hue;
@@ -173,7 +173,7 @@ agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     register DBL noise;
     register DBL turb;
@@ -227,7 +227,7 @@ bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-brick(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::brick(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     DBL xr, yr, zr;
 
@@ -255,7 +255,7 @@ brick(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
 
@@ -280,7 +280,7 @@ checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     Vector3D point;
@@ -299,9 +299,9 @@ checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     makeVector(&point, x, y, z);
 
     if (brkindx & 1) {
-        colourAt(colour, ((Texture *)texture->Colour1), &point);
+        ColorTextures::colourAt(colour, ((Texture *)texture->Colour1), &point);
     } else {
-        colourAt(colour, ((Texture *)texture->Colour2), &point);
+        ColorTextures::colourAt(colour, ((Texture *)texture->Colour2), &point);
     }
 }
 
@@ -314,7 +314,7 @@ checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     but Dave Wecker's only supports simple Y axis gradients.
 */
 void
-gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     RGBAColor newColour;
     DBL value = 0.0, turb;
@@ -361,7 +361,7 @@ gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     w/ small scaling values.  Should work with colour maps for pink granite...
 */
 void
-granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     register int i;
     register DBL temp;
@@ -394,7 +394,7 @@ granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     register DBL noise;
     register DBL hue;
@@ -434,7 +434,7 @@ marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     Works with color maps.
 */
 void
-spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     register DBL noise;
     RGBAColor newColour;
@@ -460,7 +460,7 @@ spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     register DBL noise;
     register DBL length;
@@ -514,7 +514,7 @@ wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 /* Two new textures by Scott Taylor LEOPARD & ONION */
 /* SWT 7/18/91 */
 void
-leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
     register DBL noise;
@@ -567,7 +567,7 @@ leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
 /* SWT 7/18/91 */
 void
-onion(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::onion(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
     register DBL noise;

@@ -7,26 +7,26 @@
 
 #include "geom/Light.h"
 #include "geom/Objects.h"
-Methods Point_Methods = {objectIntersect, allPointIntersections,
-    insidePoint, nullptr, copyPoint, translatePoint, rotatePoint,
-    scalePoint, invertPoint};
+Methods Point_Methods = {objectIntersect, Light::allPointIntersections,
+    Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,
+    Light::scalePoint, Light::invertPoint};
 
 extern Light *getLightSourceShape();
 int
-allPointIntersections(
+Light::allPointIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     return (FALSE);
 }
 
 int
-insidePoint(Vector3D *testPoint, SimpleBody *object)
+Light::insidePoint(Vector3D *testPoint, SimpleBody *object)
 {
     return (FALSE);
 }
 
 void *
-copyPoint(SimpleBody *object)
+Light::copyPoint(SimpleBody *object)
 {
     Light *newShape;
 
@@ -42,45 +42,45 @@ copyPoint(SimpleBody *object)
 }
 
 void
-translatePoint(SimpleBody *object, Vector3D *vector)
+Light::translatePoint(SimpleBody *object, Vector3D *vector)
 {
     VAdd(((Light *)object)->Center, ((Light *)object)->Center, *vector);
     VAdd(((Light *)object)->Points_At, ((Light *)object)->Points_At, *vector);
 }
 
 void
-rotatePoint(SimpleBody *object, Vector3D *vector)
+Light::rotatePoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    getRotationTransformation(&transformation, vector);
-    MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
+    Transformation::getRotationTransformation(&transformation, vector);
+    Transformation::MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
         &transformation);
-    MTransformVector(&((Light *)object)->Points_At,
+    Transformation::MTransformVector(&((Light *)object)->Points_At,
         &((Light *)object)->Points_At, &transformation);
 }
 
 void
-scalePoint(SimpleBody *object, Vector3D *vector)
+Light::scalePoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
-    getScalingTransformation(&transformation, vector);
-    MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
+    Transformation::getScalingTransformation(&transformation, vector);
+    Transformation::MTransformVector(&((Light *)object)->Center, &((Light *)object)->Center,
         &transformation);
-    MTransformVector(&((Light *)object)->Points_At,
+    Transformation::MTransformVector(&((Light *)object)->Points_At,
         &((Light *)object)->Points_At, &transformation);
     scaleTexture(&((Light *)object)->Shape_Texture, vector);
 }
 
 void
-invertPoint(SimpleBody *object)
+Light::invertPoint(SimpleBody *object)
 {
     ((Light *)object)->Inverted ^= TRUE;
 }
 
 /* Cubic spline that has tangents of slope 0 at x == low and at x == high.
     For a given value "pos" between low and high the spline value is returned */
-static DBL
-cubicSpline(DBL low, DBL high, DBL pos)
+DBL
+Light::cubicSpline(DBL low, DBL high, DBL pos)
 {
     /* Check to see if the position is within the proper boundaries */
     if (pos < low) {
@@ -101,7 +101,7 @@ cubicSpline(DBL low, DBL high, DBL pos)
 }
 
 DBL
-attenuateLight(Light *lightSource, Ray *lightSourceRay)
+Light::attenuateLight(Light *lightSource, Ray *lightSourceRay)
 {
     DBL len, costheta;
     DBL attenuation = 1.0;
@@ -121,7 +121,7 @@ attenuateLight(Light *lightSource, Ray *lightSourceRay)
                    then do an interpolation of values between the hot center and
                    the direction at which light falls to nothing. */
                 if (lightSource->Radius > 0.0) {
-                    attenuation *= cubicSpline(
+                    attenuation *= Light::cubicSpline(
                         lightSource->Falloff, lightSource->Radius, costheta);
                 }
                 /* printf("Atten: %lg\n", Attenuation); */

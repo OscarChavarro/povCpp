@@ -3,16 +3,19 @@
 
 #include "io/Dump.h"
 
-extern FileHandle *getTargaFileHandle(void);
-extern char *defaultTargaFileName(void);
-extern int openTargaFile(FileHandle *handle, char *name, int *width,
-    int *height, int buffer_size, int mode);
-void writeTargaLine(
-    FileHandle *handle, RGBAColor *line_data, int line_number);
-extern int readTargaLine(
-    FileHandle *handle, RGBAColor *line_data, int *line_number);
-extern void readTargaImage(RGBAImage *Image, char *filename);
-extern void closeTargaFile(FileHandle *handle);
-extern int readTargaIntLine(FileHandle *handle, ImageLine *line_data);
+class TargaFormat {
+  public:
+    static FileHandle *getTargaFileHandle(void);
+    static char *defaultTargaFileName(void);
+    static int openTargaFile(FileHandle *handle, char *name, int *width,
+        int *height, int bufferSize, int mode);
+    static void writeTargaLine(
+        FileHandle *handle, RGBAColor *lineData, int lineNumber);
+    static int readTargaLine(
+        FileHandle *handle, RGBAColor *lineData, int *lineNumber);
+    static void readTargaImage(RGBAImage *image, char *name);
+    static void closeTargaFile(FileHandle *handle);
+    static int readTargaIntLine(FileHandle *handle, ImageLine *lineData);
+};
 
 #endif

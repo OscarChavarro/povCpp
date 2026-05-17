@@ -23,10 +23,9 @@ class Ray {
 
     void makeRay();
     void initializeContainers();
+    void copyContainersFrom(Ray *sourceRay);
+    void enterContainingMedium(Texture *texture);
     void exitContainingMedium();
 };
-
-extern void copyRayContainers(Ray *Dest_Ray, Ray *Source_Ray);
-extern void rayEnter(Ray *ray, Texture *texture);
 
 #endif

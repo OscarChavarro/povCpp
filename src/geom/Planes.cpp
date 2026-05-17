@@ -7,16 +7,16 @@
 
 #include "geom/Planes.h"
 #include "geom/Objects.h"
-Methods Plane_Methods = {objectIntersect, allPlaneIntersections,
-    insidePlane, planeNormal, copyPlane, translatePlane, rotatePlane,
-    scalePlane, invertPlane};
+Methods Plane_Methods = {objectIntersect, InfinitePlane::allPlaneIntersections,
+    InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
+    InfinitePlane::scalePlane, InfinitePlane::invertPlane};
 
 extern InfinitePlane *getPlaneShape();
 
 extern Ray *vpRay;
 extern long rayPlaneTests, rayPlaneTestsSucceeded;
 int
-allPlaneIntersections(
+InfinitePlane::allPlaneIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     InfinitePlane *shape = (InfinitePlane *)object;
@@ -24,7 +24,7 @@ allPlaneIntersections(
     Vector3D intersectionPoint;
     Intersection localElement;
 
-    if (intersectPlane(ray, shape, &depth)) {
+    if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > Small_Tolerance) {
             localElement.Depth = depth;
             localElement.Object = shape->Parent_Object;
@@ -41,7 +41,7 @@ allPlaneIntersections(
 }
 
 int
-intersectPlane(Ray *ray, InfinitePlane *plane, DBL *depth)
+InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, DBL *depth)
 {
     DBL normalDotOrigin, normalDotDirection;
 
@@ -86,7 +86,7 @@ intersectPlane(Ray *ray, InfinitePlane *plane, DBL *depth)
 }
 
 int
-insidePlane(Vector3D *testPoint, SimpleBody *object)
+InfinitePlane::insidePlane(Vector3D *testPoint, SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
     DBL temp;
@@ -96,7 +96,7 @@ insidePlane(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-planeNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+InfinitePlane::planeNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
@@ -104,7 +104,7 @@ planeNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 }
 
 void *
-copyPlane(SimpleBody *object)
+InfinitePlane::copyPlane(SimpleBody *object)
 {
     InfinitePlane *newShape;
 
@@ -120,7 +120,7 @@ copyPlane(SimpleBody *object)
 }
 
 void
-translatePlane(SimpleBody *object, Vector3D *vector)
+InfinitePlane::translatePlane(SimpleBody *object, Vector3D *vector)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
     Vector3D translation;
@@ -132,19 +132,19 @@ translatePlane(SimpleBody *object, Vector3D *vector)
 }
 
 void
-rotatePlane(SimpleBody *object, Vector3D *vector)
+InfinitePlane::rotatePlane(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    getRotationTransformation(&transformation, vector);
-    MTransformVector(&((InfinitePlane *)object)->Normal_Vector,
+    Transformation::getRotationTransformation(&transformation, vector);
+    Transformation::MTransformVector(&((InfinitePlane *)object)->Normal_Vector,
         &((InfinitePlane *)object)->Normal_Vector, &transformation);
 
     rotateTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
 void
-scalePlane(SimpleBody *object, Vector3D *vector)
+InfinitePlane::scalePlane(SimpleBody *object, Vector3D *vector)
 {
     DBL length;
     InfinitePlane *plane = (InfinitePlane *)object;
@@ -161,7 +161,7 @@ scalePlane(SimpleBody *object, Vector3D *vector)
 }
 
 void
-invertPlane(SimpleBody *object)
+InfinitePlane::invertPlane(SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 

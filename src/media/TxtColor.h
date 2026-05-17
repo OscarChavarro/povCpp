@@ -5,22 +5,23 @@
 #include "common/Vector.h"
 #include "media/Texture.h"
 
-extern void colourAt(
-    RGBAColor *Colour, Texture *Texture, Vector3D *Intersection_Point);
-extern void agate(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void bozo(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void brick(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void checker(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void checkerTexture(
-    DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void gradient(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void granite(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void marble(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void spotted(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern void wood(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-/* Two new textures from Scott Taylor ONION & LEOPARD 7/18/91*/
-extern void leopard(
-    DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour); /* SWT 7/18/91 */
-extern void onion(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
+class ColorTextures {
+  public:
+    static void colourAt(
+        RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint);
+    static void agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void brick(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void checkerTexture(
+        DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void onion(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+};
 
 #endif

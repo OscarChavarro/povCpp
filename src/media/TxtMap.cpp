@@ -15,15 +15,12 @@
 
 extern int cylindricalImageMap(
     DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
-extern int torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
 extern int sphericalImageMap(
     DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
 extern int planarImageMap(
     DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
 extern void noInterpolation(
     RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
-extern DBL bilinear(DBL *corners, DBL x, DBL y);
-extern DBL normDist(DBL *corners, DBL x, DBL y);
 extern void interp(
     RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
 extern void imageColourAt(
@@ -47,7 +44,7 @@ B. Specialized shape projection variations by Alexander Enzmann:
 */
 
 void
-imageMap(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+MapTextures::imageMap(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -68,7 +65,7 @@ imageMap(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 /* an intersection point and a texture and returns a new texture based on */
 /* the index/color of that point in an image/materials map. CdW 7/91        */
 Texture *
-materialMap(Vector3D *intersectionPoint, Texture *texture)
+MapTextures::materialMap(Vector3D *intersectionPoint, Texture *texture)
 {
     Vector3D transformedPoint;
     register DBL x;
@@ -85,7 +82,7 @@ materialMap(Vector3D *intersectionPoint, Texture *texture)
     colour.Alpha = 0.0;
 
     if (texture->Texture_Transformation) {
-        MInverseTransformVector(&transformedPoint, intersectionPoint,
+        Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
             texture->Texture_Transformation);
     } else {
         transformedPoint = *intersectionPoint;
@@ -129,7 +126,7 @@ materialMap(Vector3D *intersectionPoint, Texture *texture)
 }
 
 void
-bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+MapTextures::bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     DBL xcoor = 0.0, ycoor = 0.0;
     int index;
@@ -254,7 +251,7 @@ bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 }
 
 void
-imageColourAt(
+MapTextures::imageColourAt(
     RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
 {
     switch (image->Interpolation_Type) {
@@ -270,7 +267,7 @@ imageColourAt(
 /* Map a point (x, y, z) on a cylinder of radius 1, height 1, that has its
     axis of symmetry along the y-axis to the square [0,1]x[0,1]. */
 int
-cylindricalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::cylindricalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
     DBL len, theta;
 
@@ -312,7 +309,7 @@ cylindricalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 
 /* Map a point (x, y, z) on a torus  to a 2-d image. */
 int
-torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
     DBL len, phi, theta;
     DBL r0;
@@ -359,7 +356,7 @@ torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 /* Map a point (x, y, z) on a sphere of radius 1 to a 2-d image. (Or is it the
     other way around?) */
 int
-sphericalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::sphericalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
     DBL len, phi, theta;
 
@@ -415,7 +412,7 @@ sphericalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 /* Return 0 if there is no color at this point (i.e. invisible), return 1
     if a good mapping is found. */
 int
-planarImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::planarImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 {
     if (image->Image_Gradient.x != 0.0) {
         if ((image->Once_Flag) && ((x < 0.0) || (x > 1.0))) {
@@ -452,7 +449,7 @@ planarImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
 
 /* Map returns 1 if no color found (invisible) or 0 if color found */
 int
-map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *xcoor,
+MapTextures::map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *xcoor,
     DBL *ycoor)
 {
     /* determine local object 2-d coords from 3-d coords */
@@ -531,7 +528,7 @@ map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *xcoor,
 }
 
 void
-noInterpolation(
+MapTextures::noInterpolation(
     RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
 {
     ImageLine *line;
@@ -578,7 +575,7 @@ noInterpolation(
 
 /* Interpolate color and alpha values when mapping */
 void
-interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
+MapTextures::interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
 {
     int iycoor;
     int ixcoor;
@@ -667,7 +664,7 @@ interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
 /* Girish T. Hagan in the C Programmer's Journal V 9 No. 8 */
 /* They were adapted for POV-Ray by CdW */
 DBL
-bilinear(DBL *corners, DBL x, DBL y)
+MapTextures::bilinear(DBL *corners, DBL x, DBL y)
 {
     DBL p, q;
     DBL val = 0.0;
@@ -690,7 +687,7 @@ inline DBL pythagoreanSq(DBL a, DBL b)
 }
 
 DBL
-normDist(DBL *corners, DBL x, DBL y)
+MapTextures::normDist(DBL *corners, DBL x, DBL y)
 {
     register int i;
 

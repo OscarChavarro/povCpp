@@ -17,13 +17,13 @@ class Viewpoint {
     Vector3D Sky;
 
     void initializeDefaults();
+    static void *copyViewpoint(SimpleBody *object);
+    static void translateViewpoint(SimpleBody *object, Vector3D *vector);
+    static void rotateViewpoint(SimpleBody *object, Vector3D *vector);
+    static void scaleViewpoint(SimpleBody *object, Vector3D *vector);
 };
 
 extern Methods Viewpoint_Methods;
 extern Viewpoint *getViewpoint(void);
-extern void *copyViewpoint(SimpleBody *Object);
-extern void translateViewpoint(SimpleBody *Object, Vector3D *Vector);
-extern void rotateViewpoint(SimpleBody *Object, Vector3D *Vector);
-extern void scaleViewpoint(SimpleBody *Object, Vector3D *Vector);
 
 #endif

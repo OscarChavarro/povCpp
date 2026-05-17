@@ -18,6 +18,14 @@ class SmoothTriangle : public Geometry {
     short int Degenerate_Flag;
     Vector3D N1, N2, N3, Perp;
     DBL BaseDelta;
+
+    static void smoothTriangleNormal(
+        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+    static void *copySmoothTriangle(SimpleBody *object);
+    static void translateSmoothTriangle(SimpleBody *object, Vector3D *vector);
+    static void rotateSmoothTriangle(SimpleBody *object, Vector3D *vector);
+    static void scaleSmoothTriangle(SimpleBody *object, Vector3D *vector);
+    static void invertSmoothTriangle(SimpleBody *object);
 };
 
 #endif
