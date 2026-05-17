@@ -19,7 +19,7 @@ Methods Smooth_Triangle_Methods = {Composite::objectIntersect, Triangle::allTria
     SmoothTriangle::invertSmoothTriangle};
 
 
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern long rayTriangleTests, rayTriangleTestsSucceeded;
 
 int
@@ -182,7 +182,7 @@ Triangle::computeTriangle(Triangle *triangle)
 
 int
 Triangle::allTriangleIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     Triangle *shape = (Triangle *)object;
     double depth;
@@ -207,7 +207,7 @@ Triangle::allTriangleIntersections(
 }
 
 int
-Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
+Triangle::intersectTriangle(RayWithSegments *ray, Triangle *triangle, double *depth)
 {
     double normalDotOrigin, normalDotDirection;
     double s, t;

@@ -48,7 +48,7 @@ extern long rayPolyTests, rayPolyTestsSucceeded;
 
 int
 PolynomialShape::allPolyIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
     double depths[MAX_ORDER], len;
@@ -59,7 +59,7 @@ PolynomialShape::allPolyIntersections(
     int i;
     int j;
     int intersectionFound;
-    Ray newRay;
+    RayWithSegments newRay;
 
     /* Transform the ray into the polynomial's space */
     if (shape->Transform != nullptr) {
@@ -200,7 +200,7 @@ PolynomialShape::unroll(int order, int index, int *x, int *y, int *z, int *w)
 
 /* Intersection of a ray and an arbitrary polynomial function */
 int
-PolynomialShape::intersect(Ray *ray, int order, double *coeffs, double *depths)
+PolynomialShape::intersect(RayWithSegments *ray, int order, double *coeffs, double *depths)
 {
     MATRIX q;
     double *a, t[MAX_ORDER + 1];
@@ -456,7 +456,7 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
 
 /* Intersection of a ray and a quartic */
 int
-PolynomialShape::intersectQuartic(Ray *ray, PolynomialShape *shape, double *depths)
+PolynomialShape::intersectQuartic(RayWithSegments *ray, PolynomialShape *shape, double *depths)
 {
     double x, y, z, x2, y2, z2, x3, y3, z3, x4, y4, z4;
     double xx, yy, zz, xx2, yy2, zz2, xx3, yy3, zz3, xx4, yy4, zz4;

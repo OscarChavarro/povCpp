@@ -15,7 +15,7 @@ Methods Point_Methods = {Composite::objectIntersect, Light::allPointIntersection
 
 int
 Light::allPointIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     return (FALSE);
 }
@@ -102,7 +102,7 @@ Light::cubicSpline(double low, double high, double pos)
 }
 
 double
-Light::attenuateLight(Light *lightSource, Ray *lightSourceRay)
+Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
 {
     double len, costheta;
     double attenuation = 1.0;

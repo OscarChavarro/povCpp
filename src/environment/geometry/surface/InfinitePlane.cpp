@@ -14,11 +14,11 @@ Methods Plane_Methods = {Composite::objectIntersect, InfinitePlane::allPlaneInte
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
 
 
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern long rayPlaneTests, rayPlaneTestsSucceeded;
 int
 InfinitePlane::allPlaneIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     InfinitePlane *shape = (InfinitePlane *)object;
     double depth;
@@ -42,7 +42,7 @@ InfinitePlane::allPlaneIntersections(
 }
 
 int
-InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, double *depth)
+InfinitePlane::intersectPlane(RayWithSegments *ray, InfinitePlane *plane, double *depth)
 {
     double normalDotOrigin, normalDotDirection;
 

@@ -15,7 +15,7 @@ Methods Sphere_Methods = {Composite::objectIntersect, Sphere::allSphereIntersect
     Sphere::insideSphere, Sphere::sphereNormal, Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
     Sphere::scaleSphere, Sphere::invertSphere};
 
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern long raySphereTests, raySphereTestsSucceeded;
 
 //===========================================================================
@@ -24,7 +24,7 @@ extern long raySphereTests, raySphereTestsSucceeded;
 Study closely this method!
 */
 int
-Sphere::intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2)
+Sphere::intersectSphere(RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
     raySphereTests++;
 
@@ -86,7 +86,7 @@ Sphere::intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2
 
 int
 Sphere::allSphereIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     double depth1, depth2;
     Vector3Dd intersectionPoint;

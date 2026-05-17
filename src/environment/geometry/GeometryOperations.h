@@ -2,7 +2,7 @@
 #define __GEOMETRY_OPERATIONS_H__
 
 #include "common/Transformation.h"
-#include "environment/geometry/elements/Ray.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
 /* Object/shape types */
@@ -40,12 +40,12 @@ class SimpleBody;
 
 class GeometryOperations {
   public:
-    static inline int allIntersections(SimpleBody *x, Ray *y, PriorityQueueNode *z)
+    static inline int allIntersections(SimpleBody *x, RayWithSegments *y, PriorityQueueNode *z)
     {
         return ((*((x)->methods->All_Intersections_Method))(x, y, z));
     }
 
-    static inline Intersection *intersect(SimpleBody *x, Ray *y)
+    static inline Intersection *intersect(SimpleBody *x, RayWithSegments *y)
     {
         return (Intersection *)((*((x)->methods->Intersection_Method))(x, y));
     }

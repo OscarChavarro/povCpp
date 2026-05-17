@@ -51,7 +51,7 @@ double gdx, gdy, gdz;
 double myx, mxz, mzx, myz;
 Intersection *hfIntersection;
 PriorityQueueNode *hfQueue;
-Ray *rRay;
+RayWithSegments *rRay;
 
 double
 HeightField::getHeightAt(int x, int z, HeightField *hField)
@@ -60,7 +60,7 @@ HeightField::getHeightAt(int x, int z, HeightField *hField)
 }
 int
 HeightField::intersectPixel(
-    int x, int z, Ray *ray, HeightField *hField, double height1, double height2)
+    int x, int z, RayWithSegments *ray, HeightField *hField, double height1, double height2)
 {
     Vector3Dd t1V1;
     Vector3Dd t1V2;
@@ -182,7 +182,7 @@ HeightField::intersectPixel(
 }
 
 int
-HeightField::intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *hField,
+HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray, HeightField *hField,
     Vector3Dd *start, Vector3Dd *end)
 {
     double y1, y2;
@@ -314,7 +314,7 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *h
 }
 
 int
-HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end)
+HeightField::intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end)
 {
     Vector3Dd *curr;
     Vector3Dd *next;
@@ -699,11 +699,11 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
 
 int
 HeightField::allHeightfldIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
-    Ray tempRay;
+    RayWithSegments tempRay;
     double depth1, depth2;
     int retVal = FALSE;
     HeightField *hField = (HeightField *)object;

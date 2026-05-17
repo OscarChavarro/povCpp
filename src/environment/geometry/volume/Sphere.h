@@ -17,8 +17,8 @@ class Sphere : public Geometry {
     short VPinside, VPCached, Inverted;
 
     static int allSphereIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int intersectSphere(RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2);
     static int insideSphere(Vector3Dd *point, SimpleBody *object);
     static void sphereNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

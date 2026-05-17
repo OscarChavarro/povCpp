@@ -13,11 +13,11 @@ Methods Quadric_Methods = {Composite::objectIntersect, Quadric::allQuadricInters
     Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
 
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern long rayQuadricTests, rayQuadricTestsSucceeded;
 int
 Quadric::allQuadricIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     Quadric *shape = (Quadric *)object;
     double depth1, depth2;
@@ -51,7 +51,7 @@ Quadric::allQuadricIntersections(
 }
 
 int
-Quadric::intersectQuadric(Ray *ray, Quadric *shape, double *depth1, double *depth2)
+Quadric::intersectQuadric(RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2)
 {
     register double squareTerm;
     register double linearTerm;

@@ -21,8 +21,8 @@ class Triangle : public Geometry {
 
     static int computeTriangle(Triangle *triangle);
     static int allTriangleIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int intersectTriangle(Ray *ray, Triangle *triangle, double *depth);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int intersectTriangle(RayWithSegments *ray, Triangle *triangle, double *depth);
     static int insideTriangle(Vector3Dd *point, SimpleBody *object);
     static void triangleNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

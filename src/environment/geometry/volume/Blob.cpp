@@ -18,7 +18,7 @@ Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, 
     Blob::invertBlob};
 
 
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern long rayBlobTests, rayBlobTestsSucceeded;
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
@@ -295,7 +295,7 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
 */
 int
 Blob::allBlobIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     Blob *blob = (Blob *)object;
     Intersection localElement;

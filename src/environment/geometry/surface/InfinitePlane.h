@@ -14,8 +14,8 @@ class InfinitePlane : public Geometry {
     int VPCached;
 
     static int allPlaneIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int intersectPlane(Ray *ray, InfinitePlane *plane, double *depth);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
+    static int intersectPlane(RayWithSegments *ray, InfinitePlane *plane, double *depth);
     static int insidePlane(Vector3Dd *point, SimpleBody *object);
     static void planeNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

@@ -44,7 +44,7 @@ class ParametricBiCubicPatch : public Geometry {
     static void parametricPartial(Vector3Dd *result, double u, double v, ParametricBiCubicPatch *shape);
     static int subpatchNormal(
         Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *result, double *d);
-    static int intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1,
+    static int intersectSubpatch(int patchType, RayWithSegments *ray, Vector3Dd *v1,
         Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2,
         Vector3Dd *n3, double *depth, Vector3Dd *ip, Vector3Dd *ipNorm);
     static void findAverage(
@@ -54,21 +54,21 @@ class ParametricBiCubicPatch : public Geometry {
     static int flatEnough(ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4]);
     static void parametricBoundingSphere(
         Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radiusSquared);
-    static void parametricSubpatchIntersect(Ray *ray, ParametricBiCubicPatch *shape,
+    static void parametricSubpatchIntersect(RayWithSegments *ray, ParametricBiCubicPatch *shape,
         Vector3Dd (*patch)[4][4], double u0, double u1, double v0, int recursionDepth,
         int *depthCount, double *depths, double *u, double *v);
     static void parametricSplitLeftRight(
         Vector3Dd (*patch)[4][4], Vector3Dd (*left)[4][4], Vector3Dd (*right)[4][4]);
     static void parametricSplitUpDown(
         Vector3Dd (*patch)[4][4], Vector3Dd (*lower)[4][4], Vector3Dd (*upper)[4][4]);
-    static void parametricSubdivider(Ray *ray, ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
+    static void parametricSubdivider(RayWithSegments *ray, ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
         double u0, double u1, double v0, double v1, int recursionDepth, int *depthCount,
         double *depths, double *u, double *v);
     static void parametricTreeDeleter(ParametricPatchNode *node);
     static ParametricPatchNode *parametricTreeBuilder(
         ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], int depth);
     static void parametricTreeWalker(
-        Ray *ray, ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth, int *depthCount, double *depths);
+        RayWithSegments *ray, ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth, int *depthCount, double *depths);
     static ParametricPatchNode *createNewParametricPatchNode();
     static ParametricControlPoints *createParametricControlPointsBlock();
     static ParametricPatchChild *createParametricPatchChildBlock();

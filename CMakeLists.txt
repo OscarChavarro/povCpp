@@ -13,6 +13,7 @@ add_executable(povray
   src/common/Color.cpp
   src/common/Transformation.cpp
   src/environment/geometry/elements/Ray.cpp
+  src/environment/geometry/elements/RayWithSegments.cpp
   src/environment/geometry/surface/parametric/ParametricPatch.cpp
   src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
   src/environment/geometry/surface/parametric/ParametricBiCubicSolver.cpp

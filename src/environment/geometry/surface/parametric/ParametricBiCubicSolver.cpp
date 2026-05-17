@@ -7,11 +7,11 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern int shadowTestFlag;
 
 int
-ParametricBiCubicSolver::intersectParametricBiCubicPatch0(Ray *ray, ParametricBiCubicPatch *shape, double *depths)
+ParametricBiCubicSolver::intersectParametricBiCubicPatch0(RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
@@ -78,7 +78,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(Ray *ray, ParametricBi
 }
 
 int
-ParametricBiCubicSolver::intersectParametricBiCubicPatch1(Ray *ray, ParametricBiCubicPatch *shape, double *depths)
+ParametricBiCubicSolver::intersectParametricBiCubicPatch1(RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
@@ -150,7 +150,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(Ray *ray, ParametricBi
 }
 
 int
-ParametricBiCubicSolver::intersectParametricBiCubicPatch2(Ray *ray, ParametricBiCubicPatch *shape, double *depths)
+ParametricBiCubicSolver::intersectParametricBiCubicPatch2(RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     double uValues[MAX_BICUBIC_INTERSECTIONS];
@@ -163,7 +163,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch2(Ray *ray, ParametricBi
 }
 
 int
-ParametricBiCubicSolver::intersectParametricBiCubicPatch3(Ray *ray, ParametricBiCubicPatch *shape, double *depths)
+ParametricBiCubicSolver::intersectParametricBiCubicPatch3(RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     ParametricBiCubicPatch::parametricTreeWalker(ray, shape, shape->Node_Tree, 0, &cnt, depths);
@@ -171,7 +171,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch3(Ray *ray, ParametricBi
 }
 
 int
-ParametricBiCubicSolver::intersectParametricBiCubicPatch4(Ray *ray, ParametricBiCubicPatch *shape, double *depths)
+ParametricBiCubicSolver::intersectParametricBiCubicPatch4(RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
@@ -275,7 +275,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(Ray *ray, ParametricBi
 
 int
 ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     ParametricBiCubicPatch *shape = (ParametricBiCubicPatch *)object;
     double depths[MAX_BICUBIC_INTERSECTIONS];
