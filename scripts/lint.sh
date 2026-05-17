@@ -77,6 +77,14 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ ! -x "$ROOT_DIR/scripts/compile.sh" ]]; then
+  echo "Missing compile script: $ROOT_DIR/scripts/compile.sh" >&2
+  exit 1
+fi
+
+echo "Regenerating compile_commands.json..."
+"$ROOT_DIR/scripts/compile.sh"
+
 if [[ ! -f "$DB_VISIBLE" ]]; then
   if [[ -f "$DB_FALLBACK" ]]; then
     DB_VISIBLE="$DB_FALLBACK"
