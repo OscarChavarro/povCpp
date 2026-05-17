@@ -28,9 +28,9 @@ class ParseHelpers {
 class ParseEngine {
   public:
     static void frameInit();
-    static DBL parseFloat();
+    static double parseFloat();
     static void parseVector(Vector3D *givenVector);
-    static void parseCoeffs(int order, DBL *givenCoeffs);
+    static void parseCoeffs(int order, double *givenCoeffs);
     static void parseColour(RGBAColor *givenColour);
     static RGBAColorPalette *parseColourMap();
     static Texture *parseTexture();
@@ -61,7 +61,7 @@ class ParseEngine {
 };
 
 
-extern DBL maxTraceLevel;
+extern double maxTraceLevel;
 extern char verboseFormat;
 extern unsigned int Options;
 extern char statFileName[FILE_NAME_LENGTH];
@@ -83,7 +83,7 @@ Frame *parsingFramePtr;
 #include "geom/ViewPnt.h"
 
 extern ReservedWord globalReservedWords[];
-extern DBL antialiasThreshold;
+extern double antialiasThreshold;
 
 extern int termCounts[MAX_ORDER + 1];
 extern TokenStruct globalToken;
@@ -151,7 +151,7 @@ ParseEngine::frameInit()
 
 /* Allocate and initialize a composite object. */
 Composite *
-getCompositeObject()
+ParseFactory::getCompositeObject()
 {
     Composite *newComposite;
 
@@ -172,7 +172,7 @@ getCompositeObject()
 
 /* Allocate and initialize a sphere. */
 Sphere *
-getSphereShape()
+ParseFactory::getSphereShape()
 {
     Sphere *newShape;
 
@@ -181,7 +181,7 @@ getSphereShape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
     newShape->Radius = 1.0;
     newShape->Radius_Squared = 1.0;
     newShape->Inverse_Radius = 1.0;
@@ -198,7 +198,7 @@ getSphereShape()
 /* Allocate and initialize a light source. */
 /* A point light source has no shape, but we'll treat it like it does */
 Light *
-getLightSourceShape()
+ParseFactory::getLightSourceShape()
 {
     Light *newShape;
 
@@ -206,14 +206,14 @@ getLightSourceShape()
     if (newShape == nullptr) {
         Error("Out of memory. Cannot allocate shape");
     }
-    makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
-    makeVector(&(newShape->Points_At), 0.0, 0.0, 1.0);
+    VectorOps::makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->Points_At), 0.0, 0.0, 1.0);
     newShape->Type = POINT_LIGHT_TYPE;
     newShape->methods = &Point_Methods;
     newShape->Next_Object = nullptr;
     newShape->Inverted = FALSE; /* needed so CSG routines don't blow up */
     newShape->Shape_Texture = nullptr;     /* always NULL */
-    newShape->Shape_Colour = getColour(); /* becomes light colour */
+    newShape->Shape_Colour = ParseFactory::getColour(); /* becomes light colour */
     Color::makeColor(newShape->Shape_Colour, 1.0, 1.0, 1.0);
     newShape->Shape_Colour->Alpha = 0.0;
     newShape->Coeff = 10.0;
@@ -224,7 +224,7 @@ getLightSourceShape()
 
 /* Allocate and initialize a quadric surface. */
 Quadric *
-getQuadricShape()
+ParseFactory::getQuadricShape()
 {
     Quadric *newShape;
 
@@ -233,9 +233,9 @@ getQuadricShape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    makeVector(&(newShape->Object_2_Terms), 1.0, 1.0, 1.0);
-    makeVector(&(newShape->Object_Mixed_Terms), 0.0, 0.0, 0.0);
-    makeVector(&(newShape->Object_Terms), 0.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->Object_2_Terms), 1.0, 1.0, 1.0);
+    VectorOps::makeVector(&(newShape->Object_Mixed_Terms), 0.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->Object_Terms), 0.0, 0.0, 0.0);
     newShape->Object_Constant = 1.0;
     newShape->Object_VP_Constant = HUGE_VAL;
     newShape->Constant_Cached = FALSE;
@@ -250,7 +250,7 @@ getQuadricShape()
 
 /* Allocate and initialize a polynomial surface. */
 Poly *
-getPolyShape(int order)
+ParseFactory::getPolyShape(int order)
 {
     Poly *newShape;
     int i;
@@ -269,7 +269,7 @@ getPolyShape(int order)
     newShape->Inverted = 0;
     newShape->Order = order;
     newShape->Sturm_Flag = 0;
-    newShape->Coeffs = new DBL[termCounts[order]];
+    newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
         Error("Out of memory. Cannot allocate coefficients for POLY");
     }
@@ -281,7 +281,7 @@ getPolyShape(int order)
 
 /* Allocate and initialize a box. */
 Box *
-getBoxShape()
+ParseFactory::getBoxShape()
 {
     Box *newShape;
 
@@ -290,8 +290,8 @@ getBoxShape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    makeVector(&(newShape->bounds[0]), -1.0, -1.0, -1.0);
-    makeVector(&(newShape->bounds[1]), 1.0, 1.0, 1.0);
+    VectorOps::makeVector(&(newShape->bounds[0]), -1.0, -1.0, -1.0);
+    VectorOps::makeVector(&(newShape->bounds[1]), 1.0, 1.0, 1.0);
     newShape->Transform = nullptr;
     newShape->Type = BOX_TYPE;
     newShape->Next_Object = nullptr;
@@ -304,7 +304,7 @@ getBoxShape()
 
 /* Allocate a blob. */
 Blob *
-getBlobShape()
+ParseFactory::getBlobShape()
 {
     Blob *newShape;
 
@@ -345,13 +345,13 @@ BicubicPatch::getBicubicPatchShape()
     newShape->Interpolated_Grid = (Vector3D **)nullptr;
     newShape->Interpolated_Normals = (Vector3D **)nullptr;
     newShape->Smooth_Normals = (Vector3D **)nullptr;
-    newShape->Interpolated_D = (DBL **)nullptr;
+    newShape->Interpolated_D = (double **)nullptr;
     return (newShape);
 }
 
 /* Allocate and intialize a Height Field */
 HeightField *
-getHeightFieldShape()
+ParseFactory::getHeightFieldShape()
 {
     HeightField *newShape;
 
@@ -359,7 +359,7 @@ getHeightFieldShape()
     if (newShape == nullptr) {
         Error("Out of memory. Cannot allocate shape");
     }
-    newShape->bounding_box = getBoxShape();
+    newShape->bounding_box = ParseFactory::getBoxShape();
     newShape->Map = nullptr;
     newShape->transformation = Transformation::getTransformation();
     newShape->Type = HEIGHT_FIELD_TYPE;
@@ -372,7 +372,7 @@ getHeightFieldShape()
 
 /* Allocate and initialize a plane. */
 InfinitePlane *
-getPlaneShape()
+ParseFactory::getPlaneShape()
 {
     InfinitePlane *newShape;
 
@@ -381,7 +381,7 @@ getPlaneShape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = PLANE_TYPE;
     newShape->Next_Object = nullptr;
@@ -394,7 +394,7 @@ getPlaneShape()
 
 /* Allocate and initialize a triangle. */
 Triangle *
-getTriangleShape()
+ParseFactory::getTriangleShape()
 {
     Triangle *newShape;
 
@@ -403,10 +403,10 @@ getTriangleShape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
-    makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
-    makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
-    makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Inverted = FALSE;
     newShape->Type = TRIANGLE_TYPE;
@@ -421,7 +421,7 @@ getTriangleShape()
 
 /* Allocate and initialize a smooth triangle. */
 SmoothTriangle *
-getSmoothTriangleShape()
+ParseFactory::getSmoothTriangleShape()
 {
     SmoothTriangle *newShape;
 
@@ -430,13 +430,13 @@ getSmoothTriangleShape()
         Error("Out of memory. Cannot allocate shape");
     }
 
-    makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
-    makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
-    makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
-    makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
-    makeVector(&(newShape->N1), 0.0, 1.0, 0.0);
-    makeVector(&(newShape->N2), 0.0, 1.0, 0.0);
-    makeVector(&(newShape->N3), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
+    VectorOps::makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->N1), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->N2), 0.0, 1.0, 0.0);
+    VectorOps::makeVector(&(newShape->N3), 0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = FALSE;
@@ -450,7 +450,7 @@ getSmoothTriangleShape()
 }
 
 CSG *
-getCsgShape()
+ParseFactory::getCsgShape()
 {
     CSG *newShape;
 
@@ -466,29 +466,29 @@ getCsgShape()
 }
 
 CSG *
-getCsgUnion()
+ParseFactory::getCsgUnion()
 {
     CSG *newShape;
 
-    newShape = getCsgShape();
+    newShape = ParseFactory::getCsgShape();
     newShape->methods = &CSG_Union_Methods;
     newShape->Type = CSG_UNION_TYPE;
     return (newShape);
 }
 
 CSG *
-getCsgIntersection()
+ParseFactory::getCsgIntersection()
 {
     CSG *newShape;
 
-    newShape = getCsgShape();
+    newShape = ParseFactory::getCsgShape();
     newShape->methods = &CSG_Intersection_Methods;
     newShape->Type = CSG_INTERSECTION_TYPE;
     return (newShape);
 }
 
 Viewpoint *
-getViewpoint()
+ParseFactory::getViewpoint()
 {
     Viewpoint *newViewpoint;
 
@@ -502,7 +502,7 @@ getViewpoint()
 }
 
 RGBAColor *
-getColour()
+ParseFactory::getColour()
 {
     RGBAColor *newColour;
 
@@ -516,7 +516,7 @@ getColour()
 }
 
 Vector3D *
-getVector()
+ParseFactory::getVector()
 {
     Vector3D *newVector;
 
@@ -531,12 +531,12 @@ getVector()
     return (newVector);
 }
 
-DBL *
-getFloat()
+double *
+ParseFactory::getFloat()
 {
-    DBL *newFloat;
+    double *newFloat;
 
-    newFloat = new DBL;
+    newFloat = new double;
     if (newFloat == nullptr) {
         Error("Out of memory. Cannot allocate float");
     }
@@ -546,10 +546,10 @@ getFloat()
 }
 
 /* Parse a float.  Doesn't handle exponentiation. */
-DBL
+double
 ParseEngine::parseFloat()
 {
-    DBL localFloat = 0.0;
+    double localFloat = 0.0;
     CONSTANT constantId;
     register int negative;
     register int signParsed;
@@ -566,7 +566,7 @@ ParseEngine::parseFloat()
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == FLOAT_CONSTANT) {
-            localFloat = *((DBL *)constants[(int)constantId].Constant_Data);
+            localFloat = *((double *)constants[(int)constantId].Constant_Data);
             if (negative) {
                 localFloat *= -1.0;
             }
@@ -647,7 +647,7 @@ ParseEngine::parseVector(Vector3D *givenVector)
 }
 
 void
-ParseEngine::parseCoeffs(int order, DBL *givenCoeffs)
+ParseEngine::parseCoeffs(int order, double *givenCoeffs)
 {
     int i;
 
@@ -934,8 +934,8 @@ ParseEngine::parseTexture()
             getToken();
             switch (globalToken.Token_Id) {
     case COLOUR_TOKEN:
-    texture->Colour1 = getColour();
-    texture->Colour2 = getColour();
+    texture->Colour1 = ParseFactory::getColour();
+    texture->Colour2 = ParseFactory::getColour();
     ParseEngine::parseColour(texture->Colour1);
     ParseHelpers::getExpectedToken(COLOUR_TOKEN);
     ParseEngine::parseColour(texture->Colour2);
@@ -960,8 +960,8 @@ ParseEngine::parseTexture()
             getToken();
             switch (globalToken.Token_Id) {
     case COLOUR_TOKEN:
-    texture->Colour1 = getColour();
-    texture->Colour2 = getColour();
+    texture->Colour1 = ParseFactory::getColour();
+    texture->Colour2 = ParseFactory::getColour();
     ParseEngine::parseColour(texture->Colour1);
     ParseHelpers::getExpectedToken(COLOUR_TOKEN);
     ParseEngine::parseColour(texture->Colour2);
@@ -1202,7 +1202,7 @@ ParseEngine::parseTexture()
     if (texture->Image == nullptr) {
         Error("Out of memory. Cannot allocate imagemap texture");
     }
-    makeVector(&texture->Image->Image_Gradient, 1.0, -1.0, 0.0);
+    VectorOps::makeVector(&texture->Image->Image_Gradient, 1.0, -1.0, 0.0);
     texture->Image->Map_Type = PLANAR_MAP;
     texture->Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Image->Once_Flag = FALSE;
@@ -1300,7 +1300,7 @@ ParseEngine::parseTexture()
 
     case ALL_TOKEN:
     {
-        DBL alpha;
+        double alpha;
         alpha = ParseEngine::parseFloat();
 
         for (reg = 0; reg < texture->Image->Colour_Map_Size; reg++) {
@@ -1431,7 +1431,7 @@ ParseEngine::parseTexture()
         texture = copyTexture(texture);
         texture->Constant_Flag = FALSE;
     }
-    texture->Colour1 = getColour();
+    texture->Colour1 = ParseFactory::getColour();
     ParseEngine::parseColour(texture->Colour1);
     texture->Texture_Number = COLOUR_TEXTURE;
     break;
@@ -1522,7 +1522,7 @@ ParseEngine::parseTexture()
     if (texture->Bump_Image == nullptr) {
         Error("Out of memory. Cannot allocate bumpmap texture");
     }
-    makeVector(&texture->Bump_Image->Image_Gradient, 1.0, -1.0, 0.0);
+    VectorOps::makeVector(&texture->Bump_Image->Image_Gradient, 1.0, -1.0, 0.0);
     texture->Bump_Image->Map_Type = PLANAR_MAP;
     texture->Bump_Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Bump_Image->Once_Flag = FALSE;
@@ -1619,7 +1619,7 @@ ParseEngine::parseTexture()
     if (texture->Material_Image == nullptr) {
         Error("Out of memory. Cannot allocate material map texture");
     }
-    makeVector(&texture->Texture_Gradient, 1.0, -1.0, 0.0);
+    VectorOps::makeVector(&texture->Texture_Gradient, 1.0, -1.0, 0.0);
     texture->Material_Image->Map_Type = PLANAR_MAP;
     texture->Material_Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Material_Image->Once_Flag = FALSE;
@@ -1743,9 +1743,9 @@ ParseEngine::parseLightSource()
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
-    localShape = getLightSourceShape();
+    localShape = ParseFactory::getLightSourceShape();
     ParseEngine::parseVector(&(localShape->Center));
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     Color::makeColor(localShape->Shape_Colour, 1.0, 1.0, 1.0);
     localShape->Shape_Colour->Alpha = 0.0;
     ParseHelpers::getExpectedToken(COLOUR_TOKEN);
@@ -1855,7 +1855,7 @@ ParseEngine::parseSphere()
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
-    localShape = getSphereShape();
+    localShape = ParseFactory::getSphereShape();
     ParseEngine::parseVector(&(localShape->Center));
     localShape->Radius = ParseEngine::parseFloat();
     localShape->Radius_Squared = localShape->Radius * localShape->Radius;
@@ -1927,7 +1927,7 @@ ParseEngine::parseSphere()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -1962,7 +1962,7 @@ ParseEngine::parsePlane()
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
-    localShape = getPlaneShape();
+    localShape = ParseFactory::getPlaneShape();
     ParseEngine::parseVector(&(localShape->Normal_Vector));
     localShape->Distance = ParseEngine::parseFloat();
     localShape->Distance *= -1.0;
@@ -2031,7 +2031,7 @@ ParseEngine::parsePlane()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2066,7 +2066,7 @@ ParseEngine::parseHeightField()
             getToken();
             switch (globalToken.Token_Id) { /* This should be modified to include other image types - CdW */
         case GIF_TOKEN: imageType = GIF;
-    localShape = getHeightFieldShape();
+    localShape = ParseFactory::getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Out of memory. Cannot allocate space for Height Field (1st "
@@ -2080,13 +2080,13 @@ ParseEngine::parseHeightField()
     localShape->bounding_box->bounds[1].x = image->width - 2.0;
     localShape->bounding_box->bounds[1].y = 256.0;
     localShape->bounding_box->bounds[1].z = image->height - 2.0;
-    makeVector(
+    VectorOps::makeVector(
         &localVector, 1.0 / (image->width), 1.0 / 256.0, 1.0 / (image->height));
     Transformation::getScalingTransformation(localShape->transformation, &localVector);
     Exit_Flag = TRUE; break;
 
         case POT_TOKEN: imageType = POT;
-    localShape = getHeightFieldShape();
+    localShape = ParseFactory::getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Out of memory. Cannot allocate space for Height Field (1st "
@@ -2100,13 +2100,13 @@ ParseEngine::parseHeightField()
     localShape->bounding_box->bounds[1].x = image->width / 2.0 - 2.0;
     localShape->bounding_box->bounds[1].y = 256.0;
     localShape->bounding_box->bounds[1].z = image->height - 2.0;
-    makeVector(
+    VectorOps::makeVector(
         &localVector, 2.0 / image->width, 1.0 / 256.0, 1.0 / image->height);
     Transformation::getScalingTransformation(localShape->transformation, &localVector);
     Exit_Flag = TRUE; break;
 
         case TGA_TOKEN: imageType = TGA;
-    localShape = getHeightFieldShape();
+    localShape = ParseFactory::getHeightFieldShape();
     image = new RGBAImage;
     if (image == nullptr) {
         Error("Cannot allocate space for Height Field (1st message).");
@@ -2119,7 +2119,7 @@ ParseEngine::parseHeightField()
     localShape->bounding_box->bounds[1].x = image->width - 2.0;
     localShape->bounding_box->bounds[1].y = 256.0;
     localShape->bounding_box->bounds[1].z = image->height - 2.0;
-    makeVector(
+    VectorOps::makeVector(
         &localVector, 1.0 / image->width, 1.0 / 256.0, 1.0 / image->height);
     Transformation::getScalingTransformation(localShape->transformation, &localVector);
     Exit_Flag = TRUE; break;
@@ -2196,7 +2196,7 @@ ParseEngine::parseHeightField()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2232,7 +2232,7 @@ ParseEngine::parseTriangle()
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
-    localShape = getTriangleShape();
+    localShape = ParseFactory::getTriangleShape();
     ParseEngine::parseVector(&localShape->P1);
     ParseEngine::parseVector(&localShape->P2);
     ParseEngine::parseVector(&localShape->P3);
@@ -2307,7 +2307,7 @@ ParseEngine::parseTriangle()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2342,16 +2342,16 @@ ParseEngine::parseSmoothTriangle()
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
-    localShape = (SmoothTriangle *)getSmoothTriangleShape();
+    localShape = (SmoothTriangle *)ParseFactory::getSmoothTriangleShape();
     ParseEngine::parseVector(&localShape->P1);
     ParseEngine::parseVector(&localShape->N1);
-    VNormalize(localShape->N1, localShape->N1);
+    VectorOps::vNormalize(localShape->N1, localShape->N1);
     ParseEngine::parseVector(&localShape->P2);
     ParseEngine::parseVector(&localShape->N2);
-    VNormalize(localShape->N2, localShape->N2);
+    VectorOps::vNormalize(localShape->N2, localShape->N2);
     ParseEngine::parseVector(&localShape->P3);
     ParseEngine::parseVector(&localShape->N3);
-    VNormalize(localShape->N3, localShape->N3);
+    VectorOps::vNormalize(localShape->N3, localShape->N3);
     if (!Triangle::computeTriangle((Triangle *)localShape))
     {
         fprintf(stderr, "Degenerate triangle on line %d.  Please remove.\n",
@@ -2426,7 +2426,7 @@ ParseEngine::parseSmoothTriangle()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2461,7 +2461,7 @@ ParseEngine::parseQuadric()
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
-    localShape = getQuadricShape();
+    localShape = ParseFactory::getQuadricShape();
     ParseEngine::parseVector(&(localShape->Object_2_Terms));
     ParseEngine::parseVector(&(localShape->Object_Mixed_Terms));
     ParseEngine::parseVector(&(localShape->Object_Terms));
@@ -2539,7 +2539,7 @@ ParseEngine::parseQuadric()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2563,7 +2563,7 @@ ParseEngine::parsePoly(int knownOrder)
     Texture *localTexture;
 
     if (knownOrder > 0) {
-        localShape = getPolyShape(knownOrder);
+        localShape = ParseFactory::getPolyShape(knownOrder);
     } else {
         localShape = nullptr;
     }
@@ -2587,7 +2587,7 @@ ParseEngine::parsePoly(int knownOrder)
     if (order < 2 || order > MAX_ORDER) {
         Error("Order of Poly is out of range");
     }
-    localShape = getPolyShape(order);
+    localShape = ParseFactory::getPolyShape(order);
     break;
 
     case LEFT_ANGLE_TOKEN:
@@ -2661,7 +2661,7 @@ ParseEngine::parsePoly(int knownOrder)
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2774,7 +2774,7 @@ ParseEngine::parseBicubicPatch()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2819,7 +2819,7 @@ ParseEngine::parseBox()
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
-    localShape = getBoxShape();
+    localShape = ParseFactory::getBoxShape();
     ParseEngine::parseVector(&(localShape->bounds[0]));
     ParseEngine::parseVector(&(localShape->bounds[1]));
     Exit_Flag = TRUE; break;
@@ -2888,7 +2888,7 @@ ParseEngine::parseBox()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -2910,7 +2910,7 @@ ParseEngine::parseBlob()
     Vector3D localVector;
     Texture *localTexture;
     Texture *tempTexture;
-    DBL threshold;
+    double threshold;
     int npoints;
     BlobList *blobComponents;
     BlobList *blobComponent;
@@ -2938,7 +2938,7 @@ ParseEngine::parseBlob()
     case THRESHOLD_TOKEN:
     case COMPONENT_TOKEN:
     Tokenizer::ungetToken();
-    localShape = getBlobShape();
+    localShape = ParseFactory::getBlobShape();
     blobComponents = nullptr;
     npoints = 0;
     threshold = 1.0;
@@ -3046,7 +3046,7 @@ ParseEngine::parseBlob()
     break;
 
     case COLOUR_TOKEN:
-    localShape->Shape_Colour = getColour();
+    localShape->Shape_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(localShape->Shape_Colour);
     break;
 
@@ -3070,11 +3070,11 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     int firstShapeParsed = FALSE;
 
     if (type == CSG_UNION_TYPE) {
-        container = getCsgUnion();
+        container = ParseFactory::getCsgUnion();
 
     } else if ((type == CSG_INTERSECTION_TYPE) ||
                (type == CSG_DIFFERENCE_TYPE)) {
-        container = getCsgIntersection();
+        container = ParseFactory::getCsgIntersection();
     }
 
     container->Parent_Object = parentObject;
@@ -3524,7 +3524,7 @@ ParseEngine::parseObject()
     break;
 
     case COLOUR_TOKEN:
-    object->Object_Colour = getColour();
+    object->Object_Colour = ParseFactory::getColour();
     ParseEngine::parseColour(object->Object_Colour);
     break;
 
@@ -3620,7 +3620,7 @@ ParseEngine::parseComposite()
 
     case COMPOSITE_TOKEN:
     if (localComposite == nullptr) {
-        localComposite = getCompositeObject();
+        localComposite = ParseFactory::getCompositeObject();
     }
 
     localObject = ParseEngine::parseComposite();
@@ -3630,7 +3630,7 @@ ParseEngine::parseComposite()
 
     case OBJECT_TOKEN:
     if (localComposite == nullptr) {
-        localComposite = getCompositeObject();
+        localComposite = ParseFactory::getCompositeObject();
     }
     localObject = ParseEngine::parseObject();
     Link(localObject, &(localObject->Next_Object), &(localComposite->Objects));
@@ -3639,7 +3639,7 @@ ParseEngine::parseComposite()
     case RIGHT_CURLY_TOKEN:
     Tokenizer::ungetToken();
     if (localComposite == nullptr) {
-        localComposite = getCompositeObject();
+        localComposite = ParseFactory::getCompositeObject();
     }
     Exit_Flag = TRUE; break;
 
@@ -3838,7 +3838,7 @@ ParseEngine::parseViewpoint(Viewpoint *givenVp)
     CONSTANT constantId;
     Vector3D localVector;
     Vector3D tempVector;
-    DBL directionLength, upLength, rightLength, handedness;
+    double directionLength, upLength, rightLength, handedness;
 
     givenVp->initializeDefaults();
 
@@ -3883,26 +3883,26 @@ ParseEngine::parseViewpoint(Viewpoint *givenVp)
     break;
 
     case LOOK_AT_TOKEN:
-    VLength(directionLength, givenVp->Direction);
-    VLength(upLength, givenVp->Up);
-    VLength(rightLength, givenVp->Right);
-    VCross(tempVector, givenVp->Direction, givenVp->Up);
-    VDot(handedness, tempVector, givenVp->Right);
+    VectorOps::vLength(directionLength, givenVp->Direction);
+    VectorOps::vLength(upLength, givenVp->Up);
+    VectorOps::vLength(rightLength, givenVp->Right);
+    VectorOps::vCross(tempVector, givenVp->Direction, givenVp->Up);
+    VectorOps::vDot(handedness, tempVector, givenVp->Right);
     ParseEngine::parseVector(&givenVp->Direction);
 
-    VSub(givenVp->Direction, givenVp->Direction, givenVp->Location);
-    VNormalize(givenVp->Direction, givenVp->Direction);
-    VCross(givenVp->Right, givenVp->Direction, givenVp->Sky);
-    VNormalize(givenVp->Right, givenVp->Right);
-    VCross(givenVp->Up, givenVp->Right, givenVp->Direction);
-    VScale(givenVp->Direction, givenVp->Direction, directionLength);
+    VectorOps::vSub(givenVp->Direction, givenVp->Direction, givenVp->Location);
+    VectorOps::vNormalize(givenVp->Direction, givenVp->Direction);
+    VectorOps::vCross(givenVp->Right, givenVp->Direction, givenVp->Sky);
+    VectorOps::vNormalize(givenVp->Right, givenVp->Right);
+    VectorOps::vCross(givenVp->Up, givenVp->Right, givenVp->Direction);
+    VectorOps::vScale(givenVp->Direction, givenVp->Direction, directionLength);
     if (handedness >= 0.0) {
-        VScale(givenVp->Right, givenVp->Right, rightLength);
+        VectorOps::vScale(givenVp->Right, givenVp->Right, rightLength);
     } else {
-        VScale(givenVp->Right, givenVp->Right, -rightLength);
+        VectorOps::vScale(givenVp->Right, givenVp->Right, -rightLength);
     }
 
-    VScale(givenVp->Up, givenVp->Up, upLength);
+    VectorOps::vScale(givenVp->Up, givenVp->Up, upLength);
     break;
 
     case TRANSLATE_TOKEN:
@@ -4099,14 +4099,14 @@ ParseEngine::parseDeclare()
 
         case VIEW_POINT_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)getViewpoint();
+    constantPtr->Constant_Data = (char *)ParseFactory::getViewpoint();
     constantPtr->Constant_Type = VIEW_POINT_CONSTANT;
     ParseEngine::parseViewpoint((Viewpoint *)constantPtr->Constant_Data);
     Exit_Flag = TRUE; break;
 
         case COLOUR_TOKEN:
             constantPtr->Identifier_Number = globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)getColour();
+    constantPtr->Constant_Data = (char *)ParseFactory::getColour();
     constantPtr->Constant_Type = COLOUR_CONSTANT;
     ParseEngine::parseColour((RGBAColor *)constantPtr->Constant_Data);
     Exit_Flag = TRUE; break;
@@ -4119,7 +4119,7 @@ ParseEngine::parseDeclare()
 
         case LEFT_ANGLE_TOKEN: Tokenizer::ungetToken(); constantPtr->Identifier_Number =
         globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)getVector();
+    constantPtr->Constant_Data = (char *)ParseFactory::getVector();
     constantPtr->Constant_Type = VECTOR_CONSTANT;
     ParseEngine::parseVector((Vector3D *)constantPtr->Constant_Data);
     Exit_Flag = TRUE; break;
@@ -4129,9 +4129,9 @@ ParseEngine::parseDeclare()
     case FLOAT_TOKEN:
             Tokenizer::ungetToken(); constantPtr->Identifier_Number =
         globalToken.Identifier_Number;
-    constantPtr->Constant_Data = (char *)getFloat();
+    constantPtr->Constant_Data = (char *)ParseFactory::getFloat();
     constantPtr->Constant_Type = FLOAT_CONSTANT;
-    *((DBL *)constantPtr->Constant_Data) = ParseEngine::parseFloat();
+    *((double *)constantPtr->Constant_Data) = ParseEngine::parseFloat();
     Exit_Flag = TRUE; break;
 
         default: ParseEngine::parseError(OBJECT_TOKEN);

@@ -11,7 +11,7 @@ class Blob : public Geometry {
     Transformation *Transform;
     short Inverted;
     int count;
-    DBL threshold;
+    double threshold;
     BlobElement *list;
     BlobInterval *intervals;
     int Sturm_Flag;
@@ -29,8 +29,8 @@ class Blob : public Geometry {
 
   private:
     static int determineInfluences(
-        Vector3D *p, Vector3D *d, Blob *blob, DBL mindist);
-    static DBL calculateFieldValue(SimpleBody *obj, Vector3D *pos);
+        Vector3D *p, Vector3D *d, Blob *blob, double mindist);
+    static double calculateFieldValue(SimpleBody *obj, Vector3D *pos);
     static int validateHit(Blob *blob, Vector3D *p);
 };
 

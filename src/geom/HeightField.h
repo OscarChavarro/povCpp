@@ -10,8 +10,8 @@ class HeightField : public Geometry {
   public:
     Transformation *transformation;
     Box *bounding_box;
-    DBL Block_Size;
-    DBL Inv_Blk_Size;
+    double Block_Size;
+    double Inv_Blk_Size;
     HeightFieldBlock **Block;
     float **Map;
 
@@ -29,9 +29,9 @@ class HeightField : public Geometry {
     static void invertHeightfld(SimpleBody *object);
 
   private:
-    static DBL getHeightAt(int x, int z, HeightField *hField);
+    static double getHeightAt(int x, int z, HeightField *hField);
     static int intersectPixel(
-        int x, int z, Ray *ray, HeightField *hField, DBL height1, DBL height2);
+        int x, int z, Ray *ray, HeightField *hField, double height1, double height2);
     static int intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *hField,
         Vector3D *start, Vector3D *end);
     static int intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end);

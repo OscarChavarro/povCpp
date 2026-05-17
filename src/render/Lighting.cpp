@@ -40,9 +40,9 @@ perturbNormal(Vector3D *newNormal, Texture *texture,
     Vector3D *intersectionPoint, Vector3D *surfaceNormal)
 {
     Vector3D transformedPoint;
-    register DBL x;
-    register DBL y;
-    register DBL z;
+    register double x;
+    register double y;
+    register double z;
 
     if (texture->Bump_Number == NO_BUMPS) {
         *newNormal = *surfaceNormal;
@@ -102,7 +102,7 @@ perturbNormal(Vector3D *newNormal, Texture *texture,
 
 void
 Ambient(Texture *texture, RGBAColor *surfaceColour, RGBAColor *colour,
-    DBL attenuation)
+    double attenuation)
 {
     if (texture->Object_Ambient == 0.0) {
         return;
@@ -117,9 +117,9 @@ Ambient(Texture *texture, RGBAColor *surfaceColour, RGBAColor *colour,
 void
 Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
     Vector3D *surfaceNormal, RGBAColor *surfaceColour, RGBAColor *colour,
-    DBL attenuation)
+    double attenuation)
 {
-    DBL lightSourceDepth;
+    double lightSourceDepth;
     Ray lightSourceRay;
     Light *lightSource;
     SimpleBody *blockingObject;
@@ -212,10 +212,10 @@ Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
 }
 
 void
-LightingEngine::doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSourceRay,
+LightingEngine::doLight(Light *lightSource, double *lightSourceDepth, Ray *lightSourceRay,
     Vector3D *intersectionPoint, RGBAColor *lightColour)
 {
-    DBL attenuation = 1.0;
+    double attenuation = 1.0;
 
     /* Get the light source colour. */
     if (lightSource->Shape_Colour == nullptr) {
@@ -227,11 +227,11 @@ LightingEngine::doLight(Light *lightSource, DBL *lightSourceDepth, Ray *lightSou
     lightSourceRay->Initial = *intersectionPoint;
     lightSourceRay->Quadric_Constants_Cached = FALSE;
 
-    VSub(lightSourceRay->Direction, lightSource->Center, *intersectionPoint);
+    VectorOps::vSub(lightSourceRay->Direction, lightSource->Center, *intersectionPoint);
 
-    VLength(*lightSourceDepth, lightSourceRay->Direction);
+    VectorOps::vLength(*lightSourceDepth, lightSourceRay->Direction);
 
-    VScale(lightSourceRay->Direction, lightSourceRay->Direction,
+    VectorOps::vScale(lightSourceRay->Direction, lightSourceRay->Direction,
         1.0 / (*lightSourceDepth));
 
     attenuation = Light::attenuateLight(lightSource, lightSourceRay);
@@ -266,26 +266,26 @@ LightingEngine::doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
     Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
     RGBAColor *surfaceColour)
 {
-    DBL cosAngleOfIncidence, normalLength, intensity;
+    double cosAngleOfIncidence, normalLength, intensity;
     Vector3D localNormal;
     Vector3D normalProjection;
     Vector3D reflectDirection;
 
-    VDot(cosAngleOfIncidence, eye, *surfaceNormal);
+    VectorOps::vDot(cosAngleOfIncidence, eye, *surfaceNormal);
 
     if (cosAngleOfIncidence < 0.0) {
         localNormal = *surfaceNormal;
         cosAngleOfIncidence = -cosAngleOfIncidence;
     } else {
-        VScale(localNormal, *surfaceNormal, -1.0);
+        VectorOps::vScale(localNormal, *surfaceNormal, -1.0);
     }
 
-    VScale(normalProjection, localNormal, cosAngleOfIncidence);
-    VScale(normalProjection, normalProjection, 2.0);
-    VAdd(reflectDirection, eye, normalProjection);
+    VectorOps::vScale(normalProjection, localNormal, cosAngleOfIncidence);
+    VectorOps::vScale(normalProjection, normalProjection, 2.0);
+    VectorOps::vAdd(reflectDirection, eye, normalProjection);
 
-    VDot(cosAngleOfIncidence, reflectDirection, lightSourceRay->Direction);
-    VLength(normalLength, lightSourceRay->Direction);
+    VectorOps::vDot(cosAngleOfIncidence, reflectDirection, lightSourceRay->Direction);
+    VectorOps::vLength(normalLength, lightSourceRay->Direction);
 
     if (normalLength == 0.0) {
         cosAngleOfIncidence = 0.0;
@@ -321,13 +321,13 @@ LightingEngine::doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
     Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
     RGBAColor *surfaceColour)
 {
-    DBL cosAngleOfIncidence, normalLength, intensity, halfwayLength, roughness;
+    double cosAngleOfIncidence, normalLength, intensity, halfwayLength, roughness;
     Vector3D halfway;
 
-    VHalf(halfway, rEye, lightSourceRay->Direction);
-    VLength(normalLength, *surfaceNormal);
-    VLength(halfwayLength, halfway);
-    VDot(cosAngleOfIncidence, halfway, *surfaceNormal);
+    VectorOps::vHalf(halfway, rEye, lightSourceRay->Direction);
+    VectorOps::vLength(normalLength, *surfaceNormal);
+    VectorOps::vLength(halfwayLength, halfway);
+    VectorOps::vDot(cosAngleOfIncidence, halfway, *surfaceNormal);
 
     if (normalLength == 0.0 || halfwayLength == 0.0) {
         cosAngleOfIncidence = 0.0;
@@ -361,11 +361,11 @@ LightingEngine::doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
 void
 LightingEngine::doDiffuse(Texture *texture, Ray *lightSourceRay, Vector3D *surfaceNormal,
     RGBAColor *colour, RGBAColor *lightColour, RGBAColor *surfaceColour,
-    DBL attenuation)
+    double attenuation)
 {
-    DBL cosAngleOfIncidence, intensity, randomNumber;
+    double cosAngleOfIncidence, intensity, randomNumber;
 
-    VDot(cosAngleOfIncidence, *surfaceNormal, lightSourceRay->Direction);
+    VectorOps::vDot(cosAngleOfIncidence, *surfaceNormal, lightSourceRay->Direction);
     if (cosAngleOfIncidence < 0.0) {
         cosAngleOfIncidence = -cosAngleOfIncidence;
     }
@@ -378,7 +378,7 @@ LightingEngine::doDiffuse(Texture *texture, Ray *lightSourceRay, Vector3D *surfa
 
     intensity *= texture->Object_Diffuse * attenuation;
 
-    randomNumber = (rand() & 0x7FFF) / (DBL)0x7FFF;
+    randomNumber = (rand() & 0x7FFF) / (double)0x7FFF;
 
     intensity -= randomNumber * texture->Texture_Randomness;
 
@@ -396,26 +396,26 @@ Reflect(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
     Vector3D localNormal;
     Vector3D normalProjection;
     Vector3D surfaceOffset;
-    register DBL normalComponent;
+    register double normalComponent;
 
     if (texture->Object_Reflection != 0.0) {
         reflectedRaysTraced++;
-        VDot(normalComponent, ray->Direction, *surfaceNormal);
+        VectorOps::vDot(normalComponent, ray->Direction, *surfaceNormal);
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;
             normalComponent *= -1.0;
         } else
-            VScale(localNormal, *surfaceNormal, -1.0);
+            VectorOps::vScale(localNormal, *surfaceNormal, -1.0);
 
-        VScale(normalProjection, localNormal, normalComponent);
-        VScale(normalProjection, normalProjection, 2.0);
-        VAdd(newRay.Direction, ray->Direction, normalProjection);
+        VectorOps::vScale(normalProjection, localNormal, normalComponent);
+        VectorOps::vScale(normalProjection, normalProjection, 2.0);
+        VectorOps::vAdd(newRay.Direction, ray->Direction, normalProjection);
         newRay.Initial = *intersectionPoint;
 
         /* ARE 08/25/91 */
 
-        VScale(surfaceOffset, newRay.Direction, 2.0 * Small_Tolerance);
-        VAdd(newRay.Initial, newRay.Initial, surfaceOffset);
+        VectorOps::vScale(surfaceOffset, newRay.Direction, 2.0 * Small_Tolerance);
+        VectorOps::vAdd(newRay.Initial, newRay.Initial, surfaceOffset);
 
         newRay.copyContainersFrom(ray);
         traceLevel++;
@@ -438,9 +438,9 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
     RGBAColor tempColour;
     Vector3D localNormal;
     Vector3D rayDirection;
-    register DBL normalComponent;
-    register DBL tempIor;
-    DBL temp, ior;
+    register double normalComponent;
+    register double tempIor;
+    double temp, ior;
 
     if (surfaceNormal == nullptr) {
         newRay.Initial = *intersectionPoint;
@@ -458,14 +458,14 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         (colour->Blue) += tempColour.Blue;
     } else {
         refractedRaysTraced++;
-        VDot(normalComponent, ray->Direction, *surfaceNormal);
+        VectorOps::vDot(normalComponent, ray->Direction, *surfaceNormal);
         if (normalComponent <= 0.0) {
             localNormal.x = surfaceNormal->x;
             localNormal.y = surfaceNormal->y;
             localNormal.z = surfaceNormal->z;
             normalComponent *= -1.0;
         } else {
-            VScale(localNormal, *surfaceNormal, -1.0);
+            VectorOps::vScale(localNormal, *surfaceNormal, -1.0);
         }
 
         newRay.copyContainersFrom(ray);
@@ -509,10 +509,10 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
         }
 
         temp = ior * normalComponent - sqrt(temp);
-        VScale(localNormal, localNormal, temp);
-        VScale(rayDirection, ray->Direction, ior);
-        VAdd(newRay.Direction, localNormal, rayDirection);
-        VNormalize(newRay.Direction, newRay.Direction);
+        VectorOps::vScale(localNormal, localNormal, temp);
+        VectorOps::vScale(rayDirection, ray->Direction, ior);
+        VectorOps::vAdd(newRay.Direction, localNormal, rayDirection);
+        VectorOps::vNormalize(newRay.Direction, newRay.Direction);
 
         newRay.Initial = *intersectionPoint;
         traceLevel++;
@@ -529,9 +529,9 @@ Refract(Texture *texture, Vector3D *intersectionPoint, Ray *ray,
 }
 
 void
-Fog(DBL distance, RGBAColor *fogColour, DBL fogDistance, RGBAColor *colour)
+Fog(double distance, RGBAColor *fogColour, double fogDistance, RGBAColor *colour)
 {
-    DBL fogFactor, fogFactorInverse;
+    double fogFactor, fogFactorInverse;
 
     fogFactor = exp(-1.0 * distance / fogDistance);
     fogFactorInverse = 1.0 - fogFactor;
@@ -548,7 +548,7 @@ computeReflectedColour(Ray *ray, Texture *texture,
     RGBAColor *filterColour, RGBAColor *colour)
 {
     Vector3D surfaceNormal;
-    DBL normalDirection, attenuation;
+    double normalDirection, attenuation;
     RGBAColor emittedColour;
 
     /* This variable keeps track of how much colour comes from the surface
@@ -578,9 +578,9 @@ of the object and how much is transmited through. */
     }
 
     /* If the surface normal points away, flip its direction. */
-    VDot(normalDirection, surfaceNormal, ray->Direction);
+    VectorOps::vDot(normalDirection, surfaceNormal, ray->Direction);
     if (normalDirection > 0.0) {
-        VScale(surfaceNormal, surfaceNormal, -1.0);
+        VectorOps::vScale(surfaceNormal, surfaceNormal, -1.0);
     }
 
     attenuation = filterColour->Alpha * (1.0 - surfaceColour->Alpha);
@@ -606,7 +606,7 @@ determineSurfaceColour(
     Texture *tempTexture;
     Texture *texture;
     Vector3D surfaceNormal;
-    DBL normalDirection;
+    double normalDirection;
     int surface;
 
     if (!shadowRay)
@@ -726,9 +726,9 @@ determineSurfaceColour(
             }
 
             /* If the surface normal points away, flip its direction. */
-            VDot(normalDirection, surfaceNormal, ray->Direction);
+            VectorOps::vDot(normalDirection, surfaceNormal, ray->Direction);
             if (normalDirection > 0.0) {
-                VScale(surfaceNormal, surfaceNormal, -1.0);
+                VectorOps::vScale(surfaceNormal, surfaceNormal, -1.0);
             }
 
             Refract(texture, &rayIntersection->Point, ray, &surfaceNormal,

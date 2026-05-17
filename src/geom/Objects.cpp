@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include "geom/Objects.h"
+#include "io/Parse.h"
 #include "geom/PrioQ.h"
 extern Ray *vpRay;
 extern long boundingRegionTests, boundingRegionTestsSucceeded;
@@ -308,7 +309,7 @@ Composite::copyCompositeObject(SimpleBody *object)
     SimpleBody *localObject;
     SimpleBody *copiedObject;
 
-    newObject = getCompositeObject();
+    newObject = ParseFactory::getCompositeObject();
     *newObject = *((Composite *)object);
     newObject->Next_Object = nullptr;
     newObject->Objects = nullptr;

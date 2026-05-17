@@ -24,7 +24,7 @@
 /* Similar routines are granite, agate, marble. See txtcolor.c for examples. */
 
 void
-TestTextures::painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+TestTextures::painted1(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
 
     /* Swirled()  */
@@ -32,8 +32,8 @@ TestTextures::painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     Vector3D colourVector;
     Vector3D result;
     register int i;
-    register DBL scale = 1.0;
-    register DBL temp;
+    register double scale = 1.0;
+    register double temp;
     RGBAColor newColour;
 
     if (Options & DEBUGGING) {
@@ -70,10 +70,10 @@ TestTextures::painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-TestTextures::painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+TestTextures::painted2(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
-    DBL turb;
+    double turb;
     Vector3D textureTurbulence;
     RGBAColor colour1;
     RGBAColor colour2;
@@ -122,7 +122,7 @@ TestTextures::painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-TestTextures::painted3(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+TestTextures::painted3(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* YOUR NAME HERE */
     ;
@@ -134,20 +134,20 @@ TestTextures::painted3(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 /* has been displaced. */
 /* Similar routines are ripples, dents, bumps. See txtbump.c for examples.  */
 void
-TestTextures::bumpy1(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+TestTextures::bumpy1(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy1 except use VAdd for both cases of brkindex */
 void
-TestTextures::bumpy2(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+TestTextures::bumpy2(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy2 except scale AFTER setting brkindex */
 void
-TestTextures::bumpy3(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+TestTextures::bumpy3(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
 }

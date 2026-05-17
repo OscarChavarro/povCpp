@@ -6,7 +6,7 @@
 class BlobInterval {
   public:
     int type, index;
-    DBL bound;
+    double bound;
 };
 
 #endif

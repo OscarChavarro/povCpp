@@ -8,7 +8,7 @@ class TokenStruct {
     int Token_Id;
     int Token_Line_No;
     char *Token_String;
-    DBL Token_Float;
+    double Token_Float;
     int Identifier_Number;
     int Unget_Token, End_Of_File;
     char *Filename;

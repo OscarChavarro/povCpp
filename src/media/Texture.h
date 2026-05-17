@@ -35,7 +35,7 @@ class RGBAImage {
         unsigned char **map_lines;
     };
 
-    DBL width, height;
+    double width, height;
     int iwidth, iheight;
     int Map_Type;
     int Interpolation_Type;
@@ -52,24 +52,24 @@ class Texture {
     Texture *Next_Texture;
     Texture *Next_Material;
     int Number_Of_Materials;
-    DBL Object_Reflection;
-    DBL Object_Ambient;
-    DBL Object_Diffuse, Object_Brilliance;
-    DBL Object_Index_Of_Refraction;
-    DBL Object_Refraction, Object_Transmit;
-    DBL Object_Specular, Object_Roughness;
-    DBL Object_Phong, Object_PhongSize;
-    DBL Bump_Amount;
-    DBL Texture_Randomness;
-    DBL Frequency;
-    DBL Phase;
+    double Object_Reflection;
+    double Object_Ambient;
+    double Object_Diffuse, Object_Brilliance;
+    double Object_Index_Of_Refraction;
+    double Object_Refraction, Object_Transmit;
+    double Object_Specular, Object_Roughness;
+    double Object_Phong, Object_PhongSize;
+    double Bump_Amount;
+    double Texture_Randomness;
+    double Frequency;
+    double Phase;
     int Texture_Number;
     int Bump_Number;
     int Texture_Index;
     Transformation *Texture_Transformation;
     RGBAColor *Colour1;
     RGBAColor *Colour2;
-    DBL Turbulence;
+    double Turbulence;
     Vector3D Texture_Gradient;
     RGBAColorPalette *Colour_Map;
     RGBAImage *Image;
@@ -77,7 +77,7 @@ class Texture {
     RGBAImage *Material_Image;
     short Metallic_Flag, Once_Flag, Constant_Flag;
     int Octaves; /* dmf, 1/92 for turb */
-    DBL Mortar;  /* rha, 2/92 for brick */
+    double Mortar;  /* rha, 2/92 for brick */
 };
 
 /* Image/Bump Map projection methods */
@@ -140,20 +140,20 @@ static constexpr float rndDivisor = static_cast<float>(RNDMASK);
 static constexpr int NUMBER_OF_WAVES = 10;
 static constexpr int SINTABSIZE = 1000;
 
-extern DBL *RTable;
+extern double *RTable;
 extern short *hashTable;
 
-inline DBL floorInline(DBL x)
+inline double floorInline(double x)
 {
     return (x >= 0.0) ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
 }
 
-inline DBL fabsInline(DBL x)
+inline double fabsInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
-inline DBL sCurve(DBL a)
+inline double sCurve(double a)
 {
     return a * a * (3.0 - 2.0 * a);
 }
@@ -165,36 +165,36 @@ inline short hash3d(long a, long b, long c)
                            (c & 0xfffL))];
 }
 
-inline DBL incrSum(int m, DBL s, DBL x, DBL y, DBL z)
+inline double incrSum(int m, double s, double x, double y, double z)
 {
     return s * (RTable[m] * 0.5 + RTable[m + 1] * x + RTable[m + 2] * y +
                 RTable[m + 3] * z);
 }
 
-extern DBL *sintab;
-extern DBL frequency[NUMBER_OF_WAVES];
+extern double *sintab;
+extern double frequency[NUMBER_OF_WAVES];
 extern Vector3D Wave_Sources[NUMBER_OF_WAVES];
-extern DBL *RTable;
+extern double *RTable;
 extern short *hashTable;
 extern unsigned short crctab[256];
 extern Texture *Default_Texture;
 
 extern void computeColour(
-    RGBAColor *Colour, RGBAColorPalette *Colour_Map, DBL value);
+    RGBAColor *Colour, RGBAColorPalette *Colour_Map, double value);
 extern void initializeNoise(void);
 extern void InitTextureTable(void);
 extern void InitRTable(void);
 extern int R(Vector3D *v);
 extern int Crc16(char *buf, int count);
-extern void setupLattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz,
-    long *jx, long *jy, long *jz, DBL *sx, DBL *sy, DBL *sz, DBL *tx, DBL *ty,
-    DBL *tz);
-extern DBL Noise(DBL x, DBL y, DBL z);
-extern void DNoise(Vector3D *result, DBL x, DBL y, DBL z);
-extern DBL cycloidal(DBL value);
-extern DBL triangleWave(DBL value);
-extern DBL Turbulence(DBL x, DBL y, DBL z, int octaves);
-extern void DTurbulence(Vector3D *result, DBL x, DBL y, DBL z, int octaves);
+extern void setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
+    long *jx, long *jy, long *jz, double *sx, double *sy, double *sz, double *tx, double *ty,
+    double *tz);
+extern double Noise(double x, double y, double z);
+extern void DNoise(Vector3D *result, double x, double y, double z);
+extern double cycloidal(double value);
+extern double triangleWave(double value);
+extern double Turbulence(double x, double y, double z, int octaves);
+extern void DTurbulence(Vector3D *result, double x, double y, double z, int octaves);
 extern void translateTexture(Texture **Texture_Ptr, Vector3D *Vector);
 extern void rotateTexture(Texture **Texture_Ptr, Vector3D *Vector);
 extern void scaleTexture(Texture **Texture_Ptr, Vector3D *Vector);

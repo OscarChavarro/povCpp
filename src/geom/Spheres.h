@@ -9,16 +9,16 @@
 class Sphere : public Geometry {
   public:
     Vector3D Center;
-    DBL Radius;
-    DBL Radius_Squared;
-    DBL Inverse_Radius;
+    double Radius;
+    double Radius_Squared;
+    double Inverse_Radius;
     Vector3D VPOtoC;
-    DBL VPOCSquared;
+    double VPOCSquared;
     short VPinside, VPCached, Inverted;
 
     static int allSphereIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int intersectSphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2);
+    static int intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2);
     static int insideSphere(Vector3D *point, SimpleBody *object);
     static void sphereNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);

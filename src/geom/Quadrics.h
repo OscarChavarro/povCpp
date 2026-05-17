@@ -11,15 +11,15 @@ class Quadric : public Geometry {
     Vector3D Object_2_Terms;
     Vector3D Object_Mixed_Terms;
     Vector3D Object_Terms;
-    DBL Object_Constant;
-    DBL Object_VP_Constant;
+    double Object_Constant;
+    double Object_VP_Constant;
     int Constant_Cached;
     int Non_Zero_Square_Term;
 
     static int allQuadricIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
     static int intersectQuadric(
-        Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2);
+        Ray *ray, Quadric *shape, double *depth1, double *depth2);
     static int insideQuadric(Vector3D *point, SimpleBody *object);
     static void quadricNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);

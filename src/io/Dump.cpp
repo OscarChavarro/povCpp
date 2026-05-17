@@ -188,7 +188,7 @@ DumpFormat::readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumbe
             return (-1);
         }
 
-        lineData[i].Red = (DBL)data / 255.0;
+        lineData[i].Red = (double)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -196,7 +196,7 @@ DumpFormat::readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumbe
             return (-1);
         }
 
-        lineData[i].Green = (DBL)data / 255.0;
+        lineData[i].Green = (double)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -204,7 +204,7 @@ DumpFormat::readDumpLine(FileHandle *handle, RGBAColor *lineData, int *lineNumbe
             return (-1);
         }
 
-        lineData[i].Blue = (DBL)data / 255.0;
+        lineData[i].Blue = (double)data / 255.0;
     }
 
     return (1);
@@ -320,8 +320,8 @@ DumpFormat::readDumpImage(RGBAImage *image, char *name)
     image->iheight = data2 * 256 + data1;
     handle.height = image->iheight;
 
-    image->width = (DBL)image->iwidth;
-    image->height = (DBL)image->iheight;
+    image->width = (double)image->iwidth;
+    image->height = (double)image->iheight;
 
     image->Colour_Map_Size = 0;
     image->Colour_Map = nullptr;

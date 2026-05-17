@@ -6,7 +6,9 @@
  *****************************************************************************/
 
 #include "geom/Csg.h"
+#include "io/Parse.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 Methods CSG_Union_Methods = {objectIntersect, CSG::allCsgUnionIntersections,
     CSG::insideCsgUnion, nullptr, CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
     CSG::invertCsg};
@@ -127,7 +129,7 @@ CSG::copyCsg(SimpleBody *object)
     Geometry *localShape;
     Geometry *copiedShape;
 
-    newShape = getCsgShape();
+    newShape = ParseFactory::getCsgShape();
     newShape->methods = shape->methods;
     newShape->Type = shape->Type;
     newShape->Next_Object = nullptr;

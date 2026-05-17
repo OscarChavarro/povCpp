@@ -197,19 +197,19 @@ TargaFormat::readTargaLine(FileHandle *handle, RGBAColor *lineData, int *lineNum
             return (-1);
         }
 
-        lineData[x].Blue = (DBL)data / 255.0;
+        lineData[x].Blue = (double)data / 255.0;
 
         /* Read the GREEN data byte. */
         if ((data = getc(handle->file)) == EOF) {
             return (-1);
         }
-        lineData[x].Green = (DBL)data / 255.0;
+        lineData[x].Green = (double)data / 255.0;
 
         /* Read the RED data byte. */
         if ((data = getc(handle->file)) == EOF) {
             return (-1);
         }
-        lineData[x].Red = (DBL)data / 255.0;
+        lineData[x].Red = (double)data / 255.0;
     }
 
     *lineNumber = targaLineNumber++;
@@ -279,8 +279,8 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
 
     handle.width = image->iwidth;
     handle.height = image->iheight;
-    image->width = (DBL)image->iwidth;
-    image->height = (DBL)image->iheight;
+    image->width = (double)image->iwidth;
+    image->height = (double)image->iheight;
     image->Colour_Map_Size = 0;
     image->Colour_Map = nullptr;
 

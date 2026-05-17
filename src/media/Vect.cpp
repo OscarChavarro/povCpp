@@ -46,12 +46,12 @@ static constexpr double FUDGE_FACTOR1 = 1.0e11;
 static constexpr double FUDGE_FACTOR2 = -1.0e-5;
 static constexpr double FUDGE_FACTOR3 = 1.0e-7;
 
-inline DBL absInline(DBL x)
+inline double absInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
-inline DBL maxInline(DBL x, DBL y)
+inline double maxInline(double x, double y)
 {
     return (x < y) ? y : x;
 }
@@ -64,7 +64,7 @@ static constexpr int MAXPOW = 32;
 class polynomial {
   public:
     int ord;
-    DBL coef[MAX_ORDER + 1];
+    double coef[MAX_ORDER + 1];
 };
 
 extern int shadowTestFlag;
@@ -118,7 +118,7 @@ int
 PolynomialSolver::buildsturm(int ord, polynomial *sseq)
 {
     int i;
-    DBL f, *fp, *fc;
+    double f, *fp, *fc;
     polynomial *sp;
 
     sseq[0].ord = ord;
@@ -151,7 +151,7 @@ PolynomialSolver::visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
     int atposinf;
     int atzero;
     polynomial *s;
-    DBL f, lf;
+    double f, lf;
 
     atposinf = atzero = 0;
     /* changes at positve infinity */
@@ -186,10 +186,10 @@ PolynomialSolver::visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
  * sseq at the value a.
  */
 int
-PolynomialSolver::numchanges(int np, polynomial *sseq, DBL a)
+PolynomialSolver::numchanges(int np, polynomial *sseq, double a)
 {
     int changes;
-    DBL f, lf;
+    double f, lf;
     polynomial *s;
     changes = 0;
     lf = PolynomialSolver::polyeval(a, sseq[0].ord, sseq[0].coef);
@@ -217,10 +217,10 @@ Note: This routine has one severe bug: When the interval containing the
 
  */
 void
-PolynomialSolver::sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, int atmin,
-    int atmax, DBL *roots)
+PolynomialSolver::sbisect(int np, polynomial *sseq, double minValue, double maxValue, int atmin,
+    int atmax, double *roots)
 {
-    DBL mid;
+    double mid;
     int n1;
     int n2;
     int its;
@@ -279,11 +279,11 @@ PolynomialSolver::sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, 
     }
 }
 
-DBL
-PolynomialSolver::polyeval(DBL x, int n, DBL *coeffs)
+double
+PolynomialSolver::polyeval(double x, int n, double *coeffs)
 {
     register int i;
-    DBL val;
+    double val;
     val = coeffs[n];
     for (i = n - 1; i >= 0; i--) {
         val = val * x + coeffs[i];
@@ -293,10 +293,10 @@ PolynomialSolver::polyeval(DBL x, int n, DBL *coeffs)
 
 /* Close in on a root by using regula-falsa */
 int
-PolynomialSolver::regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
+PolynomialSolver::regulaFalsa(int order, double *coef, double a, double b, double *val)
 {
     int its;
-    DBL fa, fb, x, fx, lfx;
+    double fa, fb, x, fx, lfx;
 
     fa = PolynomialSolver::polyeval(a, order, coef);
     fb = PolynomialSolver::polyeval(b, order, coef);
@@ -375,9 +375,9 @@ PolynomialSolver::regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
     The roots themselves are returned in y[0], y[1].
 */
 int
-PolynomialSolver::solveQuadratic(DBL *x, DBL *y)
+PolynomialSolver::solveQuadratic(double *x, double *y)
 {
-    DBL d, t, a, b, c;
+    double d, t, a, b, c;
     a = x[0];
     b = -x[1];
     c = x[2];
@@ -418,14 +418,14 @@ PolynomialSolver::solveQuadratic(DBL *x, DBL *y)
     not rely on transcendentals this code will be replaced.
 */
 int
-PolynomialSolver::solveCubic(DBL *x, DBL *y)
+PolynomialSolver::solveCubic(double *x, double *y)
 {
-    DBL q, r, q3, r2, sQ, d, an, theta;
-    DBL a0;
-    DBL a1;
-    DBL a2;
-    DBL a3;
-    DBL a1Squared;
+    double q, r, q3, r2, sQ, d, an, theta;
+    double a0;
+    double a1;
+    double a2;
+    double a3;
+    double a1Squared;
     a0 = x[0];
     if (a0 == 0.0) {
         return PolynomialSolver::solveQuadratic(&x[1], y);
@@ -468,10 +468,10 @@ PolynomialSolver::solveCubic(DBL *x, DBL *y)
 /* Test to see if any coeffs are more than 6 orders of magnitude
     larger than the smallest */
 int
-PolynomialSolver::difficultCoeffs(int n, DBL *x)
+PolynomialSolver::difficultCoeffs(int n, double *x)
 {
     int i;
-    DBL biggest;
+    double biggest;
 
     biggest = 0.0;
     for (i = 0; i <= n; i++) {
@@ -497,11 +497,11 @@ PolynomialSolver::difficultCoeffs(int n, DBL *x)
 }
 
 int
-PolynomialSolver::solveQuartic(DBL *x, DBL *results)
+PolynomialSolver::solveQuartic(double *x, double *results)
 {
-    DBL cubic[4], roots[3];
-    DBL a0, a1, y, d1, x1, t1, t2;
-    DBL c0, c1, c2, c3, c4, d2, q1, q2;
+    double cubic[4], roots[3];
+    double a0, a1, y, d1, x1, t1, t2;
+    double c0, c1, c2, c3, c4, d2, q1, q2;
     int i;
 
     /* Figure out the size difference between coefficients */
@@ -637,10 +637,10 @@ PolynomialSolver::solveQuartic(DBL *x, DBL *results)
 
 /* Root solver based on the Sturm sequences for a polynomial. */
 int
-PolynomialSolver::polysolve(int order, DBL *coeffs, DBL *roots)
+PolynomialSolver::polysolve(int order, double *coeffs, double *roots)
 {
     polynomial sseq[MAX_ORDER + 1];
-    DBL minValue, maxValue;
+    double minValue, maxValue;
     int i;
     int nroots;
     int np;

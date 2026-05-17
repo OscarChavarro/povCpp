@@ -14,7 +14,7 @@ class Box : public Geometry {
 
     static int allBoxIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2);
+    static int intersectBoxx(Ray *ray, Box *box, double *depth1, double *depth2);
     static int insideBox(Vector3D *point, SimpleBody *object);
     static void boxNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
@@ -25,7 +25,7 @@ class Box : public Geometry {
     static void invertBox(SimpleBody *object);
 
   private:
-    static int closeTo(DBL x, DBL y);
+    static int closeTo(double x, double y);
 };
 
 extern Methods Box_Methods;

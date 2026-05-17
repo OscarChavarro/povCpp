@@ -6,12 +6,13 @@
  *****************************************************************************/
 
 #include "geom/Light.h"
+#include "io/Parse.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 Methods Point_Methods = {objectIntersect, Light::allPointIntersections,
     Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,
     Light::scalePoint, Light::invertPoint};
 
-extern Light *getLightSourceShape();
 int
 Light::allPointIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
@@ -30,7 +31,7 @@ Light::copyPoint(SimpleBody *object)
 {
     Light *newShape;
 
-    newShape = getLightSourceShape();
+    newShape = ParseFactory::getLightSourceShape();
     *newShape = *((Light *)object);
     newShape->Next_Object = nullptr;
 
@@ -44,8 +45,8 @@ Light::copyPoint(SimpleBody *object)
 void
 Light::translatePoint(SimpleBody *object, Vector3D *vector)
 {
-    VAdd(((Light *)object)->Center, ((Light *)object)->Center, *vector);
-    VAdd(((Light *)object)->Points_At, ((Light *)object)->Points_At, *vector);
+    VectorOps::vAdd(((Light *)object)->Center, ((Light *)object)->Center, *vector);
+    VectorOps::vAdd(((Light *)object)->Points_At, ((Light *)object)->Points_At, *vector);
 }
 
 void
@@ -79,8 +80,8 @@ Light::invertPoint(SimpleBody *object)
 
 /* Cubic spline that has tangents of slope 0 at x == low and at x == high.
     For a given value "pos" between low and high the spline value is returned */
-DBL
-Light::cubicSpline(DBL low, DBL high, DBL pos)
+double
+Light::cubicSpline(double low, double high, double pos)
 {
     /* Check to see if the position is within the proper boundaries */
     if (pos < low) {
@@ -100,20 +101,20 @@ Light::cubicSpline(DBL low, DBL high, DBL pos)
     return (3 - 2 * pos) * pos * pos;
 }
 
-DBL
+double
 Light::attenuateLight(Light *lightSource, Ray *lightSourceRay)
 {
-    DBL len, costheta;
-    DBL attenuation = 1.0;
+    double len, costheta;
+    double attenuation = 1.0;
     Vector3D spotDirection;
 
     /* If this is a spotlight then attenuate based on the incidence angle */
     if (lightSource->Type == SPOT_LIGHT_TYPE) {
-        VSub(spotDirection, lightSource->Points_At, lightSource->Center);
-        VLength(len, spotDirection);
+        VectorOps::vSub(spotDirection, lightSource->Points_At, lightSource->Center);
+        VectorOps::vLength(len, spotDirection);
         if (len > 0.0) {
-            VInverseScale(spotDirection, spotDirection, len);
-            VDot(costheta, lightSourceRay->Direction, spotDirection);
+            VectorOps::vInverseScale(spotDirection, spotDirection, len);
+            VectorOps::vDot(costheta, lightSourceRay->Direction, spotDirection);
             costheta *= -1.0;
             if (costheta > 0.0) {
                 attenuation = pow(costheta, lightSource->Coeff);

@@ -8,8 +8,8 @@
 class SmoothTriangle : public Geometry {
   public:
     Vector3D Normal_Vector;
-    DBL Distance;
-    DBL VPNormDotOrigin;
+    double Distance;
+    double VPNormDotOrigin;
     unsigned int VPCached : 1;
     unsigned int Dominant_Axis : 2;
     unsigned int Inverted : 1;
@@ -17,7 +17,7 @@ class SmoothTriangle : public Geometry {
     Vector3D P1, P2, P3;
     short int Degenerate_Flag;
     Vector3D N1, N2, N3, Perp;
-    DBL BaseDelta;
+    double BaseDelta;
 
     static void smoothTriangleNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);

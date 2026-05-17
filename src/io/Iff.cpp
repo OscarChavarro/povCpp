@@ -114,9 +114,9 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
 
         case BMHD:
             image->iwidth = IffFormat::readWord(f);
-            image->width = (DBL)image->iwidth;
+            image->width = (double)image->iwidth;
             image->iheight = IffFormat::readWord(f);
-            image->height = (DBL)image->iheight;
+            image->height = (double)image->iheight;
 
             IffFormat::readWord(f); /* x position ignored */
             IffFormat::readWord(f); /* y position ignored */

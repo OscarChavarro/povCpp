@@ -15,6 +15,6 @@
 extern Methods Blob_Methods;
 extern Blob *getBlobShape(void);
 extern void MakeBlob(
-    SimpleBody *obj, DBL threshold, BlobList *bloblist, int npoints, int sflag);
+    SimpleBody *obj, double threshold, BlobList *bloblist, int npoints, int sflag);
 
 #endif

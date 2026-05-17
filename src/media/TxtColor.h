@@ -9,19 +9,19 @@ class ColorTextures {
   public:
     static void colourAt(
         RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint);
-    static void agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void brick(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void agate(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void bozo(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void brick(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void checker(double x, double y, double z, Texture *texture, RGBAColor *colour);
     static void checkerTexture(
-        DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void onion(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+        double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void gradient(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void granite(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void marble(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void spotted(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void wood(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void leopard(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void onion(double x, double y, double z, Texture *texture, RGBAColor *colour);
 };
 
 #endif

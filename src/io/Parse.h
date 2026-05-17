@@ -9,6 +9,18 @@
 #include "io/Tokenize.h"
 #include "render/Render.h"
 
+class Blob;
+class Box;
+class Composite;
+class HeightField;
+class InfinitePlane;
+class Light;
+class Poly;
+class Quadric;
+class SmoothTriangle;
+class Sphere;
+class Triangle;
+
 /* Types of constants allowed in DECLARE statement (fm. PARSE.C) */
 
 static constexpr int OBJECT_CONSTANT = 0;
@@ -40,16 +52,38 @@ class Constant {
     char *Constant_Data;
 };
 
+class ParseFactory {
+  public:
+    static Composite *getCompositeObject();
+    static Sphere *getSphereShape();
+    static Light *getLightSourceShape();
+    static Quadric *getQuadricShape();
+    static Poly *getPolyShape(int order);
+    static Box *getBoxShape();
+    static Blob *getBlobShape();
+    static HeightField *getHeightFieldShape();
+    static InfinitePlane *getPlaneShape();
+    static Triangle *getTriangleShape();
+    static SmoothTriangle *getSmoothTriangleShape();
+    static CSG *getCsgShape();
+    static CSG *getCsgUnion();
+    static CSG *getCsgIntersection();
+    static Viewpoint *getViewpoint();
+    static RGBAColor *getColour();
+    static Vector3D *getVector();
+    static double *getFloat();
+};
+
 extern void Parse(Frame *Frame_Ptr);
 extern void tokenInit(void);
 extern void frameInit(void);
 extern Texture *getTexture(void);
 extern RGBAColor *getColour(void);
 extern Vector3D *getVector(void);
-extern DBL *getFloat(void);
-extern DBL parseFloat(void);
+extern double *getFloat(void);
+extern double parseFloat(void);
 extern void parseVector(Vector3D *Given_Vector);
-extern void parseCoeffs(int order, DBL *Given_Coeffs);
+extern void parseCoeffs(int order, double *Given_Coeffs);
 extern void parseColour(RGBAColor *Given_Colour);
 extern RGBAColorPalette *parseColourMap(void);
 extern Texture *parseTexture(void);

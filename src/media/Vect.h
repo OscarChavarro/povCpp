@@ -5,19 +5,19 @@
 
 class PolynomialSolver {
   public:
-    static int solveQuadratic(DBL *x, DBL *y);
-    static int solveCubic(DBL *x, DBL *y);
-    static int solveQuartic(DBL *x, DBL *y);
-    static int polysolve(int order, DBL *coeffs, DBL *roots);
+    static int solveQuadratic(double *x, double *y);
+    static int solveCubic(double *x, double *y);
+    static int solveQuartic(double *x, double *y);
+    static int polysolve(int order, double *coeffs, double *roots);
 
   private:
     static int modp(class polynomial *u, class polynomial *v, class polynomial *r);
-    static int difficultCoeffs(int n, DBL *x);
-    static int regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val);
-    static void sbisect(int np, class polynomial *sseq, DBL minValue, DBL maxValue,
-        int atmin, int atmax, DBL *roots);
-    static int numchanges(int np, class polynomial *sseq, DBL a);
-    static DBL polyeval(DBL x, int n, DBL *coeffs);
+    static int difficultCoeffs(int n, double *x);
+    static int regulaFalsa(int order, double *coef, double a, double b, double *val);
+    static void sbisect(int np, class polynomial *sseq, double minValue, double maxValue,
+        int atmin, int atmax, double *roots);
+    static int numchanges(int np, class polynomial *sseq, double a);
+    static double polyeval(double x, int n, double *coeffs);
     static int buildsturm(int ord, class polynomial *sseq);
     static int visibleRoots(int np, class polynomial *sseq, int *atneg, int *atpos);
 };

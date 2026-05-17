@@ -13,12 +13,12 @@ class Frame {
     int Screen_Height, Screen_Width;
     Light *Light_Sources;
     SimpleBody *Objects;
-    DBL Atmosphere_IOR, Antialias_Threshold;
-    DBL Fog_Distance;
+    double Atmosphere_IOR, Antialias_Threshold;
+    double Fog_Distance;
     RGBAColor Fog_Colour;
 
   private:
-    static void createRay(Ray *ray, int width, int height, DBL x, DBL y);
+    static void createRay(Ray *ray, int width, int height, double x, double y);
     static void checkStats(int y);
     static void doAntiAliasing(int x, int y, RGBAColor *color);
     static void outputLine(int y);

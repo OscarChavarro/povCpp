@@ -7,32 +7,32 @@
 
 class MapTextures {
   public:
-    static int map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image,
-        DBL *xcoor, DBL *ycoor);
+    static int map(double x, double y, double z, Texture *texture, RGBAImage *image,
+        double *xcoor, double *ycoor);
     static void imageMap(
-        DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+        double x, double y, double z, Texture *texture, RGBAColor *colour);
     static Texture *materialMap(
         Vector3D *intersectionPoint, Texture *texture);
     static void bumpMap(
-        DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
+        double x, double y, double z, Texture *texture, Vector3D *normal);
 
   private:
     static int cylindricalImageMap(
-        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+        double x, double y, double z, RGBAImage *image, double *u, double *v);
     static int torusImageMap(
-        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+        double x, double y, double z, RGBAImage *image, double *u, double *v);
     static int sphericalImageMap(
-        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+        double x, double y, double z, RGBAImage *image, double *u, double *v);
     static int planarImageMap(
-        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+        double x, double y, double z, RGBAImage *image, double *u, double *v);
     static void noInterpolation(
-        RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
-    static DBL bilinear(DBL *corners, DBL x, DBL y);
-    static DBL normDist(DBL *corners, DBL x, DBL y);
+        RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
+    static double bilinear(double *corners, double x, double y);
+    static double normDist(double *corners, double x, double y);
     static void interp(
-        RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+        RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
     static void imageColourAt(
-        RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+        RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
 };
 
 #endif
