@@ -1,5 +1,5 @@
-#include "DefaultTextureParser.h"
-#include "Parse.h"
+#include "io/pov/DefaultTextureParser.h"
+#include "io/pov/Parse.h"
 #include "common/PovProto.h"
 #include "render/RenderFrame.h"
 
