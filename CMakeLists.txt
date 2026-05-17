@@ -43,6 +43,12 @@ add_executable(povray
   src/io/pov/SceneConfigParser.cpp
   src/io/pov/SceneParser.cpp
   src/io/pov/SceneFactory.cpp
+  src/io/pov/FogParser.cpp
+  src/io/pov/DefaultTextureParser.cpp
+  src/io/pov/RenderSettingsParser.cpp
+  src/io/pov/ViewPointParser.cpp
+  src/io/pov/DeclarationParser.cpp
+  src/io/pov/SceneFrameParser.cpp
   src/io/Raw.cpp
   src/io/Targa.cpp
   src/io/Tokenize.cpp
