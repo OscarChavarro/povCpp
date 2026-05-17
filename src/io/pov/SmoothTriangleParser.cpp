@@ -4,7 +4,7 @@
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "common/VectorOps.h"
 #include "geom/Triangle.h"

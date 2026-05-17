@@ -58,7 +58,7 @@
 
 #include "io/GifDecod.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "io/Gif.h"
 
 

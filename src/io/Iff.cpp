@@ -7,7 +7,7 @@
 
 #include "io/Iff.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 
 static RGBAPixel *iffColourMap;
 static int colourmapSize;

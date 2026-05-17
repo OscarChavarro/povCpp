@@ -2,7 +2,7 @@
 #define __HEIGHT_FIELD_H__
 
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "geom/Boxes.h"
 #include "geom/HeightFieldBlock.h"

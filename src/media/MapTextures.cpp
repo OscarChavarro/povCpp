@@ -9,7 +9,7 @@
 #include "media/MapTextures.h"
 #include "common/Frame.h"
 #include "common/Matrices.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "common/VectorOps.h"
 #include "media/Texture.h"

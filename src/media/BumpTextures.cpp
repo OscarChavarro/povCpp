@@ -13,7 +13,7 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 
 #include "media/BumpTextures.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "common/VectorOps.h"
 #include "media/Texture.h"

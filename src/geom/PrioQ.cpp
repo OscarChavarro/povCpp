@@ -7,7 +7,7 @@
 
 #include "geom/PrioQ.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 
 //===========================================================================
 

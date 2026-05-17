@@ -21,7 +21,7 @@
 
 #include "io/Raw.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 
 class RAW_FILE_HANDLE {
   public:

@@ -18,7 +18,7 @@
 
 #include "io/Gif.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "io/GifDecod.h"
 
 static RGBAImage *currentImage;

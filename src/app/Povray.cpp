@@ -8,7 +8,7 @@
 #include "app/Unix.h"
 #include "app/PovApp.h"
 #include "common/Frame.h" /* common to ALL modules in this program */
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "geom/PrioQ.h"
 #include "io/Parse.h"
 #include "io/FileHandle.h"

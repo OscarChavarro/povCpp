@@ -8,7 +8,7 @@
 
 #include "io/Targa.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 
 int targaLineNumber = 0;
 

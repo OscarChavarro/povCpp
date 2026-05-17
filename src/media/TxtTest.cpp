@@ -13,7 +13,7 @@
 
 #include "media/TxtTest.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "media/Texture.h"
 

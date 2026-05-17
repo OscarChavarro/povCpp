@@ -1,6 +1,6 @@
 #include "io/pov/RenderSettingsParser.h"
 #include "io/pov/Parse.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 
 extern double maxTraceLevel;
 
