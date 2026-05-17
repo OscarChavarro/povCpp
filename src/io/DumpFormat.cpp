@@ -22,7 +22,7 @@
 
 #include "io/DumpFormat.h"
 #include "app/PovApp.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 
 FileHandle *
 DumpFormat::getDumpFileHandle()

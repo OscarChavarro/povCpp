@@ -5,7 +5,7 @@
 #include "common/Vector3D.h"
 #include "media/Texture.h"
 
-class TestTextures {
+class TextureFixture {
   public:
     static void painted1(double x, double y, double z, Texture *texture, RGBAColor *colour);
     static void painted2(double x, double y, double z, Texture *texture, RGBAColor *colour);

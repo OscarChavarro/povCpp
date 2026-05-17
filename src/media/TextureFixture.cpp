@@ -11,7 +11,7 @@
     Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
-#include "media/TestTextures.h"
+#include "media/TextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
 #include "common/Vector3D.h"
@@ -24,7 +24,7 @@
 /* Similar routines are granite, agate, marble. See txtcolor.c for examples. */
 
 void
-TestTextures::painted1(double x, double y, double z, Texture *texture, RGBAColor *colour)
+TextureFixture::painted1(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
 
     /* Swirled()  */
@@ -70,7 +70,7 @@ TestTextures::painted1(double x, double y, double z, Texture *texture, RGBAColor
 }
 
 void
-TestTextures::painted2(double x, double y, double z, Texture *texture, RGBAColor *colour)
+TextureFixture::painted2(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     double turb;
@@ -122,7 +122,7 @@ TestTextures::painted2(double x, double y, double z, Texture *texture, RGBAColor
 }
 
 void
-TestTextures::painted3(double x, double y, double z, Texture *texture, RGBAColor *colour)
+TextureFixture::painted3(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* YOUR NAME HERE */
     ;
@@ -134,20 +134,20 @@ TestTextures::painted3(double x, double y, double z, Texture *texture, RGBAColor
 /* has been displaced. */
 /* Similar routines are ripples, dents, bumps. See txtbump.c for examples.  */
 void
-TestTextures::bumpy1(double x, double y, double z, Texture *texture, Vector3D *normal)
+TextureFixture::bumpy1(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy1 except use VAdd for both cases of brkindex */
 void
-TestTextures::bumpy2(double x, double y, double z, Texture *texture, Vector3D *normal)
+TextureFixture::bumpy2(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy2 except scale AFTER setting brkindex */
 void
-TestTextures::bumpy3(double x, double y, double z, Texture *texture, Vector3D *normal)
+TextureFixture::bumpy3(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
 }

@@ -10,8 +10,8 @@
 
 #include "geom/Bezier.h"
 #include "geom/BezierIntersection.h"
-#include "geom/BezierPatches.h"
-#include "geom/GeometryOps.h"
+#include "geom/BezierPatch.h"
+#include "geom/GeometryOperations.h"
 #include "geom/Composite.h"
 #include "io/Parse.h"
 #include "common/VectorOps.h"
@@ -19,7 +19,7 @@
 static constexpr double EPSILON = 1.0e-10;
 
 Methods Bicubic_Patch_Methods = {Composite::objectIntersect,
-    BezierPatches::allBicubicPatchIntersections, BicubicPatch::insideBicubicPatch, BicubicPatch::bicubicPatchNormal,
+    BezierPatch::allBicubicPatchIntersections, BicubicPatch::insideBicubicPatch, BicubicPatch::bicubicPatchNormal,
     BicubicPatch::copyBicubicPatch, BicubicPatch::translateBicubicPatch, BicubicPatch::rotateBicubicPatch,
     BicubicPatch::scaleBicubicPatch, BicubicPatch::invertBicubicPatch};
 

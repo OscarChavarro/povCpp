@@ -1,7 +1,7 @@
 #ifndef __GIF_FORMAT_H__
 #define __GIF_FORMAT_H__
 
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 
 class GifFormat {
   public:

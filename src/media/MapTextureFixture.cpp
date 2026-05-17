@@ -6,7 +6,7 @@
  *
  *****************************************************************************/
 
-#include "media/MapTextures.h"
+#include "media/MapTextureFixture.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
@@ -45,7 +45,7 @@ B. Specialized shape projection variations by Alexander Enzmann:
 */
 
 void
-MapTextures::imageMap(double x, double y, double z, Texture *texture, RGBAColor *colour)
+MapTextureFixture::imageMap(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -66,7 +66,7 @@ MapTextures::imageMap(double x, double y, double z, Texture *texture, RGBAColor 
 /* an intersection point and a texture and returns a new texture based on */
 /* the index/color of that point in an image/materials map. CdW 7/91        */
 Texture *
-MapTextures::materialMap(Vector3D *intersectionPoint, Texture *texture)
+MapTextureFixture::materialMap(Vector3D *intersectionPoint, Texture *texture)
 {
     Vector3D transformedPoint;
     register double x;
@@ -127,7 +127,7 @@ MapTextures::materialMap(Vector3D *intersectionPoint, Texture *texture)
 }
 
 void
-MapTextures::bumpMap(double x, double y, double z, Texture *texture, Vector3D *normal)
+MapTextureFixture::bumpMap(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     double xcoor = 0.0, ycoor = 0.0;
     int index;
@@ -252,7 +252,7 @@ MapTextures::bumpMap(double x, double y, double z, Texture *texture, Vector3D *n
 }
 
 void
-MapTextures::imageColourAt(
+MapTextureFixture::imageColourAt(
     RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     switch (image->Interpolation_Type) {
@@ -268,7 +268,7 @@ MapTextures::imageColourAt(
 /* Map a point (x, y, z) on a cylinder of radius 1, height 1, that has its
     axis of symmetry along the y-axis to the square [0,1]x[0,1]. */
 int
-MapTextures::cylindricalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::cylindricalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     double len, theta;
 
@@ -310,7 +310,7 @@ MapTextures::cylindricalImageMap(double x, double y, double z, RGBAImage *image,
 
 /* Map a point (x, y, z) on a torus  to a 2-d image. */
 int
-MapTextures::torusImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::torusImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     double len, phi, theta;
     double r0;
@@ -357,7 +357,7 @@ MapTextures::torusImageMap(double x, double y, double z, RGBAImage *image, doubl
 /* Map a point (x, y, z) on a sphere of radius 1 to a 2-d image. (Or is it the
     other way around?) */
 int
-MapTextures::sphericalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::sphericalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     double len, phi, theta;
 
@@ -413,7 +413,7 @@ MapTextures::sphericalImageMap(double x, double y, double z, RGBAImage *image, d
 /* Return 0 if there is no color at this point (i.e. invisible), return 1
     if a good mapping is found. */
 int
-MapTextures::planarImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
+MapTextureFixture::planarImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     if (image->Image_Gradient.x != 0.0) {
         if ((image->Once_Flag) && ((x < 0.0) || (x > 1.0))) {
@@ -450,7 +450,7 @@ MapTextures::planarImageMap(double x, double y, double z, RGBAImage *image, doub
 
 /* Map returns 1 if no color found (invisible) or 0 if color found */
 int
-MapTextures::map(double x, double y, double z, Texture *texture, RGBAImage *image, double *xcoor,
+MapTextureFixture::map(double x, double y, double z, Texture *texture, RGBAImage *image, double *xcoor,
     double *ycoor)
 {
     /* determine local object 2-d coords from 3-d coords */
@@ -529,7 +529,7 @@ MapTextures::map(double x, double y, double z, Texture *texture, RGBAImage *imag
 }
 
 void
-MapTextures::noInterpolation(
+MapTextureFixture::noInterpolation(
     RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     ImageLine *line;
@@ -576,7 +576,7 @@ MapTextures::noInterpolation(
 
 /* Interpolate color and alpha values when mapping */
 void
-MapTextures::interp(RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+MapTextureFixture::interp(RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     int iycoor;
     int ixcoor;
@@ -665,7 +665,7 @@ MapTextures::interp(RGBAImage *image, double xcoor, double ycoor, RGBAColor *col
 /* Girish T. Hagan in the C Programmer's Journal V 9 No. 8 */
 /* They were adapted for POV-Ray by CdW */
 double
-MapTextures::bilinear(double *corners, double x, double y)
+MapTextureFixture::bilinear(double *corners, double x, double y)
 {
     double p, q;
     double val = 0.0;
@@ -684,13 +684,13 @@ MapTextures::bilinear(double *corners, double x, double y)
 static constexpr int MAX_PTS = 4;
 
 inline double
-MapTextures::MapTextures::pythagoreanSq(double a, double b)
+MapTextureFixture::MapTextureFixture::pythagoreanSq(double a, double b)
 {
     return a * a + b * b;
 }
 
 double
-MapTextures::normDist(double *corners, double x, double y)
+MapTextureFixture::normDist(double *corners, double x, double y)
 {
     register int i;
 
@@ -706,10 +706,10 @@ MapTextures::normDist(double *corners, double x, double y)
         return (*corners); /* upper left */
     }
 
-    wts[0] = MapTextures::pythagoreanSq(p, q);
-    wts[1] = MapTextures::pythagoreanSq(1 - p, q);
-    wts[2] = MapTextures::pythagoreanSq(p, 1 - q);
-    wts[3] = MapTextures::pythagoreanSq(1 - p, 1 - q);
+    wts[0] = MapTextureFixture::pythagoreanSq(p, q);
+    wts[1] = MapTextureFixture::pythagoreanSq(1 - p, q);
+    wts[2] = MapTextureFixture::pythagoreanSq(p, 1 - q);
+    wts[3] = MapTextureFixture::pythagoreanSq(1 - p, 1 - q);
 
     for (i = 0; i < MAX_PTS; i++) {
         sumInvWts += 1 / wts[i];

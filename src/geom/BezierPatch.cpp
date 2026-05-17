@@ -1,8 +1,8 @@
-#include "geom/BezierPatches.h"
+#include "geom/BezierPatch.h"
 #include "geom/Bezier.h"
 #include "geom/BezierIntersection.h"
 #include "geom/BicubicPatch.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 #include "io/Parse.h"
 #include "common/VectorOps.h"
 
@@ -11,7 +11,7 @@ extern Ray *vpRay;
 extern int shadowTestFlag;
 
 int
-BezierPatches::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *depths)
+BezierPatch::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
@@ -78,7 +78,7 @@ BezierPatches::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *dep
 }
 
 int
-BezierPatches::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *depths)
+BezierPatch::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
@@ -150,7 +150,7 @@ BezierPatches::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *dep
 }
 
 int
-BezierPatches::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, double *depths)
+BezierPatch::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     double uValues[MAX_BICUBIC_INTERSECTIONS];
@@ -163,7 +163,7 @@ BezierPatches::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, double *dep
 }
 
 int
-BezierPatches::intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, double *depths)
+BezierPatch::intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     BicubicPatch::bezierTreeWalker(ray, shape, shape->Node_Tree, 0, &cnt, depths);
@@ -171,7 +171,7 @@ BezierPatches::intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, double *dep
 }
 
 int
-BezierPatches::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depths)
+BezierPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
@@ -274,7 +274,7 @@ BezierPatches::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *dep
 }
 
 int
-BezierPatches::allBicubicPatchIntersections(
+BezierPatch::allBicubicPatchIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     BicubicPatch *shape = (BicubicPatch *)object;
@@ -292,15 +292,15 @@ BezierPatches::allBicubicPatchIntersections(
     }
     tcnt = shape->Intersection_Count;
     if (shape->Patch_Type == 0) {
-        cnt = BezierPatches::intersectBicubicPatch0(ray, shape, &depths[0]);
+        cnt = BezierPatch::intersectBicubicPatch0(ray, shape, &depths[0]);
     } else if (shape->Patch_Type == 1) {
-        cnt = BezierPatches::intersectBicubicPatch1(ray, shape, &depths[0]);
+        cnt = BezierPatch::intersectBicubicPatch1(ray, shape, &depths[0]);
     } else if (shape->Patch_Type == 2) {
-        cnt = BezierPatches::intersectBicubicPatch2(ray, shape, &depths[0]);
+        cnt = BezierPatch::intersectBicubicPatch2(ray, shape, &depths[0]);
     } else if (shape->Patch_Type == 3) {
-        cnt = BezierPatches::intersectBicubicPatch3(ray, shape, &depths[0]);
+        cnt = BezierPatch::intersectBicubicPatch3(ray, shape, &depths[0]);
     } else if (shape->Patch_Type == 4) {
-        cnt = BezierPatches::intersectBicubicPatch4(ray, shape, &depths[0]);
+        cnt = BezierPatch::intersectBicubicPatch4(ray, shape, &depths[0]);
     } else {
         ParseErrorReporter::Error("Bad patch type\n");
     }

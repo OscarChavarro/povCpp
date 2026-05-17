@@ -1,5 +1,5 @@
 #include "geom/BezierIntersection.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 #include "common/VectorOps.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;

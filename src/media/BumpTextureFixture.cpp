@@ -11,7 +11,7 @@ Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
 Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
-#include "media/BumpTextures.h"
+#include "media/BumpTextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
 #include "common/Vector3D.h"
@@ -21,7 +21,7 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 extern unsigned short crctab[256];
 
 void
-BumpTextures::ripples(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
@@ -58,7 +58,7 @@ BumpTextures::ripples(double x, double y, double z, Texture *texture, Vector3D *
 }
 
 void
-BumpTextures::waves(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
@@ -93,7 +93,7 @@ BumpTextures::waves(double x, double y, double z, Texture *texture, Vector3D *no
 }
 
 void
-BumpTextures::bumps(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::bumps(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     Vector3D bumpTurb;
 
@@ -116,7 +116,7 @@ dents is similar to bumps, but uses noise() to control the amount of
 dnoise() perturbation of the object normal...
 */
 void
-BumpTextures::dents(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     Vector3D stuccoTurb;
     double noise;
@@ -154,7 +154,7 @@ BumpTextures::dents(double x, double y, double z, Texture *texture, Vector3D *no
 */
 
 void
-BumpTextures::wrinkles(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::wrinkles(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     register int i;
     register double scale = 1.0;

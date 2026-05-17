@@ -4,16 +4,16 @@
 #include "common/FrameConfig.h"
 #include "common/Vector3D.h"
 #include "geom/BezierNode.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 
 static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 class BezierVertices;
 class BezierChild;
-class BezierPatches;
+class BezierPatch;
 class BezierIntersection;
 
 class BicubicPatch : public Geometry {
-  friend class BezierPatches;
+  friend class BezierPatch;
   friend class BezierIntersection;
   public:
     int Patch_Type, U_Steps, V_Steps;
