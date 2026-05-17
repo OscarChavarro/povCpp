@@ -5,7 +5,7 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/PolynomialShape.h"
 #include "geom/GeometryOperations.h"
 #include "geom/ObjectUtils.h"
@@ -18,7 +18,7 @@ Geometry *
 PolyParser::parsePoly(int knownOrder)
 {
     PolynomialShape *localShape;
-    Vector3D localVector;
+    Vector3Dd localVector;
     CONSTANT constantId;
     int order;
     Texture *localTexture;

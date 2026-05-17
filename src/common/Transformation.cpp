@@ -8,8 +8,8 @@
 #include "common/Transformation.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "io/Parse.h"
 void
 Transformation::MZero(MATRIX *result)
@@ -101,7 +101,7 @@ Transformation::MTranspose(MATRIX *result, MATRIX *matrix1)
 
 void
 Transformation::MTransformVector(
-    Vector3D *result, Vector3D *vector, Transformation *transformation)
+    Vector3Dd *result, Vector3Dd *vector, Transformation *transformation)
 {
     register int i;
     double answerArray[4];
@@ -122,7 +122,7 @@ Transformation::MTransformVector(
 
 void
 Transformation::MInverseTransformVector(
-    Vector3D *result, Vector3D *vector, Transformation *transformation)
+    Vector3Dd *result, Vector3Dd *vector, Transformation *transformation)
 {
     register int i;
     double answerArray[4];
@@ -142,7 +142,7 @@ Transformation::MInverseTransformVector(
 }
 
 void
-Transformation::MTransVector(Vector3D *result, Vector3D *vector, Transformation *transformation)
+Transformation::MTransVector(Vector3Dd *result, Vector3Dd *vector, Transformation *transformation)
 {
     register int i;
     double answerArray[4];
@@ -163,7 +163,7 @@ Transformation::MTransVector(Vector3D *result, Vector3D *vector, Transformation 
 
 void
 Transformation::MInvTransVector(
-    Vector3D *result, Vector3D *vector, Transformation *transformation)
+    Vector3Dd *result, Vector3Dd *vector, Transformation *transformation)
 {
     register int i;
     double answerArray[4];
@@ -183,7 +183,7 @@ Transformation::MInvTransVector(
 }
 
 void
-Transformation::MTransNormal(Vector3D *result, Vector3D *vector, Transformation *transformation)
+Transformation::MTransNormal(Vector3Dd *result, Vector3Dd *vector, Transformation *transformation)
 {
     register int i;
     double answerArray[3];
@@ -203,7 +203,7 @@ Transformation::MTransNormal(Vector3D *result, Vector3D *vector, Transformation 
 }
 
 void
-Transformation::getScalingTransformation(Transformation *result, Vector3D *vector)
+Transformation::getScalingTransformation(Transformation *result, Vector3Dd *vector)
 {
     Transformation::MIdentity((MATRIX *)result->matrix);
     (result->matrix)[0][0] = vector->x;
@@ -217,7 +217,7 @@ Transformation::getScalingTransformation(Transformation *result, Vector3D *vecto
 }
 
 void
-Transformation::getTranslationTransformation(Transformation *transformation, Vector3D *vector)
+Transformation::getTranslationTransformation(Transformation *transformation, Vector3Dd *vector)
 {
     Transformation::MIdentity((MATRIX *)transformation->matrix);
     (transformation->matrix)[3][0] = vector->x;
@@ -231,10 +231,10 @@ Transformation::getTranslationTransformation(Transformation *transformation, Vec
 }
 
 void
-Transformation::getRotationTransformation(Transformation *transformation, Vector3D *vector)
+Transformation::getRotationTransformation(Transformation *transformation, Vector3Dd *vector)
 {
     MATRIX matrix;
-    Vector3D radianVector;
+    Vector3Dd radianVector;
     register double cosx;
     register double cosy;
     register double cosz;

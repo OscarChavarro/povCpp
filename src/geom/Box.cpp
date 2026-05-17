@@ -11,7 +11,7 @@
 #include "geom/Box.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections, Box::insideBox,
     Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
 
@@ -29,7 +29,7 @@ Box::allBoxIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     double depth1, depth2;
-    Vector3D intersectionPoint;
+    Vector3Dd intersectionPoint;
     Intersection localElement;
     register int intersectionFound;
     Box *shape = (Box *)object;
@@ -63,8 +63,8 @@ int
 Box::intersectBoxx(Ray *ray, Box *box, double *depth1, double *depth2)
 {
     double t, tmin, tmax;
-    Vector3D p;
-    Vector3D d;
+    Vector3Dd p;
+    Vector3Dd d;
 
     rayBoxTests++;
 
@@ -208,9 +208,9 @@ Box::intersectBoxx(Ray *ray, Box *box, double *depth1, double *depth2)
 }
 
 int
-Box::insideBox(Vector3D *testPoint, SimpleBody *object)
+Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
 {
-    Vector3D newPoint;
+    Vector3Dd newPoint;
     Box *box = (Box *)object;
 
     /* Transform the point into the boxes space */
@@ -235,9 +235,9 @@ Box::insideBox(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-Box::boxNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+Box::boxNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    Vector3D newPoint;
+    Vector3Dd newPoint;
     Box *box = (Box *)object;
 
     /* Transform the point into the boxes space */
@@ -301,7 +301,7 @@ Box::copyBox(SimpleBody *object)
 }
 
 void
-Box::translateBox(SimpleBody *object, Vector3D *vector)
+Box::translateBox(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     Box *box = (Box *)object;
@@ -315,7 +315,7 @@ Box::translateBox(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Box::rotateBox(SimpleBody *object, Vector3D *vector)
+Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     Box *box = (Box *)object;
@@ -329,7 +329,7 @@ Box::rotateBox(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Box::scaleBox(SimpleBody *object, Vector3D *vector)
+Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     Box *box = (Box *)object;

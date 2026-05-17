@@ -3,25 +3,25 @@
 
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/GeometryOperations.h"
 
 class Box : public Geometry {
   public:
     Transformation *Transform;
-    Vector3D bounds[2];
+    Vector3Dd bounds[2];
     short Inverted;
 
     static int allBoxIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
     static int intersectBoxx(Ray *ray, Box *box, double *depth1, double *depth2);
-    static int insideBox(Vector3D *point, SimpleBody *object);
+    static int insideBox(Vector3Dd *point, SimpleBody *object);
     static void boxNormal(
-        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
     static void *copyBox(SimpleBody *object);
-    static void translateBox(SimpleBody *object, Vector3D *vector);
-    static void rotateBox(SimpleBody *object, Vector3D *vector);
-    static void scaleBox(SimpleBody *object, Vector3D *vector);
+    static void translateBox(SimpleBody *object, Vector3Dd *vector);
+    static void rotateBox(SimpleBody *object, Vector3Dd *vector);
+    static void scaleBox(SimpleBody *object, Vector3Dd *vector);
     static void invertBox(SimpleBody *object);
 
   private:

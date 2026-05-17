@@ -8,7 +8,7 @@
 #include "geom/Light.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 Methods Point_Methods = {Composite::objectIntersect, Light::allPointIntersections,
     Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,
     Light::scalePoint, Light::invertPoint};
@@ -21,7 +21,7 @@ Light::allPointIntersections(
 }
 
 int
-Light::insidePoint(Vector3D *testPoint, SimpleBody *object)
+Light::insidePoint(Vector3Dd *testPoint, SimpleBody *object)
 {
     return (FALSE);
 }
@@ -43,14 +43,14 @@ Light::copyPoint(SimpleBody *object)
 }
 
 void
-Light::translatePoint(SimpleBody *object, Vector3D *vector)
+Light::translatePoint(SimpleBody *object, Vector3Dd *vector)
 {
     VectorOps::vAdd(((Light *)object)->Center, ((Light *)object)->Center, *vector);
     VectorOps::vAdd(((Light *)object)->Points_At, ((Light *)object)->Points_At, *vector);
 }
 
 void
-Light::rotatePoint(SimpleBody *object, Vector3D *vector)
+Light::rotatePoint(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     Transformation::getRotationTransformation(&transformation, vector);
@@ -61,7 +61,7 @@ Light::rotatePoint(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Light::scalePoint(SimpleBody *object, Vector3D *vector)
+Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     Transformation::getScalingTransformation(&transformation, vector);
@@ -106,7 +106,7 @@ Light::attenuateLight(Light *lightSource, Ray *lightSourceRay)
 {
     double len, costheta;
     double attenuation = 1.0;
-    Vector3D spotDirection;
+    Vector3Dd spotDirection;
 
     /* If this is a spotlight then attenuate based on the incidence angle */
     if (lightSource->Type == SPOT_LIGHT_TYPE) {

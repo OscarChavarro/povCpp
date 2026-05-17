@@ -11,12 +11,12 @@ class SimpleBody;
 typedef Intersection *(*INTERSECTION_METHOD)(SimpleBody *, Ray *);
 typedef int (*ALL_INTERSECTIONS_METHOD)(
     SimpleBody *, Ray *, PriorityQueueNode *);
-typedef int (*INSIDE_METHOD)(Vector3D *, SimpleBody *);
-typedef void (*NORMAL_METHOD)(Vector3D *, SimpleBody *, Vector3D *);
+typedef int (*INSIDE_METHOD)(Vector3Dd *, SimpleBody *);
+typedef void (*NORMAL_METHOD)(Vector3Dd *, SimpleBody *, Vector3Dd *);
 typedef void *(*COPY_METHOD)(SimpleBody *);
-typedef void (*TRANSLATE_METHOD)(SimpleBody *, Vector3D *);
-typedef void (*ROTATE_METHOD)(SimpleBody *, Vector3D *);
-typedef void (*SCALE_METHOD)(SimpleBody *, Vector3D *);
+typedef void (*TRANSLATE_METHOD)(SimpleBody *, Vector3Dd *);
+typedef void (*ROTATE_METHOD)(SimpleBody *, Vector3Dd *);
+typedef void (*SCALE_METHOD)(SimpleBody *, Vector3Dd *);
 typedef void (*INVERT_METHOD)(SimpleBody *);
 
 class Methods {

@@ -3,12 +3,12 @@
 
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/GeometryOperations.h"
 
 class InfinitePlane : public Geometry {
   public:
-    Vector3D Normal_Vector;
+    Vector3Dd Normal_Vector;
     double Distance;
     double VPNormDotOrigin;
     int VPCached;
@@ -16,13 +16,13 @@ class InfinitePlane : public Geometry {
     static int allPlaneIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
     static int intersectPlane(Ray *ray, InfinitePlane *plane, double *depth);
-    static int insidePlane(Vector3D *point, SimpleBody *object);
+    static int insidePlane(Vector3Dd *point, SimpleBody *object);
     static void planeNormal(
-        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
     static void *copyPlane(SimpleBody *object);
-    static void translatePlane(SimpleBody *object, Vector3D *vector);
-    static void rotatePlane(SimpleBody *object, Vector3D *vector);
-    static void scalePlane(SimpleBody *object, Vector3D *vector);
+    static void translatePlane(SimpleBody *object, Vector3Dd *vector);
+    static void rotatePlane(SimpleBody *object, Vector3Dd *vector);
+    static void scalePlane(SimpleBody *object, Vector3Dd *vector);
     static void invertPlane(SimpleBody *object);
 };
 

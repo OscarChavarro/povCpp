@@ -14,17 +14,17 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 #include "media/BumpTextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "media/Texture.h"
 
 extern unsigned short crctab[256];
 
 void
-BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
     register int i;
-    Vector3D point;
+    Vector3Dd point;
     register double length;
     register double scalar;
     register double index;
@@ -58,10 +58,10 @@ BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vect
 }
 
 void
-BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
     register int i;
-    Vector3D point;
+    Vector3Dd point;
     register double length;
     register double scalar;
     register double index;
@@ -93,9 +93,9 @@ BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector
 }
 
 void
-BumpTextureFixture::bumps(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::bumps(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
-    Vector3D bumpTurb;
+    Vector3Dd bumpTurb;
 
     if (texture->Bump_Amount == 0.0) {
         return; /* why are we here?? */
@@ -116,9 +116,9 @@ dents is similar to bumps, but uses noise() to control the amount of
 dnoise() perturbation of the object normal...
 */
 void
-BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
-    Vector3D stuccoTurb;
+    Vector3Dd stuccoTurb;
     double noise;
 
     if (texture->Bump_Amount == 0.0) {
@@ -154,12 +154,12 @@ BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector
 */
 
 void
-BumpTextureFixture::wrinkles(double x, double y, double z, Texture *texture, Vector3D *normal)
+BumpTextureFixture::wrinkles(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
     register int i;
     register double scale = 1.0;
-    Vector3D result;
-    Vector3D value;
+    Vector3Dd result;
+    Vector3Dd value;
 
     if (texture->Bump_Amount == 0.0) {
         return; /* why are we here?? */

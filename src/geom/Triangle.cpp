@@ -8,7 +8,7 @@
 #include "geom/Triangle.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 Methods Triangle_Methods = {Composite::objectIntersect, Triangle::allTriangleIntersections,
     Triangle::insideTriangle, Triangle::triangleNormal, Triangle::copyTriangle, Triangle::translateTriangle,
     Triangle::rotateTriangle, Triangle::scaleTriangle, Triangle::invertTriangle};
@@ -54,9 +54,9 @@ Triangle::findTriangleDominantAxis(Triangle *triangle)
 void
 Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
 {
-    Vector3D p3MinusP2;
-    Vector3D vTemp1;
-    Vector3D vTemp2;
+    Vector3Dd p3MinusP2;
+    Vector3Dd vTemp1;
+    Vector3Dd vTemp2;
     double x, y, z, uDenominator, proj;
 
     VectorOps::vSub(p3MinusP2, triangle->P3, triangle->P2);
@@ -96,9 +96,9 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
 int
 Triangle::computeTriangle(Triangle *triangle)
 {
-    Vector3D v1;
-    Vector3D v2;
-    Vector3D temp;
+    Vector3Dd v1;
+    Vector3Dd v2;
+    Vector3Dd temp;
     double length;
 
     VectorOps::vSub(v1, triangle->P1, triangle->P2);
@@ -186,7 +186,7 @@ Triangle::allTriangleIntersections(
 {
     Triangle *shape = (Triangle *)object;
     double depth;
-    Vector3D intersectionPoint;
+    Vector3Dd intersectionPoint;
     Intersection localElement;
 
     if (shape->Degenerate_Flag) {
@@ -367,14 +367,14 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
 }
 
 int
-Triangle::insideTriangle(Vector3D *testPoint, SimpleBody *object)
+Triangle::insideTriangle(Vector3Dd *testPoint, SimpleBody *object)
 {
     return (FALSE);
 }
 
 void
 Triangle::triangleNormal(
-    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     Triangle *triangle = (Triangle *)object;
 
@@ -398,10 +398,10 @@ Triangle::copyTriangle(SimpleBody *object)
 }
 
 void
-Triangle::translateTriangle(SimpleBody *object, Vector3D *vector)
+Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     Triangle *triangle = (Triangle *)object;
-    Vector3D translation;
+    Vector3Dd translation;
 
     VectorOps::vEvaluate(translation, triangle->Normal_Vector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
@@ -412,7 +412,7 @@ Triangle::translateTriangle(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Triangle::rotateTriangle(SimpleBody *object, Vector3D *vector)
+Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     Triangle *triangle = (Triangle *)object;
@@ -429,7 +429,7 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Triangle::scaleTriangle(SimpleBody *object, Vector3D *vector)
+Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     Triangle *triangle = (Triangle *)object;
     double length;
@@ -500,12 +500,12 @@ Triangle::invertTriangle(SimpleBody *object)
 
 void
 SmoothTriangle::smoothTriangleNormal(
-    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
-    Vector3D piMinusP1;
-    Vector3D nTemp1;
-    Vector3D nTemp2;
+    Vector3Dd piMinusP1;
+    Vector3Dd nTemp1;
+    Vector3Dd nTemp2;
     double u = 0.0, v = 0.0;
 
     VectorOps::vSub(piMinusP1, *intersectionPoint, triangle->P1);
@@ -564,7 +564,7 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 }
 
 void
-SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3D *vector)
+SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     SmoothTriangle *triangle = (SmoothTriangle *)object;
@@ -584,10 +584,10 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3D *vector)
 }
 
 void
-SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3D *vector)
+SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
-    Vector3D translation;
+    Vector3Dd translation;
 
     VectorOps::vEvaluate(translation, triangle->Normal_Vector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
@@ -600,7 +600,7 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3D *vector)
 }
 
 void
-SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3D *vector)
+SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     double length;

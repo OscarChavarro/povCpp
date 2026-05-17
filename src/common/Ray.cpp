@@ -7,11 +7,11 @@
 
 #include "common/Ray.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 
 inline void
-Ray::mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c)
+Ray::mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
 {
     a.x = b.x * c.y;
     a.y = b.x * c.z;
@@ -20,7 +20,7 @@ Ray::mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c)
 void
 Ray::makeRay()
 {
-    Vector3D tempInitDir;
+    Vector3Dd tempInitDir;
 
     VectorOps::vSquareTerms(this->Initial_2, this->Initial);
     VectorOps::vSquareTerms(this->Direction_2, this->Direction);

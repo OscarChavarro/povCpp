@@ -5,7 +5,7 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/Blob.h"
 #include "geom/GeometryOperations.h"
 
@@ -18,7 +18,7 @@ BlobParser::parseBlob()
 {
     Blob *localShape;
     CONSTANT constantId;
-    Vector3D localVector;
+    Vector3Dd localVector;
     Texture *localTexture;
     Texture *tempTexture;
     double threshold;

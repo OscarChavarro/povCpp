@@ -7,7 +7,7 @@
 
 #include "geom/Viewpoint.h"
 #include "io/Parse.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, Viewpoint::copyViewpoint,
     Viewpoint::translateViewpoint, Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
 void *
@@ -38,14 +38,14 @@ Viewpoint::initializeDefaults()
 }
 
 void
-Viewpoint::translateViewpoint(SimpleBody *object, Vector3D *vector)
+Viewpoint::translateViewpoint(SimpleBody *object, Vector3Dd *vector)
 {
     VectorOps::vAdd(((Viewpoint *)object)->Location, ((Viewpoint *)object)->Location,
         *vector);
 }
 
 void
-Viewpoint::rotateViewpoint(SimpleBody *object, Vector3D *vector)
+Viewpoint::rotateViewpoint(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     Viewpoint *viewpoint = (Viewpoint *)object;
@@ -63,7 +63,7 @@ Viewpoint::rotateViewpoint(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Viewpoint::scaleViewpoint(SimpleBody *object, Vector3D *vector)
+Viewpoint::scaleViewpoint(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     Viewpoint *viewpoint = (Viewpoint *)object;

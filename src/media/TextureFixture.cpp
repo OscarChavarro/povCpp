@@ -14,7 +14,7 @@
 #include "media/TextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "media/Texture.h"
 
 /* Test new textures in the routines that follow */
@@ -29,8 +29,8 @@ TextureFixture::painted1(double x, double y, double z, Texture *texture, RGBACol
 
     /* Swirled()  */
 
-    Vector3D colourVector;
-    Vector3D result;
+    Vector3Dd colourVector;
+    Vector3Dd result;
     register int i;
     register double scale = 1.0;
     register double temp;
@@ -74,7 +74,7 @@ TextureFixture::painted2(double x, double y, double z, Texture *texture, RGBACol
 {
     int brkindx;
     double turb;
-    Vector3D textureTurbulence;
+    Vector3Dd textureTurbulence;
     RGBAColor colour1;
     RGBAColor colour2;
 
@@ -134,20 +134,20 @@ TextureFixture::painted3(double x, double y, double z, Texture *texture, RGBACol
 /* has been displaced. */
 /* Similar routines are ripples, dents, bumps. See txtbump.c for examples.  */
 void
-TextureFixture::bumpy1(double x, double y, double z, Texture *texture, Vector3D *normal)
+TextureFixture::bumpy1(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy1 except use VAdd for both cases of brkindex */
 void
-TextureFixture::bumpy2(double x, double y, double z, Texture *texture, Vector3D *normal)
+TextureFixture::bumpy2(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy2 except scale AFTER setting brkindex */
 void
-TextureFixture::bumpy3(double x, double y, double z, Texture *texture, Vector3D *normal)
+TextureFixture::bumpy3(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }

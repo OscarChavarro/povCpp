@@ -3,7 +3,7 @@
 
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/GeometryOperations.h"
 
 class PolynomialShape : public Geometry {
@@ -15,13 +15,13 @@ class PolynomialShape : public Geometry {
 
     static int allPolyIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int insidePoly(Vector3D *point, SimpleBody *object);
+    static int insidePoly(Vector3Dd *point, SimpleBody *object);
     static void polyNormal(
-        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
     static void *copyPoly(SimpleBody *object);
-    static void translatePoly(SimpleBody *object, Vector3D *vector);
-    static void rotatePoly(SimpleBody *object, Vector3D *vector);
-    static void scalePoly(SimpleBody *object, Vector3D *vector);
+    static void translatePoly(SimpleBody *object, Vector3Dd *vector);
+    static void rotatePoly(SimpleBody *object, Vector3Dd *vector);
+    static void scalePoly(SimpleBody *object, Vector3Dd *vector);
     static void invertPoly(SimpleBody *object);
 
   private:
@@ -31,10 +31,10 @@ class PolynomialShape : public Geometry {
     static int intersect(Ray *ray, int order, double *coeffs, double *depths);
     static int intersectQuartic(Ray *ray, PolynomialShape *shape, double *depths);
     static void quarticNormal(
-        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
-    static double inside(Vector3D *point, int order, double *coeffs);
+        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
+    static double inside(Vector3Dd *point, int order, double *coeffs);
     static void normalp(
-        Vector3D *result, int order, double *coeffs, Vector3D *intersectionPoint);
+        Vector3Dd *result, int order, double *coeffs, Vector3Dd *intersectionPoint);
     static double doPartialTerm(
         MATRIX *q, int row, int pwr, int i, int j, int k, int l);
 };

@@ -1,7 +1,7 @@
 #ifndef __TRANSFORMATION_H__
 #define __TRANSFORMATION_H__
 
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 
 class Transformation {
   public:
@@ -13,21 +13,21 @@ class Transformation {
     static void MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2);
     static void MTranspose(MATRIX *result, MATRIX *matrix1);
     static void MTransformVector(
-        Vector3D *result, Vector3D *vector, Transformation *transformation);
+        Vector3Dd *result, Vector3Dd *vector, Transformation *transformation);
     static void MInverseTransformVector(
-        Vector3D *result, Vector3D *vector, Transformation *transformation);
+        Vector3Dd *result, Vector3Dd *vector, Transformation *transformation);
     static void MTransVector(
-        Vector3D *result, Vector3D *vector, Transformation *transformation);
+        Vector3Dd *result, Vector3Dd *vector, Transformation *transformation);
     static void MInvTransVector(
-        Vector3D *result, Vector3D *vector, Transformation *transformation);
+        Vector3Dd *result, Vector3Dd *vector, Transformation *transformation);
     static void MTransNormal(
-        Vector3D *result, Vector3D *vector, Transformation *transformation);
+        Vector3Dd *result, Vector3Dd *vector, Transformation *transformation);
     static void getScalingTransformation(
-        Transformation *result, Vector3D *vector);
+        Transformation *result, Vector3Dd *vector);
     static void getTranslationTransformation(
-        Transformation *transformation, Vector3D *vector);
+        Transformation *transformation, Vector3Dd *vector);
     static void getRotationTransformation(
-        Transformation *transformation, Vector3D *vector);
+        Transformation *transformation, Vector3Dd *vector);
     static void composeTransformations(
         Transformation *originalTransformation, Transformation *newTransformation);
     static Transformation *getTransformation(void);

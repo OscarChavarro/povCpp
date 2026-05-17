@@ -2,7 +2,7 @@
 #define __TXTMAP_H__
 
 #include "common/FrameConfig.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "media/Texture.h"
 
 class MapTextureFixture {
@@ -12,9 +12,9 @@ class MapTextureFixture {
     static void imageMap(
         double x, double y, double z, Texture *texture, RGBAColor *colour);
     static Texture *materialMap(
-        Vector3D *intersectionPoint, Texture *texture);
+        Vector3Dd *intersectionPoint, Texture *texture);
     static void bumpMap(
-        double x, double y, double z, Texture *texture, Vector3D *normal);
+        double x, double y, double z, Texture *texture, Vector3Dd *normal);
 
   private:
     static int cylindricalImageMap(

@@ -3,7 +3,7 @@
 
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/Box.h"
 #include "geom/HeightFieldBlock.h"
 class RGBAImage;
@@ -25,13 +25,13 @@ class HeightField : public Geometry {
         HeightField *hField, RGBAImage *image, int imageType);
     static int allHeightfldIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int insideHeightfld(Vector3D *testPoint, SimpleBody *object);
+    static int insideHeightfld(Vector3Dd *testPoint, SimpleBody *object);
     static void heightFldNormal(
-        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
     static void *copyHeightfld(SimpleBody *object);
-    static void translateHeightfld(SimpleBody *object, Vector3D *vector);
-    static void rotateHeightfld(SimpleBody *object, Vector3D *vector);
-    static void scaleHeightfld(SimpleBody *object, Vector3D *vector);
+    static void translateHeightfld(SimpleBody *object, Vector3Dd *vector);
+    static void rotateHeightfld(SimpleBody *object, Vector3Dd *vector);
+    static void scaleHeightfld(SimpleBody *object, Vector3Dd *vector);
     static void invertHeightfld(SimpleBody *object);
     static inline int signInline(double x);
     static inline double minValue(double x, double y);
@@ -42,8 +42,8 @@ class HeightField : public Geometry {
     static int intersectPixel(
         int x, int z, Ray *ray, HeightField *hField, double height1, double height2);
     static int intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *hField,
-        Vector3D *start, Vector3D *end);
-    static int intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end);
+        Vector3Dd *start, Vector3Dd *end);
+    static int intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end);
 };
 
 extern Methods Height_Field_Methods;

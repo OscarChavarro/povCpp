@@ -7,7 +7,7 @@
 #include "geom/Sphere.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 
 //===========================================================================
 
@@ -29,7 +29,7 @@ Sphere::intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2
     raySphereTests++;
 
     //--------------------------------------------------------------------------
-    Vector3D originToCenter;
+    Vector3Dd originToCenter;
     double ocSquared, tClosestApproach, halfChord, tHalfChordSquared;
     short inside;
 
@@ -89,7 +89,7 @@ Sphere::allSphereIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     double depth1, depth2;
-    Vector3D intersectionPoint;
+    Vector3Dd intersectionPoint;
     Intersection localElement;
     register int intersectionFound;
     Sphere *shape = (Sphere *)object;
@@ -120,9 +120,9 @@ Sphere::allSphereIntersections(
 }
 
 int
-Sphere::insideSphere(Vector3D *testPoint, SimpleBody *object)
+Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
 {
-    Vector3D originToCenter;
+    Vector3Dd originToCenter;
     double ocSquared;
     Sphere *sphere = (Sphere *)object;
 
@@ -136,7 +136,7 @@ Sphere::insideSphere(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-Sphere::sphereNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+Sphere::sphereNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     Sphere *sphere = (Sphere *)object;
 
@@ -161,14 +161,14 @@ Sphere::copySphere(SimpleBody *object)
 }
 
 void
-Sphere::translateSphere(SimpleBody *object, Vector3D *vector)
+Sphere::translateSphere(SimpleBody *object, Vector3Dd *vector)
 {
     VectorOps::vAdd(((Sphere *)object)->Center, ((Sphere *)object)->Center, *vector);
     TextureUtils::translateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-Sphere::rotateSphere(SimpleBody *object, Vector3D *vector)
+Sphere::rotateSphere(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
 
@@ -179,7 +179,7 @@ Sphere::rotateSphere(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Sphere::scaleSphere(SimpleBody *object, Vector3D *vector)
+Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
 {
     Sphere *sphere = (Sphere *)object;
 

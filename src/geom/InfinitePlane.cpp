@@ -8,7 +8,7 @@
 #include "geom/InfinitePlane.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 Methods Plane_Methods = {Composite::objectIntersect, InfinitePlane::allPlaneIntersections,
     InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
@@ -22,7 +22,7 @@ InfinitePlane::allPlaneIntersections(
 {
     InfinitePlane *shape = (InfinitePlane *)object;
     double depth;
-    Vector3D intersectionPoint;
+    Vector3Dd intersectionPoint;
     Intersection localElement;
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
@@ -87,7 +87,7 @@ InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, double *depth)
 }
 
 int
-InfinitePlane::insidePlane(Vector3D *testPoint, SimpleBody *object)
+InfinitePlane::insidePlane(Vector3Dd *testPoint, SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
     double temp;
@@ -97,7 +97,7 @@ InfinitePlane::insidePlane(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-InfinitePlane::planeNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+InfinitePlane::planeNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
@@ -121,10 +121,10 @@ InfinitePlane::copyPlane(SimpleBody *object)
 }
 
 void
-InfinitePlane::translatePlane(SimpleBody *object, Vector3D *vector)
+InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
-    Vector3D translation;
+    Vector3Dd translation;
 
     VectorOps::vEvaluate(translation, plane->Normal_Vector, *vector);
     plane->Distance -= translation.x + translation.y + translation.z;
@@ -133,7 +133,7 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3D *vector)
 }
 
 void
-InfinitePlane::rotatePlane(SimpleBody *object, Vector3D *vector)
+InfinitePlane::rotatePlane(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
 
@@ -145,7 +145,7 @@ InfinitePlane::rotatePlane(SimpleBody *object, Vector3D *vector)
 }
 
 void
-InfinitePlane::scalePlane(SimpleBody *object, Vector3D *vector)
+InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
 {
     double length;
     InfinitePlane *plane = (InfinitePlane *)object;

@@ -2,8 +2,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -232,9 +232,9 @@ SceneFactory::getBicubicPatchShape()
     newShape->U_Steps = 0;
     newShape->V_Steps = 0;
     newShape->Intersection_Count = 0;
-    newShape->Interpolated_Grid = (Vector3D **)nullptr;
-    newShape->Interpolated_Normals = (Vector3D **)nullptr;
-    newShape->Smooth_Normals = (Vector3D **)nullptr;
+    newShape->Interpolated_Grid = (Vector3Dd **)nullptr;
+    newShape->Interpolated_Normals = (Vector3Dd **)nullptr;
+    newShape->Smooth_Normals = (Vector3Dd **)nullptr;
     newShape->Interpolated_D = (double **)nullptr;
     return (newShape);
 }
@@ -405,12 +405,12 @@ SceneFactory::getColour()
     return (newColour);
 }
 
-Vector3D *
+Vector3Dd *
 SceneFactory::getVector()
 {
-    Vector3D *newVector;
+    Vector3Dd *newVector;
 
-    newVector = new Vector3D;
+    newVector = new Vector3Dd;
     if (newVector == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate vector");
     }
@@ -453,9 +453,9 @@ BicubicPatch::getBicubicPatchShape()
     newShape->U_Steps = 0;
     newShape->V_Steps = 0;
     newShape->Intersection_Count = 0;
-    newShape->Interpolated_Grid = (Vector3D **)nullptr;
-    newShape->Interpolated_Normals = (Vector3D **)nullptr;
-    newShape->Smooth_Normals = (Vector3D **)nullptr;
+    newShape->Interpolated_Grid = (Vector3Dd **)nullptr;
+    newShape->Interpolated_Normals = (Vector3Dd **)nullptr;
+    newShape->Smooth_Normals = (Vector3Dd **)nullptr;
     newShape->Interpolated_D = (double **)nullptr;
     return (newShape);
 }

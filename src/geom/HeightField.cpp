@@ -18,7 +18,7 @@
 #include "io/Parse.h"
 #include "geom/Composite.h"
 #include "media/Texture.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 
 inline int
 HeightField::signInline(double x)
@@ -62,13 +62,13 @@ int
 HeightField::intersectPixel(
     int x, int z, Ray *ray, HeightField *hField, double height1, double height2)
 {
-    Vector3D t1V1;
-    Vector3D t1V2;
-    Vector3D t1V3;
-    Vector3D t2V1;
-    Vector3D t2V2;
-    Vector3D t2V3;
-    Vector3D localNormal;
+    Vector3Dd t1V1;
+    Vector3Dd t1V2;
+    Vector3Dd t1V3;
+    Vector3Dd t2V1;
+    Vector3Dd t2V2;
+    Vector3Dd t2V3;
+    Vector3Dd localNormal;
     double pos1, pos2, dot, depth1, depth2, s, t, y1, y2, y3, y4;
     double maxHeight, minHeight;
 
@@ -183,7 +183,7 @@ HeightField::intersectPixel(
 
 int
 HeightField::intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *hField,
-    Vector3D *start, Vector3D *end)
+    Vector3Dd *start, Vector3Dd *end)
 {
     double y1, y2;
     double sx, sy, sz, ex, ez, f;
@@ -314,13 +314,13 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *h
 }
 
 int
-HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end)
+HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end)
 {
-    Vector3D *curr;
-    Vector3D *next;
-    Vector3D *temp;
-    Vector3D temp1;
-    Vector3D temp2;
+    Vector3Dd *curr;
+    Vector3Dd *next;
+    Vector3Dd *temp;
+    Vector3Dd temp1;
+    Vector3Dd temp2;
     double sx, sy, sz, ex, ey, ez, x, y, z;
     double tnear, tfar, t, blockSize, invBlkSize;
     int ix;
@@ -701,8 +701,8 @@ int
 HeightField::allHeightfldIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    Vector3D temp1;
-    Vector3D temp2;
+    Vector3Dd temp1;
+    Vector3Dd temp2;
     Ray tempRay;
     double depth1, depth2;
     int retVal = FALSE;
@@ -778,7 +778,7 @@ HeightField::allHeightfldIntersections(
 }
 
 int
-HeightField::insideHeightfld(Vector3D *testPoint, SimpleBody *object)
+HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
 {
     HeightField *hField = (HeightField *)object;
     int px;
@@ -788,11 +788,11 @@ HeightField::insideHeightfld(Vector3D *testPoint, SimpleBody *object)
     double dot1Value;
     double dot2Value;
     double x, z, y1, y2, y3;
-    Vector3D localOrigin;
-    Vector3D temp1;
-    Vector3D temp2;
-    Vector3D localNormal;
-    Vector3D test;
+    Vector3Dd localOrigin;
+    Vector3Dd temp1;
+    Vector3Dd temp2;
+    Vector3Dd localNormal;
+    Vector3Dd test;
 
     Transformation::MInverseTransformVector(&test, testPoint, hField->transformation);
 
@@ -842,15 +842,15 @@ HeightField::insideHeightfld(Vector3D *testPoint, SimpleBody *object)
 
 void
 HeightField::heightFldNormal(
-    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     HeightField *hField = (HeightField *)object;
     int px;
     int pz;
     double x, z, y1, y2, y3;
-    Vector3D localOrigin;
-    Vector3D temp1;
-    Vector3D temp2;
+    Vector3Dd localOrigin;
+    Vector3Dd temp1;
+    Vector3Dd temp2;
 
     Transformation::MInverseTransformVector(
         &localOrigin, intersectionPoint, hField->transformation);
@@ -905,7 +905,7 @@ HeightField::copyHeightfld(SimpleBody *object)
 }
 
 void
-HeightField::translateHeightfld(SimpleBody *object, Vector3D *vector)
+HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
     HeightField *hField = (HeightField *)object;
     Transformation transformation;
@@ -920,7 +920,7 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3D *vector)
 }
 
 void
-HeightField::rotateHeightfld(SimpleBody *object, Vector3D *vector)
+HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     HeightField *hField = (HeightField *)object;
@@ -935,7 +935,7 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3D *vector)
 }
 
 void
-HeightField::scaleHeightfld(SimpleBody *object, Vector3D *vector)
+HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
     HeightField *hField = (HeightField *)object;
     Transformation transformation;

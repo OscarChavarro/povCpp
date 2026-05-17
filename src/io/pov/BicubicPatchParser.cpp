@@ -5,7 +5,7 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/Bezier.h"
 #include "geom/GeometryOperations.h"
 #include "geom/ObjectUtils.h"
@@ -17,7 +17,7 @@ Geometry *
 BicubicPatchParser::parseBicubicPatch()
 {
     BicubicPatch *localShape = nullptr;
-    Vector3D localVector;
+    Vector3Dd localVector;
     CONSTANT constantId;
     Texture *localTexture;
     int i;

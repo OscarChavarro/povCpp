@@ -2,7 +2,7 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -44,7 +44,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 {
     CSG *container = nullptr;
     Geometry *localShape;
-    Vector3D localVector;
+    Vector3Dd localVector;
     CONSTANT constantId;
     int firstShapeParsed = FALSE;
 
@@ -394,7 +394,7 @@ ObjectParser::parseObject()
 {
     SimpleBody *object;
     Geometry *localShape;
-    Vector3D localVector;
+    Vector3Dd localVector;
     CONSTANT constantId;
     Texture *localTexture;
     Texture *tempTexture;
@@ -572,7 +572,7 @@ ObjectParser::parseComposite()
     SimpleBody *localObject;
     Geometry *localShape;
     CONSTANT constantId;
-    Vector3D localVector;
+    Vector3Dd localVector;
 
     localComposite = nullptr;
 

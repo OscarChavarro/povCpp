@@ -2,7 +2,7 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -103,7 +103,7 @@ PrimitiveParser::parseFloat()
 }
 
 void
-PrimitiveParser::parseVector(Vector3D *givenVector)
+PrimitiveParser::parseVector(Vector3Dd *givenVector)
 {
     CONSTANT constantId;
 
@@ -117,7 +117,7 @@ PrimitiveParser::parseVector(Vector3D *givenVector)
     if ((constantId = SceneConfigParser::findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == VECTOR_CONSTANT) {
             *givenVector =
-                *((Vector3D *)constants[(int)constantId].Constant_Data);
+                *((Vector3Dd *)constants[(int)constantId].Constant_Data);
         } else {
             ParseErrorReporter::typeError();
         }
