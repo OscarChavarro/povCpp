@@ -6,7 +6,7 @@
 #include "io/pov/TextureParser.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
-#include "geom/Poly.h"
+#include "geom/PolynomialShape.h"
 #include "geom/Geometry.h"
 #include "geom/ObjectUtils.h"
 
@@ -17,7 +17,7 @@ extern int termCounts[MAX_ORDER + 1];
 Geometry *
 PolyParser::parsePoly(int knownOrder)
 {
-    Poly *localShape;
+    PolynomialShape *localShape;
     Vector3D localVector;
     CONSTANT constantId;
     int order;
@@ -62,7 +62,7 @@ PolyParser::parsePoly(int knownOrder)
     case IDENTIFIER_TOKEN: if ((constantId = SceneConfigParser::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == POLY_CONSTANT) {
-            localShape = (Poly *)GeometryOps::copy(
+            localShape = (PolynomialShape *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseErrorReporter::typeError();

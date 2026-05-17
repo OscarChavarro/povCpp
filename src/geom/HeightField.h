@@ -2,9 +2,15 @@
 #define __HEIGHT_FIELD_H__
 
 #include "common/Frame.h"
+#include "common/PovProto.h"
+#include "common/Vector.h"
 #include "geom/Boxes.h"
 #include "geom/HeightFieldBlock.h"
 class RGBAImage;
+
+static constexpr int GIF = 0;
+static constexpr int POT = 1;
+static constexpr int TGA = 2;
 
 class HeightField : public Geometry {
   public:
@@ -39,5 +45,8 @@ class HeightField : public Geometry {
         Vector3D *start, Vector3D *end);
     static int intersectHfNode(Ray *ray, HeightField *hField, Vector3D *start, Vector3D *end);
 };
+
+extern Methods Height_Field_Methods;
+extern HeightField *getHeightFieldShape(void);
 
 #endif

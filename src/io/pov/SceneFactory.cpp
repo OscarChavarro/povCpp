@@ -13,11 +13,11 @@
 #include "geom/Blob.h"
 #include "geom/Boxes.h"
 #include "geom/Csg.h"
-#include "geom/HField.h"
+#include "geom/HeightField.h"
 #include "geom/Light.h"
 #include "geom/Objects.h"
 #include "geom/Planes.h"
-#include "geom/Poly.h"
+#include "geom/PolynomialShape.h"
 #include "geom/Quadrics.h"
 #include "geom/Spheres.h"
 #include "geom/Triangle.h"
@@ -138,13 +138,13 @@ SceneFactory::getQuadricShape()
 }
 
 /* Allocate and initialize a polynomial surface. */
-Poly *
+PolynomialShape *
 SceneFactory::getPolyShape(int order)
 {
-    Poly *newShape;
+    PolynomialShape *newShape;
     int i;
 
-    newShape = new Poly;
+    newShape = new PolynomialShape;
     if (newShape == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }

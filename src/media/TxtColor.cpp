@@ -17,7 +17,7 @@
 #include "common/PovProto.h"
 #include "common/Vector.h"
 #include "media/Texture.h"
-#include "media/TxtMap.h"
+#include "media/MapTextures.h"
 #include "media/TxtTest.h"
 
 static constexpr double COORDINATE_LIMIT = 1.0e17;

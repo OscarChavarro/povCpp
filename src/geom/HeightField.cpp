@@ -14,7 +14,7 @@
  *
  *****************************************************************************/
 
-#include "geom/HField.h"
+#include "geom/HeightField.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "media/Texture.h"
