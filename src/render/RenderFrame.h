@@ -2,7 +2,7 @@
 #define __RENDER_FRAME_H__
 
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/Light.h"
 #include "geom/Viewpoint.h"
 

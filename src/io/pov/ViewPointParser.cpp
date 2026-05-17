@@ -1,8 +1,8 @@
 #include "io/pov/ViewPointParser.h"
 #include "io/pov/Parse.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "geom/Viewpoint.h"
 
 extern TokenStruct globalToken;
@@ -27,8 +27,8 @@ void
 ViewPointParser::parseViewpoint(Viewpoint *givenVp)
 {
     CONSTANT constantId;
-    Vector3D localVector;
-    Vector3D tempVector;
+    Vector3Dd localVector;
+    Vector3Dd tempVector;
     double directionLength, upLength, rightLength, handedness;
 
     givenVp->initializeDefaults();

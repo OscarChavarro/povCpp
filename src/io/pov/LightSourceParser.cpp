@@ -4,7 +4,7 @@
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/Light.h"
 #include "geom/GeometryOperations.h"
 
@@ -15,7 +15,7 @@ Geometry *
 LightSourceParser::parseLightSource()
 {
     Light *localShape = nullptr;
-    Vector3D localVector;
+    Vector3Dd localVector;
     CONSTANT constantId;
 
     ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);

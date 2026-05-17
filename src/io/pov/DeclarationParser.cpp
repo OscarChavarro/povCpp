@@ -2,7 +2,7 @@
 #include "io/pov/ViewPointParser.h"
 #include "io/pov/Parse.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
@@ -214,7 +214,7 @@ DeclarationParser::parseDeclare()
         globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)SceneFactory::getVector();
     constantPtr->Constant_Type = VECTOR_CONSTANT;
-    PrimitiveParser::parseVector((Vector3D *)constantPtr->Constant_Data);
+    PrimitiveParser::parseVector((Vector3Dd *)constantPtr->Constant_Data);
     Exit_Flag = TRUE; break;
 
         case DASH_TOKEN:

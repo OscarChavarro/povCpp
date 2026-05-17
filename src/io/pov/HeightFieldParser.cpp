@@ -5,8 +5,8 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -21,7 +21,7 @@ HeightFieldParser::parseHeightField()
 {
     HeightField *localShape;
     CONSTANT constantId;
-    Vector3D localVector;
+    Vector3Dd localVector;
     Texture *localTexture;
     RGBAImage *image = nullptr;
     int imageType = 0;

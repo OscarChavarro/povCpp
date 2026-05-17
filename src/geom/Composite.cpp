@@ -176,7 +176,7 @@ Composite::allObjectIntersections(
 }
 
 int
-Composite::insideBasicObject(Vector3D *testPoint, SimpleBody *object)
+Composite::insideBasicObject(Vector3Dd *testPoint, SimpleBody *object)
 {
     Geometry *boundingShape;
     Geometry *clippingShape;
@@ -204,7 +204,7 @@ Composite::insideBasicObject(Vector3D *testPoint, SimpleBody *object)
 }
 
 int
-Composite::insideCompositeObject(Vector3D *testPoint, SimpleBody *object)
+Composite::insideCompositeObject(Vector3Dd *testPoint, SimpleBody *object)
 {
     Geometry *boundingShape;
     Geometry *clippingShape;
@@ -334,7 +334,7 @@ Composite::copyCompositeObject(SimpleBody *object)
 }
 
 void
-Composite::translateBasicObject(SimpleBody *object, Vector3D *vector)
+Composite::translateBasicObject(SimpleBody *object, Vector3Dd *vector)
 {
     Geometry *localShape;
 
@@ -356,7 +356,7 @@ Composite::translateBasicObject(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Composite::rotateBasicObject(SimpleBody *object, Vector3D *vector)
+Composite::rotateBasicObject(SimpleBody *object, Vector3Dd *vector)
 {
     Geometry *localShape;
     Transformation transformation;
@@ -380,7 +380,7 @@ Composite::rotateBasicObject(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Composite::scaleBasicObject(SimpleBody *object, Vector3D *vector)
+Composite::scaleBasicObject(SimpleBody *object, Vector3Dd *vector)
 {
     Geometry *localShape;
 
@@ -402,7 +402,7 @@ Composite::scaleBasicObject(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Composite::translateCompositeObject(SimpleBody *object, Vector3D *vector)
+Composite::translateCompositeObject(SimpleBody *object, Vector3Dd *vector)
 {
     SimpleBody *localObject;
     Geometry *localShape;
@@ -427,7 +427,7 @@ Composite::translateCompositeObject(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Composite::rotateCompositeObject(SimpleBody *object, Vector3D *vector)
+Composite::rotateCompositeObject(SimpleBody *object, Vector3Dd *vector)
 {
     SimpleBody *localObject;
     Geometry *localShape;
@@ -452,7 +452,7 @@ Composite::rotateCompositeObject(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Composite::scaleCompositeObject(SimpleBody *object, Vector3D *vector)
+Composite::scaleCompositeObject(SimpleBody *object, Vector3Dd *vector)
 {
     SimpleBody *localObject;
     Geometry *localShape;

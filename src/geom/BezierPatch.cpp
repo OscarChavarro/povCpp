@@ -4,7 +4,7 @@
 #include "geom/BicubicPatch.h"
 #include "geom/GeometryOperations.h"
 #include "io/Parse.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern Ray *vpRay;
@@ -18,13 +18,13 @@ BezierPatch::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *depth
     int i;
     int j;
     double depth, d, u, v, deltaU, deltaV;
-    Vector3D v0;
-    Vector3D v1;
-    Vector3D v2;
-    Vector3D v3;
-    Vector3D n;
-    Vector3D ip;
-    Vector3D(*patchPtr)[4][4] = (Vector3D(*)[4][4])shape->Control_Points;
+    Vector3Dd v0;
+    Vector3Dd v1;
+    Vector3Dd v2;
+    Vector3Dd v3;
+    Vector3Dd n;
+    Vector3Dd ip;
+    Vector3Dd(*patchPtr)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
     if (!BezierIntersection::sphericalBoundsCheck(ray, &(shape->Bounding_Sphere_Center),
             shape->Bounding_Sphere_Radius)) {
@@ -85,10 +85,10 @@ BezierPatch::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *depth
     int i;
     int j;
     double depth, d, radius;
-    Vector3D v[4];
-    Vector3D n;
-    Vector3D ip;
-    Vector3D center;
+    Vector3Dd v[4];
+    Vector3Dd n;
+    Vector3Dd ip;
+    Vector3Dd center;
 
     if (!BezierIntersection::sphericalBoundsCheck(ray, &(shape->Bounding_Sphere_Center),
             shape->Bounding_Sphere_Radius)) {
@@ -155,7 +155,7 @@ BezierPatch::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, double *depth
     int cnt = 0;
     double uValues[MAX_BICUBIC_INTERSECTIONS];
     double vValues[MAX_BICUBIC_INTERSECTIONS];
-    Vector3D(*patch)[4][4] = (Vector3D(*)[4][4])shape->Control_Points;
+    Vector3Dd(*patch)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
     BicubicPatch::bezierSubdivider(ray, shape, patch, 0.0, 1.0, 0.0, 1.0, 0, &cnt, depths,
         &uValues[0], &vValues[0]);
@@ -178,17 +178,17 @@ BezierPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depth
     int i;
     int j;
     double depth, d, t;
-    Vector3D v0;
-    Vector3D v1;
-    Vector3D v2;
-    Vector3D v3;
-    Vector3D n;
-    Vector3D n0;
-    Vector3D n1;
-    Vector3D n2;
-    Vector3D n3;
-    Vector3D ip;
-    Vector3D ipNorm;
+    Vector3Dd v0;
+    Vector3Dd v1;
+    Vector3Dd v2;
+    Vector3Dd v3;
+    Vector3Dd n;
+    Vector3Dd n0;
+    Vector3Dd n1;
+    Vector3Dd n2;
+    Vector3Dd n3;
+    Vector3Dd ip;
+    Vector3Dd ipNorm;
 
     if (!BezierIntersection::sphericalBoundsCheck(ray, &(shape->Bounding_Sphere_Center),
             shape->Bounding_Sphere_Radius)) {

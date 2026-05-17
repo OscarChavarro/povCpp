@@ -2,8 +2,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -85,8 +85,8 @@ void
 SceneConfigParser::parseViewpoint(Viewpoint *givenVp)
 {
     CONSTANT constantId;
-    Vector3D localVector;
-    Vector3D tempVector;
+    Vector3Dd localVector;
+    Vector3Dd tempVector;
     double directionLength, upLength, rightLength, handedness;
 
     givenVp->initializeDefaults();
@@ -370,7 +370,7 @@ SceneConfigParser::parseDeclare()
         globalToken.Identifier_Number;
     constantPtr->Constant_Data = (char *)SceneFactory::getVector();
     constantPtr->Constant_Type = VECTOR_CONSTANT;
-    PrimitiveParser::parseVector((Vector3D *)constantPtr->Constant_Data);
+    PrimitiveParser::parseVector((Vector3Dd *)constantPtr->Constant_Data);
     Exit_Flag = TRUE; break;
 
         case DASH_TOKEN:

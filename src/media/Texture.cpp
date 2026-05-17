@@ -18,13 +18,13 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "io/Parse.h"
 
 double *sintab;
 double frequency[NUMBER_OF_WAVES];
-Vector3D Wave_Sources[NUMBER_OF_WAVES];
+Vector3Dd Wave_Sources[NUMBER_OF_WAVES];
 double *RTable;
 short *hashTable;
 Texture *Default_Texture;
@@ -105,7 +105,7 @@ void
 TextureUtils::initializeNoise()
 {
     register int i = 0;
-    Vector3D point;
+    Vector3Dd point;
 
     TextureUtils::InitRTable();
 
@@ -155,7 +155,7 @@ void
 TextureUtils::InitRTable()
 {
     int i;
-    Vector3D rp;
+    Vector3Dd rp;
 
     TextureUtils::InitTextureTable();
 
@@ -172,17 +172,17 @@ TextureUtils::InitRTable()
 }
 
 int
-TextureUtils::R(Vector3D *v)
+TextureUtils::R(Vector3Dd *v)
 {
     v->x *= .12345;
     v->y *= .12345;
     v->z *= .12345;
 
-    return (TextureUtils::Crc16((char *)v, sizeof(Vector3D)));
+    return (TextureUtils::Crc16((char *)v, sizeof(Vector3Dd)));
 }
 
 /*
- * Note that passing a Vector3D array to Crc16 and interpreting it as
+ * Note that passing a Vector3Dd array to Crc16 and interpreting it as
  * an array of chars means that machines with different floating-point
  * representation schemes will evaluate TextureUtils::Noise(point) differently.
  */
@@ -291,7 +291,7 @@ TextureUtils::Noise(double x, double y, double z)
 Vector-valued version of "Noise"
 */
 void
-TextureUtils::DNoise(Vector3D *result, double x, double y, double z)
+TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
 {
     long ix;
     long iy;
@@ -386,11 +386,11 @@ TextureUtils::Turbulence(double x, double y, double z, int octaves)
 }
 
 void
-TextureUtils::DTurbulence(Vector3D *result, double x, double y, double z, int octaves)
+TextureUtils::DTurbulence(Vector3Dd *result, double x, double y, double z, int octaves)
 {
     int i; /* added -dmf */
     register double scale;
-    Vector3D value;
+    Vector3Dd value;
 
     result->x = 0.0;
     result->y = 0.0;
@@ -439,7 +439,7 @@ TextureUtils::triangleWave(double value)
 }
 
 void
-TextureUtils::translateTexture(Texture **texturePtr, Vector3D *vector)
+TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -519,7 +519,7 @@ TextureUtils::getTexture()
 }
 
 void
-TextureUtils::rotateTexture(Texture **texturePtr, Vector3D *vector)
+TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;
@@ -552,7 +552,7 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3D *vector)
 }
 
 void
-TextureUtils::scaleTexture(Texture **texturePtr, Vector3D *vector)
+TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
     Transformation transformation;

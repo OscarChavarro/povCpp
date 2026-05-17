@@ -1,6 +1,6 @@
 #include "geom/BezierIntersection.h"
 #include "geom/GeometryOperations.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
@@ -8,10 +8,10 @@ static constexpr double EPSILON = 1.0e-10;
     <1.0 0.0 0.0> if the triangle is degenerate. */
 int
 BezierIntersection::subpatchNormal(
-    Vector3D *v1, Vector3D *v2, Vector3D *v3, Vector3D *result, double *d)
+    Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *result, double *d)
 {
-    Vector3D edge1;
-    Vector3D edge2;
+    Vector3Dd edge1;
+    Vector3Dd edge2;
     double length;
 
     VectorOps::vSub(edge1, *v1, *v2);
@@ -35,13 +35,13 @@ BezierIntersection::subpatchNormal(
     points v1, v2, v3 and the normal to the triangle n. If so, Depth will
     be set to the distance along Ray at which the intersection occurs. */
 int
-BezierIntersection::intersectSubpatch(int patchType, Ray *ray, Vector3D *v1, Vector3D *v2,
-    Vector3D *v3, Vector3D *n, double d, Vector3D *n1, Vector3D *n2, Vector3D *n3,
-    double *depth, Vector3D *ip, Vector3D *ipNorm)
+BezierIntersection::intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1, Vector3Dd *v2,
+    Vector3Dd *v3, Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2, Vector3Dd *n3,
+    double *depth, Vector3Dd *ip, Vector3Dd *ipNorm)
 {
-    Vector3D tempV1;
-    Vector3D tempV2;
-    Vector3D perp;
+    Vector3Dd tempV1;
+    Vector3Dd tempV2;
+    Vector3Dd perp;
     double s, t, proj, mu;
     double x1, y1, x2, y2, x3, y3;
     double x, y, z;
@@ -224,7 +224,7 @@ BezierIntersection::intersectSubpatch(int patchType, Ray *ray, Vector3D *v1, Vec
 }
 
 int
-BezierIntersection::sphericalBoundsCheck(Ray *ray, Vector3D *center, double radius)
+BezierIntersection::sphericalBoundsCheck(Ray *ray, Vector3Dd *center, double radius)
 {
     double x, y, z, dist1, dist2;
     x = center->x - ray->Initial.x;
@@ -246,7 +246,7 @@ BezierIntersection::sphericalBoundsCheck(Ray *ray, Vector3D *center, double radi
 
 /* Determine the distance from a point to a plane. */
 double
-BezierIntersection::pointPlaneDistance(Vector3D *p, Vector3D *n, double *d)
+BezierIntersection::pointPlaneDistance(Vector3Dd *p, Vector3Dd *n, double *d)
 {
     double temp1, temp2;
 

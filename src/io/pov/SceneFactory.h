@@ -1,7 +1,7 @@
 #ifndef __SCENE_FACTORY_H__
 #define __SCENE_FACTORY_H__
 
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/Composite.h"
 
 class Composite;
@@ -38,7 +38,7 @@ class SceneFactory {
     static CSG *getCsgIntersection();
     static Viewpoint *getViewpoint();
     static RGBAColor *getColour();
-    static Vector3D *getVector();
+    static Vector3Dd *getVector();
     static double *getFloat();
     static BicubicPatch *getBicubicPatchShape();
 };

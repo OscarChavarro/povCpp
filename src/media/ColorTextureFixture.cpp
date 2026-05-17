@@ -15,8 +15,8 @@
 #include "media/ColorTextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "media/Texture.h"
 #include "media/MapTextureFixture.h"
 #include "media/TextureFixture.h"
@@ -24,12 +24,12 @@
 static constexpr double COORDINATE_LIMIT = 1.0e17;
 
 void
-ColorTextureFixture::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
+ColorTextureFixture::colourAt(RGBAColor *colour, Texture *texture, Vector3Dd *intersectionPoint)
 {
     register double x;
     register double y;
     register double z;
-    Vector3D transformedPoint;
+    Vector3Dd transformedPoint;
 
     if ((intersectionPoint->x > COORDINATE_LIMIT) ||
         (intersectionPoint->y > COORDINATE_LIMIT) ||
@@ -179,7 +179,7 @@ ColorTextureFixture::bozo(double x, double y, double z, Texture *texture, RGBACo
     register double noise;
     register double turb;
     RGBAColor newColour;
-    Vector3D bozoTurbulence;
+    Vector3Dd bozoTurbulence;
 
     if (Options & DEBUGGING) {
         printf("bozo %g %g %g ", x, y, z);
@@ -284,7 +284,7 @@ void
 ColorTextureFixture::checkerTexture(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
-    Vector3D point;
+    Vector3Dd point;
 
     x += Small_Tolerance; /* add a small offset to x, y, z, axes to prevent
                              noise */
@@ -319,7 +319,7 @@ ColorTextureFixture::gradient(double x, double y, double z, Texture *texture, RG
 {
     RGBAColor newColour;
     double value = 0.0, turb;
-    Vector3D gradTurbulence;
+    Vector3Dd gradTurbulence;
 
     if ((turb = texture->Turbulence) != 0.0) {
         TextureUtils::DTurbulence(&gradTurbulence, x, y, z, texture->Octaves);
@@ -465,8 +465,8 @@ ColorTextureFixture::wood(double x, double y, double z, Texture *texture, RGBACo
 {
     register double noise;
     register double length;
-    Vector3D woodTurbulence;
-    Vector3D point;
+    Vector3Dd woodTurbulence;
+    Vector3Dd point;
     RGBAColor newColour;
 
     TextureUtils::DTurbulence(&woodTurbulence, x, y, z, texture->Octaves);
@@ -524,7 +524,7 @@ ColorTextureFixture::leopard(double x, double y, double z, Texture *texture, RGB
     register double temp2;
     register double temp3;
     RGBAColor newColour;
-    Vector3D leopardTurbulence;
+    Vector3Dd leopardTurbulence;
 
     if (Options & DEBUGGING) {
         printf("leopard %g %g %g ", x, y, z);
@@ -574,7 +574,7 @@ ColorTextureFixture::onion(double x, double y, double z, Texture *texture, RGBAC
     register double noise;
     register double turb;
     RGBAColor newColour;
-    Vector3D onionTurbulence;
+    Vector3Dd onionTurbulence;
 
     if (Options & DEBUGGING) {
         printf("onion %g %g %g ", x, y, z);

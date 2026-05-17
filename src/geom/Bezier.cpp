@@ -14,7 +14,7 @@
 #include "geom/GeometryOperations.h"
 #include "geom/Composite.h"
 #include "io/Parse.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
@@ -67,12 +67,12 @@ BicubicPatch::createBezierChildBlock()
 }
 
 BezierNode *
-BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3D (*patch)[4][4], int depth)
+BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3Dd (*patch)[4][4], int depth)
 {
-    Vector3D lowerLeft[4][4];
-    Vector3D lowerRight[4][4];
-    Vector3D upperLeft[4][4];
-    Vector3D upperRight[4][4];
+    Vector3Dd lowerLeft[4][4];
+    Vector3Dd lowerRight[4][4];
+    Vector3Dd upperLeft[4][4];
+    Vector3Dd upperRight[4][4];
     BezierChild *children;
     BezierVertices *vertices;
     BezierNode *node = BicubicPatch::createNewBezierNode();
@@ -106,45 +106,45 @@ BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3D (*patch)[4][4], i
             vertices->Vertices[3] = (*patch)[3][0];
             node->Data_Ptr = (void *)vertices;
         } else {
-            BicubicPatch::bezierSplitUpDown(patch, (Vector3D(*)[4][4])lowerLeft,
-                (Vector3D(*)[4][4])upperLeft);
+            BicubicPatch::bezierSplitUpDown(patch, (Vector3Dd(*)[4][4])lowerLeft,
+                (Vector3Dd(*)[4][4])upperLeft);
             node->Node_Type = BEZIER_INTERIOR_NODE;
             children = BicubicPatch::createBezierChildBlock();
             children->Children[0] = BicubicPatch::bezierTreeBuilder(
-                object, (Vector3D(*)[4][4])lowerLeft, depth + 1);
+                object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
             children->Children[1] = BicubicPatch::bezierTreeBuilder(
-                object, (Vector3D(*)[4][4])upperLeft, depth + 1);
+                object, (Vector3Dd(*)[4][4])upperLeft, depth + 1);
             node->Count = 2;
             node->Data_Ptr = (void *)children;
         }
     } else if (depth >= object->V_Steps) {
         BicubicPatch::bezierSplitLeftRight(
-            patch, (Vector3D(*)[4][4])lowerLeft, (Vector3D(*)[4][4])lowerRight);
+            patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
         node->Node_Type = BEZIER_INTERIOR_NODE;
         children = BicubicPatch::createBezierChildBlock();
         children->Children[0] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3D(*)[4][4])lowerLeft, depth + 1);
+            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
         children->Children[1] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3D(*)[4][4])lowerRight, depth + 1);
+            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
         node->Count = 2;
         node->Data_Ptr = (void *)children;
     } else {
         BicubicPatch::bezierSplitLeftRight(
-            patch, (Vector3D(*)[4][4])lowerLeft, (Vector3D(*)[4][4])lowerRight);
-        BicubicPatch::bezierSplitUpDown((Vector3D(*)[4][4])lowerLeft,
-            (Vector3D(*)[4][4])lowerLeft, (Vector3D(*)[4][4])upperLeft);
-        BicubicPatch::bezierSplitUpDown((Vector3D(*)[4][4])lowerRight,
-            (Vector3D(*)[4][4])lowerRight, (Vector3D(*)[4][4])upperRight);
+            patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
+        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerLeft,
+            (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])upperLeft);
+        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerRight,
+            (Vector3Dd(*)[4][4])lowerRight, (Vector3Dd(*)[4][4])upperRight);
         node->Node_Type = BEZIER_INTERIOR_NODE;
         children = BicubicPatch::createBezierChildBlock();
         children->Children[0] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3D(*)[4][4])lowerLeft, depth + 1);
+            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
         children->Children[1] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3D(*)[4][4])upperLeft, depth + 1);
+            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])upperLeft, depth + 1);
         children->Children[2] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3D(*)[4][4])lowerRight, depth + 1);
+            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
         children->Children[3] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3D(*)[4][4])upperRight, depth + 1);
+            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])upperRight, depth + 1);
         node->Count = 4;
         node->Data_Ptr = (void *)children;
     }
@@ -153,7 +153,7 @@ BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3D (*patch)[4][4], i
 
 /* Evaluate a single coordinate point (u, v) on a bezier patch. */
 void
-BicubicPatch::bezierValue(Vector3D *result, double u, double v, Vector3D (*controlPoints)[4][4])
+BicubicPatch::bezierValue(Vector3Dd *result, double u, double v, Vector3Dd (*controlPoints)[4][4])
 {
     double u2, u3, v2, v3, uu1, uu2, uu3, vv1, vv2, vv3;
     double t[4][4];
@@ -211,10 +211,10 @@ BicubicPatch::bezierValue(Vector3D *result, double u, double v, Vector3D (*contr
     The normal is undefined where the determinants vanish.
 */
 void
-BicubicPatch::bezierPartial(Vector3D *result, double u, double v, BicubicPatch *shape)
+BicubicPatch::bezierPartial(Vector3Dd *result, double u, double v, BicubicPatch *shape)
 {
-    Vector3D uVec;
-    Vector3D vVec; /* Partial derivatives with respect to u, and v. */
+    Vector3Dd uVec;
+    Vector3Dd vVec; /* Partial derivatives with respect to u, and v. */
     double u2, u3, v2, v3;
     double t[4][4], temp;
     int i;
@@ -309,7 +309,7 @@ BicubicPatch::bezierPartial(Vector3D *result, double u, double v, BicubicPatch *
 
 /* Find a sphere that contains all of the points in the list "vectors" */
 void
-BicubicPatch::findAverage(int vectorCount, Vector3D *vectors, Vector3D *center, double *radius)
+BicubicPatch::findAverage(int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius)
 {
     double r0, r1, xc = 0, yc = 0, zc = 0;
     double x0, y0, z0;
@@ -343,7 +343,7 @@ BicubicPatch::findAverage(int vectorCount, Vector3D *vectors, Vector3D *center, 
     The values returned are: the center of the bounding sphere, and the
     square of the radius of the bounding sphere. */
 void
-BicubicPatch::bezierBoundingSphere(Vector3D (*patch)[4][4], Vector3D *center, double *radius)
+BicubicPatch::bezierBoundingSphere(Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radius)
 {
     double r0, r1, xc = 0, yc = 0, zc = 0;
     double x0, y0, z0;
@@ -384,13 +384,13 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
     int i;
     int j;
     double d, u, v, deltaU, deltaV;
-    Vector3D v0;
-    Vector3D v1;
-    Vector3D v2;
-    Vector3D v3;
-    Vector3D n;
-    Vector3D controlPoints[16];
-    Vector3D(*patchPtr)[4][4] = (Vector3D(*)[4][4])shape->Control_Points;
+    Vector3Dd v0;
+    Vector3Dd v1;
+    Vector3Dd v2;
+    Vector3Dd v3;
+    Vector3Dd n;
+    Vector3Dd controlPoints[16];
+    Vector3Dd(*patchPtr)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
     /* Calculate the bounding sphere for the entire patch. */
     for (i = 0; i < 4; i++) {
@@ -414,35 +414,35 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
     deltaU = 1.0 / (double)shape->U_Steps;
     deltaV = 1.0 / (double)shape->V_Steps;
     if (shape->Interpolated_Grid == nullptr) {
-        shape->Interpolated_Grid = new Vector3D *[shape->U_Steps + 1];
+        shape->Interpolated_Grid = new Vector3Dd *[shape->U_Steps + 1];
         if (shape->Interpolated_Grid == nullptr) {
             ParseErrorReporter::Error("Failed to allocate Interpolated_Grid");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
-            shape->Interpolated_Grid[i] = new Vector3D[shape->V_Steps + 1];
+            shape->Interpolated_Grid[i] = new Vector3Dd[shape->V_Steps + 1];
             if (shape->Interpolated_Grid == nullptr) {
                 ParseErrorReporter::Error("Failed to allocate component of Interpolated_Grid");
             }
         }
-        shape->Interpolated_Normals = new Vector3D *[shape->U_Steps + 1];
+        shape->Interpolated_Normals = new Vector3Dd *[shape->U_Steps + 1];
         if (shape->Interpolated_Normals == nullptr) {
             ParseErrorReporter::Error("Failed to allocate Interpolated_Normals");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_Normals[i] =
-                new Vector3D[2 * (shape->V_Steps + 1)];
+                new Vector3Dd[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_Normals == nullptr) {
                 ParseErrorReporter::Error("Failed to allocate component of Interpolated_Normals");
             }
         }
 
         if (shape->Patch_Type == 4) {
-            shape->Smooth_Normals = new Vector3D *[shape->U_Steps + 1];
+            shape->Smooth_Normals = new Vector3Dd *[shape->U_Steps + 1];
             if (shape->Smooth_Normals == nullptr) {
                 ParseErrorReporter::Error("Failed to allocate Smooth_Normals");
             }
             for (i = 0; i <= shape->U_Steps; i++) {
-                shape->Smooth_Normals[i] = new Vector3D[shape->V_Steps + 1];
+                shape->Smooth_Normals[i] = new Vector3Dd[shape->V_Steps + 1];
                 if (shape->Smooth_Normals == nullptr) {
                     ParseErrorReporter::Error("Failed to allocate component of Smooth_Normals");
                 }
@@ -524,17 +524,17 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
 
 
 void
-BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3D (*patch)[4][4],
+BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3Dd (*patch)[4][4],
     double u0, double u1, double v0, int recursionDepth, int *depthCount, double *depths,
     double *uValues, double *vValues)
 {
     int tcnt = shape->Intersection_Count;
-    Vector3D vv0;
-    Vector3D vv1;
-    Vector3D vv2;
-    Vector3D vv3;
-    Vector3D n;
-    Vector3D ip;
+    Vector3Dd vv0;
+    Vector3Dd vv1;
+    Vector3Dd vv2;
+    Vector3Dd vv3;
+    Vector3Dd n;
+    Vector3Dd ip;
     double d;
     double depth;
 
@@ -575,12 +575,12 @@ BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3D (*
 }
 
 void
-BicubicPatch::bezierSplitLeftRight(Vector3D (*patch)[4][4], Vector3D (*leftPatch)[4][4],
-    Vector3D (*rightPatch)[4][4])
+BicubicPatch::bezierSplitLeftRight(Vector3Dd (*patch)[4][4], Vector3Dd (*leftPatch)[4][4],
+    Vector3Dd (*rightPatch)[4][4])
 {
-    Vector3D temp1[4];
-    Vector3D temp2[4];
-    Vector3D half;
+    Vector3Dd temp1[4];
+    Vector3Dd temp2[4];
+    Vector3Dd half;
     int i;
     int j;
     for (i = 0; i < 4; i++) {
@@ -601,12 +601,12 @@ BicubicPatch::bezierSplitLeftRight(Vector3D (*patch)[4][4], Vector3D (*leftPatch
 }
 
 void
-BicubicPatch::bezierSplitUpDown(Vector3D (*patch)[4][4], Vector3D (*topPatch)[4][4],
-    Vector3D (*bottomPatch)[4][4])
+BicubicPatch::bezierSplitUpDown(Vector3Dd (*patch)[4][4], Vector3Dd (*topPatch)[4][4],
+    Vector3Dd (*bottomPatch)[4][4])
 {
-    Vector3D temp1[4];
-    Vector3D temp2[4];
-    Vector3D half;
+    Vector3Dd temp1[4];
+    Vector3Dd temp2[4];
+    Vector3Dd half;
     int i;
     int j;
 
@@ -632,11 +632,11 @@ BicubicPatch::bezierSplitUpDown(Vector3D (*patch)[4][4], Vector3D (*topPatch)[4]
     three distinct vertices. A negative result from this function indicates
     that a degenerate value of some sort was encountered. */
 double
-BicubicPatch::determineSubpatchFlatness(Vector3D (*patch)[4][4])
+BicubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
 {
-    Vector3D vertices[4];
-    Vector3D n;
-    Vector3D tempV;
+    Vector3Dd vertices[4];
+    Vector3Dd n;
+    Vector3Dd tempV;
     double d, dist, temp1;
     int i;
     int j;
@@ -712,7 +712,7 @@ BicubicPatch::determineSubpatchFlatness(Vector3D (*patch)[4][4])
 }
 
 int
-BicubicPatch::flatEnough(BicubicPatch *object, Vector3D (*patch)[4][4])
+BicubicPatch::flatEnough(BicubicPatch *object, Vector3Dd (*patch)[4][4])
 {
     double dist;
 
@@ -727,15 +727,15 @@ BicubicPatch::flatEnough(BicubicPatch *object, Vector3D (*patch)[4][4])
 }
 
 void
-BicubicPatch::bezierSubdivider(Ray *ray, BicubicPatch *object, Vector3D (*patch)[4][4],
+BicubicPatch::bezierSubdivider(Ray *ray, BicubicPatch *object, Vector3Dd (*patch)[4][4],
     double u0, double u1, double v0, double v1, int recursionDepth, int *depthCount,
     double *depths, double *uValues, double *vValues)
 {
-    Vector3D lowerLeft[4][4];
-    Vector3D lowerRight[4][4];
-    Vector3D upperLeft[4][4];
-    Vector3D upperRight[4][4];
-    Vector3D center;
+    Vector3Dd lowerLeft[4][4];
+    Vector3Dd lowerRight[4][4];
+    Vector3Dd upperLeft[4][4];
+    Vector3Dd upperRight[4][4];
+    Vector3Dd center;
     double ut, vt, radius;
     int tcnt = object->Intersection_Count;
 
@@ -763,40 +763,40 @@ BicubicPatch::bezierSubdivider(Ray *ray, BicubicPatch *object, Vector3D (*patch)
             BicubicPatch::bezierSubpatchIntersect(ray, object, patch, u0, u1, v0,
                 recursionDepth + 1, depthCount, depths, uValues, vValues);
         } else {
-            BicubicPatch::bezierSplitUpDown(patch, (Vector3D(*)[4][4])lowerLeft,
-                (Vector3D(*)[4][4])upperLeft);
+            BicubicPatch::bezierSplitUpDown(patch, (Vector3Dd(*)[4][4])lowerLeft,
+                (Vector3Dd(*)[4][4])upperLeft);
             vt = (v1 - v0) / 2.0;
-            BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])lowerLeft, u0, u1,
+            BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, u1,
                 v0, vt, recursionDepth + 1, depthCount, depths, uValues,
                 vValues);
-            BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])upperLeft, u0, u1,
+            BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])upperLeft, u0, u1,
                 vt, v1, recursionDepth + 1, depthCount, depths, uValues,
                 vValues);
         }
     } else if (recursionDepth >= object->V_Steps) {
         BicubicPatch::bezierSplitLeftRight(
-            patch, (Vector3D(*)[4][4])lowerLeft, (Vector3D(*)[4][4])lowerRight);
+            patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
         ut = (u1 - u0) / 2.0;
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])lowerLeft, u0, ut, v0,
+        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])lowerRight, ut, u1, v0,
+        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
     } else {
         ut = (u1 - u0) / 2.0;
         vt = (v1 - v0) / 2.0;
         BicubicPatch::bezierSplitLeftRight(
-            patch, (Vector3D(*)[4][4])lowerLeft, (Vector3D(*)[4][4])lowerRight);
-        BicubicPatch::bezierSplitUpDown((Vector3D(*)[4][4])lowerLeft,
-            (Vector3D(*)[4][4])lowerLeft, (Vector3D(*)[4][4])upperLeft);
-        BicubicPatch::bezierSplitUpDown((Vector3D(*)[4][4])lowerRight,
-            (Vector3D(*)[4][4])lowerRight, (Vector3D(*)[4][4])upperRight);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])lowerLeft, u0, ut, v0,
+            patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
+        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerLeft,
+            (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])upperLeft);
+        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerRight,
+            (Vector3Dd(*)[4][4])lowerRight, (Vector3Dd(*)[4][4])upperRight);
+        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0,
             vt, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])upperLeft, u0, ut, vt,
+        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])upperLeft, u0, ut, vt,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])lowerRight, ut, u1, v0,
+        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0,
             vt, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3D(*)[4][4])upperRight, ut, u1, vt,
+        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])upperRight, ut, u1, vt,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
     }
 }
@@ -828,12 +828,12 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
 {
     BezierChild *children;
     BezierVertices *vertices;
-    Vector3D n;
-    Vector3D ip;
-    Vector3D vv0;
-    Vector3D vv1;
-    Vector3D vv2;
-    Vector3D vv3;
+    Vector3Dd n;
+    Vector3Dd ip;
+    Vector3Dd vv0;
+    Vector3Dd vv1;
+    Vector3Dd vv2;
+    Vector3Dd vv3;
     double d;
     double hitDepth;
     int i;
@@ -898,14 +898,14 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
 
 /* A patch is not a solid, so an inside test doesn't make sense. */
 int
-BicubicPatch::insideBicubicPatch(Vector3D *testPoint, SimpleBody *object)
+BicubicPatch::insideBicubicPatch(Vector3Dd *testPoint, SimpleBody *object)
 {
     return 0;
 }
 
 void
 BicubicPatch::bicubicPatchNormal(
-    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     BicubicPatch *patch = (BicubicPatch *)object;
     int i;
@@ -951,7 +951,7 @@ BicubicPatch::copyBicubicPatch(SimpleBody *object)
 }
 
 void
-BicubicPatch::translateBicubicPatch(SimpleBody *object, Vector3D *vector)
+BicubicPatch::translateBicubicPatch(SimpleBody *object, Vector3Dd *vector)
 {
     BicubicPatch *patch = (BicubicPatch *)object;
     int i;
@@ -965,7 +965,7 @@ BicubicPatch::translateBicubicPatch(SimpleBody *object, Vector3D *vector)
 }
 
 void
-BicubicPatch::rotateBicubicPatch(SimpleBody *object, Vector3D *vector)
+BicubicPatch::rotateBicubicPatch(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
     BicubicPatch *patch = (BicubicPatch *)object;
@@ -984,7 +984,7 @@ BicubicPatch::rotateBicubicPatch(SimpleBody *object, Vector3D *vector)
 }
 
 void
-BicubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3D *vector)
+BicubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
 {
     BicubicPatch *patch = (BicubicPatch *)object;
     int i;

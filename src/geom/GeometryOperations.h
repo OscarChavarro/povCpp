@@ -3,7 +3,7 @@
 
 #include "common/Transformation.h"
 #include "common/Ray.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 
 /* Object/shape types */
 static constexpr int SPHERE_TYPE = 0;
@@ -50,12 +50,12 @@ class GeometryOperations {
         return (Intersection *)((*((x)->methods->Intersection_Method))(x, y));
     }
 
-    static inline int inside(Vector3D *x, SimpleBody *y)
+    static inline int inside(Vector3Dd *x, SimpleBody *y)
     {
         return ((*((y)->methods->Inside_Method))(x, y));
     }
 
-    static inline void normal(Vector3D *x, SimpleBody *y, Vector3D *z)
+    static inline void normal(Vector3Dd *x, SimpleBody *y, Vector3Dd *z)
     {
         ((*((y)->methods->Normal_Method))(x, y, z));
     }
@@ -65,17 +65,17 @@ class GeometryOperations {
         return ((*((x)->methods->Copy_Method))(x));
     }
 
-    static inline void translate(SimpleBody *x, Vector3D *y)
+    static inline void translate(SimpleBody *x, Vector3Dd *y)
     {
         ((*((x)->methods->Translate_Method))(x, y));
     }
 
-    static inline void scale(SimpleBody *x, Vector3D *y)
+    static inline void scale(SimpleBody *x, Vector3Dd *y)
     {
         ((*((x)->methods->Scale_Method))(x, y));
     }
 
-    static inline void rotate(SimpleBody *x, Vector3D *y)
+    static inline void rotate(SimpleBody *x, Vector3Dd *y)
     {
         ((*((x)->methods->Rotate_Method))(x, y));
     }

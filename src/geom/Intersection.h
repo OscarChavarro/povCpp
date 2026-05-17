@@ -7,7 +7,7 @@ class Intersection {
   public:
     double Depth;
     SimpleBody *Object;
-    Vector3D Point;
+    Vector3Dd Point;
     Geometry *Shape;
 };
 

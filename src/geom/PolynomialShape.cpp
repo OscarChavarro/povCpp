@@ -12,7 +12,7 @@
 #include "io/Parse.h"
 #include "geom/Composite.h"
 #include "processing/PolynomialSolver.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+
@@ -52,8 +52,8 @@ PolynomialShape::allPolyIntersections(
 {
     PolynomialShape *shape = (PolynomialShape *)object;
     double depths[MAX_ORDER], len;
-    Vector3D intersectionPoint;
-    Vector3D dv;
+    Vector3Dd intersectionPoint;
+    Vector3Dd dv;
     Intersection localElement;
     int cnt;
     int i;
@@ -249,7 +249,7 @@ PolynomialShape::intersect(Ray *ray, int order, double *coeffs, double *depths)
 }
 
 double
-PolynomialShape::inside(Vector3D *point, int order, double *coeffs)
+PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 {
     double x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1], result;
     int i;
@@ -281,7 +281,7 @@ PolynomialShape::inside(Vector3D *point, int order, double *coeffs)
 
 /* Normal to a polynomial */
 void
-PolynomialShape::normalp(Vector3D *result, int order, double *coeffs, Vector3D *intersectionPoint)
+PolynomialShape::normalp(Vector3Dd *result, int order, double *coeffs, Vector3Dd *intersectionPoint)
 {
     int i;
     int xp;
@@ -664,7 +664,7 @@ PolynomialShape::intersectQuartic(Ray *ray, PolynomialShape *shape, double *dept
 
 /* Normal to a quartic */
 void
-PolynomialShape::quarticNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+PolynomialShape::quarticNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
     double *a, x, y, z, x2, y2, z2, x3, y3, z3;
@@ -715,9 +715,9 @@ PolynomialShape::quarticNormal(Vector3D *result, SimpleBody *object, Vector3D *i
 }
 
 int
-PolynomialShape::insidePoly(Vector3D *testPoint, SimpleBody *object)
+PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
 {
-    Vector3D newPoint;
+    Vector3Dd newPoint;
     PolynomialShape *shape = (PolynomialShape *)object;
     double result;
 
@@ -737,10 +737,10 @@ PolynomialShape::insidePoly(Vector3D *testPoint, SimpleBody *object)
 
 /* Normal to a polynomial */
 void
-PolynomialShape::polyNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+PolynomialShape::polyNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
-    Vector3D newPoint;
+    Vector3Dd newPoint;
 
     /* Transform the point into the polynomials space */
     if (shape->Transform != nullptr) {
@@ -796,7 +796,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
 }
 
 void
-PolynomialShape::translatePoly(SimpleBody *object, Vector3D *vector)
+PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     PolynomialShape *shape = (PolynomialShape *)object;
@@ -810,7 +810,7 @@ PolynomialShape::translatePoly(SimpleBody *object, Vector3D *vector)
 }
 
 void
-PolynomialShape::rotatePoly(SimpleBody *object, Vector3D *vector)
+PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     PolynomialShape *shape = (PolynomialShape *)object;
@@ -824,7 +824,7 @@ PolynomialShape::rotatePoly(SimpleBody *object, Vector3D *vector)
 }
 
 void
-PolynomialShape::scalePoly(SimpleBody *object, Vector3D *vector)
+PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     PolynomialShape *shape = (PolynomialShape *)object;

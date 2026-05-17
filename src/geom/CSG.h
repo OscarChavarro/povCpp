@@ -3,7 +3,7 @@
 
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/GeometryOperations.h"
 
 class CSG : public Geometry {
@@ -14,12 +14,12 @@ class CSG : public Geometry {
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
     static int allCsgIntersectIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int insideCsgUnion(Vector3D *point, SimpleBody *object);
-    static int insideCsgIntersection(Vector3D *point, SimpleBody *object);
+    static int insideCsgUnion(Vector3Dd *point, SimpleBody *object);
+    static int insideCsgIntersection(Vector3Dd *point, SimpleBody *object);
     static void *copyCsg(SimpleBody *object);
-    static void translateCsg(SimpleBody *object, Vector3D *vector);
-    static void rotateCsg(SimpleBody *object, Vector3D *vector);
-    static void scaleCsg(SimpleBody *object, Vector3D *vector);
+    static void translateCsg(SimpleBody *object, Vector3Dd *vector);
+    static void rotateCsg(SimpleBody *object, Vector3Dd *vector);
+    static void scaleCsg(SimpleBody *object, Vector3Dd *vector);
     static void invertCsg(SimpleBody *object);
     static void setCsgParents(CSG *shape, SimpleBody *object);
 };

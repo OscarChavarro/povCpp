@@ -2,7 +2,7 @@
 #define __BICUBIC_PATCH_H__
 
 #include "common/FrameConfig.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/BezierNode.h"
 #include "geom/GeometryOperations.h"
 
@@ -17,56 +17,56 @@ class BicubicPatch : public Geometry {
   friend class BezierIntersection;
   public:
     int Patch_Type, U_Steps, V_Steps;
-    Vector3D Control_Points[4][4];
-    Vector3D Bounding_Sphere_Center;
+    Vector3Dd Control_Points[4][4];
+    Vector3Dd Bounding_Sphere_Center;
     double Bounding_Sphere_Radius;
     double Flatness_Value;
     int Intersection_Count;
-    Vector3D Normal_Vector[MAX_BICUBIC_INTERSECTIONS];
-    Vector3D Intersection_Point[MAX_BICUBIC_INTERSECTIONS];
-    Vector3D **Interpolated_Grid, **Interpolated_Normals, **Smooth_Normals;
+    Vector3Dd Normal_Vector[MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd Intersection_Point[MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd **Interpolated_Grid, **Interpolated_Normals, **Smooth_Normals;
     double **Interpolated_D;
     BezierNode *Node_Tree;
 
     static BicubicPatch *getBicubicPatchShape();
     static void precomputePatchValues(BicubicPatch *shape);
-    static int insideBicubicPatch(Vector3D *point, SimpleBody *object);
+    static int insideBicubicPatch(Vector3Dd *point, SimpleBody *object);
     static void bicubicPatchNormal(
-        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
     static void *copyBicubicPatch(SimpleBody *object);
-    static void translateBicubicPatch(SimpleBody *object, Vector3D *vector);
-    static void rotateBicubicPatch(SimpleBody *object, Vector3D *vector);
-    static void scaleBicubicPatch(SimpleBody *object, Vector3D *vector);
+    static void translateBicubicPatch(SimpleBody *object, Vector3Dd *vector);
+    static void rotateBicubicPatch(SimpleBody *object, Vector3Dd *vector);
+    static void scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector);
     static void invertBicubicPatch(SimpleBody *object);
   private:
     static void bezierValue(
-        Vector3D *result, double u, double v, Vector3D (*controlPoints)[4][4]);
-    static void bezierPartial(Vector3D *result, double u, double v, BicubicPatch *shape);
+        Vector3Dd *result, double u, double v, Vector3Dd (*controlPoints)[4][4]);
+    static void bezierPartial(Vector3Dd *result, double u, double v, BicubicPatch *shape);
     static int subpatchNormal(
-        Vector3D *v1, Vector3D *v2, Vector3D *v3, Vector3D *result, double *d);
-    static int intersectSubpatch(int patchType, Ray *ray, Vector3D *v1,
-        Vector3D *v2, Vector3D *v3, Vector3D *n, double d, Vector3D *n1, Vector3D *n2,
-        Vector3D *n3, double *depth, Vector3D *ip, Vector3D *ipNorm);
+        Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *result, double *d);
+    static int intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1,
+        Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2,
+        Vector3Dd *n3, double *depth, Vector3Dd *ip, Vector3Dd *ipNorm);
     static void findAverage(
-        int vectorCount, Vector3D *vectors, Vector3D *center, double *radius);
-    static double pointPlaneDistance(Vector3D *point, Vector3D *normal, double *d);
-    static double determineSubpatchFlatness(Vector3D (*patch)[4][4]);
-    static int flatEnough(BicubicPatch *shape, Vector3D (*patch)[4][4]);
+        int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius);
+    static double pointPlaneDistance(Vector3Dd *point, Vector3Dd *normal, double *d);
+    static double determineSubpatchFlatness(Vector3Dd (*patch)[4][4]);
+    static int flatEnough(BicubicPatch *shape, Vector3Dd (*patch)[4][4]);
     static void bezierBoundingSphere(
-        Vector3D (*patch)[4][4], Vector3D *center, double *radiusSquared);
+        Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radiusSquared);
     static void bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape,
-        Vector3D (*patch)[4][4], double u0, double u1, double v0, int recursionDepth,
+        Vector3Dd (*patch)[4][4], double u0, double u1, double v0, int recursionDepth,
         int *depthCount, double *depths, double *u, double *v);
     static void bezierSplitLeftRight(
-        Vector3D (*patch)[4][4], Vector3D (*left)[4][4], Vector3D (*right)[4][4]);
+        Vector3Dd (*patch)[4][4], Vector3Dd (*left)[4][4], Vector3Dd (*right)[4][4]);
     static void bezierSplitUpDown(
-        Vector3D (*patch)[4][4], Vector3D (*lower)[4][4], Vector3D (*upper)[4][4]);
-    static void bezierSubdivider(Ray *ray, BicubicPatch *shape, Vector3D (*patch)[4][4],
+        Vector3Dd (*patch)[4][4], Vector3Dd (*lower)[4][4], Vector3Dd (*upper)[4][4]);
+    static void bezierSubdivider(Ray *ray, BicubicPatch *shape, Vector3Dd (*patch)[4][4],
         double u0, double u1, double v0, double v1, int recursionDepth, int *depthCount,
         double *depths, double *u, double *v);
     static void bezierTreeDeleter(BezierNode *node);
     static BezierNode *bezierTreeBuilder(
-        BicubicPatch *shape, Vector3D (*patch)[4][4], int depth);
+        BicubicPatch *shape, Vector3Dd (*patch)[4][4], int depth);
     static void bezierTreeWalker(
         Ray *ray, BicubicPatch *shape, BezierNode *node, int depth, int *depthCount, double *depths);
     static BezierNode *createNewBezierNode();

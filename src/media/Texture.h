@@ -11,7 +11,7 @@
 #include "common/Color.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "media/RGBAPixel.h"
 #include "media/RGBAImage.h"
 #include "media/TextureUtils.h"
@@ -42,7 +42,7 @@ class Texture {
     RGBAColor *Colour1;
     RGBAColor *Colour2;
     double Turbulence;
-    Vector3D Texture_Gradient;
+    Vector3Dd Texture_Gradient;
     RGBAColorPalette *Colour_Map;
     RGBAImage *Image;
     RGBAImage *Bump_Image;
@@ -151,7 +151,7 @@ inline double incrSum(int m, double s, double x, double y, double z)
 
 extern double *sintab;
 extern double frequency[NUMBER_OF_WAVES];
-extern Vector3D Wave_Sources[NUMBER_OF_WAVES];
+extern Vector3Dd Wave_Sources[NUMBER_OF_WAVES];
 extern double *RTable;
 extern short *hashTable;
 extern unsigned short crctab[256];
@@ -162,20 +162,20 @@ extern void computeColour(
 extern void initializeNoise(void);
 extern void InitTextureTable(void);
 extern void InitRTable(void);
-extern int R(Vector3D *v);
+extern int R(Vector3Dd *v);
 extern int Crc16(char *buf, int count);
 extern void setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
     long *jx, long *jy, long *jz, double *sx, double *sy, double *sz, double *tx, double *ty,
     double *tz);
 extern double Noise(double x, double y, double z);
-extern void DNoise(Vector3D *result, double x, double y, double z);
+extern void DNoise(Vector3Dd *result, double x, double y, double z);
 extern double cycloidal(double value);
 extern double triangleWave(double value);
 extern double Turbulence(double x, double y, double z, int octaves);
-extern void DTurbulence(Vector3D *result, double x, double y, double z, int octaves);
-extern void translateTexture(Texture **Texture_Ptr, Vector3D *Vector);
-extern void rotateTexture(Texture **Texture_Ptr, Vector3D *Vector);
-extern void scaleTexture(Texture **Texture_Ptr, Vector3D *Vector);
+extern void DTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
+extern void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
+extern void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
+extern void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
 
 extern Texture *copyTexture(Texture *Texture);
 extern Texture *getTexture();

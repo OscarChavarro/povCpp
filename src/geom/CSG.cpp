@@ -89,7 +89,7 @@ CSG::allCsgIntersectIntersections(
 }
 
 int
-CSG::insideCsgUnion(Vector3D *testPoint, SimpleBody *object)
+CSG::insideCsgUnion(Vector3Dd *testPoint, SimpleBody *object)
 {
     CSG *shape = (CSG *)object;
     Geometry *localShape;
@@ -105,7 +105,7 @@ CSG::insideCsgUnion(Vector3D *testPoint, SimpleBody *object)
 }
 
 int
-CSG::insideCsgIntersection(Vector3D *testPoint, SimpleBody *object)
+CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
 {
     Geometry *localShape;
     CSG *shape = (CSG *)object;
@@ -147,7 +147,7 @@ CSG::copyCsg(SimpleBody *object)
 }
 
 void
-CSG::translateCsg(SimpleBody *object, Vector3D *vector)
+CSG::translateCsg(SimpleBody *object, Vector3Dd *vector)
 {
     Geometry *localShape;
 
@@ -159,7 +159,7 @@ CSG::translateCsg(SimpleBody *object, Vector3D *vector)
 }
 
 void
-CSG::rotateCsg(SimpleBody *object, Vector3D *vector)
+CSG::rotateCsg(SimpleBody *object, Vector3Dd *vector)
 {
     Geometry *localShape;
 
@@ -171,7 +171,7 @@ CSG::rotateCsg(SimpleBody *object, Vector3D *vector)
 }
 
 void
-CSG::scaleCsg(SimpleBody *object, Vector3D *vector)
+CSG::scaleCsg(SimpleBody *object, Vector3Dd *vector)
 {
     Geometry *localShape;
 

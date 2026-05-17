@@ -3,23 +3,23 @@
 
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/GeometryOperations.h"
 
 class Light : public Geometry {
   public:
-    Vector3D Center, Points_At;
+    Vector3Dd Center, Points_At;
     Light *Next_Light_Source;
     short Inverted;
     double Coeff, Radius, Falloff;
 
     static int allPointIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int insidePoint(Vector3D *testPoint, SimpleBody *object);
+    static int insidePoint(Vector3Dd *testPoint, SimpleBody *object);
     static void *copyPoint(SimpleBody *object);
-    static void translatePoint(SimpleBody *object, Vector3D *vector);
-    static void rotatePoint(SimpleBody *object, Vector3D *vector);
-    static void scalePoint(SimpleBody *object, Vector3D *vector);
+    static void translatePoint(SimpleBody *object, Vector3Dd *vector);
+    static void rotatePoint(SimpleBody *object, Vector3Dd *vector);
+    static void scalePoint(SimpleBody *object, Vector3Dd *vector);
     static void invertPoint(SimpleBody *object);
     static double attenuateLight(Light *lightSource, Ray *lightSourceRay);
 

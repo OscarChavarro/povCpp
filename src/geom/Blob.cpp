@@ -12,7 +12,7 @@
 #include "io/Parse.h"
 #include "geom/Composite.h"
 #include "processing/PolynomialSolver.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
     Blob::blobNormal, Blob::copyBlob, Blob::translateBlob, Blob::rotateBlob, Blob::scaleBlob,
     Blob::invertBlob};
@@ -89,14 +89,14 @@ MakeBlob(
     a very complex blob (with many components along the current ray)
     to warrant the overhead of using a faster sort technique. */
 int
-Blob::determineInfluences(Vector3D *p, Vector3D *d, Blob *blob, double mindist)
+Blob::determineInfluences(Vector3Dd *p, Vector3Dd *d, Blob *blob, double mindist)
 {
     int i;
     int j;
     int k;
     int cnt;
     double b, t, t0, t1, disc;
-    Vector3D v;
+    Vector3Dd v;
     BlobInterval *intervals = blob->intervals;
 
     cnt = 0;
@@ -185,11 +185,11 @@ Blob::determineInfluences(Vector3D *p, Vector3D *d, Blob *blob, double mindist)
 /* Calculate the field value of a blob - the position vector
     "Pos" must already have been transformed into blob space. */
 double
-Blob::calculateFieldValue(SimpleBody *obj, Vector3D *pos)
+Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
 {
     int i;
     double len, density;
-    Vector3D v;
+    Vector3Dd v;
     BlobElement *ptr;
     Blob *blob = (Blob *)obj;
 
@@ -209,13 +209,13 @@ Blob::calculateFieldValue(SimpleBody *obj, Vector3D *pos)
 
 /* See if the hit in question really is a hit. */
 int
-Blob::validateHit(Blob *blob, Vector3D *p)
+Blob::validateHit(Blob *blob, Vector3Dd *p)
 {
     int i;
     BlobElement *temp;
     double val, dist;
-    Vector3D v;
-    Vector3D n;
+    Vector3Dd v;
+    Vector3Dd n;
 
     n.x = 0.0;
     n.y = 0.0;
@@ -303,15 +303,15 @@ Blob::allBlobIntersections(
     int i;
     int j;
     int cnt;
-    Vector3D p;
-    Vector3D d;
-    Vector3D v;
+    Vector3Dd p;
+    Vector3Dd d;
+    Vector3Dd v;
     int rootCount;
     int inFlag;
     BlobElement *element;
     double t0, t1, c0, c1, c2;
-    Vector3D intersectionPoint;
-    Vector3D dv;
+    Vector3Dd intersectionPoint;
+    Vector3Dd dv;
     BlobInterval *intervals = blob->intervals;
     int intersectionFound = FALSE;
 
@@ -447,9 +447,9 @@ Blob::allBlobIntersections(
 /* Calculate the density at this point, then compare to
     the threshold to see if we are in or out of the blob */
 int
-Blob::insideBlob(Vector3D *testPoint, SimpleBody *object)
+Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
 {
-    Vector3D newPoint;
+    Vector3Dd newPoint;
     Blob *blob = (Blob *)object;
 
     /* Transform the point into blob space */
@@ -467,10 +467,10 @@ Blob::insideBlob(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-Blob::blobNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+Blob::blobNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    Vector3D newPoint;
-    Vector3D v;
+    Vector3Dd newPoint;
+    Vector3Dd v;
     int i;
     double dist, val;
     Blob *blob = (Blob *)object;
@@ -565,7 +565,7 @@ Blob::copyBlob(SimpleBody *object)
 }
 
 void
-Blob::translateBlob(SimpleBody *object, Vector3D *vector)
+Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
@@ -579,7 +579,7 @@ Blob::translateBlob(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Blob::rotateBlob(SimpleBody *object, Vector3D *vector)
+Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;
@@ -593,7 +593,7 @@ Blob::rotateBlob(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Blob::scaleBlob(SimpleBody *object, Vector3D *vector)
+Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transform;
     Blob *blob = (Blob *)object;

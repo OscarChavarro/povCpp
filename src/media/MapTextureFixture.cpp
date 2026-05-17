@@ -10,8 +10,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "media/Texture.h"
 
 extern int cylindricalImageMap(
@@ -66,9 +66,9 @@ MapTextureFixture::imageMap(double x, double y, double z, Texture *texture, RGBA
 /* an intersection point and a texture and returns a new texture based on */
 /* the index/color of that point in an image/materials map. CdW 7/91        */
 Texture *
-MapTextureFixture::materialMap(Vector3D *intersectionPoint, Texture *texture)
+MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
 {
-    Vector3D transformedPoint;
+    Vector3Dd transformedPoint;
     register double x;
     register double y;
     register double z;
@@ -127,7 +127,7 @@ MapTextureFixture::materialMap(Vector3D *intersectionPoint, Texture *texture)
 }
 
 void
-MapTextureFixture::bumpMap(double x, double y, double z, Texture *texture, Vector3D *normal)
+MapTextureFixture::bumpMap(double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
     double xcoor = 0.0, ycoor = 0.0;
     int index;
@@ -136,14 +136,14 @@ MapTextureFixture::bumpMap(double x, double y, double z, Texture *texture, Vecto
     RGBAColor colour;
     RGBAColor colour2;
     RGBAColor colour3;
-    Vector3D p1;
-    Vector3D p2;
-    Vector3D p3;
-    Vector3D bumpNormal;
-    Vector3D xprime;
-    Vector3D yprime;
-    Vector3D zprime;
-    Vector3D temp;
+    Vector3Dd p1;
+    Vector3Dd p2;
+    Vector3Dd p3;
+    Vector3Dd bumpNormal;
+    Vector3Dd xprime;
+    Vector3Dd yprime;
+    Vector3Dd zprime;
+    Vector3Dd temp;
     double length;
     Color::makeColor(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;

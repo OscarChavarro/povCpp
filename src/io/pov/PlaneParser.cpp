@@ -5,7 +5,7 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
+#include "common/Vector3Dd.h"
 #include "geom/InfinitePlane.h"
 #include "geom/GeometryOperations.h"
 
@@ -17,7 +17,7 @@ PlaneParser::parsePlane()
 {
     InfinitePlane *localShape;
     CONSTANT constantId;
-    Vector3D localVector;
+    Vector3Dd localVector;
     Texture *localTexture;
     Texture *tempTexture;
 

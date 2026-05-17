@@ -17,8 +17,8 @@
 #include "common/Color.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3D.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
+#include "common/Vector3Dd.h"
 #include "io/DumpFormat.h"
 #include "render/LightingEngine.h"
 
@@ -62,8 +62,8 @@ RenderFrame::createRay(Ray *ray, int width, int height, double x, double y)
 {
     register double xScalar;
     register double yScalar;
-    Vector3D tempVect1;
-    Vector3D tempVect2;
+    Vector3Dd tempVect1;
+    Vector3Dd tempVect2;
 
     /* Convert the X Coordinate to be a double from 0.0 to 1.0 */
     xScalar = (x - (double)width / 2.0) / (double)width;

@@ -8,7 +8,7 @@
 #include "geom/Quadric.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/VectorOps.h"
+#include "common/Vector3Dd.h"
 Methods Quadric_Methods = {Composite::objectIntersect, Quadric::allQuadricIntersections,
     Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
@@ -21,7 +21,7 @@ Quadric::allQuadricIntersections(
 {
     Quadric *shape = (Quadric *)object;
     double depth1, depth2;
-    Vector3D intersectionPoint;
+    Vector3Dd intersectionPoint;
     Intersection localElement;
     register int intersectionFound;
 
@@ -142,10 +142,10 @@ Quadric::intersectQuadric(Ray *ray, Quadric *shape, double *depth1, double *dept
 }
 
 int
-Quadric::insideQuadric(Vector3D *testPoint, SimpleBody *object)
+Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
-    Vector3D newPoint;
+    Vector3Dd newPoint;
     register double result;
     register double linearTerm;
     register double squareTerm;
@@ -168,10 +168,10 @@ Quadric::insideQuadric(Vector3D *testPoint, SimpleBody *object)
 
 void
 Quadric::quadricNormal(
-    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     Quadric *intersectionShape = (Quadric *)object;
-    Vector3D derivativeLinear;
+    Vector3Dd derivativeLinear;
     double len;
 
     VectorOps::vScale(derivativeLinear, intersectionShape->Object_2_Terms, 2.0);
@@ -270,7 +270,7 @@ Quadric::transformQuadric(Quadric *shape, Transformation *transformation)
 }
 
 void
-Quadric::translateQuadric(SimpleBody *object, Vector3D *vector)
+Quadric::translateQuadric(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
 
@@ -281,7 +281,7 @@ Quadric::translateQuadric(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Quadric::rotateQuadric(SimpleBody *object, Vector3D *vector)
+Quadric::rotateQuadric(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
 
@@ -292,7 +292,7 @@ Quadric::rotateQuadric(SimpleBody *object, Vector3D *vector)
 }
 
 void
-Quadric::scaleQuadric(SimpleBody *object, Vector3D *vector)
+Quadric::scaleQuadric(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
 
