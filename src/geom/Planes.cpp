@@ -8,7 +8,6 @@
 #include "geom/Planes.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 Methods Plane_Methods = {Composite::objectIntersect, InfinitePlane::allPlaneIntersections,
     InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
@@ -109,12 +108,12 @@ InfinitePlane::copyPlane(SimpleBody *object)
 {
     InfinitePlane *newShape;
 
-    newShape = ParseFactory::getPlaneShape();
+    newShape = SceneFactory::getPlaneShape();
     *newShape = *((InfinitePlane *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

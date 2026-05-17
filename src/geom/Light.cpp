@@ -8,7 +8,6 @@
 #include "geom/Light.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 Methods Point_Methods = {Composite::objectIntersect, Light::allPointIntersections,
     Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,
     Light::scalePoint, Light::invertPoint};
@@ -31,12 +30,12 @@ Light::copyPoint(SimpleBody *object)
 {
     Light *newShape;
 
-    newShape = ParseFactory::getLightSourceShape();
+    newShape = SceneFactory::getLightSourceShape();
     *newShape = *((Light *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

@@ -11,9 +11,7 @@
 #include "geom/Blob.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 #include "media/Vect.h"
-#include "io/Parse.h"
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
     Blob::blobNormal, Blob::copyBlob, Blob::translateBlob, Blob::rotateBlob, Blob::scaleBlob,
     Blob::invertBlob};
@@ -533,7 +531,7 @@ Blob::copyBlob(SimpleBody *object)
     Blob *oldShape = (Blob *)object;
     Transformation *tr;
 
-    blob = ParseFactory::getBlobShape();
+    blob = SceneFactory::getBlobShape();
     memcpy(blob, oldShape, sizeof(Blob));
     blob->Next_Object = nullptr;
 
@@ -559,7 +557,7 @@ Blob::copyBlob(SimpleBody *object)
 
     /* Copy any associated texture */
     if (blob->Shape_Texture != nullptr) {
-        blob->Shape_Texture = ParseEngine::copyTexture(blob->Shape_Texture);
+        blob->Shape_Texture = TextureParser::copyTexture(blob->Shape_Texture);
     }
 
     return (blob);

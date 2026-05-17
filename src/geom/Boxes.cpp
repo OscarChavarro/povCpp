@@ -11,7 +11,6 @@
 #include "geom/Boxes.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections, Box::insideBox,
     Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
 
@@ -282,7 +281,7 @@ Box::copyBox(SimpleBody *object)
     Box *newShape;
     Transformation *tr;
 
-    newShape = ParseFactory::getBoxShape();
+    newShape = SceneFactory::getBoxShape();
     *newShape = *((Box *)object);
     newShape->Next_Object = nullptr;
 
@@ -294,7 +293,7 @@ Box::copyBox(SimpleBody *object)
     }
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

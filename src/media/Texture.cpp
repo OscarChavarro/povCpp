@@ -449,7 +449,7 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = ParseEngine::copyTexture(texture);
+                texture = TextureParser::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
@@ -477,7 +477,7 @@ TextureUtils::getTexture()
 
     newTexture = new Texture;
     if (newTexture == nullptr) {
-        ParseEngine::Error("Out of memory. Cannot allocate object");
+        ParseErrorReporter::Error("Out of memory. Cannot allocate object");
     }
 
     newTexture->Next_Texture = nullptr;
@@ -529,7 +529,7 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = ParseEngine::copyTexture(texture);
+                texture = TextureParser::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
@@ -562,7 +562,7 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3D *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = ParseEngine::copyTexture(texture);
+                texture = TextureParser::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }

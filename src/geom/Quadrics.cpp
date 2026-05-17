@@ -8,7 +8,6 @@
 #include "geom/Quadrics.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 Methods Quadric_Methods = {Composite::objectIntersect, Quadric::allQuadricIntersections,
     Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
@@ -210,12 +209,12 @@ Quadric::copyQuadric(SimpleBody *object)
 {
     Quadric *newShape;
 
-    newShape = ParseFactory::getQuadricShape();
+    newShape = SceneFactory::getQuadricShape();
     *newShape = *((Quadric *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

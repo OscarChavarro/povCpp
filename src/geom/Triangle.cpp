@@ -8,7 +8,6 @@
 #include "geom/Triangle.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 Methods Triangle_Methods = {Composite::objectIntersect, Triangle::allTriangleIntersections,
     Triangle::insideTriangle, Triangle::triangleNormal, Triangle::copyTriangle, Triangle::translateTriangle,
     Triangle::rotateTriangle, Triangle::scaleTriangle, Triangle::invertTriangle};
@@ -386,12 +385,12 @@ Triangle::copyTriangle(SimpleBody *object)
 {
     Triangle *newShape;
 
-    newShape = ParseFactory::getTriangleShape();
+    newShape = SceneFactory::getTriangleShape();
     *newShape = *((Triangle *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -552,12 +551,12 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *newShape;
 
-    newShape = ParseFactory::getSmoothTriangleShape();
+    newShape = SceneFactory::getSmoothTriangleShape();
     *newShape = *((SmoothTriangle *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

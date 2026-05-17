@@ -289,7 +289,7 @@ Composite::copyBasicObject(SimpleBody *object)
     }
 
     if (newObject->Object_Texture != nullptr) {
-        newObject->Object_Texture = ParseEngine::copyTexture(newObject->Object_Texture);
+        newObject->Object_Texture = TextureParser::copyTexture(newObject->Object_Texture);
     }
 
     return ((void *)newObject);
@@ -303,7 +303,7 @@ Composite::copyCompositeObject(SimpleBody *object)
     SimpleBody *localObject;
     SimpleBody *copiedObject;
 
-    newObject = ParseFactory::getCompositeObject();
+    newObject = SceneFactory::getCompositeObject();
     *newObject = *((Composite *)object);
     newObject->Next_Object = nullptr;
     newObject->Objects = nullptr;
@@ -528,7 +528,7 @@ ObjectUtils::getObject()
     SimpleBody *newObject;
 
     if ((newObject = new SimpleBody()) == nullptr) {
-        ParseEngine::Error("Out of memory. Cannot allocate object");
+        ParseErrorReporter::Error("Out of memory. Cannot allocate object");
     }
 
     newObject->Next_Object = nullptr;

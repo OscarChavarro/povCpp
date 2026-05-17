@@ -129,7 +129,7 @@ CSG::copyCsg(SimpleBody *object)
     Geometry *localShape;
     Geometry *copiedShape;
 
-    newShape = ParseFactory::getCsgShape();
+    newShape = SceneFactory::getCsgShape();
     newShape->methods = shape->methods;
     newShape->Type = shape->Type;
     newShape->Next_Object = nullptr;

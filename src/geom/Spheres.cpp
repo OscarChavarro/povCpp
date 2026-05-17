@@ -7,7 +7,6 @@
 #include "geom/Spheres.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 
 //===========================================================================
 
@@ -149,12 +148,12 @@ Sphere::copySphere(SimpleBody *object)
 {
     Sphere *newShape;
 
-    newShape = ParseFactory::getSphereShape();
+    newShape = SceneFactory::getSphereShape();
     *newShape = *((Sphere *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
