@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_CLASS_H__
-#define __GEOMETRY_CLASS_H__
+#ifndef __GEOMETRY_CLASS_DEF_H__
+#define __GEOMETRY_CLASS_DEF_H__
 
 #include "common/Frame.h"
 

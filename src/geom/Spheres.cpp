@@ -7,6 +7,7 @@
 #include "geom/Spheres.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
+#include "common/VectorOps.h"
 
 //===========================================================================
 

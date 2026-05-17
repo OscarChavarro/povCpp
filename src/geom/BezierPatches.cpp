@@ -4,6 +4,7 @@
 #include "geom/BicubicPatch.h"
 #include "geom/Geometry.h"
 #include "io/Parse.h"
+#include "common/VectorOps.h"
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern Ray *vpRay;

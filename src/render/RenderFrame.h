@@ -4,7 +4,7 @@
 #include "common/PovProto.h"
 #include "common/Vector.h"
 #include "geom/Light.h"
-#include "geom/ViewPnt.h"
+#include "geom/Viewpoint.h"
 
 class RenderFrame {
   public:

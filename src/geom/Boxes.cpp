@@ -11,6 +11,7 @@
 #include "geom/Boxes.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
+#include "common/VectorOps.h"
 Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections, Box::insideBox,
     Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
 

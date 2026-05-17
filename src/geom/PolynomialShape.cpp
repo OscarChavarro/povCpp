@@ -12,6 +12,7 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "processing/PolynomialSolver.h"
+#include "common/VectorOps.h"
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+

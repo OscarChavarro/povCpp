@@ -14,6 +14,7 @@
 #include "geom/Geometry.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
+#include "common/VectorOps.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 

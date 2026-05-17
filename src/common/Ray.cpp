@@ -8,6 +8,7 @@
 #include "common/Ray.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 
 inline void
 Ray::mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c)

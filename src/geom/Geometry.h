@@ -3,6 +3,8 @@
 
 #include "common/Matrices.h"
 #include "common/Ray.h"
+#include "common/Vector.h"
+
 /* Object/shape types */
 static constexpr int SPHERE_TYPE = 0;
 static constexpr int TRIANGLE_TYPE = 1;
@@ -29,9 +31,9 @@ class Methods;
 class Geometry;
 class SimpleBody;
 
-#include "geom/GeometryClass.h"
-#include "geom/MethodsClass.h"
+#include "geom/Methods.h"
 #include "geom/SimpleBody.h"
+#include "geom/GeometryClassDef.h"
 
 #include "geom/PrioQ.h"
 #include "media/Texture.h"

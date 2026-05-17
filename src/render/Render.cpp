@@ -18,6 +18,7 @@
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "io/Dump.h"
 #include "render/Lighting.h"
 

@@ -3,6 +3,7 @@
 #include "common/Matrices.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "io/Gif.h"
 #include "io/Iff.h"
 #include "io/Targa.h"
@@ -21,7 +22,7 @@
 #include "geom/Quadrics.h"
 #include "geom/Spheres.h"
 #include "geom/Triangle.h"
-#include "geom/ViewPnt.h"
+#include "geom/Viewpoint.h"
 
 extern ReservedWord globalReservedWords[];
 extern double antialiasThreshold;

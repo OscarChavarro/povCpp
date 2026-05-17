@@ -22,7 +22,7 @@
 #include "geom/Quadrics.h"
 #include "geom/Spheres.h"
 #include "geom/Triangle.h"
-#include "geom/ViewPnt.h"
+#include "geom/Viewpoint.h"
 
 extern ReservedWord globalReservedWords[];
 extern double antialiasThreshold;

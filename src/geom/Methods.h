@@ -1,5 +1,5 @@
-#ifndef __METHODS_CLASS_H__
-#define __METHODS_CLASS_H__
+#ifndef __METHODS_H__
+#define __METHODS_H__
 
 #include "common/Matrices.h"
 #include "common/Ray.h"

@@ -8,6 +8,7 @@
 #include "geom/Planes.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
+#include "common/VectorOps.h"
 Methods Plane_Methods = {Composite::objectIntersect, InfinitePlane::allPlaneIntersections,
     InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};

@@ -5,8 +5,9 @@
  *
  *****************************************************************************/
 
-#include "geom/ViewPnt.h"
+#include "geom/Viewpoint.h"
 #include "io/Parse.h"
+#include "common/VectorOps.h"
 Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, Viewpoint::copyViewpoint,
     Viewpoint::translateViewpoint, Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
 void *
