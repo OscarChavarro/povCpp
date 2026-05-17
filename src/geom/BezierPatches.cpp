@@ -1,0 +1,321 @@
+#include "geom/BezierPatches.h"
+#include "geom/Bezier.h"
+#include "geom/BezierIntersection.h"
+#include "geom/BicubicPatch.h"
+#include "geom/Geometry.h"
+#include "io/Parse.h"
+
+extern long rayBicubicTests, rayBicubicTestsSucceeded;
+extern Ray *vpRay;
+extern int shadowTestFlag;
+
+int
+BezierPatches::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *depths)
+{
+    int cnt = 0;
+    int tcnt = shape->Intersection_Count;
+    int i;
+    int j;
+    double depth, d, u, v, deltaU, deltaV;
+    Vector3D v0;
+    Vector3D v1;
+    Vector3D v2;
+    Vector3D v3;
+    Vector3D n;
+    Vector3D ip;
+    Vector3D(*patchPtr)[4][4] = (Vector3D(*)[4][4])shape->Control_Points;
+
+    if (!BezierIntersection::sphericalBoundsCheck(ray, &(shape->Bounding_Sphere_Center),
+            shape->Bounding_Sphere_Radius)) {
+        return 0;
+    }
+
+    deltaU = 1.0 / (double)shape->U_Steps;
+    deltaV = 1.0 / (double)shape->V_Steps;
+
+    /* Calculate the initial point */
+    for (i = 0; i < shape->U_Steps; i++) {
+        u = (double)i / (double)shape->U_Steps;
+        for (j = 0; j < shape->V_Steps; j++) {
+            v = (double)j / (double)shape->V_Steps;
+
+            /* Calculate surface values for the current patch. */
+            BicubicPatch::bezierValue(&v0, u, v, patchPtr);
+            BicubicPatch::bezierValue(&v1, u + deltaU, v, patchPtr);
+            BicubicPatch::bezierValue(&v2, u, v + deltaV, patchPtr);
+            BicubicPatch::bezierValue(&v3, u + deltaU, v + deltaV, patchPtr);
+
+            /* Triangulate this subpatch, then check for intersections in
+                the triangles. */
+            if (BezierIntersection::subpatchNormal(&v0, &v2, &v1, &n, &d)) {
+                if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &v0, &v2, &v1, &n,
+                        d, nullptr, nullptr, nullptr, &depth, &ip, &n)) {
+                    shape->Intersection_Point[tcnt + cnt] = ip;
+                    shape->Normal_Vector[tcnt + cnt] = n;
+                    depths[cnt] = depth;
+                    if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                        /* Too many intersections. Stop looking for more. */
+                        return cnt;
+                    }
+                }
+            }
+            if (BezierIntersection::subpatchNormal(&v1, &v2, &v3, &n, &d)) {
+                if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &v1, &v2, &v3, &n,
+                        d, nullptr, nullptr, nullptr, &depth, &ip, &n)) {
+                    shape->Intersection_Point[tcnt + cnt] = ip;
+                    shape->Normal_Vector[tcnt + cnt] = n;
+                    depths[cnt] = depth;
+                    if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                        /* Too many intersections. Stop looking for more. */
+                        return cnt;
+                    }
+                }
+            }
+        }
+    }
+    return cnt;
+}
+
+int
+BezierPatches::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *depths)
+{
+    int cnt = 0;
+    int tcnt = shape->Intersection_Count;
+    int i;
+    int j;
+    double depth, d, radius;
+    Vector3D v[4];
+    Vector3D n;
+    Vector3D ip;
+    Vector3D center;
+
+    if (!BezierIntersection::sphericalBoundsCheck(ray, &(shape->Bounding_Sphere_Center),
+            shape->Bounding_Sphere_Radius)) {
+        return 0;
+    }
+
+    /* Calculate the initial point */
+    for (i = 0; i < shape->U_Steps; i++) {
+        for (j = 0; j < shape->V_Steps; j++) {
+
+            /* Grab precomputed surface values for the current patch. */
+            v[0] = shape->Interpolated_Grid[i][j];
+            v[1] = shape->Interpolated_Grid[i + 1][j];
+            v[2] = shape->Interpolated_Grid[i][j + 1];
+            v[3] = shape->Interpolated_Grid[i + 1][j + 1];
+
+            /* Check the ray against the bounding sphere for this subpatch */
+            BicubicPatch::findAverage(4, &v[0], &center, &radius);
+            if (!BezierIntersection::sphericalBoundsCheck(ray, &center, radius)) {
+                continue;
+            }
+
+            n = shape->Interpolated_Normals[i][2 * j];
+            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+                goto l0;
+            }
+            d = shape->Interpolated_D[i][2 * j];
+
+            /* Check for intersections in this subpatch. */
+            if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &v[0], &v[2], &v[1],
+                    &n, d, nullptr, nullptr, nullptr, &depth, &ip, &n)) {
+                shape->Intersection_Point[tcnt + cnt] = ip;
+                shape->Normal_Vector[tcnt + cnt] = n;
+                depths[cnt] = depth;
+                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                    /* Too many intersections. Stop looking for more. */
+                    return cnt;
+                }
+            }
+        l0:
+            n = shape->Interpolated_Normals[i][2 * j + 1];
+            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+                continue;
+            }
+            d = shape->Interpolated_D[i][2 * j + 1];
+            if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &v[1], &v[2], &v[3],
+                    &n, d, nullptr, nullptr, nullptr, &depth, &ip, &n)) {
+                shape->Intersection_Point[tcnt + cnt] = ip;
+                shape->Normal_Vector[tcnt + cnt] = n;
+                depths[cnt] = depth;
+                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                    /* Too many intersections. Stop looking for more. */
+                    return cnt;
+                }
+            }
+        }
+    }
+    return cnt;
+}
+
+int
+BezierPatches::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, double *depths)
+{
+    int cnt = 0;
+    double uValues[MAX_BICUBIC_INTERSECTIONS];
+    double vValues[MAX_BICUBIC_INTERSECTIONS];
+    Vector3D(*patch)[4][4] = (Vector3D(*)[4][4])shape->Control_Points;
+
+    BicubicPatch::bezierSubdivider(ray, shape, patch, 0.0, 1.0, 0.0, 1.0, 0, &cnt, depths,
+        &uValues[0], &vValues[0]);
+    return cnt;
+}
+
+int
+BezierPatches::intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, double *depths)
+{
+    int cnt = 0;
+    BicubicPatch::bezierTreeWalker(ray, shape, shape->Node_Tree, 0, &cnt, depths);
+    return cnt;
+}
+
+int
+BezierPatches::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depths)
+{
+    int cnt = 0;
+    int tcnt = shape->Intersection_Count;
+    int i;
+    int j;
+    double depth, d, t;
+    Vector3D v0;
+    Vector3D v1;
+    Vector3D v2;
+    Vector3D v3;
+    Vector3D n;
+    Vector3D n0;
+    Vector3D n1;
+    Vector3D n2;
+    Vector3D n3;
+    Vector3D ip;
+    Vector3D ipNorm;
+
+    if (!BezierIntersection::sphericalBoundsCheck(ray, &(shape->Bounding_Sphere_Center),
+            shape->Bounding_Sphere_Radius)) {
+        return 0;
+    }
+
+    /* Calculate the initial point */
+    for (i = 0; i < shape->U_Steps; i++) {
+        for (j = 0; j < shape->V_Steps; j++) {
+
+            /* Grab precomputed surface values for the current patch. */
+            v0 = shape->Interpolated_Grid[i][j];
+            v1 = shape->Interpolated_Grid[i + 1][j];
+            v2 = shape->Interpolated_Grid[i][j + 1];
+            v3 = shape->Interpolated_Grid[i + 1][j + 1];
+
+            n0 = shape->Smooth_Normals[i][j];
+            n1 = shape->Smooth_Normals[i + 1][j];
+            n2 = shape->Smooth_Normals[i][j + 1];
+            n3 = shape->Smooth_Normals[i + 1][j + 1];
+
+            n = shape->Interpolated_Normals[i][2 * j];
+            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+                goto l0;
+            }
+            d = shape->Interpolated_D[i][2 * j];
+
+            /* Make sure the smooth normals point in the same direction as the
+             * normal */
+            VectorOps::vDot(t, n0, n);
+            if (t < 0)
+                VectorOps::vScale(n0, n0, -1.0);
+            VectorOps::vDot(t, n1, n);
+            if (t < 0)
+                VectorOps::vScale(n1, n1, -1.0);
+            VectorOps::vDot(t, n2, n);
+            if (t < 0)
+                VectorOps::vScale(n2, n2, -1.0);
+
+            /* Check for intersections in this subpatch. */
+            if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &v0, &v2, &v1, &n, d,
+                    &n0, &n2, &n1, &depth, &ip, &ipNorm)) {
+                shape->Intersection_Point[tcnt + cnt] = ip;
+                shape->Normal_Vector[tcnt + cnt] = ipNorm;
+                depths[cnt] = depth;
+                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                    /* Too many intersections. Stop looking for more. */
+                    return cnt;
+                }
+            }
+        l0:
+            n = shape->Interpolated_Normals[i][2 * j + 1];
+            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+                continue;
+            }
+            d = shape->Interpolated_D[i][2 * j + 1];
+
+            /* Make sure the smooth normals point in the same direction as the
+             * normal */
+            VectorOps::vDot(t, n1, n);
+            if (t > 0)
+                VectorOps::vScale(n1, n0, -1.0);
+            VectorOps::vDot(t, n2, n);
+            if (t > 0)
+                VectorOps::vScale(n2, n1, -1.0);
+            VectorOps::vDot(t, n3, n);
+            if (t > 0)
+                VectorOps::vScale(n3, n2, -1.0);
+
+            if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &v1, &v2, &v3, &n, d,
+                    &n1, &n2, &n3, &depth, &ip, &ipNorm)) {
+                shape->Intersection_Point[tcnt + cnt] = ip;
+                shape->Normal_Vector[tcnt + cnt] = ipNorm;
+                depths[cnt] = depth;
+                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                    /* Too many intersections. Stop looking for more. */
+                    return cnt;
+                }
+            }
+        }
+    }
+    return cnt;
+}
+
+int
+BezierPatches::allBicubicPatchIntersections(
+    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+{
+    BicubicPatch *shape = (BicubicPatch *)object;
+    double depths[MAX_BICUBIC_INTERSECTIONS];
+    Intersection localElement;
+    int cnt = 0;
+    int tcnt;
+    int i;
+    int intersectionFound;
+
+    intersectionFound = 0;
+    rayBicubicTests++;
+    if (ray == vpRay) {
+        shape->Intersection_Count = 0;
+    }
+    tcnt = shape->Intersection_Count;
+    if (shape->Patch_Type == 0) {
+        cnt = BezierPatches::intersectBicubicPatch0(ray, shape, &depths[0]);
+    } else if (shape->Patch_Type == 1) {
+        cnt = BezierPatches::intersectBicubicPatch1(ray, shape, &depths[0]);
+    } else if (shape->Patch_Type == 2) {
+        cnt = BezierPatches::intersectBicubicPatch2(ray, shape, &depths[0]);
+    } else if (shape->Patch_Type == 3) {
+        cnt = BezierPatches::intersectBicubicPatch3(ray, shape, &depths[0]);
+    } else if (shape->Patch_Type == 4) {
+        cnt = BezierPatches::intersectBicubicPatch4(ray, shape, &depths[0]);
+    } else {
+        ParseErrorReporter::Error("Bad patch type\n");
+    }
+    if (cnt > 0) {
+        rayBicubicTestsSucceeded++;
+    }
+    for (i = 0; i < cnt; i++) {
+        if (!shadowTestFlag) {
+            shape->Intersection_Count++;
+        }
+        localElement.Depth = depths[i];
+        localElement.Object = shape->Parent_Object;
+        localElement.Point = shape->Intersection_Point[tcnt + i];
+        localElement.Shape = (Geometry *)shape;
+        depthQueue->add(&localElement);
+        intersectionFound = 1;
+    }
+    return (intersectionFound);
+}
