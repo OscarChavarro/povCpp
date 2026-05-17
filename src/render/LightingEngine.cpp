@@ -338,7 +338,7 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
     localQueue = PriorityQueuePool::pqPop(128);
 
     for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
-         lightSource = lightSource->Next_Light_Source) {
+        lightSource = lightSource->Next_Light_Source) {
         intersectionFound = FALSE;
 
         doLight(lightSource, &lightSourceDepth, &lightSourceRay,
@@ -348,14 +348,14 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
         if (quality > 3) {
             shadowTestFlag = TRUE;
             for (blockingObject = globalFrame.Objects;
-                 blockingObject != nullptr;
-                 blockingObject = blockingObject->Next_Object) {
+                blockingObject != nullptr;
+                blockingObject = blockingObject->Next_Object) {
 
                 shadowRayTests++;
                 for (GeometryOperations::allIntersections(
                          blockingObject, &lightSourceRay, localQueue);
-                     (localIntersection = localQueue->getHighest()) != nullptr;
-                     localQueue->deleteHighest()) {
+                    (localIntersection = localQueue->getHighest()) != nullptr;
+                    localQueue->deleteHighest()) {
 
                     if ((localIntersection->Depth <
                             lightSourceDepth - Small_Tolerance) &&
@@ -655,8 +655,8 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
 
     /* Now, we perform the lighting calculations. */
     for (surface = 1, tempTexture = texture;
-         (tempTexture != nullptr) && (filterColour.Alpha > 0.01);
-         surface++, tempTexture = tempTexture->Next_Texture) {
+        (tempTexture != nullptr) && (filterColour.Alpha > 0.01);
+        surface++, tempTexture = tempTexture->Next_Texture) {
 
         Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
         if (quality <= 5) {

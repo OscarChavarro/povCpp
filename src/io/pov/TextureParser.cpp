@@ -49,7 +49,7 @@ TextureParser::copyTexture(Texture *texture)
     previousTexture = firstTexture = nullptr;
 
     for (localTexture = texture; localTexture != nullptr;
-         localTexture = localTexture->Next_Texture) {
+        localTexture = localTexture->Next_Texture) {
         newTexture = TextureUtils::getTexture();
         *newTexture = *localTexture;
 
@@ -102,7 +102,7 @@ TextureParser::parseTexture()
                     if (constants[(int)constantId].Constant_Type ==
                         TEXTURE_CONSTANT) {
                         texture = ((Texture *)constants[(int)constantId]
-                                       .Constant_Data);
+                                .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -250,8 +250,8 @@ TextureParser::parseTexture()
                             }
                             {
                                 for (tempTexture = localTexture;
-                                     tempTexture->Next_Texture != nullptr;
-                                     tempTexture = tempTexture->Next_Texture) {
+                                    tempTexture->Next_Texture != nullptr;
+                                    tempTexture = tempTexture->Next_Texture) {
                                 }
 
                                 tempTexture->Next_Texture =
@@ -283,8 +283,8 @@ TextureParser::parseTexture()
 
                             {
                                 for (tempTexture = localTexture;
-                                     tempTexture->Next_Texture != nullptr;
-                                     tempTexture = tempTexture->Next_Texture) {
+                                    tempTexture->Next_Texture != nullptr;
+                                    tempTexture = tempTexture->Next_Texture) {
                                 }
 
                                 tempTexture->Next_Texture =
@@ -594,8 +594,8 @@ TextureParser::parseTexture()
                                     alpha = PrimitiveParser::parseFloat();
 
                                     for (reg = 0;
-                                         reg < texture->Image->Colour_Map_Size;
-                                         reg++) {
+                                        reg < texture->Image->Colour_Map_Size;
+                                        reg++) {
                                         texture->Image->Colour_Map[reg].Alpha =
                                             (unsigned short)(alpha * 255.0);
                                     }

@@ -294,7 +294,7 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
 
     for (row = 0; row < image->iheight && TargaFormat::readTargaIntLine(&handle,
                                               &image->data.rgb_lines[row]);
-         row++) {
+        row++) {
     }
     fclose(handle.file);
 }

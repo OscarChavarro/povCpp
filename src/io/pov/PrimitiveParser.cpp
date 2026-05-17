@@ -122,7 +122,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector)
                     if (constants[(int)constantId].Constant_Type ==
                         VECTOR_CONSTANT) {
                         *givenVector = *((Vector3Dd *)constants[(int)constantId]
-                                             .Constant_Data);
+                                .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -191,7 +191,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour)
                     if (constants[(int)constantId].Constant_Type ==
                         COLOUR_CONSTANT) {
                         *givenColour = *((RGBAColor *)constants[(int)constantId]
-                                             .Constant_Data);
+                                .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();
                     }
