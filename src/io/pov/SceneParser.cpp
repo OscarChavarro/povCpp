@@ -1,5 +1,5 @@
-#include "Parse.h"
-#include "SceneFrameParser.h"
+#include "io/pov/Parse.h"
+#include "io/pov/SceneFrameParser.h"
 #include "common/Frame.h"
 #include "common/Matrices.h"
 #include "common/PovProto.h"

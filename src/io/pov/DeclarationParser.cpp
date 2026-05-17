@@ -1,6 +1,6 @@
-#include "DeclarationParser.h"
-#include "ViewPointParser.h"
-#include "Parse.h"
+#include "io/pov/DeclarationParser.h"
+#include "io/pov/ViewPointParser.h"
+#include "io/pov/Parse.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
 

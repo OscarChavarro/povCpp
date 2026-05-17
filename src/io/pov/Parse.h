@@ -1,15 +1,15 @@
 #ifndef __POV_PARSE_LOCAL_H__
 #define __POV_PARSE_LOCAL_H__
 
-#include "ParseGlobals.h"
-#include "ParseHelpers.h"
-#include "ParseErrorReporter.h"
-#include "PrimitiveParser.h"
-#include "TextureParser.h"
-#include "ShapeParser.h"
-#include "ObjectParser.h"
-#include "SceneConfigParser.h"
-#include "SceneParser.h"
-#include "SceneFactory.h"
+#include "io/pov/ParseGlobals.h"
+#include "io/pov/ParseHelpers.h"
+#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/PrimitiveParser.h"
+#include "io/pov/TextureParser.h"
+#include "io/pov/ShapeParser.h"
+#include "io/pov/ObjectParser.h"
+#include "io/pov/SceneConfigParser.h"
+#include "io/pov/SceneParser.h"
+#include "io/pov/SceneFactory.h"
 
 #endif

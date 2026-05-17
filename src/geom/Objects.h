@@ -6,7 +6,7 @@
 #include "common/Vector.h"
 #include "geom/Csg.h"
 #include "geom/Geometry.h"
-#include "ObjectUtils.h"
+#include "geom/ObjectUtils.h"
 
 class Composite {
   public:

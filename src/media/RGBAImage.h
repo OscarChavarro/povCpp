@@ -2,8 +2,8 @@
 #define __RGBA_IMAGE_H__
 
 #include "common/Vector.h"
-#include "RGBAPixel.h"
-#include "ImageData.h"
+#include "media/RGBAPixel.h"
+#include "media/ImageData.h"
 
 class RGBAImage {
   public:

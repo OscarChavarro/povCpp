@@ -12,9 +12,9 @@
 #include "common/Frame.h"
 #include "common/Matrices.h"
 #include "common/Vector.h"
-#include "RGBAPixel.h"
-#include "RGBAImage.h"
-#include "TextureUtils.h"
+#include "media/RGBAPixel.h"
+#include "media/RGBAImage.h"
+#include "media/TextureUtils.h"
 
 extern long callsToNoise;
 extern long callsToDNoise;

@@ -1,5 +1,5 @@
-#include "FogParser.h"
-#include "Parse.h"
+#include "io/pov/FogParser.h"
+#include "io/pov/Parse.h"
 #include "common/PovProto.h"
 #include "render/RenderFrame.h"
 
