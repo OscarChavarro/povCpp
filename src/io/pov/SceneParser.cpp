@@ -2,7 +2,7 @@
 #include "io/pov/SceneFrameParser.h"
 #include "common/Frame.h"
 #include "common/Matrices.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "io/Gif.h"
 #include "io/Iff.h"

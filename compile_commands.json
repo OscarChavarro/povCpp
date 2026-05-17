@@ -311,11 +311,6 @@
 },
 {
   "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
-  "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/render/Lighting.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/render/Lighting.cpp",
-  "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/render/Lighting.cpp"
-},
-{
-  "directory": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/build",
   "command": "/usr/bin/c++  -I/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src -O3 -Wall -pedantic -std=c++11 -o CMakeFiles/povray.dir/src/render/LightingEngine.cpp.o -c /paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/render/LightingEngine.cpp",
   "file": "/paradigmas/master/algoritmos_basicos_3d/povray_1.0_1992/stage05_cmake/src/render/LightingEngine.cpp"
 },

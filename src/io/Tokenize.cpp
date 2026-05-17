@@ -8,7 +8,7 @@
 
 #include "io/Tokenize.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include <cctype>
 
 /* This module tokenizes the input file and sends the tokens created

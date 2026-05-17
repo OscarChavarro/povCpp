@@ -1,7 +1,7 @@
 #include "io/pov/DeclarationParser.h"
 #include "io/pov/ViewPointParser.h"
 #include "io/pov/Parse.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 
 extern TokenStruct globalToken;

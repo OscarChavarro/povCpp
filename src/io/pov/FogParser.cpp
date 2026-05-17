@@ -1,6 +1,6 @@
 #include "io/pov/FogParser.h"
 #include "io/pov/Parse.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "render/RenderFrame.h"
 
 extern TokenStruct globalToken;

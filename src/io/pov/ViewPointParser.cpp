@@ -1,6 +1,6 @@
 #include "io/pov/ViewPointParser.h"
 #include "io/pov/Parse.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "common/VectorOps.h"
 #include "geom/Viewpoint.h"

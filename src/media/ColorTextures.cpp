@@ -14,7 +14,7 @@
 
 #include "media/ColorTextures.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "common/VectorOps.h"
 #include "media/Texture.h"

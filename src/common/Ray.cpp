@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "common/Ray.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "common/VectorOps.h"
 

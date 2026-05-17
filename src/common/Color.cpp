@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 
 inline double

@@ -21,7 +21,7 @@
  *****************************************************************************/
 
 #include "io/Dump.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "geom/Geometry.h"
 
 FileHandle *

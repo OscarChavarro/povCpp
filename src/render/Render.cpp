@@ -16,11 +16,11 @@
 #include "app/Unix.h"
 #include "common/Color.h"
 #include "common/Frame.h"
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "common/VectorOps.h"
 #include "io/Dump.h"
-#include "render/Lighting.h"
+#include "render/LightingEngine.h"
 
 extern FileHandle *globalOutputFileHandle;
 extern char outputFileName[FILE_NAME_LENGTH];
@@ -557,7 +557,7 @@ RenderEngine::trace(Ray *ray, RGBAColor *colour)
     }
 
     if (intersectionFound) {
-        determineSurfaceColour(localIntersection, colour, ray, FALSE);
+        LightingEngine::determineSurfaceColour(localIntersection, colour, ray, FALSE);
         delete localIntersection;
     }
 }

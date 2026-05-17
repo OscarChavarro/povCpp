@@ -1,7 +1,7 @@
 #ifndef __RENDER_FRAME_H__
 #define __RENDER_FRAME_H__
 
-#include "common/PovProto.h"
+#include "app/PovApp.h"
 #include "common/Vector.h"
 #include "geom/Light.h"
 #include "geom/Viewpoint.h"

@@ -70,7 +70,6 @@ add_executable(povray
   src/media/MapTextures.cpp
   src/media/TxtTest.cpp
   src/processing/PolynomialSolver.cpp
-  src/render/Lighting.cpp
   src/render/LightingEngine.cpp
   src/render/Render.cpp
 )
