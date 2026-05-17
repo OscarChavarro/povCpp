@@ -1,7 +1,7 @@
 #ifndef __PARSE_ERROR_REPORTER_H__
 #define __PARSE_ERROR_REPORTER_H__
 
-#include "io/Tokenize.h"
+#include "io/Tokenizer.h"
 
 class ParseErrorReporter {
   public:

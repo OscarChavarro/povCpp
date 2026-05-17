@@ -4,9 +4,9 @@
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 #include "geom/Light.h"
-#include "geom/Geometry.h"
+#include "geom/GeometryOps.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];

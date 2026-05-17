@@ -1,7 +1,7 @@
 #ifndef __PRIMITIVE_PARSER_H__
 #define __PRIMITIVE_PARSER_H__
 
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 
 struct RGBAColor;
 

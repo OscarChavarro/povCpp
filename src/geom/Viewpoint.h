@@ -1,10 +1,10 @@
 #ifndef __VIEWPNT_H__
 #define __VIEWPNT_H__
 
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
-#include "geom/Geometry.h"
+#include "common/Vector3D.h"
+#include "geom/GeometryOps.h"
 
 class Viewpoint {
   public:

@@ -5,9 +5,9 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 #include "geom/PolynomialShape.h"
-#include "geom/Geometry.h"
+#include "geom/GeometryOps.h"
 #include "geom/ObjectUtils.h"
 
 extern TokenStruct globalToken;

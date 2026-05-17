@@ -1,7 +1,7 @@
 #ifndef __Intersection
 #define __Intersection
 
-#include "geom/Geometry.h"
+#include "geom/GeometryOps.h"
 
 class Intersection {
   public:

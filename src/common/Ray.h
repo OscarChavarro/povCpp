@@ -1,7 +1,7 @@
 #ifndef __RAY_H__
 #define __RAY_H__
 
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 #include "media/Texture.h"
 
 static constexpr int MAX_CONTAINING_OBJECTS = 10;

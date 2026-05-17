@@ -13,13 +13,13 @@
 */
 
 #include "media/ColorTextures.h"
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 #include "common/VectorOps.h"
 #include "media/Texture.h"
 #include "media/MapTextures.h"
-#include "media/TxtTest.h"
+#include "media/TestTextures.h"
 
 static constexpr double COORDINATE_LIMIT = 1.0e17;
 

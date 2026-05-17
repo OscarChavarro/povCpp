@@ -1,7 +1,7 @@
 #ifndef __VECT_H__
 #define __VECT_H__
 
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 #include "common/Polynomial.h"
 
 class PolynomialSolver {

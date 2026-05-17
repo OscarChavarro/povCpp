@@ -1,7 +1,7 @@
 #ifndef __VECTOR_OPS_H__
 #define __VECTOR_OPS_H__
 
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 
 extern double VTemp;
 

@@ -7,7 +7,7 @@
 
 #include "common/Ray.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
+#include "common/Vector3D.h"
 #include "common/VectorOps.h"
 
 inline void

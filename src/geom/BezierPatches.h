@@ -2,7 +2,7 @@
 #define __BEZIER_PATCHES_H__
 
 #include "common/Ray.h"
-#include "geom/Geometry.h"
+#include "geom/GeometryOps.h"
 
 class BicubicPatch;
 class PriorityQueueNode;

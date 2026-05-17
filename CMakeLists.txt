@@ -9,31 +9,31 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
 add_executable(povray
   src/app/Povray.cpp
-  src/app/Unix.cpp
+  src/app/UnixPlatform.cpp
   src/common/Color.cpp
-  src/common/Matrices.cpp
+  src/common/Transformation.cpp
   src/common/Ray.cpp
   src/geom/Bezier.cpp
   src/geom/BezierIntersection.cpp
   src/geom/BezierPatches.cpp
   src/geom/Blob.cpp
-  src/geom/Boxes.cpp
-  src/geom/Csg.cpp
+  src/geom/Box.cpp
+  src/geom/CSG.cpp
   src/geom/HeightField.cpp
   src/geom/Light.cpp
-  src/geom/Objects.cpp
-  src/geom/Planes.cpp
+  src/geom/Composite.cpp
+  src/geom/InfinitePlane.cpp
   src/geom/PolynomialShape.cpp
-  src/geom/PrioQ.cpp
+  src/geom/PriorityQueue.cpp
   src/geom/PriorityQueuePool.cpp
-  src/geom/Quadrics.cpp
-  src/geom/Spheres.cpp
+  src/geom/Quadric.cpp
+  src/geom/Sphere.cpp
   src/geom/Triangle.cpp
   src/geom/Viewpoint.cpp
-  src/io/Dump.cpp
-  src/io/Gif.cpp
-  src/io/GifDecod.cpp
-  src/io/Iff.cpp
+  src/io/DumpFormat.cpp
+  src/io/GifFormat.cpp
+  src/io/GifDecoder.cpp
+  src/io/IffFormat.cpp
   src/io/pov/Parse.cpp
   src/io/pov/ParseErrorReporter.cpp
   src/io/pov/ParseHelpers.cpp
@@ -61,17 +61,17 @@ add_executable(povray
   src/io/pov/ViewPointParser.cpp
   src/io/pov/DeclarationParser.cpp
   src/io/pov/SceneFrameParser.cpp
-  src/io/Raw.cpp
-  src/io/Targa.cpp
-  src/io/Tokenize.cpp
+  src/io/RawFormat.cpp
+  src/io/TargaFormat.cpp
+  src/io/Tokenizer.cpp
   src/media/Texture.cpp
   src/media/BumpTextures.cpp
   src/media/ColorTextures.cpp
   src/media/MapTextures.cpp
-  src/media/TxtTest.cpp
+  src/media/TestTextures.cpp
   src/processing/PolynomialSolver.cpp
   src/render/LightingEngine.cpp
-  src/render/Render.cpp
+  src/render/RenderEngine.cpp
 )
 
 target_include_directories(povray PRIVATE src)

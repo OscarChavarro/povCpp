@@ -16,7 +16,7 @@
 
 #include "geom/HeightField.h"
 #include "io/Parse.h"
-#include "geom/Objects.h"
+#include "geom/Composite.h"
 #include "media/Texture.h"
 #include "common/VectorOps.h"
 

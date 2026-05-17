@@ -1,8 +1,8 @@
 #ifndef __SCENE_FACTORY_H__
 #define __SCENE_FACTORY_H__
 
-#include "common/Vector.h"
-#include "geom/Objects.h"
+#include "common/Vector3D.h"
+#include "geom/Composite.h"
 
 class Composite;
 class Sphere;

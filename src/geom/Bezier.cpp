@@ -11,8 +11,8 @@
 #include "geom/Bezier.h"
 #include "geom/BezierIntersection.h"
 #include "geom/BezierPatches.h"
-#include "geom/Geometry.h"
-#include "geom/Objects.h"
+#include "geom/GeometryOps.h"
+#include "geom/Composite.h"
 #include "io/Parse.h"
 #include "common/VectorOps.h"
 #undef EPSILON

@@ -7,7 +7,7 @@
 
 #include "geom/Light.h"
 #include "io/Parse.h"
-#include "geom/Objects.h"
+#include "geom/Composite.h"
 #include "common/VectorOps.h"
 Methods Point_Methods = {Composite::objectIntersect, Light::allPointIntersections,
     Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,

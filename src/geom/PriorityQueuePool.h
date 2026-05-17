@@ -1,7 +1,7 @@
 #ifndef __PRIORITY_QUEUE_POOL_H__
 #define __PRIORITY_QUEUE_POOL_H__
 
-#include "geom/PriorityQueueNodeClass.h"
+#include "geom/PriorityQueueNode.h"
 
 class PriorityQueuePool {
   public:

@@ -1,10 +1,10 @@
 #ifndef __HEIGHT_FIELD_H__
 #define __HEIGHT_FIELD_H__
 
-#include "common/Frame.h"
+#include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector.h"
-#include "geom/Boxes.h"
+#include "common/Vector3D.h"
+#include "geom/Box.h"
 #include "geom/HeightFieldBlock.h"
 class RGBAImage;
 

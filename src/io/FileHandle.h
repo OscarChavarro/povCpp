@@ -1,7 +1,7 @@
 #ifndef __FILE_HANDLE_H__
 #define __FILE_HANDLE_H__
 
-#include "geom/Geometry.h"
+#include "geom/GeometryOps.h"
 
 class FileHandle {
   public:
