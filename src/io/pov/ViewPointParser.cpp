@@ -2,7 +2,8 @@
 #include "io/pov/Parse.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
-#include "geom/ViewPnt.h"
+#include "common/VectorOps.h"
+#include "geom/Viewpoint.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];

@@ -18,6 +18,7 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "media/Texture.h"
+#include "common/VectorOps.h"
 
 inline int
 HeightField::signInline(double x)

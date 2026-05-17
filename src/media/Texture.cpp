@@ -19,6 +19,7 @@
 #include "common/Matrices.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "io/Parse.h"
 
 double *sintab;

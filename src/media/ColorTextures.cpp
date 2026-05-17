@@ -12,10 +12,11 @@
     Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley).
 */
 
-#include "media/TxtColor.h"
+#include "media/ColorTextures.h"
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "media/Texture.h"
 #include "media/MapTextures.h"
 #include "media/TxtTest.h"

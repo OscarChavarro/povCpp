@@ -11,10 +11,11 @@ Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
 Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
-#include "media/TxtBump.h"
+#include "media/BumpTextures.h"
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "media/Texture.h"
 
 extern unsigned short crctab[256];

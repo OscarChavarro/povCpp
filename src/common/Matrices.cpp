@@ -9,6 +9,7 @@
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "io/Parse.h"
 void
 Transformation::MZero(MATRIX *result)

@@ -25,10 +25,11 @@ add_executable(povray
   src/geom/Planes.cpp
   src/geom/PolynomialShape.cpp
   src/geom/PrioQ.cpp
+  src/geom/PriorityQueuePool.cpp
   src/geom/Quadrics.cpp
   src/geom/Spheres.cpp
   src/geom/Triangle.cpp
-  src/geom/ViewPnt.cpp
+  src/geom/Viewpoint.cpp
   src/io/Dump.cpp
   src/io/Gif.cpp
   src/io/GifDecod.cpp
@@ -64,12 +65,13 @@ add_executable(povray
   src/io/Targa.cpp
   src/io/Tokenize.cpp
   src/media/Texture.cpp
-  src/media/TxtBump.cpp
-  src/media/TxtColor.cpp
+  src/media/BumpTextures.cpp
+  src/media/ColorTextures.cpp
   src/media/MapTextures.cpp
   src/media/TxtTest.cpp
   src/processing/PolynomialSolver.cpp
   src/render/Lighting.cpp
+  src/render/LightingEngine.cpp
   src/render/Render.cpp
 )
 

@@ -8,6 +8,7 @@
 #include "geom/Triangle.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
+#include "common/VectorOps.h"
 Methods Triangle_Methods = {Composite::objectIntersect, Triangle::allTriangleIntersections,
     Triangle::insideTriangle, Triangle::triangleNormal, Triangle::copyTriangle, Triangle::translateTriangle,
     Triangle::rotateTriangle, Triangle::scaleTriangle, Triangle::invertTriangle};

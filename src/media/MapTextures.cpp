@@ -11,6 +11,7 @@
 #include "common/Matrices.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "media/Texture.h"
 
 extern int cylindricalImageMap(

@@ -6,6 +6,7 @@
 #include "io/pov/TextureParser.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "geom/Triangle.h"
 #include "geom/Geometry.h"
 

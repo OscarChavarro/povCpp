@@ -6,6 +6,7 @@
 #include "io/pov/TextureParser.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/VectorOps.h"
 #include "io/Gif.h"
 #include "io/Iff.h"
 #include "io/Targa.h"

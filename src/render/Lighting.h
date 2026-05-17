@@ -7,33 +7,7 @@
 #include "geom/Geometry.h"
 #include "media/Texture.h"
 #include "render/RenderFrame.h"
-
-class Light;
-class PriorityQueueNode;
-class Intersection;
-
-class LightingEngine {
-  public:
-    static void fog(double distance, RGBAColor *fogColour, double fogDistance, RGBAColor *colour);
-  private:
-    static void doLight(Light *lightSource, double *lightSourceDepth,
-        Ray *lightSourceRay, Vector3D *intersectionPoint, RGBAColor *lightColour);
-    static int doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
-        PriorityQueueNode *localQueue);
-    static void doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
-        Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-        RGBAColor *surfaceColour);
-    static void doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
-        Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-        RGBAColor *surfaceColour);
-    static void doDiffuse(Texture *texture, Ray *lightSourceRay,
-        Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-        RGBAColor *surfaceColour, double attenuation);
-
-    friend void Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
-        Vector3D *surfaceNormal, RGBAColor *surfaceColour, RGBAColor *colour,
-        double attenuation);
-};
+#include "render/LightingEngine.h"
 
 extern void perturbNormal(Vector3D *New_Normal, Texture *Texture,
     Vector3D *Intersection_Point, Vector3D *Surface_Normal);
