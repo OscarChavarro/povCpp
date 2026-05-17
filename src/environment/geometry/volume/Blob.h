@@ -18,7 +18,7 @@ class Blob : public Geometry {
     int Sturm_Flag;
 
     static int allBlobIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insideBlob(Vector3Dd *point, SimpleBody *object);
     static void blobNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

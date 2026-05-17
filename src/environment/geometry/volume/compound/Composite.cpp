@@ -8,7 +8,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "io/Parse.h"
 #include "common/dataStructures/PriorityQueue.h"
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern long boundingRegionTests, boundingRegionTestsSucceeded;
 extern long clippingRegionTests, clippingRegionTestsSucceeded;
 extern unsigned int Options;
@@ -23,7 +23,7 @@ Methods Basic_Object_Methods = {Composite::objectIntersect, Composite::allObject
     Composite::rotateBasicObject, Composite::scaleBasicObject, Composite::invertBasicObject};
 
 Intersection *
-Composite::objectIntersect(SimpleBody *object, Ray *ray)
+Composite::objectIntersect(SimpleBody *object, RayWithSegments *ray)
 {
     Intersection *localIntersection;
     Intersection *queueElement;
@@ -50,7 +50,7 @@ Composite::objectIntersect(SimpleBody *object, Ray *ray)
 
 int
 Composite::allCompositeIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     register int intersectionFound;
     register int anyIntersectionFound;
@@ -111,7 +111,7 @@ Composite::allCompositeIntersections(
 
 int
 Composite::allObjectIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     int intersectionFound;
     int anyIntersectionFound;

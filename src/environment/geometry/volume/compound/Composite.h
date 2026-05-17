@@ -18,11 +18,11 @@ class Composite {
     Geometry *Clipping_Shapes;
     SimpleBody *Objects;
 
-    static Intersection *objectIntersect(SimpleBody *object, Ray *ray);
+    static Intersection *objectIntersect(SimpleBody *object, RayWithSegments *ray);
     static int allCompositeIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int allObjectIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insideBasicObject(Vector3Dd *point, SimpleBody *object);
     static int insideCompositeObject(Vector3Dd *point, SimpleBody *object);
     static void *copyBasicObject(SimpleBody *object);

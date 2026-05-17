@@ -9,7 +9,7 @@ class RenderEngine {
     static void supersample(
         RGBAColor *result, int x, int y, int width, int height);
     static void startTracing(void);
-    static void trace(Ray *ray, RGBAColor *colour);
+    static void trace(RayWithSegments *ray, RGBAColor *colour);
     static void initializeRenderer(void);
     static inline unsigned short rand3dInline(int a, int b);
 };

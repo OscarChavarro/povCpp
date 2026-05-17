@@ -2,15 +2,15 @@
 #define __METHODS_H__
 
 #include "common/Transformation.h"
-#include "environment/geometry/elements/Ray.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 
 class PriorityQueueNode;
 class Intersection;
 class SimpleBody;
 
-typedef Intersection *(*INTERSECTION_METHOD)(SimpleBody *, Ray *);
+typedef Intersection *(*INTERSECTION_METHOD)(SimpleBody *, RayWithSegments *);
 typedef int (*ALL_INTERSECTIONS_METHOD)(
-    SimpleBody *, Ray *, PriorityQueueNode *);
+    SimpleBody *, RayWithSegments *, PriorityQueueNode *);
 typedef int (*INSIDE_METHOD)(Vector3Dd *, SimpleBody *);
 typedef void (*NORMAL_METHOD)(Vector3Dd *, SimpleBody *, Vector3Dd *);
 typedef void *(*COPY_METHOD)(SimpleBody *);

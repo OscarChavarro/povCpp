@@ -35,7 +35,7 @@ ParametricBiCubicIntersection::subpatchNormal(
     points v1, v2, v3 and the normal to the triangle n. If so, Depth will
     be set to the distance along Ray at which the intersection occurs. */
 int
-ParametricBiCubicIntersection::intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1, Vector3Dd *v2,
+ParametricBiCubicIntersection::intersectSubpatch(int patchType, RayWithSegments *ray, Vector3Dd *v1, Vector3Dd *v2,
     Vector3Dd *v3, Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2, Vector3Dd *n3,
     double *depth, Vector3Dd *ip, Vector3Dd *ipNorm)
 {
@@ -224,7 +224,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType, Ray *ray, Vector
 }
 
 int
-ParametricBiCubicIntersection::sphericalBoundsCheck(Ray *ray, Vector3Dd *center, double radius)
+ParametricBiCubicIntersection::sphericalBoundsCheck(RayWithSegments *ray, Vector3Dd *center, double radius)
 {
     double x, y, z, dist1, dist2;
     x = center->x - ray->position.x;

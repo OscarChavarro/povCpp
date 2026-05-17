@@ -17,9 +17,9 @@ class Quadric : public Geometry {
     int Non_Zero_Square_Term;
 
     static int allQuadricIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int intersectQuadric(
-        Ray *ray, Quadric *shape, double *depth1, double *depth2);
+        RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2);
     static int insideQuadric(Vector3Dd *point, SimpleBody *object);
     static void quadricNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

@@ -24,7 +24,7 @@ Methods Bicubic_Patch_Methods = {Composite::objectIntersect,
     ParametricBiCubicPatch::scaleBicubicPatch, ParametricBiCubicPatch::invertBicubicPatch};
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern int shadowTestFlag;
 
 int maxDepthReached;
@@ -524,7 +524,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
 
 
 void
-ParametricBiCubicPatch::parametricSubpatchIntersect(Ray *ray, ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
+ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray, ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
     double u0, double u1, double v0, int recursionDepth, int *depthCount, double *depths,
     double *uValues, double *vValues)
 {
@@ -727,7 +727,7 @@ ParametricBiCubicPatch::flatEnough(ParametricBiCubicPatch *object, Vector3Dd (*p
 }
 
 void
-ParametricBiCubicPatch::parametricSubdivider(Ray *ray, ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4],
+ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray, ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4],
     double u0, double u1, double v0, double v1, int recursionDepth, int *depthCount,
     double *depths, double *uValues, double *vValues)
 {
@@ -823,7 +823,7 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
 }
 
 void
-ParametricBiCubicPatch::parametricTreeWalker(Ray *ray, ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
+ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray, ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
     int *depthCount, double *depths)
 {
     ParametricPatchChild *children;

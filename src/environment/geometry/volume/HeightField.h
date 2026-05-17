@@ -24,7 +24,7 @@ class HeightField : public Geometry {
     static void findHfMinMax(
         HeightField *hField, RGBAImage *image, int imageType);
     static int allHeightfldIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insideHeightfld(Vector3Dd *testPoint, SimpleBody *object);
     static void heightFldNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
@@ -40,10 +40,10 @@ class HeightField : public Geometry {
   private:
     static double getHeightAt(int x, int z, HeightField *hField);
     static int intersectPixel(
-        int x, int z, Ray *ray, HeightField *hField, double height1, double height2);
-    static int intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *hField,
+        int x, int z, RayWithSegments *ray, HeightField *hField, double height1, double height2);
+    static int intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray, HeightField *hField,
         Vector3Dd *start, Vector3Dd *end);
-    static int intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end);
+    static int intersectHfNode(RayWithSegments *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end);
 };
 
 extern Methods Height_Field_Methods;

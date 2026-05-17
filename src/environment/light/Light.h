@@ -14,14 +14,14 @@ class Light : public Geometry {
     double Coeff, Radius, Falloff;
 
     static int allPointIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insidePoint(Vector3Dd *testPoint, SimpleBody *object);
     static void *copyPoint(SimpleBody *object);
     static void translatePoint(SimpleBody *object, Vector3Dd *vector);
     static void rotatePoint(SimpleBody *object, Vector3Dd *vector);
     static void scalePoint(SimpleBody *object, Vector3Dd *vector);
     static void invertPoint(SimpleBody *object);
-    static double attenuateLight(Light *lightSource, Ray *lightSourceRay);
+    static double attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay);
 
   private:
     static double cubicSpline(double low, double high, double pos);

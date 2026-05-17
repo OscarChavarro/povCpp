@@ -34,7 +34,7 @@ extern long transmittedRaysTraced;
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
 void
-LightingEngine::doLight(Light *lightSource, double *lightSourceDepth, Ray *lightSourceRay,
+LightingEngine::doLight(Light *lightSource, double *lightSourceDepth, RayWithSegments *lightSourceRay,
     Vector3Dd *intersectionPoint, RGBAColor *lightColour)
 {
     double attenuation = 1.0;
@@ -82,7 +82,7 @@ LightingEngine::doBlocking(Intersection *localIntersection, RGBAColor *lightColo
 }
 
 void
-LightingEngine::doPhong(Texture *texture, Ray *lightSourceRay, Vector3Dd eye,
+LightingEngine::doPhong(Texture *texture, RayWithSegments *lightSourceRay, Vector3Dd eye,
     Vector3Dd *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
     RGBAColor *surfaceColour)
 {
@@ -137,7 +137,7 @@ LightingEngine::doPhong(Texture *texture, Ray *lightSourceRay, Vector3Dd eye,
 }
 
 void
-LightingEngine::doSpecular(Texture *texture, Ray *lightSourceRay, Vector3Dd rEye,
+LightingEngine::doSpecular(Texture *texture, RayWithSegments *lightSourceRay, Vector3Dd rEye,
     Vector3Dd *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
     RGBAColor *surfaceColour)
 {
@@ -179,7 +179,7 @@ LightingEngine::doSpecular(Texture *texture, Ray *lightSourceRay, Vector3Dd rEye
 }
 
 void
-LightingEngine::doDiffuse(Texture *texture, Ray *lightSourceRay, Vector3Dd *surfaceNormal,
+LightingEngine::doDiffuse(Texture *texture, RayWithSegments *lightSourceRay, Vector3Dd *surfaceNormal,
     RGBAColor *colour, RGBAColor *lightColour, RGBAColor *surfaceColour,
     double attenuation)
 {
@@ -301,12 +301,12 @@ LightingEngine::ambient(Texture *texture, RGBAColor *surfaceColour, RGBAColor *c
 }
 
 void
-LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint, Ray *eye,
+LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint, RayWithSegments *eye,
     Vector3Dd *surfaceNormal, RGBAColor *surfaceColour, RGBAColor *colour,
     double attenuation)
 {
     double lightSourceDepth;
-    Ray lightSourceRay;
+    RayWithSegments lightSourceRay;
     Light *lightSource;
     SimpleBody *blockingObject;
     int intersectionFound;
@@ -398,10 +398,10 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint, Ray *eye
 }
 
 void
-LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint, Ray *ray,
+LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint, RayWithSegments *ray,
     Vector3Dd *surfaceNormal, RGBAColor *colour)
 {
-    Ray newRay;
+    RayWithSegments newRay;
     RGBAColor tempColour;
     Vector3Dd localNormal;
     Vector3Dd normalProjection;
@@ -441,10 +441,10 @@ LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint, Ray *ray
 }
 
 void
-LightingEngine::refract(Texture *texture, Vector3Dd *intersectionPoint, Ray *ray,
+LightingEngine::refract(Texture *texture, Vector3Dd *intersectionPoint, RayWithSegments *ray,
     Vector3Dd *surfaceNormal, RGBAColor *colour)
 {
-    Ray newRay;
+    RayWithSegments newRay;
     RGBAColor tempColour;
     Vector3Dd localNormal;
     Vector3Dd rayDirection;
@@ -539,7 +539,7 @@ LightingEngine::refract(Texture *texture, Vector3Dd *intersectionPoint, Ray *ray
 }
 
 void
-LightingEngine::computeReflectedColour(Ray *ray, Texture *texture,
+LightingEngine::computeReflectedColour(RayWithSegments *ray, Texture *texture,
     Intersection *rayIntersection, RGBAColor *surfaceColour,
     RGBAColor *filterColour, RGBAColor *colour)
 {
@@ -594,7 +594,7 @@ of the object and how much is transmited through. */
 
 void
 LightingEngine::determineSurfaceColour(
-    Intersection *rayIntersection, RGBAColor *colour, Ray *ray, int shadowRay)
+    Intersection *rayIntersection, RGBAColor *colour, RayWithSegments *ray, int shadowRay)
 {
     RGBAColor surfaceColour;
     RGBAColor refractedColour;

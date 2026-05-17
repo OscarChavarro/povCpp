@@ -16,7 +16,7 @@ Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections, Box
     Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
 
 
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 extern long rayBoxTests, rayBoxTestsSucceeded;
 
 int
@@ -26,7 +26,7 @@ Box::closeTo(double x, double y)
 }
 int
 Box::allBoxIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     double depth1, depth2;
     Vector3Dd intersectionPoint;
@@ -60,7 +60,7 @@ Box::allBoxIntersections(
 }
 
 int
-Box::intersectBoxx(Ray *ray, Box *box, double *depth1, double *depth2)
+Box::intersectBoxx(RayWithSegments *ray, Box *box, double *depth1, double *depth2)
 {
     double t, tmin, tmax;
     Vector3Dd p;

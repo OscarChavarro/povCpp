@@ -17,10 +17,10 @@ Methods CSG_Intersection_Methods = {Composite::objectIntersect,
     CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr, CSG::copyCsg,
     CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
 
-extern Ray *vpRay;
+extern RayWithSegments *vpRay;
 int
 CSG::allCsgUnionIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     register int intersectionFound;
     CSG *shape = (CSG *)object;
@@ -39,7 +39,7 @@ CSG::allCsgUnionIntersections(
 
 int
 CSG::allCsgIntersectIntersections(
-    SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     int intersectionFound;
     int anyIntersectionFound;

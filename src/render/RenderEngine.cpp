@@ -47,7 +47,7 @@ RenderEngine::RenderEngine::rand3dInline(int a, int b)
 }
 
 RenderFrame globalFrame;
-Ray *vpRay;
+RayWithSegments *vpRay;
 int traceLevel, superSampleCount;
 
 double maxTraceLevel = 5;
@@ -55,10 +55,10 @@ double maxclr;
 
 RGBAColor *previousLine, *currentLine;
 char *previousLineAntialiasedFlags, *currentLineAntialiasedFlags;
-Ray ray;
+RayWithSegments ray;
 
 void
-RenderFrame::createRay(Ray *ray, int width, int height, double x, double y)
+RenderFrame::createRay(RayWithSegments *ray, int width, int height, double x, double y)
 {
     register double xScalar;
     register double yScalar;
@@ -508,7 +508,7 @@ RenderFrame::outputLine(register int y)
 }
 
 void
-RenderEngine::trace(Ray *ray, RGBAColor *colour)
+RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
 {
     SimpleBody *object;
     Intersection *localIntersection;

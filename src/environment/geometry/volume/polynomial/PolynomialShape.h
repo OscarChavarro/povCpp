@@ -14,7 +14,7 @@ class PolynomialShape : public Geometry {
     double *Coeffs;
 
     static int allPolyIntersections(
-        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+        SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insidePoly(Vector3Dd *point, SimpleBody *object);
     static void polyNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
@@ -28,8 +28,8 @@ class PolynomialShape : public Geometry {
     static void transform(int order, double *coeffs, MATRIX *q);
     static int roll(int order, int x, int y, int z);
     static void unroll(int order, int index, int *x, int *y, int *z, int *w);
-    static int intersect(Ray *ray, int order, double *coeffs, double *depths);
-    static int intersectQuartic(Ray *ray, PolynomialShape *shape, double *depths);
+    static int intersect(RayWithSegments *ray, int order, double *coeffs, double *depths);
+    static int intersectQuartic(RayWithSegments *ray, PolynomialShape *shape, double *depths);
     static void quarticNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
     static double inside(Vector3Dd *point, int order, double *coeffs);
