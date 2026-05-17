@@ -3,8 +3,8 @@
 
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "geom/Light.h"
-#include "geom/Viewpoint.h"
+#include "environment/light/Light.h"
+#include "environment/geometry/Viewpoint.h"
 
 class RenderFrame {
   public:

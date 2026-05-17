@@ -10,8 +10,8 @@
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
-#include "geom/HeightField.h"
-#include "geom/GeometryOperations.h"
+#include "environment/geometry/HeightField.h"
+#include "environment/geometry/GeometryOperations.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];

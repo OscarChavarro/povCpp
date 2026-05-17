@@ -9,7 +9,7 @@
 #include "app/PovApp.h"
 #include "common/FrameConfig.h" /* common to ALL modules in this program */
 #include "app/PovApp.h"
-#include "geom/PriorityQueue.h"
+#include "environment/geometry/PriorityQueue.h"
 #include "io/Parse.h"
 #include "io/FileHandle.h"
 #include "io/DumpFormat.h"

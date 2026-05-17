@@ -12,24 +12,24 @@ add_executable(povray
   src/app/UnixPlatform.cpp
   src/common/Color.cpp
   src/common/Transformation.cpp
-  src/common/Ray.cpp
-  src/geom/Bezier.cpp
-  src/geom/BezierIntersection.cpp
-  src/geom/BezierPatch.cpp
-  src/geom/Blob.cpp
-  src/geom/Box.cpp
-  src/geom/CSG.cpp
-  src/geom/HeightField.cpp
-  src/geom/Light.cpp
-  src/geom/Composite.cpp
-  src/geom/InfinitePlane.cpp
-  src/geom/PolynomialShape.cpp
-  src/geom/PriorityQueue.cpp
-  src/geom/PriorityQueuePool.cpp
-  src/geom/Quadric.cpp
-  src/geom/Sphere.cpp
-  src/geom/Triangle.cpp
-  src/geom/Viewpoint.cpp
+  src/environment/geometry/elements/Ray.cpp
+  src/environment/geometry/Bezier.cpp
+  src/environment/geometry/BezierIntersection.cpp
+  src/environment/geometry/BezierPatch.cpp
+  src/environment/geometry/Blob.cpp
+  src/environment/geometry/volume/Box.cpp
+  src/environment/geometry/CSG.cpp
+  src/environment/geometry/HeightField.cpp
+  src/environment/light/Light.cpp
+  src/environment/geometry/Composite.cpp
+  src/environment/geometry/surface/InfinitePlane.cpp
+  src/environment/geometry/PolynomialShape.cpp
+  src/environment/geometry/PriorityQueue.cpp
+  src/environment/geometry/PriorityQueuePool.cpp
+  src/environment/geometry/Quadric.cpp
+  src/environment/geometry/volume/Sphere.cpp
+  src/environment/geometry/elements/Triangle.cpp
+  src/environment/geometry/Viewpoint.cpp
   src/io/DumpFormat.cpp
   src/io/GifFormat.cpp
   src/io/GifDecoder.cpp
