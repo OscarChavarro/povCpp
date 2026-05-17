@@ -11,7 +11,7 @@
 #include "geom/Box.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections, Box::insideBox,
     Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
 
@@ -39,7 +39,7 @@ Box::allBoxIntersections(
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
         VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
-        VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        intersectionPoint.add(ray->Initial);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -49,7 +49,7 @@ Box::allBoxIntersections(
             localElement.Depth = depth2;
             localElement.Object = shape->Parent_Object;
             VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
-            VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            intersectionPoint.add(ray->Initial);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -272,7 +272,7 @@ Box::boxNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoi
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
         Transformation::MTransNormal(result, result, box->Transform);
-        VectorOps::vNormalize(*result, *result);
+        (*result).normalize();
     }
 }
 

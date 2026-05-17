@@ -14,8 +14,8 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 #include "media/BumpTextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 extern unsigned short crctab[256];
@@ -37,8 +37,8 @@ BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vect
         point.x = x;
         point.y = y;
         point.z = z;
-        VectorOps::vSub(point, point, Wave_Sources[i]);
-        VectorOps::vDot(length, point, point);
+        point.sub(Wave_Sources[i]);
+        length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
         }
@@ -52,9 +52,9 @@ BumpTextureFixture::ripples(double x, double y, double z, Texture *texture, Vect
         }
 
         VectorOps::vScale(point, point, scalar / length / (double)NUMBER_OF_WAVES);
-        VectorOps::vAdd(*normal, *normal, point);
+        (*normal).add(point);
     }
-    VectorOps::vNormalize(*normal, *normal);
+    (*normal).normalize();
 }
 
 void
@@ -75,8 +75,8 @@ BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector
         point.x = x;
         point.y = y;
         point.z = z;
-        VectorOps::vSub(point, point, Wave_Sources[i]);
-        VectorOps::vDot(length, point, point);
+        point.sub(Wave_Sources[i]);
+        length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
         }
@@ -87,9 +87,9 @@ BumpTextureFixture::waves(double x, double y, double z, Texture *texture, Vector
 
         scalar = sinValue * texture->Bump_Amount / frequency[i];
         VectorOps::vScale(point, point, scalar / length / (double)NUMBER_OF_WAVES);
-        VectorOps::vAdd(*normal, *normal, point);
+        (*normal).add(point);
     }
-    VectorOps::vNormalize(*normal, *normal);
+    (*normal).normalize();
 }
 
 void
@@ -106,9 +106,9 @@ BumpTextureFixture::bumps(double x, double y, double z, Texture *texture, Vector
     }
 
     TextureUtils::DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
-    VectorOps::vScale(bumpTurb, bumpTurb, texture->Bump_Amount);
-    VectorOps::vAdd(*normal, *normal, bumpTurb); /* displace "normal" */
-    VectorOps::vNormalize(*normal, *normal);     /* normalize normal! */
+    bumpTurb.scale(texture->Bump_Amount);
+    (*normal).add(bumpTurb); /* displace "normal" */
+    (*normal).normalize();     /* normalize normal! */
 }
 
 /*
@@ -135,9 +135,9 @@ BumpTextureFixture::dents(double x, double y, double z, Texture *texture, Vector
 
     TextureUtils::DNoise(&stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
 
-    VectorOps::vScale(stuccoTurb, stuccoTurb, noise);
-    VectorOps::vAdd(*normal, *normal, stuccoTurb); /* displace "normal" */
-    VectorOps::vNormalize(*normal, *normal);       /* normalize normal! */
+    stuccoTurb.scale(noise);
+    (*normal).add(stuccoTurb); /* displace "normal" */
+    (*normal).normalize();       /* normalize normal! */
 }
 
 /*
@@ -180,7 +180,7 @@ BumpTextureFixture::wrinkles(double x, double y, double z, Texture *texture, Vec
         result.z += fabsInline(value.z / scale);
     }
 
-    VectorOps::vScale(result, result, texture->Bump_Amount);
-    VectorOps::vAdd(*normal, *normal, result); /* displace "normal" */
-    VectorOps::vNormalize(*normal, *normal);   /* normalize normal! */
+    result.scale(texture->Bump_Amount);
+    (*normal).add(result); /* displace "normal" */
+    (*normal).normalize();   /* normalize normal! */
 }

@@ -11,6 +11,84 @@ class Vector3Dd {
     double x;
     double y;
     double z;
+
+    Vector3Dd() {}
+    Vector3Dd(double x_, double y_, double z_) : x(x_), y(y_), z(z_) {}
+
+    inline double length() const
+    {
+        return std::sqrt(x * x + y * y + z * z);
+    }
+
+    inline double sqr() const
+    {
+        return x * x + y * y + z * z;
+    }
+
+    inline void normalize()
+    {
+        VTemp = std::sqrt(x * x + y * y + z * z);
+        x = x / VTemp;
+        y = y / VTemp;
+        z = z / VTemp;
+    }
+
+    inline void scale(double k)
+    {
+        x = x * k;
+        y = y * k;
+        z = z * k;
+    }
+
+    inline void inverseScale(double k)
+    {
+        x = x / k;
+        y = y / k;
+        z = z / k;
+    }
+
+    inline void squareTerms()
+    {
+        x = x * x;
+        y = y * y;
+        z = z * z;
+    }
+
+    inline void add(const Vector3Dd &b)
+    {
+        x = x + b.x;
+        y = y + b.y;
+        z = z + b.z;
+    }
+
+    inline void sub(const Vector3Dd &b)
+    {
+        x = x - b.x;
+        y = y - b.y;
+        z = z - b.z;
+    }
+
+    inline void evaluate(const Vector3Dd &b)
+    {
+        x = x * b.x;
+        y = y * b.y;
+        z = z * b.z;
+    }
+
+    inline Vector3Dd crossProduct(const Vector3Dd &b) const
+    {
+        return Vector3Dd(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x);
+    }
+
+    inline double dotProduct(const Vector3Dd &b) const
+    {
+        return x * b.x + y * b.y + z * b.z;
+    }
+
+    inline Vector3Dd half(const Vector3Dd &b) const
+    {
+        return Vector3Dd(0.5 * (x + b.x), 0.5 * (y + b.y), 0.5 * (z + b.z));
+    }
 };
 
 class VectorOps {
@@ -62,11 +140,6 @@ class VectorOps {
         a.z = b.z * c.z;
     }
 
-    static inline double vSqr(const Vector3Dd &a)
-    {
-        return a.x * a.x + a.y * a.y + a.z * a.z;
-    }
-
     static inline double sqr(double a)
     {
         return a * a;
@@ -77,11 +150,6 @@ class VectorOps {
         a.x = b.x * b.x;
         a.y = b.y * b.y;
         a.z = b.z * b.z;
-    }
-
-    static inline void vLength(double &a, const Vector3Dd &b)
-    {
-        a = std::sqrt(b.x * b.x + b.y * b.y + b.z * b.z);
     }
 
     static inline void vNormalize(Vector3Dd &a, const Vector3Dd &b)

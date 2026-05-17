@@ -5,8 +5,8 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "geom/Triangle.h"
 #include "geom/GeometryOperations.h"
 
@@ -38,13 +38,13 @@ SmoothTriangleParser::parseSmoothTriangle()
     localShape = (SmoothTriangle *)SceneFactory::getSmoothTriangleShape();
     PrimitiveParser::parseVector(&localShape->P1);
     PrimitiveParser::parseVector(&localShape->N1);
-    VectorOps::vNormalize(localShape->N1, localShape->N1);
+    localShape->N1.normalize();
     PrimitiveParser::parseVector(&localShape->P2);
     PrimitiveParser::parseVector(&localShape->N2);
-    VectorOps::vNormalize(localShape->N2, localShape->N2);
+    localShape->N2.normalize();
     PrimitiveParser::parseVector(&localShape->P3);
     PrimitiveParser::parseVector(&localShape->N3);
-    VectorOps::vNormalize(localShape->N3, localShape->N3);
+    localShape->N3.normalize();
     if (!Triangle::computeTriangle((Triangle *)localShape))
     {
         fprintf(stderr, "Degenerate triangle on line %d.  Please remove.\n",

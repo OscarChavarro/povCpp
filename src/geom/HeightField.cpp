@@ -18,7 +18,7 @@
 #include "io/Parse.h"
 #include "geom/Composite.h"
 #include "media/Texture.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 inline int
 HeightField::signInline(double x)
@@ -81,11 +81,11 @@ HeightField::intersectPixel(
     y4 = HeightField::getHeightAt(x + 1, z + 1, hField);
 
     VectorOps::makeVector(&t1V1, (double)x, y1, (double)z);
-    VectorOps::makeVector(&t1V2, 1.0, y2 - y1, 0.0);
-    VectorOps::makeVector(&t1V3, 0.0, y3 - y1, 1.0);
+    *&t1V2 = Vector3Dd(1.0, y2 - y1, 0.0);
+    *&t1V3 = Vector3Dd(0.0, y3 - y1, 1.0);
     VectorOps::makeVector(&t2V1, (double)(x + 1), y4, (double)(z + 1));
-    VectorOps::makeVector(&t2V2, -1.0, y3 - y4, 0.0);
-    VectorOps::makeVector(&t2V3, 0.0, y2 - y4, -1.0);
+    *&t2V2 = Vector3Dd(-1.0, y3 - y4, 0.0);
+    *&t2V3 = Vector3Dd(0.0, y2 - y4, -1.0);
 
     /*
      * first, we check to see if it is even possible for the ray to
@@ -94,13 +94,13 @@ HeightField::intersectPixel(
 
     if ((HeightField::maxValue(y1, HeightField::maxValue(y2, y3)) >= height1) &&
         (HeightField::minValue(y1, HeightField::minValue(y2, y3)) <= height2)) {
-        VectorOps::vCross(localNormal, t1V3, t1V2);
-        VectorOps::vDot(dot, localNormal, ray->Direction);
+        localNormal = t1V3.crossProduct(t1V2);
+        dot = localNormal.dotProduct(ray->Direction);
 
         if ((dot > kEpsilon) || (dot < -kEpsilon)) {
-            VectorOps::vDot(pos1, localNormal, t1V1);
+            pos1 = localNormal.dotProduct(t1V1);
 
-            VectorOps::vDot(pos2, localNormal, ray->Initial);
+            pos2 = localNormal.dotProduct(ray->Initial);
 
             pos1 -= pos2;
 
@@ -131,13 +131,13 @@ HeightField::intersectPixel(
     maxHeight = HeightField::maxValue(y4, HeightField::maxValue(y2, y3));
     minHeight = HeightField::minValue(y4, HeightField::minValue(y2, y3));
     if ((maxHeight >= height1) && (minHeight <= height2)) {
-        VectorOps::vCross(localNormal, t2V3, t2V2);
-        VectorOps::vDot(dot, localNormal, ray->Direction);
+        localNormal = t2V3.crossProduct(t2V2);
+        dot = localNormal.dotProduct(ray->Direction);
 
         if ((dot > kEpsilon) || (dot < -kEpsilon)) {
-            VectorOps::vDot(pos1, localNormal, t2V1);
+            pos1 = localNormal.dotProduct(t2V1);
 
-            VectorOps::vDot(pos2, localNormal, ray->Initial);
+            pos2 = localNormal.dotProduct(ray->Initial);
             pos1 -= pos2;
 
             depth2 = pos1 / dot;
@@ -164,7 +164,7 @@ HeightField::intersectPixel(
         hfIntersection->Depth = depth2;
         hfIntersection->Object = hField->Parent_Object;
         VectorOps::vScale(t1V1, rRay->Direction, depth2);
-        VectorOps::vAdd(t1V1, t1V1, rRay->Initial);
+        t1V1.add(rRay->Initial);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
@@ -172,7 +172,7 @@ HeightField::intersectPixel(
         hfIntersection->Depth = depth1;
         hfIntersection->Object = hField->Parent_Object;
         VectorOps::vScale(t1V1, rRay->Direction, depth1);
-        VectorOps::vAdd(t1V1, t1V1, rRay->Initial);
+        t1V1.add(rRay->Initial);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
@@ -346,7 +346,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
 
     curr = &temp1;
     next = &temp2;
-    VectorOps::makeVector(curr, x, y, z);
+    *curr = Vector3Dd(x, y, z);
     t = 0.0;
 
     if (xDom) {
@@ -367,7 +367,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     x = sx + t;
                     y = sy + myx * t;
                     z = sz + mzx * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -382,7 +382,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     x = sx + t;
                     y = sy + myx * t;
                     z = sz + mzx * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -416,7 +416,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     x = sx - t;
                     y = sy - myx * t;
                     z = sz - mzx * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -431,7 +431,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     x = sx - t;
                     y = sy - myx * t;
                     z = sz - mzx * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -466,7 +466,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     z = sz + t;
                     y = sy + myz * t;
                     x = sx + mxz * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -481,7 +481,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     z = sz + t;
                     y = sy + myz * t;
                     x = sx + mxz * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -514,7 +514,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     z = sz - t;
                     y = sy - myz * t;
                     x = sx - mxz * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -529,7 +529,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
                     z = sz - t;
                     y = sy - myz * t;
                     x = sx - mxz * t;
-                    VectorOps::makeVector(next, x, y, z);
+                    *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]), ray, hField,
                             curr, next)) {
                         return (TRUE);
@@ -547,7 +547,7 @@ HeightField::intersectHfNode(Ray *ray, HeightField *hField, Vector3Dd *start, Ve
             }
         }
     }
-    VectorOps::makeVector(next, ex, ey, ez);
+    *next = Vector3Dd(ex, ey, ez);
     if (isdx >= 0) {
         ix = (int)floor(ex * invBlkSize);
     } else {
@@ -726,14 +726,14 @@ HeightField::allHeightfldIntersections(
     if (depth1 == depth2) {
         depth1 = 0.0;
         VectorOps::vScale(temp1, tempRay.Direction, depth1);
-        VectorOps::vAdd(temp1, temp1, tempRay.Initial);
+        temp1.add(tempRay.Initial);
         VectorOps::vScale(temp2, tempRay.Direction, depth2);
-        VectorOps::vAdd(temp2, temp2, tempRay.Initial);
+        temp2.add(tempRay.Initial);
     } else {
         VectorOps::vScale(temp1, tempRay.Direction, depth1);
-        VectorOps::vAdd(temp1, temp1, tempRay.Initial);
+        temp1.add(tempRay.Initial);
         VectorOps::vScale(temp2, tempRay.Direction, depth2);
-        VectorOps::vAdd(temp2, temp2, tempRay.Initial);
+        temp2.add(tempRay.Initial);
     }
 
     if (fabs(tempRay.Direction.x) > kEpsilon) {
@@ -826,12 +826,12 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
         temp2.z = -1.0;
         temp2.y = y3 - y1;
     }
-    VectorOps::vCross(localNormal, temp2, temp1);
+    localNormal = temp2.crossProduct(temp1);
     if (localNormal.y < 0.0) {
-        VectorOps::vScale(localNormal, localNormal, -1.0);
+        localNormal.scale(-1.0);
     }
-    VectorOps::vDot(dot1Value, test, localNormal);
-    VectorOps::vDot(dot2Value, localOrigin, localNormal);
+    dot1Value = test.dotProduct(localNormal);
+    dot2Value = localOrigin.dotProduct(localNormal);
     dot1 = (int)dot1Value;
     dot2 = (int)dot2Value;
     if ((dot1 < dot2) && (test.y > (hField->bounding_box->bounds[0].y) + 1.0)) {
@@ -884,8 +884,8 @@ HeightField::heightFldNormal(
 
     Transformation::MTransVector(&temp1, &temp1, hField->transformation);
     Transformation::MTransVector(&temp2, &temp2, hField->transformation);
-    VectorOps::vCross(*result, temp2, temp1);
-    VectorOps::vNormalize(*result, *result);
+    *result = temp2.crossProduct(temp1);
+    (*result).normalize();
 }
 
 void *

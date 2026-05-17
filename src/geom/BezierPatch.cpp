@@ -4,7 +4,7 @@
 #include "geom/BicubicPatch.h"
 #include "geom/GeometryOperations.h"
 #include "io/Parse.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern Ray *vpRay;
@@ -218,15 +218,15 @@ BezierPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depth
 
             /* Make sure the smooth normals point in the same direction as the
              * normal */
-            VectorOps::vDot(t, n0, n);
+            t = n0.dotProduct(n);
             if (t < 0)
-                VectorOps::vScale(n0, n0, -1.0);
-            VectorOps::vDot(t, n1, n);
+                n0.scale(-1.0);
+            t = n1.dotProduct(n);
             if (t < 0)
-                VectorOps::vScale(n1, n1, -1.0);
-            VectorOps::vDot(t, n2, n);
+                n1.scale(-1.0);
+            t = n2.dotProduct(n);
             if (t < 0)
-                VectorOps::vScale(n2, n2, -1.0);
+                n2.scale(-1.0);
 
             /* Check for intersections in this subpatch. */
             if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &v0, &v2, &v1, &n, d,
@@ -248,13 +248,13 @@ BezierPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depth
 
             /* Make sure the smooth normals point in the same direction as the
              * normal */
-            VectorOps::vDot(t, n1, n);
+            t = n1.dotProduct(n);
             if (t > 0)
                 VectorOps::vScale(n1, n0, -1.0);
-            VectorOps::vDot(t, n2, n);
+            t = n2.dotProduct(n);
             if (t > 0)
                 VectorOps::vScale(n2, n1, -1.0);
-            VectorOps::vDot(t, n3, n);
+            t = n3.dotProduct(n);
             if (t > 0)
                 VectorOps::vScale(n3, n2, -1.0);
 

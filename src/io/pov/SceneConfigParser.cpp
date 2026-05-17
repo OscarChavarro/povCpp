@@ -2,8 +2,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -132,26 +132,26 @@ SceneConfigParser::parseViewpoint(Viewpoint *givenVp)
     break;
 
     case LOOK_AT_TOKEN:
-    VectorOps::vLength(directionLength, givenVp->Direction);
-    VectorOps::vLength(upLength, givenVp->Up);
-    VectorOps::vLength(rightLength, givenVp->Right);
-    VectorOps::vCross(tempVector, givenVp->Direction, givenVp->Up);
-    VectorOps::vDot(handedness, tempVector, givenVp->Right);
+    directionLength = givenVp->Direction.length();
+    upLength = givenVp->Up.length();
+    rightLength = givenVp->Right.length();
+    tempVector = givenVp->Direction.crossProduct(givenVp->Up);
+    handedness = tempVector.dotProduct(givenVp->Right);
     PrimitiveParser::parseVector(&givenVp->Direction);
 
-    VectorOps::vSub(givenVp->Direction, givenVp->Direction, givenVp->Location);
-    VectorOps::vNormalize(givenVp->Direction, givenVp->Direction);
-    VectorOps::vCross(givenVp->Right, givenVp->Direction, givenVp->Sky);
-    VectorOps::vNormalize(givenVp->Right, givenVp->Right);
-    VectorOps::vCross(givenVp->Up, givenVp->Right, givenVp->Direction);
-    VectorOps::vScale(givenVp->Direction, givenVp->Direction, directionLength);
+    givenVp->Direction.sub(givenVp->Location);
+    givenVp->Direction.normalize();
+    givenVp->Right = givenVp->Direction.crossProduct(givenVp->Sky);
+    givenVp->Right.normalize();
+    givenVp->Up = givenVp->Right.crossProduct(givenVp->Direction);
+    givenVp->Direction.scale(directionLength);
     if (handedness >= 0.0) {
-        VectorOps::vScale(givenVp->Right, givenVp->Right, rightLength);
+        givenVp->Right.scale(rightLength);
     } else {
-        VectorOps::vScale(givenVp->Right, givenVp->Right, -rightLength);
+        givenVp->Right.scale(-rightLength);
     }
 
-    VectorOps::vScale(givenVp->Up, givenVp->Up, upLength);
+    givenVp->Up.scale(upLength);
     break;
 
     case TRANSLATE_TOKEN:

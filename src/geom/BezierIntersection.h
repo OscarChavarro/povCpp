@@ -2,7 +2,7 @@
 #define __BEZIER_INTERSECTION_H__
 
 #include "common/Ray.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 class BicubicPatch;
 

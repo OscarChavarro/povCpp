@@ -2,8 +2,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -71,7 +71,7 @@ SceneFactory::getSphereShape()
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
 
-    VectorOps::makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
+    *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     newShape->Radius = 1.0;
     newShape->Radius_Squared = 1.0;
     newShape->Inverse_Radius = 1.0;
@@ -96,8 +96,8 @@ SceneFactory::getLightSourceShape()
     if (newShape == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
-    VectorOps::makeVector(&(newShape->Center), 0.0, 0.0, 0.0);
-    VectorOps::makeVector(&(newShape->Points_At), 0.0, 0.0, 1.0);
+    *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
+    *&(newShape->Points_At) = Vector3Dd(0.0, 0.0, 1.0);
     newShape->Type = POINT_LIGHT_TYPE;
     newShape->methods = &Point_Methods;
     newShape->Next_Object = nullptr;
@@ -123,9 +123,9 @@ SceneFactory::getQuadricShape()
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
 
-    VectorOps::makeVector(&(newShape->Object_2_Terms), 1.0, 1.0, 1.0);
-    VectorOps::makeVector(&(newShape->Object_Mixed_Terms), 0.0, 0.0, 0.0);
-    VectorOps::makeVector(&(newShape->Object_Terms), 0.0, 0.0, 0.0);
+    *&(newShape->Object_2_Terms) = Vector3Dd(1.0, 1.0, 1.0);
+    *&(newShape->Object_Mixed_Terms) = Vector3Dd(0.0, 0.0, 0.0);
+    *&(newShape->Object_Terms) = Vector3Dd(0.0, 0.0, 0.0);
     newShape->Object_Constant = 1.0;
     newShape->Object_VP_Constant = HUGE_VAL;
     newShape->Constant_Cached = FALSE;
@@ -180,8 +180,8 @@ SceneFactory::getBoxShape()
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
 
-    VectorOps::makeVector(&(newShape->bounds[0]), -1.0, -1.0, -1.0);
-    VectorOps::makeVector(&(newShape->bounds[1]), 1.0, 1.0, 1.0);
+    *&(newShape->bounds[0]) = Vector3Dd(-1.0, -1.0, -1.0);
+    *&(newShape->bounds[1]) = Vector3Dd(1.0, 1.0, 1.0);
     newShape->Transform = nullptr;
     newShape->Type = BOX_TYPE;
     newShape->Next_Object = nullptr;
@@ -271,7 +271,7 @@ SceneFactory::getPlaneShape()
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
 
-    VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
+    *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = PLANE_TYPE;
     newShape->Next_Object = nullptr;
@@ -293,10 +293,10 @@ SceneFactory::getTriangleShape()
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
 
-    VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
-    VectorOps::makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
-    VectorOps::makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
-    VectorOps::makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
+    *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->P1) = Vector3Dd(0.0, 0.0, 0.0);
+    *&(newShape->P2) = Vector3Dd(1.0, 0.0, 0.0);
+    *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Inverted = FALSE;
     newShape->Type = TRIANGLE_TYPE;
@@ -320,13 +320,13 @@ SceneFactory::getSmoothTriangleShape()
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
 
-    VectorOps::makeVector(&(newShape->Normal_Vector), 0.0, 1.0, 0.0);
-    VectorOps::makeVector(&(newShape->P1), 0.0, 0.0, 0.0);
-    VectorOps::makeVector(&(newShape->P2), 1.0, 0.0, 0.0);
-    VectorOps::makeVector(&(newShape->P3), 0.0, 1.0, 0.0);
-    VectorOps::makeVector(&(newShape->N1), 0.0, 1.0, 0.0);
-    VectorOps::makeVector(&(newShape->N2), 0.0, 1.0, 0.0);
-    VectorOps::makeVector(&(newShape->N3), 0.0, 1.0, 0.0);
+    *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->P1) = Vector3Dd(0.0, 0.0, 0.0);
+    *&(newShape->P2) = Vector3Dd(1.0, 0.0, 0.0);
+    *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->N1) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->N2) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->N3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = FALSE;

@@ -1,7 +1,7 @@
 #ifndef __RGBA_IMAGE_H__
 #define __RGBA_IMAGE_H__
 
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "media/RGBAPixel.h"
 #include "media/ImageData.h"
 

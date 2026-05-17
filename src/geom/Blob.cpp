@@ -12,7 +12,7 @@
 #include "io/Parse.h"
 #include "geom/Composite.h"
 #include "processing/PolynomialSolver.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
     Blob::blobNormal, Blob::copyBlob, Blob::translateBlob, Blob::rotateBlob, Blob::scaleBlob,
     Blob::invertBlob};
@@ -105,8 +105,8 @@ Blob::determineInfluences(Vector3Dd *p, Vector3Dd *d, Blob *blob, double mindist
             to determine where the ray hits the volume
             of influence of each component of the blob. */
         VectorOps::vSub(v, blob->list[i].pos, *p);
-        VectorOps::vDot(b, v, *d);
-        VectorOps::vDot(t, v, v);
+        b = v.dotProduct(*d);
+        t = v.dotProduct(v);
         disc = b * b - t + blob->list[i].radius2;
         if (disc < kEpsilon) {
             continue;
@@ -196,7 +196,7 @@ Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
     density = 0.0;
     for (i = 0, ptr = &(blob->list[0]); i < blob->count; i++, ptr++) {
         VectorOps::vSub(v, ptr->pos, *pos);
-        VectorOps::vDot(len, v, v);
+        len = v.dotProduct(v);
         if (len < ptr->radius2) {
             /* Inside the radius of influence of this
                 component, add it's contribution */
@@ -223,7 +223,7 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
         VectorOps::vSub(v, *p, temp->pos);
-        VectorOps::vDot(dist, v, v);
+        dist = v.dotProduct(v);
         if (dist <= temp->radius2) {
             val = -2.0 * (2.0 * temp->coeffs[0] * dist + temp->coeffs[1]);
             n.x += val * v.x;
@@ -231,7 +231,7 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
             n.z += val * v.z;
         }
     }
-    VectorOps::vDot(val, n, n);
+    val = n.dotProduct(n);
     if (val < kEpsilon) {
         return 0;
     }
@@ -366,8 +366,8 @@ Blob::allBlobIntersections(
             c0 = element->coeffs[0];
             c1 = element->coeffs[1];
             c2 = element->coeffs[2];
-            VectorOps::vDot(t0, v, v);
-            VectorOps::vDot(t1, v, d);
+            t0 = v.dotProduct(v);
+            t1 = v.dotProduct(d);
             tcoeffs = &(element->tcoeffs[0]);
 
             tcoeffs[0] = c0;
@@ -417,7 +417,7 @@ Blob::allBlobIntersections(
             if ((dist >= intervals[i].bound) &&
                 (dist <= intervals[i + 1].bound)) {
                 VectorOps::vScale(intersectionPoint, d, dist);
-                VectorOps::vAdd(intersectionPoint, intersectionPoint, p);
+                intersectionPoint.add(p);
                 if (true || Blob::validateHit(blob, &intersectionPoint)) {
                     /* Only add this hit if it really is near the surface, we
                        can get fooled by numerical inaccuracies */
@@ -427,7 +427,7 @@ Blob::allBlobIntersections(
                             blob->Transform);
                     }
                     VectorOps::vSub(dv, intersectionPoint, ray->Initial);
-                    VectorOps::vLength(len, dv);
+                    len = dv.length();
                     localElement.Depth = len;
                     localElement.Object = blob->Parent_Object;
                     localElement.Point = intersectionPoint;
@@ -522,7 +522,7 @@ Blob::blobNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionP
     if (blob->Transform != nullptr) {
         Transformation::MTransNormal(result, result, blob->Transform);
     }
-    VectorOps::vNormalize(*result, *result);
+    (*result).normalize();
 }
 
 void *

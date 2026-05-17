@@ -2,7 +2,7 @@
 #define __BEZIER_NODE_H__
 
 #include "common/FrameConfig.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 class BezierNode {
   public:

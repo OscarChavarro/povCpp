@@ -15,8 +15,8 @@
 #include "media/ColorTextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 #include "media/MapTextureFixture.h"
 #include "media/TextureFixture.h"
@@ -37,7 +37,7 @@ ColorTextureFixture::colourAt(RGBAColor *colour, Texture *texture, Vector3Dd *in
         (intersectionPoint->x < -COORDINATE_LIMIT) ||
         (intersectionPoint->y < -COORDINATE_LIMIT) ||
         (intersectionPoint->z < -COORDINATE_LIMIT)) {
-        VectorOps::makeVector(&transformedPoint, 0.0, 0.0, 0.0);
+        *&transformedPoint = Vector3Dd(0.0, 0.0, 0.0);
     } else {
         if (texture->Texture_Transformation) {
             Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
@@ -297,7 +297,7 @@ ColorTextureFixture::checkerTexture(double x, double y, double z, Texture *textu
         printf("checker_texture %g %g %g\n", x, y, z);
     }
 
-    VectorOps::makeVector(&point, x, y, z);
+    *&point = Vector3Dd(x, y, z);
 
     if (brkindx & 1) {
         ColorTextureFixture::colourAt(colour, ((Texture *)texture->Colour1), &point);
@@ -484,7 +484,7 @@ ColorTextureFixture::wood(double x, double y, double z, Texture *texture, RGBACo
 
     /*  point.z += z;         Deleted per David Buck --  BP 7/91 */
 
-    VectorOps::vLength(length, point);
+    length = point.length();
 
     noise = TextureUtils::triangleWave(length);
 

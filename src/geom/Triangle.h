@@ -2,7 +2,7 @@
 #define __TRIANGLE_H__
 
 #include "common/FrameConfig.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "geom/GeometryOperations.h"
 
 class SmoothTriangle;
