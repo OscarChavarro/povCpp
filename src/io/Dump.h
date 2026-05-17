@@ -38,16 +38,20 @@ inline void closeFile(FileHandle *h)
     ((*((h)->Close_File_p))(h));
 }
 
-extern FileHandle *getDumpFileHandle(void);
-extern char *defaultDumpFileName(void);
-extern int openDumpFile(FileHandle *handle, char *name, int *width,
-    int *height, int buffer_size, int mode);
-void writeDumpLine(FileHandle *handle, RGBAColor *line_data, int line_number);
-extern int readDumpLine(
-    FileHandle *handle, RGBAColor *line_data, int *line_number);
-extern int readDumpIntLine(
-    FileHandle *handle, ImageLine *line_data, int *line_number);
-extern void readDumpImage(RGBAImage *Image, char *filename);
-extern void closeDumpFile(FileHandle *handle);
+class DumpFormat {
+  public:
+    static FileHandle *getDumpFileHandle(void);
+    static char *defaultDumpFileName(void);
+    static int openDumpFile(FileHandle *handle, char *name, int *width,
+        int *height, int bufferSize, int mode);
+    static void writeDumpLine(
+        FileHandle *handle, RGBAColor *lineData, int lineNumber);
+    static int readDumpLine(
+        FileHandle *handle, RGBAColor *lineData, int *lineNumber);
+    static int readDumpIntLine(
+        FileHandle *handle, ImageLine *lineData, int *lineNumber);
+    static void readDumpImage(RGBAImage *image, char *name);
+    static void closeDumpFile(FileHandle *handle);
+};
 
 #endif

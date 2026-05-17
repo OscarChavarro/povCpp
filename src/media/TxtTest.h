@@ -5,17 +5,14 @@
 #include "common/Vector.h"
 #include "media/Texture.h"
 
-extern void painted1(
-    DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour); /* CdW 7/2/91 */
-extern void painted2(
-    DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour); /* CdW 7/2/91 */
-extern void painted3(
-    DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour); /* CdW 7/2/91 */
-extern void bumpy1(
-    DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal); /* CdW 7/2/91*/
-extern void bumpy2(
-    DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal); /* CdW 7/2/91*/
-extern void bumpy3(
-    DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal); /* CdW 7/2/91*/
+class TestTextures {
+  public:
+    static void painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void painted3(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static void bumpy1(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
+    static void bumpy2(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
+    static void bumpy3(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
+};
 
 #endif

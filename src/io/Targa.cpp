@@ -15,7 +15,7 @@ int targaLineNumber = 0;
 extern int firstLine;
 
 FileHandle *
-getTargaFileHandle()
+TargaFormat::getTargaFileHandle()
 {
     FileHandle *handle;
 
@@ -25,12 +25,12 @@ getTargaFileHandle()
         return (nullptr);
     }
 
-    handle->Default_File_Name_p = defaultTargaFileName;
-    handle->Open_File_p = openTargaFile;
-    handle->Write_Line_p = writeTargaLine;
-    handle->Read_Line_p = readTargaLine;
-    handle->Read_Image_p = readTargaImage;
-    handle->Close_File_p = closeTargaFile;
+    handle->Default_File_Name_p = TargaFormat::defaultTargaFileName;
+    handle->Open_File_p = TargaFormat::openTargaFile;
+    handle->Write_Line_p = TargaFormat::writeTargaLine;
+    handle->Read_Line_p = TargaFormat::readTargaLine;
+    handle->Read_Image_p = TargaFormat::readTargaImage;
+    handle->Close_File_p = TargaFormat::closeTargaFile;
     handle->file = nullptr;
     handle->buffer_size = 0;
     handle->buffer = nullptr;
@@ -40,13 +40,13 @@ getTargaFileHandle()
 static char defaultTargaFilename[] = "data.tga";
 
 char *
-defaultTargaFileName()
+TargaFormat::defaultTargaFileName()
 {
     return defaultTargaFilename;
 }
 
 int
-openTargaFile(FileHandle *handle, char *name, int *width, int *height,
+TargaFormat::openTargaFile(FileHandle *handle, char *name, int *width, int *height,
     int bufferSize, int mode)
 {
     int data1;
@@ -161,7 +161,7 @@ openTargaFile(FileHandle *handle, char *name, int *width, int *height,
 }
 
 void
-writeTargaLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
+TargaFormat::writeTargaLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
     register int x;
 
@@ -179,7 +179,7 @@ writeTargaLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 }
 
 int
-readTargaLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+TargaFormat::readTargaLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
     int x;
     int data;
@@ -217,7 +217,7 @@ readTargaLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 }
 
 void
-closeTargaFile(FileHandle *handle)
+TargaFormat::closeTargaFile(FileHandle *handle)
 {
     if (handle->file) {
         fclose(handle->file);
@@ -228,7 +228,7 @@ closeTargaFile(FileHandle *handle)
 }
 
 int
-readTargaIntLine(FileHandle *handle, ImageLine *lineData)
+TargaFormat::readTargaIntLine(FileHandle *handle, ImageLine *lineData)
 {
     int x;
     int data;
@@ -263,7 +263,7 @@ readTargaIntLine(FileHandle *handle, ImageLine *lineData)
 }
 
 void
-readTargaImage(RGBAImage *image, char *name)
+TargaFormat::readTargaImage(RGBAImage *image, char *name)
 {
     int row;
     FileHandle handle;
@@ -274,7 +274,7 @@ readTargaImage(RGBAImage *image, char *name)
         exit(1);
     }
 
-    openTargaFile(
+    TargaFormat::openTargaFile(
         &handle, name, &image->iwidth, &image->iheight, 0, READ_MODE);
 
     handle.width = image->iwidth;
@@ -291,7 +291,7 @@ readTargaImage(RGBAImage *image, char *name)
     }
 
     for (row = 0; row < image->iheight &&
-                  readTargaIntLine(&handle, &image->data.rgb_lines[row]);
+                  TargaFormat::readTargaIntLine(&handle, &image->data.rgb_lines[row]);
          row++) {
     }
     fclose(handle.file);

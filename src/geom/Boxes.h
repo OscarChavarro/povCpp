@@ -11,20 +11,24 @@ class Box : public Geometry {
     Transformation *Transform;
     Vector3D bounds[2];
     short Inverted;
+
+    static int allBoxIntersections(
+        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+    static int intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2);
+    static int insideBox(Vector3D *point, SimpleBody *object);
+    static void boxNormal(
+        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+    static void *copyBox(SimpleBody *object);
+    static void translateBox(SimpleBody *object, Vector3D *vector);
+    static void rotateBox(SimpleBody *object, Vector3D *vector);
+    static void scaleBox(SimpleBody *object, Vector3D *vector);
+    static void invertBox(SimpleBody *object);
+
+  private:
+    static int closeTo(DBL x, DBL y);
 };
 
 extern Methods Box_Methods;
 extern Box *getBoxShape();
-extern int allBoxIntersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int intersectBoxx(Ray *Ray, Box *box, DBL *Depth1, DBL *Depth2);
-extern int insideBox(Vector3D *point, SimpleBody *Object);
-extern void boxNormal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *copyBox(SimpleBody *Object);
-extern void translateBox(SimpleBody *Object, Vector3D *Vector);
-extern void rotateBox(SimpleBody *Object, Vector3D *Vector);
-extern void scaleBox(SimpleBody *Object, Vector3D *Vector);
-extern void invertBox(SimpleBody *Object);
 
 #endif

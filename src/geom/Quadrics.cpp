@@ -7,14 +7,14 @@
 
 #include "geom/Quadrics.h"
 #include "geom/Objects.h"
-Methods Quadric_Methods = {objectIntersect, allQuadricIntersections,
-    insideQuadric, quadricNormal, copyQuadric, translateQuadric,
-    rotateQuadric, scaleQuadric, invertQuadric};
+Methods Quadric_Methods = {objectIntersect, Quadric::allQuadricIntersections,
+    Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
+    Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
 
 extern Ray *vpRay;
 extern long rayQuadricTests, rayQuadricTestsSucceeded;
 int
-allQuadricIntersections(
+Quadric::allQuadricIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Quadric *shape = (Quadric *)object;
@@ -24,7 +24,7 @@ allQuadricIntersections(
     register int intersectionFound;
 
     intersectionFound = FALSE;
-    if (intersectQuadric(ray, shape, &depth1, &depth2)) {
+    if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
         VScale(intersectionPoint, ray->Direction, depth1);
@@ -49,7 +49,7 @@ allQuadricIntersections(
 }
 
 int
-intersectQuadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
+Quadric::intersectQuadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
 {
     register DBL squareTerm;
     register DBL linearTerm;
@@ -140,7 +140,7 @@ intersectQuadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
 }
 
 int
-insideQuadric(Vector3D *testPoint, SimpleBody *object)
+Quadric::insideQuadric(Vector3D *testPoint, SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
     Vector3D newPoint;
@@ -165,7 +165,7 @@ insideQuadric(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-quadricNormal(
+Quadric::quadricNormal(
     Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Quadric *intersectionShape = (Quadric *)object;
@@ -204,7 +204,7 @@ quadricNormal(
 }
 
 void *
-copyQuadric(SimpleBody *object)
+Quadric::copyQuadric(SimpleBody *object)
 {
     Quadric *newShape;
 
@@ -219,10 +219,10 @@ copyQuadric(SimpleBody *object)
     return (newShape);
 }
 
-static void
-quadricToMatrix(Quadric *quadric, MATRIX *matrix)
+void
+Quadric::quadricToMatrix(Quadric *quadric, MATRIX *matrix)
 {
-    MZero(matrix);
+    Transformation::MZero(matrix);
     (*matrix)[0][0] = quadric->Object_2_Terms.x;
     (*matrix)[1][1] = quadric->Object_2_Terms.y;
     (*matrix)[2][2] = quadric->Object_2_Terms.z;
@@ -235,8 +235,8 @@ quadricToMatrix(Quadric *quadric, MATRIX *matrix)
     (*matrix)[3][3] = quadric->Object_Constant;
 }
 
-static void
-matrixToQuadric(MATRIX *matrix, Quadric *quadric)
+void
+Quadric::matrixToQuadric(MATRIX *matrix, Quadric *quadric)
 {
     quadric->Object_2_Terms.x = (*matrix)[0][0];
     quadric->Object_2_Terms.y = (*matrix)[1][1];
@@ -250,58 +250,58 @@ matrixToQuadric(MATRIX *matrix, Quadric *quadric)
     quadric->Object_Constant = (*matrix)[3][3];
 }
 
-static void
-transformQuadric(Quadric *shape, Transformation *transformation)
+void
+Quadric::transformQuadric(Quadric *shape, Transformation *transformation)
 {
     MATRIX quadricMatrix;
     MATRIX transformTransposed;
 
-    quadricToMatrix(shape, (MATRIX *)&quadricMatrix[0][0]);
-    MTimes((MATRIX *)&quadricMatrix[0][0],
+    Quadric::quadricToMatrix(shape, (MATRIX *)&quadricMatrix[0][0]);
+    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0],
         (MATRIX *)&(transformation->inverse[0][0]),
         (MATRIX *)&quadricMatrix[0][0]);
-    MTranspose((MATRIX *)&transformTransposed[0][0],
+    Transformation::MTranspose((MATRIX *)&transformTransposed[0][0],
         (MATRIX *)&(transformation->inverse[0][0]));
-    MTimes((MATRIX *)&quadricMatrix[0][0], (MATRIX *)&quadricMatrix[0][0],
+    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0], (MATRIX *)&quadricMatrix[0][0],
         (MATRIX *)&transformTransposed[0][0]);
-    matrixToQuadric((MATRIX *)&quadricMatrix[0][0], shape);
+    Quadric::matrixToQuadric((MATRIX *)&quadricMatrix[0][0], shape);
 }
 
 void
-translateQuadric(SimpleBody *object, Vector3D *vector)
+Quadric::translateQuadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    getTranslationTransformation(&transformation, vector);
-    transformQuadric((Quadric *)object, &transformation);
+    Transformation::getTranslationTransformation(&transformation, vector);
+    Quadric::transformQuadric((Quadric *)object, &transformation);
 
     translateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-rotateQuadric(SimpleBody *object, Vector3D *vector)
+Quadric::rotateQuadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    getRotationTransformation(&transformation, vector);
-    transformQuadric((Quadric *)object, &transformation);
+    Transformation::getRotationTransformation(&transformation, vector);
+    Quadric::transformQuadric((Quadric *)object, &transformation);
 
     rotateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-scaleQuadric(SimpleBody *object, Vector3D *vector)
+Quadric::scaleQuadric(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    getScalingTransformation(&transformation, vector);
-    transformQuadric((Quadric *)object, &transformation);
+    Transformation::getScalingTransformation(&transformation, vector);
+    Quadric::transformQuadric((Quadric *)object, &transformation);
 
     scaleTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
 
 void
-invertQuadric(SimpleBody *object)
+Quadric::invertQuadric(SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
 

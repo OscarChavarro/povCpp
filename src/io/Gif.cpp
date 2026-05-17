@@ -43,7 +43,7 @@ static int colourmapSize;
  * equal to the number of pixels passed...
  */
 int
-outLine(unsigned char *pixels, int linelen)
+GifFormat::outLine(unsigned char *pixels, int linelen)
 {
     register int x;
     register unsigned char *line;
@@ -66,7 +66,7 @@ outLine(unsigned char *pixels, int linelen)
 static constexpr int READ_ERROR = -1;
 
 int
-getByte() /* get byte from file, return the next byte or an error */
+GifFormat::getByte() /* get byte from file, return the next byte or an error */
 {
     register int byte;
 
@@ -82,7 +82,7 @@ getByte() /* get byte from file, return the next byte or an error */
 /* Main GIF file decoder.  */
 
 void
-readGifImage(RGBAImage *image, char *filename)
+GifFormat::readGifImage(RGBAImage *image, char *filename)
 {
     register int i;
     register int j;
@@ -113,7 +113,7 @@ readGifImage(RGBAImage *image, char *filename)
 
     /* Get the screen description */
     for (i = 0; i < 13; i++) {
-        buffer[i] = (unsigned char)getByte();
+        buffer[i] = (unsigned char)GifFormat::getByte();
     }
 
     if (strncmp((char *)buffer, "GIF", 3) || /* use updated GIF specs */
@@ -142,33 +142,33 @@ readGifImage(RGBAImage *image, char *filename)
     }
 
     for (i = 0; i < colourmapSize; i++) {
-        gifColourMap[i].Red = (unsigned char)getByte();
-        gifColourMap[i].Green = (unsigned char)getByte();
-        gifColourMap[i].Blue = (unsigned char)getByte();
+        gifColourMap[i].Red = (unsigned char)GifFormat::getByte();
+        gifColourMap[i].Green = (unsigned char)GifFormat::getByte();
+        gifColourMap[i].Blue = (unsigned char)GifFormat::getByte();
         gifColourMap[i].Alpha = 0;
     }
 
     /* Now display one or more GIF objects */
     finished = FALSE;
     while (!finished) {
-        switch (getByte()) {
+        switch (GifFormat::getByte()) {
         case ';': /* End of the GIF dataset */
             finished = TRUE;
             status = 0;
             break;
 
         case '!':                          /* GIF Extension Block */
-            getByte();                    /* read (and ignore) the ID */
-            while ((i = getByte()) > 0) { /* get data len*/
+            GifFormat::getByte();                    /* read (and ignore) the ID */
+            while ((i = GifFormat::getByte()) > 0) { /* get data len*/
                 for (j = 0; j < i; j++) {
-                    getByte(); /* flush data */
+                    GifFormat::getByte(); /* flush data */
                 }
             }
             break;
 
         case ',': /* Start of image object. get description */
             for (i = 0; i < 9; i++) {
-                if ((j = getByte()) < 0) { /* EOF test (?) */
+                if ((j = GifFormat::getByte()) < 0) { /* EOF test (?) */
                     status = -1;
                     break;
                 }
@@ -205,7 +205,7 @@ readGifImage(RGBAImage *image, char *filename)
             }
 
             /* Setup the color palette for the image */
-            status = decoder(image->iwidth); /*put bytes in Buf*/
+            status = GifDecoder::decoder(image->iwidth); /*put bytes in Buf*/
             /* changed param to int */
             finished = TRUE;
             break;

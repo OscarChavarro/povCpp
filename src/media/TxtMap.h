@@ -5,11 +5,34 @@
 #include "common/Vector.h"
 #include "media/Texture.h"
 
-extern int map(DBL x, DBL y, DBL z, Texture *Texture, RGBAImage *Image,
-    DBL *xcoor, DBL *ycoor);
-extern void imageMap(DBL x, DBL y, DBL z, Texture *Texture, RGBAColor *colour);
-extern Texture *materialMap(Vector3D *Intersection_Point, Texture *Texture);
-extern void bumpMap(
-    DBL x, DBL y, DBL z, Texture *Texture, Vector3D *normal); /* CdW 7/8/91*/
+class MapTextures {
+  public:
+    static int map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image,
+        DBL *xcoor, DBL *ycoor);
+    static void imageMap(
+        DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
+    static Texture *materialMap(
+        Vector3D *intersectionPoint, Texture *texture);
+    static void bumpMap(
+        DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
+
+  private:
+    static int cylindricalImageMap(
+        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+    static int torusImageMap(
+        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+    static int sphericalImageMap(
+        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+    static int planarImageMap(
+        DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+    static void noInterpolation(
+        RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+    static DBL bilinear(DBL *corners, DBL x, DBL y);
+    static DBL normDist(DBL *corners, DBL x, DBL y);
+    static void interp(
+        RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+    static void imageColourAt(
+        RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+};
 
 #endif

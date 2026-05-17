@@ -6,6 +6,30 @@
 #include "common/Vector.h"
 #include "geom/Geometry.h"
 #include "media/Texture.h"
+class Light;
+class PriorityQueueNode;
+class Intersection;
+
+class LightingEngine {
+  private:
+    static void doLight(Light *lightSource, DBL *lightSourceDepth,
+        Ray *lightSourceRay, Vector3D *intersectionPoint, RGBAColor *lightColour);
+    static int doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
+        PriorityQueueNode *localQueue);
+    static void doPhong(Texture *texture, Ray *lightSourceRay, Vector3D eye,
+        Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+        RGBAColor *surfaceColour);
+    static void doSpecular(Texture *texture, Ray *lightSourceRay, Vector3D rEye,
+        Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+        RGBAColor *surfaceColour);
+    static void doDiffuse(Texture *texture, Ray *lightSourceRay,
+        Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
+        RGBAColor *surfaceColour, DBL attenuation);
+
+    friend void Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
+        Vector3D *surfaceNormal, RGBAColor *surfaceColour, RGBAColor *colour,
+        DBL attenuation);
+};
 
 extern void perturbNormal(Vector3D *New_Normal, Texture *Texture,
     Vector3D *Intersection_Point, Vector3D *Surface_Normal);

@@ -8,7 +8,10 @@ class PriorityQueue;
 
 extern PriorityQueue *GLOBAL_priorityQueue;
 extern PriorityQueueNode *GLOBAL_priorityQueuesHead;
-extern PriorityQueueNode *pqInit(void);
-extern PriorityQueueNode *pqPop(int index_size);
+class PriorityQueuePool {
+  public:
+    static PriorityQueueNode *pqInit(void);
+    static PriorityQueueNode *pqPop(int indexSize);
+};
 
 #endif

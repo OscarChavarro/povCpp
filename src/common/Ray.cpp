@@ -37,11 +37,11 @@ Ray::initializeContainers()
 }
 
 void
-copyRayContainers(Ray *destRay, Ray *sourceRay)
+Ray::copyContainersFrom(Ray *sourceRay)
 {
     register int i;
 
-    if ((destRay->Containing_Index = sourceRay->Containing_Index) >=
+    if ((this->Containing_Index = sourceRay->Containing_Index) >=
         MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "ERROR - Containing Index too high\n");
         PovApp::closeAll();
@@ -49,24 +49,24 @@ copyRayContainers(Ray *destRay, Ray *sourceRay)
     }
 
     for (i = 0; i < MAX_CONTAINING_OBJECTS; i++) {
-        destRay->Containing_Textures[i] = sourceRay->Containing_Textures[i];
-        destRay->Containing_IORs[i] = sourceRay->Containing_IORs[i];
+        this->Containing_Textures[i] = sourceRay->Containing_Textures[i];
+        this->Containing_IORs[i] = sourceRay->Containing_IORs[i];
     }
 }
 
 void
-rayEnter(Ray *ray, Texture *texture)
+Ray::enterContainingMedium(Texture *texture)
 {
     register int index;
 
-    if ((index = ++(ray->Containing_Index)) >= MAX_CONTAINING_OBJECTS) {
+    if ((index = ++(this->Containing_Index)) >= MAX_CONTAINING_OBJECTS) {
         fprintf(stderr, "Too many nested refracting objects\n");
         PovApp::closeAll();
         exit(1);
     }
 
-    ray->Containing_Textures[index] = texture;
-    ray->Containing_IORs[index] = texture->Object_Index_Of_Refraction;
+    this->Containing_Textures[index] = texture;
+    this->Containing_IORs[index] = texture->Object_Index_Of_Refraction;
 }
 
 void

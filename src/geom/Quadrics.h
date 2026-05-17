@@ -15,21 +15,26 @@ class Quadric : public Geometry {
     DBL Object_VP_Constant;
     int Constant_Cached;
     int Non_Zero_Square_Term;
+
+    static int allQuadricIntersections(
+        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+    static int intersectQuadric(
+        Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2);
+    static int insideQuadric(Vector3D *point, SimpleBody *object);
+    static void quadricNormal(
+        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+    static void *copyQuadric(SimpleBody *object);
+    static void translateQuadric(SimpleBody *object, Vector3D *vector);
+    static void rotateQuadric(SimpleBody *object, Vector3D *vector);
+    static void scaleQuadric(SimpleBody *object, Vector3D *vector);
+    static void invertQuadric(SimpleBody *object);
+
+  private:
+    static void quadricToMatrix(Quadric *quadric, MATRIX *matrix);
+    static void matrixToQuadric(MATRIX *matrix, Quadric *quadric);
+    static void transformQuadric(Quadric *shape, Transformation *transformation);
 };
 
 extern Methods Quadric_Methods;
 extern Quadric *getQuadricShape(void);
-extern int allQuadricIntersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int intersectQuadric(
-    Ray *Ray, Quadric *Shape, DBL *Depth1, DBL *Depth2);
-extern int insideQuadric(Vector3D *point, SimpleBody *Object);
-extern void quadricNormal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *copyQuadric(SimpleBody *Object);
-extern void translateQuadric(SimpleBody *Object, Vector3D *Vector);
-extern void rotateQuadric(SimpleBody *Object, Vector3D *Vector);
-extern void scaleQuadric(SimpleBody *Object, Vector3D *Vector);
-extern void invertQuadric(SimpleBody *Object);
-
 #endif

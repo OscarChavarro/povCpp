@@ -169,17 +169,24 @@ typedef int TOKEN;
 
 /* Here's where you dump the information on the current token (fm. PARSE.C) */
 
-extern void initializeTokenizer(char *Input_File_Name);
-extern void terminateTokenizer(void);
+class Tokenizer {
+  public:
+    static void initializeTokenizer(char *inputFileName);
+    static void terminateTokenizer(void);
+    static void ungetToken(void);
+    static void beginString(void);
+    static void stuffCharacter(int c, DataFile *dataFile);
+    static int findReserved(void);
+    static int findSymbol(void);
+    static void writeToken(TOKEN tokenId, DataFile *dataFile);
+    static void tokenError(DataFile *dataFile, const char *str);
+
+  private:
+    static int povStricmp(const char *s1, const char *s2);
+};
+
 extern void Tokenize(char *name);
 extern int processToken(void);
-extern void beginString(void);
-extern void stuffCharacter(int c, DataFile *Data_File);
-extern int findReserved(void);
-extern int findSymbol(void);
-extern void writeToken(int Token_Id, DataFile *Data_File);
-extern void tokenError(DataFile *Data_File, const char *str);
 extern void getToken(void);
-extern void ungetToken(void);
 
 #endif

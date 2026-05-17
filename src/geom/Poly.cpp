@@ -38,26 +38,14 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 int factorials[MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 int termCounts[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
-Methods Poly_Methods = {objectIntersect, allPolyIntersections, insidePoly,
-    polyNormal, copyPoly, translatePoly, rotatePoly, scalePoly,
-    invertPoly};
+Methods Poly_Methods = {objectIntersect, Poly::allPolyIntersections, Poly::insidePoly,
+    Poly::polyNormal, Poly::copyPoly, Poly::translatePoly, Poly::rotatePoly, Poly::scalePoly,
+    Poly::invertPoly};
 
 extern long rayPolyTests, rayPolyTestsSucceeded;
 
-static void transform(int order, DBL *coeffs, MATRIX *q);
-static int roll(int order, int x, int y, int z);
-static void unroll(int order, int index, int *x, int *y, int *z, int *w);
-static int intersect(Ray *ray, int order, DBL *coeffs, DBL *depths);
-static int intersectQuartic(Ray *ray, Poly *shape, DBL *depths);
-static void quarticNormal(
-    Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
-static DBL inside(Vector3D *point, int order, DBL *coeffs);
-static void normalp(
-    Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint);
-static DBL doPartialTerm(
-    MATRIX *q, int row, int pwr, int i, int j, int k, int l);
 int
-allPolyIntersections(
+Poly::allPolyIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Poly *shape = (Poly *)object;
@@ -73,9 +61,9 @@ allPolyIntersections(
 
     /* Transform the ray into the polynomial's space */
     if (shape->Transform != nullptr) {
-        MInverseTransformVector(
+        Transformation::MInverseTransformVector(
             &newRay.Initial, &ray->Initial, shape->Transform);
-        MInvTransVector(&newRay.Direction, &ray->Direction, shape->Transform);
+        Transformation::MInvTransVector(&newRay.Direction, &ray->Direction, shape->Transform);
     } else {
         newRay.Initial.x = ray->Initial.x;
         newRay.Initial.y = ray->Initial.y;
@@ -98,9 +86,9 @@ allPolyIntersections(
     intersectionFound = FALSE;
     rayPolyTests++;
     if (shape->Order == 4) {
-        cnt = intersectQuartic(&newRay, shape, depths);
+        cnt = Poly::intersectQuartic(&newRay, shape, depths);
     } else {
-        cnt = intersect(&newRay, shape->Order, shape->Coeffs, &depths[0]);
+        cnt = Poly::intersect(&newRay, shape->Order, shape->Coeffs, &depths[0]);
     }
 
     if (cnt > 0) {
@@ -119,7 +107,7 @@ allPolyIntersections(
         VAdd(intersectionPoint, intersectionPoint, newRay.Initial);
         /* Transform the point into world space */
         if (shape->Transform != nullptr) {
-            MTransformVector(
+            Transformation::MTransformVector(
                 &intersectionPoint, &intersectionPoint, shape->Transform);
         }
 
@@ -137,8 +125,8 @@ allPolyIntersections(
 }
 
 /* Given the powers return the index into the polynomial */
-static int
-roll(int order, int x, int y, int z)
+int
+Poly::roll(int order, int x, int y, int z)
 {
     int xstart;
     int ystart;
@@ -152,8 +140,8 @@ roll(int order, int x, int y, int z)
 }
 
 /* Given the index into the polynomial, return the powers. */
-static void
-unroll(int order, int index, int *x, int *y, int *z, int *w)
+void
+Poly::unroll(int order, int index, int *x, int *y, int *z, int *w)
 {
     int i;
     int torder;
@@ -209,8 +197,8 @@ unroll(int order, int index, int *x, int *y, int *z, int *w)
 }
 
 /* Intersection of a ray and an arbitrary polynomial function */
-static int
-intersect(Ray *ray, int order, DBL *coeffs, DBL *depths)
+int
+Poly::intersect(Ray *ray, int order, DBL *coeffs, DBL *depths)
 {
     MATRIX q;
     DBL *a, t[MAX_ORDER + 1];
@@ -220,20 +208,20 @@ intersect(Ray *ray, int order, DBL *coeffs, DBL *depths)
         as (x,y,z) + (xx,yy,zz)*t.  */
     a = new DBL[termCounts[order]];
     if (a == nullptr) {
-        printf("Cannot allocate memory for coefficients in poly intersect()\n");
+        printf("Cannot allocate memory for coefficients in poly Poly::intersect()\n");
         exit(1);
     }
     for (i = 0; i < termCounts[order]; i++) {
         a[i] = coeffs[i];
     }
-    MZero((MATRIX *)&q[0][0]);
+    Transformation::MZero((MATRIX *)&q[0][0]);
     q[0][0] = ray->Direction.x;
     q[3][0] = ray->Initial.x;
     q[0][1] = ray->Direction.y;
     q[3][1] = ray->Initial.y;
     q[0][2] = ray->Direction.z;
     q[3][2] = ray->Initial.z;
-    transform(order, a, (MATRIX *)&q[0][0]);
+    Poly::transform(order, a, (MATRIX *)&q[0][0]);
     /* The equation is now in terms of one variable.  Use numerical
         techniques to solve the polynomial that represents the intersections. */
     for (i = 0; i <= order; i++) {
@@ -250,16 +238,16 @@ intersect(Ray *ray, int order, DBL *coeffs, DBL *depths)
         j -= 1;
     }
     if (j > 2) {
-        return polysolve(j, &t[i], depths);
+        return PolynomialSolver::polysolve(j, &t[i], depths);
     }
     if (j > 0) {
-        return solveQuadratic(&t[i], depths);
+        return PolynomialSolver::solveQuadratic(&t[i], depths);
     }
     return 0;
 }
 
-static DBL
-inside(Vector3D *point, int order, DBL *coeffs)
+DBL
+Poly::inside(Vector3D *point, int order, DBL *coeffs)
 {
     DBL x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1], result;
     int i;
@@ -280,7 +268,7 @@ inside(Vector3D *point, int order, DBL *coeffs)
     }
     result = 0.0;
     for (i = 0; i < termCounts[order]; i++) {
-        unroll(order, i, &k0, &k1, &k2, &k3);
+        Poly::unroll(order, i, &k0, &k1, &k2, &k3);
         result += coeffs[i] * x[k0] * y[k1] * z[k2];
     }
 
@@ -290,8 +278,8 @@ inside(Vector3D *point, int order, DBL *coeffs)
 }
 
 /* Normal to a polynomial */
-static void
-normalp(Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint)
+void
+Poly::normalp(Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint)
 {
     int i;
     int xp;
@@ -315,7 +303,7 @@ normalp(Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint)
     result->y = 0.0;
     result->z = 0.0;
     for (i = 0; i < termCounts[order]; i++) {
-        unroll(order, i, &xp, &yp, &zp, &wp);
+        Poly::unroll(order, i, &xp, &yp, &zp, &wp);
         if (xp >= 1) {
             result->x += xp * a[i] * x[xp - 1] * y[yp] * z[zp];
         }
@@ -339,8 +327,8 @@ normalp(Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint)
     }
 }
 
-static DBL
-doPartialTerm(MATRIX *q, int row, int pwr, int i, int j, int k, int l)
+DBL
+Poly::doPartialTerm(MATRIX *q, int row, int pwr, int i, int j, int k, int l)
 {
     DBL result;
     int n;
@@ -372,8 +360,8 @@ doPartialTerm(MATRIX *q, int row, int pwr, int i, int j, int k, int l)
 
 /* Using the transformation matrix q, transform the general polynomial
     equation given by a. */
-static void
-transform(int order, DBL *coeffs, MATRIX *q)
+void
+Poly::transform(int order, DBL *coeffs, MATRIX *q)
 {
     int termIndex;
     int partialIndex;
@@ -409,7 +397,7 @@ transform(int order, DBL *coeffs, MATRIX *q)
 
     b = new DBL[termCounts[order]];
     if (b == nullptr) {
-        printf("Cannot allocate memory for b in poly transform()\n");
+        printf("Cannot allocate memory for b in poly Poly::transform()\n");
         exit(1);
     }
     for (i = 0; i < termCounts[order]; i++) {
@@ -417,31 +405,31 @@ transform(int order, DBL *coeffs, MATRIX *q)
     }
     for (termIndex = 0; termIndex < termCounts[order]; termIndex++) {
         if (coeffs[termIndex] != 0.0) {
-            unroll(order, termIndex, &ip, &jp, &kp, &wp);
+            Poly::unroll(order, termIndex, &ip, &jp, &kp, &wp);
             /* Step through terms in: (q[0][0]*x+q[0][1]*y+q[0][2]*z+q[0][3])^i
              */
             for (i = 0; i < termCounts[ip]; i++) {
-                unroll(ip, i, &i0, &i1, &i2, &i3);
-                tempx = doPartialTerm(q, 0, ip, i0, i1, i2, i3);
+                Poly::unroll(ip, i, &i0, &i1, &i2, &i3);
+                tempx = Poly::doPartialTerm(q, 0, ip, i0, i1, i2, i3);
                 if (tempx != 0.0) {
 
                     /* Step through terms in:
                                 (q[1][0]*x+q[1][1]*y+q[1][2]*z+q[1][3])^j */
                     for (j = 0; j < termCounts[jp]; j++) {
-                        unroll(jp, j, &j0, &j1, &j2, &j3);
-                        tempy = doPartialTerm(q, 1, jp, j0, j1, j2, j3);
+                        Poly::unroll(jp, j, &j0, &j1, &j2, &j3);
+                        tempy = Poly::doPartialTerm(q, 1, jp, j0, j1, j2, j3);
                         if (tempy != 0.0) {
 
                             /* Step through terms in:
                                         (q[2][0]*x+q[2][1]*y+q[2][2]*z+q[2][3])^k
                              */
                             for (k = 0; k < termCounts[kp]; k++) {
-                                unroll(kp, k, &k0, &k1, &k2, &k3);
-                                tempz = doPartialTerm(q, 2, kp, k0, k1, k2, k3);
+                                Poly::unroll(kp, k, &k0, &k1, &k2, &k3);
+                                tempz = Poly::doPartialTerm(q, 2, kp, k0, k1, k2, k3);
                                 if (tempz != 0.0) {
                                     /* Figure out it's index, and add into
                                      * result */
-                                    partialIndex = roll(order, i0 + j0 + k0,
+                                    partialIndex = Poly::roll(order, i0 + j0 + k0,
                                         i1 + j1 + k1, i2 + j2 + k2);
                                     partialTerm = coeffs[termIndex] * tempx *
                                                   tempy * tempz;
@@ -465,8 +453,8 @@ transform(int order, DBL *coeffs, MATRIX *q)
 }
 
 /* Intersection of a ray and a quartic */
-static int
-intersectQuartic(Ray *ray, Poly *shape, DBL *depths)
+int
+Poly::intersectQuartic(Ray *ray, Poly *shape, DBL *depths)
 {
     DBL x, y, z, x2, y2, z2, x3, y3, z3, x4, y4, z4;
     DBL xx, yy, zz, xx2, yy2, zz2, xx3, yy3, zz3, xx4, yy4, zz4;
@@ -660,21 +648,21 @@ intersectQuartic(Ray *ray, Poly *shape, DBL *depths)
     if (shape->Sturm_Flag) {
         if (t[0] == 0.0) {
             if (t[1] == 0.0) {
-                return solveQuadratic(&t[2], depths);
+                return PolynomialSolver::solveQuadratic(&t[2], depths);
             }
-            return polysolve(3, &t[1], depths);
+            return PolynomialSolver::polysolve(3, &t[1], depths);
 
         } else {
-            return polysolve(4, &t[0], depths);
+            return PolynomialSolver::polysolve(4, &t[0], depths);
         }
     } else {
-        return solveQuartic(&t[0], depths);
+        return PolynomialSolver::solveQuartic(&t[0], depths);
     }
 }
 
 /* Normal to a quartic */
-static void
-quarticNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+void
+Poly::quarticNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Poly *shape = (Poly *)object;
     DBL *a, x, y, z, x2, y2, z2, x3, y3, z3;
@@ -725,7 +713,7 @@ quarticNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 }
 
 int
-insidePoly(Vector3D *testPoint, SimpleBody *object)
+Poly::insidePoly(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D newPoint;
     Poly *shape = (Poly *)object;
@@ -733,12 +721,12 @@ insidePoly(Vector3D *testPoint, SimpleBody *object)
 
     /* Transform the point into polynomial's space */
     if (shape->Transform != nullptr) {
-        MInverseTransformVector(&newPoint, testPoint, shape->Transform);
+        Transformation::MInverseTransformVector(&newPoint, testPoint, shape->Transform);
     } else {
         newPoint = *testPoint;
     }
 
-    result = inside(&newPoint, shape->Order, shape->Coeffs);
+    result = Poly::inside(&newPoint, shape->Order, shape->Coeffs);
     if (result < Small_Tolerance) {
         return ((int)(1 - shape->Inverted));
     }
@@ -747,14 +735,14 @@ insidePoly(Vector3D *testPoint, SimpleBody *object)
 
 /* Normal to a polynomial */
 void
-polyNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+Poly::polyNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Poly *shape = (Poly *)object;
     Vector3D newPoint;
 
     /* Transform the point into the polynomials space */
     if (shape->Transform != nullptr) {
-        MInverseTransformVector(&newPoint, intersectionPoint, shape->Transform);
+        Transformation::MInverseTransformVector(&newPoint, intersectionPoint, shape->Transform);
     } else {
         newPoint.x = intersectionPoint->x;
         newPoint.y = intersectionPoint->y;
@@ -762,21 +750,21 @@ polyNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
     }
 
     if (shape->Order == 4) {
-        quarticNormal(result, object, &newPoint);
+        Poly::quarticNormal(result, object, &newPoint);
     } else {
-        normalp(result, shape->Order, shape->Coeffs, &newPoint);
+        Poly::normalp(result, shape->Order, shape->Coeffs, &newPoint);
     }
 
     /* Transform back to world space */
     if (shape->Transform != nullptr) {
-        MTransNormal(result, result, shape->Transform);
+        Transformation::MTransNormal(result, result, shape->Transform);
     }
     VNormalize(*result, *result);
 }
 
 /* Make a copy of a polynomial object */
 void *
-copyPoly(SimpleBody *object)
+Poly::copyPoly(SimpleBody *object)
 {
     Poly *shape = (Poly *)object;
     Poly *newShape = getPolyShape(shape->Order);
@@ -790,7 +778,7 @@ copyPoly(SimpleBody *object)
 
     /* Copy any associated transformation */
     if (shape->Transform != nullptr) {
-        newShape->Transform = getTransformation();
+        newShape->Transform = Transformation::getTransformation();
         memcpy(newShape->Transform, shape->Transform, sizeof(Transformation));
     }
     for (i = 0; i < termCounts[newShape->Order]; i++) {
@@ -806,49 +794,49 @@ copyPoly(SimpleBody *object)
 }
 
 void
-translatePoly(SimpleBody *object, Vector3D *vector)
+Poly::translatePoly(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Poly *shape = (Poly *)object;
     if (shape->Transform == nullptr) {
-        shape->Transform = getTransformation();
+        shape->Transform = Transformation::getTransformation();
     }
-    getTranslationTransformation(&transform, vector);
-    composeTransformations(shape->Transform, &transform);
+    Transformation::getTranslationTransformation(&transform, vector);
+    Transformation::composeTransformations(shape->Transform, &transform);
 
     translateTexture(&shape->Shape_Texture, vector);
 }
 
 void
-rotatePoly(SimpleBody *object, Vector3D *vector)
+Poly::rotatePoly(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Poly *shape = (Poly *)object;
     if (shape->Transform == nullptr) {
-        shape->Transform = getTransformation();
+        shape->Transform = Transformation::getTransformation();
     }
-    getRotationTransformation(&transform, vector);
-    composeTransformations(shape->Transform, &transform);
+    Transformation::getRotationTransformation(&transform, vector);
+    Transformation::composeTransformations(shape->Transform, &transform);
 
     rotateTexture(&shape->Shape_Texture, vector);
 }
 
 void
-scalePoly(SimpleBody *object, Vector3D *vector)
+Poly::scalePoly(SimpleBody *object, Vector3D *vector)
 {
     Transformation transform;
     Poly *shape = (Poly *)object;
     if (shape->Transform == nullptr) {
-        shape->Transform = getTransformation();
+        shape->Transform = Transformation::getTransformation();
     }
-    getScalingTransformation(&transform, vector);
-    composeTransformations(shape->Transform, &transform);
+    Transformation::getScalingTransformation(&transform, vector);
+    Transformation::composeTransformations(shape->Transform, &transform);
 
     scaleTexture(&shape->Shape_Texture, vector);
 }
 
 void
-invertPoly(SimpleBody *object)
+Poly::invertPoly(SimpleBody *object)
 {
     ((Poly *)object)->Inverted = 1 - ((Poly *)object)->Inverted;
 }

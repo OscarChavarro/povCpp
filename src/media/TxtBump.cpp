@@ -20,7 +20,7 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 extern unsigned short crctab[256];
 
 void
-ripples(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::ripples(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
@@ -57,7 +57,7 @@ ripples(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 }
 
 void
-waves(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::waves(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
@@ -92,7 +92,7 @@ waves(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 }
 
 void
-bumps(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::bumps(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     Vector3D bumpTurb;
 
@@ -115,7 +115,7 @@ dents is similar to bumps, but uses noise() to control the amount of
 dnoise() perturbation of the object normal...
 */
 void
-dents(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::dents(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     Vector3D stuccoTurb;
     DBL noise;
@@ -153,7 +153,7 @@ dents(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 */
 
 void
-wrinkles(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::wrinkles(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
     register int i;
     register DBL scale = 1.0;

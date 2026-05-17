@@ -67,16 +67,6 @@ class polynomial {
     DBL coef[MAX_ORDER + 1];
 };
 
-static int modp(polynomial *u, polynomial *v, polynomial *r);
-int regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val);
-void sbisect(int np, polynomial *sseq, DBL min, DBL max, int atmin, int atmax,
-    DBL *roots);
-int numchanges(int np, polynomial *sseq, DBL a);
-DBL polyeval(DBL x, int n, DBL *coeffs);
-int buildsturm(int ord, polynomial *sseq);
-int visibleRoots(int np, polynomial *sseq, int *atneg, int *atpos);
-static int difficultCoeffs(int n, DBL *x);
-
 extern int shadowTestFlag;
 
 /*
@@ -87,8 +77,8 @@ extern int shadowTestFlag;
  *  note: this function assumes the leading coefficient of v
  *    is 1 or -1
  */
-static int
-modp(polynomial *u, polynomial *v, polynomial *r)
+int
+PolynomialSolver::modp(polynomial *u, polynomial *v, polynomial *r)
 {
     int i;
     int k;
@@ -125,7 +115,7 @@ modp(polynomial *u, polynomial *v, polynomial *r)
 
 /* Build the sturmian sequence for a polynomial */
 int
-buildsturm(int ord, polynomial *sseq)
+PolynomialSolver::buildsturm(int ord, polynomial *sseq)
 {
     int i;
     DBL f, *fp, *fc;
@@ -143,7 +133,7 @@ buildsturm(int ord, polynomial *sseq)
     }
 
     /* construct the rest of the Sturm sequence */
-    for (sp = sseq + 2; modp(sp - 2, sp - 1, sp); sp++) {
+    for (sp = sseq + 2; PolynomialSolver::modp(sp - 2, sp - 1, sp); sp++) {
         /* reverse the sign and normalize */
         f = -fabs(sp->coef[sp->ord]);
         for (fp = &sp->coef[sp->ord]; fp >= sp->coef; fp--) {
@@ -156,7 +146,7 @@ buildsturm(int ord, polynomial *sseq)
 
 /* Find out how many visible intersections there are */
 int
-visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
+PolynomialSolver::visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
 {
     int atposinf;
     int atzero;
@@ -196,15 +186,15 @@ visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
  * sseq at the value a.
  */
 int
-numchanges(int np, polynomial *sseq, DBL a)
+PolynomialSolver::numchanges(int np, polynomial *sseq, DBL a)
 {
     int changes;
     DBL f, lf;
     polynomial *s;
     changes = 0;
-    lf = polyeval(a, sseq[0].ord, sseq[0].coef);
+    lf = PolynomialSolver::polyeval(a, sseq[0].ord, sseq[0].coef);
     for (s = sseq + 1; s <= sseq + np; s++) {
-        f = polyeval(a, s->ord, s->coef);
+        f = PolynomialSolver::polyeval(a, s->ord, s->coef);
         if (lf == 0.0 || lf * f < 0) {
             changes++;
         }
@@ -227,7 +217,7 @@ Note: This routine has one severe bug: When the interval containing the
 
  */
 void
-sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, int atmin,
+PolynomialSolver::sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, int atmin,
     int atmax, DBL *roots)
 {
     DBL mid;
@@ -239,12 +229,12 @@ sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, int atmin,
 
     if ((nroot = atmin - atmax) == 1) {
         /* first try using regula-falsa to find the root.  */
-        if (regulaFalsa(sseq->ord, sseq->coef, minValue, maxValue, roots)) {
+        if (PolynomialSolver::regulaFalsa(sseq->ord, sseq->coef, minValue, maxValue, roots)) {
             return;
         } /* That failed, so now find it by bisection */
         for (its = 0; its < MAX_ITERATIONS; its++) {
             mid = (minValue + maxValue) / 2;
-            atmid = numchanges(np, sseq, mid);
+            atmid = PolynomialSolver::numchanges(np, sseq, mid);
             if (fabs(mid) > EPSILON) {
                 if (fabs((maxValue - minValue) / mid) < EPSILON) {
                     roots[0] = mid;
@@ -268,12 +258,12 @@ sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, int atmin,
         Bisect to find new intervals */
     for (its = 0; its < MAX_ITERATIONS; its++) {
         mid = (minValue + maxValue) / 2;
-        atmid = numchanges(np, sseq, mid);
+        atmid = PolynomialSolver::numchanges(np, sseq, mid);
         n1 = atmin - atmid;
         n2 = atmid - atmax;
         if (n1 != 0 && n2 != 0) {
-            sbisect(np, sseq, minValue, mid, atmin, atmid, roots);
-            sbisect(np, sseq, mid, maxValue, atmid, atmax, &roots[n1]);
+            PolynomialSolver::sbisect(np, sseq, minValue, mid, atmin, atmid, roots);
+            PolynomialSolver::sbisect(np, sseq, mid, maxValue, atmid, atmax, &roots[n1]);
             return;
         }
         if (n1 == 0) {
@@ -290,7 +280,7 @@ sbisect(int np, polynomial *sseq, DBL minValue, DBL maxValue, int atmin,
 }
 
 DBL
-polyeval(DBL x, int n, DBL *coeffs)
+PolynomialSolver::polyeval(DBL x, int n, DBL *coeffs)
 {
     register int i;
     DBL val;
@@ -303,13 +293,13 @@ polyeval(DBL x, int n, DBL *coeffs)
 
 /* Close in on a root by using regula-falsa */
 int
-regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
+PolynomialSolver::regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
 {
     int its;
     DBL fa, fb, x, fx, lfx;
 
-    fa = polyeval(a, order, coef);
-    fb = polyeval(b, order, coef);
+    fa = PolynomialSolver::polyeval(a, order, coef);
+    fb = PolynomialSolver::polyeval(b, order, coef);
 
     if (fa * fb > 0.0) {
         return 0;
@@ -328,7 +318,7 @@ regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
     lfx = fa;
     for (its = 0; its < MAX_ITERATIONS; its++) {
         x = (fb * a - fa * b) / (fb - fa);
-        fx = polyeval(x, order, coef);
+        fx = PolynomialSolver::polyeval(x, order, coef);
 
         if (fabs(x) > EPSILON) {
             if (fabs(fx / x) < EPSILON) {
@@ -385,7 +375,7 @@ regulaFalsa(int order, DBL *coef, DBL a, DBL b, DBL *val)
     The roots themselves are returned in y[0], y[1].
 */
 int
-solveQuadratic(DBL *x, DBL *y)
+PolynomialSolver::solveQuadratic(DBL *x, DBL *y)
 {
     DBL d, t, a, b, c;
     a = x[0];
@@ -428,7 +418,7 @@ solveQuadratic(DBL *x, DBL *y)
     not rely on transcendentals this code will be replaced.
 */
 int
-solveCubic(DBL *x, DBL *y)
+PolynomialSolver::solveCubic(DBL *x, DBL *y)
 {
     DBL q, r, q3, r2, sQ, d, an, theta;
     DBL a0;
@@ -438,7 +428,7 @@ solveCubic(DBL *x, DBL *y)
     DBL a1Squared;
     a0 = x[0];
     if (a0 == 0.0) {
-        return solveQuadratic(&x[1], y);
+        return PolynomialSolver::solveQuadratic(&x[1], y);
     }
     if (a0 != 1.0) {
         a1 = x[1] / a0;
@@ -477,8 +467,8 @@ solveCubic(DBL *x, DBL *y)
 
 /* Test to see if any coeffs are more than 6 orders of magnitude
     larger than the smallest */
-static int
-difficultCoeffs(int n, DBL *x)
+int
+PolynomialSolver::difficultCoeffs(int n, DBL *x)
 {
     int i;
     DBL biggest;
@@ -507,7 +497,7 @@ difficultCoeffs(int n, DBL *x)
 }
 
 int
-solveQuartic(DBL *x, DBL *results)
+PolynomialSolver::solveQuartic(DBL *x, DBL *results)
 {
     DBL cubic[4], roots[3];
     DBL a0, a1, y, d1, x1, t1, t2;
@@ -515,24 +505,24 @@ solveQuartic(DBL *x, DBL *results)
     int i;
 
     /* Figure out the size difference between coefficients */
-    if (difficultCoeffs(4, x)) {
+    if (PolynomialSolver::difficultCoeffs(4, x)) {
         if (fabs(x[0]) < COEFF_LIMIT) {
             if (fabs(x[1]) < COEFF_LIMIT) {
-                return solveQuadratic(&x[2], results);
+                return PolynomialSolver::solveQuadratic(&x[2], results);
             }
-            return solveCubic(&x[1], results);
+            return PolynomialSolver::solveCubic(&x[1], results);
 
         } else {
-            return polysolve(4, x, results);
+            return PolynomialSolver::polysolve(4, x, results);
         }
     }
 
     c0 = x[0];
     if (fabs(c0) < COEFF_LIMIT) {
-        return solveCubic(&x[1], results);
+        return PolynomialSolver::solveCubic(&x[1], results);
     }
     if (fabs(x[4]) < COEFF_LIMIT) {
-        return solveCubic(x, results);
+        return PolynomialSolver::solveCubic(x, results);
     }
     if (c0 != 1.0) {
         c1 = x[1] / c0;
@@ -574,7 +564,7 @@ solveQuartic(DBL *x, DBL *results)
     cubic[1] = -1.0 * c2;
     cubic[2] = c1 * c3 - a0;
     cubic[3] = a0 * c2 - c1 * c1 * c4 - c3 * c3;
-    i = solveCubic(&cubic[0], &roots[0]);
+    i = PolynomialSolver::solveCubic(&cubic[0], &roots[0]);
     if (i > 0) {
         y = roots[0];
     } else {
@@ -647,7 +637,7 @@ solveQuartic(DBL *x, DBL *results)
 
 /* Root solver based on the Sturm sequences for a polynomial. */
 int
-polysolve(int order, DBL *coeffs, DBL *roots)
+PolynomialSolver::polysolve(int order, DBL *coeffs, DBL *roots)
 {
     polynomial sseq[MAX_ORDER + 1];
     DBL minValue, maxValue;
@@ -663,10 +653,10 @@ polysolve(int order, DBL *coeffs, DBL *roots)
     }
 
     /* Build the Sturm sequence */
-    np = buildsturm(order, &sseq[0]);
+    np = PolynomialSolver::buildsturm(order, &sseq[0]);
 
     /* Get the total number of visible roots */
-    if ((nroots = visibleRoots(np, sseq, &atmin, &atmax)) == 0) {
+    if ((nroots = PolynomialSolver::visibleRoots(np, sseq, &atmin, &atmax)) == 0) {
         return 0;
     }
 
@@ -678,15 +668,15 @@ polysolve(int order, DBL *coeffs, DBL *roots)
     }
     maxValue = Max_Distance;
 
-    atmin = numchanges(np, sseq, minValue);
-    atmax = numchanges(np, sseq, maxValue);
+    atmin = PolynomialSolver::numchanges(np, sseq, minValue);
+    atmax = PolynomialSolver::numchanges(np, sseq, maxValue);
     nroots = atmin - atmax;
     if (nroots == 0) {
         return 0;
     }
 
     /* perform the bisection. */
-    sbisect(np, sseq, minValue, maxValue, atmin, atmax, roots);
+    PolynomialSolver::sbisect(np, sseq, minValue, maxValue, atmin, atmax, roots);
 
     return nroots;
 }

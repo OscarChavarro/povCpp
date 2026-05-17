@@ -6,10 +6,10 @@
  *****************************************************************************/
 
 #include "geom/ViewPnt.h"
-Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, copyViewpoint,
-    translateViewpoint, rotateViewpoint, scaleViewpoint, nullptr};
+Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, Viewpoint::copyViewpoint,
+    Viewpoint::translateViewpoint, Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
 void *
-copyViewpoint(SimpleBody *object)
+Viewpoint::copyViewpoint(SimpleBody *object)
 {
     Viewpoint *viewpoint = (Viewpoint *)object;
     Viewpoint *newViewpoint;
@@ -36,44 +36,44 @@ Viewpoint::initializeDefaults()
 }
 
 void
-translateViewpoint(SimpleBody *object, Vector3D *vector)
+Viewpoint::translateViewpoint(SimpleBody *object, Vector3D *vector)
 {
     VAdd(((Viewpoint *)object)->Location, ((Viewpoint *)object)->Location,
         *vector);
 }
 
 void
-rotateViewpoint(SimpleBody *object, Vector3D *vector)
+Viewpoint::rotateViewpoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
     Viewpoint *viewpoint = (Viewpoint *)object;
 
-    getRotationTransformation(&transformation, vector);
-    MTransformVector(
+    Transformation::getRotationTransformation(&transformation, vector);
+    Transformation::MTransformVector(
         &(viewpoint->Location), &(viewpoint->Location), &transformation);
 
-    MTransformVector(
+    Transformation::MTransformVector(
         &(viewpoint->Direction), &(viewpoint->Direction), &transformation);
 
-    MTransformVector(&(viewpoint->Up), &(viewpoint->Up), &transformation);
+    Transformation::MTransformVector(&(viewpoint->Up), &(viewpoint->Up), &transformation);
 
-    MTransformVector(&(viewpoint->Right), &(viewpoint->Right), &transformation);
+    Transformation::MTransformVector(&(viewpoint->Right), &(viewpoint->Right), &transformation);
 }
 
 void
-scaleViewpoint(SimpleBody *object, Vector3D *vector)
+Viewpoint::scaleViewpoint(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
     Viewpoint *viewpoint = (Viewpoint *)object;
 
-    getScalingTransformation(&transformation, vector);
-    MTransformVector(
+    Transformation::getScalingTransformation(&transformation, vector);
+    Transformation::MTransformVector(
         &(viewpoint->Location), &(viewpoint->Location), &transformation);
 
-    MTransformVector(
+    Transformation::MTransformVector(
         &(viewpoint->Direction), &(viewpoint->Direction), &transformation);
 
-    MTransformVector(&(viewpoint->Up), &(viewpoint->Up), &transformation);
+    Transformation::MTransformVector(&(viewpoint->Up), &(viewpoint->Up), &transformation);
 
-    MTransformVector(&(viewpoint->Right), &(viewpoint->Right), &transformation);
+    Transformation::MTransformVector(&(viewpoint->Right), &(viewpoint->Right), &transformation);
 }

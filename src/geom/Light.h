@@ -12,18 +12,22 @@ class Light : public Geometry {
     Light *Next_Light_Source;
     short Inverted;
     DBL Coeff, Radius, Falloff;
+
+    static int allPointIntersections(
+        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+    static int insidePoint(Vector3D *testPoint, SimpleBody *object);
+    static void *copyPoint(SimpleBody *object);
+    static void translatePoint(SimpleBody *object, Vector3D *vector);
+    static void rotatePoint(SimpleBody *object, Vector3D *vector);
+    static void scalePoint(SimpleBody *object, Vector3D *vector);
+    static void invertPoint(SimpleBody *object);
+    static DBL attenuateLight(Light *lightSource, Ray *lightSourceRay);
+
+  private:
+    static DBL cubicSpline(DBL low, DBL high, DBL pos);
 };
 
 extern Methods Point_Methods;
 extern Light *getLightSourceShape(void);
-extern int allPointIntersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int insidePoint(Vector3D *Test_Point, SimpleBody *Object);
-extern void *copyPoint(SimpleBody *Object);
-extern void translatePoint(SimpleBody *Object, Vector3D *Vector);
-extern void rotatePoint(SimpleBody *Object, Vector3D *Vector);
-extern void scalePoint(SimpleBody *Object, Vector3D *Vector);
-extern void invertPoint(SimpleBody *Object);
-extern DBL attenuateLight(Light *Light_Source, Ray *Light_Source_Ray);
 
 #endif

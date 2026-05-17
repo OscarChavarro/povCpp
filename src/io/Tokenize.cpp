@@ -21,7 +21,7 @@ char string[MAX_STRING_INDEX];
 int stringIndex;
 extern char libraryPath[];
 extern int stopFlag;
-static int povStricmp(const char *s1, const char *s2);
+ 
 
 /* Here are the reserved words.  If you need to add new words, be sure
 to declare them in frame.h */
@@ -115,7 +115,7 @@ static int globalIncludeFileIndex;
 TokenStruct globalToken;
 
 void
-initializeTokenizer(char *filename)
+Tokenizer::initializeTokenizer(char *filename)
 {
     symbolTable = nullptr;
     globalDataFile = nullptr;
@@ -144,7 +144,7 @@ initializeTokenizer(char *filename)
 }
 
 void
-terminateTokenizer()
+Tokenizer::terminateTokenizer()
 {
     int i;
 
@@ -225,56 +225,56 @@ getToken()
             break;
 
         case '{':
-            writeToken(LEFT_CURLY_TOKEN, globalDataFile);
+            Tokenizer::writeToken(LEFT_CURLY_TOKEN, globalDataFile);
             /* parseComments(GLOBAL_dataFile); */
             break;
 
         case '}':
-            writeToken(RIGHT_CURLY_TOKEN, globalDataFile);
+            Tokenizer::writeToken(RIGHT_CURLY_TOKEN, globalDataFile);
             break;
 
         case '@':
-            writeToken(AT_TOKEN, globalDataFile);
+            Tokenizer::writeToken(AT_TOKEN, globalDataFile);
             break;
 
         case '&':
-            writeToken(AMPERSAND_TOKEN, globalDataFile);
+            Tokenizer::writeToken(AMPERSAND_TOKEN, globalDataFile);
             break;
 
         case '`':
-            writeToken(BACK_QUOTE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(BACK_QUOTE_TOKEN, globalDataFile);
             break;
 
         case '\\':
-            writeToken(BACK_SLASH_TOKEN, globalDataFile);
+            Tokenizer::writeToken(BACK_SLASH_TOKEN, globalDataFile);
             break;
 
         case '|':
-            writeToken(BAR_TOKEN, globalDataFile);
+            Tokenizer::writeToken(BAR_TOKEN, globalDataFile);
             break;
 
         case ':':
-            writeToken(COLON_TOKEN, globalDataFile);
+            Tokenizer::writeToken(COLON_TOKEN, globalDataFile);
             break;
 
         case ',':
-            writeToken(COMMA_TOKEN, globalDataFile);
+            Tokenizer::writeToken(COMMA_TOKEN, globalDataFile);
             break;
 
         case '-':
-            writeToken(DASH_TOKEN, globalDataFile);
+            Tokenizer::writeToken(DASH_TOKEN, globalDataFile);
             break;
 
         case '$':
-            writeToken(DOLLAR_TOKEN, globalDataFile);
+            Tokenizer::writeToken(DOLLAR_TOKEN, globalDataFile);
             break;
 
         case '=':
-            writeToken(EQUALS_TOKEN, globalDataFile);
+            Tokenizer::writeToken(EQUALS_TOKEN, globalDataFile);
             break;
 
         case '!':
-            writeToken(EXCLAMATION_TOKEN, globalDataFile);
+            Tokenizer::writeToken(EXCLAMATION_TOKEN, globalDataFile);
             break;
 
         case '#': /* Parser doesn't use it, so let's ignore it */
@@ -282,43 +282,43 @@ getToken()
             break;
 
         case '^':
-            writeToken(HAT_TOKEN, globalDataFile);
+            Tokenizer::writeToken(HAT_TOKEN, globalDataFile);
             break;
 
         case '<':
-            writeToken(LEFT_ANGLE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(LEFT_ANGLE_TOKEN, globalDataFile);
             break;
 
         case '(':
-            writeToken(LEFT_PAREN_TOKEN, globalDataFile);
+            Tokenizer::writeToken(LEFT_PAREN_TOKEN, globalDataFile);
             break;
 
         case '[':
-            writeToken(LEFT_SQUARE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(LEFT_SQUARE_TOKEN, globalDataFile);
             break;
 
         case '%':
-            writeToken(PERCENT_TOKEN, globalDataFile);
+            Tokenizer::writeToken(PERCENT_TOKEN, globalDataFile);
             break;
 
         case '+':
-            writeToken(PLUS_TOKEN, globalDataFile);
+            Tokenizer::writeToken(PLUS_TOKEN, globalDataFile);
             break;
 
         case '?':
-            writeToken(QUESTION_TOKEN, globalDataFile);
+            Tokenizer::writeToken(QUESTION_TOKEN, globalDataFile);
             break;
 
         case '>':
-            writeToken(RIGHT_ANGLE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(RIGHT_ANGLE_TOKEN, globalDataFile);
             break;
 
         case ')':
-            writeToken(RIGHT_PAREN_TOKEN, globalDataFile);
+            Tokenizer::writeToken(RIGHT_PAREN_TOKEN, globalDataFile);
             break;
 
         case ']':
-            writeToken(RIGHT_SQUARE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(RIGHT_SQUARE_TOKEN, globalDataFile);
             break;
 
         case ';': /* Parser doesn't use it, so let's ignore it */
@@ -326,7 +326,7 @@ getToken()
             break;
 
         case '\'':
-            writeToken(SINGLE_QUOTE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(SINGLE_QUOTE_TOKEN, globalDataFile);
             break;
 
             /* enable C++ style commenting */
@@ -334,7 +334,7 @@ getToken()
             c2 = getc(globalDataFile->File);
             if (c2 != (int)'/' && c2 != (int)'*') {
                 ungetc(c2, globalDataFile->File);
-                writeToken(SLASH_TOKEN, globalDataFile);
+                Tokenizer::writeToken(SLASH_TOKEN, globalDataFile);
                 break;
             }
             if (c2 == (int)'*') {
@@ -352,11 +352,11 @@ getToken()
             break;
 
         case '*':
-            writeToken(STAR_TOKEN, globalDataFile);
+            Tokenizer::writeToken(STAR_TOKEN, globalDataFile);
             break;
 
         case '~':
-            writeToken(TILDE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(TILDE_TOKEN, globalDataFile);
             break;
 
         case '"':
@@ -453,19 +453,19 @@ getToken()
         }
         if (globalToken.Token_Id == INCLUDE_TOKEN) {
             if (globalDataFile->skipSpaces() != TRUE) {
-                tokenError(
+                Tokenizer::tokenError(
                     globalDataFile, "Expecting a string after INCLUDE\n");
             }
 
             if ((c = getc(globalDataFile->File)) != '"') {
-                tokenError(
+                Tokenizer::tokenError(
                     globalDataFile, "Expecting a string after INCLUDE\n");
             }
 
             globalDataFile->parseString();
             globalIncludeFileIndex++;
             if (globalIncludeFileIndex > MAX_INCLUDE_FILES) {
-                tokenError(globalDataFile, "Too many nested include files\n");
+                Tokenizer::tokenError(globalDataFile, "Too many nested include files\n");
             }
 
             globalDataFile = &globalIncludeFiles[globalIncludeFileIndex];
@@ -509,7 +509,7 @@ call to Get_Token will return the last-read token instead of reading a
 new one from the file. */
 
 void
-ungetToken()
+Tokenizer::ungetToken()
 {
     globalToken.Unget_Token = TRUE;
 }
@@ -557,7 +557,7 @@ DataFile::parseComments()
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
-            tokenError(globalDataFile, "No closing comment found");
+            Tokenizer::tokenError(globalDataFile, "No closing comment found");
             return (FALSE);
         }
 
@@ -591,7 +591,7 @@ DataFile::parseCComments()
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
-            tokenError(globalDataFile, "No */ closing comment found");
+            Tokenizer::tokenError(globalDataFile, "No */ closing comment found");
             return (FALSE);
         }
 
@@ -627,18 +627,18 @@ DataFile::parseCComments()
     the final string. */
 
 void
-beginString()
+Tokenizer::beginString()
 {
     stringIndex = 0;
 }
 
 void
-stuffCharacter(int c, DataFile *globalDataFile)
+Tokenizer::stuffCharacter(int c, DataFile *globalDataFile)
 {
     if (stringIndex < MAX_STRING_INDEX) {
         string[stringIndex++] = (char)c;
         if (stringIndex >= MAX_STRING_INDEX) {
-            tokenError(globalDataFile, "String too long");
+            Tokenizer::tokenError(globalDataFile, "String too long");
             string[stringIndex - 1] = '\0';
         }
     }
@@ -647,7 +647,7 @@ stuffCharacter(int c, DataFile *globalDataFile)
 void
 DataFile::endString()
 {
-    stuffCharacter((int)'\0', globalDataFile);
+    Tokenizer::stuffCharacter((int)'\0', globalDataFile);
 }
 
 /* Read a float from the input file and tokenize it as one token. The phase
@@ -666,35 +666,35 @@ DataFile::readFloat()
     finished = FALSE;
     phase = 0;
 
-    beginString();
+    Tokenizer::beginString();
     while (!finished) {
         c = getc(this->File);
         if (c == EOF) {
-            tokenError(globalDataFile, "Unexpected end of file");
+            Tokenizer::tokenError(globalDataFile, "Unexpected end of file");
             return (FALSE);
         }
 
         switch (phase) {
         case 0:
             if (isdigit(c)) {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
             } else if (c == '.') {
-                stuffCharacter('0', globalDataFile);
+                Tokenizer::stuffCharacter('0', globalDataFile);
                 ungetc(c, this->File);
             } else {
-                tokenError(globalDataFile, "Error in decimal number");
+                Tokenizer::tokenError(globalDataFile, "Error in decimal number");
             }
             phase = 1;
             break;
 
         case 1:
             if (isdigit(c)) {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
             } else if (c == (int)'.') {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
                 phase = 2;
             } else if ((c == 'e') || (c == 'E')) {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
                 phase = 3;
             } else {
                 finished = TRUE;
@@ -703,9 +703,9 @@ DataFile::readFloat()
 
         case 2:
             if (isdigit(c)) {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
             } else if ((c == 'e') || (c == 'E')) {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
                 phase = 3;
             } else {
                 finished = TRUE;
@@ -714,7 +714,7 @@ DataFile::readFloat()
 
         case 3:
             if (isdigit(c) || (c == '+') || (c == '-')) {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
                 phase = 4;
             } else {
                 finished = TRUE;
@@ -723,7 +723,7 @@ DataFile::readFloat()
 
         case 4:
             if (isdigit(c)) {
-                stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, globalDataFile);
             } else {
                 finished = TRUE;
             }
@@ -734,7 +734,7 @@ DataFile::readFloat()
     ungetc(c, this->File);
     this->endString();
 
-    writeToken(FLOAT_TOKEN, globalDataFile);
+    Tokenizer::writeToken(FLOAT_TOKEN, globalDataFile);
     if (sscanf(string, DBL_FORMAT_STRING, &globalToken.Token_Float) == 0) {
         return (FALSE);
     }
@@ -748,22 +748,22 @@ DataFile::parseString()
 {
     register int c;
 
-    beginString();
+    Tokenizer::beginString();
     while (TRUE) {
         c = getc(this->File);
         if (c == EOF) {
-            tokenError(globalDataFile, "No end quote for string");
+            Tokenizer::tokenError(globalDataFile, "No end quote for string");
         }
 
         if (c != (int)'"') {
-            stuffCharacter(c, globalDataFile);
+            Tokenizer::stuffCharacter(c, globalDataFile);
         } else {
             break;
         }
     }
     this->endString();
 
-    writeToken(STRING_TOKEN, globalDataFile);
+    Tokenizer::writeToken(STRING_TOKEN, globalDataFile);
     globalToken.Token_String = string;
 }
 
@@ -779,16 +779,16 @@ DataFile::readSymbol()
     register int c;
     register int symbolId;
 
-    beginString();
+    Tokenizer::beginString();
     while (TRUE) {
         c = getc(this->File);
         if (c == EOF) {
-            tokenError(globalDataFile, "Unexpected end of file");
+            Tokenizer::tokenError(globalDataFile, "Unexpected end of file");
             return (FALSE);
         }
 
         if (isalpha(c) || isdigit(c) || c == (int)'_') {
-            stuffCharacter(c, globalDataFile);
+            Tokenizer::stuffCharacter(c, globalDataFile);
         } else {
             ungetc(c, this->File);
             break;
@@ -797,19 +797,19 @@ DataFile::readSymbol()
     this->endString();
 
     /* Ignore the symbol if it was meant for the tokenizer (-2) */
-    if ((symbolId = findReserved()) != -1 && symbolId != -2) {
-        writeToken(symbolId, globalDataFile);
+    if ((symbolId = Tokenizer::findReserved()) != -1 && symbolId != -2) {
+        Tokenizer::writeToken(symbolId, globalDataFile);
     } else {
         /* Ignore the symbol if it was meant for the tokenizer (-2) */
         if (symbolId == -2) {
             return (TRUE);
         }
 
-        if ((symbolId = findSymbol()) == -1) {
+        if ((symbolId = Tokenizer::findSymbol()) == -1) {
             if (++numberOfSymbols < maxSymbols) {
                 if ((symbolTable[numberOfSymbols] =
                             new char[strlen(string) + 1]) == nullptr) {
-                    tokenError(globalDataFile,
+                    Tokenizer::tokenError(globalDataFile,
                         "Out of memory. Cannot allocate space for identifier");
                 }
 
@@ -823,7 +823,7 @@ DataFile::readSymbol()
             }
         }
 
-        writeToken(LAST_TOKEN + symbolId, globalDataFile);
+        Tokenizer::writeToken(LAST_TOKEN + symbolId, globalDataFile);
     }
 
     return (TRUE);
@@ -832,21 +832,21 @@ DataFile::readSymbol()
 /* Return the index the token in the reserved words table or -1 if it
     isn't there. */
 int
-findReserved()
+Tokenizer::findReserved()
 {
     register int i;
 
-    if (povStricmp("case_sensitive_yes", &(string[0])) == 0) {
+    if (Tokenizer::povStricmp("case_sensitive_yes", &(string[0])) == 0) {
         caseSensitiveFlag = 0;
         return (-2);
     }
-    if (povStricmp("case_sensitive_no", &(string[0])) == 0) {
+    if (Tokenizer::povStricmp("case_sensitive_no", &(string[0])) == 0) {
         caseSensitiveFlag = 1;
         return (-2);
     }
     /* The optional case sensitive option only checks keywords unsensitive */
     /* Symbols can be upper/lower, but not be the same as a keyword */
-    if (povStricmp("case_sensitive_opt", &(string[0])) == 0) {
+    if (Tokenizer::povStricmp("case_sensitive_opt", &(string[0])) == 0) {
         caseSensitiveFlag = 2;
         return (-2);
     }
@@ -857,7 +857,7 @@ findReserved()
                 return (globalReservedWords[i].Token_Number);
             }
         } else {
-            if (povStricmp((char *)globalReservedWords[i].Token_Name,
+            if (Tokenizer::povStricmp((char *)globalReservedWords[i].Token_Name,
                     &(string[0])) == 0) {
                 return (globalReservedWords[i].Token_Number);
             }
@@ -871,7 +871,7 @@ findReserved()
      its symbol ID. */
 
 int
-findSymbol()
+Tokenizer::findSymbol()
 {
     register int i;
 
@@ -881,7 +881,7 @@ findSymbol()
                 return (i);
             }
             if (caseSensitiveFlag == 1) {
-                if (povStricmp(symbolTable[i], string) == 0) {
+                if (Tokenizer::povStricmp(symbolTable[i], string) == 0) {
                     return (i);
                 }
             }
@@ -893,7 +893,7 @@ findSymbol()
 
 /* Write a token out to the token file */
 void
-writeToken(TOKEN tokenId, DataFile *globalDataFile)
+Tokenizer::writeToken(TOKEN tokenId, DataFile *globalDataFile)
 {
     globalToken.Token_Id = tokenId;
     globalToken.Token_Line_No = globalDataFile->Line_Number;
@@ -909,7 +909,7 @@ writeToken(TOKEN tokenId, DataFile *globalDataFile)
 
 /* Report an error */
 void
-tokenError(DataFile *globalDataFile, const char *str)
+Tokenizer::tokenError(DataFile *globalDataFile, const char *str)
 {
     fprintf(stderr, "Error in %s line %d\n", globalDataFile->Filename,
         globalDataFile->Line_Number);
@@ -920,8 +920,8 @@ tokenError(DataFile *globalDataFile, const char *str)
 /* Since the stricmp function isn't available on all systems, we've
     provided a simplified version of it here. */
 
-static int
-povStricmp(const char *s1, const char *s2)
+int
+Tokenizer::povStricmp(const char *s1, const char *s2)
 {
     char c1;
     char c2;

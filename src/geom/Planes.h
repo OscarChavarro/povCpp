@@ -12,20 +12,21 @@ class InfinitePlane : public Geometry {
     DBL Distance;
     DBL VPNormDotOrigin;
     int VPCached;
+
+    static int allPlaneIntersections(
+        SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
+    static int intersectPlane(Ray *ray, InfinitePlane *plane, DBL *depth);
+    static int insidePlane(Vector3D *point, SimpleBody *object);
+    static void planeNormal(
+        Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
+    static void *copyPlane(SimpleBody *object);
+    static void translatePlane(SimpleBody *object, Vector3D *vector);
+    static void rotatePlane(SimpleBody *object, Vector3D *vector);
+    static void scalePlane(SimpleBody *object, Vector3D *vector);
+    static void invertPlane(SimpleBody *object);
 };
 
 extern Methods Plane_Methods;
 extern InfinitePlane *getPlaneShape(void);
-extern int allPlaneIntersections(
-    SimpleBody *Object, Ray *Ray, PriorityQueueNode *Depth_Queue);
-extern int intersectPlane(Ray *Ray, InfinitePlane *Plane, DBL *Depth);
-extern int insidePlane(Vector3D *point, SimpleBody *Object);
-extern void planeNormal(
-    Vector3D *Result, SimpleBody *Object, Vector3D *Intersection_Point);
-extern void *copyPlane(SimpleBody *Object);
-extern void translatePlane(SimpleBody *Object, Vector3D *Vector);
-extern void rotatePlane(SimpleBody *Object, Vector3D *Vector);
-extern void scalePlane(SimpleBody *Object, Vector3D *Vector);
-extern void invertPlane(SimpleBody *Object);
 
 #endif

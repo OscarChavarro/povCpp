@@ -9,9 +9,9 @@
 
 //===========================================================================
 
-Methods Sphere_Methods = {objectIntersect, allSphereIntersections,
-    insideSphere, sphereNormal, copySphere, translateSphere, rotateSphere,
-    scaleSphere, invertSphere};
+Methods Sphere_Methods = {objectIntersect, Sphere::allSphereIntersections,
+    Sphere::insideSphere, Sphere::sphereNormal, Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
+    Sphere::scaleSphere, Sphere::invertSphere};
 
 extern Sphere *getSphereShape();
 extern Ray *vpRay;
@@ -23,7 +23,7 @@ extern long raySphereTests, raySphereTestsSucceeded;
 Study closely this method!
 */
 int
-intersectSphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2)
+Sphere::intersectSphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2)
 {
     raySphereTests++;
 
@@ -84,7 +84,7 @@ intersectSphere(Ray *ray, Sphere *sphere, DBL *depth1, DBL *depth2)
 }
 
 int
-allSphereIntersections(
+Sphere::allSphereIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     DBL depth1, depth2;
@@ -94,7 +94,7 @@ allSphereIntersections(
     Sphere *shape = (Sphere *)object;
 
     intersectionFound = FALSE;
-    if (intersectSphere(ray, shape, &depth1, &depth2)) {
+    if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
         VScale(intersectionPoint, ray->Direction, depth1);
@@ -119,7 +119,7 @@ allSphereIntersections(
 }
 
 int
-insideSphere(Vector3D *testPoint, SimpleBody *object)
+Sphere::insideSphere(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D originToCenter;
     DBL ocSquared;
@@ -135,7 +135,7 @@ insideSphere(Vector3D *testPoint, SimpleBody *object)
 }
 
 void
-sphereNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
+Sphere::sphereNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Sphere *sphere = (Sphere *)object;
 
@@ -144,7 +144,7 @@ sphereNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 }
 
 void *
-copySphere(SimpleBody *object)
+Sphere::copySphere(SimpleBody *object)
 {
     Sphere *newShape;
 
@@ -160,25 +160,25 @@ copySphere(SimpleBody *object)
 }
 
 void
-translateSphere(SimpleBody *object, Vector3D *vector)
+Sphere::translateSphere(SimpleBody *object, Vector3D *vector)
 {
     VAdd(((Sphere *)object)->Center, ((Sphere *)object)->Center, *vector);
     translateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-rotateSphere(SimpleBody *object, Vector3D *vector)
+Sphere::rotateSphere(SimpleBody *object, Vector3D *vector)
 {
     Transformation transformation;
 
-    getRotationTransformation(&transformation, vector);
-    MTransformVector(&((Sphere *)object)->Center, &((Sphere *)object)->Center,
+    Transformation::getRotationTransformation(&transformation, vector);
+    Transformation::MTransformVector(&((Sphere *)object)->Center, &((Sphere *)object)->Center,
         &transformation);
     rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
-scaleSphere(SimpleBody *object, Vector3D *vector)
+Sphere::scaleSphere(SimpleBody *object, Vector3D *vector)
 {
     Sphere *sphere = (Sphere *)object;
 
@@ -195,7 +195,7 @@ scaleSphere(SimpleBody *object, Vector3D *vector)
 }
 
 void
-invertSphere(SimpleBody *object)
+Sphere::invertSphere(SimpleBody *object)
 {
     ((Sphere *)object)->Inverted ^= TRUE;
 }

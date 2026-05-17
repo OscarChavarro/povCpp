@@ -24,7 +24,7 @@
 /* Similar routines are granite, agate, marble. See txtcolor.c for examples. */
 
 void
-painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+TestTextures::painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
 
     /* Swirled()  */
@@ -70,7 +70,7 @@ painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+TestTextures::painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     DBL turb;
@@ -122,7 +122,7 @@ painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-painted3(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+TestTextures::painted3(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 {
     /* YOUR NAME HERE */
     ;
@@ -134,20 +134,20 @@ painted3(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 /* has been displaced. */
 /* Similar routines are ripples, dents, bumps. See txtbump.c for examples.  */
 void
-bumpy1(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+TestTextures::bumpy1(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy1 except use VAdd for both cases of brkindex */
 void
-bumpy2(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+TestTextures::bumpy2(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
 }
 
 /* Dan Farmer */
 /* Same as bumpy2 except scale AFTER setting brkindex */
 void
-bumpy3(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+TestTextures::bumpy3(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 {
 }
