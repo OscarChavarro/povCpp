@@ -14,7 +14,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/light/Light.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/PriorityQueue.h"
+#include "common/dataStructures/PriorityQueue.h"
 #include "media/BumpTextureFixture.h"
 #include "media/ColorTextureFixture.h"
 #include "media/MapTextureFixture.h"

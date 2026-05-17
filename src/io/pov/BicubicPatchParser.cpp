@@ -6,7 +6,7 @@
 #include "io/pov/TextureParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Bezier.h"
+#include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/scene/ObjectUtils.h"
 
@@ -16,7 +16,7 @@ extern Constant constants[MAX_CONSTANTS];
 Geometry *
 BicubicPatchParser::parseBicubicPatch()
 {
-    BicubicPatch *localShape = nullptr;
+    ParametricBiCubicPatch *localShape = nullptr;
     Vector3Dd localVector;
     CONSTANT constantId;
     Texture *localTexture;
@@ -49,14 +49,14 @@ BicubicPatchParser::parseBicubicPatch()
             PrimitiveParser::parseVector(&(localShape->Control_Points[i][j]));
         }
     }
-    BicubicPatch::precomputePatchValues(localShape); /* interpolated mesh coords */
+    ParametricBiCubicPatch::precomputePatchValues(localShape); /* interpolated mesh coords */
     Exit_Flag = TRUE; break;
 
     case IDENTIFIER_TOKEN: if ((constantId = SceneConfigParser::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type ==
             BICUBIC_PATCH_CONSTANT) {
-            localShape = (BicubicPatch *)GeometryOperations::copy(
+            localShape = (ParametricBiCubicPatch *)GeometryOperations::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseErrorReporter::typeError();

@@ -38,7 +38,7 @@ class Triangle : public Geometry {
     static void computeSmoothTriangle(SmoothTriangle *triangle);
 };
 
-#include "environment/geometry/SmoothTriangle.h"
+#include "environment/geometry/elements/SmoothTriangle.h"
 
 extern Methods Triangle_Methods;
 extern Triangle *getTriangleShape(void);

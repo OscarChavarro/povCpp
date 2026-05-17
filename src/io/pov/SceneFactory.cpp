@@ -10,19 +10,19 @@
 #include "io/DumpFormat.h"
 #include "render/RenderEngine.h"
 
-#include "environment/geometry/Bezier.h"
-#include "environment/geometry/Blob.h"
+#include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
-#include "environment/geometry/CSG.h"
-#include "environment/geometry/HeightField.h"
+#include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/volume/HeightField.h"
 #include "environment/light/Light.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/PolynomialShape.h"
-#include "environment/geometry/Quadric.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/elements/Triangle.h"
-#include "environment/geometry/Viewpoint.h"
+#include "environment/camera/Viewpoint.h"
 
 extern ReservedWord globalReservedWords[];
 extern double antialiasThreshold;
@@ -214,12 +214,12 @@ SceneFactory::getBlobShape()
 }
 
 /* Allocate and initialize a bicubic patch surface. */
-BicubicPatch *
+ParametricBiCubicPatch *
 SceneFactory::getBicubicPatchShape()
 {
-    BicubicPatch *newShape;
+    ParametricBiCubicPatch *newShape;
 
-    newShape = new BicubicPatch;
+    newShape = new ParametricBiCubicPatch;
     if (newShape == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }
@@ -435,12 +435,12 @@ SceneFactory::getFloat()
     return (newFloat);
 }
 
-BicubicPatch *
-BicubicPatch::getBicubicPatchShape()
+ParametricBiCubicPatch *
+ParametricBiCubicPatch::getBicubicPatchShape()
 {
-    BicubicPatch *newShape;
+    ParametricBiCubicPatch *newShape;
 
-    newShape = new BicubicPatch;
+    newShape = new ParametricBiCubicPatch;
     if (newShape == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
     }

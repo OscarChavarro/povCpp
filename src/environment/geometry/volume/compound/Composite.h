@@ -4,7 +4,7 @@
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/CSG.h"
+#include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/scene/ObjectUtils.h"
 

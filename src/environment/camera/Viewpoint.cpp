@@ -5,7 +5,7 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/Viewpoint.h"
+#include "environment/camera/Viewpoint.h"
 #include "io/Parse.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, Viewpoint::copyViewpoint,

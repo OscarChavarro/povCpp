@@ -3,7 +3,7 @@
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Viewpoint.h"
+#include "environment/camera/Viewpoint.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];

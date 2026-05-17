@@ -5,9 +5,9 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/CSG.h"
+#include "environment/geometry/volume/compound/CSG.h"
 #include "io/Parse.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "io/Parse.h"
 Methods CSG_Union_Methods = {Composite::objectIntersect, CSG::allCsgUnionIntersections,
     CSG::insideCsgUnion, nullptr, CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,

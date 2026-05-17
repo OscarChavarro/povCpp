@@ -5,7 +5,7 @@
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/Box.h"
-#include "environment/geometry/HeightFieldBlock.h"
+#include "environment/geometry/volume/HeightFieldBlock.h"
 class RGBAImage;
 
 static constexpr int GIF = 0;

@@ -14,9 +14,9 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/HeightField.h"
+#include "environment/geometry/volume/HeightField.h"
 #include "io/Parse.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "media/Texture.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 

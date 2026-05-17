@@ -7,7 +7,7 @@
 
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "io/Parse.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 Methods Plane_Methods = {Composite::objectIntersect, InfinitePlane::allPlaneIntersections,
     InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,

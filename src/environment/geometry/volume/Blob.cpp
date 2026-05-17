@@ -8,9 +8,9 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/Blob.h"
+#include "environment/geometry/volume/Blob.h"
 #include "io/Parse.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,

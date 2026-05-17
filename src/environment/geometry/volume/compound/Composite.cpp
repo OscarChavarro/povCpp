@@ -5,9 +5,9 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "io/Parse.h"
-#include "environment/geometry/PriorityQueue.h"
+#include "common/dataStructures/PriorityQueue.h"
 extern Ray *vpRay;
 extern long boundingRegionTests, boundingRegionTestsSucceeded;
 extern long clippingRegionTests, clippingRegionTestsSucceeded;

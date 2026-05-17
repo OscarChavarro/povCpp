@@ -8,20 +8,20 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/Bezier.h"
-#include "environment/geometry/BezierIntersection.h"
-#include "environment/geometry/BezierPatch.h"
+#include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
+#include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/Composite.h"
+#include "environment/geometry/volume/compound/Composite.h"
 #include "io/Parse.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
 Methods Bicubic_Patch_Methods = {Composite::objectIntersect,
-    BezierPatch::allBicubicPatchIntersections, BicubicPatch::insideBicubicPatch, BicubicPatch::bicubicPatchNormal,
-    BicubicPatch::copyBicubicPatch, BicubicPatch::translateBicubicPatch, BicubicPatch::rotateBicubicPatch,
-    BicubicPatch::scaleBicubicPatch, BicubicPatch::invertBicubicPatch};
+    ParametricBiCubicSolver::allParametricBiCubicPatchIntersections, ParametricBiCubicPatch::insideBicubicPatch, ParametricBiCubicPatch::bicubicPatchNormal,
+    ParametricBiCubicPatch::copyBicubicPatch, ParametricBiCubicPatch::translateBicubicPatch, ParametricBiCubicPatch::rotateBicubicPatch,
+    ParametricBiCubicPatch::scaleBicubicPatch, ParametricBiCubicPatch::invertBicubicPatch};
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern Ray *vpRay;
@@ -32,10 +32,10 @@ int maxDepthReached;
 static constexpr double SUBDIVISION_EPSILON = 0.001;
 static constexpr int MAX_RECURSION_DEPTH = 20;
 
-BezierNode *
-BicubicPatch::createNewBezierNode()
+ParametricPatchNode *
+ParametricBiCubicPatch::createNewParametricPatchNode()
 {
-    BezierNode *node = new BezierNode();
+    ParametricPatchNode *node = new ParametricPatchNode();
     if (node == nullptr) {
         printf("Failed to allocate Bezier node\n");
         exit(0);
@@ -44,10 +44,10 @@ BicubicPatch::createNewBezierNode()
     return node;
 }
 
-BezierVertices *
-BicubicPatch::createBezierVertexBlock()
+ParametricControlPoints *
+ParametricBiCubicPatch::createParametricControlPointsBlock()
 {
-    BezierVertices *vertices = new BezierVertices();
+    ParametricControlPoints *vertices = new ParametricControlPoints();
     if (vertices == nullptr) {
         printf("Failed to allocate Bezier vertices\n");
         exit(0);
@@ -55,10 +55,10 @@ BicubicPatch::createBezierVertexBlock()
     return vertices;
 }
 
-BezierChild *
-BicubicPatch::createBezierChildBlock()
+ParametricPatchChild *
+ParametricBiCubicPatch::createParametricPatchChildBlock()
 {
-    BezierChild *children = new BezierChild();
+    ParametricPatchChild *children = new ParametricPatchChild();
     if (children == nullptr) {
         printf("Failed to allocate Bezier children\n");
         exit(0);
@@ -66,30 +66,30 @@ BicubicPatch::createBezierChildBlock()
     return children;
 }
 
-BezierNode *
-BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3Dd (*patch)[4][4], int depth)
+ParametricPatchNode *
+ParametricBiCubicPatch::parametricTreeBuilder(ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4], int depth)
 {
     Vector3Dd lowerLeft[4][4];
     Vector3Dd lowerRight[4][4];
     Vector3Dd upperLeft[4][4];
     Vector3Dd upperRight[4][4];
-    BezierChild *children;
-    BezierVertices *vertices;
-    BezierNode *node = BicubicPatch::createNewBezierNode();
+    ParametricPatchChild *children;
+    ParametricControlPoints *vertices;
+    ParametricPatchNode *node = ParametricBiCubicPatch::createNewParametricPatchNode();
 
     if (depth > maxDepthReached) {
         maxDepthReached = depth;
     }
 
     /* Build the bounding sphere for this subpatch */
-    BicubicPatch::bezierBoundingSphere(patch, &(node->Center), &(node->Radius_Squared));
+    ParametricBiCubicPatch::parametricBoundingSphere(patch, &(node->Center), &(node->Radius_Squared));
 
     /* If the patch is close to being flat, then just perform a ray-plane
         intersection test. */
-    if (BicubicPatch::flatEnough(object, patch)) {
+    if (ParametricBiCubicPatch::flatEnough(object, patch)) {
         /* The patch is now flat enough to simply store the corners */
-        node->Node_Type = BEZIER_LEAF_NODE;
-        vertices = BicubicPatch::createBezierVertexBlock();
+        node->Node_Type = PARAMETRIC_LEAF_NODE;
+        vertices = ParametricBiCubicPatch::createParametricControlPointsBlock();
         vertices->Vertices[0] = (*patch)[0][0];
         vertices->Vertices[1] = (*patch)[0][3];
         vertices->Vertices[2] = (*patch)[3][3];
@@ -98,53 +98,53 @@ BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3Dd (*patch)[4][4], 
     } else if (depth >= object->U_Steps) {
         if (depth >= object->V_Steps) {
             /* We are at the max recursion depth. Just store corners. */
-            node->Node_Type = BEZIER_LEAF_NODE;
-            vertices = BicubicPatch::createBezierVertexBlock();
+            node->Node_Type = PARAMETRIC_LEAF_NODE;
+            vertices = ParametricBiCubicPatch::createParametricControlPointsBlock();
             vertices->Vertices[0] = (*patch)[0][0];
             vertices->Vertices[1] = (*patch)[0][3];
             vertices->Vertices[2] = (*patch)[3][3];
             vertices->Vertices[3] = (*patch)[3][0];
             node->Data_Ptr = (void *)vertices;
         } else {
-            BicubicPatch::bezierSplitUpDown(patch, (Vector3Dd(*)[4][4])lowerLeft,
+            ParametricBiCubicPatch::parametricSplitUpDown(patch, (Vector3Dd(*)[4][4])lowerLeft,
                 (Vector3Dd(*)[4][4])upperLeft);
-            node->Node_Type = BEZIER_INTERIOR_NODE;
-            children = BicubicPatch::createBezierChildBlock();
-            children->Children[0] = BicubicPatch::bezierTreeBuilder(
+            node->Node_Type = PARAMETRIC_INTERIOR_NODE;
+            children = ParametricBiCubicPatch::createParametricPatchChildBlock();
+            children->Children[0] = ParametricBiCubicPatch::parametricTreeBuilder(
                 object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
-            children->Children[1] = BicubicPatch::bezierTreeBuilder(
+            children->Children[1] = ParametricBiCubicPatch::parametricTreeBuilder(
                 object, (Vector3Dd(*)[4][4])upperLeft, depth + 1);
             node->Count = 2;
             node->Data_Ptr = (void *)children;
         }
     } else if (depth >= object->V_Steps) {
-        BicubicPatch::bezierSplitLeftRight(
+        ParametricBiCubicPatch::parametricSplitLeftRight(
             patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
-        node->Node_Type = BEZIER_INTERIOR_NODE;
-        children = BicubicPatch::createBezierChildBlock();
+        node->Node_Type = PARAMETRIC_INTERIOR_NODE;
+        children = ParametricBiCubicPatch::createParametricPatchChildBlock();
         children->Children[0] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
+            ParametricBiCubicPatch::parametricTreeBuilder(object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
         children->Children[1] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
+            ParametricBiCubicPatch::parametricTreeBuilder(object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
         node->Count = 2;
         node->Data_Ptr = (void *)children;
     } else {
-        BicubicPatch::bezierSplitLeftRight(
+        ParametricBiCubicPatch::parametricSplitLeftRight(
             patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
-        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerLeft,
+        ParametricBiCubicPatch::parametricSplitUpDown((Vector3Dd(*)[4][4])lowerLeft,
             (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])upperLeft);
-        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerRight,
+        ParametricBiCubicPatch::parametricSplitUpDown((Vector3Dd(*)[4][4])lowerRight,
             (Vector3Dd(*)[4][4])lowerRight, (Vector3Dd(*)[4][4])upperRight);
-        node->Node_Type = BEZIER_INTERIOR_NODE;
-        children = BicubicPatch::createBezierChildBlock();
+        node->Node_Type = PARAMETRIC_INTERIOR_NODE;
+        children = ParametricBiCubicPatch::createParametricPatchChildBlock();
         children->Children[0] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
+            ParametricBiCubicPatch::parametricTreeBuilder(object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
         children->Children[1] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])upperLeft, depth + 1);
+            ParametricBiCubicPatch::parametricTreeBuilder(object, (Vector3Dd(*)[4][4])upperLeft, depth + 1);
         children->Children[2] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
+            ParametricBiCubicPatch::parametricTreeBuilder(object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
         children->Children[3] =
-            BicubicPatch::bezierTreeBuilder(object, (Vector3Dd(*)[4][4])upperRight, depth + 1);
+            ParametricBiCubicPatch::parametricTreeBuilder(object, (Vector3Dd(*)[4][4])upperRight, depth + 1);
         node->Count = 4;
         node->Data_Ptr = (void *)children;
     }
@@ -153,7 +153,7 @@ BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3Dd (*patch)[4][4], 
 
 /* Evaluate a single coordinate point (u, v) on a bezier patch. */
 void
-BicubicPatch::bezierValue(Vector3Dd *result, double u, double v, Vector3Dd (*controlPoints)[4][4])
+ParametricBiCubicPatch::parametricValue(Vector3Dd *result, double u, double v, Vector3Dd (*controlPoints)[4][4])
 {
     double u2, u3, v2, v3, uu1, uu2, uu3, vv1, vv2, vv3;
     double t[4][4];
@@ -211,7 +211,7 @@ BicubicPatch::bezierValue(Vector3Dd *result, double u, double v, Vector3Dd (*con
     The normal is undefined where the determinants vanish.
 */
 void
-BicubicPatch::bezierPartial(Vector3Dd *result, double u, double v, BicubicPatch *shape)
+ParametricBiCubicPatch::parametricPartial(Vector3Dd *result, double u, double v, ParametricBiCubicPatch *shape)
 {
     Vector3Dd uVec;
     Vector3Dd vVec; /* Partial derivatives with respect to u, and v. */
@@ -309,7 +309,7 @@ BicubicPatch::bezierPartial(Vector3Dd *result, double u, double v, BicubicPatch 
 
 /* Find a sphere that contains all of the points in the list "vectors" */
 void
-BicubicPatch::findAverage(int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius)
+ParametricBiCubicPatch::findAverage(int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius)
 {
     double r0, r1, xc = 0, yc = 0, zc = 0;
     double x0, y0, z0;
@@ -343,7 +343,7 @@ BicubicPatch::findAverage(int vectorCount, Vector3Dd *vectors, Vector3Dd *center
     The values returned are: the center of the bounding sphere, and the
     square of the radius of the bounding sphere. */
 void
-BicubicPatch::bezierBoundingSphere(Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radius)
+ParametricBiCubicPatch::parametricBoundingSphere(Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radius)
 {
     double r0, r1, xc = 0, yc = 0, zc = 0;
     double x0, y0, z0;
@@ -379,7 +379,7 @@ BicubicPatch::bezierBoundingSphere(Vector3Dd (*patch)[4][4], Vector3Dd *center, 
 
 /* Precompute grid points and normals for a bezier patch */
 void
-BicubicPatch::precomputePatchValues(BicubicPatch *shape)
+ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
 {
     int i;
     int j;
@@ -398,7 +398,7 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
             controlPoints[4 * i + j] = shape->Control_Points[i][j];
         }
     }
-    BicubicPatch::findAverage(16, &controlPoints[0], &shape->Bounding_Sphere_Center,
+    ParametricBiCubicPatch::findAverage(16, &controlPoints[0], &shape->Bounding_Sphere_Center,
         &shape->Bounding_Sphere_Radius);
     /* Shape->Node_Tree = NULL; */
     if (shape->Patch_Type == 0 || shape->Patch_Type == 2) {
@@ -406,9 +406,9 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
     }
     if (shape->Patch_Type == 3) {
         if (shape->Node_Tree != nullptr) {
-            BicubicPatch::bezierTreeDeleter(shape->Node_Tree);
+            ParametricBiCubicPatch::parametricTreeDeleter(shape->Node_Tree);
         }
-        shape->Node_Tree = BicubicPatch::bezierTreeBuilder(shape, patchPtr, 0);
+        shape->Node_Tree = ParametricBiCubicPatch::parametricTreeBuilder(shape, patchPtr, 0);
         return;
     }
     deltaU = 1.0 / (double)shape->U_Steps;
@@ -466,7 +466,7 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
         u = (double)i / (double)shape->U_Steps;
         for (j = 0; j < shape->V_Steps; j++) {
             v = (double)j / (double)shape->V_Steps;
-            BicubicPatch::bezierValue(&shape->Interpolated_Grid[i][j], u, v, patchPtr);
+            ParametricBiCubicPatch::parametricValue(&shape->Interpolated_Grid[i][j], u, v, patchPtr);
         }
     }
 
@@ -476,10 +476,10 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
             v = (double)j / (double)shape->V_Steps;
 
             /* Calculate surface values for the current patch. */
-            BicubicPatch::bezierValue(&v0, u, v, patchPtr);
-            BicubicPatch::bezierValue(&v1, u + deltaU, v, patchPtr);
-            BicubicPatch::bezierValue(&v2, u, v + deltaV, patchPtr);
-            BicubicPatch::bezierValue(&v3, u + deltaU, v + deltaV, patchPtr);
+            ParametricBiCubicPatch::parametricValue(&v0, u, v, patchPtr);
+            ParametricBiCubicPatch::parametricValue(&v1, u + deltaU, v, patchPtr);
+            ParametricBiCubicPatch::parametricValue(&v2, u, v + deltaV, patchPtr);
+            ParametricBiCubicPatch::parametricValue(&v3, u + deltaU, v + deltaV, patchPtr);
 
             shape->Interpolated_Grid[i][j] = v0;
             shape->Interpolated_Grid[i + 1][j] = v1;
@@ -487,7 +487,7 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
             shape->Interpolated_Grid[i + 1][j + 1] = v3;
             if (shape->Patch_Type == 1 || shape->Patch_Type == 4) {
                 /* Calculate the normals */
-                if (BezierIntersection::subpatchNormal(&v0, &v2, &v1, &n, &d)) {
+                if (ParametricBiCubicIntersection::subpatchNormal(&v0, &v2, &v1, &n, &d)) {
                     shape->Interpolated_Normals[i][2 * j] = n;
                     shape->Interpolated_D[i][2 * j] = d;
                 } else {
@@ -497,7 +497,7 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
                     shape->Interpolated_D[i][2 * j] = 0.0;
                 }
 
-                if (BezierIntersection::subpatchNormal(&v1, &v2, &v3, &n, &d)) {
+                if (ParametricBiCubicIntersection::subpatchNormal(&v1, &v2, &v3, &n, &d)) {
                     shape->Interpolated_Normals[i][2 * j + 1] = n;
                     shape->Interpolated_D[i][2 * j + 1] = d;
                 } else {
@@ -516,7 +516,7 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
             u = (double)i / (double)shape->U_Steps;
             for (j = 0; j <= shape->V_Steps; j++) {
                 v = (double)j / (double)shape->V_Steps;
-                BicubicPatch::bezierPartial(&shape->Smooth_Normals[i][j], u, v, shape);
+                ParametricBiCubicPatch::parametricPartial(&shape->Smooth_Normals[i][j], u, v, shape);
             }
         }
     }
@@ -524,7 +524,7 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
 
 
 void
-BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3Dd (*patch)[4][4],
+ParametricBiCubicPatch::parametricSubpatchIntersect(Ray *ray, ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
     double u0, double u1, double v0, int recursionDepth, int *depthCount, double *depths,
     double *uValues, double *vValues)
 {
@@ -549,8 +549,8 @@ BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3Dd (
 
     /* Triangulate this subpatch, then check for intersections in
         the triangles. */
-    if (BezierIntersection::subpatchNormal(&vv0, &vv1, &vv2, &n, &d)) {
-        if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv1, &vv2, &n, d,
+    if (ParametricBiCubicIntersection::subpatchNormal(&vv0, &vv1, &vv2, &n, &d)) {
+        if (ParametricBiCubicIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv1, &vv2, &n, d,
                 nullptr, nullptr, nullptr, &depth, &ip, &n)) {
             shape->Intersection_Point[tcnt + *depthCount] = ip;
             shape->Normal_Vector[tcnt + *depthCount] = n;
@@ -563,8 +563,8 @@ BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3Dd (
         return;
     }
 
-    if (BezierIntersection::subpatchNormal(&vv0, &vv2, &vv3, &n, &d)) {
-        if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv2, &vv3, &n, d,
+    if (ParametricBiCubicIntersection::subpatchNormal(&vv0, &vv2, &vv3, &n, &d)) {
+        if (ParametricBiCubicIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv2, &vv3, &n, d,
                 nullptr, nullptr, nullptr, &depth, &ip, &n)) {
             shape->Intersection_Point[tcnt + *depthCount] = ip;
             shape->Normal_Vector[tcnt + *depthCount] = n;
@@ -575,7 +575,7 @@ BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3Dd (
 }
 
 void
-BicubicPatch::bezierSplitLeftRight(Vector3Dd (*patch)[4][4], Vector3Dd (*leftPatch)[4][4],
+ParametricBiCubicPatch::parametricSplitLeftRight(Vector3Dd (*patch)[4][4], Vector3Dd (*leftPatch)[4][4],
     Vector3Dd (*rightPatch)[4][4])
 {
     Vector3Dd temp1[4];
@@ -601,7 +601,7 @@ BicubicPatch::bezierSplitLeftRight(Vector3Dd (*patch)[4][4], Vector3Dd (*leftPat
 }
 
 void
-BicubicPatch::bezierSplitUpDown(Vector3Dd (*patch)[4][4], Vector3Dd (*topPatch)[4][4],
+ParametricBiCubicPatch::parametricSplitUpDown(Vector3Dd (*patch)[4][4], Vector3Dd (*topPatch)[4][4],
     Vector3Dd (*bottomPatch)[4][4])
 {
     Vector3Dd temp1[4];
@@ -632,7 +632,7 @@ BicubicPatch::bezierSplitUpDown(Vector3Dd (*patch)[4][4], Vector3Dd (*topPatch)[
     three distinct vertices. A negative result from this function indicates
     that a degenerate value of some sort was encountered. */
 double
-BicubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
+ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
 {
     Vector3Dd vertices[4];
     Vector3Dd n;
@@ -693,13 +693,13 @@ BicubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
     }
     /* Now that a good set of candidate points has been found, find the
         plane equations for the patch */
-    if (BezierIntersection::subpatchNormal(&vertices[0], &vertices[1], &vertices[2], &n, &d)) {
+    if (ParametricBiCubicIntersection::subpatchNormal(&vertices[0], &vertices[1], &vertices[2], &n, &d)) {
         /* Step through all vertices and see what the maximum distance from the
                  plane happens to be. */
         dist = 0.0;
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
-                temp1 = fabs(BezierIntersection::pointPlaneDistance(&((*patch)[i][j]), &n, &d));
+                temp1 = fabs(ParametricBiCubicIntersection::pointPlaneDistance(&((*patch)[i][j]), &n, &d));
                 if (temp1 > dist) {
                     dist = temp1;
                 }
@@ -712,11 +712,11 @@ BicubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
 }
 
 int
-BicubicPatch::flatEnough(BicubicPatch *object, Vector3Dd (*patch)[4][4])
+ParametricBiCubicPatch::flatEnough(ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4])
 {
     double dist;
 
-    dist = BicubicPatch::determineSubpatchFlatness(patch);
+    dist = ParametricBiCubicPatch::determineSubpatchFlatness(patch);
     if (dist < 0.0) {
         return 0;
     }
@@ -727,7 +727,7 @@ BicubicPatch::flatEnough(BicubicPatch *object, Vector3Dd (*patch)[4][4])
 }
 
 void
-BicubicPatch::bezierSubdivider(Ray *ray, BicubicPatch *object, Vector3Dd (*patch)[4][4],
+ParametricBiCubicPatch::parametricSubdivider(Ray *ray, ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4],
     double u0, double u1, double v0, double v1, int recursionDepth, int *depthCount,
     double *depths, double *uValues, double *vValues)
 {
@@ -746,88 +746,88 @@ BicubicPatch::bezierSubdivider(Ray *ray, BicubicPatch *object, Vector3Dd (*patch
 
     /* Make sure the ray passes through a sphere bounding the control points of
         the patch */
-    BicubicPatch::bezierBoundingSphere(patch, &center, &radius);
-    if (!BezierIntersection::sphericalBoundsCheck(ray, &center, radius)) {
+    ParametricBiCubicPatch::parametricBoundingSphere(patch, &center, &radius);
+    if (!ParametricBiCubicIntersection::sphericalBoundsCheck(ray, &center, radius)) {
         return;
     }
 
     /* If the patch is close to being flat, then just perform a ray-plane
         intersection test. */
-    if (BicubicPatch::flatEnough(object, patch)) {
-        BicubicPatch::bezierSubpatchIntersect(ray, object, patch, u0, u1, v0,
+    if (ParametricBiCubicPatch::flatEnough(object, patch)) {
+        ParametricBiCubicPatch::parametricSubpatchIntersect(ray, object, patch, u0, u1, v0,
             recursionDepth + 1, depthCount, depths, uValues, vValues);
     }
 
     if (recursionDepth >= object->U_Steps) {
         if (recursionDepth >= object->V_Steps) {
-            BicubicPatch::bezierSubpatchIntersect(ray, object, patch, u0, u1, v0,
+            ParametricBiCubicPatch::parametricSubpatchIntersect(ray, object, patch, u0, u1, v0,
                 recursionDepth + 1, depthCount, depths, uValues, vValues);
         } else {
-            BicubicPatch::bezierSplitUpDown(patch, (Vector3Dd(*)[4][4])lowerLeft,
+            ParametricBiCubicPatch::parametricSplitUpDown(patch, (Vector3Dd(*)[4][4])lowerLeft,
                 (Vector3Dd(*)[4][4])upperLeft);
             vt = (v1 - v0) / 2.0;
-            BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, u1,
+            ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, u1,
                 v0, vt, recursionDepth + 1, depthCount, depths, uValues,
                 vValues);
-            BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])upperLeft, u0, u1,
+            ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])upperLeft, u0, u1,
                 vt, v1, recursionDepth + 1, depthCount, depths, uValues,
                 vValues);
         }
     } else if (recursionDepth >= object->V_Steps) {
-        BicubicPatch::bezierSplitLeftRight(
+        ParametricBiCubicPatch::parametricSplitLeftRight(
             patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
         ut = (u1 - u0) / 2.0;
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0,
+        ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0,
+        ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
     } else {
         ut = (u1 - u0) / 2.0;
         vt = (v1 - v0) / 2.0;
-        BicubicPatch::bezierSplitLeftRight(
+        ParametricBiCubicPatch::parametricSplitLeftRight(
             patch, (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
-        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerLeft,
+        ParametricBiCubicPatch::parametricSplitUpDown((Vector3Dd(*)[4][4])lowerLeft,
             (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])upperLeft);
-        BicubicPatch::bezierSplitUpDown((Vector3Dd(*)[4][4])lowerRight,
+        ParametricBiCubicPatch::parametricSplitUpDown((Vector3Dd(*)[4][4])lowerRight,
             (Vector3Dd(*)[4][4])lowerRight, (Vector3Dd(*)[4][4])upperRight);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0,
+        ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0,
             vt, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])upperLeft, u0, ut, vt,
+        ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])upperLeft, u0, ut, vt,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0,
+        ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0,
             vt, recursionDepth + 1, depthCount, depths, uValues, vValues);
-        BicubicPatch::bezierSubdivider(ray, object, (Vector3Dd(*)[4][4])upperRight, ut, u1, vt,
+        ParametricBiCubicPatch::parametricSubdivider(ray, object, (Vector3Dd(*)[4][4])upperRight, ut, u1, vt,
             v1, recursionDepth + 1, depthCount, depths, uValues, vValues);
     }
 }
 
 void
-BicubicPatch::bezierTreeDeleter(BezierNode *node)
+ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
 {
-    BezierChild *children;
+    ParametricPatchChild *children;
     int i;
 
     /* If this is an interior node then continue the descent */
-    if (node->Node_Type == BEZIER_INTERIOR_NODE) {
-        children = (BezierChild *)node->Data_Ptr;
+    if (node->Node_Type == PARAMETRIC_INTERIOR_NODE) {
+        children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
-            BicubicPatch::bezierTreeDeleter(children->Children[i]);
+            ParametricBiCubicPatch::parametricTreeDeleter(children->Children[i]);
         }
-        delete (BezierChild *)children;
-    } else if (node->Node_Type == BEZIER_LEAF_NODE) {
+        delete (ParametricPatchChild *)children;
+    } else if (node->Node_Type == PARAMETRIC_LEAF_NODE) {
         /* Free the memory used for the vertices. */
-        delete (BezierVertices *)node->Data_Ptr;
+        delete (ParametricControlPoints *)node->Data_Ptr;
     }
     /* Free the memory used for the node. */
     delete node;
 }
 
 void
-BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, int depth,
+ParametricBiCubicPatch::parametricTreeWalker(Ray *ray, ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
     int *depthCount, double *depths)
 {
-    BezierChild *children;
-    BezierVertices *vertices;
+    ParametricPatchChild *children;
+    ParametricControlPoints *vertices;
     Vector3Dd n;
     Vector3Dd ip;
     Vector3Dd vv0;
@@ -846,20 +846,20 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
 
     /* Make sure the ray passes through a sphere bounding the control points of
         the patch */
-    if (!BezierIntersection::sphericalBoundsCheck(ray, &(node->Center), node->Radius_Squared)) {
+    if (!ParametricBiCubicIntersection::sphericalBoundsCheck(ray, &(node->Center), node->Radius_Squared)) {
         return;
     }
 
     /* If this is an interior node then continue the descent, else
         do a check against the vertices. */
-    if (node->Node_Type == BEZIER_INTERIOR_NODE) {
-        children = (BezierChild *)node->Data_Ptr;
+    if (node->Node_Type == PARAMETRIC_INTERIOR_NODE) {
+        children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
-            BicubicPatch::bezierTreeWalker(ray, shape, children->Children[i], depth + 1,
+            ParametricBiCubicPatch::parametricTreeWalker(ray, shape, children->Children[i], depth + 1,
                 depthCount, depths);
         }
-    } else if (node->Node_Type == BEZIER_LEAF_NODE) {
-        vertices = (BezierVertices *)node->Data_Ptr;
+    } else if (node->Node_Type == PARAMETRIC_LEAF_NODE) {
+        vertices = (ParametricControlPoints *)node->Data_Ptr;
         vv0 = vertices->Vertices[0];
         vv1 = vertices->Vertices[1];
         vv2 = vertices->Vertices[2];
@@ -867,8 +867,8 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
 
         /* Triangulate this subpatch, then check for intersections in
             the triangles. */
-        if (BezierIntersection::subpatchNormal(&vv0, &vv1, &vv2, &n, &d)) {
-            if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv1, &vv2, &n,
+        if (ParametricBiCubicIntersection::subpatchNormal(&vv0, &vv1, &vv2, &n, &d)) {
+            if (ParametricBiCubicIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv1, &vv2, &n,
                     d, nullptr, nullptr, nullptr, &hitDepth, &ip, &n)) {
                 shape->Intersection_Point[tcnt + *depthCount] = ip;
                 shape->Normal_Vector[tcnt + *depthCount] = n;
@@ -881,8 +881,8 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
             return;
         }
 
-        if (BezierIntersection::subpatchNormal(&vv0, &vv2, &vv3, &n, &d)) {
-            if (BezierIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv2, &vv3, &n,
+        if (ParametricBiCubicIntersection::subpatchNormal(&vv0, &vv2, &vv3, &n, &d)) {
+            if (ParametricBiCubicIntersection::intersectSubpatch(shape->Patch_Type, ray, &vv0, &vv2, &vv3, &n,
                     d, nullptr, nullptr, nullptr, &hitDepth, &ip, &n)) {
                 shape->Intersection_Point[tcnt + *depthCount] = ip;
                 shape->Normal_Vector[tcnt + *depthCount] = n;
@@ -898,16 +898,16 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
 
 /* A patch is not a solid, so an inside test doesn't make sense. */
 int
-BicubicPatch::insideBicubicPatch(Vector3Dd *testPoint, SimpleBody *object)
+ParametricBiCubicPatch::insideBicubicPatch(Vector3Dd *testPoint, SimpleBody *object)
 {
     return 0;
 }
 
 void
-BicubicPatch::bicubicPatchNormal(
+ParametricBiCubicPatch::bicubicPatchNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    BicubicPatch *patch = (BicubicPatch *)object;
+    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
     int i;
 
     /* If all is going well, the normal was computed at the time the
@@ -933,16 +933,16 @@ BicubicPatch::bicubicPatchNormal(
 }
 
 void *
-BicubicPatch::copyBicubicPatch(SimpleBody *object)
+ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
 {
-    BicubicPatch *newShape;
+    ParametricBiCubicPatch *newShape;
 
-    newShape = BicubicPatch::getBicubicPatchShape();
-    *newShape = *((BicubicPatch *)object);
+    newShape = ParametricBiCubicPatch::getBicubicPatchShape();
+    *newShape = *((ParametricBiCubicPatch *)object);
     newShape->Next_Object = nullptr;
 
     newShape->Interpolated_Grid = nullptr;
-    BicubicPatch::precomputePatchValues(newShape);
+    ParametricBiCubicPatch::precomputePatchValues(newShape);
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
@@ -951,24 +951,24 @@ BicubicPatch::copyBicubicPatch(SimpleBody *object)
 }
 
 void
-BicubicPatch::translateBicubicPatch(SimpleBody *object, Vector3Dd *vector)
+ParametricBiCubicPatch::translateBicubicPatch(SimpleBody *object, Vector3Dd *vector)
 {
-    BicubicPatch *patch = (BicubicPatch *)object;
+    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
     int i;
     int j;
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             VectorOps::vAdd(patch->Control_Points[i][j], patch->Control_Points[i][j],
                 *vector);
-    BicubicPatch::precomputePatchValues(patch);
-    TextureUtils::translateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    ParametricBiCubicPatch::precomputePatchValues(patch);
+    TextureUtils::translateTexture(&((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 
 void
-BicubicPatch::rotateBicubicPatch(SimpleBody *object, Vector3Dd *vector)
+ParametricBiCubicPatch::rotateBicubicPatch(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
-    BicubicPatch *patch = (BicubicPatch *)object;
+    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
     int i;
     int j;
 
@@ -979,27 +979,27 @@ BicubicPatch::rotateBicubicPatch(SimpleBody *object, Vector3Dd *vector)
                 &(patch->Control_Points[i][j]), &transformation);
         }
     }
-    BicubicPatch::precomputePatchValues(patch);
-    TextureUtils::rotateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    ParametricBiCubicPatch::precomputePatchValues(patch);
+    TextureUtils::rotateTexture(&((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 
 void
-BicubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
+ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
 {
-    BicubicPatch *patch = (BicubicPatch *)object;
+    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
     int i;
     int j;
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
             VectorOps::vEvaluate(patch->Control_Points[i][j], patch->Control_Points[i][j],
                 *vector);
-    BicubicPatch::precomputePatchValues(patch);
-    TextureUtils::scaleTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
+    ParametricBiCubicPatch::precomputePatchValues(patch);
+    TextureUtils::scaleTexture(&((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 
 /* Inversion of a patch really doesn't make sense. */
 void
-BicubicPatch::invertBicubicPatch(SimpleBody *object)
+ParametricBiCubicPatch::invertBicubicPatch(SimpleBody *object)
 {
     ;
 }

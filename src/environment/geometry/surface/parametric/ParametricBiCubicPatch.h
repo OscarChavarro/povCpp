@@ -1,20 +1,20 @@
-#ifndef __BICUBIC_PATCH_H__
-#define __BICUBIC_PATCH_H__
+#ifndef __PARAMETRIC_BICUBIC_PATCH_H__
+#define __PARAMETRIC_BICUBIC_PATCH_H__
 
 #include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/BezierNode.h"
+#include "environment/geometry/surface/parametric/ParametricPatchNode.h"
 #include "environment/geometry/GeometryOperations.h"
 
 static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
-class BezierVertices;
-class BezierChild;
-class BezierPatch;
-class BezierIntersection;
+class ParametricControlPoints;
+class ParametricPatchChild;
+class ParametricBiCubicSolver;
+class ParametricBiCubicIntersection;
 
-class BicubicPatch : public Geometry {
-  friend class BezierPatch;
-  friend class BezierIntersection;
+class ParametricBiCubicPatch : public Geometry {
+  friend class ParametricBiCubicSolver;
+  friend class ParametricBiCubicIntersection;
   public:
     int Patch_Type, U_Steps, V_Steps;
     Vector3Dd Control_Points[4][4];
@@ -26,10 +26,10 @@ class BicubicPatch : public Geometry {
     Vector3Dd Intersection_Point[MAX_BICUBIC_INTERSECTIONS];
     Vector3Dd **Interpolated_Grid, **Interpolated_Normals, **Smooth_Normals;
     double **Interpolated_D;
-    BezierNode *Node_Tree;
+    ParametricPatchNode *Node_Tree;
 
-    static BicubicPatch *getBicubicPatchShape();
-    static void precomputePatchValues(BicubicPatch *shape);
+    static ParametricBiCubicPatch *getBicubicPatchShape();
+    static void precomputePatchValues(ParametricBiCubicPatch *shape);
     static int insideBicubicPatch(Vector3Dd *point, SimpleBody *object);
     static void bicubicPatchNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
@@ -39,9 +39,9 @@ class BicubicPatch : public Geometry {
     static void scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector);
     static void invertBicubicPatch(SimpleBody *object);
   private:
-    static void bezierValue(
+    static void parametricValue(
         Vector3Dd *result, double u, double v, Vector3Dd (*controlPoints)[4][4]);
-    static void bezierPartial(Vector3Dd *result, double u, double v, BicubicPatch *shape);
+    static void parametricPartial(Vector3Dd *result, double u, double v, ParametricBiCubicPatch *shape);
     static int subpatchNormal(
         Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *result, double *d);
     static int intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1,
@@ -51,27 +51,27 @@ class BicubicPatch : public Geometry {
         int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius);
     static double pointPlaneDistance(Vector3Dd *point, Vector3Dd *normal, double *d);
     static double determineSubpatchFlatness(Vector3Dd (*patch)[4][4]);
-    static int flatEnough(BicubicPatch *shape, Vector3Dd (*patch)[4][4]);
-    static void bezierBoundingSphere(
+    static int flatEnough(ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4]);
+    static void parametricBoundingSphere(
         Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radiusSquared);
-    static void bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape,
+    static void parametricSubpatchIntersect(Ray *ray, ParametricBiCubicPatch *shape,
         Vector3Dd (*patch)[4][4], double u0, double u1, double v0, int recursionDepth,
         int *depthCount, double *depths, double *u, double *v);
-    static void bezierSplitLeftRight(
+    static void parametricSplitLeftRight(
         Vector3Dd (*patch)[4][4], Vector3Dd (*left)[4][4], Vector3Dd (*right)[4][4]);
-    static void bezierSplitUpDown(
+    static void parametricSplitUpDown(
         Vector3Dd (*patch)[4][4], Vector3Dd (*lower)[4][4], Vector3Dd (*upper)[4][4]);
-    static void bezierSubdivider(Ray *ray, BicubicPatch *shape, Vector3Dd (*patch)[4][4],
+    static void parametricSubdivider(Ray *ray, ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4],
         double u0, double u1, double v0, double v1, int recursionDepth, int *depthCount,
         double *depths, double *u, double *v);
-    static void bezierTreeDeleter(BezierNode *node);
-    static BezierNode *bezierTreeBuilder(
-        BicubicPatch *shape, Vector3Dd (*patch)[4][4], int depth);
-    static void bezierTreeWalker(
-        Ray *ray, BicubicPatch *shape, BezierNode *node, int depth, int *depthCount, double *depths);
-    static BezierNode *createNewBezierNode();
-    static BezierVertices *createBezierVertexBlock();
-    static BezierChild *createBezierChildBlock();
+    static void parametricTreeDeleter(ParametricPatchNode *node);
+    static ParametricPatchNode *parametricTreeBuilder(
+        ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], int depth);
+    static void parametricTreeWalker(
+        Ray *ray, ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth, int *depthCount, double *depths);
+    static ParametricPatchNode *createNewParametricPatchNode();
+    static ParametricControlPoints *createParametricControlPointsBlock();
+    static ParametricPatchChild *createParametricPatchChildBlock();
 };
 
 #endif
