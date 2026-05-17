@@ -1,6 +1,6 @@
 #include "geom/BezierIntersection.h"
 #include "geom/GeometryOperations.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
@@ -16,8 +16,8 @@ BezierIntersection::subpatchNormal(
 
     VectorOps::vSub(edge1, *v1, *v2);
     VectorOps::vSub(edge2, *v3, *v2);
-    VectorOps::vCross(*result, edge1, edge2);
-    VectorOps::vLength(length, *result);
+    *result = edge1.crossProduct(edge2);
+    length = (*result).length();
     if (length < EPSILON) {
         result->x = 1.0;
         result->y = 0.0;
@@ -25,8 +25,8 @@ BezierIntersection::subpatchNormal(
         *d = -1.0 * v1->x;
         return 0;
     }
-    VectorOps::vInverseScale(*result, *result, length);
-    VectorOps::vDot(*d, *result, *v1);
+    (*result).inverseScale(length);
+    *d = (*result).dotProduct(*v1);
     *d = 0.0 - *d;
     return 1;
 }
@@ -50,17 +50,17 @@ BezierIntersection::intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1, Ve
     int crossings;
 
     /* Calculate the point of intersection and the depth. */
-    VectorOps::vDot(s, ray->Direction, *n);
+    s = ray->Direction.dotProduct(*n);
     if (s == 0.0) {
         return 0;
     }
-    VectorOps::vDot(t, ray->Initial, *n);
+    t = ray->Initial.dotProduct(*n);
     *depth = 0.0 - (d + t) / s;
     if (*depth < Small_Tolerance) {
         return 0;
     }
     VectorOps::vScale(*ip, ray->Direction, *depth);
-    VectorOps::vAdd(*ip, *ip, ray->Initial);
+    (*ip).add(ray->Initial);
 
     /* Map the intersection point and the triangle onto a plane. */
     x = fabs(n->x);
@@ -178,17 +178,17 @@ BezierIntersection::intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1, Ve
     }
     if (patchType == 4) {
         VectorOps::vSub(tempV1, *v2, *v3);
-        VectorOps::vNormalize(tempV1, tempV1);
+        tempV1.normalize();
         VectorOps::vSub(tempV2, *v1, *v3);
-        VectorOps::vDot(proj, tempV2, tempV1);
-        VectorOps::vScale(tempV1, tempV1, proj);
+        proj = tempV2.dotProduct(tempV1);
+        tempV1.scale(proj);
         VectorOps::vSub(perp, tempV1, tempV2);
-        VectorOps::vNormalize(perp, perp);
-        VectorOps::vDot(mu, tempV2, perp);
+        perp.normalize();
+        mu = tempV2.dotProduct(perp);
         mu = -1.0 / mu;
-        VectorOps::vScale(perp, perp, mu);
+        perp.scale(mu);
         VectorOps::vSub(tempV1, *ip, *v1);
-        VectorOps::vDot(s, tempV1, perp);
+        s = tempV1.dotProduct(perp);
         if (s < EPSILON) {
             *ipNorm = *n1;
             return 1;
@@ -209,15 +209,15 @@ BezierIntersection::intersectSubpatch(int patchType, Ray *ray, Vector3Dd *v1, Ve
             t = (tempV1.z / s + v1->z - v2->z) / tempV1.z;
         }
         VectorOps::vSub(tempV1, *n2, *n1);
-        VectorOps::vScale(tempV1, tempV1, s);
-        VectorOps::vAdd(tempV1, tempV1, *n1);
+        tempV1.scale(s);
+        tempV1.add(*n1);
         VectorOps::vSub(tempV2, *n3, *n1);
-        VectorOps::vScale(tempV2, tempV2, s);
-        VectorOps::vAdd(tempV2, tempV2, *n1);
+        tempV2.scale(s);
+        tempV2.add(*n1);
         VectorOps::vSub(*ipNorm, tempV2, tempV1);
-        VectorOps::vScale(*ipNorm, *ipNorm, t);
-        VectorOps::vAdd(*ipNorm, *ipNorm, tempV1);
-        VectorOps::vNormalize(*ipNorm, *ipNorm);
+        (*ipNorm).scale(t);
+        (*ipNorm).add(tempV1);
+        (*ipNorm).normalize();
         return 1;
     }
     return 0;
@@ -250,9 +250,9 @@ BezierIntersection::pointPlaneDistance(Vector3Dd *p, Vector3Dd *n, double *d)
 {
     double temp1, temp2;
 
-    VectorOps::vDot(temp1, *p, *n);
+    temp1 = (*p).dotProduct(*n);
     temp1 += *d;
-    VectorOps::vLength(temp2, *n);
+    temp2 = (*n).length();
     if (fabs(temp2) < EPSILON) {
         return 0;
     }

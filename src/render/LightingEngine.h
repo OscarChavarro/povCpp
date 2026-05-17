@@ -1,7 +1,7 @@
 #ifndef __LIGHTING_ENGINE_H__
 #define __LIGHTING_ENGINE_H__
 
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 class Light;

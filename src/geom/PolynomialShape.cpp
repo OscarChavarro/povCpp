@@ -12,7 +12,7 @@
 #include "io/Parse.h"
 #include "geom/Composite.h"
 #include "processing/PolynomialSolver.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+
@@ -106,7 +106,7 @@ PolynomialShape::allPolyIntersections(
             }
         }
         VectorOps::vScale(intersectionPoint, newRay.Direction, depths[j]);
-        VectorOps::vAdd(intersectionPoint, intersectionPoint, newRay.Initial);
+        intersectionPoint.add(newRay.Initial);
         /* Transform the point into world space */
         if (shape->Transform != nullptr) {
             Transformation::MTransformVector(
@@ -114,7 +114,7 @@ PolynomialShape::allPolyIntersections(
         }
 
         VectorOps::vSub(dv, intersectionPoint, ray->Initial);
-        VectorOps::vLength(len, dv);
+        len = dv.length();
         localElement.Depth = len;
         localElement.Object = shape->Parent_Object;
         localElement.Point = intersectionPoint;
@@ -761,7 +761,7 @@ PolynomialShape::polyNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *in
     if (shape->Transform != nullptr) {
         Transformation::MTransNormal(result, result, shape->Transform);
     }
-    VectorOps::vNormalize(*result, *result);
+    (*result).normalize();
 }
 
 /* Make a copy of a polynomial object */

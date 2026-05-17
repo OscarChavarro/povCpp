@@ -2,8 +2,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "io/GifFormat.h"
 #include "io/IffFormat.h"
 #include "io/TargaFormat.h"
@@ -448,7 +448,7 @@ TextureParser::parseTexture()
     if (texture->Image == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate imagemap texture");
     }
-    VectorOps::makeVector(&texture->Image->Image_Gradient, 1.0, -1.0, 0.0);
+    *&texture->Image->Image_Gradient = Vector3Dd(1.0, -1.0, 0.0);
     texture->Image->Map_Type = PLANAR_MAP;
     texture->Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Image->Once_Flag = FALSE;
@@ -768,7 +768,7 @@ TextureParser::parseTexture()
     if (texture->Bump_Image == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate bumpmap texture");
     }
-    VectorOps::makeVector(&texture->Bump_Image->Image_Gradient, 1.0, -1.0, 0.0);
+    *&texture->Bump_Image->Image_Gradient = Vector3Dd(1.0, -1.0, 0.0);
     texture->Bump_Image->Map_Type = PLANAR_MAP;
     texture->Bump_Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Bump_Image->Once_Flag = FALSE;
@@ -865,7 +865,7 @@ TextureParser::parseTexture()
     if (texture->Material_Image == nullptr) {
         ParseErrorReporter::Error("Out of memory. Cannot allocate material map texture");
     }
-    VectorOps::makeVector(&texture->Texture_Gradient, 1.0, -1.0, 0.0);
+    *&texture->Texture_Gradient = Vector3Dd(1.0, -1.0, 0.0);
     texture->Material_Image->Map_Type = PLANAR_MAP;
     texture->Material_Image->Interpolation_Type = NO_INTERPOLATION;
     texture->Material_Image->Once_Flag = FALSE;

@@ -3,7 +3,7 @@
 
 #include "common/Transformation.h"
 #include "common/Ray.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 /* Object/shape types */
 static constexpr int SPHERE_TYPE = 0;

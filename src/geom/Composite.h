@@ -3,7 +3,7 @@
 
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "geom/CSG.h"
 #include "geom/GeometryOperations.h"
 #include "geom/ObjectUtils.h"

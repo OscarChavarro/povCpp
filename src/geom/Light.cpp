@@ -8,7 +8,7 @@
 #include "geom/Light.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 Methods Point_Methods = {Composite::objectIntersect, Light::allPointIntersections,
     Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,
     Light::scalePoint, Light::invertPoint};
@@ -45,8 +45,8 @@ Light::copyPoint(SimpleBody *object)
 void
 Light::translatePoint(SimpleBody *object, Vector3Dd *vector)
 {
-    VectorOps::vAdd(((Light *)object)->Center, ((Light *)object)->Center, *vector);
-    VectorOps::vAdd(((Light *)object)->Points_At, ((Light *)object)->Points_At, *vector);
+    ((Light *)object)->Center.add(*vector);
+    ((Light *)object)->Points_At.add(*vector);
 }
 
 void
@@ -111,10 +111,10 @@ Light::attenuateLight(Light *lightSource, Ray *lightSourceRay)
     /* If this is a spotlight then attenuate based on the incidence angle */
     if (lightSource->Type == SPOT_LIGHT_TYPE) {
         VectorOps::vSub(spotDirection, lightSource->Points_At, lightSource->Center);
-        VectorOps::vLength(len, spotDirection);
+        len = spotDirection.length();
         if (len > 0.0) {
-            VectorOps::vInverseScale(spotDirection, spotDirection, len);
-            VectorOps::vDot(costheta, lightSourceRay->Direction, spotDirection);
+            spotDirection.inverseScale(len);
+            costheta = lightSourceRay->Direction.dotProduct(spotDirection);
             costheta *= -1.0;
             if (costheta > 0.0) {
                 attenuation = pow(costheta, lightSource->Coeff);

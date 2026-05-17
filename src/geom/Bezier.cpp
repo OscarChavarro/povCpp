@@ -14,7 +14,7 @@
 #include "geom/GeometryOperations.h"
 #include "geom/Composite.h"
 #include "io/Parse.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
@@ -262,7 +262,7 @@ BicubicPatch::bezierPartial(Vector3Dd *result, double u, double v, BicubicPatch 
         return;
     }
     temp = sqrt(temp);
-    VectorOps::vInverseScale(uVec, uVec, temp);
+    uVec.inverseScale(temp);
 
     /* Calculate the derivative with respect to v */
     t[0][0] = 3.0 * (v2 - 2.0 * v + 1.0) * (u3 - 3.0 * u2 + 3.0 * u - 1.0);
@@ -301,9 +301,9 @@ BicubicPatch::bezierPartial(Vector3Dd *result, double u, double v, BicubicPatch 
         return;
     }
     temp = sqrt(temp);
-    VectorOps::vInverseScale(vVec, vVec, temp);
+    vVec.inverseScale(temp);
 
-    VectorOps::vCross(*result, uVec, vVec);
+    *result = uVec.crossProduct(vVec);
 }
 
 
@@ -587,10 +587,10 @@ BicubicPatch::bezierSplitLeftRight(Vector3Dd (*patch)[4][4], Vector3Dd (*leftPat
         temp1[0] = (*patch)[i][0];
         VectorOps::vHalf(temp1[1], (*patch)[i][0], (*patch)[i][1]);
         VectorOps::vHalf(half, (*patch)[i][1], (*patch)[i][2]);
-        VectorOps::vHalf(temp1[2], temp1[1], half);
+        temp1[2] = temp1[1].half(half);
         VectorOps::vHalf(temp2[2], (*patch)[i][2], (*patch)[i][3]);
-        VectorOps::vHalf(temp2[1], half, temp2[2]);
-        VectorOps::vHalf(temp1[3], temp1[2], temp2[1]);
+        temp2[1] = half.half(temp2[2]);
+        temp1[3] = temp1[2].half(temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[i][3];
         for (j = 0; j < 4; j++) {
@@ -615,10 +615,10 @@ BicubicPatch::bezierSplitUpDown(Vector3Dd (*patch)[4][4], Vector3Dd (*topPatch)[
         temp1[0] = (*patch)[0][i];
         VectorOps::vHalf(temp1[1], (*patch)[0][i], (*patch)[1][i]);
         VectorOps::vHalf(half, (*patch)[1][i], (*patch)[2][i]);
-        VectorOps::vHalf(temp1[2], temp1[1], half);
+        temp1[2] = temp1[1].half(half);
         VectorOps::vHalf(temp2[2], (*patch)[2][i], (*patch)[3][i]);
-        VectorOps::vHalf(temp2[1], half, temp2[2]);
-        VectorOps::vHalf(temp1[3], temp1[2], temp2[1]);
+        temp2[1] = half.half(temp2[2]);
+        temp1[3] = temp1[2].half(temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[3][i];
         for (j = 0; j < 4; j++) {
@@ -644,7 +644,7 @@ BicubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
     vertices[0] = (*patch)[0][0];
     vertices[1] = (*patch)[0][3];
     VectorOps::vSub(tempV, vertices[0], vertices[1]);
-    VectorOps::vLength(temp1, tempV);
+    temp1 = tempV.length();
     if (fabs(temp1) < EPSILON) {
         /* Degenerate in the V direction for U = 0. This is ok if the other
             two corners are distinct from the lower left corner - I'm sure there
@@ -652,40 +652,40 @@ BicubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
             but that is somewhat pathalogical and won't be considered. */
         vertices[1] = (*patch)[3][3];
         VectorOps::vSub(tempV, vertices[0], vertices[1]);
-        VectorOps::vLength(temp1, tempV);
+        temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
         vertices[2] = (*patch)[3][0];
         VectorOps::vSub(tempV, vertices[0], vertices[1]);
-        VectorOps::vLength(temp1, tempV);
+        temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
         VectorOps::vSub(tempV, vertices[1], vertices[2]);
-        VectorOps::vLength(temp1, tempV);
+        temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
     } else {
         vertices[2] = (*patch)[3][0];
         VectorOps::vSub(tempV, vertices[0], vertices[1]);
-        VectorOps::vLength(temp1, tempV);
+        temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             vertices[2] = (*patch)[3][3];
             VectorOps::vSub(tempV, vertices[0], vertices[2]);
-            VectorOps::vLength(temp1, tempV);
+            temp1 = tempV.length();
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }
             VectorOps::vSub(tempV, vertices[1], vertices[2]);
-            VectorOps::vLength(temp1, tempV);
+            temp1 = tempV.length();
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }
         } else {
             VectorOps::vSub(tempV, vertices[1], vertices[2]);
-            VectorOps::vLength(temp1, tempV);
+            temp1 = tempV.length();
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }

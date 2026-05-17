@@ -1,7 +1,7 @@
 #ifndef __SCENE_FACTORY_H__
 #define __SCENE_FACTORY_H__
 
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "geom/Composite.h"
 
 class Composite;

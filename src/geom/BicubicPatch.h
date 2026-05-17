@@ -2,7 +2,7 @@
 #define __BICUBIC_PATCH_H__
 
 #include "common/FrameConfig.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "geom/BezierNode.h"
 #include "geom/GeometryOperations.h"
 

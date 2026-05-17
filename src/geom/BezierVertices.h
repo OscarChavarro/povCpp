@@ -1,7 +1,7 @@
 #ifndef __BEZIER_VERTICES_H__
 #define __BEZIER_VERTICES_H__
 
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 class BezierVertices {
   public:

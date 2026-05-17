@@ -17,8 +17,8 @@
 #include "common/Color.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "io/DumpFormat.h"
 #include "render/LightingEngine.h"
 
@@ -75,8 +75,8 @@ RenderFrame::createRay(Ray *ray, int width, int height, double x, double y)
     VectorOps::vScale(tempVect1, globalFrame.View_Point.Up, yScalar);
     VectorOps::vScale(tempVect2, globalFrame.View_Point.Right, xScalar);
     VectorOps::vAdd(ray->Direction, tempVect1, tempVect2);
-    VectorOps::vAdd(ray->Direction, ray->Direction, globalFrame.View_Point.Direction);
-    VectorOps::vNormalize(ray->Direction, ray->Direction);
+    ray->Direction.add(globalFrame.View_Point.Direction);
+    ray->Direction.normalize();
     ray->initializeContainers();
     ray->Quadric_Constants_Cached = FALSE;
 }

@@ -7,7 +7,7 @@
 #include "geom/Sphere.h"
 #include "io/Parse.h"
 #include "geom/Composite.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 //===========================================================================
 
@@ -36,11 +36,11 @@ Sphere::intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2
     if (ray == vpRay) {
         if (!sphere->VPCached) {
             VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->Initial);
-            VectorOps::vDot(sphere->VPOCSquared, sphere->VPOtoC, sphere->VPOtoC);
+            sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);
             sphere->VPinside = (sphere->VPOCSquared < sphere->Radius_Squared);
             sphere->VPCached = TRUE;
         }
-        VectorOps::vDot(tClosestApproach, sphere->VPOtoC, ray->Direction);
+        tClosestApproach = sphere->VPOtoC.dotProduct(ray->Direction);
         if (!sphere->VPinside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
@@ -48,9 +48,9 @@ Sphere::intersectSphere(Ray *ray, Sphere *sphere, double *depth1, double *depth2
                             (tClosestApproach * tClosestApproach);
     } else {
         VectorOps::vSub(originToCenter, sphere->Center, ray->Initial);
-        VectorOps::vDot(ocSquared, originToCenter, originToCenter);
+        ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->Radius_Squared);
-        VectorOps::vDot(tClosestApproach, originToCenter, ray->Direction);
+        tClosestApproach = originToCenter.dotProduct(ray->Direction);
         if (!inside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
@@ -99,7 +99,7 @@ Sphere::allSphereIntersections(
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
         VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
-        VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        intersectionPoint.add(ray->Initial);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -109,7 +109,7 @@ Sphere::allSphereIntersections(
             localElement.Depth = depth2;
             localElement.Object = shape->Parent_Object;
             VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
-            VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            intersectionPoint.add(ray->Initial);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -127,7 +127,7 @@ Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
     Sphere *sphere = (Sphere *)object;
 
     VectorOps::vSub(originToCenter, sphere->Center, *testPoint);
-    VectorOps::vDot(ocSquared, originToCenter, originToCenter);
+    ocSquared = originToCenter.dotProduct(originToCenter);
 
     if (sphere->Inverted) {
         return (ocSquared - sphere->Radius_Squared > Small_Tolerance);
@@ -141,7 +141,7 @@ Sphere::sphereNormal(Vector3Dd *result, SimpleBody *object, Vector3Dd *intersect
     Sphere *sphere = (Sphere *)object;
 
     VectorOps::vSub(*result, *intersectionPoint, sphere->Center);
-    VectorOps::vScale(*result, *result, sphere->Inverse_Radius);
+    (*result).scale(sphere->Inverse_Radius);
 }
 
 void *
@@ -163,7 +163,7 @@ Sphere::copySphere(SimpleBody *object)
 void
 Sphere::translateSphere(SimpleBody *object, Vector3Dd *vector)
 {
-    VectorOps::vAdd(((Sphere *)object)->Center, ((Sphere *)object)->Center, *vector);
+    ((Sphere *)object)->Center.add(*vector);
     TextureUtils::translateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
@@ -188,7 +188,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
         exit(1);
     }
 
-    VectorOps::vScale(sphere->Center, sphere->Center, vector->x);
+    sphere->Center.scale(vector->x);
     sphere->Radius *= vector->x;
     sphere->Radius_Squared = sphere->Radius * sphere->Radius;
     sphere->Inverse_Radius = 1.0 / sphere->Radius;

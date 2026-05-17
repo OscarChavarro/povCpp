@@ -7,8 +7,8 @@
 
 #include "common/Ray.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 inline void
 Ray::mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
@@ -29,7 +29,7 @@ Ray::makeRay()
     Ray::mixVectorTerms(this->Mixed_Dir_Dir, this->Direction, this->Direction);
     Ray::mixVectorTerms(tempInitDir, this->Initial, this->Direction);
     Ray::mixVectorTerms(this->Mixed_Init_Dir, this->Direction, this->Initial);
-    VectorOps::vAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, tempInitDir);
+    this->Mixed_Init_Dir.add(tempInitDir);
     this->Quadric_Constants_Cached = TRUE;
 }
 

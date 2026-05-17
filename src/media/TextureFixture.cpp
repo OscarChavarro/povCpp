@@ -14,7 +14,7 @@
 #include "media/TextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 /* Test new textures in the routines that follow */

@@ -18,8 +18,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "io/Parse.h"
 
 double *sintab;
@@ -510,7 +510,7 @@ TextureUtils::getTexture()
     newTexture->Constant_Flag = TRUE;
     newTexture->Colour1 = nullptr;
     newTexture->Colour2 = nullptr;
-    VectorOps::makeVector(&newTexture->Texture_Gradient, 0.0, 0.0, 0.0);
+    *&newTexture->Texture_Gradient = Vector3Dd(0.0, 0.0, 0.0);
 
     newTexture->Object_Index_Of_Refraction = 1.0;
     newTexture->Object_Transmit = 0.0;

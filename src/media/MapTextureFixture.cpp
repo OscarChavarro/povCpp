@@ -10,8 +10,8 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 extern int cylindricalImageMap(
@@ -222,33 +222,33 @@ MapTextureFixture::bumpMap(double x, double y, double z, Texture *texture, Vecto
      */
     VectorOps::vSub(xprime, p1, p2);
     VectorOps::vSub(yprime, p3, p2);
-    VectorOps::vCross(bumpNormal, yprime, xprime);
-    VectorOps::vNormalize(bumpNormal, bumpNormal);
+    bumpNormal = yprime.crossProduct(xprime);
+    bumpNormal.normalize();
 
-    VectorOps::makeVector(&yprime, normal->x, normal->y, normal->z);
-    VectorOps::makeVector(&temp, 0.0, 1.0, 0.0);
-    VectorOps::vCross(xprime, yprime, temp);
-    VectorOps::vLength(length, xprime);
+    *&yprime = Vector3Dd(normal->x, normal->y, normal->z);
+    *&temp = Vector3Dd(0.0, 1.0, 0.0);
+    xprime = yprime.crossProduct(temp);
+    length = xprime.length();
     if (length < 1.0e-9) {
         if (fabs(normal->y - 1.0) < Small_Tolerance) {
-            VectorOps::makeVector(&yprime, 0.0, 1.0, 0.0);
-            VectorOps::makeVector(&xprime, 1.0, 0.0, 0.0);
+            *&yprime = Vector3Dd(0.0, 1.0, 0.0);
+            *&xprime = Vector3Dd(1.0, 0.0, 0.0);
             length = 1.0;
         } else {
-            VectorOps::makeVector(&yprime, 0.0, -1.0, 0.0);
-            VectorOps::makeVector(&xprime, 1.0, 0.0, 0.0);
+            *&yprime = Vector3Dd(0.0, -1.0, 0.0);
+            *&xprime = Vector3Dd(1.0, 0.0, 0.0);
             length = 1.0;
         }
     }
-    VectorOps::vScale(xprime, xprime, 1.0 / length);
-    VectorOps::vCross(zprime, xprime, yprime);
-    VectorOps::vNormalize(zprime, zprime);
-    VectorOps::vScale(xprime, xprime, bumpNormal.x);
-    VectorOps::vScale(yprime, yprime, bumpNormal.y);
-    VectorOps::vScale(zprime, zprime, bumpNormal.z);
+    xprime.scale(1.0 / length);
+    zprime = xprime.crossProduct(yprime);
+    zprime.normalize();
+    xprime.scale(bumpNormal.x);
+    yprime.scale(bumpNormal.y);
+    zprime.scale(bumpNormal.z);
     VectorOps::vAdd(temp, xprime, yprime);
     VectorOps::vAdd(*normal, temp, zprime);
-    VectorOps::vNormalize(*normal, *normal);
+    (*normal).normalize();
 }
 
 void

@@ -8,8 +8,8 @@
 #include "common/Transformation.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
-#include "common/Vector3Dd.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 #include "io/Parse.h"
 void
 Transformation::MZero(MATRIX *result)

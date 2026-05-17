@@ -7,7 +7,7 @@
 
 #include "geom/Viewpoint.h"
 #include "io/Parse.h"
-#include "common/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr, Viewpoint::copyViewpoint,
     Viewpoint::translateViewpoint, Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
 void *
@@ -30,11 +30,11 @@ Viewpoint::initializeDefaults()
 {
     this->methods = (Methods *)&Viewpoint_Methods;
     this->Type = VIEWPOINT_TYPE;
-    VectorOps::makeVector(&this->Location, 0.0, 0.0, 0.0);
-    VectorOps::makeVector(&this->Direction, 0.0, 0.0, 1.0);
-    VectorOps::makeVector(&this->Up, 0.0, 1.0, 0.0);
-    VectorOps::makeVector(&this->Right, 1.33, 0.0, 0.0);
-    VectorOps::makeVector(&this->Sky, 0.0, 1.0, 0.0);
+    *&this->Location = Vector3Dd(0.0, 0.0, 0.0);
+    *&this->Direction = Vector3Dd(0.0, 0.0, 1.0);
+    *&this->Up = Vector3Dd(0.0, 1.0, 0.0);
+    *&this->Right = Vector3Dd(1.33, 0.0, 0.0);
+    *&this->Sky = Vector3Dd(0.0, 1.0, 0.0);
 }
 
 void
