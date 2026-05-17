@@ -6,7 +6,7 @@
 #include "common/Vector.h"
 #include "geom/Geometry.h"
 
-class Poly : public Geometry {
+class PolynomialShape : public Geometry {
   public:
     Transformation *Transform;
     short Inverted;
@@ -29,7 +29,7 @@ class Poly : public Geometry {
     static int roll(int order, int x, int y, int z);
     static void unroll(int order, int index, int *x, int *y, int *z, int *w);
     static int intersect(Ray *ray, int order, double *coeffs, double *depths);
-    static int intersectQuartic(Ray *ray, Poly *shape, double *depths);
+    static int intersectQuartic(Ray *ray, PolynomialShape *shape, double *depths);
     static void quarticNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
     static double inside(Vector3D *point, int order, double *coeffs);
@@ -40,6 +40,6 @@ class Poly : public Geometry {
 };
 
 extern Methods Poly_Methods;
-extern Poly *getPolyShape(int);
+extern PolynomialShape *getPolyShape(int);
 
 #endif

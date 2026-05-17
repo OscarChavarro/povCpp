@@ -8,7 +8,7 @@ class Composite;
 class Sphere;
 class Light;
 class Quadric;
-class Poly;
+class PolynomialShape;
 class Box;
 class Blob;
 class HeightField;
@@ -26,7 +26,7 @@ class SceneFactory {
     static Sphere *getSphereShape();
     static Light *getLightSourceShape();
     static Quadric *getQuadricShape();
-    static Poly *getPolyShape(int order);
+    static PolynomialShape *getPolyShape(int order);
     static Box *getBoxShape();
     static Blob *getBlobShape();
     static HeightField *getHeightFieldShape();

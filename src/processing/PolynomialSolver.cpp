@@ -6,10 +6,11 @@
  *
  *****************************************************************************/
 
-#include "media/Vect.h"
+#include "processing/PolynomialSolver.h"
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "common/Polynomial.h"
 
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
@@ -63,12 +64,6 @@ static constexpr double TWO_PI_43 = 4.1887902047863909846168;
 static constexpr int MAX_ITERATIONS = 50;
 static constexpr int MAXPOW = 32;
 
-class polynomial {
-  public:
-    int ord;
-    double coef[MAX_ORDER + 1];
-};
-
 extern int shadowTestFlag;
 
 /*
@@ -80,7 +75,7 @@ extern int shadowTestFlag;
  *    is 1 or -1
  */
 int
-PolynomialSolver::modp(polynomial *u, polynomial *v, polynomial *r)
+PolynomialSolver::modp(Polynomial *u, Polynomial *v, Polynomial *r)
 {
     int i;
     int k;
@@ -115,13 +110,13 @@ PolynomialSolver::modp(polynomial *u, polynomial *v, polynomial *r)
     return (r->ord);
 }
 
-/* Build the sturmian sequence for a polynomial */
+/* Build the sturmian sequence for a Polynomial */
 int
-PolynomialSolver::buildsturm(int ord, polynomial *sseq)
+PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
 {
     int i;
     double f, *fp, *fc;
-    polynomial *sp;
+    Polynomial *sp;
 
     sseq[0].ord = ord;
     sseq[1].ord = ord - 1;
@@ -148,11 +143,11 @@ PolynomialSolver::buildsturm(int ord, polynomial *sseq)
 
 /* Find out how many visible intersections there are */
 int
-PolynomialSolver::visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
+PolynomialSolver::visibleRoots(int np, Polynomial *sseq, int *atzer, int *atpos)
 {
     int atposinf;
     int atzero;
-    polynomial *s;
+    Polynomial *s;
     double f, lf;
 
     atposinf = atzero = 0;
@@ -188,11 +183,11 @@ PolynomialSolver::visibleRoots(int np, polynomial *sseq, int *atzer, int *atpos)
  * sseq at the value a.
  */
 int
-PolynomialSolver::numchanges(int np, polynomial *sseq, double a)
+PolynomialSolver::numchanges(int np, Polynomial *sseq, double a)
 {
     int changes;
     double f, lf;
-    polynomial *s;
+    Polynomial *s;
     changes = 0;
     lf = PolynomialSolver::polyeval(a, sseq[0].ord, sseq[0].coef);
     for (s = sseq + 1; s <= sseq + np; s++) {
@@ -208,7 +203,7 @@ PolynomialSolver::numchanges(int np, polynomial *sseq, double a)
 /*
  * sbisect
  *
- *    uses a bisection based on the sturm sequence for the polynomial
+ *    uses a bisection based on the sturm sequence for the Polynomial
  * described in sseq to isolate intervals in which roots occur,
  * the roots are returned in the roots array in order of magnitude.
 
@@ -219,7 +214,7 @@ Note: This routine has one severe bug: When the interval containing the
 
  */
 void
-PolynomialSolver::sbisect(int np, polynomial *sseq, double minValue, double maxValue, int atmin,
+PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue, double maxValue, int atmin,
     int atmax, double *roots)
 {
     double mid;
@@ -637,11 +632,11 @@ PolynomialSolver::solveQuartic(double *x, double *results)
     return i;
 }
 
-/* Root solver based on the Sturm sequences for a polynomial. */
+/* Root solver based on the Sturm sequences for a Polynomial. */
 int
 PolynomialSolver::polysolve(int order, double *coeffs, double *roots)
 {
-    polynomial sseq[MAX_ORDER + 1];
+    Polynomial sseq[MAX_ORDER + 1];
     double minValue, maxValue;
     int i;
     int nroots;

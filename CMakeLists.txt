@@ -19,11 +19,11 @@ add_executable(povray
   src/geom/Blob.cpp
   src/geom/Boxes.cpp
   src/geom/Csg.cpp
-  src/geom/HField.cpp
+  src/geom/HeightField.cpp
   src/geom/Light.cpp
   src/geom/Objects.cpp
   src/geom/Planes.cpp
-  src/geom/Poly.cpp
+  src/geom/PolynomialShape.cpp
   src/geom/PrioQ.cpp
   src/geom/Quadrics.cpp
   src/geom/Spheres.cpp
@@ -66,9 +66,9 @@ add_executable(povray
   src/media/Texture.cpp
   src/media/TxtBump.cpp
   src/media/TxtColor.cpp
-  src/media/TxtMap.cpp
+  src/media/MapTextures.cpp
   src/media/TxtTest.cpp
-  src/media/Vect.cpp
+  src/processing/PolynomialSolver.cpp
   src/render/Lighting.cpp
   src/render/Render.cpp
 )

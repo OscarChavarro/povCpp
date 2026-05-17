@@ -9,7 +9,7 @@
 #include "io/Gif.h"
 #include "io/Iff.h"
 #include "io/Targa.h"
-#include "geom/HField.h"
+#include "geom/HeightField.h"
 #include "geom/Geometry.h"
 
 extern TokenStruct globalToken;

@@ -15,7 +15,7 @@
 #include "geom/PrioQ.h"
 #include "media/TxtBump.h"
 #include "media/TxtColor.h"
-#include "media/TxtMap.h"
+#include "media/MapTextures.h"
 #include "media/TxtTest.h"
 #include "render/Render.h"
 #include "render/RenderFrame.h"

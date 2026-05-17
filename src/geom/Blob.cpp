@@ -11,7 +11,7 @@
 #include "geom/Blob.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "media/Vect.h"
+#include "processing/PolynomialSolver.h"
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
     Blob::blobNormal, Blob::copyBlob, Blob::translateBlob, Blob::rotateBlob, Blob::scaleBlob,
     Blob::invertBlob};
