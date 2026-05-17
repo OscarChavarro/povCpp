@@ -17,22 +17,22 @@
 #include "geom/HField.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
+#include "media/Texture.h"
 
 inline int
-HeightField::HeightField::signInline(double x)
+HeightField::signInline(double x)
 {
     return (x > 0.0) ? 1 : ((x == 0.0) ? 0 : -1);
 }
 
 inline double
-HeightField::HeightField::minValue(double x, double y)
+HeightField::minValue(double x, double y)
 {
     return (x > y) ? y : x;
 }
 
 inline double
-HeightField::HeightField::maxValue(double x, double y)
+HeightField::maxValue(double x, double y)
 {
     return (x < y) ? y : x;
 }
@@ -897,7 +897,7 @@ HeightField::copyHeightfld(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -915,7 +915,7 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3D *vector)
     Transformation::getTranslationTransformation(&transformation, vector);
     Transformation::composeTransformations(hField->transformation, &transformation);
 
-    translateTexture(&((HeightField *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
@@ -930,7 +930,7 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3D *vector)
     Transformation::getRotationTransformation(&transformation, vector);
     Transformation::composeTransformations(hField->transformation, &transformation);
 
-    rotateTexture(&((HeightField *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void
@@ -945,7 +945,7 @@ HeightField::scaleHeightfld(SimpleBody *object, Vector3D *vector)
     Transformation::getScalingTransformation(&transformation, vector);
     Transformation::composeTransformations(hField->transformation, &transformation);
 
-    scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void

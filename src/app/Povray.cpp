@@ -241,7 +241,7 @@ PovApp::prepareRendering()
     }
 
     GLOBAL_priorityQueuesHead = PriorityQueuePool::pqInit();
-    initializeNoise();
+    TextureUtils::initializeNoise();
 }
 
 void

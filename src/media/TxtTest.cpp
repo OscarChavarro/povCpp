@@ -45,8 +45,8 @@ TestTextures::painted1(double x, double y, double z, Texture *texture, RGBAColor
     result.z = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        DNoise(&colourVector, x, y, z);
-        temp = Noise(colourVector.x * 4 * scale, colourVector.y * 4 * scale,
+        TextureUtils::DNoise(&colourVector, x, y, z);
+        temp = TextureUtils::Noise(colourVector.x * 4 * scale, colourVector.y * 4 * scale,
             colourVector.z * 4 * scale);
         temp = fabsInline(temp);
         result.x += temp / scale;
@@ -56,7 +56,7 @@ TestTextures::painted1(double x, double y, double z, Texture *texture, RGBAColor
 
     temp = result.x;
     if (texture->Colour_Map != nullptr) {
-        computeColour(&newColour, texture->Colour_Map, temp);
+        TextureUtils::computeColour(&newColour, texture->Colour_Map, temp);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -83,8 +83,8 @@ TestTextures::painted2(double x, double y, double z, Texture *texture, RGBAColor
     /* testing. If the texture works out right you can change the parser later.
      */
     if (texture->Colour_Map != nullptr) {
-        computeColour(&colour1, texture->Colour_Map, 0.1);
-        computeColour(&colour2, texture->Colour_Map, 0.9);
+        TextureUtils::computeColour(&colour1, texture->Colour_Map, 0.1);
+        TextureUtils::computeColour(&colour2, texture->Colour_Map, 0.9);
     } else {
         Color::makeColor(&colour1, 1.0, 1.0, 1.0);
         colour1.Alpha = 0.0;
@@ -93,7 +93,7 @@ TestTextures::painted2(double x, double y, double z, Texture *texture, RGBAColor
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        DTurbulence(&textureTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::DTurbulence(&textureTurbulence, x, y, z, texture->Octaves);
         x += textureTurbulence.x * turb;
         y += textureTurbulence.y * turb;
         z += textureTurbulence.z * turb;

@@ -9,6 +9,7 @@
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
+#include "io/Parse.h"
 void
 Transformation::MZero(MATRIX *result)
 {
@@ -299,7 +300,7 @@ Transformation::getTransformation()
 
     newTransformation = new Transformation();
     if (newTransformation == nullptr) {
-        Error("Out of memory. Cannot allocate transformation");
+        ParseEngine::Error("Out of memory. Cannot allocate transformation");
     }
 
     Transformation::MIdentity((MATRIX *)&(newTransformation->matrix[0][0]));

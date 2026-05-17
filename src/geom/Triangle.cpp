@@ -391,7 +391,7 @@ Triangle::copyTriangle(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -408,7 +408,7 @@ Triangle::translateTriangle(SimpleBody *object, Vector3D *vector)
     VectorOps::vAdd(triangle->P1, triangle->P1, *vector);
     VectorOps::vAdd(triangle->P2, triangle->P2, *vector);
     VectorOps::vAdd(triangle->P3, triangle->P3, *vector);
-    translateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -425,7 +425,7 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3D *vector)
     Transformation::MTransformVector(&triangle->P3, &triangle->P3, &transformation);
     Triangle::computeTriangle(triangle);
 
-    rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -446,7 +446,7 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3D *vector)
     VectorOps::vEvaluate(triangle->P2, triangle->P2, *vector);
     VectorOps::vEvaluate(triangle->P3, triangle->P3, *vector);
 
-    scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -557,7 +557,7 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -580,7 +580,7 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3D *vector)
     Transformation::MTransformVector(&triangle->N3, &triangle->N3, &transformation);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -596,7 +596,7 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3D *vector)
     VectorOps::vAdd(triangle->P3, triangle->P3, *vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    translateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -618,7 +618,7 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3D *vector)
     VectorOps::vEvaluate(triangle->P3, triangle->P3, *vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    scaleTexture(&((SmoothTriangle *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((SmoothTriangle *)object)->Shape_Texture, vector);
 }
 
 void

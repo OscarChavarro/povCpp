@@ -78,6 +78,19 @@ class Texture {
     short Metallic_Flag, Once_Flag, Constant_Flag;
     int Octaves; /* dmf, 1/92 for turb */
     double Mortar;  /* rha, 2/92 for brick */
+
+    static inline double floorInline(double x)
+    {
+        return (x >= 0.0) ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
+    }
+    static inline double fabsInline(double x)
+    {
+        return (x < 0.0) ? (0.0 - x) : x;
+    }
+    static inline double sCurve(double a)
+    {
+        return a * a * (3.0 - 2.0 * a);
+    }
 };
 
 /* Image/Bump Map projection methods */
@@ -143,21 +156,14 @@ static constexpr int SINTABSIZE = 1000;
 extern double *RTable;
 extern short *hashTable;
 
-inline double floorInline(double x)
-{
-    return (x >= 0.0) ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
-}
-
-inline double fabsInline(double x)
-{
-    return (x < 0.0) ? (0.0 - x) : x;
-}
-
-inline double sCurve(double a)
-{
-    return a * a * (3.0 - 2.0 * a);
-}
 static constexpr double realScale = (2.0 / 65535.0);
+
+// Deprecated: Use Texture:: methods instead
+inline double floorInline(double x) { return Texture::floorInline(x); }
+inline double fabsInline(double x) { return Texture::fabsInline(x); }
+inline double sCurve(double a) { return Texture::sCurve(a); }
+
+// These need to be global because they access external variables
 inline short hash3d(long a, long b, long c)
 {
     return hashTable[(int)(hashTable[(int)(hashTable[(int)(a & 0xfffL)] ^
@@ -201,5 +207,25 @@ extern void scaleTexture(Texture **Texture_Ptr, Vector3D *Vector);
 
 extern Texture *copyTexture(Texture *Texture);
 extern Texture *getTexture();
+
+class TextureUtils {
+  public:
+    static void computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value);
+    static void initializeNoise(void);
+    static void InitTextureTable(void);
+    static void InitRTable(void);
+    static int R(Vector3D *v);
+    static int Crc16(char *buf, int count);
+    static double Noise(double x, double y, double z);
+    static void DNoise(Vector3D *result, double x, double y, double z);
+    static double cycloidal(double value);
+    static double triangleWave(double value);
+    static double Turbulence(double x, double y, double z, int octaves);
+    static void DTurbulence(Vector3D *result, double x, double y, double z, int octaves);
+    static void translateTexture(Texture **Texture_Ptr, Vector3D *Vector);
+    static void rotateTexture(Texture **Texture_Ptr, Vector3D *Vector);
+    static void scaleTexture(Texture **Texture_Ptr, Vector3D *Vector);
+    static Texture *getTexture();
+};
 
 #endif

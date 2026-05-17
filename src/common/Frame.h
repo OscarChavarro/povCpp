@@ -17,14 +17,43 @@
 
 #include "common/Color.h"
 
-static inline void readEnvVarBefore() {}
+class FrameConfig {
+  public:
+    static inline void readEnvVarBefore() {}
+    static inline void readEnvVarAfter(char *optionStringPtr)
+    {
+        (void)optionStringPtr;
+    }
+    static inline void configMath() {}
+    static inline void startTime(time_t *tstart) { std::time(tstart); }
+    static inline void stopTime(time_t *tstop) { std::time(tstop); }
+    static inline void printOtherCredits() {}
+    static inline void testAbort() {}
+    static inline void finishPovray() {}
+    static inline void cooperate() {}
+    static inline double acosInline(double value) { return acos(value); }
+    static inline double sqrtInline(double value) { return sqrt(value); }
+    static inline double powInline(double base, double exp) { return pow(base, exp); }
+    static inline double cosInline(double value) { return cos(value); }
+    static inline double sinInline(double value) { return sin(value); }
+    static inline long labsInline(long x)
+    {
+        return (x < 0) ? -x : x;
+    }
+    template <typename T>
+    static inline T maxInline(T x, T y)
+    {
+        return (x < y) ? y : x;
+    }
+    static inline void printCreditsInline() {}
+    static inline void printStatsInline() {}
+    static inline void waitForKeypress() {}
+};
 
-static inline void readEnvVarAfter(char *optionStringPtr)
-{
-    (void)optionStringPtr;
-}
-
-static inline void configMath() {}
+// Deprecated: Use FrameConfig::readEnvVarBefore(), readEnvVarAfter(), configMath() instead
+static inline void readEnvVarBefore() { FrameConfig::readEnvVarBefore(); }
+static inline void readEnvVarAfter(char *optionStringPtr) { FrameConfig::readEnvVarAfter(optionStringPtr); }
+static inline void configMath() { FrameConfig::configMath(); }
 
 static constexpr int FILE_NAME_LENGTH = 150;
 
@@ -53,50 +82,33 @@ static constexpr char NORMAL = '0';
 
 static constexpr char GREY = 'G';
 
-static inline void startTime(time_t *tstart) { std::time(tstart); }
-
-static inline void stopTime(time_t *tstop) { std::time(tstop); }
-static inline void printOtherCredits() {}
-
-static inline void testAbort() {}
-
-static inline void finishPovray() {}
-
-static inline void cooperate() {}
-
-static inline double acosInline(double value) { return acos(value); }
-
-static inline double sqrtInline(double value) { return sqrt(value); }
-
-static inline double powInline(double base, double exp) { return pow(base, exp); }
-
-static inline double cosInline(double value) { return cos(value); }
-
-static inline double sinInline(double value) { return sin(value); }
-
-inline long labsInline(long x)
-{
-    return (x < 0) ? -x : x;
-}
-
+// Deprecated: Use FrameConfig:: methods instead
+static inline void startTime(time_t *tstart) { FrameConfig::startTime(tstart); }
+static inline void stopTime(time_t *tstop) { FrameConfig::stopTime(tstop); }
+static inline void printOtherCredits() { FrameConfig::printOtherCredits(); }
+static inline void testAbort() { FrameConfig::testAbort(); }
+static inline void finishPovray() { FrameConfig::finishPovray(); }
+static inline void cooperate() { FrameConfig::cooperate(); }
+static inline double acosInline(double value) { return FrameConfig::acosInline(value); }
+static inline double sqrtInline(double value) { return FrameConfig::sqrtInline(value); }
+static inline double powInline(double base, double exp) { return FrameConfig::powInline(base, exp); }
+static inline double cosInline(double value) { return FrameConfig::cosInline(value); }
+static inline double sinInline(double value) { return FrameConfig::sinInline(value); }
+inline long labsInline(long x) { return FrameConfig::labsInline(x); }
 template <typename T>
-inline T maxInline(T x, T y)
-{
-    return (x < y) ? y : x;
-}
+inline T maxInline(T x, T y) { return FrameConfig::maxInline(x, y); }
 
 static constexpr int ansiFunc = 1;
 
 static constexpr int TRUE = 1;
 static constexpr int FALSE = 0;
 
-static inline void printCreditsInline() {}
-
-static inline void printStatsInline() {}
+static inline void printCreditsInline() { FrameConfig::printCreditsInline(); }
+static inline void printStatsInline() { FrameConfig::printStatsInline(); }
 
 static constexpr int MAX_CONSTANTS = 1000;
 
-static inline void waitForKeypress() {}
+static inline void waitForKeypress() { FrameConfig::waitForKeypress(); }
 
 /* If compiler version is undefined, then make it 'u' for unknown */
 static constexpr const char *COMPILER_VER = ".u";

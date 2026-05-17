@@ -36,7 +36,7 @@ Light::copyPoint(SimpleBody *object)
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -69,7 +69,7 @@ Light::scalePoint(SimpleBody *object, Vector3D *vector)
         &transformation);
     Transformation::MTransformVector(&((Light *)object)->Points_At,
         &((Light *)object)->Points_At, &transformation);
-    scaleTexture(&((Light *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((Light *)object)->Shape_Texture, vector);
 }
 
 void

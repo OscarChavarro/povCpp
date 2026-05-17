@@ -790,7 +790,7 @@ Poly::copyPoly(SimpleBody *object)
 
     /* Copy any associated texture */
     if (shape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = copyTexture(shape->Shape_Texture);
+        newShape->Shape_Texture = ParseEngine::copyTexture(shape->Shape_Texture);
     }
 
     return (void *)(newShape);
@@ -807,7 +807,7 @@ Poly::translatePoly(SimpleBody *object, Vector3D *vector)
     Transformation::getTranslationTransformation(&transform, vector);
     Transformation::composeTransformations(shape->Transform, &transform);
 
-    translateTexture(&shape->Shape_Texture, vector);
+    TextureUtils::translateTexture(&shape->Shape_Texture, vector);
 }
 
 void
@@ -821,7 +821,7 @@ Poly::rotatePoly(SimpleBody *object, Vector3D *vector)
     Transformation::getRotationTransformation(&transform, vector);
     Transformation::composeTransformations(shape->Transform, &transform);
 
-    rotateTexture(&shape->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&shape->Shape_Texture, vector);
 }
 
 void
@@ -835,7 +835,7 @@ Poly::scalePoly(SimpleBody *object, Vector3D *vector)
     Transformation::getScalingTransformation(&transform, vector);
     Transformation::composeTransformations(shape->Transform, &transform);
 
-    scaleTexture(&shape->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&shape->Shape_Texture, vector);
 }
 
 void

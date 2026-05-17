@@ -559,7 +559,7 @@ Blob::copyBlob(SimpleBody *object)
 
     /* Copy any associated texture */
     if (blob->Shape_Texture != nullptr) {
-        blob->Shape_Texture = copyTexture(blob->Shape_Texture);
+        blob->Shape_Texture = ParseEngine::copyTexture(blob->Shape_Texture);
     }
 
     return (blob);
@@ -576,7 +576,7 @@ Blob::translateBlob(SimpleBody *object, Vector3D *vector)
     Transformation::getTranslationTransformation(&transform, vector);
     Transformation::composeTransformations(blob->Transform, &transform);
 
-    translateTexture(&((Blob *)object)->Shape_Texture, vector);
+    TextureUtils::translateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
@@ -590,7 +590,7 @@ Blob::rotateBlob(SimpleBody *object, Vector3D *vector)
     Transformation::getRotationTransformation(&transform, vector);
     Transformation::composeTransformations(blob->Transform, &transform);
 
-    rotateTexture(&((Blob *)object)->Shape_Texture, vector);
+    TextureUtils::rotateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
@@ -604,7 +604,7 @@ Blob::scaleBlob(SimpleBody *object, Vector3D *vector)
     Transformation::getScalingTransformation(&transform, vector);
     Transformation::composeTransformations(blob->Transform, &transform);
 
-    scaleTexture(&((Blob *)object)->Shape_Texture, vector);
+    TextureUtils::scaleTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
