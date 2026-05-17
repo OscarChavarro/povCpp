@@ -7,7 +7,7 @@
 #include "app/PovApp.h"
 #include "common/Vector3D.h"
 #include "geom/PolynomialShape.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 #include "geom/ObjectUtils.h"
 
 extern TokenStruct globalToken;
@@ -62,7 +62,7 @@ PolyParser::parsePoly(int knownOrder)
     case IDENTIFIER_TOKEN: if ((constantId = SceneConfigParser::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == POLY_CONSTANT) {
-            localShape = (PolynomialShape *)GeometryOps::copy(
+            localShape = (PolynomialShape *)GeometryOperations::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseErrorReporter::typeError();
@@ -94,21 +94,21 @@ PolyParser::parsePoly(int knownOrder)
 
     case TRANSLATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::translate((SimpleBody *)localShape, &localVector);
+    GeometryOperations::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
+    GeometryOperations::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::scale((SimpleBody *)localShape, &localVector);
+    GeometryOperations::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    GeometryOps::invert((SimpleBody *)localShape);
+    GeometryOperations::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:

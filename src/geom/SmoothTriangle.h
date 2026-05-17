@@ -3,7 +3,7 @@
 
 #include "common/FrameConfig.h"
 #include "common/Vector3D.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 
 class SmoothTriangle : public Geometry {
   public:

@@ -5,7 +5,7 @@
 #include "geom/BlobElement.h"
 #include "geom/BlobList.h"
 #include "geom/BlobInterval.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 
 class Blob : public Geometry {
   public:

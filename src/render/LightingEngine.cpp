@@ -15,10 +15,10 @@
 #include "geom/Light.h"
 #include "geom/Intersection.h"
 #include "geom/PriorityQueue.h"
-#include "media/BumpTextures.h"
-#include "media/ColorTextures.h"
-#include "media/MapTextures.h"
-#include "media/TestTextures.h"
+#include "media/BumpTextureFixture.h"
+#include "media/ColorTextureFixture.h"
+#include "media/MapTextureFixture.h"
+#include "media/TextureFixture.h"
 #include "render/RenderEngine.h"
 #include "render/RenderFrame.h"
 
@@ -249,39 +249,39 @@ LightingEngine::perturbNormal(Vector3D *newNormal, Texture *texture,
     switch (texture->Bump_Number) {
 
     case WAVES:
-        BumpTextures::waves(x, y, z, texture, newNormal);
+        BumpTextureFixture::waves(x, y, z, texture, newNormal);
         break;
 
     case RIPPLES:
-        BumpTextures::ripples(x, y, z, texture, newNormal);
+        BumpTextureFixture::ripples(x, y, z, texture, newNormal);
         break;
 
     case WRINKLES:
-        BumpTextures::wrinkles(x, y, z, texture, newNormal);
+        BumpTextureFixture::wrinkles(x, y, z, texture, newNormal);
         break;
 
     case BUMPS:
-        BumpTextures::bumps(x, y, z, texture, newNormal);
+        BumpTextureFixture::bumps(x, y, z, texture, newNormal);
         break;
 
     case DENTS:
-        BumpTextures::dents(x, y, z, texture, newNormal);
+        BumpTextureFixture::dents(x, y, z, texture, newNormal);
         break;
 
     case BUMPY1:
-        TestTextures::bumpy1(x, y, z, texture, newNormal);
+        TextureFixture::bumpy1(x, y, z, texture, newNormal);
         break;
 
     case BUMPY2:
-        TestTextures::bumpy2(x, y, z, texture, newNormal);
+        TextureFixture::bumpy2(x, y, z, texture, newNormal);
         break;
 
     case BUMPY3:
-        TestTextures::bumpy3(x, y, z, texture, newNormal);
+        TextureFixture::bumpy3(x, y, z, texture, newNormal);
         break;
 
     case BUMPMAP:
-        MapTextures::bumpMap(x, y, z, texture, newNormal);
+        MapTextureFixture::bumpMap(x, y, z, texture, newNormal);
         break;
     }
 }
@@ -347,7 +347,7 @@ LightingEngine::diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
                  blockingObject = blockingObject->Next_Object) {
 
                 shadowRayTests++;
-                for (GeometryOps::allIntersections(
+                for (GeometryOperations::allIntersections(
                          blockingObject, &lightSourceRay, localQueue);
                      (localIntersection = localQueue->getHighest()) != nullptr;
                      localQueue->deleteHighest()) {
@@ -565,7 +565,7 @@ of the object and how much is transmited through. */
         return;
     }
 
-    GeometryOps::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
+    GeometryOperations::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
         &rayIntersection->Point);
 
     if (quality >= 8) {
@@ -631,7 +631,7 @@ LightingEngine::determineSurfaceColour(
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
-        texture = MapTextures::materialMap(&rayIntersection->Point, texture);
+        texture = MapTextureFixture::materialMap(&rayIntersection->Point, texture);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
@@ -659,7 +659,7 @@ LightingEngine::determineSurfaceColour(
                 Color::makeColor(&surfaceColour, 0.5, 0.5, 0.5);
             }
         } else {
-            ColorTextures::colourAt(&surfaceColour, tempTexture, &rayIntersection->Point);
+            ColorTextureFixture::colourAt(&surfaceColour, tempTexture, &rayIntersection->Point);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
@@ -713,7 +713,7 @@ LightingEngine::determineSurfaceColour(
         Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
 
         if (texture->Object_Refraction > 0.0) {
-            GeometryOps::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
+            GeometryOperations::normal(&surfaceNormal, (SimpleBody *)rayIntersection->Shape,
                 &rayIntersection->Point);
 
             if (quality > 7) {

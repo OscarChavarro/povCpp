@@ -5,7 +5,7 @@
 #include "common/Vector3D.h"
 #include "media/Texture.h"
 
-class BumpTextures {
+class BumpTextureFixture {
   public:
     static void bumps(double x, double y, double z, Texture *texture, Vector3D *normal);
     static void dents(double x, double y, double z, Texture *texture, Vector3D *normal);

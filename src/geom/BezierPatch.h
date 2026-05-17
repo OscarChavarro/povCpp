@@ -1,13 +1,13 @@
-#ifndef __BEZIER_PATCHES_H__
-#define __BEZIER_PATCHES_H__
+#ifndef __BEZIER_PATCH_H__
+#define __BEZIER_PATCH_H__
 
 #include "common/Ray.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 
 class BicubicPatch;
 class PriorityQueueNode;
 
-class BezierPatches {
+class BezierPatch {
   public:
     static int intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *depths);
     static int intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *depths);

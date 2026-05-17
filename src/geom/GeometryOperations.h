@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_OPS_H__
-#define __GEOMETRY_OPS_H__
+#ifndef __GEOMETRY_OPERATIONS_H__
+#define __GEOMETRY_OPERATIONS_H__
 
 #include "common/Transformation.h"
 #include "common/Ray.h"
@@ -38,7 +38,7 @@ class SimpleBody;
 #include "geom/PriorityQueue.h"
 #include "media/Texture.h"
 
-class GeometryOps {
+class GeometryOperations {
   public:
     static inline int allIntersections(SimpleBody *x, Ray *y, PriorityQueueNode *z)
     {

@@ -5,7 +5,7 @@
 #include "app/PovApp.h"
 #include "common/Vector3D.h"
 #include "geom/CSG.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 #include "geom/ObjectUtils.h"
 
 class Composite {

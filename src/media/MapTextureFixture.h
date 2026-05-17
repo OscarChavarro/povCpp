@@ -5,7 +5,7 @@
 #include "common/Vector3D.h"
 #include "media/Texture.h"
 
-class MapTextures {
+class MapTextureFixture {
   public:
     static int map(double x, double y, double z, Texture *texture, RGBAImage *image,
         double *xcoor, double *ycoor);

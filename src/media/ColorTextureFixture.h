@@ -5,7 +5,7 @@
 #include "common/Vector3D.h"
 #include "media/Texture.h"
 
-class ColorTextures {
+class ColorTextureFixture {
   public:
     static void colourAt(
         RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint);

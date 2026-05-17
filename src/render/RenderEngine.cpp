@@ -540,7 +540,7 @@ RenderEngine::trace(Ray *ray, RGBAColor *colour)
     for (object = globalFrame.Objects; object != nullptr;
          object = object->Next_Object) {
         cooperate();
-        if ((newIntersection = GeometryOps::intersect(object, ray)) != nullptr) {
+        if ((newIntersection = GeometryOperations::intersect(object, ray)) != nullptr) {
             if (intersectionFound) {
                 if (localIntersection->Depth > newIntersection->Depth) {
                     delete localIntersection;

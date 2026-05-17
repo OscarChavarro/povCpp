@@ -12,19 +12,19 @@
     Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley).
 */
 
-#include "media/ColorTextures.h"
+#include "media/ColorTextureFixture.h"
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
 #include "common/Vector3D.h"
 #include "common/VectorOps.h"
 #include "media/Texture.h"
-#include "media/MapTextures.h"
-#include "media/TestTextures.h"
+#include "media/MapTextureFixture.h"
+#include "media/TextureFixture.h"
 
 static constexpr double COORDINATE_LIMIT = 1.0e17;
 
 void
-ColorTextures::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
+ColorTextureFixture::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
 {
     register double x;
     register double y;
@@ -66,73 +66,73 @@ ColorTextures::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersect
         break;
 
     case BOZO_TEXTURE:
-        ColorTextures::bozo(x, y, z, texture, colour);
+        ColorTextureFixture::bozo(x, y, z, texture, colour);
         break;
 
     case MARBLE_TEXTURE:
-        ColorTextures::marble(x, y, z, texture, colour);
+        ColorTextureFixture::marble(x, y, z, texture, colour);
         break;
 
     case WOOD_TEXTURE:
-        ColorTextures::wood(x, y, z, texture, colour);
+        ColorTextureFixture::wood(x, y, z, texture, colour);
         break;
 
     case BRICK_TEXTURE:
-        ColorTextures::brick(x, y, z, texture, colour);
+        ColorTextureFixture::brick(x, y, z, texture, colour);
         break;
 
     case CHECKER_TEXTURE:
-        ColorTextures::checker(x, y, z, texture, colour);
+        ColorTextureFixture::checker(x, y, z, texture, colour);
         break;
 
     case CHECKER_TEXTURE_TEXTURE:
-        ColorTextures::checkerTexture(x, y, z, texture, colour);
+        ColorTextureFixture::checkerTexture(x, y, z, texture, colour);
         break;
 
     case SPOTTED_TEXTURE:
-        ColorTextures::spotted(x, y, z, texture, colour);
+        ColorTextureFixture::spotted(x, y, z, texture, colour);
         break;
 
     case AGATE_TEXTURE:
-        ColorTextures::agate(x, y, z, texture, colour);
+        ColorTextureFixture::agate(x, y, z, texture, colour);
         break;
 
     case GRANITE_TEXTURE:
-        ColorTextures::granite(x, y, z, texture, colour);
+        ColorTextureFixture::granite(x, y, z, texture, colour);
         break;
 
     case GRADIENT_TEXTURE:
-        ColorTextures::gradient(x, y, z, texture, colour);
+        ColorTextureFixture::gradient(x, y, z, texture, colour);
         break;
 
     case IMAGEMAP_TEXTURE:
-        MapTextures::imageMap(x, y, z, texture, colour);
+        MapTextureFixture::imageMap(x, y, z, texture, colour);
         break;
 
     case ONION_TEXTURE:
-        ColorTextures::onion(x, y, z, texture, colour);
+        ColorTextureFixture::onion(x, y, z, texture, colour);
         break;
 
     case LEOPARD_TEXTURE:
-        ColorTextures::leopard(x, y, z, texture, colour);
+        ColorTextureFixture::leopard(x, y, z, texture, colour);
         break;
 
     case PAINTED1_TEXTURE:
-        TestTextures::painted1(x, y, z, texture, colour);
+        TextureFixture::painted1(x, y, z, texture, colour);
         break;
 
     case PAINTED2_TEXTURE:
-        TestTextures::painted2(x, y, z, texture, colour);
+        TextureFixture::painted2(x, y, z, texture, colour);
         break;
 
     case PAINTED3_TEXTURE:
-        TestTextures::painted3(x, y, z, texture, colour);
+        TextureFixture::painted3(x, y, z, texture, colour);
         break;
     }
 }
 
 void
-ColorTextures::agate(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::agate(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     register double noise;
     register double hue;
@@ -174,7 +174,7 @@ ColorTextures::agate(double x, double y, double z, Texture *texture, RGBAColor *
 }
 
 void
-ColorTextures::bozo(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::bozo(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     register double noise;
     register double turb;
@@ -228,7 +228,7 @@ ColorTextures::bozo(double x, double y, double z, Texture *texture, RGBAColor *c
 }
 
 void
-ColorTextures::brick(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::brick(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     double xr, yr, zr;
 
@@ -256,7 +256,7 @@ ColorTextures::brick(double x, double y, double z, Texture *texture, RGBAColor *
 }
 
 void
-ColorTextures::checker(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::checker(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
 
@@ -281,7 +281,7 @@ ColorTextures::checker(double x, double y, double z, Texture *texture, RGBAColor
 }
 
 void
-ColorTextures::checkerTexture(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::checkerTexture(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     Vector3D point;
@@ -300,9 +300,9 @@ ColorTextures::checkerTexture(double x, double y, double z, Texture *texture, RG
     VectorOps::makeVector(&point, x, y, z);
 
     if (brkindx & 1) {
-        ColorTextures::colourAt(colour, ((Texture *)texture->Colour1), &point);
+        ColorTextureFixture::colourAt(colour, ((Texture *)texture->Colour1), &point);
     } else {
-        ColorTextures::colourAt(colour, ((Texture *)texture->Colour2), &point);
+        ColorTextureFixture::colourAt(colour, ((Texture *)texture->Colour2), &point);
     }
 }
 
@@ -315,7 +315,7 @@ ColorTextures::checkerTexture(double x, double y, double z, Texture *texture, RG
     but Dave Wecker's only supports simple Y axis gradients.
 */
 void
-ColorTextures::gradient(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::gradient(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     RGBAColor newColour;
     double value = 0.0, turb;
@@ -362,7 +362,7 @@ ColorTextures::gradient(double x, double y, double z, Texture *texture, RGBAColo
     w/ small scaling values.  Should work with colour maps for pink granite...
 */
 void
-ColorTextures::granite(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::granite(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     register int i;
     register double temp;
@@ -395,7 +395,7 @@ ColorTextures::granite(double x, double y, double z, Texture *texture, RGBAColor
 }
 
 void
-ColorTextures::marble(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::marble(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     register double noise;
     register double hue;
@@ -435,7 +435,7 @@ ColorTextures::marble(double x, double y, double z, Texture *texture, RGBAColor 
     Works with color maps.
 */
 void
-ColorTextures::spotted(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::spotted(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     register double noise;
     RGBAColor newColour;
@@ -461,7 +461,7 @@ ColorTextures::spotted(double x, double y, double z, Texture *texture, RGBAColor
 }
 
 void
-ColorTextures::wood(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::wood(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     register double noise;
     register double length;
@@ -515,7 +515,7 @@ ColorTextures::wood(double x, double y, double z, Texture *texture, RGBAColor *c
 /* Two new textures by Scott Taylor LEOPARD & ONION */
 /* SWT 7/18/91 */
 void
-ColorTextures::leopard(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::leopard(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
     register double noise;
@@ -568,7 +568,7 @@ ColorTextures::leopard(double x, double y, double z, Texture *texture, RGBAColor
 
 /* SWT 7/18/91 */
 void
-ColorTextures::onion(double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::onion(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
     register double noise;

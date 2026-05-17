@@ -15,7 +15,7 @@ add_executable(povray
   src/common/Ray.cpp
   src/geom/Bezier.cpp
   src/geom/BezierIntersection.cpp
-  src/geom/BezierPatches.cpp
+  src/geom/BezierPatch.cpp
   src/geom/Blob.cpp
   src/geom/Box.cpp
   src/geom/CSG.cpp
@@ -65,10 +65,10 @@ add_executable(povray
   src/io/TargaFormat.cpp
   src/io/Tokenizer.cpp
   src/media/Texture.cpp
-  src/media/BumpTextures.cpp
-  src/media/ColorTextures.cpp
-  src/media/MapTextures.cpp
-  src/media/TestTextures.cpp
+  src/media/BumpTextureFixture.cpp
+  src/media/ColorTextureFixture.cpp
+  src/media/MapTextureFixture.cpp
+  src/media/TextureFixture.cpp
   src/processing/PolynomialSolver.cpp
   src/render/LightingEngine.cpp
   src/render/RenderEngine.cpp

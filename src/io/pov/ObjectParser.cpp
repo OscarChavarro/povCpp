@@ -74,7 +74,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
             (constants[(int)constantId].Constant_Type ==
                 CSG_DIFFERENCE_CONSTANT)) {
             delete container;
-            container = (CSG *)GeometryOps::copy(
+            container = (CSG *)GeometryOperations::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
             CSG::setCsgParents(container, parentObject);
         } else {
@@ -89,7 +89,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = LightSourceParser::parseLightSource();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -100,7 +100,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = SphereParser::parseSphere();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -111,7 +111,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = PlaneParser::parsePlane();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -122,7 +122,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = TriangleParser::parseTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -133,7 +133,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = SmoothTriangleParser::parseSmoothTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -144,7 +144,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = QuadricParser::parseQuadric();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -155,7 +155,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = HeightFieldParser::parseHeightField();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -166,7 +166,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = PolyParser::parsePoly(3);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -177,7 +177,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = PolyParser::parsePoly(4);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -188,7 +188,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = PolyParser::parsePoly(0);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -199,7 +199,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = BoxParser::parseBox();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -210,7 +210,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = BlobParser::parseBlob();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -221,7 +221,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     localShape = BicubicPatchParser::parseBicubicPatch();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -231,7 +231,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     case UNION_TOKEN:
     localShape = (Geometry *)ObjectParser::parseCsg(CSG_UNION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -241,7 +241,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     case INTERSECTION_TOKEN:
     localShape = (Geometry *)ObjectParser::parseCsg(CSG_INTERSECTION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -251,7 +251,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
     case DIFFERENCE_TOKEN:
     localShape = (Geometry *)ObjectParser::parseCsg(CSG_DIFFERENCE_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        GeometryOps::invert((SimpleBody *)localShape);
+        GeometryOperations::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
     ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
@@ -272,21 +272,21 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
             switch (globalToken.Token_Id) { case RIGHT_CURLY_TOKEN: Exit_Flag = TRUE; break;
 
             case TRANSLATE_TOKEN: PrimitiveParser::parseVector(&localVector);
-    GeometryOps::translate((SimpleBody *)container, &localVector);
+    GeometryOperations::translate((SimpleBody *)container, &localVector);
     break;
 
     case ROTATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::rotate((SimpleBody *)container, &localVector);
+    GeometryOperations::rotate((SimpleBody *)container, &localVector);
     break;
 
     case SCALE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::scale((SimpleBody *)container, &localVector);
+    GeometryOperations::scale((SimpleBody *)container, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    GeometryOps::invert((SimpleBody *)container);
+    GeometryOperations::invert((SimpleBody *)container);
     break;
 
     default:
@@ -412,7 +412,7 @@ ObjectParser::parseObject()
     case IDENTIFIER_TOKEN:
     if ((constantId = SceneConfigParser::findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == OBJECT_CONSTANT) {
-            object = (SimpleBody *)GeometryOps::copy(
+            object = (SimpleBody *)GeometryOperations::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseErrorReporter::typeError();
@@ -535,21 +535,21 @@ ObjectParser::parseObject()
 
     case TRANSLATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::translate(object, &localVector);
+    GeometryOperations::translate(object, &localVector);
     break;
 
     case ROTATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::rotate(object, &localVector);
+    GeometryOperations::rotate(object, &localVector);
     break;
 
     case SCALE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::scale(object, &localVector);
+    GeometryOperations::scale(object, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    GeometryOps::invert(object);
+    GeometryOperations::invert(object);
     break;
 
     case RIGHT_CURLY_TOKEN:
@@ -587,7 +587,7 @@ ObjectParser::parseComposite()
     case IDENTIFIER_TOKEN:
     if ((constantId = SceneConfigParser::findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == COMPOSITE_CONSTANT) {
-            localComposite = (Composite *)GeometryOps::copy(
+            localComposite = (Composite *)GeometryOperations::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseErrorReporter::typeError();
@@ -679,21 +679,21 @@ ObjectParser::parseComposite()
 
     case TRANSLATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::translate((SimpleBody *)localComposite, &localVector);
+    GeometryOperations::translate((SimpleBody *)localComposite, &localVector);
     break;
 
     case ROTATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::rotate((SimpleBody *)localComposite, &localVector);
+    GeometryOperations::rotate((SimpleBody *)localComposite, &localVector);
     break;
 
     case SCALE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::scale((SimpleBody *)localComposite, &localVector);
+    GeometryOperations::scale((SimpleBody *)localComposite, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    GeometryOps::invert((SimpleBody *)localComposite);
+    GeometryOperations::invert((SimpleBody *)localComposite);
     break;
 
     default:

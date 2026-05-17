@@ -4,7 +4,7 @@
 #include "common/FrameConfig.h"
 #include "app/PovApp.h"
 #include "common/Vector3D.h"
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 
 class Quadric : public Geometry {
   public:

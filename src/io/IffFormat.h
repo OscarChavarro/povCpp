@@ -1,7 +1,7 @@
 #ifndef __IFF_FORMAT_H__
 #define __IFF_FORMAT_H__
 
-#include "geom/GeometryOps.h"
+#include "geom/GeometryOperations.h"
 #include "io/ChunkHeader.h"
 
 class IffFormat {

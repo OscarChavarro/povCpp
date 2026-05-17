@@ -156,17 +156,17 @@ SceneConfigParser::parseViewpoint(Viewpoint *givenVp)
 
     case TRANSLATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::translate((SimpleBody *)givenVp, &localVector);
+    GeometryOperations::translate((SimpleBody *)givenVp, &localVector);
     break;
 
     case ROTATE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::rotate((SimpleBody *)givenVp, &localVector);
+    GeometryOperations::rotate((SimpleBody *)givenVp, &localVector);
     break;
 
     case SCALE_TOKEN:
     PrimitiveParser::parseVector(&localVector);
-    GeometryOps::scale((SimpleBody *)givenVp, &localVector);
+    GeometryOperations::scale((SimpleBody *)givenVp, &localVector);
     break;
 
     case RIGHT_CURLY_TOKEN:
