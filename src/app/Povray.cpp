@@ -41,8 +41,8 @@ int fileBufferSize;
 static int numberOfFiles;
 static int inFlag;
 static int outFlag;
-DBL VTemp;
-DBL antialiasThreshold;
+double VTemp;
+double antialiasThreshold;
 int firstLine, lastLine;
 int displayStarted = FALSE;
 int shadowTestFlag = FALSE;
@@ -84,7 +84,7 @@ long refractedRaysTraced;
 long transmittedRaysTraced;
 time_t tstart;
 time_t tstop;
-DBL tused; /* Trace timer variables. - BP */
+double tused; /* Trace timer variables. - BP */
 
 char displayFormat;
 char outputFormat;
@@ -468,7 +468,7 @@ PovApp::parseOption(char *optionString)
 {
     register int addOption;
     unsigned int optionNumber = 0;
-    DBL threshold;
+    double threshold;
 
     inFlag = outFlag = FALSE; /* if these flags aren't immediately used, reset
                                  them on next -/+ option! */
@@ -787,7 +787,7 @@ PovApp::printStats()
 {
     int hours;
     int min;
-    DBL sec;
+    double sec;
     FILE *statOut;
     long pixelsInImage;
 
@@ -820,64 +820,64 @@ PovApp::printStats()
     if (raySphereTests) {
         fprintf(statOut, "  Sphere         %10ld  %10ld  %10.2f\n",
             raySphereTests, raySphereTestsSucceeded,
-            (((DBL)raySphereTestsSucceeded / (DBL)raySphereTests) * 100.0));
+            (((double)raySphereTestsSucceeded / (double)raySphereTests) * 100.0));
     }
     if (rayPlaneTests) {
         fprintf(statOut, "  Plane          %10ld  %10ld  %10.2f\n",
             rayPlaneTests, rayPlaneTestsSucceeded,
-            (((DBL)rayPlaneTestsSucceeded / (DBL)rayPlaneTests) * 100.0));
+            (((double)rayPlaneTestsSucceeded / (double)rayPlaneTests) * 100.0));
     }
     if (rayTriangleTests) {
         fprintf(statOut, "  Triangle      %10ld  %10ld  %10.2f\n",
             rayTriangleTests, rayTriangleTestsSucceeded,
-            (((DBL)rayTriangleTestsSucceeded / (DBL)rayTriangleTests) * 100.0));
+            (((double)rayTriangleTestsSucceeded / (double)rayTriangleTests) * 100.0));
     }
     if (rayQuadricTests) {
         fprintf(statOut, "  Quadric        %10ld  %10ld  %10.2f\n",
             rayQuadricTests, rayQuadricTestsSucceeded,
-            (((DBL)rayQuadricTestsSucceeded / (DBL)rayQuadricTests) * 100.0));
+            (((double)rayQuadricTestsSucceeded / (double)rayQuadricTests) * 100.0));
     }
     if (rayBlobTests) {
         fprintf(statOut, "  Blob            %10ld  %10ld  %10.2f\n",
             rayBlobTests, rayBlobTestsSucceeded,
-            (((DBL)rayBlobTestsSucceeded / (DBL)rayBlobTests) * 100.0));
+            (((double)rayBlobTestsSucceeded / (double)rayBlobTests) * 100.0));
     }
     if (rayBoxTests) {
         fprintf(statOut, "  Box             %10ld  %10ld  %10.2f\n",
             rayBoxTests, rayBoxTestsSucceeded,
-            (((DBL)rayBoxTestsSucceeded / (DBL)rayBoxTests) * 100.0));
+            (((double)rayBoxTestsSucceeded / (double)rayBoxTests) * 100.0));
     }
     if (rayPolyTests) {
         fprintf(statOut, "  Quartic\\Poly %10ld  %10ld  %10.2f\n", rayPolyTests,
             rayPolyTestsSucceeded,
-            (((DBL)rayPolyTestsSucceeded / (DBL)rayPolyTests) * 100.0));
+            (((double)rayPolyTestsSucceeded / (double)rayPolyTests) * 100.0));
     }
     if (rayBicubicTests) {
         fprintf(statOut, "  Bezier Patch %10ld  %10ld  %10.2f\n",
             rayBicubicTests, rayBicubicTestsSucceeded,
-            (((DBL)rayBicubicTestsSucceeded / (DBL)rayBicubicTests) * 100.0));
+            (((double)rayBicubicTestsSucceeded / (double)rayBicubicTests) * 100.0));
     }
     if (rayHtFieldTests) {
         fprintf(statOut, "  Height Fld    %10ld  %10ld  %10.2f\n",
             rayHtFieldTests, rayHtFieldTestsSucceeded,
-            (((DBL)rayHtFieldTestsSucceeded / (DBL)rayHtFieldTests) * 100.0));
+            (((double)rayHtFieldTestsSucceeded / (double)rayHtFieldTests) * 100.0));
     }
     if (rayHtFieldBoxTests) {
         fprintf(statOut, "  Hght Fld Box %10ld  %10ld  %10.2f\n",
             rayHtFieldBoxTests, rayHFieldBoxTestsSucceeded,
-            (((DBL)rayHFieldBoxTestsSucceeded / (DBL)rayHtFieldBoxTests) *
+            (((double)rayHFieldBoxTestsSucceeded / (double)rayHtFieldBoxTests) *
                 100.0));
     }
     if (boundingRegionTests) {
         fprintf(statOut, "  Bounds         %10ld  %10ld  %10.2f\n",
             boundingRegionTests, boundingRegionTestsSucceeded,
-            (((DBL)boundingRegionTestsSucceeded / (DBL)boundingRegionTests) *
+            (((double)boundingRegionTestsSucceeded / (double)boundingRegionTests) *
                 100.0));
     }
     if (clippingRegionTests) {
         fprintf(statOut, "  Clips          %10ld  %10ld  %10.2f\n",
             clippingRegionTests, clippingRegionTestsSucceeded,
-            (((DBL)clippingRegionTestsSucceeded / (DBL)clippingRegionTests) *
+            (((double)clippingRegionTestsSucceeded / (double)clippingRegionTests) *
                 100.0));
     }
 
@@ -913,7 +913,7 @@ PovApp::printStats()
         /* Convert seconds to hours, min & sec. CdW */
         hours = (int)tused / 3600;
         min = (int)(tused - hours * 3600) / 60;
-        sec = tused - (DBL)(hours * 3600 + min * 60);
+        sec = tused - (double)(hours * 3600 + min * 60);
         fprintf(statOut,
             "  Time For Trace:    %2d hours %2d minutes %4.2f seconds\n", hours,
             min, sec);

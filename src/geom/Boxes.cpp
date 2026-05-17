@@ -9,17 +9,18 @@
  *****************************************************************************/
 
 #include "geom/Boxes.h"
+#include "io/Parse.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 Methods Box_Methods = {objectIntersect, Box::allBoxIntersections, Box::insideBox,
     Box::boxNormal, Box::copyBox, Box::translateBox, Box::rotateBox, Box::scaleBox, Box::invertBox};
 
-extern Box *getBoxShape();
 
 extern Ray *vpRay;
 extern long rayBoxTests, rayBoxTestsSucceeded;
 
 int
-Box::closeTo(DBL x, DBL y)
+Box::closeTo(double x, double y)
 {
     return fabs(x - y) < kEpsilon ? 1 : 0;
 }
@@ -27,7 +28,7 @@ int
 Box::allBoxIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
-    DBL depth1, depth2;
+    double depth1, depth2;
     Vector3D intersectionPoint;
     Intersection localElement;
     register int intersectionFound;
@@ -37,8 +38,8 @@ Box::allBoxIntersections(
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
-        VScale(intersectionPoint, ray->Direction, depth1);
-        VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
+        VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -47,8 +48,8 @@ Box::allBoxIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = shape->Parent_Object;
-            VScale(intersectionPoint, ray->Direction, depth2);
-            VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
+            VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -59,9 +60,9 @@ Box::allBoxIntersections(
 }
 
 int
-Box::intersectBoxx(Ray *ray, Box *box, DBL *depth1, DBL *depth2)
+Box::intersectBoxx(Ray *ray, Box *box, double *depth1, double *depth2)
 {
-    DBL t, tmin, tmax;
+    double t, tmin, tmax;
     Vector3D p;
     Vector3D d;
 
@@ -271,7 +272,7 @@ Box::boxNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
         Transformation::MTransNormal(result, result, box->Transform);
-        VNormalize(*result, *result);
+        VectorOps::vNormalize(*result, *result);
     }
 }
 
@@ -281,7 +282,7 @@ Box::copyBox(SimpleBody *object)
     Box *newShape;
     Transformation *tr;
 
-    newShape = getBoxShape();
+    newShape = ParseFactory::getBoxShape();
     *newShape = *((Box *)object);
     newShape->Next_Object = nullptr;
 

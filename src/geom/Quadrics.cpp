@@ -6,7 +6,9 @@
  *****************************************************************************/
 
 #include "geom/Quadrics.h"
+#include "io/Parse.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 Methods Quadric_Methods = {objectIntersect, Quadric::allQuadricIntersections,
     Quadric::insideQuadric, Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
@@ -18,7 +20,7 @@ Quadric::allQuadricIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Quadric *shape = (Quadric *)object;
-    DBL depth1, depth2;
+    double depth1, depth2;
     Vector3D intersectionPoint;
     Intersection localElement;
     register int intersectionFound;
@@ -27,8 +29,8 @@ Quadric::allQuadricIntersections(
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = shape->Parent_Object;
-        VScale(intersectionPoint, ray->Direction, depth1);
-        VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        VectorOps::vScale(intersectionPoint, ray->Direction, depth1);
+        VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -37,8 +39,8 @@ Quadric::allQuadricIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = shape->Parent_Object;
-            VScale(intersectionPoint, ray->Direction, depth2);
-            VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            VectorOps::vScale(intersectionPoint, ray->Direction, depth2);
+            VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -49,16 +51,16 @@ Quadric::allQuadricIntersections(
 }
 
 int
-Quadric::intersectQuadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
+Quadric::intersectQuadric(Ray *ray, Quadric *shape, double *depth1, double *depth2)
 {
-    register DBL squareTerm;
-    register DBL linearTerm;
-    register DBL constantTerm;
-    register DBL tempTerm;
-    register DBL determinant;
-    register DBL determinant2;
-    register DBL a2;
-    register DBL bMinus;
+    register double squareTerm;
+    register double linearTerm;
+    register double constantTerm;
+    register double tempTerm;
+    register double determinant;
+    register double determinant2;
+    register double a2;
+    register double bMinus;
 
     rayQuadricTests++;
     if (!ray->Quadric_Constants_Cached) {
@@ -66,24 +68,24 @@ Quadric::intersectQuadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
     }
 
     if (shape->Non_Zero_Square_Term) {
-        VDot(squareTerm, shape->Object_2_Terms, ray->Direction_2);
-        VDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Dir_Dir);
+        VectorOps::vDot(squareTerm, shape->Object_2_Terms, ray->Direction_2);
+        VectorOps::vDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Dir_Dir);
         squareTerm += tempTerm;
     } else {
         squareTerm = 0.0;
     }
 
-    VDot(linearTerm, shape->Object_2_Terms, ray->Initial_Direction);
+    VectorOps::vDot(linearTerm, shape->Object_2_Terms, ray->Initial_Direction);
     linearTerm *= 2.0;
-    VDot(tempTerm, shape->Object_Terms, ray->Direction);
+    VectorOps::vDot(tempTerm, shape->Object_Terms, ray->Direction);
     linearTerm += tempTerm;
-    VDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Init_Dir);
+    VectorOps::vDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Init_Dir);
     linearTerm += tempTerm;
 
     if (ray == vpRay) {
         if (!shape->Constant_Cached) {
-            VDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
-            VDot(tempTerm, shape->Object_Terms, ray->Initial);
+            VectorOps::vDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
+            VectorOps::vDot(tempTerm, shape->Object_Terms, ray->Initial);
             constantTerm += tempTerm + shape->Object_Constant;
             shape->Object_VP_Constant = constantTerm;
             shape->Constant_Cached = TRUE;
@@ -91,12 +93,12 @@ Quadric::intersectQuadric(Ray *ray, Quadric *shape, DBL *depth1, DBL *depth2)
             constantTerm = shape->Object_VP_Constant;
         }
     } else {
-        VDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
-        VDot(tempTerm, shape->Object_Terms, ray->Initial);
+        VectorOps::vDot(constantTerm, shape->Object_2_Terms, ray->Initial_2);
+        VectorOps::vDot(tempTerm, shape->Object_Terms, ray->Initial);
         constantTerm += tempTerm + shape->Object_Constant;
     }
 
-    VDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Initial_Initial);
+    VectorOps::vDot(tempTerm, shape->Object_Mixed_Terms, ray->Mixed_Initial_Initial);
     constantTerm += tempTerm;
 
     if (squareTerm != 0.0) {
@@ -144,14 +146,14 @@ Quadric::insideQuadric(Vector3D *testPoint, SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
     Vector3D newPoint;
-    register DBL result;
-    register DBL linearTerm;
-    register DBL squareTerm;
+    register double result;
+    register double linearTerm;
+    register double squareTerm;
 
-    VDot(linearTerm, *testPoint, shape->Object_Terms);
+    VectorOps::vDot(linearTerm, *testPoint, shape->Object_Terms);
     result = linearTerm + shape->Object_Constant;
-    VSquareTerms(newPoint, *testPoint);
-    VDot(squareTerm, newPoint, shape->Object_2_Terms);
+    VectorOps::vSquareTerms(newPoint, *testPoint);
+    VectorOps::vDot(squareTerm, newPoint, shape->Object_2_Terms);
     result += squareTerm;
     result += shape->Object_Mixed_Terms.x * (testPoint->x) * (testPoint->y) +
               shape->Object_Mixed_Terms.y * (testPoint->x) * (testPoint->z) +
@@ -170,11 +172,11 @@ Quadric::quadricNormal(
 {
     Quadric *intersectionShape = (Quadric *)object;
     Vector3D derivativeLinear;
-    DBL len;
+    double len;
 
-    VScale(derivativeLinear, intersectionShape->Object_2_Terms, 2.0);
-    VEvaluate(*result, derivativeLinear, *intersectionPoint);
-    VAdd(*result, *result, intersectionShape->Object_Terms);
+    VectorOps::vScale(derivativeLinear, intersectionShape->Object_2_Terms, 2.0);
+    VectorOps::vEvaluate(*result, derivativeLinear, *intersectionPoint);
+    VectorOps::vAdd(*result, *result, intersectionShape->Object_Terms);
 
     result->x +=
         intersectionShape->Object_Mixed_Terms.x * intersectionPoint->y +
@@ -208,7 +210,7 @@ Quadric::copyQuadric(SimpleBody *object)
 {
     Quadric *newShape;
 
-    newShape = getQuadricShape();
+    newShape = ParseFactory::getQuadricShape();
     *newShape = *((Quadric *)object);
     newShape->Next_Object = nullptr;
 
@@ -305,8 +307,8 @@ Quadric::invertQuadric(SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
 
-    VScale(shape->Object_2_Terms, shape->Object_2_Terms, -1.0);
-    VScale(shape->Object_Mixed_Terms, shape->Object_Mixed_Terms, -1.0);
-    VScale(shape->Object_Terms, shape->Object_Terms, -1.0);
+    VectorOps::vScale(shape->Object_2_Terms, shape->Object_2_Terms, -1.0);
+    VectorOps::vScale(shape->Object_Mixed_Terms, shape->Object_Mixed_Terms, -1.0);
+    VectorOps::vScale(shape->Object_Terms, shape->Object_Terms, -1.0);
     shape->Object_Constant *= -1.0;
 }

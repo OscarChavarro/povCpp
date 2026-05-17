@@ -19,14 +19,14 @@ Ray::makeRay()
 {
     Vector3D tempInitDir;
 
-    VSquareTerms(this->Initial_2, this->Initial);
-    VSquareTerms(this->Direction_2, this->Direction);
-    VEvaluate(this->Initial_Direction, this->Initial, this->Direction);
+    VectorOps::vSquareTerms(this->Initial_2, this->Initial);
+    VectorOps::vSquareTerms(this->Direction_2, this->Direction);
+    VectorOps::vEvaluate(this->Initial_Direction, this->Initial, this->Direction);
     mixVectorTerms(this->Mixed_Initial_Initial, this->Initial, this->Initial);
     mixVectorTerms(this->Mixed_Dir_Dir, this->Direction, this->Direction);
     mixVectorTerms(tempInitDir, this->Initial, this->Direction);
     mixVectorTerms(this->Mixed_Init_Dir, this->Direction, this->Initial);
-    VAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, tempInitDir);
+    VectorOps::vAdd(this->Mixed_Init_Dir, this->Mixed_Init_Dir, tempInitDir);
     this->Quadric_Constants_Cached = TRUE;
 }
 

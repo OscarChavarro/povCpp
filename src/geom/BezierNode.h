@@ -8,7 +8,7 @@ class BezierNode {
   public:
     int Node_Type;
     Vector3D Center;
-    DBL Radius_Squared;
+    double Radius_Squared;
     int Count;
     void *Data_Ptr;
 };

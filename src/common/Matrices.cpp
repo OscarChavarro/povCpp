@@ -102,7 +102,7 @@ Transformation::MTransformVector(
     Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
-    DBL answerArray[4];
+    double answerArray[4];
     MATRIX *matrix;
 
     matrix = (MATRIX *)transformation->matrix;
@@ -123,7 +123,7 @@ Transformation::MInverseTransformVector(
     Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
-    DBL answerArray[4];
+    double answerArray[4];
     MATRIX *matrix;
 
     matrix = (MATRIX *)transformation->inverse;
@@ -143,7 +143,7 @@ void
 Transformation::MTransVector(Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
-    DBL answerArray[4];
+    double answerArray[4];
     MATRIX *matrix;
 
     matrix = (MATRIX *)transformation->matrix;
@@ -164,7 +164,7 @@ Transformation::MInvTransVector(
     Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
-    DBL answerArray[4];
+    double answerArray[4];
     MATRIX *matrix;
 
     matrix = (MATRIX *)transformation->inverse;
@@ -184,7 +184,7 @@ void
 Transformation::MTransNormal(Vector3D *result, Vector3D *vector, Transformation *transformation)
 {
     register int i;
-    DBL answerArray[3];
+    double answerArray[3];
     MATRIX *matrix;
 
     matrix = (MATRIX *)transformation->inverse;
@@ -233,14 +233,14 @@ Transformation::getRotationTransformation(Transformation *transformation, Vector
 {
     MATRIX matrix;
     Vector3D radianVector;
-    register DBL cosx;
-    register DBL cosy;
-    register DBL cosz;
-    register DBL sinx;
-    register DBL siny;
-    register DBL sinz;
+    register double cosx;
+    register double cosy;
+    register double cosz;
+    register double sinx;
+    register double siny;
+    register double sinz;
 
-    VScale(radianVector, *vector, M_PI / 180.0);
+    VectorOps::vScale(radianVector, *vector, M_PI / 180.0);
     Transformation::MIdentity((MATRIX *)transformation->matrix);
     cosx = cos(radianVector.x);
     sinx = sin(radianVector.x);

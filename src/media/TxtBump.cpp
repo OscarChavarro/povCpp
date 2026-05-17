@@ -20,13 +20,13 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 extern unsigned short crctab[256];
 
 void
-BumpTextures::ripples(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::ripples(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
-    register DBL length;
-    register DBL scalar;
-    register DBL index;
+    register double length;
+    register double scalar;
+    register double index;
 
     if (Options & DEBUGGING) {
         printf("ripples %g %g %g", x, y, z);
@@ -36,8 +36,8 @@ BumpTextures::ripples(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
         point.x = x;
         point.y = y;
         point.z = z;
-        VSub(point, point, Wave_Sources[i]);
-        VDot(length, point, point);
+        VectorOps::vSub(point, point, Wave_Sources[i]);
+        VectorOps::vDot(length, point, point);
         if (length == 0.0) {
             length = 1.0;
         }
@@ -50,21 +50,21 @@ BumpTextures::ripples(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
             printf(" index %g scalar %g length %g\n", index, scalar, length);
         }
 
-        VScale(point, point, scalar / length / (DBL)NUMBER_OF_WAVES);
-        VAdd(*normal, *normal, point);
+        VectorOps::vScale(point, point, scalar / length / (double)NUMBER_OF_WAVES);
+        VectorOps::vAdd(*normal, *normal, point);
     }
-    VNormalize(*normal, *normal);
+    VectorOps::vNormalize(*normal, *normal);
 }
 
 void
-BumpTextures::waves(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::waves(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     register int i;
     Vector3D point;
-    register DBL length;
-    register DBL scalar;
-    register DBL index;
-    register DBL sinValue;
+    register double length;
+    register double scalar;
+    register double index;
+    register double sinValue;
 
     if (Options & DEBUGGING) {
         printf("waves %g %g %g\n", x, y, z);
@@ -74,8 +74,8 @@ BumpTextures::waves(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
         point.x = x;
         point.y = y;
         point.z = z;
-        VSub(point, point, Wave_Sources[i]);
-        VDot(length, point, point);
+        VectorOps::vSub(point, point, Wave_Sources[i]);
+        VectorOps::vDot(length, point, point);
         if (length == 0.0) {
             length = 1.0;
         }
@@ -85,14 +85,14 @@ BumpTextures::waves(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
         sinValue = cycloidal(index);
 
         scalar = sinValue * texture->Bump_Amount / frequency[i];
-        VScale(point, point, scalar / length / (DBL)NUMBER_OF_WAVES);
-        VAdd(*normal, *normal, point);
+        VectorOps::vScale(point, point, scalar / length / (double)NUMBER_OF_WAVES);
+        VectorOps::vAdd(*normal, *normal, point);
     }
-    VNormalize(*normal, *normal);
+    VectorOps::vNormalize(*normal, *normal);
 }
 
 void
-BumpTextures::bumps(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::bumps(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     Vector3D bumpTurb;
 
@@ -105,9 +105,9 @@ BumpTextures::bumps(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     }
 
     DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
-    VScale(bumpTurb, bumpTurb, texture->Bump_Amount);
-    VAdd(*normal, *normal, bumpTurb); /* displace "normal" */
-    VNormalize(*normal, *normal);     /* normalize normal! */
+    VectorOps::vScale(bumpTurb, bumpTurb, texture->Bump_Amount);
+    VectorOps::vAdd(*normal, *normal, bumpTurb); /* displace "normal" */
+    VectorOps::vNormalize(*normal, *normal);     /* normalize normal! */
 }
 
 /*
@@ -115,10 +115,10 @@ dents is similar to bumps, but uses noise() to control the amount of
 dnoise() perturbation of the object normal...
 */
 void
-BumpTextures::dents(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::dents(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     Vector3D stuccoTurb;
-    DBL noise;
+    double noise;
 
     if (texture->Bump_Amount == 0.0) {
         return; /* why are we here?? */
@@ -134,9 +134,9 @@ BumpTextures::dents(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 
     DNoise(&stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
 
-    VScale(stuccoTurb, stuccoTurb, noise);
-    VAdd(*normal, *normal, stuccoTurb); /* displace "normal" */
-    VNormalize(*normal, *normal);       /* normalize normal! */
+    VectorOps::vScale(stuccoTurb, stuccoTurb, noise);
+    VectorOps::vAdd(*normal, *normal, stuccoTurb); /* displace "normal" */
+    VectorOps::vNormalize(*normal, *normal);       /* normalize normal! */
 }
 
 /*
@@ -153,10 +153,10 @@ BumpTextures::dents(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
 */
 
 void
-BumpTextures::wrinkles(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+BumpTextures::wrinkles(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
     register int i;
-    register DBL scale = 1.0;
+    register double scale = 1.0;
     Vector3D result;
     Vector3D value;
 
@@ -179,7 +179,7 @@ BumpTextures::wrinkles(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
         result.z += fabsInline(value.z / scale);
     }
 
-    VScale(result, result, texture->Bump_Amount);
-    VAdd(*normal, *normal, result); /* displace "normal" */
-    VNormalize(*normal, *normal);   /* normalize normal! */
+    VectorOps::vScale(result, result, texture->Bump_Amount);
+    VectorOps::vAdd(*normal, *normal, result); /* displace "normal" */
+    VectorOps::vNormalize(*normal, *normal);   /* normalize normal! */
 }

@@ -64,15 +64,15 @@ static inline void finishPovray() {}
 
 static inline void cooperate() {}
 
-static inline DBL acosInline(DBL value) { return acos(value); }
+static inline double acosInline(double value) { return acos(value); }
 
-static inline DBL sqrtInline(DBL value) { return sqrt(value); }
+static inline double sqrtInline(double value) { return sqrt(value); }
 
-static inline DBL powInline(DBL base, DBL exp) { return pow(base, exp); }
+static inline double powInline(double base, double exp) { return pow(base, exp); }
 
-static inline DBL cosInline(DBL value) { return cos(value); }
+static inline double cosInline(double value) { return cos(value); }
 
-static inline DBL sinInline(DBL value) { return sin(value); }
+static inline double sinInline(double value) { return sin(value); }
 
 inline long labsInline(long x)
 {
@@ -103,8 +103,8 @@ static constexpr const char *COMPILER_VER = ".u";
 
 /* These values determine the minumum and maximum distances
     that qualify as ray-object intersections */
-static constexpr DBL Small_Tolerance = 0.001;
-static constexpr DBL Max_Distance = 1.0e7;
+static constexpr double Small_Tolerance = 0.001;
+static constexpr double Max_Distance = 1.0e7;
 
 static constexpr int MAX_ORDER = 7;
 
@@ -119,7 +119,7 @@ static constexpr unsigned int EXITENABLE = 128u;
 static constexpr unsigned int CONTINUE_TRACE = 256u;
 static constexpr unsigned int VERBOSE_FILE = 512u;
 
-typedef DBL MATRIX[4][4];
+typedef double MATRIX[4][4];
 typedef int CONSTANT;
 typedef short WORD;
 

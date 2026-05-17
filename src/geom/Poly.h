@@ -11,7 +11,7 @@ class Poly : public Geometry {
     Transformation *Transform;
     short Inverted;
     int Order, Sturm_Flag;
-    DBL *Coeffs;
+    double *Coeffs;
 
     static int allPolyIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
@@ -25,17 +25,17 @@ class Poly : public Geometry {
     static void invertPoly(SimpleBody *object);
 
   private:
-    static void transform(int order, DBL *coeffs, MATRIX *q);
+    static void transform(int order, double *coeffs, MATRIX *q);
     static int roll(int order, int x, int y, int z);
     static void unroll(int order, int index, int *x, int *y, int *z, int *w);
-    static int intersect(Ray *ray, int order, DBL *coeffs, DBL *depths);
-    static int intersectQuartic(Ray *ray, Poly *shape, DBL *depths);
+    static int intersect(Ray *ray, int order, double *coeffs, double *depths);
+    static int intersectQuartic(Ray *ray, Poly *shape, double *depths);
     static void quarticNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
-    static DBL inside(Vector3D *point, int order, DBL *coeffs);
+    static double inside(Vector3D *point, int order, double *coeffs);
     static void normalp(
-        Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint);
-    static DBL doPartialTerm(
+        Vector3D *result, int order, double *coeffs, Vector3D *intersectionPoint);
+    static double doPartialTerm(
         MATRIX *q, int row, int pwr, int i, int j, int k, int l);
 };
 

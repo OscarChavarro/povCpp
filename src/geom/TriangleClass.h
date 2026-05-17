@@ -9,8 +9,8 @@ class SmoothTriangle;
 class Triangle : public Geometry {
   public:
     Vector3D Normal_Vector;
-    DBL Distance;
-    DBL VPNormDotOrigin;
+    double Distance;
+    double VPNormDotOrigin;
     unsigned int VPCached : 1;
     unsigned int Dominant_Axis : 2;
     unsigned int Inverted : 1;
@@ -21,7 +21,7 @@ class Triangle : public Geometry {
     static int computeTriangle(Triangle *triangle);
     static int allTriangleIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int intersectTriangle(Ray *ray, Triangle *triangle, DBL *depth);
+    static int intersectTriangle(Ray *ray, Triangle *triangle, double *depth);
     static int insideTriangle(Vector3D *point, SimpleBody *object);
     static void triangleNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);
@@ -32,7 +32,7 @@ class Triangle : public Geometry {
     static void invertTriangle(SimpleBody *object);
 
   private:
-    static int max3Axis(DBL x, DBL y, DBL z);
+    static int max3Axis(double x, double y, double z);
     static void findTriangleDominantAxis(Triangle *triangle);
     static void computeSmoothTriangle(SmoothTriangle *triangle);
 };

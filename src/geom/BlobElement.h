@@ -7,9 +7,9 @@
 class BlobElement {
   public:
     Vector3D pos;
-    DBL radius2;
-    DBL coeffs[3];
-    DBL tcoeffs[5];
+    double radius2;
+    double coeffs[3];
+    double tcoeffs[5];
 };
 
 #endif

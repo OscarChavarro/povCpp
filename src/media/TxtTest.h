@@ -7,12 +7,12 @@
 
 class TestTextures {
   public:
-    static void painted1(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void painted2(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void painted3(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour);
-    static void bumpy1(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
-    static void bumpy2(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
-    static void bumpy3(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal);
+    static void painted1(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void painted2(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void painted3(double x, double y, double z, Texture *texture, RGBAColor *colour);
+    static void bumpy1(double x, double y, double z, Texture *texture, Vector3D *normal);
+    static void bumpy2(double x, double y, double z, Texture *texture, Vector3D *normal);
+    static void bumpy3(double x, double y, double z, Texture *texture, Vector3D *normal);
 };
 
 #endif

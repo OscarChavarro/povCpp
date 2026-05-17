@@ -18,7 +18,7 @@ class Ray {
     Vector3D Mixed_Init_Dir;        /*  XoYv+XvYo  XoZv+XvZo  YoZv+YvZo  */
     int Containing_Index;
     Texture *Containing_Textures[MAX_CONTAINING_OBJECTS];
-    DBL Containing_IORs[MAX_CONTAINING_OBJECTS];
+    double Containing_IORs[MAX_CONTAINING_OBJECTS];
     int Quadric_Constants_Cached;
 
     void makeRay();

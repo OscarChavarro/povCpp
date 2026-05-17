@@ -45,6 +45,5 @@ extern void Link(
     SimpleBody *New_Object, SimpleBody **Field, SimpleBody **Old_Object_List);
 
 extern SimpleBody *getObject(void);
-extern Composite *getCompositeObject(void);
 
 #endif

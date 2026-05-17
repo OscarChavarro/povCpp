@@ -12,7 +12,7 @@ class Intersection;
 
 class LightingEngine {
   private:
-    static void doLight(Light *lightSource, DBL *lightSourceDepth,
+    static void doLight(Light *lightSource, double *lightSourceDepth,
         Ray *lightSourceRay, Vector3D *intersectionPoint, RGBAColor *lightColour);
     static int doBlocking(Intersection *localIntersection, RGBAColor *lightColour,
         PriorityQueueNode *localQueue);
@@ -24,26 +24,26 @@ class LightingEngine {
         RGBAColor *surfaceColour);
     static void doDiffuse(Texture *texture, Ray *lightSourceRay,
         Vector3D *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-        RGBAColor *surfaceColour, DBL attenuation);
+        RGBAColor *surfaceColour, double attenuation);
 
     friend void Diffuse(Texture *texture, Vector3D *intersectionPoint, Ray *eye,
         Vector3D *surfaceNormal, RGBAColor *surfaceColour, RGBAColor *colour,
-        DBL attenuation);
+        double attenuation);
 };
 
 extern void perturbNormal(Vector3D *New_Normal, Texture *Texture,
     Vector3D *Intersection_Point, Vector3D *Surface_Normal);
 extern void Ambient(Texture *Texture, RGBAColor *Surface_Colour,
-    RGBAColor *Colour, DBL Attenuation);
+    RGBAColor *Colour, double Attenuation);
 extern void Diffuse(Texture *Texture, Vector3D *Intersection_Point, Ray *Eye,
     Vector3D *Surface_Normal, RGBAColor *Surface_Colour, RGBAColor *Colour,
-    DBL Attenuation);
+    double Attenuation);
 extern void Reflect(Texture *Texture, Vector3D *Intersection_Point, Ray *Ray,
     Vector3D *Surface_Normal, RGBAColor *Colour);
 extern void Refract(Texture *Texture, Vector3D *Intersection_Point, Ray *Ray,
     Vector3D *Surface_Normal, RGBAColor *Colour);
 extern void Fog(
-    DBL Distance, RGBAColor *Fog_Colour, DBL Fog_Distance, RGBAColor *Colour);
+    double Distance, RGBAColor *Fog_Colour, double Fog_Distance, RGBAColor *Colour);
 extern void computeReflectedColour(Ray *Ray, Texture *Texture,
     Intersection *Ray_Intersection, RGBAColor *Surface_Colour,
     RGBAColor *Filter_Colour, RGBAColor *Colour);

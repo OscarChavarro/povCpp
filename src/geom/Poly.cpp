@@ -9,8 +9,11 @@
  *****************************************************************************/
 
 #include "geom/Poly.h"
+#include "io/Parse.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 #include "media/Vect.h"
+#include "io/Parse.h"
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+
@@ -49,7 +52,7 @@ Poly::allPolyIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Poly *shape = (Poly *)object;
-    DBL depths[MAX_ORDER], len;
+    double depths[MAX_ORDER], len;
     Vector3D intersectionPoint;
     Vector3D dv;
     Intersection localElement;
@@ -103,16 +106,16 @@ Poly::allPolyIntersections(
                 goto l0;
             }
         }
-        VScale(intersectionPoint, newRay.Direction, depths[j]);
-        VAdd(intersectionPoint, intersectionPoint, newRay.Initial);
+        VectorOps::vScale(intersectionPoint, newRay.Direction, depths[j]);
+        VectorOps::vAdd(intersectionPoint, intersectionPoint, newRay.Initial);
         /* Transform the point into world space */
         if (shape->Transform != nullptr) {
             Transformation::MTransformVector(
                 &intersectionPoint, &intersectionPoint, shape->Transform);
         }
 
-        VSub(dv, intersectionPoint, ray->Initial);
-        VLength(len, dv);
+        VectorOps::vSub(dv, intersectionPoint, ray->Initial);
+        VectorOps::vLength(len, dv);
         localElement.Depth = len;
         localElement.Object = shape->Parent_Object;
         localElement.Point = intersectionPoint;
@@ -198,15 +201,15 @@ Poly::unroll(int order, int index, int *x, int *y, int *z, int *w)
 
 /* Intersection of a ray and an arbitrary polynomial function */
 int
-Poly::intersect(Ray *ray, int order, DBL *coeffs, DBL *depths)
+Poly::intersect(Ray *ray, int order, double *coeffs, double *depths)
 {
     MATRIX q;
-    DBL *a, t[MAX_ORDER + 1];
+    double *a, t[MAX_ORDER + 1];
     int i;
     int j;
     /* Determine the coefficients of t^n, where the line is represented
         as (x,y,z) + (xx,yy,zz)*t.  */
-    a = new DBL[termCounts[order]];
+    a = new double[termCounts[order]];
     if (a == nullptr) {
         printf("Cannot allocate memory for coefficients in poly Poly::intersect()\n");
         exit(1);
@@ -246,10 +249,10 @@ Poly::intersect(Ray *ray, int order, DBL *coeffs, DBL *depths)
     return 0;
 }
 
-DBL
-Poly::inside(Vector3D *point, int order, DBL *coeffs)
+double
+Poly::inside(Vector3D *point, int order, double *coeffs)
 {
-    DBL x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1], result;
+    double x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1], result;
     int i;
     int k0;
     int k1;
@@ -279,14 +282,14 @@ Poly::inside(Vector3D *point, int order, DBL *coeffs)
 
 /* Normal to a polynomial */
 void
-Poly::normalp(Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPoint)
+Poly::normalp(Vector3D *result, int order, double *coeffs, Vector3D *intersectionPoint)
 {
     int i;
     int xp;
     int yp;
     int zp;
     int wp;
-    DBL *a, x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1];
+    double *a, x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1];
     x[0] = 1.0;
     y[0] = 1.0;
     z[0] = 1.0;
@@ -327,13 +330,13 @@ Poly::normalp(Vector3D *result, int order, DBL *coeffs, Vector3D *intersectionPo
     }
 }
 
-DBL
+double
 Poly::doPartialTerm(MATRIX *q, int row, int pwr, int i, int j, int k, int l)
 {
-    DBL result;
+    double result;
     int n;
 
-    result = (DBL)(factorials[pwr] / (factorials[i] * factorials[j] *
+    result = (double)(factorials[pwr] / (factorials[i] * factorials[j] *
                                          factorials[k] * factorials[l]));
     if (i > 0) {
         for (n = 0; n < i; n++) {
@@ -361,7 +364,7 @@ Poly::doPartialTerm(MATRIX *q, int row, int pwr, int i, int j, int k, int l)
 /* Using the transformation matrix q, transform the general polynomial
     equation given by a. */
 void
-Poly::transform(int order, DBL *coeffs, MATRIX *q)
+Poly::transform(int order, double *coeffs, MATRIX *q)
 {
     int termIndex;
     int partialIndex;
@@ -384,8 +387,8 @@ Poly::transform(int order, DBL *coeffs, MATRIX *q)
     int k2;
     int k3;
     int wp;
-    DBL *b, partialTerm;
-    DBL tempx, tempy, tempz;
+    double *b, partialTerm;
+    double tempx, tempy, tempz;
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
@@ -395,7 +398,7 @@ Poly::transform(int order, DBL *coeffs, MATRIX *q)
         }
     }
 
-    b = new DBL[termCounts[order]];
+    b = new double[termCounts[order]];
     if (b == nullptr) {
         printf("Cannot allocate memory for b in poly Poly::transform()\n");
         exit(1);
@@ -454,12 +457,12 @@ Poly::transform(int order, DBL *coeffs, MATRIX *q)
 
 /* Intersection of a ray and a quartic */
 int
-Poly::intersectQuartic(Ray *ray, Poly *shape, DBL *depths)
+Poly::intersectQuartic(Ray *ray, Poly *shape, double *depths)
 {
-    DBL x, y, z, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-    DBL xx, yy, zz, xx2, yy2, zz2, xx3, yy3, zz3, xx4, yy4, zz4;
-    DBL *a, t[5];
-    DBL xZ, xZz, xxZ, xxZz, xY, xYy, xxY, xxYy, yZ, yZz, yyZ, yyZz, temp;
+    double x, y, z, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+    double xx, yy, zz, xx2, yy2, zz2, xx3, yy3, zz3, xx4, yy4, zz4;
+    double *a, t[5];
+    double xZ, xZz, xxZ, xxZz, xY, xYy, xxY, xxYy, yZ, yZz, yyZ, yyZz, temp;
 
     x = ray->Initial.x;
     y = ray->Initial.y;
@@ -665,7 +668,7 @@ void
 Poly::quarticNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint)
 {
     Poly *shape = (Poly *)object;
-    DBL *a, x, y, z, x2, y2, z2, x3, y3, z3;
+    double *a, x, y, z, x2, y2, z2, x3, y3, z3;
 
     a = shape->Coeffs;
     x = intersectionPoint->x;
@@ -717,7 +720,7 @@ Poly::insidePoly(Vector3D *testPoint, SimpleBody *object)
 {
     Vector3D newPoint;
     Poly *shape = (Poly *)object;
-    DBL result;
+    double result;
 
     /* Transform the point into polynomial's space */
     if (shape->Transform != nullptr) {
@@ -759,7 +762,7 @@ Poly::polyNormal(Vector3D *result, SimpleBody *object, Vector3D *intersectionPoi
     if (shape->Transform != nullptr) {
         Transformation::MTransNormal(result, result, shape->Transform);
     }
-    VNormalize(*result, *result);
+    VectorOps::vNormalize(*result, *result);
 }
 
 /* Make a copy of a polynomial object */
@@ -767,7 +770,7 @@ void *
 Poly::copyPoly(SimpleBody *object)
 {
     Poly *shape = (Poly *)object;
-    Poly *newShape = getPolyShape(shape->Order);
+    Poly *newShape = ParseFactory::getPolyShape(shape->Order);
     int i;
 
     newShape->Shape_Texture = shape->Shape_Texture;

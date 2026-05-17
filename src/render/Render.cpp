@@ -47,33 +47,33 @@ Frame globalFrame;
 Ray *vpRay;
 int traceLevel, superSampleCount;
 
-DBL maxTraceLevel = 5;
-DBL maxclr;
+double maxTraceLevel = 5;
+double maxclr;
 
 RGBAColor *previousLine, *currentLine;
 char *previousLineAntialiasedFlags, *currentLineAntialiasedFlags;
 Ray ray;
 
 void
-Frame::createRay(Ray *ray, int width, int height, DBL x, DBL y)
+Frame::createRay(Ray *ray, int width, int height, double x, double y)
 {
-    register DBL xScalar;
-    register DBL yScalar;
+    register double xScalar;
+    register double yScalar;
     Vector3D tempVect1;
     Vector3D tempVect2;
 
-    /* Convert the X Coordinate to be a DBL from 0.0 to 1.0 */
-    xScalar = (x - (DBL)width / 2.0) / (DBL)width;
+    /* Convert the X Coordinate to be a double from 0.0 to 1.0 */
+    xScalar = (x - (double)width / 2.0) / (double)width;
 
-    /* Convert the Y Coordinate to be a DBL from 0.0 to 1.0 */
-    yScalar = (((DBL)(globalFrame.Screen_Height - 1) - y) - (DBL)height / 2.0) /
-              (DBL)height;
+    /* Convert the Y Coordinate to be a double from 0.0 to 1.0 */
+    yScalar = (((double)(globalFrame.Screen_Height - 1) - y) - (double)height / 2.0) /
+              (double)height;
 
-    VScale(tempVect1, globalFrame.View_Point.Up, yScalar);
-    VScale(tempVect2, globalFrame.View_Point.Right, xScalar);
-    VAdd(ray->Direction, tempVect1, tempVect2);
-    VAdd(ray->Direction, ray->Direction, globalFrame.View_Point.Direction);
-    VNormalize(ray->Direction, ray->Direction);
+    VectorOps::vScale(tempVect1, globalFrame.View_Point.Up, yScalar);
+    VectorOps::vScale(tempVect2, globalFrame.View_Point.Right, xScalar);
+    VectorOps::vAdd(ray->Direction, tempVect1, tempVect2);
+    VectorOps::vAdd(ray->Direction, ray->Direction, globalFrame.View_Point.Direction);
+    VectorOps::vNormalize(ray->Direction, ray->Direction);
     ray->initializeContainers();
     ray->Quadric_Constants_Cached = FALSE;
 }
@@ -82,17 +82,17 @@ void
 Supersample(RGBAColor *result, int x, int y, int width, int height)
 {
     RGBAColor colour;
-    register DBL dx;
-    register DBL dy;
-    register DBL jitterX;
-    register DBL jitterY;
+    register double dx;
+    register double dy;
+    register double jitterX;
+    register double jitterY;
     register int jittOffset;
     unsigned char red;
     unsigned char green;
     unsigned char blue;
 
-    dx = (DBL)x;
-    dy = (DBL)y;
+    dx = (double)x;
+    dy = (double)y;
     jittOffset = 10;
 
     numberOfPixelsSupersampled++;
@@ -245,9 +245,9 @@ readRenderedPart()
     unsigned char red;
     unsigned char green;
     unsigned char blue;
-    DBL grey;
+    double grey;
 
-    maxclr = (DBL)(1 << colorBits) - 1.0;
+    maxclr = (double)(1 << colorBits) - 1.0;
     while ((rc = readLine(
                 globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
         if (Options & DISPLAY) {
@@ -293,7 +293,7 @@ startTracing()
     unsigned char red;
     unsigned char green;
     unsigned char blue;
-    DBL grey;
+    double grey;
 
     for (y = (Options & ANTIALIAS) ? firstLine - 1 : firstLine; y < lastLine;
          y++) {
@@ -314,7 +314,7 @@ startTracing()
             numberOfPixels++;
 
             Frame::createRay(vpRay, globalFrame.Screen_Width,
-                globalFrame.Screen_Height, (DBL)x, (DBL)y);
+                globalFrame.Screen_Height, (double)x, (double)y);
             traceLevel = 0;
             Trace(&ray, &colour);
             Color::clipColor(&colour, &colour);
@@ -441,7 +441,7 @@ initializeRenderer()
     register int i;
 
     vpRay = &ray;
-    maxclr = (DBL)(1 << colorBits) - 1.0;
+    maxclr = (double)(1 << colorBits) - 1.0;
 
     previousLine = new RGBAColor[(globalFrame.Screen_Width + 1)];
     currentLine = new RGBAColor[(globalFrame.Screen_Width + 1)];

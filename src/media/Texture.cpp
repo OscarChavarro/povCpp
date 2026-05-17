@@ -20,10 +20,10 @@
 #include "common/PovProto.h"
 #include "common/Vector.h"
 
-DBL *sintab;
-DBL frequency[NUMBER_OF_WAVES];
+double *sintab;
+double frequency[NUMBER_OF_WAVES];
 Vector3D Wave_Sources[NUMBER_OF_WAVES];
-DBL *RTable;
+double *RTable;
 short *hashTable;
 Texture *Default_Texture;
 
@@ -58,11 +58,11 @@ unsigned short crctab[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
 
 void
-computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, DBL value)
+computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value)
 {
     register int i;
     RGBAColorPaletteSpan *ent;
-    register DBL fraction;
+    register double fraction;
 
     if (value > 1.0) {
         value = 1.0;
@@ -107,18 +107,18 @@ initializeNoise()
 
     InitRTable();
 
-    if ((sintab = new DBL[SINTABSIZE]) == nullptr) {
+    if ((sintab = new double[SINTABSIZE]) == nullptr) {
         printf("Cannot allocate memory for sine table\n");
         exit(1);
     }
 
     for (i = 0; i < SINTABSIZE; i++) {
-        sintab[i] = sin(i / (DBL)SINTABSIZE * (3.14159265359 * 2.0));
+        sintab[i] = sin(i / (double)SINTABSIZE * (3.14159265359 * 2.0));
     }
 
     for (i = 0; i < NUMBER_OF_WAVES; i++) {
-        DNoise(&point, (DBL)i, 0.0, 0.0);
-        VNormalize(Wave_Sources[i], point);
+        DNoise(&point, (double)i, 0.0, 0.0);
+        VectorOps::vNormalize(Wave_Sources[i], point);
         frequency[i] = (rand() & RNDMASK) / rndDivisor + 0.01;
     }
 }
@@ -157,14 +157,14 @@ InitRTable()
 
     InitTextureTable();
 
-    RTable = new DBL[MAXSIZE];
+    RTable = new double[MAXSIZE];
     if (RTable == nullptr) {
         printf("Cannot allocate memory for RTable\n");
         exit(1);
     }
 
     for (i = 0; i < MAXSIZE; i++) {
-        rp.x = rp.y = rp.z = (DBL)i;
+        rp.x = rp.y = rp.z = (double)i;
         RTable[i] = (unsigned int)R(&rp) * realScale - 1.0;
     }
 }
@@ -202,8 +202,8 @@ Robert's Skinner's Perlin-style "Noise" function - modified by AAC
 to ensure uniformly distributed clamped values between 0 and 1.0...
 */
 void
-setupLattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz, long *jx,
-    long *jy, long *jz, DBL *sx, DBL *sy, DBL *sz, DBL *tx, DBL *ty, DBL *tz)
+setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz, long *jx,
+    long *jy, long *jz, double *sx, double *sy, double *sz, double *tx, double *ty, double *tz)
 {
     /* ensures the values are positive. */
     *x -= MINX;
@@ -228,8 +228,8 @@ setupLattice(DBL *x, DBL *y, DBL *z, long *ix, long *iy, long *iz, long *jx,
     *tz = 1.0 - *sz;
 }
 
-DBL
-Noise(DBL x, DBL y, DBL z)
+double
+Noise(double x, double y, double z)
 {
     long ix;
     long iy;
@@ -237,8 +237,8 @@ Noise(DBL x, DBL y, DBL z)
     long jx;
     long jy;
     long jz;
-    DBL sx, sy, sz, tx, ty, tz;
-    DBL sum;
+    double sx, sy, sz, tx, ty, tz;
+    double sum;
     short m;
 
     callsToNoise++;
@@ -289,7 +289,7 @@ Noise(DBL x, DBL y, DBL z)
 Vector-valued version of "Noise"
 */
 void
-DNoise(Vector3D *result, DBL x, DBL y, DBL z)
+DNoise(Vector3D *result, double x, double y, double z)
 {
     long ix;
     long iy;
@@ -297,8 +297,8 @@ DNoise(Vector3D *result, DBL x, DBL y, DBL z)
     long jx;
     long jy;
     long jz;
-    DBL px, py, pz, s;
-    DBL sx, sy, sz, tx, ty, tz;
+    double px, py, pz, s;
+    double sx, sy, sz, tx, ty, tz;
     short m;
 
     callsToDNoise++;
@@ -368,13 +368,13 @@ DNoise(Vector3D *result, DBL x, DBL y, DBL z)
     result->z += incrSum(m + 8, s, px, py, pz);
 }
 
-DBL
-Turbulence(DBL x, DBL y, DBL z, int octaves)
+double
+Turbulence(double x, double y, double z, int octaves)
 {
     int i; /* added -dmf */
-    register DBL t = 0.0;
-    register DBL scale;
-    register DBL value;
+    register double t = 0.0;
+    register double scale;
+    register double value;
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
         value = Noise(x / scale, y / scale, z / scale);
@@ -384,10 +384,10 @@ Turbulence(DBL x, DBL y, DBL z, int octaves)
 }
 
 void
-DTurbulence(Vector3D *result, DBL x, DBL y, DBL z, int octaves)
+DTurbulence(Vector3D *result, double x, double y, double z, int octaves)
 {
     int i; /* added -dmf */
-    register DBL scale;
+    register double scale;
     Vector3D value;
 
     result->x = 0.0;
@@ -404,8 +404,8 @@ DTurbulence(Vector3D *result, DBL x, DBL y, DBL z, int octaves)
     }
 }
 
-DBL
-cycloidal(DBL value)
+double
+cycloidal(double value)
 {
     register int indx;
 
@@ -418,11 +418,11 @@ cycloidal(DBL value)
     return (0.0 - sintab[indx]);
 }
 
-DBL
-triangleWave(DBL value)
+double
+triangleWave(double value)
 {
-    register DBL offset;
-    register DBL temp1;
+    register double offset;
+    register double temp1;
 
     if (value >= 0.0) {
         offset = value - floor(value);
@@ -508,7 +508,7 @@ getTexture()
     newTexture->Constant_Flag = TRUE;
     newTexture->Colour1 = nullptr;
     newTexture->Colour2 = nullptr;
-    makeVector(&newTexture->Texture_Gradient, 0.0, 0.0, 0.0);
+    VectorOps::makeVector(&newTexture->Texture_Gradient, 0.0, 0.0, 0.0);
 
     newTexture->Object_Index_Of_Refraction = 1.0;
     newTexture->Object_Transmit = 0.0;

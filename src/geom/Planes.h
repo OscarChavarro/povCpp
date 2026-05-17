@@ -9,13 +9,13 @@
 class InfinitePlane : public Geometry {
   public:
     Vector3D Normal_Vector;
-    DBL Distance;
-    DBL VPNormDotOrigin;
+    double Distance;
+    double VPNormDotOrigin;
     int VPCached;
 
     static int allPlaneIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
-    static int intersectPlane(Ray *ray, InfinitePlane *plane, DBL *depth);
+    static int intersectPlane(Ray *ray, InfinitePlane *plane, double *depth);
     static int insidePlane(Vector3D *point, SimpleBody *object);
     static void planeNormal(
         Vector3D *result, SimpleBody *object, Vector3D *intersectionPoint);

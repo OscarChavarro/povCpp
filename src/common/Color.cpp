@@ -8,11 +8,11 @@
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
-inline DBL fabsInline(DBL x)
+inline double fabsInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
-DBL
+double
 Color::colorDistance(RGBAColor *color1, RGBAColor *color2)
 {
     return (fabsInline(color1->Red - color2->Red) +
@@ -30,7 +30,7 @@ Color::addColor(RGBAColor *result, RGBAColor *color1, RGBAColor *color2)
 }
 
 void
-Color::scaleColor(RGBAColor *result, RGBAColor *color, DBL factor)
+Color::scaleColor(RGBAColor *result, RGBAColor *color, double factor)
 {
     result->Red = color->Red * factor;
     result->Green = color->Green * factor;

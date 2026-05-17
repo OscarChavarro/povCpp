@@ -11,7 +11,7 @@ class Light : public Geometry {
     Vector3D Center, Points_At;
     Light *Next_Light_Source;
     short Inverted;
-    DBL Coeff, Radius, Falloff;
+    double Coeff, Radius, Falloff;
 
     static int allPointIntersections(
         SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue);
@@ -21,10 +21,10 @@ class Light : public Geometry {
     static void rotatePoint(SimpleBody *object, Vector3D *vector);
     static void scalePoint(SimpleBody *object, Vector3D *vector);
     static void invertPoint(SimpleBody *object);
-    static DBL attenuateLight(Light *lightSource, Ray *lightSourceRay);
+    static double attenuateLight(Light *lightSource, Ray *lightSourceRay);
 
   private:
-    static DBL cubicSpline(DBL low, DBL high, DBL pos);
+    static double cubicSpline(double low, double high, double pos);
 };
 
 extern Methods Point_Methods;

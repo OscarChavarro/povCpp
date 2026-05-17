@@ -149,10 +149,10 @@ BicubicPatch::bezierTreeBuilder(BicubicPatch *object, Vector3D (*patch)[4][4], i
 
 /* Evaluate a single coordinate point (u, v) on a bezier patch. */
 void
-BicubicPatch::bezierValue(Vector3D *result, DBL u, DBL v, Vector3D (*controlPoints)[4][4])
+BicubicPatch::bezierValue(Vector3D *result, double u, double v, Vector3D (*controlPoints)[4][4])
 {
-    DBL u2, u3, v2, v3, uu1, uu2, uu3, vv1, vv2, vv3;
-    DBL t[4][4];
+    double u2, u3, v2, v3, uu1, uu2, uu3, vv1, vv2, vv3;
+    double t[4][4];
     int i;
     int j;
 
@@ -207,12 +207,12 @@ BicubicPatch::bezierValue(Vector3D *result, DBL u, DBL v, Vector3D (*controlPoin
     The normal is undefined where the determinants vanish.
 */
 void
-BicubicPatch::bezierPartial(Vector3D *result, DBL u, DBL v, BicubicPatch *shape)
+BicubicPatch::bezierPartial(Vector3D *result, double u, double v, BicubicPatch *shape)
 {
     Vector3D uVec;
     Vector3D vVec; /* Partial derivatives with respect to u, and v. */
-    DBL u2, u3, v2, v3;
-    DBL t[4][4], temp;
+    double u2, u3, v2, v3;
+    double t[4][4], temp;
     int i;
     int j;
 
@@ -258,7 +258,7 @@ BicubicPatch::bezierPartial(Vector3D *result, DBL u, DBL v, BicubicPatch *shape)
         return;
     }
     temp = sqrt(temp);
-    VInverseScale(uVec, uVec, temp);
+    VectorOps::vInverseScale(uVec, uVec, temp);
 
     /* Calculate the derivative with respect to v */
     t[0][0] = 3.0 * (v2 - 2.0 * v + 1.0) * (u3 - 3.0 * u2 + 3.0 * u - 1.0);
@@ -297,25 +297,25 @@ BicubicPatch::bezierPartial(Vector3D *result, DBL u, DBL v, BicubicPatch *shape)
         return;
     }
     temp = sqrt(temp);
-    VInverseScale(vVec, vVec, temp);
+    VectorOps::vInverseScale(vVec, vVec, temp);
 
-    VCross(*result, uVec, vVec);
+    VectorOps::vCross(*result, uVec, vVec);
 }
 
 /* Calculate the normal to a subpatch (triangle) return the vector
     <1.0 0.0 0.0> if the triangle is degenerate. */
 int
 BicubicPatch::subpatchNormal(
-    Vector3D *v1, Vector3D *v2, Vector3D *v3, Vector3D *result, DBL *d)
+    Vector3D *v1, Vector3D *v2, Vector3D *v3, Vector3D *result, double *d)
 {
     Vector3D edge1;
     Vector3D edge2;
-    DBL length;
+    double length;
 
-    VSub(edge1, *v1, *v2);
-    VSub(edge2, *v3, *v2);
-    VCross(*result, edge1, edge2);
-    VLength(length, *result);
+    VectorOps::vSub(edge1, *v1, *v2);
+    VectorOps::vSub(edge2, *v3, *v2);
+    VectorOps::vCross(*result, edge1, edge2);
+    VectorOps::vLength(length, *result);
     if (length < EPSILON) {
         result->x = 1.0;
         result->y = 0.0;
@@ -323,8 +323,8 @@ BicubicPatch::subpatchNormal(
         *d = -1.0 * v1->x;
         return 0;
     }
-    VInverseScale(*result, *result, length);
-    VDot(*d, *result, *v1);
+    VectorOps::vInverseScale(*result, *result, length);
+    VectorOps::vDot(*d, *result, *v1);
     *d = 0.0 - *d;
     return 1;
 }
@@ -334,31 +334,31 @@ BicubicPatch::subpatchNormal(
     be set to the distance along Ray at which the intersection occurs. */
 int
 BicubicPatch::intersectSubpatch(int patchType, Ray *ray, Vector3D *v1, Vector3D *v2,
-    Vector3D *v3, Vector3D *n, DBL d, Vector3D *n1, Vector3D *n2, Vector3D *n3,
-    DBL *depth, Vector3D *ip, Vector3D *ipNorm)
+    Vector3D *v3, Vector3D *n, double d, Vector3D *n1, Vector3D *n2, Vector3D *n3,
+    double *depth, Vector3D *ip, Vector3D *ipNorm)
 {
     Vector3D tempV1;
     Vector3D tempV2;
     Vector3D perp;
-    DBL s, t, proj, mu;
-    DBL x1, y1, x2, y2, x3, y3;
-    DBL x, y, z;
+    double s, t, proj, mu;
+    double x1, y1, x2, y2, x3, y3;
+    double x, y, z;
     int signHolder;
     int nextSign;
     int crossings;
 
     /* Calculate the point of intersection and the depth. */
-    VDot(s, ray->Direction, *n);
+    VectorOps::vDot(s, ray->Direction, *n);
     if (s == 0.0) {
         return 0;
     }
-    VDot(t, ray->Initial, *n);
+    VectorOps::vDot(t, ray->Initial, *n);
     *depth = 0.0 - (d + t) / s;
     if (*depth < Small_Tolerance) {
         return 0;
     }
-    VScale(*ip, ray->Direction, *depth);
-    VAdd(*ip, *ip, ray->Initial);
+    VectorOps::vScale(*ip, ray->Direction, *depth);
+    VectorOps::vAdd(*ip, *ip, ray->Initial);
 
     /* Map the intersection point and the triangle onto a plane. */
     x = fabs(n->x);
@@ -475,23 +475,23 @@ BicubicPatch::intersectSubpatch(int patchType, Ray *ray, Vector3D *v1, Vector3D 
         return 1;
     }
     if (patchType == 4) {
-        VSub(tempV1, *v2, *v3);
-        VNormalize(tempV1, tempV1);
-        VSub(tempV2, *v1, *v3);
-        VDot(proj, tempV2, tempV1);
-        VScale(tempV1, tempV1, proj);
-        VSub(perp, tempV1, tempV2);
-        VNormalize(perp, perp);
-        VDot(mu, tempV2, perp);
+        VectorOps::vSub(tempV1, *v2, *v3);
+        VectorOps::vNormalize(tempV1, tempV1);
+        VectorOps::vSub(tempV2, *v1, *v3);
+        VectorOps::vDot(proj, tempV2, tempV1);
+        VectorOps::vScale(tempV1, tempV1, proj);
+        VectorOps::vSub(perp, tempV1, tempV2);
+        VectorOps::vNormalize(perp, perp);
+        VectorOps::vDot(mu, tempV2, perp);
         mu = -1.0 / mu;
-        VScale(perp, perp, mu);
-        VSub(tempV1, *ip, *v1);
-        VDot(s, tempV1, perp);
+        VectorOps::vScale(perp, perp, mu);
+        VectorOps::vSub(tempV1, *ip, *v1);
+        VectorOps::vDot(s, tempV1, perp);
         if (s < EPSILON) {
             *ipNorm = *n1;
             return 1;
         }
-        VSub(tempV1, *v3, *v2);
+        VectorOps::vSub(tempV1, *v3, *v2);
         x = fabs(tempV1.x);
         y = fabs(tempV1.y);
         z = fabs(tempV1.z);
@@ -506,16 +506,16 @@ BicubicPatch::intersectSubpatch(int patchType, Ray *ray, Vector3D *v1, Vector3D 
         } else {
             t = (tempV1.z / s + v1->z - v2->z) / tempV1.z;
         }
-        VSub(tempV1, *n2, *n1);
-        VScale(tempV1, tempV1, s);
-        VAdd(tempV1, tempV1, *n1);
-        VSub(tempV2, *n3, *n1);
-        VScale(tempV2, tempV2, s);
-        VAdd(tempV2, tempV2, *n1);
-        VSub(*ipNorm, tempV2, tempV1);
-        VScale(*ipNorm, *ipNorm, t);
-        VAdd(*ipNorm, *ipNorm, tempV1);
-        VNormalize(*ipNorm, *ipNorm);
+        VectorOps::vSub(tempV1, *n2, *n1);
+        VectorOps::vScale(tempV1, tempV1, s);
+        VectorOps::vAdd(tempV1, tempV1, *n1);
+        VectorOps::vSub(tempV2, *n3, *n1);
+        VectorOps::vScale(tempV2, tempV2, s);
+        VectorOps::vAdd(tempV2, tempV2, *n1);
+        VectorOps::vSub(*ipNorm, tempV2, tempV1);
+        VectorOps::vScale(*ipNorm, *ipNorm, t);
+        VectorOps::vAdd(*ipNorm, *ipNorm, tempV1);
+        VectorOps::vNormalize(*ipNorm, *ipNorm);
         return 1;
     }
     return 0;
@@ -523,19 +523,19 @@ BicubicPatch::intersectSubpatch(int patchType, Ray *ray, Vector3D *v1, Vector3D 
 
 /* Find a sphere that contains all of the points in the list "vectors" */
 void
-BicubicPatch::findAverage(int vectorCount, Vector3D *vectors, Vector3D *center, DBL *radius)
+BicubicPatch::findAverage(int vectorCount, Vector3D *vectors, Vector3D *center, double *radius)
 {
-    DBL r0, r1, xc = 0, yc = 0, zc = 0;
-    DBL x0, y0, z0;
+    double r0, r1, xc = 0, yc = 0, zc = 0;
+    double x0, y0, z0;
     int i;
     for (i = 0; i < vectorCount; i++) {
         xc += vectors[i].x;
         yc += vectors[i].y;
         zc += vectors[i].z;
     }
-    xc /= (DBL)vectorCount;
-    yc /= (DBL)vectorCount;
-    zc /= (DBL)vectorCount;
+    xc /= (double)vectorCount;
+    yc /= (double)vectorCount;
+    zc /= (double)vectorCount;
     r0 = 0.0;
     for (i = 0; i < vectorCount; i++) {
         x0 = vectors[i].x - xc;
@@ -553,9 +553,9 @@ BicubicPatch::findAverage(int vectorCount, Vector3D *vectors, Vector3D *center, 
 }
 
 int
-BicubicPatch::sphericalBoundsCheck(Ray *ray, Vector3D *center, DBL radius)
+BicubicPatch::sphericalBoundsCheck(Ray *ray, Vector3D *center, double radius)
 {
-    DBL x, y, z, dist1, dist2;
+    double x, y, z, dist1, dist2;
     x = center->x - ray->Initial.x;
     y = center->y - ray->Initial.y;
     z = center->z - ray->Initial.z;
@@ -577,10 +577,10 @@ BicubicPatch::sphericalBoundsCheck(Ray *ray, Vector3D *center, DBL radius)
     The values returned are: the center of the bounding sphere, and the
     square of the radius of the bounding sphere. */
 void
-BicubicPatch::bezierBoundingSphere(Vector3D (*patch)[4][4], Vector3D *center, DBL *radius)
+BicubicPatch::bezierBoundingSphere(Vector3D (*patch)[4][4], Vector3D *center, double *radius)
 {
-    DBL r0, r1, xc = 0, yc = 0, zc = 0;
-    DBL x0, y0, z0;
+    double r0, r1, xc = 0, yc = 0, zc = 0;
+    double x0, y0, z0;
     int i;
     int j;
     for (i = 0; i < 4; i++) {
@@ -617,7 +617,7 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
 {
     int i;
     int j;
-    DBL d, u, v, deltaU, deltaV;
+    double d, u, v, deltaU, deltaV;
     Vector3D v0;
     Vector3D v1;
     Vector3D v2;
@@ -645,8 +645,8 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
         shape->Node_Tree = BicubicPatch::bezierTreeBuilder(shape, patchPtr, 0);
         return;
     }
-    deltaU = 1.0 / (DBL)shape->U_Steps;
-    deltaV = 1.0 / (DBL)shape->V_Steps;
+    deltaU = 1.0 / (double)shape->U_Steps;
+    deltaV = 1.0 / (double)shape->V_Steps;
     if (shape->Interpolated_Grid == nullptr) {
         shape->Interpolated_Grid = new Vector3D *[shape->U_Steps + 1];
         if (shape->Interpolated_Grid == nullptr) {
@@ -683,12 +683,12 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
             }
         }
 
-        shape->Interpolated_D = new DBL *[shape->U_Steps + 1];
+        shape->Interpolated_D = new double *[shape->U_Steps + 1];
         if (shape->Interpolated_D == nullptr) {
             Error("Failed to allocate Interpolated_D");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
-            shape->Interpolated_D[i] = new DBL[2 * (shape->V_Steps + 1)];
+            shape->Interpolated_D[i] = new double[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_D == nullptr) {
                 Error("Failed to allocate component of Interpolated_D");
             }
@@ -697,17 +697,17 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
 
     /* Calculate the grid values for the given subdivision values. */
     for (i = 0; i <= shape->U_Steps; i++) {
-        u = (DBL)i / (DBL)shape->U_Steps;
+        u = (double)i / (double)shape->U_Steps;
         for (j = 0; j < shape->V_Steps; j++) {
-            v = (DBL)j / (DBL)shape->V_Steps;
+            v = (double)j / (double)shape->V_Steps;
             BicubicPatch::bezierValue(&shape->Interpolated_Grid[i][j], u, v, patchPtr);
         }
     }
 
     for (i = 0; i < shape->U_Steps; i++) {
-        u = (DBL)i / (DBL)shape->U_Steps;
+        u = (double)i / (double)shape->U_Steps;
         for (j = 0; j < shape->V_Steps; j++) {
-            v = (DBL)j / (DBL)shape->V_Steps;
+            v = (double)j / (double)shape->V_Steps;
 
             /* Calculate surface values for the current patch. */
             BicubicPatch::bezierValue(&v0, u, v, patchPtr);
@@ -747,9 +747,9 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
     if (shape->Patch_Type == 4) {
         /* Calculate normals at the corners of the subpatches */
         for (i = 0; i <= shape->U_Steps; i++) {
-            u = (DBL)i / (DBL)shape->U_Steps;
+            u = (double)i / (double)shape->U_Steps;
             for (j = 0; j <= shape->V_Steps; j++) {
-                v = (DBL)j / (DBL)shape->V_Steps;
+                v = (double)j / (double)shape->V_Steps;
                 BicubicPatch::bezierPartial(&shape->Smooth_Normals[i][j], u, v, shape);
             }
         }
@@ -757,14 +757,14 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
 }
 
 /* Determine the distance from a point to a plane. */
-DBL
-BicubicPatch::pointPlaneDistance(Vector3D *p, Vector3D *n, DBL *d)
+double
+BicubicPatch::pointPlaneDistance(Vector3D *p, Vector3D *n, double *d)
 {
-    DBL temp1, temp2;
+    double temp1, temp2;
 
-    VDot(temp1, *p, *n);
+    VectorOps::vDot(temp1, *p, *n);
     temp1 += *d;
-    VLength(temp2, *n);
+    VectorOps::vLength(temp2, *n);
     if (fabs(temp2) < EPSILON) {
         return 0;
     }
@@ -774,8 +774,8 @@ BicubicPatch::pointPlaneDistance(Vector3D *p, Vector3D *n, DBL *d)
 
 void
 BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3D (*patch)[4][4],
-    DBL u0, DBL u1, DBL v0, int recursionDepth, int *depthCount, DBL *depths,
-    DBL *uValues, DBL *vValues)
+    double u0, double u1, double v0, int recursionDepth, int *depthCount, double *depths,
+    double *uValues, double *vValues)
 {
     int tcnt = shape->Intersection_Count;
     Vector3D vv0;
@@ -784,8 +784,8 @@ BicubicPatch::bezierSubpatchIntersect(Ray *ray, BicubicPatch *shape, Vector3D (*
     Vector3D vv3;
     Vector3D n;
     Vector3D ip;
-    DBL d;
-    DBL depth;
+    double d;
+    double depth;
 
     if (tcnt + *depthCount >= MAX_BICUBIC_INTERSECTIONS) {
         return;
@@ -834,12 +834,12 @@ BicubicPatch::bezierSplitLeftRight(Vector3D (*patch)[4][4], Vector3D (*leftPatch
     int j;
     for (i = 0; i < 4; i++) {
         temp1[0] = (*patch)[i][0];
-        VHalf(temp1[1], (*patch)[i][0], (*patch)[i][1]);
-        VHalf(half, (*patch)[i][1], (*patch)[i][2]);
-        VHalf(temp1[2], temp1[1], half);
-        VHalf(temp2[2], (*patch)[i][2], (*patch)[i][3]);
-        VHalf(temp2[1], half, temp2[2]);
-        VHalf(temp1[3], temp1[2], temp2[1]);
+        VectorOps::vHalf(temp1[1], (*patch)[i][0], (*patch)[i][1]);
+        VectorOps::vHalf(half, (*patch)[i][1], (*patch)[i][2]);
+        VectorOps::vHalf(temp1[2], temp1[1], half);
+        VectorOps::vHalf(temp2[2], (*patch)[i][2], (*patch)[i][3]);
+        VectorOps::vHalf(temp2[1], half, temp2[2]);
+        VectorOps::vHalf(temp1[3], temp1[2], temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[i][3];
         for (j = 0; j < 4; j++) {
@@ -862,12 +862,12 @@ BicubicPatch::bezierSplitUpDown(Vector3D (*patch)[4][4], Vector3D (*topPatch)[4]
     for (i = 0; i < 4; i++) {
         /* Split Left */
         temp1[0] = (*patch)[0][i];
-        VHalf(temp1[1], (*patch)[0][i], (*patch)[1][i]);
-        VHalf(half, (*patch)[1][i], (*patch)[2][i]);
-        VHalf(temp1[2], temp1[1], half);
-        VHalf(temp2[2], (*patch)[2][i], (*patch)[3][i]);
-        VHalf(temp2[1], half, temp2[2]);
-        VHalf(temp1[3], temp1[2], temp2[1]);
+        VectorOps::vHalf(temp1[1], (*patch)[0][i], (*patch)[1][i]);
+        VectorOps::vHalf(half, (*patch)[1][i], (*patch)[2][i]);
+        VectorOps::vHalf(temp1[2], temp1[1], half);
+        VectorOps::vHalf(temp2[2], (*patch)[2][i], (*patch)[3][i]);
+        VectorOps::vHalf(temp2[1], half, temp2[2]);
+        VectorOps::vHalf(temp1[3], temp1[2], temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[3][i];
         for (j = 0; j < 4; j++) {
@@ -880,61 +880,61 @@ BicubicPatch::bezierSplitUpDown(Vector3D (*patch)[4][4], Vector3D (*topPatch)[4]
 /* See how close to a plane a subpatch is, the patch must have at least
     three distinct vertices. A negative result from this function indicates
     that a degenerate value of some sort was encountered. */
-DBL
+double
 BicubicPatch::determineSubpatchFlatness(Vector3D (*patch)[4][4])
 {
     Vector3D vertices[4];
     Vector3D n;
     Vector3D tempV;
-    DBL d, dist, temp1;
+    double d, dist, temp1;
     int i;
     int j;
 
     vertices[0] = (*patch)[0][0];
     vertices[1] = (*patch)[0][3];
-    VSub(tempV, vertices[0], vertices[1]);
-    VLength(temp1, tempV);
+    VectorOps::vSub(tempV, vertices[0], vertices[1]);
+    VectorOps::vLength(temp1, tempV);
     if (fabs(temp1) < EPSILON) {
         /* Degenerate in the V direction for U = 0. This is ok if the other
             two corners are distinct from the lower left corner - I'm sure there
             are cases where the corners coincide and the middle has good values,
             but that is somewhat pathalogical and won't be considered. */
         vertices[1] = (*patch)[3][3];
-        VSub(tempV, vertices[0], vertices[1]);
-        VLength(temp1, tempV);
+        VectorOps::vSub(tempV, vertices[0], vertices[1]);
+        VectorOps::vLength(temp1, tempV);
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
         vertices[2] = (*patch)[3][0];
-        VSub(tempV, vertices[0], vertices[1]);
-        VLength(temp1, tempV);
+        VectorOps::vSub(tempV, vertices[0], vertices[1]);
+        VectorOps::vLength(temp1, tempV);
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
-        VSub(tempV, vertices[1], vertices[2]);
-        VLength(temp1, tempV);
+        VectorOps::vSub(tempV, vertices[1], vertices[2]);
+        VectorOps::vLength(temp1, tempV);
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
     } else {
         vertices[2] = (*patch)[3][0];
-        VSub(tempV, vertices[0], vertices[1]);
-        VLength(temp1, tempV);
+        VectorOps::vSub(tempV, vertices[0], vertices[1]);
+        VectorOps::vLength(temp1, tempV);
         if (fabs(temp1) < EPSILON) {
             vertices[2] = (*patch)[3][3];
-            VSub(tempV, vertices[0], vertices[2]);
-            VLength(temp1, tempV);
+            VectorOps::vSub(tempV, vertices[0], vertices[2]);
+            VectorOps::vLength(temp1, tempV);
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }
-            VSub(tempV, vertices[1], vertices[2]);
-            VLength(temp1, tempV);
+            VectorOps::vSub(tempV, vertices[1], vertices[2]);
+            VectorOps::vLength(temp1, tempV);
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }
         } else {
-            VSub(tempV, vertices[1], vertices[2]);
-            VLength(temp1, tempV);
+            VectorOps::vSub(tempV, vertices[1], vertices[2]);
+            VectorOps::vLength(temp1, tempV);
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }
@@ -963,7 +963,7 @@ BicubicPatch::determineSubpatchFlatness(Vector3D (*patch)[4][4])
 int
 BicubicPatch::flatEnough(BicubicPatch *object, Vector3D (*patch)[4][4])
 {
-    DBL dist;
+    double dist;
 
     dist = BicubicPatch::determineSubpatchFlatness(patch);
     if (dist < 0.0) {
@@ -977,15 +977,15 @@ BicubicPatch::flatEnough(BicubicPatch *object, Vector3D (*patch)[4][4])
 
 void
 BicubicPatch::bezierSubdivider(Ray *ray, BicubicPatch *object, Vector3D (*patch)[4][4],
-    DBL u0, DBL u1, DBL v0, DBL v1, int recursionDepth, int *depthCount,
-    DBL *depths, DBL *uValues, DBL *vValues)
+    double u0, double u1, double v0, double v1, int recursionDepth, int *depthCount,
+    double *depths, double *uValues, double *vValues)
 {
     Vector3D lowerLeft[4][4];
     Vector3D lowerRight[4][4];
     Vector3D upperLeft[4][4];
     Vector3D upperRight[4][4];
     Vector3D center;
-    DBL ut, vt, radius;
+    double ut, vt, radius;
     int tcnt = object->Intersection_Count;
 
     /* Don't waste time if there are already too many intersections */
@@ -1073,7 +1073,7 @@ BicubicPatch::bezierTreeDeleter(BezierNode *node)
 
 void
 BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, int depth,
-    int *depthCount, DBL *depths)
+    int *depthCount, double *depths)
 {
     BezierChild *children;
     BezierVertices *vertices;
@@ -1083,8 +1083,8 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
     Vector3D vv1;
     Vector3D vv2;
     Vector3D vv3;
-    DBL d;
-    DBL hitDepth;
+    double d;
+    double hitDepth;
     int i;
     int tcnt = shape->Intersection_Count;
 
@@ -1158,13 +1158,13 @@ BicubicPatch::bezierTreeWalker(Ray *ray, BicubicPatch *shape, BezierNode *node, 
     not at run time.
 */
 int
-BicubicPatch::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, DBL *depths)
+BicubicPatch::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
     int i;
     int j;
-    DBL depth, d, u, v, deltaU, deltaV;
+    double depth, d, u, v, deltaU, deltaV;
     Vector3D v0;
     Vector3D v1;
     Vector3D v2;
@@ -1178,14 +1178,14 @@ BicubicPatch::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, DBL *depths)
         return 0;
     }
 
-    deltaU = 1.0 / (DBL)shape->U_Steps;
-    deltaV = 1.0 / (DBL)shape->V_Steps;
+    deltaU = 1.0 / (double)shape->U_Steps;
+    deltaV = 1.0 / (double)shape->V_Steps;
 
     /* Calculate the initial point */
     for (i = 0; i < shape->U_Steps; i++) {
-        u = (DBL)i / (DBL)shape->U_Steps;
+        u = (double)i / (double)shape->U_Steps;
         for (j = 0; j < shape->V_Steps; j++) {
-            v = (DBL)j / (DBL)shape->V_Steps;
+            v = (double)j / (double)shape->V_Steps;
 
             /* Calculate surface values for the current patch. */
             BicubicPatch::bezierValue(&v0, u, v, patchPtr);
@@ -1225,13 +1225,13 @@ BicubicPatch::intersectBicubicPatch0(Ray *ray, BicubicPatch *shape, DBL *depths)
 }
 
 int
-BicubicPatch::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, DBL *depths)
+BicubicPatch::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
     int i;
     int j;
-    DBL depth, d, radius;
+    double depth, d, radius;
     Vector3D v[4];
     Vector3D n;
     Vector3D ip;
@@ -1297,11 +1297,11 @@ BicubicPatch::intersectBicubicPatch1(Ray *ray, BicubicPatch *shape, DBL *depths)
 }
 
 int
-BicubicPatch::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, DBL *depths)
+BicubicPatch::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
-    DBL uValues[MAX_BICUBIC_INTERSECTIONS];
-    DBL vValues[MAX_BICUBIC_INTERSECTIONS];
+    double uValues[MAX_BICUBIC_INTERSECTIONS];
+    double vValues[MAX_BICUBIC_INTERSECTIONS];
     Vector3D(*patch)[4][4] = (Vector3D(*)[4][4])shape->Control_Points;
 
     BicubicPatch::bezierSubdivider(ray, shape, patch, 0.0, 1.0, 0.0, 1.0, 0, &cnt, depths,
@@ -1310,7 +1310,7 @@ BicubicPatch::intersectBicubicPatch2(Ray *ray, BicubicPatch *shape, DBL *depths)
 }
 
 int
-BicubicPatch::intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, DBL *depths)
+BicubicPatch::intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     BicubicPatch::bezierTreeWalker(ray, shape, shape->Node_Tree, 0, &cnt, depths);
@@ -1318,13 +1318,13 @@ BicubicPatch::intersectBicubicPatch3(Ray *ray, BicubicPatch *shape, DBL *depths)
 }
 
 int
-BicubicPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, DBL *depths)
+BicubicPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, double *depths)
 {
     int cnt = 0;
     int tcnt = shape->Intersection_Count;
     int i;
     int j;
-    DBL depth, d, t;
+    double depth, d, t;
     Vector3D v0;
     Vector3D v1;
     Vector3D v2;
@@ -1365,15 +1365,15 @@ BicubicPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, DBL *depths)
 
             /* Make sure the smooth normals point in the same direction as the
              * normal */
-            VDot(t, n0, n);
+            VectorOps::vDot(t, n0, n);
             if (t < 0)
-                VScale(n0, n0, -1.0);
-            VDot(t, n1, n);
+                VectorOps::vScale(n0, n0, -1.0);
+            VectorOps::vDot(t, n1, n);
             if (t < 0)
-                VScale(n1, n1, -1.0);
-            VDot(t, n2, n);
+                VectorOps::vScale(n1, n1, -1.0);
+            VectorOps::vDot(t, n2, n);
             if (t < 0)
-                VScale(n2, n2, -1.0);
+                VectorOps::vScale(n2, n2, -1.0);
 
             /* Check for intersections in this subpatch. */
             if (BicubicPatch::intersectSubpatch(shape->Patch_Type, ray, &v0, &v2, &v1, &n, d,
@@ -1395,15 +1395,15 @@ BicubicPatch::intersectBicubicPatch4(Ray *ray, BicubicPatch *shape, DBL *depths)
 
             /* Make sure the smooth normals point in the same direction as the
              * normal */
-            VDot(t, n1, n);
+            VectorOps::vDot(t, n1, n);
             if (t > 0)
-                VScale(n1, n0, -1.0);
-            VDot(t, n2, n);
+                VectorOps::vScale(n1, n0, -1.0);
+            VectorOps::vDot(t, n2, n);
             if (t > 0)
-                VScale(n2, n1, -1.0);
-            VDot(t, n3, n);
+                VectorOps::vScale(n2, n1, -1.0);
+            VectorOps::vDot(t, n3, n);
             if (t > 0)
-                VScale(n3, n2, -1.0);
+                VectorOps::vScale(n3, n2, -1.0);
 
             if (BicubicPatch::intersectSubpatch(shape->Patch_Type, ray, &v1, &v2, &v3, &n, d,
                     &n1, &n2, &n3, &depth, &ip, &ipNorm)) {
@@ -1425,7 +1425,7 @@ BicubicPatch::allBicubicPatchIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     BicubicPatch *shape = (BicubicPatch *)object;
-    DBL depths[MAX_BICUBIC_INTERSECTIONS];
+    double depths[MAX_BICUBIC_INTERSECTIONS];
     Intersection localElement;
     int cnt = 0;
     int tcnt;
@@ -1530,7 +1530,7 @@ BicubicPatch::translateBicubicPatch(SimpleBody *object, Vector3D *vector)
     int j;
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
-            VAdd(patch->Control_Points[i][j], patch->Control_Points[i][j],
+            VectorOps::vAdd(patch->Control_Points[i][j], patch->Control_Points[i][j],
                 *vector);
     BicubicPatch::precomputePatchValues(patch);
     translateTexture(&((BicubicPatch *)object)->Shape_Texture, vector);
@@ -1563,7 +1563,7 @@ BicubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3D *vector)
     int j;
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
-            VEvaluate(patch->Control_Points[i][j], patch->Control_Points[i][j],
+            VectorOps::vEvaluate(patch->Control_Points[i][j], patch->Control_Points[i][j],
                 *vector);
     BicubicPatch::precomputePatchValues(patch);
     scaleTexture(&((BicubicPatch *)object)->Shape_Texture, vector);

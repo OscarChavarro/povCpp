@@ -182,8 +182,8 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
 
             image->iwidth = buffer[4] | (buffer[5] << 8);
             image->iheight = buffer[6] | (buffer[7] << 8);
-            image->width = (DBL)image->iwidth;
-            image->height = (DBL)image->iheight;
+            image->width = (double)image->iwidth;
+            image->height = (double)image->iheight;
 
             bitmapLine = 0;
 

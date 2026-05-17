@@ -315,7 +315,7 @@ readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
             return (-1);
         }
 
-        lineData[i].Red = (DBL)data / 255.0;
+        lineData[i].Red = (double)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -323,7 +323,7 @@ readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
             return (-1);
         }
 
-        lineData[i].Green = (DBL)data / 255.0;
+        lineData[i].Green = (double)data / 255.0;
     }
 
     for (i = 0; i < handle->width; i++) {
@@ -331,7 +331,7 @@ readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
             return (-1);
         }
 
-        lineData[i].Blue = (DBL)data / 255.0;
+        lineData[i].Blue = (double)data / 255.0;
     }
 
     *lineNumber = rawHandle->lineNumber++;

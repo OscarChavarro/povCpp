@@ -6,7 +6,9 @@
  *****************************************************************************/
 
 #include "geom/Triangle.h"
+#include "io/Parse.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 Methods Triangle_Methods = {objectIntersect, Triangle::allTriangleIntersections,
     Triangle::insideTriangle, Triangle::triangleNormal, Triangle::copyTriangle, Triangle::translateTriangle,
     Triangle::rotateTriangle, Triangle::scaleTriangle, Triangle::invertTriangle};
@@ -16,13 +18,12 @@ Methods Smooth_Triangle_Methods = {objectIntersect, Triangle::allTriangleInterse
     SmoothTriangle::translateSmoothTriangle, SmoothTriangle::rotateSmoothTriangle, SmoothTriangle::scaleSmoothTriangle,
     SmoothTriangle::invertSmoothTriangle};
 
-extern Triangle *getTriangleShape();
 
 extern Ray *vpRay;
 extern long rayTriangleTests, rayTriangleTestsSucceeded;
 
 int
-Triangle::max3Axis(DBL x, DBL y, DBL z)
+Triangle::max3Axis(double x, double y, double z)
 {
     return (x > y) ? ((x > z) ? 1 : 3) : ((y > z) ? 2 : 3);
 }
@@ -32,7 +33,7 @@ static constexpr int Z_AXIS = 2;
 void
 Triangle::findTriangleDominantAxis(Triangle *triangle)
 {
-    DBL x, y, z;
+    double x, y, z;
 
     x = fabs(triangle->Normal_Vector.x);
     y = fabs(triangle->Normal_Vector.y);
@@ -56,9 +57,9 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     Vector3D p3MinusP2;
     Vector3D vTemp1;
     Vector3D vTemp2;
-    DBL x, y, z, uDenominator, proj;
+    double x, y, z, uDenominator, proj;
 
-    VSub(p3MinusP2, triangle->P3, triangle->P2);
+    VectorOps::vSub(p3MinusP2, triangle->P3, triangle->P2);
     x = fabs(p3MinusP2.x);
     y = fabs(p3MinusP2.y);
     z = fabs(p3MinusP2.z);
@@ -80,16 +81,16 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
         break;
     }
 
-    VSub(vTemp1, triangle->P2, triangle->P3);
-    VNormalize(vTemp1, vTemp1);
-    VSub(vTemp2, triangle->P1, triangle->P3);
-    VDot(proj, vTemp2, vTemp1);
-    VScale(vTemp1, vTemp1, proj);
-    VSub(triangle->Perp, vTemp1, vTemp2);
-    VNormalize(triangle->Perp, triangle->Perp);
-    VDot(uDenominator, vTemp2, triangle->Perp);
+    VectorOps::vSub(vTemp1, triangle->P2, triangle->P3);
+    VectorOps::vNormalize(vTemp1, vTemp1);
+    VectorOps::vSub(vTemp2, triangle->P1, triangle->P3);
+    VectorOps::vDot(proj, vTemp2, vTemp1);
+    VectorOps::vScale(vTemp1, vTemp1, proj);
+    VectorOps::vSub(triangle->Perp, vTemp1, vTemp2);
+    VectorOps::vNormalize(triangle->Perp, triangle->Perp);
+    VectorOps::vDot(uDenominator, vTemp2, triangle->Perp);
     uDenominator = -1.0 / uDenominator;
-    VScale(triangle->Perp, triangle->Perp, uDenominator);
+    VectorOps::vScale(triangle->Perp, triangle->Perp, uDenominator);
 }
 
 int
@@ -98,12 +99,12 @@ Triangle::computeTriangle(Triangle *triangle)
     Vector3D v1;
     Vector3D v2;
     Vector3D temp;
-    DBL length;
+    double length;
 
-    VSub(v1, triangle->P1, triangle->P2);
-    VSub(v2, triangle->P3, triangle->P2);
-    VCross(triangle->Normal_Vector, v1, v2);
-    VLength(length, triangle->Normal_Vector);
+    VectorOps::vSub(v1, triangle->P1, triangle->P2);
+    VectorOps::vSub(v2, triangle->P3, triangle->P2);
+    VectorOps::vCross(triangle->Normal_Vector, v1, v2);
+    VectorOps::vLength(length, triangle->Normal_Vector);
     /* Set up a flag so we can ignore degenerate triangles */
     if (length < 1.0e-9) {
         triangle->Degenerate_Flag = TRUE;
@@ -111,9 +112,9 @@ Triangle::computeTriangle(Triangle *triangle)
     }
 
     /* Normalize the normal vector. */
-    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
+    VectorOps::vScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
 
-    VDot(triangle->Distance, triangle->Normal_Vector, triangle->P1);
+    VectorOps::vDot(triangle->Distance, triangle->Normal_Vector, triangle->P1);
     triangle->Distance *= -1.0;
     Triangle::findTriangleDominantAxis(triangle);
 
@@ -184,7 +185,7 @@ Triangle::allTriangleIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     Triangle *shape = (Triangle *)object;
-    DBL depth;
+    double depth;
     Vector3D intersectionPoint;
     Intersection localElement;
 
@@ -195,8 +196,8 @@ Triangle::allTriangleIntersections(
     if (intersectTriangle(ray, shape, &depth)) {
         localElement.Depth = depth;
         localElement.Object = shape->Parent_Object;
-        VScale(intersectionPoint, ray->Direction, depth);
-        VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+        VectorOps::vScale(intersectionPoint, ray->Direction, depth);
+        VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -206,10 +207,10 @@ Triangle::allTriangleIntersections(
 }
 
 int
-Triangle::intersectTriangle(Ray *ray, Triangle *triangle, DBL *depth)
+Triangle::intersectTriangle(Ray *ray, Triangle *triangle, double *depth)
 {
-    DBL normalDotOrigin, normalDotDirection;
-    DBL s, t;
+    double normalDotOrigin, normalDotDirection;
+    double s, t;
 
     rayTriangleTests++;
     if (triangle->Degenerate_Flag) {
@@ -218,14 +219,14 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, DBL *depth)
 
     if (ray == vpRay) {
         if (!triangle->VPCached) {
-            VDot(triangle->VPNormDotOrigin, triangle->Normal_Vector,
+            VectorOps::vDot(triangle->VPNormDotOrigin, triangle->Normal_Vector,
                 ray->Initial);
             triangle->VPNormDotOrigin += triangle->Distance;
             triangle->VPNormDotOrigin *= -1.0;
             triangle->VPCached = TRUE;
         }
 
-        VDot(normalDotDirection, triangle->Normal_Vector, ray->Direction);
+        VectorOps::vDot(normalDotDirection, triangle->Normal_Vector, ray->Direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -233,11 +234,11 @@ Triangle::intersectTriangle(Ray *ray, Triangle *triangle, DBL *depth)
 
         *depth = triangle->VPNormDotOrigin / normalDotDirection;
     } else {
-        VDot(normalDotOrigin, triangle->Normal_Vector, ray->Initial);
+        VectorOps::vDot(normalDotOrigin, triangle->Normal_Vector, ray->Initial);
         normalDotOrigin += triangle->Distance;
         normalDotOrigin *= -1.0;
 
-        VDot(normalDotDirection, triangle->Normal_Vector, ray->Direction);
+        VectorOps::vDot(normalDotDirection, triangle->Normal_Vector, ray->Direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -385,7 +386,7 @@ Triangle::copyTriangle(SimpleBody *object)
 {
     Triangle *newShape;
 
-    newShape = getTriangleShape();
+    newShape = ParseFactory::getTriangleShape();
     *newShape = *((Triangle *)object);
     newShape->Next_Object = nullptr;
 
@@ -402,11 +403,11 @@ Triangle::translateTriangle(SimpleBody *object, Vector3D *vector)
     Triangle *triangle = (Triangle *)object;
     Vector3D translation;
 
-    VEvaluate(translation, triangle->Normal_Vector, *vector);
+    VectorOps::vEvaluate(translation, triangle->Normal_Vector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
-    VAdd(triangle->P1, triangle->P1, *vector);
-    VAdd(triangle->P2, triangle->P2, *vector);
-    VAdd(triangle->P3, triangle->P3, *vector);
+    VectorOps::vAdd(triangle->P1, triangle->P1, *vector);
+    VectorOps::vAdd(triangle->P2, triangle->P2, *vector);
+    VectorOps::vAdd(triangle->P3, triangle->P3, *vector);
     translateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
@@ -431,19 +432,19 @@ void
 Triangle::scaleTriangle(SimpleBody *object, Vector3D *vector)
 {
     Triangle *triangle = (Triangle *)object;
-    DBL length;
+    double length;
 
     triangle->Normal_Vector.x = triangle->Normal_Vector.x / vector->x;
     triangle->Normal_Vector.y = triangle->Normal_Vector.y / vector->y;
     triangle->Normal_Vector.z = triangle->Normal_Vector.z / vector->z;
 
-    VLength(length, triangle->Normal_Vector);
-    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
+    VectorOps::vLength(length, triangle->Normal_Vector);
+    VectorOps::vScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
     triangle->Distance /= length;
 
-    VEvaluate(triangle->P1, triangle->P1, *vector);
-    VEvaluate(triangle->P2, triangle->P2, *vector);
-    VEvaluate(triangle->P3, triangle->P3, *vector);
+    VectorOps::vEvaluate(triangle->P1, triangle->P1, *vector);
+    VectorOps::vEvaluate(triangle->P2, triangle->P2, *vector);
+    VectorOps::vEvaluate(triangle->P3, triangle->P3, *vector);
 
     scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
@@ -505,10 +506,10 @@ SmoothTriangle::smoothTriangleNormal(
     Vector3D piMinusP1;
     Vector3D nTemp1;
     Vector3D nTemp2;
-    DBL u = 0.0, v = 0.0;
+    double u = 0.0, v = 0.0;
 
-    VSub(piMinusP1, *intersectionPoint, triangle->P1);
-    VDot(u, piMinusP1, triangle->Perp);
+    VectorOps::vSub(piMinusP1, *intersectionPoint, triangle->P1);
+    VectorOps::vDot(u, piMinusP1, triangle->Perp);
     if (u < 1.0e-9) {
         *result = triangle->N1;
         return;
@@ -534,16 +535,16 @@ SmoothTriangle::smoothTriangleNormal(
         break;
     }
 
-    VSub(nTemp1, triangle->N2, triangle->N1);
-    VScale(nTemp1, nTemp1, u);
-    VAdd(nTemp1, nTemp1, triangle->N1);
-    VSub(nTemp2, triangle->N3, triangle->N1);
-    VScale(nTemp2, nTemp2, u);
-    VAdd(nTemp2, nTemp2, triangle->N1);
-    VSub(*result, nTemp2, nTemp1);
-    VScale(*result, *result, v);
-    VAdd(*result, *result, nTemp1);
-    VNormalize(*result, *result);
+    VectorOps::vSub(nTemp1, triangle->N2, triangle->N1);
+    VectorOps::vScale(nTemp1, nTemp1, u);
+    VectorOps::vAdd(nTemp1, nTemp1, triangle->N1);
+    VectorOps::vSub(nTemp2, triangle->N3, triangle->N1);
+    VectorOps::vScale(nTemp2, nTemp2, u);
+    VectorOps::vAdd(nTemp2, nTemp2, triangle->N1);
+    VectorOps::vSub(*result, nTemp2, nTemp1);
+    VectorOps::vScale(*result, *result, v);
+    VectorOps::vAdd(*result, *result, nTemp1);
+    VectorOps::vNormalize(*result, *result);
 }
 
 void *
@@ -551,7 +552,7 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *newShape;
 
-    newShape = getSmoothTriangleShape();
+    newShape = ParseFactory::getSmoothTriangleShape();
     *newShape = *((SmoothTriangle *)object);
     newShape->Next_Object = nullptr;
 
@@ -588,11 +589,11 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3D *vector)
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     Vector3D translation;
 
-    VEvaluate(translation, triangle->Normal_Vector, *vector);
+    VectorOps::vEvaluate(translation, triangle->Normal_Vector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
-    VAdd(triangle->P1, triangle->P1, *vector);
-    VAdd(triangle->P2, triangle->P2, *vector);
-    VAdd(triangle->P3, triangle->P3, *vector);
+    VectorOps::vAdd(triangle->P1, triangle->P1, *vector);
+    VectorOps::vAdd(triangle->P2, triangle->P2, *vector);
+    VectorOps::vAdd(triangle->P3, triangle->P3, *vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
     translateTexture(&((Triangle *)object)->Shape_Texture, vector);
@@ -602,19 +603,19 @@ void
 SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3D *vector)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
-    DBL length;
+    double length;
 
     triangle->Normal_Vector.x = triangle->Normal_Vector.x / vector->x;
     triangle->Normal_Vector.y = triangle->Normal_Vector.y / vector->y;
     triangle->Normal_Vector.z = triangle->Normal_Vector.z / vector->z;
 
-    VLength(length, triangle->Normal_Vector);
-    VScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
+    VectorOps::vLength(length, triangle->Normal_Vector);
+    VectorOps::vScale(triangle->Normal_Vector, triangle->Normal_Vector, 1.0 / length);
     triangle->Distance /= length;
 
-    VEvaluate(triangle->P1, triangle->P1, *vector);
-    VEvaluate(triangle->P2, triangle->P2, *vector);
-    VEvaluate(triangle->P3, triangle->P3, *vector);
+    VectorOps::vEvaluate(triangle->P1, triangle->P1, *vector);
+    VectorOps::vEvaluate(triangle->P2, triangle->P2, *vector);
+    VectorOps::vEvaluate(triangle->P3, triangle->P3, *vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
     scaleTexture(&((SmoothTriangle *)object)->Shape_Texture, vector);

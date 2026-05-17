@@ -6,12 +6,13 @@
  *****************************************************************************/
 
 #include "geom/Planes.h"
+#include "io/Parse.h"
 #include "geom/Objects.h"
+#include "io/Parse.h"
 Methods Plane_Methods = {objectIntersect, InfinitePlane::allPlaneIntersections,
     InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
 
-extern InfinitePlane *getPlaneShape();
 
 extern Ray *vpRay;
 extern long rayPlaneTests, rayPlaneTestsSucceeded;
@@ -20,7 +21,7 @@ InfinitePlane::allPlaneIntersections(
     SimpleBody *object, Ray *ray, PriorityQueueNode *depthQueue)
 {
     InfinitePlane *shape = (InfinitePlane *)object;
-    DBL depth;
+    double depth;
     Vector3D intersectionPoint;
     Intersection localElement;
 
@@ -28,8 +29,8 @@ InfinitePlane::allPlaneIntersections(
         if (depth > Small_Tolerance) {
             localElement.Depth = depth;
             localElement.Object = shape->Parent_Object;
-            VScale(intersectionPoint, ray->Direction, depth);
-            VAdd(intersectionPoint, intersectionPoint, ray->Initial);
+            VectorOps::vScale(intersectionPoint, ray->Direction, depth);
+            VectorOps::vAdd(intersectionPoint, intersectionPoint, ray->Initial);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -41,20 +42,20 @@ InfinitePlane::allPlaneIntersections(
 }
 
 int
-InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, DBL *depth)
+InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, double *depth)
 {
-    DBL normalDotOrigin, normalDotDirection;
+    double normalDotOrigin, normalDotDirection;
 
     rayPlaneTests++;
     if (ray == vpRay) {
         if (!plane->VPCached) {
-            VDot(plane->VPNormDotOrigin, plane->Normal_Vector, ray->Initial);
+            VectorOps::vDot(plane->VPNormDotOrigin, plane->Normal_Vector, ray->Initial);
             plane->VPNormDotOrigin += plane->Distance;
             plane->VPNormDotOrigin *= -1.0;
             plane->VPCached = TRUE;
         }
 
-        VDot(normalDotDirection, plane->Normal_Vector, ray->Direction);
+        VectorOps::vDot(normalDotDirection, plane->Normal_Vector, ray->Direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -67,11 +68,11 @@ InfinitePlane::intersectPlane(Ray *ray, InfinitePlane *plane, DBL *depth)
         }
         return (FALSE);
     }
-    VDot(normalDotOrigin, plane->Normal_Vector, ray->Initial);
+    VectorOps::vDot(normalDotOrigin, plane->Normal_Vector, ray->Initial);
     normalDotOrigin += plane->Distance;
     normalDotOrigin *= -1.0;
 
-    VDot(normalDotDirection, plane->Normal_Vector, ray->Direction);
+    VectorOps::vDot(normalDotDirection, plane->Normal_Vector, ray->Direction);
     if ((normalDotDirection < Small_Tolerance) &&
         (normalDotDirection > -Small_Tolerance)) {
         return (FALSE);
@@ -89,9 +90,9 @@ int
 InfinitePlane::insidePlane(Vector3D *testPoint, SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
-    DBL temp;
+    double temp;
 
-    VDot(temp, *testPoint, plane->Normal_Vector);
+    VectorOps::vDot(temp, *testPoint, plane->Normal_Vector);
     return ((temp + plane->Distance) <= Small_Tolerance);
 }
 
@@ -108,7 +109,7 @@ InfinitePlane::copyPlane(SimpleBody *object)
 {
     InfinitePlane *newShape;
 
-    newShape = getPlaneShape();
+    newShape = ParseFactory::getPlaneShape();
     *newShape = *((InfinitePlane *)object);
     newShape->Next_Object = nullptr;
 
@@ -125,7 +126,7 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3D *vector)
     InfinitePlane *plane = (InfinitePlane *)object;
     Vector3D translation;
 
-    VEvaluate(translation, plane->Normal_Vector, *vector);
+    VectorOps::vEvaluate(translation, plane->Normal_Vector, *vector);
     plane->Distance -= translation.x + translation.y + translation.z;
 
     translateTexture(&plane->Shape_Texture, vector);
@@ -146,15 +147,15 @@ InfinitePlane::rotatePlane(SimpleBody *object, Vector3D *vector)
 void
 InfinitePlane::scalePlane(SimpleBody *object, Vector3D *vector)
 {
-    DBL length;
+    double length;
     InfinitePlane *plane = (InfinitePlane *)object;
 
     plane->Normal_Vector.x = plane->Normal_Vector.x / vector->x;
     plane->Normal_Vector.y = plane->Normal_Vector.y / vector->y;
     plane->Normal_Vector.z = plane->Normal_Vector.z / vector->z;
 
-    VLength(length, plane->Normal_Vector);
-    VScale(plane->Normal_Vector, plane->Normal_Vector, 1.0 / length);
+    VectorOps::vLength(length, plane->Normal_Vector);
+    VectorOps::vScale(plane->Normal_Vector, plane->Normal_Vector, 1.0 / length);
     plane->Distance /= length;
 
     scaleTexture(&((InfinitePlane *)object)->Shape_Texture, vector);
@@ -165,6 +166,6 @@ InfinitePlane::invertPlane(SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
-    VScale(plane->Normal_Vector, plane->Normal_Vector, -1.0);
+    VectorOps::vScale(plane->Normal_Vector, plane->Normal_Vector, -1.0);
     plane->Distance *= -1.0;
 }

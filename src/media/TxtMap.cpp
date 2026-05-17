@@ -14,17 +14,17 @@
 #include "media/Texture.h"
 
 extern int cylindricalImageMap(
-    DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+    double x, double y, double z, RGBAImage *image, double *u, double *v);
 extern int sphericalImageMap(
-    DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+    double x, double y, double z, RGBAImage *image, double *u, double *v);
 extern int planarImageMap(
-    DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v);
+    double x, double y, double z, RGBAImage *image, double *u, double *v);
 extern void noInterpolation(
-    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
 extern void interp(
-    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
 extern void imageColourAt(
-    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index);
+    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
 
 /*
     2-D to 3-D Procedural Texture Mapping of a Bitmapped Image onto an Object:
@@ -44,13 +44,13 @@ B. Specialized shape projection variations by Alexander Enzmann:
 */
 
 void
-MapTextures::imageMap(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+MapTextures::imageMap(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
     /* return pixel color value at that posn on 2-d plane */
 
-    DBL xcoor = 0.0, ycoor = 0.0;
+    double xcoor = 0.0, ycoor = 0.0;
     int regNumber;
 
     if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor)) {
@@ -68,10 +68,10 @@ Texture *
 MapTextures::materialMap(Vector3D *intersectionPoint, Texture *texture)
 {
     Vector3D transformedPoint;
-    register DBL x;
-    register DBL y;
-    register DBL z;
-    DBL xcoor = 0.0, ycoor = 0.0;
+    register double x;
+    register double y;
+    register double z;
+    double xcoor = 0.0, ycoor = 0.0;
     int regNumber = 0;
     RGBAColor colour;
     int materialNumber = 0;
@@ -126,9 +126,9 @@ MapTextures::materialMap(Vector3D *intersectionPoint, Texture *texture)
 }
 
 void
-MapTextures::bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
+MapTextures::bumpMap(double x, double y, double z, Texture *texture, Vector3D *normal)
 {
-    DBL xcoor = 0.0, ycoor = 0.0;
+    double xcoor = 0.0, ycoor = 0.0;
     int index;
     int index2;
     int index3;
@@ -143,7 +143,7 @@ MapTextures::bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     Vector3D yprime;
     Vector3D zprime;
     Vector3D temp;
-    DBL length;
+    double length;
     Color::makeColor(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
     Color::makeColor(&colour2, 0.0, 0.0, 0.0);
@@ -165,22 +165,22 @@ MapTextures::bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     xcoor--;
     ycoor++;
     if (xcoor < 0.0) {
-        xcoor += (DBL)texture->Bump_Image->iwidth;
+        xcoor += (double)texture->Bump_Image->iwidth;
     } else if (xcoor >= texture->Bump_Image->iwidth) {
-        xcoor -= (DBL)texture->Bump_Image->iwidth;
+        xcoor -= (double)texture->Bump_Image->iwidth;
     }
     if (ycoor < 0.0) {
-        ycoor += (DBL)texture->Bump_Image->iheight;
-    } else if (ycoor >= (DBL)texture->Bump_Image->iheight) {
-        ycoor -= (DBL)texture->Bump_Image->iheight;
+        ycoor += (double)texture->Bump_Image->iheight;
+    } else if (ycoor >= (double)texture->Bump_Image->iheight) {
+        ycoor -= (double)texture->Bump_Image->iheight;
     }
     imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
 
     xcoor += 2.0;
     if (xcoor < 0.0) {
-        xcoor += (DBL)texture->Bump_Image->iwidth;
+        xcoor += (double)texture->Bump_Image->iwidth;
     } else if (xcoor >= texture->Bump_Image->iwidth) {
-        xcoor -= (DBL)texture->Bump_Image->iwidth;
+        xcoor -= (double)texture->Bump_Image->iwidth;
     }
 
     imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
@@ -219,40 +219,40 @@ MapTextures::bumpMap(DBL x, DBL y, DBL z, Texture *texture, Vector3D *normal)
     }
     /* we have points 1,2,3 for a triangle now we need the surface normal for it
      */
-    VSub(xprime, p1, p2);
-    VSub(yprime, p3, p2);
-    VCross(bumpNormal, yprime, xprime);
-    VNormalize(bumpNormal, bumpNormal);
+    VectorOps::vSub(xprime, p1, p2);
+    VectorOps::vSub(yprime, p3, p2);
+    VectorOps::vCross(bumpNormal, yprime, xprime);
+    VectorOps::vNormalize(bumpNormal, bumpNormal);
 
-    makeVector(&yprime, normal->x, normal->y, normal->z);
-    makeVector(&temp, 0.0, 1.0, 0.0);
-    VCross(xprime, yprime, temp);
-    VLength(length, xprime);
+    VectorOps::makeVector(&yprime, normal->x, normal->y, normal->z);
+    VectorOps::makeVector(&temp, 0.0, 1.0, 0.0);
+    VectorOps::vCross(xprime, yprime, temp);
+    VectorOps::vLength(length, xprime);
     if (length < 1.0e-9) {
         if (fabs(normal->y - 1.0) < Small_Tolerance) {
-            makeVector(&yprime, 0.0, 1.0, 0.0);
-            makeVector(&xprime, 1.0, 0.0, 0.0);
+            VectorOps::makeVector(&yprime, 0.0, 1.0, 0.0);
+            VectorOps::makeVector(&xprime, 1.0, 0.0, 0.0);
             length = 1.0;
         } else {
-            makeVector(&yprime, 0.0, -1.0, 0.0);
-            makeVector(&xprime, 1.0, 0.0, 0.0);
+            VectorOps::makeVector(&yprime, 0.0, -1.0, 0.0);
+            VectorOps::makeVector(&xprime, 1.0, 0.0, 0.0);
             length = 1.0;
         }
     }
-    VScale(xprime, xprime, 1.0 / length);
-    VCross(zprime, xprime, yprime);
-    VNormalize(zprime, zprime);
-    VScale(xprime, xprime, bumpNormal.x);
-    VScale(yprime, yprime, bumpNormal.y);
-    VScale(zprime, zprime, bumpNormal.z);
-    VAdd(temp, xprime, yprime);
-    VAdd(*normal, temp, zprime);
-    VNormalize(*normal, *normal);
+    VectorOps::vScale(xprime, xprime, 1.0 / length);
+    VectorOps::vCross(zprime, xprime, yprime);
+    VectorOps::vNormalize(zprime, zprime);
+    VectorOps::vScale(xprime, xprime, bumpNormal.x);
+    VectorOps::vScale(yprime, yprime, bumpNormal.y);
+    VectorOps::vScale(zprime, zprime, bumpNormal.z);
+    VectorOps::vAdd(temp, xprime, yprime);
+    VectorOps::vAdd(*normal, temp, zprime);
+    VectorOps::vNormalize(*normal, *normal);
 }
 
 void
 MapTextures::imageColourAt(
-    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
+    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     switch (image->Interpolation_Type) {
     case NO_INTERPOLATION:
@@ -267,9 +267,9 @@ MapTextures::imageColourAt(
 /* Map a point (x, y, z) on a cylinder of radius 1, height 1, that has its
     axis of symmetry along the y-axis to the square [0,1]x[0,1]. */
 int
-MapTextures::cylindricalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::cylindricalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    DBL len, theta;
+    double len, theta;
 
     if ((image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
         return 0;
@@ -309,10 +309,10 @@ MapTextures::cylindricalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, 
 
 /* Map a point (x, y, z) on a torus  to a 2-d image. */
 int
-MapTextures::torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::torusImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    DBL len, phi, theta;
-    DBL r0;
+    double len, phi, theta;
+    double r0;
 
     r0 = image->Image_Gradient.x;
 
@@ -356,9 +356,9 @@ MapTextures::torusImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v
 /* Map a point (x, y, z) on a sphere of radius 1 to a 2-d image. (Or is it the
     other way around?) */
 int
-MapTextures::sphericalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::sphericalImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    DBL len, phi, theta;
+    double len, phi, theta;
 
     /* Make sure this vector is on the unit sphere. */
     len = sqrt(x * x + y * y + z * z);
@@ -412,7 +412,7 @@ MapTextures::sphericalImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DB
 /* Return 0 if there is no color at this point (i.e. invisible), return 1
     if a good mapping is found. */
 int
-MapTextures::planarImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *v)
+MapTextures::planarImageMap(double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
     if (image->Image_Gradient.x != 0.0) {
         if ((image->Once_Flag) && ((x < 0.0) || (x > 1.0))) {
@@ -449,8 +449,8 @@ MapTextures::planarImageMap(DBL x, DBL y, DBL z, RGBAImage *image, DBL *u, DBL *
 
 /* Map returns 1 if no color found (invisible) or 0 if color found */
 int
-MapTextures::map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *xcoor,
-    DBL *ycoor)
+MapTextures::map(double x, double y, double z, Texture *texture, RGBAImage *image, double *xcoor,
+    double *ycoor)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -498,18 +498,18 @@ MapTextures::map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *x
     *ycoor += Small_Tolerance;
     *xcoor += Small_Tolerance;
     /* Compensate for y coordinates on the images being upsidedown */
-    *ycoor = (DBL)image->iheight - *ycoor;
+    *ycoor = (double)image->iheight - *ycoor;
 
     if (*xcoor < 0.0) {
-        *xcoor += (DBL)image->iwidth;
-    } else if (*xcoor >= (DBL)image->iwidth) {
-        *xcoor -= (DBL)image->iwidth;
+        *xcoor += (double)image->iwidth;
+    } else if (*xcoor >= (double)image->iwidth) {
+        *xcoor -= (double)image->iwidth;
     }
 
     if (*ycoor < 0.0) {
-        *ycoor += (DBL)image->iheight;
-    } else if (*ycoor >= (DBL)image->iheight) {
-        *ycoor -= (DBL)image->iheight;
+        *ycoor += (double)image->iheight;
+    } else if (*ycoor >= (double)image->iheight) {
+        *ycoor -= (double)image->iheight;
     }
 
     if (Options & DEBUGGING) {
@@ -517,7 +517,7 @@ MapTextures::map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *x
             *xcoor, *ycoor, image->iheight, image->iwidth);
     }
 
-    if ((*xcoor >= (DBL)image->iwidth) || (*ycoor >= (DBL)image->iheight) ||
+    if ((*xcoor >= (double)image->iwidth) || (*ycoor >= (double)image->iheight) ||
         (*xcoor < 0.0) || (*ycoor < 0.0)) {
         printf("\nPicture index out of range\n");
         PovApp::closeAll();
@@ -529,7 +529,7 @@ MapTextures::map(DBL x, DBL y, DBL z, Texture *texture, RGBAImage *image, DBL *x
 
 void
 MapTextures::noInterpolation(
-    RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
+    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     ImageLine *line;
     int iycoor;
@@ -537,23 +537,23 @@ MapTextures::noInterpolation(
     RGBAPixel *mapColour;
 
     if (xcoor < 0.0) {
-        xcoor += (DBL)image->iwidth;
-    } else if (xcoor >= (DBL)image->iwidth) {
-        xcoor -= (DBL)image->iwidth;
+        xcoor += (double)image->iwidth;
+    } else if (xcoor >= (double)image->iwidth) {
+        xcoor -= (double)image->iwidth;
     }
     if (ycoor < 0.0) {
-        ycoor += (DBL)image->iheight;
-    } else if (ycoor >= (DBL)image->iheight) {
-        ycoor -= (DBL)image->iheight;
+        ycoor += (double)image->iheight;
+    } else if (ycoor >= (double)image->iheight) {
+        ycoor -= (double)image->iheight;
     }
 
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
     if (image->Colour_Map == nullptr) {
         line = &image->data.rgb_lines[iycoor];
-        colour->Red += (DBL)line->red[ixcoor] / 255.0;
-        colour->Green += (DBL)line->green[ixcoor] / 255.0;
-        colour->Blue += (DBL)line->blue[ixcoor] / 255.0;
+        colour->Red += (double)line->red[ixcoor] / 255.0;
+        colour->Green += (double)line->green[ixcoor] / 255.0;
+        colour->Blue += (double)line->blue[ixcoor] / 255.0;
         *index = -1;
     } else {
         *index = image->data.map_lines[iycoor][ixcoor];
@@ -561,10 +561,10 @@ MapTextures::noInterpolation(
         /*printf ("icat index %d xc %d yc %d  CLR %d %d %d
      %d\n",*index,ixcoor,iycoor,
      map_colour->Red,map_colour->Green,map_colour->Blue,map_colour->Alpha ); */
-        colour->Red += (DBL)mapColour->Red / 255.0;
-        colour->Green += (DBL)mapColour->Green / 255.0;
-        colour->Blue += (DBL)mapColour->Blue / 255.0;
-        colour->Alpha += (DBL)mapColour->Alpha / 255.0;
+        colour->Red += (double)mapColour->Red / 255.0;
+        colour->Green += (double)mapColour->Green / 255.0;
+        colour->Blue += (double)mapColour->Blue / 255.0;
+        colour->Alpha += (double)mapColour->Alpha / 255.0;
     }
 
     if (Options & DEBUGGING) {
@@ -575,19 +575,19 @@ MapTextures::noInterpolation(
 
 /* Interpolate color and alpha values when mapping */
 void
-MapTextures::interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, int *index)
+MapTextures::interp(RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     int iycoor;
     int ixcoor;
     int i;
     int cornersIndex[4];
-    DBL indexCrn[4];
+    double indexCrn[4];
     RGBAColor cornerColour[4];
-    DBL redCrn[4];
-    DBL greenCrn[4];
-    DBL blueCrn[4];
-    DBL alphaCrn[4];
-    DBL val1 = 0, val2 = 0, val3 = 0, val4 = 0;
+    double redCrn[4];
+    double greenCrn[4];
+    double blueCrn[4];
+    double alphaCrn[4];
+    double val1 = 0, val2 = 0, val3 = 0, val4 = 0;
 
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
@@ -597,13 +597,13 @@ MapTextures::interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, i
     }
     /* OK, now that you have the corners, what are you going to do with them? */
     if (image->Interpolation_Type == BILINEAR) {
-        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor, &cornerColour[0],
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor, &cornerColour[0],
             &cornersIndex[0]);
-        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor, &cornerColour[1],
+        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
             &cornersIndex[1]);
-        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor - 1,
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[2], &cornersIndex[2]);
-        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor - 1, &cornerColour[3],
+        noInterpolation(image, (double)ixcoor, (double)iycoor - 1, &cornerColour[3],
             &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;
@@ -620,13 +620,13 @@ MapTextures::interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, i
         val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
     if (image->Interpolation_Type == NORMALIZED_DIST) {
-        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor - 1, &cornerColour[0],
+        noInterpolation(image, (double)ixcoor, (double)iycoor - 1, &cornerColour[0],
             &cornersIndex[0]);
-        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor - 1,
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[1], &cornersIndex[1]);
-        noInterpolation(image, (DBL)ixcoor, (DBL)iycoor, &cornerColour[2],
+        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[2],
             &cornersIndex[2]);
-        noInterpolation(image, (DBL)ixcoor + 1, (DBL)iycoor, &cornerColour[3],
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor, &cornerColour[3],
             &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;
@@ -650,7 +650,7 @@ MapTextures::interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, i
     /* printf("Final = %lf %lf %lf\n",val1,val2,val3);  */
     /* use bilinear for index try average later */
     for (i = 0; i < 4; i++) {
-        indexCrn[i] = (DBL)cornersIndex[i];
+        indexCrn[i] = (double)cornersIndex[i];
     }
     if (image->Interpolation_Type == BILINEAR) {
         *index = (int)(bilinear(indexCrn, xcoor, ycoor) + 0.5);
@@ -663,11 +663,11 @@ MapTextures::interp(RGBAImage *image, DBL xcoor, DBL ycoor, RGBAColor *colour, i
 /* These interpolation techniques are taken from an article by */
 /* Girish T. Hagan in the C Programmer's Journal V 9 No. 8 */
 /* They were adapted for POV-Ray by CdW */
-DBL
-MapTextures::bilinear(DBL *corners, DBL x, DBL y)
+double
+MapTextures::bilinear(double *corners, double x, double y)
 {
-    DBL p, q;
-    DBL val = 0.0;
+    double p, q;
+    double val = 0.0;
 
     p = x - (int)x;
     q = y - (int)y;
@@ -681,20 +681,20 @@ MapTextures::bilinear(DBL *corners, DBL x, DBL y)
 }
 
 static constexpr int MAX_PTS = 4;
-inline DBL pythagoreanSq(DBL a, DBL b)
+inline double pythagoreanSq(double a, double b)
 {
     return a * a + b * b;
 }
 
-DBL
-MapTextures::normDist(DBL *corners, DBL x, DBL y)
+double
+MapTextures::normDist(double *corners, double x, double y)
 {
     register int i;
 
-    DBL p, q;
-    DBL wts[MAX_PTS];
-    DBL sumInvWts = 0.0;
-    DBL sumI = 0.0;
+    double p, q;
+    double wts[MAX_PTS];
+    double sumInvWts = 0.0;
+    double sumI = 0.0;
 
     p = x - (int)x;
     q = y - (int)y;

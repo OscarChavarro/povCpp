@@ -25,9 +25,9 @@ static constexpr double COORDINATE_LIMIT = 1.0e17;
 void
 ColorTextures::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersectionPoint)
 {
-    register DBL x;
-    register DBL y;
-    register DBL z;
+    register double x;
+    register double y;
+    register double z;
     Vector3D transformedPoint;
 
     if ((intersectionPoint->x > COORDINATE_LIMIT) ||
@@ -36,7 +36,7 @@ ColorTextures::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersect
         (intersectionPoint->x < -COORDINATE_LIMIT) ||
         (intersectionPoint->y < -COORDINATE_LIMIT) ||
         (intersectionPoint->z < -COORDINATE_LIMIT)) {
-        makeVector(&transformedPoint, 0.0, 0.0, 0.0);
+        VectorOps::makeVector(&transformedPoint, 0.0, 0.0, 0.0);
     } else {
         if (texture->Texture_Transformation) {
             Transformation::MInverseTransformVector(&transformedPoint, intersectionPoint,
@@ -131,10 +131,10 @@ ColorTextures::colourAt(RGBAColor *colour, Texture *texture, Vector3D *intersect
 }
 
 void
-ColorTextures::agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::agate(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register DBL noise;
-    register DBL hue;
+    register double noise;
+    register double hue;
     RGBAColor newColour;
 
     noise =
@@ -173,10 +173,10 @@ ColorTextures::agate(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-ColorTextures::bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::bozo(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register DBL noise;
-    register DBL turb;
+    register double noise;
+    register double turb;
     RGBAColor newColour;
     Vector3D bozoTurbulence;
 
@@ -227,9 +227,9 @@ ColorTextures::bozo(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-ColorTextures::brick(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::brick(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    DBL xr, yr, zr;
+    double xr, yr, zr;
 
     xr = fabs(fmod(x, 1.0));
     yr = fabs(fmod(y, 1.0));
@@ -255,7 +255,7 @@ ColorTextures::brick(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-ColorTextures::checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::checker(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
 
@@ -280,7 +280,7 @@ ColorTextures::checker(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-ColorTextures::checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::checkerTexture(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
     Vector3D point;
@@ -296,7 +296,7 @@ ColorTextures::checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *
         printf("checker_texture %g %g %g\n", x, y, z);
     }
 
-    makeVector(&point, x, y, z);
+    VectorOps::makeVector(&point, x, y, z);
 
     if (brkindx & 1) {
         ColorTextures::colourAt(colour, ((Texture *)texture->Colour1), &point);
@@ -314,10 +314,10 @@ ColorTextures::checkerTexture(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *
     but Dave Wecker's only supports simple Y axis gradients.
 */
 void
-ColorTextures::gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::gradient(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     RGBAColor newColour;
-    DBL value = 0.0, turb;
+    double value = 0.0, turb;
     Vector3D gradTurbulence;
 
     if ((turb = texture->Turbulence) != 0.0) {
@@ -361,12 +361,12 @@ ColorTextures::gradient(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour
     w/ small scaling values.  Should work with colour maps for pink granite...
 */
 void
-ColorTextures::granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::granite(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     register int i;
-    register DBL temp;
-    register DBL noise = 0.0;
-    register DBL freq = 1.0;
+    register double temp;
+    register double noise = 0.0;
+    register double freq = 1.0;
     RGBAColor newColour;
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
@@ -394,10 +394,10 @@ ColorTextures::granite(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-ColorTextures::marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::marble(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register DBL noise;
-    register DBL hue;
+    register double noise;
+    register double hue;
     RGBAColor newColour;
 
     noise = triangleWave(
@@ -434,9 +434,9 @@ ColorTextures::marble(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     Works with color maps.
 */
 void
-ColorTextures::spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::spotted(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register DBL noise;
+    register double noise;
     RGBAColor newColour;
 
     noise = Noise(x, y, z);
@@ -460,10 +460,10 @@ ColorTextures::spotted(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 }
 
 void
-ColorTextures::wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::wood(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    register DBL noise;
-    register DBL length;
+    register double noise;
+    register double length;
     Vector3D woodTurbulence;
     Vector3D point;
     RGBAColor newColour;
@@ -483,7 +483,7 @@ ColorTextures::wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
     /*  point.z += z;         Deleted per David Buck --  BP 7/91 */
 
-    VLength(length, point);
+    VectorOps::vLength(length, point);
 
     noise = triangleWave(length);
 
@@ -514,14 +514,14 @@ ColorTextures::wood(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 /* Two new textures by Scott Taylor LEOPARD & ONION */
 /* SWT 7/18/91 */
 void
-ColorTextures::leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::leopard(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
-    register DBL noise;
-    register DBL turb;
-    register DBL temp1;
-    register DBL temp2;
-    register DBL temp3;
+    register double noise;
+    register double turb;
+    register double temp1;
+    register double temp2;
+    register double temp3;
     RGBAColor newColour;
     Vector3D leopardTurbulence;
 
@@ -536,12 +536,12 @@ ColorTextures::leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
         z += leopardTurbulence.z * turb;
     }
     /* This form didn't work with Zortech 386 compiler */
-    /* noise = Sqr((sin(x)+sin(y)+sin(z))/3); */
+    /* noise = VectorOps::sqr((sin(x)+sin(y)+sin(z))/3); */
     /* So we break it down. */
     temp1 = sin(x);
     temp2 = sin(y);
     temp3 = sin(z);
-    noise = Sqr((temp1 + temp2 + temp3) / 3);
+    noise = VectorOps::sqr((temp1 + temp2 + temp3) / 3);
 
     if (Options & DEBUGGING) {
         printf("temp123 %g %g %g  ", temp1, temp2, temp3);
@@ -567,11 +567,11 @@ ColorTextures::leopard(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
 
 /* SWT 7/18/91 */
 void
-ColorTextures::onion(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
+ColorTextures::onion(double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     /* The variable noise is not used as noise in this function */
-    register DBL noise;
-    register DBL turb;
+    register double noise;
+    register double turb;
     RGBAColor newColour;
     Vector3D onionTurbulence;
 
@@ -587,12 +587,12 @@ ColorTextures::onion(DBL x, DBL y, DBL z, Texture *texture, RGBAColor *colour)
     }
 
     /* This ramp goes 0-1,1-0,0-1,1-0...
-    noise = (fmod(std::sqrt(Sqr(x)+Sqr(y)+Sqr(z)),2.0)-1.0);
+    noise = (fmod(std::sqrt(VectorOps::sqr(x)+VectorOps::sqr(y)+VectorOps::sqr(z)),2.0)-1.0);
     if (noise<0.0) {noise = 0.0-noise;}
     */
 
     /* This ramp goes 0-1,0-1,0-1,0-1... */
-    noise = (fmod(std::sqrt(Sqr(x) + Sqr(y) + Sqr(z)), 1.0));
+    noise = (fmod(std::sqrt(VectorOps::sqr(x) + VectorOps::sqr(y) + VectorOps::sqr(z)), 1.0));
 
     if (Options & DEBUGGING) {
         printf("noise %g\n", noise);
