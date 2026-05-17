@@ -9,11 +9,11 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
-Methods CSG_Union_Methods = {objectIntersect, CSG::allCsgUnionIntersections,
+Methods CSG_Union_Methods = {Composite::objectIntersect, CSG::allCsgUnionIntersections,
     CSG::insideCsgUnion, nullptr, CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
     CSG::invertCsg};
 
-Methods CSG_Intersection_Methods = {objectIntersect,
+Methods CSG_Intersection_Methods = {Composite::objectIntersect,
     CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr, CSG::copyCsg,
     CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
 
@@ -29,7 +29,7 @@ CSG::allCsgUnionIntersections(
     intersectionFound = FALSE;
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
-        if (allIntersections((SimpleBody *)localShape, ray, depthQueue)) {
+        if (GeometryOps::allIntersections((SimpleBody *)localShape, ray, depthQueue)) {
             intersectionFound = TRUE;
         }
     }
@@ -56,7 +56,7 @@ CSG::allCsgIntersectIntersections(
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        allIntersections((SimpleBody *)localShape, ray, localDepthQueue);
+        GeometryOps::allIntersections((SimpleBody *)localShape, ray, localDepthQueue);
 
         for (localIntersection = localDepthQueue->getHighest();
              localIntersection != nullptr; localDepthQueue->deleteHighest(),
@@ -68,7 +68,7 @@ CSG::allCsgIntersectIntersections(
                  shape2 = shape2->Next_Object) {
 
                 if (shape2 != localShape) {
-                    if (!Inside(
+                    if (!GeometryOps::inside(
                             &localIntersection->Point, (SimpleBody *)shape2)) {
                         intersectionFound = FALSE;
                         break;
@@ -97,7 +97,7 @@ CSG::insideCsgUnion(Vector3D *testPoint, SimpleBody *object)
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        if (Inside(testPoint, (SimpleBody *)localShape)) {
+        if (GeometryOps::inside(testPoint, (SimpleBody *)localShape)) {
             return (TRUE);
         }
     }
@@ -113,7 +113,7 @@ CSG::insideCsgIntersection(Vector3D *testPoint, SimpleBody *object)
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        if (!Inside(testPoint, (SimpleBody *)localShape)) {
+        if (!GeometryOps::inside(testPoint, (SimpleBody *)localShape)) {
             return (FALSE);
         }
     }
@@ -138,8 +138,8 @@ CSG::copyCsg(SimpleBody *object)
     for (localShape = shape->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        copiedShape = (Geometry *)Copy((SimpleBody *)localShape);
-        Link((SimpleBody *)copiedShape,
+        copiedShape = (Geometry *)GeometryOps::copy((SimpleBody *)localShape);
+        ObjectUtils::link((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->Next_Object),
             (SimpleBody **)&(newShape->Shapes));
     }
@@ -154,7 +154,7 @@ CSG::translateCsg(SimpleBody *object, Vector3D *vector)
     for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        Translate((SimpleBody *)localShape, vector);
+        GeometryOps::translate((SimpleBody *)localShape, vector);
     }
 }
 
@@ -166,7 +166,7 @@ CSG::rotateCsg(SimpleBody *object, Vector3D *vector)
     for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        Rotate((SimpleBody *)localShape, vector);
+        GeometryOps::rotate((SimpleBody *)localShape, vector);
     }
 }
 
@@ -178,7 +178,7 @@ CSG::scaleCsg(SimpleBody *object, Vector3D *vector)
     for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        Scale((SimpleBody *)localShape, vector);
+        GeometryOps::scale((SimpleBody *)localShape, vector);
     }
 }
 
@@ -199,7 +199,7 @@ CSG::invertCsg(SimpleBody *object)
     for (localShape = csg->Shapes; localShape != nullptr;
          localShape = localShape->Next_Object) {
 
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
 }
 

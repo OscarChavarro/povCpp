@@ -9,7 +9,7 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
-Methods Point_Methods = {objectIntersect, Light::allPointIntersections,
+Methods Point_Methods = {Composite::objectIntersect, Light::allPointIntersections,
     Light::insidePoint, nullptr, Light::copyPoint, Light::translatePoint, Light::rotatePoint,
     Light::scalePoint, Light::invertPoint};
 

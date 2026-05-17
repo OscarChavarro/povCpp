@@ -9,11 +9,11 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
-Methods Triangle_Methods = {objectIntersect, Triangle::allTriangleIntersections,
+Methods Triangle_Methods = {Composite::objectIntersect, Triangle::allTriangleIntersections,
     Triangle::insideTriangle, Triangle::triangleNormal, Triangle::copyTriangle, Triangle::translateTriangle,
     Triangle::rotateTriangle, Triangle::scaleTriangle, Triangle::invertTriangle};
 
-Methods Smooth_Triangle_Methods = {objectIntersect, Triangle::allTriangleIntersections,
+Methods Smooth_Triangle_Methods = {Composite::objectIntersect, Triangle::allTriangleIntersections,
     Triangle::insideTriangle, SmoothTriangle::smoothTriangleNormal, SmoothTriangle::copySmoothTriangle,
     SmoothTriangle::translateSmoothTriangle, SmoothTriangle::rotateSmoothTriangle, SmoothTriangle::scaleSmoothTriangle,
     SmoothTriangle::invertSmoothTriangle};

@@ -9,7 +9,7 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
-Methods Plane_Methods = {objectIntersect, InfinitePlane::allPlaneIntersections,
+Methods Plane_Methods = {Composite::objectIntersect, InfinitePlane::allPlaneIntersections,
     InfinitePlane::insidePlane, InfinitePlane::planeNormal, InfinitePlane::copyPlane, InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
 

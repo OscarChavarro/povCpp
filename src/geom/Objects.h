@@ -38,12 +38,12 @@ class Composite {
 
 extern Methods Composite_Methods;
 extern Methods Basic_Object_Methods;
-extern Intersection *objectIntersect(SimpleBody *Object, Ray *Ray);
 extern void setCsgParents(CSG *Shape, SimpleBody *Object);
 
-extern void Link(
-    SimpleBody *New_Object, SimpleBody **Field, SimpleBody **Old_Object_List);
-
-extern SimpleBody *getObject(void);
+class ObjectUtils {
+  public:
+    static void link(SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList);
+    static SimpleBody *getObject(void);
+};
 
 #endif

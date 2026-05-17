@@ -23,14 +23,17 @@ class Frame {
     static void doAntiAliasing(int x, int y, RGBAColor *color);
     static void outputLine(int y);
 
-    friend void Supersample(RGBAColor *result, int x, int y, int Width, int Height);
-    friend void startTracing(void);
+    friend class RenderEngine;
 };
 
-extern void readRenderedPart(void);
-extern void Supersample(RGBAColor *result, int x, int y, int Width, int Height);
-extern void startTracing(void);
-extern void Trace(Ray *ray, RGBAColor *Colour);
-extern void initializeRenderer(void);
+class RenderEngine {
+  public:
+    static void readRenderedPart(void);
+    static void supersample(
+        RGBAColor *result, int x, int y, int width, int height);
+    static void startTracing(void);
+    static void trace(Ray *ray, RGBAColor *colour);
+    static void initializeRenderer(void);
+};
 
 #endif

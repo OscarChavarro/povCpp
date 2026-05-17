@@ -98,7 +98,7 @@ int degenerateTriangles;
 inline void
 ParseHelpers::getExpectedToken(int tokenId)
 {
-    getToken();
+    Tokenizer::getToken();
     if (globalToken.Token_Id != tokenId) {
         ParseEngine::parseError(tokenId);
     }
@@ -561,7 +561,7 @@ ParseEngine::parseFloat()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
@@ -618,7 +618,7 @@ ParseEngine::parseVector(Vector3D *givenVector)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
@@ -655,7 +655,7 @@ ParseEngine::parseCoeffs(int order, double *givenCoeffs)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     for (i = 0; i < termCounts[order]; i++) {
@@ -680,7 +680,7 @@ ParseEngine::parseColour(RGBAColor *givenColour)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
@@ -745,7 +745,7 @@ static constexpr int MAX_ENTRIES = 20;
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_SQUARE_TOKEN:
     constructionMap[i].start = ParseEngine::parseFloat();
@@ -849,7 +849,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
@@ -931,7 +931,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case COLOUR_TOKEN:
     texture->Colour1 = ParseFactory::getColour();
@@ -957,7 +957,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case COLOUR_TOKEN:
     texture->Colour1 = ParseFactory::getColour();
@@ -986,7 +986,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
@@ -1013,7 +1013,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case TEXTURE_TOKEN:
     localTexture = ParseEngine::parseTexture();
@@ -1214,7 +1214,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case DASH_TOKEN:
     case PLUS_TOKEN:
@@ -1255,7 +1255,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case ONCE_TOKEN:
     texture->Image->Once_Flag = TRUE;
@@ -1282,7 +1282,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case FLOAT_TOKEN:
     reg = (int)(globalToken.Token_Float + 0.01);
@@ -1337,7 +1337,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case PHASE_TOKEN:
     texture->Phase = ParseEngine::parseFloat();
@@ -1534,7 +1534,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case DASH_TOKEN:
     case PLUS_TOKEN:
@@ -1575,7 +1575,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case ONCE_TOKEN:
     texture->Bump_Image->Once_Flag = TRUE;
@@ -1631,7 +1631,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case DASH_TOKEN:
     case PLUS_TOKEN:
@@ -1675,7 +1675,7 @@ ParseEngine::parseTexture()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
 
     case MAPTYPE_TOKEN:
@@ -1739,7 +1739,7 @@ ParseEngine::parseLightSource()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
@@ -1755,7 +1755,7 @@ ParseEngine::parseLightSource()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == LIGHT_SOURCE_CONSTANT) {
-            localShape = (Light *)Copy(
+            localShape = (Light *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -1777,23 +1777,23 @@ ParseEngine::parseLightSource()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     /* Point that the spot is pointed at */
@@ -1851,7 +1851,7 @@ ParseEngine::parseSphere()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
@@ -1865,7 +1865,7 @@ ParseEngine::parseSphere()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == SPHERE_CONSTANT) {
-            localShape = (Sphere *)Copy(
+            localShape = (Sphere *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -1887,27 +1887,27 @@ ParseEngine::parseSphere()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -1958,7 +1958,7 @@ ParseEngine::parsePlane()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
@@ -1971,7 +1971,7 @@ ParseEngine::parsePlane()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == PLANE_CONSTANT) {
-            localShape = (InfinitePlane *)Copy(
+            localShape = (InfinitePlane *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -1993,27 +1993,27 @@ ParseEngine::parsePlane()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2063,7 +2063,7 @@ ParseEngine::parseHeightField()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) { /* This should be modified to include other image types - CdW */
         case GIF_TOKEN: imageType = GIF;
     localShape = ParseFactory::getHeightFieldShape();
@@ -2127,7 +2127,7 @@ ParseEngine::parseHeightField()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == HEIGHT_FIELD_CONSTANT) {
-            localShape = (HeightField *)Copy(
+            localShape = (HeightField *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -2149,7 +2149,7 @@ ParseEngine::parseHeightField()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
@@ -2160,21 +2160,21 @@ ParseEngine::parseHeightField()
 
     case TRANSLATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2228,7 +2228,7 @@ ParseEngine::parseTriangle()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
@@ -2246,7 +2246,7 @@ ParseEngine::parseTriangle()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == TRIANGLE_CONSTANT) {
-            localShape = (Triangle *)Copy(
+            localShape = (Triangle *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -2268,27 +2268,27 @@ ParseEngine::parseTriangle()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2338,7 +2338,7 @@ ParseEngine::parseSmoothTriangle()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
@@ -2364,7 +2364,7 @@ ParseEngine::parseSmoothTriangle()
     {
         if (constants[(int)constantId].Constant_Type ==
             SMOOTH_TRIANGLE_CONSTANT) {
-            localShape = (SmoothTriangle *)Copy(
+            localShape = (SmoothTriangle *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -2386,27 +2386,27 @@ ParseEngine::parseSmoothTriangle()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2457,7 +2457,7 @@ ParseEngine::parseQuadric()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
@@ -2478,7 +2478,7 @@ ParseEngine::parseQuadric()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == QUADRIC_CONSTANT) {
-            localShape = (Quadric *)Copy(
+            localShape = (Quadric *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -2500,27 +2500,27 @@ ParseEngine::parseQuadric()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2574,7 +2574,7 @@ ParseEngine::parsePoly(int knownOrder)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case DASH_TOKEN:
     case PLUS_TOKEN:
@@ -2601,7 +2601,7 @@ ParseEngine::parsePoly(int knownOrder)
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == POLY_CONSTANT) {
-            localShape = (Poly *)Copy(
+            localShape = (Poly *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -2623,7 +2623,7 @@ ParseEngine::parsePoly(int knownOrder)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
@@ -2633,21 +2633,21 @@ ParseEngine::parsePoly(int knownOrder)
 
     case TRANSLATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2656,7 +2656,7 @@ ParseEngine::parsePoly(int knownOrder)
         localTexture = copyTexture(localTexture);
     }
 
-    Link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
+    ObjectUtils::link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
         (SimpleBody **)&localShape->Shape_Texture);
     break;
 
@@ -2691,7 +2691,7 @@ ParseEngine::parseBicubicPatch()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case DASH_TOKEN:
     case PLUS_TOKEN:
@@ -2718,7 +2718,7 @@ ParseEngine::parseBicubicPatch()
     {
         if (constants[(int)constantId].Constant_Type ==
             BICUBIC_PATCH_CONSTANT) {
-            localShape = (BicubicPatch *)Copy(
+            localShape = (BicubicPatch *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -2740,27 +2740,27 @@ ParseEngine::parseBicubicPatch()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2769,7 +2769,7 @@ ParseEngine::parseBicubicPatch()
         localTexture = copyTexture(localTexture);
     }
 
-    Link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
+    ObjectUtils::link((SimpleBody *)localTexture, (SimpleBody **)&localTexture->Next_Texture,
         (SimpleBody **)&localShape->Shape_Texture);
     break;
 
@@ -2802,7 +2802,7 @@ ParseEngine::parseBox()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_CURLY_TOKEN:
     Exit_Flag = TRUE; break; default: ParseEngine::parseError(LEFT_CURLY_TOKEN);
@@ -2815,7 +2815,7 @@ ParseEngine::parseBox()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_ANGLE_TOKEN:
     Tokenizer::ungetToken();
@@ -2827,7 +2827,7 @@ ParseEngine::parseBox()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == BOX_CONSTANT) {
-            localShape = (Box *)Copy(
+            localShape = (Box *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -2849,27 +2849,27 @@ ParseEngine::parseBox()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -2920,7 +2920,7 @@ ParseEngine::parseBlob()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LEFT_CURLY_TOKEN:
     Exit_Flag = TRUE; break; default: ParseEngine::parseError(LEFT_CURLY_TOKEN);
@@ -2933,7 +2933,7 @@ ParseEngine::parseBlob()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case THRESHOLD_TOKEN:
     case COMPONENT_TOKEN:
@@ -2948,7 +2948,7 @@ ParseEngine::parseBlob()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case THRESHOLD_TOKEN:
     threshold = ParseEngine::parseFloat();
@@ -2981,7 +2981,7 @@ ParseEngine::parseBlob()
     case IDENTIFIER_TOKEN: if ((constantId = ParseEngine::findConstant()) != -1)
     {
         if (constants[(int)constantId].Constant_Type == BLOB_CONSTANT) {
-            localShape = (Blob *)Copy(
+            localShape = (Blob *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -3003,7 +3003,7 @@ ParseEngine::parseBlob()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
@@ -3013,21 +3013,21 @@ ParseEngine::parseBlob()
 
     case TRANSLATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localShape, &localVector);
+    GeometryOps::translate((SimpleBody *)localShape, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localShape, &localVector);
+    GeometryOps::rotate((SimpleBody *)localShape, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localShape, &localVector);
+    GeometryOps::scale((SimpleBody *)localShape, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localShape);
+    GeometryOps::invert((SimpleBody *)localShape);
     break;
 
     case TEXTURE_TOKEN:
@@ -3085,7 +3085,7 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
@@ -3095,7 +3095,7 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
             (constants[(int)constantId].Constant_Type ==
                 CSG_DIFFERENCE_CONSTANT)) {
             delete container;
-            container = (CSG *)Copy(
+            container = (CSG *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
             CSG::setCsgParents(container, parentObject);
         } else {
@@ -3110,10 +3110,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseLightSource();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3121,10 +3121,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseSphere();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3132,10 +3132,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parsePlane();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3143,10 +3143,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3154,10 +3154,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseSmoothTriangle();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3165,10 +3165,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseQuadric();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3176,10 +3176,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseHeightField();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3187,10 +3187,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parsePoly(3);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3198,10 +3198,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parsePoly(4);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3209,10 +3209,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parsePoly(0);
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3220,10 +3220,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseBox();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3231,10 +3231,10 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseBlob();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3242,40 +3242,40 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
     localShape = ParseEngine::parseBicubicPatch();
     localShape->Parent_Object = parentObject;
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
     case UNION_TOKEN:
     localShape = (Geometry *)ParseEngine::parseCsg(CSG_UNION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
     case INTERSECTION_TOKEN:
     localShape = (Geometry *)ParseEngine::parseCsg(CSG_INTERSECTION_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
     case DIFFERENCE_TOKEN:
     localShape = (Geometry *)ParseEngine::parseCsg(CSG_DIFFERENCE_TYPE, parentObject);
     if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-        Invert((SimpleBody *)localShape);
+        GeometryOps::invert((SimpleBody *)localShape);
     }
     firstShapeParsed = TRUE;
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(container->Shapes));
     break;
 
@@ -3289,25 +3289,25 @@ ParseEngine::parseCsg(int type, SimpleBody *parentObject)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) { case RIGHT_CURLY_TOKEN: Exit_Flag = TRUE; break;
 
             case TRANSLATE_TOKEN: ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)container, &localVector);
+    GeometryOps::translate((SimpleBody *)container, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)container, &localVector);
+    GeometryOps::rotate((SimpleBody *)container, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)container, &localVector);
+    GeometryOps::scale((SimpleBody *)container, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)container);
+    GeometryOps::invert((SimpleBody *)container);
     break;
 
     default:
@@ -3335,7 +3335,7 @@ ParseEngine::parseShape(SimpleBody *object)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case LIGHT_SOURCE_TOKEN:
     localShape = ParseEngine::parseLightSource();
@@ -3428,12 +3428,12 @@ ParseEngine::parseObject()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == OBJECT_CONSTANT) {
-            object = (SimpleBody *)Copy(
+            object = (SimpleBody *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -3461,11 +3461,11 @@ ParseEngine::parseObject()
     case BLOB_TOKEN:
                 Tokenizer::ungetToken(); if (object == nullptr)
     {
-        object = getObject();
+        object = ObjectUtils::getObject();
     }
 
     localShape = ParseEngine::parseShape(object);
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Shape));
     Exit_Flag = TRUE; break;
 
@@ -3478,7 +3478,7 @@ ParseEngine::parseObject()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) { case BOUNDED_TOKEN:
 
             ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
@@ -3487,13 +3487,13 @@ ParseEngine::parseObject()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         default: Tokenizer::ungetToken(); localShape = ParseEngine::parseShape(object);
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Bounding_Shapes));
     break;
     }
@@ -3509,13 +3509,13 @@ ParseEngine::parseObject()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         default: Tokenizer::ungetToken(); localShape = ParseEngine::parseShape(object);
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(object->Clipping_Shapes));
     break;
     }
@@ -3556,21 +3556,21 @@ ParseEngine::parseObject()
 
     case TRANSLATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Translate(object, &localVector);
+    GeometryOps::translate(object, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate(object, &localVector);
+    GeometryOps::rotate(object, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale(object, &localVector);
+    GeometryOps::scale(object, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert(object);
+    GeometryOps::invert(object);
     break;
 
     case RIGHT_CURLY_TOKEN:
@@ -3603,12 +3603,12 @@ ParseEngine::parseComposite()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
         if (constants[(int)constantId].Constant_Type == COMPOSITE_CONSTANT) {
-            localComposite = (Composite *)Copy(
+            localComposite = (Composite *)GeometryOps::copy(
                 (SimpleBody *)constants[(int)constantId].Constant_Data);
         } else {
             ParseEngine::typeError();
@@ -3624,7 +3624,7 @@ ParseEngine::parseComposite()
     }
 
     localObject = ParseEngine::parseComposite();
-    Link((SimpleBody *)localObject, (SimpleBody **)&(localObject->Next_Object),
+    ObjectUtils::link((SimpleBody *)localObject, (SimpleBody **)&(localObject->Next_Object),
         (SimpleBody **)&(localComposite->Objects));
     break;
 
@@ -3633,7 +3633,7 @@ ParseEngine::parseComposite()
         localComposite = ParseFactory::getCompositeObject();
     }
     localObject = ParseEngine::parseObject();
-    Link(localObject, &(localObject->Next_Object), &(localComposite->Objects));
+    ObjectUtils::link(localObject, &(localObject->Next_Object), &(localComposite->Objects));
     break;
 
     case RIGHT_CURLY_TOKEN:
@@ -3651,7 +3651,7 @@ ParseEngine::parseComposite()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) { case RIGHT_CURLY_TOKEN: Exit_Flag = TRUE; break;
 
                 case BOUNDED_TOKEN:
@@ -3662,13 +3662,13 @@ ParseEngine::parseComposite()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         default: Tokenizer::ungetToken(); localShape = ParseEngine::parseShape((SimpleBody *)localComposite);
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(localComposite->Bounding_Shapes));
     break;
     }
@@ -3684,13 +3684,13 @@ ParseEngine::parseComposite()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case RIGHT_CURLY_TOKEN:
     Exit_Flag = TRUE; break;
 
         default: Tokenizer::ungetToken(); localShape = ParseEngine::parseShape((SimpleBody *)localComposite);
-    Link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
+    ObjectUtils::link((SimpleBody *)localShape, (SimpleBody **)&(localShape->Next_Object),
         (SimpleBody **)&(localComposite->Clipping_Shapes));
     break;
     }
@@ -3700,21 +3700,21 @@ ParseEngine::parseComposite()
 
     case TRANSLATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)localComposite, &localVector);
+    GeometryOps::translate((SimpleBody *)localComposite, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)localComposite, &localVector);
+    GeometryOps::rotate((SimpleBody *)localComposite, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)localComposite, &localVector);
+    GeometryOps::scale((SimpleBody *)localComposite, &localVector);
     break;
 
     case INVERSE_TOKEN:
-    Invert((SimpleBody *)localComposite);
+    GeometryOps::invert((SimpleBody *)localComposite);
     break;
 
     default:
@@ -3736,7 +3736,7 @@ ParseEngine::parseFog()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case COLOUR_TOKEN:
     ParseEngine::parseColour(&parsingFramePtr->Fog_Colour);
@@ -3765,7 +3765,7 @@ ParseEngine::parseFrame()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case FOG_TOKEN:
     ParseEngine::parseFog();
@@ -3777,7 +3777,7 @@ ParseEngine::parseFrame()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case TEXTURE_TOKEN:
     Default_Texture->Constant_Flag = FALSE;
@@ -3800,17 +3800,17 @@ ParseEngine::parseFrame()
 
     case OBJECT_TOKEN:
     localObject = ParseEngine::parseObject();
-    Link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
+    ObjectUtils::link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
 
     /* light sources are now linked in object parsing */
     /* if (Local_Object -> Light_Source_Flag)
-    Link(Local_Object, &(Local_Object -> Next_Light_Source),
+    ObjectUtils::link(Local_Object, &(Local_Object -> Next_Light_Source),
             &(Parsing_Frame_Ptr -> Light_Sources)); */
     break;
 
     case COMPOSITE_TOKEN:
     localObject = ParseEngine::parseComposite();
-    Link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
+    ObjectUtils::link(localObject, &(localObject->Next_Object), &(parsingFramePtr->Objects));
     /*        addCompositeLightSource ((Composite *)Local_Object);*/
     break;
 
@@ -3848,7 +3848,7 @@ ParseEngine::parseViewpoint(Viewpoint *givenVp)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case IDENTIFIER_TOKEN:
     if ((constantId = ParseEngine::findConstant()) != -1) {
@@ -3907,17 +3907,17 @@ ParseEngine::parseViewpoint(Viewpoint *givenVp)
 
     case TRANSLATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Translate((SimpleBody *)givenVp, &localVector);
+    GeometryOps::translate((SimpleBody *)givenVp, &localVector);
     break;
 
     case ROTATE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Rotate((SimpleBody *)givenVp, &localVector);
+    GeometryOps::rotate((SimpleBody *)givenVp, &localVector);
     break;
 
     case SCALE_TOKEN:
     ParseEngine::parseVector(&localVector);
-    Scale((SimpleBody *)givenVp, &localVector);
+    GeometryOps::scale((SimpleBody *)givenVp, &localVector);
     break;
 
     case RIGHT_CURLY_TOKEN:
@@ -3954,7 +3954,7 @@ ParseEngine::parseDeclare()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case OBJECT_TOKEN:
     constantPtr->Identifier_Number = globalToken.Identifier_Number;
@@ -4070,7 +4070,7 @@ ParseEngine::parseDeclare()
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            getToken();
+            Tokenizer::getToken();
             switch (globalToken.Token_Id) {
     case TEXTURE_TOKEN:
     localTexture = Default_Texture;

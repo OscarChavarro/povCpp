@@ -14,7 +14,7 @@
 #include "io/Parse.h"
 #include "media/Vect.h"
 #include "io/Parse.h"
-Methods Blob_Methods = {objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
+Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections, Blob::insideBlob,
     Blob::blobNormal, Blob::copyBlob, Blob::translateBlob, Blob::rotateBlob, Blob::scaleBlob,
     Blob::invertBlob};
 

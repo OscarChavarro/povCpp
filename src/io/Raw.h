@@ -3,13 +3,17 @@
 
 #include "io/Dump.h"
 
-extern FileHandle *getRawFileHandle(void);
-extern char *defaultRawFileName(void);
-extern int openRawFile(FileHandle *handle, char *name, int *width,
-    int *height, int buffer_size, int mode);
-void writeRawLine(FileHandle *handle, RGBAColor *line_data, int line_number);
-extern int readRawLine(
-    FileHandle *handle, RGBAColor *line_data, int *line_number);
-extern void closeRawFile(FileHandle *handle);
+class RawFormat {
+  public:
+    static FileHandle *getRawFileHandle(void);
+    static char *defaultRawFileName(void);
+    static int openRawFile(FileHandle *handle, char *name, int *width,
+        int *height, int bufferSize, int mode);
+    static void writeRawLine(
+        FileHandle *handle, RGBAColor *lineData, int lineNumber);
+    static int readRawLine(
+        FileHandle *handle, RGBAColor *lineData, int *lineNumber);
+    static void closeRawFile(FileHandle *handle);
+};
 
 #endif

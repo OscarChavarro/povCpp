@@ -14,7 +14,7 @@
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
-Methods Bicubic_Patch_Methods = {objectIntersect,
+Methods Bicubic_Patch_Methods = {Composite::objectIntersect,
     BicubicPatch::allBicubicPatchIntersections, BicubicPatch::insideBicubicPatch, BicubicPatch::bicubicPatchNormal,
     BicubicPatch::copyBicubicPatch, BicubicPatch::translateBicubicPatch, BicubicPatch::rotateBicubicPatch,
     BicubicPatch::scaleBicubicPatch, BicubicPatch::invertBicubicPatch};
