@@ -15,7 +15,7 @@ Viewpoint::copyViewpoint(SimpleBody *object)
     Viewpoint *viewpoint = (Viewpoint *)object;
     Viewpoint *newViewpoint;
 
-    newViewpoint = ParseFactory::getViewpoint();
+    newViewpoint = SceneFactory::getViewpoint();
 
     newViewpoint->Location = viewpoint->Location;
     newViewpoint->Direction = viewpoint->Direction;

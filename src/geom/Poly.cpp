@@ -11,9 +11,7 @@
 #include "geom/Poly.h"
 #include "io/Parse.h"
 #include "geom/Objects.h"
-#include "io/Parse.h"
 #include "media/Vect.h"
-#include "io/Parse.h"
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+
@@ -770,7 +768,7 @@ void *
 Poly::copyPoly(SimpleBody *object)
 {
     Poly *shape = (Poly *)object;
-    Poly *newShape = ParseFactory::getPolyShape(shape->Order);
+    Poly *newShape = SceneFactory::getPolyShape(shape->Order);
     int i;
 
     newShape->Shape_Texture = shape->Shape_Texture;
@@ -790,7 +788,7 @@ Poly::copyPoly(SimpleBody *object)
 
     /* Copy any associated texture */
     if (shape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(shape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(shape->Shape_Texture);
     }
 
     return (void *)(newShape);

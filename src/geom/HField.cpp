@@ -892,12 +892,12 @@ HeightField::copyHeightfld(SimpleBody *object)
 {
     HeightField *newShape;
 
-    newShape = ParseFactory::getHeightFieldShape();
+    newShape = SceneFactory::getHeightFieldShape();
     *newShape = *((HeightField *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

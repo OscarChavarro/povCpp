@@ -651,47 +651,47 @@ BicubicPatch::precomputePatchValues(BicubicPatch *shape)
     if (shape->Interpolated_Grid == nullptr) {
         shape->Interpolated_Grid = new Vector3D *[shape->U_Steps + 1];
         if (shape->Interpolated_Grid == nullptr) {
-            ParseEngine::Error("Failed to allocate Interpolated_Grid");
+            ParseErrorReporter::Error("Failed to allocate Interpolated_Grid");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_Grid[i] = new Vector3D[shape->V_Steps + 1];
             if (shape->Interpolated_Grid == nullptr) {
-                ParseEngine::Error("Failed to allocate component of Interpolated_Grid");
+                ParseErrorReporter::Error("Failed to allocate component of Interpolated_Grid");
             }
         }
         shape->Interpolated_Normals = new Vector3D *[shape->U_Steps + 1];
         if (shape->Interpolated_Normals == nullptr) {
-            ParseEngine::Error("Failed to allocate Interpolated_Normals");
+            ParseErrorReporter::Error("Failed to allocate Interpolated_Normals");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_Normals[i] =
                 new Vector3D[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_Normals == nullptr) {
-                ParseEngine::Error("Failed to allocate component of Interpolated_Normals");
+                ParseErrorReporter::Error("Failed to allocate component of Interpolated_Normals");
             }
         }
 
         if (shape->Patch_Type == 4) {
             shape->Smooth_Normals = new Vector3D *[shape->U_Steps + 1];
             if (shape->Smooth_Normals == nullptr) {
-                ParseEngine::Error("Failed to allocate Smooth_Normals");
+                ParseErrorReporter::Error("Failed to allocate Smooth_Normals");
             }
             for (i = 0; i <= shape->U_Steps; i++) {
                 shape->Smooth_Normals[i] = new Vector3D[shape->V_Steps + 1];
                 if (shape->Smooth_Normals == nullptr) {
-                    ParseEngine::Error("Failed to allocate component of Smooth_Normals");
+                    ParseErrorReporter::Error("Failed to allocate component of Smooth_Normals");
                 }
             }
         }
 
         shape->Interpolated_D = new double *[shape->U_Steps + 1];
         if (shape->Interpolated_D == nullptr) {
-            ParseEngine::Error("Failed to allocate Interpolated_D");
+            ParseErrorReporter::Error("Failed to allocate Interpolated_D");
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_D[i] = new double[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_D == nullptr) {
-                ParseEngine::Error("Failed to allocate component of Interpolated_D");
+                ParseErrorReporter::Error("Failed to allocate component of Interpolated_D");
             }
         }
     }
@@ -1450,7 +1450,7 @@ BicubicPatch::allBicubicPatchIntersections(
     } else if (shape->Patch_Type == 4) {
         cnt = BicubicPatch::intersectBicubicPatch4(ray, shape, &depths[0]);
     } else {
-        ParseEngine::Error("Bad patch type\n");
+        ParseErrorReporter::Error("Bad patch type\n");
     }
     if (cnt > 0) {
         rayBicubicTestsSucceeded++;
@@ -1517,7 +1517,7 @@ BicubicPatch::copyBicubicPatch(SimpleBody *object)
     newShape->Interpolated_Grid = nullptr;
     BicubicPatch::precomputePatchValues(newShape);
     if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture = ParseEngine::copyTexture(newShape->Shape_Texture);
+        newShape->Shape_Texture = TextureParser::copyTexture(newShape->Shape_Texture);
     }
 
     return (void *)(newShape);

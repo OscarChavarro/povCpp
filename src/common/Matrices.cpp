@@ -300,7 +300,7 @@ Transformation::getTransformation()
 
     newTransformation = new Transformation();
     if (newTransformation == nullptr) {
-        ParseEngine::Error("Out of memory. Cannot allocate transformation");
+        ParseErrorReporter::Error("Out of memory. Cannot allocate transformation");
     }
 
     Transformation::MIdentity((MATRIX *)&(newTransformation->matrix[0][0]));

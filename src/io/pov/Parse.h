@@ -1,7 +1,6 @@
-#ifndef __PARSE_H__
-#define __PARSE_H__
+#ifndef __POV_PARSE_H__
+#define __POV_PARSE_H__
 
-#include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseErrorReporter.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/TextureParser.h"

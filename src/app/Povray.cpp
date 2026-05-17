@@ -11,6 +11,10 @@
 #include "common/PovProto.h"
 #include "geom/PrioQ.h"
 #include "io/Parse.h"
+#include "io/FileHandle.h"
+#include "io/Dump.h"
+#include "io/Raw.h"
+#include "io/Targa.h"
 #include "render/Render.h"
 #include <cctype>
 #include <ctime> /* BP */
@@ -190,7 +194,7 @@ PovApp::parseSceneDescription()
         fclose(statFile);
     }
 
-    ParseEngine::Parse(&globalFrame);
+    SceneParser::Parse(&globalFrame);
     Tokenizer::terminateTokenizer();
 }
 
