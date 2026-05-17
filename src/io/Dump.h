@@ -18,26 +18,6 @@ inline int openFile(
     return ((*((h)->Open_File_p))(h, n, wd, ht, sz, m));
 }
 
-inline void writeLine(FileHandle *h, RGBAColor *l, int n)
-{
-    ((*((h)->Write_Line_p))(h, l, n));
-}
-
-inline int readLine(FileHandle *h, RGBAColor *l, int *n)
-{
-    return ((*((h)->Read_Line_p))(h, l, n));
-}
-
-inline void readImage(FileHandle *h, RGBAImage *i)
-{
-    (((*((h)->Read_Image_p))(i, (h)->filename)));
-}
-
-inline void closeFile(FileHandle *h)
-{
-    ((*((h)->Close_File_p))(h));
-}
-
 class DumpFormat {
   public:
     static FileHandle *getDumpFileHandle(void);
@@ -52,6 +32,22 @@ class DumpFormat {
         FileHandle *handle, ImageLine *lineData, int *lineNumber);
     static void readDumpImage(RGBAImage *image, char *name);
     static void closeDumpFile(FileHandle *handle);
+    static inline void writeLine(FileHandle *h, RGBAColor *l, int n)
+    {
+        ((*((h)->Write_Line_p))(h, l, n));
+    }
+    static inline int readLine(FileHandle *h, RGBAColor *l, int *n)
+    {
+        return ((*((h)->Read_Line_p))(h, l, n));
+    }
+    static inline void readImage(FileHandle *h, RGBAImage *i)
+    {
+        (((*((h)->Read_Image_p))(i, (h)->filename)));
+    }
+    static inline void closeFile(FileHandle *h)
+    {
+        ((*((h)->Close_File_p))(h));
+    }
 };
 
 #endif

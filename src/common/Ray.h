@@ -26,6 +26,7 @@ class Ray {
     void copyContainersFrom(Ray *sourceRay);
     void enterContainingMedium(Texture *texture);
     void exitContainingMedium();
+    static inline void mixVectorTerms(Vector3D &a, const Vector3D &b, const Vector3D &c);
 };
 
 #endif

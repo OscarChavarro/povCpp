@@ -8,16 +8,19 @@
 #include "common/Frame.h"
 #include "common/PovProto.h"
 #include "common/Vector.h"
-inline double fabsInline(double x)
+
+inline double
+Color::Color::fabsInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
+
 double
 Color::colorDistance(RGBAColor *color1, RGBAColor *color2)
 {
-    return (fabsInline(color1->Red - color2->Red) +
-            fabsInline(color1->Green - color2->Green) +
-            fabsInline(color1->Blue - color2->Blue));
+    return (Color::fabsInline(color1->Red - color2->Red) +
+            Color::fabsInline(color1->Green - color2->Green) +
+            Color::fabsInline(color1->Blue - color2->Blue));
 }
 
 void

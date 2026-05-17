@@ -21,6 +21,7 @@ class Color {
     static void addColor(RGBAColor *result, RGBAColor *color1, RGBAColor *color2);
     static void scaleColor(RGBAColor *result, RGBAColor *color, double factor);
     static void clipColor(RGBAColor *result, RGBAColor *color);
+    static inline double fabsInline(double x);
 };
 
 #endif

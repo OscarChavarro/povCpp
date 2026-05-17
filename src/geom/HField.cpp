@@ -18,17 +18,21 @@
 #include "io/Parse.h"
 #include "geom/Objects.h"
 #include "io/Parse.h"
-inline int signInline(double x)
+
+inline int
+HeightField::HeightField::signInline(double x)
 {
     return (x > 0.0) ? 1 : ((x == 0.0) ? 0 : -1);
 }
 
-inline double minValue(double x, double y)
+inline double
+HeightField::HeightField::minValue(double x, double y)
 {
     return (x > y) ? y : x;
 }
 
-inline double maxValue(double x, double y)
+inline double
+HeightField::HeightField::maxValue(double x, double y)
 {
     return (x < y) ? y : x;
 }
@@ -87,8 +91,8 @@ HeightField::intersectPixel(
      * intersect the triangle.
      */
 
-    if ((maxValue(y1, maxValue(y2, y3)) >= height1) &&
-        (minValue(y1, minValue(y2, y3)) <= height2)) {
+    if ((HeightField::maxValue(y1, HeightField::maxValue(y2, y3)) >= height1) &&
+        (HeightField::minValue(y1, HeightField::minValue(y2, y3)) <= height2)) {
         VectorOps::vCross(localNormal, t1V3, t1V2);
         VectorOps::vDot(dot, localNormal, ray->Direction);
 
@@ -120,11 +124,11 @@ HeightField::intersectPixel(
      * intersect the triangle.
         Rewritten to get around Code Builder FP stack problem.
         Original code:
-             if((maxValue(y4,maxValue(y2,y3)) >= height1) &&
-                 (minValue(y4,minValue(y2,y3)) <= height2))                */
+             if((HeightField::maxValue(y4,HeightField::maxValue(y2,y3)) >= height1) &&
+                 (HeightField::minValue(y4,HeightField::minValue(y2,y3)) <= height2))                */
 
-    maxHeight = maxValue(y4, maxValue(y2, y3));
-    minHeight = minValue(y4, minValue(y2, y3));
+    maxHeight = HeightField::maxValue(y4, HeightField::maxValue(y2, y3));
+    minHeight = HeightField::minValue(y4, HeightField::minValue(y2, y3));
     if ((maxHeight >= height1) && (minHeight <= height2)) {
         VectorOps::vCross(localNormal, t2V3, t2V2);
         VectorOps::vDot(dot, localNormal, ray->Direction);
@@ -187,11 +191,11 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, Ray *ray, HeightField *h
     int length;
     int i;
 
-    if (minValue(start->y, end->y) > block->max_y) {
+    if (HeightField::minValue(start->y, end->y) > block->max_y) {
         return (FALSE);
     }
 
-    if (maxValue(start->y, end->y) < block->min_y) {
+    if (HeightField::maxValue(start->y, end->y) < block->min_y) {
         return (FALSE);
     }
 
@@ -584,7 +588,7 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
     }
     maxZ = image->iheight;
 
-    size = (double)maxValue(maxX, maxZ);
+    size = (double)HeightField::maxValue(maxX, maxZ);
     hField->Block_Size = blockSize = ceil(sqrt(size + 1.0));
     hField->Inv_Blk_Size = invBlkSize = 1.0 / blockSize;
     n = (int)blockSize;
@@ -750,8 +754,8 @@ HeightField::allHeightfldIntersections(
     hfIntersection = &localElement;
     rRay = ray;
 
-    isdx = signInline(tempRay.Direction.x);
-    isdz = signInline(tempRay.Direction.z);
+    isdx = HeightField::signInline(tempRay.Direction.x);
+    isdz = HeightField::signInline(tempRay.Direction.z);
 
     xDom = FALSE;
     if (fabs(tempRay.Direction.x) >= fabs(tempRay.Direction.z)) {

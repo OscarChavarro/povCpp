@@ -74,8 +74,45 @@ class ParseFactory {
     static double *getFloat();
 };
 
-extern void Parse(Frame *Frame_Ptr);
-extern void tokenInit(void);
+class ParseEngine {
+  public:
+    static void frameInit();
+    static double parseFloat();
+    static void parseVector(Vector3D *givenVector);
+    static void parseCoeffs(int order, double *givenCoeffs);
+    static void parseColour(RGBAColor *givenColour);
+    static RGBAColorPalette *parseColourMap();
+    static Texture *parseTexture();
+    static Geometry *parseSphere();
+    static Geometry *parseLightSource();
+    static Geometry *parsePlane();
+    static Geometry *parseTriangle();
+    static Geometry *parseSmoothTriangle();
+    static Geometry *parseQuadric();
+    static Geometry *parsePoly(int order);
+    static Geometry *parseBox();
+    static Geometry *parseBlob();
+    static Geometry *parseBicubicPatch();
+    static Geometry *parseHeightField();
+    static CSG *parseCsg(int type, SimpleBody *parentObject);
+    static Geometry *parseShape(SimpleBody *object);
+    static SimpleBody *parseObject();
+    static SimpleBody *parseComposite();
+    static void parseFog();
+    static void parseFrame();
+    static void parseViewpoint(Viewpoint *givenVp);
+    static void parseDeclare();
+    static CONSTANT findConstant();
+    static char *getTokenString(TOKEN tokenId);
+    static void parseError(TOKEN tokenId);
+    static void typeError();
+    static void Undeclared();
+    static void Parse(Frame *framePtr);
+    static void tokenInit();
+    static void Error(const char *str);
+    static Texture *copyTexture(Texture *texture);
+};
+
 extern void frameInit(void);
 extern Texture *getTexture(void);
 extern RGBAColor *getColour(void);

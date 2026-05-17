@@ -190,7 +190,7 @@ PovApp::parseSceneDescription()
         fclose(statFile);
     }
 
-    Parse(&globalFrame);
+    ParseEngine::Parse(&globalFrame);
     Tokenizer::terminateTokenizer();
 }
 
@@ -388,7 +388,7 @@ PovApp::closeAll()
     }
 
     if (globalOutputFileHandle) {
-        closeFile(globalOutputFileHandle);
+        DumpFormat::closeFile(globalOutputFileHandle);
     }
 }
 

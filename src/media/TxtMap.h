@@ -33,6 +33,7 @@ class MapTextures {
         RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
     static void imageColourAt(
         RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index);
+    static inline double pythagoreanSq(double a, double b);
 };
 
 #endif
