@@ -1,0 +1,11 @@
+#ifndef __RENDER_RUNTIME_STATE_H__
+#define __RENDER_RUNTIME_STATE_H__
+
+class RenderRuntimeState {
+  public:
+    static double &maxTraceLevel();
+    static volatile int &stopFlag();
+    static void reset();
+};
+
+#endif

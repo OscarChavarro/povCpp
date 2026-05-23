@@ -18,7 +18,6 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
-#include "io/pov/ParserContext.h"
 
 Composite *
 ModelFactory::getCompositeObject()
@@ -118,7 +117,7 @@ ModelFactory::getQuadricShape()
 }
 
 PolynomialShape *
-ModelFactory::getPolyShape(int order)
+ModelFactory::getPolyShape(int order, const int *termCounts)
 {
     PolynomialShape *newShape;
     int i;
@@ -138,13 +137,13 @@ ModelFactory::getPolyShape(int order)
     newShape->Inverted = 0;
     newShape->Order = order;
     newShape->sturmFlag = 0;
-    newShape->Coeffs = new double[ParserContext::termCounts()[order]];
+    newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
         Logger::error(
             "Out of memory. Cannot allocate coefficients for POLY\n");
         exit(1);
     }
-    for (i = 0; i < ParserContext::termCounts()[order]; i++) {
+    for (i = 0; i < termCounts[order]; i++) {
         newShape->Coeffs[i] = 0.0;
     }
     return (newShape);

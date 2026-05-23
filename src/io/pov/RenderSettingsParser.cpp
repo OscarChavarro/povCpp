@@ -1,7 +1,7 @@
 #include "io/pov/ParserContext.h"
-#include "render/RenderEngine.h"
 #include "io/pov/RenderSettingsParser.h"
 #include "io/pov/Parse.h"
+#include "environment/material/RenderRuntimeState.h"
 
 
 void
@@ -14,5 +14,5 @@ RenderSettingsParser::parseMaxTraceLevel()
 void
 RenderSettingsParser::parseMaxTraceLevel(ParserContext &ctx)
 {
-    RenderEngine::maxTraceLevel() = PrimitiveParser::parseFloat(ctx);
+    RenderRuntimeState::maxTraceLevel() = PrimitiveParser::parseFloat(ctx);
 }

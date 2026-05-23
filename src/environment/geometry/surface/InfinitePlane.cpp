@@ -1,4 +1,3 @@
-#include "render/RenderEngine.h"
 /****************************************************************************
  *                     planes.c
  *
@@ -49,7 +48,7 @@ InfinitePlane::intersectPlane(
     double normalDotDirection;
 
     Statistics::global().rayPlaneTests++;
-    if (ray == RenderEngine::primaryRay()) {
+    if (ray->isPrimaryRay) {
         if (!plane->VPCached) {
             plane->VPNormDotOrigin =
                 plane->normalVector.dotProduct(ray->position);

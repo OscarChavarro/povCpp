@@ -1,4 +1,3 @@
-#include "render/RenderEngine.h"
 /****************************************************************************
  *                     quadrics.c
  *
@@ -86,7 +85,7 @@ Quadric::intersectQuadric(
         shape->objectMixedTerms.dotProduct(ray->mixedPositionDirection);
     linearTerm += tempTerm;
 
-    if (ray == RenderEngine::primaryRay()) {
+    if (ray->isPrimaryRay) {
         if (!shape->constantCached) {
             constantTerm = shape->object2Terms.dotProduct(ray->position2);
             tempTerm = shape->objectTerms.dotProduct(ray->position);

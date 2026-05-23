@@ -11,6 +11,7 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/scene/SceneFrame.h"
 #include "environment/material/RendererConfiguration.h"
+#include "environment/material/RenderRuntimeState.h"
 #include "io/FileLocator.h"
 #include "io/Parse.h"
 #include "io/image/DumpFormat.h"
@@ -377,6 +378,7 @@ void
 PovrayApplication::initVars()
 {
     RenderingConfiguration::global().reset();
+    RenderRuntimeState::reset();
     Statistics::global().reset();
     Tokenizer::setCaseSensitiveIdentifiers(0);
     numberOfFiles = 0;

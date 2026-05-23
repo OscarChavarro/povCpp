@@ -1,4 +1,3 @@
-#include "render/RenderEngine.h"
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
 #include "common/Statistics.h"
@@ -11,7 +10,7 @@
 void
 MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *color,
-    const TraceService *traceService)
+    const TraceService *traceService, int &traceLevel)
 {
     RayWithSegments newRay;
     RGBAColor tempColor;
@@ -42,11 +41,11 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
         newRay.position.add(surfaceOffset);
 
         newRay.copyContainersFrom(ray);
-        RenderEngine::traceLevel()++;
+        traceLevel++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
         traceService->trace(&newRay, &tempColor);
-        RenderEngine::traceLevel()--;
+        traceLevel--;
 
         color->Red += tempColor.Red * texture->objectReflection;
         color->Green += tempColor.Green * texture->objectReflection;

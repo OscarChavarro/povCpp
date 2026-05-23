@@ -8,6 +8,7 @@
 class PolynomialShape : public Geometry {
   public:
     static Methods methodTable;
+    static int *termCounts();
     Transformation *Transform;
     short Inverted;
     int Order;

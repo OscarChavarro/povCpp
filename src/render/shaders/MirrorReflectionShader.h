@@ -12,7 +12,7 @@ class MirrorReflectionShader {
 public:
     static void shade(Texture *texture, Vector3Dd *intersectionPoint,
         RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *color,
-        const TraceService *traceService);
+        const TraceService *traceService, int &traceLevel);
 };
 
 #endif

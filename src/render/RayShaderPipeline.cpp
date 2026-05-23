@@ -96,7 +96,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
          * rays. */
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
-                &surfaceColour, &filterColour, colour, traceService);
+                &surfaceColour, &filterColour, colour, traceService,
+                RenderEngine::renderFrame(), RenderEngine::traceLevel());
         }
 
         if (RenderingConfiguration::global().options & DEBUGGING) {
@@ -159,10 +160,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             }
 
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, &surfaceNormal,
-                &refractedColour, traceService);
+                &refractedColour, traceService,
+                RenderEngine::renderFrame().atmosphereIor,
+                RenderEngine::traceLevel());
         } else {
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, nullptr,
-                &refractedColour, traceService);
+                &refractedColour, traceService,
+                RenderEngine::renderFrame().atmosphereIor,
+                RenderEngine::traceLevel());
         }
 
         colour->Red +=
@@ -176,7 +181,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             texture->objectTransmit > 0.0) {
             Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, nullptr,
-                &refractedColour, traceService);
+                &refractedColour, traceService,
+                RenderEngine::renderFrame().atmosphereIor,
+                RenderEngine::traceLevel());
             colour->Red +=
                 filterColour.Red * refractedColour.Red * filterColour.Alpha;
             colour->Green +=

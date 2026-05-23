@@ -174,6 +174,8 @@ typedef int TOKEN;
 
 class Tokenizer {
   public:
+    static ReservedWord *reservedWords();
+    static TokenStruct &token();
     static void setCaseSensitiveIdentifiers(int mode);
     static void initializeTokenizer(char *inputFileName);
     static void terminateTokenizer(void);
@@ -189,6 +191,8 @@ class Tokenizer {
     static int getMaxSymbols();
 
   private:
+    static ReservedWord sReservedWords[LAST_TOKEN];
+    static TokenStruct sToken;
     static int maxSymbols;
     static int povStricmp(const char *s1, const char *s2);
 };

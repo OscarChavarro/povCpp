@@ -25,7 +25,7 @@ class ModelFactory {
     static Sphere *getSphereShape();
     static Light *getLightSourceShape();
     static Quadric *getQuadricShape();
-    static PolynomialShape *getPolyShape(int order);
+    static PolynomialShape *getPolyShape(int order, const int *termCounts);
     static Box *getBoxShape();
     static Blob *getBlobShape();
     static HeightField *getHeightFieldShape();
