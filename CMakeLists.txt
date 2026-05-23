@@ -30,7 +30,7 @@ add_executable(povray
   src/environment/geometry/volume/Sphere.cpp
   src/environment/scene/factory/ModelFactory.cpp
   src/environment/geometry/elements/Triangle.cpp
-  src/environment/camera/Viewpoint.cpp
+  src/environment/camera/Camera.cpp
   src/io/DumpFormat.cpp
   src/io/GifFormat.cpp
   src/io/GifDecoder.cpp
@@ -59,7 +59,7 @@ add_executable(povray
   src/io/pov/FogParser.cpp
   src/io/pov/DefaultTextureParser.cpp
   src/io/pov/RenderSettingsParser.cpp
-  src/io/pov/ViewPointParser.cpp
+  src/io/pov/CameraParser.cpp
   src/io/pov/DeclarationParser.cpp
   src/io/pov/SceneFrameParser.cpp
   src/io/RawFormat.cpp

@@ -9,7 +9,7 @@
 #include "io/pov/Parse.h"
 #include "render/RenderEngine.h"
 
-#include "environment/camera/Viewpoint.h"
+#include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -83,7 +83,7 @@ SceneConfigParser::parseFog()
 }
 
 void
-SceneConfigParser::parseViewpoint(Viewpoint *givenVp)
+SceneConfigParser::parseCamera(Camera *givenVp)
 {
     CONSTANT constantId;
     Vector3Dd localVector;
@@ -104,7 +104,7 @@ SceneConfigParser::parseViewpoint(Viewpoint *givenVp)
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
                     if (constants[(int)constantId].Constant_Type ==
                         VIEW_POINT_CONSTANT) {
-                        *givenVp = *((Viewpoint *)constants[(int)constantId]
+                        *givenVp = *((Camera *)constants[(int)constantId]
                                 .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();
@@ -389,10 +389,10 @@ SceneConfigParser::parseDeclare()
             case VIEW_POINT_TOKEN:
                 constantPtr->Identifier_Number = globalToken.Identifier_Number;
                 constantPtr->Constant_Data =
-                    (char *)SceneFactory::getViewpoint();
+                    (char *)SceneFactory::getCamera();
                 constantPtr->Constant_Type = VIEW_POINT_CONSTANT;
-                SceneConfigParser::parseViewpoint(
-                    (Viewpoint *)constantPtr->Constant_Data);
+                SceneConfigParser::parseCamera(
+                    (Camera *)constantPtr->Constant_Data);
                 Exit_Flag = TRUE;
                 break;
 

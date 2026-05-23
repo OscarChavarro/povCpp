@@ -2,7 +2,7 @@
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/Parse.h"
-#include "io/pov/ViewPointParser.h"
+#include "io/pov/CameraParser.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
@@ -227,10 +227,10 @@ DeclarationParser::parseDeclare()
             case VIEW_POINT_TOKEN:
                 constantPtr->Identifier_Number = globalToken.Identifier_Number;
                 constantPtr->Constant_Data =
-                    (char *)SceneFactory::getViewpoint();
+                    (char *)SceneFactory::getCamera();
                 constantPtr->Constant_Type = VIEW_POINT_CONSTANT;
-                ViewPointParser::parseViewpoint(
-                    (Viewpoint *)constantPtr->Constant_Data);
+                CameraParser::parseCamera(
+                    (Camera *)constantPtr->Constant_Data);
                 Exit_Flag = TRUE;
                 break;
 

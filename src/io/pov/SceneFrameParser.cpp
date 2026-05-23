@@ -5,7 +5,7 @@
 #include "io/pov/FogParser.h"
 #include "io/pov/Parse.h"
 #include "io/pov/RenderSettingsParser.h"
-#include "io/pov/ViewPointParser.h"
+#include "io/pov/CameraParser.h"
 #include "render/RenderFrame.h"
 
 extern TokenStruct globalToken;
@@ -48,7 +48,7 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr)
                 break;
 
             case VIEW_POINT_TOKEN:
-                ViewPointParser::parseViewpoint(&(framePtr->View_Point));
+                CameraParser::parseCamera(&(framePtr->View_Point));
                 break;
 
             case DECLARE_TOKEN:

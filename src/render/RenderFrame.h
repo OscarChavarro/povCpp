@@ -3,7 +3,7 @@
 
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/camera/Viewpoint.h"
+#include "environment/camera/Camera.h"
 #include "environment/light/Light.h"
 #include "environment/scene/SceneObject.h"
 
@@ -11,7 +11,7 @@ class RayWithSegments;
 
 class RenderFrame {
   public:
-    Viewpoint View_Point;
+    Camera View_Point;
     int Screen_Height, Screen_Width;
     Light *Light_Sources;
     SceneObject *Objects;

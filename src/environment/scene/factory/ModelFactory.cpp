@@ -4,7 +4,7 @@
 #include "common/Transformation.h"
 #include "common/color/Color.h"
 #include "common/logger/Logger.h"
-#include "environment/camera/Viewpoint.h"
+#include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -358,12 +358,12 @@ ModelFactory::getCsgIntersection()
     return (newShape);
 }
 
-Viewpoint *
-ModelFactory::getViewpoint()
+Camera *
+ModelFactory::getCamera()
 {
-    Viewpoint *newViewpoint;
+    Camera *newViewpoint;
 
-    newViewpoint = new Viewpoint;
+    newViewpoint = new Camera;
     if (newViewpoint == nullptr) {
         Logger::error("Out of memory. Cannot allocate viewpoint\n");
         exit(1);
