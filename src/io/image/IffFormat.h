@@ -2,7 +2,7 @@
 #define __IFF_FORMAT_H__
 
 #include "environment/geometry/GeometryOperations.h"
-#include "io/ChunkHeader.h"
+#include "io/image/ChunkHeader.h"
 
 class IffFormat {
   public:

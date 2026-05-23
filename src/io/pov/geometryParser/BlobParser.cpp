@@ -1,30 +1,48 @@
-#include "io/pov/TriangleParser.h"
+#include "io/pov/geometryParser/BlobParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/volume/Blob.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
-#include "io/pov/TextureParser.h"
+#include "io/pov/mediaParser/TextureParser.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
-extern int degenerateTriangles;
+extern void MakeBlob(SimpleBody *obj, double threshold, BlobList *components,
+    int npoints, int surfaceType);
 
 Geometry *
-TriangleParser::parseTriangle()
+BlobParser::parseBlob()
 {
-    Triangle *localShape;
+    Blob *localShape;
     CONSTANT constantId;
     Vector3Dd localVector;
     Texture *localTexture;
     Texture *tempTexture;
+    double threshold;
+    int npoints;
+    BlobList *blobComponents;
+    BlobList *blobComponent;
 
     localShape = nullptr;
-
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
+    {
+        int Exit_Flag;
+        Exit_Flag = FALSE;
+        while (!Exit_Flag) {
+            Tokenizer::getToken();
+            switch (globalToken.Token_Id) {
+            case LEFT_CURLY_TOKEN:
+                Exit_Flag = TRUE;
+                break;
+            default:
+                ParseErrorReporter::parseError(LEFT_CURLY_TOKEN);
+                break;
+            }
+        }
+    }
 
     {
         int Exit_Flag;
@@ -32,26 +50,62 @@ TriangleParser::parseTriangle()
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (globalToken.Token_Id) {
-            case LEFT_ANGLE_TOKEN:
+            case THRESHOLD_TOKEN:
+            case COMPONENT_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getTriangleShape();
-                PrimitiveParser::parseVector(&localShape->P1);
-                PrimitiveParser::parseVector(&localShape->P2);
-                PrimitiveParser::parseVector(&localShape->P3);
-                if (!Triangle::computeTriangle(localShape)) {
-                    Logger::error(
-                        "Degenerate triangle on line %d.  Please remove.\n",
-                        globalToken.Token_Line_No);
-                    degenerateTriangles = TRUE;
+                localShape = SceneFactory::getBlobShape();
+                blobComponents = nullptr;
+                npoints = 0;
+                threshold = 1.0;
+
+                /* Here is where we get the blob coefficients */
+                {
+                    int Exit_Flag;
+                    Exit_Flag = FALSE;
+                    while (!Exit_Flag) {
+                        Tokenizer::getToken();
+                        switch (globalToken.Token_Id) {
+                        case THRESHOLD_TOKEN:
+                            threshold = PrimitiveParser::parseFloat();
+                            break;
+
+                        case COMPONENT_TOKEN:
+                            blobComponent = new BlobList;
+                            if (blobComponent == nullptr) {
+                                ParseErrorReporter::Error(
+                                    "Out of Memory! Cannot allocate blob "
+                                    "component");
+                            }
+                            blobComponent->elem.coeffs[2] =
+                                PrimitiveParser::parseFloat();
+                            blobComponent->elem.radius2 =
+                                PrimitiveParser::parseFloat();
+                            PrimitiveParser::parseVector(
+                                &blobComponent->elem.pos);
+                            blobComponent->next = blobComponents;
+                            blobComponents = blobComponent;
+                            npoints++;
+                            break;
+
+                        default:
+                            Tokenizer::ungetToken();
+                            Exit_Flag = TRUE;
+                            break;
+                        }
+                    }
                 }
+
+                /* Finally, process the information */
+                MakeBlob((SimpleBody *)localShape, threshold, blobComponents,
+                    npoints, 0);
                 Exit_Flag = TRUE;
                 break;
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
                     if (constants[(int)constantId].Constant_Type ==
-                        TRIANGLE_CONSTANT) {
-                        localShape = (Triangle *)GeometryOperations::copy(
+                        BLOB_CONSTANT) {
+                        localShape = (Blob *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
                                 .Constant_Data);
                     } else {
@@ -64,7 +118,7 @@ TriangleParser::parseTriangle()
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN);
+                ParseErrorReporter::parseError(FLOAT_TOKEN);
                 break;
             }
         }
@@ -78,6 +132,10 @@ TriangleParser::parseTriangle()
             switch (globalToken.Token_Id) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
+                break;
+
+            case STURM_TOKEN:
+                localShape->Sturm_Flag = 1;
                 break;
 
             case TRANSLATE_TOKEN:

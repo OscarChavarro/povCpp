@@ -1,4 +1,4 @@
-#include "io/pov/DefaultTextureParser.h"
+#include "io/pov/mediaParser/DefaultTextureParser.h"
 #include "app/PovApp.h"
 #include "io/pov/Parse.h"
 #include "render/RenderFrame.h"

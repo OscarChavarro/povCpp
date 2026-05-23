@@ -6,15 +6,14 @@
  *
  *****************************************************************************/
 #include "app/PovApp.h"
-#include "app/UnixPlatform.h"
 #include "common/FrameConfig.h" /* common to ALL modules in this program */
 #include "common/dataStructures/PriorityQueue.h"
 #include "environment/geometry/Intersection.h"
-#include "io/DumpFormat.h"
+#include "io/image/DumpFormat.h"
 #include "io/FileHandle.h"
 #include "io/Parse.h"
-#include "io/RawFormat.h"
-#include "io/TargaFormat.h"
+#include "io/image/RawFormat.h"
+#include "io/image/TargaFormat.h"
 #include "render/RenderEngine.h"
 #include "render/RenderFrame.h"
 #include <cctype>
@@ -47,7 +46,6 @@ static int outFlag;
 double VTemp;
 double antialiasThreshold;
 int firstLine, lastLine;
-int displayStarted = FALSE;
 int shadowTestFlag = FALSE;
 
 /* Stats kept by the ray tracer: */
@@ -132,7 +130,6 @@ PovApp::closeOutputFile(FileHandle *handle)
 int
 main(int argc, char *argv[])
 {
-    UnixPlatform::initPovray();
     PovApp::initializeFromCommandLine(argc, argv);
     PovApp::configureOutputTarget();
     PovApp::parseSceneDescription();
@@ -239,9 +236,6 @@ PovApp::prepareRendering()
 {
     if (Options & DISPLAY) {
         printf("Displaying...\n");
-        UnixPlatform::displayInit(
-            globalFrame.Screen_Width, globalFrame.Screen_Height);
-        displayStarted = TRUE;
     }
 
     if (Options & DISKWRITE) {
@@ -321,7 +315,6 @@ PovApp::finalizeRun()
     time(&tstop);
     tused = (tstop - tstart);
 
-    UnixPlatform::displayFinished();
     closeAll();
     printStats();
 
@@ -425,10 +418,6 @@ PovApp::initVars()
 void
 PovApp::closeAll()
 {
-    if ((Options & DISPLAY) && displayStarted) {
-        UnixPlatform::displayClose();
-    }
-
     if (globalOutputFileHandle) {
         PovApp::closeOutputFile(globalOutputFileHandle);
     }

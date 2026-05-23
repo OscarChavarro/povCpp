@@ -9,7 +9,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
 add_executable(povray
   src/app/Povray.cpp
-  src/app/UnixPlatform.cpp
   src/common/color/Color.cpp
   src/common/logger/Logger.cpp
   src/common/Transformation.cpp
@@ -31,39 +30,39 @@ add_executable(povray
   src/environment/scene/factory/ModelFactory.cpp
   src/environment/geometry/elements/Triangle.cpp
   src/environment/camera/Camera.cpp
-  src/io/DumpFormat.cpp
-  src/io/GifFormat.cpp
-  src/io/GifDecoder.cpp
-  src/io/IffFormat.cpp
+  src/io/image/DumpFormat.cpp
+  src/io/image/GifFormat.cpp
+  src/io/image/GifDecoder.cpp
+  src/io/image/IffFormat.cpp
   src/io/pov/Parse.cpp
   src/io/pov/ParseErrorReporter.cpp
   src/io/pov/ParseHelpers.cpp
   src/io/pov/PrimitiveParser.cpp
-  src/io/pov/TextureParser.cpp
-  src/io/pov/ColorMapParser.cpp
-  src/io/pov/SphereParser.cpp
-  src/io/pov/LightSourceParser.cpp
-  src/io/pov/PlaneParser.cpp
-  src/io/pov/TriangleParser.cpp
-  src/io/pov/SmoothTriangleParser.cpp
-  src/io/pov/QuadricParser.cpp
-  src/io/pov/PolyParser.cpp
-  src/io/pov/BicubicPatchParser.cpp
-  src/io/pov/BoxParser.cpp
-  src/io/pov/BlobParser.cpp
-  src/io/pov/HeightFieldParser.cpp
-  src/io/pov/ObjectParser.cpp
+  src/io/pov/mediaParser/TextureParser.cpp
+  src/io/pov/mediaParser/ColorMapParser.cpp
+  src/io/pov/geometryParser/SphereParser.cpp
+  src/io/pov/lightParser/LightSourceParser.cpp
+  src/io/pov/geometryParser/PlaneParser.cpp
+  src/io/pov/geometryParser/TriangleParser.cpp
+  src/io/pov/geometryParser/SmoothTriangleParser.cpp
+  src/io/pov/geometryParser/QuadricParser.cpp
+  src/io/pov/geometryParser/PolyParser.cpp
+  src/io/pov/geometryParser/BicubicPatchParser.cpp
+  src/io/pov/geometryParser/BoxParser.cpp
+  src/io/pov/geometryParser/BlobParser.cpp
+  src/io/pov/geometryParser/HeightFieldParser.cpp
+  src/io/pov/geometryParser/ObjectParser.cpp
   src/io/pov/SceneConfigParser.cpp
   src/io/pov/SceneParser.cpp
   src/io/pov/factory/SceneFactory.cpp
   src/io/pov/FogParser.cpp
-  src/io/pov/DefaultTextureParser.cpp
+  src/io/pov/mediaParser/DefaultTextureParser.cpp
   src/io/pov/RenderSettingsParser.cpp
-  src/io/pov/CameraParser.cpp
+  src/io/pov/cameraParser/CameraParser.cpp
   src/io/pov/DeclarationParser.cpp
   src/io/pov/SceneFrameParser.cpp
-  src/io/RawFormat.cpp
-  src/io/TargaFormat.cpp
+  src/io/image/RawFormat.cpp
+  src/io/image/TargaFormat.cpp
   src/io/Tokenizer.cpp
   src/media/Texture.cpp
   src/media/BumpTextureFixture.cpp

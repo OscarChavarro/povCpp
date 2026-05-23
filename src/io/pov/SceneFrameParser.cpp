@@ -1,11 +1,11 @@
 #include "io/pov/SceneFrameParser.h"
 #include "app/PovApp.h"
 #include "io/pov/DeclarationParser.h"
-#include "io/pov/DefaultTextureParser.h"
+#include "io/pov/mediaParser/DefaultTextureParser.h"
 #include "io/pov/FogParser.h"
 #include "io/pov/Parse.h"
 #include "io/pov/RenderSettingsParser.h"
-#include "io/pov/CameraParser.h"
+#include "io/pov/cameraParser/CameraParser.h"
 #include "render/RenderFrame.h"
 
 extern TokenStruct globalToken;

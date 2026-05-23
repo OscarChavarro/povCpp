@@ -19,7 +19,7 @@
  *
  *****************************************************************************/
 
-#include "io/RawFormat.h"
+#include "io/image/RawFormat.h"
 #include "app/PovApp.h"
 #include "common/FrameConfig.h"
 

@@ -1,7 +1,7 @@
 #ifndef __TARGA_FORMAT_H__
 #define __TARGA_FORMAT_H__
 
-#include "io/DumpFormat.h"
+#include "io/image/DumpFormat.h"
 
 class TargaFormat {
   public:

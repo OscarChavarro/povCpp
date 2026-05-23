@@ -20,7 +20,7 @@
  *
  *****************************************************************************/
 
-#include "io/DumpFormat.h"
+#include "io/image/DumpFormat.h"
 #include "app/PovApp.h"
 #include "environment/geometry/GeometryOperations.h"
 

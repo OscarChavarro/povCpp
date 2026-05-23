@@ -1,33 +1,27 @@
-#include "io/pov/PolyParser.h"
+#include "io/pov/geometryParser/BicubicPatchParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/scene/ObjectUtils.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
-#include "io/pov/TextureParser.h"
+#include "io/pov/mediaParser/TextureParser.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
-extern int termCounts[MAX_ORDER + 1];
 
 Geometry *
-PolyParser::parsePoly(int knownOrder)
+BicubicPatchParser::parseBicubicPatch()
 {
-    PolynomialShape *localShape;
+    ParametricBiCubicPatch *localShape = nullptr;
     Vector3Dd localVector;
     CONSTANT constantId;
-    int order;
     Texture *localTexture;
-
-    if (knownOrder > 0) {
-        localShape = SceneFactory::getPolyShape(knownOrder);
-    } else {
-        localShape = nullptr;
-    }
+    int i;
+    int j;
 
     ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
 
@@ -41,33 +35,33 @@ PolyParser::parsePoly(int knownOrder)
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
                 Tokenizer::ungetToken();
-                if (localShape != nullptr) {
-                    ParseErrorReporter::Error(
-                        "The order of a polynomial may not be specified twice");
+                localShape = SceneFactory::getBicubicPatchShape();
+                localShape->Patch_Type = (int)PrimitiveParser::parseFloat();
+                if (localShape->Patch_Type == 2 ||
+                    localShape->Patch_Type == 3) {
+                    localShape->Flatness_Value = PrimitiveParser::parseFloat();
+                } else {
+                    localShape->Flatness_Value = 0.1;
                 }
-                order = (int)PrimitiveParser::parseFloat();
-                if (order < 2 || order > MAX_ORDER) {
-                    ParseErrorReporter::Error("Order of Poly is out of range");
+                localShape->U_Steps = (int)PrimitiveParser::parseFloat();
+                localShape->V_Steps = (int)PrimitiveParser::parseFloat();
+                for (i = 0; i < 4; i++) {
+                    for (j = 0; j < 4; j++) {
+                        PrimitiveParser::parseVector(
+                            &(localShape->Control_Points[i][j]));
+                    }
                 }
-                localShape = SceneFactory::getPolyShape(order);
-                break;
-
-            case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
-                if (localShape == nullptr) {
-                    printf("Need the order of the Poly");
-                }
-                PrimitiveParser::parseCoeffs(
-                    localShape->Order, &(localShape->Coeffs[0]));
+                ParametricBiCubicPatch::precomputePatchValues(
+                    localShape); /* interpolated mesh coords */
                 Exit_Flag = TRUE;
                 break;
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
                     if (constants[(int)constantId].Constant_Type ==
-                        POLY_CONSTANT) {
+                        BICUBIC_PATCH_CONSTANT) {
                         localShape =
-                            (PolynomialShape *)GeometryOperations::copy(
+                            (ParametricBiCubicPatch *)GeometryOperations::copy(
                                 (SimpleBody *)constants[(int)constantId]
                                     .Constant_Data);
                     } else {
@@ -94,10 +88,6 @@ PolyParser::parsePoly(int knownOrder)
             switch (globalToken.Token_Id) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
-                break;
-
-            case STURM_TOKEN:
-                localShape->Sturm_Flag = 1;
                 break;
 
             case TRANSLATE_TOKEN:

@@ -1,27 +1,28 @@
-#include "io/pov/BicubicPatchParser.h"
+#include "io/pov/geometryParser/TriangleParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "environment/scene/ObjectUtils.h"
+#include "environment/geometry/elements/Triangle.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
-#include "io/pov/TextureParser.h"
+#include "io/pov/mediaParser/TextureParser.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
+extern int degenerateTriangles;
 
 Geometry *
-BicubicPatchParser::parseBicubicPatch()
+TriangleParser::parseTriangle()
 {
-    ParametricBiCubicPatch *localShape = nullptr;
-    Vector3Dd localVector;
+    Triangle *localShape;
     CONSTANT constantId;
+    Vector3Dd localVector;
     Texture *localTexture;
-    int i;
-    int j;
+    Texture *tempTexture;
+
+    localShape = nullptr;
 
     ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
 
@@ -31,39 +32,28 @@ BicubicPatchParser::parseBicubicPatch()
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (globalToken.Token_Id) {
-            case DASH_TOKEN:
-            case PLUS_TOKEN:
-            case FLOAT_TOKEN:
+            case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getBicubicPatchShape();
-                localShape->Patch_Type = (int)PrimitiveParser::parseFloat();
-                if (localShape->Patch_Type == 2 ||
-                    localShape->Patch_Type == 3) {
-                    localShape->Flatness_Value = PrimitiveParser::parseFloat();
-                } else {
-                    localShape->Flatness_Value = 0.1;
+                localShape = SceneFactory::getTriangleShape();
+                PrimitiveParser::parseVector(&localShape->P1);
+                PrimitiveParser::parseVector(&localShape->P2);
+                PrimitiveParser::parseVector(&localShape->P3);
+                if (!Triangle::computeTriangle(localShape)) {
+                    Logger::error(
+                        "Degenerate triangle on line %d.  Please remove.\n",
+                        globalToken.Token_Line_No);
+                    degenerateTriangles = TRUE;
                 }
-                localShape->U_Steps = (int)PrimitiveParser::parseFloat();
-                localShape->V_Steps = (int)PrimitiveParser::parseFloat();
-                for (i = 0; i < 4; i++) {
-                    for (j = 0; j < 4; j++) {
-                        PrimitiveParser::parseVector(
-                            &(localShape->Control_Points[i][j]));
-                    }
-                }
-                ParametricBiCubicPatch::precomputePatchValues(
-                    localShape); /* interpolated mesh coords */
                 Exit_Flag = TRUE;
                 break;
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
                     if (constants[(int)constantId].Constant_Type ==
-                        BICUBIC_PATCH_CONSTANT) {
-                        localShape =
-                            (ParametricBiCubicPatch *)GeometryOperations::copy(
-                                (SimpleBody *)constants[(int)constantId]
-                                    .Constant_Data);
+                        TRIANGLE_CONSTANT) {
+                        localShape = (Triangle *)GeometryOperations::copy(
+                            (SimpleBody *)constants[(int)constantId]
+                                .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -117,10 +107,15 @@ BicubicPatchParser::parseBicubicPatch()
                 if (localTexture->Constant_Flag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
+                {
+                    for (tempTexture = localTexture;
+                        tempTexture->Next_Texture != nullptr;
+                        tempTexture = tempTexture->Next_Texture) {
+                    }
 
-                ObjectUtils::link((SimpleBody *)localTexture,
-                    (SimpleBody **)&localTexture->Next_Texture,
-                    (SimpleBody **)&localShape->Shape_Texture);
+                    tempTexture->Next_Texture = localShape->Shape_Texture;
+                    localShape->Shape_Texture = localTexture;
+                }
                 break;
 
             case COLOUR_TOKEN:

@@ -6,7 +6,7 @@
  *
  *****************************************************************************/
 
-#include "io/TargaFormat.h"
+#include "io/image/TargaFormat.h"
 #include "app/PovApp.h"
 #include "common/FrameConfig.h"
 

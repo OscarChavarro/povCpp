@@ -16,10 +16,10 @@
     in future portability!
 */
 
-#include "io/GifFormat.h"
+#include "io/image/GifFormat.h"
 #include "app/PovApp.h"
 #include "common/FrameConfig.h"
-#include "io/GifDecoder.h"
+#include "io/image/GifDecoder.h"
 
 static RGBAImage *currentImage;
 static int bitmapLine;
