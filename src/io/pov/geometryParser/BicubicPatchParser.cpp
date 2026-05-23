@@ -3,7 +3,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "environment/geometry/GeometryUtils.h"
+#include "environment/scene/SimpleBodyFactory.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
@@ -124,7 +124,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                GeometryUtils::link((SimpleBody *)localTexture,
+                SimpleBodyFactory::link((SimpleBody *)localTexture,
                     (SimpleBody **)&localTexture->Next_Texture,
                     (SimpleBody **)&localShape->Shape_Texture);
                 break;

@@ -7,7 +7,7 @@
 #include "io/pov/RenderSettingsParser.h"
 #include "io/pov/cameraParser/CameraParser.h"
 #include "environment/scene/SceneFrame.h"
-#include "environment/geometry/GeometryUtils.h"
+#include "environment/scene/SimpleBodyFactory.h"
 
 
 void
@@ -43,13 +43,13 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
 
             case OBJECT_TOKEN:
                 localObject = ObjectParser::parseObject(ctx);
-                GeometryUtils::link(localObject, &(localObject->nextObject),
+                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 
             case COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite(ctx);
-                GeometryUtils::link(localObject, &(localObject->nextObject),
+                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 
