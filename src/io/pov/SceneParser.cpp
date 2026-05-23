@@ -10,7 +10,7 @@
 #include "io/pov/SceneFrameParser.h"
 #include "render/RenderEngine.h"
 
-#include "environment/camera/Viewpoint.h"
+#include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"

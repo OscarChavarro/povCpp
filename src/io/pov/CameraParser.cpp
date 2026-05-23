@@ -1,7 +1,7 @@
-#include "io/pov/ViewPointParser.h"
+#include "io/pov/CameraParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/camera/Viewpoint.h"
+#include "environment/camera/Camera.h"
 #include "io/pov/Parse.h"
 
 extern TokenStruct globalToken;
@@ -23,7 +23,7 @@ findConstant()
 }
 
 void
-ViewPointParser::parseViewpoint(Viewpoint *givenVp)
+CameraParser::parseCamera(Camera *givenVp)
 {
     CONSTANT constantId;
     Vector3Dd localVector;
@@ -44,7 +44,7 @@ ViewPointParser::parseViewpoint(Viewpoint *givenVp)
                 if ((constantId = findConstant()) != -1) {
                     if (constants[(int)constantId].Constant_Type ==
                         VIEW_POINT_CONSTANT) {
-                        *givenVp = *((Viewpoint *)constants[(int)constantId]
+                        *givenVp = *((Camera *)constants[(int)constantId]
                                 .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();

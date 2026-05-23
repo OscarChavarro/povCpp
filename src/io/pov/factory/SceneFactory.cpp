@@ -86,10 +86,10 @@ SceneFactory::getCsgIntersection()
     return ModelFactory::getCsgIntersection();
 }
 
-Viewpoint *
-SceneFactory::getViewpoint()
+Camera *
+SceneFactory::getCamera()
 {
-    return ModelFactory::getViewpoint();
+    return ModelFactory::getCamera();
 }
 
 RGBAColor *

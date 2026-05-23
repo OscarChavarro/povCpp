@@ -16,7 +16,7 @@ class InfinitePlane;
 class Triangle;
 class SmoothTriangle;
 class CSG;
-class Viewpoint;
+class Camera;
 class RGBAColor;
 class ParametricBiCubicPatch;
 
@@ -36,7 +36,7 @@ class SceneFactory {
     static CSG *getCsgShape();
     static CSG *getCsgUnion();
     static CSG *getCsgIntersection();
-    static Viewpoint *getViewpoint();
+    static Camera *getCamera();
     static RGBAColor *getColour();
     static Vector3Dd *getVector();
     static double *getFloat();

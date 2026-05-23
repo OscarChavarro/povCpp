@@ -5,18 +5,18 @@
  *
  *****************************************************************************/
 
-#include "environment/camera/Viewpoint.h"
+#include "environment/camera/Camera.h"
 #include "environment/scene/factory/ModelFactory.h"
-Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr,
-    Viewpoint::copyViewpoint, Viewpoint::translateViewpoint,
-    Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
+Methods Camera_Methods = {nullptr, nullptr, nullptr, nullptr,
+    Camera::copyCamera, Camera::translateCamera,
+    Camera::rotateCamera, Camera::scaleCamera, nullptr};
 void *
-Viewpoint::copyViewpoint(SimpleBody *object)
+Camera::copyCamera(SimpleBody *object)
 {
-    Viewpoint *viewpoint = (Viewpoint *)object;
-    Viewpoint *newViewpoint;
+    Camera *viewpoint = (Camera *)object;
+    Camera *newViewpoint;
 
-    newViewpoint = ModelFactory::getViewpoint();
+    newViewpoint = ModelFactory::getCamera();
 
     newViewpoint->Location = viewpoint->Location;
     newViewpoint->Direction = viewpoint->Direction;
@@ -26,9 +26,9 @@ Viewpoint::copyViewpoint(SimpleBody *object)
 }
 
 void
-Viewpoint::initializeDefaults()
+Camera::initializeDefaults()
 {
-    this->methods = (Methods *)&Viewpoint_Methods;
+    this->methods = (Methods *)&Camera_Methods;
     this->Type = VIEWPOINT_TYPE;
     *&this->Location = Vector3Dd(0.0, 0.0, 0.0);
     *&this->Direction = Vector3Dd(0.0, 0.0, 1.0);
@@ -38,17 +38,17 @@ Viewpoint::initializeDefaults()
 }
 
 void
-Viewpoint::translateViewpoint(SimpleBody *object, Vector3Dd *vector)
+Camera::translateCamera(SimpleBody *object, Vector3Dd *vector)
 {
-    VectorOps::vAdd(((Viewpoint *)object)->Location,
-        ((Viewpoint *)object)->Location, *vector);
+    VectorOps::vAdd(((Camera *)object)->Location,
+        ((Camera *)object)->Location, *vector);
 }
 
 void
-Viewpoint::rotateViewpoint(SimpleBody *object, Vector3Dd *vector)
+Camera::rotateCamera(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
-    Viewpoint *viewpoint = (Viewpoint *)object;
+    Camera *viewpoint = (Camera *)object;
 
     Transformation::getRotationTransformation(&transformation, vector);
     Transformation::MTransformVector(
@@ -65,10 +65,10 @@ Viewpoint::rotateViewpoint(SimpleBody *object, Vector3Dd *vector)
 }
 
 void
-Viewpoint::scaleViewpoint(SimpleBody *object, Vector3Dd *vector)
+Camera::scaleCamera(SimpleBody *object, Vector3Dd *vector)
 {
     Transformation transformation;
-    Viewpoint *viewpoint = (Viewpoint *)object;
+    Camera *viewpoint = (Camera *)object;
 
     Transformation::getScalingTransformation(&transformation, vector);
     Transformation::MTransformVector(
