@@ -1,7 +1,6 @@
 #include "io/pov/geometryParser/PolyParser.h"
 #include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "common/logger/Logger.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/ObjectUtils.h"

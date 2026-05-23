@@ -3,7 +3,6 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "io/image/GifFormat.h"
-#include "io/image/IffFormat.h"
 #include "io/image/TargaFormat.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"

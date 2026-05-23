@@ -33,6 +33,96 @@ static int inFlag;
 static int outFlag;
 double VTemp;
 
+static void
+printStatistics(
+    const Statistics &stats,
+    const RenderFrame &frame,
+    const RenderingConfiguration &configuration)
+{
+    FILE *statOut = stdout;
+    if (configuration.options & VERBOSE_FILE) {
+        statOut = fopen(configuration.statFileName, "w+t");
+    }
+
+    const long pixelsInImage =
+        (long)frame.Screen_Width * (long)frame.Screen_Height;
+
+    fprintf(statOut, "\n%s statistics\n", configuration.inputFileName);
+    if (pixelsInImage > stats.numberOfPixels) {
+        fprintf(statOut, "  Partial Image Rendered");
+    }
+
+    fprintf(statOut, "--------------------------------------\n");
+    fprintf(statOut, "Resolution %d x %d\n", frame.Screen_Width,
+        frame.Screen_Height);
+    fprintf(statOut,
+        "# Rays:  %10ld     # Pixels:  %10ld  # Pixels supersampled: %10ld\n",
+        stats.numberOfRays, stats.numberOfPixels, stats.numberOfPixelsSupersampled);
+
+    fprintf(statOut, "  Ray->Shape Intersection Tests:\n");
+    fprintf(statOut,
+        "    Type                 Tests     Succeeded    Percentage\n");
+    fprintf(statOut,
+        "  -----------------------------------------------------------\n");
+#define PRINT_INTERSECTION_ROW(label, tests, succeeded)                         \
+    if (tests) {                                                                 \
+        fprintf(statOut, label " %10ld  %10ld  %10.2f\n", tests, succeeded,    \
+            (((double)succeeded / (double)tests) * 100.0));                     \
+    }
+    PRINT_INTERSECTION_ROW("  Sphere        ", stats.raySphereTests, stats.raySphereTestsSucceeded);
+    PRINT_INTERSECTION_ROW("  Plane         ", stats.rayPlaneTests, stats.rayPlaneTestsSucceeded);
+    PRINT_INTERSECTION_ROW(
+        "  Triangle     ", stats.rayTriangleTests, stats.rayTriangleTestsSucceeded);
+    PRINT_INTERSECTION_ROW("  Quadric       ", stats.rayQuadricTests, stats.rayQuadricTestsSucceeded);
+    PRINT_INTERSECTION_ROW("  Blob          ", stats.rayBlobTests, stats.rayBlobTestsSucceeded);
+    PRINT_INTERSECTION_ROW("  Box           ", stats.rayBoxTests, stats.rayBoxTestsSucceeded);
+    PRINT_INTERSECTION_ROW("  Quartic\\Poly ", stats.rayPolyTests, stats.rayPolyTestsSucceeded);
+    PRINT_INTERSECTION_ROW(
+        "  Bezier Patch ", stats.rayBicubicTests, stats.rayBicubicTestsSucceeded);
+    PRINT_INTERSECTION_ROW(
+        "  Height Fld   ", stats.rayHtFieldTests, stats.rayHtFieldTestsSucceeded);
+    PRINT_INTERSECTION_ROW(
+        "  Hght Fld Box ", stats.rayHtFieldBoxTests, stats.rayHFieldBoxTestsSucceeded);
+    PRINT_INTERSECTION_ROW(
+        "  Bounds        ", stats.boundingRegionTests, stats.boundingRegionTestsSucceeded);
+    PRINT_INTERSECTION_ROW(
+        "  Clips         ", stats.clippingRegionTests, stats.clippingRegionTestsSucceeded);
+#undef PRINT_INTERSECTION_ROW
+
+    if (stats.callsToNoise) {
+        fprintf(statOut, "  Calls to Noise:    %10ld\n", stats.callsToNoise);
+    }
+    if (stats.callsToDNoise) {
+        fprintf(statOut, "  Calls to DNoise:  %10ld\n", stats.callsToDNoise);
+    }
+    if (stats.shadowRayTests) {
+        fprintf(statOut,
+            "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld\n",
+            stats.shadowRayTests, stats.shadowRaysSucceeded);
+    }
+    if (stats.reflectedRaysTraced) {
+        fprintf(statOut, "  Reflected Rays:    %10ld\n", stats.reflectedRaysTraced);
+    }
+    if (stats.refractedRaysTraced) {
+        fprintf(statOut, "  Refracted Rays:    %10ld\n", stats.refractedRaysTraced);
+    }
+    if (stats.transmittedRaysTraced) {
+        fprintf(statOut, "  Transmitted Rays: %10ld\n", stats.transmittedRaysTraced);
+    }
+
+    if (stats.usedTime != 0.0) {
+        const int hours = (int)stats.usedTime / 3600;
+        const int minutes = (int)(stats.usedTime - hours * 3600) / 60;
+        const double seconds = stats.usedTime - (double)(hours * 3600 + minutes * 60);
+        fprintf(statOut,
+            "  Time For Trace:    %2d hours %2d minutes %4.2f seconds\n", hours,
+            minutes, seconds);
+    }
+    if (configuration.options & VERBOSE_FILE) {
+        fclose(statOut);
+    }
+}
+
 void
 PovrayApplication::run(int argc, char *argv[])
 {
@@ -218,7 +308,7 @@ PovrayApplication::finalizeRun()
     globalStatistics.stopTimer();
 
     closeAll();
-    globalStatistics.print(globalFrame, globalRenderingConfiguration);
+    printStatistics(globalStatistics, globalFrame, globalRenderingConfiguration);
 
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
         statFile = fopen(globalRenderingConfiguration.statFileName, "a+t");

@@ -1,10 +1,5 @@
 #include "common/LegacyBoolean.h"
-#include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/image/DumpFormat.h"
-#include "io/image/GifFormat.h"
-#include "io/image/IffFormat.h"
-#include "io/image/TargaFormat.h"
 #include "io/pov/Parse.h"
 
 #include "environment/camera/Camera.h"

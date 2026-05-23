@@ -11,6 +11,9 @@ output/
 .idea/
 cmake-build-*/
 
+# Clang
+.cache
+
 # AI assistant artifacts
 .codex/
 .claude/

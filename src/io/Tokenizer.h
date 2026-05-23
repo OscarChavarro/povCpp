@@ -1,11 +1,12 @@
 #ifndef __TOKENIZER_H__
 #define __TOKENIZER_H__
 
+#include <cstdio>
+
 #include "common/LegacyBoolean.h"
 #include "io/DataFile.h"
 #include "io/ReservedWord.h"
 #include "io/TokenStruct.h"
-#include <cstdio>
 
 /* Token Definitions for Parser */
 /* This list must have the same number of tokens as list in tokenize.c */
