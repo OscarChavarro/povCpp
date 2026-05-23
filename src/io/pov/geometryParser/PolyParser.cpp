@@ -4,7 +4,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/geometry/GeometryUtils.h"
+#include "environment/scene/SimpleBodyFactory.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
@@ -134,7 +134,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                GeometryUtils::link((SimpleBody *)localTexture,
+                SimpleBodyFactory::link((SimpleBody *)localTexture,
                     (SimpleBody **)&localTexture->Next_Texture,
                     (SimpleBody **)&localShape->Shape_Texture);
                 break;

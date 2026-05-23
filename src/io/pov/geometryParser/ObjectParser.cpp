@@ -15,6 +15,7 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/scene/SimpleBodyFactory.h"
 #include "environment/light/Light.h"
 
 
@@ -97,7 +98,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -108,7 +109,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -119,7 +120,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -130,7 +131,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -141,7 +142,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -152,7 +153,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -163,7 +164,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -174,7 +175,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -185,7 +186,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -196,7 +197,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -207,7 +208,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -218,7 +219,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -229,7 +230,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -241,7 +242,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -253,7 +254,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -265,7 +266,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = TRUE;
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
@@ -483,11 +484,11 @@ ObjectParser::parseObject(ParserContext &ctx)
             case BLOB_TOKEN:
                 Tokenizer::ungetToken();
                 if (object == nullptr) {
-                    object = GeometryUtils::getObject();
+                    object = SimpleBodyFactory::getObject();
                 }
 
                 localShape = ObjectParser::parseShape(ctx);
-                GeometryUtils::link((SimpleBody *)localShape,
+                SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(object->Shape));
                 Exit_Flag = TRUE;
@@ -524,7 +525,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            GeometryUtils::link((SimpleBody *)localShape,
+                            SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),
                                 (SimpleBody **)&(object->boundingShapes));
                             break;
@@ -550,7 +551,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            GeometryUtils::link((SimpleBody *)localShape,
+                            SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),
                                 (SimpleBody **)&(object->clippingShapes));
                             break;
@@ -665,7 +666,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 }
 
                 localObject = ObjectParser::parseComposite(ctx);
-                GeometryUtils::link((SimpleBody *)localObject,
+                SimpleBodyFactory::link((SimpleBody *)localObject,
                     (SimpleBody **)&(localObject->nextObject),
                     (SimpleBody **)&(localComposite->Objects));
                 break;
@@ -675,7 +676,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite = ModelBuilder::getCompositeObject();
                 }
                 localObject = ObjectParser::parseObject(ctx);
-                GeometryUtils::link(localObject, &(localObject->nextObject),
+                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
                     &(localComposite->Objects));
                 break;
 
@@ -722,7 +723,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            GeometryUtils::link((SimpleBody *)localShape,
+                            SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),
                                 (SimpleBody **)&(
                                     localComposite->boundingShapes));
@@ -749,7 +750,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            GeometryUtils::link((SimpleBody *)localShape,
+                            SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),
                                 (SimpleBody **)&(
                                     localComposite->clippingShapes));

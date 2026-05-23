@@ -11,6 +11,36 @@
 #include "common/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
 
+static inline void
+linkSimpleBody(
+    SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList)
+{
+    *field = *oldObjectList;
+    *oldObjectList = newObject;
+}
+
+static SimpleBody *
+createBasicObject()
+{
+    SimpleBody *newObject;
+
+    if ((newObject = new SimpleBody()) == nullptr) {
+        Logger::error("Out of memory. Cannot allocate object");
+        exit(1);
+    }
+
+    newObject->nextObject = nullptr;
+    newObject->Shape = nullptr;
+    newObject->boundingShapes = nullptr;
+    newObject->clippingShapes = nullptr;
+    newObject->objectTexture = TextureUtils::defaultTexture();
+    newObject->objectColour = nullptr;
+    newObject->noShadowFlag = FALSE;
+    newObject->Type = OBJECT_TYPE;
+    newObject->methods = &Composite::basicObjectMethodTable;
+    return newObject;
+}
+
 Methods Composite::compositeMethodTable = {Composite::objectIntersect,
     Composite::allCompositeIntersections, Composite::insideCompositeObject,
     nullptr, Composite::copyCompositeObject,
@@ -251,7 +281,7 @@ Composite::copyBasicObject(SimpleBody *object)
     Geometry *copiedShape;
     SimpleBody *newObject;
 
-    newObject = GeometryUtils::getObject();
+    newObject = createBasicObject();
     *newObject = *object;
     newObject->nextObject = nullptr;
     newObject->boundingShapes = nullptr;
@@ -261,7 +291,7 @@ Composite::copyBasicObject(SimpleBody *object)
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
-        GeometryUtils::link((SimpleBody *)copiedShape,
+        linkSimpleBody((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->nextObject),
             (SimpleBody **)&(newObject->boundingShapes));
 
@@ -272,7 +302,7 @@ Composite::copyBasicObject(SimpleBody *object)
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
-        GeometryUtils::link((SimpleBody *)copiedShape,
+        linkSimpleBody((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->nextObject),
             (SimpleBody **)&(newObject->clippingShapes));
 
@@ -305,7 +335,7 @@ Composite::copyCompositeObject(SimpleBody *object)
         localObject = localObject->nextObject) {
 
         copiedObject = (SimpleBody *)GeometryOperations::copy(localObject);
-        GeometryUtils::link(
+        linkSimpleBody(
             copiedObject, &(copiedObject->nextObject), &(newObject->Objects));
     }
 
@@ -315,7 +345,7 @@ Composite::copyCompositeObject(SimpleBody *object)
 
         copiedObject =
             (SimpleBody *)GeometryOperations::copy((SimpleBody *)localShape);
-        GeometryUtils::link(copiedObject, &(copiedObject->nextObject),
+        linkSimpleBody(copiedObject, &(copiedObject->nextObject),
             (SimpleBody **)&(newObject->boundingShapes));
     }
     newObject->clippingShapes = nullptr;
@@ -324,7 +354,7 @@ Composite::copyCompositeObject(SimpleBody *object)
 
         copiedObject =
             (SimpleBody *)GeometryOperations::copy((SimpleBody *)localShape);
-        GeometryUtils::link(copiedObject, &(copiedObject->nextObject),
+        linkSimpleBody(copiedObject, &(copiedObject->nextObject),
             (SimpleBody **)&(newObject->clippingShapes));
     }
     return ((void *)newObject);
@@ -510,37 +540,4 @@ Composite::invertCompositeObject(SimpleBody *object)
         localShape != nullptr; localShape = localShape->nextObject) {
         GeometryOperations::invert((SimpleBody *)localShape);
     }
-}
-
-void
-GeometryUtils::link(
-    SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList)
-{
-    *field = *oldObjectList;
-    *oldObjectList = newObject;
-}
-
-SimpleBody *
-GeometryUtils::getObject()
-{
-    SimpleBody *newObject;
-
-    if ((newObject = new SimpleBody()) == nullptr) {
-        Logger::error("Out of memory. Cannot allocate object");
-        exit(1);
-    }
-
-    newObject->nextObject = nullptr;
-    /*  New_Object -> Next_Light_Source = NULL;*/
-    newObject->Shape = nullptr;
-    newObject->boundingShapes = nullptr;
-    newObject->clippingShapes = nullptr;
-    newObject->objectTexture = TextureUtils::defaultTexture();
-
-    newObject->objectColour = nullptr;
-
-    newObject->noShadowFlag = FALSE;
-    newObject->Type = OBJECT_TYPE;
-    newObject->methods = &Composite::basicObjectMethodTable;
-    return (newObject);
 }

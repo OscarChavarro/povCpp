@@ -1,9 +1,9 @@
-#ifndef __GEOMETRY_UTILS_H__
-#define __GEOMETRY_UTILS_H__
+#ifndef __SIMPLE_BODY_FACTORY_H__
+#define __SIMPLE_BODY_FACTORY_H__
 
 class SimpleBody;
 
-class GeometryUtils {
+class SimpleBodyFactory {
   public:
     static void link(
         SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList);

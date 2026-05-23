@@ -1,4 +1,4 @@
-#include "environment/scene/factory/ModelBuilder.h"
+#include "environment/scene/ModelBuilder.h"
 
 #include "common/LegacyBoolean.h"
 #include "processing/PolynomialConstants.h"
