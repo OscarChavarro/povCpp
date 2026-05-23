@@ -5,17 +5,17 @@
 
 class TargaFormat {
   public:
-    static FileHandle *getTargaFileHandle(void);
+    static FileInputStream *getTargaFileInputStream(void);
     static char *defaultTargaFileName(void);
-    static int openTargaFile(FileHandle *handle, char *name, int *width,
+    static int openTargaFile(FileInputStream *handle, char *name, int *width,
         int *height, int bufferSize, int mode);
     static void writeTargaLine(
-        FileHandle *handle, RGBAColor *lineData, int lineNumber);
+        FileInputStream *handle, RGBAColor *lineData, int lineNumber);
     static int readTargaLine(
-        FileHandle *handle, RGBAColor *lineData, int *lineNumber);
+        FileInputStream *handle, RGBAColor *lineData, int *lineNumber);
     static void readTargaImage(RGBAImage *image, char *name);
-    static void closeTargaFile(FileHandle *handle);
-    static int readTargaIntLine(FileHandle *handle, ImageLine *lineData);
+    static void closeTargaFile(FileInputStream *handle);
+    static int readTargaIntLine(FileInputStream *handle, ImageLine *lineData);
 };
 
 #endif

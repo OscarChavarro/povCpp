@@ -6,11 +6,10 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/compound/Composite.h"
+#include "environment/material/RendererConfiguration.h"
+#include "common/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
 extern RayWithSegments *vpRay;
-extern long boundingRegionTests, boundingRegionTestsSucceeded;
-extern long clippingRegionTests, clippingRegionTestsSucceeded;
-extern unsigned int Options;
 
 Methods Composite_Methods = {Composite::objectIntersect,
     Composite::allCompositeIntersections, Composite::insideCompositeObject,
@@ -65,7 +64,7 @@ Composite::allCompositeIntersections(
     for (boundingShape = ((Composite *)object)->Bounding_Shapes;
         boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
 
-        boundingRegionTests++;
+        globalStatistics.boundingRegionTests++;
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
@@ -73,7 +72,7 @@ Composite::allCompositeIntersections(
                        &ray->position, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
-        boundingRegionTestsSucceeded++;
+        globalStatistics.boundingRegionTestsSucceeded++;
     }
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
@@ -93,13 +92,13 @@ Composite::allCompositeIntersections(
 
         for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
             clippingShape = clippingShape->Next_Object) {
-            clippingRegionTests++;
+            globalStatistics.clippingRegionTests++;
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
                 intersectionFound = FALSE;
                 break;
             }
-            clippingRegionTestsSucceeded++;
+            globalStatistics.clippingRegionTestsSucceeded++;
         }
 
         if (intersectionFound) {
@@ -125,7 +124,7 @@ Composite::allObjectIntersections(
     for (boundingShape = object->Bounding_Shapes; boundingShape != nullptr;
         boundingShape = boundingShape->Next_Object) {
 
-        boundingRegionTests++;
+        globalStatistics.boundingRegionTests++;
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
@@ -133,7 +132,7 @@ Composite::allObjectIntersections(
                        &ray->position, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
-        boundingRegionTestsSucceeded++;
+        globalStatistics.boundingRegionTestsSucceeded++;
     }
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
@@ -151,24 +150,24 @@ Composite::allObjectIntersections(
         for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
             clippingShape = clippingShape->Next_Object) {
 
-            clippingRegionTests++;
-            if (Options & DEBUGGING) {
+            globalStatistics.clippingRegionTests++;
+            if (globalRenderingConfiguration.options & DEBUGGING) {
                 printf("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x,
                     localIntersection->Point.y, localIntersection->Point.z);
             }
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
-                if (Options & DEBUGGING) {
+                if (globalRenderingConfiguration.options & DEBUGGING) {
                     printf("not ok\n");
                 }
                 intersectionFound = FALSE;
                 break;
             }
-            clippingRegionTestsSucceeded++;
+            globalStatistics.clippingRegionTestsSucceeded++;
         }
 
         if (intersectionFound) {
-            if (Options & DEBUGGING) {
+            if (globalRenderingConfiguration.options & DEBUGGING) {
                 printf("ok\n");
             }
             depthQueue->add(localIntersection);

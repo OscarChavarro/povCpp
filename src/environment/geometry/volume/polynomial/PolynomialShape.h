@@ -1,8 +1,7 @@
 #ifndef __POLY_H__
 #define __POLY_H__
 
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 

@@ -9,9 +9,12 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "common/Config.h"
+#include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
+#include <cstring>
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
     a05*x^2*y*z+a06*x^2*y+a07*x^2*z^2+a08*x^2*z+a09*x^2+
@@ -22,6 +25,7 @@
 */
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
+static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
 
 int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -42,7 +46,6 @@ Methods Poly_Methods = {Composite::objectIntersect,
     PolynomialShape::translatePoly, PolynomialShape::rotatePoly,
     PolynomialShape::scalePoly, PolynomialShape::invertPoly};
 
-extern long rayPolyTests, rayPolyTestsSucceeded;
 
 int
 PolynomialShape::allPolyIntersections(
@@ -73,6 +76,7 @@ PolynomialShape::allPolyIntersections(
         newRay.direction.y = ray->direction.y;
         newRay.direction.z = ray->direction.z;
     }
+    newRay.isShadowRay = ray->isShadowRay;
 
     len = sqrt(newRay.direction.x * newRay.direction.x +
                newRay.direction.y * newRay.direction.y +
@@ -85,7 +89,7 @@ PolynomialShape::allPolyIntersections(
     newRay.direction.z /= len;
 
     intersectionFound = FALSE;
-    rayPolyTests++;
+    globalStatistics.rayPolyTests++;
     if (shape->Order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
@@ -94,7 +98,7 @@ PolynomialShape::allPolyIntersections(
     }
 
     if (cnt > 0) {
-        rayPolyTestsSucceeded++;
+        globalStatistics.rayPolyTestsSucceeded++;
     }
     for (i = 0; i < cnt; i++) {
         if (depths[i] < 0) {
@@ -242,7 +246,8 @@ PolynomialShape::intersect(
         j -= 1;
     }
     if (j > 2) {
-        return PolynomialSolver::polysolve(j, &t[i], depths);
+        return PolynomialSolver::polysolve(j, &t[i], depths,
+            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
     }
     if (j > 0) {
         return PolynomialSolver::solveQuadratic(&t[i], depths);
@@ -663,11 +668,14 @@ PolynomialShape::intersectQuartic(
             if (t[1] == 0.0) {
                 return PolynomialSolver::solveQuadratic(&t[2], depths);
             }
-            return PolynomialSolver::polysolve(3, &t[1], depths);
+            return PolynomialSolver::polysolve(3, &t[1], depths,
+                ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
         }
-        return PolynomialSolver::polysolve(4, &t[0], depths);
+        return PolynomialSolver::polysolve(4, &t[0], depths,
+            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
     }
-    return PolynomialSolver::solveQuartic(&t[0], depths);
+    return PolynomialSolver::solveQuartic(&t[0], depths,
+        ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
 }
 
 /* Normal to a quartic */

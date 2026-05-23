@@ -6,8 +6,9 @@
  *****************************************************************************/
 
 #include "io/image/IffFormat.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "io/FileLocator.h"
+#include "common/LegacyBoolean.h"
+#include "java/io/FileConstants.h"
 
 static RGBAPixel *iffColourMap;
 static int colourmapSize;
@@ -93,7 +94,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
     ImageLine *line;
     unsigned long creg;
 
-    if ((f = PovApp::locateFile(filename, READ_FILE_STRING)) == nullptr) {
+    if ((f = FileLocator::locate(filename, READ_FILE_STRING)) == nullptr) {
         Logger::error( "Cannot open IFF file %s\n", filename);
         exit(1);
     }

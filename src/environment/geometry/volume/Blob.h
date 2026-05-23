@@ -1,7 +1,7 @@
 #ifndef __BLOB_H__
 #define __BLOB_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"

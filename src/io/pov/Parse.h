@@ -1,6 +1,8 @@
 #ifndef __POV_PARSE_LOCAL_H__
 #define __POV_PARSE_LOCAL_H__
 
+#include "io/pov/ParserConstants.h"
+#include "processing/PolynomialConstants.h"
 #include "io/pov/geometryParser/BicubicPatchParser.h"
 #include "io/pov/geometryParser/BlobParser.h"
 #include "io/pov/geometryParser/BoxParser.h"

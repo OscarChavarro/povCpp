@@ -13,24 +13,14 @@
  *****************************************************************************/
 
 #include "render/RenderEngine.h"
-#include "app/PovApp.h"
 #include "common/color/Color.h"
-#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "java/io/FileInputStream.h"
 #include "render/LightingEngine.h"
+#include "environment/material/RendererConfiguration.h"
+#include "common/Statistics.h"
 
-extern FileHandle *globalOutputFileHandle;
-extern char outputFileName[FILE_NAME_LENGTH];
-extern char inputFileName[FILE_NAME_LENGTH];
-extern char statFileName[FILE_NAME_LENGTH];
-extern char outputFormat;
-extern char verboseFormat;
-extern unsigned int Options;
-extern int fileBufferSize;
-extern int quality;
 volatile int stopFlag;
-extern int firstLine, lastLine;
-extern long numberOfPixels, numberOfRays, numberOfPixelsSupersampled;
 
 extern short *hashTable;
 extern unsigned short crctab[256];
@@ -94,7 +84,7 @@ RenderEngine::supersample(
     dy = (double)y;
     jittOffset = 10;
 
-    numberOfPixelsSupersampled++;
+    globalStatistics.numberOfPixelsSupersampled++;
 
     Color::makeColor(result, 0.0, 0.0, 0.0);
 
@@ -249,7 +239,7 @@ RenderEngine::supersample(
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
 
-    if ((y != firstLine - 1) && (Options & DISPLAY)) {
+    if ((y != globalRenderingConfiguration.firstLine - 1) && (globalRenderingConfiguration.options & DISPLAY)) {
     }
 }
 
@@ -258,17 +248,18 @@ RenderEngine::readRenderedPart()
 {
     int rc;
     int lineNumber;
-    while ((rc = PovApp::readOutputLine(
-                globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
+    while ((rc = globalRenderingConfiguration.outputFileInputStream->readLine(
+                previousLine, &lineNumber)) == 1) {
     }
 
-    firstLine = lineNumber + 1;
+    globalRenderingConfiguration.firstLine = lineNumber + 1;
 
     if (rc == 0) {
-        PovApp::closeOutputFile(globalOutputFileHandle);
-        if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
+        globalRenderingConfiguration.outputFileInputStream->close();
+        if (globalRenderingConfiguration.outputFileInputStream->open(
+                globalRenderingConfiguration.outputFileName,
                 &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                fileBufferSize, PovApp::OUTPUT_APPEND_MODE) != 1) {
+                globalRenderingConfiguration.fileBufferSize, FileInputStream::APPEND_MODE) != 1) {
             Logger::error("Error opening output file\n");
             exit(1);
         }
@@ -284,7 +275,7 @@ RenderEngine::startTracing()
     RGBAColor colour;
     int x;
     int y;
-    for (y = (Options & ANTIALIAS) ? firstLine - 1 : firstLine; y < lastLine;
+    for (y = (globalRenderingConfiguration.options & ANTIALIAS) ? globalRenderingConfiguration.firstLine - 1 : globalRenderingConfiguration.firstLine; y < globalRenderingConfiguration.lastLine;
         y++) {
 
         RenderFrame::checkStats(y);
@@ -292,12 +283,14 @@ RenderEngine::startTracing()
         for (x = 0; x < globalFrame.Screen_Width; x++) {
 
             if (stopFlag) {
-                PovApp::closeAll();
+                if (globalRenderingConfiguration.outputFileInputStream != nullptr) {
+                    globalRenderingConfiguration.outputFileInputStream->close();
+                }
                 /* exit with error if image not completed/user abort*/
                 exit(2);
             }
 
-            numberOfPixels++;
+            globalStatistics.numberOfPixels++;
 
             RenderFrame::createRay(vpRay, globalFrame.Screen_Width,
                 globalFrame.Screen_Height, (double)x, (double)y);
@@ -307,12 +300,12 @@ RenderEngine::startTracing()
 
             currentLine[x] = colour;
 
-            if (Options & ANTIALIAS) {
+            if (globalRenderingConfiguration.options & ANTIALIAS) {
                 RenderFrame::doAntiAliasing(x, y, &colour);
             }
 
-            if (y != firstLine - 1) {
-                if (Options & DISPLAY) {
+            if (y != globalRenderingConfiguration.firstLine - 1) {
+                if (globalRenderingConfiguration.options & DISPLAY) {
                     (void)x;
                     (void)y;
                 }
@@ -321,9 +314,9 @@ RenderEngine::startTracing()
         RenderFrame::outputLine(y);
     }
 
-    if (Options & DISKWRITE) {
-        PovApp::writeOutputLine(
-            globalOutputFileHandle, previousLine, lastLine - 1);
+    if (globalRenderingConfiguration.options & DISKWRITE) {
+        globalRenderingConfiguration.outputFileInputStream->writeLine(
+            previousLine, globalRenderingConfiguration.lastLine - 1);
     }
 }
 
@@ -333,40 +326,40 @@ RenderFrame::checkStats(int y)
     FILE *statFile;
 
     /* New verbose options CdW */
-    if (Options & VERBOSE && verboseFormat == '0') {
-        printf("POV-Ray rendering %s to %s", inputFileName, outputFileName);
-        if ((firstLine != 0) || (lastLine != globalFrame.Screen_Height)) {
-            printf(" from %4d to %4d:\n", firstLine, lastLine);
+    if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '0') {
+        printf("POV-Ray rendering %s to %s", globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
+        if ((globalRenderingConfiguration.firstLine != 0) || (globalRenderingConfiguration.lastLine != globalFrame.Screen_Height)) {
+            printf(" from %4d to %4d:\n", globalRenderingConfiguration.firstLine, globalRenderingConfiguration.lastLine);
         } else {
             printf(":\n");
         }
         printf("Res %4d X %4d. Calc line %4d of %4d", globalFrame.Screen_Width,
-            globalFrame.Screen_Height, (y - firstLine) + 1,
-            lastLine - firstLine);
-        if (!(Options & ANTIALIAS)) {
+            globalFrame.Screen_Height, (y - globalRenderingConfiguration.firstLine) + 1,
+            globalRenderingConfiguration.lastLine - globalRenderingConfiguration.firstLine);
+        if (!(globalRenderingConfiguration.options & ANTIALIAS)) {
             printf(".");
         }
     }
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "w+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Line %4d.\n", y);
         fclose(statFile);
     }
 
     /* Use -vO for Old style verbose */
-    if (Options & VERBOSE && (verboseFormat == 'O')) {
+    if (globalRenderingConfiguration.options & VERBOSE && (globalRenderingConfiguration.verboseFormat == 'O')) {
         printf("Line %4d", y);
     }
-    if (Options & VERBOSE && verboseFormat == '1') {
+    if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
             globalFrame.Screen_Width, globalFrame.Screen_Height,
-            (y - firstLine) + 1, lastLine - firstLine);
-        if (!(Options & ANTIALIAS)) {
+            (y - globalRenderingConfiguration.firstLine) + 1, globalRenderingConfiguration.lastLine - globalRenderingConfiguration.firstLine);
+        if (!(globalRenderingConfiguration.options & ANTIALIAS)) {
             fprintf(stderr, ".");
         }
     }
 
-    if (Options & ANTIALIAS) {
+    if (globalRenderingConfiguration.options & ANTIALIAS) {
         superSampleCount = 0;
     }
 }
@@ -391,7 +384,7 @@ RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
         }
     }
 
-    if (y != firstLine - 1) {
+    if (y != globalRenderingConfiguration.firstLine - 1) {
         if (Color::colorDistance(&previousLine[x], &currentLine[x]) >=
             globalFrame.Antialias_Threshold) {
             antialiasCenterFlag = 1;
@@ -432,7 +425,7 @@ RenderEngine::initializeRenderer()
         currentLine[i].Blue = 0.0;
     }
 
-    if (Options & ANTIALIAS) {
+    if (globalRenderingConfiguration.options & ANTIALIAS) {
         previousLineAntialiasedFlags = new char[(globalFrame.Screen_Width + 1)];
         currentLineAntialiasedFlags = new char[(globalFrame.Screen_Width + 1)];
 
@@ -451,21 +444,21 @@ RenderFrame::outputLine(int y)
     RGBAColor *tempColourPtr;
     char *tempCharPtr;
 
-    if (Options & DISKWRITE) {
-        if (y > firstLine) {
-            PovApp::writeOutputLine(globalOutputFileHandle, previousLine, y - 1);
+    if (globalRenderingConfiguration.options & DISKWRITE) {
+        if (y > globalRenderingConfiguration.firstLine) {
+            globalRenderingConfiguration.outputFileInputStream->writeLine(previousLine, y - 1);
         }
     }
 
-    if (Options & VERBOSE) {
-        if (Options & ANTIALIAS && verboseFormat != '1') {
+    if (globalRenderingConfiguration.options & VERBOSE) {
+        if (globalRenderingConfiguration.options & ANTIALIAS && globalRenderingConfiguration.verboseFormat != '1') {
             printf(" supersampled %d times.", superSampleCount);
         }
 
-        if (Options & ANTIALIAS && verboseFormat == '1') {
+        if (globalRenderingConfiguration.options & ANTIALIAS && globalRenderingConfiguration.verboseFormat == '1') {
             fprintf(stderr, " supersampled %d times.", superSampleCount);
         }
-        if (verboseFormat == '1') {
+        if (globalRenderingConfiguration.verboseFormat == '1') {
             fprintf(stderr, "\r");
         } else {
             fprintf(stderr, "\n");
@@ -488,7 +481,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     Intersection *newIntersection;
     int intersectionFound;
 
-    numberOfRays++;
+    globalStatistics.numberOfRays++;
     Color::makeColor(colour, 0.0, 0.0, 0.0);
 
     intersectionFound = FALSE;
@@ -504,7 +497,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
         *colour = globalFrame.Fog_Colour;
     }
 
-    if (Options & DEBUGGING) {
+    if (globalRenderingConfiguration.options & DEBUGGING) {
         printf("Calculating intersections level %d\n", traceLevel);
     }
 

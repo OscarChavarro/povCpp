@@ -3,17 +3,21 @@
 
 #include "io/image/DumpFormat.h"
 
+static constexpr const char *RED_RAW_FILE_EXTENSION = ".red";
+static constexpr const char *GREEN_RAW_FILE_EXTENSION = ".grn";
+static constexpr const char *BLUE_RAW_FILE_EXTENSION = ".blu";
+
 class RawFormat {
   public:
-    static FileHandle *getRawFileHandle(void);
+    static FileInputStream *getRawFileInputStream(void);
     static char *defaultRawFileName(void);
-    static int openRawFile(FileHandle *handle, char *name, int *width,
+    static int openRawFile(FileInputStream *handle, char *name, int *width,
         int *height, int bufferSize, int mode);
     static void writeRawLine(
-        FileHandle *handle, RGBAColor *lineData, int lineNumber);
+        FileInputStream *handle, RGBAColor *lineData, int lineNumber);
     static int readRawLine(
-        FileHandle *handle, RGBAColor *lineData, int *lineNumber);
-    static void closeRawFile(FileHandle *handle);
+        FileInputStream *handle, RGBAColor *lineData, int *lineNumber);
+    static void closeRawFile(FileInputStream *handle);
 };
 
 #endif

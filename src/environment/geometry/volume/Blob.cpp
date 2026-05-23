@@ -9,18 +9,21 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Blob.h"
+#include "common/Config.h"
+#include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
+#include <cstring>
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
     Blob::rotateBlob, Blob::scaleBlob, Blob::invertBlob};
 
 extern RayWithSegments *vpRay;
-extern long rayBlobTests, rayBlobTestsSucceeded;
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
+static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
 /* Starting with the density function: (1-r^2)^2, we have a field
     that varies in strength from 1 at r = 0 to 0 at r = 1.  By
     substituting r/rad for r, we can adjust the range of influence
@@ -314,7 +317,7 @@ Blob::allBlobIntersections(
     BlobInterval *intervals = blob->intervals;
     int intersectionFound = FALSE;
 
-    rayBlobTests++;
+    globalStatistics.rayBlobTests++;
 
     /* Transform the ray into the blob space */
     if (blob->Transform != nullptr) {
@@ -396,7 +399,8 @@ Blob::allBlobIntersections(
         /* Figure out which root solver to use */
         if (blob->Sturm_Flag == 0) {
             /* Use Ferrari's method */
-            rootCount = PolynomialSolver::solveQuartic(coeffs, &roots[0]);
+            rootCount = PolynomialSolver::solveQuartic(coeffs, &roots[0],
+                ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
         } else
             /* Sturm sequences */
             if (fabs(coeffs[0]) < COEFF_LIMIT) {
@@ -405,10 +409,12 @@ Blob::allBlobIntersections(
                         PolynomialSolver::solveQuadratic(&coeffs[2], &roots[0]);
                 } else {
                     rootCount =
-                        PolynomialSolver::polysolve(3, &coeffs[1], &roots[0]);
+                        PolynomialSolver::polysolve(3, &coeffs[1], &roots[0],
+                            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
                 }
             } else {
-                rootCount = PolynomialSolver::polysolve(4, coeffs, &roots[0]);
+                rootCount = PolynomialSolver::polysolve(4, coeffs, &roots[0],
+                    ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
             }
 
         /* See if any of the roots are valid */
@@ -441,7 +447,7 @@ Blob::allBlobIntersections(
         }
     }
     if (intersectionFound) {
-        rayBlobTestsSucceeded++;
+        globalStatistics.rayBlobTestsSucceeded++;
     }
     return intersectionFound;
 }

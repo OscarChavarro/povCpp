@@ -1,5 +1,4 @@
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/image/DumpFormat.h"
@@ -24,13 +23,9 @@
 #include "environment/light/Light.h"
 
 extern ReservedWord globalReservedWords[];
-extern double antialiasThreshold;
 extern int termCounts[MAX_ORDER + 1];
 extern TokenStruct globalToken;
 extern double maxTraceLevel;
-extern char verboseFormat;
-extern unsigned int Options;
-extern char statFileName[FILE_NAME_LENGTH];
 
 extern RenderFrame *parsingFramePtr;
 extern TokenStruct globalToken;

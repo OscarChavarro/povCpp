@@ -1,7 +1,7 @@
 #ifndef __TRIANGLE_H__
 #define __TRIANGLE_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 

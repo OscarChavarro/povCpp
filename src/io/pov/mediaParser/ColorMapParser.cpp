@@ -1,5 +1,4 @@
 #include "io/pov/mediaParser/ColorMapParser.h"
-#include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"

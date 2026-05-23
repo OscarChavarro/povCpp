@@ -8,7 +8,6 @@
 #include "environment/light/Light.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/scene/factory/ModelFactory.h"
-#include "media/Texture.h"
 Methods Point_Methods = {Composite::objectIntersect,
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,

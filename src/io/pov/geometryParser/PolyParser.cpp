@@ -1,5 +1,4 @@
 #include "io/pov/geometryParser/PolyParser.h"
-#include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"

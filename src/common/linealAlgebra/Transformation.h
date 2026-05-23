@@ -3,6 +3,8 @@
 
 #include "common/linealAlgebra/Vector3Dd.h"
 
+typedef double MATRIX[4][4];
+
 class Transformation {
   public:
     MATRIX matrix;

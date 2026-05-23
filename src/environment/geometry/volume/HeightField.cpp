@@ -15,6 +15,8 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/HeightField.h"
+#include "common/Config.h"
+#include "common/Statistics.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "media/Texture.h"
 #include "media/Texture.h"
@@ -43,8 +45,6 @@ Methods Height_Field_Methods = {Composite::objectIntersect,
     HeightField::translateHeightfld, HeightField::rotateHeightfld,
     HeightField::scaleHeightfld, HeightField::invertHeightfld};
 
-extern long rayHtFieldTests, rayHtFieldTestsSucceeded;
-extern long rayHtFieldBoxTests, rayHFieldBoxTestsSucceeded;
 
 int isdx, isdz, xDom;
 double gdx, gdy, gdz;
@@ -178,7 +178,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
     }
-    rayHtFieldTestsSucceeded++;
+    globalStatistics.rayHtFieldTestsSucceeded++;
     return (TRUE);
 }
 
@@ -714,7 +714,7 @@ HeightField::allHeightfldIntersections(
     HeightField *hField = (HeightField *)object;
     Intersection localElement;
 
-    rayHtFieldTests++;
+    globalStatistics.rayHtFieldTests++;
 
     Transformation::MInverseTransformVector(
         &(tempRay.position), &(ray->position), hField->transformation);

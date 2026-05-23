@@ -1,14 +1,11 @@
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include "environment/material/RendererConfiguration.h"
 #include "io/pov/Parse.h"
 
 extern ReservedWord globalReservedWords[];
-extern double antialiasThreshold;
 extern int termCounts[MAX_ORDER + 1];
 extern TokenStruct globalToken;
 extern double maxTraceLevel;
-extern char verboseFormat;
-extern unsigned int Options;
-extern char statFileName[FILE_NAME_LENGTH];
 
 extern RenderFrame *parsingFramePtr;
 extern Constant constants[MAX_CONSTANTS];
@@ -39,8 +36,8 @@ ParseErrorReporter::parseError(TOKEN tokenId)
     expected = ParseErrorReporter::getTokenString(tokenId);
     found = ParseErrorReporter::getTokenString(globalToken.Token_Id);
     Logger::error( "%s expected but %s found instead\n", expected, found);
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "w+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(
             statFile, "%s expected but %s found instead\n", expected, found);
         fclose(statFile);
@@ -57,8 +54,8 @@ ParseErrorReporter::typeError()
         globalToken.Token_Line_No + 1);
     fprintf(
         stderr, "Identifier %s is the wrong type\n", globalToken.Token_String);
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "w+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", globalToken.Filename,
             globalToken.Token_Line_No + 1);
         fprintf(statFile, "Identifier %s is the wrong type\n",
@@ -77,8 +74,8 @@ ParseErrorReporter::Undeclared()
     Logger::error( "Error in file %s line %d\n", globalToken.Filename,
         globalToken.Token_Line_No + 1);
     Logger::error( "Undeclared identifier %s\n", globalToken.Token_String);
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "w+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", globalToken.Filename,
             globalToken.Token_Line_No + 1);
         fprintf(
@@ -97,8 +94,8 @@ ParseErrorReporter::Error(const char *str)
         globalToken.Token_Line_No + 1);
     Logger::error( "%s\n", str);
 
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "w+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", globalToken.Filename,
             globalToken.Token_Line_No + 1);
         fprintf(statFile, "%s\n", str);

@@ -1,5 +1,4 @@
 #include "io/pov/cameraParser/CameraParser.h"
-#include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
 #include "io/pov/Parse.h"

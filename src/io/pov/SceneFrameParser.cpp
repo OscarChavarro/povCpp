@@ -1,5 +1,4 @@
 #include "io/pov/SceneFrameParser.h"
-#include "app/PovApp.h"
 #include "io/pov/DeclarationParser.h"
 #include "io/pov/mediaParser/DefaultTextureParser.h"
 #include "io/pov/FogParser.h"

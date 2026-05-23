@@ -7,9 +7,8 @@
  *****************************************************************************/
 
 #include "processing/PolynomialSolver.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
-#include "common/Polynomial.h"
+#include "common/LegacyBoolean.h"
+#include "processing/Polynomial.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
 #undef EPSILON
@@ -62,7 +61,6 @@ static constexpr double TWO_PI_3 = 2.0943951023931954923084;
 static constexpr double TWO_PI_43 = 4.1887902047863909846168;
 static constexpr int MAX_ITERATIONS = 50;
 
-extern int shadowTestFlag;
 
 /*
  * modp
@@ -496,7 +494,7 @@ PolynomialSolver::difficultCoeffs(int n, double *x)
 }
 
 int
-PolynomialSolver::solveQuartic(double *x, double *results)
+PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
 {
     double cubic[4], roots[3];
     double a0, a1, y, d1, x1, t1, t2;
@@ -511,7 +509,7 @@ PolynomialSolver::solveQuartic(double *x, double *results)
             }
             return PolynomialSolver::solveCubic(&x[1], results);
         }
-        return PolynomialSolver::polysolve(4, x, results);
+        return PolynomialSolver::polysolve(4, x, results, minValue);
     }
 
     c0 = x[0];
@@ -634,10 +632,11 @@ PolynomialSolver::solveQuartic(double *x, double *results)
 
 /* Root solver based on the Sturm sequences for a Polynomial. */
 int
-PolynomialSolver::polysolve(int order, double *coeffs, double *roots)
+PolynomialSolver::polysolve(
+    int order, double *coeffs, double *roots, double minValue)
 {
     Polynomial sseq[MAX_ORDER + 1];
-    double minValue, maxValue;
+    double maxValue;
     int i;
     int nroots;
     int np;
@@ -659,12 +658,7 @@ PolynomialSolver::polysolve(int order, double *coeffs, double *roots)
     }
 
     /* Bracket the roots */
-    if (shadowTestFlag) {
-        minValue = 0.05;
-    } else {
-        minValue = 0.0;
-    }
-    maxValue = Max_Distance;
+    maxValue = POLYNOMIAL_MAX_DISTANCE;
 
     atmin = PolynomialSolver::numchanges(np, sseq, minValue);
     atmax = PolynomialSolver::numchanges(np, sseq, maxValue);

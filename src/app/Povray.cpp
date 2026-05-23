@@ -5,143 +5,59 @@
  *  parse the parameters on the command line.
  *
  *****************************************************************************/
-#include "app/PovApp.h"
-#include "common/FrameConfig.h" /* common to ALL modules in this program */
+#include "app/PovrayApplication.h"
 #include "common/dataStructures/PriorityQueue.h"
+#include "common/logger/Logger.h"
 #include "environment/geometry/Intersection.h"
-#include "io/image/DumpFormat.h"
-#include "io/FileHandle.h"
+#include "java/io/FileInputStream.h"
+#include "io/FileLocator.h"
 #include "io/Parse.h"
+#include "io/image/DumpFormat.h"
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
 #include "render/RenderEngine.h"
 #include "render/RenderFrame.h"
+#include "environment/material/RendererConfiguration.h"
+#include "common/Statistics.h"
 #include <cctype>
+#include <cstring>
 #include <ctime> /* BP */
 
 static constexpr int MAX_FILE_NAMES = 1;
-unsigned int Options;
-int quality;
-int caseSensitiveFlag = CASE_SENSITIVE_DEFAULT;
+static constexpr const char *COMPILER_VER = ".u";
 
 FILE *bfp;
 
 extern RenderFrame globalFrame;
 
-char inputFileName[FILE_NAME_LENGTH];
-char outputFileName[FILE_NAME_LENGTH];
-char statFileName[FILE_NAME_LENGTH];
-
-static constexpr int MAX_LIBRARIES = 10;
-char *libraryPaths[MAX_LIBRARIES];
-int libraryPathIndex;
-
 int maxSymbols = 500;
 
-FileHandle *globalOutputFileHandle;
-int fileBufferSize;
 static int numberOfFiles;
 static int inFlag;
 static int outFlag;
 double VTemp;
-double antialiasThreshold;
-int firstLine, lastLine;
-int shadowTestFlag = FALSE;
-
-/* Stats kept by the ray tracer: */
-long numberOfPixels;
-long numberOfRays;
-long numberOfPixelsSupersampled;
-long raySphereTests;
-long raySphereTestsSucceeded;
-long rayBoxTests;
-long rayBoxTestsSucceeded;
-long rayBlobTests;
-long rayBlobTestsSucceeded;
-long rayPlaneTests;
-long rayPlaneTestsSucceeded;
-long rayTriangleTests;
-long rayTriangleTestsSucceeded;
-long rayQuadricTests;
-long rayQuadricTestsSucceeded;
-long rayPolyTests;
-long rayPolyTestsSucceeded;
-long rayBicubicTests;
-long rayBicubicTestsSucceeded;
-long rayHtFieldTests;
-long rayHtFieldTestsSucceeded;
-long rayHtFieldBoxTests;
-long rayHFieldBoxTestsSucceeded;
-long boundingRegionTests;
-long boundingRegionTestsSucceeded;
-long clippingRegionTests;
-long clippingRegionTestsSucceeded;
-long callsToNoise;
-long callsToDNoise;
-long shadowRayTests;
-long shadowRaysSucceeded;
-long reflectedRaysTraced;
-long refractedRaysTraced;
-long transmittedRaysTraced;
-time_t tstart;
-time_t tstop;
-double tused; /* Trace timer variables. - BP */
-
-char displayFormat;
-char outputFormat;
-char verboseFormat;
-char paletteOption;
-char colorBits;
-
-char *
-PovApp::defaultOutputFileName(FileHandle *handle)
-{
-    return ((*((handle)->Default_File_Name_p))());
-}
-
-int
-PovApp::openOutputFile(FileHandle *handle, char *name, int *width, int *height,
-    int bufferSize, int mode)
-{
-    return ((*((handle)->Open_File_p))(handle, name, width, height, bufferSize,
-        mode));
-}
-
-void
-PovApp::writeOutputLine(
-    FileHandle *handle, RGBAColor *lineData, int lineNumber)
-{
-    ((*((handle)->Write_Line_p))(handle, lineData, lineNumber));
-}
-
-int
-PovApp::readOutputLine(
-    FileHandle *handle, RGBAColor *lineData, int *lineNumber)
-{
-    return ((*((handle)->Read_Line_p))(handle, lineData, lineNumber));
-}
-
-void
-PovApp::closeOutputFile(FileHandle *handle)
-{
-    ((*((handle)->Close_File_p))(handle));
-}
 
 int
 main(int argc, char *argv[])
 {
-    PovApp::initializeFromCommandLine(argc, argv);
-    PovApp::configureOutputTarget();
-    PovApp::parseSceneDescription();
-    PovApp::prepareRendering();
-    PovApp::runRenderLoop();
-    PovApp::finalizeRun();
+    PovrayApplication::run(argc, argv);
 
     return 0;
 }
 
 void
-PovApp::initializeFromCommandLine(int argc, char *argv[])
+PovrayApplication::run(int argc, char *argv[])
+{
+    initializeFromCommandLine(argc, argv);
+    configureOutputTarget();
+    parseSceneDescription();
+    prepareRendering();
+    runRenderLoop();
+    finalizeRun();
+}
+
+void
+PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
 {
     int i;
 
@@ -150,9 +66,7 @@ PovApp::initializeFromCommandLine(int argc, char *argv[])
     }
 
     initVars();
-    outputFileName[0] = '\0';
-    libraryPaths[0] = nullptr;
-    libraryPathIndex = 0;
+    FileLocator::clearSearchPaths();
 
     getDefaults();
 
@@ -164,23 +78,23 @@ PovApp::initializeFromCommandLine(int argc, char *argv[])
         }
     }
 
-    if (lastLine == -1) {
-        lastLine = globalFrame.Screen_Height;
+    if (globalRenderingConfiguration.lastLine == -1) {
+        globalRenderingConfiguration.lastLine = globalFrame.Screen_Height;
     }
 }
 
 void
-PovApp::configureOutputTarget()
+PovrayApplication::configureOutputTarget()
 {
-    if (!(Options & DISKWRITE)) {
+    if (!(globalRenderingConfiguration.options & DISKWRITE)) {
         return;
     }
 
-    switch (outputFormat) {
+    switch (globalRenderingConfiguration.outputFormat) {
     case '\0':
     case 'd':
     case 'D':
-        if ((globalOutputFileHandle = DumpFormat::getDumpFileHandle()) ==
+        if ((globalRenderingConfiguration.outputFileInputStream = DumpFormat::getDumpFileInputStream()) ==
             nullptr) {
             closeAll();
             exit(1);
@@ -188,7 +102,7 @@ PovApp::configureOutputTarget()
         break;
     case 'r':
     case 'R':
-        if ((globalOutputFileHandle = RawFormat::getRawFileHandle()) ==
+        if ((globalRenderingConfiguration.outputFileInputStream = RawFormat::getRawFileInputStream()) ==
             nullptr) {
             closeAll();
             exit(1);
@@ -196,33 +110,34 @@ PovApp::configureOutputTarget()
         break;
     case 't':
     case 'T':
-        if ((globalOutputFileHandle = TargaFormat::getTargaFileHandle()) ==
+        if ((globalRenderingConfiguration.outputFileInputStream = TargaFormat::getTargaFileInputStream()) ==
             nullptr) {
             closeAll();
             exit(1);
         }
         break;
     default:
-        Logger::error("Unrecognized output file format %c\n", outputFormat);
+        Logger::error("Unrecognized output file format %c\n", globalRenderingConfiguration.outputFormat);
         exit(1);
     }
 
-    if (outputFileName[0] == '\0') {
-        strcpy(outputFileName, PovApp::defaultOutputFileName(globalOutputFileHandle));
+    if (globalRenderingConfiguration.outputFileName[0] == '\0') {
+        strcpy(globalRenderingConfiguration.outputFileName,
+            globalRenderingConfiguration.outputFileInputStream->defaultFileName());
     }
 }
 
 void
-PovApp::parseSceneDescription()
+PovrayApplication::parseSceneDescription()
 {
     FILE *statFile;
 
     printOptions();
 
-    Tokenizer::initializeTokenizer(inputFileName);
+    Tokenizer::initializeTokenizer(globalRenderingConfiguration.inputFileName);
     fprintf(stderr, "Parsing...");
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "w+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Parsing...\n");
         fclose(statFile);
     }
@@ -232,25 +147,25 @@ PovApp::parseSceneDescription()
 }
 
 void
-PovApp::prepareRendering()
+PovrayApplication::prepareRendering()
 {
-    if (Options & DISPLAY) {
+    if (globalRenderingConfiguration.options & DISPLAY) {
         printf("Displaying...\n");
     }
 
-    if (Options & DISKWRITE) {
-        if (Options & CONTINUE_TRACE) {
-            if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
+    if (globalRenderingConfiguration.options & DISKWRITE) {
+        if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
+            if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    fileBufferSize, PovApp::OUTPUT_READ_MODE) != 1) {
+                    globalRenderingConfiguration.fileBufferSize, FileInputStream::READ_MODE) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
-                    stderr, "Opening new output file %s.\n", outputFileName);
-                Options &= ~CONTINUE_TRACE;
+                    stderr, "Opening new output file %s.\n", globalRenderingConfiguration.outputFileName);
+                globalRenderingConfiguration.options &= ~CONTINUE_TRACE;
 
-                if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
+                if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                         &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                        fileBufferSize, PovApp::OUTPUT_WRITE_MODE) != 1) {
+                        globalRenderingConfiguration.fileBufferSize, FileInputStream::WRITE_MODE) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
                     exit(1);
@@ -258,13 +173,13 @@ PovApp::prepareRendering()
             }
 
             RenderEngine::initializeRenderer();
-            if (Options & CONTINUE_TRACE) {
+            if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
                 RenderEngine::readRenderedPart();
             }
         } else {
-            if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
+            if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    fileBufferSize, PovApp::OUTPUT_WRITE_MODE) != 1) {
+                    globalRenderingConfiguration.fileBufferSize, FileInputStream::WRITE_MODE) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
                 exit(1);
@@ -281,45 +196,44 @@ PovApp::prepareRendering()
 }
 
 void
-PovApp::runRenderLoop()
+PovrayApplication::runRenderLoop()
 {
     FILE *statFile;
 
-    time(&tstart);
+    globalStatistics.startTimer();
 
-    if ((Options & VERBOSE) && (verboseFormat != '1')) {
+    if ((globalRenderingConfiguration.options & VERBOSE) && (globalRenderingConfiguration.verboseFormat != '1')) {
         printf("Rendering...\n");
-    } else if ((Options & VERBOSE) && (verboseFormat == '1')) {
-        fprintf(stderr, "POV-Ray rendering %s to %s :\n", inputFileName,
-            outputFileName);
+    } else if ((globalRenderingConfiguration.options & VERBOSE) && (globalRenderingConfiguration.verboseFormat == '1')) {
+        fprintf(stderr, "POV-Ray rendering %s to %s :\n", globalRenderingConfiguration.inputFileName,
+            globalRenderingConfiguration.outputFileName);
     }
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "w+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n",
-            inputFileName, outputFileName);
+            globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
         fclose(statFile);
     }
 
     RenderEngine::startTracing();
 
-    if (Options & VERBOSE && verboseFormat == '1') {
+    if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '1') {
         fprintf(stderr, "\n");
     }
 }
 
 void
-PovApp::finalizeRun()
+PovrayApplication::finalizeRun()
 {
     FILE *statFile;
 
-    time(&tstop);
-    tused = (tstop - tstart);
+    globalStatistics.stopTimer();
 
     closeAll();
-    printStats();
+    globalStatistics.print(globalFrame, globalRenderingConfiguration);
 
-    if (Options & VERBOSE_FILE) {
-        statFile = fopen(statFileName, "a+t");
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        statFile = fopen(globalRenderingConfiguration.statFileName, "a+t");
         fprintf(statFile, "Done Tracing\n");
         fclose(statFile);
     }
@@ -327,7 +241,7 @@ PovApp::finalizeRun()
 
 /* Print out usage error message */
 void
-PovApp::usage()
+PovrayApplication::usage()
 {
     fprintf(stdout, "\nUsage:");
     fprintf(stdout, "\n    povray  [+/-] Option1 [+/-] Option2 ...");
@@ -361,71 +275,29 @@ PovApp::usage()
 }
 
 void
-PovApp::initVars()
+PovrayApplication::initVars()
 {
-    globalOutputFileHandle = nullptr;
-    fileBufferSize = 0;
-    Options = 0;
-    quality = 9;
+    globalRenderingConfiguration.reset();
+    globalStatistics.reset();
+    Tokenizer::setCaseSensitiveIdentifiers(0);
     numberOfFiles = 0;
-    firstLine = 0;
-    lastLine = -1;
-    colorBits = 8;
-
-    numberOfPixels = 0L;
-    numberOfRays = 0L;
-    numberOfPixelsSupersampled = 0L;
-    rayHtFieldTests = 0L;
-    rayHtFieldTestsSucceeded = 0L;
-    rayHtFieldBoxTests = 0L;
-    rayHFieldBoxTestsSucceeded = 0L;
-    rayBicubicTests = 0L;
-    rayBicubicTestsSucceeded = 0L;
-    rayBlobTests = 0L;
-    rayBlobTestsSucceeded = 0L;
-    rayBoxTests = 0L;
-    rayBoxTestsSucceeded = 0L;
-    raySphereTests = 0L;
-    raySphereTestsSucceeded = 0L;
-    rayPlaneTests = 0L;
-    rayPlaneTestsSucceeded = 0L;
-    rayTriangleTests = 0L;
-    rayTriangleTestsSucceeded = 0L;
-    rayQuadricTests = 0L;
-    rayQuadricTestsSucceeded = 0L;
-    rayPolyTests = 0L;
-    rayPolyTestsSucceeded = 0L;
-    boundingRegionTests = 0L;
-    boundingRegionTestsSucceeded = 0L;
-    clippingRegionTests = 0L;
-    clippingRegionTestsSucceeded = 0L;
-    callsToNoise = 0L;
-    callsToDNoise = 0L;
-    shadowRayTests = 0L;
-    shadowRaysSucceeded = 0L;
-    reflectedRaysTraced = 0L;
-    refractedRaysTraced = 0L;
-    transmittedRaysTraced = 0L;
 
     globalFrame.Screen_Height = 100;
     globalFrame.Screen_Width = 100;
-
-    antialiasThreshold = 0.3;
-    strcpy(inputFileName, "object.dat");
 }
 
 /* Close all the stuff that has been opened. */
 void
-PovApp::closeAll()
+PovrayApplication::closeAll()
 {
-    if (globalOutputFileHandle) {
-        PovApp::closeOutputFile(globalOutputFileHandle);
+    if (globalRenderingConfiguration.outputFileInputStream) {
+        globalRenderingConfiguration.outputFileInputStream->close();
     }
 }
 
 /* Read the default parameters from povray.def */
 void
-PovApp::getDefaults()
+PovrayApplication::getDefaults()
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -437,22 +309,22 @@ PovApp::getDefaults()
     /* operating system. IBM-PC is before. Default is after if not */
     /* defined in config.h. CDW 2/92 */
     /* Set Diskwrite as default */
-    Options |= DISKWRITE;
-    outputFormat = DEFAULT_OUTPUT_FORMAT;
+    globalRenderingConfiguration.options |= DISKWRITE;
+    globalRenderingConfiguration.outputFormat = DEFAULT_OUTPUT_FORMAT;
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
-        PovApp::readOptions(Option_String_Ptr);
+        PovrayApplication::readOptions(Option_String_Ptr);
     }
-    if ((defaultsFile = PovApp::locateFile("povray.def", "r")) != nullptr) {
+    if ((defaultsFile = FileLocator::locate("povray.def", "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            PovApp::readOptions(optionString);
+            PovrayApplication::readOptions(optionString);
         }
         fclose(defaultsFile);
     }
 }
 
 void
-PovApp::readOptions(char *optionLine)
+PovrayApplication::readOptions(char *optionLine)
 {
     int c;
     int stringIndex;
@@ -466,7 +338,7 @@ PovApp::readOptions(char *optionLine)
         if (optionStarted) {
             if (isspace(c)) {
                 optionString[stringIndex] = '\0';
-                PovApp::parseOption(optionString);
+                PovrayApplication::parseOption(optionString);
                 optionStarted = FALSE;
                 stringIndex = 0;
             } else {
@@ -489,13 +361,13 @@ PovApp::readOptions(char *optionLine)
 
     if (optionStarted) {
         optionString[stringIndex] = '\0';
-        PovApp::parseOption(optionString);
+        PovrayApplication::parseOption(optionString);
     }
 }
 
 /* parse the command line parameters */
 void
-PovApp::parseOption(char *optionString)
+PovrayApplication::parseOption(char *optionString)
 {
     int addOption;
     unsigned int optionNumber = 0;
@@ -512,10 +384,10 @@ PovApp::parseOption(char *optionString)
     switch (*optionString) {
     case 'B':
     case 'b':
-        sscanf(&optionString[1], "%d", &fileBufferSize);
-        fileBufferSize *= 1024;
-        if (fileBufferSize < BUFSIZ) {
-            fileBufferSize = BUFSIZ;
+        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.fileBufferSize);
+        globalRenderingConfiguration.fileBufferSize *= 1024;
+        if (globalRenderingConfiguration.fileBufferSize < BUFSIZ) {
+            globalRenderingConfiguration.fileBufferSize = BUFSIZ;
         }
         optionNumber = 0;
         break;
@@ -528,32 +400,32 @@ PovApp::parseOption(char *optionString)
     case 'D':
     case 'd':
         optionNumber = DISPLAY;
-        displayFormat = '0';
-        paletteOption = '3';
+        globalRenderingConfiguration.displayFormat = '0';
+        globalRenderingConfiguration.paletteOption = '3';
         if (optionString[1] != '\0') {
-            displayFormat = (char)toupper(optionString[1]);
+            globalRenderingConfiguration.displayFormat = (char)toupper(optionString[1]);
         }
 
         if (optionString[1] != '\0' && optionString[2] != '\0') {
-            paletteOption = (char)toupper(optionString[2]);
+            globalRenderingConfiguration.paletteOption = (char)toupper(optionString[2]);
         }
         break;
 
     case '@':
         optionNumber = VERBOSE_FILE;
         if (optionString[1] == '\0') {
-            strcpy(statFileName, "POVSTAT.OUT");
+            strcpy(globalRenderingConfiguration.statFileName, "POVSTAT.OUT");
         } else {
-            strncpy(statFileName, &optionString[1], FILE_NAME_LENGTH - 1);
-            statFileName[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(globalRenderingConfiguration.statFileName, &optionString[1], FILE_NAME_LENGTH - 1);
+            globalRenderingConfiguration.statFileName[FILE_NAME_LENGTH - 1] = '\0';
         }
         break;
     case 'V':
     case 'v':
         optionNumber = VERBOSE;
-        verboseFormat = (char)toupper(optionString[1]);
-        if (verboseFormat == '\0') {
-            verboseFormat = '1';
+        globalRenderingConfiguration.verboseFormat = (char)toupper(optionString[1]);
+        if (globalRenderingConfiguration.verboseFormat == '\0') {
+            globalRenderingConfiguration.verboseFormat = '1';
         }
         break;
 
@@ -573,14 +445,14 @@ PovApp::parseOption(char *optionString)
     case 'f':
         optionNumber = DISKWRITE;
         if (isupper(optionString[1])) {
-            outputFormat = (char)tolower(optionString[1]);
+            globalRenderingConfiguration.outputFormat = (char)tolower(optionString[1]);
         } else {
-            outputFormat = optionString[1];
+            globalRenderingConfiguration.outputFormat = optionString[1];
         }
 
         /* Default the output format to the default in the config file */
-        if (outputFormat == '\0') {
-            outputFormat = DEFAULT_OUTPUT_FORMAT;
+        if (globalRenderingConfiguration.outputFormat == '\0') {
+            globalRenderingConfiguration.outputFormat = DEFAULT_OUTPUT_FORMAT;
         }
         break;
 
@@ -594,8 +466,8 @@ PovApp::parseOption(char *optionString)
         if (optionString[1] == '\0') {
             inFlag = TRUE;
         } else {
-            strncpy(inputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
-            inputFileName[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(globalRenderingConfiguration.inputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
+            globalRenderingConfiguration.inputFileName[FILE_NAME_LENGTH - 1] = '\0';
         }
         optionNumber = 0;
         break;
@@ -605,8 +477,8 @@ PovApp::parseOption(char *optionString)
         if (optionString[1] == '\0') {
             outFlag = TRUE;
         } else {
-            strncpy(outputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
-            outputFileName[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(globalRenderingConfiguration.outputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
+            globalRenderingConfiguration.outputFileName[FILE_NAME_LENGTH - 1] = '\0';
         }
         optionNumber = 0;
         break;
@@ -614,8 +486,8 @@ PovApp::parseOption(char *optionString)
     case 'A':
     case 'a':
         optionNumber = ANTIALIAS;
-        if (sscanf(&optionString[1], DBL_FORMAT_STRING, &threshold) != EOF) {
-            antialiasThreshold = threshold;
+        if (sscanf(&optionString[1], "%lf", &threshold) != EOF) {
+            globalRenderingConfiguration.antialiasThreshold = threshold;
         }
         break;
 
@@ -626,34 +498,27 @@ PovApp::parseOption(char *optionString)
 
     case 'L':
     case 'l':
-        if (libraryPathIndex >= MAX_LIBRARIES) {
+        if (FileLocator::searchPaths().size() >= 10) {
             Logger::error("Too many library directories specified\n");
             exit(1);
         }
-        libraryPaths[libraryPathIndex] = new char[strlen(optionString) + 1];
-        if (libraryPaths[libraryPathIndex] == nullptr) {
-            Logger::error(
-                "Out of memory. Cannot allocate memory for library pathname\n");
-            exit(1);
-        }
-        strcpy(libraryPaths[libraryPathIndex], &optionString[1]);
-        libraryPathIndex++;
+        FileLocator::addSearchPath(&optionString[1]);
         optionNumber = 0;
         break;
     case 'T':
     case 't':
         switch (toupper(optionString[1])) {
         case 'Y':
-            caseSensitiveFlag = 0;
+            Tokenizer::setCaseSensitiveIdentifiers(0);
             break;
         case 'N':
-            caseSensitiveFlag = 1;
+            Tokenizer::setCaseSensitiveIdentifiers(1);
             break;
         case 'O':
-            caseSensitiveFlag = 2;
+            Tokenizer::setCaseSensitiveIdentifiers(2);
             break;
         default:
-            caseSensitiveFlag = 2;
+            Tokenizer::setCaseSensitiveIdentifiers(2);
             break;
         }
         optionNumber = 0;
@@ -661,13 +526,13 @@ PovApp::parseOption(char *optionString)
 
     case 'S':
     case 's':
-        sscanf(&optionString[1], "%d", &firstLine);
+        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.firstLine);
         optionNumber = 0;
         break;
 
     case 'E':
     case 'e':
-        sscanf(&optionString[1], "%d", &lastLine);
+        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.lastLine);
         optionNumber = 0;
         break;
 
@@ -686,7 +551,7 @@ PovApp::parseOption(char *optionString)
 
     case 'Q':
     case 'q':
-        sscanf(&optionString[1], "%d", &quality);
+        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.quality);
         optionNumber = 0;
         break;
 
@@ -703,77 +568,77 @@ PovApp::parseOption(char *optionString)
 
     if (optionNumber != 0) {
         if (addOption) {
-            Options |= optionNumber;
+            globalRenderingConfiguration.options |= optionNumber;
         } else {
-            Options &= ~optionNumber;
+            globalRenderingConfiguration.options &= ~optionNumber;
         }
     }
 }
 
 void
-PovApp::printOptions()
+PovrayApplication::printOptions()
 {
-    int i;
-
     fprintf(stdout, "\nPOV-Ray          Options in effect: ");
 
-    if (Options & CONTINUE_TRACE) {
+    if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
         fprintf(stdout, "+c ");
     }
 
-    if (Options & DISPLAY) {
-        fprintf(stdout, "+d%c%c ", displayFormat, paletteOption);
+    if (globalRenderingConfiguration.options & DISPLAY) {
+        fprintf(stdout, "+d%c%c ", globalRenderingConfiguration.displayFormat, globalRenderingConfiguration.paletteOption);
     }
 
-    if (Options & VERBOSE) {
-        fprintf(stdout, "+v%c ", verboseFormat);
+    if (globalRenderingConfiguration.options & VERBOSE) {
+        fprintf(stdout, "+v%c ", globalRenderingConfiguration.verboseFormat);
     }
 
-    if (Options & VERBOSE_FILE) {
-        fprintf(stdout, "+@%s ", statFileName);
+    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
+        fprintf(stdout, "+@%s ", globalRenderingConfiguration.statFileName);
     }
 
-    if (Options & DISKWRITE) {
-        fprintf(stdout, "+f%c ", outputFormat);
+    if (globalRenderingConfiguration.options & DISKWRITE) {
+        fprintf(stdout, "+f%c ", globalRenderingConfiguration.outputFormat);
     }
 
-    if (Options & PROMPTEXIT) {
+    if (globalRenderingConfiguration.options & PROMPTEXIT) {
         fprintf(stdout, "+p ");
     }
 
-    if (Options & EXITENABLE) {
+    if (globalRenderingConfiguration.options & EXITENABLE) {
         fprintf(stdout, "+x ");
     }
 
-    if (Options & ANTIALIAS) {
-        fprintf(stdout, "+a%f ", antialiasThreshold);
+    if (globalRenderingConfiguration.options & ANTIALIAS) {
+        fprintf(stdout, "+a%f ", globalRenderingConfiguration.antialiasThreshold);
     }
 
-    if (Options & DEBUGGING) {
+    if (globalRenderingConfiguration.options & DEBUGGING) {
         fprintf(stdout, "+z ");
     }
 
-    if (fileBufferSize != 0) {
-        fprintf(stdout, "-b%d ", fileBufferSize / 1024);
+    if (globalRenderingConfiguration.fileBufferSize != 0) {
+        fprintf(stdout, "-b%d ", globalRenderingConfiguration.fileBufferSize / 1024);
     }
 
-    fprintf(stdout, "-q%d -w%d -h%d -s%d -e%d\n-i%s ", quality,
-        globalFrame.Screen_Width, globalFrame.Screen_Height, firstLine,
-        lastLine, inputFileName);
+    fprintf(stdout, "-q%d -w%d -h%d -s%d -e%d\n-i%s ", globalRenderingConfiguration.quality,
+        globalFrame.Screen_Width, globalFrame.Screen_Height, globalRenderingConfiguration.firstLine,
+        globalRenderingConfiguration.lastLine, globalRenderingConfiguration.inputFileName);
 
-    if (Options & DISKWRITE) {
-        fprintf(stdout, "-o%s ", outputFileName);
+    if (globalRenderingConfiguration.options & DISKWRITE) {
+        fprintf(stdout, "-o%s ", globalRenderingConfiguration.outputFileName);
     }
 
-    for (i = 0; i < libraryPathIndex; i++) {
-        fprintf(stdout, "-l%s ", libraryPaths[i]);
+    for (std::vector<std::string>::const_iterator path =
+             FileLocator::searchPaths().begin();
+         path != FileLocator::searchPaths().end(); ++path) {
+        fprintf(stdout, "-l%s ", path->c_str());
     }
 
     fprintf(stdout, "\n");
 }
 
 void
-PovApp::parseFileName(char *fileName)
+PovrayApplication::parseFileName(char *fileName)
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -781,8 +646,8 @@ PovApp::parseFileName(char *fileName)
     if (inFlag) /* file names may now be separated by spaces from cmdline option
                  */
     {
-        strncpy(inputFileName, fileName, FILE_NAME_LENGTH - 1);
-        inputFileName[FILE_NAME_LENGTH - 1] = '\0';
+        strncpy(globalRenderingConfiguration.inputFileName, fileName, FILE_NAME_LENGTH - 1);
+        globalRenderingConfiguration.inputFileName[FILE_NAME_LENGTH - 1] = '\0';
         inFlag = FALSE;
         return;
     }
@@ -790,8 +655,8 @@ PovApp::parseFileName(char *fileName)
     if (outFlag) /* file names may now be separated by spaces from cmdline
                     option */
     {
-        strncpy(outputFileName, fileName, FILE_NAME_LENGTH - 1);
-        outputFileName[FILE_NAME_LENGTH - 1] = '\0';
+        strncpy(globalRenderingConfiguration.outputFileName, fileName, FILE_NAME_LENGTH - 1);
+        globalRenderingConfiguration.outputFileName[FILE_NAME_LENGTH - 1] = '\0';
         outFlag = FALSE;
         return;
     }
@@ -803,9 +668,9 @@ PovApp::parseFileName(char *fileName)
         exit(1);
     }
 
-    if ((defaultsFile = PovApp::locateFile(fileName, "r")) != nullptr) {
+    if ((defaultsFile = FileLocator::locate(fileName, "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            PovApp::readOptions(optionString);
+            PovrayApplication::readOptions(optionString);
         }
         fclose(defaultsFile);
     } else {
@@ -814,182 +679,7 @@ PovApp::parseFileName(char *fileName)
 }
 
 void
-PovApp::printStats()
-{
-    int hours;
-    int min;
-    double sec;
-    FILE *statOut;
-    long pixelsInImage;
-
-    if (Options & VERBOSE_FILE) {
-        statOut = fopen(statFileName, "w+t");
-    } else {
-        statOut = stdout;
-    }
-
-    pixelsInImage =
-        (long)globalFrame.Screen_Width * (long)globalFrame.Screen_Height;
-
-    fprintf(statOut, "\n%s statistics\n", inputFileName);
-    if (pixelsInImage > numberOfPixels) {
-        fprintf(statOut, "  Partial Image Rendered");
-    }
-
-    fprintf(statOut, "--------------------------------------\n");
-    fprintf(statOut, "Resolution %d x %d\n", globalFrame.Screen_Width,
-        globalFrame.Screen_Height);
-    fprintf(statOut,
-        "# Rays:  %10ld     # Pixels:  %10ld  # Pixels supersampled: %10ld\n",
-        numberOfRays, numberOfPixels, numberOfPixelsSupersampled);
-
-    fprintf(statOut, "  Ray->Shape Intersection Tests:\n");
-    fprintf(statOut,
-        "    Type                 Tests     Succeeded    Percentage\n");
-    fprintf(statOut,
-        "  -----------------------------------------------------------\n");
-    if (raySphereTests) {
-        fprintf(statOut, "  Sphere         %10ld  %10ld  %10.2f\n",
-            raySphereTests, raySphereTestsSucceeded,
-            (((double)raySphereTestsSucceeded / (double)raySphereTests) *
-                100.0));
-    }
-    if (rayPlaneTests) {
-        fprintf(statOut, "  Plane          %10ld  %10ld  %10.2f\n",
-            rayPlaneTests, rayPlaneTestsSucceeded,
-            (((double)rayPlaneTestsSucceeded / (double)rayPlaneTests) * 100.0));
-    }
-    if (rayTriangleTests) {
-        fprintf(statOut, "  Triangle      %10ld  %10ld  %10.2f\n",
-            rayTriangleTests, rayTriangleTestsSucceeded,
-            (((double)rayTriangleTestsSucceeded / (double)rayTriangleTests) *
-                100.0));
-    }
-    if (rayQuadricTests) {
-        fprintf(statOut, "  Quadric        %10ld  %10ld  %10.2f\n",
-            rayQuadricTests, rayQuadricTestsSucceeded,
-            (((double)rayQuadricTestsSucceeded / (double)rayQuadricTests) *
-                100.0));
-    }
-    if (rayBlobTests) {
-        fprintf(statOut, "  Blob            %10ld  %10ld  %10.2f\n",
-            rayBlobTests, rayBlobTestsSucceeded,
-            (((double)rayBlobTestsSucceeded / (double)rayBlobTests) * 100.0));
-    }
-    if (rayBoxTests) {
-        fprintf(statOut, "  Box             %10ld  %10ld  %10.2f\n",
-            rayBoxTests, rayBoxTestsSucceeded,
-            (((double)rayBoxTestsSucceeded / (double)rayBoxTests) * 100.0));
-    }
-    if (rayPolyTests) {
-        fprintf(statOut, "  Quartic\\Poly %10ld  %10ld  %10.2f\n", rayPolyTests,
-            rayPolyTestsSucceeded,
-            (((double)rayPolyTestsSucceeded / (double)rayPolyTests) * 100.0));
-    }
-    if (rayBicubicTests) {
-        fprintf(statOut, "  Bezier Patch %10ld  %10ld  %10.2f\n",
-            rayBicubicTests, rayBicubicTestsSucceeded,
-            (((double)rayBicubicTestsSucceeded / (double)rayBicubicTests) *
-                100.0));
-    }
-    if (rayHtFieldTests) {
-        fprintf(statOut, "  Height Fld    %10ld  %10ld  %10.2f\n",
-            rayHtFieldTests, rayHtFieldTestsSucceeded,
-            (((double)rayHtFieldTestsSucceeded / (double)rayHtFieldTests) *
-                100.0));
-    }
-    if (rayHtFieldBoxTests) {
-        fprintf(statOut, "  Hght Fld Box %10ld  %10ld  %10.2f\n",
-            rayHtFieldBoxTests, rayHFieldBoxTestsSucceeded,
-            (((double)rayHFieldBoxTestsSucceeded / (double)rayHtFieldBoxTests) *
-                100.0));
-    }
-    if (boundingRegionTests) {
-        fprintf(statOut, "  Bounds         %10ld  %10ld  %10.2f\n",
-            boundingRegionTests, boundingRegionTestsSucceeded,
-            (((double)boundingRegionTestsSucceeded /
-                 (double)boundingRegionTests) *
-                100.0));
-    }
-    if (clippingRegionTests) {
-        fprintf(statOut, "  Clips          %10ld  %10ld  %10.2f\n",
-            clippingRegionTests, clippingRegionTestsSucceeded,
-            (((double)clippingRegionTestsSucceeded /
-                 (double)clippingRegionTests) *
-                100.0));
-    }
-
-    if (callsToNoise) {
-
-        fprintf(statOut, "  Calls to Noise:    %10ld\n", callsToNoise);
-    }
-    if (callsToDNoise) {
-        fprintf(statOut, "  Calls to DNoise:  %10ld\n", callsToDNoise);
-    }
-    if (shadowRayTests) {
-        fprintf(statOut,
-            "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld\n",
-            shadowRayTests, shadowRaysSucceeded);
-    }
-    if (reflectedRaysTraced) {
-        fprintf(statOut, "  Reflected Rays:    %10ld\n", reflectedRaysTraced);
-    }
-    if (refractedRaysTraced) {
-        fprintf(statOut, "  Refracted Rays:    %10ld\n", refractedRaysTraced);
-    }
-    if (transmittedRaysTraced) {
-        fprintf(statOut, "  Transmitted Rays: %10ld\n", transmittedRaysTraced);
-    }
-
-    if (tused == 0) {
-        stopTime(&tstop); /* Get trace done time. */
-        tused = difftime(tstop, tstart);
-        /* Calc. elapsed time. */
-        /* 0 in your specific CONFIG.H if unsupported */
-    }
-    if (tused != 0) {
-        /* Convert seconds to hours, min & sec. CdW */
-        hours = (int)tused / 3600;
-        min = (int)(tused - hours * 3600) / 60;
-        sec = tused - (double)(hours * 3600 + min * 60);
-        fprintf(statOut,
-            "  Time For Trace:    %2d hours %2d minutes %4.2f seconds\n", hours,
-            min, sec);
-    }
-    if (Options & VERBOSE_FILE) {
-        fclose(statOut);
-    }
-}
-
-/* Find a file in the search path. */
-FILE *
-PovApp::locateFile(const char *filename, const char *mode)
-{
-    FILE *f;
-    int i;
-    char pathname[FILE_NAME_LENGTH];
-
-    /* Check the current directory first. */
-    if ((f = fopen(filename, mode)) != nullptr) {
-        return (f);
-    }
-
-    for (i = 0; i < libraryPathIndex; i++) {
-        strcpy(pathname, libraryPaths[i]);
-        if (FILENAME_SEPARATOR != nullptr) {
-            strcat(pathname, FILENAME_SEPARATOR);
-        }
-        strcat(pathname, filename);
-        if ((f = fopen(pathname, mode)) != nullptr) {
-            return (f);
-        }
-    }
-
-    return nullptr;
-}
-
-void
-PovApp::printCredits()
+PovrayApplication::printCredits()
 {
     fprintf(stderr, "\n");
     fprintf(

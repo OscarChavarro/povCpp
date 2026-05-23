@@ -15,8 +15,10 @@
 */
 
 #include "media/Texture.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/Statistics.h"
+#include "common/LegacyBoolean.h"
+#include "common/logger/Logger.h"
+#include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
@@ -243,7 +245,7 @@ TextureUtils::Noise(double x, double y, double z)
     double sum;
     short m;
 
-    callsToNoise++;
+    globalStatistics.callsToNoise++;
 
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
@@ -303,7 +305,7 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     double sx, sy, sz, tx, ty, tz;
     short m;
 
-    callsToDNoise++;
+    globalStatistics.callsToDNoise++;
 
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);

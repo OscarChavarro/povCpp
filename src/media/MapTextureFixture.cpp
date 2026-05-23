@@ -7,8 +7,8 @@
  *****************************************************************************/
 
 #include "media/MapTextureFixture.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
@@ -45,7 +45,8 @@ B. Specialized shape projection variations by Alexander Enzmann:
 
 void
 MapTextureFixture::imageMap(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour,
+    int debugEnabled, double smallTolerance)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -54,7 +55,7 @@ MapTextureFixture::imageMap(
     double xcoor = 0.0, ycoor = 0.0;
     int regNumber;
 
-    if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor)) {
+    if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor, smallTolerance)) {
         Color::makeColor(colour, 1.0, 1.0, 1.0);
         colour->Alpha = 1.0;
         return;
@@ -66,7 +67,8 @@ MapTextureFixture::imageMap(
 /* an intersection point and a texture and returns a new texture based on */
 /* the index/color of that point in an image/materials map. CdW 7/91        */
 Texture *
-MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
+MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
+    int debugEnabled, double smallTolerance)
 {
     Vector3Dd transformedPoint;
     double x;
@@ -95,7 +97,8 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
 
     /* now we have transformed x, y, z we use image mapping routine */
     /* to determine texture index */
-    if (map(x, y, z, texture, texture->Material_Image, &xcoor, &ycoor)) {
+    if (map(x, y, z, texture, texture->Material_Image, &xcoor, &ycoor,
+            smallTolerance)) {
         materialNumber = 0;
     } else {
         imageColourAt(
@@ -128,7 +131,8 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture)
 
 void
 MapTextureFixture::bumpMap(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal,
+    int debugEnabled, double smallTolerance)
 {
     double xcoor = 0.0, ycoor = 0.0;
     int index;
@@ -156,7 +160,8 @@ MapTextureFixture::bumpMap(
     /* going to have to change this */
     /* need to know if bump point is off of image for all 3 points */
 
-    if (map(x, y, z, texture, texture->Bump_Image, &xcoor, &ycoor)) {
+    if (map(
+            x, y, z, texture, texture->Bump_Image, &xcoor, &ycoor, smallTolerance)) {
         Color::makeColor(&colour, 1.0, 1.0, 1.0);
         colour.Alpha = 1.0;
         index = 255;
@@ -187,7 +192,7 @@ MapTextureFixture::bumpMap(
 
     imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
     }
 
@@ -231,7 +236,7 @@ MapTextureFixture::bumpMap(
     xprime = yprime.crossProduct(temp);
     length = xprime.length();
     if (length < 1.0e-9) {
-        if (fabs(normal->y - 1.0) < Small_Tolerance) {
+        if (fabs(normal->y - 1.0) < smallTolerance) {
             *&yprime = Vector3Dd(0.0, 1.0, 0.0);
             *&xprime = Vector3Dd(1.0, 0.0, 0.0);
             length = 1.0;
@@ -456,7 +461,7 @@ MapTextureFixture::planarImageMap(
 /* Map returns 1 if no color found (invisible) or 0 if color found */
 int
 MapTextureFixture::map(double x, double y, double z, Texture *texture,
-    RGBAImage *image, double *xcoor, double *ycoor)
+    RGBAImage *image, double *xcoor, double *ycoor, double smallTolerance)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -501,8 +506,8 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
         break;
     }
     /* Now make sure the point is on the image */
-    *ycoor += Small_Tolerance;
-    *xcoor += Small_Tolerance;
+    *ycoor += smallTolerance;
+    *xcoor += smallTolerance;
     /* Compensate for y coordinates on the images being upsidedown */
     *ycoor = (double)image->iheight - *ycoor;
 
@@ -518,16 +523,10 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
         *ycoor -= (double)image->iheight;
     }
 
-    if (Options & DEBUGGING) {
-        printf("\nmap %g %g %g xcoor %f ycoor %f ih %d iw %d\n", x, y, z,
-            *xcoor, *ycoor, image->iheight, image->iwidth);
-    }
-
     if ((*xcoor >= (double)image->iwidth) ||
         (*ycoor >= (double)image->iheight) || (*xcoor < 0.0) ||
         (*ycoor < 0.0)) {
         printf("\nPicture index out of range\n");
-        PovApp::closeAll();
         exit(1);
     }
 
@@ -574,10 +573,6 @@ MapTextureFixture::noInterpolation(
         colour->Alpha += (double)mapColour->Alpha / 255.0;
     }
 
-    if (Options & DEBUGGING) {
-        printf("\n no_interpolation index %d xc %d yc %d \n", *index, ixcoor,
-            iycoor);
-    }
 }
 
 /* Interpolate color and alpha values when mapping */

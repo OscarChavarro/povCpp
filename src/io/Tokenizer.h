@@ -1,7 +1,7 @@
 #ifndef __TOKENIZER_H__
 #define __TOKENIZER_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "io/DataFile.h"
 #include "io/ReservedWord.h"
 #include "io/TokenStruct.h"
@@ -173,6 +173,7 @@ typedef int TOKEN;
 
 class Tokenizer {
   public:
+    static void setCaseSensitiveIdentifiers(int mode);
     static void initializeTokenizer(char *inputFileName);
     static void terminateTokenizer(void);
     static void ungetToken(void);

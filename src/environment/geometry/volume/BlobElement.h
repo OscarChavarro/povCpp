@@ -1,7 +1,7 @@
 #ifndef __BLOB_ELEMENT_H__
 #define __BLOB_ELEMENT_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
 class BlobElement {

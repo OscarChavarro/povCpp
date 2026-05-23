@@ -1,15 +1,17 @@
 #ifndef __VECT_H__
 #define __VECT_H__
 
-#include "common/FrameConfig.h"
-#include "common/Polynomial.h"
+#include "common/LegacyBoolean.h"
+#include "processing/PolynomialConstants.h"
+#include "processing/Polynomial.h"
 
 class PolynomialSolver {
   public:
     static int solveQuadratic(double *x, double *y);
     static int solveCubic(double *x, double *y);
-    static int solveQuartic(double *x, double *y);
-    static int polysolve(int order, double *coeffs, double *roots);
+    static int solveQuartic(double *x, double *y, double minValue = 0.0);
+    static int polysolve(
+        int order, double *coeffs, double *roots, double minValue);
     static inline double absInline(double x);
     static inline double maxInline(double x, double y);
 

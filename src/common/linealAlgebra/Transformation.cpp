@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "common/linealAlgebra/Transformation.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "common/logger/Logger.h"
 void

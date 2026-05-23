@@ -63,6 +63,7 @@ add_executable(povray
   src/io/pov/SceneFrameParser.cpp
   src/io/image/RawFormat.cpp
   src/io/image/TargaFormat.cpp
+  src/io/FileLocator.cpp
   src/io/Tokenizer.cpp
   src/media/Texture.cpp
   src/media/BumpTextureFixture.cpp
@@ -72,6 +73,8 @@ add_executable(povray
   src/processing/PolynomialSolver.cpp
   src/render/LightingEngine.cpp
   src/render/RenderEngine.cpp
+  src/environment/material/RendererConfiguration.cpp
+  src/render/Statistics.cpp
 )
 
 target_include_directories(povray PRIVATE src)

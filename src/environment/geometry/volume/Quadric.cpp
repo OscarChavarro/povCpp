@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Quadric.h"
+#include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
 Methods Quadric_Methods = {Composite::objectIntersect,
@@ -14,7 +15,6 @@ Methods Quadric_Methods = {Composite::objectIntersect,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
 
 extern RayWithSegments *vpRay;
-extern long rayQuadricTests, rayQuadricTestsSucceeded;
 int
 Quadric::allQuadricIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
@@ -63,7 +63,7 @@ Quadric::intersectQuadric(
     double a2;
     double bMinus;
 
-    rayQuadricTests++;
+    globalStatistics.rayQuadricTests++;
     if (!ray->quadricConstantsCached) {
         ray->makeRay();
     }
@@ -140,7 +140,7 @@ Quadric::intersectQuadric(
         *depth2 = *depth1;
     }
 
-    rayQuadricTestsSucceeded++;
+    globalStatistics.rayQuadricTestsSucceeded++;
     return (TRUE);
 }
 

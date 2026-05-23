@@ -1,7 +1,7 @@
 #ifndef __TOKEN_STRUCT_H__
 #define __TOKEN_STRUCT_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 
 class TokenStruct {
   public:

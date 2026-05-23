@@ -1,6 +1,7 @@
 #include "environment/scene/factory/ModelFactory.h"
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include "processing/PolynomialConstants.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/color/Color.h"
 #include "common/logger/Logger.h"
