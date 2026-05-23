@@ -4,8 +4,6 @@
 #include "common/LegacyBoolean.h"
 #include <cmath>
 
-extern double VTemp;
-
 class Vector3Dd {
   public:
     double x;
@@ -30,10 +28,10 @@ class Vector3Dd {
     inline void
     normalize()
     {
-        VTemp = std::sqrt(x * x + y * y + z * z);
-        x = x / VTemp;
-        y = y / VTemp;
-        z = z / VTemp;
+        const double vTemp = std::sqrt(x * x + y * y + z * z);
+        x = x / vTemp;
+        y = y / vTemp;
+        z = z / vTemp;
     }
 
     inline void
@@ -177,10 +175,10 @@ class VectorOps {
     static inline void
     vNormalize(Vector3Dd &a, const Vector3Dd &b)
     {
-        VTemp = std::sqrt(b.x * b.x + b.y * b.y + b.z * b.z);
-        a.x = b.x / VTemp;
-        a.y = b.y / VTemp;
-        a.z = b.z / VTemp;
+        const double vTemp = std::sqrt(b.x * b.x + b.y * b.y + b.z * b.z);
+        a.x = b.x / vTemp;
+        a.y = b.y / vTemp;
+        a.z = b.z / vTemp;
     }
 
     static inline void

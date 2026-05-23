@@ -8,7 +8,7 @@
 #include "environment/light/Light.h"
 #include "common/logger/Logger.h"
 #include "environment/geometry/volume/compound/Composite.h"
-Methods pointMethods = {Composite::objectIntersect,
+Methods Light::methodTable = {Composite::objectIntersect,
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,
     Light::invertPoint};

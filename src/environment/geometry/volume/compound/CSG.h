@@ -7,6 +7,8 @@
 
 class CSG : public Geometry {
   public:
+    static Methods unionMethodTable;
+    static Methods intersectionMethodTable;
     Geometry *Shapes;
 
     static int allCsgUnionIntersections(SimpleBody *object,
@@ -21,10 +23,4 @@ class CSG : public Geometry {
     static void scaleCsg(SimpleBody *object, Vector3Dd *vector);
     static void invertCsg(SimpleBody *object);
 };
-
-extern Methods csgUnionMethods;
-extern Methods csgIntersectionMethods;
-extern CSG *getCsgShape(void);
-extern CSG *getCsgUnion(void);
-extern CSG *getCsgIntersection(void);
 #endif

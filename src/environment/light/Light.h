@@ -7,6 +7,7 @@
 
 class Light : public Geometry {
   public:
+    static Methods methodTable;
     Vector3Dd Center;
     Vector3Dd pointsAt;
     Light *Next_Light_Source;
@@ -29,8 +30,5 @@ class Light : public Geometry {
   private:
     static double cubicSpline(double low, double high, double pos);
 };
-
-extern Methods pointMethods;
-extern Light *getLightSourceShape(void);
 
 #endif

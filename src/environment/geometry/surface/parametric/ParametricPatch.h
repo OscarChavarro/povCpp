@@ -15,6 +15,4 @@ static constexpr int PARAMETRIC_LEAF_NODE = 1;
 #include "environment/geometry/surface/parametric/ParametricPatchChild.h"
 #include "environment/geometry/surface/parametric/ParametricPatchNode.h"
 
-extern Methods bicubicPatchMethods;
-
 #endif

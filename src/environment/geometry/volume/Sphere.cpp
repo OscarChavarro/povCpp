@@ -12,7 +12,7 @@
 
 //===========================================================================
 
-Methods sphereMethods = {Composite::objectIntersect,
+Methods Sphere::methodTable = {Composite::objectIntersect,
     Sphere::allSphereIntersections, Sphere::insideSphere, Sphere::sphereNormal,
     Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
     Sphere::scaleSphere, Sphere::invertSphere};
@@ -27,7 +27,7 @@ int
 Sphere::intersectSphere(
     RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
-    globalStatistics.raySphereTests++;
+    Statistics::global().raySphereTests++;
 
     //--------------------------------------------------------------------------
     Vector3Dd originToCenter;
@@ -84,7 +84,7 @@ Sphere::intersectSphere(
     }
 
     //--------------------------------------------------------------------------
-    globalStatistics.raySphereTestsSucceeded++;
+    Statistics::global().raySphereTestsSucceeded++;
     return TRUE;
 }
 

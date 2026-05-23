@@ -41,7 +41,7 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 int factorials[MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 int termCounts[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
-Methods polyMethods = {Composite::objectIntersect,
+Methods PolynomialShape::methodTable = {Composite::objectIntersect,
     PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
     PolynomialShape::polyNormal, PolynomialShape::copyPoly,
     PolynomialShape::translatePoly, PolynomialShape::rotatePoly,
@@ -91,7 +91,7 @@ PolynomialShape::allPolyIntersections(
     newRay.direction.z /= len;
 
     intersectionFound = FALSE;
-    globalStatistics.rayPolyTests++;
+    Statistics::global().rayPolyTests++;
     if (shape->Order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
@@ -100,7 +100,7 @@ PolynomialShape::allPolyIntersections(
     }
 
     if (cnt > 0) {
-        globalStatistics.rayPolyTestsSucceeded++;
+        Statistics::global().rayPolyTestsSucceeded++;
     }
     for (i = 0; i < cnt; i++) {
         if (depths[i] < 0) {
@@ -333,12 +333,12 @@ PolynomialShape::normalp(
             result->z += zp * a[i] * x[xp] * y[yp] * z[zp - 1];
         }
     }
-    VTemp = sqrt(
+    double vTemp = sqrt(
         result->x * result->x + result->y * result->y + result->z * result->z);
-    if (VTemp > 0.0) {
-        result->x /= VTemp;
-        result->y /= VTemp;
-        result->z /= VTemp;
+    if (vTemp > 0.0) {
+        result->x /= vTemp;
+        result->y /= vTemp;
+        result->z /= vTemp;
     } else {
         result->x = 1.0;
         result->y = 0.0;
@@ -774,12 +774,12 @@ PolynomialShape::quarticNormal(
                 a[21] * y3 + y2 * (2 * a[23] * z + a[24]) +
                 y * (3 * a[26] * z2 + 2 * a[27] * z + a[28]) + 4 * a[30] * z3 +
                 3 * a[31] * z2 + 2 * a[32] * z + a[33];
-    VTemp = sqrt(
+    double vTemp = sqrt(
         result->x * result->x + result->y * result->y + result->z * result->z);
-    if (VTemp > 0.0) {
-        result->x /= VTemp;
-        result->y /= VTemp;
-        result->z /= VTemp;
+    if (vTemp > 0.0) {
+        result->x /= vTemp;
+        result->y /= vTemp;
+        result->z /= vTemp;
     } else {
         result->x = 1.0;
         result->y = 0.0;

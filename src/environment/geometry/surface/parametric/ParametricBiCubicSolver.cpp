@@ -317,7 +317,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     int intersectionFound;
 
     intersectionFound = 0;
-    globalStatistics.rayBicubicTests++;
+    Statistics::global().rayBicubicTests++;
     if (ray == RenderEngine::primaryRay()) {
         shape->intersectionCount = 0;
     }
@@ -342,7 +342,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         exit(1);
     }
     if (cnt > 0) {
-        globalStatistics.rayBicubicTestsSucceeded++;
+        Statistics::global().rayBicubicTestsSucceeded++;
     }
     for (i = 0; i < cnt; i++) {
         if (!ray->isShadowRay) {

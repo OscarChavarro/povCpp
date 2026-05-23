@@ -1,6 +1,12 @@
 #include "common/Statistics.h"
 
-Statistics globalStatistics;
+static Statistics globalStatisticsInstance;
+
+Statistics &
+Statistics::global()
+{
+    return globalStatisticsInstance;
+}
 
 void
 Statistics::reset()

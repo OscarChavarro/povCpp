@@ -8,11 +8,12 @@
 extern ReservedWord globalReservedWords[];
 extern TokenStruct globalToken;
 extern int termCounts[MAX_ORDER + 1];
-extern RenderFrame *parsingFramePtr;
-extern RGBAColorPaletteSpan *constructionMap;
-extern Constant constants[MAX_CONSTANTS];
-extern int numberOfConstants;
-extern int degenerateTriangles;
+
+static RenderFrame *parsingFramePtrInstance = nullptr;
+static RGBAColorPaletteSpan *constructionMapInstance = nullptr;
+static Constant constantsInstance[MAX_CONSTANTS];
+static int numberOfConstantsInstance = 0;
+static int degenerateTrianglesInstance = 0;
 
 ReservedWord *
 ParserContext::reservedWords()
@@ -35,29 +36,29 @@ ParserContext::termCounts()
 RenderFrame *&
 ParserContext::parsingFrame()
 {
-    return parsingFramePtr;
+    return parsingFramePtrInstance;
 }
 
 RGBAColorPaletteSpan *&
 ParserContext::constructionMap()
 {
-    return ::constructionMap;
+    return constructionMapInstance;
 }
 
 Constant *
 ParserContext::constants()
 {
-    return ::constants;
+    return constantsInstance;
 }
 
 int &
 ParserContext::numberOfConstants()
 {
-    return ::numberOfConstants;
+    return numberOfConstantsInstance;
 }
 
 int &
 ParserContext::degenerateTriangles()
 {
-    return ::degenerateTriangles;
+    return degenerateTrianglesInstance;
 }

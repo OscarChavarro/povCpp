@@ -39,7 +39,7 @@ HeightField::maxValue(double x, double y)
     return (x < y) ? y : x;
 }
 
-Methods heightFieldMethods = {Composite::objectIntersect,
+Methods HeightField::methodTable = {Composite::objectIntersect,
     HeightField::allHeightfldIntersections, HeightField::insideHeightfld,
     HeightField::heightFldNormal, HeightField::copyHeightfld,
     HeightField::translateHeightfld, HeightField::rotateHeightfld,
@@ -196,7 +196,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
     }
-    globalStatistics.rayHtFieldTestsSucceeded++;
+    Statistics::global().rayHtFieldTestsSucceeded++;
     return (TRUE);
 }
 
@@ -753,7 +753,7 @@ HeightField::allHeightfldIntersections(
     HeightField *hField = (HeightField *)object;
     Intersection localElement;
 
-    globalStatistics.rayHtFieldTests++;
+    Statistics::global().rayHtFieldTests++;
 
     Transformation::MInverseTransformVector(
         &(tempRay.position), &(ray->position), hField->transformation);

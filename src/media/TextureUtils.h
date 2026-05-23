@@ -9,6 +9,13 @@ class Texture;
 
 class TextureUtils {
   public:
+    static Texture *&defaultTexture();
+    static double *&rTable();
+    static short *&hashTable();
+    static double *&sinTable();
+    static double *waveFrequency();
+    static Vector3Dd *waveSources();
+    static unsigned short *crcTable();
     static void computeColour(
         RGBAColor *colour, RGBAColorPalette *colourMap, double value);
     static void initializeNoise(void);

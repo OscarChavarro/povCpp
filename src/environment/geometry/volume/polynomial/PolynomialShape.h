@@ -7,6 +7,7 @@
 
 class PolynomialShape : public Geometry {
   public:
+    static Methods methodTable;
     Transformation *Transform;
     short Inverted;
     int Order;
@@ -40,8 +41,5 @@ class PolynomialShape : public Geometry {
     static double doPartialTerm(
         MATRIX *q, int row, int pwr, int i, int j, int k, int l);
 };
-
-extern Methods polyMethods;
-extern PolynomialShape *getPolyShape(int);
 
 #endif

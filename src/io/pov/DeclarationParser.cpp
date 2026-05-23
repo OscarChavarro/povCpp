@@ -4,8 +4,6 @@
 #include "io/pov/Parse.h"
 #include "io/pov/cameraParser/CameraParser.h"
 
-extern Texture *Default_Texture;
-
 static CONSTANT
 findConstant(ParserContext &ctx)
 {
@@ -196,7 +194,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         Tokenizer::getToken();
                         switch (ctx.token().tokenId) {
                         case TEXTURE_TOKEN:
-                            localTexture = Default_Texture;
+                            localTexture = TextureUtils::defaultTexture();
                             localTexture = TextureParser::parseTexture(ctx);
                             if (localTexture->constantFlag) {
                                 localTexture =

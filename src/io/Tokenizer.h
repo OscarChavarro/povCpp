@@ -185,8 +185,11 @@ class Tokenizer {
     static void writeToken(TOKEN tokenId, DataFile *dataFile);
     static void tokenError(DataFile *dataFile, const char *str);
     static void getToken(void);
+    static void setMaxSymbols(int value);
+    static int getMaxSymbols();
 
   private:
+    static int maxSymbols;
     static int povStricmp(const char *s1, const char *s2);
 };
 

@@ -7,6 +7,7 @@
 
 class Camera {
   public:
+    static Methods methodTable;
     Methods *methods;
     int Type;
     Vector3Dd Location;
@@ -21,8 +22,5 @@ class Camera {
     static void rotateCamera(SimpleBody *object, Vector3Dd *vector);
     static void scaleCamera(SimpleBody *object, Vector3Dd *vector);
 };
-
-extern Methods cameraMethods;
-extern Camera *getCamera(void);
 
 #endif

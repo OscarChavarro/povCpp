@@ -49,7 +49,7 @@ TextureParser::parseTexture(ParserContext &ctx)
     Texture *tempTexture;
     int reg;
 
-    texture = Default_Texture;
+    texture = TextureUtils::defaultTexture();
 
     ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
 

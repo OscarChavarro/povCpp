@@ -3,8 +3,6 @@
 #include "io/pov/Parse.h"
 #include "environment/scene/SceneFrame.h"
 
-extern Texture *Default_Texture;
-
 void
 DefaultTextureParser::parseDefault(RenderFrame *framePtr)
 {
@@ -24,9 +22,9 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
             Tokenizer::getToken();
             switch (ctx.token().tokenId) {
             case TEXTURE_TOKEN:
-                Default_Texture->constantFlag = FALSE;
-                Default_Texture = TextureParser::parseTexture(ctx);
-                Default_Texture->constantFlag = TRUE;
+                TextureUtils::defaultTexture()->constantFlag = FALSE;
+                TextureUtils::defaultTexture() = TextureParser::parseTexture(ctx);
+                TextureUtils::defaultTexture()->constantFlag = TRUE;
                 break;
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

@@ -13,6 +13,7 @@ static constexpr int TGA = 2;
 
 class HeightField : public Geometry {
   public:
+    static Methods methodTable;
     Transformation *transformation;
     Box *bounding_box;
     double blockSize;
@@ -45,8 +46,5 @@ class HeightField : public Geometry {
     static int intersectHfNode(RayWithSegments *ray, HeightField *hField,
         Vector3Dd *start, Vector3Dd *end);
 };
-
-extern Methods heightFieldMethods;
-extern HeightField *getHeightFieldShape(void);
 
 #endif

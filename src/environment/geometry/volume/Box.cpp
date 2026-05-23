@@ -15,7 +15,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include <cstring>
-Methods boxMethods = {Composite::objectIntersect, Box::allBoxIntersections,
+Methods Box::methodTable = {Composite::objectIntersect, Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
     Box::rotateBox, Box::scaleBox, Box::invertBox};
 
@@ -71,7 +71,7 @@ Box::intersectBoxx(
     Vector3Dd p;
     Vector3Dd d;
 
-    globalStatistics.rayBoxTests++;
+    Statistics::global().rayBoxTests++;
 
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
@@ -209,7 +209,7 @@ Box::intersectBoxx(
         *depth2 = *depth1;
     }
 
-    globalStatistics.rayBoxTestsSucceeded++;
+    Statistics::global().rayBoxTestsSucceeded++;
     return (TRUE);
 }
 

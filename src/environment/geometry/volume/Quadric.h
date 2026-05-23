@@ -7,6 +7,7 @@
 
 class Quadric : public Geometry {
   public:
+    static Methods methodTable;
     Vector3Dd object2Terms;
     Vector3Dd objectMixedTerms;
     Vector3Dd objectTerms;
@@ -34,7 +35,4 @@ class Quadric : public Geometry {
     static void transformQuadric(
         Quadric *shape, Transformation *transformation);
 };
-
-extern Methods quadricMethods;
-extern Quadric *getQuadricShape(void);
 #endif

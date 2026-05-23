@@ -100,9 +100,8 @@ ReservedWord globalReservedWords[LAST_TOKEN] = {{AGATE_TOKEN, "agate"},
 /* Make a table for user-defined symbols.  500 symbols should be more
 than enough. */
 
-/* Now defined in POVRAY.c */
-extern int maxSymbols;
 static int caseSensitiveFlag = 0;
+int Tokenizer::maxSymbols = 500;
 
 int tokenCount = 0, lineCount = 0; /* moved here to allow reinitialization */
 
@@ -121,6 +120,18 @@ void
 Tokenizer::setCaseSensitiveIdentifiers(int mode)
 {
     caseSensitiveFlag = mode;
+}
+
+void
+Tokenizer::setMaxSymbols(int value)
+{
+    maxSymbols = value;
+}
+
+int
+Tokenizer::getMaxSymbols()
+{
+    return maxSymbols;
 }
 
 void
@@ -818,7 +829,7 @@ DataFile::readSymbol()
         }
 
         if ((symbolId = Tokenizer::findSymbol()) == -1) {
-            if (++numberOfSymbols < maxSymbols) {
+            if (++numberOfSymbols < Tokenizer::getMaxSymbols()) {
                 if ((symbolTable[numberOfSymbols] =
                             new char[strlen(string) + 1]) == nullptr) {
                     Tokenizer::tokenError(globalDataFile,

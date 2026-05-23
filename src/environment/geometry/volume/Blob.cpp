@@ -16,7 +16,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
-Methods blobMethods = {Composite::objectIntersect, Blob::allBlobIntersections,
+Methods Blob::methodTable = {Composite::objectIntersect, Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
     Blob::rotateBlob, Blob::scaleBlob, Blob::invertBlob};
 
@@ -332,7 +332,7 @@ Blob::allBlobIntersections(
     BlobInterval *intervals = blob->intervals;
     int intersectionFound = FALSE;
 
-    globalStatistics.rayBlobTests++;
+    Statistics::global().rayBlobTests++;
 
     /* Transform the ray into the blob space */
     if (blob->Transform != nullptr) {
@@ -462,7 +462,7 @@ Blob::allBlobIntersections(
         }
     }
     if (intersectionFound) {
-        globalStatistics.rayBlobTestsSucceeded++;
+        Statistics::global().rayBlobTestsSucceeded++;
     }
     return intersectionFound;
 }

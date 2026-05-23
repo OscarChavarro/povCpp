@@ -9,6 +9,7 @@
 
 class Blob : public Geometry {
   public:
+    static Methods methodTable;
     Transformation *Transform;
     short Inverted;
     int count;
@@ -34,7 +35,5 @@ class Blob : public Geometry {
     static double calculateFieldValue(SimpleBody *obj, Vector3Dd *pos);
     static int validateHit(Blob *blob, Vector3Dd *p);
 };
-
-extern Methods blobMethods;
 
 #endif

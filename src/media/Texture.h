@@ -133,9 +133,6 @@ static constexpr float rndDivisor = static_cast<float>(RNDMASK);
 static constexpr int NUMBER_OF_WAVES = 10;
 static constexpr int SINTABSIZE = 1000;
 
-extern double *RTable;
-extern short *hashTable;
-
 static constexpr double realScale = (2.0 / 65535.0);
 
 // Deprecated: Use Texture:: methods instead
@@ -159,48 +156,16 @@ sCurve(double a)
 inline short
 hash3d(long a, long b, long c)
 {
-    return hashTable[(
-        int)(hashTable[(int)(hashTable[(int)(a & 0xfffL)] ^ (b & 0xfffL))] ^
+    return TextureUtils::hashTable()[(
+        int)(TextureUtils::hashTable()[(int)(TextureUtils::hashTable()[(int)(a & 0xfffL)] ^ (b & 0xfffL))] ^
              (c & 0xfffL))];
 }
 
 inline double
 incrSum(int m, double s, double x, double y, double z)
 {
-    return s * (RTable[m] * 0.5 + RTable[m + 1] * x + RTable[m + 2] * y +
-                   RTable[m + 3] * z);
+    return s * (TextureUtils::rTable()[m] * 0.5 + TextureUtils::rTable()[m + 1] * x + TextureUtils::rTable()[m + 2] * y +
+                   TextureUtils::rTable()[m + 3] * z);
 }
-
-extern double *sintab;
-extern double frequency[NUMBER_OF_WAVES];
-extern Vector3Dd Wave_Sources[NUMBER_OF_WAVES];
-extern double *RTable;
-extern short *hashTable;
-extern unsigned short crctab[256];
-extern Texture *Default_Texture;
-
-extern void computeColour(
-    RGBAColor *Colour, RGBAColorPalette *Colour_Map, double value);
-extern void initializeNoise(void);
-extern void InitTextureTable(void);
-extern void InitRTable(void);
-extern int R(Vector3Dd *v);
-extern int Crc16(char *buf, int count);
-extern void setupLattice(double *x, double *y, double *z, long *ix, long *iy,
-    long *iz, long *jx, long *jy, long *jz, double *sx, double *sy, double *sz,
-    double *tx, double *ty, double *tz);
-extern double Noise(double x, double y, double z);
-extern void DNoise(Vector3Dd *result, double x, double y, double z);
-extern double cycloidal(double value);
-extern double triangleWave(double value);
-extern double Turbulence(double x, double y, double z, int octaves);
-extern void DTurbulence(
-    Vector3Dd *result, double x, double y, double z, int octaves);
-extern void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-extern void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-extern void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-
-extern Texture *copyTexture(Texture *Texture);
-extern Texture *getTexture();
 
 #endif
