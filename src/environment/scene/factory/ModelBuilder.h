@@ -1,8 +1,7 @@
-#ifndef __SCENE_FACTORY_H__
-#define __SCENE_FACTORY_H__
+#ifndef __MODEL_BUILDER_H__
+#define __MODEL_BUILDER_H__
 
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/Composite.h"
 
 class Composite;
 class Sphere;
@@ -20,7 +19,7 @@ class Camera;
 class RGBAColor;
 class ParametricBiCubicPatch;
 
-class SceneFactory {
+class ModelBuilder {
   public:
     static Composite *getCompositeObject();
     static Sphere *getSphereShape();

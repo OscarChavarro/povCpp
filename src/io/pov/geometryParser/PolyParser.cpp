@@ -4,7 +4,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/scene/ObjectUtils.h"
+#include "environment/geometry/GeometryUtils.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
@@ -30,7 +30,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     Texture *localTexture;
 
     if (knownOrder > 0) {
-        localShape = SceneFactory::getPolyShape(knownOrder, ctx.termCounts());
+        localShape = ModelBuilder::getPolyShape(knownOrder, ctx.termCounts());
     } else {
         localShape = nullptr;
     }
@@ -55,7 +55,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if (order < 2 || order > MAX_ORDER) {
                     ParseErrorReporter::Error("Order of Poly is out of range", ctx);
                 }
-                localShape = SceneFactory::getPolyShape(order, ctx.termCounts());
+                localShape = ModelBuilder::getPolyShape(order, ctx.termCounts());
                 break;
 
             case LEFT_ANGLE_TOKEN:
@@ -134,13 +134,13 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                ObjectUtils::link((SimpleBody *)localTexture,
+                GeometryUtils::link((SimpleBody *)localTexture,
                     (SimpleBody **)&localTexture->Next_Texture,
                     (SimpleBody **)&localShape->Shape_Texture);
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

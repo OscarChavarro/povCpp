@@ -39,7 +39,7 @@ SphereParser::parseSphere(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getSphereShape();
+                localShape = ModelBuilder::getSphereShape();
                 PrimitiveParser::parseVector(&(localShape->Center), ctx);
                 localShape->Radius = PrimitiveParser::parseFloat(ctx);
                 localShape->radiusSquared =
@@ -121,7 +121,7 @@ SphereParser::parseSphere(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

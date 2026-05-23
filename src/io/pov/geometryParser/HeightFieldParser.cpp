@@ -44,7 +44,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                            other image types - CdW */
             case GIF_TOKEN:
                 imageType = GIF;
-                localShape = SceneFactory::getHeightFieldShape();
+                localShape = ModelBuilder::getHeightFieldShape();
                 image = new RGBAImage;
                 if (image == nullptr) {
                     ParseErrorReporter::Error("Out of memory. Cannot allocate "
@@ -68,7 +68,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case POT_TOKEN:
                 imageType = POT;
-                localShape = SceneFactory::getHeightFieldShape();
+                localShape = ModelBuilder::getHeightFieldShape();
                 image = new RGBAImage;
                 if (image == nullptr) {
                     ParseErrorReporter::Error("Out of memory. Cannot allocate "
@@ -93,7 +93,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case TGA_TOKEN:
                 imageType = TGA;
-                localShape = SceneFactory::getHeightFieldShape();
+                localShape = ModelBuilder::getHeightFieldShape();
                 image = new RGBAImage;
                 if (image == nullptr) {
                     ParseErrorReporter::Error("Cannot allocate space for "
@@ -194,7 +194,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

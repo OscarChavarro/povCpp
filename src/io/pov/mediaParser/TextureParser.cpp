@@ -144,8 +144,8 @@ TextureParser::parseTexture(ParserContext &ctx)
                         Tokenizer::getToken();
                         switch (ctx.token().tokenId) {
                         case COLOUR_TOKEN:
-                            texture->Colour1 = SceneFactory::getColour();
-                            texture->Colour2 = SceneFactory::getColour();
+                            texture->Colour1 = ModelBuilder::getColour();
+                            texture->Colour2 = ModelBuilder::getColour();
                             PrimitiveParser::parseColour(texture->Colour1, ctx);
                             ParseHelpers::getExpectedToken(COLOUR_TOKEN, ctx);
                             PrimitiveParser::parseColour(texture->Colour2, ctx);
@@ -173,8 +173,8 @@ TextureParser::parseTexture(ParserContext &ctx)
                         Tokenizer::getToken();
                         switch (ctx.token().tokenId) {
                         case COLOUR_TOKEN:
-                            texture->Colour1 = SceneFactory::getColour();
-                            texture->Colour2 = SceneFactory::getColour();
+                            texture->Colour1 = ModelBuilder::getColour();
+                            texture->Colour2 = ModelBuilder::getColour();
                             PrimitiveParser::parseColour(texture->Colour1, ctx);
                             ParseHelpers::getExpectedToken(COLOUR_TOKEN, ctx);
                             PrimitiveParser::parseColour(texture->Colour2, ctx);
@@ -692,7 +692,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->Colour1 = SceneFactory::getColour();
+                texture->Colour1 = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(texture->Colour1, ctx);
                 texture->textureNumber = COLOUR_TEXTURE;
                 break;

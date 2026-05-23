@@ -38,7 +38,7 @@ PlaneParser::parsePlane(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getPlaneShape();
+                localShape = ModelBuilder::getPlaneShape();
                 PrimitiveParser::parseVector(&(localShape->normalVector), ctx);
                 localShape->Distance = PrimitiveParser::parseFloat(ctx);
                 localShape->Distance *= -1.0;
@@ -116,7 +116,7 @@ PlaneParser::parsePlane(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

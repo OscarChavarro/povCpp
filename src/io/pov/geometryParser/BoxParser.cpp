@@ -51,7 +51,7 @@ BoxParser::parseBox(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getBoxShape();
+                localShape = ModelBuilder::getBoxShape();
                 PrimitiveParser::parseVector(&(localShape->bounds[0]), ctx);
                 PrimitiveParser::parseVector(&(localShape->bounds[1]), ctx);
                 Exit_Flag = TRUE;
@@ -129,7 +129,7 @@ BoxParser::parseBox(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

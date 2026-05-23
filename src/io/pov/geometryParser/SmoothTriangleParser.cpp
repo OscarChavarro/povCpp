@@ -40,7 +40,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 localShape =
-                    (SmoothTriangle *)SceneFactory::getSmoothTriangleShape();
+                    (SmoothTriangle *)ModelBuilder::getSmoothTriangleShape();
                 PrimitiveParser::parseVector(&localShape->P1, ctx);
                 PrimitiveParser::parseVector(&localShape->N1, ctx);
                 localShape->N1.normalize();
@@ -132,7 +132,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

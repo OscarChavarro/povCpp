@@ -39,7 +39,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getQuadricShape();
+                localShape = ModelBuilder::getQuadricShape();
                 PrimitiveParser::parseVector(&(localShape->object2Terms), ctx);
                 PrimitiveParser::parseVector(&(localShape->objectMixedTerms), ctx);
                 PrimitiveParser::parseVector(&(localShape->objectTerms), ctx);
@@ -126,7 +126,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

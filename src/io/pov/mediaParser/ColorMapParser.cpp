@@ -1,5 +1,7 @@
 #include "io/pov/ParserContext.h"
 #include "io/pov/mediaParser/ColorMapParser.h"
+#include "common/color/RGBAColorPalette.h"
+#include "common/color/RGBAColorPaletteSpan.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
