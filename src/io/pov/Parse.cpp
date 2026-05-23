@@ -13,8 +13,7 @@
 #include "io/image/GifFormat.h"
 #include "io/image/IffFormat.h"
 #include "io/image/TargaFormat.h"
-#include "render/RenderEngine.h"
-#include "render/RenderFrame.h"
+#include "environment/scene/SceneFrame.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"

@@ -1,6 +1,8 @@
 #ifndef __PRIOQ_TXX__
 #define __PRIOQ_TXX__
 
+#include "common/logger/Logger.h"
+
 template <class T>
 PriorityQueue<T>::PriorityQueue()
 {
@@ -81,6 +83,14 @@ PriorityQueue<T>::deleteHighest()
 {
     this->queue[1] = this->queue[this->current_entry--];
     this->balance(1);
+}
+
+template <class T>
+void
+PriorityQueue<T>::print()
+{
+    Logger::info("PriorityQueue size=%u entries=%u\n", this->queue_size,
+        this->current_entry);
 }
 
 #endif

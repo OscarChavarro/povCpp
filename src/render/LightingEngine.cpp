@@ -18,7 +18,7 @@
 #include "media/MapTextureFixture.h"
 #include "media/TextureFixture.h"
 #include "render/RenderEngine.h"
-#include "render/RenderFrame.h"
+#include "environment/scene/SceneFrame.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
 

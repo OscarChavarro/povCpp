@@ -15,6 +15,7 @@ class PriorityQueue {
     void add(T *queueEntry);
     T *getHighest();
     void deleteHighest();
+    void print();
 };
 
 #include "common/dataStructures/PriorityQueue.txx"

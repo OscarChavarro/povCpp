@@ -5,7 +5,7 @@
 #include "io/pov/Parse.h"
 #include "io/pov/RenderSettingsParser.h"
 #include "io/pov/cameraParser/CameraParser.h"
-#include "render/RenderFrame.h"
+#include "environment/scene/SceneFrame.h"
 
 extern TokenStruct globalToken;
 extern RenderFrame *parsingFramePtr;

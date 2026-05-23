@@ -4,6 +4,7 @@
 class Logger {
   public:
     static void error(const char *format, ...);
+    static void info(const char *format, ...);
 };
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef __RENDER_ENGINE_H__
 #define __RENDER_ENGINE_H__
 
-#include "render/RenderFrame.h"
+#include "environment/scene/SceneFrame.h"
 
 class RenderEngine {
   public:

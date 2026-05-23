@@ -8,7 +8,7 @@
 #include "io/image/TargaFormat.h"
 #include "io/pov/Parse.h"
 #include "io/pov/SceneFrameParser.h"
-#include "render/RenderEngine.h"
+#include "environment/scene/SceneFrame.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
