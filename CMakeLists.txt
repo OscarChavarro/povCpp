@@ -75,7 +75,7 @@ add_executable(povray
   src/render/LightingEngine.cpp
   src/render/RenderEngine.cpp
   src/environment/material/RendererConfiguration.cpp
-  src/render/Statistics.cpp
+  src/common/Statistics.cpp
 )
 
 target_include_directories(povray PRIVATE src)
