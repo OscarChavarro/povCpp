@@ -16,7 +16,7 @@
 #include "common/logger/Logger.h"
 #include "common/color/Color.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/image/ImageOutput.h"
+#include "render/RenderOutput.h"
 #include "java/io/FileOutputStream.h"
 #include "render/LightingEngine.h"
 #include "environment/material/RendererConfiguration.h"
@@ -261,7 +261,7 @@ RenderEngine::readRenderedPart()
         if (globalRenderingConfiguration.outputFileInputStream->open(
                 globalRenderingConfiguration.outputFileName,
                 &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                globalRenderingConfiguration.fileBufferSize, ImageOutput::APPEND_MODE) != 1) {
+                globalRenderingConfiguration.fileBufferSize, RenderOutput::APPEND_MODE) != 1) {
             Logger::error("Error opening output file\n");
             exit(1);
         }

@@ -3,7 +3,7 @@
 
 #include "common/LegacyBoolean.h"
 
-class ImageOutput;
+class RenderOutput;
 static constexpr int RENDER_FILE_NAME_LENGTH = 150;
 
 static constexpr unsigned int DISPLAY = 1u;
@@ -26,7 +26,7 @@ class RenderingConfiguration {
     char inputFileName[RENDER_FILE_NAME_LENGTH];
     char outputFileName[RENDER_FILE_NAME_LENGTH];
     char statFileName[RENDER_FILE_NAME_LENGTH];
-    ImageOutput *outputFileInputStream;
+    RenderOutput *outputFileInputStream;
     int fileBufferSize;
     double antialiasThreshold;
     int firstLine;

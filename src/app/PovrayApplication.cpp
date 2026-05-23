@@ -3,6 +3,7 @@
 #include <ctime> /* BP */
 
 #include "io/image/ImageOutput.h"
+#include "render/RenderOutput.h"
 
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/logger/Logger.h"
@@ -32,6 +33,30 @@ static int numberOfFiles;
 static int inFlag;
 static int outFlag;
 double VTemp;
+static ImageOutput *selectedImageOutput = nullptr;
+
+class ImageOutputAdapter : public RenderOutput {
+  public:
+    explicit ImageOutputAdapter(ImageOutput *delegate) : delegate(delegate) {}
+
+    const char *defaultFileName() override { return delegate->defaultFileName(); }
+    int open(char *name, int *width, int *height, int bufferSize, int mode) override
+    {
+        return delegate->open(name, width, height, bufferSize, mode);
+    }
+    void writeLine(RGBAColor *lineData, int lineNumber) override
+    {
+        delegate->writeLine(lineData, lineNumber);
+    }
+    int readLine(RGBAColor *lineData, int *lineNumber) override
+    {
+        return delegate->readLine(lineData, lineNumber);
+    }
+    void close() override { delegate->close(); }
+
+  private:
+    ImageOutput *delegate;
+};
 
 static void
 printStatistics(
@@ -172,24 +197,21 @@ PovrayApplication::configureOutputTarget()
     case '\0':
     case 'd':
     case 'D':
-        if ((globalRenderingConfiguration.outputFileInputStream = new DumpFormat()) ==
-            nullptr) {
+        if ((selectedImageOutput = new DumpFormat()) == nullptr) {
             closeAll();
             exit(1);
         }
         break;
     case 'r':
     case 'R':
-        if ((globalRenderingConfiguration.outputFileInputStream = new RawFormat()) ==
-            nullptr) {
+        if ((selectedImageOutput = new RawFormat()) == nullptr) {
             closeAll();
             exit(1);
         }
         break;
     case 't':
     case 'T':
-        if ((globalRenderingConfiguration.outputFileInputStream = new TargaFormat()) ==
-            nullptr) {
+        if ((selectedImageOutput = new TargaFormat()) == nullptr) {
             closeAll();
             exit(1);
         }
@@ -198,6 +220,9 @@ PovrayApplication::configureOutputTarget()
         Logger::error("Unrecognized output file format %c\n", globalRenderingConfiguration.outputFormat);
         exit(1);
     }
+
+    globalRenderingConfiguration.outputFileInputStream =
+        new ImageOutputAdapter(selectedImageOutput);
 
     if (globalRenderingConfiguration.outputFileName[0] == '\0') {
         strcpy(globalRenderingConfiguration.outputFileName,
@@ -235,7 +260,7 @@ PovrayApplication::prepareRendering()
         if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    globalRenderingConfiguration.fileBufferSize, ImageOutput::READ_MODE) != 1) {
+                    globalRenderingConfiguration.fileBufferSize, RenderOutput::READ_MODE) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
                     stderr, "Opening new output file %s.\n", globalRenderingConfiguration.outputFileName);
@@ -243,7 +268,7 @@ PovrayApplication::prepareRendering()
 
                 if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                         &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                        globalRenderingConfiguration.fileBufferSize, ImageOutput::WRITE_MODE) != 1) {
+                        globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
                     exit(1);
@@ -257,7 +282,7 @@ PovrayApplication::prepareRendering()
         } else {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    globalRenderingConfiguration.fileBufferSize, ImageOutput::WRITE_MODE) != 1) {
+                    globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
                 exit(1);
@@ -369,6 +394,12 @@ PovrayApplication::closeAll()
 {
     if (globalRenderingConfiguration.outputFileInputStream) {
         globalRenderingConfiguration.outputFileInputStream->close();
+        delete globalRenderingConfiguration.outputFileInputStream;
+        globalRenderingConfiguration.outputFileInputStream = nullptr;
+    }
+    if (selectedImageOutput) {
+        delete selectedImageOutput;
+        selectedImageOutput = nullptr;
     }
 }
 
