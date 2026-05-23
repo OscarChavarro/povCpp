@@ -302,13 +302,13 @@ RenderEngine::readRenderedPart()
         if (openFile(globalOutputFileHandle, outputFileName,
                 &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                 fileBufferSize, APPEND_MODE) != 1) {
-            fprintf(stderr, "Error opening output file\n");
+            Logger::error("Error opening output file\n");
             exit(1);
         }
         return;
     }
 
-    fprintf(stderr, "Error reading aborted data file\n");
+    Logger::error("Error reading aborted data file\n");
 }
 
 void

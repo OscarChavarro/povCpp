@@ -52,7 +52,7 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
 
     if ((this->containingIndex = sourceRay->containingIndex) >=
         MAX_CONTAINING_OBJECTS) {
-        fprintf(stderr, "ERROR - Containing Index too high\n");
+        Logger::error( "ERROR - Containing Index too high\n");
         PovApp::closeAll();
         exit(1);
     }
@@ -69,7 +69,7 @@ RayWithSegments::enterContainingMedium(Texture *texture)
     int index;
 
     if ((index = ++(this->containingIndex)) >= MAX_CONTAINING_OBJECTS) {
-        fprintf(stderr, "Too many nested refracting objects\n");
+        Logger::error( "Too many nested refracting objects\n");
         PovApp::closeAll();
         exit(1);
     }
@@ -82,7 +82,7 @@ void
 RayWithSegments::exitContainingMedium()
 {
     if (--(this->containingIndex) < -1) {
-        fprintf(stderr, "Too many exits from refractions\n");
+        Logger::error( "Too many exits from refractions\n");
         PovApp::closeAll();
         exit(1);
     }

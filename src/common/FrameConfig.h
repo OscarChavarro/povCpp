@@ -16,6 +16,7 @@
 #include <ctime>
 
 #include "common/color/Color.h"
+#include "common/logger/Logger.h"
 
 class FrameConfig {
   public:

@@ -46,7 +46,7 @@ SmoothTriangleParser::parseSmoothTriangle()
                 PrimitiveParser::parseVector(&localShape->N3);
                 localShape->N3.normalize();
                 if (!Triangle::computeTriangle((Triangle *)localShape)) {
-                    fprintf(stderr,
+                    Logger::error(
                         "Degenerate triangle on line %d.  Please remove.\n",
                         globalToken.Token_Line_No);
                     degenerateTriangles = TRUE;

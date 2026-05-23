@@ -21,7 +21,7 @@ TargaFormat::getTargaFileHandle()
 
     handle = new FileHandle;
     if (handle == nullptr) {
-        fprintf(stderr, "Cannot allocate memory for output file handle\n");
+        Logger::error( "Cannot allocate memory for output file handle\n");
         return (nullptr);
     }
 
@@ -238,7 +238,7 @@ TargaFormat::readTargaIntLine(FileHandle *handle, ImageLine *lineData)
     if (((lineData->red = new unsigned char[handle->width]) == nullptr) ||
         ((lineData->green = new unsigned char[handle->width]) == nullptr) ||
         ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
-        fprintf(stderr, "Cannot allocate memory for picture: %s\n",
+        Logger::error( "Cannot allocate memory for picture: %s\n",
             handle->filename);
         PovApp::closeAll();
         exit(1);
@@ -271,7 +271,7 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
     FileHandle handle;
 
     if ((handle.file = PovApp::locateFile(name, READ_FILE_STRING)) == nullptr) {
-        fprintf(stderr, "Cannot open Targa file %s\n", name);
+        Logger::error( "Cannot open Targa file %s\n", name);
         PovApp::closeAll();
         exit(1);
     }
@@ -288,7 +288,7 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
 
     image->data.rgb_lines = new ImageLine[image->iheight];
     if (image->data.rgb_lines == nullptr) {
-        fprintf(stderr, "Cannot allocate memory for picture: %s\n", name);
+        Logger::error( "Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }
 

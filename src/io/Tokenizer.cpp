@@ -124,7 +124,7 @@ Tokenizer::initializeTokenizer(char *filename)
 
     globalDataFile->File = PovApp::locateFile(filename, "r");
     if (globalDataFile->File == nullptr) {
-        fprintf(stderr, "Cannot open input file\n");
+        Logger::error("Cannot open input file\n");
         exit(1);
     }
 
@@ -133,8 +133,7 @@ Tokenizer::initializeTokenizer(char *filename)
     globalDataFile->Line_Number = 0;
 
     if ((symbolTable = new char *[maxSymbols]) == nullptr) {
-        fprintf(
-            stderr, "Out of Memory. Cannot allocate space for symbol table\n");
+        Logger::error("Out of Memory. Cannot allocate space for symbol table\n");
         exit(1);
     }
 
@@ -444,10 +443,9 @@ Tokenizer::getToken()
             break;
 
         default:
-            fprintf(stderr, "Error in %s line %d\n", globalDataFile->Filename,
+            Logger::error("Error in %s line %d\n", globalDataFile->Filename,
                 globalDataFile->Line_Number + 1);
-            fprintf(
-                stderr, "Illegal character in input file, value is %02x\n", c);
+            Logger::error("Illegal character in input file, value is %02x\n", c);
             break;
         }
         if (globalToken.Token_Id == INCLUDE_TOKEN) {
@@ -474,7 +472,7 @@ Tokenizer::getToken()
             globalDataFile->Filename =
                 new char[strlen(globalToken.Token_String) + 1];
             if (globalDataFile->Filename == nullptr) {
-                fprintf(stderr, "Out of memory opening include file: %s\n",
+                Logger::error("Out of memory opening include file: %s\n",
                     globalToken.Token_String);
                 exit(1);
             }
@@ -483,7 +481,7 @@ Tokenizer::getToken()
 
             if ((globalDataFile->File = PovApp::locateFile(
                      globalToken.Token_String, "r")) == nullptr) {
-                fprintf(stderr, "Cannot open include file: %s\n",
+                Logger::error("Cannot open include file: %s\n",
                     globalToken.Token_String);
                 exit(1);
             }
@@ -817,7 +815,7 @@ DataFile::readSymbol()
                 strcpy(symbolTable[numberOfSymbols], string);
                 symbolId = numberOfSymbols;
             } else {
-                fprintf(stderr,
+                Logger::error(
                     "\nToo many symbols. Use +ms### option to raise "
                     "Max_Symbols.\n");
                 exit(1);
@@ -912,10 +910,9 @@ Tokenizer::writeToken(TOKEN tokenId, DataFile *globalDataFile)
 void
 Tokenizer::tokenError(DataFile *globalDataFile, const char *str)
 {
-    fprintf(stderr, "Error in %s line %d\n", globalDataFile->Filename,
+    Logger::error("Error in %s line %d\n", globalDataFile->Filename,
         globalDataFile->Line_Number);
-    fputs(str, stderr);
-    fputs("\n\n", stderr);
+    Logger::error("%s\n\n", str);
     exit(1);
 }
 /* Since the stricmp function isn't available on all systems, we've

@@ -430,52 +430,60 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     if (shape->Interpolated_Grid == nullptr) {
         shape->Interpolated_Grid = new Vector3Dd *[shape->U_Steps + 1];
         if (shape->Interpolated_Grid == nullptr) {
-            ParseErrorReporter::Error("Failed to allocate Interpolated_Grid");
+            Logger::error("Failed to allocate Interpolated_Grid");
+            exit(1);
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_Grid[i] = new Vector3Dd[shape->V_Steps + 1];
             if (shape->Interpolated_Grid == nullptr) {
-                ParseErrorReporter::Error(
+                Logger::error(
                     "Failed to allocate component of Interpolated_Grid");
+                exit(1);
             }
         }
         shape->Interpolated_Normals = new Vector3Dd *[shape->U_Steps + 1];
         if (shape->Interpolated_Normals == nullptr) {
-            ParseErrorReporter::Error(
+            Logger::error(
                 "Failed to allocate Interpolated_Normals");
+            exit(1);
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_Normals[i] =
                 new Vector3Dd[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_Normals == nullptr) {
-                ParseErrorReporter::Error(
+                Logger::error(
                     "Failed to allocate component of Interpolated_Normals");
+                exit(1);
             }
         }
 
         if (shape->Patch_Type == 4) {
             shape->Smooth_Normals = new Vector3Dd *[shape->U_Steps + 1];
             if (shape->Smooth_Normals == nullptr) {
-                ParseErrorReporter::Error("Failed to allocate Smooth_Normals");
+                Logger::error("Failed to allocate Smooth_Normals");
+                exit(1);
             }
             for (i = 0; i <= shape->U_Steps; i++) {
                 shape->Smooth_Normals[i] = new Vector3Dd[shape->V_Steps + 1];
                 if (shape->Smooth_Normals == nullptr) {
-                    ParseErrorReporter::Error(
+                    Logger::error(
                         "Failed to allocate component of Smooth_Normals");
+                    exit(1);
                 }
             }
         }
 
         shape->Interpolated_D = new double *[shape->U_Steps + 1];
         if (shape->Interpolated_D == nullptr) {
-            ParseErrorReporter::Error("Failed to allocate Interpolated_D");
+            Logger::error("Failed to allocate Interpolated_D");
+            exit(1);
         }
         for (i = 0; i <= shape->U_Steps; i++) {
             shape->Interpolated_D[i] = new double[2 * (shape->V_Steps + 1)];
             if (shape->Interpolated_D == nullptr) {
-                ParseErrorReporter::Error(
+                Logger::error(
                     "Failed to allocate component of Interpolated_D");
+                exit(1);
             }
         }
     }

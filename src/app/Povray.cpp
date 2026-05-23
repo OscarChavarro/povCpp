@@ -172,7 +172,7 @@ PovApp::configureOutputTarget()
         }
         break;
     default:
-        fprintf(stderr, "Unrecognized output file format %c\n", outputFormat);
+        Logger::error("Unrecognized output file format %c\n", outputFormat);
         exit(1);
     }
 
@@ -215,7 +215,7 @@ PovApp::prepareRendering()
             if (openFile(globalOutputFileHandle, outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                     fileBufferSize, READ_MODE) != 1) {
-                fprintf(stderr, "Error opening continue trace output file\n");
+                Logger::error("Error opening continue trace output file\n");
                 fprintf(
                     stderr, "Opening new output file %s.\n", outputFileName);
                 Options &= ~CONTINUE_TRACE;
@@ -223,7 +223,7 @@ PovApp::prepareRendering()
                 if (openFile(globalOutputFileHandle, outputFileName,
                         &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                         fileBufferSize, WRITE_MODE) != 1) {
-                    fprintf(stderr, "Error opening output file\n");
+                    Logger::error("Error opening output file\n");
                     closeAll();
                     exit(1);
                 }
@@ -237,7 +237,7 @@ PovApp::prepareRendering()
             if (openFile(globalOutputFileHandle, outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
                     fileBufferSize, WRITE_MODE) != 1) {
-                fprintf(stderr, "Error opening output file\n");
+                Logger::error("Error opening output file\n");
                 closeAll();
                 exit(1);
             }
@@ -456,7 +456,7 @@ PovApp::readOptions(char *optionLine)
                 optionString[stringIndex++] = (char)c;
                 optionStarted = TRUE;
             } else if (!isspace(c)) {
-                fprintf(stderr,
+                Logger::error(
                     "\nBad default file format.  Offending char: (%c), val: "
                     "%d.\n",
                     (char)c, c);
@@ -604,12 +604,12 @@ PovApp::parseOption(char *optionString)
     case 'L':
     case 'l':
         if (libraryPathIndex >= MAX_LIBRARIES) {
-            fprintf(stderr, "Too many library directories specified\n");
+            Logger::error("Too many library directories specified\n");
             exit(1);
         }
         libraryPaths[libraryPathIndex] = new char[strlen(optionString) + 1];
         if (libraryPaths[libraryPathIndex] == nullptr) {
-            fprintf(stderr,
+            Logger::error(
                 "Out of memory. Cannot allocate memory for library pathname\n");
             exit(1);
         }
@@ -674,7 +674,7 @@ PovApp::parseOption(char *optionString)
         break;
 
     default:
-        fprintf(stderr, "\nInvalid option: %s\n\n", --optionString);
+        Logger::error("\nInvalid option: %s\n\n", --optionString);
         optionNumber = 0;
     }
 
@@ -774,7 +774,7 @@ PovApp::parseFileName(char *fileName)
     }
 
     if (++numberOfFiles > MAX_FILE_NAMES) {
-        fprintf(stderr,
+        Logger::error(
             "\nOnly %d option file names are allowed in a command line.",
             MAX_FILE_NAMES);
         exit(1);
@@ -786,7 +786,7 @@ PovApp::parseFileName(char *fileName)
         }
         fclose(defaultsFile);
     } else {
-        printf("\nError opening option file %s.", fileName);
+        Logger::error("\nError opening option file %s.", fileName);
     }
 }
 

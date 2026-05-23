@@ -52,7 +52,7 @@ GifFormat::outLine(unsigned char *pixels, int linelen)
 
     for (x = 0; x < linelen; x++) {
         if ((int)(*pixels) > currentImage->Colour_Map_Size) {
-            fprintf(stderr, "Error - GIF Image Map Colour out of range\n");
+            Logger::error( "Error - GIF Image Map Colour out of range\n");
             exit(1);
         }
 
@@ -71,7 +71,7 @@ GifFormat::getByte() /* get byte from file, return the next byte or an error */
     if ((byte = getc(bitFile)) != EOF) {
         return (byte);
     }
-    fprintf(stderr, "Premature End Of File reading GIF image\n");
+    Logger::error( "Premature End Of File reading GIF image\n");
     exit(1);
 
     return (0); /* Keep the compiler happy */
@@ -93,14 +93,14 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
     currentImage = image;
 
     if ((bitFile = PovApp::locateFile(filename, READ_FILE_STRING)) == nullptr) {
-        fprintf(stderr, "Cannot open GIF file %s\n", filename);
+        Logger::error( "Cannot open GIF file %s\n", filename);
         exit(1);
     }
 
     /* zero out the full write-line */
     decoderline = new unsigned char[2049];
     if (decoderline == nullptr) {
-        fprintf(stderr, "Cannot allocate space for GIF decoder line\n");
+        Logger::error( "Cannot allocate space for GIF decoder line\n");
         fclose(bitFile);
         exit(1);
     }
@@ -118,7 +118,7 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
         buffer[3] < '0' || buffer[3] > '9' || buffer[4] < '0' ||
         buffer[4] > '9' || buffer[5] < 'A' || buffer[5] > 'z') {
 
-        fprintf(stderr, "Invalid GIF file format: %s\n", filename);
+        Logger::error( "Invalid GIF file format: %s\n", filename);
         fclose(bitFile);
         exit(1);
     }
@@ -128,13 +128,13 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
 
     gifColourMap = new RGBAPixel[colourmapSize];
     if (gifColourMap == nullptr) {
-        fprintf(stderr, "Cannot allocate GIF Colour Map\n");
+        Logger::error( "Cannot allocate GIF Colour Map\n");
         fclose(bitFile);
         exit(1);
     }
 
     if ((buffer[10] & 0x80) == 0) { /* color map (better be!) */
-        fprintf(stderr, "Invalid GIF file format: %s\n", filename);
+        Logger::error( "Invalid GIF file format: %s\n", filename);
         fclose(bitFile);
         exit(1);
     }
@@ -190,14 +190,14 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
 
             image->data.map_lines = new unsigned char *[image->iheight];
             if (image->data.map_lines == nullptr) {
-                fprintf(stderr, "Cannot allocate memory for picture\n");
+                Logger::error( "Cannot allocate memory for picture\n");
                 exit(1);
             }
 
             for (i = 0; i < image->iheight; i++) {
                 image->data.map_lines[i] = new unsigned char[image->iwidth];
                 if (image->data.map_lines[i] == nullptr) {
-                    fprintf(stderr, "Cannot allocate memory for picture\n");
+                    Logger::error( "Cannot allocate memory for picture\n");
                     exit(1);
                 }
             }
