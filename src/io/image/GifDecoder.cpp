@@ -342,7 +342,6 @@ GifDecoder::decoder(int iLinewidth)
              */
             *bufptr++ = (UTINY)c;
             if (--bufcnt == 0) {
-                cooperate();
                 if ((ret = GifFormat::outLine(buf, linewidth)) < 0) {
                     GifDecoder::cleanupGifDecoder();
                     return (ret);
@@ -410,7 +409,6 @@ GifDecoder::decoder(int iLinewidth)
             while (sp > dstack) {
                 *bufptr++ = *(--sp);
                 if (--bufcnt == 0) {
-                    cooperate();
                     if ((ret = GifFormat::outLine(buf, linewidth)) < 0) {
                         GifDecoder::cleanupGifDecoder();
                         return (ret);

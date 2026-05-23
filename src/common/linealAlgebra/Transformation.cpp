@@ -74,7 +74,6 @@ Transformation::MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
         }
     }
 
-    cooperate();
 }
 
 void
