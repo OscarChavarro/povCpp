@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/elements/Triangle.h"
+#include "common/logger/Logger.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "common/dataStructures/PriorityQueue.h"
@@ -38,7 +39,7 @@ Triangle::objectIntersect(SimpleBody *object, RayWithSegments *ray)
     if ((GeometryOperations::allIntersections(object, ray, depthQueue)) &&
         ((queueElement = depthQueue->getHighest()) != nullptr)) {
         if ((localIntersection = new Intersection) == nullptr) {
-            printf("Cannot allocate memory for local intersection\n");
+            Logger::info("Cannot allocate memory for local intersection\n");
             exit(1);
         }
         localIntersection->Point = queueElement->Point;

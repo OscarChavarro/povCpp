@@ -99,7 +99,7 @@ TextureUtils::computeColour(
     colour->Green = 0.0;
     colour->Blue = 0.0;
     colour->Alpha = 0.0;
-    printf("No colour for value: %g\n", value);
+    Logger::info("No colour for value: %g\n", value);
 }
 
 void
@@ -111,7 +111,7 @@ TextureUtils::initializeNoise()
     TextureUtils::InitRTable();
 
     if ((sintab = new double[SINTABSIZE]) == nullptr) {
-        printf("Cannot allocate memory for sine table\n");
+        Logger::info("Cannot allocate memory for sine table\n");
         exit(1);
     }
 
@@ -137,7 +137,7 @@ TextureUtils::InitTextureTable()
 
     hashTable = new short int[4096];
     if (hashTable == nullptr) {
-        printf("Cannot allocate memory for hash table\n");
+        Logger::info("Cannot allocate memory for hash table\n");
         exit(1);
     }
     for (i = 0; i < 4096; i++) {
@@ -162,7 +162,7 @@ TextureUtils::InitRTable()
 
     RTable = new double[MAXSIZE];
     if (RTable == nullptr) {
-        printf("Cannot allocate memory for RTable\n");
+        Logger::info("Cannot allocate memory for RTable\n");
         exit(1);
     }
 

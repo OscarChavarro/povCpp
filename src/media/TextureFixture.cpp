@@ -12,6 +12,7 @@
 */
 
 #include "media/TextureFixture.h"
+#include "common/logger/Logger.h"
 #include "common/LegacyBoolean.h"
 #include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -38,7 +39,7 @@ TextureFixture::painted1(
     RGBAColor newColour;
 
     if (debugEnabled) {
-        printf("painted1 %g %g %g\n", x, y, z);
+        Logger::info("painted1 %g %g %g\n", x, y, z);
     }
 
     result.x = 0.0;
@@ -105,7 +106,7 @@ TextureFixture::painted2(
     brkindx = (int)floorInline(x) + (int)floorInline(z);
 
     if (debugEnabled) {
-        printf("checker %g %g %g\n", x, y, z);
+        Logger::info("checker %g %g %g\n", x, y, z);
     }
 
     if (brkindx & 1) {

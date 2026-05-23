@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "common/logger/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -215,7 +216,7 @@ PolynomialShape::intersect(
         as (x,y,z) + (xx,yy,zz)*t.  */
     a = new double[termCounts[order]];
     if (a == nullptr) {
-        printf("Cannot allocate memory for coefficients in poly "
+        Logger::info("Cannot allocate memory for coefficients in poly "
                "PolynomialShape::intersect()\n");
         exit(1);
     }
@@ -408,7 +409,7 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
 
     b = new double[termCounts[order]];
     if (b == nullptr) {
-        printf("Cannot allocate memory for b in poly "
+        Logger::info("Cannot allocate memory for b in poly "
                "PolynomialShape::transform()\n");
         exit(1);
     }

@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include "environment/light/Light.h"
+#include "common/logger/Logger.h"
 #include "environment/geometry/volume/compound/Composite.h"
 Methods Point_Methods = {Composite::objectIntersect,
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
@@ -127,7 +128,7 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
                     attenuation *= Light::cubicSpline(
                         lightSource->Falloff, lightSource->Radius, costheta);
                 }
-                /* printf("Atten: %lg\n", Attenuation); */
+                /* Logger::info("Atten: %lg\n", Attenuation); */
             } else {
                 attenuation = 0.0;
             }

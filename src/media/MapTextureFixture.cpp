@@ -7,6 +7,7 @@
  *****************************************************************************/
 
 #include "media/MapTextureFixture.h"
+#include "common/logger/Logger.h"
 #include "common/LegacyBoolean.h"
 #include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
@@ -113,7 +114,7 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
 
     /* Now I've got the Material number, I just have to find it in the */
     /* texture linked list and return it to Determine_Surface_Colour    */
-    /* printf("-B-Num Mt#%d Mn#%d\n",texture->Number_Of_Materials,
+    /* Logger::info("-B-Num Mt#%d Mn#%d\n",texture->Number_Of_Materials,
      * Material_Number);    */
     if (materialNumber > texture->Number_Of_Materials) {
         materialNumber %= texture->Number_Of_Materials;
@@ -193,7 +194,7 @@ MapTextureFixture::bumpMap(
     imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
 
     if (debugEnabled) {
-        printf("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
+        Logger::info("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
     }
 
     if (texture->Bump_Image->Colour_Map == nullptr ||
@@ -526,7 +527,7 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     if ((*xcoor >= (double)image->iwidth) ||
         (*ycoor >= (double)image->iheight) || (*xcoor < 0.0) ||
         (*ycoor < 0.0)) {
-        printf("\nPicture index out of range\n");
+        Logger::info("\nPicture index out of range\n");
         exit(1);
     }
 
@@ -564,7 +565,7 @@ MapTextureFixture::noInterpolation(
     } else {
         *index = image->data.map_lines[iycoor][ixcoor];
         mapColour = &image->Colour_Map[*index];
-        /*printf ("icat index %d xc %d yc %d  CLR %d %d %d
+        /*Logger::info("icat index %d xc %d yc %d  CLR %d %d %d
      %d\n",*index,ixcoor,iycoor,
      map_colour->Red,map_colour->Green,map_colour->Blue,map_colour->Alpha ); */
         colour->Red += (double)mapColour->Red / 255.0;
@@ -613,7 +614,7 @@ MapTextureFixture::interp(
             greenCrn[i] = cornerColour[i].Green;
             blueCrn[i] = cornerColour[i].Blue;
             alphaCrn[i] = cornerColour[i].Alpha;
-            /* printf("Crn %d = %lf %lf
+            /* Logger::info("Crn %d = %lf %lf
              * %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]); */
         }
 
@@ -636,7 +637,7 @@ MapTextureFixture::interp(
             greenCrn[i] = cornerColour[i].Green;
             blueCrn[i] = cornerColour[i].Blue;
             alphaCrn[i] = cornerColour[i].Alpha;
-            /* printf("Crn %d = %lf %lf
+            /* Logger::info("Crn %d = %lf %lf
              * %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]); */
         }
 
@@ -650,7 +651,7 @@ MapTextureFixture::interp(
     colour->Green += val2;
     colour->Blue += val3;
     colour->Alpha += val4;
-    /* printf("Final = %lf %lf %lf\n",val1,val2,val3);  */
+    /* Logger::info("Final = %lf %lf %lf\n",val1,val2,val3);  */
     /* use bilinear for index try average later */
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];

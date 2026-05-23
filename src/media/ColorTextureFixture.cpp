@@ -13,6 +13,7 @@
 */
 
 #include "media/ColorTextureFixture.h"
+#include "common/logger/Logger.h"
 #include "common/LegacyBoolean.h"
 #include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -149,7 +150,7 @@ ColorTextureFixture::agate(
     noise = pow(noise, 0.77);
 
     if (debugEnabled) {
-        printf("agate %g %g %g noise %g\n", x, y, z, noise);
+        Logger::info("agate %g %g %g noise %g\n", x, y, z, noise);
     }
 
     if (texture->Colour_Map != nullptr) {
@@ -188,7 +189,7 @@ ColorTextureFixture::bozo(
     Vector3Dd bozoTurbulence;
 
     if (debugEnabled) {
-        printf("bozo %g %g %g ", x, y, z);
+        Logger::info("bozo %g %g %g ", x, y, z);
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
@@ -201,7 +202,7 @@ ColorTextureFixture::bozo(
     noise = TextureUtils::Noise(x, y, z);
 
     if (debugEnabled) {
-        printf("noise %g\n", noise);
+        Logger::info("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
@@ -246,7 +247,7 @@ ColorTextureFixture::brick(
     *colour = *texture->Colour2;
 
     if (debugEnabled) {
-        printf("brick %g %g %g\n", x, y, z);
+        Logger::info("brick %g %g %g\n", x, y, z);
     }
 
     if (xr > 0 && xr < texture->Mortar) {
@@ -278,7 +279,7 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
     brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
 
     if (debugEnabled) {
-        printf("checker %g %g %g\n", x, y, z);
+        Logger::info("checker %g %g %g\n", x, y, z);
     }
 
     if (brkindx & 1) {
@@ -304,7 +305,7 @@ ColorTextureFixture::checkerTexture(double x, double y, double z,
     brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
 
     if (debugEnabled) {
-        printf("checker_texture %g %g %g\n", x, y, z);
+        Logger::info("checker_texture %g %g %g\n", x, y, z);
     }
 
     *&point = Vector3Dd(x, y, z);
@@ -362,7 +363,7 @@ ColorTextureFixture::gradient(
     value = ((value > 1.0) ? fmod(value, 1.0) : value); /* clamp to 1.0 */
 
     if (debugEnabled) {
-        printf("gradient %g %g %g value %g\n", x, y, z, value);
+        Logger::info("gradient %g %g %g value %g\n", x, y, z, value);
     }
 
     TextureUtils::computeColour(&newColour, texture->Colour_Map, value);
@@ -395,7 +396,7 @@ ColorTextureFixture::granite(
     }
 
     if (debugEnabled) {
-        printf("granite %g %g %g noise %g\n", x, y, z, noise);
+        Logger::info("granite %g %g %g noise %g\n", x, y, z, noise);
     }
 
     if (texture->Colour_Map != nullptr) {
@@ -425,7 +426,7 @@ ColorTextureFixture::marble(
                 texture->Turbulence);
 
     if (debugEnabled) {
-        printf("marble %g %g %g noise %g \n", x, y, z, noise);
+        Logger::info("marble %g %g %g noise %g \n", x, y, z, noise);
     }
 
     if (texture->Colour_Map != nullptr) {
@@ -464,7 +465,7 @@ ColorTextureFixture::spotted(
     noise = TextureUtils::Noise(x, y, z);
 
     if (debugEnabled) {
-        printf("spotted %g %g %g\n", x, y, z);
+        Logger::info("spotted %g %g %g\n", x, y, z);
     }
 
     if (texture->Colour_Map != nullptr) {
@@ -494,7 +495,7 @@ ColorTextureFixture::wood(
     TextureUtils::DTurbulence(&woodTurbulence, x, y, z, texture->Octaves);
 
     if (debugEnabled) {
-        printf("wood %g %g %g", x, y, z);
+        Logger::info("wood %g %g %g", x, y, z);
     }
 
     point.x =
@@ -513,7 +514,7 @@ ColorTextureFixture::wood(
     noise = TextureUtils::triangleWave(length);
 
     if (debugEnabled) {
-        printf("noise %g\n", noise);
+        Logger::info("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
@@ -552,7 +553,7 @@ ColorTextureFixture::leopard(
     Vector3Dd leopardTurbulence;
 
     if (debugEnabled) {
-        printf("leopard %g %g %g ", x, y, z);
+        Logger::info("leopard %g %g %g ", x, y, z);
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
@@ -571,11 +572,11 @@ ColorTextureFixture::leopard(
     noise = VectorOps::sqr((temp1 + temp2 + temp3) / 3);
 
     if (debugEnabled) {
-        printf("temp123 %g %g %g  ", temp1, temp2, temp3);
+        Logger::info("temp123 %g %g %g  ", temp1, temp2, temp3);
     }
 
     if (debugEnabled) {
-        printf("noise %g\n", noise);
+        Logger::info("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
@@ -604,7 +605,7 @@ ColorTextureFixture::onion(
     Vector3Dd onionTurbulence;
 
     if (debugEnabled) {
-        printf("onion %g %g %g ", x, y, z);
+        Logger::info("onion %g %g %g ", x, y, z);
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
@@ -626,7 +627,7 @@ ColorTextureFixture::onion(
         1.0));
 
     if (debugEnabled) {
-        printf("noise %g\n", noise);
+        Logger::info("noise %g\n", noise);
     }
 
     if (texture->Colour_Map != nullptr) {
