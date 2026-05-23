@@ -3,7 +3,6 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Box.h"
 #include "io/pov/Parse.h"
-#include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"

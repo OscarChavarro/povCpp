@@ -3,9 +3,6 @@
 
 #include <ctime>
 
-class RenderFrame;
-class RenderingConfiguration;
-
 class Statistics {
   public:
     long numberOfPixels;
@@ -49,7 +46,6 @@ class Statistics {
     void reset();
     void startTimer();
     void stopTimer();
-    void print(const RenderFrame &frame, const RenderingConfiguration &configuration);
 };
 
 extern Statistics globalStatistics;
