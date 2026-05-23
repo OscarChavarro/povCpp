@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     planes.c
  *
@@ -29,7 +28,7 @@ InfinitePlane::allPlaneIntersections(
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > Small_Tolerance) {
             localElement.Depth = depth;
-            localElement.Object = shape->Parent_Object;
+            localElement.Object = nullptr;
             VectorOps::vScale(intersectionPoint, ray->direction, depth);
             intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
@@ -113,7 +112,7 @@ InfinitePlane::copyPlane(SimpleBody *object)
 {
     InfinitePlane *newShape;
 
-    newShape = ModelFactory::getPlaneShape();
+    newShape = new InfinitePlane;
     *newShape = *((InfinitePlane *)object);
     newShape->Next_Object = nullptr;
 

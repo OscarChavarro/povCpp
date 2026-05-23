@@ -29,7 +29,6 @@ class ParametricBiCubicPatch : public Geometry {
     double **Interpolated_D;
     ParametricPatchNode *Node_Tree;
 
-    static ParametricBiCubicPatch *getBicubicPatchShape();
     static void precomputePatchValues(ParametricBiCubicPatch *shape);
     static int insideBicubicPatch(Vector3Dd *point, SimpleBody *object);
     static void bicubicPatchNormal(

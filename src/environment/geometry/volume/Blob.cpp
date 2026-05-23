@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     blob.c
  *
@@ -432,7 +431,7 @@ Blob::allBlobIntersections(
                     VectorOps::vSub(dv, intersectionPoint, ray->position);
                     len = dv.length();
                     localElement.Depth = len;
-                    localElement.Object = blob->Parent_Object;
+                    localElement.Object = nullptr;
                     localElement.Point = intersectionPoint;
                     localElement.Shape = (Geometry *)blob;
                     depthQueue->add(&localElement);
@@ -538,7 +537,7 @@ Blob::copyBlob(SimpleBody *object)
     Blob *oldShape = (Blob *)object;
     Transformation *tr;
 
-    blob = ModelFactory::getBlobShape();
+    blob = new Blob;
     memcpy(blob, oldShape, sizeof(Blob));
     blob->Next_Object = nullptr;
 

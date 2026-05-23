@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     poly.c
  *
@@ -117,7 +116,7 @@ PolynomialShape::allPolyIntersections(
         VectorOps::vSub(dv, intersectionPoint, ray->position);
         len = dv.length();
         localElement.Depth = len;
-        localElement.Object = shape->Parent_Object;
+        localElement.Object = nullptr;
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -783,14 +782,13 @@ void *
 PolynomialShape::copyPoly(SimpleBody *object)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
-    PolynomialShape *newShape = ModelFactory::getPolyShape(shape->Order);
+    PolynomialShape *newShape = new PolynomialShape;
     int i;
 
-    newShape->Shape_Texture = shape->Shape_Texture;
-    newShape->Shape_Colour = shape->Shape_Colour;
+    *newShape = *shape;
     newShape->Next_Object = nullptr;
-    newShape->Sturm_Flag = shape->Sturm_Flag;
-    newShape->Inverted = shape->Inverted;
+    newShape->Coeffs = new double[termCounts[newShape->Order]];
+    newShape->Transform = nullptr;
 
     /* Copy any associated transformation */
     if (shape->Transform != nullptr) {

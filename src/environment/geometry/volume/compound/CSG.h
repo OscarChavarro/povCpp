@@ -21,7 +21,6 @@ class CSG : public Geometry {
     static void rotateCsg(SimpleBody *object, Vector3Dd *vector);
     static void scaleCsg(SimpleBody *object, Vector3Dd *vector);
     static void invertCsg(SimpleBody *object);
-    static void setCsgParents(CSG *shape, SimpleBody *object);
 };
 
 extern Methods CSG_Union_Methods;

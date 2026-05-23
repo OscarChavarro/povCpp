@@ -5,6 +5,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Viewpoint.h"
 #include "environment/light/Light.h"
+#include "environment/scene/SceneObject.h"
 
 class RayWithSegments;
 
@@ -13,7 +14,7 @@ class RenderFrame {
     Viewpoint View_Point;
     int Screen_Height, Screen_Width;
     Light *Light_Sources;
-    SimpleBody *Objects;
+    SceneObject *Objects;
     double Atmosphere_IOR, Antialias_Threshold;
     double Fog_Distance;
     RGBAColor Fog_Colour;

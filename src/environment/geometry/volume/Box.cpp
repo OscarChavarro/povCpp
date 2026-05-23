@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     boxes.c
  *
@@ -37,7 +36,7 @@ Box::allBoxIntersections(
     intersectionFound = FALSE;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
-        localElement.Object = shape->Parent_Object;
+        localElement.Object = nullptr;
         VectorOps::vScale(intersectionPoint, ray->direction, depth1);
         intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
@@ -47,7 +46,7 @@ Box::allBoxIntersections(
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
-            localElement.Object = shape->Parent_Object;
+            localElement.Object = nullptr;
             VectorOps::vScale(intersectionPoint, ray->direction, depth2);
             intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
@@ -287,7 +286,7 @@ Box::copyBox(SimpleBody *object)
     Box *newShape;
     Transformation *tr;
 
-    newShape = ModelFactory::getBoxShape();
+    newShape = new Box;
     *newShape = *((Box *)object);
     newShape->Next_Object = nullptr;
 

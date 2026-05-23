@@ -16,7 +16,6 @@
 
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/scene/factory/ModelFactory.h"
 #include "media/Texture.h"
 #include "media/Texture.h"
 
@@ -164,7 +163,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
 
     if (depth2 < depth1) {
         hfIntersection->Depth = depth2;
-        hfIntersection->Object = hField->Parent_Object;
+        hfIntersection->Object = nullptr;
         VectorOps::vScale(t1V1, rRay->direction, depth2);
         t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
@@ -172,7 +171,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
         hfQueue->add(hfIntersection);
     } else {
         hfIntersection->Depth = depth1;
-        hfIntersection->Object = hField->Parent_Object;
+        hfIntersection->Object = nullptr;
         VectorOps::vScale(t1V1, rRay->direction, depth1);
         t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
@@ -900,7 +899,7 @@ HeightField::copyHeightfld(SimpleBody *object)
 {
     HeightField *newShape;
 
-    newShape = ModelFactory::getHeightFieldShape();
+    newShape = new HeightField;
     *newShape = *((HeightField *)object);
     newShape->Next_Object = nullptr;
 

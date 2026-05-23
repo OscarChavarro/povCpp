@@ -40,6 +40,5 @@ class Composite {
 
 extern Methods Composite_Methods;
 extern Methods Basic_Object_Methods;
-extern void setCsgParents(CSG *Shape, SimpleBody *Object);
 
 #endif

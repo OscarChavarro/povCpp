@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     triangle.c
  *
@@ -198,7 +197,7 @@ Triangle::allTriangleIntersections(
 
     if (intersectTriangle(ray, shape, &depth)) {
         localElement.Depth = depth;
-        localElement.Object = shape->Parent_Object;
+        localElement.Object = nullptr;
         VectorOps::vScale(intersectionPoint, ray->direction, depth);
         intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
@@ -390,7 +389,7 @@ Triangle::copyTriangle(SimpleBody *object)
 {
     Triangle *newShape;
 
-    newShape = ModelFactory::getTriangleShape();
+    newShape = new Triangle;
     *newShape = *((Triangle *)object);
     newShape->Next_Object = nullptr;
 
@@ -561,7 +560,7 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *newShape;
 
-    newShape = ModelFactory::getSmoothTriangleShape();
+    newShape = new SmoothTriangle;
     *newShape = *((SmoothTriangle *)object);
     newShape->Next_Object = nullptr;
 
