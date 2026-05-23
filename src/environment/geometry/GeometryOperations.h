@@ -33,7 +33,7 @@ class SimpleBody;
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Methods.h"
-#include "environment/scene/SimpleBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "common/dataStructures/PriorityQueue.h"
 #include "media/Texture.h"
