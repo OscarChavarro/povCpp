@@ -5,10 +5,13 @@
  *
  *****************************************************************************/
 
+#include <cstdlib>
+
 #include "common/linealAlgebra/Transformation.h"
 #include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "common/logger/Logger.h"
+
 void
 Transformation::MZero(MATRIX *result)
 {

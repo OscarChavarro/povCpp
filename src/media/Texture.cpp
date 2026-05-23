@@ -14,6 +14,8 @@
     Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
+#include <cstdlib>
+
 #include "media/Texture.h"
 #include "common/Statistics.h"
 #include "common/LegacyBoolean.h"
