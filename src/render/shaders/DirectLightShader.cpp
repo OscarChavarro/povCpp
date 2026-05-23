@@ -1,0 +1,117 @@
+#include "render/shaders/DirectLightShader.h"
+#include "render/shaders/TraceService.h"
+#include "common/Statistics.h"
+#include "common/color/Color.h"
+#include "common/dataStructures/PriorityQueue.h"
+#include "environment/geometry/GeometryConstants.h"
+#include "environment/geometry/Intersection.h"
+#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/light/Light.h"
+#include "environment/material/RendererConfiguration.h"
+#include "environment/scene/SceneFrame.h"
+#include "render/shaders/BlinnPhongSpecularShader.h"
+#include "render/shaders/LambertShader.h"
+#include "render/shaders/LightSamplerShader.h"
+#include "render/shaders/PhongSpecularShader.h"
+#include "render/shaders/ShadowShader.h"
+
+extern RenderFrame globalFrame;
+
+static constexpr double SHADOW_TOLERANCE = 0.05;
+
+void
+DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
+    RayWithSegments *eye, Vector3Dd *surfaceNormal, RGBAColor *surfaceColour,
+    RGBAColor *colour, double attenuation, const TraceService *traceService)
+{
+    double lightSourceDepth;
+    RayWithSegments lightSourceRay;
+    Light *lightSource;
+    SimpleBody *blockingObject;
+    int intersectionFound;
+    Intersection *localIntersection;
+    Vector3Dd rEye;
+    RGBAColor lightColour;
+    PriorityQueueNode *localQueue;
+
+    rEye.x = 0;
+    rEye.y = 0;
+    rEye.z = 0;
+
+    if ((texture->Object_Diffuse == 0.0) && (texture->Object_Specular == 0.0) &&
+        (texture->Object_Phong == 0.0)) {
+        return;
+    }
+
+    if (texture->Object_Specular != 0.0) {
+        rEye.x = -eye->direction.x;
+        rEye.y = -eye->direction.y;
+        rEye.z = -eye->direction.z;
+    }
+
+    localQueue = IntersectionPriorityQueuePool::pqPop(128);
+    lightSourceRay.isShadowRay = TRUE;
+
+    for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
+        lightSource = lightSource->Next_Light_Source) {
+        intersectionFound = FALSE;
+
+        LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,
+            intersectionPoint, &lightColour);
+
+        /* What objects does this ray intersect? */
+        if (globalRenderingConfiguration.quality > 3) {
+            for (blockingObject = globalFrame.Objects;
+                blockingObject != nullptr;
+                blockingObject = blockingObject->Next_Object) {
+
+                globalStatistics.shadowRayTests++;
+                for (GeometryOperations::allIntersections(
+                         blockingObject, &lightSourceRay, localQueue);
+                    (localIntersection = localQueue->getHighest()) != nullptr;
+                    localQueue->deleteHighest()) {
+
+                    if ((localIntersection->Depth <
+                            lightSourceDepth - Small_Tolerance) &&
+                        (localIntersection->Depth > SHADOW_TOLERANCE)) {
+
+                        /* Does the object not cast a shadow? */
+                        if (!localIntersection->Object->No_Shadow_Flag) {
+                            if (ShadowShader::shade(localIntersection, &lightColour,
+                                    localQueue, traceService)) {
+                                intersectionFound = TRUE;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (intersectionFound) {
+                    break;
+                }
+            }
+        }
+
+        /* If light source was not blocked by any intervening object, then
+              calculate it's contribution to the object's overall illumination
+         */
+
+        if (!intersectionFound) {
+            if (texture->Object_Phong > 0.0) { /* Phong Hilite */
+                PhongSpecularShader::shade(texture, &lightSourceRay, eye->direction, surfaceNormal,
+                    colour, &lightColour, surfaceColour);
+            }
+
+            if (texture->Object_Specular > 0.0) { /* Specular Hilite */
+                BlinnPhongSpecularShader::shade(texture, &lightSourceRay, rEye, surfaceNormal,
+                    colour, &lightColour, surfaceColour);
+            }
+
+            if (texture->Object_Diffuse > 0.0) { /* Normal Diffuse Illum. */
+                LambertShader::shade(texture, &lightSourceRay, surfaceNormal, colour,
+                    &lightColour, surfaceColour, attenuation);
+            }
+        }
+    }
+    IntersectionPriorityQueuePool::pqPush(localQueue);
+}
