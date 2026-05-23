@@ -4,7 +4,6 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "io/Parse.h"
 
 extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern RayWithSegments *vpRay;

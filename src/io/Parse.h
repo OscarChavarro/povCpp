@@ -14,7 +14,7 @@
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/QuadricParser.h"
 #include "io/pov/SceneConfigParser.h"
-#include "io/pov/SceneFactory.h"
+#include "io/pov/factory/SceneFactory.h"
 #include "io/pov/SceneParser.h"
 #include "io/pov/SmoothTriangleParser.h"
 #include "io/pov/SphereParser.h"

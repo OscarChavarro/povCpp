@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                         csg.c
  *
@@ -7,7 +8,6 @@
 
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 Methods CSG_Union_Methods = {Composite::objectIntersect,
     CSG::allCsgUnionIntersections, CSG::insideCsgUnion, nullptr, CSG::copyCsg,
     CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
@@ -131,7 +131,7 @@ CSG::copyCsg(SimpleBody *object)
     Geometry *localShape;
     Geometry *copiedShape;
 
-    newShape = SceneFactory::getCsgShape();
+    newShape = ModelFactory::getCsgShape();
     newShape->methods = shape->methods;
     newShape->Type = shape->Type;
     newShape->Next_Object = nullptr;

@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     triangle.c
  *
@@ -8,7 +9,6 @@
 #include "environment/geometry/elements/Triangle.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 Methods Triangle_Methods = {Composite::objectIntersect,
     Triangle::allTriangleIntersections, Triangle::insideTriangle,
     Triangle::triangleNormal, Triangle::copyTriangle,
@@ -390,13 +390,13 @@ Triangle::copyTriangle(SimpleBody *object)
 {
     Triangle *newShape;
 
-    newShape = SceneFactory::getTriangleShape();
+    newShape = ModelFactory::getTriangleShape();
     *newShape = *((Triangle *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -561,13 +561,13 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *newShape;
 
-    newShape = SceneFactory::getSmoothTriangleShape();
+    newShape = ModelFactory::getSmoothTriangleShape();
     *newShape = *((SmoothTriangle *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

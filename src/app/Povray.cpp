@@ -95,6 +95,40 @@ char verboseFormat;
 char paletteOption;
 char colorBits;
 
+char *
+PovApp::defaultOutputFileName(FileHandle *handle)
+{
+    return ((*((handle)->Default_File_Name_p))());
+}
+
+int
+PovApp::openOutputFile(FileHandle *handle, char *name, int *width, int *height,
+    int bufferSize, int mode)
+{
+    return ((*((handle)->Open_File_p))(handle, name, width, height, bufferSize,
+        mode));
+}
+
+void
+PovApp::writeOutputLine(
+    FileHandle *handle, RGBAColor *lineData, int lineNumber)
+{
+    ((*((handle)->Write_Line_p))(handle, lineData, lineNumber));
+}
+
+int
+PovApp::readOutputLine(
+    FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+{
+    return ((*((handle)->Read_Line_p))(handle, lineData, lineNumber));
+}
+
+void
+PovApp::closeOutputFile(FileHandle *handle)
+{
+    ((*((handle)->Close_File_p))(handle));
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -177,7 +211,7 @@ PovApp::configureOutputTarget()
     }
 
     if (outputFileName[0] == '\0') {
-        strcpy(outputFileName, defaultFileName(globalOutputFileHandle));
+        strcpy(outputFileName, PovApp::defaultOutputFileName(globalOutputFileHandle));
     }
 }
 
@@ -212,17 +246,17 @@ PovApp::prepareRendering()
 
     if (Options & DISKWRITE) {
         if (Options & CONTINUE_TRACE) {
-            if (openFile(globalOutputFileHandle, outputFileName,
+            if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    fileBufferSize, READ_MODE) != 1) {
+                    fileBufferSize, PovApp::OUTPUT_READ_MODE) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
                     stderr, "Opening new output file %s.\n", outputFileName);
                 Options &= ~CONTINUE_TRACE;
 
-                if (openFile(globalOutputFileHandle, outputFileName,
+                if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
                         &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                        fileBufferSize, WRITE_MODE) != 1) {
+                        fileBufferSize, PovApp::OUTPUT_WRITE_MODE) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
                     exit(1);
@@ -234,9 +268,9 @@ PovApp::prepareRendering()
                 RenderEngine::readRenderedPart();
             }
         } else {
-            if (openFile(globalOutputFileHandle, outputFileName,
+            if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    fileBufferSize, WRITE_MODE) != 1) {
+                    fileBufferSize, PovApp::OUTPUT_WRITE_MODE) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
                 exit(1);
@@ -396,7 +430,7 @@ PovApp::closeAll()
     }
 
     if (globalOutputFileHandle) {
-        DumpFormat::closeFile(globalOutputFileHandle);
+        PovApp::closeOutputFile(globalOutputFileHandle);
     }
 }
 

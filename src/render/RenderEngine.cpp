@@ -18,7 +18,6 @@
 #include "common/color/Color.h"
 #include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/DumpFormat.h"
 #include "render/LightingEngine.h"
 
 extern FileHandle *globalOutputFileHandle;
@@ -275,7 +274,7 @@ RenderEngine::readRenderedPart()
     double grey;
 
     maxclr = (double)(1 << colorBits) - 1.0;
-    while ((rc = DumpFormat::readLine(
+    while ((rc = PovApp::readOutputLine(
                 globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
         if (Options & DISPLAY) {
             for (x = 0; x < globalFrame.Screen_Width; x++) {
@@ -298,10 +297,10 @@ RenderEngine::readRenderedPart()
     firstLine = lineNumber + 1;
 
     if (rc == 0) {
-        DumpFormat::closeFile(globalOutputFileHandle);
-        if (openFile(globalOutputFileHandle, outputFileName,
+        PovApp::closeOutputFile(globalOutputFileHandle);
+        if (PovApp::openOutputFile(globalOutputFileHandle, outputFileName,
                 &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                fileBufferSize, APPEND_MODE) != 1) {
+                fileBufferSize, PovApp::OUTPUT_APPEND_MODE) != 1) {
             Logger::error("Error opening output file\n");
             exit(1);
         }
@@ -372,7 +371,7 @@ RenderEngine::startTracing()
     }
 
     if (Options & DISKWRITE) {
-        DumpFormat::writeLine(
+        PovApp::writeOutputLine(
             globalOutputFileHandle, previousLine, lastLine - 1);
     }
 }
@@ -505,7 +504,7 @@ RenderFrame::outputLine(int y)
 
     if (Options & DISKWRITE) {
         if (y > firstLine) {
-            DumpFormat::writeLine(globalOutputFileHandle, previousLine, y - 1);
+            PovApp::writeOutputLine(globalOutputFileHandle, previousLine, y - 1);
         }
     }
 

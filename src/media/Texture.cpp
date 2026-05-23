@@ -19,7 +19,6 @@
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/Parse.h"
 
 double *sintab;
 double frequency[NUMBER_OF_WAVES];
@@ -452,7 +451,7 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = TextureParser::copyTexture(texture);
+                texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
@@ -475,6 +474,45 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
         texturePtr = &texture->Next_Texture;
         texture = texture->Next_Texture;
     }
+}
+
+Texture *
+TextureUtils::copyTexture(Texture *texture)
+{
+    Texture *newTexture;
+    Texture *localTexture;
+    Texture *firstTexture;
+    Texture *previousTexture;
+
+    previousTexture = firstTexture = nullptr;
+
+    for (localTexture = texture; localTexture != nullptr;
+        localTexture = localTexture->Next_Texture) {
+        newTexture = TextureUtils::getTexture();
+        *newTexture = *localTexture;
+
+        if (firstTexture == nullptr) {
+            firstTexture = newTexture;
+        }
+
+        if (previousTexture != nullptr) {
+            previousTexture->Next_Texture = newTexture;
+        }
+
+        if (newTexture->Texture_Transformation) {
+            newTexture->Texture_Transformation = new Transformation;
+            if (newTexture->Texture_Transformation == nullptr) {
+                Logger::error(
+                    "Out of memory. Cannot allocate texture transformation\n");
+                exit(1);
+            }
+            *newTexture->Texture_Transformation =
+                *localTexture->Texture_Transformation;
+        }
+        newTexture->Constant_Flag = FALSE;
+        previousTexture = newTexture;
+    }
+    return (firstTexture);
 }
 
 Texture *
@@ -537,7 +575,7 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = TextureParser::copyTexture(texture);
+                texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }
@@ -573,7 +611,7 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
             (texture->Bump_Number != NO_BUMPS)) {
 
             if (texture->Constant_Flag) {
-                texture = TextureParser::copyTexture(texture);
+                texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
                 texture->Constant_Flag = FALSE;
             }

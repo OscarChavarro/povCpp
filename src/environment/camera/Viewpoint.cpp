@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "environment/camera/Viewpoint.h"
-#include "io/pov/SceneFactory.h"
+#include "environment/scene/factory/ModelFactory.h"
 Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr,
     Viewpoint::copyViewpoint, Viewpoint::translateViewpoint,
     Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};
@@ -16,7 +16,7 @@ Viewpoint::copyViewpoint(SimpleBody *object)
     Viewpoint *viewpoint = (Viewpoint *)object;
     Viewpoint *newViewpoint;
 
-    newViewpoint = SceneFactory::getViewpoint();
+    newViewpoint = ModelFactory::getViewpoint();
 
     newViewpoint->Location = viewpoint->Location;
     newViewpoint->Direction = viewpoint->Direction;

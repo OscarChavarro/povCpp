@@ -41,39 +41,7 @@ extern RGBAColorPaletteSpan *constructionMap;
 Texture *
 TextureParser::copyTexture(Texture *texture)
 {
-    Texture *newTexture;
-    Texture *localTexture;
-    Texture *firstTexture;
-    Texture *previousTexture;
-
-    previousTexture = firstTexture = nullptr;
-
-    for (localTexture = texture; localTexture != nullptr;
-        localTexture = localTexture->Next_Texture) {
-        newTexture = TextureUtils::getTexture();
-        *newTexture = *localTexture;
-
-        if (firstTexture == nullptr) {
-            firstTexture = newTexture;
-        }
-
-        if (previousTexture != nullptr) {
-            previousTexture->Next_Texture = newTexture;
-        }
-
-        if (newTexture->Texture_Transformation) {
-            newTexture->Texture_Transformation = new Transformation;
-            if (newTexture->Texture_Transformation == nullptr) {
-                ParseErrorReporter::Error(
-                    "Out of memory. Cannot allocate texture transformation");
-            }
-            *newTexture->Texture_Transformation =
-                *localTexture->Texture_Transformation;
-        }
-        newTexture->Constant_Flag = FALSE;
-        previousTexture = newTexture;
-    }
-    return (firstTexture);
+    return TextureUtils::copyTexture(texture);
 }
 
 Texture *

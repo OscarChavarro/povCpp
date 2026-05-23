@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     quadrics.c
  *
@@ -8,7 +9,6 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 Methods Quadric_Methods = {Composite::objectIntersect,
     Quadric::allQuadricIntersections, Quadric::insideQuadric,
     Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
@@ -214,13 +214,13 @@ Quadric::copyQuadric(SimpleBody *object)
 {
     Quadric *newShape;
 
-    newShape = SceneFactory::getQuadricShape();
+    newShape = ModelFactory::getQuadricShape();
     *newShape = *((Quadric *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

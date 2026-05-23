@@ -6,8 +6,8 @@
 
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/pov/SceneFactory.h"
-#include "io/pov/TextureParser.h"
+#include "environment/scene/factory/ModelFactory.h"
+#include "media/Texture.h"
 
 //===========================================================================
 
@@ -152,13 +152,13 @@ Sphere::copySphere(SimpleBody *object)
 {
     Sphere *newShape;
 
-    newShape = SceneFactory::getSphereShape();
+    newShape = ModelFactory::getSphereShape();
     *newShape = *((Sphere *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

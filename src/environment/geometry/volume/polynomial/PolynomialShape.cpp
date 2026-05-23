@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     poly.c
  *
@@ -11,7 +12,6 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 #include "processing/PolynomialSolver.h"
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
@@ -783,7 +783,7 @@ void *
 PolynomialShape::copyPoly(SimpleBody *object)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
-    PolynomialShape *newShape = SceneFactory::getPolyShape(shape->Order);
+    PolynomialShape *newShape = ModelFactory::getPolyShape(shape->Order);
     int i;
 
     newShape->Shape_Texture = shape->Shape_Texture;
@@ -804,7 +804,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
     /* Copy any associated texture */
     if (shape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(shape->Shape_Texture);
+            TextureUtils::copyTexture(shape->Shape_Texture);
     }
 
     return (void *)(newShape);

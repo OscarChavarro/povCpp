@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     objects.c
  *
@@ -7,7 +8,6 @@
 
 #include "environment/geometry/volume/compound/Composite.h"
 #include "common/dataStructures/PriorityQueue.h"
-#include "io/Parse.h"
 extern RayWithSegments *vpRay;
 extern long boundingRegionTests, boundingRegionTestsSucceeded;
 extern long clippingRegionTests, clippingRegionTestsSucceeded;
@@ -303,7 +303,7 @@ Composite::copyBasicObject(SimpleBody *object)
 
     if (newObject->Object_Texture != nullptr) {
         newObject->Object_Texture =
-            TextureParser::copyTexture(newObject->Object_Texture);
+            TextureUtils::copyTexture(newObject->Object_Texture);
     }
 
     return ((void *)newObject);
@@ -317,7 +317,7 @@ Composite::copyCompositeObject(SimpleBody *object)
     SimpleBody *localObject;
     SimpleBody *copiedObject;
 
-    newObject = SceneFactory::getCompositeObject();
+    newObject = ModelFactory::getCompositeObject();
     *newObject = *((Composite *)object);
     newObject->Next_Object = nullptr;
     newObject->Objects = nullptr;
