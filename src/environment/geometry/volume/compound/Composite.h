@@ -4,9 +4,9 @@
 #include "app/PovApp.h"
 #include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/ObjectUtils.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/CSG.h"
-#include "environment/scene/ObjectUtils.h"
 
 class Composite {
   public:
