@@ -8,7 +8,6 @@
 #include "io/image/IffFormat.h"
 #include "io/FileLocator.h"
 #include "common/LegacyBoolean.h"
-#include "java/io/FileConstants.h"
 
 static RGBAPixel *iffColourMap;
 static int colourmapSize;
@@ -21,61 +20,53 @@ static constexpr long CAMG = 0x43414d47L;
 static constexpr long CMAP = 0x434d4150L;
 static constexpr long BODY = 0x424f4459L;
 static constexpr int CMPNONE = 0;
-
 static constexpr int HAM = 0x800;
 
 void
 IffFormat::iffError()
 {
-    Logger::error( "Invalid IFF file\n");
+    Logger::error("Invalid IFF file\n");
     exit(1);
 }
 
 int
-IffFormat::readByte(FILE *f)
+IffFormat::readByte(java::FileInputStream &is)
 {
-    int c;
-    if ((c = getc(f)) == EOF) {
+    int c = is.read();
+    if (c == -1) {
         IffFormat::iffError();
     }
-    return (c);
+    return c;
 }
 
 int
-IffFormat::readWord(FILE *f)
+IffFormat::readWord(java::FileInputStream &is)
 {
-    int result;
-
-    result = IffFormat::readByte(f) * 256;
-    result += IffFormat::readByte(f);
-    return (result);
+    int result = IffFormat::readByte(is) * 256;
+    result += IffFormat::readByte(is);
+    return result;
 }
 
 long
-IffFormat::readLong(FILE *f)
+IffFormat::readLong(java::FileInputStream &is)
 {
-    int i;
-    long result;
-
-    result = 0;
-    for (i = 0; i < 4; i++) {
-        result = result * 256 + IffFormat::readByte(f);
+    long result = 0;
+    for (int i = 0; i < 4; i++) {
+        result = result * 256 + IffFormat::readByte(is);
     }
-
-    return (result);
+    return result;
 }
 
 void
-IffFormat::readChunkHeader(FILE *f, ChunkHeader *dest)
+IffFormat::readChunkHeader(java::FileInputStream &is, ChunkHeader *dest)
 {
-    dest->name = IffFormat::readLong(f);
-    dest->size = IffFormat::readLong(f);
+    dest->name = IffFormat::readLong(is);
+    dest->size = IffFormat::readLong(is);
 }
 
 void
 IffFormat::readIffImage(RGBAImage *image, char *filename)
 {
-    FILE *f;
     unsigned char **rowBytes;
     int c;
     int i;
@@ -94,74 +85,74 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
     ImageLine *line;
     unsigned long creg;
 
-    if ((f = FileLocator::locate(filename, READ_FILE_STRING)) == nullptr) {
-        Logger::error( "Cannot open IFF file %s\n", filename);
+    java::FileInputStream *fileStream = FileLocator::locateAsStream(filename);
+    if (fileStream == nullptr) {
+        Logger::error("Cannot open IFF file %s\n", filename);
         exit(1);
     }
 
-    previousRed = previousGreen = previousBlue = 0;
+    java::FileInputStream &is = *fileStream;
 
+    previousRed = previousGreen = previousBlue = 0;
     viewmodes = 0;
     iffColourMap = nullptr;
 
     while (true) {
-        IffFormat::readChunkHeader(f, &globalChunkHeader);
+        IffFormat::readChunkHeader(is, &globalChunkHeader);
         switch (static_cast<int>(globalChunkHeader.name)) {
         case FORM:
-            if (IffFormat::readLong(f) != ILBM) {
+            if (IffFormat::readLong(is) != ILBM) {
                 IffFormat::iffError();
             }
             break;
 
         case BMHD:
-            image->iwidth = IffFormat::readWord(f);
-            image->width = (double)image->iwidth;
-            image->iheight = IffFormat::readWord(f);
-            image->height = (double)image->iheight;
+            image->iwidth  = IffFormat::readWord(is);
+            image->width   = (double)image->iwidth;
+            image->iheight = IffFormat::readWord(is);
+            image->height  = (double)image->iheight;
 
-            IffFormat::readWord(f); /* x position ignored */
-            IffFormat::readWord(f); /* y position ignored */
-            nPlanes = IffFormat::readByte(f);
+            IffFormat::readWord(is);
+            IffFormat::readWord(is);
+            nPlanes = IffFormat::readByte(is);
             colourmapSize = 1 << nPlanes;
-            IffFormat::readByte(f);               /* masking ignored */
-            compression = IffFormat::readByte(f); /* masking ignored */
-            IffFormat::readByte(f);               /* pad */
-            IffFormat::readWord(f); /* Transparent colour ignored */
-            IffFormat::readWord(f); /* Aspect ratio ignored */
-            IffFormat::readWord(f); /* page width ignored */
-            IffFormat::readWord(f); /* page height ignored */
+            IffFormat::readByte(is);
+            compression = IffFormat::readByte(is);
+            IffFormat::readByte(is);
+            IffFormat::readWord(is);
+            IffFormat::readWord(is);
+            IffFormat::readWord(is);
+            IffFormat::readWord(is);
             break;
 
         case CAMG:
-            viewmodes = (int)IffFormat::readLong(f); /* Viewmodes */
+            viewmodes = (int)IffFormat::readLong(is);
             if (viewmodes & HAM) {
                 colourmapSize = 16;
             }
-
             break;
 
         case CMAP:
             colourmapSize = (int)globalChunkHeader.size / 3;
             iffColourMap = new RGBAPixel[colourmapSize];
             if (iffColourMap == nullptr) {
-                Logger::error( "Cannot allocate memory for IFF colour map\n");
+                Logger::error("Cannot allocate memory for IFF colour map\n");
                 exit(1);
             }
 
             for (i = 0; i < colourmapSize; i++) {
-                iffColourMap[i].Red = IffFormat::readByte(f);
-                iffColourMap[i].Green = IffFormat::readByte(f);
-                iffColourMap[i].Blue = IffFormat::readByte(f);
+                iffColourMap[i].Red   = IffFormat::readByte(is);
+                iffColourMap[i].Green = IffFormat::readByte(is);
+                iffColourMap[i].Blue  = IffFormat::readByte(is);
                 iffColourMap[i].Alpha = 0;
             }
 
-            previousRed = iffColourMap[0].Red;
+            previousRed   = iffColourMap[0].Red;
             previousGreen = iffColourMap[0].Green;
-            previousBlue = iffColourMap[0].Blue;
+            previousBlue  = iffColourMap[0].Blue;
             for (i = colourmapSize * 3; (long)i < globalChunkHeader.size; i++) {
-                IffFormat::readByte(f);
+                IffFormat::readByte(is);
             }
-
             break;
 
         case BODY:
@@ -174,15 +165,13 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             }
             rowBytes = new unsigned char *[nPlanes];
             if (rowBytes == nullptr) {
-                Logger::error( "Cannot allocate memory for row bytes\n");
+                Logger::error("Cannot allocate memory for row bytes\n");
                 exit(1);
             }
 
             for (i = 0; i < nPlanes; i++) {
-                if ((rowBytes[i] =
-                            new unsigned char[((image->iwidth + 7) / 8)]) ==
-                    nullptr) {
-                    Logger::error( "Cannot allocate memory for row bytes\n");
+                if ((rowBytes[i] = new unsigned char[((image->iwidth + 7) / 8)]) == nullptr) {
+                    Logger::error("Cannot allocate memory for row bytes\n");
                     exit(1);
                 }
             }
@@ -190,36 +179,29 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             if (image->Colour_Map == nullptr) {
                 image->data.rgb_lines = new ImageLine[image->iheight];
                 if (image->data.rgb_lines == nullptr) {
-                    Logger::error( "Cannot allocate memory for picture\n");
+                    Logger::error("Cannot allocate memory for picture\n");
                     exit(1);
                 }
             } else {
                 image->data.map_lines = new unsigned char *[image->iheight];
                 if (image->data.map_lines == nullptr) {
-                    Logger::error( "Cannot allocate memory for picture\n");
+                    Logger::error("Cannot allocate memory for picture\n");
                     exit(1);
                 }
             }
 
             for (i = 0; i < image->iheight; i++) {
-
                 if (image->Colour_Map == nullptr) {
-                    if (((image->data.rgb_lines[i].red =
-                                 new unsigned char[image->iwidth]) ==
-                            nullptr) ||
-                        ((image->data.rgb_lines[i].green =
-                                 new unsigned char[image->iwidth]) ==
-                            nullptr) ||
-                        ((image->data.rgb_lines[i].blue =
-                                 new unsigned char[image->iwidth]) ==
-                            nullptr)) {
-                        Logger::error( "Cannot allocate memory for picture\n");
+                    if (((image->data.rgb_lines[i].red   = new unsigned char[image->iwidth]) == nullptr) ||
+                        ((image->data.rgb_lines[i].green = new unsigned char[image->iwidth]) == nullptr) ||
+                        ((image->data.rgb_lines[i].blue  = new unsigned char[image->iwidth]) == nullptr)) {
+                        Logger::error("Cannot allocate memory for picture\n");
                         exit(1);
                     }
                 } else {
                     image->data.map_lines[i] = new unsigned char[image->iwidth];
                     if (image->data.map_lines[i] == nullptr) {
-                        Logger::error( "Cannot allocate memory for picture\n");
+                        Logger::error("Cannot allocate memory for picture\n");
                         exit(1);
                     }
                 }
@@ -227,26 +209,22 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                 for (j = 0; j < nPlanes; j++) {
                     if (compression == CMPNONE) {
                         for (k = 0; k < (image->iwidth + 7) / 8; k++) {
-                            rowBytes[j][k] =
-                                (unsigned char)IffFormat::readByte(f);
+                            rowBytes[j][k] = (unsigned char)IffFormat::readByte(is);
                         }
                         if ((k & 1) != 0) {
-                            IffFormat::readByte(f);
+                            IffFormat::readByte(is);
                         }
-                    }
-
-                    else {
+                    } else {
                         nBytes = 0;
                         while (nBytes != (image->iwidth + 7) / 8) {
-                            c = IffFormat::readByte(f);
+                            c = IffFormat::readByte(is);
                             if ((c >= 0) && (c <= 127)) {
                                 for (k = 0; k <= c; k++) {
-                                    rowBytes[j][nBytes++] =
-                                        (unsigned char)IffFormat::readByte(f);
+                                    rowBytes[j][nBytes++] = (unsigned char)IffFormat::readByte(is);
                                 }
                             } else if ((c >= 129) && (c <= 255)) {
                                 count = 257 - c;
-                                c = IffFormat::readByte(f);
+                                c = IffFormat::readByte(is);
                                 for (k = 0; k < count; k++) {
                                     rowBytes[j][nBytes++] = (unsigned char)c;
                                 }
@@ -271,49 +249,37 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                         line = &image->data.rgb_lines[i];
                         switch (creg >> 4) {
                         case 0:
-                            previousRed = line->red[j] =
-                                (unsigned char)iffColourMap[creg].Red;
-                            previousGreen = line->green[j] =
-                                (unsigned char)iffColourMap[creg].Green;
-                            previousBlue = line->blue[j] =
-                                (unsigned char)iffColourMap[creg].Blue;
+                            previousRed   = line->red[j]   = (unsigned char)iffColourMap[creg].Red;
+                            previousGreen = line->green[j] = (unsigned char)iffColourMap[creg].Green;
+                            previousBlue  = line->blue[j]  = (unsigned char)iffColourMap[creg].Blue;
                             break;
-
                         case 1:
-                            line->red[j] = (unsigned char)previousRed;
+                            line->red[j]   = (unsigned char)previousRed;
                             line->green[j] = (unsigned char)previousGreen;
-                            line->blue[j] =
-                                (unsigned char)(((creg & 0xf) << 4) +
-                                                (creg & 0xf));
-                            previousBlue = (int)line->blue[j];
+                            line->blue[j]  = (unsigned char)(((creg & 0xf) << 4) + (creg & 0xf));
+                            previousBlue   = (int)line->blue[j];
                             break;
-
                         case 2:
-                            line->red[j] = (unsigned char)(((creg & 0xf) << 4) +
-                                                           (creg & 0xf));
-                            previousRed = (int)line->red[j];
+                            line->red[j]   = (unsigned char)(((creg & 0xf) << 4) + (creg & 0xf));
+                            previousRed    = (int)line->red[j];
                             line->green[j] = (unsigned char)previousGreen;
-                            line->blue[j] = (unsigned char)previousBlue;
+                            line->blue[j]  = (unsigned char)previousBlue;
                             break;
-
                         case 3:
-                            line->red[j] = (unsigned char)previousRed;
-                            line->green[j] =
-                                (unsigned char)(((creg & 0xf) << 4) +
-                                                (creg & 0xf));
-                            previousGreen = (int)line->green[j];
-                            line->blue[j] = (unsigned char)previousBlue;
+                            line->red[j]   = (unsigned char)previousRed;
+                            line->green[j] = (unsigned char)(((creg & 0xf) << 4) + (creg & 0xf));
+                            previousGreen  = (int)line->green[j];
+                            line->blue[j]  = (unsigned char)previousBlue;
                             break;
                         }
                     } else if (nPlanes == 24) {
                         line = &image->data.rgb_lines[i];
-                        line->red[j] = (unsigned char)((creg >> 16) & 0xFF);
+                        line->red[j]   = (unsigned char)((creg >> 16) & 0xFF);
                         line->green[j] = (unsigned char)((creg >> 8) & 0xFF);
-                        line->blue[j] = (unsigned char)(creg & 0xFF);
+                        line->blue[j]  = (unsigned char)(creg & 0xFF);
                     } else {
                         if (creg > (unsigned long)image->Colour_Map_Size) {
-                            Logger::error(
-                                "Error - IFF Image Map Colour out of range\n");
+                            Logger::error("Error - IFF Image Map Colour out of range\n");
                             exit(1);
                         }
                         image->data.map_lines[i][j] = (char)creg;
@@ -328,12 +294,13 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             }
 
             delete rowBytes;
-            fclose(f);
+            fileStream->close();
+            delete fileStream;
             return;
 
         default:
             for (i = 0; (long)i < globalChunkHeader.size; i++) {
-                if (getc(f) == EOF) {
+                if (is.read() == -1) {
                     IffFormat::iffError();
                 }
             }

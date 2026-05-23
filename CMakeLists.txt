@@ -76,6 +76,15 @@ add_executable(povray
   src/render/RenderEngine.cpp
   src/environment/material/RendererConfiguration.cpp
   src/common/Statistics.cpp
+  src/java/lang/Object.cpp
+  src/java/lang/String.cpp
+  src/java/util/Formatter.cpp
+  src/java/io/InputStream.cpp
+  src/java/io/OutputStream.cpp
+  src/java/io/File.cpp
+  src/java/io/FileInputStream.cpp
+  src/java/io/FileOutputStream.cpp
+  src/io/PersistenceElement.cpp
 )
 
 target_include_directories(povray PRIVATE src)

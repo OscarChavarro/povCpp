@@ -1,22 +1,22 @@
-#include "render/RenderFileInputStreamAdapter.h"
-#include "java/io/FileInputStream.h"
+#include "render/RenderFileHandleAdapter.h"
+#include "io/image/ImageFileHandle.h"
 
 int
 RenderFileInputStreamAdapter::readLine(
-    FileInputStream *fileHandle, RGBAColor *lineData, int *lineNumber)
+    ImageFileHandle *fileHandle, RGBAColor *lineData, int *lineNumber)
 {
     return fileHandle->readLine(lineData, lineNumber);
 }
 
 int
-RenderFileInputStreamAdapter::open(FileInputStream *fileHandle, char *name,
+RenderFileInputStreamAdapter::open(ImageFileHandle *fileHandle, char *name,
     int *imageWidth, int *imageHeight, int bufferSize, int openMode)
 {
     return fileHandle->open(name, imageWidth, imageHeight, bufferSize, openMode);
 }
 
 void
-RenderFileInputStreamAdapter::close(FileInputStream *fileHandle)
+RenderFileInputStreamAdapter::close(ImageFileHandle *fileHandle)
 {
     fileHandle->close();
 }

@@ -1,6 +1,6 @@
 #include "io/FileLocator.h"
 
-static std::vector<std::string> libraryPaths;
+static java::ArrayList<java::String> libraryPaths;
 
 void
 FileLocator::clearSearchPaths()
@@ -11,10 +11,10 @@ FileLocator::clearSearchPaths()
 void
 FileLocator::addSearchPath(const char *path)
 {
-    libraryPaths.push_back(path);
+    libraryPaths.add(java::String(path));
 }
 
-const std::vector<std::string> &
+const java::ArrayList<java::String> &
 FileLocator::searchPaths()
 {
     return libraryPaths;
@@ -28,13 +28,34 @@ FileLocator::locate(const char *filename, const char *mode)
         return file;
     }
 
-    for (std::vector<std::string>::const_iterator path = libraryPaths.begin();
-         path != libraryPaths.end(); ++path) {
-        const std::string pathname = *path + "/" + filename;
-        file = fopen(pathname.c_str(), mode);
+    for (long int i = 0; i < libraryPaths.size(); i++) {
+        char pathname[512];
+        snprintf(pathname, sizeof(pathname), "%s/%s", libraryPaths.get(i).toCString(), filename);
+        file = fopen(pathname, mode);
         if (file != nullptr) {
             return file;
         }
+    }
+    return nullptr;
+}
+
+java::FileInputStream *
+FileLocator::locateAsStream(const char *filename)
+{
+    java::FileInputStream *stream = new java::FileInputStream(filename);
+    if (stream->isOpen()) {
+        return stream;
+    }
+    delete stream;
+
+    for (long int i = 0; i < libraryPaths.size(); i++) {
+        char pathname[512];
+        snprintf(pathname, sizeof(pathname), "%s/%s", libraryPaths.get(i).toCString(), filename);
+        stream = new java::FileInputStream(pathname);
+        if (stream->isOpen()) {
+            return stream;
+        }
+        delete stream;
     }
     return nullptr;
 }

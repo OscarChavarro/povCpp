@@ -3,14 +3,15 @@
 
 #include "environment/geometry/GeometryOperations.h"
 #include "io/image/ChunkHeader.h"
+#include "java/io/FileInputStream.h"
 
 class IffFormat {
   public:
     static void iffError(void);
-    static int readByte(FILE *f);
-    static int readWord(FILE *f);
-    static long readLong(FILE *f);
-    static void readChunkHeader(FILE *f, ChunkHeader *dest);
+    static int readByte(java::FileInputStream &is);
+    static int readWord(java::FileInputStream &is);
+    static long readLong(java::FileInputStream &is);
+    static void readChunkHeader(java::FileInputStream &is, ChunkHeader *dest);
     static void readIffImage(RGBAImage *image, char *filename);
 };
 
