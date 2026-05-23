@@ -11,7 +11,7 @@ add_executable(povray
   src/app/Povray.cpp
   src/common/color/Color.cpp
   src/common/logger/Logger.cpp
-  src/common/Transformation.cpp
+  src/common/linealAlgebra/Transformation.cpp
   src/environment/geometry/elements/Ray.cpp
   src/environment/geometry/elements/RayWithSegments.cpp
   src/environment/geometry/surface/parametric/ParametricPatch.cpp

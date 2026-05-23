@@ -8,7 +8,7 @@
 #include "io/pov/Parse.h"
 #include "app/PovApp.h"
 #include "common/FrameConfig.h"
-#include "common/Transformation.h"
+#include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/image/DumpFormat.h"
 #include "io/image/GifFormat.h"
