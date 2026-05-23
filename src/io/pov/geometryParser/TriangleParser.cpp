@@ -39,7 +39,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getTriangleShape();
+                localShape = ModelBuilder::getTriangleShape();
                 PrimitiveParser::parseVector(&localShape->P1, ctx);
                 PrimitiveParser::parseVector(&localShape->P2, ctx);
                 PrimitiveParser::parseVector(&localShape->P3, ctx);
@@ -124,7 +124,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

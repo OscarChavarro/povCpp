@@ -140,7 +140,7 @@ CSG::copyCsg(SimpleBody *object)
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
-        ObjectUtils::link((SimpleBody *)copiedShape,
+        GeometryUtils::link((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->nextObject),
             (SimpleBody **)&(newShape->Shapes));
     }

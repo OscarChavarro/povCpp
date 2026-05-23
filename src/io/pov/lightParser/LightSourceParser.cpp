@@ -34,9 +34,9 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getLightSourceShape();
+                localShape = ModelBuilder::getLightSourceShape();
                 PrimitiveParser::parseVector(&(localShape->Center), ctx);
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 Color::makeColor(localShape->Shape_Colour, 1.0, 1.0, 1.0);
                 localShape->Shape_Colour->Alpha = 0.0;
                 ParseHelpers::getExpectedToken(COLOUR_TOKEN, ctx);

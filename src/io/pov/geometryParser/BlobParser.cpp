@@ -59,7 +59,7 @@ BlobParser::parseBlob(ParserContext &ctx)
             case THRESHOLD_TOKEN:
             case COMPONENT_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getBlobShape();
+                localShape = ModelBuilder::getBlobShape();
                 blobComponents = nullptr;
                 npoints = 0;
                 threshold = 1.0;
@@ -183,7 +183,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

@@ -251,7 +251,7 @@ Composite::copyBasicObject(SimpleBody *object)
     Geometry *copiedShape;
     SimpleBody *newObject;
 
-    newObject = ObjectUtils::getObject();
+    newObject = GeometryUtils::getObject();
     *newObject = *object;
     newObject->nextObject = nullptr;
     newObject->boundingShapes = nullptr;
@@ -261,7 +261,7 @@ Composite::copyBasicObject(SimpleBody *object)
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
-        ObjectUtils::link((SimpleBody *)copiedShape,
+        GeometryUtils::link((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->nextObject),
             (SimpleBody **)&(newObject->boundingShapes));
 
@@ -272,7 +272,7 @@ Composite::copyBasicObject(SimpleBody *object)
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
-        ObjectUtils::link((SimpleBody *)copiedShape,
+        GeometryUtils::link((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->nextObject),
             (SimpleBody **)&(newObject->clippingShapes));
 
@@ -305,7 +305,7 @@ Composite::copyCompositeObject(SimpleBody *object)
         localObject = localObject->nextObject) {
 
         copiedObject = (SimpleBody *)GeometryOperations::copy(localObject);
-        ObjectUtils::link(
+        GeometryUtils::link(
             copiedObject, &(copiedObject->nextObject), &(newObject->Objects));
     }
 
@@ -315,7 +315,7 @@ Composite::copyCompositeObject(SimpleBody *object)
 
         copiedObject =
             (SimpleBody *)GeometryOperations::copy((SimpleBody *)localShape);
-        ObjectUtils::link(copiedObject, &(copiedObject->nextObject),
+        GeometryUtils::link(copiedObject, &(copiedObject->nextObject),
             (SimpleBody **)&(newObject->boundingShapes));
     }
     newObject->clippingShapes = nullptr;
@@ -324,7 +324,7 @@ Composite::copyCompositeObject(SimpleBody *object)
 
         copiedObject =
             (SimpleBody *)GeometryOperations::copy((SimpleBody *)localShape);
-        ObjectUtils::link(copiedObject, &(copiedObject->nextObject),
+        GeometryUtils::link(copiedObject, &(copiedObject->nextObject),
             (SimpleBody **)&(newObject->clippingShapes));
     }
     return ((void *)newObject);
@@ -513,7 +513,7 @@ Composite::invertCompositeObject(SimpleBody *object)
 }
 
 void
-ObjectUtils::link(
+GeometryUtils::link(
     SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList)
 {
     *field = *oldObjectList;
@@ -521,7 +521,7 @@ ObjectUtils::link(
 }
 
 SimpleBody *
-ObjectUtils::getObject()
+GeometryUtils::getObject()
 {
     SimpleBody *newObject;
 

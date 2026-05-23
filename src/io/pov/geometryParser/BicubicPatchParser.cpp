@@ -3,7 +3,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "environment/scene/ObjectUtils.h"
+#include "environment/geometry/GeometryUtils.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
@@ -41,7 +41,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getBicubicPatchShape();
+                localShape = ModelBuilder::getBicubicPatchShape();
                 localShape->patchType = (int)PrimitiveParser::parseFloat(ctx);
                 if (localShape->patchType == 2 ||
                     localShape->patchType == 3) {
@@ -124,13 +124,13 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                ObjectUtils::link((SimpleBody *)localTexture,
+                GeometryUtils::link((SimpleBody *)localTexture,
                     (SimpleBody **)&localTexture->Next_Texture,
                     (SimpleBody **)&localShape->Shape_Texture);
                 break;
 
             case COLOUR_TOKEN:
-                localShape->Shape_Colour = SceneFactory::getColour();
+                localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 

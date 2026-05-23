@@ -1,4 +1,4 @@
-#include "environment/scene/factory/ModelFactory.h"
+#include "environment/scene/factory/ModelBuilder.h"
 
 #include "common/LegacyBoolean.h"
 #include "processing/PolynomialConstants.h"
@@ -20,7 +20,7 @@
 #include "environment/light/Light.h"
 
 Composite *
-ModelFactory::getCompositeObject()
+ModelBuilder::getCompositeObject()
 {
     Composite *newComposite;
 
@@ -40,7 +40,7 @@ ModelFactory::getCompositeObject()
 }
 
 Sphere *
-ModelFactory::getSphereShape()
+ModelBuilder::getSphereShape()
 {
     Sphere *newShape;
 
@@ -65,7 +65,7 @@ ModelFactory::getSphereShape()
 }
 
 Light *
-ModelFactory::getLightSourceShape()
+ModelBuilder::getLightSourceShape()
 {
     Light *newShape;
 
@@ -81,7 +81,7 @@ ModelFactory::getLightSourceShape()
     newShape->nextObject = nullptr;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = ModelFactory::getColour();
+    newShape->Shape_Colour = ModelBuilder::getColour();
     Color::makeColor(newShape->Shape_Colour, 1.0, 1.0, 1.0);
     newShape->Shape_Colour->Alpha = 0.0;
     newShape->Coeff = 10.0;
@@ -91,7 +91,7 @@ ModelFactory::getLightSourceShape()
 }
 
 Quadric *
-ModelFactory::getQuadricShape()
+ModelBuilder::getQuadricShape()
 {
     Quadric *newShape;
 
@@ -117,7 +117,7 @@ ModelFactory::getQuadricShape()
 }
 
 PolynomialShape *
-ModelFactory::getPolyShape(int order, const int *termCounts)
+ModelBuilder::getPolyShape(int order, const int *termCounts)
 {
     PolynomialShape *newShape;
     int i;
@@ -150,7 +150,7 @@ ModelFactory::getPolyShape(int order, const int *termCounts)
 }
 
 Box *
-ModelFactory::getBoxShape()
+ModelBuilder::getBoxShape()
 {
     Box *newShape;
 
@@ -173,7 +173,7 @@ ModelFactory::getBoxShape()
 }
 
 Blob *
-ModelFactory::getBlobShape()
+ModelBuilder::getBlobShape()
 {
     Blob *newShape;
 
@@ -194,7 +194,7 @@ ModelFactory::getBlobShape()
 }
 
 ParametricBiCubicPatch *
-ModelFactory::getBicubicPatchShape()
+ModelBuilder::getBicubicPatchShape()
 {
     ParametricBiCubicPatch *newShape;
 
@@ -220,7 +220,7 @@ ModelFactory::getBicubicPatchShape()
 }
 
 HeightField *
-ModelFactory::getHeightFieldShape()
+ModelBuilder::getHeightFieldShape()
 {
     HeightField *newShape;
 
@@ -229,7 +229,7 @@ ModelFactory::getHeightFieldShape()
         Logger::error("Out of memory. Cannot allocate shape\n");
         exit(1);
     }
-    newShape->bounding_box = ModelFactory::getBoxShape();
+    newShape->bounding_box = ModelBuilder::getBoxShape();
     newShape->Map = nullptr;
     newShape->transformation = Transformation::getTransformation();
     newShape->Type = HEIGHT_FIELD_TYPE;
@@ -241,7 +241,7 @@ ModelFactory::getHeightFieldShape()
 }
 
 InfinitePlane *
-ModelFactory::getPlaneShape()
+ModelBuilder::getPlaneShape()
 {
     InfinitePlane *newShape;
 
@@ -263,7 +263,7 @@ ModelFactory::getPlaneShape()
 }
 
 Triangle *
-ModelFactory::getTriangleShape()
+ModelBuilder::getTriangleShape()
 {
     Triangle *newShape;
 
@@ -290,7 +290,7 @@ ModelFactory::getTriangleShape()
 }
 
 SmoothTriangle *
-ModelFactory::getSmoothTriangleShape()
+ModelBuilder::getSmoothTriangleShape()
 {
     SmoothTriangle *newShape;
 
@@ -320,7 +320,7 @@ ModelFactory::getSmoothTriangleShape()
 }
 
 CSG *
-ModelFactory::getCsgShape()
+ModelBuilder::getCsgShape()
 {
     CSG *newShape;
 
@@ -336,29 +336,29 @@ ModelFactory::getCsgShape()
 }
 
 CSG *
-ModelFactory::getCsgUnion()
+ModelBuilder::getCsgUnion()
 {
     CSG *newShape;
 
-    newShape = ModelFactory::getCsgShape();
+    newShape = ModelBuilder::getCsgShape();
     newShape->methods = &CSG::unionMethodTable;
     newShape->Type = CSG_UNION_TYPE;
     return (newShape);
 }
 
 CSG *
-ModelFactory::getCsgIntersection()
+ModelBuilder::getCsgIntersection()
 {
     CSG *newShape;
 
-    newShape = ModelFactory::getCsgShape();
+    newShape = ModelBuilder::getCsgShape();
     newShape->methods = &CSG::intersectionMethodTable;
     newShape->Type = CSG_INTERSECTION_TYPE;
     return (newShape);
 }
 
 Camera *
-ModelFactory::getCamera()
+ModelBuilder::getCamera()
 {
     Camera *newViewpoint;
 
@@ -373,7 +373,7 @@ ModelFactory::getCamera()
 }
 
 RGBAColor *
-ModelFactory::getColour()
+ModelBuilder::getColour()
 {
     RGBAColor *newColour;
 
@@ -388,7 +388,7 @@ ModelFactory::getColour()
 }
 
 Vector3Dd *
-ModelFactory::getVector()
+ModelBuilder::getVector()
 {
     Vector3Dd *newVector;
 
@@ -405,7 +405,7 @@ ModelFactory::getVector()
 }
 
 double *
-ModelFactory::getFloat()
+ModelBuilder::getFloat()
 {
     double *newFloat;
 

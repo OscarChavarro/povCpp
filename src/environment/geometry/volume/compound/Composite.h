@@ -3,7 +3,7 @@
 
 #include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/ObjectUtils.h"
+#include "environment/geometry/GeometryUtils.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/CSG.h"
 

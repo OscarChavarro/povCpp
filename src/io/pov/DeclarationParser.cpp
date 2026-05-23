@@ -1,8 +1,11 @@
 #include "io/pov/ParserContext.h"
 #include "io/pov/DeclarationParser.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/GeometryOperations.h"
 #include "io/pov/Parse.h"
 #include "io/pov/cameraParser/CameraParser.h"
+#include "media/Texture.h"
+#include "media/TextureUtils.h"
 
 static CONSTANT
 findConstant(ParserContext &ctx)
@@ -229,7 +232,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case VIEW_POINT_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData =
-                    (char *)SceneFactory::getCamera();
+                    (char *)ModelBuilder::getCamera();
                 constantPtr->constantType = VIEW_POINT_CONSTANT;
                 CameraParser::parseCamera(
                     (Camera *)constantPtr->constantData, ctx);
@@ -238,7 +241,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
             case COLOUR_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
-                constantPtr->constantData = (char *)SceneFactory::getColour();
+                constantPtr->constantData = (char *)ModelBuilder::getColour();
                 constantPtr->constantType = COLOUR_CONSTANT;
                 PrimitiveParser::parseColour(
                     (RGBAColor *)constantPtr->constantData, ctx);
@@ -256,7 +259,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
-                constantPtr->constantData = (char *)SceneFactory::getVector();
+                constantPtr->constantData = (char *)ModelBuilder::getVector();
                 constantPtr->constantType = VECTOR_CONSTANT;
                 PrimitiveParser::parseVector(
                     (Vector3Dd *)constantPtr->constantData, ctx);
@@ -268,7 +271,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case FLOAT_TOKEN:
                 Tokenizer::ungetToken();
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
-                constantPtr->constantData = (char *)SceneFactory::getFloat();
+                constantPtr->constantData = (char *)ModelBuilder::getFloat();
                 constantPtr->constantType = FLOAT_CONSTANT;
                 *((double *)constantPtr->constantData) =
                     PrimitiveParser::parseFloat(ctx);
