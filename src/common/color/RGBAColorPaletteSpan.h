@@ -1,7 +1,7 @@
 #ifndef __RGBA_COLOR_PALETTE_SPAN_H__
 #define __RGBA_COLOR_PALETTE_SPAN_H__
 
-#include "common/RGBAColor.h"
+#include "common/color/RGBAColor.h"
 
 class RGBAColorPaletteSpan {
   public:
