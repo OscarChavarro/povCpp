@@ -7,16 +7,15 @@
 
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
-Methods CSG_Union_Methods = {Composite::objectIntersect,
+Methods csgUnionMethods = {Composite::objectIntersect,
     CSG::allCsgUnionIntersections, CSG::insideCsgUnion, nullptr, CSG::copyCsg,
     CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
 
-Methods CSG_Intersection_Methods = {Composite::objectIntersect,
+Methods csgIntersectionMethods = {Composite::objectIntersect,
     CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr,
     CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
     CSG::invertCsg};
 
-extern RayWithSegments *vpRay;
 int
 CSG::allCsgUnionIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
@@ -192,10 +191,10 @@ CSG::invertCsg(SimpleBody *object)
 
     if (csg->Type == CSG_INTERSECTION_TYPE) {
         csg->Type = CSG_UNION_TYPE;
-        csg->methods = &CSG_Union_Methods;
+        csg->methods = &csgUnionMethods;
     } else if (csg->Type == CSG_UNION_TYPE) {
         csg->Type = CSG_INTERSECTION_TYPE;
-        csg->methods = &CSG_Intersection_Methods;
+        csg->methods = &csgIntersectionMethods;
     }
 
     for (localShape = csg->Shapes; localShape != nullptr;

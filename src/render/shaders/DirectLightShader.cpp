@@ -1,3 +1,4 @@
+#include "render/RenderEngine.h"
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/TraceService.h"
 #include "common/Statistics.h"
@@ -16,7 +17,6 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
 
-extern RenderFrame globalFrame;
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
@@ -53,7 +53,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     localQueue = IntersectionPriorityQueuePool::pqPop(128);
     lightSourceRay.isShadowRay = TRUE;
 
-    for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
+    for (lightSource = RenderEngine::renderFrame().Light_Sources; lightSource != nullptr;
         lightSource = lightSource->Next_Light_Source) {
         intersectionFound = FALSE;
 
@@ -62,7 +62,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
 
         /* What objects does this ray intersect? */
         if (globalRenderingConfiguration.quality > 3) {
-            for (blockingObject = globalFrame.Objects;
+            for (blockingObject = RenderEngine::renderFrame().Objects;
                 blockingObject != nullptr;
                 blockingObject = blockingObject->nextObject) {
 

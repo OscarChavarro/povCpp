@@ -30,7 +30,7 @@ class Light : public Geometry {
     static double cubicSpline(double low, double high, double pos);
 };
 
-extern Methods Point_Methods;
+extern Methods pointMethods;
 extern Light *getLightSourceShape(void);
 
 #endif

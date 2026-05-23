@@ -19,7 +19,7 @@
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
-Methods Bicubic_Patch_Methods = {Composite::objectIntersect,
+Methods bicubicPatchMethods = {Composite::objectIntersect,
     ParametricBiCubicSolver::allParametricBiCubicPatchIntersections,
     ParametricBiCubicPatch::insideBicubicPatch,
     ParametricBiCubicPatch::bicubicPatchNormal,
@@ -29,7 +29,6 @@ Methods Bicubic_Patch_Methods = {Composite::objectIntersect,
     ParametricBiCubicPatch::scaleBicubicPatch,
     ParametricBiCubicPatch::invertBicubicPatch};
 
-extern RayWithSegments *vpRay;
 
 int maxDepthReached;
 

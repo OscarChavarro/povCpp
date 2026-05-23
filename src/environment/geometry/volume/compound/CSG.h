@@ -22,8 +22,8 @@ class CSG : public Geometry {
     static void invertCsg(SimpleBody *object);
 };
 
-extern Methods CSG_Union_Methods;
-extern Methods CSG_Intersection_Methods;
+extern Methods csgUnionMethods;
+extern Methods csgIntersectionMethods;
 extern CSG *getCsgShape(void);
 extern CSG *getCsgUnion(void);
 extern CSG *getCsgIntersection(void);

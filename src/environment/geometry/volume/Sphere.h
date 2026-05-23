@@ -31,7 +31,7 @@ class Sphere : public Geometry {
     static void invertSphere(SimpleBody *object);
 };
 
-extern Methods Sphere_Methods;
+extern Methods sphereMethods;
 extern Sphere *getSphereShape(void);
 
 #endif

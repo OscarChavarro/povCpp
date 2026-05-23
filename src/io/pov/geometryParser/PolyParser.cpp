@@ -1,3 +1,4 @@
+#include "io/pov/ParserContext.h"
 #include "io/pov/geometryParser/PolyParser.h"
 #include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -10,13 +11,18 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
-extern TokenStruct globalToken;
-extern Constant constants[MAX_CONSTANTS];
-extern int termCounts[MAX_ORDER + 1];
 
 Geometry *
 PolyParser::parsePoly(int knownOrder)
 {
+    ParserContext ctx;
+    return PolyParser::parsePoly(knownOrder, ctx);
+}
+
+Geometry *
+PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
+{
+    (void)ctx;
     PolynomialShape *localShape;
     Vector3Dd localVector;
     CONSTANT constantId;
@@ -29,25 +35,25 @@ PolyParser::parsePoly(int knownOrder)
         localShape = nullptr;
     }
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
+    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
                 Tokenizer::ungetToken();
                 if (localShape != nullptr) {
                     ParseErrorReporter::Error(
-                        "The order of a polynomial may not be specified twice");
+                        "The order of a polynomial may not be specified twice", ctx);
                 }
-                order = (int)PrimitiveParser::parseFloat();
+                order = (int)PrimitiveParser::parseFloat(ctx);
                 if (order < 2 || order > MAX_ORDER) {
-                    ParseErrorReporter::Error("Order of Poly is out of range");
+                    ParseErrorReporter::Error("Order of Poly is out of range", ctx);
                 }
                 localShape = SceneFactory::getPolyShape(order);
                 break;
@@ -63,24 +69,24 @@ PolyParser::parsePoly(int knownOrder)
                 break;
 
             case IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].constantType ==
+                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                    if (ctx.constants()[(int)constantId].constantType ==
                         POLY_CONSTANT) {
                         localShape =
                             (PolynomialShape *)GeometryOperations::copy(
-                                (SimpleBody *)constants[(int)constantId]
+                                (SimpleBody *)ctx.constants()[(int)constantId]
                                     .constantData);
                     } else {
-                        ParseErrorReporter::typeError();
+                        ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared();
+                    ParseErrorReporter::Undeclared(ctx);
                 }
                 Exit_Flag = TRUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN);
+                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -91,7 +97,7 @@ PolyParser::parsePoly(int knownOrder)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -101,19 +107,19 @@ PolyParser::parsePoly(int knownOrder)
                 break;
 
             case TRANSLATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
             case ROTATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
             case SCALE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localShape, &localVector);
                 break;
@@ -123,7 +129,7 @@ PolyParser::parsePoly(int knownOrder)
                 break;
 
             case TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture();
+                localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
@@ -135,11 +141,11 @@ PolyParser::parsePoly(int knownOrder)
 
             case COLOUR_TOKEN:
                 localShape->Shape_Colour = SceneFactory::getColour();
-                PrimitiveParser::parseColour(localShape->Shape_Colour);
+                PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
+                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

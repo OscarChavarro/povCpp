@@ -15,11 +15,10 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include <cstring>
-Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections,
+Methods boxMethods = {Composite::objectIntersect, Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
     Box::rotateBox, Box::scaleBox, Box::invertBox};
 
-extern RayWithSegments *vpRay;
 
 int
 Box::closeTo(double x, double y)

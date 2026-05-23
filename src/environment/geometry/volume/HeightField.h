@@ -46,7 +46,7 @@ class HeightField : public Geometry {
         Vector3Dd *start, Vector3Dd *end);
 };
 
-extern Methods Height_Field_Methods;
+extern Methods heightFieldMethods;
 extern HeightField *getHeightFieldShape(void);
 
 #endif

@@ -22,7 +22,7 @@ class Camera {
     static void scaleCamera(SimpleBody *object, Vector3Dd *vector);
 };
 
-extern Methods Camera_Methods;
+extern Methods cameraMethods;
 extern Camera *getCamera(void);
 
 #endif

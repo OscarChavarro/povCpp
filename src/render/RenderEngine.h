@@ -4,7 +4,20 @@
 #include "environment/scene/SceneFrame.h"
 
 class RenderEngine {
+  private:
+    static RenderFrame sRenderFrame;
+    static RayWithSegments *sPrimaryRay;
+    static int sTraceLevel;
+    static double sMaxTraceLevel;
+    static volatile int sStopFlag;
+
   public:
+    static RenderFrame &renderFrame();
+    static RayWithSegments *&primaryRay();
+    static int &traceLevel();
+    static double &maxTraceLevel();
+    static volatile int &stopFlag();
+
     static void readRenderedPart(void);
     static void supersample(
         RGBAColor *result, int x, int y, int width, int height);

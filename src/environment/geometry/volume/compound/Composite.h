@@ -37,7 +37,7 @@ class Composite {
     static void invertCompositeObject(SimpleBody *object);
 };
 
-extern Methods Composite_Methods;
-extern Methods Basic_Object_Methods;
+extern Methods compositeMethods;
+extern Methods basicObjectMethods;
 
 #endif

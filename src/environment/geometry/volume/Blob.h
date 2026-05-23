@@ -35,6 +35,6 @@ class Blob : public Geometry {
     static int validateHit(Blob *blob, Vector3Dd *p);
 };
 
-extern Methods Blob_Methods;
+extern Methods blobMethods;
 
 #endif

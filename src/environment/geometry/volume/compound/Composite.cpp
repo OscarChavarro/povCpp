@@ -10,15 +10,14 @@
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
-extern RayWithSegments *vpRay;
 
-Methods Composite_Methods = {Composite::objectIntersect,
+Methods compositeMethods = {Composite::objectIntersect,
     Composite::allCompositeIntersections, Composite::insideCompositeObject,
     nullptr, Composite::copyCompositeObject,
     Composite::translateCompositeObject, Composite::rotateCompositeObject,
     Composite::scaleCompositeObject, Composite::invertCompositeObject};
 
-Methods Basic_Object_Methods = {Composite::objectIntersect,
+Methods basicObjectMethods = {Composite::objectIntersect,
     Composite::allObjectIntersections, Composite::insideBasicObject, nullptr,
     Composite::copyBasicObject, Composite::translateBasicObject,
     Composite::rotateBasicObject, Composite::scaleBasicObject,
@@ -542,6 +541,6 @@ ObjectUtils::getObject()
 
     newObject->noShadowFlag = FALSE;
     newObject->Type = OBJECT_TYPE;
-    newObject->methods = &Basic_Object_Methods;
+    newObject->methods = &basicObjectMethods;
     return (newObject);
 }

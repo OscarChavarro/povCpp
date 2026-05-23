@@ -28,7 +28,7 @@ class Box : public Geometry {
     static int closeTo(double x, double y);
 };
 
-extern Methods Box_Methods;
+extern Methods boxMethods;
 extern Box *getBoxShape();
 
 #endif
