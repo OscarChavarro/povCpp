@@ -6,7 +6,6 @@
 
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/scene/factory/ModelFactory.h"
 #include "media/Texture.h"
 
 //===========================================================================
@@ -99,7 +98,7 @@ Sphere::allSphereIntersections(
     intersectionFound = FALSE;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
-        localElement.Object = shape->Parent_Object;
+        localElement.Object = nullptr;
         VectorOps::vScale(intersectionPoint, ray->direction, depth1);
         intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
@@ -109,7 +108,7 @@ Sphere::allSphereIntersections(
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
-            localElement.Object = shape->Parent_Object;
+            localElement.Object = nullptr;
             VectorOps::vScale(intersectionPoint, ray->direction, depth2);
             intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
@@ -152,7 +151,7 @@ Sphere::copySphere(SimpleBody *object)
 {
     Sphere *newShape;
 
-    newShape = ModelFactory::getSphereShape();
+    newShape = new Sphere;
     *newShape = *((Sphere *)object);
     newShape->Next_Object = nullptr;
 

@@ -996,7 +996,7 @@ ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
 {
     ParametricBiCubicPatch *newShape;
 
-    newShape = ParametricBiCubicPatch::getBicubicPatchShape();
+    newShape = new ParametricBiCubicPatch;
     *newShape = *((ParametricBiCubicPatch *)object);
     newShape->Next_Object = nullptr;
 

@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     quadrics.c
  *
@@ -29,7 +28,7 @@ Quadric::allQuadricIntersections(
     intersectionFound = FALSE;
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
-        localElement.Object = shape->Parent_Object;
+        localElement.Object = nullptr;
         VectorOps::vScale(intersectionPoint, ray->direction, depth1);
         intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
@@ -39,7 +38,7 @@ Quadric::allQuadricIntersections(
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
-            localElement.Object = shape->Parent_Object;
+            localElement.Object = nullptr;
             VectorOps::vScale(intersectionPoint, ray->direction, depth2);
             intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
@@ -214,7 +213,7 @@ Quadric::copyQuadric(SimpleBody *object)
 {
     Quadric *newShape;
 
-    newShape = ModelFactory::getQuadricShape();
+    newShape = new Quadric;
     *newShape = *((Quadric *)object);
     newShape->Next_Object = nullptr;
 

@@ -38,7 +38,7 @@ extern int numberOfConstants;
 extern int degenerateTriangles;
 
 CSG *
-ObjectParser::parseCsg(int type, SimpleBody *parentObject)
+ObjectParser::parseCsg(int type)
 {
     CSG *container = nullptr;
     Geometry *localShape;
@@ -53,8 +53,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
                (type == CSG_DIFFERENCE_TYPE)) {
         container = SceneFactory::getCsgIntersection();
     }
-
-    container->Parent_Object = parentObject;
 
     ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
 
@@ -76,7 +74,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
                         container = (CSG *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
                                 .Constant_Data);
-                        CSG::setCsgParents(container, parentObject);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -87,7 +84,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -99,7 +95,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -111,7 +106,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -123,7 +117,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -135,7 +128,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -147,7 +139,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -159,7 +150,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -171,7 +161,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3);
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -183,7 +172,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4);
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -195,7 +183,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0);
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -207,7 +194,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case BOX_TOKEN:
                 localShape = BoxParser::parseBox();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -219,7 +205,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case BLOB_TOKEN:
                 localShape = BlobParser::parseBlob();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -231,7 +216,6 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 
             case BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch();
-                localShape->Parent_Object = parentObject;
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -242,8 +226,8 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
                 break;
 
             case UNION_TOKEN:
-                localShape = (Geometry *)ObjectParser::parseCsg(
-                    CSG_UNION_TYPE, parentObject);
+                localShape =
+                    (Geometry *)ObjectParser::parseCsg(CSG_UNION_TYPE);
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -254,8 +238,8 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
                 break;
 
             case INTERSECTION_TOKEN:
-                localShape = (Geometry *)ObjectParser::parseCsg(
-                    CSG_INTERSECTION_TYPE, parentObject);
+                localShape =
+                    (Geometry *)ObjectParser::parseCsg(CSG_INTERSECTION_TYPE);
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -266,8 +250,8 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
                 break;
 
             case DIFFERENCE_TOKEN:
-                localShape = (Geometry *)ObjectParser::parseCsg(
-                    CSG_DIFFERENCE_TYPE, parentObject);
+                localShape =
+                    (Geometry *)ObjectParser::parseCsg(CSG_DIFFERENCE_TYPE);
                 if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
@@ -334,7 +318,7 @@ ObjectParser::parseCsg(int type, SimpleBody *parentObject)
 }
 
 Geometry *
-ObjectParser::parseShape(SimpleBody *object)
+ObjectParser::parseShape()
 {
     Geometry *localShape = nullptr;
 
@@ -346,97 +330,84 @@ ObjectParser::parseShape(SimpleBody *object)
             switch (globalToken.Token_Id) {
             case LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3);
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4);
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0);
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case BOX_TOKEN:
                 localShape = BoxParser::parseBox();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case BLOB_TOKEN:
                 localShape = BlobParser::parseBlob();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch();
-                localShape->Parent_Object = object;
                 Exit_Flag = TRUE;
                 break;
 
             case UNION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(CSG_UNION_TYPE, object);
+                    (Geometry *)ObjectParser::parseCsg(CSG_UNION_TYPE);
                 Exit_Flag = TRUE;
                 break;
 
             case INTERSECTION_TOKEN:
-                localShape = (Geometry *)ObjectParser::parseCsg(
-                    CSG_INTERSECTION_TYPE, object);
+                localShape =
+                    (Geometry *)ObjectParser::parseCsg(CSG_INTERSECTION_TYPE);
                 Exit_Flag = TRUE;
                 break;
 
             case DIFFERENCE_TOKEN:
-                localShape = (Geometry *)ObjectParser::parseCsg(
-                    CSG_DIFFERENCE_TYPE, object);
+                localShape =
+                    (Geometry *)ObjectParser::parseCsg(CSG_DIFFERENCE_TYPE);
                 Exit_Flag = TRUE;
                 break;
 
@@ -506,7 +477,7 @@ ObjectParser::parseObject()
                     object = ObjectUtils::getObject();
                 }
 
-                localShape = ObjectParser::parseShape(object);
+                localShape = ObjectParser::parseShape();
                 ObjectUtils::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->Next_Object),
                     (SimpleBody **)&(object->Shape));
@@ -543,7 +514,7 @@ ObjectParser::parseObject()
 
                         default:
                             Tokenizer::ungetToken();
-                            localShape = ObjectParser::parseShape(object);
+                            localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->Next_Object),
                                 (SimpleBody **)&(object->Bounding_Shapes));
@@ -569,7 +540,7 @@ ObjectParser::parseObject()
 
                         default:
                             Tokenizer::ungetToken();
-                            localShape = ObjectParser::parseShape(object);
+                            localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->Next_Object),
                                 (SimpleBody **)&(object->Clipping_Shapes));
@@ -741,8 +712,7 @@ ObjectParser::parseComposite()
 
                         default:
                             Tokenizer::ungetToken();
-                            localShape = ObjectParser::parseShape(
-                                (SimpleBody *)localComposite);
+                            localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->Next_Object),
                                 (SimpleBody **)&(
@@ -769,8 +739,7 @@ ObjectParser::parseComposite()
 
                         default:
                             Tokenizer::ungetToken();
-                            localShape = ObjectParser::parseShape(
-                                (SimpleBody *)localComposite);
+                            localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->Next_Object),
                                 (SimpleBody **)&(

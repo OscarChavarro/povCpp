@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                         csg.c
  *
@@ -131,7 +130,7 @@ CSG::copyCsg(SimpleBody *object)
     Geometry *localShape;
     Geometry *copiedShape;
 
-    newShape = ModelFactory::getCsgShape();
+    newShape = new CSG;
     newShape->methods = shape->methods;
     newShape->Type = shape->Type;
     newShape->Next_Object = nullptr;
@@ -203,21 +202,5 @@ CSG::invertCsg(SimpleBody *object)
         localShape = localShape->Next_Object) {
 
         GeometryOperations::invert((SimpleBody *)localShape);
-    }
-}
-
-void
-CSG::setCsgParents(CSG *shape, SimpleBody *object)
-{
-    Geometry *localShape;
-
-    for (localShape = shape->Shapes; localShape != nullptr;
-        localShape = localShape->Next_Object) {
-
-        localShape->Parent_Object = object;
-        if ((localShape->Type == CSG_UNION_TYPE) ||
-            (localShape->Type == CSG_INTERSECTION_TYPE)) {
-            CSG::setCsgParents((CSG *)localShape, object);
-        }
     }
 }

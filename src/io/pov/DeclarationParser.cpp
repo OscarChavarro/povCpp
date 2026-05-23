@@ -149,8 +149,8 @@ DeclarationParser::parseDeclare()
 
             case INTERSECTION_TOKEN:
                 constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)ObjectParser::parseCsg(
-                    CSG_INTERSECTION_TYPE, nullptr);
+                constantPtr->Constant_Data =
+                    (char *)ObjectParser::parseCsg(CSG_INTERSECTION_TYPE);
                 constantPtr->Constant_Type = CSG_INTERSECTION_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
@@ -158,15 +158,15 @@ DeclarationParser::parseDeclare()
             case UNION_TOKEN:
                 constantPtr->Identifier_Number = globalToken.Identifier_Number;
                 constantPtr->Constant_Data =
-                    (char *)ObjectParser::parseCsg(CSG_UNION_TYPE, nullptr);
+                    (char *)ObjectParser::parseCsg(CSG_UNION_TYPE);
                 constantPtr->Constant_Type = CSG_UNION_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case DIFFERENCE_TOKEN:
                 constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)ObjectParser::parseCsg(
-                    CSG_DIFFERENCE_TYPE, nullptr);
+                constantPtr->Constant_Data =
+                    (char *)ObjectParser::parseCsg(CSG_DIFFERENCE_TYPE);
                 constantPtr->Constant_Type = CSG_DIFFERENCE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;

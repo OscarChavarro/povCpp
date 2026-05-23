@@ -1,4 +1,3 @@
-#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     objects.c
  *
@@ -148,6 +147,7 @@ Composite::allObjectIntersections(
         localIntersection != nullptr; localDepthQueue->deleteHighest(),
         localIntersection = localDepthQueue->getHighest()) {
 
+        localIntersection->Object = object;
         intersectionFound = TRUE;
 
         for (clippingShape = object->Clipping_Shapes; clippingShape != nullptr;
@@ -268,11 +268,6 @@ Composite::copyBasicObject(SimpleBody *object)
             (SimpleBody **)&(copiedShape->Next_Object),
             (SimpleBody **)&(newObject->Bounding_Shapes));
 
-        if ((copiedShape->Type == CSG_UNION_TYPE) ||
-            (copiedShape->Type == CSG_INTERSECTION_TYPE) ||
-            (copiedShape->Type == CSG_DIFFERENCE_TYPE)) {
-            CSG::setCsgParents((CSG *)copiedShape, newObject);
-        }
     }
 
     for (localShape = object->Clipping_Shapes; localShape != nullptr;
@@ -284,22 +279,10 @@ Composite::copyBasicObject(SimpleBody *object)
             (SimpleBody **)&(copiedShape->Next_Object),
             (SimpleBody **)&(newObject->Clipping_Shapes));
 
-        if ((copiedShape->Type == CSG_UNION_TYPE) ||
-            (copiedShape->Type == CSG_INTERSECTION_TYPE) ||
-            (copiedShape->Type == CSG_DIFFERENCE_TYPE)) {
-            CSG::setCsgParents((CSG *)copiedShape, newObject);
-        }
     }
 
     newObject->Shape =
         (Geometry *)GeometryOperations::copy((SimpleBody *)object->Shape);
-    if ((newObject->Shape->Type == CSG_UNION_TYPE) ||
-        (newObject->Shape->Type == CSG_INTERSECTION_TYPE) ||
-        (newObject->Shape->Type == CSG_DIFFERENCE_TYPE)) {
-        CSG::setCsgParents((CSG *)newObject->Shape, newObject);
-    } else {
-        newObject->Shape->Parent_Object = newObject;
-    }
 
     if (newObject->Object_Texture != nullptr) {
         newObject->Object_Texture =
@@ -317,7 +300,7 @@ Composite::copyCompositeObject(SimpleBody *object)
     SimpleBody *localObject;
     SimpleBody *copiedObject;
 
-    newObject = ModelFactory::getCompositeObject();
+    newObject = new Composite;
     *newObject = *((Composite *)object);
     newObject->Next_Object = nullptr;
     newObject->Objects = nullptr;

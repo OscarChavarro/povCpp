@@ -7,10 +7,10 @@ class CSG;
 
 class ObjectParser {
   public:
-    static Geometry *parseShape(SimpleBody *object);
+    static Geometry *parseShape();
     static SimpleBody *parseObject();
     static SimpleBody *parseComposite();
-    static CSG *parseCsg(int type, SimpleBody *parentObject);
+    static CSG *parseCsg(int type);
 };
 
 #endif

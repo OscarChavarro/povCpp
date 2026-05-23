@@ -341,7 +341,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
             shape->Intersection_Count++;
         }
         localElement.Depth = depths[i];
-        localElement.Object = shape->Parent_Object;
+        localElement.Object = nullptr;
         localElement.Point = shape->Intersection_Point[tcnt + i];
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);

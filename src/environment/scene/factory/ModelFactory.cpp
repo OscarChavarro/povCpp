@@ -331,7 +331,6 @@ ModelFactory::getCsgShape()
         exit(1);
     }
 
-    newShape->Parent_Object = nullptr;
     newShape->Next_Object = nullptr;
     newShape->Shapes = nullptr;
     return (newShape);
@@ -419,10 +418,4 @@ ModelFactory::getFloat()
 
     *newFloat = 0.0;
     return (newFloat);
-}
-
-ParametricBiCubicPatch *
-ParametricBiCubicPatch::getBicubicPatchShape()
-{
-    return ModelFactory::getBicubicPatchShape();
 }
