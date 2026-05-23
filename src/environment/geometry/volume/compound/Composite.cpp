@@ -546,7 +546,8 @@ ObjectUtils::getObject()
     SimpleBody *newObject;
 
     if ((newObject = new SimpleBody()) == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate object");
+        Logger::error("Out of memory. Cannot allocate object");
+        exit(1);
     }
 
     newObject->Next_Object = nullptr;

@@ -26,7 +26,7 @@ static constexpr int HAM = 0x800;
 void
 IffFormat::iffError()
 {
-    fprintf(stderr, "Invalid IFF file\n");
+    Logger::error( "Invalid IFF file\n");
     exit(1);
 }
 
@@ -94,7 +94,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
     unsigned long creg;
 
     if ((f = PovApp::locateFile(filename, READ_FILE_STRING)) == nullptr) {
-        fprintf(stderr, "Cannot open IFF file %s\n", filename);
+        Logger::error( "Cannot open IFF file %s\n", filename);
         exit(1);
     }
 
@@ -143,7 +143,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             colourmapSize = (int)globalChunkHeader.size / 3;
             iffColourMap = new RGBAPixel[colourmapSize];
             if (iffColourMap == nullptr) {
-                fprintf(stderr, "Cannot allocate memory for IFF colour map\n");
+                Logger::error( "Cannot allocate memory for IFF colour map\n");
                 exit(1);
             }
 
@@ -173,7 +173,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             }
             rowBytes = new unsigned char *[nPlanes];
             if (rowBytes == nullptr) {
-                fprintf(stderr, "Cannot allocate memory for row bytes\n");
+                Logger::error( "Cannot allocate memory for row bytes\n");
                 exit(1);
             }
 
@@ -181,7 +181,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                 if ((rowBytes[i] =
                             new unsigned char[((image->iwidth + 7) / 8)]) ==
                     nullptr) {
-                    fprintf(stderr, "Cannot allocate memory for row bytes\n");
+                    Logger::error( "Cannot allocate memory for row bytes\n");
                     exit(1);
                 }
             }
@@ -189,13 +189,13 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             if (image->Colour_Map == nullptr) {
                 image->data.rgb_lines = new ImageLine[image->iheight];
                 if (image->data.rgb_lines == nullptr) {
-                    fprintf(stderr, "Cannot allocate memory for picture\n");
+                    Logger::error( "Cannot allocate memory for picture\n");
                     exit(1);
                 }
             } else {
                 image->data.map_lines = new unsigned char *[image->iheight];
                 if (image->data.map_lines == nullptr) {
-                    fprintf(stderr, "Cannot allocate memory for picture\n");
+                    Logger::error( "Cannot allocate memory for picture\n");
                     exit(1);
                 }
             }
@@ -212,13 +212,13 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                         ((image->data.rgb_lines[i].blue =
                                  new unsigned char[image->iwidth]) ==
                             nullptr)) {
-                        fprintf(stderr, "Cannot allocate memory for picture\n");
+                        Logger::error( "Cannot allocate memory for picture\n");
                         exit(1);
                     }
                 } else {
                     image->data.map_lines[i] = new unsigned char[image->iwidth];
                     if (image->data.map_lines[i] == nullptr) {
-                        fprintf(stderr, "Cannot allocate memory for picture\n");
+                        Logger::error( "Cannot allocate memory for picture\n");
                         exit(1);
                     }
                 }
@@ -311,7 +311,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                         line->blue[j] = (unsigned char)(creg & 0xFF);
                     } else {
                         if (creg > (unsigned long)image->Colour_Map_Size) {
-                            fprintf(stderr,
+                            Logger::error(
                                 "Error - IFF Image Map Colour out of range\n");
                             exit(1);
                         }

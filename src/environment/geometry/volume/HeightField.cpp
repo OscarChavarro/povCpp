@@ -15,9 +15,9 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/HeightField.h"
-#include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
+#include "io/pov/SceneFactory.h"
+#include "io/pov/TextureParser.h"
 #include "media/Texture.h"
 
 inline int
@@ -603,18 +603,18 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
 
     hField->Map = (float **)calloc(maxZ + 1, sizeof(float *));
     if (hField->Map == nullptr) {
-        fprintf(stderr, "Cannot allocate memory for height field\n");
+        Logger::error( "Cannot allocate memory for height field\n");
     }
 
     hField->Block = (HeightFieldBlock **)calloc(w, sizeof(HeightFieldBlock *));
     if (hField->Block == nullptr) {
-        fprintf(stderr, "Cannot allocate memory for height field buffer\n");
+        Logger::error( "Cannot allocate memory for height field buffer\n");
     }
     for (i = 0; i < w; i++) {
         hField->Block[i] =
             (HeightFieldBlock *)calloc(h, sizeof(HeightFieldBlock));
         if (hField->Block[i] == nullptr) {
-            fprintf(stderr,
+            Logger::error(
                 "Cannot allocate memory for height field buffer line\n");
         }
         for (j = 0; j < h; j++) {
@@ -625,7 +625,7 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
 
     hField->Map[0] = (float *)calloc(maxX + 1, sizeof(float));
     if (hField->Map[0] == nullptr) {
-        fprintf(stderr, "Cannot allocate memory for height field\n");
+        Logger::error( "Cannot allocate memory for height field\n");
     }
 
     for (j = 0; j < h; j++) {

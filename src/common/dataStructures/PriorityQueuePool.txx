@@ -23,7 +23,7 @@ PriorityQueuePool<T>::pqInit()
     for (i = 0; i < NUMBER_OF_PRIOQS; i++) {
         newNode = new PriorityQueue<T>();
         if (newNode == nullptr) {
-            fprintf(stderr, "\nOut of memory. Cannot allocate queues");
+            Logger::error( "\nOut of memory. Cannot allocate queues");
             PovApp::closeAll();
             exit(1);
         }
@@ -33,7 +33,7 @@ PriorityQueuePool<T>::pqInit()
 
         newNode->queue = new T[MAX_NUMBER_OF_ENTRIES];
         if (newNode->queue == nullptr) {
-            fprintf(stderr, "\nOut of memory. Cannot allocate queue entries");
+            Logger::error( "\nOut of memory. Cannot allocate queue entries");
             PovApp::closeAll();
             exit(1);
         }
@@ -57,7 +57,7 @@ PriorityQueuePool<T>::pqPop(int indexSize)
     PriorityQueue<T> *pq;
 
     if (head == nullptr) {
-        fprintf(stderr, "\nOut of prioqs");
+        Logger::error( "\nOut of prioqs");
         PovApp::closeAll();
         exit(1);
     }

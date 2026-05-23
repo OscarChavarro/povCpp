@@ -6,8 +6,7 @@
  *****************************************************************************/
 
 #include "environment/camera/Viewpoint.h"
-#include "common/linealAlgebra/Vector3Dd.h"
-#include "io/Parse.h"
+#include "io/pov/SceneFactory.h"
 Methods Viewpoint_Methods = {nullptr, nullptr, nullptr, nullptr,
     Viewpoint::copyViewpoint, Viewpoint::translateViewpoint,
     Viewpoint::rotateViewpoint, Viewpoint::scaleViewpoint, nullptr};

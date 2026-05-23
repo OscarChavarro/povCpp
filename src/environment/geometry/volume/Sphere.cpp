@@ -5,9 +5,9 @@
  * *****************************************************************************/
 
 #include "environment/geometry/volume/Sphere.h"
-#include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
+#include "io/pov/SceneFactory.h"
+#include "io/pov/TextureParser.h"
 
 //===========================================================================
 
@@ -188,7 +188,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
     Sphere *sphere = (Sphere *)object;
 
     if ((vector->x != vector->y) || (vector->x != vector->z)) {
-        fprintf(stderr, "Error - you cannot scale a sphere unevenly\n");
+        Logger::error( "Error - you cannot scale a sphere unevenly\n");
         exit(1);
     }
 

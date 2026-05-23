@@ -38,7 +38,7 @@ RawFormat::getRawFileHandle()
 
     handle = new RAW_FILE_HANDLE;
     if (handle == nullptr) {
-        fprintf(stderr, "Cannot allocate memory for output file handle\n");
+        Logger::error( "Cannot allocate memory for output file handle\n");
         return (nullptr);
     }
 

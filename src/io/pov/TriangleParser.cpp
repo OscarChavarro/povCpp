@@ -39,7 +39,7 @@ TriangleParser::parseTriangle()
                 PrimitiveParser::parseVector(&localShape->P2);
                 PrimitiveParser::parseVector(&localShape->P3);
                 if (!Triangle::computeTriangle(localShape)) {
-                    fprintf(stderr,
+                    Logger::error(
                         "Degenerate triangle on line %d.  Please remove.\n",
                         globalToken.Token_Line_No);
                     degenerateTriangles = TRUE;

@@ -6,10 +6,9 @@
  *****************************************************************************/
 
 #include "common/Transformation.h"
-#include "app/PovApp.h"
 #include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/Parse.h"
+#include "common/logger/Logger.h"
 void
 Transformation::MZero(MATRIX *result)
 {
@@ -305,8 +304,9 @@ Transformation::getTransformation()
 
     newTransformation = new Transformation();
     if (newTransformation == nullptr) {
-        ParseErrorReporter::Error(
+        Logger::error(
             "Out of memory. Cannot allocate transformation");
+        exit(1);
     }
 
     Transformation::MIdentity((MATRIX *)&(newTransformation->matrix[0][0]));

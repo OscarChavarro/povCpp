@@ -6,9 +6,9 @@
  *****************************************************************************/
 
 #include "environment/light/Light.h"
-#include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
+#include "io/pov/SceneFactory.h"
+#include "io/pov/TextureParser.h"
 Methods Point_Methods = {Composite::objectIntersect,
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,

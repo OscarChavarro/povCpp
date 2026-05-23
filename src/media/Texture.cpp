@@ -484,7 +484,8 @@ TextureUtils::getTexture()
 
     newTexture = new Texture;
     if (newTexture == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate object");
+        Logger::error("Out of memory. Cannot allocate object");
+        exit(1);
     }
 
     newTexture->Next_Texture = nullptr;
