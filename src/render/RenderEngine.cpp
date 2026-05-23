@@ -18,7 +18,8 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "render/RenderOutput.h"
 #include "java/io/FileOutputStream.h"
-#include "render/LightingEngine.h"
+#include "render/RayShaderPipeline.h"
+#include "render/shaders/TraceService.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
 
@@ -44,6 +45,36 @@ double maxTraceLevel = 5;
 RGBAColor *previousLine, *currentLine;
 char *previousLineAntialiasedFlags, *currentLineAntialiasedFlags;
 RayWithSegments ray;
+
+static const TraceService *getTraceService();
+
+static void
+traceServiceTrace(void *context, RayWithSegments *ray, RGBAColor *colour)
+{
+    (void)context;
+    RenderEngine::trace(ray, colour);
+}
+
+static void
+traceServiceShadeShadow(
+    void *context, Intersection *intersection, RGBAColor *colour)
+{
+    (void)context;
+    RayShaderPipeline::shadeSurface(
+        intersection, colour, nullptr, TRUE, getTraceService());
+}
+
+static const TraceService traceService = {
+    traceServiceTrace,
+    traceServiceShadeShadow,
+    nullptr
+};
+
+static const TraceService *
+getTraceService()
+{
+    return &traceService;
+}
 
 void
 RenderFrame::createRay(
@@ -526,8 +557,8 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     }
 
     if (intersectionFound) {
-        LightingEngine::determineSurfaceColour(
-            localIntersection, colour, ray, FALSE);
+        RayShaderPipeline::shadeSurface(
+            localIntersection, colour, ray, FALSE, getTraceService());
         delete localIntersection;
     }
 }

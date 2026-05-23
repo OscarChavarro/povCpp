@@ -1,0 +1,19 @@
+#ifndef __DIRECT_LIGHT_SHADER_H__
+#define __DIRECT_LIGHT_SHADER_H__
+
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "media/Texture.h"
+
+class RayWithSegments;
+class RGBAColor;
+class TraceService;
+
+class DirectLightShader {
+public:
+    static void shade(Texture *texture, Vector3Dd *intersectionPoint,
+        RayWithSegments *eye, Vector3Dd *surfaceNormal,
+        RGBAColor *surfaceColour, RGBAColor *colour, double attenuation,
+        const TraceService *traceService);
+};
+
+#endif

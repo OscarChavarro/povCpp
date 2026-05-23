@@ -1,0 +1,110 @@
+#include "render/shaders/TransmissionRefractionShader.h"
+#include "render/shaders/TraceService.h"
+#include "common/Statistics.h"
+#include "common/color/Color.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/geometry/GeometryConstants.h"
+#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/scene/SceneFrame.h"
+
+extern int traceLevel;
+extern RenderFrame globalFrame;
+
+void
+TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
+    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *colour,
+    const TraceService *traceService)
+{
+    RayWithSegments newRay;
+    RGBAColor tempColour;
+    Vector3Dd localNormal;
+    Vector3Dd rayDirection;
+    double normalComponent;
+    double tempIor;
+    double temp, ior;
+
+    if (surfaceNormal == nullptr) {
+        newRay.position = *intersectionPoint;
+        newRay.direction = ray->direction;
+
+        newRay.copyContainersFrom(ray);
+        traceLevel++;
+        globalStatistics.transmittedRaysTraced++;
+        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
+        newRay.quadricConstantsCached = FALSE;
+        traceService->trace(&newRay, &tempColour);
+        traceLevel--;
+        (colour->Red) += tempColour.Red;
+        (colour->Green) += tempColour.Green;
+        (colour->Blue) += tempColour.Blue;
+    } else {
+        globalStatistics.refractedRaysTraced++;
+        normalComponent = ray->direction.dotProduct(*surfaceNormal);
+        if (normalComponent <= 0.0) {
+            localNormal.x = surfaceNormal->x;
+            localNormal.y = surfaceNormal->y;
+            localNormal.z = surfaceNormal->z;
+            normalComponent *= -1.0;
+        } else {
+            VectorOps::vScale(localNormal, *surfaceNormal, -1.0);
+        }
+
+        newRay.copyContainersFrom(ray);
+
+        if (ray->containingIndex == -1) {
+            /* The ray is entering from the atmosphere */
+            newRay.enterContainingMedium(texture);
+            ior = (globalFrame.Atmosphere_IOR) /
+                  (texture->Object_Index_Of_Refraction);
+        } else {
+            /* The ray is currently inside an object */
+            if (newRay.containingTextures[newRay.containingIndex] == texture)
+            /*            if (inside) */
+            {
+                /* The ray is leaving the current object */
+                newRay.exitContainingMedium();
+                if (newRay.containingIndex == -1) {
+                    /* The ray is leaving into the atmosphere */
+                    tempIor = globalFrame.Atmosphere_IOR;
+                } else {
+                    /* The ray is leaving into another object */
+                    tempIor = newRay.containingIORs[newRay.containingIndex];
+                }
+
+                ior = (texture->Object_Index_Of_Refraction) / tempIor;
+            } else {
+                /* The ray is entering a new object */
+                tempIor = newRay.containingIORs[newRay.containingIndex];
+                newRay.enterContainingMedium(texture);
+
+                ior = tempIor / (texture->Object_Index_Of_Refraction);
+            }
+        }
+
+        temp = 1.0 + ior * ior * (normalComponent * normalComponent - 1.0);
+        if (temp < 0.0) {
+            /* Total internal reflection - not yet implemented.
+    reflect (texture, intersectionPoint, ray, surfaceNormal, colour);
+    */
+            return;
+        }
+
+        temp = ior * normalComponent - sqrt(temp);
+        localNormal.scale(temp);
+        VectorOps::vScale(rayDirection, ray->direction, ior);
+        VectorOps::vAdd(newRay.direction, localNormal, rayDirection);
+        newRay.direction.normalize();
+
+        newRay.position = *intersectionPoint;
+        traceLevel++;
+        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
+        newRay.quadricConstantsCached = FALSE;
+
+        traceService->trace(&newRay, &tempColour);
+        traceLevel--;
+
+        (colour->Red) += (tempColour.Red) * (texture->Object_Refraction);
+        (colour->Green) += (tempColour.Green) * (texture->Object_Refraction);
+        (colour->Blue) += (tempColour.Blue) * (texture->Object_Refraction);
+    }
+}

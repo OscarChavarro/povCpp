@@ -72,7 +72,19 @@ add_executable(povray
   src/media/MapTextureFixture.cpp
   src/media/TextureFixture.cpp
   src/processing/PolynomialSolver.cpp
-  src/render/LightingEngine.cpp
+  src/render/shaders/LightSamplerShader.cpp
+  src/render/shaders/ShadowShader.cpp
+  src/render/shaders/PhongSpecularShader.cpp
+  src/render/shaders/BlinnPhongSpecularShader.cpp
+  src/render/shaders/LambertShader.cpp
+  src/render/shaders/ExponentialFogShader.cpp
+  src/render/shaders/BumpNormalShader.cpp
+  src/render/shaders/AmbientLightShader.cpp
+  src/render/shaders/DirectLightShader.cpp
+  src/render/shaders/MirrorReflectionShader.cpp
+  src/render/shaders/TransmissionRefractionShader.cpp
+  src/render/shaders/LocalSurfaceShader.cpp
+  src/render/RayShaderPipeline.cpp
   src/render/RenderEngine.cpp
   src/environment/material/RendererConfiguration.cpp
   src/common/Statistics.cpp
