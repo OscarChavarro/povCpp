@@ -1,26 +1,31 @@
 #ifndef __DUMP_FORMAT_H__
 #define __DUMP_FORMAT_H__
 
-#include "io/image/ImageFileHandle.h"
+#include "io/image/ImageOutput.h"
 #include "media/ImageData.h"
+#include "java/io/FileInputStream.h"
+#include "java/io/FileOutputStream.h"
 
 class RGBAColor;
 class RGBAImage;
 
-class DumpFormat {
+class DumpFormat : public ImageOutput {
   public:
-    static ImageFileHandle *getDumpFileInputStream(void);
-    static char *defaultDumpFileName(void);
-    static int openDumpFile(ImageFileHandle *handle, char *name, int *width,
-        int *height, int bufferSize, int mode);
-    static void writeDumpLine(
-        ImageFileHandle *handle, RGBAColor *lineData, int lineNumber);
-    static int readDumpLine(
-        ImageFileHandle *handle, RGBAColor *lineData, int *lineNumber);
-    static int readDumpIntLine(
-        ImageFileHandle *handle, ImageLine *lineData, int *lineNumber);
-    static void closeDumpFile(ImageFileHandle *handle);
+    DumpFormat();
+    ~DumpFormat() override;
+    const char *defaultFileName() override;
+    int open(char *name, int *width, int *height, int bufferSize, int mode) override;
+    void writeLine(RGBAColor *lineData, int lineNumber) override;
+    int readLine(RGBAColor *lineData, int *lineNumber) override;
+    void close() override;
     static void readDumpImage(RGBAImage *image, char *name);
+
+  private:
+    int readIntLine(ImageLine *lineData, int *lineNumber);
+    java::FileInputStream *inputStream;
+    java::FileOutputStream *outputStream;
+    int width, height, mode;
+    char *filename;
 };
 
 #endif
