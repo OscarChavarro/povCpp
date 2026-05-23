@@ -177,7 +177,6 @@ Tokenizer::getToken()
 {
     int c;
     int c2;
-    cooperate();
     if (stopFlag) {
         PovApp::closeAll();
         exit(1);

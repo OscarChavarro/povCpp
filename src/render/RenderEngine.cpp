@@ -257,17 +257,9 @@ void
 RenderEngine::readRenderedPart()
 {
     int rc;
-    int x;
     int lineNumber;
     while ((rc = PovApp::readOutputLine(
                 globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
-        if (Options & DISPLAY) {
-            for (x = 0; x < globalFrame.Screen_Width; x++) {
-                (void)x;
-                (void)lineNumber;
-                cooperate(); /* Moved inside loop JLN 12/91 */
-            }
-        }
     }
 
     firstLine = lineNumber + 1;
@@ -299,11 +291,8 @@ RenderEngine::startTracing()
 
         for (x = 0; x < globalFrame.Screen_Width; x++) {
 
-            testAbort();
-
             if (stopFlag) {
                 PovApp::closeAll();
-                printStatsInline();
                 /* exit with error if image not completed/user abort*/
                 exit(2);
             }
@@ -499,7 +488,6 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     Intersection *newIntersection;
     int intersectionFound;
 
-    cooperate();
     numberOfRays++;
     Color::makeColor(colour, 0.0, 0.0, 0.0);
 
@@ -523,7 +511,6 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     /* What objects does this ray intersect? */
     for (object = globalFrame.Objects; object != nullptr;
         object = object->Next_Object) {
-        cooperate();
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
             nullptr) {
             if (intersectionFound) {

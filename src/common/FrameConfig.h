@@ -1,14 +1,6 @@
 #ifndef __FRAMECONFIG_H__
 #define __FRAMECONFIG_H__
-/****************************************************************************
- *                         frame.h
- *
- *  This header file is included by all C modules in POV-Ray. It defines all
- *  globally-accessible types and constants.
- *
- *****************************************************************************/
 
-/* Generic header for all modules */
 #include "common/Config.h"
 #include <cmath>
 #include <cstdio>
@@ -21,43 +13,9 @@
 class FrameConfig {
   public:
     static inline void
-    readEnvVarBefore()
-    {
-    }
-    static inline void
-    readEnvVarAfter(char *optionStringPtr)
-    {
-        (void)optionStringPtr;
-    }
-    static inline void
-    configMath()
-    {
-    }
-    static inline void
-    startTime(time_t *tstart)
-    {
-        std::time(tstart);
-    }
-    static inline void
     stopTime(time_t *tstop)
     {
         std::time(tstop);
-    }
-    static inline void
-    printOtherCredits()
-    {
-    }
-    static inline void
-    testAbort()
-    {
-    }
-    static inline void
-    finishPovray()
-    {
-    }
-    static inline void
-    cooperate()
-    {
     }
     static inline double
     acosInline(double value)
@@ -95,37 +53,7 @@ class FrameConfig {
     {
         return (x < y) ? y : x;
     }
-    static inline void
-    printCreditsInline()
-    {
-    }
-    static inline void
-    printStatsInline()
-    {
-    }
-    static inline void
-    waitForKeypress()
-    {
-    }
 };
-
-// Deprecated: Use FrameConfig::readEnvVarBefore(), readEnvVarAfter(),
-// configMath() instead
-static inline void
-readEnvVarBefore()
-{
-    FrameConfig::readEnvVarBefore();
-}
-static inline void
-readEnvVarAfter(char *optionStringPtr)
-{
-    FrameConfig::readEnvVarAfter(optionStringPtr);
-}
-static inline void
-configMath()
-{
-    FrameConfig::configMath();
-}
 
 static constexpr int FILE_NAME_LENGTH = 150;
 
@@ -154,36 +82,10 @@ static constexpr char NORMAL = '0';
 
 static constexpr char GREY = 'G';
 
-// Deprecated: Use FrameConfig:: methods instead
-static inline void
-startTime(time_t *tstart)
-{
-    FrameConfig::startTime(tstart);
-}
 static inline void
 stopTime(time_t *tstop)
 {
     FrameConfig::stopTime(tstop);
-}
-static inline void
-printOtherCredits()
-{
-    FrameConfig::printOtherCredits();
-}
-static inline void
-testAbort()
-{
-    FrameConfig::testAbort();
-}
-static inline void
-finishPovray()
-{
-    FrameConfig::finishPovray();
-}
-static inline void
-cooperate()
-{
-    FrameConfig::cooperate();
 }
 static inline double
 acosInline(double value)
@@ -227,24 +129,7 @@ static constexpr int ansiFunc = 1;
 static constexpr int TRUE = 1;
 static constexpr int FALSE = 0;
 
-static inline void
-printCreditsInline()
-{
-    FrameConfig::printCreditsInline();
-}
-static inline void
-printStatsInline()
-{
-    FrameConfig::printStatsInline();
-}
-
 static constexpr int MAX_CONSTANTS = 1000;
-
-static inline void
-waitForKeypress()
-{
-    FrameConfig::waitForKeypress();
-}
 
 /* If compiler version is undefined, then make it 'u' for unknown */
 static constexpr const char *COMPILER_VER = ".u";

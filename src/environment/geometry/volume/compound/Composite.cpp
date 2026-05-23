@@ -66,7 +66,6 @@ Composite::allCompositeIntersections(
         boundingShape != nullptr; boundingShape = boundingShape->Next_Object) {
 
         boundingRegionTests++;
-        cooperate();
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
@@ -127,7 +126,6 @@ Composite::allObjectIntersections(
         boundingShape = boundingShape->Next_Object) {
 
         boundingRegionTests++;
-        cooperate();
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
