@@ -88,6 +88,7 @@ add_executable(povray
   src/render/RayShaderPipeline.cpp
   src/render/RenderEngine.cpp
   src/environment/material/RendererConfiguration.cpp
+  src/environment/material/RenderRuntimeState.cpp
   src/common/Statistics.cpp
   src/java/lang/Object.cpp
   src/java/lang/String.cpp

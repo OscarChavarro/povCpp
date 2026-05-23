@@ -1,4 +1,3 @@
-#include "render/RenderEngine.h"
 /****************************************************************************
  *                     spheres.c
  *
@@ -37,7 +36,7 @@ Sphere::intersectSphere(
     double tHalfChordSquared;
     short inside;
 
-    if (ray == RenderEngine::primaryRay()) {
+    if (ray->isPrimaryRay) {
         if (!sphere->VPCached) {
             VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->position);
             sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);

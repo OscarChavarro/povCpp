@@ -1,4 +1,3 @@
-#include "render/RenderEngine.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -318,7 +317,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
 
     intersectionFound = 0;
     Statistics::global().rayBicubicTests++;
-    if (ray == RenderEngine::primaryRay()) {
+    if (ray->isPrimaryRay) {
         shape->intersectionCount = 0;
     }
     tcnt = shape->intersectionCount;

@@ -21,13 +21,12 @@
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/TraceService.h"
 #include "environment/material/RendererConfiguration.h"
+#include "environment/material/RenderRuntimeState.h"
 #include "common/Statistics.h"
 
-volatile int RenderEngine::sStopFlag = 0;
 RenderFrame RenderEngine::sRenderFrame;
 RayWithSegments *RenderEngine::sPrimaryRay = nullptr;
 int RenderEngine::sTraceLevel = 0;
-double RenderEngine::sMaxTraceLevel = 5.0;
 
 inline unsigned short
 RenderEngine::rand3dInline(int a, int b)
@@ -66,13 +65,13 @@ RenderEngine::traceLevel()
 double &
 RenderEngine::maxTraceLevel()
 {
-    return sMaxTraceLevel;
+    return RenderRuntimeState::maxTraceLevel();
 }
 
 volatile int &
 RenderEngine::stopFlag()
 {
-    return sStopFlag;
+    return RenderRuntimeState::stopFlag();
 }
 
 static const TraceService *getTraceService();
@@ -128,6 +127,7 @@ RenderFrame::createRay(
     ray->direction.add(RenderEngine::renderFrame().viewPoint.Direction);
     ray->direction.normalize();
     ray->initializeContainers();
+    ray->isPrimaryRay = TRUE;
     ray->quadricConstantsCached = FALSE;
 }
 

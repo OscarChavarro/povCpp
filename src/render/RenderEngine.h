@@ -8,8 +8,6 @@ class RenderEngine {
     static RenderFrame sRenderFrame;
     static RayWithSegments *sPrimaryRay;
     static int sTraceLevel;
-    static double sMaxTraceLevel;
-    static volatile int sStopFlag;
 
   public:
     static RenderFrame &renderFrame();

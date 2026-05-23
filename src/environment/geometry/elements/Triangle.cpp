@@ -1,4 +1,3 @@
-#include "render/RenderEngine.h"
 /****************************************************************************
  *                     triangle.c
  *
@@ -257,7 +256,7 @@ Triangle::intersectTriangle(
         return (FALSE);
     }
 
-    if (ray == RenderEngine::primaryRay()) {
+    if (ray->isPrimaryRay) {
         if (!triangle->VPCached) {
             VectorOps::vDot(triangle->VPNormDotOrigin, triangle->normalVector,
                 ray->position);

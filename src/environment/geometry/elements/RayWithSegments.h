@@ -8,6 +8,7 @@ static constexpr int MAX_CONTAINING_OBJECTS = 10;
 
 class RayWithSegments : public Ray {
   public:
+    RayWithSegments();
     Vector3Dd position2;               /*  Xo^2  Yo^2  Zo^2  */
     Vector3Dd direction2;              /*  Xv^2  Yv^2  Zv^2  */
     Vector3Dd positionDirection;       /*  XoXv  YoYv  ZoZv  */
@@ -19,6 +20,7 @@ class RayWithSegments : public Ray {
     double containingIORs[MAX_CONTAINING_OBJECTS];
     int quadricConstantsCached;
     int isShadowRay;
+    int isPrimaryRay;
 
     void makeRay();
     void initializeContainers();

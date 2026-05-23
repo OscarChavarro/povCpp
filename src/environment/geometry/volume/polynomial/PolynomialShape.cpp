@@ -39,13 +39,19 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1}};
 
 int factorials[MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
-int termCounts[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
+static int termCountsInstance[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
 Methods PolynomialShape::methodTable = {Composite::objectIntersect,
     PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
     PolynomialShape::polyNormal, PolynomialShape::copyPoly,
     PolynomialShape::translatePoly, PolynomialShape::rotatePoly,
     PolynomialShape::scalePoly, PolynomialShape::invertPoly};
+
+int *
+PolynomialShape::termCounts()
+{
+    return termCountsInstance;
+}
 
 
 int
@@ -216,13 +222,13 @@ PolynomialShape::intersect(
     int j;
     /* Determine the coefficients of t^n, where the line is represented
         as (x,y,z) + (xx,yy,zz)*t.  */
-    a = new double[termCounts[order]];
+    a = new double[termCountsInstance[order]];
     if (a == nullptr) {
         Logger::info("Cannot allocate memory for coefficients in poly "
                "PolynomialShape::intersect()\n");
         exit(1);
     }
-    for (i = 0; i < termCounts[order]; i++) {
+    for (i = 0; i < termCountsInstance[order]; i++) {
         a[i] = coeffs[i];
     }
     Transformation::MZero((MATRIX *)&q[0][0]);
@@ -282,7 +288,7 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
         z[i] = z[1] * z[i - 1];
     }
     result = 0.0;
-    for (i = 0; i < termCounts[order]; i++) {
+    for (i = 0; i < termCountsInstance[order]; i++) {
         PolynomialShape::unroll(order, i, &k0, &k1, &k2, &k3);
         result += coeffs[i] * x[k0] * y[k1] * z[k2];
     }
@@ -321,7 +327,7 @@ PolynomialShape::normalp(
     result->x = 0.0;
     result->y = 0.0;
     result->z = 0.0;
-    for (i = 0; i < termCounts[order]; i++) {
+    for (i = 0; i < termCountsInstance[order]; i++) {
         PolynomialShape::unroll(order, i, &xp, &yp, &zp, &wp);
         if (xp >= 1) {
             result->x += xp * a[i] * x[xp - 1] * y[yp] * z[zp];
@@ -418,21 +424,21 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
         }
     }
 
-    b = new double[termCounts[order]];
+    b = new double[termCountsInstance[order]];
     if (b == nullptr) {
         Logger::info("Cannot allocate memory for b in poly "
                "PolynomialShape::transform()\n");
         exit(1);
     }
-    for (i = 0; i < termCounts[order]; i++) {
+    for (i = 0; i < termCountsInstance[order]; i++) {
         b[i] = 0.0;
     }
-    for (termIndex = 0; termIndex < termCounts[order]; termIndex++) {
+    for (termIndex = 0; termIndex < termCountsInstance[order]; termIndex++) {
         if (coeffs[termIndex] != 0.0) {
             PolynomialShape::unroll(order, termIndex, &ip, &jp, &kp, &wp);
             /* Step through terms in: (q[0][0]*x+q[0][1]*y+q[0][2]*z+q[0][3])^i
              */
-            for (i = 0; i < termCounts[ip]; i++) {
+            for (i = 0; i < termCountsInstance[ip]; i++) {
                 PolynomialShape::unroll(ip, i, &i0, &i1, &i2, &i3);
                 tempx =
                     PolynomialShape::doPartialTerm(q, 0, ip, i0, i1, i2, i3);
@@ -440,7 +446,7 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
 
                     /* Step through terms in:
                                 (q[1][0]*x+q[1][1]*y+q[1][2]*z+q[1][3])^j */
-                    for (j = 0; j < termCounts[jp]; j++) {
+                    for (j = 0; j < termCountsInstance[jp]; j++) {
                         PolynomialShape::unroll(jp, j, &j0, &j1, &j2, &j3);
                         tempy = PolynomialShape::doPartialTerm(
                             q, 1, jp, j0, j1, j2, j3);
@@ -449,7 +455,7 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
                             /* Step through terms in:
                                         (q[2][0]*x+q[2][1]*y+q[2][2]*z+q[2][3])^k
                              */
-                            for (k = 0; k < termCounts[kp]; k++) {
+                            for (k = 0; k < termCountsInstance[kp]; k++) {
                                 PolynomialShape::unroll(
                                     kp, k, &k0, &k1, &k2, &k3);
                                 tempz = PolynomialShape::doPartialTerm(
@@ -471,7 +477,7 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
             }
         }
     }
-    for (i = 0; i < termCounts[order]; i++) {
+    for (i = 0; i < termCountsInstance[order]; i++) {
         if (b[i] > -1.0e-4 && b[i] < 1.0e-4) {
             coeffs[i] = 0.0;
         } else {
@@ -851,7 +857,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
 
     *newShape = *shape;
     newShape->nextObject = nullptr;
-    newShape->Coeffs = new double[termCounts[newShape->Order]];
+    newShape->Coeffs = new double[termCountsInstance[newShape->Order]];
     newShape->Transform = nullptr;
 
     /* Copy any associated transformation */
@@ -859,7 +865,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
         newShape->Transform = Transformation::getTransformation();
         memcpy(newShape->Transform, shape->Transform, sizeof(Transformation));
     }
-    for (i = 0; i < termCounts[newShape->Order]; i++) {
+    for (i = 0; i < termCountsInstance[newShape->Order]; i++) {
         newShape->Coeffs[i] = shape->Coeffs[i];
     }
 

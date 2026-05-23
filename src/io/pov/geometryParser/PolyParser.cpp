@@ -30,7 +30,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     Texture *localTexture;
 
     if (knownOrder > 0) {
-        localShape = SceneFactory::getPolyShape(knownOrder);
+        localShape = SceneFactory::getPolyShape(knownOrder, ctx.termCounts());
     } else {
         localShape = nullptr;
     }
@@ -55,7 +55,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if (order < 2 || order > MAX_ORDER) {
                     ParseErrorReporter::Error("Order of Poly is out of range", ctx);
                 }
-                localShape = SceneFactory::getPolyShape(order);
+                localShape = SceneFactory::getPolyShape(order, ctx.termCounts());
                 break;
 
             case LEFT_ANGLE_TOKEN:

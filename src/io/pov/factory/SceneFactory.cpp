@@ -27,9 +27,9 @@ SceneFactory::getQuadricShape()
 }
 
 PolynomialShape *
-SceneFactory::getPolyShape(int order)
+SceneFactory::getPolyShape(int order, const int *termCounts)
 {
-    return ModelFactory::getPolyShape(order);
+    return ModelFactory::getPolyShape(order, termCounts);
 }
 
 Box *

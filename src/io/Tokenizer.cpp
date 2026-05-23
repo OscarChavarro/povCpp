@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "render/RenderEngine.h"
 /****************************************************************************
  *                     tokenize.c
  *
@@ -12,6 +11,7 @@
 #include "io/FileLocator.h"
 #include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
+#include "environment/material/RenderRuntimeState.h"
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
@@ -29,7 +29,7 @@ extern char libraryPath[];
 /* Here are the reserved words.  If you need to add new words, be sure
 to declare them in frame.h */
 
-ReservedWord globalReservedWords[LAST_TOKEN] = {{AGATE_TOKEN, "agate"},
+ReservedWord Tokenizer::sReservedWords[LAST_TOKEN] = {{AGATE_TOKEN, "agate"},
     {ALL_TOKEN, "all"}, {ALPHA_TOKEN, "alpha"}, {AMBIENT_TOKEN, "ambient"},
     {AMPERSAND_TOKEN, "&"}, {AT_TOKEN, "@"}, {BACK_QUOTE_TOKEN, "`"},
     {BACK_SLASH_TOKEN, "\\"}, {BAR_TOKEN, "|"},
@@ -114,7 +114,19 @@ static DataFile globalIncludeFiles[MAX_INCLUDE_FILES];
 static DataFile *globalDataFile;
 static int globalIncludeFileIndex;
 
-TokenStruct globalToken;
+TokenStruct Tokenizer::sToken;
+
+ReservedWord *
+Tokenizer::reservedWords()
+{
+    return sReservedWords;
+}
+
+TokenStruct &
+Tokenizer::token()
+{
+    return sToken;
+}
 
 void
 Tokenizer::setCaseSensitiveIdentifiers(int mode)
@@ -200,7 +212,7 @@ Tokenizer::getToken()
     ParserContext ctx;
     int c;
     int c2;
-    if (RenderEngine::stopFlag()) {
+    if (RenderRuntimeState::stopFlag()) {
         exit(1);
     }
     if (ctx.token().ungetToken) {

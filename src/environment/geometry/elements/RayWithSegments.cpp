@@ -11,6 +11,14 @@
 #include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
+RayWithSegments::RayWithSegments()
+{
+    containingIndex = -1;
+    quadricConstantsCached = FALSE;
+    isShadowRay = FALSE;
+    isPrimaryRay = FALSE;
+}
+
 inline void
 RayWithSegments::mixVectorTerms(
     Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
@@ -46,6 +54,7 @@ RayWithSegments::initializeContainers()
 {
     this->containingIndex = -1;
     this->isShadowRay = FALSE;
+    this->isPrimaryRay = FALSE;
 }
 
 void
@@ -59,6 +68,7 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
         exit(1);
     }
     this->isShadowRay = sourceRay->isShadowRay;
+    this->isPrimaryRay = FALSE;
 
     for (i = 0; i < MAX_CONTAINING_OBJECTS; i++) {
         this->containingTextures[i] = sourceRay->containingTextures[i];

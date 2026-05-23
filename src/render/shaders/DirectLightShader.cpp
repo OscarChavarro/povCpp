@@ -1,4 +1,3 @@
-#include "render/RenderEngine.h"
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/TraceService.h"
 #include "common/Statistics.h"
@@ -23,7 +22,8 @@ static constexpr double SHADOW_TOLERANCE = 0.05;
 void
 DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     RayWithSegments *eye, Vector3Dd *surfaceNormal, RGBAColor *surfaceColor,
-    RGBAColor *color, double attenuation, const TraceService *traceService)
+    RGBAColor *color, double attenuation, const TraceService *traceService,
+    const RenderFrame &frame)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
@@ -52,8 +52,9 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
 
     localQueue = IntersectionPriorityQueuePool::pqPop(128);
     lightSourceRay.isShadowRay = TRUE;
+    lightSourceRay.isPrimaryRay = FALSE;
 
-    for (lightSource = RenderEngine::renderFrame().Light_Sources; lightSource != nullptr;
+    for (lightSource = frame.Light_Sources; lightSource != nullptr;
         lightSource = lightSource->Next_Light_Source) {
         intersectionFound = FALSE;
 
@@ -62,7 +63,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
 
         /* What objects does this ray intersect? */
         if (RenderingConfiguration::global().quality > 3) {
-            for (blockingObject = RenderEngine::renderFrame().Objects;
+            for (blockingObject = frame.Objects;
                 blockingObject != nullptr;
                 blockingObject = blockingObject->nextObject) {
 
