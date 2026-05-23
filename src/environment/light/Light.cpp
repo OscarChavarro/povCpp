@@ -7,8 +7,8 @@
 
 #include "environment/light/Light.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/pov/SceneFactory.h"
-#include "io/pov/TextureParser.h"
+#include "environment/scene/factory/ModelFactory.h"
+#include "media/Texture.h"
 Methods Point_Methods = {Composite::objectIntersect,
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,
@@ -32,13 +32,13 @@ Light::copyPoint(SimpleBody *object)
 {
     Light *newShape;
 
-    newShape = SceneFactory::getLightSourceShape();
+    newShape = ModelFactory::getLightSourceShape();
     *newShape = *((Light *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

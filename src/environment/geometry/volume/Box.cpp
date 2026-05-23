@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     boxes.c
  *
@@ -11,7 +12,6 @@
 #include "environment/geometry/volume/Box.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
     Box::rotateBox, Box::scaleBox, Box::invertBox};
@@ -287,7 +287,7 @@ Box::copyBox(SimpleBody *object)
     Box *newShape;
     Transformation *tr;
 
-    newShape = SceneFactory::getBoxShape();
+    newShape = ModelFactory::getBoxShape();
     *newShape = *((Box *)object);
     newShape->Next_Object = nullptr;
 
@@ -300,7 +300,7 @@ Box::copyBox(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

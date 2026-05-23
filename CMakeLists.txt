@@ -28,6 +28,7 @@ add_executable(povray
   src/environment/geometry/volume/polynomial/PolynomialShape.cpp
   src/environment/geometry/volume/Quadric.cpp
   src/environment/geometry/volume/Sphere.cpp
+  src/environment/scene/factory/ModelFactory.cpp
   src/environment/geometry/elements/Triangle.cpp
   src/environment/camera/Viewpoint.cpp
   src/io/DumpFormat.cpp
@@ -54,7 +55,7 @@ add_executable(povray
   src/io/pov/ObjectParser.cpp
   src/io/pov/SceneConfigParser.cpp
   src/io/pov/SceneParser.cpp
-  src/io/pov/SceneFactory.cpp
+  src/io/pov/factory/SceneFactory.cpp
   src/io/pov/FogParser.cpp
   src/io/pov/DefaultTextureParser.cpp
   src/io/pov/RenderSettingsParser.cpp

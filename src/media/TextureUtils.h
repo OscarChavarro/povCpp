@@ -26,6 +26,7 @@ class TextureUtils {
     static void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
     static void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
     static void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
+    static Texture *copyTexture(Texture *texture);
     static Texture *getTexture();
 };
 

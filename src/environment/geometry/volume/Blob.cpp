@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     blob.c
  *
@@ -11,7 +12,6 @@
 #include "environment/geometry/volume/Blob.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 #include "processing/PolynomialSolver.h"
 Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
@@ -538,7 +538,7 @@ Blob::copyBlob(SimpleBody *object)
     Blob *oldShape = (Blob *)object;
     Transformation *tr;
 
-    blob = SceneFactory::getBlobShape();
+    blob = ModelFactory::getBlobShape();
     memcpy(blob, oldShape, sizeof(Blob));
     blob->Next_Object = nullptr;
 
@@ -564,7 +564,7 @@ Blob::copyBlob(SimpleBody *object)
 
     /* Copy any associated texture */
     if (blob->Shape_Texture != nullptr) {
-        blob->Shape_Texture = TextureParser::copyTexture(blob->Shape_Texture);
+        blob->Shape_Texture = TextureUtils::copyTexture(blob->Shape_Texture);
     }
 
     return (blob);

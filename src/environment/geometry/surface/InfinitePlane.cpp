@@ -1,3 +1,4 @@
+#include "environment/scene/factory/ModelFactory.h"
 /****************************************************************************
  *                     planes.c
  *
@@ -8,7 +9,6 @@
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 Methods Plane_Methods = {Composite::objectIntersect,
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
     InfinitePlane::planeNormal, InfinitePlane::copyPlane,
@@ -113,13 +113,13 @@ InfinitePlane::copyPlane(SimpleBody *object)
 {
     InfinitePlane *newShape;
 
-    newShape = SceneFactory::getPlaneShape();
+    newShape = ModelFactory::getPlaneShape();
     *newShape = *((InfinitePlane *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

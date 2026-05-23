@@ -14,7 +14,6 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/Parse.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
@@ -1005,7 +1004,7 @@ ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
     ParametricBiCubicPatch::precomputePatchValues(newShape);
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (void *)(newShape);

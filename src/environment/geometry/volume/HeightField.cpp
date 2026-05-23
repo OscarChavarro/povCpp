@@ -16,8 +16,8 @@
 
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "io/pov/SceneFactory.h"
-#include "io/pov/TextureParser.h"
+#include "environment/scene/factory/ModelFactory.h"
+#include "media/Texture.h"
 #include "media/Texture.h"
 
 inline int
@@ -900,13 +900,13 @@ HeightField::copyHeightfld(SimpleBody *object)
 {
     HeightField *newShape;
 
-    newShape = SceneFactory::getHeightFieldShape();
+    newShape = ModelFactory::getHeightFieldShape();
     *newShape = *((HeightField *)object);
     newShape->Next_Object = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureParser::copyTexture(newShape->Shape_Texture);
+            TextureUtils::copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);

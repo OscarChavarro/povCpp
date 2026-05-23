@@ -1,14 +1,9 @@
-#include "app/PovApp.h"
+#include "environment/scene/factory/ModelFactory.h"
+
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
-#include "io/DumpFormat.h"
-#include "io/GifFormat.h"
-#include "io/IffFormat.h"
-#include "io/TargaFormat.h"
-#include "io/pov/Parse.h"
-#include "render/RenderEngine.h"
-
+#include "common/color/Color.h"
+#include "common/logger/Logger.h"
 #include "environment/camera/Viewpoint.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
@@ -23,34 +18,21 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
-extern ReservedWord globalReservedWords[];
-extern double antialiasThreshold;
 extern int termCounts[MAX_ORDER + 1];
-extern TokenStruct globalToken;
-extern double maxTraceLevel;
-extern char verboseFormat;
-extern unsigned int Options;
-extern char statFileName[FILE_NAME_LENGTH];
 
-extern RenderFrame *parsingFramePtr;
-extern Constant constants[MAX_CONSTANTS];
-extern int numberOfConstants;
-extern int degenerateTriangles;
-
-/* Allocate and initialize a composite object. */
 Composite *
-SceneFactory::getCompositeObject()
+ModelFactory::getCompositeObject()
 {
     Composite *newComposite;
 
     newComposite = new Composite;
     if (newComposite == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate object");
+        Logger::error("Out of memory. Cannot allocate object\n");
+        exit(1);
     }
 
     newComposite->Objects = nullptr;
     newComposite->Next_Object = nullptr;
-    /*  New_Composite -> Next_Light_Source = NULL;*/
     newComposite->Bounding_Shapes = nullptr;
     newComposite->Clipping_Shapes = nullptr;
     newComposite->Type = COMPOSITE_TYPE;
@@ -58,15 +40,15 @@ SceneFactory::getCompositeObject()
     return (newComposite);
 }
 
-/* Allocate and initialize a sphere. */
 Sphere *
-SceneFactory::getSphereShape()
+ModelFactory::getSphereShape()
 {
     Sphere *newShape;
 
     newShape = new Sphere();
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
@@ -83,26 +65,24 @@ SceneFactory::getSphereShape()
     return (newShape);
 }
 
-/* Allocate and initialize a light source. */
-/* A point light source has no shape, but we'll treat it like it does */
 Light *
-SceneFactory::getLightSourceShape()
+ModelFactory::getLightSourceShape()
 {
     Light *newShape;
 
     newShape = new Light;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->Points_At) = Vector3Dd(0.0, 0.0, 1.0);
     newShape->Type = POINT_LIGHT_TYPE;
     newShape->methods = &Point_Methods;
     newShape->Next_Object = nullptr;
-    newShape->Inverted = FALSE; /* needed so CSG routines don't blow up */
-    newShape->Shape_Texture = nullptr; /* always NULL */
-    newShape->Shape_Colour =
-        SceneFactory::getColour(); /* becomes light colour */
+    newShape->Inverted = FALSE;
+    newShape->Shape_Texture = nullptr;
+    newShape->Shape_Colour = ModelFactory::getColour();
     Color::makeColor(newShape->Shape_Colour, 1.0, 1.0, 1.0);
     newShape->Shape_Colour->Alpha = 0.0;
     newShape->Coeff = 10.0;
@@ -111,15 +91,15 @@ SceneFactory::getLightSourceShape()
     return (newShape);
 }
 
-/* Allocate and initialize a quadric surface. */
 Quadric *
-SceneFactory::getQuadricShape()
+ModelFactory::getQuadricShape()
 {
     Quadric *newShape;
 
     newShape = new Quadric;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     *&(newShape->Object_2_Terms) = Vector3Dd(1.0, 1.0, 1.0);
@@ -137,16 +117,16 @@ SceneFactory::getQuadricShape()
     return (newShape);
 }
 
-/* Allocate and initialize a polynomial surface. */
 PolynomialShape *
-SceneFactory::getPolyShape(int order)
+ModelFactory::getPolyShape(int order)
 {
     PolynomialShape *newShape;
     int i;
 
     newShape = new PolynomialShape;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     newShape->Type = POLY_TYPE;
@@ -160,8 +140,9 @@ SceneFactory::getPolyShape(int order)
     newShape->Sturm_Flag = 0;
     newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
-        ParseErrorReporter::Error(
-            "Out of memory. Cannot allocate coefficients for POLY");
+        Logger::error(
+            "Out of memory. Cannot allocate coefficients for POLY\n");
+        exit(1);
     }
     for (i = 0; i < termCounts[order]; i++) {
         newShape->Coeffs[i] = 0.0;
@@ -169,15 +150,15 @@ SceneFactory::getPolyShape(int order)
     return (newShape);
 }
 
-/* Allocate and initialize a box. */
 Box *
-SceneFactory::getBoxShape()
+ModelFactory::getBoxShape()
 {
     Box *newShape;
 
     newShape = new Box;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     *&(newShape->bounds[0]) = Vector3Dd(-1.0, -1.0, -1.0);
@@ -192,15 +173,15 @@ SceneFactory::getBoxShape()
     return (newShape);
 }
 
-/* Allocate a blob. */
 Blob *
-SceneFactory::getBlobShape()
+ModelFactory::getBlobShape()
 {
     Blob *newShape;
 
     newShape = new Blob;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     newShape->Transform = nullptr;
@@ -213,15 +194,15 @@ SceneFactory::getBlobShape()
     return (newShape);
 }
 
-/* Allocate and initialize a bicubic patch surface. */
 ParametricBiCubicPatch *
-SceneFactory::getBicubicPatchShape()
+ModelFactory::getBicubicPatchShape()
 {
     ParametricBiCubicPatch *newShape;
 
     newShape = new ParametricBiCubicPatch;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     newShape->Type = BICUBIC_PATCH_TYPE;
@@ -239,17 +220,17 @@ SceneFactory::getBicubicPatchShape()
     return (newShape);
 }
 
-/* Allocate and intialize a Height Field */
 HeightField *
-SceneFactory::getHeightFieldShape()
+ModelFactory::getHeightFieldShape()
 {
     HeightField *newShape;
 
     newShape = new HeightField;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
-    newShape->bounding_box = SceneFactory::getBoxShape();
+    newShape->bounding_box = ModelFactory::getBoxShape();
     newShape->Map = nullptr;
     newShape->transformation = Transformation::getTransformation();
     newShape->Type = HEIGHT_FIELD_TYPE;
@@ -260,15 +241,15 @@ SceneFactory::getHeightFieldShape()
     return (newShape);
 }
 
-/* Allocate and initialize a plane. */
 InfinitePlane *
-SceneFactory::getPlaneShape()
+ModelFactory::getPlaneShape()
 {
     InfinitePlane *newShape;
 
     newShape = new InfinitePlane;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
@@ -282,15 +263,15 @@ SceneFactory::getPlaneShape()
     return (newShape);
 }
 
-/* Allocate and initialize a triangle. */
 Triangle *
-SceneFactory::getTriangleShape()
+ModelFactory::getTriangleShape()
 {
     Triangle *newShape;
 
     newShape = new Triangle;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
@@ -309,15 +290,15 @@ SceneFactory::getTriangleShape()
     return (newShape);
 }
 
-/* Allocate and initialize a smooth triangle. */
 SmoothTriangle *
-SceneFactory::getSmoothTriangleShape()
+ModelFactory::getSmoothTriangleShape()
 {
     SmoothTriangle *newShape;
 
     newShape = new SmoothTriangle;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
@@ -340,13 +321,14 @@ SceneFactory::getSmoothTriangleShape()
 }
 
 CSG *
-SceneFactory::getCsgShape()
+ModelFactory::getCsgShape()
 {
     CSG *newShape;
 
     newShape = new CSG;
     if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
+        Logger::error("Out of memory. Cannot allocate shape\n");
+        exit(1);
     }
 
     newShape->Parent_Object = nullptr;
@@ -356,35 +338,36 @@ SceneFactory::getCsgShape()
 }
 
 CSG *
-SceneFactory::getCsgUnion()
+ModelFactory::getCsgUnion()
 {
     CSG *newShape;
 
-    newShape = SceneFactory::getCsgShape();
+    newShape = ModelFactory::getCsgShape();
     newShape->methods = &CSG_Union_Methods;
     newShape->Type = CSG_UNION_TYPE;
     return (newShape);
 }
 
 CSG *
-SceneFactory::getCsgIntersection()
+ModelFactory::getCsgIntersection()
 {
     CSG *newShape;
 
-    newShape = SceneFactory::getCsgShape();
+    newShape = ModelFactory::getCsgShape();
     newShape->methods = &CSG_Intersection_Methods;
     newShape->Type = CSG_INTERSECTION_TYPE;
     return (newShape);
 }
 
 Viewpoint *
-SceneFactory::getViewpoint()
+ModelFactory::getViewpoint()
 {
     Viewpoint *newViewpoint;
 
     newViewpoint = new Viewpoint;
     if (newViewpoint == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate viewpoint");
+        Logger::error("Out of memory. Cannot allocate viewpoint\n");
+        exit(1);
     }
 
     newViewpoint->initializeDefaults();
@@ -392,13 +375,14 @@ SceneFactory::getViewpoint()
 }
 
 RGBAColor *
-SceneFactory::getColour()
+ModelFactory::getColour()
 {
     RGBAColor *newColour;
 
     newColour = new RGBAColor;
     if (newColour == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate colour");
+        Logger::error("Out of memory. Cannot allocate colour\n");
+        exit(1);
     }
 
     Color::makeColor(newColour, 0.0, 0.0, 0.0);
@@ -406,13 +390,14 @@ SceneFactory::getColour()
 }
 
 Vector3Dd *
-SceneFactory::getVector()
+ModelFactory::getVector()
 {
     Vector3Dd *newVector;
 
     newVector = new Vector3Dd;
     if (newVector == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate vector");
+        Logger::error("Out of memory. Cannot allocate vector\n");
+        exit(1);
     }
 
     newVector->x = 0.0;
@@ -422,13 +407,14 @@ SceneFactory::getVector()
 }
 
 double *
-SceneFactory::getFloat()
+ModelFactory::getFloat()
 {
     double *newFloat;
 
     newFloat = new double;
     if (newFloat == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate float");
+        Logger::error("Out of memory. Cannot allocate float\n");
+        exit(1);
     }
 
     *newFloat = 0.0;
@@ -438,26 +424,5 @@ SceneFactory::getFloat()
 ParametricBiCubicPatch *
 ParametricBiCubicPatch::getBicubicPatchShape()
 {
-    ParametricBiCubicPatch *newShape;
-
-    newShape = new ParametricBiCubicPatch;
-    if (newShape == nullptr) {
-        ParseErrorReporter::Error("Out of memory. Cannot allocate shape");
-    }
-
-    newShape->Type = BICUBIC_PATCH_TYPE;
-    newShape->Next_Object = nullptr;
-    newShape->methods = &Bicubic_Patch_Methods;
-    newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
-    newShape->U_Steps = 0;
-    newShape->V_Steps = 0;
-    newShape->Intersection_Count = 0;
-    newShape->Interpolated_Grid = (Vector3Dd **)nullptr;
-    newShape->Interpolated_Normals = (Vector3Dd **)nullptr;
-    newShape->Smooth_Normals = (Vector3Dd **)nullptr;
-    newShape->Interpolated_D = (double **)nullptr;
-    return (newShape);
+    return ModelFactory::getBicubicPatchShape();
 }
-
-/* Parse a float.  Doesn't handle exponentiation. */
