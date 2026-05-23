@@ -1,21 +1,25 @@
 #ifndef __TARGA_FORMAT_H__
 #define __TARGA_FORMAT_H__
 
-#include "io/image/DumpFormat.h"
+#include "io/image/ImageFileHandle.h"
+#include "media/ImageData.h"
+
+class RGBAColor;
+class RGBAImage;
 
 class TargaFormat {
   public:
-    static FileInputStream *getTargaFileInputStream(void);
+    static ImageFileHandle *getTargaFileInputStream(void);
     static char *defaultTargaFileName(void);
-    static int openTargaFile(FileInputStream *handle, char *name, int *width,
+    static int openTargaFile(ImageFileHandle *handle, char *name, int *width,
         int *height, int bufferSize, int mode);
     static void writeTargaLine(
-        FileInputStream *handle, RGBAColor *lineData, int lineNumber);
+        ImageFileHandle *handle, RGBAColor *lineData, int lineNumber);
     static int readTargaLine(
-        FileInputStream *handle, RGBAColor *lineData, int *lineNumber);
+        ImageFileHandle *handle, RGBAColor *lineData, int *lineNumber);
     static void readTargaImage(RGBAImage *image, char *name);
-    static void closeTargaFile(FileInputStream *handle);
-    static int readTargaIntLine(FileInputStream *handle, ImageLine *lineData);
+    static void closeTargaFile(ImageFileHandle *handle);
+    static int readTargaIntLine(ImageFileHandle *handle, ImageLine *lineData);
 };
 
 #endif

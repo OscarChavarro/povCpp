@@ -2,6 +2,7 @@
 #define __GIF_FORMAT_H__
 
 #include "environment/geometry/GeometryOperations.h"
+#include "java/io/FileInputStream.h"
 
 class GifFormat {
   public:

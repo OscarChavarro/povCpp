@@ -11,6 +11,7 @@
 #include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include <cctype>
+#include <cstdlib>
 #include <cstring>
 
 /* This module tokenizes the input file and sends the tokens created

@@ -2,7 +2,7 @@
 #include <cstring>
 #include <ctime> /* BP */
 
-#include "java/io/FileInputStream.h"
+#include "io/image/ImageFileHandle.h"
 
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/logger/Logger.h"
@@ -235,7 +235,7 @@ PovrayApplication::prepareRendering()
         if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    globalRenderingConfiguration.fileBufferSize, FileInputStream::READ_MODE) != 1) {
+                    globalRenderingConfiguration.fileBufferSize, ImageFileHandle::READ_MODE) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
                     stderr, "Opening new output file %s.\n", globalRenderingConfiguration.outputFileName);
@@ -243,7 +243,7 @@ PovrayApplication::prepareRendering()
 
                 if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                         &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                        globalRenderingConfiguration.fileBufferSize, FileInputStream::WRITE_MODE) != 1) {
+                        globalRenderingConfiguration.fileBufferSize, ImageFileHandle::WRITE_MODE) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
                     exit(1);
@@ -257,7 +257,7 @@ PovrayApplication::prepareRendering()
         } else {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
                     &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                    globalRenderingConfiguration.fileBufferSize, FileInputStream::WRITE_MODE) != 1) {
+                    globalRenderingConfiguration.fileBufferSize, ImageFileHandle::WRITE_MODE) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
                 exit(1);
@@ -493,8 +493,8 @@ PovrayApplication::parseOption(char *optionString)
         if (optionString[1] == '\0') {
             strcpy(globalRenderingConfiguration.statFileName, "POVSTAT.OUT");
         } else {
-            strncpy(globalRenderingConfiguration.statFileName, &optionString[1], FILE_NAME_LENGTH - 1);
-            globalRenderingConfiguration.statFileName[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(globalRenderingConfiguration.statFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
+            globalRenderingConfiguration.statFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         }
         break;
     case 'V':
@@ -543,8 +543,8 @@ PovrayApplication::parseOption(char *optionString)
         if (optionString[1] == '\0') {
             inFlag = TRUE;
         } else {
-            strncpy(globalRenderingConfiguration.inputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
-            globalRenderingConfiguration.inputFileName[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(globalRenderingConfiguration.inputFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
+            globalRenderingConfiguration.inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         }
         optionNumber = 0;
         break;
@@ -554,8 +554,8 @@ PovrayApplication::parseOption(char *optionString)
         if (optionString[1] == '\0') {
             outFlag = TRUE;
         } else {
-            strncpy(globalRenderingConfiguration.outputFileName, &optionString[1], FILE_NAME_LENGTH - 1);
-            globalRenderingConfiguration.outputFileName[FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(globalRenderingConfiguration.outputFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
+            globalRenderingConfiguration.outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         }
         optionNumber = 0;
         break;
@@ -705,10 +705,9 @@ PovrayApplication::printOptions()
         Logger::info( "-o%s ", globalRenderingConfiguration.outputFileName);
     }
 
-    for (std::vector<std::string>::const_iterator path =
-             FileLocator::searchPaths().begin();
-         path != FileLocator::searchPaths().end(); ++path) {
-        Logger::info( "-l%s ", path->c_str());
+    const java::ArrayList<java::String> &paths = FileLocator::searchPaths();
+    for (long int i = 0; i < paths.size(); i++) {
+        Logger::info("-l%s ", paths.get(i).toCString());
     }
 
     Logger::info( "\n");
@@ -723,8 +722,8 @@ PovrayApplication::parseFileName(char *fileName)
     if (inFlag) /* file names may now be separated by spaces from cmdline option
                  */
     {
-        strncpy(globalRenderingConfiguration.inputFileName, fileName, FILE_NAME_LENGTH - 1);
-        globalRenderingConfiguration.inputFileName[FILE_NAME_LENGTH - 1] = '\0';
+        strncpy(globalRenderingConfiguration.inputFileName, fileName, RENDER_FILE_NAME_LENGTH - 1);
+        globalRenderingConfiguration.inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         inFlag = FALSE;
         return;
     }
@@ -732,8 +731,8 @@ PovrayApplication::parseFileName(char *fileName)
     if (outFlag) /* file names may now be separated by spaces from cmdline
                     option */
     {
-        strncpy(globalRenderingConfiguration.outputFileName, fileName, FILE_NAME_LENGTH - 1);
-        globalRenderingConfiguration.outputFileName[FILE_NAME_LENGTH - 1] = '\0';
+        strncpy(globalRenderingConfiguration.outputFileName, fileName, RENDER_FILE_NAME_LENGTH - 1);
+        globalRenderingConfiguration.outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         outFlag = FALSE;
         return;
     }

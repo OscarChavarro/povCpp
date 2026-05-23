@@ -16,7 +16,8 @@
 #include "common/logger/Logger.h"
 #include "common/color/Color.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "java/io/FileInputStream.h"
+#include "io/image/ImageFileHandle.h"
+#include "java/io/FileOutputStream.h"
 #include "render/LightingEngine.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
@@ -260,7 +261,7 @@ RenderEngine::readRenderedPart()
         if (globalRenderingConfiguration.outputFileInputStream->open(
                 globalRenderingConfiguration.outputFileName,
                 &globalFrame.Screen_Width, &globalFrame.Screen_Height,
-                globalRenderingConfiguration.fileBufferSize, FileInputStream::APPEND_MODE) != 1) {
+                globalRenderingConfiguration.fileBufferSize, ImageFileHandle::APPEND_MODE) != 1) {
             Logger::error("Error opening output file\n");
             exit(1);
         }
@@ -324,8 +325,6 @@ RenderEngine::startTracing()
 void
 RenderFrame::checkStats(int y)
 {
-    FILE *statFile;
-
     /* New verbose options CdW */
     if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '0') {
         Logger::info("POV-Ray rendering %s to %s", globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
@@ -342,9 +341,13 @@ RenderFrame::checkStats(int y)
         }
     }
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
-        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
-        fprintf(statFile, "Line %4d.\n", y);
-        fclose(statFile);
+        java::FileOutputStream statFile(globalRenderingConfiguration.statFileName);
+        char buf[32];
+        snprintf(buf, sizeof(buf), "Line %4d.\n", y);
+        for (int i = 0; buf[i] != '\0'; i++) {
+            statFile.write((unsigned char)buf[i]);
+        }
+        statFile.close();
     }
 
     /* Use -vO for Old style verbose */

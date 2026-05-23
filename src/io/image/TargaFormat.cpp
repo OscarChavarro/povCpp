@@ -8,38 +8,34 @@
 
 #include "io/image/TargaFormat.h"
 #include "io/FileLocator.h"
+#include "io/PersistenceElement.h"
 #include "environment/material/RendererConfiguration.h"
-#include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
 #include "media/ImageData.h"
 #include "media/RGBAImage.h"
 #include <cmath>
+#include <cstdlib>
 
-int targaLineNumber = 0;
-
-
-FileInputStream *
+ImageFileHandle *
 TargaFormat::getTargaFileInputStream()
 {
-    FileInputStream *handle;
-
-    handle = new FileInputStream;
+    ImageFileHandle *handle = new ImageFileHandle;
     if (handle == nullptr) {
-        Logger::error( "Cannot allocate memory for output file handle\n");
-        return (nullptr);
+        Logger::error("Cannot allocate memory for output file handle\n");
+        return nullptr;
     }
 
+    handle->inputStream = nullptr;
+    handle->outputStream = nullptr;
     handle->Default_File_Name_p = TargaFormat::defaultTargaFileName;
     handle->Open_File_p = TargaFormat::openTargaFile;
     handle->Write_Line_p = TargaFormat::writeTargaLine;
     handle->Read_Line_p = TargaFormat::readTargaLine;
     handle->Read_Image_p = TargaFormat::readTargaImage;
     handle->Close_File_p = TargaFormat::closeTargaFile;
-    handle->file = nullptr;
     handle->buffer_size = 0;
-    handle->buffer = nullptr;
-    return (handle);
+    return handle;
 }
 
 static char defaultTargaFilename[] = "data.tga";
@@ -51,239 +47,197 @@ TargaFormat::defaultTargaFileName()
 }
 
 int
-TargaFormat::openTargaFile(FileInputStream *handle, char *name, int *width,
+TargaFormat::openTargaFile(ImageFileHandle *handle, char *name, int *width,
     int *height, int bufferSize, int mode)
 {
-    int data1;
-    int data2;
-    int i;
-
     handle->mode = mode;
     handle->filename = name;
+    handle->buffer_size = bufferSize;
+    handle->inputStream = nullptr;
+    handle->outputStream = nullptr;
 
     switch (mode) {
-    case READ_MODE:
-        if ((handle->file = fopen(name, READ_FILE_STRING)) == nullptr) {
-            return (0);
+    case ImageFileHandle::READ_MODE:
+        handle->inputStream = FileLocator::locateAsStream(name);
+        if (handle->inputStream == nullptr) {
+            return 0;
         }
-
-        if (bufferSize != 0) {
-            handle->buffer = new char[bufferSize];
-            if (handle->buffer == nullptr) {
-                return (0);
+        {
+            java::FileInputStream &is = *handle->inputStream;
+            for (int i = 0; i < 12; i++) {
+                if (is.read() == -1) {
+                    return 0;
+                }
             }
-
-            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
-        }
-
-        for (i = 0; i < 12; i++) {
-            if (getc(handle->file) == EOF) {
-                return (0);
+            int data1 = is.read();
+            int data2 = is.read();
+            if (data1 == -1 || data2 == -1) {
+                return 0;
             }
-        }
+            *width = data2 * 256 + data1;
 
-        if (((data1 = getc(handle->file)) == EOF) ||
-            ((data2 = getc(handle->file)) == EOF)) {
-            return (0);
-        }
-
-        *width = data2 * 256 + data1;
-
-        if (((data1 = getc(handle->file)) == EOF) ||
-            ((data2 = getc(handle->file)) == EOF)) {
-            return (0);
-        }
-
-        for (i = 0; i < 2; i++) {
-            if (getc(handle->file) == EOF) {
-                return (0);
+            data1 = is.read();
+            data2 = is.read();
+            if (data1 == -1 || data2 == -1) {
+                return 0;
             }
+            if (is.read() == -1 || is.read() == -1) {
+                return 0;
+            }
+            *height = data2 * 256 + data1;
+            handle->width = *width;
+            handle->height = *height;
         }
-
-        *height = data2 * 256 + data1;
-        handle->width = *width;
-        handle->height = *height;
-        handle->buffer_size = bufferSize;
         break;
 
-    case WRITE_MODE:
-        if ((handle->file = fopen(name, WRITE_FILE_STRING)) == nullptr) {
-            return (0);
+    case ImageFileHandle::WRITE_MODE:
+        handle->outputStream = new java::FileOutputStream(name);
+        if (!handle->outputStream) {
+            return 0;
         }
-
-        if (bufferSize != 0) {
-            handle->buffer = new char[bufferSize];
-            if (handle->buffer == nullptr) {
-                return (0);
+        {
+            java::FileOutputStream &os = *handle->outputStream;
+            for (int i = 0; i < 10; i++) {
+                os.write(i == 2 ? 2 : 0);
             }
-
-            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
+            os.write(globalRenderingConfiguration.firstLine % 256);
+            os.write(globalRenderingConfiguration.firstLine / 256);
+            os.write(*width % 256);
+            os.write(*width / 256);
+            os.write(*height % 256);
+            os.write(*height / 256);
+            os.write(24);
+            os.write(32);
         }
-
-        for (i = 0; i < 10; i++) { /* 00, 00, 02, then 7 00's... */
-            if (i == 2) {
-                putc(i, handle->file);
-            } else {
-                putc(0, handle->file);
-            }
-        }
-
-        putc(globalRenderingConfiguration.firstLine % 256, handle->file); /* y origin set to "First_Line" */
-
-        putc(globalRenderingConfiguration.firstLine / 256, handle->file);
-
-        putc(*width % 256, handle->file); /* write width and height */
-        putc(*width / 256, handle->file);
-        putc(*height % 256, handle->file);
-        putc(*height / 256, handle->file);
-        putc(24, handle->file); /* 24 bits/pixel (16 million col */
-        putc(32, handle->file); /* Bitmask, pertinent bit: top-d */
-
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = bufferSize;
-
         break;
 
-    case APPEND_MODE:
-        if ((handle->file = fopen(name, APPEND_FILE_STRING)) == nullptr) {
-            return (0);
-        }
-
-        if (bufferSize != 0) {
-            handle->buffer = new char[bufferSize];
-            if (handle->buffer == nullptr) {
-                return (0);
-            }
-
-            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
-        }
-
+    case ImageFileHandle::APPEND_MODE:
+        handle->outputStream = new java::FileOutputStream(name, true);
+        handle->width = *width;
+        handle->height = *height;
         break;
     }
 
-    return (1);
+    return 1;
 }
 
 void
 TargaFormat::writeTargaLine(
-    FileInputStream *handle, RGBAColor *lineData, int lineNumber)
+    ImageFileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
-    int x;
+    java::FileOutputStream &os = *handle->outputStream;
 
-    for (x = 0; x < handle->width; x++) {
-        putc((int)floor(lineData[x].Blue * 255.0), handle->file);
-        putc((int)floor(lineData[x].Green * 255.0), handle->file);
-        putc((int)floor(lineData[x].Red * 255.0), handle->file);
+    for (int x = 0; x < handle->width; x++) {
+        os.write((int)floor(lineData[x].Blue * 255.0));
+        os.write((int)floor(lineData[x].Green * 255.0));
+        os.write((int)floor(lineData[x].Red * 255.0));
     }
 
-    if (handle->buffer_size == 0) {
-        fflush(handle->file); /* close and reopen file for */
-        handle->file = freopen(handle->filename, APPEND_FILE_STRING,
-            handle->file); /* integrity in case we crash*/
-    }
+    os.flush();
 }
 
 int
 TargaFormat::readTargaLine(
-    FileInputStream *handle, RGBAColor *lineData, int *lineNumber)
+    ImageFileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
-    int x;
-    int data;
+    java::FileInputStream &is = *handle->inputStream;
 
-    for (x = 0; x < handle->width; x++) {
-
-        /* Read the BLUE data byte.  If EOF is reached on the first character
-        read, then this line hasn't been rendered yet.  Return 0.  If an EOF
-        occurs somewhere within the line, this is an error - return -1. */
-
-        if ((data = getc(handle->file)) == EOF) {
+    for (int x = 0; x < handle->width; x++) {
+        int data = is.read();
+        if (data == -1) {
             if (x == 0) {
-                return (0);
+                return 0;
             }
-            return (-1);
+            return -1;
         }
-
         lineData[x].Blue = (double)data / 255.0;
 
-        /* Read the GREEN data byte. */
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+        data = is.read();
+        if (data == -1) {
+            return -1;
         }
         lineData[x].Green = (double)data / 255.0;
 
-        /* Read the RED data byte. */
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+        data = is.read();
+        if (data == -1) {
+            return -1;
         }
         lineData[x].Red = (double)data / 255.0;
     }
 
-    *lineNumber = targaLineNumber++;
-    return (1);
+    return 1;
 }
 
 void
-TargaFormat::closeTargaFile(FileInputStream *handle)
+TargaFormat::closeTargaFile(ImageFileHandle *handle)
 {
-    if (handle->file) {
-        fclose(handle->file);
+    if (handle->inputStream != nullptr) {
+        handle->inputStream->close();
+        delete handle->inputStream;
+        handle->inputStream = nullptr;
     }
-    if (handle->buffer) {
-        delete handle->buffer;
+    if (handle->outputStream != nullptr) {
+        handle->outputStream->close();
+        delete handle->outputStream;
+        handle->outputStream = nullptr;
     }
 }
 
 int
-TargaFormat::readTargaIntLine(FileInputStream *handle, ImageLine *lineData)
+TargaFormat::readTargaIntLine(ImageFileHandle *handle, ImageLine *lineData)
 {
-    int x;
-    int data;
+    java::FileInputStream &is = *handle->inputStream;
 
-    if (((lineData->red = new unsigned char[handle->width]) == nullptr) ||
-        ((lineData->green = new unsigned char[handle->width]) == nullptr) ||
-        ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
-        Logger::error( "Cannot allocate memory for picture: %s\n",
-            handle->filename);
+    lineData->red = new unsigned char[handle->width];
+    lineData->green = new unsigned char[handle->width];
+    lineData->blue = new unsigned char[handle->width];
+
+    if (lineData->red == nullptr || lineData->green == nullptr || lineData->blue == nullptr) {
+        Logger::error("Cannot allocate memory for picture: %s\n", handle->filename);
         exit(1);
     }
 
-    for (x = 0; x < handle->width; x++) {
-        if ((data = getc(handle->file)) == EOF) {
+    for (int x = 0; x < handle->width; x++) {
+        int data = is.read();
+        if (data == -1) {
             if (x == 0) {
-                return (0);
+                return 0;
             }
-            return (-1);
+            return -1;
         }
-        lineData->blue[x] = data;
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+        lineData->blue[x] = (unsigned char)data;
+
+        data = is.read();
+        if (data == -1) {
+            return -1;
         }
-        lineData->green[x] = data;
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+        lineData->green[x] = (unsigned char)data;
+
+        data = is.read();
+        if (data == -1) {
+            return -1;
         }
-        lineData->red[x] = data;
+        lineData->red[x] = (unsigned char)data;
     }
-    return (1);
+    return 1;
 }
 
 void
 TargaFormat::readTargaImage(RGBAImage *image, char *name)
 {
-    int row;
-    FileInputStream handle;
+    ImageFileHandle handle;
+    handle.inputStream = nullptr;
+    handle.outputStream = nullptr;
+    handle.filename = name;
 
-    if ((handle.file = FileLocator::locate(name, READ_FILE_STRING)) == nullptr) {
-        Logger::error( "Cannot open Targa file %s\n", name);
+    if (!TargaFormat::openTargaFile(
+            &handle, name, &image->iwidth, &image->iheight, 0, ImageFileHandle::READ_MODE)) {
+        Logger::error("Cannot open Targa file %s\n", name);
         exit(1);
     }
 
-    TargaFormat::openTargaFile(
-        &handle, name, &image->iwidth, &image->iheight, 0, READ_MODE);
-
-    handle.width = image->iwidth;
-    handle.height = image->iheight;
     image->width = (double)image->iwidth;
     image->height = (double)image->iheight;
     image->Colour_Map_Size = 0;
@@ -291,13 +245,14 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
 
     image->data.rgb_lines = new ImageLine[image->iheight];
     if (image->data.rgb_lines == nullptr) {
-        Logger::error( "Cannot allocate memory for picture: %s\n", name);
+        Logger::error("Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }
 
-    for (row = 0; row < image->iheight && TargaFormat::readTargaIntLine(&handle,
-                                              &image->data.rgb_lines[row]);
-        row++) {
+    for (int row = 0; row < image->iheight &&
+         TargaFormat::readTargaIntLine(&handle, &image->data.rgb_lines[row]);
+         row++) {
     }
-    fclose(handle.file);
+
+    TargaFormat::closeTargaFile(&handle);
 }

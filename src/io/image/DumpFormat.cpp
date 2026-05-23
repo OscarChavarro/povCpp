@@ -9,43 +9,40 @@
  *
  *  (each scanline:)
  *     llll                - Line number (16 bits, LSB first)
- *     rr rr rr ...     - Red data for line (8 bits per pixel,
- *                              left to right, 0-255 (255=bright, 0=dark))
- *     gg gg gg ...     - Green data for line (8 bits per pixel,
- *                              left to right, 0-255 (255=bright, 0=dark))
- *     bb bb bb ...     - Blue data for line (8 bits per pixel,
- *                              left to right, 0-255 (255=bright, 0=dark))
- *
- *
+ *     rr rr rr ...     - Red data for line
+ *     gg gg gg ...     - Green data for line
+ *     bb bb bb ...     - Blue data for line
  *
  *****************************************************************************/
 
 #include "io/image/DumpFormat.h"
 #include "common/color/RGBAColor.h"
 #include "io/FileLocator.h"
+#include "io/PersistenceElement.h"
 #include "common/logger/Logger.h"
 #include "media/ImageData.h"
 #include "media/RGBAImage.h"
 #include <cmath>
+#include <cstdlib>
 
-FileInputStream *
+ImageFileHandle *
 DumpFormat::getDumpFileInputStream()
 {
-    FileInputStream *handle;
-
-    handle = new FileInputStream;
+    ImageFileHandle *handle = new ImageFileHandle;
     if (handle == nullptr) {
-        Logger::error( "Cannot allocate memory for output file handle\n");
-        return (nullptr);
+        Logger::error("Cannot allocate memory for output file handle\n");
+        return nullptr;
     }
 
+    handle->inputStream = nullptr;
+    handle->outputStream = nullptr;
     handle->Default_File_Name_p = DumpFormat::defaultDumpFileName;
     handle->Open_File_p = DumpFormat::openDumpFile;
     handle->Write_Line_p = DumpFormat::writeDumpLine;
     handle->Read_Line_p = DumpFormat::readDumpLine;
     handle->Read_Image_p = DumpFormat::readDumpImage;
     handle->Close_File_p = DumpFormat::closeDumpFile;
-    return (handle);
+    return handle;
 }
 
 char *
@@ -55,87 +52,45 @@ DumpFormat::defaultDumpFileName()
 }
 
 int
-DumpFormat::openDumpFile(FileInputStream *handle, char *name, int *width,
+DumpFormat::openDumpFile(ImageFileHandle *handle, char *name, int *width,
     int *height, int bufferSize, int mode)
 {
-    int data1;
-    int data2;
-
     handle->mode = mode;
     handle->filename = name;
+    handle->buffer_size = bufferSize;
+    handle->inputStream = nullptr;
+    handle->outputStream = nullptr;
 
     switch (mode) {
-    case READ_MODE:
-        if ((handle->file = fopen(name, READ_FILE_STRING)) == nullptr) {
+    case ImageFileHandle::READ_MODE:
+        handle->inputStream = FileLocator::locateAsStream(name);
+        if (handle->inputStream == nullptr) {
             return 0;
         }
-
-        if (bufferSize != 0) {
-            handle->buffer = new char[bufferSize];
-            if (handle->buffer == nullptr) {
-                return 0;
-            }
-
-            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
+        {
+            java::FileInputStream &is = *handle->inputStream;
+            *width = PersistenceElement::readSignedShortLE(is);
+            *height = PersistenceElement::readSignedShortLE(is);
+            handle->width = *width;
+            handle->height = *height;
         }
-
-        if (((data1 = getc(handle->file)) == EOF) ||
-            ((data2 = getc(handle->file)) == EOF)) {
-            return 0;
-        }
-
-        *width = data2 * 256 + data1;
-
-        if (((data1 = getc(handle->file)) == EOF) ||
-            ((data2 = getc(handle->file)) == EOF)) {
-            return (0);
-        }
-
-        *height = data2 * 256 + data1;
-        handle->width = *width;
-        handle->height = *height;
-        handle->buffer_size = bufferSize;
         break;
 
-    case WRITE_MODE:
-        if ((handle->file = fopen(name, WRITE_FILE_STRING)) == nullptr) {
-            return (0);
+    case ImageFileHandle::WRITE_MODE:
+        handle->outputStream = new java::FileOutputStream(name);
+        {
+            java::FileOutputStream &os = *handle->outputStream;
+            PersistenceElement::writeSignedShortLE(os, *width);
+            PersistenceElement::writeSignedShortLE(os, *height);
         }
-
-        if (bufferSize != 0) {
-            handle->buffer = new char[bufferSize];
-            if (handle->buffer == nullptr) {
-                return (0);
-            }
-            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
-        }
-
-        putc(*width % 256, handle->file); /* write to either type of file */
-        putc(*width / 256, handle->file);
-        putc(*height % 256, handle->file);
-        putc(*height / 256, handle->file);
-
         handle->width = *width;
         handle->height = *height;
-        handle->buffer_size = bufferSize;
-
         break;
 
-    case APPEND_MODE:
-        if ((handle->file = fopen(name, APPEND_FILE_STRING)) == nullptr) {
-            return 0;
-        }
-
-        if (bufferSize != 0) {
-            handle->buffer = new char[bufferSize];
-            if (handle->buffer == nullptr) {
-                return 0;
-            }
-
-            setvbuf(handle->file, handle->buffer, _IOFBF, bufferSize);
-        }
-
-        handle->buffer_size = bufferSize;
+    case ImageFileHandle::APPEND_MODE:
+        handle->outputStream = new java::FileOutputStream(name, true);
+        handle->width = *width;
+        handle->height = *height;
         break;
     }
     return 1;
@@ -143,203 +98,169 @@ DumpFormat::openDumpFile(FileInputStream *handle, char *name, int *width,
 
 void
 DumpFormat::writeDumpLine(
-    FileInputStream *handle, RGBAColor *lineData, int lineNumber)
+    ImageFileHandle *handle, RGBAColor *lineData, int lineNumber)
 {
-    int x;
+    java::FileOutputStream &os = *handle->outputStream;
 
-    putc(lineNumber % 256, handle->file);
-    putc(lineNumber / 256, handle->file);
+    PersistenceElement::writeSignedShortLE(os, lineNumber);
 
-    for (x = 0; x < handle->width; x++) {
-        putc((int)floor(lineData[x].Red * 255.0), handle->file);
+    for (int x = 0; x < handle->width; x++) {
+        os.write((int)floor(lineData[x].Red * 255.0));
+    }
+    for (int x = 0; x < handle->width; x++) {
+        os.write((int)floor(lineData[x].Green * 255.0));
+    }
+    for (int x = 0; x < handle->width; x++) {
+        os.write((int)floor(lineData[x].Blue * 255.0));
     }
 
-    for (x = 0; x < handle->width; x++) {
-        putc((int)floor(lineData[x].Green * 255.0), handle->file);
-    }
-
-    for (x = 0; x < handle->width; x++) {
-        putc((int)floor(lineData[x].Blue * 255.0), handle->file);
-    }
-
-    if (handle->buffer_size == 0) {
-        fflush(handle->file); /* close and reopen file for */
-        handle->file = freopen(handle->filename, APPEND_FILE_STRING,
-            handle->file); /* integrity in case we crash*/
-    }
+    os.flush();
 }
 
 int
 DumpFormat::readDumpLine(
-    FileInputStream *handle, RGBAColor *lineData, int *lineNumber)
+    ImageFileHandle *handle, RGBAColor *lineData, int *lineNumber)
 {
-    int data;
-    int i;
-    int c;
+    java::FileInputStream &is = *handle->inputStream;
 
-    if ((c = getc(handle->file)) == EOF) {
-        return (0);
+    int lo = is.read();
+    if (lo == -1) {
+        return 0;
     }
-
-    *lineNumber = c;
-
-    if ((c = getc(handle->file)) == EOF) {
-        return (-1);
+    int hi = is.read();
+    if (hi == -1) {
+        return -1;
     }
+    *lineNumber = lo + hi * 256;
 
-    *lineNumber += c * 256;
-
-    for (i = 0; i < handle->width; i++) {
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+    for (int i = 0; i < handle->width; i++) {
+        int data = is.read();
+        if (data == -1) {
+            return -1;
         }
-
         lineData[i].Red = (double)data / 255.0;
     }
-
-    for (i = 0; i < handle->width; i++) {
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+    for (int i = 0; i < handle->width; i++) {
+        int data = is.read();
+        if (data == -1) {
+            return -1;
         }
-
         lineData[i].Green = (double)data / 255.0;
     }
-
-    for (i = 0; i < handle->width; i++) {
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+    for (int i = 0; i < handle->width; i++) {
+        int data = is.read();
+        if (data == -1) {
+            return -1;
         }
-
         lineData[i].Blue = (double)data / 255.0;
     }
 
-    return (1);
+    return 1;
 }
 
 int
 DumpFormat::readDumpIntLine(
-    FileInputStream *handle, ImageLine *lineData, int *lineNumber)
+    ImageFileHandle *handle, ImageLine *lineData, int *lineNumber)
 {
-    int data;
-    int i;
-    int c;
+    java::FileInputStream &is = *handle->inputStream;
 
-    if ((c = getc(handle->file)) == EOF) {
-        return (0);
+    int lo = is.read();
+    if (lo == -1) {
+        return 0;
     }
-
-    *lineNumber = c;
-
-    if ((c = getc(handle->file)) == EOF) {
-        return (-1);
+    int hi = is.read();
+    if (hi == -1) {
+        return -1;
     }
+    *lineNumber = lo + hi * 256;
 
-    *lineNumber += c * 256;
+    lineData->red = new unsigned char[handle->width];
+    lineData->green = new unsigned char[handle->width];
+    lineData->blue = new unsigned char[handle->width];
 
-    if (((lineData->red = new unsigned char[handle->width]) == nullptr) ||
-        ((lineData->green = new unsigned char[handle->width]) == nullptr) ||
-        ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
-        Logger::error( "Cannot allocate memory for picture: %s\n",
-            handle->filename);
+    if (lineData->red == nullptr || lineData->green == nullptr || lineData->blue == nullptr) {
+        Logger::error("Cannot allocate memory for picture: %s\n", handle->filename);
         exit(1);
     }
 
-    for (i = 0; i < handle->width; i++) {
+    for (int i = 0; i < handle->width; i++) {
         lineData->red[i] = 0;
         lineData->green[i] = 0;
         lineData->blue[i] = 0;
     }
 
-    for (i = 0; i < handle->width; i++) {
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+    for (int i = 0; i < handle->width; i++) {
+        int data = is.read();
+        if (data == -1) {
+            return -1;
         }
-
         lineData->red[i] = (unsigned char)data;
     }
-
-    for (i = 0; i < handle->width; i++) {
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+    for (int i = 0; i < handle->width; i++) {
+        int data = is.read();
+        if (data == -1) {
+            return -1;
         }
-
         lineData->green[i] = (unsigned char)data;
     }
-
-    for (i = 0; i < handle->width; i++) {
-        if ((data = getc(handle->file)) == EOF) {
-            return (-1);
+    for (int i = 0; i < handle->width; i++) {
+        int data = is.read();
+        if (data == -1) {
+            return -1;
         }
-
         lineData->blue[i] = (unsigned char)data;
     }
 
-    return (1);
+    return 1;
 }
 
 void
-DumpFormat::closeDumpFile(FileInputStream *handle)
+DumpFormat::closeDumpFile(ImageFileHandle *handle)
 {
-    if (handle->file) {
-        fclose(handle->file);
+    if (handle->inputStream != nullptr) {
+        handle->inputStream->close();
+        delete handle->inputStream;
+        handle->inputStream = nullptr;
     }
-    if (handle->buffer_size != 0) {
-        delete handle->buffer;
+    if (handle->outputStream != nullptr) {
+        handle->outputStream->close();
+        delete handle->outputStream;
+        handle->outputStream = nullptr;
     }
 }
 
 void
 DumpFormat::readDumpImage(RGBAImage *image, char *name)
 {
-    int rc;
-    int row;
-    int data1;
-    int data2;
-    ImageLine line;
-    FileInputStream handle;
+    ImageFileHandle handle;
+    handle.inputStream = nullptr;
+    handle.outputStream = nullptr;
+    handle.filename = name;
 
-    if ((handle.file = FileLocator::locate(name, READ_FILE_STRING)) == nullptr) {
-        Logger::error( "Cannot open dump file %s\n", name);
+    if (!DumpFormat::openDumpFile(&handle, name, &image->iwidth, &image->iheight, 0, ImageFileHandle::READ_MODE)) {
+        Logger::error("Cannot open dump file %s\n", name);
         exit(1);
     }
-
-    if (((data1 = getc(handle.file)) == EOF) ||
-        ((data2 = getc(handle.file)) == EOF)) {
-
-        Logger::error( "Cannot open dump file %s\n", name);
-        exit(1);
-    }
-
-    image->iwidth = data2 * 256 + data1;
-    handle.width = image->iwidth;
-
-    if (((data1 = getc(handle.file)) == EOF) ||
-        ((data2 = getc(handle.file)) == EOF)) {
-
-        Logger::error( "Cannot open dump file %s\n", name);
-        exit(1);
-    }
-
-    image->iheight = data2 * 256 + data1;
-    handle.height = image->iheight;
 
     image->width = (double)image->iwidth;
     image->height = (double)image->iheight;
-
     image->Colour_Map_Size = 0;
     image->Colour_Map = nullptr;
 
     image->data.rgb_lines = new ImageLine[image->iheight];
     if (image->data.rgb_lines == nullptr) {
-        Logger::error( "Cannot allocate memory for picture: %s\n", name);
+        Logger::error("Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }
 
+    ImageLine line;
+    int row;
+    int rc;
     while ((rc = DumpFormat::readDumpIntLine(&handle, &line, &row)) == 1) {
         image->data.rgb_lines[row] = line;
     }
 
-    fclose(handle.file);
+    DumpFormat::closeDumpFile(&handle);
 
     if (rc == 0) {
         return;
