@@ -22,8 +22,8 @@ static constexpr double SHADOW_TOLERANCE = 0.05;
 
 void
 DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
-    RayWithSegments *eye, Vector3Dd *surfaceNormal, RGBAColor *surfaceColour,
-    RGBAColor *colour, double attenuation, const TraceService *traceService)
+    RayWithSegments *eye, Vector3Dd *surfaceNormal, RGBAColor *surfaceColor,
+    RGBAColor *color, double attenuation, const TraceService *traceService)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
@@ -32,7 +32,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     int intersectionFound;
     Intersection *localIntersection;
     Vector3Dd rEye;
-    RGBAColor lightColour;
+    RGBAColor lightColor;
     PriorityQueueNode *localQueue;
 
     rEye.x = 0;
@@ -58,7 +58,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
         intersectionFound = FALSE;
 
         LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,
-            intersectionPoint, &lightColour);
+            intersectionPoint, &lightColor);
 
         /* What objects does this ray intersect? */
         if (globalRenderingConfiguration.quality > 3) {
@@ -78,7 +78,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
 
                         /* Does the object not cast a shadow? */
                         if (!localIntersection->Object->No_Shadow_Flag) {
-                            if (ShadowShader::shade(localIntersection, &lightColour,
+                            if (ShadowShader::shade(localIntersection, &lightColor,
                                     localQueue, traceService)) {
                                 intersectionFound = TRUE;
                                 break;
@@ -99,17 +99,17 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
         if (!intersectionFound) {
             if (texture->Object_Phong > 0.0) { /* Phong Hilite */
                 PhongSpecularShader::shade(texture, &lightSourceRay, eye->direction, surfaceNormal,
-                    colour, &lightColour, surfaceColour);
+                    color, &lightColor, surfaceColor);
             }
 
             if (texture->Object_Specular > 0.0) { /* Specular Hilite */
                 BlinnPhongSpecularShader::shade(texture, &lightSourceRay, rEye, surfaceNormal,
-                    colour, &lightColour, surfaceColour);
+                    color, &lightColor, surfaceColor);
             }
 
             if (texture->Object_Diffuse > 0.0) { /* Normal Diffuse Illum. */
-                LambertShader::shade(texture, &lightSourceRay, surfaceNormal, colour,
-                    &lightColour, surfaceColour, attenuation);
+                LambertShader::shade(texture, &lightSourceRay, surfaceNormal, color,
+                    &lightColor, surfaceColor, attenuation);
             }
         }
     }

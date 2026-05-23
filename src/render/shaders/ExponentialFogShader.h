@@ -5,8 +5,8 @@ class RGBAColor;
 
 class ExponentialFogShader {
 public:
-    static void shade(double distance, RGBAColor *fogColour, double fogDistance,
-        RGBAColor *colour);
+    static void shade(double distance, RGBAColor *fogColor, double fogDistance,
+        RGBAColor *color);
 };
 
 #endif

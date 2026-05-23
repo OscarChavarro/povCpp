@@ -64,7 +64,9 @@ static constexpr int Z_AXIS = 2;
 void
 Triangle::findTriangleDominantAxis(Triangle *triangle)
 {
-    double x, y, z;
+    double x;
+    double y;
+    double z;
 
     x = fabs(triangle->Normal_Vector.x);
     y = fabs(triangle->Normal_Vector.y);
@@ -88,7 +90,11 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     Vector3Dd p3MinusP2;
     Vector3Dd vTemp1;
     Vector3Dd vTemp2;
-    double x, y, z, uDenominator, proj;
+    double x;
+    double y;
+    double z;
+    double uDenominator;
+    double proj;
 
     VectorOps::vSub(p3MinusP2, triangle->P3, triangle->P2);
     x = fabs(p3MinusP2.x);
@@ -241,8 +247,10 @@ int
 Triangle::intersectTriangle(
     RayWithSegments *ray, Triangle *triangle, double *depth)
 {
-    double normalDotOrigin, normalDotDirection;
-    double s, t;
+    double normalDotOrigin;
+    double normalDotDirection;
+    double s;
+    double t;
 
     globalStatistics.rayTriangleTests++;
     if (triangle->Degenerate_Flag) {
@@ -543,7 +551,8 @@ SmoothTriangle::smoothTriangleNormal(
     Vector3Dd piMinusP1;
     Vector3Dd nTemp1;
     Vector3Dd nTemp2;
-    double u = 0.0, v = 0.0;
+    double u = 0.0;
+    double v = 0.0;
 
     VectorOps::vSub(piMinusP1, *intersectionPoint, triangle->P1);
     u = piMinusP1.dotProduct(triangle->Perp);

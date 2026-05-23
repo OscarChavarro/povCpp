@@ -7,8 +7,10 @@
 
 class RGBAImage {
   public:
-    double width, height;
-    int iwidth, iheight;
+    double width;
+    double height;
+    int iwidth;
+    int iheight;
     int Map_Type;
     int Interpolation_Type;
     short Once_Flag;

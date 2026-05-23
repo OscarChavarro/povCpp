@@ -14,9 +14,14 @@ class SmoothTriangle : public Geometry {
     unsigned int Dominant_Axis : 2;
     unsigned int Inverted : 1;
     unsigned int vAxis : 2;
-    Vector3Dd P1, P2, P3;
+    Vector3Dd P1;
+    Vector3Dd P2;
+    Vector3Dd P3;
     short int Degenerate_Flag;
-    Vector3Dd N1, N2, N3, Perp;
+    Vector3Dd N1;
+    Vector3Dd N2;
+    Vector3Dd N3;
+    Vector3Dd Perp;
     double BaseDelta;
 
     static void smoothTriangleNormal(

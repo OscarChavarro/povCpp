@@ -16,7 +16,12 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
     int tcnt = shape->Intersection_Count;
     int i;
     int j;
-    double depth, d, u, v, deltaU, deltaV;
+    double depth;
+    double d;
+    double u;
+    double v;
+    double deltaU;
+    double deltaV;
     Vector3Dd v0;
     Vector3Dd v1;
     Vector3Dd v2;
@@ -91,7 +96,9 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
     int tcnt = shape->Intersection_Count;
     int i;
     int j;
-    double depth, d, radius;
+    double depth;
+    double d;
+    double radius;
     Vector3Dd v[4];
     Vector3Dd n;
     Vector3Dd ip;
@@ -191,7 +198,9 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
     int tcnt = shape->Intersection_Count;
     int i;
     int j;
-    double depth, d, t;
+    double depth;
+    double d;
+    double t;
     Vector3Dd v0;
     Vector3Dd v1;
     Vector3Dd v2;

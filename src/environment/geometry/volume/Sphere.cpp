@@ -31,7 +31,10 @@ Sphere::intersectSphere(
 
     //--------------------------------------------------------------------------
     Vector3Dd originToCenter;
-    double ocSquared, tClosestApproach, halfChord, tHalfChordSquared;
+    double ocSquared;
+    double tClosestApproach;
+    double halfChord;
+    double tHalfChordSquared;
     short inside;
 
     if (ray == vpRay) {
@@ -89,7 +92,8 @@ int
 Sphere::allSphereIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    double depth1, depth2;
+    double depth1;
+    double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
     int intersectionFound;

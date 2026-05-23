@@ -3,7 +3,9 @@
 
 class ImageLine {
   public:
-    unsigned char *red, *green, *blue;
+    unsigned char *red;
+    unsigned char *green;
+    unsigned char *blue;
 };
 
 class ImageData {

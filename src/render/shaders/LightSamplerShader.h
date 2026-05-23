@@ -11,7 +11,7 @@ class LightSamplerShader {
 public:
     static void sample(Light *lightSource, double *lightSourceDepth,
         RayWithSegments *lightSourceRay, Vector3Dd *intersectionPoint,
-        RGBAColor *lightColour);
+        RGBAColor *lightColor);
 };
 
 #endif

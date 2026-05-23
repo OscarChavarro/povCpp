@@ -24,7 +24,9 @@ class TargaFormat : public ImageOutput {
     int readIntLine(ImageLine *lineData);
     java::FileInputStream *inputStream;
     java::FileOutputStream *outputStream;
-    int width, height, mode;
+    int width;
+    int height;
+    int mode;
     char *filename;
 };
 

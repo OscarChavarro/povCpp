@@ -46,9 +46,16 @@ Methods Height_Field_Methods = {Composite::objectIntersect,
     HeightField::scaleHeightfld, HeightField::invertHeightfld};
 
 
-int isdx, isdz, xDom;
-double gdx, gdy, gdz;
-double myx, mxz, mzx, myz;
+int isdx;
+int isdz;
+int xDom;
+double gdx;
+double gdy;
+double gdz;
+double myx;
+double mxz;
+double mzx;
+double myz;
 Intersection *hfIntersection;
 PriorityQueueNode *hfQueue;
 RayWithSegments *rRay;
@@ -69,8 +76,19 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
     Vector3Dd t2V2;
     Vector3Dd t2V3;
     Vector3Dd localNormal;
-    double pos1, pos2, dot, depth1, depth2, s, t, y1, y2, y3, y4;
-    double maxHeight, minHeight;
+    double pos1;
+    double pos2;
+    double dot;
+    double depth1;
+    double depth2;
+    double s;
+    double t;
+    double y1;
+    double y2;
+    double y3;
+    double y4;
+    double maxHeight;
+    double minHeight;
 
     depth1 = HUGE_VAL;
     depth2 = HUGE_VAL;
@@ -186,8 +204,14 @@ int
 HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
     HeightField *hField, Vector3Dd *start, Vector3Dd *end)
 {
-    double y1, y2;
-    double sx, sy, sz, ex, ez, f;
+    double y1;
+    double y2;
+    double sx;
+    double sy;
+    double sz;
+    double ex;
+    double ez;
+    double f;
     int ix;
     int iz;
     int length;
@@ -323,8 +347,20 @@ HeightField::intersectHfNode(
     Vector3Dd *temp;
     Vector3Dd temp1;
     Vector3Dd temp2;
-    double sx, sy, sz, ex, ey, ez, x, y, z;
-    double tnear, tfar, t, blockSize, invBlkSize;
+    double sx;
+    double sy;
+    double sz;
+    double ex;
+    double ey;
+    double ez;
+    double x;
+    double y;
+    double z;
+    double tnear;
+    double tfar;
+    double t;
+    double blockSize;
+    double invBlkSize;
     int ix;
     int iz;
     int xSize;
@@ -584,7 +620,9 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
     int temp1;
     int temp2;
     double size;
-    double tempY = 0, blockSize, invBlkSize;
+    double tempY = 0;
+    double blockSize;
+    double invBlkSize;
 
     maxX = image->iwidth;
     if (imageType == POT) {
@@ -709,7 +747,8 @@ HeightField::allHeightfldIntersections(
     Vector3Dd temp1;
     Vector3Dd temp2;
     RayWithSegments tempRay;
-    double depth1, depth2;
+    double depth1;
+    double depth2;
     int retVal = FALSE;
     HeightField *hField = (HeightField *)object;
     Intersection localElement;
@@ -792,7 +831,11 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
     int dot2;
     double dot1Value;
     double dot2Value;
-    double x, z, y1, y2, y3;
+    double x;
+    double z;
+    double y1;
+    double y2;
+    double y3;
     Vector3Dd localOrigin;
     Vector3Dd temp1;
     Vector3Dd temp2;
@@ -853,7 +896,11 @@ HeightField::heightFldNormal(
     HeightField *hField = (HeightField *)object;
     int px;
     int pz;
-    double x, z, y1, y2, y3;
+    double x;
+    double z;
+    double y1;
+    double y2;
+    double y3;
     Vector3Dd localOrigin;
     Vector3Dd temp1;
     Vector3Dd temp2;

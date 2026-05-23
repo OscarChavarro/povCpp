@@ -7,21 +7,21 @@ class Intersection;
 
 class TraceService {
 public:
-    typedef void (*TraceFn)(void *context, RayWithSegments *ray, RGBAColor *colour);
-    typedef void (*ShadowShadeFn)(void *context, Intersection *intersection, RGBAColor *colour);
+    typedef void (*TraceFn)(void *context, RayWithSegments *ray, RGBAColor *color);
+    typedef void (*ShadowShadeFn)(void *context, Intersection *intersection, RGBAColor *color);
 
     TraceFn traceFn;
     ShadowShadeFn shadowShadeFn;
     void *context;
 
-    inline void trace(RayWithSegments *ray, RGBAColor *colour) const
+    inline void trace(RayWithSegments *ray, RGBAColor *color) const
     {
-        traceFn(context, ray, colour);
+        traceFn(context, ray, color);
     }
 
-    inline void shadeShadow(Intersection *intersection, RGBAColor *colour) const
+    inline void shadeShadow(Intersection *intersection, RGBAColor *color) const
     {
-        shadowShadeFn(context, intersection, colour);
+        shadowShadeFn(context, intersection, color);
     }
 };
 

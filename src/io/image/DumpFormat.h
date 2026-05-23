@@ -24,7 +24,9 @@ class DumpFormat : public ImageOutput {
     int readIntLine(ImageLine *lineData, int *lineNumber);
     java::FileInputStream *inputStream;
     java::FileOutputStream *outputStream;
-    int width, height, mode;
+    int width;
+    int height;
+    int mode;
     char *filename;
 };
 

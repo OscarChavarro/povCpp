@@ -11,8 +11,8 @@ class TraceService;
 class LocalSurfaceShader {
 public:
     static void shade(RayWithSegments *ray, Texture *texture,
-        Intersection *rayIntersection, RGBAColor *surfaceColour,
-        RGBAColor *filterColour, RGBAColor *colour,
+        Intersection *rayIntersection, RGBAColor *surfaceColor,
+        RGBAColor *filterColor, RGBAColor *color,
         const TraceService *traceService);
 };
 

@@ -12,16 +12,17 @@ extern RenderFrame globalFrame;
 
 void
 TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
-    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *colour,
+    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *color,
     const TraceService *traceService)
 {
     RayWithSegments newRay;
-    RGBAColor tempColour;
+    RGBAColor tempColor;
     Vector3Dd localNormal;
     Vector3Dd rayDirection;
     double normalComponent;
     double tempIor;
-    double temp, ior;
+    double temp;
+    double ior;
 
     if (surfaceNormal == nullptr) {
         newRay.position = *intersectionPoint;
@@ -30,13 +31,13 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         newRay.copyContainersFrom(ray);
         traceLevel++;
         globalStatistics.transmittedRaysTraced++;
-        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
-        traceService->trace(&newRay, &tempColour);
+        traceService->trace(&newRay, &tempColor);
         traceLevel--;
-        (colour->Red) += tempColour.Red;
-        (colour->Green) += tempColour.Green;
-        (colour->Blue) += tempColour.Blue;
+        (color->Red) += tempColor.Red;
+        (color->Green) += tempColor.Green;
+        (color->Blue) += tempColor.Blue;
     } else {
         globalStatistics.refractedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
@@ -84,7 +85,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         temp = 1.0 + ior * ior * (normalComponent * normalComponent - 1.0);
         if (temp < 0.0) {
             /* Total internal reflection - not yet implemented.
-    reflect (texture, intersectionPoint, ray, surfaceNormal, colour);
+    reflect (texture, intersectionPoint, ray, surfaceNormal, color);
     */
             return;
         }
@@ -97,14 +98,14 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
 
         newRay.position = *intersectionPoint;
         traceLevel++;
-        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
 
-        traceService->trace(&newRay, &tempColour);
+        traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        (colour->Red) += (tempColour.Red) * (texture->Object_Refraction);
-        (colour->Green) += (tempColour.Green) * (texture->Object_Refraction);
-        (colour->Blue) += (tempColour.Blue) * (texture->Object_Refraction);
+        (color->Red) += (tempColor.Red) * (texture->Object_Refraction);
+        (color->Green) += (tempColor.Green) * (texture->Object_Refraction);
+        (color->Blue) += (tempColor.Blue) * (texture->Object_Refraction);
     }
 }

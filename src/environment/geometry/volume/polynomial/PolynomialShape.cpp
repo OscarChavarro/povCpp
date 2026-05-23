@@ -53,7 +53,8 @@ PolynomialShape::allPolyIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
-    double depths[MAX_ORDER], len;
+    double depths[MAX_ORDER];
+    double len;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
     Intersection localElement;
@@ -209,7 +210,8 @@ PolynomialShape::intersect(
     RayWithSegments *ray, int order, double *coeffs, double *depths)
 {
     MATRIX q;
-    double *a, t[MAX_ORDER + 1];
+    double *a;
+    double t[MAX_ORDER + 1];
     int i;
     int j;
     /* Determine the coefficients of t^n, where the line is represented
@@ -259,7 +261,10 @@ PolynomialShape::intersect(
 double
 PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 {
-    double x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1], result;
+    double x[MAX_ORDER + 1];
+    double y[MAX_ORDER + 1];
+    double z[MAX_ORDER + 1];
+    double result;
     int i;
     int k0;
     int k1;
@@ -297,7 +302,10 @@ PolynomialShape::normalp(
     int yp;
     int zp;
     int wp;
-    double *a, x[MAX_ORDER + 1], y[MAX_ORDER + 1], z[MAX_ORDER + 1];
+    double *a;
+    double x[MAX_ORDER + 1];
+    double y[MAX_ORDER + 1];
+    double z[MAX_ORDER + 1];
     x[0] = 1.0;
     y[0] = 1.0;
     z[0] = 1.0;
@@ -396,8 +404,11 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
     int k2;
     int k3;
     int wp;
-    double *b, partialTerm;
-    double tempx, tempy, tempz;
+    double *b;
+    double partialTerm;
+    double tempx;
+    double tempy;
+    double tempz;
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
@@ -475,10 +486,45 @@ int
 PolynomialShape::intersectQuartic(
     RayWithSegments *ray, PolynomialShape *shape, double *depths)
 {
-    double x, y, z, x2, y2, z2, x3, y3, z3, x4, y4, z4;
-    double xx, yy, zz, xx2, yy2, zz2, xx3, yy3, zz3, xx4, yy4, zz4;
-    double *a, t[5];
-    double xZ, xZz, xxZ, xxZz, xY, xYy, xxY, xxYy, yZ, yZz, yyZ, yyZz, temp;
+    double x;
+    double y;
+    double z;
+    double x2;
+    double y2;
+    double z2;
+    double x3;
+    double y3;
+    double z3;
+    double x4;
+    double y4;
+    double z4;
+    double xx;
+    double yy;
+    double zz;
+    double xx2;
+    double yy2;
+    double zz2;
+    double xx3;
+    double yy3;
+    double zz3;
+    double xx4;
+    double yy4;
+    double zz4;
+    double *a;
+    double t[5];
+    double xZ;
+    double xZz;
+    double xxZ;
+    double xxZz;
+    double xY;
+    double xYy;
+    double xxY;
+    double xxYy;
+    double yZ;
+    double yZz;
+    double yyZ;
+    double yyZz;
+    double temp;
 
     x = ray->position.x;
     y = ray->position.y;
@@ -685,7 +731,16 @@ PolynomialShape::quarticNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
-    double *a, x, y, z, x2, y2, z2, x3, y3, z3;
+    double *a;
+    double x;
+    double y;
+    double z;
+    double x2;
+    double y2;
+    double z2;
+    double x3;
+    double y3;
+    double z3;
 
     a = shape->Coeffs;
     x = intersectionPoint->x;

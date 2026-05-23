@@ -243,7 +243,12 @@ TextureUtils::Noise(double x, double y, double z)
     long jx;
     long jy;
     long jz;
-    double sx, sy, sz, tx, ty, tz;
+    double sx;
+    double sy;
+    double sz;
+    double tx;
+    double ty;
+    double tz;
     double sum;
     short m;
 
@@ -303,8 +308,16 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     long jx;
     long jy;
     long jz;
-    double px, py, pz, s;
-    double sx, sy, sz, tx, ty, tz;
+    double px;
+    double py;
+    double pz;
+    double s;
+    double sx;
+    double sy;
+    double sz;
+    double tx;
+    double ty;
+    double tz;
     short m;
 
     globalStatistics.callsToDNoise++;

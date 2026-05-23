@@ -30,7 +30,8 @@ int
 Box::allBoxIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    double depth1, depth2;
+    double depth1;
+    double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
     int intersectionFound;
@@ -65,7 +66,9 @@ int
 Box::intersectBoxx(
     RayWithSegments *ray, Box *box, double *depth1, double *depth2)
 {
-    double t, tmin, tmax;
+    double t;
+    double tmin;
+    double tmax;
     Vector3Dd p;
     Vector3Dd d;
 

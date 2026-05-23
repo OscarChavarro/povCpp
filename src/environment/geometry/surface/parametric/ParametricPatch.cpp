@@ -166,7 +166,16 @@ void
 ParametricBiCubicPatch::parametricValue(
     Vector3Dd *result, double u, double v, Vector3Dd (*controlPoints)[4][4])
 {
-    double u2, u3, v2, v3, uu1, uu2, uu3, vv1, vv2, vv3;
+    double u2;
+    double u3;
+    double v2;
+    double v3;
+    double uu1;
+    double uu2;
+    double uu3;
+    double vv1;
+    double vv2;
+    double vv3;
     double t[4][4];
     int i;
     int j;
@@ -227,8 +236,12 @@ ParametricBiCubicPatch::parametricPartial(
 {
     Vector3Dd uVec;
     Vector3Dd vVec; /* Partial derivatives with respect to u, and v. */
-    double u2, u3, v2, v3;
-    double t[4][4], temp;
+    double u2;
+    double u3;
+    double v2;
+    double v3;
+    double t[4][4];
+    double temp;
     int i;
     int j;
 
@@ -323,8 +336,14 @@ void
 ParametricBiCubicPatch::findAverage(
     int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius)
 {
-    double r0, r1, xc = 0, yc = 0, zc = 0;
-    double x0, y0, z0;
+    double r0;
+    double r1;
+    double xc = 0;
+    double yc = 0;
+    double zc = 0;
+    double x0;
+    double y0;
+    double z0;
     int i;
     for (i = 0; i < vectorCount; i++) {
         xc += vectors[i].x;
@@ -357,8 +376,14 @@ void
 ParametricBiCubicPatch::parametricBoundingSphere(
     Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radius)
 {
-    double r0, r1, xc = 0, yc = 0, zc = 0;
-    double x0, y0, z0;
+    double r0;
+    double r1;
+    double xc = 0;
+    double yc = 0;
+    double zc = 0;
+    double x0;
+    double y0;
+    double z0;
     int i;
     int j;
     for (i = 0; i < 4; i++) {
@@ -395,7 +420,11 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
 {
     int i;
     int j;
-    double d, u, v, deltaU, deltaV;
+    double d;
+    double u;
+    double v;
+    double deltaU;
+    double deltaV;
     Vector3Dd v0;
     Vector3Dd v1;
     Vector3Dd v2;
@@ -674,7 +703,9 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
     Vector3Dd vertices[4];
     Vector3Dd n;
     Vector3Dd tempV;
-    double d, dist, temp1;
+    double d;
+    double dist;
+    double temp1;
     int i;
     int j;
 
@@ -777,7 +808,9 @@ ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
     Vector3Dd upperLeft[4][4];
     Vector3Dd upperRight[4][4];
     Vector3Dd center;
-    double ut, vt, radius;
+    double ut;
+    double vt;
+    double radius;
     int tcnt = object->Intersection_Count;
 
     /* Don't waste time if there are already too many intersections */

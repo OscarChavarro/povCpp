@@ -111,7 +111,9 @@ int
 PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
 {
     int i;
-    double f, *fp, *fc;
+    double f;
+    double *fp;
+    double *fc;
     Polynomial *sp;
 
     sseq[0].ord = ord;
@@ -144,7 +146,8 @@ PolynomialSolver::visibleRoots(int np, Polynomial *sseq, int *atzer, int *atpos)
     int atposinf;
     int atzero;
     Polynomial *s;
-    double f, lf;
+    double f;
+    double lf;
 
     atposinf = atzero = 0;
     /* changes at positve infinity */
@@ -182,7 +185,8 @@ int
 PolynomialSolver::numchanges(int np, Polynomial *sseq, double a)
 {
     int changes;
-    double f, lf;
+    double f;
+    double lf;
     Polynomial *s;
     changes = 0;
     lf = PolynomialSolver::polyeval(a, sseq[0].ord, sseq[0].coef);
@@ -293,7 +297,11 @@ PolynomialSolver::regulaFalsa(
     int order, double *coef, double a, double b, double *val)
 {
     int its;
-    double fa, fb, x, fx, lfx;
+    double fa;
+    double fb;
+    double x;
+    double fx;
+    double lfx;
 
     fa = PolynomialSolver::polyeval(a, order, coef);
     fb = PolynomialSolver::polyeval(b, order, coef);
@@ -374,7 +382,11 @@ PolynomialSolver::regulaFalsa(
 int
 PolynomialSolver::solveQuadratic(double *x, double *y)
 {
-    double d, t, a, b, c;
+    double d;
+    double t;
+    double a;
+    double b;
+    double c;
     a = x[0];
     b = -x[1];
     c = x[2];
@@ -417,7 +429,14 @@ PolynomialSolver::solveQuadratic(double *x, double *y)
 int
 PolynomialSolver::solveCubic(double *x, double *y)
 {
-    double q, r, q3, r2, sQ, d, an, theta;
+    double q;
+    double r;
+    double q3;
+    double r2;
+    double sQ;
+    double d;
+    double an;
+    double theta;
     double a0;
     double a1;
     double a2;
@@ -496,9 +515,23 @@ PolynomialSolver::difficultCoeffs(int n, double *x)
 int
 PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
 {
-    double cubic[4], roots[3];
-    double a0, a1, y, d1, x1, t1, t2;
-    double c0, c1, c2, c3, c4, d2, q1, q2;
+    double cubic[4];
+    double roots[3];
+    double a0;
+    double a1;
+    double y;
+    double d1;
+    double x1;
+    double t1;
+    double t2;
+    double c0;
+    double c1;
+    double c2;
+    double c3;
+    double c4;
+    double d2;
+    double q1;
+    double q2;
     int i;
 
     /* Figure out the size difference between coefficients */

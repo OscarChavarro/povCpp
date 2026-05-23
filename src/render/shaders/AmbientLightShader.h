@@ -7,8 +7,8 @@ class RGBAColor;
 
 class AmbientLightShader {
 public:
-    static void shade(Texture *texture, RGBAColor *surfaceColour,
-        RGBAColor *colour, double attenuation);
+    static void shade(Texture *texture, RGBAColor *surfaceColor,
+        RGBAColor *color, double attenuation);
 };
 
 #endif

@@ -7,10 +7,13 @@
 
 class Light : public Geometry {
   public:
-    Vector3Dd Center, Points_At;
+    Vector3Dd Center;
+    Vector3Dd Points_At;
     Light *Next_Light_Source;
     short Inverted;
-    double Coeff, Radius, Falloff;
+    double Coeff;
+    double Radius;
+    double Falloff;
 
     static int allPointIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

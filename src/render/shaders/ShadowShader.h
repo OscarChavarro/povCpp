@@ -10,7 +10,7 @@ class TraceService;
 class ShadowShader {
 public:
     static int shade(Intersection *localIntersection,
-        RGBAColor *lightColour, PriorityQueueNode *localQueue,
+        RGBAColor *lightColor, PriorityQueueNode *localQueue,
         const TraceService *traceService);
 };
 

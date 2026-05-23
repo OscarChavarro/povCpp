@@ -27,7 +27,10 @@ CameraParser::parseCamera(Camera *givenVp)
     CONSTANT constantId;
     Vector3Dd localVector;
     Vector3Dd tempVector;
-    double directionLength, upLength, rightLength, handedness;
+    double directionLength;
+    double upLength;
+    double rightLength;
+    double handedness;
 
     givenVp->initializeDefaults();
 

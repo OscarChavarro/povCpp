@@ -43,9 +43,19 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     Vector3Dd tempV1;
     Vector3Dd tempV2;
     Vector3Dd perp;
-    double s, t, proj, mu;
-    double x1, y1, x2, y2, x3, y3;
-    double x, y, z;
+    double s;
+    double t;
+    double proj;
+    double mu;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    double x3;
+    double y3;
+    double x;
+    double y;
+    double z;
     int signHolder;
     int nextSign;
     int crossings;
@@ -228,7 +238,11 @@ int
 ParametricBiCubicIntersection::sphericalBoundsCheck(
     RayWithSegments *ray, Vector3Dd *center, double radius)
 {
-    double x, y, z, dist1, dist2;
+    double x;
+    double y;
+    double z;
+    double dist1;
+    double dist2;
     x = center->x - ray->position.x;
     y = center->y - ray->position.y;
     z = center->z - ray->position.z;
@@ -251,7 +265,8 @@ double
 ParametricBiCubicIntersection::pointPlaneDistance(
     Vector3Dd *p, Vector3Dd *n, double *d)
 {
-    double temp1, temp2;
+    double temp1;
+    double temp2;
 
     temp1 = (*p).dotProduct(*n);
     temp1 += *d;

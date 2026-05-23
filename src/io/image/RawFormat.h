@@ -22,9 +22,15 @@ class RawFormat : public ImageOutput {
     void close() override;
 
   private:
-    java::FileInputStream  *redIn,  *greenIn,  *blueIn;
-    java::FileOutputStream *redOut, *greenOut, *blueOut;
-    int width, height, mode;
+    java::FileInputStream *redIn;
+    java::FileInputStream *greenIn;
+    java::FileInputStream *blueIn;
+    java::FileOutputStream *redOut;
+    java::FileOutputStream *greenOut;
+    java::FileOutputStream *blueOut;
+    int width;
+    int height;
+    int mode;
     char *filename;
     int lineCounter;
 };

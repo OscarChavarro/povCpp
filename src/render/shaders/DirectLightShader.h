@@ -12,7 +12,7 @@ class DirectLightShader {
 public:
     static void shade(Texture *texture, Vector3Dd *intersectionPoint,
         RayWithSegments *eye, Vector3Dd *surfaceNormal,
-        RGBAColor *surfaceColour, RGBAColor *colour, double attenuation,
+        RGBAColor *surfaceColor, RGBAColor *color, double attenuation,
         const TraceService *traceService);
 };
 

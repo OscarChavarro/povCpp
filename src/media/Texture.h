@@ -24,11 +24,15 @@ class Texture {
     int Number_Of_Materials;
     double Object_Reflection;
     double Object_Ambient;
-    double Object_Diffuse, Object_Brilliance;
+    double Object_Diffuse;
+    double Object_Brilliance;
     double Object_Index_Of_Refraction;
-    double Object_Refraction, Object_Transmit;
-    double Object_Specular, Object_Roughness;
-    double Object_Phong, Object_PhongSize;
+    double Object_Refraction;
+    double Object_Transmit;
+    double Object_Specular;
+    double Object_Roughness;
+    double Object_Phong;
+    double Object_PhongSize;
     double Bump_Amount;
     double Texture_Randomness;
     double Frequency;
@@ -45,7 +49,9 @@ class Texture {
     RGBAImage *Image;
     RGBAImage *Bump_Image;
     RGBAImage *Material_Image;
-    short Metallic_Flag, Once_Flag, Constant_Flag;
+    short Metallic_Flag;
+    short Once_Flag;
+    short Constant_Flag;
     int Octaves;   /* dmf, 1/92 for turb */
     double Mortar; /* rha, 2/92 for brick */
 
