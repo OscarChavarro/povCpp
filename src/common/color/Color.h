@@ -1,9 +1,9 @@
 #ifndef __COLOUR_H__
 #define __COLOUR_H__
 
-#include "common/RGBAColor.h"
-#include "common/RGBAColorPalette.h"
-#include "common/RGBAColorPaletteSpan.h"
+#include "common/color/RGBAColor.h"
+#include "common/color/RGBAColorPalette.h"
+#include "common/color/RGBAColorPaletteSpan.h"
 
 class Color {
   public:

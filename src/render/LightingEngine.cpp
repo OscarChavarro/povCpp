@@ -7,7 +7,7 @@
 
 #include "render/LightingEngine.h"
 #include "app/PovApp.h"
-#include "common/Color.h"
+#include "common/color/Color.h"
 #include "common/FrameConfig.h"
 #include "common/Transformation.h"
 #include "common/dataStructures/PriorityQueue.h"

@@ -15,7 +15,7 @@
 #include <cstring>
 #include <ctime>
 
-#include "common/Color.h"
+#include "common/color/Color.h"
 
 class FrameConfig {
   public:

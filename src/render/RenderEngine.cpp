@@ -15,7 +15,7 @@
 #include "render/RenderEngine.h"
 #include "app/PovApp.h"
 #include "app/UnixPlatform.h"
-#include "common/Color.h"
+#include "common/color/Color.h"
 #include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/DumpFormat.h"

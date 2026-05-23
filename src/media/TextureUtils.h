@@ -1,7 +1,7 @@
 #ifndef __TEXTURE_UTILS_H__
 #define __TEXTURE_UTILS_H__
 
-#include "common/Color.h"
+#include "common/color/Color.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
 class RGBAColorPalette;
