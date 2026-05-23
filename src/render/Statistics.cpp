@@ -1,6 +1,6 @@
 #include "common/Statistics.h"
 
-#include "render/RenderFrame.h"
+#include "environment/scene/SceneFrame.h"
 #include "environment/material/RendererConfiguration.h"
 
 #include <cstdio>

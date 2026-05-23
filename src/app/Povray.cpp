@@ -16,7 +16,7 @@
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
 #include "render/RenderEngine.h"
-#include "render/RenderFrame.h"
+#include "environment/scene/SceneFrame.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
 #include <cctype>

@@ -6,7 +6,6 @@
 #include "io/image/IffFormat.h"
 #include "io/image/TargaFormat.h"
 #include "io/pov/Parse.h"
-#include "render/RenderEngine.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"

@@ -1,6 +1,6 @@
 #include "io/pov/FogParser.h"
 #include "io/pov/Parse.h"
-#include "render/RenderFrame.h"
+#include "environment/scene/SceneFrame.h"
 
 extern TokenStruct globalToken;
 
