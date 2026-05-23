@@ -8,7 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
 add_executable(povray
-  src/app/Povray.cpp
+  src/app/main.cpp
+  src/app/PovrayApplication.cpp
   src/common/color/Color.cpp
   src/common/logger/Logger.cpp
   src/common/linealAlgebra/Transformation.cpp

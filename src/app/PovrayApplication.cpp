@@ -1,27 +1,23 @@
-/****************************************************************************
- *                     povray.c
- *
- *  This module contains the entry routine for the raytracer and the code to
- *  parse the parameters on the command line.
- *
- *****************************************************************************/
-#include "app/PovrayApplication.h"
+#include <cctype>
+#include <cstring>
+#include <ctime> /* BP */
+
+#include "java/io/FileInputStream.h"
+
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/logger/Logger.h"
+#include "common/Statistics.h"
 #include "environment/geometry/Intersection.h"
-#include "java/io/FileInputStream.h"
+#include "environment/scene/SceneFrame.h"
+#include "environment/material/RendererConfiguration.h"
 #include "io/FileLocator.h"
 #include "io/Parse.h"
 #include "io/image/DumpFormat.h"
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
 #include "render/RenderEngine.h"
-#include "environment/scene/SceneFrame.h"
-#include "environment/material/RendererConfiguration.h"
-#include "common/Statistics.h"
-#include <cctype>
-#include <cstring>
-#include <ctime> /* BP */
+
+#include "app/PovrayApplication.h"
 
 static constexpr int MAX_FILE_NAMES = 1;
 static constexpr const char *COMPILER_VER = ".u";
@@ -36,14 +32,6 @@ static int numberOfFiles;
 static int inFlag;
 static int outFlag;
 double VTemp;
-
-int
-main(int argc, char *argv[])
-{
-    PovrayApplication::run(argc, argv);
-
-    return 0;
-}
 
 void
 PovrayApplication::run(int argc, char *argv[])

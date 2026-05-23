@@ -8,14 +8,16 @@
 #include "environment/geometry/elements/Triangle.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/Composite.h"
-Methods Triangle_Methods = {Composite::objectIntersect,
+#include "common/dataStructures/PriorityQueue.h"
+#include <cstdio>
+#include <cstdlib>
+Methods Triangle_Methods = {Triangle::objectIntersect,
     Triangle::allTriangleIntersections, Triangle::insideTriangle,
     Triangle::triangleNormal, Triangle::copyTriangle,
     Triangle::translateTriangle, Triangle::rotateTriangle,
     Triangle::scaleTriangle, Triangle::invertTriangle};
 
-Methods Smooth_Triangle_Methods = {Composite::objectIntersect,
+Methods Smooth_Triangle_Methods = {Triangle::objectIntersect,
     Triangle::allTriangleIntersections, Triangle::insideTriangle,
     SmoothTriangle::smoothTriangleNormal, SmoothTriangle::copySmoothTriangle,
     SmoothTriangle::translateSmoothTriangle,
@@ -23,6 +25,32 @@ Methods Smooth_Triangle_Methods = {Composite::objectIntersect,
     SmoothTriangle::invertSmoothTriangle};
 
 extern RayWithSegments *vpRay;
+
+Intersection *
+Triangle::objectIntersect(SimpleBody *object, RayWithSegments *ray)
+{
+    Intersection *localIntersection;
+    Intersection *queueElement;
+    PriorityQueueNode *depthQueue;
+
+    depthQueue = IntersectionPriorityQueuePool::pqPop(128);
+
+    if ((GeometryOperations::allIntersections(object, ray, depthQueue)) &&
+        ((queueElement = depthQueue->getHighest()) != nullptr)) {
+        if ((localIntersection = new Intersection) == nullptr) {
+            printf("Cannot allocate memory for local intersection\n");
+            exit(1);
+        }
+        localIntersection->Point = queueElement->Point;
+        localIntersection->Shape = queueElement->Shape;
+        localIntersection->Depth = queueElement->Depth;
+        localIntersection->Object = queueElement->Object;
+        IntersectionPriorityQueuePool::pqPush(depthQueue);
+        return localIntersection;
+    }
+    IntersectionPriorityQueuePool::pqPush(depthQueue);
+    return nullptr;
+}
 
 int
 Triangle::max3Axis(double x, double y, double z)

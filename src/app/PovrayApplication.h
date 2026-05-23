@@ -2,9 +2,6 @@
 #define __POVRAY_APPLICATION_H__
 
 class PovrayApplication {
-  public:
-    static void run(int argc, char *argv[]);
-
   private:
     static void initializeFromCommandLine(int argc, char *argv[]);
     static void configureOutputTarget();
@@ -12,7 +9,6 @@ class PovrayApplication {
     static void prepareRendering();
     static void runRenderLoop();
     static void finalizeRun();
-
     static void usage();
     static void initVars();
     static void closeAll();
@@ -22,6 +18,9 @@ class PovrayApplication {
     static void printOptions();
     static void parseFileName(char *fileName);
     static void printCredits();
+
+  public:
+    static void run(int argc, char *argv[]);
 };
 
 #endif

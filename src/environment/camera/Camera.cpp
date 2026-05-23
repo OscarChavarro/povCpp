@@ -6,7 +6,6 @@
  *****************************************************************************/
 
 #include "environment/camera/Camera.h"
-#include "environment/scene/factory/ModelFactory.h"
 Methods Camera_Methods = {nullptr, nullptr, nullptr, nullptr,
     Camera::copyCamera, Camera::translateCamera,
     Camera::rotateCamera, Camera::scaleCamera, nullptr};
@@ -14,9 +13,11 @@ void *
 Camera::copyCamera(SimpleBody *object)
 {
     Camera *viewpoint = (Camera *)object;
-    Camera *newViewpoint;
-
-    newViewpoint = ModelFactory::getCamera();
+    Camera *newViewpoint = new Camera();
+    if (newViewpoint == nullptr) {
+        return nullptr;
+    }
+    newViewpoint->initializeDefaults();
 
     newViewpoint->Location = viewpoint->Location;
     newViewpoint->Direction = viewpoint->Direction;

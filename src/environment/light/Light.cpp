@@ -7,7 +7,6 @@
 
 #include "environment/light/Light.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/scene/factory/ModelFactory.h"
 Methods Point_Methods = {Composite::objectIntersect,
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,
@@ -29,9 +28,10 @@ Light::insidePoint(Vector3Dd *testPoint, SimpleBody *object)
 void *
 Light::copyPoint(SimpleBody *object)
 {
-    Light *newShape;
-
-    newShape = ModelFactory::getLightSourceShape();
+    Light *newShape = new Light();
+    if (newShape == nullptr) {
+        return nullptr;
+    }
     *newShape = *((Light *)object);
     newShape->Next_Object = nullptr;
 
