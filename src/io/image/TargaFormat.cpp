@@ -8,7 +8,6 @@
 
 #include "io/image/TargaFormat.h"
 #include "io/FileLocator.h"
-#include "io/PersistenceElement.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
@@ -17,106 +16,88 @@
 #include <cmath>
 #include <cstdlib>
 
-ImageFileHandle *
-TargaFormat::getTargaFileInputStream()
+TargaFormat::TargaFormat()
+    : inputStream(nullptr), outputStream(nullptr),
+      width(0), height(0), mode(0), filename(nullptr)
 {
-    ImageFileHandle *handle = new ImageFileHandle;
-    if (handle == nullptr) {
-        Logger::error("Cannot allocate memory for output file handle\n");
-        return nullptr;
-    }
-
-    handle->inputStream = nullptr;
-    handle->outputStream = nullptr;
-    handle->Default_File_Name_p = TargaFormat::defaultTargaFileName;
-    handle->Open_File_p = TargaFormat::openTargaFile;
-    handle->Write_Line_p = TargaFormat::writeTargaLine;
-    handle->Read_Line_p = TargaFormat::readTargaLine;
-    handle->Read_Image_p = TargaFormat::readTargaImage;
-    handle->Close_File_p = TargaFormat::closeTargaFile;
-    handle->buffer_size = 0;
-    return handle;
 }
 
-static char defaultTargaFilename[] = "data.tga";
-
-char *
-TargaFormat::defaultTargaFileName()
+TargaFormat::~TargaFormat()
 {
-    return defaultTargaFilename;
+    close();
+}
+
+const char *
+TargaFormat::defaultFileName()
+{
+    return "data.tga";
 }
 
 int
-TargaFormat::openTargaFile(ImageFileHandle *handle, char *name, int *width,
-    int *height, int bufferSize, int mode)
+TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
 {
-    handle->mode = mode;
-    handle->filename = name;
-    handle->buffer_size = bufferSize;
-    handle->inputStream = nullptr;
-    handle->outputStream = nullptr;
+    mode = openMode;
+    filename = name;
+    inputStream = nullptr;
+    outputStream = nullptr;
 
     switch (mode) {
-    case ImageFileHandle::READ_MODE:
-        handle->inputStream = FileLocator::locateAsStream(name);
-        if (handle->inputStream == nullptr) {
+    case READ_MODE:
+        inputStream = FileLocator::locateAsStream(name);
+        if (inputStream == nullptr) {
             return 0;
         }
-        {
-            java::FileInputStream &is = *handle->inputStream;
-            for (int i = 0; i < 12; i++) {
-                if (is.read() == -1) {
-                    return 0;
-                }
+        for (int i = 0; i < 12; i++) {
+            if (inputStream->read() == -1) {
+                return 0;
             }
-            int data1 = is.read();
-            int data2 = is.read();
+        }
+        {
+            int data1 = inputStream->read();
+            int data2 = inputStream->read();
             if (data1 == -1 || data2 == -1) {
                 return 0;
             }
-            *width = data2 * 256 + data1;
+            *w = data2 * 256 + data1;
 
-            data1 = is.read();
-            data2 = is.read();
+            data1 = inputStream->read();
+            data2 = inputStream->read();
             if (data1 == -1 || data2 == -1) {
                 return 0;
             }
-            if (is.read() == -1 || is.read() == -1) {
+            if (inputStream->read() == -1 || inputStream->read() == -1) {
                 return 0;
             }
-            *height = data2 * 256 + data1;
-            handle->width = *width;
-            handle->height = *height;
+            *h = data2 * 256 + data1;
         }
+        width = *w;
+        height = *h;
         break;
 
-    case ImageFileHandle::WRITE_MODE:
-        handle->outputStream = new java::FileOutputStream(name);
-        if (!handle->outputStream) {
+    case WRITE_MODE:
+        outputStream = new java::FileOutputStream(name);
+        if (!outputStream) {
             return 0;
         }
-        {
-            java::FileOutputStream &os = *handle->outputStream;
-            for (int i = 0; i < 10; i++) {
-                os.write(i == 2 ? 2 : 0);
-            }
-            os.write(globalRenderingConfiguration.firstLine % 256);
-            os.write(globalRenderingConfiguration.firstLine / 256);
-            os.write(*width % 256);
-            os.write(*width / 256);
-            os.write(*height % 256);
-            os.write(*height / 256);
-            os.write(24);
-            os.write(32);
+        for (int i = 0; i < 10; i++) {
+            outputStream->write(i == 2 ? 2 : 0);
         }
-        handle->width = *width;
-        handle->height = *height;
+        outputStream->write(globalRenderingConfiguration.firstLine % 256);
+        outputStream->write(globalRenderingConfiguration.firstLine / 256);
+        outputStream->write(*w % 256);
+        outputStream->write(*w / 256);
+        outputStream->write(*h % 256);
+        outputStream->write(*h / 256);
+        outputStream->write(24);
+        outputStream->write(32);
+        width = *w;
+        height = *h;
         break;
 
-    case ImageFileHandle::APPEND_MODE:
-        handle->outputStream = new java::FileOutputStream(name, true);
-        handle->width = *width;
-        handle->height = *height;
+    case APPEND_MODE:
+        outputStream = new java::FileOutputStream(name, true);
+        width = *w;
+        height = *h;
         break;
     }
 
@@ -124,116 +105,89 @@ TargaFormat::openTargaFile(ImageFileHandle *handle, char *name, int *width,
 }
 
 void
-TargaFormat::writeTargaLine(
-    ImageFileHandle *handle, RGBAColor *lineData, int lineNumber)
+TargaFormat::writeLine(RGBAColor *lineData, int lineNumber)
 {
-    java::FileOutputStream &os = *handle->outputStream;
-
-    for (int x = 0; x < handle->width; x++) {
-        os.write((int)floor(lineData[x].Blue * 255.0));
-        os.write((int)floor(lineData[x].Green * 255.0));
-        os.write((int)floor(lineData[x].Red * 255.0));
+    for (int x = 0; x < width; x++) {
+        outputStream->write((int)floor(lineData[x].Blue * 255.0));
+        outputStream->write((int)floor(lineData[x].Green * 255.0));
+        outputStream->write((int)floor(lineData[x].Red * 255.0));
     }
 
-    os.flush();
+    outputStream->flush();
 }
 
 int
-TargaFormat::readTargaLine(
-    ImageFileHandle *handle, RGBAColor *lineData, int *lineNumber)
+TargaFormat::readLine(RGBAColor *lineData, int *lineNumber)
 {
-    java::FileInputStream &is = *handle->inputStream;
-
-    for (int x = 0; x < handle->width; x++) {
-        int data = is.read();
+    for (int x = 0; x < width; x++) {
+        int data = inputStream->read();
         if (data == -1) {
-            if (x == 0) {
-                return 0;
-            }
-            return -1;
+            return (x == 0) ? 0 : -1;
         }
         lineData[x].Blue = (double)data / 255.0;
 
-        data = is.read();
-        if (data == -1) {
-            return -1;
-        }
+        data = inputStream->read();
+        if (data == -1) return -1;
         lineData[x].Green = (double)data / 255.0;
 
-        data = is.read();
-        if (data == -1) {
-            return -1;
-        }
+        data = inputStream->read();
+        if (data == -1) return -1;
         lineData[x].Red = (double)data / 255.0;
     }
 
     return 1;
 }
 
-void
-TargaFormat::closeTargaFile(ImageFileHandle *handle)
-{
-    if (handle->inputStream != nullptr) {
-        handle->inputStream->close();
-        delete handle->inputStream;
-        handle->inputStream = nullptr;
-    }
-    if (handle->outputStream != nullptr) {
-        handle->outputStream->close();
-        delete handle->outputStream;
-        handle->outputStream = nullptr;
-    }
-}
-
 int
-TargaFormat::readTargaIntLine(ImageFileHandle *handle, ImageLine *lineData)
+TargaFormat::readIntLine(ImageLine *lineData)
 {
-    java::FileInputStream &is = *handle->inputStream;
-
-    lineData->red = new unsigned char[handle->width];
-    lineData->green = new unsigned char[handle->width];
-    lineData->blue = new unsigned char[handle->width];
+    lineData->red   = new unsigned char[width];
+    lineData->green = new unsigned char[width];
+    lineData->blue  = new unsigned char[width];
 
     if (lineData->red == nullptr || lineData->green == nullptr || lineData->blue == nullptr) {
-        Logger::error("Cannot allocate memory for picture: %s\n", handle->filename);
+        Logger::error("Cannot allocate memory for picture: %s\n", filename);
         exit(1);
     }
 
-    for (int x = 0; x < handle->width; x++) {
-        int data = is.read();
+    for (int x = 0; x < width; x++) {
+        int data = inputStream->read();
         if (data == -1) {
-            if (x == 0) {
-                return 0;
-            }
-            return -1;
+            return (x == 0) ? 0 : -1;
         }
         lineData->blue[x] = (unsigned char)data;
 
-        data = is.read();
-        if (data == -1) {
-            return -1;
-        }
+        data = inputStream->read();
+        if (data == -1) return -1;
         lineData->green[x] = (unsigned char)data;
 
-        data = is.read();
-        if (data == -1) {
-            return -1;
-        }
+        data = inputStream->read();
+        if (data == -1) return -1;
         lineData->red[x] = (unsigned char)data;
     }
     return 1;
 }
 
 void
+TargaFormat::close()
+{
+    if (inputStream != nullptr) {
+        inputStream->close();
+        delete inputStream;
+        inputStream = nullptr;
+    }
+    if (outputStream != nullptr) {
+        outputStream->close();
+        delete outputStream;
+        outputStream = nullptr;
+    }
+}
+
+void
 TargaFormat::readTargaImage(RGBAImage *image, char *name)
 {
-    ImageFileHandle handle;
-    handle.inputStream = nullptr;
-    handle.outputStream = nullptr;
-    handle.filename = name;
-
-    if (!TargaFormat::openTargaFile(
-            &handle, name, &image->iwidth, &image->iheight, 0, ImageFileHandle::READ_MODE)) {
+    TargaFormat fmt;
+    if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE)) {
         Logger::error("Cannot open Targa file %s\n", name);
         exit(1);
     }
@@ -250,9 +204,9 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
     }
 
     for (int row = 0; row < image->iheight &&
-         TargaFormat::readTargaIntLine(&handle, &image->data.rgb_lines[row]);
+         fmt.readIntLine(&image->data.rgb_lines[row]);
          row++) {
     }
 
-    TargaFormat::closeTargaFile(&handle);
+    fmt.close();
 }

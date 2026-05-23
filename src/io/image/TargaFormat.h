@@ -1,25 +1,31 @@
 #ifndef __TARGA_FORMAT_H__
 #define __TARGA_FORMAT_H__
 
-#include "io/image/ImageFileHandle.h"
+#include "io/image/ImageOutput.h"
 #include "media/ImageData.h"
+#include "java/io/FileInputStream.h"
+#include "java/io/FileOutputStream.h"
 
 class RGBAColor;
 class RGBAImage;
 
-class TargaFormat {
+class TargaFormat : public ImageOutput {
   public:
-    static ImageFileHandle *getTargaFileInputStream(void);
-    static char *defaultTargaFileName(void);
-    static int openTargaFile(ImageFileHandle *handle, char *name, int *width,
-        int *height, int bufferSize, int mode);
-    static void writeTargaLine(
-        ImageFileHandle *handle, RGBAColor *lineData, int lineNumber);
-    static int readTargaLine(
-        ImageFileHandle *handle, RGBAColor *lineData, int *lineNumber);
+    TargaFormat();
+    ~TargaFormat() override;
+    const char *defaultFileName() override;
+    int open(char *name, int *width, int *height, int bufferSize, int mode) override;
+    void writeLine(RGBAColor *lineData, int lineNumber) override;
+    int readLine(RGBAColor *lineData, int *lineNumber) override;
+    void close() override;
     static void readTargaImage(RGBAImage *image, char *name);
-    static void closeTargaFile(ImageFileHandle *handle);
-    static int readTargaIntLine(ImageFileHandle *handle, ImageLine *lineData);
+
+  private:
+    int readIntLine(ImageLine *lineData);
+    java::FileInputStream *inputStream;
+    java::FileOutputStream *outputStream;
+    int width, height, mode;
+    char *filename;
 };
 
 #endif
