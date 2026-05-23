@@ -7,7 +7,7 @@
 
 class SmoothTriangle : public Geometry {
   public:
-    Vector3Dd Normal_Vector;
+    Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
     unsigned int VPCached : 1;
@@ -17,7 +17,7 @@ class SmoothTriangle : public Geometry {
     Vector3Dd P1;
     Vector3Dd P2;
     Vector3Dd P3;
-    short int Degenerate_Flag;
+    short int degenerateFlag;
     Vector3Dd N1;
     Vector3Dd N2;
     Vector3Dd N3;

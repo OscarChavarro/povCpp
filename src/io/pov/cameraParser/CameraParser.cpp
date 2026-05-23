@@ -13,7 +13,7 @@ findConstant()
     int i;
 
     for (i = 1; i <= numberOfConstants; i++) {
-        if (constants[i].Identifier_Number == globalToken.Identifier_Number) {
+        if (constants[i].identifierNumber == globalToken.identifierNumber) {
             return (i);
         }
     }
@@ -41,13 +41,13 @@ CameraParser::parseCamera(Camera *givenVp)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         VIEW_POINT_CONSTANT) {
                         *givenVp = *((Camera *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }

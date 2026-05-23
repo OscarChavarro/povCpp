@@ -32,7 +32,7 @@ BlobParser::parseBlob()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -48,7 +48,7 @@ BlobParser::parseBlob()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case THRESHOLD_TOKEN:
             case COMPONENT_TOKEN:
                 Tokenizer::ungetToken();
@@ -63,7 +63,7 @@ BlobParser::parseBlob()
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
                         Tokenizer::getToken();
-                        switch (globalToken.Token_Id) {
+                        switch (globalToken.tokenId) {
                         case THRESHOLD_TOKEN:
                             threshold = PrimitiveParser::parseFloat();
                             break;
@@ -102,11 +102,11 @@ BlobParser::parseBlob()
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         BLOB_CONSTANT) {
                         localShape = (Blob *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -128,13 +128,13 @@ BlobParser::parseBlob()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
 
             case STURM_TOKEN:
-                localShape->Sturm_Flag = 1;
+                localShape->sturmFlag = 1;
                 break;
 
             case TRANSLATE_TOKEN:
@@ -161,7 +161,7 @@ BlobParser::parseBlob()
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 {

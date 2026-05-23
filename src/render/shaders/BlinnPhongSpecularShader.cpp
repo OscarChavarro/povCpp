@@ -30,15 +30,15 @@ BlinnPhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRa
         cosAngleOfIncidence = 0.0;
     }
 
-    roughness = 1.0 / texture->Object_Roughness;
+    roughness = 1.0 / texture->objectRoughness;
 
     if (roughness != 1.0) {
         intensity = pow(cosAngleOfIncidence, roughness);
     } else {
         intensity = cosAngleOfIncidence;
     }
-    intensity *= texture->Object_Specular;
-    if (texture->Metallic_Flag) {
+    intensity *= texture->objectSpecular;
+    if (texture->metallicFlag) {
         color->Red += intensity * (surfaceColor->Red);
         color->Green += intensity * (surfaceColor->Green);
         color->Blue += intensity * (surfaceColor->Blue);

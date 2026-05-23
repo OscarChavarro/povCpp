@@ -10,15 +10,15 @@ class RayWithSegments;
 
 class RenderFrame {
   public:
-    Camera View_Point;
-    int Screen_Height;
-    int Screen_Width;
+    Camera viewPoint;
+    int screenHeight;
+    int screenWidth;
     Light *Light_Sources;
     SceneObject *Objects;
-    double Atmosphere_IOR;
-    double Antialias_Threshold;
-    double Fog_Distance;
-    RGBAColor Fog_Colour;
+    double atmosphereIor;
+    double antialiasThreshold;
+    double fogDistance;
+    RGBAColor fogColour;
 
   private:
     static void createRay(

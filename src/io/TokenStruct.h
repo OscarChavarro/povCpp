@@ -5,13 +5,13 @@
 
 class TokenStruct {
   public:
-    int Token_Id;
-    int Token_Line_No;
+    int tokenId;
+    int tokenLineNo;
     char *Token_String;
-    double Token_Float;
-    int Identifier_Number;
-    int Unget_Token;
-    int End_Of_File;
+    double tokenFloat;
+    int identifierNumber;
+    int ungetToken;
+    int endOfFile;
     char *Filename;
 };
 

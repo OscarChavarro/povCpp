@@ -15,7 +15,7 @@ class Blob : public Geometry {
     double threshold;
     BlobElement *list;
     BlobInterval *intervals;
-    int Sturm_Flag;
+    int sturmFlag;
 
     static int allBlobIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

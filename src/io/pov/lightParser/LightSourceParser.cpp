@@ -24,7 +24,7 @@ LightSourceParser::parseLightSource()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 localShape = SceneFactory::getLightSourceShape();
@@ -39,11 +39,11 @@ LightSourceParser::parseLightSource()
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         LIGHT_SOURCE_CONSTANT) {
                         localShape = (Light *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -65,7 +65,7 @@ LightSourceParser::parseLightSource()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -90,7 +90,7 @@ LightSourceParser::parseLightSource()
 
             /* Point that the spot is pointed at */
             case POINT_AT_TOKEN:
-                PrimitiveParser::parseVector(&(localShape->Points_At));
+                PrimitiveParser::parseVector(&(localShape->pointsAt));
                 break;
 
             case TIGHTNESS_TOKEN:

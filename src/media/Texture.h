@@ -21,37 +21,37 @@ class Texture {
   public:
     Texture *Next_Texture;
     Texture *Next_Material;
-    int Number_Of_Materials;
-    double Object_Reflection;
-    double Object_Ambient;
-    double Object_Diffuse;
-    double Object_Brilliance;
-    double Object_Index_Of_Refraction;
-    double Object_Refraction;
-    double Object_Transmit;
-    double Object_Specular;
-    double Object_Roughness;
-    double Object_Phong;
-    double Object_PhongSize;
-    double Bump_Amount;
-    double Texture_Randomness;
+    int numberOfMaterials;
+    double objectReflection;
+    double objectAmbient;
+    double objectDiffuse;
+    double objectBrilliance;
+    double objectIndexOfRefraction;
+    double objectRefraction;
+    double objectTransmit;
+    double objectSpecular;
+    double objectRoughness;
+    double objectPhong;
+    double objectPhongSize;
+    double bumpAmount;
+    double textureRandomness;
     double Frequency;
     double Phase;
-    int Texture_Number;
-    int Bump_Number;
-    int Texture_Index;
+    int textureNumber;
+    int bumpNumber;
+    int textureIndex;
     Transformation *Texture_Transformation;
     RGBAColor *Colour1;
     RGBAColor *Colour2;
     double Turbulence;
-    Vector3Dd Texture_Gradient;
+    Vector3Dd textureGradient;
     RGBAColorPalette *Colour_Map;
     RGBAImage *Image;
     RGBAImage *Bump_Image;
     RGBAImage *Material_Image;
-    short Metallic_Flag;
-    short Once_Flag;
-    short Constant_Flag;
+    short metallicFlag;
+    short onceFlag;
+    short constantFlag;
     int Octaves;   /* dmf, 1/92 for turb */
     double Mortar; /* rha, 2/92 for brick */
 

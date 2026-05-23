@@ -28,29 +28,29 @@ ColorMapParser::parseColorMap()
     }
 
     i = 0;
-    newColourMap->Transparency_Flag = FALSE;
+    newColourMap->transparencyFlag = FALSE;
     ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
     {
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_SQUARE_TOKEN:
                 constructionMap[i].start = PrimitiveParser::parseFloat();
                 constructionMap[i].end = PrimitiveParser::parseFloat();
 
                 ParseHelpers::getExpectedToken(COLOUR_TOKEN);
                 PrimitiveParser::parseColour(
-                    &(constructionMap[i].Start_Colour));
-                if (constructionMap[i].Start_Colour.Alpha != 0.0) {
-                    newColourMap->Transparency_Flag = TRUE;
+                    &(constructionMap[i].startColour));
+                if (constructionMap[i].startColour.Alpha != 0.0) {
+                    newColourMap->transparencyFlag = TRUE;
                 }
 
                 ParseHelpers::getExpectedToken(COLOUR_TOKEN);
-                PrimitiveParser::parseColour(&(constructionMap[i].End_Colour));
-                if (constructionMap[i].End_Colour.Alpha != 0.0) {
-                    newColourMap->Transparency_Flag = TRUE;
+                PrimitiveParser::parseColour(&(constructionMap[i].endColour));
+                if (constructionMap[i].endColour.Alpha != 0.0) {
+                    newColourMap->transparencyFlag = TRUE;
                 }
 
                 i++;
@@ -61,7 +61,7 @@ ColorMapParser::parseColorMap()
                 break;
 
             case RIGHT_CURLY_TOKEN:
-                newColourMap->Number_Of_Entries = i;
+                newColourMap->numberOfEntries = i;
 
                 newColourMap->Colour_Map_Entries = new RGBAColorPaletteSpan[i];
                 if (newColourMap == nullptr) {

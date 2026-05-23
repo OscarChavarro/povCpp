@@ -11,10 +11,10 @@ class Composite {
   public:
     Methods *methods;
     int Type;
-    SimpleBody *Next_Object;
+    SimpleBody *nextObject;
     /*    SimpleBody *Next_Light_Source;*/
-    Geometry *Bounding_Shapes;
-    Geometry *Clipping_Shapes;
+    Geometry *boundingShapes;
+    Geometry *clippingShapes;
     SimpleBody *Objects;
 
     static Intersection *objectIntersect(

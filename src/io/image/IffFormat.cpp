@@ -157,10 +157,10 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
 
         case BODY:
             if ((iffColourMap == nullptr) || (viewmodes & HAM)) {
-                image->Colour_Map_Size = 0;
+                image->colourMapSize = 0;
                 image->Colour_Map = nullptr;
             } else {
-                image->Colour_Map_Size = colourmapSize;
+                image->colourMapSize = colourmapSize;
                 image->Colour_Map = iffColourMap;
             }
             rowBytes = new unsigned char *[nPlanes];
@@ -278,7 +278,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                         line->green[j] = (unsigned char)((creg >> 8) & 0xFF);
                         line->blue[j]  = (unsigned char)(creg & 0xFF);
                     } else {
-                        if (creg > (unsigned long)image->Colour_Map_Size) {
+                        if (creg > (unsigned long)image->colourMapSize) {
                             Logger::error("Error - IFF Image Map Colour out of range\n");
                             exit(1);
                         }

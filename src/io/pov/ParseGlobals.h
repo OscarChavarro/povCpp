@@ -25,9 +25,9 @@ static constexpr int BLOB_CONSTANT = 19;
 static constexpr int LIGHT_SOURCE_CONSTANT = 20;
 
 struct Constant {
-    int Identifier_Number;
-    int Constant_Type;
-    char *Constant_Data;
+    int identifierNumber;
+    int constantType;
+    char *constantData;
 };
 
 #endif

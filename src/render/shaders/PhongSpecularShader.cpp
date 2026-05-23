@@ -42,15 +42,15 @@ PhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
         cosAngleOfIncidence = 0;
     }
 
-    if (texture->Object_PhongSize != 1.0) {
-        intensity = pow(cosAngleOfIncidence, texture->Object_PhongSize);
+    if (texture->objectPhongSize != 1.0) {
+        intensity = pow(cosAngleOfIncidence, texture->objectPhongSize);
     } else {
         intensity = cosAngleOfIncidence;
     }
 
-    intensity *= texture->Object_Phong;
+    intensity *= texture->objectPhong;
 
-    if (texture->Metallic_Flag) {
+    if (texture->metallicFlag) {
         color->Red += intensity * (surfaceColor->Red);
         color->Green += intensity * (surfaceColor->Green);
         color->Blue += intensity * (surfaceColor->Blue);

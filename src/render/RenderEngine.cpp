@@ -93,13 +93,13 @@ RenderFrame::createRay(
 
     /* Convert the Y Coordinate to be a double from 0.0 to 1.0 */
     yScalar =
-        (((double)(globalFrame.Screen_Height - 1) - y) - (double)height / 2.0) /
+        (((double)(globalFrame.screenHeight - 1) - y) - (double)height / 2.0) /
         (double)height;
 
-    VectorOps::vScale(tempVect1, globalFrame.View_Point.Up, yScalar);
-    VectorOps::vScale(tempVect2, globalFrame.View_Point.Right, xScalar);
+    VectorOps::vScale(tempVect1, globalFrame.viewPoint.Up, yScalar);
+    VectorOps::vScale(tempVect2, globalFrame.viewPoint.Right, xScalar);
     VectorOps::vAdd(ray->direction, tempVect1, tempVect2);
-    ray->direction.add(globalFrame.View_Point.Direction);
+    ray->direction.add(globalFrame.viewPoint.Direction);
     ray->direction.normalize();
     ray->initializeContainers();
     ray->quadricConstantsCached = FALSE;
@@ -130,8 +130,8 @@ RenderEngine::supersample(
     jitterY = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
                   32768.0 * 0.33333333 -
               0.16666666;
-    RenderFrame::createRay(vpRay, globalFrame.Screen_Width,
-        globalFrame.Screen_Height, dx + jitterX, dy + jitterY);
+    RenderFrame::createRay(vpRay, globalFrame.screenWidth,
+        globalFrame.screenHeight, dx + jitterX, dy + jitterY);
 
     traceLevel = 0;
     RenderEngine::trace(vpRay, &colour);
@@ -294,7 +294,7 @@ RenderEngine::readRenderedPart()
         globalRenderingConfiguration.outputFileInputStream->close();
         if (globalRenderingConfiguration.outputFileInputStream->open(
                 globalRenderingConfiguration.outputFileName,
-                &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                &globalFrame.screenWidth, &globalFrame.screenHeight,
                 globalRenderingConfiguration.fileBufferSize, RenderOutput::APPEND_MODE) != 1) {
             Logger::error("Error opening output file\n");
             exit(1);
@@ -316,7 +316,7 @@ RenderEngine::startTracing()
 
         RenderFrame::checkStats(y);
 
-        for (x = 0; x < globalFrame.Screen_Width; x++) {
+        for (x = 0; x < globalFrame.screenWidth; x++) {
 
             if (stopFlag) {
                 if (globalRenderingConfiguration.outputFileInputStream != nullptr) {
@@ -328,8 +328,8 @@ RenderEngine::startTracing()
 
             globalStatistics.numberOfPixels++;
 
-            RenderFrame::createRay(vpRay, globalFrame.Screen_Width,
-                globalFrame.Screen_Height, (double)x, (double)y);
+            RenderFrame::createRay(vpRay, globalFrame.screenWidth,
+                globalFrame.screenHeight, (double)x, (double)y);
             traceLevel = 0;
             RenderEngine::trace(&ray, &colour);
             Color::clipColor(&colour, &colour);
@@ -362,13 +362,13 @@ RenderFrame::checkStats(int y)
     /* New verbose options CdW */
     if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '0') {
         Logger::info("POV-Ray rendering %s to %s", globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
-        if ((globalRenderingConfiguration.firstLine != 0) || (globalRenderingConfiguration.lastLine != globalFrame.Screen_Height)) {
+        if ((globalRenderingConfiguration.firstLine != 0) || (globalRenderingConfiguration.lastLine != globalFrame.screenHeight)) {
             Logger::info(" from %4d to %4d:\n", globalRenderingConfiguration.firstLine, globalRenderingConfiguration.lastLine);
         } else {
             Logger::info(":\n");
         }
-        Logger::info("Res %4d X %4d. Calc line %4d of %4d", globalFrame.Screen_Width,
-            globalFrame.Screen_Height, (y - globalRenderingConfiguration.firstLine) + 1,
+        Logger::info("Res %4d X %4d. Calc line %4d of %4d", globalFrame.screenWidth,
+            globalFrame.screenHeight, (y - globalRenderingConfiguration.firstLine) + 1,
             globalRenderingConfiguration.lastLine - globalRenderingConfiguration.firstLine);
         if (!(globalRenderingConfiguration.options & ANTIALIAS)) {
             Logger::info(".");
@@ -390,7 +390,7 @@ RenderFrame::checkStats(int y)
     }
     if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
-            globalFrame.Screen_Width, globalFrame.Screen_Height,
+            globalFrame.screenWidth, globalFrame.screenHeight,
             (y - globalRenderingConfiguration.firstLine) + 1, globalRenderingConfiguration.lastLine - globalRenderingConfiguration.firstLine);
         if (!(globalRenderingConfiguration.options & ANTIALIAS)) {
             fprintf(stderr, ".");
@@ -411,11 +411,11 @@ RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
 
     if (x != 0) {
         if (Color::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
-            globalFrame.Antialias_Threshold) {
+            globalFrame.antialiasThreshold) {
             antialiasCenterFlag = 1;
             if (!(currentLineAntialiasedFlags[x - 1])) {
                 RenderEngine::supersample(&currentLine[x - 1], x - 1, y,
-                    globalFrame.Screen_Width, globalFrame.Screen_Height);
+                    globalFrame.screenWidth, globalFrame.screenHeight);
                 currentLineAntialiasedFlags[x - 1] = 1;
                 superSampleCount++;
             }
@@ -424,11 +424,11 @@ RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
 
     if (y != globalRenderingConfiguration.firstLine - 1) {
         if (Color::colorDistance(&previousLine[x], &currentLine[x]) >=
-            globalFrame.Antialias_Threshold) {
+            globalFrame.antialiasThreshold) {
             antialiasCenterFlag = 1;
             if (!(previousLineAntialiasedFlags[x])) {
                 RenderEngine::supersample(&previousLine[x], x, y - 1,
-                    globalFrame.Screen_Width, globalFrame.Screen_Height);
+                    globalFrame.screenWidth, globalFrame.screenHeight);
                 previousLineAntialiasedFlags[x] = 1;
                 superSampleCount++;
             }
@@ -437,7 +437,7 @@ RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
 
     if (antialiasCenterFlag) {
         RenderEngine::supersample(&currentLine[x], x, y,
-            globalFrame.Screen_Width, globalFrame.Screen_Height);
+            globalFrame.screenWidth, globalFrame.screenHeight);
         currentLineAntialiasedFlags[x] = 1;
         *colour = currentLine[x];
         superSampleCount++;
@@ -450,10 +450,10 @@ RenderEngine::initializeRenderer()
     int i;
 
     vpRay = &ray;
-    previousLine = new RGBAColor[(globalFrame.Screen_Width + 1)];
-    currentLine = new RGBAColor[(globalFrame.Screen_Width + 1)];
+    previousLine = new RGBAColor[(globalFrame.screenWidth + 1)];
+    currentLine = new RGBAColor[(globalFrame.screenWidth + 1)];
 
-    for (i = 0; i <= globalFrame.Screen_Width; i++) {
+    for (i = 0; i <= globalFrame.screenWidth; i++) {
         previousLine[i].Red = 0.0;
         previousLine[i].Green = 0.0;
         previousLine[i].Blue = 0.0;
@@ -464,16 +464,16 @@ RenderEngine::initializeRenderer()
     }
 
     if (globalRenderingConfiguration.options & ANTIALIAS) {
-        previousLineAntialiasedFlags = new char[(globalFrame.Screen_Width + 1)];
-        currentLineAntialiasedFlags = new char[(globalFrame.Screen_Width + 1)];
+        previousLineAntialiasedFlags = new char[(globalFrame.screenWidth + 1)];
+        currentLineAntialiasedFlags = new char[(globalFrame.screenWidth + 1)];
 
-        for (i = 0; i <= globalFrame.Screen_Width; i++) {
+        for (i = 0; i <= globalFrame.screenWidth; i++) {
             (previousLineAntialiasedFlags)[i] = 0;
             (currentLineAntialiasedFlags)[i] = 0;
         }
     }
 
-    ray.position = globalFrame.View_Point.Location;
+    ray.position = globalFrame.viewPoint.Location;
 }
 
 void
@@ -529,10 +529,10 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
         return;
     }
 
-    if (globalFrame.Fog_Distance == 0.0) {
+    if (globalFrame.fogDistance == 0.0) {
         Color::makeColor(colour, 0.0, 0.0, 0.0);
     } else {
-        *colour = globalFrame.Fog_Colour;
+        *colour = globalFrame.fogColour;
     }
 
     if (globalRenderingConfiguration.options & DEBUGGING) {
@@ -541,7 +541,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
 
     /* What objects does this ray intersect? */
     for (object = globalFrame.Objects; object != nullptr;
-        object = object->Next_Object) {
+        object = object->nextObject) {
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
             nullptr) {
             if (intersectionFound) {

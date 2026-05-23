@@ -7,8 +7,8 @@ template <class T>
 PriorityQueue<T>::PriorityQueue()
 {
     queue = nullptr;
-    current_entry = 0;
-    queue_size = 0;
+    currentEntry = 0;
+    queueSize = 0;
     next_pq = nullptr;
 }
 
@@ -23,9 +23,9 @@ PriorityQueue<T>::balance(unsigned int entryPos1)
 
     entry1 = &this->queue[entryPos1];
 
-    if ((entryPos1 * 2 < this->queue_size) &&
-        (entryPos1 * 2 <= this->current_entry)) {
-        if ((entryPos1 * 2 + 1 > this->current_entry) ||
+    if ((entryPos1 * 2 < this->queueSize) &&
+        (entryPos1 * 2 <= this->currentEntry)) {
+        if ((entryPos1 * 2 + 1 > this->currentEntry) ||
             (this->queue[entryPos1 * 2].Depth <
                 this->queue[entryPos1 * 2 + 1].Depth)) {
             entryPos2 = entryPos1 * 2;
@@ -59,19 +59,19 @@ template <class T>
 void
 PriorityQueue<T>::add(T *queueEntry)
 {
-    this->current_entry++;
-    if (this->current_entry >= this->queue_size) {
-        this->current_entry--;
+    this->currentEntry++;
+    if (this->currentEntry >= this->queueSize) {
+        this->currentEntry--;
     }
-    this->queue[this->current_entry] = (*queueEntry);
-    this->balance(this->current_entry);
+    this->queue[this->currentEntry] = (*queueEntry);
+    this->balance(this->currentEntry);
 }
 
 template <class T>
 T *
 PriorityQueue<T>::getHighest()
 {
-    if (this->current_entry >= 1) {
+    if (this->currentEntry >= 1) {
         return (&(this->queue[1]));
     }
     return nullptr;
@@ -81,7 +81,7 @@ template <class T>
 void
 PriorityQueue<T>::deleteHighest()
 {
-    this->queue[1] = this->queue[this->current_entry--];
+    this->queue[1] = this->queue[this->currentEntry--];
     this->balance(1);
 }
 
@@ -89,8 +89,8 @@ template <class T>
 void
 PriorityQueue<T>::print()
 {
-    Logger::info("PriorityQueue size=%u entries=%u\n", this->queue_size,
-        this->current_entry);
+    Logger::info("PriorityQueue size=%u entries=%u\n", this->queueSize,
+        this->currentEntry);
 }
 
 #endif

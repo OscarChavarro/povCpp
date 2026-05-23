@@ -29,21 +29,21 @@ BicubicPatchParser::parseBicubicPatch()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
                 Tokenizer::ungetToken();
                 localShape = SceneFactory::getBicubicPatchShape();
-                localShape->Patch_Type = (int)PrimitiveParser::parseFloat();
-                if (localShape->Patch_Type == 2 ||
-                    localShape->Patch_Type == 3) {
-                    localShape->Flatness_Value = PrimitiveParser::parseFloat();
+                localShape->patchType = (int)PrimitiveParser::parseFloat();
+                if (localShape->patchType == 2 ||
+                    localShape->patchType == 3) {
+                    localShape->flatnessValue = PrimitiveParser::parseFloat();
                 } else {
-                    localShape->Flatness_Value = 0.1;
+                    localShape->flatnessValue = 0.1;
                 }
-                localShape->U_Steps = (int)PrimitiveParser::parseFloat();
-                localShape->V_Steps = (int)PrimitiveParser::parseFloat();
+                localShape->uSteps = (int)PrimitiveParser::parseFloat();
+                localShape->vSteps = (int)PrimitiveParser::parseFloat();
                 for (i = 0; i < 4; i++) {
                     for (j = 0; j < 4; j++) {
                         PrimitiveParser::parseVector(
@@ -57,12 +57,12 @@ BicubicPatchParser::parseBicubicPatch()
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         BICUBIC_PATCH_CONSTANT) {
                         localShape =
                             (ParametricBiCubicPatch *)GeometryOperations::copy(
                                 (SimpleBody *)constants[(int)constantId]
-                                    .Constant_Data);
+                                    .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -84,7 +84,7 @@ BicubicPatchParser::parseBicubicPatch()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -113,7 +113,7 @@ BicubicPatchParser::parseBicubicPatch()
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 

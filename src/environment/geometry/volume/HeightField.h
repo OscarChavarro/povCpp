@@ -15,8 +15,8 @@ class HeightField : public Geometry {
   public:
     Transformation *transformation;
     Box *bounding_box;
-    double Block_Size;
-    double Inv_Blk_Size;
+    double blockSize;
+    double invBlkSize;
     HeightFieldBlock **Block;
     float **Map;
 

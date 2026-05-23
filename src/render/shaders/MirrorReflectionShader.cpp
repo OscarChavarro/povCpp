@@ -20,7 +20,7 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     Vector3Dd surfaceOffset;
     double normalComponent;
 
-    if (texture->Object_Reflection != 0.0) {
+    if (texture->objectReflection != 0.0) {
         globalStatistics.reflectedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
@@ -48,8 +48,8 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        color->Red += tempColor.Red * texture->Object_Reflection;
-        color->Green += tempColor.Green * texture->Object_Reflection;
-        color->Blue += tempColor.Blue * texture->Object_Reflection;
+        color->Red += tempColor.Red * texture->objectReflection;
+        color->Green += tempColor.Green * texture->objectReflection;
+        color->Blue += tempColor.Blue * texture->objectReflection;
     }
 }

@@ -43,55 +43,55 @@ class GeometryOperations {
     static inline int
     allIntersections(SimpleBody *x, RayWithSegments *y, PriorityQueueNode *z)
     {
-        return ((*((x)->methods->All_Intersections_Method))(x, y, z));
+        return ((*((x)->methods->allIntersectionsMethod))(x, y, z));
     }
 
     static inline Intersection *
     intersect(SimpleBody *x, RayWithSegments *y)
     {
-        return (Intersection *)((*((x)->methods->Intersection_Method))(x, y));
+        return (Intersection *)((*((x)->methods->intersectionMethod))(x, y));
     }
 
     static inline int
     inside(Vector3Dd *x, SimpleBody *y)
     {
-        return ((*((y)->methods->Inside_Method))(x, y));
+        return ((*((y)->methods->insideMethod))(x, y));
     }
 
     static inline void
     normal(Vector3Dd *x, SimpleBody *y, Vector3Dd *z)
     {
-        ((*((y)->methods->Normal_Method))(x, y, z));
+        ((*((y)->methods->normalMethod))(x, y, z));
     }
 
     static inline void *
     copy(SimpleBody *x)
     {
-        return ((*((x)->methods->Copy_Method))(x));
+        return ((*((x)->methods->copyMethod))(x));
     }
 
     static inline void
     translate(SimpleBody *x, Vector3Dd *y)
     {
-        ((*((x)->methods->Translate_Method))(x, y));
+        ((*((x)->methods->translateMethod))(x, y));
     }
 
     static inline void
     scale(SimpleBody *x, Vector3Dd *y)
     {
-        ((*((x)->methods->Scale_Method))(x, y));
+        ((*((x)->methods->scaleMethod))(x, y));
     }
 
     static inline void
     rotate(SimpleBody *x, Vector3Dd *y)
     {
-        ((*((x)->methods->Rotate_Method))(x, y));
+        ((*((x)->methods->rotateMethod))(x, y));
     }
 
     static inline void
     invert(SimpleBody *x)
     {
-        ((*((x)->methods->Invert_Method))(x));
+        ((*((x)->methods->invertMethod))(x));
     }
 };
 

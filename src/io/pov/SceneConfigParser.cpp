@@ -38,7 +38,7 @@ SceneConfigParser::findConstant()
     int i;
 
     for (i = 1; i <= numberOfConstants; i++) {
-        if (constants[i].Identifier_Number == globalToken.Identifier_Number) {
+        if (constants[i].identifierNumber == globalToken.identifierNumber) {
             return (i);
         }
     }
@@ -56,13 +56,13 @@ SceneConfigParser::parseFog()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case COLOUR_TOKEN:
-                PrimitiveParser::parseColour(&parsingFramePtr->Fog_Colour);
+                PrimitiveParser::parseColour(&parsingFramePtr->fogColour);
                 break;
 
             case FLOAT_TOKEN:
-                parsingFramePtr->Fog_Distance = globalToken.Token_Float;
+                parsingFramePtr->fogDistance = globalToken.tokenFloat;
                 break;
 
             case RIGHT_CURLY_TOKEN:
@@ -97,13 +97,13 @@ SceneConfigParser::parseCamera(Camera *givenVp)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         VIEW_POINT_CONSTANT) {
                         *givenVp = *((Camera *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -208,158 +208,158 @@ SceneConfigParser::parseDeclare()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case OBJECT_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)ObjectParser::parseObject();
-                constantPtr->Constant_Type = OBJECT_CONSTANT;
+                constantPtr->constantType = OBJECT_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case SPHERE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)SphereParser::parseSphere();
-                constantPtr->Constant_Type = SPHERE_CONSTANT;
+                constantPtr->constantType = SPHERE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case PLANE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)PlaneParser::parsePlane();
-                constantPtr->Constant_Type = PLANE_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)PlaneParser::parsePlane();
+                constantPtr->constantType = PLANE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case TRIANGLE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)TriangleParser::parseTriangle();
-                constantPtr->Constant_Type = TRIANGLE_CONSTANT;
+                constantPtr->constantType = TRIANGLE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case SMOOTH_TRIANGLE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)SmoothTriangleParser::parseSmoothTriangle();
-                constantPtr->Constant_Type = SMOOTH_TRIANGLE_CONSTANT;
+                constantPtr->constantType = SMOOTH_TRIANGLE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case QUADRIC_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)QuadricParser::parseQuadric();
-                constantPtr->Constant_Type = QUADRIC_CONSTANT;
+                constantPtr->constantType = QUADRIC_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case CUBIC_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)PolyParser::parsePoly(3);
-                constantPtr->Constant_Type = POLY_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)PolyParser::parsePoly(3);
+                constantPtr->constantType = POLY_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case QUARTIC_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)PolyParser::parsePoly(4);
-                constantPtr->Constant_Type = POLY_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)PolyParser::parsePoly(4);
+                constantPtr->constantType = POLY_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case HEIGHT_FIELD_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)HeightFieldParser::parseHeightField();
-                constantPtr->Constant_Type = HEIGHT_FIELD_CONSTANT;
+                constantPtr->constantType = HEIGHT_FIELD_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case POLY_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)PolyParser::parsePoly(0);
-                constantPtr->Constant_Type = POLY_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)PolyParser::parsePoly(0);
+                constantPtr->constantType = POLY_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case BOX_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)BoxParser::parseBox();
-                constantPtr->Constant_Type = BOX_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)BoxParser::parseBox();
+                constantPtr->constantType = BOX_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case BLOB_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)BlobParser::parseBlob();
-                constantPtr->Constant_Type = BLOB_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)BlobParser::parseBlob();
+                constantPtr->constantType = BLOB_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case BICUBIC_PATCH_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)BicubicPatchParser::parseBicubicPatch();
-                constantPtr->Constant_Type = BICUBIC_PATCH_CONSTANT;
+                constantPtr->constantType = BICUBIC_PATCH_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case INTERSECTION_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)ObjectParser::parseCsg(CSG_INTERSECTION_TYPE);
-                constantPtr->Constant_Type = CSG_INTERSECTION_CONSTANT;
+                constantPtr->constantType = CSG_INTERSECTION_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case UNION_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)ObjectParser::parseCsg(CSG_UNION_TYPE);
-                constantPtr->Constant_Type = CSG_UNION_CONSTANT;
+                constantPtr->constantType = CSG_UNION_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case DIFFERENCE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)ObjectParser::parseCsg(CSG_DIFFERENCE_TYPE);
-                constantPtr->Constant_Type = CSG_DIFFERENCE_CONSTANT;
+                constantPtr->constantType = CSG_DIFFERENCE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case COMPOSITE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)ObjectParser::parseComposite();
-                constantPtr->Constant_Type = COMPOSITE_CONSTANT;
+                constantPtr->constantType = COMPOSITE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case TEXTURE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
                 localTexture = nullptr;
-                constantPtr->Constant_Data = (char *)localTexture;
-                constantPtr->Constant_Type = TEXTURE_CONSTANT;
+                constantPtr->constantData = (char *)localTexture;
+                constantPtr->constantType = TEXTURE_CONSTANT;
                 Tokenizer::ungetToken();
                 {
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
                         Tokenizer::getToken();
-                        switch (globalToken.Token_Id) {
+                        switch (globalToken.tokenId) {
                         case TEXTURE_TOKEN:
                             localTexture = Default_Texture;
                             localTexture = TextureParser::parseTexture();
-                            if (localTexture->Constant_Flag) {
+                            if (localTexture->constantFlag) {
                                 localTexture =
                                     TextureParser::copyTexture(localTexture);
                             }
 
-                            localTexture->Constant_Flag = TRUE;
+                            localTexture->constantFlag = TRUE;
 
                             {
                                 for (tempTexture = localTexture;
@@ -368,8 +368,8 @@ SceneConfigParser::parseDeclare()
                                 }
 
                                 tempTexture->Next_Texture =
-                                    (Texture *)constantPtr->Constant_Data;
-                                constantPtr->Constant_Data =
+                                    (Texture *)constantPtr->constantData;
+                                constantPtr->constantData =
                                     (char *)localTexture;
                             }
                             break;
@@ -385,39 +385,39 @@ SceneConfigParser::parseDeclare()
                 break;
 
             case VIEW_POINT_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)SceneFactory::getCamera();
-                constantPtr->Constant_Type = VIEW_POINT_CONSTANT;
+                constantPtr->constantType = VIEW_POINT_CONSTANT;
                 SceneConfigParser::parseCamera(
-                    (Camera *)constantPtr->Constant_Data);
+                    (Camera *)constantPtr->constantData);
                 Exit_Flag = TRUE;
                 break;
 
             case COLOUR_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)SceneFactory::getColour();
-                constantPtr->Constant_Type = COLOUR_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)SceneFactory::getColour();
+                constantPtr->constantType = COLOUR_CONSTANT;
                 PrimitiveParser::parseColour(
-                    (RGBAColor *)constantPtr->Constant_Data);
+                    (RGBAColor *)constantPtr->constantData);
                 Exit_Flag = TRUE;
                 break;
 
             case LIGHT_SOURCE_TOKEN:
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData =
                     (char *)LightSourceParser::parseLightSource();
-                constantPtr->Constant_Type = LIGHT_SOURCE_CONSTANT;
+                constantPtr->constantType = LIGHT_SOURCE_CONSTANT;
                 Exit_Flag = TRUE;
                 break;
 
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)SceneFactory::getVector();
-                constantPtr->Constant_Type = VECTOR_CONSTANT;
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)SceneFactory::getVector();
+                constantPtr->constantType = VECTOR_CONSTANT;
                 PrimitiveParser::parseVector(
-                    (Vector3Dd *)constantPtr->Constant_Data);
+                    (Vector3Dd *)constantPtr->constantData);
                 Exit_Flag = TRUE;
                 break;
 
@@ -425,10 +425,10 @@ SceneConfigParser::parseDeclare()
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
                 Tokenizer::ungetToken();
-                constantPtr->Identifier_Number = globalToken.Identifier_Number;
-                constantPtr->Constant_Data = (char *)SceneFactory::getFloat();
-                constantPtr->Constant_Type = FLOAT_CONSTANT;
-                *((double *)constantPtr->Constant_Data) =
+                constantPtr->identifierNumber = globalToken.identifierNumber;
+                constantPtr->constantData = (char *)SceneFactory::getFloat();
+                constantPtr->constantType = FLOAT_CONSTANT;
+                *((double *)constantPtr->constantData) =
                     PrimitiveParser::parseFloat();
                 Exit_Flag = TRUE;
                 break;

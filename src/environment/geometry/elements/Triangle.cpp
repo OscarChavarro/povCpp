@@ -68,9 +68,9 @@ Triangle::findTriangleDominantAxis(Triangle *triangle)
     double y;
     double z;
 
-    x = fabs(triangle->Normal_Vector.x);
-    y = fabs(triangle->Normal_Vector.y);
-    z = fabs(triangle->Normal_Vector.z);
+    x = fabs(triangle->normalVector.x);
+    y = fabs(triangle->normalVector.y);
+    z = fabs(triangle->normalVector.z);
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
         triangle->Dominant_Axis = X_AXIS;
@@ -140,18 +140,18 @@ Triangle::computeTriangle(Triangle *triangle)
 
     VectorOps::vSub(v1, triangle->P1, triangle->P2);
     VectorOps::vSub(v2, triangle->P3, triangle->P2);
-    triangle->Normal_Vector = v1.crossProduct(v2);
-    length = triangle->Normal_Vector.length();
+    triangle->normalVector = v1.crossProduct(v2);
+    length = triangle->normalVector.length();
     /* Set up a flag so we can ignore degenerate triangles */
     if (length < 1.0e-9) {
-        triangle->Degenerate_Flag = TRUE;
+        triangle->degenerateFlag = TRUE;
         return (0);
     }
 
     /* Normalize the normal vector. */
-    triangle->Normal_Vector.scale(1.0 / length);
+    triangle->normalVector.scale(1.0 / length);
 
-    triangle->Distance = triangle->Normal_Vector.dotProduct(triangle->P1);
+    triangle->Distance = triangle->normalVector.dotProduct(triangle->P1);
     triangle->Distance *= -1.0;
     Triangle::findTriangleDominantAxis(triangle);
 
@@ -226,7 +226,7 @@ Triangle::allTriangleIntersections(
     Vector3Dd intersectionPoint;
     Intersection localElement;
 
-    if (shape->Degenerate_Flag) {
+    if (shape->degenerateFlag) {
         return (FALSE);
     }
 
@@ -253,20 +253,20 @@ Triangle::intersectTriangle(
     double t;
 
     globalStatistics.rayTriangleTests++;
-    if (triangle->Degenerate_Flag) {
+    if (triangle->degenerateFlag) {
         return (FALSE);
     }
 
     if (ray == vpRay) {
         if (!triangle->VPCached) {
-            VectorOps::vDot(triangle->VPNormDotOrigin, triangle->Normal_Vector,
+            VectorOps::vDot(triangle->VPNormDotOrigin, triangle->normalVector,
                 ray->position);
             triangle->VPNormDotOrigin += triangle->Distance;
             triangle->VPNormDotOrigin *= -1.0;
             triangle->VPCached = TRUE;
         }
 
-        normalDotDirection = triangle->Normal_Vector.dotProduct(ray->direction);
+        normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -274,11 +274,11 @@ Triangle::intersectTriangle(
 
         *depth = triangle->VPNormDotOrigin / normalDotDirection;
     } else {
-        normalDotOrigin = triangle->Normal_Vector.dotProduct(ray->position);
+        normalDotOrigin = triangle->normalVector.dotProduct(ray->position);
         normalDotOrigin += triangle->Distance;
         normalDotOrigin *= -1.0;
 
-        normalDotDirection = triangle->Normal_Vector.dotProduct(ray->direction);
+        normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -418,7 +418,7 @@ Triangle::triangleNormal(
 {
     Triangle *triangle = (Triangle *)object;
 
-    *result = triangle->Normal_Vector;
+    *result = triangle->normalVector;
 }
 
 void *
@@ -428,7 +428,7 @@ Triangle::copyTriangle(SimpleBody *object)
 
     newShape = new Triangle;
     *newShape = *((Triangle *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
@@ -444,7 +444,7 @@ Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
     Triangle *triangle = (Triangle *)object;
     Vector3Dd translation;
 
-    VectorOps::vEvaluate(translation, triangle->Normal_Vector, *vector);
+    VectorOps::vEvaluate(translation, triangle->normalVector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
     triangle->P1.add(*vector);
     triangle->P2.add(*vector);
@@ -461,7 +461,7 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
 
     Transformation::getRotationTransformation(&transformation, vector);
     Transformation::MTransformVector(
-        &triangle->Normal_Vector, &triangle->Normal_Vector, &transformation);
+        &triangle->normalVector, &triangle->normalVector, &transformation);
     Transformation::MTransformVector(
         &triangle->P1, &triangle->P1, &transformation);
     Transformation::MTransformVector(
@@ -479,12 +479,12 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
     Triangle *triangle = (Triangle *)object;
     double length;
 
-    triangle->Normal_Vector.x = triangle->Normal_Vector.x / vector->x;
-    triangle->Normal_Vector.y = triangle->Normal_Vector.y / vector->y;
-    triangle->Normal_Vector.z = triangle->Normal_Vector.z / vector->z;
+    triangle->normalVector.x = triangle->normalVector.x / vector->x;
+    triangle->normalVector.y = triangle->normalVector.y / vector->y;
+    triangle->normalVector.z = triangle->normalVector.z / vector->z;
 
-    length = triangle->Normal_Vector.length();
-    triangle->Normal_Vector.scale(1.0 / length);
+    length = triangle->normalVector.length();
+    triangle->normalVector.scale(1.0 / length);
     triangle->Distance /= length;
 
     triangle->P1.evaluate(*vector);
@@ -600,7 +600,7 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 
     newShape = new SmoothTriangle;
     *newShape = *((SmoothTriangle *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
@@ -618,7 +618,7 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 
     Transformation::getRotationTransformation(&transformation, vector);
     Transformation::MTransformVector(
-        &triangle->Normal_Vector, &triangle->Normal_Vector, &transformation);
+        &triangle->normalVector, &triangle->normalVector, &transformation);
     Transformation::MTransformVector(
         &triangle->P1, &triangle->P1, &transformation);
     Transformation::MTransformVector(
@@ -642,7 +642,7 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     Vector3Dd translation;
 
-    VectorOps::vEvaluate(translation, triangle->Normal_Vector, *vector);
+    VectorOps::vEvaluate(translation, triangle->normalVector, *vector);
     triangle->Distance -= translation.x + translation.y + translation.z;
     triangle->P1.add(*vector);
     triangle->P2.add(*vector);
@@ -659,12 +659,12 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     double length;
 
-    triangle->Normal_Vector.x = triangle->Normal_Vector.x / vector->x;
-    triangle->Normal_Vector.y = triangle->Normal_Vector.y / vector->y;
-    triangle->Normal_Vector.z = triangle->Normal_Vector.z / vector->z;
+    triangle->normalVector.x = triangle->normalVector.x / vector->x;
+    triangle->normalVector.y = triangle->normalVector.y / vector->y;
+    triangle->normalVector.z = triangle->normalVector.z / vector->z;
 
-    length = triangle->Normal_Vector.length();
-    triangle->Normal_Vector.scale(1.0 / length);
+    length = triangle->normalVector.length();
+    triangle->normalVector.scale(1.0 / length);
     triangle->Distance /= length;
 
     triangle->P1.evaluate(*vector);

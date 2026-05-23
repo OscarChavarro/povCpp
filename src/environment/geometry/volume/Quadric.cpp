@@ -69,40 +69,40 @@ Quadric::intersectQuadric(
         ray->makeRay();
     }
 
-    if (shape->Non_Zero_Square_Term) {
-        squareTerm = shape->Object_2_Terms.dotProduct(ray->direction2);
+    if (shape->nonZeroSquareTerm) {
+        squareTerm = shape->object2Terms.dotProduct(ray->direction2);
         tempTerm =
-            shape->Object_Mixed_Terms.dotProduct(ray->mixedDirectionDirection);
+            shape->objectMixedTerms.dotProduct(ray->mixedDirectionDirection);
         squareTerm += tempTerm;
     } else {
         squareTerm = 0.0;
     }
 
-    linearTerm = shape->Object_2_Terms.dotProduct(ray->positionDirection);
+    linearTerm = shape->object2Terms.dotProduct(ray->positionDirection);
     linearTerm *= 2.0;
-    tempTerm = shape->Object_Terms.dotProduct(ray->direction);
+    tempTerm = shape->objectTerms.dotProduct(ray->direction);
     linearTerm += tempTerm;
     tempTerm =
-        shape->Object_Mixed_Terms.dotProduct(ray->mixedPositionDirection);
+        shape->objectMixedTerms.dotProduct(ray->mixedPositionDirection);
     linearTerm += tempTerm;
 
     if (ray == vpRay) {
-        if (!shape->Constant_Cached) {
-            constantTerm = shape->Object_2_Terms.dotProduct(ray->position2);
-            tempTerm = shape->Object_Terms.dotProduct(ray->position);
-            constantTerm += tempTerm + shape->Object_Constant;
-            shape->Object_VP_Constant = constantTerm;
-            shape->Constant_Cached = TRUE;
+        if (!shape->constantCached) {
+            constantTerm = shape->object2Terms.dotProduct(ray->position2);
+            tempTerm = shape->objectTerms.dotProduct(ray->position);
+            constantTerm += tempTerm + shape->objectConstant;
+            shape->objectVpConstant = constantTerm;
+            shape->constantCached = TRUE;
         } else {
-            constantTerm = shape->Object_VP_Constant;
+            constantTerm = shape->objectVpConstant;
         }
     } else {
-        constantTerm = shape->Object_2_Terms.dotProduct(ray->position2);
-        tempTerm = shape->Object_Terms.dotProduct(ray->position);
-        constantTerm += tempTerm + shape->Object_Constant;
+        constantTerm = shape->object2Terms.dotProduct(ray->position2);
+        tempTerm = shape->objectTerms.dotProduct(ray->position);
+        constantTerm += tempTerm + shape->objectConstant;
     }
 
-    tempTerm = shape->Object_Mixed_Terms.dotProduct(ray->mixedPositionPosition);
+    tempTerm = shape->objectMixedTerms.dotProduct(ray->mixedPositionPosition);
     constantTerm += tempTerm;
 
     if (squareTerm != 0.0) {
@@ -154,14 +154,14 @@ Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
     double linearTerm;
     double squareTerm;
 
-    linearTerm = (*testPoint).dotProduct(shape->Object_Terms);
-    result = linearTerm + shape->Object_Constant;
+    linearTerm = (*testPoint).dotProduct(shape->objectTerms);
+    result = linearTerm + shape->objectConstant;
     VectorOps::vSquareTerms(newPoint, *testPoint);
-    squareTerm = newPoint.dotProduct(shape->Object_2_Terms);
+    squareTerm = newPoint.dotProduct(shape->object2Terms);
     result += squareTerm;
-    result += shape->Object_Mixed_Terms.x * (testPoint->x) * (testPoint->y) +
-              shape->Object_Mixed_Terms.y * (testPoint->x) * (testPoint->z) +
-              shape->Object_Mixed_Terms.z * (testPoint->y) * (testPoint->z);
+    result += shape->objectMixedTerms.x * (testPoint->x) * (testPoint->y) +
+              shape->objectMixedTerms.y * (testPoint->x) * (testPoint->z) +
+              shape->objectMixedTerms.z * (testPoint->y) * (testPoint->z);
 
     if (result < Small_Tolerance) {
         return (TRUE);
@@ -178,21 +178,21 @@ Quadric::quadricNormal(
     Vector3Dd derivativeLinear;
     double len;
 
-    VectorOps::vScale(derivativeLinear, intersectionShape->Object_2_Terms, 2.0);
+    VectorOps::vScale(derivativeLinear, intersectionShape->object2Terms, 2.0);
     VectorOps::vEvaluate(*result, derivativeLinear, *intersectionPoint);
-    (*result).add(intersectionShape->Object_Terms);
+    (*result).add(intersectionShape->objectTerms);
 
     result->x +=
-        intersectionShape->Object_Mixed_Terms.x * intersectionPoint->y +
-        intersectionShape->Object_Mixed_Terms.y * intersectionPoint->z;
+        intersectionShape->objectMixedTerms.x * intersectionPoint->y +
+        intersectionShape->objectMixedTerms.y * intersectionPoint->z;
 
     result->y +=
-        intersectionShape->Object_Mixed_Terms.x * intersectionPoint->x +
-        intersectionShape->Object_Mixed_Terms.z * intersectionPoint->z;
+        intersectionShape->objectMixedTerms.x * intersectionPoint->x +
+        intersectionShape->objectMixedTerms.z * intersectionPoint->z;
 
     result->z +=
-        intersectionShape->Object_Mixed_Terms.y * intersectionPoint->x +
-        intersectionShape->Object_Mixed_Terms.z * intersectionPoint->y;
+        intersectionShape->objectMixedTerms.y * intersectionPoint->x +
+        intersectionShape->objectMixedTerms.z * intersectionPoint->y;
 
     len = result->x * result->x + result->y * result->y + result->z * result->z;
     len = sqrt(len);
@@ -216,7 +216,7 @@ Quadric::copyQuadric(SimpleBody *object)
 
     newShape = new Quadric;
     *newShape = *((Quadric *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
@@ -230,31 +230,31 @@ void
 Quadric::quadricToMatrix(Quadric *quadric, MATRIX *matrix)
 {
     Transformation::MZero(matrix);
-    (*matrix)[0][0] = quadric->Object_2_Terms.x;
-    (*matrix)[1][1] = quadric->Object_2_Terms.y;
-    (*matrix)[2][2] = quadric->Object_2_Terms.z;
-    (*matrix)[0][1] = quadric->Object_Mixed_Terms.x;
-    (*matrix)[0][2] = quadric->Object_Mixed_Terms.y;
-    (*matrix)[0][3] = quadric->Object_Terms.x;
-    (*matrix)[1][2] = quadric->Object_Mixed_Terms.z;
-    (*matrix)[1][3] = quadric->Object_Terms.y;
-    (*matrix)[2][3] = quadric->Object_Terms.z;
-    (*matrix)[3][3] = quadric->Object_Constant;
+    (*matrix)[0][0] = quadric->object2Terms.x;
+    (*matrix)[1][1] = quadric->object2Terms.y;
+    (*matrix)[2][2] = quadric->object2Terms.z;
+    (*matrix)[0][1] = quadric->objectMixedTerms.x;
+    (*matrix)[0][2] = quadric->objectMixedTerms.y;
+    (*matrix)[0][3] = quadric->objectTerms.x;
+    (*matrix)[1][2] = quadric->objectMixedTerms.z;
+    (*matrix)[1][3] = quadric->objectTerms.y;
+    (*matrix)[2][3] = quadric->objectTerms.z;
+    (*matrix)[3][3] = quadric->objectConstant;
 }
 
 void
 Quadric::matrixToQuadric(MATRIX *matrix, Quadric *quadric)
 {
-    quadric->Object_2_Terms.x = (*matrix)[0][0];
-    quadric->Object_2_Terms.y = (*matrix)[1][1];
-    quadric->Object_2_Terms.z = (*matrix)[2][2];
-    quadric->Object_Mixed_Terms.x = (*matrix)[0][1] + (*matrix)[1][0];
-    quadric->Object_Mixed_Terms.y = (*matrix)[0][2] + (*matrix)[2][0];
-    quadric->Object_Terms.x = (*matrix)[0][3] + (*matrix)[3][0];
-    quadric->Object_Mixed_Terms.z = (*matrix)[1][2] + (*matrix)[2][1];
-    quadric->Object_Terms.y = (*matrix)[1][3] + (*matrix)[3][1];
-    quadric->Object_Terms.z = (*matrix)[2][3] + (*matrix)[3][2];
-    quadric->Object_Constant = (*matrix)[3][3];
+    quadric->object2Terms.x = (*matrix)[0][0];
+    quadric->object2Terms.y = (*matrix)[1][1];
+    quadric->object2Terms.z = (*matrix)[2][2];
+    quadric->objectMixedTerms.x = (*matrix)[0][1] + (*matrix)[1][0];
+    quadric->objectMixedTerms.y = (*matrix)[0][2] + (*matrix)[2][0];
+    quadric->objectTerms.x = (*matrix)[0][3] + (*matrix)[3][0];
+    quadric->objectMixedTerms.z = (*matrix)[1][2] + (*matrix)[2][1];
+    quadric->objectTerms.y = (*matrix)[1][3] + (*matrix)[3][1];
+    quadric->objectTerms.z = (*matrix)[2][3] + (*matrix)[3][2];
+    quadric->objectConstant = (*matrix)[3][3];
 }
 
 void
@@ -312,8 +312,8 @@ Quadric::invertQuadric(SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
 
-    shape->Object_2_Terms.scale(-1.0);
-    shape->Object_Mixed_Terms.scale(-1.0);
-    shape->Object_Terms.scale(-1.0);
-    shape->Object_Constant *= -1.0;
+    shape->object2Terms.scale(-1.0);
+    shape->objectMixedTerms.scale(-1.0);
+    shape->objectTerms.scale(-1.0);
+    shape->objectConstant *= -1.0;
 }

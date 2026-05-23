@@ -34,7 +34,7 @@ Light::copyPoint(SimpleBody *object)
         return nullptr;
     }
     *newShape = *((Light *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
@@ -48,7 +48,7 @@ void
 Light::translatePoint(SimpleBody *object, Vector3Dd *vector)
 {
     ((Light *)object)->Center.add(*vector);
-    ((Light *)object)->Points_At.add(*vector);
+    ((Light *)object)->pointsAt.add(*vector);
 }
 
 void
@@ -58,8 +58,8 @@ Light::rotatePoint(SimpleBody *object, Vector3Dd *vector)
     Transformation::getRotationTransformation(&transformation, vector);
     Transformation::MTransformVector(&((Light *)object)->Center,
         &((Light *)object)->Center, &transformation);
-    Transformation::MTransformVector(&((Light *)object)->Points_At,
-        &((Light *)object)->Points_At, &transformation);
+    Transformation::MTransformVector(&((Light *)object)->pointsAt,
+        &((Light *)object)->pointsAt, &transformation);
 }
 
 void
@@ -69,8 +69,8 @@ Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
     Transformation::getScalingTransformation(&transformation, vector);
     Transformation::MTransformVector(&((Light *)object)->Center,
         &((Light *)object)->Center, &transformation);
-    Transformation::MTransformVector(&((Light *)object)->Points_At,
-        &((Light *)object)->Points_At, &transformation);
+    Transformation::MTransformVector(&((Light *)object)->pointsAt,
+        &((Light *)object)->pointsAt, &transformation);
     TextureUtils::scaleTexture(&((Light *)object)->Shape_Texture, vector);
 }
 
@@ -114,7 +114,7 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
     /* If this is a spotlight then attenuate based on the incidence angle */
     if (lightSource->Type == SPOT_LIGHT_TYPE) {
         VectorOps::vSub(
-            spotDirection, lightSource->Points_At, lightSource->Center);
+            spotDirection, lightSource->pointsAt, lightSource->Center);
         len = spotDirection.length();
         if (len > 0.0) {
             spotDirection.inverseScale(len);

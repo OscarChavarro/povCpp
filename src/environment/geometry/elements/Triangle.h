@@ -9,7 +9,7 @@ class SmoothTriangle;
 
 class Triangle : public Geometry {
   public:
-    Vector3Dd Normal_Vector;
+    Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
     unsigned int VPCached : 1;
@@ -19,7 +19,7 @@ class Triangle : public Geometry {
     Vector3Dd P1;
     Vector3Dd P2;
     Vector3Dd P3;
-    short int Degenerate_Flag;
+    short int degenerateFlag;
 
     static int computeTriangle(Triangle *triangle);
     static int allTriangleIntersections(SimpleBody *object,

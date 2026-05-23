@@ -7,7 +7,7 @@ class DataFile {
   public:
     FILE *File;
     char *Filename;
-    int Line_Number;
+    int lineNumber;
 
     int skipSpaces();
     int parseComments();

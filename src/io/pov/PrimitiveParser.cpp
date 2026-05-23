@@ -48,13 +48,13 @@ PrimitiveParser::parseFloat()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         FLOAT_CONSTANT) {
                         localFloat = *(
-                            (double *)constants[(int)constantId].Constant_Data);
+                            (double *)constants[(int)constantId].constantData);
                         if (negative) {
                             localFloat *= -1.0;
                         }
@@ -83,7 +83,7 @@ PrimitiveParser::parseFloat()
                 break;
 
             case FLOAT_TOKEN:
-                localFloat = globalToken.Token_Float;
+                localFloat = globalToken.tokenFloat;
                 if (negative) {
                     localFloat *= -1.0;
                 }
@@ -110,13 +110,13 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         VECTOR_CONSTANT) {
                         *givenVector = *((Vector3Dd *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -152,7 +152,7 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_ANGLE_TOKEN:
                 for (i = 0; i < termCounts[order]; i++) {
                     givenCoeffs[i] = PrimitiveParser::parseFloat();
@@ -179,13 +179,13 @@ PrimitiveParser::parseColour(RGBAColor *givenColour)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         COLOUR_CONSTANT) {
                         *givenColour = *((RGBAColor *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }

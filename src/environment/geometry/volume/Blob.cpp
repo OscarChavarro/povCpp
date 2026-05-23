@@ -53,7 +53,7 @@ MakeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
         exit(1);
     }
     blob->count = npoints;
-    blob->Sturm_Flag = sflag;
+    blob->sturmFlag = sflag;
 
     /* Initialize the blob data */
     for (i = 0; i < npoints; i++) {
@@ -413,7 +413,7 @@ Blob::allBlobIntersections(
         }
 
         /* Figure out which root solver to use */
-        if (blob->Sturm_Flag == 0) {
+        if (blob->sturmFlag == 0) {
             /* Use Ferrari's method */
             rootCount = PolynomialSolver::solveQuartic(coeffs, &roots[0],
                 ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
@@ -562,7 +562,7 @@ Blob::copyBlob(SimpleBody *object)
 
     blob = new Blob;
     memcpy(blob, oldShape, sizeof(Blob));
-    blob->Next_Object = nullptr;
+    blob->nextObject = nullptr;
 
     /* Allocate space and copy the blob specific data */
     blob->list = new BlobElement[oldShape->count];

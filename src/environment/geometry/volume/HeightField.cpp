@@ -217,11 +217,11 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
     int length;
     int i;
 
-    if (HeightField::minValue(start->y, end->y) > block->max_y) {
+    if (HeightField::minValue(start->y, end->y) > block->maxY) {
         return (FALSE);
     }
 
-    if (HeightField::maxValue(start->y, end->y) < block->min_y) {
+    if (HeightField::maxValue(start->y, end->y) < block->minY) {
         return (FALSE);
     }
 
@@ -375,8 +375,8 @@ HeightField::intersectHfNode(
     ey = end->y;
     ez = end->z;
 
-    blockSize = hField->Block_Size;
-    invBlkSize = hField->Inv_Blk_Size;
+    blockSize = hField->blockSize;
+    invBlkSize = hField->invBlkSize;
 
     xSize = abs((int)(ex * invBlkSize) - (int)(sx * invBlkSize));
     zSize = abs((int)(ez * invBlkSize) - (int)(sz * invBlkSize));
@@ -631,8 +631,8 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
     maxZ = image->iheight;
 
     size = (double)HeightField::maxValue(maxX, maxZ);
-    hField->Block_Size = blockSize = ceil(sqrt(size + 1.0));
-    hField->Inv_Blk_Size = invBlkSize = 1.0 / blockSize;
+    hField->blockSize = blockSize = ceil(sqrt(size + 1.0));
+    hField->invBlkSize = invBlkSize = 1.0 / blockSize;
     n = (int)blockSize;
 
     w = (int)ceil((image->width + 1.0) * invBlkSize);
@@ -655,8 +655,8 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                 "Cannot allocate memory for height field buffer line\n");
         }
         for (j = 0; j < h; j++) {
-            hField->Block[i][j].min_y = 65536.0;
-            hField->Block[i][j].max_y = 0.0;
+            hField->Block[i][j].minY = 65536.0;
+            hField->Block[i][j].maxY = 0.0;
         }
     }
 
@@ -713,11 +713,11 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                     if (tempY < hField->bounding_box->bounds[0].y) {
                         tempY = hField->bounding_box->bounds[0].y;
                     }
-                    if (tempY < hField->Block[i][j].min_y) {
-                        hField->Block[i][j].min_y = tempY;
+                    if (tempY < hField->Block[i][j].minY) {
+                        hField->Block[i][j].minY = tempY;
                     }
-                    if (tempY > hField->Block[i][j].max_y) {
-                        hField->Block[i][j].max_y = tempY;
+                    if (tempY > hField->Block[i][j].maxY) {
+                        hField->Block[i][j].maxY = tempY;
                     }
                 }
             }
@@ -948,7 +948,7 @@ HeightField::copyHeightfld(SimpleBody *object)
 
     newShape = new HeightField;
     *newShape = *((HeightField *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =

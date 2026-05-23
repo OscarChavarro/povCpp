@@ -206,7 +206,7 @@ DumpFormat::readDumpImage(RGBAImage *image, char *name)
 
     image->width = (double)image->iwidth;
     image->height = (double)image->iheight;
-    image->Colour_Map_Size = 0;
+    image->colourMapSize = 0;
     image->Colour_Map = nullptr;
 
     image->data.rgb_lines = new ImageLine[image->iheight];

@@ -10,7 +10,7 @@ class PolynomialShape : public Geometry {
     Transformation *Transform;
     short Inverted;
     int Order;
-    int Sturm_Flag;
+    int sturmFlag;
     double *Coeffs;
 
     static int allPolyIntersections(SimpleBody *object, RayWithSegments *ray,

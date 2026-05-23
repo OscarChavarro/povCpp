@@ -30,7 +30,7 @@ TriangleParser::parseTriangle()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 localShape = SceneFactory::getTriangleShape();
@@ -40,7 +40,7 @@ TriangleParser::parseTriangle()
                 if (!Triangle::computeTriangle(localShape)) {
                     Logger::error(
                         "Degenerate triangle on line %d.  Please remove.\n",
-                        globalToken.Token_Line_No);
+                        globalToken.tokenLineNo);
                     degenerateTriangles = TRUE;
                 }
                 Exit_Flag = TRUE;
@@ -48,11 +48,11 @@ TriangleParser::parseTriangle()
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         TRIANGLE_CONSTANT) {
                         localShape = (Triangle *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -74,7 +74,7 @@ TriangleParser::parseTriangle()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -103,7 +103,7 @@ TriangleParser::parseTriangle()
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 {

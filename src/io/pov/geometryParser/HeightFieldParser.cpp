@@ -33,7 +33,7 @@ HeightFieldParser::parseHeightField()
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (
-                globalToken.Token_Id) { /* This should be modified to include
+                globalToken.tokenId) { /* This should be modified to include
                                            other image types - CdW */
             case GIF_TOKEN:
                 imageType = GIF;
@@ -109,11 +109,11 @@ HeightFieldParser::parseHeightField()
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         HEIGHT_FIELD_CONSTANT) {
                         localShape = (HeightField *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -135,7 +135,7 @@ HeightFieldParser::parseHeightField()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -169,7 +169,7 @@ HeightFieldParser::parseHeightField()
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 

@@ -5,9 +5,9 @@
 
 class RGBAColorPalette {
   public:
-    int Number_Of_Entries;
+    int numberOfEntries;
     RGBAColorPaletteSpan *Colour_Map_Entries;
-    int Transparency_Flag;
+    int transparencyFlag;
 };
 
 #endif

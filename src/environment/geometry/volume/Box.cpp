@@ -294,7 +294,7 @@ Box::copyBox(SimpleBody *object)
 
     newShape = new Box;
     *newShape = *((Box *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     /* Copy any associated transformation */
     if (newShape->Transform != nullptr) {

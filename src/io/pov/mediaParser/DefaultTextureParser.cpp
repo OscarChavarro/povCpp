@@ -14,11 +14,11 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case TEXTURE_TOKEN:
-                Default_Texture->Constant_Flag = FALSE;
+                Default_Texture->constantFlag = FALSE;
                 Default_Texture = TextureParser::parseTexture();
-                Default_Texture->Constant_Flag = TRUE;
+                Default_Texture->constantFlag = TRUE;
                 break;
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

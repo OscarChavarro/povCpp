@@ -46,7 +46,7 @@ BumpTextureFixture::ripples(
 
         length = sqrt(length);
         index = length * texture->Frequency + texture->Phase;
-        scalar = TextureUtils::cycloidal(index) * texture->Bump_Amount;
+        scalar = TextureUtils::cycloidal(index) * texture->bumpAmount;
 
         if (debugEnabled) {
             Logger::info(" index %g scalar %g length %g\n", index, scalar, length);
@@ -88,7 +88,7 @@ BumpTextureFixture::waves(
         index = (length * texture->Frequency * frequency[i]) + texture->Phase;
         sinValue = TextureUtils::cycloidal(index);
 
-        scalar = sinValue * texture->Bump_Amount / frequency[i];
+        scalar = sinValue * texture->bumpAmount / frequency[i];
         VectorOps::vScale(
             point, point, scalar / length / (double)NUMBER_OF_WAVES);
         (*normal).add(point);
@@ -102,7 +102,7 @@ BumpTextureFixture::bumps(
 {
     Vector3Dd bumpTurb;
 
-    if (texture->Bump_Amount == 0.0) {
+    if (texture->bumpAmount == 0.0) {
         return; /* why are we here?? */
     }
 
@@ -111,7 +111,7 @@ BumpTextureFixture::bumps(
     }
 
     TextureUtils::DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
-    bumpTurb.scale(texture->Bump_Amount);
+    bumpTurb.scale(texture->bumpAmount);
     (*normal).add(bumpTurb); /* displace "normal" */
     (*normal).normalize();   /* normalize normal! */
 }
@@ -127,13 +127,13 @@ BumpTextureFixture::dents(
     Vector3Dd stuccoTurb;
     double noise;
 
-    if (texture->Bump_Amount == 0.0) {
+    if (texture->bumpAmount == 0.0) {
         return; /* why are we here?? */
     }
 
     noise = TextureUtils::Noise(x, y, z);
 
-    noise = noise * noise * noise * texture->Bump_Amount;
+    noise = noise * noise * noise * texture->bumpAmount;
 
     if (debugEnabled) {
         Logger::info("dents %g %g %g noise %g\n", x, y, z, noise);
@@ -170,7 +170,7 @@ BumpTextureFixture::wrinkles(
     Vector3Dd result;
     Vector3Dd value;
 
-    if (texture->Bump_Amount == 0.0) {
+    if (texture->bumpAmount == 0.0) {
         return; /* why are we here?? */
     }
 
@@ -190,7 +190,7 @@ BumpTextureFixture::wrinkles(
         result.z += fabsInline(value.z / scale);
     }
 
-    result.scale(texture->Bump_Amount);
+    result.scale(texture->bumpAmount);
     (*normal).add(result); /* displace "normal" */
     (*normal).normalize(); /* normalize normal! */
 }

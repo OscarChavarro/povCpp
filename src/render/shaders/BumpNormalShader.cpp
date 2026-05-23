@@ -16,7 +16,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     double z;
     const int debugEnabled = (globalRenderingConfiguration.options & DEBUGGING);
 
-    if (texture->Bump_Number == NO_BUMPS) {
+    if (texture->bumpNumber == NO_BUMPS) {
         *newNormal = *surfaceNormal;
         return;
     }
@@ -32,7 +32,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     y = transformedPoint.y;
     z = transformedPoint.z;
 
-    switch (texture->Bump_Number) {
+    switch (texture->bumpNumber) {
 
     case WAVES:
         BumpTextureFixture::waves(x, y, z, texture, newNormal, debugEnabled);
