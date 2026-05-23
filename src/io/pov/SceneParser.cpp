@@ -82,12 +82,12 @@ SceneParser::frameInit()
 void
 SceneParser::frameInit(ParserContext &ctx)
 {
-    Default_Texture = TextureUtils::getTexture();
+    TextureUtils::defaultTexture() = TextureUtils::getTexture();
     ctx.parsingFrame()->viewPoint.initializeDefaults();
     ctx.parsingFrame()->Light_Sources = nullptr;
     ctx.parsingFrame()->Objects = nullptr;
     ctx.parsingFrame()->atmosphereIor = 1.0;
-    ctx.parsingFrame()->antialiasThreshold = globalRenderingConfiguration.antialiasThreshold;
+    ctx.parsingFrame()->antialiasThreshold = RenderingConfiguration::global().antialiasThreshold;
     ctx.parsingFrame()->fogDistance = 0.0;
     Color::makeColor(&(ctx.parsingFrame()->fogColour), 0.0, 0.0, 0.0);
 }

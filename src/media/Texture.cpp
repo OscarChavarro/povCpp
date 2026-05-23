@@ -24,14 +24,50 @@
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
-double *sintab;
-double frequency[NUMBER_OF_WAVES];
-Vector3Dd Wave_Sources[NUMBER_OF_WAVES];
-double *RTable;
-short *hashTable;
-Texture *Default_Texture;
+static Texture *defaultTextureInstance;
+static double *sinTableInstance;
+static double frequencyInstance[NUMBER_OF_WAVES];
+static Vector3Dd waveSourcesInstance[NUMBER_OF_WAVES];
+static double *rTableInstance;
+static short *hashTableInstance;
 
-unsigned short crctab[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
+Texture *&
+TextureUtils::defaultTexture()
+{
+    return defaultTextureInstance;
+}
+
+double *&
+TextureUtils::rTable()
+{
+    return rTableInstance;
+}
+
+short *&
+TextureUtils::hashTable()
+{
+    return hashTableInstance;
+}
+
+double *&
+TextureUtils::sinTable()
+{
+    return sinTableInstance;
+}
+
+double *
+TextureUtils::waveFrequency()
+{
+    return frequencyInstance;
+}
+
+Vector3Dd *
+TextureUtils::waveSources()
+{
+    return waveSourcesInstance;
+}
+
+static unsigned short crcTableInstance[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
     0x0280, 0xc241, 0xc601, 0x06c0, 0x0780, 0xc741, 0x0500, 0xc5c1, 0xc481,
     0x0440, 0xcc01, 0x0cc0, 0x0d80, 0xcd41, 0x0f00, 0xcfc1, 0xce81, 0x0e40,
     0x0a00, 0xcac1, 0xcb81, 0x0b40, 0xc901, 0x09c0, 0x0880, 0xc841, 0xd801,
@@ -60,6 +96,12 @@ unsigned short crctab[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0xc301, 0x03c0,
     0x4a40, 0x4e00, 0x8ec1, 0x8f81, 0x4f40, 0x8d01, 0x4dc0, 0x4c80, 0x8c41,
     0x4400, 0x84c1, 0x8581, 0x4540, 0x8701, 0x47c0, 0x4680, 0x8641, 0x8201,
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
+
+unsigned short *
+TextureUtils::crcTable()
+{
+    return crcTableInstance;
+}
 
 void
 TextureUtils::computeColour(
@@ -112,19 +154,19 @@ TextureUtils::initializeNoise()
 
     TextureUtils::InitRTable();
 
-    if ((sintab = new double[SINTABSIZE]) == nullptr) {
+    if ((TextureUtils::sinTable() = new double[SINTABSIZE]) == nullptr) {
         Logger::info("Cannot allocate memory for sine table\n");
         exit(1);
     }
 
     for (i = 0; i < SINTABSIZE; i++) {
-        sintab[i] = sin(i / (double)SINTABSIZE * (3.14159265359 * 2.0));
+        TextureUtils::sinTable()[i] = sin(i / (double)SINTABSIZE * (3.14159265359 * 2.0));
     }
 
     for (i = 0; i < NUMBER_OF_WAVES; i++) {
         TextureUtils::DNoise(&point, (double)i, 0.0, 0.0);
-        VectorOps::vNormalize(Wave_Sources[i], point);
-        frequency[i] = (rand() & RNDMASK) / rndDivisor + 0.01;
+        VectorOps::vNormalize(TextureUtils::waveSources()[i], point);
+        TextureUtils::waveFrequency()[i] = (rand() & RNDMASK) / rndDivisor + 0.01;
     }
 }
 
@@ -137,19 +179,19 @@ TextureUtils::InitTextureTable()
 
     srand(0);
 
-    hashTable = new short int[4096];
-    if (hashTable == nullptr) {
+    TextureUtils::hashTable() = new short int[4096];
+    if (TextureUtils::hashTable() == nullptr) {
         Logger::info("Cannot allocate memory for hash table\n");
         exit(1);
     }
     for (i = 0; i < 4096; i++) {
-        hashTable[i] = i;
+        TextureUtils::hashTable()[i] = i;
     }
     for (i = 4095; i >= 0; i--) {
         j = rand() % 4096;
-        temp = hashTable[i];
-        hashTable[i] = hashTable[j];
-        hashTable[j] = temp;
+        temp = TextureUtils::hashTable()[i];
+        TextureUtils::hashTable()[i] = TextureUtils::hashTable()[j];
+        TextureUtils::hashTable()[j] = temp;
     }
 }
 
@@ -162,15 +204,15 @@ TextureUtils::InitRTable()
 
     TextureUtils::InitTextureTable();
 
-    RTable = new double[MAXSIZE];
-    if (RTable == nullptr) {
-        Logger::info("Cannot allocate memory for RTable\n");
+    TextureUtils::rTable() = new double[MAXSIZE];
+    if (TextureUtils::rTable() == nullptr) {
+        Logger::info("Cannot allocate memory for TextureUtils::rTable()\n");
         exit(1);
     }
 
     for (i = 0; i < MAXSIZE; i++) {
         rp.x = rp.y = rp.z = (double)i;
-        RTable[i] = (unsigned int)TextureUtils::R(&rp) * realScale - 1.0;
+        TextureUtils::rTable()[i] = (unsigned int)TextureUtils::R(&rp) * realScale - 1.0;
     }
 }
 
@@ -196,7 +238,7 @@ TextureUtils::Crc16(char *buf, int count)
     unsigned short crc = 0;
 
     while (count--) {
-        crc = (crc >> 8) ^ crctab[(unsigned char)(crc ^ *buf++)];
+        crc = (crc >> 8) ^ TextureUtils::crcTable()[(unsigned char)(crc ^ *buf++)];
     }
 
     return ((int)crc);
@@ -252,7 +294,7 @@ TextureUtils::Noise(double x, double y, double z)
     double sum;
     short m;
 
-    globalStatistics.callsToNoise++;
+    Statistics::global().callsToNoise++;
 
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
@@ -320,7 +362,7 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     double tz;
     short m;
 
-    globalStatistics.callsToDNoise++;
+    Statistics::global().callsToDNoise++;
 
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
@@ -431,11 +473,11 @@ TextureUtils::cycloidal(double value)
 
     if (value >= 0.0) {
         indx = (int)((value - floor(value)) * SINTABSIZE);
-        return (sintab[indx]);
+        return (TextureUtils::sinTable()[indx]);
     }
 
     indx = (int)((0.0 - (value + floor(0.0 - value))) * SINTABSIZE);
-    return (0.0 - sintab[indx]);
+    return (0.0 - TextureUtils::sinTable()[indx]);
 }
 
 double

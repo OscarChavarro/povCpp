@@ -7,6 +7,7 @@
 
 class Sphere : public Geometry {
   public:
+    static Methods methodTable;
     Vector3Dd Center;
     double Radius;
     double radiusSquared;
@@ -30,8 +31,5 @@ class Sphere : public Geometry {
     static void scaleSphere(SimpleBody *object, Vector3Dd *vector);
     static void invertSphere(SimpleBody *object);
 };
-
-extern Methods sphereMethods;
-extern Sphere *getSphereShape(void);
 
 #endif

@@ -43,11 +43,10 @@ class Statistics {
     time_t stopTime;
     double usedTime;
 
+    static Statistics &global();
     void reset();
     void startTimer();
     void stopTimer();
 };
-
-extern Statistics globalStatistics;
 
 #endif

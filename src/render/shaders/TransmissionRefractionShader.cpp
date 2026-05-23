@@ -29,7 +29,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
 
         newRay.copyContainersFrom(ray);
         RenderEngine::traceLevel()++;
-        globalStatistics.transmittedRaysTraced++;
+        Statistics::global().transmittedRaysTraced++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
         traceService->trace(&newRay, &tempColor);
@@ -38,7 +38,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         (color->Green) += tempColor.Green;
         (color->Blue) += tempColor.Blue;
     } else {
-        globalStatistics.refractedRaysTraced++;
+        Statistics::global().refractedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
         if (normalComponent <= 0.0) {
             localNormal.x = surfaceNormal->x;

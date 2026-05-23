@@ -9,6 +9,8 @@ class SmoothTriangle;
 
 class Triangle : public Geometry {
   public:
+    static Methods methodTable;
+    static Methods smoothMethodTable;
     Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
@@ -43,10 +45,5 @@ class Triangle : public Geometry {
 };
 
 #include "environment/geometry/elements/SmoothTriangle.h"
-
-extern Methods triangleMethods;
-extern Triangle *getTriangleShape(void);
-extern SmoothTriangle *getSmoothTriangleShape(void);
-extern Methods smoothTriangleMethods;
 
 #endif

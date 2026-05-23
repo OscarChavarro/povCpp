@@ -26,12 +26,10 @@ static constexpr const char *COMPILER_VER = ".u";
 FILE *bfp;
 
 
-int maxSymbols = 500;
 
 static int numberOfFiles;
 static int inFlag;
 static int outFlag;
-double VTemp;
 static ImageOutput *selectedImageOutput = nullptr;
 
 class ImageOutputAdapter : public RenderOutput {
@@ -180,19 +178,19 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
         }
     }
 
-    if (globalRenderingConfiguration.lastLine == -1) {
-        globalRenderingConfiguration.lastLine = RenderEngine::renderFrame().screenHeight;
+    if (RenderingConfiguration::global().lastLine == -1) {
+        RenderingConfiguration::global().lastLine = RenderEngine::renderFrame().screenHeight;
     }
 }
 
 void
 PovrayApplication::configureOutputTarget()
 {
-    if (!(globalRenderingConfiguration.options & DISKWRITE)) {
+    if (!(RenderingConfiguration::global().options & DISKWRITE)) {
         return;
     }
 
-    switch (globalRenderingConfiguration.outputFormat) {
+    switch (RenderingConfiguration::global().outputFormat) {
     case '\0':
     case 'd':
     case 'D':
@@ -216,16 +214,16 @@ PovrayApplication::configureOutputTarget()
         }
         break;
     default:
-        Logger::error("Unrecognized output file format %c\n", globalRenderingConfiguration.outputFormat);
+        Logger::error("Unrecognized output file format %c\n", RenderingConfiguration::global().outputFormat);
         exit(1);
     }
 
-    globalRenderingConfiguration.outputFileInputStream =
+    RenderingConfiguration::global().outputFileInputStream =
         new ImageOutputAdapter(selectedImageOutput);
 
-    if (globalRenderingConfiguration.outputFileName[0] == '\0') {
-        strcpy(globalRenderingConfiguration.outputFileName,
-            globalRenderingConfiguration.outputFileInputStream->defaultFileName());
+    if (RenderingConfiguration::global().outputFileName[0] == '\0') {
+        strcpy(RenderingConfiguration::global().outputFileName,
+            RenderingConfiguration::global().outputFileInputStream->defaultFileName());
     }
 }
 
@@ -236,10 +234,10 @@ PovrayApplication::parseSceneDescription()
 
     printOptions();
 
-    Tokenizer::initializeTokenizer(globalRenderingConfiguration.inputFileName);
+    Tokenizer::initializeTokenizer(RenderingConfiguration::global().inputFileName);
     fprintf(stderr, "Parsing...");
-    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
-        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
+    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         fprintf(statFile, "Parsing...\n");
         fclose(statFile);
     }
@@ -251,23 +249,23 @@ PovrayApplication::parseSceneDescription()
 void
 PovrayApplication::prepareRendering()
 {
-    if (globalRenderingConfiguration.options & DISPLAY) {
+    if (RenderingConfiguration::global().options & DISPLAY) {
         Logger::info("Displaying...\n");
     }
 
-    if (globalRenderingConfiguration.options & DISKWRITE) {
-        if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
-            if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
+    if (RenderingConfiguration::global().options & DISKWRITE) {
+        if (RenderingConfiguration::global().options & CONTINUE_TRACE) {
+            if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
                     &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                    globalRenderingConfiguration.fileBufferSize, RenderOutput::READ_MODE) != 1) {
+                    RenderingConfiguration::global().fileBufferSize, RenderOutput::READ_MODE) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
-                    stderr, "Opening new output file %s.\n", globalRenderingConfiguration.outputFileName);
-                globalRenderingConfiguration.options &= ~CONTINUE_TRACE;
+                    stderr, "Opening new output file %s.\n", RenderingConfiguration::global().outputFileName);
+                RenderingConfiguration::global().options &= ~CONTINUE_TRACE;
 
-                if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
+                if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
                         &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                        globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
+                        RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
                     exit(1);
@@ -275,13 +273,13 @@ PovrayApplication::prepareRendering()
             }
 
             RenderEngine::initializeRenderer();
-            if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
+            if (RenderingConfiguration::global().options & CONTINUE_TRACE) {
                 RenderEngine::readRenderedPart();
             }
         } else {
-            if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
+            if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
                     &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                    globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
+                    RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
                 exit(1);
@@ -302,24 +300,24 @@ PovrayApplication::runRenderLoop()
 {
     FILE *statFile;
 
-    globalStatistics.startTimer();
+    Statistics::global().startTimer();
 
-    if ((globalRenderingConfiguration.options & VERBOSE) && (globalRenderingConfiguration.verboseFormat != '1')) {
+    if ((RenderingConfiguration::global().options & VERBOSE) && (RenderingConfiguration::global().verboseFormat != '1')) {
         Logger::info("Rendering...\n");
-    } else if ((globalRenderingConfiguration.options & VERBOSE) && (globalRenderingConfiguration.verboseFormat == '1')) {
-        fprintf(stderr, "POV-Ray rendering %s to %s :\n", globalRenderingConfiguration.inputFileName,
-            globalRenderingConfiguration.outputFileName);
+    } else if ((RenderingConfiguration::global().options & VERBOSE) && (RenderingConfiguration::global().verboseFormat == '1')) {
+        fprintf(stderr, "POV-Ray rendering %s to %s :\n", RenderingConfiguration::global().inputFileName,
+            RenderingConfiguration::global().outputFileName);
     }
-    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
-        statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
+    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n",
-            globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
+            RenderingConfiguration::global().inputFileName, RenderingConfiguration::global().outputFileName);
         fclose(statFile);
     }
 
     RenderEngine::startTracing();
 
-    if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '1') {
+    if (RenderingConfiguration::global().options & VERBOSE && RenderingConfiguration::global().verboseFormat == '1') {
         fprintf(stderr, "\n");
     }
 }
@@ -329,13 +327,13 @@ PovrayApplication::finalizeRun()
 {
     FILE *statFile;
 
-    globalStatistics.stopTimer();
+    Statistics::global().stopTimer();
 
     closeAll();
-    printStatistics(globalStatistics, RenderEngine::renderFrame(), globalRenderingConfiguration);
+    printStatistics(Statistics::global(), RenderEngine::renderFrame(), RenderingConfiguration::global());
 
-    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
-        statFile = fopen(globalRenderingConfiguration.statFileName, "a+t");
+    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+        statFile = fopen(RenderingConfiguration::global().statFileName, "a+t");
         fprintf(statFile, "Done Tracing\n");
         fclose(statFile);
     }
@@ -378,8 +376,8 @@ PovrayApplication::usage()
 void
 PovrayApplication::initVars()
 {
-    globalRenderingConfiguration.reset();
-    globalStatistics.reset();
+    RenderingConfiguration::global().reset();
+    Statistics::global().reset();
     Tokenizer::setCaseSensitiveIdentifiers(0);
     numberOfFiles = 0;
 
@@ -391,10 +389,10 @@ PovrayApplication::initVars()
 void
 PovrayApplication::closeAll()
 {
-    if (globalRenderingConfiguration.outputFileInputStream) {
-        globalRenderingConfiguration.outputFileInputStream->close();
-        delete globalRenderingConfiguration.outputFileInputStream;
-        globalRenderingConfiguration.outputFileInputStream = nullptr;
+    if (RenderingConfiguration::global().outputFileInputStream) {
+        RenderingConfiguration::global().outputFileInputStream->close();
+        delete RenderingConfiguration::global().outputFileInputStream;
+        RenderingConfiguration::global().outputFileInputStream = nullptr;
     }
     if (selectedImageOutput) {
         delete selectedImageOutput;
@@ -416,8 +414,8 @@ PovrayApplication::getDefaults()
     /* operating system. IBM-PC is before. Default is after if not */
     /* defined in config.h. CDW 2/92 */
     /* Set Diskwrite as default */
-    globalRenderingConfiguration.options |= DISKWRITE;
-    globalRenderingConfiguration.outputFormat = DEFAULT_OUTPUT_FORMAT;
+    RenderingConfiguration::global().options |= DISKWRITE;
+    RenderingConfiguration::global().outputFormat = DEFAULT_OUTPUT_FORMAT;
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
         PovrayApplication::readOptions(Option_String_Ptr);
@@ -491,10 +489,10 @@ PovrayApplication::parseOption(char *optionString)
     switch (*optionString) {
     case 'B':
     case 'b':
-        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.fileBufferSize);
-        globalRenderingConfiguration.fileBufferSize *= 1024;
-        if (globalRenderingConfiguration.fileBufferSize < BUFSIZ) {
-            globalRenderingConfiguration.fileBufferSize = BUFSIZ;
+        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().fileBufferSize);
+        RenderingConfiguration::global().fileBufferSize *= 1024;
+        if (RenderingConfiguration::global().fileBufferSize < BUFSIZ) {
+            RenderingConfiguration::global().fileBufferSize = BUFSIZ;
         }
         optionNumber = 0;
         break;
@@ -507,32 +505,32 @@ PovrayApplication::parseOption(char *optionString)
     case 'D':
     case 'd':
         optionNumber = DISPLAY;
-        globalRenderingConfiguration.displayFormat = '0';
-        globalRenderingConfiguration.paletteOption = '3';
+        RenderingConfiguration::global().displayFormat = '0';
+        RenderingConfiguration::global().paletteOption = '3';
         if (optionString[1] != '\0') {
-            globalRenderingConfiguration.displayFormat = (char)toupper(optionString[1]);
+            RenderingConfiguration::global().displayFormat = (char)toupper(optionString[1]);
         }
 
         if (optionString[1] != '\0' && optionString[2] != '\0') {
-            globalRenderingConfiguration.paletteOption = (char)toupper(optionString[2]);
+            RenderingConfiguration::global().paletteOption = (char)toupper(optionString[2]);
         }
         break;
 
     case '@':
         optionNumber = VERBOSE_FILE;
         if (optionString[1] == '\0') {
-            strcpy(globalRenderingConfiguration.statFileName, "POVSTAT.OUT");
+            strcpy(RenderingConfiguration::global().statFileName, "POVSTAT.OUT");
         } else {
-            strncpy(globalRenderingConfiguration.statFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
-            globalRenderingConfiguration.statFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(RenderingConfiguration::global().statFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
+            RenderingConfiguration::global().statFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         }
         break;
     case 'V':
     case 'v':
         optionNumber = VERBOSE;
-        globalRenderingConfiguration.verboseFormat = (char)toupper(optionString[1]);
-        if (globalRenderingConfiguration.verboseFormat == '\0') {
-            globalRenderingConfiguration.verboseFormat = '1';
+        RenderingConfiguration::global().verboseFormat = (char)toupper(optionString[1]);
+        if (RenderingConfiguration::global().verboseFormat == '\0') {
+            RenderingConfiguration::global().verboseFormat = '1';
         }
         break;
 
@@ -552,14 +550,14 @@ PovrayApplication::parseOption(char *optionString)
     case 'f':
         optionNumber = DISKWRITE;
         if (isupper(optionString[1])) {
-            globalRenderingConfiguration.outputFormat = (char)tolower(optionString[1]);
+            RenderingConfiguration::global().outputFormat = (char)tolower(optionString[1]);
         } else {
-            globalRenderingConfiguration.outputFormat = optionString[1];
+            RenderingConfiguration::global().outputFormat = optionString[1];
         }
 
         /* Default the output format to the default in the config file */
-        if (globalRenderingConfiguration.outputFormat == '\0') {
-            globalRenderingConfiguration.outputFormat = DEFAULT_OUTPUT_FORMAT;
+        if (RenderingConfiguration::global().outputFormat == '\0') {
+            RenderingConfiguration::global().outputFormat = DEFAULT_OUTPUT_FORMAT;
         }
         break;
 
@@ -573,8 +571,8 @@ PovrayApplication::parseOption(char *optionString)
         if (optionString[1] == '\0') {
             inFlag = TRUE;
         } else {
-            strncpy(globalRenderingConfiguration.inputFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
-            globalRenderingConfiguration.inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(RenderingConfiguration::global().inputFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
+            RenderingConfiguration::global().inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         }
         optionNumber = 0;
         break;
@@ -584,8 +582,8 @@ PovrayApplication::parseOption(char *optionString)
         if (optionString[1] == '\0') {
             outFlag = TRUE;
         } else {
-            strncpy(globalRenderingConfiguration.outputFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
-            globalRenderingConfiguration.outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+            strncpy(RenderingConfiguration::global().outputFileName, &optionString[1], RENDER_FILE_NAME_LENGTH - 1);
+            RenderingConfiguration::global().outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         }
         optionNumber = 0;
         break;
@@ -594,7 +592,7 @@ PovrayApplication::parseOption(char *optionString)
     case 'a':
         optionNumber = ANTIALIAS;
         if (sscanf(&optionString[1], "%lf", &threshold) != EOF) {
-            globalRenderingConfiguration.antialiasThreshold = threshold;
+            RenderingConfiguration::global().antialiasThreshold = threshold;
         }
         break;
 
@@ -633,13 +631,13 @@ PovrayApplication::parseOption(char *optionString)
 
     case 'S':
     case 's':
-        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.firstLine);
+        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().firstLine);
         optionNumber = 0;
         break;
 
     case 'E':
     case 'e':
-        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.lastLine);
+        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().lastLine);
         optionNumber = 0;
         break;
 
@@ -647,10 +645,13 @@ PovrayApplication::parseOption(char *optionString)
     case 'm':
         switch (optionString[1]) {
         case 's': /* Max Symbols */
-        case 'S':
+        case 'S': {
+            int maxSymbols = Tokenizer::getMaxSymbols();
             sscanf(&optionString[2], "%d", &maxSymbols);
+            Tokenizer::setMaxSymbols(maxSymbols);
             optionNumber = 0;
             break;
+        }
         default:
             break;
         }
@@ -658,7 +659,7 @@ PovrayApplication::parseOption(char *optionString)
 
     case 'Q':
     case 'q':
-        sscanf(&optionString[1], "%d", &globalRenderingConfiguration.quality);
+        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().quality);
         optionNumber = 0;
         break;
 
@@ -675,9 +676,9 @@ PovrayApplication::parseOption(char *optionString)
 
     if (optionNumber != 0) {
         if (addOption) {
-            globalRenderingConfiguration.options |= optionNumber;
+            RenderingConfiguration::global().options |= optionNumber;
         } else {
-            globalRenderingConfiguration.options &= ~optionNumber;
+            RenderingConfiguration::global().options &= ~optionNumber;
         }
     }
 }
@@ -687,52 +688,52 @@ PovrayApplication::printOptions()
 {
     Logger::info( "\nPOV-Ray          Options in effect: ");
 
-    if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
+    if (RenderingConfiguration::global().options & CONTINUE_TRACE) {
         Logger::info( "+c ");
     }
 
-    if (globalRenderingConfiguration.options & DISPLAY) {
-        Logger::info( "+d%c%c ", globalRenderingConfiguration.displayFormat, globalRenderingConfiguration.paletteOption);
+    if (RenderingConfiguration::global().options & DISPLAY) {
+        Logger::info( "+d%c%c ", RenderingConfiguration::global().displayFormat, RenderingConfiguration::global().paletteOption);
     }
 
-    if (globalRenderingConfiguration.options & VERBOSE) {
-        Logger::info( "+v%c ", globalRenderingConfiguration.verboseFormat);
+    if (RenderingConfiguration::global().options & VERBOSE) {
+        Logger::info( "+v%c ", RenderingConfiguration::global().verboseFormat);
     }
 
-    if (globalRenderingConfiguration.options & VERBOSE_FILE) {
-        Logger::info( "+@%s ", globalRenderingConfiguration.statFileName);
+    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+        Logger::info( "+@%s ", RenderingConfiguration::global().statFileName);
     }
 
-    if (globalRenderingConfiguration.options & DISKWRITE) {
-        Logger::info( "+f%c ", globalRenderingConfiguration.outputFormat);
+    if (RenderingConfiguration::global().options & DISKWRITE) {
+        Logger::info( "+f%c ", RenderingConfiguration::global().outputFormat);
     }
 
-    if (globalRenderingConfiguration.options & PROMPTEXIT) {
+    if (RenderingConfiguration::global().options & PROMPTEXIT) {
         Logger::info( "+p ");
     }
 
-    if (globalRenderingConfiguration.options & EXITENABLE) {
+    if (RenderingConfiguration::global().options & EXITENABLE) {
         Logger::info( "+x ");
     }
 
-    if (globalRenderingConfiguration.options & ANTIALIAS) {
-        Logger::info( "+a%f ", globalRenderingConfiguration.antialiasThreshold);
+    if (RenderingConfiguration::global().options & ANTIALIAS) {
+        Logger::info( "+a%f ", RenderingConfiguration::global().antialiasThreshold);
     }
 
-    if (globalRenderingConfiguration.options & DEBUGGING) {
+    if (RenderingConfiguration::global().options & DEBUGGING) {
         Logger::info( "+z ");
     }
 
-    if (globalRenderingConfiguration.fileBufferSize != 0) {
-        Logger::info( "-b%d ", globalRenderingConfiguration.fileBufferSize / 1024);
+    if (RenderingConfiguration::global().fileBufferSize != 0) {
+        Logger::info( "-b%d ", RenderingConfiguration::global().fileBufferSize / 1024);
     }
 
-    Logger::info( "-q%d -w%d -h%d -s%d -e%d\n-i%s ", globalRenderingConfiguration.quality,
-        RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight, globalRenderingConfiguration.firstLine,
-        globalRenderingConfiguration.lastLine, globalRenderingConfiguration.inputFileName);
+    Logger::info( "-q%d -w%d -h%d -s%d -e%d\n-i%s ", RenderingConfiguration::global().quality,
+        RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight, RenderingConfiguration::global().firstLine,
+        RenderingConfiguration::global().lastLine, RenderingConfiguration::global().inputFileName);
 
-    if (globalRenderingConfiguration.options & DISKWRITE) {
-        Logger::info( "-o%s ", globalRenderingConfiguration.outputFileName);
+    if (RenderingConfiguration::global().options & DISKWRITE) {
+        Logger::info( "-o%s ", RenderingConfiguration::global().outputFileName);
     }
 
     const java::ArrayList<java::String> &paths = FileLocator::searchPaths();
@@ -752,8 +753,8 @@ PovrayApplication::parseFileName(char *fileName)
     if (inFlag) /* file names may now be separated by spaces from cmdline option
                  */
     {
-        strncpy(globalRenderingConfiguration.inputFileName, fileName, RENDER_FILE_NAME_LENGTH - 1);
-        globalRenderingConfiguration.inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+        strncpy(RenderingConfiguration::global().inputFileName, fileName, RENDER_FILE_NAME_LENGTH - 1);
+        RenderingConfiguration::global().inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         inFlag = FALSE;
         return;
     }
@@ -761,8 +762,8 @@ PovrayApplication::parseFileName(char *fileName)
     if (outFlag) /* file names may now be separated by spaces from cmdline
                     option */
     {
-        strncpy(globalRenderingConfiguration.outputFileName, fileName, RENDER_FILE_NAME_LENGTH - 1);
-        globalRenderingConfiguration.outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+        strncpy(RenderingConfiguration::global().outputFileName, fileName, RENDER_FILE_NAME_LENGTH - 1);
+        RenderingConfiguration::global().outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
         outFlag = FALSE;
         return;
     }

@@ -19,7 +19,7 @@
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
-Methods bicubicPatchMethods = {Composite::objectIntersect,
+Methods ParametricBiCubicPatch::methodTable = {Composite::objectIntersect,
     ParametricBiCubicSolver::allParametricBiCubicPatchIntersections,
     ParametricBiCubicPatch::insideBicubicPatch,
     ParametricBiCubicPatch::bicubicPatchNormal,
@@ -1014,7 +1014,7 @@ ParametricBiCubicPatch::bicubicPatchNormal(
             return;
         }
     }
-    if (globalRenderingConfiguration.options & DEBUGGING) {
+    if (RenderingConfiguration::global().options & DEBUGGING) {
         Logger::info("Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }

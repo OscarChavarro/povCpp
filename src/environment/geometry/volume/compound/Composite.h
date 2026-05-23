@@ -9,6 +9,8 @@
 
 class Composite {
   public:
+    static Methods compositeMethodTable;
+    static Methods basicObjectMethodTable;
     Methods *methods;
     int Type;
     SimpleBody *nextObject;
@@ -36,8 +38,5 @@ class Composite {
     static void invertBasicObject(SimpleBody *object);
     static void invertCompositeObject(SimpleBody *object);
 };
-
-extern Methods compositeMethods;
-extern Methods basicObjectMethods;
 
 #endif

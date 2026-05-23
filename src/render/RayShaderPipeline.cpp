@@ -30,13 +30,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     Vector3Dd surfaceNormal;
     double normalDirection;
     int surface;
-    const int debugEnabled = (globalRenderingConfiguration.options & DEBUGGING);
+    const int debugEnabled = (RenderingConfiguration::global().options & DEBUGGING);
 
     if (!shadowRay) {
         Color::makeColor(colour, 0.0, 0.0, 0.0);
     }
 
-    if (globalRenderingConfiguration.options & DEBUGGING) {
+    if (RenderingConfiguration::global().options & DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
             Logger::info("Depth: %f Object %d Colour %f %f %f ",
                 rayIntersection->Depth, rayIntersection->Shape->Type,
@@ -66,7 +66,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* If this is just a shadow ray and we're rendering low quality, then return
      */
 
-    if (shadowRay && (globalRenderingConfiguration.quality <= 5)) {
+    if (shadowRay && (RenderingConfiguration::global().quality <= 5)) {
         return;
     }
 
@@ -79,7 +79,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         surface++, tempTexture = tempTexture->Next_Texture) {
 
         Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
-        if (globalRenderingConfiguration.quality <= 5) {
+        if (RenderingConfiguration::global().quality <= 5) {
             if (rayIntersection->Shape->Shape_Colour != nullptr) {
                 surfaceColour = *rayIntersection->Shape->Shape_Colour;
             } else if (rayIntersection->Object->objectColour != nullptr) {
@@ -99,7 +99,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 &surfaceColour, &filterColour, colour, traceService);
         }
 
-        if (globalRenderingConfiguration.options & DEBUGGING) {
+        if (RenderingConfiguration::global().options & DEBUGGING) {
             Logger::info("Surface %d\n", surface);
             Logger::info("    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,
                 surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);
@@ -140,14 +140,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         return;
     }
 
-    if ((filterColour.Alpha > 0.01) && (globalRenderingConfiguration.quality > 5)) {
+    if ((filterColour.Alpha > 0.01) && (RenderingConfiguration::global().quality > 5)) {
         Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
 
         if (texture->objectRefraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
                 (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
 
-            if (globalRenderingConfiguration.quality > 7) {
+            if (RenderingConfiguration::global().quality > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->Point,
                     &surfaceNormal);
             }

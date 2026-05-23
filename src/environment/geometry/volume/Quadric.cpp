@@ -10,7 +10,7 @@
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-Methods quadricMethods = {Composite::objectIntersect,
+Methods Quadric::methodTable = {Composite::objectIntersect,
     Quadric::allQuadricIntersections, Quadric::insideQuadric,
     Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
@@ -64,7 +64,7 @@ Quadric::intersectQuadric(
     double a2;
     double bMinus;
 
-    globalStatistics.rayQuadricTests++;
+    Statistics::global().rayQuadricTests++;
     if (!ray->quadricConstantsCached) {
         ray->makeRay();
     }
@@ -141,7 +141,7 @@ Quadric::intersectQuadric(
         *depth2 = *depth1;
     }
 
-    globalStatistics.rayQuadricTestsSucceeded++;
+    Statistics::global().rayQuadricTestsSucceeded++;
     return (TRUE);
 }
 

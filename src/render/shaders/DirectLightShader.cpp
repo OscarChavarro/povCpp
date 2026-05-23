@@ -61,12 +61,12 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
             intersectionPoint, &lightColor);
 
         /* What objects does this ray intersect? */
-        if (globalRenderingConfiguration.quality > 3) {
+        if (RenderingConfiguration::global().quality > 3) {
             for (blockingObject = RenderEngine::renderFrame().Objects;
                 blockingObject != nullptr;
                 blockingObject = blockingObject->nextObject) {
 
-                globalStatistics.shadowRayTests++;
+                Statistics::global().shadowRayTests++;
                 for (GeometryOperations::allIntersections(
                          blockingObject, &lightSourceRay, localQueue);
                     (localIntersection = localQueue->getHighest()) != nullptr;

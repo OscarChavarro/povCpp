@@ -21,7 +21,7 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     double normalComponent;
 
     if (texture->objectReflection != 0.0) {
-        globalStatistics.reflectedRaysTraced++;
+        Statistics::global().reflectedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;

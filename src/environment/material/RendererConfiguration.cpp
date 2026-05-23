@@ -2,7 +2,13 @@
 
 #include <cstring>
 
-RenderingConfiguration globalRenderingConfiguration;
+static RenderingConfiguration globalRenderingConfigurationInstance;
+
+RenderingConfiguration &
+RenderingConfiguration::global()
+{
+    return globalRenderingConfigurationInstance;
+}
 
 void
 RenderingConfiguration::reset()

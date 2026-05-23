@@ -7,6 +7,7 @@
 
 class Box : public Geometry {
   public:
+    static Methods methodTable;
     Transformation *Transform;
     Vector3Dd bounds[2];
     short Inverted;
@@ -27,8 +28,5 @@ class Box : public Geometry {
   private:
     static int closeTo(double x, double y);
 };
-
-extern Methods boxMethods;
-extern Box *getBoxShape();
 
 #endif

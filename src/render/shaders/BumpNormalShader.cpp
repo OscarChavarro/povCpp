@@ -14,7 +14,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     double x;
     double y;
     double z;
-    const int debugEnabled = (globalRenderingConfiguration.options & DEBUGGING);
+    const int debugEnabled = (RenderingConfiguration::global().options & DEBUGGING);
 
     if (texture->bumpNumber == NO_BUMPS) {
         *newNormal = *surfaceNormal;

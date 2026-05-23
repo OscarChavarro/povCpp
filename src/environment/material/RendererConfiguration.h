@@ -37,9 +37,8 @@ class RenderingConfiguration {
     char paletteOption;
     char colorBits;
 
+    static RenderingConfiguration &global();
     void reset();
 };
-
-extern RenderingConfiguration globalRenderingConfiguration;
 
 #endif

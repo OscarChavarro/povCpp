@@ -7,6 +7,7 @@
 
 class InfinitePlane : public Geometry {
   public:
+    static Methods methodTable;
     Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
@@ -25,8 +26,5 @@ class InfinitePlane : public Geometry {
     static void scalePlane(SimpleBody *object, Vector3Dd *vector);
     static void invertPlane(SimpleBody *object);
 };
-
-extern Methods planeMethods;
-extern InfinitePlane *getPlaneShape(void);
 
 #endif

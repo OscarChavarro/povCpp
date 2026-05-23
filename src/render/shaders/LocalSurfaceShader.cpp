@@ -30,7 +30,7 @@ of the object and how much is transmited through. */
         texture = rayIntersection->Object->objectTexture;
     }
 
-    if (globalRenderingConfiguration.quality <= 1) {
+    if (RenderingConfiguration::global().quality <= 1) {
         surfaceColor->Alpha = 0.0;
 
         color->Red += surfaceColor->Red * filterColor->Alpha;
@@ -42,7 +42,7 @@ of the object and how much is transmited through. */
     GeometryOperations::normal(&surfaceNormal,
         (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
 
-    if (globalRenderingConfiguration.quality >= 8) {
+    if (RenderingConfiguration::global().quality >= 8) {
         BumpNormalShader::shade(
             &surfaceNormal, texture, &rayIntersection->Point, &surfaceNormal);
     }
@@ -61,7 +61,7 @@ of the object and how much is transmited through. */
     color->Red += emittedColor.Red;
     color->Green += emittedColor.Green;
     color->Blue += emittedColor.Blue;
-    if (globalRenderingConfiguration.quality >= 8) {
+    if (RenderingConfiguration::global().quality >= 8) {
         MirrorReflectionShader::shade(texture, &rayIntersection->Point, ray, &surfaceNormal, color, traceService);
     }
 }

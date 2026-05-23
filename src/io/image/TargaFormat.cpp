@@ -82,8 +82,8 @@ TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
         for (int i = 0; i < 10; i++) {
             outputStream->write(i == 2 ? 2 : 0);
         }
-        outputStream->write(globalRenderingConfiguration.firstLine % 256);
-        outputStream->write(globalRenderingConfiguration.firstLine / 256);
+        outputStream->write(RenderingConfiguration::global().firstLine % 256);
+        outputStream->write(RenderingConfiguration::global().firstLine / 256);
         outputStream->write(*w % 256);
         outputStream->write(*w / 256);
         outputStream->write(*h % 256);

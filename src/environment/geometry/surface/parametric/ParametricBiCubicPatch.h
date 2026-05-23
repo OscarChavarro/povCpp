@@ -17,6 +17,7 @@ class ParametricBiCubicPatch : public Geometry {
     friend class ParametricBiCubicIntersection;
 
   public:
+    static Methods methodTable;
     int patchType;
     int uSteps;
     int vSteps;

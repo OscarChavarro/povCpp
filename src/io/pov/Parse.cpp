@@ -29,13 +29,3 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
-
-
-
-RenderFrame *parsingFramePtr;
-
-RGBAColorPaletteSpan *constructionMap = nullptr;
-
-Constant constants[MAX_CONSTANTS];
-int numberOfConstants;
-int degenerateTriangles;

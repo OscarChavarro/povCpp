@@ -11,13 +11,13 @@
 #include "common/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
 
-Methods compositeMethods = {Composite::objectIntersect,
+Methods Composite::compositeMethodTable = {Composite::objectIntersect,
     Composite::allCompositeIntersections, Composite::insideCompositeObject,
     nullptr, Composite::copyCompositeObject,
     Composite::translateCompositeObject, Composite::rotateCompositeObject,
     Composite::scaleCompositeObject, Composite::invertCompositeObject};
 
-Methods basicObjectMethods = {Composite::objectIntersect,
+Methods Composite::basicObjectMethodTable = {Composite::objectIntersect,
     Composite::allObjectIntersections, Composite::insideBasicObject, nullptr,
     Composite::copyBasicObject, Composite::translateBasicObject,
     Composite::rotateBasicObject, Composite::scaleBasicObject,
@@ -64,7 +64,7 @@ Composite::allCompositeIntersections(
     for (boundingShape = ((Composite *)object)->boundingShapes;
         boundingShape != nullptr; boundingShape = boundingShape->nextObject) {
 
-        globalStatistics.boundingRegionTests++;
+        Statistics::global().boundingRegionTests++;
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
@@ -72,7 +72,7 @@ Composite::allCompositeIntersections(
                        &ray->position, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
-        globalStatistics.boundingRegionTestsSucceeded++;
+        Statistics::global().boundingRegionTestsSucceeded++;
     }
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
@@ -92,13 +92,13 @@ Composite::allCompositeIntersections(
 
         for (clippingShape = object->clippingShapes; clippingShape != nullptr;
             clippingShape = clippingShape->nextObject) {
-            globalStatistics.clippingRegionTests++;
+            Statistics::global().clippingRegionTests++;
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
                 intersectionFound = FALSE;
                 break;
             }
-            globalStatistics.clippingRegionTestsSucceeded++;
+            Statistics::global().clippingRegionTestsSucceeded++;
         }
 
         if (intersectionFound) {
@@ -124,7 +124,7 @@ Composite::allObjectIntersections(
     for (boundingShape = object->boundingShapes; boundingShape != nullptr;
         boundingShape = boundingShape->nextObject) {
 
-        globalStatistics.boundingRegionTests++;
+        Statistics::global().boundingRegionTests++;
         if ((localIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
             delete localIntersection;
@@ -132,7 +132,7 @@ Composite::allObjectIntersections(
                        &ray->position, (SimpleBody *)boundingShape)) {
             return (FALSE);
         }
-        globalStatistics.boundingRegionTestsSucceeded++;
+        Statistics::global().boundingRegionTestsSucceeded++;
     }
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
@@ -150,24 +150,24 @@ Composite::allObjectIntersections(
         for (clippingShape = object->clippingShapes; clippingShape != nullptr;
             clippingShape = clippingShape->nextObject) {
 
-            globalStatistics.clippingRegionTests++;
-            if (globalRenderingConfiguration.options & DEBUGGING) {
+            Statistics::global().clippingRegionTests++;
+            if (RenderingConfiguration::global().options & DEBUGGING) {
                 Logger::info("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x,
                     localIntersection->Point.y, localIntersection->Point.z);
             }
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
-                if (globalRenderingConfiguration.options & DEBUGGING) {
+                if (RenderingConfiguration::global().options & DEBUGGING) {
                     Logger::info("not ok\n");
                 }
                 intersectionFound = FALSE;
                 break;
             }
-            globalStatistics.clippingRegionTestsSucceeded++;
+            Statistics::global().clippingRegionTestsSucceeded++;
         }
 
         if (intersectionFound) {
-            if (globalRenderingConfiguration.options & DEBUGGING) {
+            if (RenderingConfiguration::global().options & DEBUGGING) {
                 Logger::info("ok\n");
             }
             depthQueue->add(localIntersection);
@@ -535,12 +535,12 @@ ObjectUtils::getObject()
     newObject->Shape = nullptr;
     newObject->boundingShapes = nullptr;
     newObject->clippingShapes = nullptr;
-    newObject->objectTexture = Default_Texture;
+    newObject->objectTexture = TextureUtils::defaultTexture();
 
     newObject->objectColour = nullptr;
 
     newObject->noShadowFlag = FALSE;
     newObject->Type = OBJECT_TYPE;
-    newObject->methods = &basicObjectMethods;
+    newObject->methods = &Composite::basicObjectMethodTable;
     return (newObject);
 }

@@ -10,7 +10,7 @@
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-Methods planeMethods = {Composite::objectIntersect,
+Methods InfinitePlane::methodTable = {Composite::objectIntersect,
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
     InfinitePlane::planeNormal, InfinitePlane::copyPlane,
     InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
@@ -48,7 +48,7 @@ InfinitePlane::intersectPlane(
     double normalDotOrigin;
     double normalDotDirection;
 
-    globalStatistics.rayPlaneTests++;
+    Statistics::global().rayPlaneTests++;
     if (ray == RenderEngine::primaryRay()) {
         if (!plane->VPCached) {
             plane->VPNormDotOrigin =
@@ -66,7 +66,7 @@ InfinitePlane::intersectPlane(
 
         *depth = plane->VPNormDotOrigin / normalDotDirection;
         if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
-            globalStatistics.rayPlaneTestsSucceeded++;
+            Statistics::global().rayPlaneTestsSucceeded++;
             return (TRUE);
         }
         return (FALSE);
@@ -83,7 +83,7 @@ InfinitePlane::intersectPlane(
 
     *depth = normalDotOrigin / normalDotDirection;
     if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
-        globalStatistics.rayPlaneTestsSucceeded++;
+        Statistics::global().rayPlaneTestsSucceeded++;
         return (TRUE);
     }
     return (FALSE);

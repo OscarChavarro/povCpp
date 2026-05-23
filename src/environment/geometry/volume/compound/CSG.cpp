@@ -7,11 +7,11 @@
 
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
-Methods csgUnionMethods = {Composite::objectIntersect,
+Methods CSG::unionMethodTable = {Composite::objectIntersect,
     CSG::allCsgUnionIntersections, CSG::insideCsgUnion, nullptr, CSG::copyCsg,
     CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
 
-Methods csgIntersectionMethods = {Composite::objectIntersect,
+Methods CSG::intersectionMethodTable = {Composite::objectIntersect,
     CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr,
     CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
     CSG::invertCsg};
@@ -191,10 +191,10 @@ CSG::invertCsg(SimpleBody *object)
 
     if (csg->Type == CSG_INTERSECTION_TYPE) {
         csg->Type = CSG_UNION_TYPE;
-        csg->methods = &csgUnionMethods;
+        csg->methods = &CSG::unionMethodTable;
     } else if (csg->Type == CSG_UNION_TYPE) {
         csg->Type = CSG_INTERSECTION_TYPE;
-        csg->methods = &csgIntersectionMethods;
+        csg->methods = &CSG::intersectionMethodTable;
     }
 
     for (localShape = csg->Shapes; localShape != nullptr;

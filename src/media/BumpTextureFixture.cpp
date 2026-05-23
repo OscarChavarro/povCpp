@@ -18,8 +18,6 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
-extern unsigned short crctab[256];
-
 void
 BumpTextureFixture::ripples(
     double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
@@ -38,7 +36,7 @@ BumpTextureFixture::ripples(
         point.x = x;
         point.y = y;
         point.z = z;
-        point.sub(Wave_Sources[i]);
+        point.sub(TextureUtils::waveSources()[i]);
         length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
@@ -78,17 +76,17 @@ BumpTextureFixture::waves(
         point.x = x;
         point.y = y;
         point.z = z;
-        point.sub(Wave_Sources[i]);
+        point.sub(TextureUtils::waveSources()[i]);
         length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
         }
 
         length = sqrt(length);
-        index = (length * texture->Frequency * frequency[i]) + texture->Phase;
+        index = (length * texture->Frequency * TextureUtils::waveFrequency()[i]) + texture->Phase;
         sinValue = TextureUtils::cycloidal(index);
 
-        scalar = sinValue * texture->bumpAmount / frequency[i];
+        scalar = sinValue * texture->bumpAmount / TextureUtils::waveFrequency()[i];
         VectorOps::vScale(
             point, point, scalar / length / (double)NUMBER_OF_WAVES);
         (*normal).add(point);
