@@ -1,7 +1,11 @@
 #ifndef __Intersection
 #define __Intersection
 
-#include "environment/geometry/GeometryOperations.h"
+#include "common/dataStructures/PriorityQueueNode.h"
+#include "common/linealAlgebra/Vector3Dd.h"
+
+class SimpleBody;
+class Geometry;
 
 class Intersection {
   public:

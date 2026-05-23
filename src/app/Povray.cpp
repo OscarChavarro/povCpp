@@ -9,6 +9,7 @@
 #include "app/UnixPlatform.h"
 #include "common/FrameConfig.h" /* common to ALL modules in this program */
 #include "common/dataStructures/PriorityQueue.h"
+#include "environment/geometry/Intersection.h"
 #include "io/DumpFormat.h"
 #include "io/FileHandle.h"
 #include "io/Parse.h"
@@ -27,8 +28,6 @@ int caseSensitiveFlag = CASE_SENSITIVE_DEFAULT;
 FILE *bfp;
 
 extern RenderFrame globalFrame;
-extern PriorityQueue *GLOBAL_priorityQueue;
-PriorityQueueNode *GLOBAL_priorityQueuesHead;
 
 char inputFileName[FILE_NAME_LENGTH];
 char outputFileName[FILE_NAME_LENGTH];
@@ -249,7 +248,7 @@ PovApp::prepareRendering()
         RenderEngine::initializeRenderer();
     }
 
-    GLOBAL_priorityQueuesHead = PriorityQueuePool::pqInit();
+    IntersectionPriorityQueuePool::pqInit();
     TextureUtils::initializeNoise();
 }
 

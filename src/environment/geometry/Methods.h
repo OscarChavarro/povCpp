@@ -1,10 +1,10 @@
 #ifndef __METHODS_H__
 #define __METHODS_H__
 
+#include "common/dataStructures/PriorityQueueNode.h"
 #include "common/Transformation.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
-class PriorityQueueNode;
 class Intersection;
 class SimpleBody;
 

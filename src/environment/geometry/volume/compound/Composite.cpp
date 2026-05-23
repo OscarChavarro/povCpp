@@ -32,7 +32,7 @@ Composite::objectIntersect(SimpleBody *object, RayWithSegments *ray)
     Intersection *queueElement;
     PriorityQueueNode *depthQueue;
 
-    depthQueue = PriorityQueuePool::pqPop(128);
+    depthQueue = IntersectionPriorityQueuePool::pqPop(128);
 
     if ((GeometryOperations::allIntersections(object, ray, depthQueue)) &&
         ((queueElement = depthQueue->getHighest()) != nullptr)) {
@@ -44,10 +44,10 @@ Composite::objectIntersect(SimpleBody *object, RayWithSegments *ray)
         localIntersection->Shape = queueElement->Shape;
         localIntersection->Depth = queueElement->Depth;
         localIntersection->Object = queueElement->Object;
-        depthQueue->pushBackToPool();
+        IntersectionPriorityQueuePool::pqPush(depthQueue);
         return localIntersection;
     }
-    depthQueue->pushBackToPool();
+    IntersectionPriorityQueuePool::pqPush(depthQueue);
     return nullptr;
 }
 
@@ -78,7 +78,7 @@ Composite::allCompositeIntersections(
         boundingRegionTestsSucceeded++;
     }
 
-    localDepthQueue = PriorityQueuePool::pqPop(128);
+    localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
     anyIntersectionFound = FALSE;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
@@ -109,7 +109,7 @@ Composite::allCompositeIntersections(
             anyIntersectionFound = TRUE;
         }
     }
-    localDepthQueue->pushBackToPool();
+    IntersectionPriorityQueuePool::pqPush(localDepthQueue);
     return (anyIntersectionFound);
 }
 
@@ -139,7 +139,7 @@ Composite::allObjectIntersections(
         boundingRegionTestsSucceeded++;
     }
 
-    localDepthQueue = PriorityQueuePool::pqPop(128);
+    localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
     anyIntersectionFound = FALSE;
     GeometryOperations::allIntersections(
         (SimpleBody *)object->Shape, ray, localDepthQueue);
@@ -177,7 +177,7 @@ Composite::allObjectIntersections(
             anyIntersectionFound = TRUE;
         }
     }
-    localDepthQueue->pushBackToPool();
+    IntersectionPriorityQueuePool::pqPush(localDepthQueue);
     return (anyIntersectionFound);
 }
 
