@@ -33,9 +33,9 @@ ModelFactory::getCompositeObject()
     }
 
     newComposite->Objects = nullptr;
-    newComposite->Next_Object = nullptr;
-    newComposite->Bounding_Shapes = nullptr;
-    newComposite->Clipping_Shapes = nullptr;
+    newComposite->nextObject = nullptr;
+    newComposite->boundingShapes = nullptr;
+    newComposite->clippingShapes = nullptr;
     newComposite->Type = COMPOSITE_TYPE;
     newComposite->methods = &Composite_Methods;
     return (newComposite);
@@ -54,10 +54,10 @@ ModelFactory::getSphereShape()
 
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     newShape->Radius = 1.0;
-    newShape->Radius_Squared = 1.0;
-    newShape->Inverse_Radius = 1.0;
+    newShape->radiusSquared = 1.0;
+    newShape->inverseRadius = 1.0;
     newShape->Type = SPHERE_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Sphere_Methods;
     newShape->VPCached = FALSE;
     newShape->Inverted = FALSE;
@@ -77,10 +77,10 @@ ModelFactory::getLightSourceShape()
         exit(1);
     }
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->Points_At) = Vector3Dd(0.0, 0.0, 1.0);
+    *&(newShape->pointsAt) = Vector3Dd(0.0, 0.0, 1.0);
     newShape->Type = POINT_LIGHT_TYPE;
     newShape->methods = &Point_Methods;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = ModelFactory::getColour();
@@ -103,15 +103,15 @@ ModelFactory::getQuadricShape()
         exit(1);
     }
 
-    *&(newShape->Object_2_Terms) = Vector3Dd(1.0, 1.0, 1.0);
-    *&(newShape->Object_Mixed_Terms) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->Object_Terms) = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->Object_Constant = 1.0;
-    newShape->Object_VP_Constant = HUGE_VAL;
-    newShape->Constant_Cached = FALSE;
-    newShape->Non_Zero_Square_Term = FALSE;
+    *&(newShape->object2Terms) = Vector3Dd(1.0, 1.0, 1.0);
+    *&(newShape->objectMixedTerms) = Vector3Dd(0.0, 0.0, 0.0);
+    *&(newShape->objectTerms) = Vector3Dd(0.0, 0.0, 0.0);
+    newShape->objectConstant = 1.0;
+    newShape->objectVpConstant = HUGE_VAL;
+    newShape->constantCached = FALSE;
+    newShape->nonZeroSquareTerm = FALSE;
     newShape->Type = QUADRIC_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Quadric_Methods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
@@ -131,14 +131,14 @@ ModelFactory::getPolyShape(int order)
     }
 
     newShape->Type = POLY_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Poly_Methods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     newShape->Transform = nullptr;
     newShape->Inverted = 0;
     newShape->Order = order;
-    newShape->Sturm_Flag = 0;
+    newShape->sturmFlag = 0;
     newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
         Logger::error(
@@ -166,7 +166,7 @@ ModelFactory::getBoxShape()
     *&(newShape->bounds[1]) = Vector3Dd(1.0, 1.0, 1.0);
     newShape->Transform = nullptr;
     newShape->Type = BOX_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Box_Methods;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
@@ -187,7 +187,7 @@ ModelFactory::getBlobShape()
 
     newShape->Transform = nullptr;
     newShape->Type = BLOB_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Blob_Methods;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
@@ -207,13 +207,13 @@ ModelFactory::getBicubicPatchShape()
     }
 
     newShape->Type = BICUBIC_PATCH_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Bicubic_Patch_Methods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
-    newShape->U_Steps = 0;
-    newShape->V_Steps = 0;
-    newShape->Intersection_Count = 0;
+    newShape->uSteps = 0;
+    newShape->vSteps = 0;
+    newShape->intersectionCount = 0;
     newShape->Interpolated_Grid = (Vector3Dd **)nullptr;
     newShape->Interpolated_Normals = (Vector3Dd **)nullptr;
     newShape->Smooth_Normals = (Vector3Dd **)nullptr;
@@ -235,7 +235,7 @@ ModelFactory::getHeightFieldShape()
     newShape->Map = nullptr;
     newShape->transformation = Transformation::getTransformation();
     newShape->Type = HEIGHT_FIELD_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Height_Field_Methods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
@@ -253,10 +253,10 @@ ModelFactory::getPlaneShape()
         exit(1);
     }
 
-    *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = PLANE_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Plane_Methods;
     newShape->VPCached = 0;
     newShape->Shape_Texture = nullptr;
@@ -275,19 +275,19 @@ ModelFactory::getTriangleShape()
         exit(1);
     }
 
-    *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->P1) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->P2) = Vector3Dd(1.0, 0.0, 0.0);
     *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Inverted = FALSE;
     newShape->Type = TRIANGLE_TYPE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Triangle_Methods;
     newShape->VPCached = FALSE;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
-    newShape->Degenerate_Flag = FALSE;
+    newShape->degenerateFlag = FALSE;
     return (newShape);
 }
 
@@ -302,7 +302,7 @@ ModelFactory::getSmoothTriangleShape()
         exit(1);
     }
 
-    *&(newShape->Normal_Vector) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->P1) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->P2) = Vector3Dd(1.0, 0.0, 0.0);
     *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
@@ -312,12 +312,12 @@ ModelFactory::getSmoothTriangleShape()
     newShape->Distance = 0.0;
     newShape->Type = SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = FALSE;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->methods = &Smooth_Triangle_Methods;
     newShape->VPCached = 0;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
-    newShape->Degenerate_Flag = FALSE;
+    newShape->degenerateFlag = FALSE;
     return (newShape);
 }
 
@@ -332,7 +332,7 @@ ModelFactory::getCsgShape()
         exit(1);
     }
 
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->Shapes = nullptr;
     return (newShape);
 }

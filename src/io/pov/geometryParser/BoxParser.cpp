@@ -25,7 +25,7 @@ BoxParser::parseBox()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -41,7 +41,7 @@ BoxParser::parseBox()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 localShape = SceneFactory::getBoxShape();
@@ -52,11 +52,11 @@ BoxParser::parseBox()
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         BOX_CONSTANT) {
                         localShape = (Box *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -78,7 +78,7 @@ BoxParser::parseBox()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -107,7 +107,7 @@ BoxParser::parseBox()
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 {

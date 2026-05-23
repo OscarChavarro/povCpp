@@ -36,7 +36,7 @@ PolyParser::parsePoly(int knownOrder)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
@@ -64,12 +64,12 @@ PolyParser::parsePoly(int knownOrder)
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         POLY_CONSTANT) {
                         localShape =
                             (PolynomialShape *)GeometryOperations::copy(
                                 (SimpleBody *)constants[(int)constantId]
-                                    .Constant_Data);
+                                    .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -91,13 +91,13 @@ PolyParser::parsePoly(int knownOrder)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
 
             case STURM_TOKEN:
-                localShape->Sturm_Flag = 1;
+                localShape->sturmFlag = 1;
                 break;
 
             case TRANSLATE_TOKEN:
@@ -124,7 +124,7 @@ PolyParser::parsePoly(int knownOrder)
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 

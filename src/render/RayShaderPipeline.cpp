@@ -53,12 +53,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
-        texture = rayIntersection->Object->Object_Texture;
+        texture = rayIntersection->Object->objectTexture;
     }
     /* Check to see if this object/shape has a material_map texture, if so */
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
-    if (texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
+    if (texture->textureNumber == MATERIAL_MAP_TEXTURE) {
         texture = MapTextureFixture::materialMap(
             &rayIntersection->Point, texture, debugEnabled, Small_Tolerance);
     }
@@ -82,8 +82,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (globalRenderingConfiguration.quality <= 5) {
             if (rayIntersection->Shape->Shape_Colour != nullptr) {
                 surfaceColour = *rayIntersection->Shape->Shape_Colour;
-            } else if (rayIntersection->Object->Object_Colour != nullptr) {
-                surfaceColour = *rayIntersection->Object->Object_Colour;
+            } else if (rayIntersection->Object->objectColour != nullptr) {
+                surfaceColour = *rayIntersection->Object->objectColour;
             } else {
                 Color::makeColor(&surfaceColour, 0.5, 0.5, 0.5);
             }
@@ -125,12 +125,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             return;
         }
 
-        if (texture->Object_Refraction > 0.0) {
-            colour->Red *= filterColour.Red * texture->Object_Refraction *
+        if (texture->objectRefraction > 0.0) {
+            colour->Red *= filterColour.Red * texture->objectRefraction *
                            filterColour.Alpha;
-            colour->Green *= filterColour.Green * texture->Object_Refraction *
+            colour->Green *= filterColour.Green * texture->objectRefraction *
                              filterColour.Alpha;
-            colour->Blue *= filterColour.Blue * texture->Object_Refraction *
+            colour->Blue *= filterColour.Blue * texture->objectRefraction *
                             filterColour.Alpha;
         } else {
             colour->Red *= filterColour.Red * filterColour.Alpha;
@@ -143,7 +143,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     if ((filterColour.Alpha > 0.01) && (globalRenderingConfiguration.quality > 5)) {
         Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
 
-        if (texture->Object_Refraction > 0.0) {
+        if (texture->objectRefraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
                 (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
 
@@ -172,8 +172,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         colour->Blue +=
             filterColour.Blue * refractedColour.Blue * filterColour.Alpha;
 
-        if (texture->Object_Refraction > 0.0 &&
-            texture->Object_Transmit > 0.0) {
+        if (texture->objectRefraction > 0.0 &&
+            texture->objectTransmit > 0.0) {
             Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, nullptr,
                 &refractedColour, traceService);
@@ -186,8 +186,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
     }
 
-    if (globalFrame.Fog_Distance != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->Depth, &globalFrame.Fog_Colour,
-            globalFrame.Fog_Distance, colour);
+    if (globalFrame.fogDistance != 0.0) {
+        ExponentialFogShader::shade(rayIntersection->Depth, &globalFrame.fogColour,
+            globalFrame.fogDistance, colour);
     }
 }

@@ -52,13 +52,13 @@ InfinitePlane::intersectPlane(
     if (ray == vpRay) {
         if (!plane->VPCached) {
             plane->VPNormDotOrigin =
-                plane->Normal_Vector.dotProduct(ray->position);
+                plane->normalVector.dotProduct(ray->position);
             plane->VPNormDotOrigin += plane->Distance;
             plane->VPNormDotOrigin *= -1.0;
             plane->VPCached = TRUE;
         }
 
-        normalDotDirection = plane->Normal_Vector.dotProduct(ray->direction);
+        normalDotDirection = plane->normalVector.dotProduct(ray->direction);
         if ((normalDotDirection < Small_Tolerance) &&
             (normalDotDirection > -Small_Tolerance)) {
             return (FALSE);
@@ -71,11 +71,11 @@ InfinitePlane::intersectPlane(
         }
         return (FALSE);
     }
-    normalDotOrigin = plane->Normal_Vector.dotProduct(ray->position);
+    normalDotOrigin = plane->normalVector.dotProduct(ray->position);
     normalDotOrigin += plane->Distance;
     normalDotOrigin *= -1.0;
 
-    normalDotDirection = plane->Normal_Vector.dotProduct(ray->direction);
+    normalDotDirection = plane->normalVector.dotProduct(ray->direction);
     if ((normalDotDirection < Small_Tolerance) &&
         (normalDotDirection > -Small_Tolerance)) {
         return (FALSE);
@@ -95,7 +95,7 @@ InfinitePlane::insidePlane(Vector3Dd *testPoint, SimpleBody *object)
     InfinitePlane *plane = (InfinitePlane *)object;
     double temp;
 
-    temp = (*testPoint).dotProduct(plane->Normal_Vector);
+    temp = (*testPoint).dotProduct(plane->normalVector);
     return ((temp + plane->Distance) <= Small_Tolerance);
 }
 
@@ -105,7 +105,7 @@ InfinitePlane::planeNormal(
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
-    *result = plane->Normal_Vector;
+    *result = plane->normalVector;
 }
 
 void *
@@ -115,7 +115,7 @@ InfinitePlane::copyPlane(SimpleBody *object)
 
     newShape = new InfinitePlane;
     *newShape = *((InfinitePlane *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
@@ -131,7 +131,7 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
     InfinitePlane *plane = (InfinitePlane *)object;
     Vector3Dd translation;
 
-    VectorOps::vEvaluate(translation, plane->Normal_Vector, *vector);
+    VectorOps::vEvaluate(translation, plane->normalVector, *vector);
     plane->Distance -= translation.x + translation.y + translation.z;
 
     TextureUtils::translateTexture(&plane->Shape_Texture, vector);
@@ -143,8 +143,8 @@ InfinitePlane::rotatePlane(SimpleBody *object, Vector3Dd *vector)
     Transformation transformation;
 
     Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((InfinitePlane *)object)->Normal_Vector,
-        &((InfinitePlane *)object)->Normal_Vector, &transformation);
+    Transformation::MTransformVector(&((InfinitePlane *)object)->normalVector,
+        &((InfinitePlane *)object)->normalVector, &transformation);
 
     TextureUtils::rotateTexture(
         &((InfinitePlane *)object)->Shape_Texture, vector);
@@ -156,12 +156,12 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
     double length;
     InfinitePlane *plane = (InfinitePlane *)object;
 
-    plane->Normal_Vector.x = plane->Normal_Vector.x / vector->x;
-    plane->Normal_Vector.y = plane->Normal_Vector.y / vector->y;
-    plane->Normal_Vector.z = plane->Normal_Vector.z / vector->z;
+    plane->normalVector.x = plane->normalVector.x / vector->x;
+    plane->normalVector.y = plane->normalVector.y / vector->y;
+    plane->normalVector.z = plane->normalVector.z / vector->z;
 
-    length = plane->Normal_Vector.length();
-    plane->Normal_Vector.scale(1.0 / length);
+    length = plane->normalVector.length();
+    plane->normalVector.scale(1.0 / length);
     plane->Distance /= length;
 
     TextureUtils::scaleTexture(
@@ -173,6 +173,6 @@ InfinitePlane::invertPlane(SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
-    plane->Normal_Vector.scale(-1.0);
+    plane->normalVector.scale(-1.0);
     plane->Distance *= -1.0;
 }

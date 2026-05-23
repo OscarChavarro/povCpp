@@ -710,7 +710,7 @@ PolynomialShape::intersectQuartic(
     temp += a[34];
     t[4] = temp;
 
-    if (shape->Sturm_Flag) {
+    if (shape->sturmFlag) {
         if (t[0] == 0.0) {
             if (t[1] == 0.0) {
                 return PolynomialSolver::solveQuadratic(&t[2], depths);
@@ -850,7 +850,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
     int i;
 
     *newShape = *shape;
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
     newShape->Coeffs = new double[termCounts[newShape->Order]];
     newShape->Transform = nullptr;
 

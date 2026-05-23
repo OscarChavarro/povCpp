@@ -14,13 +14,13 @@ FogParser::parseFog(RenderFrame *framePtr)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case COLOUR_TOKEN:
-                PrimitiveParser::parseColour(&framePtr->Fog_Colour);
+                PrimitiveParser::parseColour(&framePtr->fogColour);
                 break;
 
             case FLOAT_TOKEN:
-                framePtr->Fog_Distance = globalToken.Token_Float;
+                framePtr->fogDistance = globalToken.tokenFloat;
                 break;
 
             case RIGHT_CURLY_TOKEN:

@@ -70,7 +70,7 @@ printStatistics(
     }
 
     const long pixelsInImage =
-        (long)frame.Screen_Width * (long)frame.Screen_Height;
+        (long)frame.screenWidth * (long)frame.screenHeight;
 
     fprintf(statOut, "\n%s statistics\n", configuration.inputFileName);
     if (pixelsInImage > stats.numberOfPixels) {
@@ -78,8 +78,8 @@ printStatistics(
     }
 
     fprintf(statOut, "--------------------------------------\n");
-    fprintf(statOut, "Resolution %d x %d\n", frame.Screen_Width,
-        frame.Screen_Height);
+    fprintf(statOut, "Resolution %d x %d\n", frame.screenWidth,
+        frame.screenHeight);
     fprintf(statOut,
         "# Rays:  %10ld     # Pixels:  %10ld  # Pixels supersampled: %10ld\n",
         stats.numberOfRays, stats.numberOfPixels, stats.numberOfPixelsSupersampled);
@@ -182,7 +182,7 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
     }
 
     if (globalRenderingConfiguration.lastLine == -1) {
-        globalRenderingConfiguration.lastLine = globalFrame.Screen_Height;
+        globalRenderingConfiguration.lastLine = globalFrame.screenHeight;
     }
 }
 
@@ -259,7 +259,7 @@ PovrayApplication::prepareRendering()
     if (globalRenderingConfiguration.options & DISKWRITE) {
         if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
-                    &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                    &globalFrame.screenWidth, &globalFrame.screenHeight,
                     globalRenderingConfiguration.fileBufferSize, RenderOutput::READ_MODE) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
@@ -267,7 +267,7 @@ PovrayApplication::prepareRendering()
                 globalRenderingConfiguration.options &= ~CONTINUE_TRACE;
 
                 if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
-                        &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                        &globalFrame.screenWidth, &globalFrame.screenHeight,
                         globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
@@ -281,7 +281,7 @@ PovrayApplication::prepareRendering()
             }
         } else {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
-                    &globalFrame.Screen_Width, &globalFrame.Screen_Height,
+                    &globalFrame.screenWidth, &globalFrame.screenHeight,
                     globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
@@ -384,8 +384,8 @@ PovrayApplication::initVars()
     Tokenizer::setCaseSensitiveIdentifiers(0);
     numberOfFiles = 0;
 
-    globalFrame.Screen_Height = 100;
-    globalFrame.Screen_Width = 100;
+    globalFrame.screenHeight = 100;
+    globalFrame.screenWidth = 100;
 }
 
 /* Close all the stuff that has been opened. */
@@ -539,13 +539,13 @@ PovrayApplication::parseOption(char *optionString)
 
     case 'W':
     case 'w':
-        sscanf(&optionString[1], "%d", &globalFrame.Screen_Width);
+        sscanf(&optionString[1], "%d", &globalFrame.screenWidth);
         optionNumber = 0;
         break;
 
     case 'H':
     case 'h':
-        sscanf(&optionString[1], "%d", &globalFrame.Screen_Height);
+        sscanf(&optionString[1], "%d", &globalFrame.screenHeight);
         optionNumber = 0;
         break;
 
@@ -729,7 +729,7 @@ PovrayApplication::printOptions()
     }
 
     Logger::info( "-q%d -w%d -h%d -s%d -e%d\n-i%s ", globalRenderingConfiguration.quality,
-        globalFrame.Screen_Width, globalFrame.Screen_Height, globalRenderingConfiguration.firstLine,
+        globalFrame.screenWidth, globalFrame.screenHeight, globalRenderingConfiguration.firstLine,
         globalRenderingConfiguration.lastLine, globalRenderingConfiguration.inputFileName);
 
     if (globalRenderingConfiguration.options & DISKWRITE) {

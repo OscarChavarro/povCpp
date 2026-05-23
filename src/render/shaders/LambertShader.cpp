@@ -18,17 +18,17 @@ LambertShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
         cosAngleOfIncidence = -cosAngleOfIncidence;
     }
 
-    if (texture->Object_Brilliance != 1.0) {
-        intensity = pow(cosAngleOfIncidence, texture->Object_Brilliance);
+    if (texture->objectBrilliance != 1.0) {
+        intensity = pow(cosAngleOfIncidence, texture->objectBrilliance);
     } else {
         intensity = cosAngleOfIncidence;
     }
 
-    intensity *= texture->Object_Diffuse * attenuation;
+    intensity *= texture->objectDiffuse * attenuation;
 
     randomNumber = (rand() & 0x7FFF) / (double)0x7FFF;
 
-    intensity -= randomNumber * texture->Texture_Randomness;
+    intensity -= randomNumber * texture->textureRandomness;
 
     color->Red += intensity * (surfaceColor->Red) * (lightColor->Red);
     color->Green += intensity * (surfaceColor->Green) * (lightColor->Green);

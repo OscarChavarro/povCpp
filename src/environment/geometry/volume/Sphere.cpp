@@ -41,25 +41,25 @@ Sphere::intersectSphere(
         if (!sphere->VPCached) {
             VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->position);
             sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);
-            sphere->VPinside = (sphere->VPOCSquared < sphere->Radius_Squared);
+            sphere->VPinside = (sphere->VPOCSquared < sphere->radiusSquared);
             sphere->VPCached = TRUE;
         }
         tClosestApproach = sphere->VPOtoC.dotProduct(ray->direction);
         if (!sphere->VPinside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
-        tHalfChordSquared = sphere->Radius_Squared - sphere->VPOCSquared +
+        tHalfChordSquared = sphere->radiusSquared - sphere->VPOCSquared +
                             (tClosestApproach * tClosestApproach);
     } else {
         VectorOps::vSub(originToCenter, sphere->Center, ray->position);
         ocSquared = originToCenter.dotProduct(originToCenter);
-        inside = (ocSquared < sphere->Radius_Squared);
+        inside = (ocSquared < sphere->radiusSquared);
         tClosestApproach = originToCenter.dotProduct(ray->direction);
         if (!inside && (tClosestApproach < Small_Tolerance)) {
             return FALSE;
         }
 
-        tHalfChordSquared = sphere->Radius_Squared - ocSquared +
+        tHalfChordSquared = sphere->radiusSquared - ocSquared +
                             (tClosestApproach * tClosestApproach);
     }
 
@@ -135,9 +135,9 @@ Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
     ocSquared = originToCenter.dotProduct(originToCenter);
 
     if (sphere->Inverted) {
-        return (ocSquared - sphere->Radius_Squared > Small_Tolerance);
+        return (ocSquared - sphere->radiusSquared > Small_Tolerance);
     }
-    return (ocSquared - sphere->Radius_Squared < Small_Tolerance);
+    return (ocSquared - sphere->radiusSquared < Small_Tolerance);
 }
 
 void
@@ -147,7 +147,7 @@ Sphere::sphereNormal(
     Sphere *sphere = (Sphere *)object;
 
     VectorOps::vSub(*result, *intersectionPoint, sphere->Center);
-    (*result).scale(sphere->Inverse_Radius);
+    (*result).scale(sphere->inverseRadius);
 }
 
 void *
@@ -157,7 +157,7 @@ Sphere::copySphere(SimpleBody *object)
 
     newShape = new Sphere;
     *newShape = *((Sphere *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
@@ -197,8 +197,8 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
 
     sphere->Center.scale(vector->x);
     sphere->Radius *= vector->x;
-    sphere->Radius_Squared = sphere->Radius * sphere->Radius;
-    sphere->Inverse_Radius = 1.0 / sphere->Radius;
+    sphere->radiusSquared = sphere->Radius * sphere->Radius;
+    sphere->inverseRadius = 1.0 / sphere->Radius;
     TextureUtils::scaleTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 

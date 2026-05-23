@@ -53,7 +53,7 @@ ColorTextureFixture::colourAt(
     y = transformedPoint.y;
     z = transformedPoint.z;
 
-    switch (texture->Texture_Number) {
+    switch (texture->textureNumber) {
     case NO_TEXTURE:
         /* No colouring texture has been specified - make it black. */
         Color::makeColor(colour, 0.0, 0.0, 0.0);
@@ -351,15 +351,15 @@ ColorTextureFixture::gradient(
     if (texture->Colour_Map == nullptr) {
         return;
     }
-    if (texture->Texture_Gradient.x != 0.0) {
+    if (texture->textureGradient.x != 0.0) {
         x = fabsInline(x);
         value += x - floorInline(x); /* obtain fractional X component */
     }
-    if (texture->Texture_Gradient.y != 0.0) {
+    if (texture->textureGradient.y != 0.0) {
         y = fabsInline(y);
         value += y - floorInline(y); /* obtain fractional Y component */
     }
-    if (texture->Texture_Gradient.z != 0.0) {
+    if (texture->textureGradient.z != 0.0) {
         z = fabsInline(z);
         value += z - floorInline(z); /* obtain fractional Z component */
     }

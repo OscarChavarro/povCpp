@@ -77,7 +77,7 @@ RayWithSegments::enterContainingMedium(Texture *texture)
     }
 
     this->containingTextures[index] = texture;
-    this->containingIORs[index] = texture->Object_Index_Of_Refraction;
+    this->containingIORs[index] = texture->objectIndexOfRefraction;
 }
 
 void

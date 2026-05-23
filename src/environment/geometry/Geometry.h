@@ -12,7 +12,7 @@ class Geometry {
   public:
     Methods *methods;
     int Type;
-    Geometry *Next_Object;
+    Geometry *nextObject;
     Texture *Shape_Texture;
     RGBAColor *Shape_Colour;
 };

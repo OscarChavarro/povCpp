@@ -11,13 +11,13 @@ class SimpleBody {
   public:
     Methods *methods;
     int Type;
-    SimpleBody *Next_Object;
-    Geometry *Bounding_Shapes;
-    Geometry *Clipping_Shapes;
+    SimpleBody *nextObject;
+    Geometry *boundingShapes;
+    Geometry *clippingShapes;
     Geometry *Shape;
-    char No_Shadow_Flag;
-    RGBAColor *Object_Colour;
-    Texture *Object_Texture;
+    char noShadowFlag;
+    RGBAColor *objectColour;
+    Texture *objectTexture;
 };
 
 #endif

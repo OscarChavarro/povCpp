@@ -36,8 +36,8 @@ PriorityQueuePool<T>::pqInit()
             Logger::error( "\nOut of memory. Cannot allocate queue entries");
             exit(1);
         }
-        newNode->current_entry = 0;
-        newNode->queue_size = 0;
+        newNode->currentEntry = 0;
+        newNode->queueSize = 0;
     }
 
     return head;
@@ -66,8 +66,8 @@ PriorityQueuePool<T>::pqPop(int indexSize)
     }
 
     head = pq->next_pq;
-    pq->queue_size = indexSize;
-    pq->current_entry = 0;
+    pq->queueSize = indexSize;
+    pq->currentEntry = 0;
     return pq;
 }
 

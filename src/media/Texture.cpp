@@ -78,21 +78,21 @@ TextureUtils::computeColour(
     }
 
     for (i = 0, ent = &(colourMap->Colour_Map_Entries[0]);
-        i < colourMap->Number_Of_Entries; i++, ent++) {
+        i < colourMap->numberOfEntries; i++, ent++) {
         if ((value >= ent->start) && (value <= ent->end)) {
             fraction = (value - ent->start) / (ent->end - ent->start);
             colour->Red =
-                ent->Start_Colour.Red +
-                fraction * (ent->End_Colour.Red - ent->Start_Colour.Red);
+                ent->startColour.Red +
+                fraction * (ent->endColour.Red - ent->startColour.Red);
             colour->Green =
-                ent->Start_Colour.Green +
-                fraction * (ent->End_Colour.Green - ent->Start_Colour.Green);
+                ent->startColour.Green +
+                fraction * (ent->endColour.Green - ent->startColour.Green);
             colour->Blue =
-                ent->Start_Colour.Blue +
-                fraction * (ent->End_Colour.Blue - ent->Start_Colour.Blue);
+                ent->startColour.Blue +
+                fraction * (ent->endColour.Blue - ent->startColour.Blue);
             colour->Alpha =
-                ent->Start_Colour.Alpha +
-                fraction * (ent->End_Colour.Alpha - ent->Start_Colour.Alpha);
+                ent->startColour.Alpha +
+                fraction * (ent->endColour.Alpha - ent->startColour.Alpha);
             return;
         }
     }
@@ -463,14 +463,14 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
     Transformation transformation;
 
     while (texture != nullptr) {
-        if (((texture->Texture_Number != NO_TEXTURE) &&
-                (texture->Texture_Number != COLOUR_TEXTURE)) ||
-            (texture->Bump_Number != NO_BUMPS)) {
+        if (((texture->textureNumber != NO_TEXTURE) &&
+                (texture->textureNumber != COLOUR_TEXTURE)) ||
+            (texture->bumpNumber != NO_BUMPS)) {
 
-            if (texture->Constant_Flag) {
+            if (texture->constantFlag) {
                 texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
-                texture->Constant_Flag = FALSE;
+                texture->constantFlag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
@@ -481,7 +481,7 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
                 &transformation, vector);
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
-            if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
+            if (texture->textureNumber == CHECKER_TEXTURE_TEXTURE) {
                 TextureUtils::translateTexture(
                     (Texture **)&texture->Colour1, vector);
                 TextureUtils::translateTexture(
@@ -526,7 +526,7 @@ TextureUtils::copyTexture(Texture *texture)
             *newTexture->Texture_Transformation =
                 *localTexture->Texture_Transformation;
         }
-        newTexture->Constant_Flag = FALSE;
+        newTexture->constantFlag = FALSE;
         previousTexture = newTexture;
     }
     return (firstTexture);
@@ -545,38 +545,38 @@ TextureUtils::getTexture()
 
     newTexture->Next_Texture = nullptr;
     newTexture->Next_Material = nullptr;
-    newTexture->Number_Of_Materials = 0;
-    newTexture->Object_Reflection = 0.0;
-    newTexture->Object_Ambient = 0.1;
-    newTexture->Object_Diffuse = 0.6;
-    newTexture->Object_Brilliance = 1.0;
-    newTexture->Object_Specular = 0.0;
-    newTexture->Object_Roughness = 0.05;
-    newTexture->Object_Phong = 0.0;
-    newTexture->Object_PhongSize = 40;
+    newTexture->numberOfMaterials = 0;
+    newTexture->objectReflection = 0.0;
+    newTexture->objectAmbient = 0.1;
+    newTexture->objectDiffuse = 0.6;
+    newTexture->objectBrilliance = 1.0;
+    newTexture->objectSpecular = 0.0;
+    newTexture->objectRoughness = 0.05;
+    newTexture->objectPhong = 0.0;
+    newTexture->objectPhongSize = 40;
 
-    newTexture->Texture_Randomness = 0.0;
-    newTexture->Bump_Amount = 0.0;
+    newTexture->textureRandomness = 0.0;
+    newTexture->bumpAmount = 0.0;
     newTexture->Phase = 0.0;
     newTexture->Frequency = 1.0;
-    newTexture->Texture_Number = NO_TEXTURE;
+    newTexture->textureNumber = NO_TEXTURE;
     newTexture->Texture_Transformation = nullptr;
-    newTexture->Bump_Number = NO_BUMPS;
+    newTexture->bumpNumber = NO_BUMPS;
     newTexture->Turbulence = 0.0;
     newTexture->Colour_Map = nullptr;
-    newTexture->Once_Flag = FALSE;
-    newTexture->Metallic_Flag = FALSE;
+    newTexture->onceFlag = FALSE;
+    newTexture->metallicFlag = FALSE;
     newTexture->Octaves = 6;  /* dmf, for turbulence functs */
     newTexture->Mortar = 0.2; /* rha, for brick texture */
 
-    newTexture->Constant_Flag = TRUE;
+    newTexture->constantFlag = TRUE;
     newTexture->Colour1 = nullptr;
     newTexture->Colour2 = nullptr;
-    *&newTexture->Texture_Gradient = Vector3Dd(0.0, 0.0, 0.0);
+    *&newTexture->textureGradient = Vector3Dd(0.0, 0.0, 0.0);
 
-    newTexture->Object_Index_Of_Refraction = 1.0;
-    newTexture->Object_Transmit = 0.0;
-    newTexture->Object_Refraction = 0.0;
+    newTexture->objectIndexOfRefraction = 1.0;
+    newTexture->objectTransmit = 0.0;
+    newTexture->objectRefraction = 0.0;
     return (newTexture);
 }
 
@@ -587,14 +587,14 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
     Transformation transformation;
 
     while (texture != nullptr) {
-        if (((texture->Texture_Number != NO_TEXTURE) &&
-                (texture->Texture_Number != COLOUR_TEXTURE)) ||
-            (texture->Bump_Number != NO_BUMPS)) {
+        if (((texture->textureNumber != NO_TEXTURE) &&
+                (texture->textureNumber != COLOUR_TEXTURE)) ||
+            (texture->bumpNumber != NO_BUMPS)) {
 
-            if (texture->Constant_Flag) {
+            if (texture->constantFlag) {
                 texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
-                texture->Constant_Flag = FALSE;
+                texture->constantFlag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
@@ -604,7 +604,7 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
             Transformation::getRotationTransformation(&transformation, vector);
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
-            if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
+            if (texture->textureNumber == CHECKER_TEXTURE_TEXTURE) {
                 TextureUtils::rotateTexture(
                     (Texture **)&texture->Colour1, vector);
                 TextureUtils::rotateTexture(
@@ -623,14 +623,14 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
     Transformation transformation;
 
     while (texture != nullptr) {
-        if (((texture->Texture_Number != NO_TEXTURE) &&
-                (texture->Texture_Number != COLOUR_TEXTURE)) ||
-            (texture->Bump_Number != NO_BUMPS)) {
+        if (((texture->textureNumber != NO_TEXTURE) &&
+                (texture->textureNumber != COLOUR_TEXTURE)) ||
+            (texture->bumpNumber != NO_BUMPS)) {
 
-            if (texture->Constant_Flag) {
+            if (texture->constantFlag) {
                 texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
-                texture->Constant_Flag = FALSE;
+                texture->constantFlag = FALSE;
             }
 
             if (!texture->Texture_Transformation) {
@@ -641,7 +641,7 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
             Transformation::composeTransformations(
                 texture->Texture_Transformation, &transformation);
 
-            if (texture->Texture_Number == CHECKER_TEXTURE_TEXTURE) {
+            if (texture->textureNumber == CHECKER_TEXTURE_TEXTURE) {
                 TextureUtils::scaleTexture(
                     (Texture **)&texture->Colour1, vector);
                 TextureUtils::scaleTexture(

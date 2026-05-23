@@ -50,19 +50,19 @@ ObjectParser::parseCsg(int type)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if ((constants[(int)constantId].Constant_Type ==
+                    if ((constants[(int)constantId].constantType ==
                             CSG_INTERSECTION_CONSTANT) ||
-                        (constants[(int)constantId].Constant_Type ==
+                        (constants[(int)constantId].constantType ==
                             CSG_UNION_CONSTANT) ||
-                        (constants[(int)constantId].Constant_Type ==
+                        (constants[(int)constantId].constantType ==
                             CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
                         container = (CSG *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -78,7 +78,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -89,7 +89,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -100,7 +100,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -111,7 +111,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -122,7 +122,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -133,7 +133,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -144,7 +144,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -155,7 +155,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -166,7 +166,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -177,7 +177,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -188,7 +188,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -199,7 +199,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -210,7 +210,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -222,7 +222,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -234,7 +234,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -246,7 +246,7 @@ ObjectParser::parseCsg(int type)
                 }
                 firstShapeParsed = TRUE;
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
@@ -263,7 +263,7 @@ ObjectParser::parseCsg(int type)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -316,7 +316,7 @@ ObjectParser::parseShape()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource();
                 Exit_Flag = TRUE;
@@ -428,14 +428,14 @@ ObjectParser::parseObject()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         OBJECT_CONSTANT) {
                         object = (SimpleBody *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -468,7 +468,7 @@ ObjectParser::parseObject()
 
                 localShape = ObjectParser::parseShape();
                 ObjectUtils::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->Next_Object),
+                    (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(object->Shape));
                 Exit_Flag = TRUE;
                 break;
@@ -486,7 +486,7 @@ ObjectParser::parseObject()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case BOUNDED_TOKEN:
 
                 ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
@@ -496,7 +496,7 @@ ObjectParser::parseObject()
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
                         Tokenizer::getToken();
-                        switch (globalToken.Token_Id) {
+                        switch (globalToken.tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
@@ -505,8 +505,8 @@ ObjectParser::parseObject()
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->Next_Object),
-                                (SimpleBody **)&(object->Bounding_Shapes));
+                                (SimpleBody **)&(localShape->nextObject),
+                                (SimpleBody **)&(object->boundingShapes));
                             break;
                         }
                     }
@@ -522,7 +522,7 @@ ObjectParser::parseObject()
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
                         Tokenizer::getToken();
-                        switch (globalToken.Token_Id) {
+                        switch (globalToken.tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
@@ -531,8 +531,8 @@ ObjectParser::parseObject()
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->Next_Object),
-                                (SimpleBody **)&(object->Clipping_Shapes));
+                                (SimpleBody **)&(localShape->nextObject),
+                                (SimpleBody **)&(object->clippingShapes));
                             break;
                         }
                     }
@@ -540,31 +540,31 @@ ObjectParser::parseObject()
                 break;
 
             case COLOUR_TOKEN:
-                object->Object_Colour = SceneFactory::getColour();
-                PrimitiveParser::parseColour(object->Object_Colour);
+                object->objectColour = SceneFactory::getColour();
+                PrimitiveParser::parseColour(object->objectColour);
                 break;
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                if (object->Object_Texture == Default_Texture) {
-                    object->Object_Texture = localTexture;
+                if (object->objectTexture == Default_Texture) {
+                    object->objectTexture = localTexture;
                 } else {
                     for (tempTexture = localTexture;
                         tempTexture->Next_Texture != nullptr;
                         tempTexture = tempTexture->Next_Texture) {
                     }
 
-                    tempTexture->Next_Texture = object->Object_Texture;
-                    object->Object_Texture = localTexture;
+                    tempTexture->Next_Texture = object->objectTexture;
+                    object->objectTexture = localTexture;
                 }
                 break;
 
             case NO_SHADOW_TOKEN:
-                object->No_Shadow_Flag = TRUE;
+                object->noShadowFlag = TRUE;
                 break;
 
             case LIGHT_SOURCE_TOKEN:
@@ -623,14 +623,14 @@ ObjectParser::parseComposite()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         COMPOSITE_CONSTANT) {
                         localComposite = (Composite *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -646,7 +646,7 @@ ObjectParser::parseComposite()
 
                 localObject = ObjectParser::parseComposite();
                 ObjectUtils::link((SimpleBody *)localObject,
-                    (SimpleBody **)&(localObject->Next_Object),
+                    (SimpleBody **)&(localObject->nextObject),
                     (SimpleBody **)&(localComposite->Objects));
                 break;
 
@@ -655,7 +655,7 @@ ObjectParser::parseComposite()
                     localComposite = SceneFactory::getCompositeObject();
                 }
                 localObject = ObjectParser::parseObject();
-                ObjectUtils::link(localObject, &(localObject->Next_Object),
+                ObjectUtils::link(localObject, &(localObject->nextObject),
                     &(localComposite->Objects));
                 break;
 
@@ -680,7 +680,7 @@ ObjectParser::parseComposite()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -694,7 +694,7 @@ ObjectParser::parseComposite()
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
                         Tokenizer::getToken();
-                        switch (globalToken.Token_Id) {
+                        switch (globalToken.tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
@@ -703,9 +703,9 @@ ObjectParser::parseComposite()
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->Next_Object),
+                                (SimpleBody **)&(localShape->nextObject),
                                 (SimpleBody **)&(
-                                    localComposite->Bounding_Shapes));
+                                    localComposite->boundingShapes));
                             break;
                         }
                     }
@@ -721,7 +721,7 @@ ObjectParser::parseComposite()
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
                         Tokenizer::getToken();
-                        switch (globalToken.Token_Id) {
+                        switch (globalToken.tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
@@ -730,9 +730,9 @@ ObjectParser::parseComposite()
                             Tokenizer::ungetToken();
                             localShape = ObjectParser::parseShape();
                             ObjectUtils::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->Next_Object),
+                                (SimpleBody **)&(localShape->nextObject),
                                 (SimpleBody **)&(
-                                    localComposite->Clipping_Shapes));
+                                    localComposite->clippingShapes));
                             break;
                         }
                     }

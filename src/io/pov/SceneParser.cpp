@@ -45,7 +45,7 @@ SceneParser::Parse(RenderFrame *framePtr)
     SceneParser::frameInit();
     SceneParser::parseFrame();
     for (object = parsingFramePtr->Objects; object != nullptr;
-        object = object->Next_Object) {
+        object = object->nextObject) {
         ParseHelpers::postProcessObject(object);
     }
     if (degenerateTriangles) {
@@ -69,13 +69,13 @@ void
 SceneParser::frameInit()
 {
     Default_Texture = TextureUtils::getTexture();
-    parsingFramePtr->View_Point.initializeDefaults();
+    parsingFramePtr->viewPoint.initializeDefaults();
     parsingFramePtr->Light_Sources = nullptr;
     parsingFramePtr->Objects = nullptr;
-    parsingFramePtr->Atmosphere_IOR = 1.0;
-    parsingFramePtr->Antialias_Threshold = globalRenderingConfiguration.antialiasThreshold;
-    parsingFramePtr->Fog_Distance = 0.0;
-    Color::makeColor(&(parsingFramePtr->Fog_Colour), 0.0, 0.0, 0.0);
+    parsingFramePtr->atmosphereIor = 1.0;
+    parsingFramePtr->antialiasThreshold = globalRenderingConfiguration.antialiasThreshold;
+    parsingFramePtr->fogDistance = 0.0;
+    Color::makeColor(&(parsingFramePtr->fogColour), 0.0, 0.0, 0.0);
 }
 
 void

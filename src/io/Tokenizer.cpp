@@ -139,14 +139,14 @@ Tokenizer::initializeTokenizer(char *filename)
 
     globalDataFile->Filename = new char[strlen(filename) + 1];
     strcpy(globalDataFile->Filename, filename);
-    globalDataFile->Line_Number = 0;
+    globalDataFile->lineNumber = 0;
 
     if ((symbolTable = new char *[maxSymbols]) == nullptr) {
         Logger::error("Out of Memory. Cannot allocate space for symbol table\n");
         exit(1);
     }
 
-    globalToken.End_Of_File = FALSE;
+    globalToken.endOfFile = FALSE;
     numberOfSymbols = 0;
 }
 
@@ -189,26 +189,26 @@ Tokenizer::getToken()
     if (stopFlag) {
         exit(1);
     }
-    if (globalToken.Unget_Token) {
-        globalToken.Unget_Token = FALSE;
+    if (globalToken.ungetToken) {
+        globalToken.ungetToken = FALSE;
         return;
     }
 
-    if (globalToken.End_Of_File) {
+    if (globalToken.endOfFile) {
         return;
     }
 
-    globalToken.Token_Id = END_OF_FILE_TOKEN;
+    globalToken.tokenId = END_OF_FILE_TOKEN;
 
-    while (globalToken.Token_Id == END_OF_FILE_TOKEN) {
+    while (globalToken.tokenId == END_OF_FILE_TOKEN) {
 
         globalDataFile->skipSpaces();
 
         c = getc(globalDataFile->File);
         if (c == EOF) {
             if (globalIncludeFileIndex == 0) {
-                globalToken.Token_Id = END_OF_FILE_TOKEN;
-                globalToken.End_Of_File = TRUE;
+                globalToken.tokenId = END_OF_FILE_TOKEN;
+                globalToken.endOfFile = TRUE;
                 /*putchar ('\n');*/
                 fprintf(stderr, "\n");
                 return;
@@ -226,7 +226,7 @@ Tokenizer::getToken()
 
         switch (c) {
         case '\n':
-            globalDataFile->Line_Number++;
+            globalDataFile->lineNumber++;
             break;
 
         case '{':
@@ -353,7 +353,7 @@ Tokenizer::getToken()
                     break;
                 }
             }
-            globalDataFile->Line_Number++;
+            globalDataFile->lineNumber++;
             break;
 
         case '*':
@@ -451,11 +451,11 @@ Tokenizer::getToken()
 
         default:
             Logger::error("Error in %s line %d\n", globalDataFile->Filename,
-                globalDataFile->Line_Number + 1);
+                globalDataFile->lineNumber + 1);
             Logger::error("Illegal character in input file, value is %02x\n", c);
             break;
         }
-        if (globalToken.Token_Id == INCLUDE_TOKEN) {
+        if (globalToken.tokenId == INCLUDE_TOKEN) {
             if (globalDataFile->skipSpaces() != TRUE) {
                 Tokenizer::tokenError(
                     globalDataFile, "Expecting a string after INCLUDE\n");
@@ -474,7 +474,7 @@ Tokenizer::getToken()
             }
 
             globalDataFile = &globalIncludeFiles[globalIncludeFileIndex];
-            globalDataFile->Line_Number = 0;
+            globalDataFile->lineNumber = 0;
 
             globalDataFile->Filename =
                 new char[strlen(globalToken.Token_String) + 1];
@@ -492,7 +492,7 @@ Tokenizer::getToken()
                     globalToken.Token_String);
                 exit(1);
             }
-            globalToken.Token_Id = END_OF_FILE_TOKEN;
+            globalToken.tokenId = END_OF_FILE_TOKEN;
         }
     }
 
@@ -516,7 +516,7 @@ new one from the file. */
 void
 Tokenizer::ungetToken()
 {
-    globalToken.Unget_Token = TRUE;
+    globalToken.ungetToken = TRUE;
 }
 
 /* Skip over spaces in the input file */
@@ -537,7 +537,7 @@ DataFile::skipSpaces()
         }
 
         if (c == '\n') {
-            this->Line_Number++;
+            this->lineNumber++;
         }
     }
 
@@ -567,7 +567,7 @@ DataFile::parseComments()
         }
 
         if (c == (int)'\n') {
-            this->Line_Number++;
+            this->lineNumber++;
         }
 
         if (c == (int)'{') {
@@ -601,7 +601,7 @@ DataFile::parseCComments()
         }
 
         if (c == (int)'\n') {
-            this->Line_Number++;
+            this->lineNumber++;
         }
 
         if (c == (int)'*') {
@@ -741,7 +741,7 @@ DataFile::readFloat()
     this->endString();
 
     Tokenizer::writeToken(FLOAT_TOKEN, globalDataFile);
-    if (sscanf(string, "%lf", &globalToken.Token_Float) == 0) {
+    if (sscanf(string, "%lf", &globalToken.tokenFloat) == 0) {
         return (FALSE);
     }
 
@@ -860,12 +860,12 @@ Tokenizer::findReserved()
     for (i = 0; i < LAST_TOKEN; i++) {
         if (caseSensitiveFlag == 0) {
             if (strcmp(globalReservedWords[i].Token_Name, &(string[0])) == 0) {
-                return (globalReservedWords[i].Token_Number);
+                return (globalReservedWords[i].tokenNumber);
             }
         } else {
             if (Tokenizer::povStricmp((char *)globalReservedWords[i].Token_Name,
                     &(string[0])) == 0) {
-                return (globalReservedWords[i].Token_Number);
+                return (globalReservedWords[i].tokenNumber);
             }
         }
     }
@@ -901,15 +901,15 @@ Tokenizer::findSymbol()
 void
 Tokenizer::writeToken(TOKEN tokenId, DataFile *globalDataFile)
 {
-    globalToken.Token_Id = tokenId;
-    globalToken.Token_Line_No = globalDataFile->Line_Number;
+    globalToken.tokenId = tokenId;
+    globalToken.tokenLineNo = globalDataFile->lineNumber;
     globalToken.Filename = globalDataFile->Filename;
     globalToken.Token_String = string;
 
-    if (globalToken.Token_Id > LAST_TOKEN) {
-        globalToken.Identifier_Number =
-            (int)globalToken.Token_Id - (int)LAST_TOKEN;
-        globalToken.Token_Id = IDENTIFIER_TOKEN;
+    if (globalToken.tokenId > LAST_TOKEN) {
+        globalToken.identifierNumber =
+            (int)globalToken.tokenId - (int)LAST_TOKEN;
+        globalToken.tokenId = IDENTIFIER_TOKEN;
     }
 }
 
@@ -918,7 +918,7 @@ void
 Tokenizer::tokenError(DataFile *globalDataFile, const char *str)
 {
     Logger::error("Error in %s line %d\n", globalDataFile->Filename,
-        globalDataFile->Line_Number);
+        globalDataFile->lineNumber);
     Logger::error("%s\n\n", str);
     exit(1);
 }

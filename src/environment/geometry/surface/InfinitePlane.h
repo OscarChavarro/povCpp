@@ -7,7 +7,7 @@
 
 class InfinitePlane : public Geometry {
   public:
-    Vector3Dd Normal_Vector;
+    Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
     int VPCached;

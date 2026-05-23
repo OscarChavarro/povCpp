@@ -3,7 +3,7 @@
 
 class ReservedWord {
   public:
-    int Token_Number;
+    int tokenNumber;
     const char *Token_Name;
 };
 

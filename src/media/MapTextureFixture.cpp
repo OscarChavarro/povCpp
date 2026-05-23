@@ -118,10 +118,10 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
 
     /* Now I've got the Material number, I just have to find it in the */
     /* texture linked list and return it to Determine_Surface_Colour    */
-    /* Logger::info("-B-Num Mt#%d Mn#%d\n",texture->Number_Of_Materials,
+    /* Logger::info("-B-Num Mt#%d Mn#%d\n",texture->numberOfMaterials,
      * Material_Number);    */
-    if (materialNumber > texture->Number_Of_Materials) {
-        materialNumber %= texture->Number_Of_Materials;
+    if (materialNumber > texture->numberOfMaterials) {
+        materialNumber %= texture->numberOfMaterials;
     }
     for (numtex = 0, tempTex = texture->Next_Material;
         tempTex->Next_Material != nullptr && numtex < materialNumber;
@@ -203,31 +203,31 @@ MapTextureFixture::bumpMap(
     }
 
     if (texture->Bump_Image->Colour_Map == nullptr ||
-        texture->Bump_Image->Use_Colour_Flag) {
+        texture->Bump_Image->useColourFlag) {
         p1.x = 0;
         p1.y =
-            texture->Bump_Amount *
+            texture->bumpAmount *
             (0.229 * colour.Red + 0.587 * colour.Green + 0.114 * colour.Blue);
         p1.z = 0;
         p2.x = 0;
-        p2.y = texture->Bump_Amount *
+        p2.y = texture->bumpAmount *
                (0.229 * colour2.Red + 0.587 * colour2.Green +
                    0.114 * colour2.Blue);
         p2.z = 1;
         p3.x = 1;
-        p3.y = texture->Bump_Amount *
+        p3.y = texture->bumpAmount *
                (0.229 * colour3.Red + 0.587 * colour3.Green +
                    0.114 * colour3.Blue);
         p3.z = 1;
     } else {
         p1.x = 0;
-        p1.y = texture->Bump_Amount * index;
+        p1.y = texture->bumpAmount * index;
         p1.z = 0;
         p2.x = 0;
-        p2.y = texture->Bump_Amount * index2;
+        p2.y = texture->bumpAmount * index2;
         p2.z = 1;
         p3.x = 1;
-        p3.y = texture->Bump_Amount * index3;
+        p3.y = texture->bumpAmount * index3;
         p3.z = 1;
     }
     /* we have points 1,2,3 for a triangle now we need the surface normal for it
@@ -267,7 +267,7 @@ void
 MapTextureFixture::imageColourAt(
     RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
-    switch (image->Interpolation_Type) {
+    switch (image->interpolationType) {
     case NO_INTERPOLATION:
         noInterpolation(image, xcoor, ycoor, colour, index);
         break;
@@ -286,7 +286,7 @@ MapTextureFixture::cylindricalImageMap(
     double len;
     double theta;
 
-    if ((image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
+    if ((image->onceFlag) && ((y < 0.0) || (y > 1.0))) {
         return 0;
     }
     *v = fmod(y * image->height, image->height);
@@ -332,7 +332,7 @@ MapTextureFixture::torusImageMap(
     double theta;
     double r0;
 
-    r0 = image->Image_Gradient.x;
+    r0 = image->imageGradient.x;
 
     /* Determine its angle from the x-axis. */
     len = sqrt(x * x + z * z);
@@ -436,31 +436,31 @@ int
 MapTextureFixture::planarImageMap(
     double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    if (image->Image_Gradient.x != 0.0) {
-        if ((image->Once_Flag) && ((x < 0.0) || (x > 1.0))) {
+    if (image->imageGradient.x != 0.0) {
+        if ((image->onceFlag) && ((x < 0.0) || (x > 1.0))) {
             return 0;
         }
-        if (image->Image_Gradient.x > 0) {
+        if (image->imageGradient.x > 0) {
             *u = fmod(x * image->width, image->width);
         } else {
             *v = fmod(x * image->height, image->height);
         }
     }
-    if (image->Image_Gradient.y != 0.0) {
-        if ((image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
+    if (image->imageGradient.y != 0.0) {
+        if ((image->onceFlag) && ((y < 0.0) || (y > 1.0))) {
             return 0;
         }
-        if (image->Image_Gradient.y > 0) {
+        if (image->imageGradient.y > 0) {
             *u = fmod(y * image->width, image->width);
         } else {
             *v = fmod(y * image->height, image->height);
         }
     }
-    if (image->Image_Gradient.z != 0.0) {
-        if ((image->Once_Flag) && ((z < 0.0) || (z > 1.0))) {
+    if (image->imageGradient.z != 0.0) {
+        if ((image->onceFlag) && ((z < 0.0) || (z > 1.0))) {
             return 0;
         }
-        if (image->Image_Gradient.z > 0) {
+        if (image->imageGradient.z > 0) {
             *u = fmod(z * image->width, image->width);
         } else {
             *v = fmod(z * image->height, image->height);
@@ -489,7 +489,7 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     */
 
     /* Now determine which mapper to use. */
-    switch (image->Map_Type) {
+    switch (image->mapType) {
     case PLANAR_MAP:
         if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
@@ -613,7 +613,7 @@ MapTextureFixture::interp(
         cornerColour[i].Alpha = 0.0;
     }
     /* OK, now that you have the corners, what are you going to do with them? */
-    if (image->Interpolation_Type == BILINEAR) {
+    if (image->interpolationType == BILINEAR) {
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColour[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
@@ -636,7 +636,7 @@ MapTextureFixture::interp(
         val3 = bilinear(blueCrn, xcoor, ycoor);
         val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
-    if (image->Interpolation_Type == NORMALIZED_DIST) {
+    if (image->interpolationType == NORMALIZED_DIST) {
         noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColour[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
@@ -669,10 +669,10 @@ MapTextureFixture::interp(
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];
     }
-    if (image->Interpolation_Type == BILINEAR) {
+    if (image->interpolationType == BILINEAR) {
         *index = (int)(bilinear(indexCrn, xcoor, ycoor) + 0.5);
     }
-    if (image->Interpolation_Type == NORMALIZED_DIST) {
+    if (image->interpolationType == NORMALIZED_DIST) {
         *index = (int)(normDist(indexCrn, xcoor, ycoor) + 0.5);
     }
 }

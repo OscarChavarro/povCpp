@@ -29,31 +29,31 @@ QuadricParser::parseQuadric()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 localShape = SceneFactory::getQuadricShape();
-                PrimitiveParser::parseVector(&(localShape->Object_2_Terms));
-                PrimitiveParser::parseVector(&(localShape->Object_Mixed_Terms));
-                PrimitiveParser::parseVector(&(localShape->Object_Terms));
-                (localShape->Object_Constant) = PrimitiveParser::parseFloat();
-                localShape->Non_Zero_Square_Term =
-                    !((localShape->Object_2_Terms.x == 0.0) &&
-                        (localShape->Object_2_Terms.y == 0.0) &&
-                        (localShape->Object_2_Terms.z == 0.0) &&
-                        (localShape->Object_Mixed_Terms.x == 0.0) &&
-                        (localShape->Object_Mixed_Terms.y == 0.0) &&
-                        (localShape->Object_Mixed_Terms.z == 0.0));
+                PrimitiveParser::parseVector(&(localShape->object2Terms));
+                PrimitiveParser::parseVector(&(localShape->objectMixedTerms));
+                PrimitiveParser::parseVector(&(localShape->objectTerms));
+                (localShape->objectConstant) = PrimitiveParser::parseFloat();
+                localShape->nonZeroSquareTerm =
+                    !((localShape->object2Terms.x == 0.0) &&
+                        (localShape->object2Terms.y == 0.0) &&
+                        (localShape->object2Terms.z == 0.0) &&
+                        (localShape->objectMixedTerms.x == 0.0) &&
+                        (localShape->objectMixedTerms.y == 0.0) &&
+                        (localShape->objectMixedTerms.z == 0.0));
                 Exit_Flag = TRUE;
                 break;
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         QUADRIC_CONSTANT) {
                         localShape = (Quadric *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -75,7 +75,7 @@ QuadricParser::parseQuadric()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -104,7 +104,7 @@ QuadricParser::parseQuadric()
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 {

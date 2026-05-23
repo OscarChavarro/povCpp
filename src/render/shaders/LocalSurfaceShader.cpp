@@ -27,7 +27,7 @@ of the object and how much is transmited through. */
     Color::makeColor(&emittedColor, 0.0, 0.0, 0.0);
 
     if (texture == nullptr) {
-        texture = rayIntersection->Object->Object_Texture;
+        texture = rayIntersection->Object->objectTexture;
     }
 
     if (globalRenderingConfiguration.quality <= 1) {

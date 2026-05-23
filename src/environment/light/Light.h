@@ -8,7 +8,7 @@
 class Light : public Geometry {
   public:
     Vector3Dd Center;
-    Vector3Dd Points_At;
+    Vector3Dd pointsAt;
     Light *Next_Light_Source;
     short Inverted;
     double Coeff;

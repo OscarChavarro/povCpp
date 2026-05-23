@@ -21,15 +21,15 @@ typedef void (*INVERT_METHOD)(SimpleBody *);
 
 class Methods {
   public:
-    INTERSECTION_METHOD Intersection_Method;
-    ALL_INTERSECTIONS_METHOD All_Intersections_Method;
-    INSIDE_METHOD Inside_Method;
-    NORMAL_METHOD Normal_Method;
-    COPY_METHOD Copy_Method;
-    TRANSLATE_METHOD Translate_Method;
-    ROTATE_METHOD Rotate_Method;
-    SCALE_METHOD Scale_Method;
-    INVERT_METHOD Invert_Method;
+    INTERSECTION_METHOD intersectionMethod;
+    ALL_INTERSECTIONS_METHOD allIntersectionsMethod;
+    INSIDE_METHOD insideMethod;
+    NORMAL_METHOD normalMethod;
+    COPY_METHOD copyMethod;
+    TRANSLATE_METHOD translateMethod;
+    ROTATE_METHOD rotateMethod;
+    SCALE_METHOD scaleMethod;
+    INVERT_METHOD invertMethod;
 };
 
 #endif

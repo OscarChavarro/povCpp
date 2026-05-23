@@ -25,7 +25,7 @@ GifFormat::outLine(unsigned char *pixels, int linelen)
     unsigned char *line = currentImage->data.map_lines[bitmapLine++];
 
     for (int x = 0; x < linelen; x++) {
-        if ((int)(*pixels) > currentImage->Colour_Map_Size) {
+        if ((int)(*pixels) > currentImage->colourMapSize) {
             Logger::error("Error - GIF Image Map Colour out of range\n");
             exit(1);
         }
@@ -153,7 +153,7 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
             image->height  = (double)image->iheight;
 
             bitmapLine = 0;
-            image->Colour_Map_Size = colourmapSize;
+            image->colourMapSize = colourmapSize;
             image->Colour_Map = gifColourMap;
 
             image->data.map_lines = new unsigned char *[image->iheight];

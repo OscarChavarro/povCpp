@@ -55,8 +55,8 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         if (ray->containingIndex == -1) {
             /* The ray is entering from the atmosphere */
             newRay.enterContainingMedium(texture);
-            ior = (globalFrame.Atmosphere_IOR) /
-                  (texture->Object_Index_Of_Refraction);
+            ior = (globalFrame.atmosphereIor) /
+                  (texture->objectIndexOfRefraction);
         } else {
             /* The ray is currently inside an object */
             if (newRay.containingTextures[newRay.containingIndex] == texture)
@@ -66,19 +66,19 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
                 newRay.exitContainingMedium();
                 if (newRay.containingIndex == -1) {
                     /* The ray is leaving into the atmosphere */
-                    tempIor = globalFrame.Atmosphere_IOR;
+                    tempIor = globalFrame.atmosphereIor;
                 } else {
                     /* The ray is leaving into another object */
                     tempIor = newRay.containingIORs[newRay.containingIndex];
                 }
 
-                ior = (texture->Object_Index_Of_Refraction) / tempIor;
+                ior = (texture->objectIndexOfRefraction) / tempIor;
             } else {
                 /* The ray is entering a new object */
                 tempIor = newRay.containingIORs[newRay.containingIndex];
                 newRay.enterContainingMedium(texture);
 
-                ior = tempIor / (texture->Object_Index_Of_Refraction);
+                ior = tempIor / (texture->objectIndexOfRefraction);
             }
         }
 
@@ -104,8 +104,8 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        (color->Red) += (tempColor.Red) * (texture->Object_Refraction);
-        (color->Green) += (tempColor.Green) * (texture->Object_Refraction);
-        (color->Blue) += (tempColor.Blue) * (texture->Object_Refraction);
+        (color->Red) += (tempColor.Red) * (texture->objectRefraction);
+        (color->Green) += (tempColor.Green) * (texture->objectRefraction);
+        (color->Blue) += (tempColor.Blue) * (texture->objectRefraction);
     }
 }

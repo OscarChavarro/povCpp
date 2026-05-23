@@ -7,13 +7,13 @@
 
 class Quadric : public Geometry {
   public:
-    Vector3Dd Object_2_Terms;
-    Vector3Dd Object_Mixed_Terms;
-    Vector3Dd Object_Terms;
-    double Object_Constant;
-    double Object_VP_Constant;
-    int Constant_Cached;
-    int Non_Zero_Square_Term;
+    Vector3Dd object2Terms;
+    Vector3Dd objectMixedTerms;
+    Vector3Dd objectTerms;
+    double objectConstant;
+    double objectVpConstant;
+    int constantCached;
+    int nonZeroSquareTerm;
 
     static int allQuadricIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

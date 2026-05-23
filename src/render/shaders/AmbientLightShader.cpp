@@ -5,12 +5,12 @@ void
 AmbientLightShader::shade(Texture *texture, RGBAColor *surfaceColor,
     RGBAColor *color, double attenuation)
 {
-    if (texture->Object_Ambient == 0.0) {
+    if (texture->objectAmbient == 0.0) {
         return;
     }
 
-    color->Red += surfaceColor->Red * texture->Object_Ambient * attenuation;
+    color->Red += surfaceColor->Red * texture->objectAmbient * attenuation;
     color->Green +=
-        surfaceColor->Green * texture->Object_Ambient * attenuation;
-    color->Blue += surfaceColor->Blue * texture->Object_Ambient * attenuation;
+        surfaceColor->Green * texture->objectAmbient * attenuation;
+    color->Blue += surfaceColor->Blue * texture->objectAmbient * attenuation;
 }

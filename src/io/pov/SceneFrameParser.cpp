@@ -21,7 +21,7 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case FOG_TOKEN:
                 FogParser::parseFog(framePtr);
                 break;
@@ -36,18 +36,18 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr)
 
             case OBJECT_TOKEN:
                 localObject = ObjectParser::parseObject();
-                ObjectUtils::link(localObject, &(localObject->Next_Object),
+                ObjectUtils::link(localObject, &(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 
             case COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite();
-                ObjectUtils::link(localObject, &(localObject->Next_Object),
+                ObjectUtils::link(localObject, &(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 
             case VIEW_POINT_TOKEN:
-                CameraParser::parseCamera(&(framePtr->View_Point));
+                CameraParser::parseCamera(&(framePtr->viewPoint));
                 break;
 
             case DECLARE_TOKEN:

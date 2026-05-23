@@ -5,8 +5,8 @@
 
 class HeightFieldBlock {
   public:
-    double min_y;
-    double max_y;
+    double minY;
+    double maxY;
 };
 
 #endif

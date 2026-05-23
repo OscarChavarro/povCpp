@@ -29,11 +29,11 @@ PlaneParser::parsePlane()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 localShape = SceneFactory::getPlaneShape();
-                PrimitiveParser::parseVector(&(localShape->Normal_Vector));
+                PrimitiveParser::parseVector(&(localShape->normalVector));
                 localShape->Distance = PrimitiveParser::parseFloat();
                 localShape->Distance *= -1.0;
                 Exit_Flag = TRUE;
@@ -41,11 +41,11 @@ PlaneParser::parsePlane()
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].Constant_Type ==
+                    if (constants[(int)constantId].constantType ==
                         PLANE_CONSTANT) {
                         localShape = (InfinitePlane *)GeometryOperations::copy(
                             (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                                .constantData);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -67,7 +67,7 @@ PlaneParser::parsePlane()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.Token_Id) {
+            switch (globalToken.tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -96,7 +96,7 @@ PlaneParser::parsePlane()
 
             case TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture();
-                if (localTexture->Constant_Flag) {
+                if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 {

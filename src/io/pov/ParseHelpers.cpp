@@ -34,7 +34,7 @@ void
 ParseHelpers::getExpectedToken(int tokenId)
 {
     Tokenizer::getToken();
-    if (globalToken.Token_Id != tokenId) {
+    if (globalToken.tokenId != tokenId) {
         ParseErrorReporter::parseError(tokenId);
     }
 }
@@ -53,7 +53,7 @@ ParseHelpers::postProcessObject(SimpleBody *object)
 
     if (object->Type == COMPOSITE_TYPE) {
         for (temp = ((Composite *)object)->Objects; temp != nullptr;
-            temp = temp->Next_Object) {
+            temp = temp->nextObject) {
             ParseHelpers::postProcessObject(temp);
         }
     } else {
@@ -70,7 +70,7 @@ ParseHelpers::postProcessShape(Geometry *shape)
         (shape->Type == CSG_INTERSECTION_TYPE) ||
         (shape->Type == CSG_DIFFERENCE_TYPE)) {
         for (tempShape = ((CSG *)shape)->Shapes; tempShape != nullptr;
-            tempShape = tempShape->Next_Object) {
+            tempShape = tempShape->nextObject) {
             ParseHelpers::postProcessShape(tempShape);
         }
     } else if ((shape->Type == POINT_LIGHT_TYPE) ||

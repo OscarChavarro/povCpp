@@ -9,8 +9,8 @@ class Sphere : public Geometry {
   public:
     Vector3Dd Center;
     double Radius;
-    double Radius_Squared;
-    double Inverse_Radius;
+    double radiusSquared;
+    double inverseRadius;
     Vector3Dd VPOtoC;
     double VPOCSquared;
     short VPinside;

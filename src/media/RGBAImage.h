@@ -11,12 +11,12 @@ class RGBAImage {
     double height;
     int iwidth;
     int iheight;
-    int Map_Type;
-    int Interpolation_Type;
-    short Once_Flag;
-    short Use_Colour_Flag;
-    Vector3Dd Image_Gradient;
-    short Colour_Map_Size;
+    int mapType;
+    int interpolationType;
+    short onceFlag;
+    short useColourFlag;
+    Vector3Dd imageGradient;
+    short colourMapSize;
     RGBAPixel *Colour_Map;
     ImageData data;
 };

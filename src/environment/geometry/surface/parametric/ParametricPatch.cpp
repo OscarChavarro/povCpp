@@ -86,23 +86,23 @@ ParametricBiCubicPatch::parametricTreeBuilder(
 
     /* Build the bounding sphere for this subpatch */
     ParametricBiCubicPatch::parametricBoundingSphere(
-        patch, &(node->Center), &(node->Radius_Squared));
+        patch, &(node->Center), &(node->radiusSquared));
 
     /* If the patch is close to being flat, then just perform a ray-plane
         intersection test. */
     if (ParametricBiCubicPatch::flatEnough(object, patch)) {
         /* The patch is now flat enough to simply store the corners */
-        node->Node_Type = PARAMETRIC_LEAF_NODE;
+        node->nodeType = PARAMETRIC_LEAF_NODE;
         vertices = ParametricBiCubicPatch::createParametricControlPointsBlock();
         vertices->Vertices[0] = (*patch)[0][0];
         vertices->Vertices[1] = (*patch)[0][3];
         vertices->Vertices[2] = (*patch)[3][3];
         vertices->Vertices[3] = (*patch)[3][0];
         node->Data_Ptr = (void *)vertices;
-    } else if (depth >= object->U_Steps) {
-        if (depth >= object->V_Steps) {
+    } else if (depth >= object->uSteps) {
+        if (depth >= object->vSteps) {
             /* We are at the max recursion depth. Just store corners. */
-            node->Node_Type = PARAMETRIC_LEAF_NODE;
+            node->nodeType = PARAMETRIC_LEAF_NODE;
             vertices =
                 ParametricBiCubicPatch::createParametricControlPointsBlock();
             vertices->Vertices[0] = (*patch)[0][0];
@@ -113,7 +113,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         } else {
             ParametricBiCubicPatch::parametricSplitUpDown(patch,
                 (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])upperLeft);
-            node->Node_Type = PARAMETRIC_INTERIOR_NODE;
+            node->nodeType = PARAMETRIC_INTERIOR_NODE;
             children =
                 ParametricBiCubicPatch::createParametricPatchChildBlock();
             children->Children[0] =
@@ -125,10 +125,10 @@ ParametricBiCubicPatch::parametricTreeBuilder(
             node->Count = 2;
             node->Data_Ptr = (void *)children;
         }
-    } else if (depth >= object->V_Steps) {
+    } else if (depth >= object->vSteps) {
         ParametricBiCubicPatch::parametricSplitLeftRight(patch,
             (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
-        node->Node_Type = PARAMETRIC_INTERIOR_NODE;
+        node->nodeType = PARAMETRIC_INTERIOR_NODE;
         children = ParametricBiCubicPatch::createParametricPatchChildBlock();
         children->Children[0] = ParametricBiCubicPatch::parametricTreeBuilder(
             object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
@@ -145,7 +145,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         ParametricBiCubicPatch::parametricSplitUpDown(
             (Vector3Dd(*)[4][4])lowerRight, (Vector3Dd(*)[4][4])lowerRight,
             (Vector3Dd(*)[4][4])upperRight);
-        node->Node_Type = PARAMETRIC_INTERIOR_NODE;
+        node->nodeType = PARAMETRIC_INTERIOR_NODE;
         children = ParametricBiCubicPatch::createParametricPatchChildBlock();
         children->Children[0] = ParametricBiCubicPatch::parametricTreeBuilder(
             object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
@@ -440,12 +440,12 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
         }
     }
     ParametricBiCubicPatch::findAverage(16, &controlPoints[0],
-        &shape->Bounding_Sphere_Center, &shape->Bounding_Sphere_Radius);
+        &shape->boundingSphereCenter, &shape->boundingSphereRadius);
     /* Shape->Node_Tree = NULL; */
-    if (shape->Patch_Type == 0 || shape->Patch_Type == 2) {
+    if (shape->patchType == 0 || shape->patchType == 2) {
         return;
     }
-    if (shape->Patch_Type == 3) {
+    if (shape->patchType == 3) {
         if (shape->Node_Tree != nullptr) {
             ParametricBiCubicPatch::parametricTreeDeleter(shape->Node_Tree);
         }
@@ -453,31 +453,31 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
             ParametricBiCubicPatch::parametricTreeBuilder(shape, patchPtr, 0);
         return;
     }
-    deltaU = 1.0 / (double)shape->U_Steps;
-    deltaV = 1.0 / (double)shape->V_Steps;
+    deltaU = 1.0 / (double)shape->uSteps;
+    deltaV = 1.0 / (double)shape->vSteps;
     if (shape->Interpolated_Grid == nullptr) {
-        shape->Interpolated_Grid = new Vector3Dd *[shape->U_Steps + 1];
+        shape->Interpolated_Grid = new Vector3Dd *[shape->uSteps + 1];
         if (shape->Interpolated_Grid == nullptr) {
             Logger::error("Failed to allocate Interpolated_Grid");
             exit(1);
         }
-        for (i = 0; i <= shape->U_Steps; i++) {
-            shape->Interpolated_Grid[i] = new Vector3Dd[shape->V_Steps + 1];
+        for (i = 0; i <= shape->uSteps; i++) {
+            shape->Interpolated_Grid[i] = new Vector3Dd[shape->vSteps + 1];
             if (shape->Interpolated_Grid == nullptr) {
                 Logger::error(
                     "Failed to allocate component of Interpolated_Grid");
                 exit(1);
             }
         }
-        shape->Interpolated_Normals = new Vector3Dd *[shape->U_Steps + 1];
+        shape->Interpolated_Normals = new Vector3Dd *[shape->uSteps + 1];
         if (shape->Interpolated_Normals == nullptr) {
             Logger::error(
                 "Failed to allocate Interpolated_Normals");
             exit(1);
         }
-        for (i = 0; i <= shape->U_Steps; i++) {
+        for (i = 0; i <= shape->uSteps; i++) {
             shape->Interpolated_Normals[i] =
-                new Vector3Dd[2 * (shape->V_Steps + 1)];
+                new Vector3Dd[2 * (shape->vSteps + 1)];
             if (shape->Interpolated_Normals == nullptr) {
                 Logger::error(
                     "Failed to allocate component of Interpolated_Normals");
@@ -485,14 +485,14 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
             }
         }
 
-        if (shape->Patch_Type == 4) {
-            shape->Smooth_Normals = new Vector3Dd *[shape->U_Steps + 1];
+        if (shape->patchType == 4) {
+            shape->Smooth_Normals = new Vector3Dd *[shape->uSteps + 1];
             if (shape->Smooth_Normals == nullptr) {
                 Logger::error("Failed to allocate Smooth_Normals");
                 exit(1);
             }
-            for (i = 0; i <= shape->U_Steps; i++) {
-                shape->Smooth_Normals[i] = new Vector3Dd[shape->V_Steps + 1];
+            for (i = 0; i <= shape->uSteps; i++) {
+                shape->Smooth_Normals[i] = new Vector3Dd[shape->vSteps + 1];
                 if (shape->Smooth_Normals == nullptr) {
                     Logger::error(
                         "Failed to allocate component of Smooth_Normals");
@@ -501,13 +501,13 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
             }
         }
 
-        shape->Interpolated_D = new double *[shape->U_Steps + 1];
+        shape->Interpolated_D = new double *[shape->uSteps + 1];
         if (shape->Interpolated_D == nullptr) {
             Logger::error("Failed to allocate Interpolated_D");
             exit(1);
         }
-        for (i = 0; i <= shape->U_Steps; i++) {
-            shape->Interpolated_D[i] = new double[2 * (shape->V_Steps + 1)];
+        for (i = 0; i <= shape->uSteps; i++) {
+            shape->Interpolated_D[i] = new double[2 * (shape->vSteps + 1)];
             if (shape->Interpolated_D == nullptr) {
                 Logger::error(
                     "Failed to allocate component of Interpolated_D");
@@ -517,19 +517,19 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     }
 
     /* Calculate the grid values for the given subdivision values. */
-    for (i = 0; i <= shape->U_Steps; i++) {
-        u = (double)i / (double)shape->U_Steps;
-        for (j = 0; j < shape->V_Steps; j++) {
-            v = (double)j / (double)shape->V_Steps;
+    for (i = 0; i <= shape->uSteps; i++) {
+        u = (double)i / (double)shape->uSteps;
+        for (j = 0; j < shape->vSteps; j++) {
+            v = (double)j / (double)shape->vSteps;
             ParametricBiCubicPatch::parametricValue(
                 &shape->Interpolated_Grid[i][j], u, v, patchPtr);
         }
     }
 
-    for (i = 0; i < shape->U_Steps; i++) {
-        u = (double)i / (double)shape->U_Steps;
-        for (j = 0; j < shape->V_Steps; j++) {
-            v = (double)j / (double)shape->V_Steps;
+    for (i = 0; i < shape->uSteps; i++) {
+        u = (double)i / (double)shape->uSteps;
+        for (j = 0; j < shape->vSteps; j++) {
+            v = (double)j / (double)shape->vSteps;
 
             /* Calculate surface values for the current patch. */
             ParametricBiCubicPatch::parametricValue(&v0, u, v, patchPtr);
@@ -544,7 +544,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
             shape->Interpolated_Grid[i + 1][j] = v1;
             shape->Interpolated_Grid[i][j + 1] = v2;
             shape->Interpolated_Grid[i + 1][j + 1] = v3;
-            if (shape->Patch_Type == 1 || shape->Patch_Type == 4) {
+            if (shape->patchType == 1 || shape->patchType == 4) {
                 /* Calculate the normals */
                 if (ParametricBiCubicIntersection::subpatchNormal(
                         &v0, &v2, &v1, &n, &d)) {
@@ -571,12 +571,12 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
         }
     }
 
-    if (shape->Patch_Type == 4) {
+    if (shape->patchType == 4) {
         /* Calculate normals at the corners of the subpatches */
-        for (i = 0; i <= shape->U_Steps; i++) {
-            u = (double)i / (double)shape->U_Steps;
-            for (j = 0; j <= shape->V_Steps; j++) {
-                v = (double)j / (double)shape->V_Steps;
+        for (i = 0; i <= shape->uSteps; i++) {
+            u = (double)i / (double)shape->uSteps;
+            for (j = 0; j <= shape->vSteps; j++) {
+                v = (double)j / (double)shape->vSteps;
                 ParametricBiCubicPatch::parametricPartial(
                     &shape->Smooth_Normals[i][j], u, v, shape);
             }
@@ -590,7 +590,7 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray,
     double u1, double v0, int recursionDepth, int *depthCount, double *depths,
     double *uValues, double *vValues)
 {
-    int tcnt = shape->Intersection_Count;
+    int tcnt = shape->intersectionCount;
     Vector3Dd vv0;
     Vector3Dd vv1;
     Vector3Dd vv2;
@@ -613,11 +613,11 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray,
         the triangles. */
     if (ParametricBiCubicIntersection::subpatchNormal(
             &vv0, &vv1, &vv2, &n, &d)) {
-        if (ParametricBiCubicIntersection::intersectSubpatch(shape->Patch_Type,
+        if (ParametricBiCubicIntersection::intersectSubpatch(shape->patchType,
                 ray, &vv0, &vv1, &vv2, &n, d, nullptr, nullptr, nullptr, &depth,
                 &ip, &n)) {
             shape->Intersection_Point[tcnt + *depthCount] = ip;
-            shape->Normal_Vector[tcnt + *depthCount] = n;
+            shape->normalVector[tcnt + *depthCount] = n;
             depths[*depthCount] = depth;
             *depthCount += 1;
         }
@@ -629,11 +629,11 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray,
 
     if (ParametricBiCubicIntersection::subpatchNormal(
             &vv0, &vv2, &vv3, &n, &d)) {
-        if (ParametricBiCubicIntersection::intersectSubpatch(shape->Patch_Type,
+        if (ParametricBiCubicIntersection::intersectSubpatch(shape->patchType,
                 ray, &vv0, &vv2, &vv3, &n, d, nullptr, nullptr, nullptr, &depth,
                 &ip, &n)) {
             shape->Intersection_Point[tcnt + *depthCount] = ip;
-            shape->Normal_Vector[tcnt + *depthCount] = n;
+            shape->normalVector[tcnt + *depthCount] = n;
             depths[*depthCount] = depth;
             *depthCount += 1;
         }
@@ -791,7 +791,7 @@ ParametricBiCubicPatch::flatEnough(
     if (dist < 0.0) {
         return 0;
     }
-    if (dist < object->Flatness_Value) {
+    if (dist < object->flatnessValue) {
         return 1;
     }
     return 0;
@@ -811,7 +811,7 @@ ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
     double ut;
     double vt;
     double radius;
-    int tcnt = object->Intersection_Count;
+    int tcnt = object->intersectionCount;
 
     /* Don't waste time if there are already too many intersections */
     if (tcnt >= MAX_BICUBIC_INTERSECTIONS) {
@@ -834,8 +834,8 @@ ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
             vValues);
     }
 
-    if (recursionDepth >= object->U_Steps) {
-        if (recursionDepth >= object->V_Steps) {
+    if (recursionDepth >= object->uSteps) {
+        if (recursionDepth >= object->vSteps) {
             ParametricBiCubicPatch::parametricSubpatchIntersect(ray, object,
                 patch, u0, u1, v0, recursionDepth + 1, depthCount, depths,
                 uValues, vValues);
@@ -850,7 +850,7 @@ ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
                 (Vector3Dd(*)[4][4])upperLeft, u0, u1, vt, v1,
                 recursionDepth + 1, depthCount, depths, uValues, vValues);
         }
-    } else if (recursionDepth >= object->V_Steps) {
+    } else if (recursionDepth >= object->vSteps) {
         ParametricBiCubicPatch::parametricSplitLeftRight(patch,
             (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
         ut = (u1 - u0) / 2.0;
@@ -893,14 +893,14 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
     int i;
 
     /* If this is an interior node then continue the descent */
-    if (node->Node_Type == PARAMETRIC_INTERIOR_NODE) {
+    if (node->nodeType == PARAMETRIC_INTERIOR_NODE) {
         children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
             ParametricBiCubicPatch::parametricTreeDeleter(
                 children->Children[i]);
         }
         delete (ParametricPatchChild *)children;
-    } else if (node->Node_Type == PARAMETRIC_LEAF_NODE) {
+    } else if (node->nodeType == PARAMETRIC_LEAF_NODE) {
         /* Free the memory used for the vertices. */
         delete (ParametricControlPoints *)node->Data_Ptr;
     }
@@ -924,7 +924,7 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
     double d;
     double hitDepth;
     int i;
-    int tcnt = shape->Intersection_Count;
+    int tcnt = shape->intersectionCount;
 
     /* Don't waste time if there are already too many intersections */
     if (tcnt >= MAX_BICUBIC_INTERSECTIONS) {
@@ -934,19 +934,19 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
     /* Make sure the ray passes through a sphere bounding the control points of
         the patch */
     if (!ParametricBiCubicIntersection::sphericalBoundsCheck(
-            ray, &(node->Center), node->Radius_Squared)) {
+            ray, &(node->Center), node->radiusSquared)) {
         return;
     }
 
     /* If this is an interior node then continue the descent, else
         do a check against the vertices. */
-    if (node->Node_Type == PARAMETRIC_INTERIOR_NODE) {
+    if (node->nodeType == PARAMETRIC_INTERIOR_NODE) {
         children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
             ParametricBiCubicPatch::parametricTreeWalker(ray, shape,
                 children->Children[i], depth + 1, depthCount, depths);
         }
-    } else if (node->Node_Type == PARAMETRIC_LEAF_NODE) {
+    } else if (node->nodeType == PARAMETRIC_LEAF_NODE) {
         vertices = (ParametricControlPoints *)node->Data_Ptr;
         vv0 = vertices->Vertices[0];
         vv1 = vertices->Vertices[1];
@@ -958,10 +958,10 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
         if (ParametricBiCubicIntersection::subpatchNormal(
                 &vv0, &vv1, &vv2, &n, &d)) {
             if (ParametricBiCubicIntersection::intersectSubpatch(
-                    shape->Patch_Type, ray, &vv0, &vv1, &vv2, &n, d, nullptr,
+                    shape->patchType, ray, &vv0, &vv1, &vv2, &n, d, nullptr,
                     nullptr, nullptr, &hitDepth, &ip, &n)) {
                 shape->Intersection_Point[tcnt + *depthCount] = ip;
-                shape->Normal_Vector[tcnt + *depthCount] = n;
+                shape->normalVector[tcnt + *depthCount] = n;
                 depths[*depthCount] = hitDepth;
                 *depthCount += 1;
             }
@@ -974,10 +974,10 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
         if (ParametricBiCubicIntersection::subpatchNormal(
                 &vv0, &vv2, &vv3, &n, &d)) {
             if (ParametricBiCubicIntersection::intersectSubpatch(
-                    shape->Patch_Type, ray, &vv0, &vv2, &vv3, &n, d, nullptr,
+                    shape->patchType, ray, &vv0, &vv2, &vv3, &n, d, nullptr,
                     nullptr, nullptr, &hitDepth, &ip, &n)) {
                 shape->Intersection_Point[tcnt + *depthCount] = ip;
-                shape->Normal_Vector[tcnt + *depthCount] = n;
+                shape->normalVector[tcnt + *depthCount] = n;
                 depths[*depthCount] = hitDepth;
                 *depthCount += 1;
             }
@@ -1005,13 +1005,13 @@ ParametricBiCubicPatch::bicubicPatchNormal(
     /* If all is going well, the normal was computed at the time the
        intersection was computed.  Look on the list of associated intersection
        points and normals */
-    for (i = 0; i < patch->Intersection_Count; i++) {
+    for (i = 0; i < patch->intersectionCount; i++) {
         if (intersectionPoint->x == patch->Intersection_Point[i].x &&
             intersectionPoint->y == patch->Intersection_Point[i].y &&
             intersectionPoint->z == patch->Intersection_Point[i].z) {
-            result->x = patch->Normal_Vector[i].x;
-            result->y = patch->Normal_Vector[i].y;
-            result->z = patch->Normal_Vector[i].z;
+            result->x = patch->normalVector[i].x;
+            result->y = patch->normalVector[i].y;
+            result->z = patch->normalVector[i].z;
             return;
         }
     }
@@ -1031,7 +1031,7 @@ ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
 
     newShape = new ParametricBiCubicPatch;
     *newShape = *((ParametricBiCubicPatch *)object);
-    newShape->Next_Object = nullptr;
+    newShape->nextObject = nullptr;
 
     newShape->Interpolated_Grid = nullptr;
     ParametricBiCubicPatch::precomputePatchValues(newShape);

@@ -18,7 +18,7 @@ ParseErrorReporter::getTokenString(TOKEN tokenId)
     int i;
 
     for (i = 0; i < LAST_TOKEN; i++) {
-        if (globalReservedWords[i].Token_Number == tokenId) {
+        if (globalReservedWords[i].tokenNumber == tokenId) {
             return (char *)(globalReservedWords[i].Token_Name);
         }
     }
@@ -32,9 +32,9 @@ ParseErrorReporter::parseError(TOKEN tokenId)
     char *found;
     FILE *statFile;
     Logger::error( "Error in file %s line %d\n", globalToken.Filename,
-        globalToken.Token_Line_No + 1);
+        globalToken.tokenLineNo + 1);
     expected = ParseErrorReporter::getTokenString(tokenId);
-    found = ParseErrorReporter::getTokenString(globalToken.Token_Id);
+    found = ParseErrorReporter::getTokenString(globalToken.tokenId);
     Logger::error( "%s expected but %s found instead\n", expected, found);
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
         statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
@@ -51,13 +51,13 @@ ParseErrorReporter::typeError()
 {
     FILE *statFile;
     Logger::error( "Error in file %s line %d\n", globalToken.Filename,
-        globalToken.Token_Line_No + 1);
+        globalToken.tokenLineNo + 1);
     fprintf(
         stderr, "Identifier %s is the wrong type\n", globalToken.Token_String);
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
         statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", globalToken.Filename,
-            globalToken.Token_Line_No + 1);
+            globalToken.tokenLineNo + 1);
         fprintf(statFile, "Identifier %s is the wrong type\n",
             globalToken.Token_String);
 
@@ -72,12 +72,12 @@ ParseErrorReporter::Undeclared()
 {
     FILE *statFile;
     Logger::error( "Error in file %s line %d\n", globalToken.Filename,
-        globalToken.Token_Line_No + 1);
+        globalToken.tokenLineNo + 1);
     Logger::error( "Undeclared identifier %s\n", globalToken.Token_String);
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
         statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", globalToken.Filename,
-            globalToken.Token_Line_No + 1);
+            globalToken.tokenLineNo + 1);
         fprintf(
             statFile, "Undeclared identifier %s\n", globalToken.Token_String);
         fclose(statFile);
@@ -91,13 +91,13 @@ ParseErrorReporter::Error(const char *str)
 {
     FILE *statFile;
     Logger::error( "Error in file %s line %d\n", globalToken.Filename,
-        globalToken.Token_Line_No + 1);
+        globalToken.tokenLineNo + 1);
     Logger::error( "%s\n", str);
 
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
         statFile = fopen(globalRenderingConfiguration.statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", globalToken.Filename,
-            globalToken.Token_Line_No + 1);
+            globalToken.tokenLineNo + 1);
         fprintf(statFile, "%s\n", str);
         fclose(statFile);
     }
