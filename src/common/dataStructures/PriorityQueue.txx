@@ -1,22 +1,22 @@
-/****************************************************************************
- *                     prioq.c
- *
- *  This module implements a priority queue using a heap.
- *
- *****************************************************************************/
+#ifndef __PRIOQ_TXX__
+#define __PRIOQ_TXX__
 
-#include "common/dataStructures/PriorityQueue.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
-
-//===========================================================================
-
-void
-PriorityQueueNode::balance(unsigned int entryPos1)
+template <class T>
+PriorityQueue<T>::PriorityQueue()
 {
-    Intersection *entry1;
-    Intersection *entry2;
-    Intersection tempEntry;
+    queue = nullptr;
+    current_entry = 0;
+    queue_size = 0;
+    next_pq = nullptr;
+}
+
+template <class T>
+void
+PriorityQueue<T>::balance(unsigned int entryPos1)
+{
+    T *entry1;
+    T *entry2;
+    T tempEntry;
     unsigned int entryPos2;
 
     entry1 = &this->queue[entryPos1];
@@ -53,11 +53,9 @@ PriorityQueueNode::balance(unsigned int entryPos1)
     }
 }
 
-/**
-Called from all geometries
-*/
+template <class T>
 void
-PriorityQueueNode::add(Intersection *queueEntry)
+PriorityQueue<T>::add(T *queueEntry)
 {
     this->current_entry++;
     if (this->current_entry >= this->queue_size) {
@@ -67,11 +65,9 @@ PriorityQueueNode::add(Intersection *queueEntry)
     this->balance(this->current_entry);
 }
 
-/**
-Called from objects.cpp, csg.cpp and lighting.cpp
-*/
-Intersection *
-PriorityQueueNode::getHighest()
+template <class T>
+T *
+PriorityQueue<T>::getHighest()
 {
     if (this->current_entry >= 1) {
         return (&(this->queue[1]));
@@ -79,22 +75,12 @@ PriorityQueueNode::getHighest()
     return nullptr;
 }
 
-/**
-Called from objects.cpp, csg.cpp and lighting.cpp
-*/
+template <class T>
 void
-PriorityQueueNode::deleteHighest()
+PriorityQueue<T>::deleteHighest()
 {
     this->queue[1] = this->queue[this->current_entry--];
     this->balance(1);
 }
 
-/**
-Used from objects.cpp, csg.cpp and lighting.cpp
-*/
-void
-PriorityQueueNode::pushBackToPool()
-{
-    this->next_pq = GLOBAL_priorityQueuesHead;
-    GLOBAL_priorityQueuesHead = this;
-}
+#endif

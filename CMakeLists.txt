@@ -25,8 +25,6 @@ add_executable(povray
   src/environment/geometry/volume/compound/Composite.cpp
   src/environment/geometry/surface/InfinitePlane.cpp
   src/environment/geometry/volume/polynomial/PolynomialShape.cpp
-  src/common/dataStructures/PriorityQueue.cpp
-  src/common/dataStructures/PriorityQueuePool.cpp
   src/environment/geometry/volume/Quadric.cpp
   src/environment/geometry/volume/Sphere.cpp
   src/environment/geometry/elements/Triangle.cpp

@@ -335,7 +335,7 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
         rEye.z = -eye->direction.z;
     }
 
-    localQueue = PriorityQueuePool::pqPop(128);
+    localQueue = IntersectionPriorityQueuePool::pqPop(128);
 
     for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
         lightSource = lightSource->Next_Light_Source) {
@@ -399,7 +399,7 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
             }
         }
     }
-    localQueue->pushBackToPool();
+    IntersectionPriorityQueuePool::pqPush(localQueue);
 }
 
 void

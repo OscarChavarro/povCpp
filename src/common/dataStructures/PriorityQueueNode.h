@@ -1,21 +1,12 @@
 #ifndef __PRIORITY_QUEUE_NODE_H__
 #define __PRIORITY_QUEUE_NODE_H__
 
-#include "environment/geometry/Intersection.h"
+#include "common/dataStructures/PriorityQueue.h"
+#include "common/dataStructures/PriorityQueuePool.h"
 
-class PriorityQueueNode {
-  private:
-    void balance(unsigned int entry_pos1);
+class Intersection;
 
-  public:
-    Intersection *queue;
-    unsigned int current_entry, queue_size;
-    PriorityQueueNode *next_pq;
-
-    void add(Intersection *queue_entry);
-    Intersection *getHighest();
-    void deleteHighest();
-    void pushBackToPool();
-};
+using PriorityQueueNode = PriorityQueue<Intersection>;
+using IntersectionPriorityQueuePool = PriorityQueuePool<Intersection>;
 
 #endif

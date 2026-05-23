@@ -1,13 +1,13 @@
 #ifndef __LIGHTING_ENGINE_H__
 #define __LIGHTING_ENGINE_H__
 
+#include "common/dataStructures/PriorityQueueNode.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 class Light;
 class RayWithSegments;
 class RGBAColor;
-class PriorityQueueNode;
 class Intersection;
 
 class LightingEngine {

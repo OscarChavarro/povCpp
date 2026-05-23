@@ -5,7 +5,6 @@
 #include "environment/geometry/elements/RayWithSegments.h"
 
 class ParametricBiCubicPatch;
-class PriorityQueueNode;
 
 class ParametricBiCubicSolver {
   public:

@@ -50,7 +50,7 @@ CSG::allCsgIntersectIntersections(
     PriorityQueueNode *localDepthQueue;
     Intersection *localIntersection;
 
-    localDepthQueue = PriorityQueuePool::pqPop(128);
+    localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
 
     anyIntersectionFound = FALSE;
 
@@ -85,7 +85,7 @@ CSG::allCsgIntersectIntersections(
         }
     }
 
-    localDepthQueue->pushBackToPool();
+    IntersectionPriorityQueuePool::pqPush(localDepthQueue);
 
     return (anyIntersectionFound);
 }

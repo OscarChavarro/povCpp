@@ -1,13 +1,22 @@
 #ifndef __PRIOQ_H__
 #define __PRIOQ_H__
 
-#include "common/dataStructures/PriorityQueueNode.h"
-#include "common/dataStructures/PriorityQueuePool.h"
-#include "environment/geometry/Intersection.h"
+template <class T>
+class PriorityQueue {
+  private:
+    void balance(unsigned int entryPos1);
 
-class PriorityQueue;
+  public:
+    T *queue;
+    unsigned int current_entry, queue_size;
+    PriorityQueue<T> *next_pq;
 
-extern PriorityQueue *GLOBAL_priorityQueue;
-extern PriorityQueueNode *GLOBAL_priorityQueuesHead;
+    PriorityQueue();
+    void add(T *queueEntry);
+    T *getHighest();
+    void deleteHighest();
+};
+
+#include "common/dataStructures/PriorityQueue.txx"
 
 #endif

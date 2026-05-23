@@ -25,12 +25,12 @@ static constexpr int SPOT_LIGHT_TYPE = 15;
 static constexpr int BOX_TYPE = 16;
 static constexpr int BLOB_TYPE = 17;
 
-class PriorityQueueNode;
 class Intersection;
 class Methods;
 class Geometry;
 class SimpleBody;
 
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Methods.h"
 #include "environment/scene/SimpleBody.h"
