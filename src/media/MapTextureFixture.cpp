@@ -6,6 +6,8 @@
  *
  *****************************************************************************/
 
+#include <cstdlib>
+
 #include "media/MapTextureFixture.h"
 #include "common/logger/Logger.h"
 #include "common/LegacyBoolean.h"

@@ -5,6 +5,8 @@
  *
  *****************************************************************************/
 
+#include <cstdlib>
+
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
