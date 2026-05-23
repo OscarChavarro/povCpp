@@ -2,7 +2,7 @@
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/Parse.h"
-#include "io/pov/CameraParser.h"
+#include "io/pov/cameraParser/CameraParser.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];

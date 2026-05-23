@@ -14,7 +14,6 @@
 
 #include "render/RenderEngine.h"
 #include "app/PovApp.h"
-#include "app/UnixPlatform.h"
 #include "common/color/Color.h"
 #include "common/FrameConfig.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -24,7 +23,7 @@ extern FileHandle *globalOutputFileHandle;
 extern char outputFileName[FILE_NAME_LENGTH];
 extern char inputFileName[FILE_NAME_LENGTH];
 extern char statFileName[FILE_NAME_LENGTH];
-extern char outputFormat, colorBits, paletteOption;
+extern char outputFormat;
 extern char verboseFormat;
 extern unsigned int Options;
 extern int fileBufferSize;
@@ -49,7 +48,6 @@ RayWithSegments *vpRay;
 int traceLevel, superSampleCount;
 
 double maxTraceLevel = 5;
-double maxclr;
 
 RGBAColor *previousLine, *currentLine;
 char *previousLineAntialiasedFlags, *currentLineAntialiasedFlags;
@@ -91,9 +89,6 @@ RenderEngine::supersample(
     double jitterX;
     double jitterY;
     int jittOffset;
-    unsigned char red;
-    unsigned char green;
-    unsigned char blue;
 
     dx = (double)x;
     dy = (double)y;
@@ -255,10 +250,6 @@ RenderEngine::supersample(
     Color::addColor(result, result, &colour);
 
     if ((y != firstLine - 1) && (Options & DISPLAY)) {
-        red = (unsigned char)(result->Red * maxclr);
-        green = (unsigned char)(result->Green * maxclr);
-        blue = (unsigned char)(result->Blue * maxclr);
-        UnixPlatform::displayPlot(x, y, red, green, blue);
     }
 }
 
@@ -268,27 +259,12 @@ RenderEngine::readRenderedPart()
     int rc;
     int x;
     int lineNumber;
-    unsigned char red;
-    unsigned char green;
-    unsigned char blue;
-    double grey;
-
-    maxclr = (double)(1 << colorBits) - 1.0;
     while ((rc = PovApp::readOutputLine(
                 globalOutputFileHandle, previousLine, &lineNumber)) == 1) {
         if (Options & DISPLAY) {
             for (x = 0; x < globalFrame.Screen_Width; x++) {
-                if (paletteOption == GREY) {
-                    grey = previousLine[x].Red * 0.287 +
-                           previousLine[x].Green * 0.589 +
-                           previousLine[x].Blue * 0.114;
-                    red = green = blue = (unsigned char)(grey * maxclr);
-                } else {
-                    red = (unsigned char)(previousLine[x].Red * maxclr);
-                    green = (unsigned char)(previousLine[x].Green * maxclr);
-                    blue = (unsigned char)(previousLine[x].Blue * maxclr);
-                }
-                UnixPlatform::displayPlot(x, lineNumber, red, green, blue);
+                (void)x;
+                (void)lineNumber;
                 cooperate(); /* Moved inside loop JLN 12/91 */
             }
         }
@@ -316,11 +292,6 @@ RenderEngine::startTracing()
     RGBAColor colour;
     int x;
     int y;
-    unsigned char red;
-    unsigned char green;
-    unsigned char blue;
-    double grey;
-
     for (y = (Options & ANTIALIAS) ? firstLine - 1 : firstLine; y < lastLine;
         y++) {
 
@@ -352,18 +323,9 @@ RenderEngine::startTracing()
             }
 
             if (y != firstLine - 1) {
-                if (paletteOption == GREY) {
-                    grey = previousLine[x].Red * 0.287 +
-                           previousLine[x].Green * 0.589 +
-                           previousLine[x].Blue * 0.114;
-                    red = green = blue = (unsigned char)(grey * maxclr);
-                } else {
-                    red = (unsigned char)(colour.Red * maxclr);
-                    green = (unsigned char)(colour.Green * maxclr);
-                    blue = (unsigned char)(colour.Blue * maxclr);
-                }
                 if (Options & DISPLAY) {
-                    UnixPlatform::displayPlot(x, y, red, green, blue);
+                    (void)x;
+                    (void)y;
                 }
             }
         }
@@ -468,8 +430,6 @@ RenderEngine::initializeRenderer()
     int i;
 
     vpRay = &ray;
-    maxclr = (double)(1 << colorBits) - 1.0;
-
     previousLine = new RGBAColor[(globalFrame.Screen_Width + 1)];
     currentLine = new RGBAColor[(globalFrame.Screen_Width + 1)];
 

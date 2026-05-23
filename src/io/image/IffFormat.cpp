@@ -5,7 +5,7 @@
  *
  *****************************************************************************/
 
-#include "io/IffFormat.h"
+#include "io/image/IffFormat.h"
 #include "app/PovApp.h"
 #include "common/FrameConfig.h"
 

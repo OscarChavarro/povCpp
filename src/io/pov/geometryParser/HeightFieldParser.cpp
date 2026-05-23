@@ -1,16 +1,16 @@
-#include "io/pov/HeightFieldParser.h"
+#include "io/pov/geometryParser/HeightFieldParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
-#include "io/GifFormat.h"
-#include "io/IffFormat.h"
-#include "io/TargaFormat.h"
+#include "io/image/GifFormat.h"
+#include "io/image/IffFormat.h"
+#include "io/image/TargaFormat.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
-#include "io/pov/TextureParser.h"
+#include "io/pov/mediaParser/TextureParser.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];

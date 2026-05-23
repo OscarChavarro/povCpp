@@ -1,27 +1,33 @@
-#include "io/pov/PlaneParser.h"
+#include "io/pov/geometryParser/PolyParser.h"
 #include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/surface/InfinitePlane.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/scene/ObjectUtils.h"
 #include "io/pov/Parse.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
-#include "io/pov/TextureParser.h"
+#include "io/pov/mediaParser/TextureParser.h"
 
 extern TokenStruct globalToken;
 extern Constant constants[MAX_CONSTANTS];
+extern int termCounts[MAX_ORDER + 1];
 
 Geometry *
-PlaneParser::parsePlane()
+PolyParser::parsePoly(int knownOrder)
 {
-    InfinitePlane *localShape;
-    CONSTANT constantId;
+    PolynomialShape *localShape;
     Vector3Dd localVector;
+    CONSTANT constantId;
+    int order;
     Texture *localTexture;
-    Texture *tempTexture;
 
-    localShape = nullptr;
+    if (knownOrder > 0) {
+        localShape = SceneFactory::getPolyShape(knownOrder);
+    } else {
+        localShape = nullptr;
+    }
 
     ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
 
@@ -31,22 +37,39 @@ PlaneParser::parsePlane()
         while (!Exit_Flag) {
             Tokenizer::getToken();
             switch (globalToken.Token_Id) {
+            case DASH_TOKEN:
+            case PLUS_TOKEN:
+            case FLOAT_TOKEN:
+                Tokenizer::ungetToken();
+                if (localShape != nullptr) {
+                    ParseErrorReporter::Error(
+                        "The order of a polynomial may not be specified twice");
+                }
+                order = (int)PrimitiveParser::parseFloat();
+                if (order < 2 || order > MAX_ORDER) {
+                    ParseErrorReporter::Error("Order of Poly is out of range");
+                }
+                localShape = SceneFactory::getPolyShape(order);
+                break;
+
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
-                localShape = SceneFactory::getPlaneShape();
-                PrimitiveParser::parseVector(&(localShape->Normal_Vector));
-                localShape->Distance = PrimitiveParser::parseFloat();
-                localShape->Distance *= -1.0;
+                if (localShape == nullptr) {
+                    printf("Need the order of the Poly");
+                }
+                PrimitiveParser::parseCoeffs(
+                    localShape->Order, &(localShape->Coeffs[0]));
                 Exit_Flag = TRUE;
                 break;
 
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant()) != -1) {
                     if (constants[(int)constantId].Constant_Type ==
-                        PLANE_CONSTANT) {
-                        localShape = (InfinitePlane *)GeometryOperations::copy(
-                            (SimpleBody *)constants[(int)constantId]
-                                .Constant_Data);
+                        POLY_CONSTANT) {
+                        localShape =
+                            (PolynomialShape *)GeometryOperations::copy(
+                                (SimpleBody *)constants[(int)constantId]
+                                    .Constant_Data);
                     } else {
                         ParseErrorReporter::typeError();
                     }
@@ -71,6 +94,10 @@ PlaneParser::parsePlane()
             switch (globalToken.Token_Id) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
+                break;
+
+            case STURM_TOKEN:
+                localShape->Sturm_Flag = 1;
                 break;
 
             case TRANSLATE_TOKEN:
@@ -100,14 +127,10 @@ PlaneParser::parsePlane()
                 if (localTexture->Constant_Flag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
-                {
-                    for (tempTexture = localTexture;
-                        tempTexture->Next_Texture != nullptr;
-                        tempTexture = tempTexture->Next_Texture) {
-                    }
-                    tempTexture->Next_Texture = localShape->Shape_Texture;
-                    localShape->Shape_Texture = localTexture;
-                }
+
+                ObjectUtils::link((SimpleBody *)localTexture,
+                    (SimpleBody **)&localTexture->Next_Texture,
+                    (SimpleBody **)&localShape->Shape_Texture);
                 break;
 
             case COLOUR_TOKEN:

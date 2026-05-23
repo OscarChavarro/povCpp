@@ -1,7 +1,7 @@
 #ifndef __RAW_FORMAT_H__
 #define __RAW_FORMAT_H__
 
-#include "io/DumpFormat.h"
+#include "io/image/DumpFormat.h"
 
 class RawFormat {
   public:
