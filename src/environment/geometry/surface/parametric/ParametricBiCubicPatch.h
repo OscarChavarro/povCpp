@@ -17,7 +17,9 @@ class ParametricBiCubicPatch : public Geometry {
     friend class ParametricBiCubicIntersection;
 
   public:
-    int Patch_Type, U_Steps, V_Steps;
+    int Patch_Type;
+    int U_Steps;
+    int V_Steps;
     Vector3Dd Control_Points[4][4];
     Vector3Dd Bounding_Sphere_Center;
     double Bounding_Sphere_Radius;
@@ -25,7 +27,9 @@ class ParametricBiCubicPatch : public Geometry {
     int Intersection_Count;
     Vector3Dd Normal_Vector[MAX_BICUBIC_INTERSECTIONS];
     Vector3Dd Intersection_Point[MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd **Interpolated_Grid, **Interpolated_Normals, **Smooth_Normals;
+    Vector3Dd **Interpolated_Grid;
+    Vector3Dd **Interpolated_Normals;
+    Vector3Dd **Smooth_Normals;
     double **Interpolated_D;
     ParametricPatchNode *Node_Tree;
 

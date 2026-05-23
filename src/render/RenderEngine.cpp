@@ -38,12 +38,15 @@ RenderEngine::RenderEngine::rand3dInline(int a, int b)
 
 RenderFrame globalFrame;
 RayWithSegments *vpRay;
-int traceLevel, superSampleCount;
+int traceLevel;
+int superSampleCount;
 
 double maxTraceLevel = 5;
 
-RGBAColor *previousLine, *currentLine;
-char *previousLineAntialiasedFlags, *currentLineAntialiasedFlags;
+RGBAColor *previousLine;
+RGBAColor *currentLine;
+char *previousLineAntialiasedFlags;
+char *currentLineAntialiasedFlags;
 RayWithSegments ray;
 
 static const TraceService *getTraceService();

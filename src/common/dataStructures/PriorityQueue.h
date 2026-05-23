@@ -8,7 +8,8 @@ class PriorityQueue {
 
   public:
     T *queue;
-    unsigned int current_entry, queue_size;
+    unsigned int current_entry;
+    unsigned queue_size;
     PriorityQueue<T> *next_pq;
 
     PriorityQueue();

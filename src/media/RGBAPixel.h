@@ -3,7 +3,10 @@
 
 class RGBAPixel {
   public:
-    unsigned short Red, Green, Blue, Alpha;
+    unsigned short Red;
+    unsigned Green;
+    unsigned Blue;
+    unsigned Alpha;
 };
 
 #endif

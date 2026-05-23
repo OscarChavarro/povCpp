@@ -16,7 +16,9 @@ class Triangle : public Geometry {
     unsigned int Dominant_Axis : 2;
     unsigned int Inverted : 1;
     unsigned int vAxis : 2;
-    Vector3Dd P1, P2, P3;
+    Vector3Dd P1;
+    Vector3Dd P2;
+    Vector3Dd P3;
     short int Degenerate_Flag;
 
     static int computeTriangle(Triangle *triangle);

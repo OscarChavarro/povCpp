@@ -10,8 +10,8 @@ class RGBAColor;
 class LambertShader {
 public:
     static void shade(Texture *texture, RayWithSegments *lightSourceRay,
-        Vector3Dd *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-        RGBAColor *surfaceColour, double attenuation);
+        Vector3Dd *surfaceNormal, RGBAColor *color, RGBAColor *lightColor,
+        RGBAColor *surfaceColor, double attenuation);
 };
 
 #endif

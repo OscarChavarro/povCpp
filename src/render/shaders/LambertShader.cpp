@@ -5,10 +5,12 @@
 
 void
 LambertShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
-    Vector3Dd *surfaceNormal, RGBAColor *colour, RGBAColor *lightColour,
-    RGBAColor *surfaceColour, double attenuation)
+    Vector3Dd *surfaceNormal, RGBAColor *color, RGBAColor *lightColor,
+    RGBAColor *surfaceColor, double attenuation)
 {
-    double cosAngleOfIncidence, intensity, randomNumber;
+    double cosAngleOfIncidence;
+    double intensity;
+    double randomNumber;
 
     cosAngleOfIncidence =
         (*surfaceNormal).dotProduct(lightSourceRay->direction);
@@ -28,7 +30,7 @@ LambertShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
 
     intensity -= randomNumber * texture->Texture_Randomness;
 
-    colour->Red += intensity * (surfaceColour->Red) * (lightColour->Red);
-    colour->Green += intensity * (surfaceColour->Green) * (lightColour->Green);
-    colour->Blue += intensity * (surfaceColour->Blue) * (lightColour->Blue);
+    color->Red += intensity * (surfaceColor->Red) * (lightColor->Red);
+    color->Green += intensity * (surfaceColor->Green) * (lightColor->Green);
+    color->Blue += intensity * (surfaceColor->Blue) * (lightColor->Blue);
 }

@@ -5,11 +5,14 @@
 
 void
 BlinnPhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
-    Vector3Dd rEye, Vector3Dd *surfaceNormal, RGBAColor *colour,
-    RGBAColor *lightColour, RGBAColor *surfaceColour)
+    Vector3Dd rEye, Vector3Dd *surfaceNormal, RGBAColor *color,
+    RGBAColor *lightColor, RGBAColor *surfaceColor)
 {
-    double cosAngleOfIncidence, normalLength, intensity, halfwayLength,
-        roughness;
+    double cosAngleOfIncidence;
+    double normalLength;
+    double intensity;
+    double halfwayLength;
+    double roughness;
     Vector3Dd halfway;
 
     halfway = rEye.half(lightSourceRay->direction);
@@ -36,12 +39,12 @@ BlinnPhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRa
     }
     intensity *= texture->Object_Specular;
     if (texture->Metallic_Flag) {
-        colour->Red += intensity * (surfaceColour->Red);
-        colour->Green += intensity * (surfaceColour->Green);
-        colour->Blue += intensity * (surfaceColour->Blue);
+        color->Red += intensity * (surfaceColor->Red);
+        color->Green += intensity * (surfaceColor->Green);
+        color->Blue += intensity * (surfaceColor->Blue);
     } else {
-        colour->Red += intensity * (lightColour->Red);
-        colour->Green += intensity * (lightColour->Green);
-        colour->Blue += intensity * (lightColour->Blue);
+        color->Red += intensity * (lightColor->Red);
+        color->Green += intensity * (lightColor->Green);
+        color->Blue += intensity * (lightColor->Blue);
     }
 }

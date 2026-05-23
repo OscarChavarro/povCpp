@@ -247,9 +247,13 @@ WORD
 GifDecoder::decoder(int iLinewidth)
 {
     WORD linewidth;
-    UTINY *sp, *bufptr;
+    UTINY *sp;
+    UTINY *bufptr;
     UTINY *buf;
-    WORD code, fc, oc, bufcnt;
+    WORD code;
+    WORD fc;
+    WORD oc;
+    WORD bufcnt;
     WORD c;
     WORD size;
     WORD ret;

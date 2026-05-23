@@ -20,7 +20,8 @@ Quadric::allQuadricIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     Quadric *shape = (Quadric *)object;
-    double depth1, depth2;
+    double depth1;
+    double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
     int intersectionFound;

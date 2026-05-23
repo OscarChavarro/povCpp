@@ -238,7 +238,9 @@ void
 ColorTextureFixture::brick(
     double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
-    double xr, yr, zr;
+    double xr;
+    double yr;
+    double zr;
 
     xr = fabs(fmod(x, 1.0));
     yr = fabs(fmod(y, 1.0));
@@ -335,7 +337,8 @@ ColorTextureFixture::gradient(
     int debugEnabled)
 {
     RGBAColor newColour;
-    double value = 0.0, turb;
+    double value = 0.0;
+    double turb;
     Vector3Dd gradTurbulence;
 
     if ((turb = texture->Turbulence) != 0.0) {

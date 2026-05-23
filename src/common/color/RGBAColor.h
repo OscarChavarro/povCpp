@@ -3,7 +3,10 @@
 
 class RGBAColor {
   public:
-    double Red, Green, Blue, Alpha;
+    double Red;
+    double Green;
+    double Blue;
+    double Alpha;
 };
 
 #endif

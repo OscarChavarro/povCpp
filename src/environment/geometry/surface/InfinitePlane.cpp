@@ -45,7 +45,8 @@ int
 InfinitePlane::intersectPlane(
     RayWithSegments *ray, InfinitePlane *plane, double *depth)
 {
-    double normalDotOrigin, normalDotDirection;
+    double normalDotOrigin;
+    double normalDotDirection;
 
     globalStatistics.rayPlaneTests++;
     if (ray == vpRay) {

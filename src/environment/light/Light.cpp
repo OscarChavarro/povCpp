@@ -106,7 +106,8 @@ Light::cubicSpline(double low, double high, double pos)
 double
 Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
 {
-    double len, costheta;
+    double len;
+    double costheta;
     double attenuation = 1.0;
     Vector3Dd spotDirection;
 

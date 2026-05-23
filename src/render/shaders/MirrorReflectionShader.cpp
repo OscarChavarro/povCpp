@@ -10,11 +10,11 @@ extern int traceLevel;
 
 void
 MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
-    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *colour,
+    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *color,
     const TraceService *traceService)
 {
     RayWithSegments newRay;
-    RGBAColor tempColour;
+    RGBAColor tempColor;
     Vector3Dd localNormal;
     Vector3Dd normalProjection;
     Vector3Dd surfaceOffset;
@@ -43,13 +43,13 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
 
         newRay.copyContainersFrom(ray);
         traceLevel++;
-        Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
-        traceService->trace(&newRay, &tempColour);
+        traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        colour->Red += tempColour.Red * texture->Object_Reflection;
-        colour->Green += tempColour.Green * texture->Object_Reflection;
-        colour->Blue += tempColour.Blue * texture->Object_Reflection;
+        color->Red += tempColor.Red * texture->Object_Reflection;
+        color->Green += tempColor.Green * texture->Object_Reflection;
+        color->Blue += tempColor.Blue * texture->Object_Reflection;
     }
 }

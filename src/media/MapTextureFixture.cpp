@@ -55,7 +55,8 @@ MapTextureFixture::imageMap(
     /* "unwrap" object 2-d coord onto flat 2-d plane */
     /* return pixel color value at that posn on 2-d plane */
 
-    double xcoor = 0.0, ycoor = 0.0;
+    double xcoor = 0.0;
+    double ycoor = 0.0;
     int regNumber;
 
     if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor, smallTolerance)) {
@@ -77,7 +78,8 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
     double x;
     double y;
     double z;
-    double xcoor = 0.0, ycoor = 0.0;
+    double xcoor = 0.0;
+    double ycoor = 0.0;
     int regNumber = 0;
     RGBAColor colour;
     int materialNumber = 0;
@@ -137,7 +139,8 @@ MapTextureFixture::bumpMap(
     double x, double y, double z, Texture *texture, Vector3Dd *normal,
     int debugEnabled, double smallTolerance)
 {
-    double xcoor = 0.0, ycoor = 0.0;
+    double xcoor = 0.0;
+    double ycoor = 0.0;
     int index;
     int index2;
     int index3;
@@ -280,7 +283,8 @@ int
 MapTextureFixture::cylindricalImageMap(
     double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    double len, theta;
+    double len;
+    double theta;
 
     if ((image->Once_Flag) && ((y < 0.0) || (y > 1.0))) {
         return 0;
@@ -323,7 +327,9 @@ int
 MapTextureFixture::torusImageMap(
     double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    double len, phi, theta;
+    double len;
+    double phi;
+    double theta;
     double r0;
 
     r0 = image->Image_Gradient.x;
@@ -371,7 +377,9 @@ int
 MapTextureFixture::sphericalImageMap(
     double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    double len, phi, theta;
+    double len;
+    double phi;
+    double theta;
 
     /* Make sure this vector is on the unit sphere. */
     len = sqrt(x * x + y * y + z * z);
@@ -593,7 +601,10 @@ MapTextureFixture::interp(
     double greenCrn[4];
     double blueCrn[4];
     double alphaCrn[4];
-    double val1 = 0, val2 = 0, val3 = 0, val4 = 0;
+    double val1 = 0;
+    double val2 = 0;
+    double val3 = 0;
+    double val4 = 0;
 
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
@@ -672,7 +683,8 @@ MapTextureFixture::interp(
 double
 MapTextureFixture::bilinear(double *corners, double x, double y)
 {
-    double p, q;
+    double p;
+    double q;
     double val = 0.0;
 
     p = x - (int)x;
@@ -699,7 +711,8 @@ MapTextureFixture::normDist(double *corners, double x, double y)
 {
     int i;
 
-    double p, q;
+    double p;
+    double q;
     double wts[MAX_PTS];
     double sumInvWts = 0.0;
     double sumI = 0.0;

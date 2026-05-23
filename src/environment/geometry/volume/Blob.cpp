@@ -38,7 +38,8 @@ MakeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
 {
     Blob *blob = (Blob *)obj;
     int i;
-    double rad, coeff;
+    double rad;
+    double coeff;
     BlobList *temp;
 
     if (npoints < 1) {
@@ -98,7 +99,11 @@ Blob::determineInfluences(
     int j;
     int k;
     int cnt;
-    double b, t, t0, t1, disc;
+    double b;
+    double t;
+    double t0;
+    double t1;
+    double disc;
     Vector3Dd v;
     BlobInterval *intervals = blob->intervals;
 
@@ -191,7 +196,8 @@ double
 Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
 {
     int i;
-    double len, density;
+    double len;
+    double density;
     Vector3Dd v;
     BlobElement *ptr;
     Blob *blob = (Blob *)obj;
@@ -216,7 +222,8 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
 {
     int i;
     BlobElement *temp;
-    double val, dist;
+    double val;
+    double dist;
     Vector3Dd v;
     Vector3Dd n;
 
@@ -302,7 +309,11 @@ Blob::allBlobIntersections(
 {
     Blob *blob = (Blob *)object;
     Intersection localElement;
-    double dist, len, *tcoeffs, coeffs[5], roots[4];
+    double dist;
+    double len;
+    double *tcoeffs;
+    double coeffs[5];
+    double roots[4];
     int i;
     int j;
     int cnt;
@@ -312,7 +323,11 @@ Blob::allBlobIntersections(
     int rootCount;
     int inFlag;
     BlobElement *element;
-    double t0, t1, c0, c1, c2;
+    double t0;
+    double t1;
+    double c0;
+    double c1;
+    double c2;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
     BlobInterval *intervals = blob->intervals;
@@ -483,7 +498,8 @@ Blob::blobNormal(
     Vector3Dd newPoint;
     Vector3Dd v;
     int i;
-    double dist, val;
+    double dist;
+    double val;
     Blob *blob = (Blob *)object;
     BlobElement *temp;
 

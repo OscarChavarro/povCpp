@@ -13,7 +13,9 @@ class Sphere : public Geometry {
     double Inverse_Radius;
     Vector3Dd VPOtoC;
     double VPOCSquared;
-    short VPinside, VPCached, Inverted;
+    short VPinside;
+    short VPCached;
+    short Inverted;
 
     static int allSphereIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

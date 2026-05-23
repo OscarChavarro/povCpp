@@ -10,8 +10,8 @@ class RGBAColor;
 class BlinnPhongSpecularShader {
 public:
     static void shade(Texture *texture, RayWithSegments *lightSourceRay,
-        Vector3Dd rEye, Vector3Dd *surfaceNormal, RGBAColor *colour,
-        RGBAColor *lightColour, RGBAColor *surfaceColour);
+        Vector3Dd rEye, Vector3Dd *surfaceNormal, RGBAColor *color,
+        RGBAColor *lightColor, RGBAColor *surfaceColor);
 };
 
 #endif

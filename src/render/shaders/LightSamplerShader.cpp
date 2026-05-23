@@ -7,16 +7,16 @@
 void
 LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
     RayWithSegments *lightSourceRay, Vector3Dd *intersectionPoint,
-    RGBAColor *lightColour)
+    RGBAColor *lightColor)
 {
     double attenuation = 1.0;
 
-    /* Get the light source colour. */
+    /* Get the light source color. */
     if ( lightSource->Shape_Colour == 0 ) {
-        Color::makeColor(lightColour, 1.0, 1.0, 1.0);
+        Color::makeColor(lightColor, 1.0, 1.0, 1.0);
     }
     else {
-        *lightColour = *lightSource->Shape_Colour;
+        *lightColor = *lightSource->Shape_Colour;
     }
 
     lightSourceRay->position = *intersectionPoint;
@@ -32,8 +32,8 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
     attenuation = Light::attenuateLight(lightSource, lightSourceRay);
 
     /* Now scale the color by the attenuation */
-    lightColour->Red *= attenuation;
-    lightColour->Green *= attenuation;
-    lightColour->Blue *= attenuation;
+    lightColor->Red *= attenuation;
+    lightColor->Green *= attenuation;
+    lightColor->Blue *= attenuation;
 }
 
