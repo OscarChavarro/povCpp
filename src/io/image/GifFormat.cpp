@@ -17,9 +17,11 @@
 */
 
 #include "io/image/GifFormat.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "io/FileLocator.h"
+#include "common/LegacyBoolean.h"
+#include "java/io/FileConstants.h"
 #include "io/image/GifDecoder.h"
+#include <cstring>
 
 static RGBAImage *currentImage;
 static int bitmapLine;
@@ -92,7 +94,7 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
     status = 0;
     currentImage = image;
 
-    if ((bitFile = PovApp::locateFile(filename, READ_FILE_STRING)) == nullptr) {
+    if ((bitFile = FileLocator::locate(filename, READ_FILE_STRING)) == nullptr) {
         Logger::error( "Cannot open GIF file %s\n", filename);
         exit(1);
     }

@@ -12,8 +12,8 @@
 */
 
 #include "media/TextureFixture.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
@@ -25,7 +25,7 @@
 
 void
 TextureFixture::painted1(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
 
     /* Swirled()  */
@@ -37,7 +37,7 @@ TextureFixture::painted1(
     double temp;
     RGBAColor newColour;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("painted1 %g %g %g\n", x, y, z);
     }
 
@@ -72,7 +72,7 @@ TextureFixture::painted1(
 
 void
 TextureFixture::painted2(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     int brkindx;
     double turb;
@@ -104,7 +104,7 @@ TextureFixture::painted2(
 
     brkindx = (int)floorInline(x) + (int)floorInline(z);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("checker %g %g %g\n", x, y, z);
     }
 
@@ -126,7 +126,7 @@ TextureFixture::painted2(
 
 void
 TextureFixture::painted3(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     /* YOUR NAME HERE */
     ;
@@ -139,7 +139,7 @@ TextureFixture::painted3(
 /* Similar routines are ripples, dents, bumps. See txtbump.c for examples.  */
 void
 TextureFixture::bumpy1(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
 }
 
@@ -147,7 +147,7 @@ TextureFixture::bumpy1(
 /* Same as bumpy1 except use VAdd for both cases of brkindex */
 void
 TextureFixture::bumpy2(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
 }
 
@@ -155,6 +155,6 @@ TextureFixture::bumpy2(
 /* Same as bumpy2 except scale AFTER setting brkindex */
 void
 TextureFixture::bumpy3(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
 }

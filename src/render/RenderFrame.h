@@ -1,7 +1,6 @@
 #ifndef __RENDER_FRAME_H__
 #define __RENDER_FRAME_H__
 
-#include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
 #include "environment/light/Light.h"

@@ -58,8 +58,7 @@
 */
 
 #include "io/image/GifDecoder.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "io/image/GifFormat.h"
 
 /* typedef short WORD; */

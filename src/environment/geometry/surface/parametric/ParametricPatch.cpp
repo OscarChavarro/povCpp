@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "environment/material/RendererConfiguration.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
@@ -27,9 +28,7 @@ Methods Bicubic_Patch_Methods = {Composite::objectIntersect,
     ParametricBiCubicPatch::scaleBicubicPatch,
     ParametricBiCubicPatch::invertBicubicPatch};
 
-extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern RayWithSegments *vpRay;
-extern int shadowTestFlag;
 
 int maxDepthReached;
 
@@ -982,7 +981,7 @@ ParametricBiCubicPatch::bicubicPatchNormal(
             return;
         }
     }
-    if (Options & DEBUGGING) {
+    if (globalRenderingConfiguration.options & DEBUGGING) {
         printf("Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }

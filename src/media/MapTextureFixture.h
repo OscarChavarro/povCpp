@@ -1,19 +1,24 @@
 #ifndef __TXTMAP_H__
 #define __TXTMAP_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 class MapTextureFixture {
   public:
     static int map(double x, double y, double z, Texture *texture,
-        RGBAImage *image, double *xcoor, double *ycoor);
+        RGBAImage *image, double *xcoor, double *ycoor,
+        double smallTolerance);
     static void imageMap(
-        double x, double y, double z, Texture *texture, RGBAColor *colour);
-    static Texture *materialMap(Vector3Dd *intersectionPoint, Texture *texture);
+        double x, double y, double z, Texture *texture, RGBAColor *colour,
+        int debugEnabled, double smallTolerance);
+    static Texture *materialMap(
+        Vector3Dd *intersectionPoint, Texture *texture, int debugEnabled,
+        double smallTolerance);
     static void bumpMap(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal);
+        double x, double y, double z, Texture *texture, Vector3Dd *normal,
+        int debugEnabled, double smallTolerance);
 
   private:
     static int cylindricalImageMap(

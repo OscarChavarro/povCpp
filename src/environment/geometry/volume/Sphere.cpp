@@ -5,6 +5,7 @@
  * *****************************************************************************/
 
 #include "environment/geometry/volume/Sphere.h"
+#include "common/Statistics.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "media/Texture.h"
 
@@ -16,7 +17,6 @@ Methods Sphere_Methods = {Composite::objectIntersect,
     Sphere::scaleSphere, Sphere::invertSphere};
 
 extern RayWithSegments *vpRay;
-extern long raySphereTests, raySphereTestsSucceeded;
 
 //===========================================================================
 
@@ -27,7 +27,7 @@ int
 Sphere::intersectSphere(
     RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
-    raySphereTests++;
+    globalStatistics.raySphereTests++;
 
     //--------------------------------------------------------------------------
     Vector3Dd originToCenter;
@@ -81,7 +81,7 @@ Sphere::intersectSphere(
     }
 
     //--------------------------------------------------------------------------
-    raySphereTestsSucceeded++;
+    globalStatistics.raySphereTestsSucceeded++;
     return TRUE;
 }
 

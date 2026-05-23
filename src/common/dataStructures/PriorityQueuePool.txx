@@ -1,7 +1,8 @@
 #ifndef __PRIORITY_QUEUE_POOL_TXX__
 #define __PRIORITY_QUEUE_POOL_TXX__
 
-#include "app/PovApp.h"
+#include "common/logger/Logger.h"
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -24,7 +25,6 @@ PriorityQueuePool<T>::pqInit()
         newNode = new PriorityQueue<T>();
         if (newNode == nullptr) {
             Logger::error( "\nOut of memory. Cannot allocate queues");
-            PovApp::closeAll();
             exit(1);
         }
 
@@ -34,7 +34,6 @@ PriorityQueuePool<T>::pqInit()
         newNode->queue = new T[MAX_NUMBER_OF_ENTRIES];
         if (newNode->queue == nullptr) {
             Logger::error( "\nOut of memory. Cannot allocate queue entries");
-            PovApp::closeAll();
             exit(1);
         }
         newNode->current_entry = 0;
@@ -58,7 +57,6 @@ PriorityQueuePool<T>::pqPop(int indexSize)
 
     if (head == nullptr) {
         Logger::error( "\nOut of prioqs");
-        PovApp::closeAll();
         exit(1);
     }
     pq = head;

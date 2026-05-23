@@ -7,19 +7,24 @@
  *****************************************************************************/
 
 #include "io/image/TargaFormat.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "io/FileLocator.h"
+#include "environment/material/RendererConfiguration.h"
+#include "common/LegacyBoolean.h"
+#include "common/logger/Logger.h"
+#include "common/color/RGBAColor.h"
+#include "media/ImageData.h"
+#include "media/RGBAImage.h"
+#include <cmath>
 
 int targaLineNumber = 0;
 
-extern int firstLine;
 
-FileHandle *
-TargaFormat::getTargaFileHandle()
+FileInputStream *
+TargaFormat::getTargaFileInputStream()
 {
-    FileHandle *handle;
+    FileInputStream *handle;
 
-    handle = new FileHandle;
+    handle = new FileInputStream;
     if (handle == nullptr) {
         Logger::error( "Cannot allocate memory for output file handle\n");
         return (nullptr);
@@ -46,7 +51,7 @@ TargaFormat::defaultTargaFileName()
 }
 
 int
-TargaFormat::openTargaFile(FileHandle *handle, char *name, int *width,
+TargaFormat::openTargaFile(FileInputStream *handle, char *name, int *width,
     int *height, int bufferSize, int mode)
 {
     int data1;
@@ -123,9 +128,9 @@ TargaFormat::openTargaFile(FileHandle *handle, char *name, int *width,
             }
         }
 
-        putc(firstLine % 256, handle->file); /* y origin set to "First_Line" */
+        putc(globalRenderingConfiguration.firstLine % 256, handle->file); /* y origin set to "First_Line" */
 
-        putc(firstLine / 256, handle->file);
+        putc(globalRenderingConfiguration.firstLine / 256, handle->file);
 
         putc(*width % 256, handle->file); /* write width and height */
         putc(*width / 256, handle->file);
@@ -162,7 +167,7 @@ TargaFormat::openTargaFile(FileHandle *handle, char *name, int *width,
 
 void
 TargaFormat::writeTargaLine(
-    FileHandle *handle, RGBAColor *lineData, int lineNumber)
+    FileInputStream *handle, RGBAColor *lineData, int lineNumber)
 {
     int x;
 
@@ -181,7 +186,7 @@ TargaFormat::writeTargaLine(
 
 int
 TargaFormat::readTargaLine(
-    FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+    FileInputStream *handle, RGBAColor *lineData, int *lineNumber)
 {
     int x;
     int data;
@@ -219,7 +224,7 @@ TargaFormat::readTargaLine(
 }
 
 void
-TargaFormat::closeTargaFile(FileHandle *handle)
+TargaFormat::closeTargaFile(FileInputStream *handle)
 {
     if (handle->file) {
         fclose(handle->file);
@@ -230,7 +235,7 @@ TargaFormat::closeTargaFile(FileHandle *handle)
 }
 
 int
-TargaFormat::readTargaIntLine(FileHandle *handle, ImageLine *lineData)
+TargaFormat::readTargaIntLine(FileInputStream *handle, ImageLine *lineData)
 {
     int x;
     int data;
@@ -240,7 +245,6 @@ TargaFormat::readTargaIntLine(FileHandle *handle, ImageLine *lineData)
         ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
         Logger::error( "Cannot allocate memory for picture: %s\n",
             handle->filename);
-        PovApp::closeAll();
         exit(1);
     }
 
@@ -268,11 +272,10 @@ void
 TargaFormat::readTargaImage(RGBAImage *image, char *name)
 {
     int row;
-    FileHandle handle;
+    FileInputStream handle;
 
-    if ((handle.file = PovApp::locateFile(name, READ_FILE_STRING)) == nullptr) {
+    if ((handle.file = FileLocator::locate(name, READ_FILE_STRING)) == nullptr) {
         Logger::error( "Cannot open Targa file %s\n", name);
-        PovApp::closeAll();
         exit(1);
     }
 

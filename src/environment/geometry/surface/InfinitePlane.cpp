@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/surface/InfinitePlane.h"
+#include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
 Methods Plane_Methods = {Composite::objectIntersect,
@@ -15,7 +16,6 @@ Methods Plane_Methods = {Composite::objectIntersect,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
 
 extern RayWithSegments *vpRay;
-extern long rayPlaneTests, rayPlaneTestsSucceeded;
 int
 InfinitePlane::allPlaneIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
@@ -47,7 +47,7 @@ InfinitePlane::intersectPlane(
 {
     double normalDotOrigin, normalDotDirection;
 
-    rayPlaneTests++;
+    globalStatistics.rayPlaneTests++;
     if (ray == vpRay) {
         if (!plane->VPCached) {
             plane->VPNormDotOrigin =
@@ -65,7 +65,7 @@ InfinitePlane::intersectPlane(
 
         *depth = plane->VPNormDotOrigin / normalDotDirection;
         if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
-            rayPlaneTestsSucceeded++;
+            globalStatistics.rayPlaneTestsSucceeded++;
             return (TRUE);
         }
         return (FALSE);
@@ -82,7 +82,7 @@ InfinitePlane::intersectPlane(
 
     *depth = normalDotOrigin / normalDotDirection;
     if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
-        rayPlaneTestsSucceeded++;
+        globalStatistics.rayPlaneTestsSucceeded++;
         return (TRUE);
     }
     return (FALSE);

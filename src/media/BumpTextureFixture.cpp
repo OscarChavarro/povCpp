@@ -12,8 +12,8 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
 #include "media/BumpTextureFixture.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
@@ -21,7 +21,7 @@ extern unsigned short crctab[256];
 
 void
 BumpTextureFixture::ripples(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
     int i;
     Vector3Dd point;
@@ -29,7 +29,7 @@ BumpTextureFixture::ripples(
     double scalar;
     double index;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("ripples %g %g %g", x, y, z);
     }
 
@@ -47,7 +47,7 @@ BumpTextureFixture::ripples(
         index = length * texture->Frequency + texture->Phase;
         scalar = TextureUtils::cycloidal(index) * texture->Bump_Amount;
 
-        if (Options & DEBUGGING) {
+        if (debugEnabled) {
             printf(" index %g scalar %g length %g\n", index, scalar, length);
         }
 
@@ -60,7 +60,7 @@ BumpTextureFixture::ripples(
 
 void
 BumpTextureFixture::waves(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
     int i;
     Vector3Dd point;
@@ -69,7 +69,7 @@ BumpTextureFixture::waves(
     double index;
     double sinValue;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("waves %g %g %g\n", x, y, z);
     }
 
@@ -97,7 +97,7 @@ BumpTextureFixture::waves(
 
 void
 BumpTextureFixture::bumps(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
     Vector3Dd bumpTurb;
 
@@ -105,7 +105,7 @@ BumpTextureFixture::bumps(
         return; /* why are we here?? */
     }
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("bumps %g %g %g\n", x, y, z);
     }
 
@@ -121,7 +121,7 @@ dnoise() perturbation of the object normal...
 */
 void
 BumpTextureFixture::dents(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
     Vector3Dd stuccoTurb;
     double noise;
@@ -134,7 +134,7 @@ BumpTextureFixture::dents(
 
     noise = noise * noise * noise * texture->Bump_Amount;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("dents %g %g %g noise %g\n", x, y, z, noise);
     }
 
@@ -162,7 +162,7 @@ BumpTextureFixture::dents(
 
 void
 BumpTextureFixture::wrinkles(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
 {
     int i;
     double scale = 1.0;
@@ -173,7 +173,7 @@ BumpTextureFixture::wrinkles(
         return; /* why are we here?? */
     }
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("wrinkles %g %g %g\n", x, y, z);
     }
 

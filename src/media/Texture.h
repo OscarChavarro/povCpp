@@ -9,15 +9,13 @@
  *****************************************************************************/
 
 #include "common/color/Color.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/RGBAImage.h"
 #include "media/RGBAPixel.h"
 #include "media/TextureUtils.h"
 
-extern long callsToNoise;
-extern long callsToDNoise;
 
 class Texture {
   public:

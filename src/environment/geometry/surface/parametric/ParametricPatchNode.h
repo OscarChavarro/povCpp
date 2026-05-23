@@ -1,7 +1,7 @@
 #ifndef __PARAMETRIC_PATCH_NODE_H__
 #define __PARAMETRIC_PATCH_NODE_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
 class ParametricPatchNode {

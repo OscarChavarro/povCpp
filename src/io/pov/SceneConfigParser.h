@@ -1,9 +1,9 @@
 #ifndef __SCENE_CONFIG_PARSER_H__
 #define __SCENE_CONFIG_PARSER_H__
 
-class Camera;
+#include "io/pov/ParserConstants.h"
 
-typedef int CONSTANT;
+class Camera;
 
 class SceneConfigParser {
   public:

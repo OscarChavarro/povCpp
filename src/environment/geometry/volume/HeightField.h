@@ -1,8 +1,7 @@
 #ifndef __HEIGHT_FIELD_H__
 #define __HEIGHT_FIELD_H__
 
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"

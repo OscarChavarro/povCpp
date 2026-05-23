@@ -1,8 +1,7 @@
 #ifndef __PARAMETRIC_PATCH_H__
 #define __PARAMETRIC_PATCH_H__
 
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 

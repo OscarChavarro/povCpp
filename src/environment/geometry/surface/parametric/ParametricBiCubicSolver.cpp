@@ -1,13 +1,12 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
+#include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 
-extern long rayBicubicTests, rayBicubicTestsSucceeded;
 extern RayWithSegments *vpRay;
-extern int shadowTestFlag;
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
@@ -309,7 +308,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     int intersectionFound;
 
     intersectionFound = 0;
-    rayBicubicTests++;
+    globalStatistics.rayBicubicTests++;
     if (ray == vpRay) {
         shape->Intersection_Count = 0;
     }
@@ -334,10 +333,10 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         exit(1);
     }
     if (cnt > 0) {
-        rayBicubicTestsSucceeded++;
+        globalStatistics.rayBicubicTestsSucceeded++;
     }
     for (i = 0; i < cnt; i++) {
-        if (!shadowTestFlag) {
+        if (!ray->isShadowRay) {
             shape->Intersection_Count++;
         }
         localElement.Depth = depths[i];

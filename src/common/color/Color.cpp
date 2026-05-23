@@ -5,8 +5,8 @@
  *
  *****************************************************************************/
 
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include "common/color/Color.h"
 
 inline double
 Color::Color::fabsInline(double x)

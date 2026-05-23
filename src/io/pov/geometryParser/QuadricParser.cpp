@@ -1,5 +1,4 @@
 #include "io/pov/geometryParser/QuadricParser.h"
-#include "app/PovApp.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Quadric.h"

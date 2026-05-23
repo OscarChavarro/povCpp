@@ -7,9 +7,11 @@
  *****************************************************************************/
 
 #include "io/Tokenizer.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "io/FileLocator.h"
+#include "common/LegacyBoolean.h"
+#include "common/logger/Logger.h"
 #include <cctype>
+#include <cstring>
 
 /* This module tokenizes the input file and sends the tokens created
 to the parser (the second stage).  Tokens sent to the parser contain a
@@ -98,12 +100,12 @@ than enough. */
 
 /* Now defined in POVRAY.c */
 extern int maxSymbols;
+static int caseSensitiveFlag = 0;
 
 int tokenCount = 0, lineCount = 0; /* moved here to allow reinitialization */
 
 char **symbolTable;
 int numberOfSymbols;
-extern int caseSensitiveFlag; /* defined & init in povray.c */
 
 static constexpr int MAX_INCLUDE_FILES = 10;
 
@@ -114,6 +116,12 @@ static int globalIncludeFileIndex;
 TokenStruct globalToken;
 
 void
+Tokenizer::setCaseSensitiveIdentifiers(int mode)
+{
+    caseSensitiveFlag = mode;
+}
+
+void
 Tokenizer::initializeTokenizer(char *filename)
 {
     symbolTable = nullptr;
@@ -122,7 +130,7 @@ Tokenizer::initializeTokenizer(char *filename)
     globalIncludeFileIndex = 0;
     globalDataFile = &globalIncludeFiles[0];
 
-    globalDataFile->File = PovApp::locateFile(filename, "r");
+    globalDataFile->File = FileLocator::locate(filename, "r");
     if (globalDataFile->File == nullptr) {
         Logger::error("Cannot open input file\n");
         exit(1);
@@ -178,7 +186,6 @@ Tokenizer::getToken()
     int c;
     int c2;
     if (stopFlag) {
-        PovApp::closeAll();
         exit(1);
     }
     if (globalToken.Unget_Token) {
@@ -478,7 +485,7 @@ Tokenizer::getToken()
 
             strcpy(globalDataFile->Filename, globalToken.Token_String);
 
-            if ((globalDataFile->File = PovApp::locateFile(
+            if ((globalDataFile->File = FileLocator::locate(
                      globalToken.Token_String, "r")) == nullptr) {
                 Logger::error("Cannot open include file: %s\n",
                     globalToken.Token_String);
@@ -733,7 +740,7 @@ DataFile::readFloat()
     this->endString();
 
     Tokenizer::writeToken(FLOAT_TOKEN, globalDataFile);
-    if (sscanf(string, DBL_FORMAT_STRING, &globalToken.Token_Float) == 0) {
+    if (sscanf(string, "%lf", &globalToken.Token_Float) == 0) {
         return (FALSE);
     }
 

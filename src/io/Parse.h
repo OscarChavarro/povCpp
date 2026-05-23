@@ -1,6 +1,7 @@
 #ifndef __PARSE_H__
 #define __PARSE_H__
 
+#include "io/pov/ParserConstants.h"
 #include "io/pov/geometryParser/BicubicPatchParser.h"
 #include "io/pov/geometryParser/BlobParser.h"
 #include "io/pov/geometryParser/BoxParser.h"

@@ -1,7 +1,7 @@
 #ifndef __GIFDECOD_H__
 #define __GIFDECOD_H__
 
-#include "common/FrameConfig.h"
+typedef short WORD;
 
 class GifDecoder {
   public:

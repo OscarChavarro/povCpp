@@ -13,8 +13,8 @@
 */
 
 #include "media/ColorTextureFixture.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/MapTextureFixture.h"
 #include "media/Texture.h"
@@ -24,7 +24,8 @@ static constexpr double COORDINATE_LIMIT = 1.0e17;
 
 void
 ColorTextureFixture::colourAt(
-    RGBAColor *colour, Texture *texture, Vector3Dd *intersectionPoint)
+    RGBAColor *colour, Texture *texture, Vector3Dd *intersectionPoint,
+    int debugEnabled, double smallTolerance)
 {
     double x;
     double y;
@@ -66,74 +67,75 @@ ColorTextureFixture::colourAt(
         break;
 
     case BOZO_TEXTURE:
-        ColorTextureFixture::bozo(x, y, z, texture, colour);
+        ColorTextureFixture::bozo(x, y, z, texture, colour, debugEnabled);
         break;
 
     case MARBLE_TEXTURE:
-        ColorTextureFixture::marble(x, y, z, texture, colour);
+        ColorTextureFixture::marble(x, y, z, texture, colour, debugEnabled);
         break;
 
     case WOOD_TEXTURE:
-        ColorTextureFixture::wood(x, y, z, texture, colour);
+        ColorTextureFixture::wood(x, y, z, texture, colour, debugEnabled);
         break;
 
     case BRICK_TEXTURE:
-        ColorTextureFixture::brick(x, y, z, texture, colour);
+        ColorTextureFixture::brick(x, y, z, texture, colour, debugEnabled);
         break;
 
     case CHECKER_TEXTURE:
-        ColorTextureFixture::checker(x, y, z, texture, colour);
+        ColorTextureFixture::checker(x, y, z, texture, colour, debugEnabled, smallTolerance);
         break;
 
     case CHECKER_TEXTURE_TEXTURE:
-        ColorTextureFixture::checkerTexture(x, y, z, texture, colour);
+        ColorTextureFixture::checkerTexture(x, y, z, texture, colour, debugEnabled, smallTolerance);
         break;
 
     case SPOTTED_TEXTURE:
-        ColorTextureFixture::spotted(x, y, z, texture, colour);
+        ColorTextureFixture::spotted(x, y, z, texture, colour, debugEnabled);
         break;
 
     case AGATE_TEXTURE:
-        ColorTextureFixture::agate(x, y, z, texture, colour);
+        ColorTextureFixture::agate(x, y, z, texture, colour, debugEnabled);
         break;
 
     case GRANITE_TEXTURE:
-        ColorTextureFixture::granite(x, y, z, texture, colour);
+        ColorTextureFixture::granite(x, y, z, texture, colour, debugEnabled);
         break;
 
     case GRADIENT_TEXTURE:
-        ColorTextureFixture::gradient(x, y, z, texture, colour);
+        ColorTextureFixture::gradient(x, y, z, texture, colour, debugEnabled);
         break;
 
     case IMAGEMAP_TEXTURE:
-        MapTextureFixture::imageMap(x, y, z, texture, colour);
+        MapTextureFixture::imageMap(
+            x, y, z, texture, colour, debugEnabled, smallTolerance);
         break;
 
     case ONION_TEXTURE:
-        ColorTextureFixture::onion(x, y, z, texture, colour);
+        ColorTextureFixture::onion(x, y, z, texture, colour, debugEnabled);
         break;
 
     case LEOPARD_TEXTURE:
-        ColorTextureFixture::leopard(x, y, z, texture, colour);
+        ColorTextureFixture::leopard(x, y, z, texture, colour, debugEnabled);
         break;
 
     case PAINTED1_TEXTURE:
-        TextureFixture::painted1(x, y, z, texture, colour);
+        TextureFixture::painted1(x, y, z, texture, colour, debugEnabled);
         break;
 
     case PAINTED2_TEXTURE:
-        TextureFixture::painted2(x, y, z, texture, colour);
+        TextureFixture::painted2(x, y, z, texture, colour, debugEnabled);
         break;
 
     case PAINTED3_TEXTURE:
-        TextureFixture::painted3(x, y, z, texture, colour);
+        TextureFixture::painted3(x, y, z, texture, colour, debugEnabled);
         break;
     }
 }
 
 void
 ColorTextureFixture::agate(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     double noise;
     double hue;
@@ -146,7 +148,7 @@ ColorTextureFixture::agate(
     noise *= 0.5;
     noise = pow(noise, 0.77);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("agate %g %g %g noise %g\n", x, y, z, noise);
     }
 
@@ -178,14 +180,14 @@ ColorTextureFixture::agate(
 
 void
 ColorTextureFixture::bozo(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     double noise;
     double turb;
     RGBAColor newColour;
     Vector3Dd bozoTurbulence;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("bozo %g %g %g ", x, y, z);
     }
 
@@ -198,7 +200,7 @@ ColorTextureFixture::bozo(
 
     noise = TextureUtils::Noise(x, y, z);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("noise %g\n", noise);
     }
 
@@ -233,7 +235,7 @@ ColorTextureFixture::bozo(
 
 void
 ColorTextureFixture::brick(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     double xr, yr, zr;
 
@@ -243,7 +245,7 @@ ColorTextureFixture::brick(
 
     *colour = *texture->Colour2;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("brick %g %g %g\n", x, y, z);
     }
 
@@ -261,21 +263,21 @@ ColorTextureFixture::brick(
 }
 
 void
-ColorTextureFixture::checker(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
+    RGBAColor *colour, int debugEnabled, double smallTolerance)
 {
     int brkindx;
 
-    x += Small_Tolerance; /* add a small offset to x, y, z, axes to prevent
+    x += smallTolerance; /* add a small offset to x, y, z, axes to prevent
                              noise */
-    y += Small_Tolerance;
-    z += Small_Tolerance;
+    y += smallTolerance;
+    z += smallTolerance;
 
     /* AAC: was just x + z */
     /* AAC: Small_Tolerance added to get around Microsoft C (int) bug */
     brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("checker %g %g %g\n", x, y, z);
     }
 
@@ -287,20 +289,21 @@ ColorTextureFixture::checker(
 }
 
 void
-ColorTextureFixture::checkerTexture(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+ColorTextureFixture::checkerTexture(double x, double y, double z,
+    Texture *texture, RGBAColor *colour, int debugEnabled,
+    double smallTolerance)
 {
     int brkindx;
     Vector3Dd point;
 
-    x += Small_Tolerance; /* add a small offset to x, y, z, axes to prevent
+    x += smallTolerance; /* add a small offset to x, y, z, axes to prevent
                              noise */
-    y += Small_Tolerance;
-    z += Small_Tolerance;
+    y += smallTolerance;
+    z += smallTolerance;
 
     brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("checker_texture %g %g %g\n", x, y, z);
     }
 
@@ -308,10 +311,12 @@ ColorTextureFixture::checkerTexture(
 
     if (brkindx & 1) {
         ColorTextureFixture::colourAt(
-            colour, ((Texture *)texture->Colour1), &point);
+            colour, ((Texture *)texture->Colour1), &point, debugEnabled,
+            smallTolerance);
     } else {
         ColorTextureFixture::colourAt(
-            colour, ((Texture *)texture->Colour2), &point);
+            colour, ((Texture *)texture->Colour2), &point, debugEnabled,
+            smallTolerance);
     }
 }
 
@@ -325,7 +330,8 @@ ColorTextureFixture::checkerTexture(
 */
 void
 ColorTextureFixture::gradient(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour,
+    int debugEnabled)
 {
     RGBAColor newColour;
     double value = 0.0, turb;
@@ -355,7 +361,7 @@ ColorTextureFixture::gradient(
     }
     value = ((value > 1.0) ? fmod(value, 1.0) : value); /* clamp to 1.0 */
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("gradient %g %g %g value %g\n", x, y, z, value);
     }
 
@@ -373,7 +379,7 @@ ColorTextureFixture::gradient(
 */
 void
 ColorTextureFixture::granite(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     int i;
     double temp;
@@ -388,7 +394,7 @@ ColorTextureFixture::granite(
         noise += temp / freq;
     }
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("granite %g %g %g noise %g\n", x, y, z, noise);
     }
 
@@ -408,7 +414,7 @@ ColorTextureFixture::granite(
 
 void
 ColorTextureFixture::marble(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     double noise;
     double hue;
@@ -418,7 +424,7 @@ ColorTextureFixture::marble(
         x + TextureUtils::Turbulence(x, y, z, texture->Octaves) *
                 texture->Turbulence);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("marble %g %g %g noise %g \n", x, y, z, noise);
     }
 
@@ -450,14 +456,14 @@ ColorTextureFixture::marble(
 */
 void
 ColorTextureFixture::spotted(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     double noise;
     RGBAColor newColour;
 
     noise = TextureUtils::Noise(x, y, z);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("spotted %g %g %g\n", x, y, z);
     }
 
@@ -477,7 +483,7 @@ ColorTextureFixture::spotted(
 
 void
 ColorTextureFixture::wood(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     double noise;
     double length;
@@ -487,7 +493,7 @@ ColorTextureFixture::wood(
 
     TextureUtils::DTurbulence(&woodTurbulence, x, y, z, texture->Octaves);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("wood %g %g %g", x, y, z);
     }
 
@@ -506,7 +512,7 @@ ColorTextureFixture::wood(
 
     noise = TextureUtils::triangleWave(length);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("noise %g\n", noise);
     }
 
@@ -534,7 +540,7 @@ ColorTextureFixture::wood(
 /* SWT 7/18/91 */
 void
 ColorTextureFixture::leopard(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     /* The variable noise is not used as noise in this function */
     double noise;
@@ -545,7 +551,7 @@ ColorTextureFixture::leopard(
     RGBAColor newColour;
     Vector3Dd leopardTurbulence;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("leopard %g %g %g ", x, y, z);
     }
 
@@ -564,11 +570,11 @@ ColorTextureFixture::leopard(
     temp3 = sin(z);
     noise = VectorOps::sqr((temp1 + temp2 + temp3) / 3);
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("temp123 %g %g %g  ", temp1, temp2, temp3);
     }
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("noise %g\n", noise);
     }
 
@@ -589,7 +595,7 @@ ColorTextureFixture::leopard(
 /* SWT 7/18/91 */
 void
 ColorTextureFixture::onion(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
 {
     /* The variable noise is not used as noise in this function */
     double noise;
@@ -597,7 +603,7 @@ ColorTextureFixture::onion(
     RGBAColor newColour;
     Vector3Dd onionTurbulence;
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("onion %g %g %g ", x, y, z);
     }
 
@@ -619,7 +625,7 @@ ColorTextureFixture::onion(
         std::sqrt(VectorOps::sqr(x) + VectorOps::sqr(y) + VectorOps::sqr(z)),
         1.0));
 
-    if (Options & DEBUGGING) {
+    if (debugEnabled) {
         printf("noise %g\n", noise);
     }
 

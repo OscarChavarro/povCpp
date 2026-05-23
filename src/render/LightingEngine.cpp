@@ -6,13 +6,12 @@
  ****************************************************************************/
 
 #include "render/LightingEngine.h"
-#include "app/PovApp.h"
 #include "common/color/Color.h"
-#include "common/FrameConfig.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Intersection.h"
+#include "environment/geometry/GeometryConstants.h"
 #include "environment/light/Light.h"
 #include "media/BumpTextureFixture.h"
 #include "media/ColorTextureFixture.h"
@@ -20,15 +19,11 @@
 #include "media/TextureFixture.h"
 #include "render/RenderEngine.h"
 #include "render/RenderFrame.h"
+#include "environment/material/RendererConfiguration.h"
+#include "common/Statistics.h"
 
 extern int traceLevel;
 extern RenderFrame globalFrame;
-extern unsigned int Options;
-extern int quality;
-extern int shadowTestFlag;
-extern long shadowRayTests, shadowRaysSucceeded;
-extern long reflectedRaysTraced, refractedRaysTraced;
-extern long transmittedRaysTraced;
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
@@ -234,6 +229,7 @@ LightingEngine::perturbNormal(Vector3Dd *newNormal, Texture *texture,
     double x;
     double y;
     double z;
+    const int debugEnabled = (globalRenderingConfiguration.options & DEBUGGING);
 
     if (texture->Bump_Number == NO_BUMPS) {
         *newNormal = *surfaceNormal;
@@ -254,39 +250,41 @@ LightingEngine::perturbNormal(Vector3Dd *newNormal, Texture *texture,
     switch (texture->Bump_Number) {
 
     case WAVES:
-        BumpTextureFixture::waves(x, y, z, texture, newNormal);
+        BumpTextureFixture::waves(x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case RIPPLES:
-        BumpTextureFixture::ripples(x, y, z, texture, newNormal);
+        BumpTextureFixture::ripples(x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case WRINKLES:
-        BumpTextureFixture::wrinkles(x, y, z, texture, newNormal);
+        BumpTextureFixture::wrinkles(
+            x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case BUMPS:
-        BumpTextureFixture::bumps(x, y, z, texture, newNormal);
+        BumpTextureFixture::bumps(x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case DENTS:
-        BumpTextureFixture::dents(x, y, z, texture, newNormal);
+        BumpTextureFixture::dents(x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case BUMPY1:
-        TextureFixture::bumpy1(x, y, z, texture, newNormal);
+        TextureFixture::bumpy1(x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case BUMPY2:
-        TextureFixture::bumpy2(x, y, z, texture, newNormal);
+        TextureFixture::bumpy2(x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case BUMPY3:
-        TextureFixture::bumpy3(x, y, z, texture, newNormal);
+        TextureFixture::bumpy3(x, y, z, texture, newNormal, debugEnabled);
         break;
 
     case BUMPMAP:
-        MapTextureFixture::bumpMap(x, y, z, texture, newNormal);
+        MapTextureFixture::bumpMap(
+            x, y, z, texture, newNormal, debugEnabled, Small_Tolerance);
         break;
     }
 }
@@ -336,6 +334,7 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
     }
 
     localQueue = IntersectionPriorityQueuePool::pqPop(128);
+    lightSourceRay.isShadowRay = TRUE;
 
     for (lightSource = globalFrame.Light_Sources; lightSource != nullptr;
         lightSource = lightSource->Next_Light_Source) {
@@ -345,13 +344,12 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
             intersectionPoint, &lightColour);
 
         /* What objects does this ray intersect? */
-        if (quality > 3) {
-            shadowTestFlag = TRUE;
+        if (globalRenderingConfiguration.quality > 3) {
             for (blockingObject = globalFrame.Objects;
                 blockingObject != nullptr;
                 blockingObject = blockingObject->Next_Object) {
 
-                shadowRayTests++;
+                globalStatistics.shadowRayTests++;
                 for (GeometryOperations::allIntersections(
                          blockingObject, &lightSourceRay, localQueue);
                     (localIntersection = localQueue->getHighest()) != nullptr;
@@ -375,7 +373,6 @@ LightingEngine::diffuse(Texture *texture, Vector3Dd *intersectionPoint,
                     break;
                 }
             }
-            shadowTestFlag = FALSE;
         }
 
         /* If light source was not blocked by any intervening object, then
@@ -414,7 +411,7 @@ LightingEngine::reflect(Texture *texture, Vector3Dd *intersectionPoint,
     double normalComponent;
 
     if (texture->Object_Reflection != 0.0) {
-        reflectedRaysTraced++;
+        globalStatistics.reflectedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;
@@ -465,7 +462,7 @@ LightingEngine::refract(Texture *texture, Vector3Dd *intersectionPoint,
 
         newRay.copyContainersFrom(ray);
         traceLevel++;
-        transmittedRaysTraced++;
+        globalStatistics.transmittedRaysTraced++;
         Color::makeColor(&tempColour, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
         RenderEngine::trace(&newRay, &tempColour);
@@ -474,7 +471,7 @@ LightingEngine::refract(Texture *texture, Vector3Dd *intersectionPoint,
         (colour->Green) += tempColour.Green;
         (colour->Blue) += tempColour.Blue;
     } else {
-        refractedRaysTraced++;
+        globalStatistics.refractedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
         if (normalComponent <= 0.0) {
             localNormal.x = surfaceNormal->x;
@@ -563,7 +560,7 @@ of the object and how much is transmited through. */
         texture = rayIntersection->Object->Object_Texture;
     }
 
-    if (quality <= 1) {
+    if (globalRenderingConfiguration.quality <= 1) {
         surfaceColour->Alpha = 0.0;
 
         colour->Red += surfaceColour->Red * filterColour->Alpha;
@@ -575,7 +572,7 @@ of the object and how much is transmited through. */
     GeometryOperations::normal(&surfaceNormal,
         (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
 
-    if (quality >= 8) {
+    if (globalRenderingConfiguration.quality >= 8) {
         perturbNormal(
             &surfaceNormal, texture, &rayIntersection->Point, &surfaceNormal);
     }
@@ -594,7 +591,7 @@ of the object and how much is transmited through. */
     colour->Red += emittedColour.Red;
     colour->Green += emittedColour.Green;
     colour->Blue += emittedColour.Blue;
-    if (quality >= 8) {
+    if (globalRenderingConfiguration.quality >= 8) {
         reflect(texture, &rayIntersection->Point, ray, &surfaceNormal, colour);
     }
 }
@@ -611,12 +608,13 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
     Vector3Dd surfaceNormal;
     double normalDirection;
     int surface;
+    const int debugEnabled = (globalRenderingConfiguration.options & DEBUGGING);
 
     if (!shadowRay) {
         Color::makeColor(colour, 0.0, 0.0, 0.0);
     }
 
-    if (Options & DEBUGGING) {
+    if (globalRenderingConfiguration.options & DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
             printf("Depth: %f Object %d Colour %f %f %f ",
                 rayIntersection->Depth, rayIntersection->Shape->Type,
@@ -639,14 +637,14 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->Texture_Number == MATERIAL_MAP_TEXTURE) {
-        texture =
-            MapTextureFixture::materialMap(&rayIntersection->Point, texture);
+        texture = MapTextureFixture::materialMap(
+            &rayIntersection->Point, texture, debugEnabled, Small_Tolerance);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
      */
 
-    if (shadowRay && (quality <= 5)) {
+    if (shadowRay && (globalRenderingConfiguration.quality <= 5)) {
         return;
     }
 
@@ -659,7 +657,7 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
         surface++, tempTexture = tempTexture->Next_Texture) {
 
         Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
-        if (quality <= 5) {
+        if (globalRenderingConfiguration.quality <= 5) {
             if (rayIntersection->Shape->Shape_Colour != nullptr) {
                 surfaceColour = *rayIntersection->Shape->Shape_Colour;
             } else if (rayIntersection->Object->Object_Colour != nullptr) {
@@ -669,7 +667,8 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
             }
         } else {
             ColorTextureFixture::colourAt(
-                &surfaceColour, tempTexture, &rayIntersection->Point);
+                &surfaceColour, tempTexture, &rayIntersection->Point,
+                debugEnabled, Small_Tolerance);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
@@ -678,7 +677,7 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
                 &surfaceColour, &filterColour, colour);
         }
 
-        if (Options & DEBUGGING) {
+        if (globalRenderingConfiguration.options & DEBUGGING) {
             printf("Surface %d\n", surface);
             printf("    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,
                 surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);
@@ -719,14 +718,14 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
         return;
     }
 
-    if ((filterColour.Alpha > 0.01) && (quality > 5)) {
+    if ((filterColour.Alpha > 0.01) && (globalRenderingConfiguration.quality > 5)) {
         Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
 
         if (texture->Object_Refraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
                 (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
 
-            if (quality > 7) {
+            if (globalRenderingConfiguration.quality > 7) {
                 perturbNormal(&surfaceNormal, texture, &rayIntersection->Point,
                     &surfaceNormal);
             }

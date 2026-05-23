@@ -21,15 +21,19 @@
  *****************************************************************************/
 
 #include "io/image/DumpFormat.h"
-#include "app/PovApp.h"
-#include "environment/geometry/GeometryOperations.h"
+#include "common/color/RGBAColor.h"
+#include "io/FileLocator.h"
+#include "common/logger/Logger.h"
+#include "media/ImageData.h"
+#include "media/RGBAImage.h"
+#include <cmath>
 
-FileHandle *
-DumpFormat::getDumpFileHandle()
+FileInputStream *
+DumpFormat::getDumpFileInputStream()
 {
-    FileHandle *handle;
+    FileInputStream *handle;
 
-    handle = new FileHandle;
+    handle = new FileInputStream;
     if (handle == nullptr) {
         Logger::error( "Cannot allocate memory for output file handle\n");
         return (nullptr);
@@ -51,7 +55,7 @@ DumpFormat::defaultDumpFileName()
 }
 
 int
-DumpFormat::openDumpFile(FileHandle *handle, char *name, int *width,
+DumpFormat::openDumpFile(FileInputStream *handle, char *name, int *width,
     int *height, int bufferSize, int mode)
 {
     int data1;
@@ -139,7 +143,7 @@ DumpFormat::openDumpFile(FileHandle *handle, char *name, int *width,
 
 void
 DumpFormat::writeDumpLine(
-    FileHandle *handle, RGBAColor *lineData, int lineNumber)
+    FileInputStream *handle, RGBAColor *lineData, int lineNumber)
 {
     int x;
 
@@ -167,7 +171,7 @@ DumpFormat::writeDumpLine(
 
 int
 DumpFormat::readDumpLine(
-    FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+    FileInputStream *handle, RGBAColor *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -214,7 +218,7 @@ DumpFormat::readDumpLine(
 
 int
 DumpFormat::readDumpIntLine(
-    FileHandle *handle, ImageLine *lineData, int *lineNumber)
+    FileInputStream *handle, ImageLine *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -237,7 +241,6 @@ DumpFormat::readDumpIntLine(
         ((lineData->blue = new unsigned char[handle->width]) == nullptr)) {
         Logger::error( "Cannot allocate memory for picture: %s\n",
             handle->filename);
-        PovApp::closeAll();
         exit(1);
     }
 
@@ -275,7 +278,7 @@ DumpFormat::readDumpIntLine(
 }
 
 void
-DumpFormat::closeDumpFile(FileHandle *handle)
+DumpFormat::closeDumpFile(FileInputStream *handle)
 {
     if (handle->file) {
         fclose(handle->file);
@@ -293,11 +296,10 @@ DumpFormat::readDumpImage(RGBAImage *image, char *name)
     int data1;
     int data2;
     ImageLine line;
-    FileHandle handle;
+    FileInputStream handle;
 
-    if ((handle.file = PovApp::locateFile(name, READ_FILE_STRING)) == nullptr) {
+    if ((handle.file = FileLocator::locate(name, READ_FILE_STRING)) == nullptr) {
         Logger::error( "Cannot open dump file %s\n", name);
-        PovApp::closeAll();
         exit(1);
     }
 
@@ -305,7 +307,6 @@ DumpFormat::readDumpImage(RGBAImage *image, char *name)
         ((data2 = getc(handle.file)) == EOF)) {
 
         Logger::error( "Cannot open dump file %s\n", name);
-        PovApp::closeAll();
         exit(1);
     }
 
@@ -316,7 +317,6 @@ DumpFormat::readDumpImage(RGBAImage *image, char *name)
         ((data2 = getc(handle.file)) == EOF)) {
 
         Logger::error( "Cannot open dump file %s\n", name);
-        PovApp::closeAll();
         exit(1);
     }
 
@@ -344,6 +344,5 @@ DumpFormat::readDumpImage(RGBAImage *image, char *name)
     if (rc == 0) {
         return;
     }
-    PovApp::closeAll();
     exit(1);
 }

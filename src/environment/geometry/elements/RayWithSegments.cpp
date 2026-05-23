@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "app/PovApp.h"
+#include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 
 inline void
@@ -43,6 +43,7 @@ void
 RayWithSegments::initializeContainers()
 {
     this->containingIndex = -1;
+    this->isShadowRay = FALSE;
 }
 
 void
@@ -53,9 +54,9 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
     if ((this->containingIndex = sourceRay->containingIndex) >=
         MAX_CONTAINING_OBJECTS) {
         Logger::error( "ERROR - Containing Index too high\n");
-        PovApp::closeAll();
         exit(1);
     }
+    this->isShadowRay = sourceRay->isShadowRay;
 
     for (i = 0; i < MAX_CONTAINING_OBJECTS; i++) {
         this->containingTextures[i] = sourceRay->containingTextures[i];
@@ -70,7 +71,6 @@ RayWithSegments::enterContainingMedium(Texture *texture)
 
     if ((index = ++(this->containingIndex)) >= MAX_CONTAINING_OBJECTS) {
         Logger::error( "Too many nested refracting objects\n");
-        PovApp::closeAll();
         exit(1);
     }
 
@@ -83,7 +83,6 @@ RayWithSegments::exitContainingMedium()
 {
     if (--(this->containingIndex) < -1) {
         Logger::error( "Too many exits from refractions\n");
-        PovApp::closeAll();
         exit(1);
     }
 }

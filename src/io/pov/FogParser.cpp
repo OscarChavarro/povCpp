@@ -1,5 +1,4 @@
 #include "io/pov/FogParser.h"
-#include "app/PovApp.h"
 #include "io/pov/Parse.h"
 #include "render/RenderFrame.h"
 

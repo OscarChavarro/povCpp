@@ -20,19 +20,22 @@
  *****************************************************************************/
 
 #include "io/image/RawFormat.h"
-#include "app/PovApp.h"
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
+#include "common/logger/Logger.h"
+#include "common/color/RGBAColor.h"
+#include <cmath>
+#include <cstring>
 
 class RAW_FILE_HANDLE {
   public:
-    FileHandle root;
+    FileInputStream root;
     FILE *redFile, *greenFile, *blueFile;
     char *redBuffer, *greenBuffer, *blueBuffer;
     int lineNumber;
 };
 
-FileHandle *
-RawFormat::getRawFileHandle()
+FileInputStream *
+RawFormat::getRawFileInputStream()
 {
     RAW_FILE_HANDLE *handle;
 
@@ -47,7 +50,7 @@ RawFormat::getRawFileHandle()
     handle->root.Write_Line_p = RawFormat::writeRawLine;
     handle->root.Read_Line_p = RawFormat::readRawLine;
     handle->root.Close_File_p = RawFormat::closeRawFile;
-    return ((FileHandle *)handle);
+    return ((FileInputStream *)handle);
 }
 
 static char defaultNameData[] = "data";
@@ -59,7 +62,7 @@ RawFormat::defaultRawFileName()
 }
 
 int
-RawFormat::openRawFile(FileHandle *handle, char *name, int *width, int *height,
+RawFormat::openRawFile(FileInputStream *handle, char *name, int *width, int *height,
     int bufferSize, int mode)
 {
     RAW_FILE_HANDLE *rawHandle;
@@ -257,7 +260,7 @@ RawFormat::openRawFile(FileHandle *handle, char *name, int *width, int *height,
 }
 
 void
-RawFormat::writeRawLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
+RawFormat::writeRawLine(FileInputStream *handle, RGBAColor *lineData, int lineNumber)
 {
     int x;
     RAW_FILE_HANDLE *rawHandle;
@@ -299,7 +302,7 @@ RawFormat::writeRawLine(FileHandle *handle, RGBAColor *lineData, int lineNumber)
 }
 
 int
-RawFormat::readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
+RawFormat::readRawLine(FileInputStream *handle, RGBAColor *lineData, int *lineNumber)
 {
     int data;
     int i;
@@ -339,7 +342,7 @@ RawFormat::readRawLine(FileHandle *handle, RGBAColor *lineData, int *lineNumber)
 }
 
 void
-RawFormat::closeRawFile(FileHandle *handle)
+RawFormat::closeRawFile(FileInputStream *handle)
 {
     RAW_FILE_HANDLE *rawHandle;
 

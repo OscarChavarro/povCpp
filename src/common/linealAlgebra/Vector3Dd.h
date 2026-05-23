@@ -1,7 +1,7 @@
 #ifndef __VECTOR3DD_H__
 #define __VECTOR3DD_H__
 
-#include "common/FrameConfig.h"
+#include "common/LegacyBoolean.h"
 #include <cmath>
 
 extern double VTemp;

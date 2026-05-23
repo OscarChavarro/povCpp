@@ -18,6 +18,7 @@ class RayWithSegments : public Ray {
     Texture *containingTextures[MAX_CONTAINING_OBJECTS];
     double containingIORs[MAX_CONTAINING_OBJECTS];
     int quadricConstantsCached;
+    int isShadowRay;
 
     void makeRay();
     void initializeContainers();

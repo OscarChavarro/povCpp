@@ -9,14 +9,16 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Box.h"
+#include "common/Config.h"
+#include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
+#include <cstring>
 Methods Box_Methods = {Composite::objectIntersect, Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
     Box::rotateBox, Box::scaleBox, Box::invertBox};
 
 extern RayWithSegments *vpRay;
-extern long rayBoxTests, rayBoxTestsSucceeded;
 
 int
 Box::closeTo(double x, double y)
@@ -66,7 +68,7 @@ Box::intersectBoxx(
     Vector3Dd p;
     Vector3Dd d;
 
-    rayBoxTests++;
+    globalStatistics.rayBoxTests++;
 
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
@@ -204,7 +206,7 @@ Box::intersectBoxx(
         *depth2 = *depth1;
     }
 
-    rayBoxTestsSucceeded++;
+    globalStatistics.rayBoxTestsSucceeded++;
     return (TRUE);
 }
 
