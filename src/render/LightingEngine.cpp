@@ -6,6 +6,7 @@
  ****************************************************************************/
 
 #include "render/LightingEngine.h"
+#include "common/logger/Logger.h"
 #include "common/color/Color.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/dataStructures/PriorityQueue.h"
@@ -616,13 +617,13 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
 
     if (globalRenderingConfiguration.options & DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
-            printf("Depth: %f Object %d Colour %f %f %f ",
+            Logger::info("Depth: %f Object %d Colour %f %f %f ",
                 rayIntersection->Depth, rayIntersection->Shape->Type,
                 rayIntersection->Shape->Shape_Colour->Red,
                 rayIntersection->Shape->Shape_Colour->Green,
                 rayIntersection->Shape->Shape_Colour->Blue);
         } else {
-            printf("Depth: %f Object %d Colour NIL ", rayIntersection->Depth,
+            Logger::info("Depth: %f Object %d Colour NIL ", rayIntersection->Depth,
                 rayIntersection->Shape->Type);
         }
     }
@@ -678,10 +679,10 @@ LightingEngine::determineSurfaceColour(Intersection *rayIntersection,
         }
 
         if (globalRenderingConfiguration.options & DEBUGGING) {
-            printf("Surface %d\n", surface);
-            printf("    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,
+            Logger::info("Surface %d\n", surface);
+            Logger::info("    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,
                 surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);
-            printf("    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "
+            Logger::info("    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "
                    "Colour: %6.4f %6.4f %6.4f %6.4f  \n",
                 filterColour.Red, filterColour.Green, filterColour.Blue,
                 filterColour.Alpha, colour->Red, colour->Green, colour->Blue,

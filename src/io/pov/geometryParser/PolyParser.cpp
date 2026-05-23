@@ -1,5 +1,7 @@
 #include "io/pov/geometryParser/PolyParser.h"
+#include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "common/logger/Logger.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/ObjectUtils.h"
@@ -54,7 +56,7 @@ PolyParser::parsePoly(int knownOrder)
             case LEFT_ANGLE_TOKEN:
                 Tokenizer::ungetToken();
                 if (localShape == nullptr) {
-                    printf("Need the order of the Poly");
+                    Logger::info("Need the order of the Poly");
                 }
                 PrimitiveParser::parseCoeffs(
                     localShape->Order, &(localShape->Coeffs[0]));

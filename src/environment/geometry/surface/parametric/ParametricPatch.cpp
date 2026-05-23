@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
@@ -37,7 +38,7 @@ ParametricBiCubicPatch::createNewParametricPatchNode()
 {
     ParametricPatchNode *node = new ParametricPatchNode();
     if (node == nullptr) {
-        printf("Failed to allocate Bezier node\n");
+        Logger::info("Failed to allocate Bezier node\n");
         exit(0);
     }
     node->Data_Ptr = nullptr;
@@ -49,7 +50,7 @@ ParametricBiCubicPatch::createParametricControlPointsBlock()
 {
     ParametricControlPoints *vertices = new ParametricControlPoints();
     if (vertices == nullptr) {
-        printf("Failed to allocate Bezier vertices\n");
+        Logger::info("Failed to allocate Bezier vertices\n");
         exit(0);
     }
     return vertices;
@@ -60,7 +61,7 @@ ParametricBiCubicPatch::createParametricPatchChildBlock()
 {
     ParametricPatchChild *children = new ParametricPatchChild();
     if (children == nullptr) {
-        printf("Failed to allocate Bezier children\n");
+        Logger::info("Failed to allocate Bezier children\n");
         exit(0);
     }
     return children;
@@ -745,7 +746,7 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
         }
         return dist;
     }
-    /* printf("Subpatch normal failed in determine_subpatch_flatness\n"); */
+    /* Logger::info("Subpatch normal failed in determine_subpatch_flatness\n"); */
     return -1.0;
 }
 
@@ -949,7 +950,7 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
             }
         }
     } else {
-        printf("Bad Node type at depth %d\n", depth);
+        Logger::info("Bad Node type at depth %d\n", depth);
     }
 }
 
@@ -982,7 +983,7 @@ ParametricBiCubicPatch::bicubicPatchNormal(
         }
     }
     if (globalRenderingConfiguration.options & DEBUGGING) {
-        printf("Bicubic patch normal for unknown intersection point\n");
+        Logger::info("Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }
     result->x = 1.0;

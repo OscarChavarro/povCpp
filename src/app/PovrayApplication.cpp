@@ -138,7 +138,7 @@ void
 PovrayApplication::prepareRendering()
 {
     if (globalRenderingConfiguration.options & DISPLAY) {
-        printf("Displaying...\n");
+        Logger::info("Displaying...\n");
     }
 
     if (globalRenderingConfiguration.options & DISKWRITE) {
@@ -191,7 +191,7 @@ PovrayApplication::runRenderLoop()
     globalStatistics.startTimer();
 
     if ((globalRenderingConfiguration.options & VERBOSE) && (globalRenderingConfiguration.verboseFormat != '1')) {
-        printf("Rendering...\n");
+        Logger::info("Rendering...\n");
     } else if ((globalRenderingConfiguration.options & VERBOSE) && (globalRenderingConfiguration.verboseFormat == '1')) {
         fprintf(stderr, "POV-Ray rendering %s to %s :\n", globalRenderingConfiguration.inputFileName,
             globalRenderingConfiguration.outputFileName);
@@ -231,34 +231,33 @@ PovrayApplication::finalizeRun()
 void
 PovrayApplication::usage()
 {
-    fprintf(stdout, "\nUsage:");
-    fprintf(stdout, "\n    povray  [+/-] Option1 [+/-] Option2 ...");
-    fprintf(stdout, "\n");
-    fprintf(stdout, "\n Options: ");
-    fprintf(stdout, "\n     dxy = display in format x, using palette option y");
-    fprintf(stdout, "\n     vx  = verbose in format x");
-    /*fprintf (stdout,"\n     @filename  = verbose to file name -- see docs");*/
-    fprintf(stdout, "\n     p  = pause before exit");
-    fprintf(stdout, "\n     x  = enable early exit by key hit");
-    fprintf(stdout, "\n     fx = write output file in format x");
-    fprintf(stdout, "\n            ft - Uncompressed Targa-24  fd - DKB/QRT "
+    Logger::info( "\nUsage:");
+    Logger::info( "\n    povray  [+/-] Option1 [+/-] Option2 ...");
+    Logger::info( "\n");
+    Logger::info( "\n Options: ");
+    Logger::info( "\n     dxy = display in format x, using palette option y");
+    Logger::info( "\n     vx  = verbose in format x");
+    /*Logger::info("\n     @filename  = verbose to file name -- see docs");*/
+    Logger::info( "\n     p  = pause before exit");
+    Logger::info( "\n     x  = enable early exit by key hit");
+    Logger::info( "\n     fx = write output file in format x");
+    Logger::info( "\n            ft - Uncompressed Targa-24  fd - DKB/QRT "
                     "Dump  fr - 3 Raw Files");
-    fprintf(stdout, "\n     a  = perform antialiasing");
-    fprintf(stdout, "\n     c  = continue aborted trace");
-    fprintf(stdout, "\n     qx = image quality 0=rough, 9=full");
-    fprintf(stdout, "\n     l<pathname> = library path prefix");
-    fprintf(stdout, "\n     wxxx = width of the screen");
-    fprintf(stdout, "\n     hxxx = height of the screen");
-    fprintf(stdout, "\n     sxxx = start at line number xxx");
-    fprintf(stdout, "\n     exxx = end at line number xxx");
-    fprintf(
-        stdout, "\n     bxxx = Use xxx kilobytes for output file buffer space");
-    fprintf(stdout, "\n     i<filename> = input file name");
-    fprintf(stdout, "\n     o<filename> = output file name");
-    fprintf(stdout, "\n  Ex: +l\\povray\\include +iscene.pov +oscene.tga +w320 "
+    Logger::info( "\n     a  = perform antialiasing");
+    Logger::info( "\n     c  = continue aborted trace");
+    Logger::info( "\n     qx = image quality 0=rough, 9=full");
+    Logger::info( "\n     l<pathname> = library path prefix");
+    Logger::info( "\n     wxxx = width of the screen");
+    Logger::info( "\n     hxxx = height of the screen");
+    Logger::info( "\n     sxxx = start at line number xxx");
+    Logger::info( "\n     exxx = end at line number xxx");
+    Logger::info( "\n     bxxx = Use xxx kilobytes for output file buffer space");
+    Logger::info( "\n     i<filename> = input file name");
+    Logger::info( "\n     o<filename> = output file name");
+    Logger::info( "\n  Ex: +l\\povray\\include +iscene.pov +oscene.tga +w320 "
                     "+h200 +d -v +x");
-    fprintf(stdout, "\n  Ex: +iscene.pov +oscene.tga +w160 +h200 +v -d +x");
-    fprintf(stdout, "\n");
+    Logger::info( "\n  Ex: +iscene.pov +oscene.tga +w160 +h200 +v -d +x");
+    Logger::info( "\n");
     exit(1);
 }
 
@@ -566,63 +565,63 @@ PovrayApplication::parseOption(char *optionString)
 void
 PovrayApplication::printOptions()
 {
-    fprintf(stdout, "\nPOV-Ray          Options in effect: ");
+    Logger::info( "\nPOV-Ray          Options in effect: ");
 
     if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
-        fprintf(stdout, "+c ");
+        Logger::info( "+c ");
     }
 
     if (globalRenderingConfiguration.options & DISPLAY) {
-        fprintf(stdout, "+d%c%c ", globalRenderingConfiguration.displayFormat, globalRenderingConfiguration.paletteOption);
+        Logger::info( "+d%c%c ", globalRenderingConfiguration.displayFormat, globalRenderingConfiguration.paletteOption);
     }
 
     if (globalRenderingConfiguration.options & VERBOSE) {
-        fprintf(stdout, "+v%c ", globalRenderingConfiguration.verboseFormat);
+        Logger::info( "+v%c ", globalRenderingConfiguration.verboseFormat);
     }
 
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
-        fprintf(stdout, "+@%s ", globalRenderingConfiguration.statFileName);
+        Logger::info( "+@%s ", globalRenderingConfiguration.statFileName);
     }
 
     if (globalRenderingConfiguration.options & DISKWRITE) {
-        fprintf(stdout, "+f%c ", globalRenderingConfiguration.outputFormat);
+        Logger::info( "+f%c ", globalRenderingConfiguration.outputFormat);
     }
 
     if (globalRenderingConfiguration.options & PROMPTEXIT) {
-        fprintf(stdout, "+p ");
+        Logger::info( "+p ");
     }
 
     if (globalRenderingConfiguration.options & EXITENABLE) {
-        fprintf(stdout, "+x ");
+        Logger::info( "+x ");
     }
 
     if (globalRenderingConfiguration.options & ANTIALIAS) {
-        fprintf(stdout, "+a%f ", globalRenderingConfiguration.antialiasThreshold);
+        Logger::info( "+a%f ", globalRenderingConfiguration.antialiasThreshold);
     }
 
     if (globalRenderingConfiguration.options & DEBUGGING) {
-        fprintf(stdout, "+z ");
+        Logger::info( "+z ");
     }
 
     if (globalRenderingConfiguration.fileBufferSize != 0) {
-        fprintf(stdout, "-b%d ", globalRenderingConfiguration.fileBufferSize / 1024);
+        Logger::info( "-b%d ", globalRenderingConfiguration.fileBufferSize / 1024);
     }
 
-    fprintf(stdout, "-q%d -w%d -h%d -s%d -e%d\n-i%s ", globalRenderingConfiguration.quality,
+    Logger::info( "-q%d -w%d -h%d -s%d -e%d\n-i%s ", globalRenderingConfiguration.quality,
         globalFrame.Screen_Width, globalFrame.Screen_Height, globalRenderingConfiguration.firstLine,
         globalRenderingConfiguration.lastLine, globalRenderingConfiguration.inputFileName);
 
     if (globalRenderingConfiguration.options & DISKWRITE) {
-        fprintf(stdout, "-o%s ", globalRenderingConfiguration.outputFileName);
+        Logger::info( "-o%s ", globalRenderingConfiguration.outputFileName);
     }
 
     for (std::vector<std::string>::const_iterator path =
              FileLocator::searchPaths().begin();
          path != FileLocator::searchPaths().end(); ++path) {
-        fprintf(stdout, "-l%s ", path->c_str());
+        Logger::info( "-l%s ", path->c_str());
     }
 
-    fprintf(stdout, "\n");
+    Logger::info( "\n");
 }
 
 void

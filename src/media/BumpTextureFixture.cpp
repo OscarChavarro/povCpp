@@ -12,6 +12,7 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
 #include "media/BumpTextureFixture.h"
+#include "common/logger/Logger.h"
 #include "common/LegacyBoolean.h"
 #include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -30,7 +31,7 @@ BumpTextureFixture::ripples(
     double index;
 
     if (debugEnabled) {
-        printf("ripples %g %g %g", x, y, z);
+        Logger::info("ripples %g %g %g", x, y, z);
     }
 
     for (i = 0; i < NUMBER_OF_WAVES; i++) {
@@ -48,7 +49,7 @@ BumpTextureFixture::ripples(
         scalar = TextureUtils::cycloidal(index) * texture->Bump_Amount;
 
         if (debugEnabled) {
-            printf(" index %g scalar %g length %g\n", index, scalar, length);
+            Logger::info(" index %g scalar %g length %g\n", index, scalar, length);
         }
 
         VectorOps::vScale(
@@ -70,7 +71,7 @@ BumpTextureFixture::waves(
     double sinValue;
 
     if (debugEnabled) {
-        printf("waves %g %g %g\n", x, y, z);
+        Logger::info("waves %g %g %g\n", x, y, z);
     }
 
     for (i = 0; i < NUMBER_OF_WAVES; i++) {
@@ -106,7 +107,7 @@ BumpTextureFixture::bumps(
     }
 
     if (debugEnabled) {
-        printf("bumps %g %g %g\n", x, y, z);
+        Logger::info("bumps %g %g %g\n", x, y, z);
     }
 
     TextureUtils::DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
@@ -135,7 +136,7 @@ BumpTextureFixture::dents(
     noise = noise * noise * noise * texture->Bump_Amount;
 
     if (debugEnabled) {
-        printf("dents %g %g %g noise %g\n", x, y, z, noise);
+        Logger::info("dents %g %g %g noise %g\n", x, y, z, noise);
     }
 
     TextureUtils::DNoise(
@@ -174,7 +175,7 @@ BumpTextureFixture::wrinkles(
     }
 
     if (debugEnabled) {
-        printf("wrinkles %g %g %g\n", x, y, z);
+        Logger::info("wrinkles %g %g %g\n", x, y, z);
     }
 
     result.x = 0.0;

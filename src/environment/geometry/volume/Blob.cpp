@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Blob.h"
+#include "common/logger/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -41,13 +42,13 @@ MakeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
     BlobList *temp;
 
     if (npoints < 1) {
-        printf("Need at least one component in a blob\n");
+        Logger::info("Need at least one component in a blob\n");
         exit(1);
     }
     blob->threshold = threshold;
     blob->list = new BlobElement[npoints];
     if (blob->list == nullptr) {
-        printf("Failed to allocate blob data\n");
+        Logger::info("Failed to allocate blob data\n");
         exit(1);
     }
     blob->count = npoints;
@@ -80,7 +81,7 @@ MakeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
     npoints *= 2;
     blob->intervals = new BlobInterval[npoints];
     if (blob->intervals == nullptr) {
-        printf("Failed to allocate blob data\n");
+        Logger::info("Failed to allocate blob data\n");
         exit(1);
     }
 }
@@ -550,13 +551,13 @@ Blob::copyBlob(SimpleBody *object)
     /* Allocate space and copy the blob specific data */
     blob->list = new BlobElement[oldShape->count];
     if (blob->list == nullptr) {
-        printf("Failed to allocate blob data\n");
+        Logger::info("Failed to allocate blob data\n");
         exit(1);
     }
     memcpy(blob->list, oldShape->list, oldShape->count * sizeof(BlobElement));
     blob->intervals = new BlobInterval[2 * blob->count];
     if (blob->intervals == nullptr) {
-        printf("Failed to allocate blob data\n");
+        Logger::info("Failed to allocate blob data\n");
         exit(1);
     }
 

@@ -6,6 +6,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/compound/Composite.h"
+#include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
@@ -35,7 +36,7 @@ Composite::objectIntersect(SimpleBody *object, RayWithSegments *ray)
     if ((GeometryOperations::allIntersections(object, ray, depthQueue)) &&
         ((queueElement = depthQueue->getHighest()) != nullptr)) {
         if ((localIntersection = new Intersection) == nullptr) {
-            printf("Cannot allocate memory for local intersection\n");
+            Logger::info("Cannot allocate memory for local intersection\n");
             exit(1);
         }
         localIntersection->Point = queueElement->Point;
@@ -152,13 +153,13 @@ Composite::allObjectIntersections(
 
             globalStatistics.clippingRegionTests++;
             if (globalRenderingConfiguration.options & DEBUGGING) {
-                printf("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x,
+                Logger::info("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x,
                     localIntersection->Point.y, localIntersection->Point.z);
             }
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
                 if (globalRenderingConfiguration.options & DEBUGGING) {
-                    printf("not ok\n");
+                    Logger::info("not ok\n");
                 }
                 intersectionFound = FALSE;
                 break;
@@ -168,7 +169,7 @@ Composite::allObjectIntersections(
 
         if (intersectionFound) {
             if (globalRenderingConfiguration.options & DEBUGGING) {
-                printf("ok\n");
+                Logger::info("ok\n");
             }
             depthQueue->add(localIntersection);
             anyIntersectionFound = TRUE;

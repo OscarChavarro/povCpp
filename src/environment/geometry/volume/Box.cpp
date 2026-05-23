@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Box.h"
+#include "common/logger/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -195,7 +196,7 @@ Box::intersectBoxx(
     *depth1 = tmin;
     *depth2 = tmax;
 
-    /* printf("Box intersects: %g, %g\n", *Depth1, *Depth2); */
+    /* Logger::info("Box intersects: %g, %g\n", *Depth1, *Depth2); */
     if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
         if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
             return (FALSE);

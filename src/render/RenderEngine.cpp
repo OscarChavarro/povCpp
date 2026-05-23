@@ -13,6 +13,7 @@
  *****************************************************************************/
 
 #include "render/RenderEngine.h"
+#include "common/logger/Logger.h"
 #include "common/color/Color.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "java/io/FileInputStream.h"
@@ -327,17 +328,17 @@ RenderFrame::checkStats(int y)
 
     /* New verbose options CdW */
     if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '0') {
-        printf("POV-Ray rendering %s to %s", globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
+        Logger::info("POV-Ray rendering %s to %s", globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
         if ((globalRenderingConfiguration.firstLine != 0) || (globalRenderingConfiguration.lastLine != globalFrame.Screen_Height)) {
-            printf(" from %4d to %4d:\n", globalRenderingConfiguration.firstLine, globalRenderingConfiguration.lastLine);
+            Logger::info(" from %4d to %4d:\n", globalRenderingConfiguration.firstLine, globalRenderingConfiguration.lastLine);
         } else {
-            printf(":\n");
+            Logger::info(":\n");
         }
-        printf("Res %4d X %4d. Calc line %4d of %4d", globalFrame.Screen_Width,
+        Logger::info("Res %4d X %4d. Calc line %4d of %4d", globalFrame.Screen_Width,
             globalFrame.Screen_Height, (y - globalRenderingConfiguration.firstLine) + 1,
             globalRenderingConfiguration.lastLine - globalRenderingConfiguration.firstLine);
         if (!(globalRenderingConfiguration.options & ANTIALIAS)) {
-            printf(".");
+            Logger::info(".");
         }
     }
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
@@ -348,7 +349,7 @@ RenderFrame::checkStats(int y)
 
     /* Use -vO for Old style verbose */
     if (globalRenderingConfiguration.options & VERBOSE && (globalRenderingConfiguration.verboseFormat == 'O')) {
-        printf("Line %4d", y);
+        Logger::info("Line %4d", y);
     }
     if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
@@ -452,7 +453,7 @@ RenderFrame::outputLine(int y)
 
     if (globalRenderingConfiguration.options & VERBOSE) {
         if (globalRenderingConfiguration.options & ANTIALIAS && globalRenderingConfiguration.verboseFormat != '1') {
-            printf(" supersampled %d times.", superSampleCount);
+            Logger::info(" supersampled %d times.", superSampleCount);
         }
 
         if (globalRenderingConfiguration.options & ANTIALIAS && globalRenderingConfiguration.verboseFormat == '1') {
@@ -498,7 +499,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     }
 
     if (globalRenderingConfiguration.options & DEBUGGING) {
-        printf("Calculating intersections level %d\n", traceLevel);
+        Logger::info("Calculating intersections level %d\n", traceLevel);
     }
 
     /* What objects does this ray intersect? */
