@@ -2,10 +2,12 @@
 #define __SMOOTH_TRIANGLE_PARSER_H__
 
 class Geometry;
+class ParserContext;
 
 class SmoothTriangleParser {
   public:
     static Geometry *parseSmoothTriangle();
+    static Geometry *parseSmoothTriangle(ParserContext &ctx);
 };
 
 #endif

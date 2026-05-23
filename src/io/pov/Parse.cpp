@@ -1,3 +1,4 @@
+#include "io/pov/ParserContext.h"
 /****************************************************************************
  *                     parse.c
  *
@@ -29,11 +30,7 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
-extern ReservedWord globalReservedWords[];
-extern double maxTraceLevel;
 
-extern int termCounts[MAX_ORDER + 1];
-extern TokenStruct globalToken;
 
 RenderFrame *parsingFramePtr;
 

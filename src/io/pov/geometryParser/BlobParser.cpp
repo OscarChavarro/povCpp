@@ -1,3 +1,4 @@
+#include "io/pov/ParserContext.h"
 #include "io/pov/geometryParser/BlobParser.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
@@ -8,14 +9,20 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
-extern TokenStruct globalToken;
-extern Constant constants[MAX_CONSTANTS];
 extern void MakeBlob(SimpleBody *obj, double threshold, BlobList *components,
     int npoints, int surfaceType);
 
 Geometry *
 BlobParser::parseBlob()
 {
+    ParserContext ctx;
+    return BlobParser::parseBlob(ctx);
+}
+
+Geometry *
+BlobParser::parseBlob(ParserContext &ctx)
+{
+    (void)ctx;
     Blob *localShape;
     CONSTANT constantId;
     Vector3Dd localVector;
@@ -32,12 +39,12 @@ BlobParser::parseBlob()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case LEFT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
             default:
-                ParseErrorReporter::parseError(LEFT_CURLY_TOKEN);
+                ParseErrorReporter::parseError(LEFT_CURLY_TOKEN, ctx);
                 break;
             }
         }
@@ -48,7 +55,7 @@ BlobParser::parseBlob()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case THRESHOLD_TOKEN:
             case COMPONENT_TOKEN:
                 Tokenizer::ungetToken();
@@ -63,9 +70,9 @@ BlobParser::parseBlob()
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
                         Tokenizer::getToken();
-                        switch (globalToken.tokenId) {
+                        switch (ctx.token().tokenId) {
                         case THRESHOLD_TOKEN:
-                            threshold = PrimitiveParser::parseFloat();
+                            threshold = PrimitiveParser::parseFloat(ctx);
                             break;
 
                         case COMPONENT_TOKEN:
@@ -73,12 +80,12 @@ BlobParser::parseBlob()
                             if (blobComponent == nullptr) {
                                 ParseErrorReporter::Error(
                                     "Out of Memory! Cannot allocate blob "
-                                    "component");
+                                    "component", ctx);
                             }
                             blobComponent->elem.coeffs[2] =
-                                PrimitiveParser::parseFloat();
+                                PrimitiveParser::parseFloat(ctx);
                             blobComponent->elem.radius2 =
-                                PrimitiveParser::parseFloat();
+                                PrimitiveParser::parseFloat(ctx);
                             PrimitiveParser::parseVector(
                                 &blobComponent->elem.pos);
                             blobComponent->next = blobComponents;
@@ -101,23 +108,23 @@ BlobParser::parseBlob()
                 break;
 
             case IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].constantType ==
+                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                    if (ctx.constants()[(int)constantId].constantType ==
                         BLOB_CONSTANT) {
                         localShape = (Blob *)GeometryOperations::copy(
-                            (SimpleBody *)constants[(int)constantId]
+                            (SimpleBody *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
-                        ParseErrorReporter::typeError();
+                        ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared();
+                    ParseErrorReporter::Undeclared(ctx);
                 }
                 Exit_Flag = TRUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(FLOAT_TOKEN);
+                ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
                 break;
             }
         }
@@ -128,7 +135,7 @@ BlobParser::parseBlob()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
@@ -138,19 +145,19 @@ BlobParser::parseBlob()
                 break;
 
             case TRANSLATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
             case ROTATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
             case SCALE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localShape, &localVector);
                 break;
@@ -160,7 +167,7 @@ BlobParser::parseBlob()
                 break;
 
             case TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture();
+                localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
@@ -177,11 +184,11 @@ BlobParser::parseBlob()
 
             case COLOUR_TOKEN:
                 localShape->Shape_Colour = SceneFactory::getColour();
-                PrimitiveParser::parseColour(localShape->Shape_Colour);
+                PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
+                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

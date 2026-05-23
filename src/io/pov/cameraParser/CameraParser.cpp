@@ -1,19 +1,17 @@
+#include "io/pov/ParserContext.h"
 #include "io/pov/cameraParser/CameraParser.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
 #include "io/pov/Parse.h"
 
-extern TokenStruct globalToken;
-extern Constant constants[MAX_CONSTANTS];
-extern int numberOfConstants;
 
 static CONSTANT
-findConstant()
+findConstant(ParserContext &ctx)
 {
     int i;
 
-    for (i = 1; i <= numberOfConstants; i++) {
-        if (constants[i].identifierNumber == globalToken.identifierNumber) {
+    for (i = 1; i <= ctx.numberOfConstants(); i++) {
+        if (ctx.constants()[i].identifierNumber == ctx.token().identifierNumber) {
             return (i);
         }
     }
@@ -23,6 +21,13 @@ findConstant()
 
 void
 CameraParser::parseCamera(Camera *givenVp)
+{
+    ParserContext ctx;
+    CameraParser::parseCamera(givenVp, ctx);
+}
+
+void
+CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 {
     CONSTANT constantId;
     Vector3Dd localVector;
@@ -34,46 +39,46 @@ CameraParser::parseCamera(Camera *givenVp)
 
     givenVp->initializeDefaults();
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
+    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
-                if ((constantId = findConstant()) != -1) {
-                    if (constants[(int)constantId].constantType ==
+                if ((constantId = findConstant(ctx)) != -1) {
+                    if (ctx.constants()[(int)constantId].constantType ==
                         VIEW_POINT_CONSTANT) {
-                        *givenVp = *((Camera *)constants[(int)constantId]
+                        *givenVp = *((Camera *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
-                        ParseErrorReporter::typeError();
+                        ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared();
+                    ParseErrorReporter::Undeclared(ctx);
                 }
                 break;
 
             case LOCATION_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Location));
+                PrimitiveParser::parseVector(&(givenVp->Location), ctx);
                 break;
 
             case DIRECTION_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Direction));
+                PrimitiveParser::parseVector(&(givenVp->Direction), ctx);
                 break;
 
             case UP_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Up));
+                PrimitiveParser::parseVector(&(givenVp->Up), ctx);
                 break;
 
             case RIGHT_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Right));
+                PrimitiveParser::parseVector(&(givenVp->Right), ctx);
                 break;
 
             case SKY_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Sky));
+                PrimitiveParser::parseVector(&(givenVp->Sky), ctx);
                 break;
 
             case LOOK_AT_TOKEN:
@@ -82,7 +87,7 @@ CameraParser::parseCamera(Camera *givenVp)
                 rightLength = givenVp->Right.length();
                 tempVector = givenVp->Direction.crossProduct(givenVp->Up);
                 handedness = tempVector.dotProduct(givenVp->Right);
-                PrimitiveParser::parseVector(&givenVp->Direction);
+                PrimitiveParser::parseVector(&givenVp->Direction, ctx);
 
                 givenVp->Direction.sub(givenVp->Location);
                 givenVp->Direction.normalize();
@@ -100,18 +105,18 @@ CameraParser::parseCamera(Camera *givenVp)
                 break;
 
             case TRANSLATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)givenVp, &localVector);
                 break;
 
             case ROTATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate((SimpleBody *)givenVp, &localVector);
                 break;
 
             case SCALE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale((SimpleBody *)givenVp, &localVector);
                 break;
 
@@ -120,7 +125,7 @@ CameraParser::parseCamera(Camera *givenVp)
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
+                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

@@ -36,6 +36,7 @@ add_executable(povray
   src/io/image/GifDecoder.cpp
   src/io/image/IffFormat.cpp
   src/io/pov/Parse.cpp
+  src/io/pov/ParserContext.cpp
   src/io/pov/ParseErrorReporter.cpp
   src/io/pov/ParseHelpers.cpp
   src/io/pov/PrimitiveParser.cpp

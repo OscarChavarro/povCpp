@@ -35,6 +35,6 @@ class Quadric : public Geometry {
         Quadric *shape, Transformation *transformation);
 };
 
-extern Methods Quadric_Methods;
+extern Methods quadricMethods;
 extern Quadric *getQuadricShape(void);
 #endif

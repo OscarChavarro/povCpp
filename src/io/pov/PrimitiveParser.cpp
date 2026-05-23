@@ -1,3 +1,4 @@
+#include "io/pov/ParserContext.h"
 #include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -21,19 +22,18 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
-extern ReservedWord globalReservedWords[];
-extern int termCounts[MAX_ORDER + 1];
-extern TokenStruct globalToken;
-extern double maxTraceLevel;
 
-extern RenderFrame *parsingFramePtr;
-extern Constant constants[MAX_CONSTANTS];
-extern int numberOfConstants;
-extern int degenerateTriangles;
 
 /* Parse a float.  Doesn't handle exponentiation. */
 double
 PrimitiveParser::parseFloat()
+{
+    ParserContext ctx;
+    return PrimitiveParser::parseFloat(ctx);
+}
+
+double
+PrimitiveParser::parseFloat(ParserContext &ctx)
 {
     double localFloat = 0.0;
     CONSTANT constantId;
@@ -48,42 +48,42 @@ PrimitiveParser::parseFloat()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].constantType ==
+                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                    if (ctx.constants()[(int)constantId].constantType ==
                         FLOAT_CONSTANT) {
                         localFloat = *(
-                            (double *)constants[(int)constantId].constantData);
+                            (double *)ctx.constants()[(int)constantId].constantData);
                         if (negative) {
                             localFloat *= -1.0;
                         }
                     } else {
-                        ParseErrorReporter::typeError();
+                        ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared();
+                    ParseErrorReporter::Undeclared(ctx);
                 }
                 Exit_Flag = TRUE;
                 break;
 
             case PLUS_TOKEN:
                 if (signParsed) {
-                    ParseErrorReporter::parseError(FLOAT_TOKEN);
+                    ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
                 }
                 signParsed = TRUE;
                 break;
 
             case DASH_TOKEN:
                 if (signParsed) {
-                    ParseErrorReporter::parseError(FLOAT_TOKEN);
+                    ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
                 }
                 negative = TRUE;
                 signParsed = TRUE;
                 break;
 
             case FLOAT_TOKEN:
-                localFloat = globalToken.tokenFloat;
+                localFloat = ctx.token().tokenFloat;
                 if (negative) {
                     localFloat *= -1.0;
                 }
@@ -91,7 +91,7 @@ PrimitiveParser::parseFloat()
                 break;
 
             default:
-                ParseErrorReporter::parseError(FLOAT_TOKEN);
+                ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
                 break;
             }
         }
@@ -103,6 +103,13 @@ PrimitiveParser::parseFloat()
 void
 PrimitiveParser::parseVector(Vector3Dd *givenVector)
 {
+    ParserContext ctx;
+    PrimitiveParser::parseVector(givenVector, ctx);
+}
+
+void
+PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
+{
     CONSTANT constantId;
 
     {
@@ -110,32 +117,32 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].constantType ==
+                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                    if (ctx.constants()[(int)constantId].constantType ==
                         VECTOR_CONSTANT) {
-                        *givenVector = *((Vector3Dd *)constants[(int)constantId]
+                        *givenVector = *((Vector3Dd *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
-                        ParseErrorReporter::typeError();
+                        ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared();
+                    ParseErrorReporter::Undeclared(ctx);
                 }
                 Exit_Flag = TRUE;
                 break;
 
             case LEFT_ANGLE_TOKEN:
-                (givenVector->x) = PrimitiveParser::parseFloat();
-                (givenVector->y) = PrimitiveParser::parseFloat();
-                (givenVector->z) = PrimitiveParser::parseFloat();
-                ParseHelpers::getExpectedToken(RIGHT_ANGLE_TOKEN);
+                (givenVector->x) = PrimitiveParser::parseFloat(ctx);
+                (givenVector->y) = PrimitiveParser::parseFloat(ctx);
+                (givenVector->z) = PrimitiveParser::parseFloat(ctx);
+                ParseHelpers::getExpectedToken(RIGHT_ANGLE_TOKEN, ctx);
                 Exit_Flag = TRUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN);
+                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -145,6 +152,13 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector)
 void
 PrimitiveParser::parseCoeffs(int order, double *givenCoeffs)
 {
+    ParserContext ctx;
+    PrimitiveParser::parseCoeffs(order, givenCoeffs, ctx);
+}
+
+void
+PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
+{
     int i;
 
     {
@@ -152,17 +166,17 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
-                for (i = 0; i < termCounts[order]; i++) {
-                    givenCoeffs[i] = PrimitiveParser::parseFloat();
+                for (i = 0; i < ctx.termCounts()[order]; i++) {
+                    givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
                 }
-                ParseHelpers::getExpectedToken(RIGHT_ANGLE_TOKEN);
+                ParseHelpers::getExpectedToken(RIGHT_ANGLE_TOKEN, ctx);
                 Exit_Flag = TRUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN);
+                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -172,6 +186,13 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs)
 void
 PrimitiveParser::parseColour(RGBAColor *givenColour)
 {
+    ParserContext ctx;
+    PrimitiveParser::parseColour(givenColour, ctx);
+}
+
+void
+PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
+{
     CONSTANT constantId;
     Color::makeColor(givenColour, 0.0, 0.0, 0.0);
     {
@@ -179,35 +200,35 @@ PrimitiveParser::parseColour(RGBAColor *givenColour)
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].constantType ==
+                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                    if (ctx.constants()[(int)constantId].constantType ==
                         COLOUR_CONSTANT) {
-                        *givenColour = *((RGBAColor *)constants[(int)constantId]
+                        *givenColour = *((RGBAColor *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
-                        ParseErrorReporter::typeError();
+                        ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared();
+                    ParseErrorReporter::Undeclared(ctx);
                 }
                 break;
 
             case RED_TOKEN:
-                (givenColour->Red) = PrimitiveParser::parseFloat();
+                (givenColour->Red) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case GREEN_TOKEN:
-                (givenColour->Green) = PrimitiveParser::parseFloat();
+                (givenColour->Green) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case BLUE_TOKEN:
-                (givenColour->Blue) = PrimitiveParser::parseFloat();
+                (givenColour->Blue) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case ALPHA_TOKEN:
-                (givenColour->Alpha) = PrimitiveParser::parseFloat();
+                (givenColour->Alpha) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             default:

@@ -25,7 +25,6 @@ static constexpr const char *COMPILER_VER = ".u";
 
 FILE *bfp;
 
-extern RenderFrame globalFrame;
 
 int maxSymbols = 500;
 
@@ -182,7 +181,7 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
     }
 
     if (globalRenderingConfiguration.lastLine == -1) {
-        globalRenderingConfiguration.lastLine = globalFrame.screenHeight;
+        globalRenderingConfiguration.lastLine = RenderEngine::renderFrame().screenHeight;
     }
 }
 
@@ -245,7 +244,7 @@ PovrayApplication::parseSceneDescription()
         fclose(statFile);
     }
 
-    SceneParser::Parse(&globalFrame);
+    SceneParser::Parse(&RenderEngine::renderFrame());
     Tokenizer::terminateTokenizer();
 }
 
@@ -259,7 +258,7 @@ PovrayApplication::prepareRendering()
     if (globalRenderingConfiguration.options & DISKWRITE) {
         if (globalRenderingConfiguration.options & CONTINUE_TRACE) {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
-                    &globalFrame.screenWidth, &globalFrame.screenHeight,
+                    &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                     globalRenderingConfiguration.fileBufferSize, RenderOutput::READ_MODE) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
@@ -267,7 +266,7 @@ PovrayApplication::prepareRendering()
                 globalRenderingConfiguration.options &= ~CONTINUE_TRACE;
 
                 if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
-                        &globalFrame.screenWidth, &globalFrame.screenHeight,
+                        &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                         globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
@@ -281,7 +280,7 @@ PovrayApplication::prepareRendering()
             }
         } else {
             if (globalRenderingConfiguration.outputFileInputStream->open(globalRenderingConfiguration.outputFileName,
-                    &globalFrame.screenWidth, &globalFrame.screenHeight,
+                    &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                     globalRenderingConfiguration.fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
@@ -333,7 +332,7 @@ PovrayApplication::finalizeRun()
     globalStatistics.stopTimer();
 
     closeAll();
-    printStatistics(globalStatistics, globalFrame, globalRenderingConfiguration);
+    printStatistics(globalStatistics, RenderEngine::renderFrame(), globalRenderingConfiguration);
 
     if (globalRenderingConfiguration.options & VERBOSE_FILE) {
         statFile = fopen(globalRenderingConfiguration.statFileName, "a+t");
@@ -384,8 +383,8 @@ PovrayApplication::initVars()
     Tokenizer::setCaseSensitiveIdentifiers(0);
     numberOfFiles = 0;
 
-    globalFrame.screenHeight = 100;
-    globalFrame.screenWidth = 100;
+    RenderEngine::renderFrame().screenHeight = 100;
+    RenderEngine::renderFrame().screenWidth = 100;
 }
 
 /* Close all the stuff that has been opened. */
@@ -539,13 +538,13 @@ PovrayApplication::parseOption(char *optionString)
 
     case 'W':
     case 'w':
-        sscanf(&optionString[1], "%d", &globalFrame.screenWidth);
+        sscanf(&optionString[1], "%d", &RenderEngine::renderFrame().screenWidth);
         optionNumber = 0;
         break;
 
     case 'H':
     case 'h':
-        sscanf(&optionString[1], "%d", &globalFrame.screenHeight);
+        sscanf(&optionString[1], "%d", &RenderEngine::renderFrame().screenHeight);
         optionNumber = 0;
         break;
 
@@ -729,7 +728,7 @@ PovrayApplication::printOptions()
     }
 
     Logger::info( "-q%d -w%d -h%d -s%d -e%d\n-i%s ", globalRenderingConfiguration.quality,
-        globalFrame.screenWidth, globalFrame.screenHeight, globalRenderingConfiguration.firstLine,
+        RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight, globalRenderingConfiguration.firstLine,
         globalRenderingConfiguration.lastLine, globalRenderingConfiguration.inputFileName);
 
     if (globalRenderingConfiguration.options & DISKWRITE) {

@@ -41,7 +41,7 @@ class PolynomialShape : public Geometry {
         MATRIX *q, int row, int pwr, int i, int j, int k, int l);
 };
 
-extern Methods Poly_Methods;
+extern Methods polyMethods;
 extern PolynomialShape *getPolyShape(int);
 
 #endif

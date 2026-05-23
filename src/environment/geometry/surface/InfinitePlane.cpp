@@ -1,3 +1,4 @@
+#include "render/RenderEngine.h"
 /****************************************************************************
  *                     planes.c
  *
@@ -9,13 +10,12 @@
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-Methods Plane_Methods = {Composite::objectIntersect,
+Methods planeMethods = {Composite::objectIntersect,
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
     InfinitePlane::planeNormal, InfinitePlane::copyPlane,
     InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
     InfinitePlane::scalePlane, InfinitePlane::invertPlane};
 
-extern RayWithSegments *vpRay;
 int
 InfinitePlane::allPlaneIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
@@ -49,7 +49,7 @@ InfinitePlane::intersectPlane(
     double normalDotDirection;
 
     globalStatistics.rayPlaneTests++;
-    if (ray == vpRay) {
+    if (ray == RenderEngine::primaryRay()) {
         if (!plane->VPCached) {
             plane->VPNormDotOrigin =
                 plane->normalVector.dotProduct(ray->position);

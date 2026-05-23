@@ -23,7 +23,11 @@
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
 
-volatile int stopFlag;
+volatile int RenderEngine::sStopFlag = 0;
+RenderFrame RenderEngine::sRenderFrame;
+RayWithSegments *RenderEngine::sPrimaryRay = nullptr;
+int RenderEngine::sTraceLevel = 0;
+double RenderEngine::sMaxTraceLevel = 5.0;
 
 extern short *hashTable;
 extern unsigned short crctab[256];
@@ -36,18 +40,43 @@ RenderEngine::RenderEngine::rand3dInline(int a, int b)
                   0xff];
 }
 
-RenderFrame globalFrame;
-RayWithSegments *vpRay;
-int traceLevel;
 int superSampleCount;
-
-double maxTraceLevel = 5;
 
 RGBAColor *previousLine;
 RGBAColor *currentLine;
 char *previousLineAntialiasedFlags;
 char *currentLineAntialiasedFlags;
 RayWithSegments ray;
+
+RenderFrame &
+RenderEngine::renderFrame()
+{
+    return sRenderFrame;
+}
+
+RayWithSegments *&
+RenderEngine::primaryRay()
+{
+    return sPrimaryRay;
+}
+
+int &
+RenderEngine::traceLevel()
+{
+    return sTraceLevel;
+}
+
+double &
+RenderEngine::maxTraceLevel()
+{
+    return sMaxTraceLevel;
+}
+
+volatile int &
+RenderEngine::stopFlag()
+{
+    return sStopFlag;
+}
 
 static const TraceService *getTraceService();
 
@@ -93,13 +122,13 @@ RenderFrame::createRay(
 
     /* Convert the Y Coordinate to be a double from 0.0 to 1.0 */
     yScalar =
-        (((double)(globalFrame.screenHeight - 1) - y) - (double)height / 2.0) /
+        (((double)(RenderEngine::renderFrame().screenHeight - 1) - y) - (double)height / 2.0) /
         (double)height;
 
-    VectorOps::vScale(tempVect1, globalFrame.viewPoint.Up, yScalar);
-    VectorOps::vScale(tempVect2, globalFrame.viewPoint.Right, xScalar);
+    VectorOps::vScale(tempVect1, RenderEngine::renderFrame().viewPoint.Up, yScalar);
+    VectorOps::vScale(tempVect2, RenderEngine::renderFrame().viewPoint.Right, xScalar);
     VectorOps::vAdd(ray->direction, tempVect1, tempVect2);
-    ray->direction.add(globalFrame.viewPoint.Direction);
+    ray->direction.add(RenderEngine::renderFrame().viewPoint.Direction);
     ray->direction.normalize();
     ray->initializeContainers();
     ray->quadricConstantsCached = FALSE;
@@ -130,11 +159,11 @@ RenderEngine::supersample(
     jitterY = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
                   32768.0 * 0.33333333 -
               0.16666666;
-    RenderFrame::createRay(vpRay, globalFrame.screenWidth,
-        globalFrame.screenHeight, dx + jitterX, dy + jitterY);
+    RenderFrame::createRay(RenderEngine::primaryRay(), RenderEngine::renderFrame().screenWidth,
+        RenderEngine::renderFrame().screenHeight, dx + jitterX, dy + jitterY);
 
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -148,10 +177,10 @@ RenderEngine::supersample(
         (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
+    RenderFrame::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX - 0.3333333,
         dy + jitterY - 0.3333333);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -166,9 +195,9 @@ RenderEngine::supersample(
             32768.0 * 0.33333333 -
         0.16666666;
     RenderFrame::createRay(
-        vpRay, width, height, dx + jitterX - 0.3333333, dy + jitterY);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+        RenderEngine::primaryRay(), width, height, dx + jitterX - 0.3333333, dy + jitterY);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -182,10 +211,10 @@ RenderEngine::supersample(
         (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX - 0.3333333,
+    RenderFrame::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX - 0.3333333,
         dy + jitterY + 0.3333333);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -200,9 +229,9 @@ RenderEngine::supersample(
             32768.0 * 0.33333333 -
         0.16666666;
     RenderFrame::createRay(
-        vpRay, width, height, dx + jitterX, dy + jitterY - 0.3333333);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+        RenderEngine::primaryRay(), width, height, dx + jitterX, dy + jitterY - 0.3333333);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -217,9 +246,9 @@ RenderEngine::supersample(
             32768.0 * 0.33333333 -
         0.16666666;
     RenderFrame::createRay(
-        vpRay, width, height, dx + jitterX, dy + jitterY + 0.3333333);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+        RenderEngine::primaryRay(), width, height, dx + jitterX, dy + jitterY + 0.3333333);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -233,10 +262,10 @@ RenderEngine::supersample(
         (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
+    RenderFrame::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX + 0.3333333,
         dy + jitterY - 0.3333333);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -251,9 +280,9 @@ RenderEngine::supersample(
             32768.0 * 0.33333333 -
         0.16666666;
     RenderFrame::createRay(
-        vpRay, width, height, dx + jitterX + 0.3333333, dy + jitterY);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+        RenderEngine::primaryRay(), width, height, dx + jitterX + 0.3333333, dy + jitterY);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -267,10 +296,10 @@ RenderEngine::supersample(
         (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    RenderFrame::createRay(vpRay, width, height, dx + jitterX + 0.3333333,
+    RenderFrame::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX + 0.3333333,
         dy + jitterY + 0.3333333);
-    traceLevel = 0;
-    RenderEngine::trace(vpRay, &colour);
+    RenderEngine::traceLevel() = 0;
+    RenderEngine::trace(RenderEngine::primaryRay(), &colour);
     Color::clipColor(&colour, &colour);
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
@@ -294,7 +323,7 @@ RenderEngine::readRenderedPart()
         globalRenderingConfiguration.outputFileInputStream->close();
         if (globalRenderingConfiguration.outputFileInputStream->open(
                 globalRenderingConfiguration.outputFileName,
-                &globalFrame.screenWidth, &globalFrame.screenHeight,
+                &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                 globalRenderingConfiguration.fileBufferSize, RenderOutput::APPEND_MODE) != 1) {
             Logger::error("Error opening output file\n");
             exit(1);
@@ -316,9 +345,9 @@ RenderEngine::startTracing()
 
         RenderFrame::checkStats(y);
 
-        for (x = 0; x < globalFrame.screenWidth; x++) {
+        for (x = 0; x < RenderEngine::renderFrame().screenWidth; x++) {
 
-            if (stopFlag) {
+            if (RenderEngine::stopFlag()) {
                 if (globalRenderingConfiguration.outputFileInputStream != nullptr) {
                     globalRenderingConfiguration.outputFileInputStream->close();
                 }
@@ -328,9 +357,9 @@ RenderEngine::startTracing()
 
             globalStatistics.numberOfPixels++;
 
-            RenderFrame::createRay(vpRay, globalFrame.screenWidth,
-                globalFrame.screenHeight, (double)x, (double)y);
-            traceLevel = 0;
+            RenderFrame::createRay(RenderEngine::primaryRay(), RenderEngine::renderFrame().screenWidth,
+                RenderEngine::renderFrame().screenHeight, (double)x, (double)y);
+            RenderEngine::traceLevel() = 0;
             RenderEngine::trace(&ray, &colour);
             Color::clipColor(&colour, &colour);
 
@@ -362,13 +391,13 @@ RenderFrame::checkStats(int y)
     /* New verbose options CdW */
     if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '0') {
         Logger::info("POV-Ray rendering %s to %s", globalRenderingConfiguration.inputFileName, globalRenderingConfiguration.outputFileName);
-        if ((globalRenderingConfiguration.firstLine != 0) || (globalRenderingConfiguration.lastLine != globalFrame.screenHeight)) {
+        if ((globalRenderingConfiguration.firstLine != 0) || (globalRenderingConfiguration.lastLine != RenderEngine::renderFrame().screenHeight)) {
             Logger::info(" from %4d to %4d:\n", globalRenderingConfiguration.firstLine, globalRenderingConfiguration.lastLine);
         } else {
             Logger::info(":\n");
         }
-        Logger::info("Res %4d X %4d. Calc line %4d of %4d", globalFrame.screenWidth,
-            globalFrame.screenHeight, (y - globalRenderingConfiguration.firstLine) + 1,
+        Logger::info("Res %4d X %4d. Calc line %4d of %4d", RenderEngine::renderFrame().screenWidth,
+            RenderEngine::renderFrame().screenHeight, (y - globalRenderingConfiguration.firstLine) + 1,
             globalRenderingConfiguration.lastLine - globalRenderingConfiguration.firstLine);
         if (!(globalRenderingConfiguration.options & ANTIALIAS)) {
             Logger::info(".");
@@ -390,7 +419,7 @@ RenderFrame::checkStats(int y)
     }
     if (globalRenderingConfiguration.options & VERBOSE && globalRenderingConfiguration.verboseFormat == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
-            globalFrame.screenWidth, globalFrame.screenHeight,
+            RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight,
             (y - globalRenderingConfiguration.firstLine) + 1, globalRenderingConfiguration.lastLine - globalRenderingConfiguration.firstLine);
         if (!(globalRenderingConfiguration.options & ANTIALIAS)) {
             fprintf(stderr, ".");
@@ -411,11 +440,11 @@ RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
 
     if (x != 0) {
         if (Color::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
-            globalFrame.antialiasThreshold) {
+            RenderEngine::renderFrame().antialiasThreshold) {
             antialiasCenterFlag = 1;
             if (!(currentLineAntialiasedFlags[x - 1])) {
                 RenderEngine::supersample(&currentLine[x - 1], x - 1, y,
-                    globalFrame.screenWidth, globalFrame.screenHeight);
+                    RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight);
                 currentLineAntialiasedFlags[x - 1] = 1;
                 superSampleCount++;
             }
@@ -424,11 +453,11 @@ RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
 
     if (y != globalRenderingConfiguration.firstLine - 1) {
         if (Color::colorDistance(&previousLine[x], &currentLine[x]) >=
-            globalFrame.antialiasThreshold) {
+            RenderEngine::renderFrame().antialiasThreshold) {
             antialiasCenterFlag = 1;
             if (!(previousLineAntialiasedFlags[x])) {
                 RenderEngine::supersample(&previousLine[x], x, y - 1,
-                    globalFrame.screenWidth, globalFrame.screenHeight);
+                    RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight);
                 previousLineAntialiasedFlags[x] = 1;
                 superSampleCount++;
             }
@@ -437,7 +466,7 @@ RenderFrame::doAntiAliasing(int x, int y, RGBAColor *colour)
 
     if (antialiasCenterFlag) {
         RenderEngine::supersample(&currentLine[x], x, y,
-            globalFrame.screenWidth, globalFrame.screenHeight);
+            RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight);
         currentLineAntialiasedFlags[x] = 1;
         *colour = currentLine[x];
         superSampleCount++;
@@ -449,11 +478,11 @@ RenderEngine::initializeRenderer()
 {
     int i;
 
-    vpRay = &ray;
-    previousLine = new RGBAColor[(globalFrame.screenWidth + 1)];
-    currentLine = new RGBAColor[(globalFrame.screenWidth + 1)];
+    RenderEngine::primaryRay() = &ray;
+    previousLine = new RGBAColor[(RenderEngine::renderFrame().screenWidth + 1)];
+    currentLine = new RGBAColor[(RenderEngine::renderFrame().screenWidth + 1)];
 
-    for (i = 0; i <= globalFrame.screenWidth; i++) {
+    for (i = 0; i <= RenderEngine::renderFrame().screenWidth; i++) {
         previousLine[i].Red = 0.0;
         previousLine[i].Green = 0.0;
         previousLine[i].Blue = 0.0;
@@ -464,16 +493,16 @@ RenderEngine::initializeRenderer()
     }
 
     if (globalRenderingConfiguration.options & ANTIALIAS) {
-        previousLineAntialiasedFlags = new char[(globalFrame.screenWidth + 1)];
-        currentLineAntialiasedFlags = new char[(globalFrame.screenWidth + 1)];
+        previousLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
+        currentLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
 
-        for (i = 0; i <= globalFrame.screenWidth; i++) {
+        for (i = 0; i <= RenderEngine::renderFrame().screenWidth; i++) {
             (previousLineAntialiasedFlags)[i] = 0;
             (currentLineAntialiasedFlags)[i] = 0;
         }
     }
 
-    ray.position = globalFrame.viewPoint.Location;
+    ray.position = RenderEngine::renderFrame().viewPoint.Location;
 }
 
 void
@@ -525,22 +554,22 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     intersectionFound = FALSE;
     localIntersection = nullptr;
 
-    if (traceLevel > (int)maxTraceLevel) {
+    if (RenderEngine::traceLevel() > (int)RenderEngine::maxTraceLevel()) {
         return;
     }
 
-    if (globalFrame.fogDistance == 0.0) {
+    if (RenderEngine::renderFrame().fogDistance == 0.0) {
         Color::makeColor(colour, 0.0, 0.0, 0.0);
     } else {
-        *colour = globalFrame.fogColour;
+        *colour = RenderEngine::renderFrame().fogColour;
     }
 
     if (globalRenderingConfiguration.options & DEBUGGING) {
-        Logger::info("Calculating intersections level %d\n", traceLevel);
+        Logger::info("Calculating intersections level %d\n", RenderEngine::traceLevel());
     }
 
     /* What objects does this ray intersect? */
-    for (object = globalFrame.Objects; object != nullptr;
+    for (object = RenderEngine::renderFrame().Objects; object != nullptr;
         object = object->nextObject) {
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
             nullptr) {

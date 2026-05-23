@@ -1,3 +1,4 @@
+#include "render/RenderEngine.h"
 /****************************************************************************
  *                     triangle.c
  *
@@ -12,20 +13,19 @@
 #include "common/dataStructures/PriorityQueue.h"
 #include <cstdio>
 #include <cstdlib>
-Methods Triangle_Methods = {Triangle::objectIntersect,
+Methods triangleMethods = {Triangle::objectIntersect,
     Triangle::allTriangleIntersections, Triangle::insideTriangle,
     Triangle::triangleNormal, Triangle::copyTriangle,
     Triangle::translateTriangle, Triangle::rotateTriangle,
     Triangle::scaleTriangle, Triangle::invertTriangle};
 
-Methods Smooth_Triangle_Methods = {Triangle::objectIntersect,
+Methods smoothTriangleMethods = {Triangle::objectIntersect,
     Triangle::allTriangleIntersections, Triangle::insideTriangle,
     SmoothTriangle::smoothTriangleNormal, SmoothTriangle::copySmoothTriangle,
     SmoothTriangle::translateSmoothTriangle,
     SmoothTriangle::rotateSmoothTriangle, SmoothTriangle::scaleSmoothTriangle,
     SmoothTriangle::invertSmoothTriangle};
 
-extern RayWithSegments *vpRay;
 
 Intersection *
 Triangle::objectIntersect(SimpleBody *object, RayWithSegments *ray)
@@ -257,7 +257,7 @@ Triangle::intersectTriangle(
         return (FALSE);
     }
 
-    if (ray == vpRay) {
+    if (ray == RenderEngine::primaryRay()) {
         if (!triangle->VPCached) {
             VectorOps::vDot(triangle->VPNormDotOrigin, triangle->normalVector,
                 ray->position);

@@ -1,3 +1,4 @@
+#include "render/RenderEngine.h"
 /****************************************************************************
  *                     spheres.c
  *
@@ -11,12 +12,11 @@
 
 //===========================================================================
 
-Methods Sphere_Methods = {Composite::objectIntersect,
+Methods sphereMethods = {Composite::objectIntersect,
     Sphere::allSphereIntersections, Sphere::insideSphere, Sphere::sphereNormal,
     Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
     Sphere::scaleSphere, Sphere::invertSphere};
 
-extern RayWithSegments *vpRay;
 
 //===========================================================================
 
@@ -37,7 +37,7 @@ Sphere::intersectSphere(
     double tHalfChordSquared;
     short inside;
 
-    if (ray == vpRay) {
+    if (ray == RenderEngine::primaryRay()) {
         if (!sphere->VPCached) {
             VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->position);
             sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);

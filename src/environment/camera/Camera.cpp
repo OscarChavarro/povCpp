@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "environment/camera/Camera.h"
-Methods Camera_Methods = {nullptr, nullptr, nullptr, nullptr,
+Methods cameraMethods = {nullptr, nullptr, nullptr, nullptr,
     Camera::copyCamera, Camera::translateCamera,
     Camera::rotateCamera, Camera::scaleCamera, nullptr};
 void *
@@ -29,7 +29,7 @@ Camera::copyCamera(SimpleBody *object)
 void
 Camera::initializeDefaults()
 {
-    this->methods = (Methods *)&Camera_Methods;
+    this->methods = (Methods *)&cameraMethods;
     this->Type = VIEWPOINT_TYPE;
     *&this->Location = Vector3Dd(0.0, 0.0, 0.0);
     *&this->Direction = Vector3Dd(0.0, 0.0, 1.0);

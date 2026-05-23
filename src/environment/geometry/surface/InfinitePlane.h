@@ -26,7 +26,7 @@ class InfinitePlane : public Geometry {
     static void invertPlane(SimpleBody *object);
 };
 
-extern Methods Plane_Methods;
+extern Methods planeMethods;
 extern InfinitePlane *getPlaneShape(void);
 
 #endif

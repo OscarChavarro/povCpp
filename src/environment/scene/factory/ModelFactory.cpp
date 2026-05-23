@@ -37,7 +37,7 @@ ModelFactory::getCompositeObject()
     newComposite->boundingShapes = nullptr;
     newComposite->clippingShapes = nullptr;
     newComposite->Type = COMPOSITE_TYPE;
-    newComposite->methods = &Composite_Methods;
+    newComposite->methods = &compositeMethods;
     return (newComposite);
 }
 
@@ -58,7 +58,7 @@ ModelFactory::getSphereShape()
     newShape->inverseRadius = 1.0;
     newShape->Type = SPHERE_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Sphere_Methods;
+    newShape->methods = &sphereMethods;
     newShape->VPCached = FALSE;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
@@ -79,7 +79,7 @@ ModelFactory::getLightSourceShape()
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->pointsAt) = Vector3Dd(0.0, 0.0, 1.0);
     newShape->Type = POINT_LIGHT_TYPE;
-    newShape->methods = &Point_Methods;
+    newShape->methods = &pointMethods;
     newShape->nextObject = nullptr;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
@@ -112,7 +112,7 @@ ModelFactory::getQuadricShape()
     newShape->nonZeroSquareTerm = FALSE;
     newShape->Type = QUADRIC_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Quadric_Methods;
+    newShape->methods = &quadricMethods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     return (newShape);
@@ -132,7 +132,7 @@ ModelFactory::getPolyShape(int order)
 
     newShape->Type = POLY_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Poly_Methods;
+    newShape->methods = &polyMethods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     newShape->Transform = nullptr;
@@ -167,7 +167,7 @@ ModelFactory::getBoxShape()
     newShape->Transform = nullptr;
     newShape->Type = BOX_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Box_Methods;
+    newShape->methods = &boxMethods;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
@@ -188,7 +188,7 @@ ModelFactory::getBlobShape()
     newShape->Transform = nullptr;
     newShape->Type = BLOB_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Blob_Methods;
+    newShape->methods = &blobMethods;
     newShape->Inverted = FALSE;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
@@ -208,7 +208,7 @@ ModelFactory::getBicubicPatchShape()
 
     newShape->Type = BICUBIC_PATCH_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Bicubic_Patch_Methods;
+    newShape->methods = &bicubicPatchMethods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     newShape->uSteps = 0;
@@ -236,7 +236,7 @@ ModelFactory::getHeightFieldShape()
     newShape->transformation = Transformation::getTransformation();
     newShape->Type = HEIGHT_FIELD_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Height_Field_Methods;
+    newShape->methods = &heightFieldMethods;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     return (newShape);
@@ -257,7 +257,7 @@ ModelFactory::getPlaneShape()
     newShape->Distance = 0.0;
     newShape->Type = PLANE_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Plane_Methods;
+    newShape->methods = &planeMethods;
     newShape->VPCached = 0;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
@@ -283,7 +283,7 @@ ModelFactory::getTriangleShape()
     newShape->Inverted = FALSE;
     newShape->Type = TRIANGLE_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Triangle_Methods;
+    newShape->methods = &triangleMethods;
     newShape->VPCached = FALSE;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
@@ -313,7 +313,7 @@ ModelFactory::getSmoothTriangleShape()
     newShape->Type = SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = FALSE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Smooth_Triangle_Methods;
+    newShape->methods = &smoothTriangleMethods;
     newShape->VPCached = 0;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
@@ -343,7 +343,7 @@ ModelFactory::getCsgUnion()
     CSG *newShape;
 
     newShape = ModelFactory::getCsgShape();
-    newShape->methods = &CSG_Union_Methods;
+    newShape->methods = &csgUnionMethods;
     newShape->Type = CSG_UNION_TYPE;
     return (newShape);
 }
@@ -354,7 +354,7 @@ ModelFactory::getCsgIntersection()
     CSG *newShape;
 
     newShape = ModelFactory::getCsgShape();
-    newShape->methods = &CSG_Intersection_Methods;
+    newShape->methods = &csgIntersectionMethods;
     newShape->Type = CSG_INTERSECTION_TYPE;
     return (newShape);
 }

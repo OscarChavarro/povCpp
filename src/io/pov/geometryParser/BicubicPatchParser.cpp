@@ -1,3 +1,4 @@
+#include "io/pov/ParserContext.h"
 #include "io/pov/geometryParser/BicubicPatchParser.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
@@ -9,12 +10,18 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
-extern TokenStruct globalToken;
-extern Constant constants[MAX_CONSTANTS];
 
 Geometry *
 BicubicPatchParser::parseBicubicPatch()
 {
+    ParserContext ctx;
+    return BicubicPatchParser::parseBicubicPatch(ctx);
+}
+
+Geometry *
+BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
+{
+    (void)ctx;
     ParametricBiCubicPatch *localShape = nullptr;
     Vector3Dd localVector;
     CONSTANT constantId;
@@ -22,28 +29,28 @@ BicubicPatchParser::parseBicubicPatch()
     int i;
     int j;
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN);
+    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
                 Tokenizer::ungetToken();
                 localShape = SceneFactory::getBicubicPatchShape();
-                localShape->patchType = (int)PrimitiveParser::parseFloat();
+                localShape->patchType = (int)PrimitiveParser::parseFloat(ctx);
                 if (localShape->patchType == 2 ||
                     localShape->patchType == 3) {
-                    localShape->flatnessValue = PrimitiveParser::parseFloat();
+                    localShape->flatnessValue = PrimitiveParser::parseFloat(ctx);
                 } else {
                     localShape->flatnessValue = 0.1;
                 }
-                localShape->uSteps = (int)PrimitiveParser::parseFloat();
-                localShape->vSteps = (int)PrimitiveParser::parseFloat();
+                localShape->uSteps = (int)PrimitiveParser::parseFloat(ctx);
+                localShape->vSteps = (int)PrimitiveParser::parseFloat(ctx);
                 for (i = 0; i < 4; i++) {
                     for (j = 0; j < 4; j++) {
                         PrimitiveParser::parseVector(
@@ -56,24 +63,24 @@ BicubicPatchParser::parseBicubicPatch()
                 break;
 
             case IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant()) != -1) {
-                    if (constants[(int)constantId].constantType ==
+                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                    if (ctx.constants()[(int)constantId].constantType ==
                         BICUBIC_PATCH_CONSTANT) {
                         localShape =
                             (ParametricBiCubicPatch *)GeometryOperations::copy(
-                                (SimpleBody *)constants[(int)constantId]
+                                (SimpleBody *)ctx.constants()[(int)constantId]
                                     .constantData);
                     } else {
-                        ParseErrorReporter::typeError();
+                        ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared();
+                    ParseErrorReporter::Undeclared(ctx);
                 }
                 Exit_Flag = TRUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN);
+                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -84,25 +91,25 @@ BicubicPatchParser::parseBicubicPatch()
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
             Tokenizer::getToken();
-            switch (globalToken.tokenId) {
+            switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
                 break;
 
             case TRANSLATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
             case ROTATE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
             case SCALE_TOKEN:
-                PrimitiveParser::parseVector(&localVector);
+                PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localShape, &localVector);
                 break;
@@ -112,7 +119,7 @@ BicubicPatchParser::parseBicubicPatch()
                 break;
 
             case TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture();
+                localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
@@ -124,11 +131,11 @@ BicubicPatchParser::parseBicubicPatch()
 
             case COLOUR_TOKEN:
                 localShape->Shape_Colour = SceneFactory::getColour();
-                PrimitiveParser::parseColour(localShape->Shape_Colour);
+                PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN);
+                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

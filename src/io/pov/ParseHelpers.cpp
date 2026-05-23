@@ -1,3 +1,4 @@
+#include "io/pov/ParserContext.h"
 #include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -22,20 +23,21 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
-extern ReservedWord globalReservedWords[];
-extern int termCounts[MAX_ORDER + 1];
-extern TokenStruct globalToken;
-extern double maxTraceLevel;
 
-extern RenderFrame *parsingFramePtr;
-extern TokenStruct globalToken;
 
 void
 ParseHelpers::getExpectedToken(int tokenId)
 {
+    ParserContext ctx;
+    ParseHelpers::getExpectedToken(tokenId, ctx);
+}
+
+void
+ParseHelpers::getExpectedToken(int tokenId, ParserContext &ctx)
+{
     Tokenizer::getToken();
-    if (globalToken.tokenId != tokenId) {
-        ParseErrorReporter::parseError(tokenId);
+    if (ctx.token().tokenId != tokenId) {
+        ParseErrorReporter::parseError(tokenId, ctx);
     }
 }
 
@@ -64,6 +66,13 @@ ParseHelpers::postProcessObject(SimpleBody *object)
 void
 ParseHelpers::postProcessShape(Geometry *shape)
 {
+    ParserContext ctx;
+    ParseHelpers::postProcessShape(shape, ctx);
+}
+
+void
+ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
+{
     Geometry *tempShape;
 
     if ((shape->Type == CSG_UNION_TYPE) ||
@@ -77,6 +86,6 @@ ParseHelpers::postProcessShape(Geometry *shape)
                (shape->Type == SPOT_LIGHT_TYPE)) {
         ParseHelpers::linkShapes((Light *)shape,
             &(((Light *)shape)->Next_Light_Source),
-            &(parsingFramePtr->Light_Sources));
+            &(ctx.parsingFrame()->Light_Sources));
     }
 }

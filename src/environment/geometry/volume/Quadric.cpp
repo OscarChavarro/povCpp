@@ -1,3 +1,4 @@
+#include "render/RenderEngine.h"
 /****************************************************************************
  *                     quadrics.c
  *
@@ -9,12 +10,11 @@
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/compound/Composite.h"
-Methods Quadric_Methods = {Composite::objectIntersect,
+Methods quadricMethods = {Composite::objectIntersect,
     Quadric::allQuadricIntersections, Quadric::insideQuadric,
     Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
 
-extern RayWithSegments *vpRay;
 int
 Quadric::allQuadricIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
@@ -86,7 +86,7 @@ Quadric::intersectQuadric(
         shape->objectMixedTerms.dotProduct(ray->mixedPositionDirection);
     linearTerm += tempTerm;
 
-    if (ray == vpRay) {
+    if (ray == RenderEngine::primaryRay()) {
         if (!shape->constantCached) {
             constantTerm = shape->object2Terms.dotProduct(ray->position2);
             tempTerm = shape->objectTerms.dotProduct(ray->position);

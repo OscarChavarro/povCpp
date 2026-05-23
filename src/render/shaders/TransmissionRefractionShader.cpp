@@ -1,3 +1,4 @@
+#include "render/RenderEngine.h"
 #include "render/shaders/TransmissionRefractionShader.h"
 #include "render/shaders/TraceService.h"
 #include "common/Statistics.h"
@@ -7,8 +8,6 @@
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/scene/SceneFrame.h"
 
-extern int traceLevel;
-extern RenderFrame globalFrame;
 
 void
 TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
@@ -29,12 +28,12 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         newRay.direction = ray->direction;
 
         newRay.copyContainersFrom(ray);
-        traceLevel++;
+        RenderEngine::traceLevel()++;
         globalStatistics.transmittedRaysTraced++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
         traceService->trace(&newRay, &tempColor);
-        traceLevel--;
+        RenderEngine::traceLevel()--;
         (color->Red) += tempColor.Red;
         (color->Green) += tempColor.Green;
         (color->Blue) += tempColor.Blue;
@@ -55,7 +54,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         if (ray->containingIndex == -1) {
             /* The ray is entering from the atmosphere */
             newRay.enterContainingMedium(texture);
-            ior = (globalFrame.atmosphereIor) /
+            ior = (RenderEngine::renderFrame().atmosphereIor) /
                   (texture->objectIndexOfRefraction);
         } else {
             /* The ray is currently inside an object */
@@ -66,7 +65,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
                 newRay.exitContainingMedium();
                 if (newRay.containingIndex == -1) {
                     /* The ray is leaving into the atmosphere */
-                    tempIor = globalFrame.atmosphereIor;
+                    tempIor = RenderEngine::renderFrame().atmosphereIor;
                 } else {
                     /* The ray is leaving into another object */
                     tempIor = newRay.containingIORs[newRay.containingIndex];
@@ -97,12 +96,12 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         newRay.direction.normalize();
 
         newRay.position = *intersectionPoint;
-        traceLevel++;
+        RenderEngine::traceLevel()++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = FALSE;
 
         traceService->trace(&newRay, &tempColor);
-        traceLevel--;
+        RenderEngine::traceLevel()--;
 
         (color->Red) += (tempColor.Red) * (texture->objectRefraction);
         (color->Green) += (tempColor.Green) * (texture->objectRefraction);

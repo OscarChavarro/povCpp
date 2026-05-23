@@ -1,3 +1,4 @@
+#include "io/pov/ParserContext.h"
 #include "common/LegacyBoolean.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/linealAlgebra/Transformation.h"
@@ -24,31 +25,30 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
-extern ReservedWord globalReservedWords[];
-extern int termCounts[MAX_ORDER + 1];
-extern TokenStruct globalToken;
-extern double maxTraceLevel;
 
-extern RenderFrame *parsingFramePtr;
-extern Constant constants[MAX_CONSTANTS];
-extern int numberOfConstants;
-extern int degenerateTriangles;
 
 void
 SceneParser::Parse(RenderFrame *framePtr)
 {
-    SimpleBody *object;
-    parsingFramePtr = framePtr;
+    ParserContext ctx;
+    SceneParser::Parse(framePtr, ctx);
+}
 
-    degenerateTriangles = FALSE;
-    SceneParser::tokenInit();
-    SceneParser::frameInit();
-    SceneParser::parseFrame();
-    for (object = parsingFramePtr->Objects; object != nullptr;
+void
+SceneParser::Parse(RenderFrame *framePtr, ParserContext &ctx)
+{
+    SimpleBody *object;
+    ctx.parsingFrame() = framePtr;
+
+    ctx.degenerateTriangles() = FALSE;
+    SceneParser::tokenInit(ctx);
+    SceneParser::frameInit(ctx);
+    SceneParser::parseFrame(ctx);
+    for (object = ctx.parsingFrame()->Objects; object != nullptr;
         object = object->nextObject) {
         ParseHelpers::postProcessObject(object);
     }
-    if (degenerateTriangles) {
+    if (ctx.degenerateTriangles()) {
         fprintf(
             stderr, "Degenerate triangles were found and are being ignored.\n");
         /* exit(1); Let's ignore degen tri instead of blowing up. CdW */
@@ -58,7 +58,14 @@ SceneParser::Parse(RenderFrame *framePtr)
 void
 SceneParser::tokenInit()
 {
-    numberOfConstants = 0;
+    ParserContext ctx;
+    SceneParser::tokenInit(ctx);
+}
+
+void
+SceneParser::tokenInit(ParserContext &ctx)
+{
+    ctx.numberOfConstants() = 0;
     /*
        Constants = new Constant[MAX_CONSTANTS];
     */
@@ -68,18 +75,32 @@ SceneParser::tokenInit()
 void
 SceneParser::frameInit()
 {
+    ParserContext ctx;
+    SceneParser::frameInit(ctx);
+}
+
+void
+SceneParser::frameInit(ParserContext &ctx)
+{
     Default_Texture = TextureUtils::getTexture();
-    parsingFramePtr->viewPoint.initializeDefaults();
-    parsingFramePtr->Light_Sources = nullptr;
-    parsingFramePtr->Objects = nullptr;
-    parsingFramePtr->atmosphereIor = 1.0;
-    parsingFramePtr->antialiasThreshold = globalRenderingConfiguration.antialiasThreshold;
-    parsingFramePtr->fogDistance = 0.0;
-    Color::makeColor(&(parsingFramePtr->fogColour), 0.0, 0.0, 0.0);
+    ctx.parsingFrame()->viewPoint.initializeDefaults();
+    ctx.parsingFrame()->Light_Sources = nullptr;
+    ctx.parsingFrame()->Objects = nullptr;
+    ctx.parsingFrame()->atmosphereIor = 1.0;
+    ctx.parsingFrame()->antialiasThreshold = globalRenderingConfiguration.antialiasThreshold;
+    ctx.parsingFrame()->fogDistance = 0.0;
+    Color::makeColor(&(ctx.parsingFrame()->fogColour), 0.0, 0.0, 0.0);
 }
 
 void
 SceneParser::parseFrame()
 {
-    SceneFrameParser::parseFrame(parsingFramePtr);
+    ParserContext ctx;
+    SceneParser::parseFrame(ctx);
+}
+
+void
+SceneParser::parseFrame(ParserContext &ctx)
+{
+    SceneFrameParser::parseFrame(ctx.parsingFrame(), ctx);
 }

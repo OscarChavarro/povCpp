@@ -1,3 +1,4 @@
+#include "render/RenderEngine.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/TraceService.h"
 #include "common/color/Color.h"
@@ -15,7 +16,6 @@
 #include "render/shaders/LocalSurfaceShader.h"
 #include "render/shaders/TransmissionRefractionShader.h"
 
-extern RenderFrame globalFrame;
 
 void
 RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
@@ -186,8 +186,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
     }
 
-    if (globalFrame.fogDistance != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->Depth, &globalFrame.fogColour,
-            globalFrame.fogDistance, colour);
+    if (RenderEngine::renderFrame().fogDistance != 0.0) {
+        ExponentialFogShader::shade(rayIntersection->Depth, &RenderEngine::renderFrame().fogColour,
+            RenderEngine::renderFrame().fogDistance, colour);
     }
 }

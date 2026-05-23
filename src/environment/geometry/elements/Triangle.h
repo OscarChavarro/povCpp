@@ -44,9 +44,9 @@ class Triangle : public Geometry {
 
 #include "environment/geometry/elements/SmoothTriangle.h"
 
-extern Methods Triangle_Methods;
+extern Methods triangleMethods;
 extern Triangle *getTriangleShape(void);
 extern SmoothTriangle *getSmoothTriangleShape(void);
-extern Methods Smooth_Triangle_Methods;
+extern Methods smoothTriangleMethods;
 
 #endif

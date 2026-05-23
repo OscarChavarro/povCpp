@@ -16,11 +16,10 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
-Methods Blob_Methods = {Composite::objectIntersect, Blob::allBlobIntersections,
+Methods blobMethods = {Composite::objectIntersect, Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
     Blob::rotateBlob, Blob::scaleBlob, Blob::invertBlob};
 
-extern RayWithSegments *vpRay;
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
