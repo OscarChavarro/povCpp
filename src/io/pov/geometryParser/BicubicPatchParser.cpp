@@ -29,17 +29,17 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     int i;
     int j;
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case DASH_TOKEN:
-            case PLUS_TOKEN:
-            case FLOAT_TOKEN:
+            case Tokenizer::DASH_TOKEN:
+            case Tokenizer::PLUS_TOKEN:
+            case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBicubicPatchShape();
                 localShape->patchType = (int)PrimitiveParser::parseFloat(ctx);
@@ -59,13 +59,13 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 }
                 ParametricBiCubicPatch::precomputePatchValues(
                     localShape); /* interpolated mesh coords */
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        BICUBIC_PATCH_CONSTANT) {
+                        ParseGlobals::BICUBIC_PATCH_CONSTANT) {
                         localShape =
                             (ParametricBiCubicPatch *)GeometryOperations::copy(
                                 (SimpleBody *)ctx.constants()[(int)constantId]
@@ -76,11 +76,11 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -88,37 +88,37 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case INVERSE_TOKEN:
+            case Tokenizer::INVERSE_TOKEN:
                 GeometryOperations::invert((SimpleBody *)localShape);
                 break;
 
-            case TEXTURE_TOKEN:
+            case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
@@ -129,13 +129,13 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                     (SimpleBody **)&localShape->Shape_Texture);
                 break;
 
-            case COLOUR_TOKEN:
+            case Tokenizer::COLOUR_TOKEN:
                 localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

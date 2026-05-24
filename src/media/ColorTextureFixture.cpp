@@ -277,7 +277,7 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
     z += smallTolerance;
 
     /* AAC: was just x + z */
-    /* AAC: Small_Tolerance added to get around Microsoft C (int) bug */
+    /* AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug */
     brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
 
     if (debugEnabled) {

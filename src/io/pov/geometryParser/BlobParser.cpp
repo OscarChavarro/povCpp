@@ -33,15 +33,15 @@ BlobParser::parseBlob(ParserContext &ctx)
     localShape = nullptr;
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case LEFT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::LEFT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
             default:
-                ParseErrorReporter::parseError(LEFT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::LEFT_CURLY_TOKEN, ctx);
                 break;
             }
         }
@@ -49,12 +49,12 @@ BlobParser::parseBlob(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case THRESHOLD_TOKEN:
-            case COMPONENT_TOKEN:
+            case Tokenizer::THRESHOLD_TOKEN:
+            case Tokenizer::COMPONENT_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBlobShape();
                 blobComponents = nullptr;
@@ -64,15 +64,15 @@ BlobParser::parseBlob(ParserContext &ctx)
                 /* Here is where we get the blob coefficients */
                 {
                     int Exit_Flag;
-                    Exit_Flag = FALSE;
+                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
-                        case THRESHOLD_TOKEN:
+                        case Tokenizer::THRESHOLD_TOKEN:
                             threshold = PrimitiveParser::parseFloat(ctx);
                             break;
 
-                        case COMPONENT_TOKEN:
+                        case Tokenizer::COMPONENT_TOKEN:
                             blobComponent = new BlobList;
                             if (blobComponent == nullptr) {
                                 ParseErrorReporter::Error(
@@ -92,7 +92,7 @@ BlobParser::parseBlob(ParserContext &ctx)
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = TRUE;
+                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
                             break;
                         }
                     }
@@ -101,13 +101,13 @@ BlobParser::parseBlob(ParserContext &ctx)
                 /* Finally, process the information */
                 Blob::makeBlob((SimpleBody *)localShape, threshold, blobComponents,
                     npoints, 0);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        BLOB_CONSTANT) {
+                        ParseGlobals::BLOB_CONSTANT) {
                         localShape = (Blob *)GeometryOperations::copy(
                             (SimpleBody *)ctx.constants()[(int)constantId]
                                 .constantData);
@@ -117,11 +117,11 @@ BlobParser::parseBlob(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::FLOAT_TOKEN, ctx);
                 break;
             }
         }
@@ -129,41 +129,41 @@ BlobParser::parseBlob(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case STURM_TOKEN:
+            case Tokenizer::STURM_TOKEN:
                 localShape->sturmFlag = 1;
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case INVERSE_TOKEN:
+            case Tokenizer::INVERSE_TOKEN:
                 GeometryOperations::invert((SimpleBody *)localShape);
                 break;
 
-            case TEXTURE_TOKEN:
+            case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
@@ -179,13 +179,13 @@ BlobParser::parseBlob(ParserContext &ctx)
                 }
                 break;
 
-            case COLOUR_TOKEN:
+            case Tokenizer::COLOUR_TOKEN:
                 localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

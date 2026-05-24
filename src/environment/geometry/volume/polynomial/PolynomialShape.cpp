@@ -38,8 +38,8 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 9, 36, 84, 126, 126, 84, 36, 9, 1, 0},
     {0, 1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1}};
 
-int factorials[MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
-static int termCountsInstance[MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
+int factorials[PolynomialConstants::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
+static int termCountsInstance[PolynomialConstants::MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
 Methods PolynomialShape::methodTable = {Composite::objectIntersect,
     PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
@@ -59,7 +59,7 @@ PolynomialShape::allPolyIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     PolynomialShape *shape = (PolynomialShape *)object;
-    double depths[MAX_ORDER];
+    double depths[PolynomialConstants::MAX_ORDER];
     double len;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
@@ -96,7 +96,7 @@ PolynomialShape::allPolyIntersections(
     newRay.direction.y /= len;
     newRay.direction.z /= len;
 
-    intersectionFound = FALSE;
+    intersectionFound = LegacyBoolean::FALSE_VALUE;
     Statistics::global().rayPolyTests++;
     if (shape->Order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
@@ -132,7 +132,7 @@ PolynomialShape::allPolyIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        intersectionFound = TRUE;
+        intersectionFound = LegacyBoolean::TRUE_VALUE;
     l0:;
     }
     return (intersectionFound);
@@ -217,7 +217,7 @@ PolynomialShape::intersect(
 {
     MATRIX q;
     double *a;
-    double t[MAX_ORDER + 1];
+    double t[PolynomialConstants::MAX_ORDER + 1];
     int i;
     int j;
     /* Determine the coefficients of t^n, where the line is represented
@@ -267,9 +267,9 @@ PolynomialShape::intersect(
 double
 PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 {
-    double x[MAX_ORDER + 1];
-    double y[MAX_ORDER + 1];
-    double z[MAX_ORDER + 1];
+    double x[PolynomialConstants::MAX_ORDER + 1];
+    double y[PolynomialConstants::MAX_ORDER + 1];
+    double z[PolynomialConstants::MAX_ORDER + 1];
     double result;
     int i;
     int k0;
@@ -282,7 +282,7 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
     x[1] = point->x;
     y[1] = point->y;
     z[1] = point->z;
-    for (i = 2; i <= MAX_ORDER; i++) {
+    for (i = 2; i <= PolynomialConstants::MAX_ORDER; i++) {
         x[i] = x[1] * x[i - 1];
         y[i] = y[1] * y[i - 1];
         z[i] = z[1] * z[i - 1];
@@ -295,7 +295,7 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 
     /* The Epsilon fudge factor is so that points really near the
         surface are considered inside the surface */
-    return (result > -kEpsilon ? (result < kEpsilon ? 0.0 : result) : result);
+    return (result > -Config::kEpsilon ? (result < Config::kEpsilon ? 0.0 : result) : result);
 }
 
 /* Normal to a polynomial */
@@ -309,9 +309,9 @@ PolynomialShape::normalp(
     int zp;
     int wp;
     double *a;
-    double x[MAX_ORDER + 1];
-    double y[MAX_ORDER + 1];
-    double z[MAX_ORDER + 1];
+    double x[PolynomialConstants::MAX_ORDER + 1];
+    double y[PolynomialConstants::MAX_ORDER + 1];
+    double z[PolynomialConstants::MAX_ORDER + 1];
     x[0] = 1.0;
     y[0] = 1.0;
     z[0] = 1.0;
@@ -809,7 +809,7 @@ PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
     }
 
     result = PolynomialShape::inside(&newPoint, shape->Order, shape->Coeffs);
-    if (result < Small_Tolerance) {
+    if (result < GeometryConstants::Small_Tolerance) {
         return ((int)(1 - shape->Inverted));
     }
     return ((int)shape->Inverted);

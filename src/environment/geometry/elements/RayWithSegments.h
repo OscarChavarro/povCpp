@@ -4,10 +4,10 @@
 #include "environment/geometry/elements/Ray.h"
 #include "media/Texture.h"
 
-static constexpr int MAX_CONTAINING_OBJECTS = 10;
-
 class RayWithSegments : public Ray {
   public:
+    static constexpr int MAX_CONTAINING_OBJECTS = 10;
+
     RayWithSegments();
     Vector3Dd position2;               /*  Xo^2  Yo^2  Zo^2  */
     Vector3Dd direction2;              /*  Xv^2  Yv^2  Zv^2  */

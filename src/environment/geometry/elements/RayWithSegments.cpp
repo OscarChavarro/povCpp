@@ -14,9 +14,9 @@
 RayWithSegments::RayWithSegments()
 {
     containingIndex = -1;
-    quadricConstantsCached = FALSE;
-    isShadowRay = FALSE;
-    isPrimaryRay = FALSE;
+    quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
+    isShadowRay = LegacyBoolean::FALSE_VALUE;
+    isPrimaryRay = LegacyBoolean::FALSE_VALUE;
 }
 
 inline void
@@ -46,15 +46,15 @@ RayWithSegments::makeRay()
     RayWithSegments::mixVectorTerms(
         this->mixedPositionDirection, this->direction, this->position);
     this->mixedPositionDirection.add(tempInitDir);
-    this->quadricConstantsCached = TRUE;
+    this->quadricConstantsCached = LegacyBoolean::TRUE_VALUE;
 }
 
 void
 RayWithSegments::initializeContainers()
 {
     this->containingIndex = -1;
-    this->isShadowRay = FALSE;
-    this->isPrimaryRay = FALSE;
+    this->isShadowRay = LegacyBoolean::FALSE_VALUE;
+    this->isPrimaryRay = LegacyBoolean::FALSE_VALUE;
 }
 
 void
@@ -63,14 +63,14 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
     int i;
 
     if ((this->containingIndex = sourceRay->containingIndex) >=
-        MAX_CONTAINING_OBJECTS) {
+        RayWithSegments::MAX_CONTAINING_OBJECTS) {
         Logger::error( "ERROR - Containing Index too high\n");
         exit(1);
     }
     this->isShadowRay = sourceRay->isShadowRay;
-    this->isPrimaryRay = FALSE;
+    this->isPrimaryRay = LegacyBoolean::FALSE_VALUE;
 
-    for (i = 0; i < MAX_CONTAINING_OBJECTS; i++) {
+    for (i = 0; i < RayWithSegments::MAX_CONTAINING_OBJECTS; i++) {
         this->containingTextures[i] = sourceRay->containingTextures[i];
         this->containingIORs[i] = sourceRay->containingIORs[i];
     }
@@ -81,7 +81,7 @@ RayWithSegments::enterContainingMedium(Texture *texture)
 {
     int index;
 
-    if ((index = ++(this->containingIndex)) >= MAX_CONTAINING_OBJECTS) {
+    if ((index = ++(this->containingIndex)) >= RayWithSegments::MAX_CONTAINING_OBJECTS) {
         Logger::error( "Too many nested refracting objects\n");
         exit(1);
     }

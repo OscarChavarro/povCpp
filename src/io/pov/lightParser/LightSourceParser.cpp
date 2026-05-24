@@ -24,30 +24,30 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     Vector3Dd localVector;
     CONSTANT constantId;
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case LEFT_ANGLE_TOKEN:
+            case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getLightSourceShape();
                 PrimitiveParser::parseVector(&(localShape->Center), ctx);
                 localShape->Shape_Colour = ModelBuilder::getColour();
                 Color::makeColor(localShape->Shape_Colour, 1.0, 1.0, 1.0);
                 localShape->Shape_Colour->Alpha = 0.0;
-                ParseHelpers::getExpectedToken(COLOUR_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        LIGHT_SOURCE_CONSTANT) {
+                        ParseGlobals::LIGHT_SOURCE_CONSTANT) {
                         localShape = (Light *)GeometryOperations::copy(
                             (SimpleBody *)ctx.constants()[(int)constantId]
                                 .constantData);
@@ -57,11 +57,11 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -69,61 +69,61 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
             /* Point that the spot is pointed at */
-            case POINT_AT_TOKEN:
+            case Tokenizer::POINT_AT_TOKEN:
                 PrimitiveParser::parseVector(&(localShape->pointsAt), ctx);
                 break;
 
-            case TIGHTNESS_TOKEN:
+            case Tokenizer::TIGHTNESS_TOKEN:
                 localShape->Coeff = PrimitiveParser::parseFloat(ctx);
                 break;
 
-            case RADIUS_TOKEN:
+            case Tokenizer::RADIUS_TOKEN:
                 localShape->Radius =
                     cos(PrimitiveParser::parseFloat(ctx) * M_PI / 180.0);
                 break;
 
-            case COLOUR_TOKEN:
+            case Tokenizer::COLOUR_TOKEN:
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 
-            case FALLOFF_TOKEN:
+            case Tokenizer::FALLOFF_TOKEN:
                 localShape->Falloff =
                     cos(PrimitiveParser::parseFloat(ctx) * M_PI / 180.0);
                 break;
 
-            case SPOTLIGHT_TOKEN:
-                localShape->Type = SPOT_LIGHT_TYPE;
+            case Tokenizer::SPOTLIGHT_TOKEN:
+                localShape->Type = GeometryOperations::SPOT_LIGHT_TYPE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

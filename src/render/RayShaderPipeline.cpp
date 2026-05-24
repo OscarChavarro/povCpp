@@ -30,13 +30,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     Vector3Dd surfaceNormal;
     double normalDirection;
     int surface;
-    const int debugEnabled = (RenderingConfiguration::global().options & DEBUGGING);
+    const int debugEnabled = (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING);
 
     if (!shadowRay) {
         Color::makeColor(colour, 0.0, 0.0, 0.0);
     }
 
-    if (RenderingConfiguration::global().options & DEBUGGING) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
             Logger::info("Depth: %f Object %d Colour %f %f %f ",
                 rayIntersection->Depth, rayIntersection->Shape->Type,
@@ -60,7 +60,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
      */
     if (texture->textureNumber == Texture::MATERIAL_MAP_TEXTURE) {
         texture = MapTextureFixture::materialMap(
-            &rayIntersection->Point, texture, debugEnabled, Small_Tolerance);
+            &rayIntersection->Point, texture, debugEnabled, GeometryConstants::Small_Tolerance);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
@@ -90,7 +90,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         } else {
             ColorTextureFixture::colourAt(
                 &surfaceColour, tempTexture, &rayIntersection->Point,
-                debugEnabled, Small_Tolerance);
+                debugEnabled, GeometryConstants::Small_Tolerance);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
@@ -100,7 +100,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 RenderEngine::renderFrame(), RenderEngine::traceLevel());
         }
 
-        if (RenderingConfiguration::global().options & DEBUGGING) {
+        if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
             Logger::info("Surface %d\n", surface);
             Logger::info("    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,
                 surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);

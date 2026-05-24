@@ -37,13 +37,13 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
         /* ARE 08/25/91 */
 
         VectorOps::vScale(
-            surfaceOffset, newRay.direction, 2.0 * Small_Tolerance);
+            surfaceOffset, newRay.direction, 2.0 * GeometryConstants::Small_Tolerance);
         newRay.position.add(surfaceOffset);
 
         newRay.copyContainersFrom(ray);
         traceLevel++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
-        newRay.quadricConstantsCached = FALSE;
+        newRay.quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 

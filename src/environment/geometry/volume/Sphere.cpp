@@ -41,11 +41,11 @@ Sphere::intersectSphere(
             VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->position);
             sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);
             sphere->VPinside = (sphere->VPOCSquared < sphere->radiusSquared);
-            sphere->VPCached = TRUE;
+            sphere->VPCached = LegacyBoolean::TRUE_VALUE;
         }
         tClosestApproach = sphere->VPOtoC.dotProduct(ray->direction);
-        if (!sphere->VPinside && (tClosestApproach < Small_Tolerance)) {
-            return FALSE;
+        if (!sphere->VPinside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
+            return LegacyBoolean::FALSE_VALUE;
         }
         tHalfChordSquared = sphere->radiusSquared - sphere->VPOCSquared +
                             (tClosestApproach * tClosestApproach);
@@ -54,37 +54,37 @@ Sphere::intersectSphere(
         ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->radiusSquared);
         tClosestApproach = originToCenter.dotProduct(ray->direction);
-        if (!inside && (tClosestApproach < Small_Tolerance)) {
-            return FALSE;
+        if (!inside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
+            return LegacyBoolean::FALSE_VALUE;
         }
 
         tHalfChordSquared = sphere->radiusSquared - ocSquared +
                             (tClosestApproach * tClosestApproach);
     }
 
-    if (tHalfChordSquared < Small_Tolerance) {
-        return FALSE;
+    if (tHalfChordSquared < GeometryConstants::Small_Tolerance) {
+        return LegacyBoolean::FALSE_VALUE;
     }
 
     halfChord = sqrt(tHalfChordSquared);
     *depth1 = tClosestApproach + halfChord;
     *depth2 = tClosestApproach - halfChord;
 
-    if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
-        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
-            return FALSE;
+    if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
+        if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
+            return LegacyBoolean::FALSE_VALUE;
         }
         *depth1 = *depth2;
 
     } else {
-        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+        if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
             *depth2 = *depth1;
         }
     }
 
     //--------------------------------------------------------------------------
     Statistics::global().raySphereTestsSucceeded++;
-    return TRUE;
+    return LegacyBoolean::TRUE_VALUE;
 }
 
 int
@@ -98,7 +98,7 @@ Sphere::allSphereIntersections(
     int intersectionFound;
     Sphere *shape = (Sphere *)object;
 
-    intersectionFound = FALSE;
+    intersectionFound = LegacyBoolean::FALSE_VALUE;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
@@ -107,7 +107,7 @@ Sphere::allSphereIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        intersectionFound = TRUE;
+        intersectionFound = LegacyBoolean::TRUE_VALUE;
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
@@ -117,7 +117,7 @@ Sphere::allSphereIntersections(
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
-            intersectionFound = TRUE;
+            intersectionFound = LegacyBoolean::TRUE_VALUE;
         }
     }
     return intersectionFound;
@@ -134,9 +134,9 @@ Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
     ocSquared = originToCenter.dotProduct(originToCenter);
 
     if (sphere->Inverted) {
-        return (ocSquared - sphere->radiusSquared > Small_Tolerance);
+        return (ocSquared - sphere->radiusSquared > GeometryConstants::Small_Tolerance);
     }
-    return (ocSquared - sphere->radiusSquared < Small_Tolerance);
+    return (ocSquared - sphere->radiusSquared < GeometryConstants::Small_Tolerance);
 }
 
 void
@@ -204,7 +204,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
 void
 Sphere::invertSphere(SimpleBody *object)
 {
-    ((Sphere *)object)->Inverted ^= TRUE;
+    ((Sphere *)object)->Inverted ^= LegacyBoolean::TRUE_VALUE;
 }
 
 //===========================================================================

@@ -51,12 +51,12 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     }
 
     localQueue = IntersectionPriorityQueuePool::pqPop(128);
-    lightSourceRay.isShadowRay = TRUE;
-    lightSourceRay.isPrimaryRay = FALSE;
+    lightSourceRay.isShadowRay = LegacyBoolean::TRUE_VALUE;
+    lightSourceRay.isPrimaryRay = LegacyBoolean::FALSE_VALUE;
 
     for (lightSource = frame.Light_Sources; lightSource != nullptr;
         lightSource = lightSource->Next_Light_Source) {
-        intersectionFound = FALSE;
+        intersectionFound = LegacyBoolean::FALSE_VALUE;
 
         LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,
             intersectionPoint, &lightColor);
@@ -74,14 +74,14 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
                     localQueue->deleteHighest()) {
 
                     if ((localIntersection->Depth <
-                            lightSourceDepth - Small_Tolerance) &&
+                            lightSourceDepth - GeometryConstants::Small_Tolerance) &&
                         (localIntersection->Depth > SHADOW_TOLERANCE)) {
 
                         /* Does the object not cast a shadow? */
                         if (!localIntersection->Object->noShadowFlag) {
                             if (ShadowShader::shade(localIntersection, &lightColor,
                                     localQueue, traceService)) {
-                                intersectionFound = TRUE;
+                                intersectionFound = LegacyBoolean::TRUE_VALUE;
                                 break;
                             }
                         }

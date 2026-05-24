@@ -14,28 +14,28 @@ FogParser::parseFog(RenderFrame *framePtr)
 void
 FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
 {
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case COLOUR_TOKEN:
+            case Tokenizer::COLOUR_TOKEN:
                 PrimitiveParser::parseColour(&framePtr->fogColour, ctx);
                 break;
 
-            case FLOAT_TOKEN:
+            case Tokenizer::FLOAT_TOKEN:
                 framePtr->fogDistance = ctx.token().tokenFloat;
                 break;
 
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

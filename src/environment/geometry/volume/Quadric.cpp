@@ -25,7 +25,7 @@ Quadric::allQuadricIntersections(
     Intersection localElement;
     int intersectionFound;
 
-    intersectionFound = FALSE;
+    intersectionFound = LegacyBoolean::FALSE_VALUE;
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
@@ -34,7 +34,7 @@ Quadric::allQuadricIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        intersectionFound = TRUE;
+        intersectionFound = LegacyBoolean::TRUE_VALUE;
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
@@ -44,7 +44,7 @@ Quadric::allQuadricIntersections(
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
-            intersectionFound = TRUE;
+            intersectionFound = LegacyBoolean::TRUE_VALUE;
         }
     }
     return (intersectionFound);
@@ -91,7 +91,7 @@ Quadric::intersectQuadric(
             tempTerm = shape->objectTerms.dotProduct(ray->position);
             constantTerm += tempTerm + shape->objectConstant;
             shape->objectVpConstant = constantTerm;
-            shape->constantCached = TRUE;
+            shape->constantCached = LegacyBoolean::TRUE_VALUE;
         } else {
             constantTerm = shape->objectVpConstant;
         }
@@ -111,7 +111,7 @@ Quadric::intersectQuadric(
             linearTerm * linearTerm - 4.0 * squareTerm * constantTerm;
 
         if (determinant2 < 0.0) {
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         determinant = sqrt(determinant2);
@@ -123,25 +123,25 @@ Quadric::intersectQuadric(
     } else {
         /* There are no quadratic terms.  Solve the linear equation instead. */
         if (linearTerm == 0.0) {
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         *depth1 = constantTerm * -1.0 / linearTerm;
         *depth2 = *depth1;
     }
 
-    if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
-        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
-            return (FALSE);
+    if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
+        if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
+            return (LegacyBoolean::FALSE_VALUE);
         }
         *depth1 = *depth2;
 
-    } else if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+    } else if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
         *depth2 = *depth1;
     }
 
     Statistics::global().rayQuadricTestsSucceeded++;
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
 int
@@ -162,11 +162,11 @@ Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
               shape->objectMixedTerms.y * (testPoint->x) * (testPoint->z) +
               shape->objectMixedTerms.z * (testPoint->y) * (testPoint->z);
 
-    if (result < Small_Tolerance) {
-        return (TRUE);
+    if (result < GeometryConstants::Small_Tolerance) {
+        return (LegacyBoolean::TRUE_VALUE);
     }
 
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 void

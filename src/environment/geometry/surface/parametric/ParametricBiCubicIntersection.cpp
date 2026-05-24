@@ -67,7 +67,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     }
     t = ray->position.dotProduct(*n);
     *depth = 0.0 - (d + t) / s;
-    if (*depth < Small_Tolerance) {
+    if (*depth < GeometryConstants::Small_Tolerance) {
         return 0;
     }
     VectorOps::vScale(*ip, ray->direction, *depth);

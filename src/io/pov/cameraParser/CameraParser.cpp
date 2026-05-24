@@ -39,18 +39,18 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 
     givenVp->initializeDefaults();
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        VIEW_POINT_CONSTANT) {
+                        ParseGlobals::VIEW_POINT_CONSTANT) {
                         *givenVp = *((Camera *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
@@ -61,27 +61,27 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 }
                 break;
 
-            case LOCATION_TOKEN:
+            case Tokenizer::LOCATION_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Location), ctx);
                 break;
 
-            case DIRECTION_TOKEN:
+            case Tokenizer::DIRECTION_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Direction), ctx);
                 break;
 
-            case UP_TOKEN:
+            case Tokenizer::UP_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Up), ctx);
                 break;
 
-            case RIGHT_TOKEN:
+            case Tokenizer::RIGHT_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Right), ctx);
                 break;
 
-            case SKY_TOKEN:
+            case Tokenizer::SKY_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Sky), ctx);
                 break;
 
-            case LOOK_AT_TOKEN:
+            case Tokenizer::LOOK_AT_TOKEN:
                 directionLength = givenVp->Direction.length();
                 upLength = givenVp->Up.length();
                 rightLength = givenVp->Right.length();
@@ -104,28 +104,28 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 givenVp->Up.scale(upLength);
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)givenVp, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate((SimpleBody *)givenVp, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale((SimpleBody *)givenVp, &localVector);
                 break;
 
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

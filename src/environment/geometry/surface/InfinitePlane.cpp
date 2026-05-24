@@ -25,7 +25,7 @@ InfinitePlane::allPlaneIntersections(
     Intersection localElement;
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
-        if (depth > Small_Tolerance) {
+        if (depth > GeometryConstants::Small_Tolerance) {
             localElement.Depth = depth;
             localElement.Object = nullptr;
             VectorOps::vScale(intersectionPoint, ray->direction, depth);
@@ -33,11 +33,11 @@ InfinitePlane::allPlaneIntersections(
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
-            return (TRUE);
+            return (LegacyBoolean::TRUE_VALUE);
         }
     }
 
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 int
@@ -54,38 +54,38 @@ InfinitePlane::intersectPlane(
                 plane->normalVector.dotProduct(ray->position);
             plane->VPNormDotOrigin += plane->Distance;
             plane->VPNormDotOrigin *= -1.0;
-            plane->VPCached = TRUE;
+            plane->VPCached = LegacyBoolean::TRUE_VALUE;
         }
 
         normalDotDirection = plane->normalVector.dotProduct(ray->direction);
-        if ((normalDotDirection < Small_Tolerance) &&
-            (normalDotDirection > -Small_Tolerance)) {
-            return (FALSE);
+        if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
+            (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         *depth = plane->VPNormDotOrigin / normalDotDirection;
-        if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
+        if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
             Statistics::global().rayPlaneTestsSucceeded++;
-            return (TRUE);
+            return (LegacyBoolean::TRUE_VALUE);
         }
-        return (FALSE);
+        return (LegacyBoolean::FALSE_VALUE);
     }
     normalDotOrigin = plane->normalVector.dotProduct(ray->position);
     normalDotOrigin += plane->Distance;
     normalDotOrigin *= -1.0;
 
     normalDotDirection = plane->normalVector.dotProduct(ray->direction);
-    if ((normalDotDirection < Small_Tolerance) &&
-        (normalDotDirection > -Small_Tolerance)) {
-        return (FALSE);
+    if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
+        (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+        return (LegacyBoolean::FALSE_VALUE);
     }
 
     *depth = normalDotOrigin / normalDotDirection;
-    if ((*depth >= Small_Tolerance) && (*depth <= Max_Distance)) {
+    if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
         Statistics::global().rayPlaneTestsSucceeded++;
-        return (TRUE);
+        return (LegacyBoolean::TRUE_VALUE);
     }
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 int
@@ -95,7 +95,7 @@ InfinitePlane::insidePlane(Vector3Dd *testPoint, SimpleBody *object)
     double temp;
 
     temp = (*testPoint).dotProduct(plane->normalVector);
-    return ((temp + plane->Distance) <= Small_Tolerance);
+    return ((temp + plane->Distance) <= GeometryConstants::Small_Tolerance);
 }
 
 void

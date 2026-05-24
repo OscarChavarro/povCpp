@@ -21,97 +21,92 @@ to the parser (the second stage).  Tokens sent to the parser contain a
 token ID, the line number of the token, and if necessary, some data for
 the token.  */
 
-static constexpr int MAX_STRING_INDEX = 41;
-char string[MAX_STRING_INDEX];
-int stringIndex;
+char Tokenizer::sString[Tokenizer::MAX_STRING_INDEX];
+int Tokenizer::sStringIndex = 0;
 
 /* Here are the reserved words.  If you need to add new words, be sure
 to declare them in frame.h */
 
-ReservedWord Tokenizer::sReservedWords[LAST_TOKEN] = {{AGATE_TOKEN, "agate"},
-    {ALL_TOKEN, "all"}, {ALPHA_TOKEN, "alpha"}, {AMBIENT_TOKEN, "ambient"},
-    {AMPERSAND_TOKEN, "&"}, {AT_TOKEN, "@"}, {BACK_QUOTE_TOKEN, "`"},
-    {BACK_SLASH_TOKEN, "\\"}, {BAR_TOKEN, "|"},
-    {BICUBIC_PATCH_TOKEN, "bicubic_patch"}, {BLUE_TOKEN, "blue"},
-    {BRICK_TOKEN, "brick"}, {BRILLIANCE_TOKEN, "brilliance"},
-    {BLOB_TOKEN, "blob"}, {BOX_TOKEN, "box"}, {BOZO_TOKEN, "bozo"},
-    {BOUNDED_TOKEN, "bounded_by"}, {BUMPS_TOKEN, "bumps"},
-    {BUMPSIZE_TOKEN, "bump_size"}, {BUMPMAP_TOKEN, "bump_map"},
-    {BUMPY1_TOKEN, "bumpy1"}, {BUMPY2_TOKEN, "bumpy2"},
-    {BUMPY3_TOKEN, "bumpy3"}, {CENTER_TOKEN, "center"},
-    {CHECKER_TOKEN, "checker"}, {CHECKER_TEXTURE_TOKEN, "tiles"},
-    {CLIPPED_TOKEN, "clipped_by"}, {COLON_TOKEN, ":"}, {COLOUR_TOKEN, "color"},
-    {COLOUR_TOKEN, "colour"}, {COLOUR_MAP_TOKEN, "color_map"},
-    {COLOUR_MAP_TOKEN, "colour_map"}, {COMMA_TOKEN, ","},
-    {COMPONENT_TOKEN, "component"}, {COMPOSITE_TOKEN, "composite"},
-    {CONCENTRATION_TOKEN, "concentration"}, {CUBIC_TOKEN, "cubic"},
-    {DASH_TOKEN, "-"}, {DECLARE_TOKEN, "declare"}, {DEFAULT_TOKEN, "default"},
-    {DENTS_TOKEN, "dents"}, {DIFFERENCE_TOKEN, "difference"},
-    {DIFFUSE_TOKEN, "diffuse"}, {DIRECTION_TOKEN, "direction"},
-    {DOLLAR_TOKEN, "$"}, {DUMP_TOKEN, "dump"},
-    {END_OF_FILE_TOKEN, "End of File"}, {EQUALS_TOKEN, "="},
-    {EXCLAMATION_TOKEN, "!"}, {FALLOFF_TOKEN, "falloff"},
-    {FLOAT_TOKEN, "float"}, {FOG_TOKEN, "fog"}, {FREQUENCY_TOKEN, "frequency"},
-    {GIF_TOKEN, "gif"}, {GRANITE_TOKEN, "granite"},
-    {GRADIENT_TOKEN, "gradient"}, {GREEN_TOKEN, "green"}, {HASH_TOKEN, "#"},
-    {HAT_TOKEN, "^"}, {HEIGHT_FIELD_TOKEN, "height_field"},
-    {IDENTIFIER_TOKEN, "identifier"}, {IFF_TOKEN, "iff"},
-    {IMAGEMAP_TOKEN, "image_map"}, {INCLUDE_TOKEN, "include"},
-    {INTERPOLATE_TOKEN, "interpolate"}, {INTERSECTION_TOKEN, "intersection"},
-    {INVERSE_TOKEN, "inverse"}, {IOR_TOKEN, "ior"}, {LEFT_ANGLE_TOKEN, "<"},
-    {LEFT_CURLY_TOKEN, "{"}, {LEFT_PAREN_TOKEN, "("}, {LEFT_SQUARE_TOKEN, "["},
-    {LEOPARD_TOKEN, "leopard"}, {LIGHT_SOURCE_TOKEN, "light_source"},
-    {LOCATION_TOKEN, "location"}, {LOOK_AT_TOKEN, "look_at"},
-    {MARBLE_TOKEN, "marble"}, {MATERIAL_MAP_TOKEN, "material_map"},
-    {MAPTYPE_TOKEN, "map_type"}, {MAX_TRACE_LEVEL_TOKEN, "max_trace_level"},
-    {METALLIC_TOKEN, "metallic"}, {MORTAR_TOKEN, "mortar"},
-    {NO_SHADOW_TOKEN, "no_shadow"}, {OBJECT_TOKEN, "object"},
-    {OCTAVES_TOKEN, "octaves"}, {ONCE_TOKEN, "once"}, {ONION_TOKEN, "onion"},
-    {PAINTED1_TOKEN, "painted1"}, {PAINTED2_TOKEN, "painted2"},
-    {PAINTED3_TOKEN, "painted3"}, {PERCENT_TOKEN, "%"}, {PHASE_TOKEN, "phase"},
-    {PHONG_TOKEN, "phong"}, {PHONGSIZE_TOKEN, "phong_size"},
-    {PLANE_TOKEN, "plane"}, {PLUS_TOKEN, "+"}, {POINTS_TOKEN, "points"},
-    {POINT_AT_TOKEN, "point_at"}, {POLY_TOKEN, "poly"},
-    {POLYGON_TOKEN, "polygon"}, {POT_TOKEN, "pot"}, {QUADRIC_TOKEN, "quadric"},
-    {QUARTIC_TOKEN, "quartic"}, {QUESTION_TOKEN, "?"}, {RADIUS_TOKEN, "radius"},
-    {RAW_TOKEN, "raw"}, {RED_TOKEN, "red"}, {REFLECTION_TOKEN, "reflection"},
-    {REFRACTION_TOKEN, "refraction"}, {REVOLVE_TOKEN, "revolve"},
-    {RIGHT_TOKEN, "right"}, {RIGHT_CURLY_TOKEN, "}"}, {RIGHT_ANGLE_TOKEN, ">"},
-    {RIGHT_PAREN_TOKEN, ")"}, {RIGHT_SQUARE_TOKEN, "]"},
-    {RIPPLES_TOKEN, "ripples"}, {ROTATE_TOKEN, "rotate"},
-    {ROUGHNESS_TOKEN, "roughness"}, {SCALE_TOKEN, "scale"},
-    {SEMI_COLON_TOKEN, ";"}, {SHAPE_TOKEN, "shape"}, {SKY_TOKEN, "sky"},
-    {SINGLE_QUOTE_TOKEN, "'"}, {SIZE_TOKEN, "size"}, {SLASH_TOKEN, "/"},
-    {SMOOTH_TRIANGLE_TOKEN, "smooth_triangle"}, {SPECULAR_TOKEN, "specular"},
-    {SPHERE_TOKEN, "sphere"}, {SPOTLIGHT_TOKEN, "spotlight"},
-    {SPOTTED_TOKEN, "spotted"}, {STAR_TOKEN, "*"}, {STRING_TOKEN, "string"},
-    {STURM_TOKEN, "sturm"}, {TEXTURE_TOKEN, "texture"}, {TGA_TOKEN, "tga"},
-    {TIGHTNESS_TOKEN, "tightness"}, {TILDE_TOKEN, "~"}, {TILE2_TOKEN, "tile2"},
-    {THRESHOLD_TOKEN, "threshold"}, {TRANSLATE_TOKEN, "translate"},
-    {TRANSMIT_TOKEN, "* disabled *"}, /* Transmit disabled 2/92 */
-    {TRIANGLE_TOKEN, "triangle"}, {TURBULENCE_TOKEN, "turbulence"},
-    {UNION_TOKEN, "union"}, {UP_TOKEN, "up"}, {USE_COLOUR_TOKEN, "use_color"},
-    {USE_COLOUR_TOKEN, "use_colour"}, {USE_INDEX_TOKEN, "use_index"},
-    {VIEW_POINT_TOKEN, "camera"}, {WATER_LEVEL_TOKEN, "water_level"},
-    {WAVES_TOKEN, "waves"}, {WOOD_TOKEN, "wood"}, {WRINKLES_TOKEN, "wrinkles"},
-    {LAST_TOKEN, "orville"}};
+ReservedWord Tokenizer::sReservedWords[Tokenizer::LAST_TOKEN] = {{Tokenizer::AGATE_TOKEN, "agate"},
+    {Tokenizer::ALL_TOKEN, "all"}, {Tokenizer::ALPHA_TOKEN, "alpha"}, {Tokenizer::AMBIENT_TOKEN, "ambient"},
+    {Tokenizer::AMPERSAND_TOKEN, "&"}, {Tokenizer::AT_TOKEN, "@"}, {Tokenizer::BACK_QUOTE_TOKEN, "`"},
+    {Tokenizer::BACK_SLASH_TOKEN, "\\"}, {Tokenizer::BAR_TOKEN, "|"},
+    {Tokenizer::BICUBIC_PATCH_TOKEN, "bicubic_patch"}, {Tokenizer::BLUE_TOKEN, "blue"},
+    {Tokenizer::BRICK_TOKEN, "brick"}, {Tokenizer::BRILLIANCE_TOKEN, "brilliance"},
+    {Tokenizer::BLOB_TOKEN, "blob"}, {Tokenizer::BOX_TOKEN, "box"}, {Tokenizer::BOZO_TOKEN, "bozo"},
+    {Tokenizer::BOUNDED_TOKEN, "bounded_by"}, {Tokenizer::BUMPS_TOKEN, "bumps"},
+    {Tokenizer::BUMPSIZE_TOKEN, "bump_size"}, {Tokenizer::BUMPMAP_TOKEN, "bump_map"},
+    {Tokenizer::BUMPY1_TOKEN, "bumpy1"}, {Tokenizer::BUMPY2_TOKEN, "bumpy2"},
+    {Tokenizer::BUMPY3_TOKEN, "bumpy3"}, {Tokenizer::CENTER_TOKEN, "center"},
+    {Tokenizer::CHECKER_TOKEN, "checker"}, {Tokenizer::CHECKER_TEXTURE_TOKEN, "tiles"},
+    {Tokenizer::CLIPPED_TOKEN, "clipped_by"}, {Tokenizer::COLON_TOKEN, ":"}, {Tokenizer::COLOUR_TOKEN, "color"},
+    {Tokenizer::COLOUR_TOKEN, "colour"}, {Tokenizer::COLOUR_MAP_TOKEN, "color_map"},
+    {Tokenizer::COLOUR_MAP_TOKEN, "colour_map"}, {Tokenizer::COMMA_TOKEN, ","},
+    {Tokenizer::COMPONENT_TOKEN, "component"}, {Tokenizer::COMPOSITE_TOKEN, "composite"},
+    {Tokenizer::CONCENTRATION_TOKEN, "concentration"}, {Tokenizer::CUBIC_TOKEN, "cubic"},
+    {Tokenizer::DASH_TOKEN, "-"}, {Tokenizer::DECLARE_TOKEN, "declare"}, {Tokenizer::DEFAULT_TOKEN, "default"},
+    {Tokenizer::DENTS_TOKEN, "dents"}, {Tokenizer::DIFFERENCE_TOKEN, "difference"},
+    {Tokenizer::DIFFUSE_TOKEN, "diffuse"}, {Tokenizer::DIRECTION_TOKEN, "direction"},
+    {Tokenizer::DOLLAR_TOKEN, "$"}, {Tokenizer::DUMP_TOKEN, "dump"},
+    {Tokenizer::END_OF_FILE_TOKEN, "End of File"}, {Tokenizer::EQUALS_TOKEN, "="},
+    {Tokenizer::EXCLAMATION_TOKEN, "!"}, {Tokenizer::FALLOFF_TOKEN, "falloff"},
+    {Tokenizer::FLOAT_TOKEN, "float"}, {Tokenizer::FOG_TOKEN, "fog"}, {Tokenizer::FREQUENCY_TOKEN, "frequency"},
+    {Tokenizer::GIF_TOKEN, "gif"}, {Tokenizer::GRANITE_TOKEN, "granite"},
+    {Tokenizer::GRADIENT_TOKEN, "gradient"}, {Tokenizer::GREEN_TOKEN, "green"}, {Tokenizer::HASH_TOKEN, "#"},
+    {Tokenizer::HAT_TOKEN, "^"}, {Tokenizer::HEIGHT_FIELD_TOKEN, "height_field"},
+    {Tokenizer::IDENTIFIER_TOKEN, "identifier"}, {Tokenizer::IFF_TOKEN, "iff"},
+    {Tokenizer::IMAGEMAP_TOKEN, "image_map"}, {Tokenizer::INCLUDE_TOKEN, "include"},
+    {Tokenizer::INTERPOLATE_TOKEN, "interpolate"}, {Tokenizer::INTERSECTION_TOKEN, "intersection"},
+    {Tokenizer::INVERSE_TOKEN, "inverse"}, {Tokenizer::IOR_TOKEN, "ior"}, {Tokenizer::LEFT_ANGLE_TOKEN, "<"},
+    {Tokenizer::LEFT_CURLY_TOKEN, "{"}, {Tokenizer::LEFT_PAREN_TOKEN, "("}, {Tokenizer::LEFT_SQUARE_TOKEN, "["},
+    {Tokenizer::LEOPARD_TOKEN, "leopard"}, {Tokenizer::LIGHT_SOURCE_TOKEN, "light_source"},
+    {Tokenizer::LOCATION_TOKEN, "location"}, {Tokenizer::LOOK_AT_TOKEN, "look_at"},
+    {Tokenizer::MARBLE_TOKEN, "marble"}, {Tokenizer::MATERIAL_MAP_TOKEN, "material_map"},
+    {Tokenizer::MAPTYPE_TOKEN, "map_type"}, {Tokenizer::MAX_TRACE_LEVEL_TOKEN, "max_trace_level"},
+    {Tokenizer::METALLIC_TOKEN, "metallic"}, {Tokenizer::MORTAR_TOKEN, "mortar"},
+    {Tokenizer::NO_SHADOW_TOKEN, "no_shadow"}, {Tokenizer::OBJECT_TOKEN, "object"},
+    {Tokenizer::OCTAVES_TOKEN, "octaves"}, {Tokenizer::ONCE_TOKEN, "once"}, {Tokenizer::ONION_TOKEN, "onion"},
+    {Tokenizer::PAINTED1_TOKEN, "painted1"}, {Tokenizer::PAINTED2_TOKEN, "painted2"},
+    {Tokenizer::PAINTED3_TOKEN, "painted3"}, {Tokenizer::PERCENT_TOKEN, "%"}, {Tokenizer::PHASE_TOKEN, "phase"},
+    {Tokenizer::PHONG_TOKEN, "phong"}, {Tokenizer::PHONGSIZE_TOKEN, "phong_size"},
+    {Tokenizer::PLANE_TOKEN, "plane"}, {Tokenizer::PLUS_TOKEN, "+"}, {Tokenizer::POINTS_TOKEN, "points"},
+    {Tokenizer::POINT_AT_TOKEN, "point_at"}, {Tokenizer::POLY_TOKEN, "poly"},
+    {Tokenizer::POLYGON_TOKEN, "polygon"}, {Tokenizer::POT_TOKEN, "pot"}, {Tokenizer::QUADRIC_TOKEN, "quadric"},
+    {Tokenizer::QUARTIC_TOKEN, "quartic"}, {Tokenizer::QUESTION_TOKEN, "?"}, {Tokenizer::RADIUS_TOKEN, "radius"},
+    {Tokenizer::RAW_TOKEN, "raw"}, {Tokenizer::RED_TOKEN, "red"}, {Tokenizer::REFLECTION_TOKEN, "reflection"},
+    {Tokenizer::REFRACTION_TOKEN, "refraction"}, {Tokenizer::REVOLVE_TOKEN, "revolve"},
+    {Tokenizer::RIGHT_TOKEN, "right"}, {Tokenizer::RIGHT_CURLY_TOKEN, "}"}, {Tokenizer::RIGHT_ANGLE_TOKEN, ">"},
+    {Tokenizer::RIGHT_PAREN_TOKEN, ")"}, {Tokenizer::RIGHT_SQUARE_TOKEN, "]"},
+    {Tokenizer::RIPPLES_TOKEN, "ripples"}, {Tokenizer::ROTATE_TOKEN, "rotate"},
+    {Tokenizer::ROUGHNESS_TOKEN, "roughness"}, {Tokenizer::SCALE_TOKEN, "scale"},
+    {Tokenizer::SEMI_COLON_TOKEN, ";"}, {Tokenizer::SHAPE_TOKEN, "shape"}, {Tokenizer::SKY_TOKEN, "sky"},
+    {Tokenizer::SINGLE_QUOTE_TOKEN, "'"}, {Tokenizer::SIZE_TOKEN, "size"}, {Tokenizer::SLASH_TOKEN, "/"},
+    {Tokenizer::SMOOTH_TRIANGLE_TOKEN, "smooth_triangle"}, {Tokenizer::SPECULAR_TOKEN, "specular"},
+    {Tokenizer::SPHERE_TOKEN, "sphere"}, {Tokenizer::SPOTLIGHT_TOKEN, "spotlight"},
+    {Tokenizer::SPOTTED_TOKEN, "spotted"}, {Tokenizer::STAR_TOKEN, "*"}, {Tokenizer::STRING_TOKEN, "string"},
+    {Tokenizer::STURM_TOKEN, "sturm"}, {Tokenizer::TEXTURE_TOKEN, "texture"}, {Tokenizer::TGA_TOKEN, "tga"},
+    {Tokenizer::TIGHTNESS_TOKEN, "tightness"}, {Tokenizer::TILDE_TOKEN, "~"}, {Tokenizer::TILE2_TOKEN, "tile2"},
+    {Tokenizer::THRESHOLD_TOKEN, "threshold"}, {Tokenizer::TRANSLATE_TOKEN, "translate"},
+    {Tokenizer::TRANSMIT_TOKEN, "* disabled *"}, /* Transmit disabled 2/92 */
+    {Tokenizer::TRIANGLE_TOKEN, "triangle"}, {Tokenizer::TURBULENCE_TOKEN, "turbulence"},
+    {Tokenizer::UNION_TOKEN, "union"}, {Tokenizer::UP_TOKEN, "up"}, {Tokenizer::USE_COLOUR_TOKEN, "use_color"},
+    {Tokenizer::USE_COLOUR_TOKEN, "use_colour"}, {Tokenizer::USE_INDEX_TOKEN, "use_index"},
+    {Tokenizer::VIEW_POINT_TOKEN, "camera"}, {Tokenizer::WATER_LEVEL_TOKEN, "water_level"},
+    {Tokenizer::WAVES_TOKEN, "waves"}, {Tokenizer::WOOD_TOKEN, "wood"}, {Tokenizer::WRINKLES_TOKEN, "wrinkles"},
+    {Tokenizer::LAST_TOKEN, "orville"}};
 
 /* Make a table for user-defined symbols.  500 symbols should be more
 than enough. */
 
-static int caseSensitiveFlag = 0;
 int Tokenizer::maxSymbols = 500;
-
-int tokenCount = 0, lineCount = 0; /* moved here to allow reinitialization */
-
-char **symbolTable;
-int numberOfSymbols;
-
-static constexpr int MAX_INCLUDE_FILES = 10;
-
-static DataFile globalIncludeFiles[MAX_INCLUDE_FILES];
-static DataFile *globalDataFile;
-static int globalIncludeFileIndex;
+int Tokenizer::sCaseSensitiveFlag = 0;
+int Tokenizer::sTokenCount = 0;
+int Tokenizer::sLineCount = 0;
+char **Tokenizer::sSymbolTable = nullptr;
+int Tokenizer::sNumberOfSymbols = 0;
+DataFile Tokenizer::sGlobalIncludeFiles[Tokenizer::MAX_INCLUDE_FILES];
+DataFile *Tokenizer::sGlobalDataFile = nullptr;
+int Tokenizer::sGlobalIncludeFileIndex = 0;
 
 TokenStruct Tokenizer::sToken;
 
@@ -130,7 +125,7 @@ Tokenizer::token()
 void
 Tokenizer::setCaseSensitiveIdentifiers(int mode)
 {
-    caseSensitiveFlag = mode;
+    Tokenizer::sCaseSensitiveFlag = mode;
 }
 
 void
@@ -149,29 +144,29 @@ void
 Tokenizer::initializeTokenizer(char *filename)
 {
     ParserContext ctx;
-    symbolTable = nullptr;
-    globalDataFile = nullptr;
+    Tokenizer::sSymbolTable = nullptr;
+    Tokenizer::sGlobalDataFile = nullptr;
 
-    globalIncludeFileIndex = 0;
-    globalDataFile = &globalIncludeFiles[0];
+    Tokenizer::sGlobalIncludeFileIndex = 0;
+    Tokenizer::sGlobalDataFile = &Tokenizer::sGlobalIncludeFiles[0];
 
-    globalDataFile->File = FileLocator::locate(filename, "r");
-    if (globalDataFile->File == nullptr) {
+    Tokenizer::sGlobalDataFile->File = FileLocator::locate(filename, "r");
+    if (Tokenizer::sGlobalDataFile->File == nullptr) {
         Logger::error("Cannot open input file\n");
         exit(1);
     }
 
-    globalDataFile->Filename = new char[strlen(filename) + 1];
-    strcpy(globalDataFile->Filename, filename);
-    globalDataFile->lineNumber = 0;
+    Tokenizer::sGlobalDataFile->Filename = new char[strlen(filename) + 1];
+    strcpy(Tokenizer::sGlobalDataFile->Filename, filename);
+    Tokenizer::sGlobalDataFile->lineNumber = 0;
 
-    if ((symbolTable = new char *[maxSymbols]) == nullptr) {
+    if ((Tokenizer::sSymbolTable = new char *[maxSymbols]) == nullptr) {
         Logger::error("Out of Memory. Cannot allocate space for symbol table\n");
         exit(1);
     }
 
-    ctx.token().endOfFile = FALSE;
-    numberOfSymbols = 0;
+    ctx.token().endOfFile = LegacyBoolean::FALSE_VALUE;
+    Tokenizer::sNumberOfSymbols = 0;
 }
 
 void
@@ -179,17 +174,17 @@ Tokenizer::terminateTokenizer()
 {
     int i;
 
-    if (symbolTable != nullptr) {
-        for (i = 1; i < numberOfSymbols; i++) {
-            delete symbolTable[i];
+    if (Tokenizer::sSymbolTable != nullptr) {
+        for (i = 1; i < Tokenizer::sNumberOfSymbols; i++) {
+            delete Tokenizer::sSymbolTable[i];
         }
 
-        delete symbolTable;
+        delete Tokenizer::sSymbolTable;
     }
 
-    if (globalDataFile != nullptr) {
-        fclose(globalDataFile->File);
-        delete globalDataFile->Filename;
+    if (Tokenizer::sGlobalDataFile != nullptr) {
+        fclose(Tokenizer::sGlobalDataFile->File);
+        delete Tokenizer::sGlobalDataFile->Filename;
     }
 }
 
@@ -215,7 +210,7 @@ Tokenizer::getToken()
         exit(1);
     }
     if (ctx.token().ungetToken) {
-        ctx.token().ungetToken = FALSE;
+        ctx.token().ungetToken = LegacyBoolean::FALSE_VALUE;
         return;
     }
 
@@ -223,174 +218,174 @@ Tokenizer::getToken()
         return;
     }
 
-    ctx.token().tokenId = END_OF_FILE_TOKEN;
+    ctx.token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
 
-    while (ctx.token().tokenId == END_OF_FILE_TOKEN) {
+    while (ctx.token().tokenId == Tokenizer::END_OF_FILE_TOKEN) {
 
-        globalDataFile->skipSpaces();
+        Tokenizer::sGlobalDataFile->skipSpaces();
 
-        c = getc(globalDataFile->File);
+        c = getc(Tokenizer::sGlobalDataFile->File);
         if (c == EOF) {
-            if (globalIncludeFileIndex == 0) {
-                ctx.token().tokenId = END_OF_FILE_TOKEN;
-                ctx.token().endOfFile = TRUE;
+            if (Tokenizer::sGlobalIncludeFileIndex == 0) {
+                ctx.token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
+                ctx.token().endOfFile = LegacyBoolean::TRUE_VALUE;
                 /*putchar ('\n');*/
                 fprintf(stderr, "\n");
                 return;
             }
 
-            fclose(globalDataFile
+            fclose(Tokenizer::sGlobalDataFile
                     ->File); /* added to fix open file buildup JLN 12/91 */
 
-            globalDataFile = &globalIncludeFiles[--globalIncludeFileIndex];
+            Tokenizer::sGlobalDataFile = &Tokenizer::sGlobalIncludeFiles[--Tokenizer::sGlobalIncludeFileIndex];
             continue;
         }
 
-        string[0] = '\0';
-        stringIndex = 0;
+        Tokenizer::sString[0] = '\0';
+        Tokenizer::sStringIndex = 0;
 
         switch (c) {
         case '\n':
-            globalDataFile->lineNumber++;
+            Tokenizer::sGlobalDataFile->lineNumber++;
             break;
 
         case '{':
-            Tokenizer::writeToken(LEFT_CURLY_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::LEFT_CURLY_TOKEN, Tokenizer::sGlobalDataFile);
             /* parseComments(GLOBAL_dataFile); */
             break;
 
         case '}':
-            Tokenizer::writeToken(RIGHT_CURLY_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::RIGHT_CURLY_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '@':
-            Tokenizer::writeToken(AT_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::AT_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '&':
-            Tokenizer::writeToken(AMPERSAND_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::AMPERSAND_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '`':
-            Tokenizer::writeToken(BACK_QUOTE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::BACK_QUOTE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '\\':
-            Tokenizer::writeToken(BACK_SLASH_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::BACK_SLASH_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '|':
-            Tokenizer::writeToken(BAR_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::BAR_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case ':':
-            Tokenizer::writeToken(COLON_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::COLON_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case ',':
-            Tokenizer::writeToken(COMMA_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::COMMA_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '-':
-            Tokenizer::writeToken(DASH_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::DASH_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '$':
-            Tokenizer::writeToken(DOLLAR_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::DOLLAR_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '=':
-            Tokenizer::writeToken(EQUALS_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::EQUALS_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '!':
-            Tokenizer::writeToken(EXCLAMATION_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::EXCLAMATION_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '#': /* Parser doesn't use it, so let's ignore it */
-            /* writeToken (HASH_TOKEN, GLOBAL_dataFile); */
+            /* writeToken (Tokenizer::HASH_TOKEN, GLOBAL_dataFile); */
             break;
 
         case '^':
-            Tokenizer::writeToken(HAT_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::HAT_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '<':
-            Tokenizer::writeToken(LEFT_ANGLE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::LEFT_ANGLE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '(':
-            Tokenizer::writeToken(LEFT_PAREN_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::LEFT_PAREN_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '[':
-            Tokenizer::writeToken(LEFT_SQUARE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::LEFT_SQUARE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '%':
-            Tokenizer::writeToken(PERCENT_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::PERCENT_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '+':
-            Tokenizer::writeToken(PLUS_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::PLUS_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '?':
-            Tokenizer::writeToken(QUESTION_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::QUESTION_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '>':
-            Tokenizer::writeToken(RIGHT_ANGLE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::RIGHT_ANGLE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case ')':
-            Tokenizer::writeToken(RIGHT_PAREN_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::RIGHT_PAREN_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case ']':
-            Tokenizer::writeToken(RIGHT_SQUARE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::RIGHT_SQUARE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case ';': /* Parser doesn't use it, so let's ignore it */
-            /* writeToken (SEMI_COLON_TOKEN, GLOBAL_dataFile); */
+            /* writeToken (Tokenizer::SEMI_COLON_TOKEN, GLOBAL_dataFile); */
             break;
 
         case '\'':
-            Tokenizer::writeToken(SINGLE_QUOTE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::SINGLE_QUOTE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
             /* enable C++ style commenting */
         case '/':
-            c2 = getc(globalDataFile->File);
+            c2 = getc(Tokenizer::sGlobalDataFile->File);
             if (c2 != (int)'/' && c2 != (int)'*') {
-                ungetc(c2, globalDataFile->File);
-                Tokenizer::writeToken(SLASH_TOKEN, globalDataFile);
+                ungetc(c2, Tokenizer::sGlobalDataFile->File);
+                Tokenizer::writeToken(Tokenizer::SLASH_TOKEN, Tokenizer::sGlobalDataFile);
                 break;
             }
             if (c2 == (int)'*') {
-                globalDataFile->parseCComments();
+                Tokenizer::sGlobalDataFile->parseCComments();
                 break;
             }
             while (c2 != (int)'\n') {
-                c2 = getc(globalDataFile->File);
+                c2 = getc(Tokenizer::sGlobalDataFile->File);
                 if (c2 == EOF) {
-                    ungetc(c2, globalDataFile->File);
+                    ungetc(c2, Tokenizer::sGlobalDataFile->File);
                     break;
                 }
             }
-            globalDataFile->lineNumber++;
+            Tokenizer::sGlobalDataFile->lineNumber++;
             break;
 
         case '*':
-            Tokenizer::writeToken(STAR_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::STAR_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '~':
-            Tokenizer::writeToken(TILDE_TOKEN, globalDataFile);
+            Tokenizer::writeToken(Tokenizer::TILDE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
         case '"':
-            globalDataFile->parseString();
+            Tokenizer::sGlobalDataFile->parseString();
             break;
 
         case '0':
@@ -404,8 +399,8 @@ Tokenizer::getToken()
         case '8':
         case '9':
         case '.':
-            ungetc(c, globalDataFile->File);
-            if (globalDataFile->readFloat() != TRUE) {
+            ungetc(c, Tokenizer::sGlobalDataFile->File);
+            if (Tokenizer::sGlobalDataFile->readFloat() != LegacyBoolean::TRUE_VALUE) {
                 return;
             }
             break;
@@ -463,8 +458,8 @@ Tokenizer::getToken()
         case 'Y':
         case 'Z':
         case '_':
-            ungetc(c, globalDataFile->File);
-            if (globalDataFile->readSymbol() != TRUE) {
+            ungetc(c, Tokenizer::sGlobalDataFile->File);
+            if (Tokenizer::sGlobalDataFile->readSymbol() != LegacyBoolean::TRUE_VALUE) {
                 return;
             }
             break;
@@ -475,60 +470,60 @@ Tokenizer::getToken()
             break;
 
         default:
-            Logger::error("Error in %s line %d\n", globalDataFile->Filename,
-                globalDataFile->lineNumber + 1);
+            Logger::error("Error in %s line %d\n", Tokenizer::sGlobalDataFile->Filename,
+                Tokenizer::sGlobalDataFile->lineNumber + 1);
             Logger::error("Illegal character in input file, value is %02x\n", c);
             break;
         }
-        if (ctx.token().tokenId == INCLUDE_TOKEN) {
-            if (globalDataFile->skipSpaces() != TRUE) {
+        if (ctx.token().tokenId == Tokenizer::INCLUDE_TOKEN) {
+            if (Tokenizer::sGlobalDataFile->skipSpaces() != LegacyBoolean::TRUE_VALUE) {
                 Tokenizer::tokenError(
-                    globalDataFile, "Expecting a string after INCLUDE\n");
+                    Tokenizer::sGlobalDataFile, "Expecting a Tokenizer::sString after INCLUDE\n");
             }
 
-            if ((c = getc(globalDataFile->File)) != '"') {
+            if ((c = getc(Tokenizer::sGlobalDataFile->File)) != '"') {
                 Tokenizer::tokenError(
-                    globalDataFile, "Expecting a string after INCLUDE\n");
+                    Tokenizer::sGlobalDataFile, "Expecting a Tokenizer::sString after INCLUDE\n");
             }
 
-            globalDataFile->parseString();
-            globalIncludeFileIndex++;
-            if (globalIncludeFileIndex > MAX_INCLUDE_FILES) {
+            Tokenizer::sGlobalDataFile->parseString();
+            Tokenizer::sGlobalIncludeFileIndex++;
+            if (Tokenizer::sGlobalIncludeFileIndex > Tokenizer::MAX_INCLUDE_FILES) {
                 Tokenizer::tokenError(
-                    globalDataFile, "Too many nested include files\n");
+                    Tokenizer::sGlobalDataFile, "Too many nested include files\n");
             }
 
-            globalDataFile = &globalIncludeFiles[globalIncludeFileIndex];
-            globalDataFile->lineNumber = 0;
+            Tokenizer::sGlobalDataFile = &Tokenizer::sGlobalIncludeFiles[Tokenizer::sGlobalIncludeFileIndex];
+            Tokenizer::sGlobalDataFile->lineNumber = 0;
 
-            globalDataFile->Filename =
+            Tokenizer::sGlobalDataFile->Filename =
                 new char[strlen(ctx.token().Token_String) + 1];
-            if (globalDataFile->Filename == nullptr) {
+            if (Tokenizer::sGlobalDataFile->Filename == nullptr) {
                 Logger::error("Out of memory opening include file: %s\n",
                     ctx.token().Token_String);
                 exit(1);
             }
 
-            strcpy(globalDataFile->Filename, ctx.token().Token_String);
+            strcpy(Tokenizer::sGlobalDataFile->Filename, ctx.token().Token_String);
 
-            if ((globalDataFile->File = FileLocator::locate(
+            if ((Tokenizer::sGlobalDataFile->File = FileLocator::locate(
                      ctx.token().Token_String, "r")) == nullptr) {
                 Logger::error("Cannot open include file: %s\n",
                     ctx.token().Token_String);
                 exit(1);
             }
-            ctx.token().tokenId = END_OF_FILE_TOKEN;
+            ctx.token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
         }
     }
 
-    tokenCount++;
-    if (tokenCount > 1000) {
-        tokenCount = 0;
+    Tokenizer::sTokenCount++;
+    if (Tokenizer::sTokenCount > 1000) {
+        Tokenizer::sTokenCount = 0;
         fprintf(stderr, ".");
         fflush(stderr);
-        lineCount++;
-        if (lineCount > 78) {
-            lineCount = 0;
+        Tokenizer::sLineCount++;
+        if (Tokenizer::sLineCount > 78) {
+            Tokenizer::sLineCount = 0;
             fprintf(stderr, "\n");
         }
     }
@@ -542,7 +537,7 @@ void
 Tokenizer::ungetToken()
 {
     ParserContext ctx;
-    ctx.token().ungetToken = TRUE;
+    ctx.token().ungetToken = LegacyBoolean::TRUE_VALUE;
 }
 
 /* Skip over spaces in the input file */
@@ -552,10 +547,10 @@ DataFile::skipSpaces()
 {
     int c;
 
-    while (TRUE) {
+    while (LegacyBoolean::TRUE_VALUE) {
         c = getc(this->File);
         if (c == EOF) {
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (!(isspace(c) || c == 0x0A)) {
@@ -568,7 +563,7 @@ DataFile::skipSpaces()
     }
 
     ungetc(c, this->File);
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
 /* The comments on comments are outdated and incorrect */
@@ -584,12 +579,12 @@ DataFile::parseComments()
     int c;
     int endOfComment;
 
-    endOfComment = FALSE;
+    endOfComment = LegacyBoolean::FALSE_VALUE;
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(globalDataFile, "No closing comment found");
-            return (FALSE);
+            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "No closing comment found");
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (c == (int)'\n') {
@@ -598,14 +593,14 @@ DataFile::parseComments()
 
         if (c == (int)'{') {
             if (!this->parseComments()) {
-                return (FALSE);
+                return (LegacyBoolean::FALSE_VALUE);
             }
         } else {
             endOfComment = (c == (int)'}');
         }
     }
 
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
 /* C style comments with asterik and slash - CdW 8/91 */
@@ -617,13 +612,13 @@ DataFile::parseCComments()
     int c2;
     int endOfComment;
 
-    endOfComment = FALSE;
+    endOfComment = LegacyBoolean::FALSE_VALUE;
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
             Tokenizer::tokenError(
-                globalDataFile, "No */ closing comment found");
-            return (FALSE);
+                Tokenizer::sGlobalDataFile, "No */ closing comment found");
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (c == (int)'\n') {
@@ -635,7 +630,7 @@ DataFile::parseCComments()
             if (c2 != (int)'/') {
                 ungetc(c2, this->File);
             } else {
-                endOfComment = TRUE;
+                endOfComment = LegacyBoolean::TRUE_VALUE;
             }
         }
         /* Check for and handle nested comments */
@@ -648,29 +643,29 @@ DataFile::parseCComments()
             }
         }
     }
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
 /* The following routines make it easier to handle strings.  They stuff
-    characters into a string buffer one at a time making all the proper
+    characters into a Tokenizer::sString buffer one at a time making all the proper
     range checks.  Call Begin_String to start, Stuff_Character to put
     characters in, and End_String to finish.  The String variable contains
-    the final string. */
+    the final Tokenizer::sString. */
 
 void
 Tokenizer::beginString()
 {
-    stringIndex = 0;
+    Tokenizer::sStringIndex = 0;
 }
 
 void
-Tokenizer::stuffCharacter(int c, DataFile *globalDataFile)
+Tokenizer::stuffCharacter(int c, DataFile *dataFile)
 {
-    if (stringIndex < MAX_STRING_INDEX) {
-        string[stringIndex++] = (char)c;
-        if (stringIndex >= MAX_STRING_INDEX) {
-            Tokenizer::tokenError(globalDataFile, "String too long");
-            string[stringIndex - 1] = '\0';
+    if (Tokenizer::sStringIndex < Tokenizer::MAX_STRING_INDEX) {
+        Tokenizer::sString[Tokenizer::sStringIndex++] = (char)c;
+        if (Tokenizer::sStringIndex >= Tokenizer::MAX_STRING_INDEX) {
+            Tokenizer::tokenError(dataFile, "String too long");
+            Tokenizer::sString[Tokenizer::sStringIndex - 1] = '\0';
         }
     }
 }
@@ -678,7 +673,7 @@ Tokenizer::stuffCharacter(int c, DataFile *globalDataFile)
 void
 DataFile::endString()
 {
-    Tokenizer::stuffCharacter((int)'\0', globalDataFile);
+    Tokenizer::stuffCharacter((int)'\0', Tokenizer::sGlobalDataFile);
 }
 
 /* Read a float from the input file and tokenize it as one token. The phase
@@ -695,70 +690,70 @@ DataFile::readFloat()
     int finished;
     int phase;
 
-    finished = FALSE;
+    finished = LegacyBoolean::FALSE_VALUE;
     phase = 0;
 
     Tokenizer::beginString();
     while (!finished) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(globalDataFile, "Unexpected end of file");
-            return (FALSE);
+            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "Unexpected end of file");
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         switch (phase) {
         case 0:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
             } else if (c == '.') {
-                Tokenizer::stuffCharacter('0', globalDataFile);
+                Tokenizer::stuffCharacter('0', Tokenizer::sGlobalDataFile);
                 ungetc(c, this->File);
             } else {
                 Tokenizer::tokenError(
-                    globalDataFile, "Error in decimal number");
+                    Tokenizer::sGlobalDataFile, "Error in decimal number");
             }
             phase = 1;
             break;
 
         case 1:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
             } else if (c == (int)'.') {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
                 phase = 2;
             } else if ((c == 'e') || (c == 'E')) {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
                 phase = 3;
             } else {
-                finished = TRUE;
+                finished = LegacyBoolean::TRUE_VALUE;
             }
             break;
 
         case 2:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
             } else if ((c == 'e') || (c == 'E')) {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
                 phase = 3;
             } else {
-                finished = TRUE;
+                finished = LegacyBoolean::TRUE_VALUE;
             }
             break;
 
         case 3:
             if (isdigit(c) || (c == '+') || (c == '-')) {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
                 phase = 4;
             } else {
-                finished = TRUE;
+                finished = LegacyBoolean::TRUE_VALUE;
             }
             break;
 
         case 4:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, globalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
             } else {
-                finished = TRUE;
+                finished = LegacyBoolean::TRUE_VALUE;
             }
             break;
         }
@@ -767,15 +762,15 @@ DataFile::readFloat()
     ungetc(c, this->File);
     this->endString();
 
-    Tokenizer::writeToken(FLOAT_TOKEN, globalDataFile);
-    if (sscanf(string, "%lf", &ctx.token().tokenFloat) == 0) {
-        return (FALSE);
+    Tokenizer::writeToken(Tokenizer::FLOAT_TOKEN, Tokenizer::sGlobalDataFile);
+    if (sscanf(Tokenizer::sString, "%lf", &ctx.token().tokenFloat) == 0) {
+        return (LegacyBoolean::FALSE_VALUE);
     }
 
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
-/* Parse a string from the input file into a token. */
+/* Parse a Tokenizer::sString from the input file into a token. */
 void
 DataFile::parseString()
 {
@@ -783,22 +778,22 @@ DataFile::parseString()
     int c;
 
     Tokenizer::beginString();
-    while (TRUE) {
+    while (LegacyBoolean::TRUE_VALUE) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(globalDataFile, "No end quote for string");
+            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "No end quote for Tokenizer::sString");
         }
 
         if (c != (int)'"') {
-            Tokenizer::stuffCharacter(c, globalDataFile);
+            Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
         } else {
             break;
         }
     }
     this->endString();
 
-    Tokenizer::writeToken(STRING_TOKEN, globalDataFile);
-    ctx.token().Token_String = string;
+    Tokenizer::writeToken(Tokenizer::STRING_TOKEN, Tokenizer::sGlobalDataFile);
+    ctx.token().Token_String = Tokenizer::sString;
 }
 
 /* Read in a symbol from the input file.  Check to see if it is a reserved
@@ -814,15 +809,15 @@ DataFile::readSymbol()
     int symbolId;
 
     Tokenizer::beginString();
-    while (TRUE) {
+    while (LegacyBoolean::TRUE_VALUE) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(globalDataFile, "Unexpected end of file");
-            return (FALSE);
+            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "Unexpected end of file");
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (isalpha(c) || isdigit(c) || c == (int)'_') {
-            Tokenizer::stuffCharacter(c, globalDataFile);
+            Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
         } else {
             ungetc(c, this->File);
             break;
@@ -832,23 +827,23 @@ DataFile::readSymbol()
 
     /* Ignore the symbol if it was meant for the tokenizer (-2) */
     if ((symbolId = Tokenizer::findReserved()) != -1 && symbolId != -2) {
-        Tokenizer::writeToken(symbolId, globalDataFile);
+        Tokenizer::writeToken(symbolId, Tokenizer::sGlobalDataFile);
     } else {
         /* Ignore the symbol if it was meant for the tokenizer (-2) */
         if (symbolId == -2) {
-            return (TRUE);
+            return (LegacyBoolean::TRUE_VALUE);
         }
 
         if ((symbolId = Tokenizer::findSymbol()) == -1) {
-            if (++numberOfSymbols < Tokenizer::getMaxSymbols()) {
-                if ((symbolTable[numberOfSymbols] =
-                            new char[strlen(string) + 1]) == nullptr) {
-                    Tokenizer::tokenError(globalDataFile,
+            if (++Tokenizer::sNumberOfSymbols < Tokenizer::getMaxSymbols()) {
+                if ((Tokenizer::sSymbolTable[Tokenizer::sNumberOfSymbols] =
+                            new char[strlen(Tokenizer::sString) + 1]) == nullptr) {
+                    Tokenizer::tokenError(Tokenizer::sGlobalDataFile,
                         "Out of memory. Cannot allocate space for identifier");
                 }
 
-                strcpy(symbolTable[numberOfSymbols], string);
-                symbolId = numberOfSymbols;
+                strcpy(Tokenizer::sSymbolTable[Tokenizer::sNumberOfSymbols], Tokenizer::sString);
+                symbolId = Tokenizer::sNumberOfSymbols;
             } else {
                 Logger::error(
                     "\nToo many symbols. Use +ms### option to raise "
@@ -857,10 +852,10 @@ DataFile::readSymbol()
             }
         }
 
-        Tokenizer::writeToken(LAST_TOKEN + symbolId, globalDataFile);
+        Tokenizer::writeToken(Tokenizer::LAST_TOKEN + symbolId, Tokenizer::sGlobalDataFile);
     }
 
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
 /* Return the index the token in the reserved words table or -1 if it
@@ -871,29 +866,29 @@ Tokenizer::findReserved()
     ParserContext ctx;
     int i;
 
-    if (Tokenizer::povStricmp("case_sensitive_yes", &(string[0])) == 0) {
-        caseSensitiveFlag = 0;
+    if (Tokenizer::povStricmp("case_sensitive_yes", &(Tokenizer::sString[0])) == 0) {
+        Tokenizer::sCaseSensitiveFlag = 0;
         return (-2);
     }
-    if (Tokenizer::povStricmp("case_sensitive_no", &(string[0])) == 0) {
-        caseSensitiveFlag = 1;
+    if (Tokenizer::povStricmp("case_sensitive_no", &(Tokenizer::sString[0])) == 0) {
+        Tokenizer::sCaseSensitiveFlag = 1;
         return (-2);
     }
     /* The optional case sensitive option only checks keywords unsensitive */
     /* Symbols can be upper/lower, but not be the same as a keyword */
-    if (Tokenizer::povStricmp("case_sensitive_opt", &(string[0])) == 0) {
-        caseSensitiveFlag = 2;
+    if (Tokenizer::povStricmp("case_sensitive_opt", &(Tokenizer::sString[0])) == 0) {
+        Tokenizer::sCaseSensitiveFlag = 2;
         return (-2);
     }
 
-    for (i = 0; i < LAST_TOKEN; i++) {
-        if (caseSensitiveFlag == 0) {
-            if (strcmp(ctx.reservedWords()[i].Token_Name, &(string[0])) == 0) {
+    for (i = 0; i < Tokenizer::LAST_TOKEN; i++) {
+        if (Tokenizer::sCaseSensitiveFlag == 0) {
+            if (strcmp(ctx.reservedWords()[i].Token_Name, &(Tokenizer::sString[0])) == 0) {
                 return (ctx.reservedWords()[i].tokenNumber);
             }
         } else {
             if (Tokenizer::povStricmp((char *)ctx.reservedWords()[i].Token_Name,
-                    &(string[0])) == 0) {
+                    &(Tokenizer::sString[0])) == 0) {
                 return (ctx.reservedWords()[i].tokenNumber);
             }
         }
@@ -910,13 +905,13 @@ Tokenizer::findSymbol()
 {
     int i;
 
-    for (i = 1; i <= numberOfSymbols; i++) {
-        if (caseSensitiveFlag == 0 || caseSensitiveFlag == 2) {
-            if (strcmp(symbolTable[i], string) == 0) {
+    for (i = 1; i <= Tokenizer::sNumberOfSymbols; i++) {
+        if (Tokenizer::sCaseSensitiveFlag == 0 || Tokenizer::sCaseSensitiveFlag == 2) {
+            if (strcmp(Tokenizer::sSymbolTable[i], Tokenizer::sString) == 0) {
                 return (i);
             }
-            if (caseSensitiveFlag == 1) {
-                if (Tokenizer::povStricmp(symbolTable[i], string) == 0) {
+            if (Tokenizer::sCaseSensitiveFlag == 1) {
+                if (Tokenizer::povStricmp(Tokenizer::sSymbolTable[i], Tokenizer::sString) == 0) {
                     return (i);
                 }
             }
@@ -928,27 +923,27 @@ Tokenizer::findSymbol()
 
 /* Write a token out to the token file */
 void
-Tokenizer::writeToken(TOKEN tokenId, DataFile *globalDataFile)
+Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
 {
     ParserContext ctx;
     ctx.token().tokenId = tokenId;
-    ctx.token().tokenLineNo = globalDataFile->lineNumber;
-    ctx.token().Filename = globalDataFile->Filename;
-    ctx.token().Token_String = string;
+    ctx.token().tokenLineNo = dataFile->lineNumber;
+    ctx.token().Filename = dataFile->Filename;
+    ctx.token().Token_String = Tokenizer::sString;
 
-    if (ctx.token().tokenId > LAST_TOKEN) {
+    if (ctx.token().tokenId > Tokenizer::LAST_TOKEN) {
         ctx.token().identifierNumber =
-            (int)ctx.token().tokenId - (int)LAST_TOKEN;
-        ctx.token().tokenId = IDENTIFIER_TOKEN;
+            (int)ctx.token().tokenId - (int)Tokenizer::LAST_TOKEN;
+        ctx.token().tokenId = Tokenizer::IDENTIFIER_TOKEN;
     }
 }
 
 /* Report an error */
 void
-Tokenizer::tokenError(DataFile *globalDataFile, const char *str)
+Tokenizer::tokenError(DataFile *dataFile, const char *str)
 {
-    Logger::error("Error in %s line %d\n", globalDataFile->Filename,
-        globalDataFile->lineNumber);
+    Logger::error("Error in %s line %d\n", dataFile->Filename,
+        dataFile->lineNumber);
     Logger::error("%s\n\n", str);
     exit(1);
 }

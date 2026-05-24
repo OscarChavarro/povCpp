@@ -19,8 +19,8 @@
 
 struct AstDeclTable {
     int count;
-    int ids[MAX_CONSTANTS];
-    const AstNode *nodes[MAX_CONSTANTS];
+    int ids[ParserConstants::MAX_CONSTANTS];
+    const AstNode *nodes[ParserConstants::MAX_CONSTANTS];
 };
 
 static Vector3Dd
@@ -142,7 +142,7 @@ buildLight(
         shape->Falloff = cos(node.falloffDegrees * M_PI / 180.0);
     }
     if (node.hasSpotlight) {
-        shape->Type = SPOT_LIGHT_TYPE;
+        shape->Type = GeometryOperations::SPOT_LIGHT_TYPE;
     }
 
     applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
@@ -169,13 +169,13 @@ buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstDeclTable &decls)
         container = (CSG *)GeometryOperations::copy((SimpleBody *)declShape);
         delete declShape;
     } else {
-        int firstShapeParsed = FALSE;
+        int firstShapeParsed = LegacyBoolean::FALSE_VALUE;
         for (int i = 0; i < node.childCount; ++i) {
             Geometry *child = buildGeometryNode(*node.children[i], ctx, decls);
             if (node.op == AST_CSG_DIFFERENCE && firstShapeParsed) {
                 GeometryOperations::invert((SimpleBody *)child);
             }
-            firstShapeParsed = TRUE;
+            firstShapeParsed = LegacyBoolean::TRUE_VALUE;
             SimpleBodyFactory::link((SimpleBody *)child,
                 (SimpleBody **)&(child->nextObject),
                 (SimpleBody **)&(container->Shapes));
@@ -236,7 +236,7 @@ buildObject(const AstObjectNode &node, ParserContext &ctx, const AstDeclTable &d
     }
     applyTransforms((Geometry *)object, node.transforms, node.transformCount);
     if (node.noShadow) {
-        object->noShadowFlag = TRUE;
+        object->noShadowFlag = LegacyBoolean::TRUE_VALUE;
     }
     return object;
 }
@@ -303,7 +303,7 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
         const AstNode *node = scene.nodes[i];
         if (node->kind == AST_DECLARE_NODE) {
             const AstDeclareNode *decl = (const AstDeclareNode *)node;
-            if (declarations.count < MAX_CONSTANTS) {
+            if (declarations.count < ParserConstants::MAX_CONSTANTS) {
                 declarations.ids[declarations.count] = decl->identifierNumber;
                 declarations.nodes[declarations.count] = decl->value;
                 declarations.count++;
