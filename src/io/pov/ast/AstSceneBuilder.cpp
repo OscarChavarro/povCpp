@@ -819,6 +819,20 @@ AstSceneBuilder::buildGeometryNode(const AstNode &node, ParserContext &ctx, cons
         }
         return (Geometry *)GeometryOperations::copy((SimpleBody *)legacyNode.shape);
     }
+    if (node.kind == AST_HEIGHT_FIELD_NODE) {
+        const AstHeightFieldNode &heightFieldNode = (const AstHeightFieldNode &)node;
+        if (heightFieldNode.shape == nullptr) {
+            ParseErrorReporter::Error("Invalid height_field AST node", ctx);
+        }
+        return (Geometry *)GeometryOperations::copy((SimpleBody *)heightFieldNode.shape);
+    }
+    if (node.kind == AST_BICUBIC_PATCH_NODE) {
+        const AstBicubicPatchNode &bicubicPatchNode = (const AstBicubicPatchNode &)node;
+        if (bicubicPatchNode.shape == nullptr) {
+            ParseErrorReporter::Error("Invalid bicubic_patch AST node", ctx);
+        }
+        return (Geometry *)GeometryOperations::copy((SimpleBody *)bicubicPatchNode.shape);
+    }
     if (node.kind == AST_LIGHT_SOURCE_NODE) {
         return (Geometry *)buildLight((const AstLightSourceNode &)node, ctx, decls);
     }
