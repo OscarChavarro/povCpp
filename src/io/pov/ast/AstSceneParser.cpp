@@ -140,7 +140,38 @@ AstSceneParser::parseMaxTraceLevelNode(ParserContext &ctx)
 bool
 AstSceneParser::isAstDeclareToken(int tokenId)
 {
-    return tokenId == Tokenizer::VIEW_POINT_TOKEN;
+    const char *viewPoint = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
+    const char *sphere = std::getenv("POVCPP_AST_DECLARE_SPHERE");
+    const char *light = std::getenv("POVCPP_AST_DECLARE_LIGHT");
+    const char *csg = std::getenv("POVCPP_AST_DECLARE_CSG");
+
+    if (tokenId == Tokenizer::VIEW_POINT_TOKEN) {
+        return viewPoint != nullptr && viewPoint[0] == '1';
+    }
+    if (tokenId == Tokenizer::SPHERE_TOKEN) {
+        return sphere != nullptr && sphere[0] == '1';
+    }
+    if (tokenId == Tokenizer::LIGHT_SOURCE_TOKEN) {
+        return light != nullptr && light[0] == '1';
+    }
+    if (tokenId == Tokenizer::UNION_TOKEN || tokenId == Tokenizer::INTERSECTION_TOKEN ||
+        tokenId == Tokenizer::DIFFERENCE_TOKEN) {
+        return csg != nullptr && csg[0] == '1';
+    }
+    return false;
+}
+
+static bool
+isAnyAstDeclareFlagEnabled()
+{
+    const char *viewPoint = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
+    const char *sphere = std::getenv("POVCPP_AST_DECLARE_SPHERE");
+    const char *light = std::getenv("POVCPP_AST_DECLARE_LIGHT");
+    const char *csg = std::getenv("POVCPP_AST_DECLARE_CSG");
+    return (viewPoint != nullptr && viewPoint[0] == '1') ||
+           (sphere != nullptr && sphere[0] == '1') ||
+           (light != nullptr && light[0] == '1') ||
+           (csg != nullptr && csg[0] == '1');
 }
 
 AstNode *
@@ -197,15 +228,10 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::DECLARE_TOKEN: {
-            const char *enableAstDeclare = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
-            if (enableAstDeclare == nullptr || enableAstDeclare[0] != '1') {
+            if (!isAnyAstDeclareFlagEnabled()) {
                 DeclarationParser::parseDeclare(ctx);
                 break;
             }
-
-            ITokenStream *originalStream = &ctx.tokenStream();
-            RewindableTokenStream rewindableStream(originalStream);
-            ctx.setTokenStream(&rewindableStream);
             try {
                 const int marker = ctx.tokenStream().mark();
 
@@ -234,10 +260,7 @@ AstSceneParser::parseProgram(ParserContext &ctx)
                     ctx.tokenStream().rewind(marker);
                     DeclarationParser::parseDeclare(ctx);
                 }
-
-                ctx.setTokenStream(originalStream);
             } catch (...) {
-                ctx.setTokenStream(originalStream);
                 throw;
             }
             break;
