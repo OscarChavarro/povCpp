@@ -188,8 +188,6 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::DECLARE_TOKEN: {
-            // Keep full DECLARE compatibility by reusing the legacy declaration parser.
-            // AST nodes can still reference declared constants through identifier numbers.
             DeclarationParser::parseDeclare(ctx);
             break;
         }

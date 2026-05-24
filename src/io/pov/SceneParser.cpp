@@ -106,6 +106,7 @@ SceneParser::tokenInit()
 void
 SceneParser::tokenInit(ParserContext &ctx)
 {
+    ctx.resetTokenStreamHistory();
     ctx.symbols().clear();
 }
 
