@@ -7,6 +7,9 @@
 #include "environment/camera/Camera.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/InfinitePlane.h"
+#include "environment/geometry/volume/Box.h"
+#include "environment/geometry/volume/Blob.h"
+#include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
@@ -309,6 +312,144 @@ AstSceneBuilder::buildPlane(
     return shape;
 }
 
+Box *
+AstSceneBuilder::buildBox(const AstBoxNode &node, ParserContext &ctx, const AstDeclTable &decls)
+{
+    Box *shape = nullptr;
+
+    if (node.hasReference) {
+        const AstNode *declNode = findDecl(decls, node.referenceConstantId);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_BOX_NODE) {
+                ParseErrorReporter::Error("Invalid box reference in AST", ctx);
+            }
+            Box *declShape = buildBox((const AstBoxNode &)*declNode, ctx, decls);
+            shape = (Box *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr || legacyDecl->constantType != ParseGlobals::BOX_CONSTANT) {
+                ParseErrorReporter::Error("Invalid box reference in AST", ctx);
+            }
+            shape = (Box *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
+        }
+    } else {
+        shape = ModelBuilder::getBoxShape();
+        if (node.hasInlineData) {
+            shape->bounds[0] = asVector(node.minBound);
+            shape->bounds[1] = asVector(node.maxBound);
+        }
+    }
+
+    if (node.hasColour) {
+        shape->Shape_Colour = ModelBuilder::getColour();
+        shape->Shape_Colour->Red = node.colour.r;
+        shape->Shape_Colour->Green = node.colour.g;
+        shape->Shape_Colour->Blue = node.colour.b;
+        shape->Shape_Colour->Alpha = node.colour.a;
+    }
+
+    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    return shape;
+}
+
+Quadric *
+AstSceneBuilder::buildQuadric(
+    const AstQuadricNode &node, ParserContext &ctx, const AstDeclTable &decls)
+{
+    Quadric *shape = nullptr;
+
+    if (node.hasReference) {
+        const AstNode *declNode = findDecl(decls, node.referenceConstantId);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_QUADRIC_NODE) {
+                ParseErrorReporter::Error("Invalid quadric reference in AST", ctx);
+            }
+            Quadric *declShape = buildQuadric((const AstQuadricNode &)*declNode, ctx, decls);
+            shape = (Quadric *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr || legacyDecl->constantType != ParseGlobals::QUADRIC_CONSTANT) {
+                ParseErrorReporter::Error("Invalid quadric reference in AST", ctx);
+            }
+            shape = (Quadric *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
+        }
+    } else {
+        shape = ModelBuilder::getQuadricShape();
+        if (node.hasInlineData) {
+            shape->object2Terms = asVector(node.object2Terms);
+            shape->objectMixedTerms = asVector(node.objectMixedTerms);
+            shape->objectTerms = asVector(node.objectTerms);
+            shape->objectConstant = node.objectConstant;
+            shape->nonZeroSquareTerm =
+                !((shape->object2Terms.x == 0.0) && (shape->object2Terms.y == 0.0) &&
+                    (shape->object2Terms.z == 0.0) && (shape->objectMixedTerms.x == 0.0) &&
+                    (shape->objectMixedTerms.y == 0.0) && (shape->objectMixedTerms.z == 0.0));
+        }
+    }
+
+    if (node.hasColour) {
+        shape->Shape_Colour = ModelBuilder::getColour();
+        shape->Shape_Colour->Red = node.colour.r;
+        shape->Shape_Colour->Green = node.colour.g;
+        shape->Shape_Colour->Blue = node.colour.b;
+        shape->Shape_Colour->Alpha = node.colour.a;
+    }
+
+    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    return shape;
+}
+
+Blob *
+AstSceneBuilder::buildBlob(
+    const AstBlobNode &node, ParserContext &ctx, const AstDeclTable &decls)
+{
+    Blob *shape = nullptr;
+
+    if (node.hasReference) {
+        const AstNode *declNode = findDecl(decls, node.referenceConstantId);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_BLOB_NODE) {
+                ParseErrorReporter::Error("Invalid blob reference in AST", ctx);
+            }
+            Blob *declShape = buildBlob((const AstBlobNode &)*declNode, ctx, decls);
+            shape = (Blob *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr || legacyDecl->constantType != ParseGlobals::BLOB_CONSTANT) {
+                ParseErrorReporter::Error("Invalid blob reference in AST", ctx);
+            }
+            shape = (Blob *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
+        }
+    } else {
+        shape = ModelBuilder::getBlobShape();
+        BlobList *components = nullptr;
+        for (int i = 0; i < node.componentCount; ++i) {
+            BlobList *c = new BlobList;
+            c->elem.coeffs[2] = node.components[i].coeff;
+            c->elem.radius2 = node.components[i].radius;
+            c->elem.pos = asVector(node.components[i].pos);
+            c->next = components;
+            components = c;
+        }
+        Blob::makeBlob((SimpleBody *)shape, node.threshold, components, node.componentCount,
+            node.sturm ? 1 : 0);
+    }
+
+    if (node.hasColour) {
+        shape->Shape_Colour = ModelBuilder::getColour();
+        shape->Shape_Colour->Red = node.colour.r;
+        shape->Shape_Colour->Green = node.colour.g;
+        shape->Shape_Colour->Blue = node.colour.b;
+        shape->Shape_Colour->Alpha = node.colour.a;
+    }
+
+    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    return shape;
+}
+
 CSG *
 AstSceneBuilder::buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
@@ -366,6 +507,15 @@ AstSceneBuilder::buildGeometryNode(const AstNode &node, ParserContext &ctx, cons
     }
     if (node.kind == AST_PLANE_NODE) {
         return (Geometry *)buildPlane((const AstPlaneNode &)node, ctx, decls);
+    }
+    if (node.kind == AST_BOX_NODE) {
+        return (Geometry *)buildBox((const AstBoxNode &)node, ctx, decls);
+    }
+    if (node.kind == AST_QUADRIC_NODE) {
+        return (Geometry *)buildQuadric((const AstQuadricNode &)node, ctx, decls);
+    }
+    if (node.kind == AST_BLOB_NODE) {
+        return (Geometry *)buildBlob((const AstBlobNode &)node, ctx, decls);
     }
     if (node.kind == AST_LIGHT_SOURCE_NODE) {
         return (Geometry *)buildLight((const AstLightSourceNode &)node, ctx, decls);
@@ -479,6 +629,8 @@ AstSceneBuilder::buildSimpleBodyNode(const AstNode &node, ParserContext &ctx, co
         return (SimpleBody *)buildComposite((const AstCompositeNode &)node, ctx, decls);
     }
     if (node.kind == AST_SPHERE_NODE || node.kind == AST_PLANE_NODE ||
+        node.kind == AST_BOX_NODE || node.kind == AST_QUADRIC_NODE ||
+        node.kind == AST_BLOB_NODE ||
         node.kind == AST_LIGHT_SOURCE_NODE ||
         node.kind == AST_CSG_NODE) {
         return (SimpleBody *)buildGeometryNode(node, ctx, decls);
@@ -513,6 +665,21 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
             InfinitePlane *plane = buildPlane(*(const AstPlaneNode *)node, ctx, declarations);
             SimpleBodyFactory::link((SimpleBody *)plane,
                 (SimpleBody **)&(plane->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_BOX_NODE) {
+            Box *box = buildBox(*(const AstBoxNode *)node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)box,
+                (SimpleBody **)&(box->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_QUADRIC_NODE) {
+            Quadric *quadric = buildQuadric(*(const AstQuadricNode *)node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)quadric,
+                (SimpleBody **)&(quadric->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_BLOB_NODE) {
+            Blob *blob = buildBlob(*(const AstBlobNode *)node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)blob,
+                (SimpleBody **)&(blob->nextObject),
                 (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == AST_LIGHT_SOURCE_NODE) {
             Light *light = buildLight(*(const AstLightSourceNode *)node, ctx, declarations);

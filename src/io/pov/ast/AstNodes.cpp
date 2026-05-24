@@ -41,6 +41,46 @@ AstPlaneNode::AstPlaneNode()
     transformCount = 0;
 }
 
+AstBoxNode::AstBoxNode()
+{
+    kind = AST_BOX_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasInlineData = false;
+    hasReference = false;
+    referenceConstantId = -1;
+    hasColour = false;
+    transformCount = 0;
+}
+
+AstQuadricNode::AstQuadricNode()
+{
+    kind = AST_QUADRIC_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasInlineData = false;
+    hasReference = false;
+    referenceConstantId = -1;
+    objectConstant = 0.0;
+    hasColour = false;
+    transformCount = 0;
+}
+
+AstBlobNode::AstBlobNode()
+{
+    kind = AST_BLOB_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasInlineData = false;
+    hasReference = false;
+    referenceConstantId = -1;
+    threshold = 1.0;
+    componentCount = 0;
+    sturm = false;
+    hasColour = false;
+    transformCount = 0;
+}
+
 AstCsgNode::AstCsgNode()
 {
     kind = AST_CSG_NODE;

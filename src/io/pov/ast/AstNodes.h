@@ -14,7 +14,10 @@ enum AstNodeKind {
     AST_FOG_NODE = 7,
     AST_CAMERA_NODE = 8,
     AST_MAX_TRACE_LEVEL_NODE = 9,
-    AST_DEFAULT_TEXTURE_NODE = 10
+    AST_DEFAULT_TEXTURE_NODE = 10,
+    AST_BOX_NODE = 11,
+    AST_QUADRIC_NODE = 12,
+    AST_BLOB_NODE = 13
 };
 
 enum AstTransformKind {
@@ -124,6 +127,62 @@ class AstPlaneNode : public AstNode {
     int referenceConstantId;
     AstVector3 normal;
     double distance;
+    bool hasColour;
+    AstColor colour;
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
+    int transformCount;
+};
+
+class AstBoxNode : public AstNode {
+  public:
+    AstBoxNode();
+
+    bool hasInlineData;
+    bool hasReference;
+    int referenceConstantId;
+    AstVector3 minBound;
+    AstVector3 maxBound;
+    bool hasColour;
+    AstColor colour;
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
+    int transformCount;
+};
+
+class AstQuadricNode : public AstNode {
+  public:
+    AstQuadricNode();
+
+    bool hasInlineData;
+    bool hasReference;
+    int referenceConstantId;
+    AstVector3 object2Terms;
+    AstVector3 objectMixedTerms;
+    AstVector3 objectTerms;
+    double objectConstant;
+    bool hasColour;
+    AstColor colour;
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
+    int transformCount;
+};
+
+struct AstBlobComponent {
+    double coeff;
+    double radius;
+    AstVector3 pos;
+};
+
+class AstBlobNode : public AstNode {
+  public:
+    AstBlobNode();
+
+    static constexpr int MAX_AST_BLOB_COMPONENTS = 512;
+    bool hasInlineData;
+    bool hasReference;
+    int referenceConstantId;
+    double threshold;
+    AstBlobComponent components[MAX_AST_BLOB_COMPONENTS];
+    int componentCount;
+    bool sturm;
     bool hasColour;
     AstColor colour;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
