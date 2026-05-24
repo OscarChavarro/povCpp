@@ -13,6 +13,7 @@ class AstCompositeNode;
 class AstFogNode;
 class AstCameraNode;
 class AstMaxTraceLevelNode;
+class AstDefaultTextureNode;
 class AstTransform;
 struct AstVector3;
 class Vector3Dd;
@@ -62,6 +63,7 @@ class AstSceneBuilder {
     static void applyCamera(
         const AstCameraNode &node, RenderFrame *framePtr, ParserContext &ctx, const AstDeclTable &decls);
     static void applyMaxTraceLevel(const AstMaxTraceLevelNode &node);
+    static void applyDefaultTexture(const AstDefaultTextureNode &node);
 };
 
 #endif

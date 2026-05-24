@@ -15,7 +15,8 @@
 #include "io/pov/ast/AstPrimitiveParser.h"
 #include "io/pov/ast/AstParsedSceneProgram.h"
 #include "io/pov/geometryParser/ObjectParser.h"
-#include "io/pov/mediaParser/DefaultTextureParser.h"
+#include "io/pov/mediaParser/TextureParser.h"
+#include "media/TextureUtils.h"
 
 namespace {
 void appendCameraOpOrFail(ParserContext &ctx, AstCameraNode *node, AstCameraOpKind kind,
@@ -134,6 +135,37 @@ AstSceneParser::parseMaxTraceLevelNode(ParserContext &ctx)
     node->sourceLine = ctx.token().tokenLineNo + 1;
     node->sourceFile = ctx.token().Filename;
     node->value = AstPrimitiveParser::parseFloat(ctx);
+    return node;
+}
+
+AstDefaultTextureNode *
+AstSceneParser::parseDefaultTextureNode(ParserContext &ctx)
+{
+    AstDefaultTextureNode *node = new AstDefaultTextureNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    int done = LegacyBoolean::FALSE_VALUE;
+    while (!done) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::TEXTURE_TOKEN:
+            node->texture = TextureParser::parseTexture(ctx);
+            if (node->texture != nullptr) {
+                node->texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                TextureUtils::defaultTexture() = node->texture;
+                TextureUtils::defaultTexture()->constantFlag = LegacyBoolean::TRUE_VALUE;
+            }
+            break;
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
+        }
+    }
     return node;
 }
 
@@ -294,7 +326,10 @@ AstSceneParser::parseProgram(ParserContext &ctx)
             break;
         }
         case Tokenizer::DEFAULT_TOKEN:
-            DefaultTextureParser::parseDefault(&program->legacyFrame, ctx);
+            if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
+                    AstLimits::MAX_AST_SCENE_NODES, parseDefaultTextureNode(ctx))) {
+                ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+            }
             break;
         case Tokenizer::MAX_TRACE_LEVEL_TOKEN:
             if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,

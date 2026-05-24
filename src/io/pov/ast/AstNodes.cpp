@@ -102,6 +102,14 @@ AstMaxTraceLevelNode::AstMaxTraceLevelNode()
     value = 0.0;
 }
 
+AstDefaultTextureNode::AstDefaultTextureNode()
+{
+    kind = AST_DEFAULT_TEXTURE_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    texture = nullptr;
+}
+
 AstScene::AstScene()
 {
     nodeCount = 0;

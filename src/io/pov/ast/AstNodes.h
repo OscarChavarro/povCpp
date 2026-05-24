@@ -12,7 +12,8 @@ enum AstNodeKind {
     AST_COMPOSITE_NODE = 5,
     AST_FOG_NODE = 6,
     AST_CAMERA_NODE = 7,
-    AST_MAX_TRACE_LEVEL_NODE = 8
+    AST_MAX_TRACE_LEVEL_NODE = 8,
+    AST_DEFAULT_TEXTURE_NODE = 9
 };
 
 enum AstTransformKind {
@@ -190,6 +191,15 @@ class AstMaxTraceLevelNode : public AstNode {
     AstMaxTraceLevelNode();
 
     double value;
+};
+
+class Texture;
+
+class AstDefaultTextureNode : public AstNode {
+  public:
+    AstDefaultTextureNode();
+
+    Texture *texture;
 };
 
 class AstScene {
