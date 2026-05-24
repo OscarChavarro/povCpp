@@ -320,7 +320,6 @@ class AstTextureChainNode : public AstNode {
     AstTextureChainNode();
 
     Texture *texture;
-    AstTextureChainNode *textureChain;
 };
 
 class AstCsgNode : public AstNode {

@@ -30,6 +30,21 @@
 #include "media/Texture.h"
 #include "media/TextureUtils.h"
 
+namespace {
+constexpr bool kAstUseTextureChainForDefault = true;
+constexpr bool kAstUseTextureChainForShapes = true;
+constexpr bool kAstUseTextureChainForObjectModifiers = false;
+
+Texture *selectTextureSource(Texture *legacyTexture, const AstTextureChainNode *textureChain,
+    bool useTextureChain)
+{
+    if (useTextureChain && textureChain != nullptr && textureChain->texture != nullptr) {
+        return textureChain->texture;
+    }
+    return legacyTexture;
+}
+}
+
 Vector3Dd
 AstSceneBuilder::asVector(const AstVector3 &v)
 {
@@ -216,11 +231,13 @@ AstSceneBuilder::applyMaxTraceLevel(const AstMaxTraceLevelNode &node)
 void
 AstSceneBuilder::applyDefaultTexture(const AstDefaultTextureNode &node)
 {
-    if (node.texture == nullptr) {
+    Texture *texture = selectTextureSource(
+        node.texture, node.textureChain, kAstUseTextureChainForDefault);
+    if (texture == nullptr) {
         return;
     }
-    node.texture->constantFlag = LegacyBoolean::FALSE_VALUE;
-    TextureUtils::defaultTexture() = node.texture;
+    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+    TextureUtils::defaultTexture() = texture;
     TextureUtils::defaultTexture()->constantFlag = LegacyBoolean::TRUE_VALUE;
 }
 
@@ -285,12 +302,14 @@ AstSceneBuilder::buildSphere(const AstSphereNode &node, ParserContext &ctx, cons
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -390,12 +409,14 @@ AstSceneBuilder::buildPlane(
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -440,12 +461,14 @@ AstSceneBuilder::buildBox(const AstBoxNode &node, ParserContext &ctx, const AstD
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -497,12 +520,14 @@ AstSceneBuilder::buildQuadric(
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -555,12 +580,14 @@ AstSceneBuilder::buildBlob(
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -608,12 +635,14 @@ AstSceneBuilder::buildTriangle(
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -669,12 +698,14 @@ AstSceneBuilder::buildSmoothTriangle(
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -724,12 +755,14 @@ AstSceneBuilder::buildPoly(
     }
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
-        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForShapes), (Geometry *)shape);
         applyTransformsRange(
             (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyShapeTexture(node.texture, (Geometry *)shape);
+            applyShapeTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForShapes), (Geometry *)shape);
         }
         applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
     }
@@ -904,12 +937,14 @@ AstSceneBuilder::buildObject(const AstObjectNode &node, ParserContext &ctx, cons
 
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)object, node.transforms, transformStart, node.textureTransformIndex);
-        applyObjectTexture(node.texture, object);
+        applyObjectTexture(selectTextureSource(node.texture, node.textureChain,
+            kAstUseTextureChainForObjectModifiers), object);
         applyTransformsRange(
             (Geometry *)object, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyObjectTexture(node.texture, object);
+            applyObjectTexture(selectTextureSource(node.texture, node.textureChain,
+                kAstUseTextureChainForObjectModifiers), object);
         }
         applyTransformsRange((Geometry *)object, node.transforms, transformStart, node.transformCount);
     }
