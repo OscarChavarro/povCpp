@@ -23,6 +23,8 @@
 #include "media/TextureUtils.h"
 
 namespace {
+constexpr bool kAstTextureDeclareParseTimeCompat = true;
+
 void appendCameraOpOrFail(ParserContext &ctx, AstCameraNode *node, AstCameraOpKind kind,
     int refId, const AstVector3 &v)
 {
@@ -269,8 +271,10 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
 
         Texture *localTexture = nullptr;
         Texture *tempTexture = nullptr;
-        constantPtr->constantData = (void *)localTexture;
-        constantPtr->constantType = ParseGlobals::TEXTURE_CONSTANT;
+        if (kAstTextureDeclareParseTimeCompat) {
+            constantPtr->constantData = nullptr;
+            constantPtr->constantType = ParseGlobals::TEXTURE_CONSTANT;
+        }
         ctx.tokenStream().ungetToken();
         while (LegacyBoolean::TRUE_VALUE) {
             ctx.tokenStream().getToken();
@@ -287,10 +291,17 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
             for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
                  tempTexture = tempTexture->Next_Texture) {
             }
-            tempTexture->Next_Texture = (Texture *)constantPtr->constantData;
-            constantPtr->constantData = (void *)localTexture;
+            if (kAstTextureDeclareParseTimeCompat) {
+                tempTexture->Next_Texture = (Texture *)constantPtr->constantData;
+                constantPtr->constantData = (void *)localTexture;
+            } else {
+                tempTexture->Next_Texture = textureNode->texture;
+                textureNode->texture = localTexture;
+            }
         }
-        textureNode->texture = (Texture *)constantPtr->constantData;
+        if (kAstTextureDeclareParseTimeCompat) {
+            textureNode->texture = (Texture *)constantPtr->constantData;
+        }
         node->value = textureNode;
         return node;
     }
