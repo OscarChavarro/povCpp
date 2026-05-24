@@ -35,11 +35,6 @@ AstParsedSceneProgram *parseAstPhase(ParserContext &ctx)
     return AstSceneParser::parseProgram(ctx);
 }
 
-void applyLegacySemanticPhase(const AstParsedSceneProgram &program, RenderFrame *framePtr)
-{
-    framePtr->Objects = program.legacyFrame.Objects;
-}
-
 void buildScenePhase(
     const AstParsedSceneProgram &program, RenderFrame *framePtr, ParserContext &ctx)
 {
@@ -86,7 +81,6 @@ SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
     AstParsedSceneProgram *program = parseAstPhase(ctx);
-    applyLegacySemanticPhase(*program, framePtr);
     buildScenePhase(*program, framePtr, ctx);
     AstNodes::destroyScene(program->scene);
     delete program;
