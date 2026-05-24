@@ -10,10 +10,11 @@ enum AstNodeKind {
     AST_CSG_NODE = 3,
     AST_OBJECT_NODE = 4,
     AST_COMPOSITE_NODE = 5,
-    AST_FOG_NODE = 6,
-    AST_CAMERA_NODE = 7,
-    AST_MAX_TRACE_LEVEL_NODE = 8,
-    AST_DEFAULT_TEXTURE_NODE = 9
+    AST_PLANE_NODE = 6,
+    AST_FOG_NODE = 7,
+    AST_CAMERA_NODE = 8,
+    AST_MAX_TRACE_LEVEL_NODE = 9,
+    AST_DEFAULT_TEXTURE_NODE = 10
 };
 
 enum AstTransformKind {
@@ -110,6 +111,21 @@ class AstLightSourceNode : public AstNode {
     double tightness;
     double radiusDegrees;
     double falloffDegrees;
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
+    int transformCount;
+};
+
+class AstPlaneNode : public AstNode {
+  public:
+    AstPlaneNode();
+
+    bool hasInlineData;
+    bool hasReference;
+    int referenceConstantId;
+    AstVector3 normal;
+    double distance;
+    bool hasColour;
+    AstColor colour;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };

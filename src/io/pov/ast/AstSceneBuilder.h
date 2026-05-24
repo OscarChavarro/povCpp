@@ -7,6 +7,7 @@ class AstScene;
 class AstNode;
 class AstSphereNode;
 class AstLightSourceNode;
+class AstPlaneNode;
 class AstCsgNode;
 class AstObjectNode;
 class AstCompositeNode;
@@ -21,6 +22,7 @@ class Geometry;
 class SimpleBody;
 class Sphere;
 class Light;
+class InfinitePlane;
 class CSG;
 class Composite;
 class ParserContext;
@@ -53,6 +55,8 @@ class AstSceneBuilder {
         const AstDeclTable &decls);
     static Light *buildLight(const AstLightSourceNode &node, ParserContext &ctx,
         const AstDeclTable &decls);
+    static InfinitePlane *buildPlane(
+        const AstPlaneNode &node, ParserContext &ctx, const AstDeclTable &decls);
     static CSG *buildCsg(const AstCsgNode &node, ParserContext &ctx,
         const AstDeclTable &decls);
     static SimpleBody *buildObject(

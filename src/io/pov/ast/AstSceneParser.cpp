@@ -297,6 +297,8 @@ AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
     switch (tokenId) {
     case Tokenizer::SPHERE_TOKEN:
         return AstObjectParser::parseSphere(ctx);
+    case Tokenizer::PLANE_TOKEN:
+        return AstObjectParser::parsePlane(ctx);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:
@@ -386,17 +388,21 @@ AstSceneParser::parseProgram(ParserContext &ctx)
                 ITokenStream *original = &ctx.tokenStream();
                 PrefixReplayTokenStream replay(original, prefix, 3);
                 ctx.setTokenStream(&replay);
+                ParserContext::forceTokenStream(&replay);
                 try {
                     DeclarationParser::parseDeclare(ctx);
                 } catch (...) {
+                    ParserContext::clearForcedTokenStream();
                     ctx.setTokenStream(original);
                     throw;
                 }
+                ParserContext::clearForcedTokenStream();
                 ctx.setTokenStream(original);
             }
             break;
         }
         case Tokenizer::SPHERE_TOKEN:
+        case Tokenizer::PLANE_TOKEN:
         case Tokenizer::LIGHT_SOURCE_TOKEN:
         case Tokenizer::UNION_TOKEN:
         case Tokenizer::INTERSECTION_TOKEN:
