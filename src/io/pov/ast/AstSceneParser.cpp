@@ -1,6 +1,7 @@
 #include "io/pov/ast/AstSceneParser.h"
 
 #include <cstdlib>
+#include <cstring>
 
 #include "io/Tokenizer.h"
 #include "environment/scene/SceneFrame.h"
@@ -70,10 +71,86 @@ class PrefixReplayTokenStream : public ITokenStream {
 };
 
 bool
-isAstDeclareViewPointEnabled()
+envFlagEnabled(const char *name)
 {
-    const char *viewPoint = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
-    return viewPoint != nullptr && viewPoint[0] == '1';
+    const char *v = std::getenv(name);
+    return v != nullptr && v[0] == '1';
+}
+
+bool
+endsWith(const char *s, const char *suffix)
+{
+    if (s == nullptr || suffix == nullptr) {
+        return false;
+    }
+    const std::size_t sl = std::strlen(s);
+    const std::size_t xl = std::strlen(suffix);
+    if (xl > sl) {
+        return false;
+    }
+    return std::strncmp(s + (sl - xl), suffix, xl) == 0;
+}
+
+bool
+fileAllowedBySuffixList(const char *fileName, const char *envName)
+{
+    const char *list = std::getenv(envName);
+    if (list == nullptr || list[0] == '\0') {
+        return false;
+    }
+    // Format: "suffix1;suffix2;suffix3"
+    const char *p = list;
+    while (*p != '\0') {
+        const char *start = p;
+        while (*p != '\0' && *p != ';') {
+            ++p;
+        }
+        if (p > start) {
+            const std::size_t n = (std::size_t)(p - start);
+            char buf[256];
+            if (n < sizeof(buf)) {
+                std::memcpy(buf, start, n);
+                buf[n] = '\0';
+                if (endsWith(fileName, buf)) {
+                    return true;
+                }
+            }
+        }
+        if (*p == ';') {
+            ++p;
+        }
+    }
+    return false;
+}
+
+bool
+isAstDeclareEnabledForTokenAndFile(int tokenId, const char *fileName)
+{
+    if (tokenId == Tokenizer::VIEW_POINT_TOKEN) {
+        return envFlagEnabled("POVCPP_AST_DECLARE_VIEWPOINT") &&
+               fileAllowedBySuffixList(fileName, "POVCPP_AST_DECLARE_SAFE_FILE_SUFFIXES");
+    }
+    if (tokenId == Tokenizer::SPHERE_TOKEN) {
+        return envFlagEnabled("POVCPP_AST_DECLARE_SPHERE") &&
+               fileAllowedBySuffixList(fileName, "POVCPP_AST_DECLARE_SAFE_FILE_SUFFIXES");
+    }
+    if (tokenId == Tokenizer::LIGHT_SOURCE_TOKEN) {
+        return envFlagEnabled("POVCPP_AST_DECLARE_LIGHT") &&
+               fileAllowedBySuffixList(fileName, "POVCPP_AST_DECLARE_SAFE_FILE_SUFFIXES");
+    }
+    if (tokenId == Tokenizer::UNION_TOKEN || tokenId == Tokenizer::INTERSECTION_TOKEN ||
+        tokenId == Tokenizer::DIFFERENCE_TOKEN) {
+        return envFlagEnabled("POVCPP_AST_DECLARE_CSG") &&
+               fileAllowedBySuffixList(fileName, "POVCPP_AST_DECLARE_SAFE_FILE_SUFFIXES");
+    }
+    return false;
+}
+
+bool
+isAstTopLevelObjectEnabledForFile(const char *fileName)
+{
+    return envFlagEnabled("POVCPP_AST_TOPLEVEL_OBJECT") &&
+           fileAllowedBySuffixList(fileName, "POVCPP_AST_TOPLEVEL_OBJECT_SAFE_FILE_SUFFIXES");
 }
 }
 
@@ -268,7 +345,10 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::DECLARE_TOKEN: {
-            if (!isAstDeclareViewPointEnabled()) {
+            if (!(envFlagEnabled("POVCPP_AST_DECLARE_VIEWPOINT") ||
+                    envFlagEnabled("POVCPP_AST_DECLARE_SPHERE") ||
+                    envFlagEnabled("POVCPP_AST_DECLARE_LIGHT") ||
+                    envFlagEnabled("POVCPP_AST_DECLARE_CSG"))) {
                 DeclarationParser::parseDeclare(ctx);
                 break;
             }
@@ -280,12 +360,20 @@ AstSceneParser::parseProgram(ParserContext &ctx)
             ctx.tokenStream().getToken();
             const TokenStruct valueStartToken = ctx.token();
 
-            if (valueStartToken.tokenId == Tokenizer::VIEW_POINT_TOKEN) {
+            if (isAstDeclareEnabledForTokenAndFile(
+                    valueStartToken.tokenId, valueStartToken.Filename)) {
                 AstDeclareNode *decl = new AstDeclareNode();
                 decl->sourceLine = identifierToken.tokenLineNo + 1;
                 decl->sourceFile = identifierToken.Filename;
                 decl->identifierNumber = identifierToken.identifierNumber;
-                decl->value = parseCameraNode(ctx);
+                if (valueStartToken.tokenId == Tokenizer::VIEW_POINT_TOKEN) {
+                    decl->value = parseCameraNode(ctx);
+                } else {
+                    decl->value = parseRootNodeForToken(ctx, valueStartToken.tokenId);
+                    if (decl->value == nullptr) {
+                        ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
+                    }
+                }
                 if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
                         AstLimits::MAX_AST_SCENE_NODES, (AstNode *)decl)) {
                     ParseErrorReporter::Error("Too many AST scene nodes", ctx);
@@ -325,15 +413,31 @@ AstSceneParser::parseProgram(ParserContext &ctx)
             break;
         }
         case Tokenizer::OBJECT_TOKEN: {
-            SimpleBody *localObject = ObjectParser::parseObject(ctx);
-            SimpleBodyFactory::link(
-                localObject, &(localObject->nextObject), (SimpleBody **)&(program->legacyFrame.Objects));
+            if (isAstTopLevelObjectEnabledForFile(ctx.token().Filename)) {
+                AstNode *n = parseRootNodeForToken(ctx, ctx.token().tokenId);
+                if (n == nullptr || !AstNodes::appendNode(scene->nodes, scene->nodeCount,
+                        AstLimits::MAX_AST_SCENE_NODES, n)) {
+                    ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+                }
+            } else {
+                SimpleBody *localObject = ObjectParser::parseObject(ctx);
+                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
+                    (SimpleBody **)&(program->legacyFrame.Objects));
+            }
             break;
         }
         case Tokenizer::COMPOSITE_TOKEN: {
-            SimpleBody *localObject = ObjectParser::parseComposite(ctx);
-            SimpleBodyFactory::link(
-                localObject, &(localObject->nextObject), (SimpleBody **)&(program->legacyFrame.Objects));
+            if (isAstTopLevelObjectEnabledForFile(ctx.token().Filename)) {
+                AstNode *n = parseRootNodeForToken(ctx, ctx.token().tokenId);
+                if (n == nullptr || !AstNodes::appendNode(scene->nodes, scene->nodeCount,
+                        AstLimits::MAX_AST_SCENE_NODES, n)) {
+                    ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+                }
+            } else {
+                SimpleBody *localObject = ObjectParser::parseComposite(ctx);
+                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
+                    (SimpleBody **)&(program->legacyFrame.Objects));
+            }
             break;
         }
         case Tokenizer::DEFAULT_TOKEN:
