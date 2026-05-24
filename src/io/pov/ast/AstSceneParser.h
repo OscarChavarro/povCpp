@@ -2,14 +2,13 @@
 #define __POV_AST_SCENE_PARSER_H__
 
 class ParserContext;
-class AstScene;
 class AstNode;
 class AstDeclareNode;
-class RenderFrame;
+class AstParsedSceneProgram;
 
 class AstSceneParser {
   public:
-    static AstScene *parseScene(ParserContext &ctx, RenderFrame *framePtr);
+    static AstParsedSceneProgram *parseProgram(ParserContext &ctx);
 
   private:
     static AstNode *parseRootNodeForToken(ParserContext &ctx, int tokenId);

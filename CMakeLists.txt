@@ -68,6 +68,7 @@ add_executable(povray
   src/io/pov/ast/AstPrimitiveParser.cpp
   src/io/pov/ast/AstNodes.cpp
   src/io/pov/ast/AstObjectParser.cpp
+  src/io/pov/ast/AstParsedSceneProgram.cpp
   src/io/pov/ast/AstSceneParser.cpp
   src/io/pov/ast/AstSceneBuilder.cpp
   src/io/image/RawFormat.cpp

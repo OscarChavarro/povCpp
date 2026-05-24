@@ -11,6 +11,7 @@
 #include "io/pov/SceneFrameParser.h"
 #include "io/pov/ast/AstSceneBuilder.h"
 #include "io/pov/ast/AstNodes.h"
+#include "io/pov/ast/AstParsedSceneProgram.h"
 #include "io/pov/ast/AstSceneParser.h"
 #include "environment/scene/SceneFrame.h"
 
@@ -29,14 +30,27 @@
 #include "environment/light/Light.h"
 
 namespace {
-AstScene *parseAstPhase(ParserContext &ctx, RenderFrame *framePtr)
+AstParsedSceneProgram *parseAstPhase(ParserContext &ctx)
 {
-    return AstSceneParser::parseScene(ctx, framePtr);
+    return AstSceneParser::parseProgram(ctx);
 }
 
-void buildScenePhase(AstScene *scene, RenderFrame *framePtr, ParserContext &ctx)
+void applyLegacySemanticPhase(const AstParsedSceneProgram &program, RenderFrame *framePtr)
 {
-    AstSceneBuilder::build(*scene, framePtr, ctx);
+    framePtr->Objects = program.legacyFrame.Objects;
+    if (program.hasCamera) {
+        framePtr->viewPoint = program.legacyFrame.viewPoint;
+    }
+    if (program.hasFog) {
+        framePtr->fogDistance = program.legacyFrame.fogDistance;
+        framePtr->fogColour = program.legacyFrame.fogColour;
+    }
+}
+
+void buildScenePhase(
+    const AstParsedSceneProgram &program, RenderFrame *framePtr, ParserContext &ctx)
+{
+    AstSceneBuilder::build(*program.scene, framePtr, ctx);
 }
 
 void postProcessPhase(ParserContext &ctx)
@@ -78,9 +92,11 @@ SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
     ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
-    AstScene *scene = parseAstPhase(ctx, framePtr);
-    buildScenePhase(scene, framePtr, ctx);
-    AstNodes::destroyScene(scene);
+    AstParsedSceneProgram *program = parseAstPhase(ctx);
+    applyLegacySemanticPhase(*program, framePtr);
+    buildScenePhase(*program, framePtr, ctx);
+    AstNodes::destroyScene(program->scene);
+    delete program;
     postProcessPhase(ctx);
     if (ctx.degenerateTriangles()) {
         fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
