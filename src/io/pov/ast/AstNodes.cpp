@@ -12,6 +12,7 @@ AstSphereNode::AstSphereNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -44,6 +45,7 @@ AstPlaneNode::AstPlaneNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -60,6 +62,7 @@ AstBoxNode::AstBoxNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -77,6 +80,7 @@ AstQuadricNode::AstQuadricNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -96,6 +100,7 @@ AstBlobNode::AstBlobNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -112,6 +117,7 @@ AstTriangleNode::AstTriangleNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -128,6 +134,7 @@ AstSmoothTriangleNode::AstSmoothTriangleNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -148,6 +155,7 @@ AstPolyNode::AstPolyNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -220,6 +228,7 @@ AstObjectNode::AstObjectNode()
     hasColour = false;
     hasTexture = false;
     texture = nullptr;
+    textureChain = nullptr;
     textureAfterTransform = false;
     textureTransformIndex = -1;
     transformCount = 0;
@@ -271,6 +280,7 @@ AstDefaultTextureNode::AstDefaultTextureNode()
     sourceLine = -1;
     sourceFile = nullptr;
     texture = nullptr;
+    textureChain = nullptr;
 }
 
 AstScene::AstScene()
