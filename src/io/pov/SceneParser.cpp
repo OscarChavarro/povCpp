@@ -28,6 +28,26 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
+namespace {
+AstScene *parseAstPhase(ParserContext &ctx, RenderFrame *framePtr)
+{
+    return AstSceneParser::parseScene(ctx, framePtr);
+}
+
+void buildScenePhase(AstScene *scene, RenderFrame *framePtr, ParserContext &ctx)
+{
+    AstSceneBuilder::build(*scene, framePtr, ctx);
+}
+
+void postProcessPhase(ParserContext &ctx)
+{
+    for (SimpleBody *object = ctx.parsingFrame()->Objects; object != nullptr;
+        object = object->nextObject) {
+        ParseHelpers::postProcessObject(object);
+    }
+}
+}
+
 
 
 void
@@ -40,46 +60,30 @@ SceneParser::Parse(RenderFrame *framePtr)
 void
 SceneParser::Parse(RenderFrame *framePtr, ParserContext &ctx)
 {
-    SimpleBody *object;
-    ctx.parsingFrame() = framePtr;
-
-    ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
-    SceneParser::tokenInit(ctx);
-    SceneParser::frameInit(ctx);
-    SceneParser::parseFrame(ctx);
-    for (object = ctx.parsingFrame()->Objects; object != nullptr;
-        object = object->nextObject) {
-        ParseHelpers::postProcessObject(object);
-    }
-    if (ctx.degenerateTriangles()) {
-        fprintf(
-            stderr, "Degenerate triangles were found and are being ignored.\n");
-        /* exit(1); Let's ignore degen tri instead of blowing up. CdW */
-    }
+    SceneParser::ParseAst(framePtr, ctx);
 }
 
 void
 SceneParser::ParseAst(RenderFrame *framePtr)
 {
-    ParserContext ctx;
-    SceneParser::ParseAst(framePtr, ctx);
+    ParserContext astCtx;
+    SceneParser::ParseAst(framePtr, astCtx);
 }
 
 void
 SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
 {
-    SimpleBody *object;
     ctx.parsingFrame() = framePtr;
 
     ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
-    AstScene *scene = AstSceneParser::parseScene(ctx);
-    AstSceneBuilder::build(*scene, framePtr, ctx);
+    AstScene *scene = parseAstPhase(ctx, framePtr);
+    buildScenePhase(scene, framePtr, ctx);
     AstNodes::destroyScene(scene);
-    for (object = ctx.parsingFrame()->Objects; object != nullptr;
-        object = object->nextObject) {
-        ParseHelpers::postProcessObject(object);
+    postProcessPhase(ctx);
+    if (ctx.degenerateTriangles()) {
+        fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
     }
 }
 

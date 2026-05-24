@@ -51,7 +51,7 @@ ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
         fclose(statFile);
     }
 
-    exit(1);
+    throw ParseException("Parse error");
 }
 
 void
@@ -77,7 +77,7 @@ ParseErrorReporter::typeError(ParserContext &ctx)
         fclose(statFile);
     }
 
-    exit(1);
+    throw ParseException("Type error");
 }
 
 void
@@ -102,7 +102,7 @@ ParseErrorReporter::Undeclared(ParserContext &ctx)
         fclose(statFile);
     }
 
-    exit(1);
+    throw ParseException("Undeclared identifier");
 }
 
 void
@@ -127,5 +127,5 @@ ParseErrorReporter::Error(const char *str, ParserContext &ctx)
         fprintf(statFile, "%s\n", str);
         fclose(statFile);
     }
-    exit(1);
+    throw ParseException(str);
 }

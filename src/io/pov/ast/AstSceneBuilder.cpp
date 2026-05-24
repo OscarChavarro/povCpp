@@ -13,6 +13,7 @@
 #include "environment/scene/SceneFrame.h"
 #include "environment/scene/SimpleBodyFactory.h"
 #include "io/pov/ParseErrorReporter.h"
+#include "io/pov/ParseGlobals.h"
 #include "io/pov/ParserConstants.h"
 #include "io/pov/ParserContext.h"
 #include "io/pov/ast/AstNodes.h"
@@ -59,6 +60,16 @@ AstSceneBuilder::findDecl(const AstDeclTable &decls, int identifierNumber)
     return nullptr;
 }
 
+const Constant *
+AstSceneBuilder::findLegacyDecl(ParserContext &ctx, int identifierNumber)
+{
+    const int constantId = ctx.symbols().findByIdentifierNumber(identifierNumber);
+    if (constantId == -1) {
+        return nullptr;
+    }
+    return ctx.symbols().byConstantId(constantId);
+}
+
 Sphere *
 AstSceneBuilder::buildSphere(const AstSphereNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
@@ -66,12 +77,20 @@ AstSceneBuilder::buildSphere(const AstSphereNode &node, ParserContext &ctx, cons
 
     if (node.hasReference) {
         const AstNode *declNode = findDecl(decls, node.referenceConstantId);
-        if (declNode == nullptr || declNode->kind != AST_SPHERE_NODE) {
-            ParseErrorReporter::Error("Invalid sphere reference in AST", ctx);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_SPHERE_NODE) {
+                ParseErrorReporter::Error("Invalid sphere reference in AST", ctx);
+            }
+            Sphere *declShape = buildSphere((const AstSphereNode &)*declNode, ctx, decls);
+            shape = (Sphere *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr || legacyDecl->constantType != ParseGlobals::SPHERE_CONSTANT) {
+                ParseErrorReporter::Error("Invalid sphere reference in AST", ctx);
+            }
+            shape = (Sphere *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
         }
-        Sphere *declShape = buildSphere((const AstSphereNode &)*declNode, ctx, decls);
-        shape = (Sphere *)GeometryOperations::copy((SimpleBody *)declShape);
-        delete declShape;
     } else {
         shape = ModelBuilder::getSphereShape();
         if (node.hasInlineData) {
@@ -102,13 +121,22 @@ AstSceneBuilder::buildLight(
 
     if (node.hasReference) {
         const AstNode *declNode = findDecl(decls, node.referenceConstantId);
-        if (declNode == nullptr || declNode->kind != AST_LIGHT_SOURCE_NODE) {
-            ParseErrorReporter::Error("Invalid light reference in AST", ctx);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_LIGHT_SOURCE_NODE) {
+                ParseErrorReporter::Error("Invalid light reference in AST", ctx);
+            }
+            Light *declShape =
+                buildLight((const AstLightSourceNode &)*declNode, ctx, decls);
+            shape = (Light *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr ||
+                legacyDecl->constantType != ParseGlobals::LIGHT_SOURCE_CONSTANT) {
+                ParseErrorReporter::Error("Invalid light reference in AST", ctx);
+            }
+            shape = (Light *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
         }
-        Light *declShape =
-            buildLight((const AstLightSourceNode &)*declNode, ctx, decls);
-        shape = (Light *)GeometryOperations::copy((SimpleBody *)declShape);
-        delete declShape;
     } else {
         shape = ModelBuilder::getLightSourceShape();
         if (node.hasInlineData) {
@@ -150,13 +178,25 @@ AstSceneBuilder::buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstD
 
     if (node.hasReference) {
         const AstNode *declNode = findDecl(decls, node.referenceConstantId);
-        if (declNode == nullptr || declNode->kind != AST_CSG_NODE) {
-            ParseErrorReporter::Error("Invalid CSG reference in AST", ctx);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_CSG_NODE) {
+                ParseErrorReporter::Error("Invalid CSG reference in AST", ctx);
+            }
+            CSG *declShape = buildCsg((const AstCsgNode &)*declNode, ctx, decls);
+            delete container;
+            container = (CSG *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr ||
+                (legacyDecl->constantType != ParseGlobals::CSG_UNION_CONSTANT &&
+                    legacyDecl->constantType != ParseGlobals::CSG_INTERSECTION_CONSTANT &&
+                    legacyDecl->constantType != ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
+                ParseErrorReporter::Error("Invalid CSG reference in AST", ctx);
+            }
+            delete container;
+            container = (CSG *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
         }
-        CSG *declShape = buildCsg((const AstCsgNode &)*declNode, ctx, decls);
-        delete container;
-        container = (CSG *)GeometryOperations::copy((SimpleBody *)declShape);
-        delete declShape;
     } else {
         int firstShapeParsed = LegacyBoolean::FALSE_VALUE;
         for (int i = 0; i < node.childCount; ++i) {
@@ -198,12 +238,21 @@ AstSceneBuilder::buildObject(const AstObjectNode &node, ParserContext &ctx, cons
     SimpleBody *object = nullptr;
     if (node.hasReference) {
         const AstNode *declNode = findDecl(decls, node.referenceConstantId);
-        if (declNode == nullptr ||
-            (declNode->kind != AST_OBJECT_NODE && declNode->kind != AST_COMPOSITE_NODE)) {
-            ParseErrorReporter::Error("Invalid object reference in AST", ctx);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_OBJECT_NODE && declNode->kind != AST_COMPOSITE_NODE) {
+                ParseErrorReporter::Error("Invalid object reference in AST", ctx);
+            }
+            object =
+                (SimpleBody *)GeometryOperations::copy(buildSimpleBodyNode(*declNode, ctx, decls));
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr ||
+                (legacyDecl->constantType != ParseGlobals::OBJECT_CONSTANT &&
+                    legacyDecl->constantType != ParseGlobals::COMPOSITE_CONSTANT)) {
+                ParseErrorReporter::Error("Invalid object reference in AST", ctx);
+            }
+            object = (SimpleBody *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
         }
-        object =
-            (SimpleBody *)GeometryOperations::copy(buildSimpleBodyNode(*declNode, ctx, decls));
     } else {
         object = SimpleBodyFactory::getObject();
         if (node.shape != nullptr) {
@@ -237,11 +286,20 @@ AstSceneBuilder::buildComposite(
     Composite *composite = nullptr;
     if (node.hasReference) {
         const AstNode *declNode = findDecl(decls, node.referenceConstantId);
-        if (declNode == nullptr || declNode->kind != AST_COMPOSITE_NODE) {
-            ParseErrorReporter::Error("Invalid composite reference in AST", ctx);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_COMPOSITE_NODE) {
+                ParseErrorReporter::Error("Invalid composite reference in AST", ctx);
+            }
+            composite =
+                (Composite *)GeometryOperations::copy(buildSimpleBodyNode(*declNode, ctx, decls));
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr ||
+                legacyDecl->constantType != ParseGlobals::COMPOSITE_CONSTANT) {
+                ParseErrorReporter::Error("Invalid composite reference in AST", ctx);
+            }
+            composite = (Composite *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
         }
-        composite =
-            (Composite *)GeometryOperations::copy(buildSimpleBodyNode(*declNode, ctx, decls));
     } else {
         composite = ModelBuilder::getCompositeObject();
         for (int i = 0; i < node.childCount; ++i) {

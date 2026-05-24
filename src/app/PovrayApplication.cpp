@@ -2,6 +2,7 @@
 #include <cstring>
 #include <ctime> /* BP */
 #include <cstdlib>
+#include <exception>
 
 #include "io/image/ImageOutput.h"
 #include "render/RenderOutput.h"
@@ -15,6 +16,7 @@
 #include "environment/material/RenderRuntimeState.h"
 #include "io/FileLocator.h"
 #include "io/Parse.h"
+#include "io/pov/ParseErrorReporter.h"
 #include "io/image/DumpFormat.h"
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
@@ -150,16 +152,25 @@ printStatistics(
 void
 PovrayApplication::run(int argc, char *argv[])
 {
-    initializeFromCommandLine(argc, argv);
-    configureOutputTarget();
-    parseSceneDescription();
-    const char *parseOnly = std::getenv("POVCPP_PARSE_ONLY");
-    if (parseOnly != nullptr && parseOnly[0] == '1') {
-        return;
+    try {
+        initializeFromCommandLine(argc, argv);
+        configureOutputTarget();
+        parseSceneDescription();
+        const char *parseOnly = std::getenv("POVCPP_PARSE_ONLY");
+        if (parseOnly != nullptr && parseOnly[0] == '1') {
+            return;
+        }
+        prepareRendering();
+        runRenderLoop();
+        finalizeRun();
+    } catch (const ParseErrorReporter::ParseException &) {
+        closeAll();
+        std::exit(1);
+    } catch (const std::exception &e) {
+        Logger::error("Unhandled exception: %s\n", e.what());
+        closeAll();
+        std::exit(1);
     }
-    prepareRendering();
-    runRenderLoop();
-    finalizeRun();
 }
 
 void
@@ -248,12 +259,7 @@ PovrayApplication::parseSceneDescription()
         fclose(statFile);
     }
 
-    const char *useAstParser = std::getenv("POVCPP_USE_AST");
-    if (useAstParser != nullptr && useAstParser[0] == '1') {
-        SceneParser::ParseAst(&RenderEngine::renderFrame());
-    } else {
-        SceneParser::Parse(&RenderEngine::renderFrame());
-    }
+    SceneParser::Parse(&RenderEngine::renderFrame());
     Tokenizer::terminateTokenizer();
 }
 

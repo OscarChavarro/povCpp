@@ -9,7 +9,11 @@ class SymbolTable {
     SymbolTable();
 
     Constant *data();
+    const Constant *data() const;
     int &size();
+    bool isValidConstantId(int constantId) const;
+    Constant *byConstantId(int constantId);
+    const Constant *byConstantId(int constantId) const;
     void clear();
     int findByIdentifierNumber(int identifierNumber) const;
     Constant *upsertByIdentifierNumber(int identifierNumber);

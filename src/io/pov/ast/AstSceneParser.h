@@ -5,10 +5,11 @@ class ParserContext;
 class AstScene;
 class AstNode;
 class AstDeclareNode;
+class RenderFrame;
 
 class AstSceneParser {
   public:
-    static AstScene *parseScene(ParserContext &ctx);
+    static AstScene *parseScene(ParserContext &ctx, RenderFrame *framePtr);
 
   private:
     static AstNode *parseRootNodeForToken(ParserContext &ctx, int tokenId);

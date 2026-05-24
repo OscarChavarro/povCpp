@@ -30,7 +30,7 @@ class ParseGlobals {
 struct Constant {
     int identifierNumber;
     int constantType;
-    char *constantData;
+    void *constantData;
 };
 
 #endif
