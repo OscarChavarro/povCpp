@@ -26,6 +26,7 @@
 #include "io/pov/ParserConstants.h"
 #include "io/pov/ParserContext.h"
 #include "io/pov/ast/AstNodes.h"
+#include "io/pov/mediaParser/TextureParser.h"
 #include "media/Texture.h"
 #include "media/TextureUtils.h"
 
@@ -57,6 +58,74 @@ AstSceneBuilder::applyTransforms(Geometry *shape, const AstTransform *transforms
         default:
             break;
         }
+    }
+}
+
+static void
+applyTransformsRange(Geometry *shape, const AstTransform *transforms, int begin, int end)
+{
+    if (shape == nullptr || transforms == nullptr) {
+        return;
+    }
+    if (begin < 0) {
+        begin = 0;
+    }
+    if (end < begin) {
+        return;
+    }
+    for (int i = begin; i < end; ++i) {
+        const AstTransform &t = transforms[i];
+        Vector3Dd v(t.vectorValue.x, t.vectorValue.y, t.vectorValue.z);
+        switch (t.kind) {
+        case AST_TRANSLATE:
+            GeometryOperations::translate((SimpleBody *)shape, &v);
+            break;
+        case AST_ROTATE:
+            GeometryOperations::rotate((SimpleBody *)shape, &v);
+            break;
+        case AST_SCALE:
+            GeometryOperations::scale((SimpleBody *)shape, &v);
+            break;
+        case AST_INVERSE:
+            GeometryOperations::invert((SimpleBody *)shape);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+static void
+applyShapeTexture(Texture *srcTexture, Geometry *shape)
+{
+    if (srcTexture == nullptr || shape == nullptr) {
+        return;
+    }
+    Texture *localTexture = TextureParser::copyTexture(srcTexture);
+    Texture *tail = localTexture;
+    while (tail->Next_Texture != nullptr) {
+        tail = tail->Next_Texture;
+    }
+    tail->Next_Texture = shape->Shape_Texture;
+    shape->Shape_Texture = localTexture;
+}
+
+static void
+applyObjectTexture(Texture *srcTexture, SimpleBody *object)
+{
+    if (srcTexture == nullptr || object == nullptr) {
+        return;
+    }
+    Texture *localTexture = TextureParser::copyTexture(srcTexture);
+    if (object->objectTexture == TextureUtils::defaultTexture()) {
+        object->objectTexture = localTexture;
+    } else {
+        Texture *tail = localTexture;
+        while (tail->Next_Texture != nullptr) {
+            tail = tail->Next_Texture;
+        }
+        tail->Next_Texture = object->objectTexture;
+        object->objectTexture = localTexture;
     }
 }
 
@@ -214,8 +283,17 @@ AstSceneBuilder::buildSphere(const AstSphereNode &node, ParserContext &ctx, cons
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -310,8 +388,17 @@ AstSceneBuilder::buildPlane(
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -351,8 +438,17 @@ AstSceneBuilder::buildBox(const AstBoxNode &node, ParserContext &ctx, const AstD
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -399,8 +495,17 @@ AstSceneBuilder::buildQuadric(
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -448,8 +553,17 @@ AstSceneBuilder::buildBlob(
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -492,7 +606,17 @@ AstSceneBuilder::buildTriangle(
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -543,7 +667,17 @@ AstSceneBuilder::buildSmoothTriangle(
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -588,7 +722,17 @@ AstSceneBuilder::buildPoly(
         shape->Shape_Colour->Blue = node.colour.b;
         shape->Shape_Colour->Alpha = node.colour.a;
     }
-    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)shape, node.transforms, 0, node.textureTransformIndex);
+        applyShapeTexture(node.texture, (Geometry *)shape);
+        applyTransformsRange(
+            (Geometry *)shape, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyShapeTexture(node.texture, (Geometry *)shape);
+        }
+        applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    }
     return shape;
 }
 
@@ -668,6 +812,13 @@ AstSceneBuilder::buildGeometryNode(const AstNode &node, ParserContext &ctx, cons
     if (node.kind == AST_POLY_NODE) {
         return (Geometry *)buildPoly((const AstPolyNode &)node, ctx, decls);
     }
+    if (node.kind == AST_LEGACY_GEOMETRY_NODE) {
+        const AstLegacyGeometryNode &legacyNode = (const AstLegacyGeometryNode &)node;
+        if (legacyNode.shape == nullptr) {
+            ParseErrorReporter::Error("Invalid legacy geometry AST node", ctx);
+        }
+        return (Geometry *)GeometryOperations::copy((SimpleBody *)legacyNode.shape);
+    }
     if (node.kind == AST_LIGHT_SOURCE_NODE) {
         return (Geometry *)buildLight((const AstLightSourceNode &)node, ctx, decls);
     }
@@ -709,6 +860,14 @@ AstSceneBuilder::buildObject(const AstObjectNode &node, ParserContext &ctx, cons
         }
     }
 
+    const int boundClipSplit =
+        node.firstBoundedOrClippedTransformIndex >= 0 ?
+            node.firstBoundedOrClippedTransformIndex :
+            -1;
+    if (boundClipSplit >= 0) {
+        applyTransformsRange((Geometry *)object, node.transforms, 0, boundClipSplit);
+    }
+
     for (int i = 0; i < node.boundedByCount; ++i) {
         Geometry *shape = buildGeometryNode(*node.boundedBy[i], ctx, decls);
         SimpleBodyFactory::link((SimpleBody *)shape,
@@ -719,7 +878,27 @@ AstSceneBuilder::buildObject(const AstObjectNode &node, ParserContext &ctx, cons
         SimpleBodyFactory::link((SimpleBody *)shape,
             (SimpleBody **)&(shape->nextObject), (SimpleBody **)&(object->clippingShapes));
     }
-    applyTransforms((Geometry *)object, node.transforms, node.transformCount);
+    if (node.hasColour) {
+        object->objectColour = ModelBuilder::getColour();
+        object->objectColour->Red = node.colour.r;
+        object->objectColour->Green = node.colour.g;
+        object->objectColour->Blue = node.colour.b;
+        object->objectColour->Alpha = node.colour.a;
+    }
+    const int transformStart =
+        boundClipSplit >= 0 ? boundClipSplit : 0;
+
+    if (node.hasTexture && node.textureTransformIndex >= 0) {
+        applyTransformsRange((Geometry *)object, node.transforms, transformStart, node.textureTransformIndex);
+        applyObjectTexture(node.texture, object);
+        applyTransformsRange(
+            (Geometry *)object, node.transforms, node.textureTransformIndex, node.transformCount);
+    } else {
+        if (node.hasTexture) {
+            applyObjectTexture(node.texture, object);
+        }
+        applyTransformsRange((Geometry *)object, node.transforms, transformStart, node.transformCount);
+    }
     if (node.noShadow) {
         object->noShadowFlag = LegacyBoolean::TRUE_VALUE;
     }
@@ -783,6 +962,7 @@ AstSceneBuilder::buildSimpleBodyNode(const AstNode &node, ParserContext &ctx, co
         node.kind == AST_BOX_NODE || node.kind == AST_QUADRIC_NODE ||
         node.kind == AST_BLOB_NODE || node.kind == AST_TRIANGLE_NODE ||
         node.kind == AST_SMOOTH_TRIANGLE_NODE || node.kind == AST_POLY_NODE ||
+        node.kind == AST_LEGACY_GEOMETRY_NODE ||
         node.kind == AST_LIGHT_SOURCE_NODE ||
         node.kind == AST_CSG_NODE) {
         return (SimpleBody *)buildGeometryNode(node, ctx, decls);
@@ -848,6 +1028,11 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
             PolynomialShape *poly = buildPoly(*(const AstPolyNode *)node, ctx, declarations);
             SimpleBodyFactory::link((SimpleBody *)poly,
                 (SimpleBody **)&(poly->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_LEGACY_GEOMETRY_NODE) {
+            Geometry *shape = buildGeometryNode(*node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)shape,
+                (SimpleBody **)&(shape->nextObject),
                 (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == AST_LIGHT_SOURCE_NODE) {
             Light *light = buildLight(*(const AstLightSourceNode *)node, ctx, declarations);

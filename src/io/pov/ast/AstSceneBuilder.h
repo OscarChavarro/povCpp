@@ -14,6 +14,7 @@ class AstBlobNode;
 class AstTriangleNode;
 class AstSmoothTriangleNode;
 class AstPolyNode;
+class AstLegacyGeometryNode;
 class AstCsgNode;
 class AstObjectNode;
 class AstCompositeNode;

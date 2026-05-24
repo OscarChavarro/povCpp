@@ -20,7 +20,8 @@ enum AstNodeKind {
     AST_BLOB_NODE = 13,
     AST_TRIANGLE_NODE = 14,
     AST_SMOOTH_TRIANGLE_NODE = 15,
-    AST_POLY_NODE = 16
+    AST_POLY_NODE = 16,
+    AST_LEGACY_GEOMETRY_NODE = 17
 };
 
 enum AstTransformKind {
@@ -73,6 +74,9 @@ struct AstCameraOp {
     AstVector3 vectorValue;
 };
 
+class Texture;
+class Geometry;
+
 class AstLimits {
   public:
     static constexpr int MAX_AST_TRANSFORMS = 64;
@@ -99,6 +103,10 @@ class AstSphereNode : public AstNode {
     double radius;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
@@ -132,6 +140,10 @@ class AstPlaneNode : public AstNode {
     double distance;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
@@ -147,6 +159,10 @@ class AstBoxNode : public AstNode {
     AstVector3 maxBound;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
@@ -164,6 +180,10 @@ class AstQuadricNode : public AstNode {
     double objectConstant;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
@@ -188,6 +208,10 @@ class AstBlobNode : public AstNode {
     bool sturm;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
@@ -204,6 +228,10 @@ class AstTriangleNode : public AstNode {
     AstVector3 p3;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
@@ -223,6 +251,10 @@ class AstSmoothTriangleNode : public AstNode {
     AstVector3 n3;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
@@ -242,8 +274,19 @@ class AstPolyNode : public AstNode {
     bool sturm;
     bool hasColour;
     AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
+};
+
+class AstLegacyGeometryNode : public AstNode {
+  public:
+    AstLegacyGeometryNode();
+
+    Geometry *shape;
 };
 
 class AstCsgNode : public AstNode {
@@ -278,6 +321,13 @@ class AstObjectNode : public AstNode {
     int boundedByCount;
     AstNode *clippedBy[AstLimits::MAX_AST_CHILDREN];
     int clippedByCount;
+    int firstBoundedOrClippedTransformIndex;
+    bool hasColour;
+    AstColor colour;
+    bool hasTexture;
+    Texture *texture;
+    bool textureAfterTransform;
+    int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
     bool noShadow;

@@ -7,6 +7,26 @@
 #include "io/pov/ParserContext.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
+#include "io/pov/geometryParser/BicubicPatchParser.h"
+#include "io/pov/geometryParser/HeightFieldParser.h"
+#include "io/pov/mediaParser/TextureParser.h"
+#include "media/Texture.h"
+
+namespace {
+void prependTexture(Texture *parsedTexture, bool &hasTexture, Texture *&textureHead)
+{
+    if (parsedTexture == nullptr) {
+        return;
+    }
+    Texture *tail = parsedTexture;
+    while (tail->Next_Texture != nullptr) {
+        tail = tail->Next_Texture;
+    }
+    tail->Next_Texture = hasTexture ? textureHead : nullptr;
+    textureHead = parsedTexture;
+    hasTexture = true;
+}
+}
 
 bool
 AstObjectParser::appendTransformOrFail(ParserContext &ctx, AstTransform *arr,
@@ -55,6 +75,9 @@ AstNode *AstObjectParser::parseShapeNodeFromToken(ParserContext &ctx, int tokenI
         return AstObjectParser::parsePoly(ctx, 4);
     case Tokenizer::POLY_TOKEN:
         return AstObjectParser::parsePoly(ctx, 0);
+    case Tokenizer::HEIGHT_FIELD_TOKEN:
+    case Tokenizer::BICUBIC_PATCH_TOKEN:
+        return AstObjectParser::parseLegacyGeometry(ctx, tokenId);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:
@@ -100,6 +123,8 @@ AstObjectParser::parsePlane(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -107,18 +132,22 @@ AstObjectParser::parsePlane(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -127,6 +156,14 @@ AstObjectParser::parsePlane(ParserContext &ctx)
         case Tokenizer::COLOUR_TOKEN:
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -169,6 +206,8 @@ AstObjectParser::parseBox(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -176,18 +215,22 @@ AstObjectParser::parseBox(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -196,6 +239,14 @@ AstObjectParser::parseBox(ParserContext &ctx)
         case Tokenizer::COLOUR_TOKEN:
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -240,6 +291,8 @@ AstObjectParser::parseQuadric(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -247,18 +300,22 @@ AstObjectParser::parseQuadric(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -267,6 +324,14 @@ AstObjectParser::parseQuadric(ParserContext &ctx)
         case Tokenizer::COLOUR_TOKEN:
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -327,6 +392,8 @@ AstObjectParser::parseBlob(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -337,18 +404,22 @@ AstObjectParser::parseBlob(ParserContext &ctx)
             node->sturm = true;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -357,6 +428,14 @@ AstObjectParser::parseBlob(ParserContext &ctx)
         case Tokenizer::COLOUR_TOKEN:
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -399,6 +478,8 @@ AstObjectParser::parseTriangle(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -406,18 +487,22 @@ AstObjectParser::parseTriangle(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -426,6 +511,14 @@ AstObjectParser::parseTriangle(ParserContext &ctx)
         case Tokenizer::COLOUR_TOKEN:
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -471,6 +564,8 @@ AstObjectParser::parseSmoothTriangle(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -478,18 +573,22 @@ AstObjectParser::parseSmoothTriangle(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -498,6 +597,14 @@ AstObjectParser::parseSmoothTriangle(ParserContext &ctx)
         case Tokenizer::COLOUR_TOKEN:
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -562,6 +669,8 @@ AstObjectParser::parsePoly(ParserContext &ctx, int knownOrder)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -572,18 +681,22 @@ AstObjectParser::parsePoly(ParserContext &ctx, int knownOrder)
             node->sturm = true;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -593,12 +706,36 @@ AstObjectParser::parsePoly(ParserContext &ctx, int knownOrder)
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
             break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
+            break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
             break;
         }
     }
 
+    return node;
+}
+
+AstLegacyGeometryNode *
+AstObjectParser::parseLegacyGeometry(ParserContext &ctx, int tokenId)
+{
+    AstLegacyGeometryNode *node = new AstLegacyGeometryNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+    if (tokenId == Tokenizer::HEIGHT_FIELD_TOKEN) {
+        node->shape = HeightFieldParser::parseHeightField(ctx);
+    } else if (tokenId == Tokenizer::BICUBIC_PATCH_TOKEN) {
+        node->shape = BicubicPatchParser::parseBicubicPatch(ctx);
+    } else {
+        ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
+    }
     return node;
 }
 
@@ -636,6 +773,8 @@ AstObjectParser::parseSphere(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
@@ -643,18 +782,22 @@ AstObjectParser::parseSphere(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -663,6 +806,14 @@ AstObjectParser::parseSphere(ParserContext &ctx)
         case Tokenizer::COLOUR_TOKEN:
             node->colour = AstPrimitiveParser::parseColour(ctx);
             node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -785,6 +936,8 @@ AstObjectParser::parseCsg(ParserContext &ctx, AstCsgOpKind op)
         case Tokenizer::CUBIC_TOKEN:
         case Tokenizer::QUARTIC_TOKEN:
         case Tokenizer::POLY_TOKEN:
+        case Tokenizer::HEIGHT_FIELD_TOKEN:
+        case Tokenizer::BICUBIC_PATCH_TOKEN:
         case Tokenizer::LIGHT_SOURCE_TOKEN:
         case Tokenizer::UNION_TOKEN:
         case Tokenizer::INTERSECTION_TOKEN:
@@ -854,10 +1007,15 @@ AstObjectParser::parseObject(ParserContext &ctx)
     }
 
     int done = LegacyBoolean::FALSE_VALUE;
+    int sawTransform = LegacyBoolean::FALSE_VALUE;
+    int sawTexture = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::BOUNDED_TOKEN:
+            if (node->firstBoundedOrClippedTransformIndex < 0) {
+                node->firstBoundedOrClippedTransformIndex = node->transformCount;
+            }
             ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
             while (LegacyBoolean::TRUE_VALUE) {
                 ctx.tokenStream().getToken();
@@ -873,6 +1031,9 @@ AstObjectParser::parseObject(ParserContext &ctx)
             }
             break;
         case Tokenizer::CLIPPED_TOKEN:
+            if (node->firstBoundedOrClippedTransformIndex < 0) {
+                node->firstBoundedOrClippedTransformIndex = node->transformCount;
+            }
             ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
             while (LegacyBoolean::TRUE_VALUE) {
                 ctx.tokenStream().getToken();
@@ -888,18 +1049,22 @@ AstObjectParser::parseObject(ParserContext &ctx)
             }
             break;
         case Tokenizer::TRANSLATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
+            sawTransform = LegacyBoolean::TRUE_VALUE;
             AstVector3 z = {0.0, 0.0, 0.0};
             AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
@@ -907,6 +1072,18 @@ AstObjectParser::parseObject(ParserContext &ctx)
         }
         case Tokenizer::NO_SHADOW_TOKEN:
             node->noShadow = true;
+            break;
+        case Tokenizer::COLOUR_TOKEN:
+            node->colour = AstPrimitiveParser::parseColour(ctx);
+            node->hasColour = true;
+            break;
+        case Tokenizer::TEXTURE_TOKEN:
+            if (!sawTexture) {
+                node->textureAfterTransform = sawTransform ? true : false;
+                node->textureTransformIndex = node->transformCount;
+                sawTexture = LegacyBoolean::TRUE_VALUE;
+            }
+            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
             break;
         case Tokenizer::RIGHT_CURLY_TOKEN:
             done = LegacyBoolean::TRUE_VALUE;
