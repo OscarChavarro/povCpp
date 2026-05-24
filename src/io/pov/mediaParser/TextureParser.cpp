@@ -117,7 +117,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = BOZO_TEXTURE;
+                texture->textureNumber = Texture::BOZO_TEXTURE;
                 break;
 
             case MORTAR_TOKEN:
@@ -136,7 +136,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = BRICK_TEXTURE;
+                texture->textureNumber = Texture::BRICK_TEXTURE;
                 {
                     int Exit_Flag;
                     Exit_Flag = FALSE;
@@ -165,7 +165,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = CHECKER_TEXTURE;
+                texture->textureNumber = Texture::CHECKER_TEXTURE;
                 {
                     int Exit_Flag;
                     Exit_Flag = FALSE;
@@ -194,7 +194,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = CHECKER_TEXTURE_TEXTURE;
+                texture->textureNumber = Texture::CHECKER_TEXTURE_TEXTURE;
 
                 ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
 
@@ -269,7 +269,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = MARBLE_TEXTURE;
+                texture->textureNumber = Texture::MARBLE_TEXTURE;
                 break;
 
             case WOOD_TOKEN:
@@ -277,7 +277,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = WOOD_TEXTURE;
+                texture->textureNumber = Texture::WOOD_TEXTURE;
                 break;
 
             case SPOTTED_TOKEN:
@@ -285,7 +285,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = SPOTTED_TEXTURE;
+                texture->textureNumber = Texture::SPOTTED_TEXTURE;
                 break;
 
             case AGATE_TOKEN:
@@ -293,7 +293,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = AGATE_TEXTURE;
+                texture->textureNumber = Texture::AGATE_TEXTURE;
                 break;
 
             case GRANITE_TOKEN:
@@ -301,7 +301,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = GRANITE_TEXTURE;
+                texture->textureNumber = Texture::GRANITE_TEXTURE;
                 break;
 
             case GRADIENT_TOKEN:
@@ -309,7 +309,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = GRADIENT_TEXTURE;
+                texture->textureNumber = Texture::GRADIENT_TEXTURE;
                 PrimitiveParser::parseVector(&(texture->textureGradient), ctx);
                 break;
 
@@ -425,15 +425,15 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = IMAGEMAP_TEXTURE;
+                texture->textureNumber = Texture::IMAGEMAP_TEXTURE;
                 texture->Image = new RGBAImage;
                 if (texture->Image == nullptr) {
                     ParseErrorReporter::Error(
                         "Out of memory. Cannot allocate imagemap texture", ctx);
                 }
                 *&texture->Image->imageGradient = Vector3Dd(1.0, -1.0, 0.0);
-                texture->Image->mapType = PLANAR_MAP;
-                texture->Image->interpolationType = NO_INTERPOLATION;
+                texture->Image->mapType = Texture::PLANAR_MAP;
+                texture->Image->interpolationType = Texture::NO_INTERPOLATION;
                 texture->Image->onceFlag = FALSE;
                 texture->Image->useColourFlag = TRUE;
 
@@ -586,7 +586,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = WAVES;
+                texture->bumpNumber = Texture::WAVES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 {
                     int Exit_Flag;
@@ -629,7 +629,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = RIPPLES;
+                texture->bumpNumber = Texture::RIPPLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -638,7 +638,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = WRINKLES;
+                texture->bumpNumber = Texture::WRINKLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -647,7 +647,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = BUMPS;
+                texture->bumpNumber = Texture::BUMPS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -656,7 +656,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = DENTS;
+                texture->bumpNumber = Texture::DENTS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -694,7 +694,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 }
                 texture->Colour1 = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(texture->Colour1, ctx);
-                texture->textureNumber = COLOUR_TEXTURE;
+                texture->textureNumber = Texture::COLOUR_TEXTURE;
                 break;
 
             case COLOUR_MAP_TOKEN:
@@ -710,7 +710,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = ONION_TEXTURE;
+                texture->textureNumber = Texture::ONION_TEXTURE;
                 break;
 
             case LEOPARD_TOKEN:
@@ -718,7 +718,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = LEOPARD_TEXTURE;
+                texture->textureNumber = Texture::LEOPARD_TEXTURE;
                 break;
 
             /* New Texture Parsing - Cdw */
@@ -727,7 +727,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = PAINTED1_TEXTURE;
+                texture->textureNumber = Texture::PAINTED1_TEXTURE;
                 break;
 
             case PAINTED2_TOKEN:
@@ -735,7 +735,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = PAINTED2_TEXTURE;
+                texture->textureNumber = Texture::PAINTED2_TEXTURE;
                 break;
 
             case PAINTED3_TOKEN:
@@ -743,7 +743,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = PAINTED3_TEXTURE;
+                texture->textureNumber = Texture::PAINTED3_TEXTURE;
                 break;
 
             case BUMPY1_TOKEN:
@@ -751,7 +751,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = BUMPY1;
+                texture->bumpNumber = Texture::BUMPY1;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -760,7 +760,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = BUMPY2;
+                texture->bumpNumber = Texture::BUMPY2;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -769,7 +769,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = BUMPY3;
+                texture->bumpNumber = Texture::BUMPY3;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -778,7 +778,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->bumpNumber = BUMPMAP;
+                texture->bumpNumber = Texture::BUMPMAP;
                 texture->Bump_Image = new RGBAImage;
                 if (texture->Bump_Image == nullptr) {
                     ParseErrorReporter::Error(
@@ -786,8 +786,8 @@ TextureParser::parseTexture(ParserContext &ctx)
                 }
                 *&texture->Bump_Image->imageGradient =
                     Vector3Dd(1.0, -1.0, 0.0);
-                texture->Bump_Image->mapType = PLANAR_MAP;
-                texture->Bump_Image->interpolationType = NO_INTERPOLATION;
+                texture->Bump_Image->mapType = Texture::PLANAR_MAP;
+                texture->Bump_Image->interpolationType = Texture::NO_INTERPOLATION;
                 texture->Bump_Image->onceFlag = FALSE;
                 texture->Bump_Image->useColourFlag = TRUE;
 
@@ -897,15 +897,15 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
                 }
-                texture->textureNumber = MATERIAL_MAP_TEXTURE;
+                texture->textureNumber = Texture::MATERIAL_MAP_TEXTURE;
                 texture->Material_Image = new RGBAImage;
                 if (texture->Material_Image == nullptr) {
                     ParseErrorReporter::Error(
                         "Out of memory. Cannot allocate material map texture", ctx);
                 }
                 *&texture->textureGradient = Vector3Dd(1.0, -1.0, 0.0);
-                texture->Material_Image->mapType = PLANAR_MAP;
-                texture->Material_Image->interpolationType = NO_INTERPOLATION;
+                texture->Material_Image->mapType = Texture::PLANAR_MAP;
+                texture->Material_Image->interpolationType = Texture::NO_INTERPOLATION;
                 texture->Material_Image->onceFlag = FALSE;
                 texture->Material_Image->useColourFlag = FALSE;
 

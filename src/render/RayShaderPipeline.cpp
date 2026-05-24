@@ -58,7 +58,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* Check to see if this object/shape has a material_map texture, if so */
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
-    if (texture->textureNumber == MATERIAL_MAP_TEXTURE) {
+    if (texture->textureNumber == Texture::MATERIAL_MAP_TEXTURE) {
         texture = MapTextureFixture::materialMap(
             &rayIntersection->Point, texture, debugEnabled, Small_Tolerance);
     }

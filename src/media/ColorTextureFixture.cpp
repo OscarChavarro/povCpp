@@ -54,81 +54,81 @@ ColorTextureFixture::colourAt(
     z = transformedPoint.z;
 
     switch (texture->textureNumber) {
-    case NO_TEXTURE:
+    case Texture::NO_TEXTURE:
         /* No colouring texture has been specified - make it black. */
         Color::makeColor(colour, 0.0, 0.0, 0.0);
         colour->Alpha = 0.0;
         break;
 
-    case COLOUR_TEXTURE:
+    case Texture::COLOUR_TEXTURE:
         colour->Red += texture->Colour1->Red;
         colour->Green += texture->Colour1->Green;
         colour->Blue += texture->Colour1->Blue;
         colour->Alpha += texture->Colour1->Alpha;
         break;
 
-    case BOZO_TEXTURE:
+    case Texture::BOZO_TEXTURE:
         ColorTextureFixture::bozo(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case MARBLE_TEXTURE:
+    case Texture::MARBLE_TEXTURE:
         ColorTextureFixture::marble(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case WOOD_TEXTURE:
+    case Texture::WOOD_TEXTURE:
         ColorTextureFixture::wood(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case BRICK_TEXTURE:
+    case Texture::BRICK_TEXTURE:
         ColorTextureFixture::brick(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case CHECKER_TEXTURE:
+    case Texture::CHECKER_TEXTURE:
         ColorTextureFixture::checker(x, y, z, texture, colour, debugEnabled, smallTolerance);
         break;
 
-    case CHECKER_TEXTURE_TEXTURE:
+    case Texture::CHECKER_TEXTURE_TEXTURE:
         ColorTextureFixture::checkerTexture(x, y, z, texture, colour, debugEnabled, smallTolerance);
         break;
 
-    case SPOTTED_TEXTURE:
+    case Texture::SPOTTED_TEXTURE:
         ColorTextureFixture::spotted(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case AGATE_TEXTURE:
+    case Texture::AGATE_TEXTURE:
         ColorTextureFixture::agate(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case GRANITE_TEXTURE:
+    case Texture::GRANITE_TEXTURE:
         ColorTextureFixture::granite(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case GRADIENT_TEXTURE:
+    case Texture::GRADIENT_TEXTURE:
         ColorTextureFixture::gradient(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case IMAGEMAP_TEXTURE:
+    case Texture::IMAGEMAP_TEXTURE:
         MapTextureFixture::imageMap(
             x, y, z, texture, colour, debugEnabled, smallTolerance);
         break;
 
-    case ONION_TEXTURE:
+    case Texture::ONION_TEXTURE:
         ColorTextureFixture::onion(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case LEOPARD_TEXTURE:
+    case Texture::LEOPARD_TEXTURE:
         ColorTextureFixture::leopard(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case PAINTED1_TEXTURE:
+    case Texture::PAINTED1_TEXTURE:
         TextureFixture::painted1(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case PAINTED2_TEXTURE:
+    case Texture::PAINTED2_TEXTURE:
         TextureFixture::painted2(x, y, z, texture, colour, debugEnabled);
         break;
 
-    case PAINTED3_TEXTURE:
+    case Texture::PAINTED3_TEXTURE:
         TextureFixture::painted3(x, y, z, texture, colour, debugEnabled);
         break;
     }
@@ -278,7 +278,7 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
 
     /* AAC: was just x + z */
     /* AAC: Small_Tolerance added to get around Microsoft C (int) bug */
-    brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
+    brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
 
     if (debugEnabled) {
         Logger::info("checker %g %g %g\n", x, y, z);
@@ -304,7 +304,7 @@ ColorTextureFixture::checkerTexture(double x, double y, double z,
     y += smallTolerance;
     z += smallTolerance;
 
-    brkindx = (int)(floorInline(x) + floorInline(y) + floorInline(z));
+    brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
 
     if (debugEnabled) {
         Logger::info("checker_texture %g %g %g\n", x, y, z);
@@ -352,16 +352,16 @@ ColorTextureFixture::gradient(
         return;
     }
     if (texture->textureGradient.x != 0.0) {
-        x = fabsInline(x);
-        value += x - floorInline(x); /* obtain fractional X component */
+        x = TextureUtils::fabsInline(x);
+        value += x - TextureUtils::floorInline(x); /* obtain fractional X component */
     }
     if (texture->textureGradient.y != 0.0) {
-        y = fabsInline(y);
-        value += y - floorInline(y); /* obtain fractional Y component */
+        y = TextureUtils::fabsInline(y);
+        value += y - TextureUtils::floorInline(y); /* obtain fractional Y component */
     }
     if (texture->textureGradient.z != 0.0) {
-        z = fabsInline(z);
-        value += z - floorInline(z); /* obtain fractional Z component */
+        z = TextureUtils::fabsInline(z);
+        value += z - TextureUtils::floorInline(z); /* obtain fractional Z component */
     }
     value = ((value > 1.0) ? fmod(value, 1.0) : value); /* clamp to 1.0 */
 
@@ -394,7 +394,7 @@ ColorTextureFixture::granite(
     for (i = 0; i < 6; freq *= 2.0, i++) {
         temp =
             0.5 - TextureUtils::Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
-        temp = fabsInline(temp);
+        temp = TextureUtils::fabsInline(temp);
         noise += temp / freq;
     }
 

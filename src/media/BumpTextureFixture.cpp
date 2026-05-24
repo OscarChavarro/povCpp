@@ -32,7 +32,7 @@ BumpTextureFixture::ripples(
         Logger::info("ripples %g %g %g", x, y, z);
     }
 
-    for (i = 0; i < NUMBER_OF_WAVES; i++) {
+    for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         point.x = x;
         point.y = y;
         point.z = z;
@@ -51,7 +51,7 @@ BumpTextureFixture::ripples(
         }
 
         VectorOps::vScale(
-            point, point, scalar / length / (double)NUMBER_OF_WAVES);
+            point, point, scalar / length / (double)Texture::NUMBER_OF_WAVES);
         (*normal).add(point);
     }
     (*normal).normalize();
@@ -72,7 +72,7 @@ BumpTextureFixture::waves(
         Logger::info("waves %g %g %g\n", x, y, z);
     }
 
-    for (i = 0; i < NUMBER_OF_WAVES; i++) {
+    for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         point.x = x;
         point.y = y;
         point.z = z;
@@ -88,7 +88,7 @@ BumpTextureFixture::waves(
 
         scalar = sinValue * texture->bumpAmount / TextureUtils::waveFrequency()[i];
         VectorOps::vScale(
-            point, point, scalar / length / (double)NUMBER_OF_WAVES);
+            point, point, scalar / length / (double)Texture::NUMBER_OF_WAVES);
         (*normal).add(point);
     }
     (*normal).normalize();
@@ -183,9 +183,9 @@ BumpTextureFixture::wrinkles(
     for (i = 0; i < 10; scale *= 2.0, i++) {
         TextureUtils::DNoise(
             &value, x * scale, y * scale, z * scale); /* * scale,*/
-        result.x += fabsInline(value.x / scale);
-        result.y += fabsInline(value.y / scale);
-        result.z += fabsInline(value.z / scale);
+        result.x += TextureUtils::fabsInline(value.x / scale);
+        result.y += TextureUtils::fabsInline(value.y / scale);
+        result.z += TextureUtils::fabsInline(value.z / scale);
     }
 
     result.scale(texture->bumpAmount);

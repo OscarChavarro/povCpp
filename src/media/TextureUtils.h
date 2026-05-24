@@ -9,6 +9,11 @@ class Texture;
 
 class TextureUtils {
   public:
+    static double floorInline(double x);
+    static double fabsInline(double x);
+    static double sCurve(double a);
+    static short hash3d(long a, long b, long c);
+    static double incrSum(int m, double s, double x, double y, double z);
     static Texture *&defaultTexture();
     static double *&rTable();
     static short *&hashTable();
