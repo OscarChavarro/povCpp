@@ -81,6 +81,46 @@ AstBlobNode::AstBlobNode()
     transformCount = 0;
 }
 
+AstTriangleNode::AstTriangleNode()
+{
+    kind = AST_TRIANGLE_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasInlineData = false;
+    hasReference = false;
+    referenceConstantId = -1;
+    hasColour = false;
+    transformCount = 0;
+}
+
+AstSmoothTriangleNode::AstSmoothTriangleNode()
+{
+    kind = AST_SMOOTH_TRIANGLE_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasInlineData = false;
+    hasReference = false;
+    referenceConstantId = -1;
+    hasColour = false;
+    transformCount = 0;
+}
+
+AstPolyNode::AstPolyNode()
+{
+    kind = AST_POLY_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasInlineData = false;
+    hasReference = false;
+    referenceConstantId = -1;
+    knownOrder = 0;
+    explicitOrder = 0;
+    coeffCount = 0;
+    sturm = false;
+    hasColour = false;
+    transformCount = 0;
+}
+
 AstCsgNode::AstCsgNode()
 {
     kind = AST_CSG_NODE;

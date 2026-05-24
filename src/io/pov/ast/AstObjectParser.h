@@ -13,6 +13,9 @@ class AstObjectParser {
     static AstBoxNode *parseBox(ParserContext &ctx);
     static AstQuadricNode *parseQuadric(ParserContext &ctx);
     static AstBlobNode *parseBlob(ParserContext &ctx);
+    static AstTriangleNode *parseTriangle(ParserContext &ctx);
+    static AstSmoothTriangleNode *parseSmoothTriangle(ParserContext &ctx);
+    static AstPolyNode *parsePoly(ParserContext &ctx, int knownOrder);
     static AstCsgNode *parseCsg(ParserContext &ctx, AstCsgOpKind op);
     static AstObjectNode *parseObject(ParserContext &ctx);
     static AstCompositeNode *parseComposite(ParserContext &ctx);

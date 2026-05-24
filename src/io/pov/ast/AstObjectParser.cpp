@@ -1,9 +1,11 @@
 #include "io/pov/ast/AstObjectParser.h"
 
 #include "io/Tokenizer.h"
+#include "processing/PolynomialConstants.h"
 #include "io/pov/ParseErrorReporter.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/ParserContext.h"
+#include "io/pov/PrimitiveParser.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
 
 bool
@@ -43,6 +45,16 @@ AstNode *AstObjectParser::parseShapeNodeFromToken(ParserContext &ctx, int tokenI
         return AstObjectParser::parseQuadric(ctx);
     case Tokenizer::BLOB_TOKEN:
         return AstObjectParser::parseBlob(ctx);
+    case Tokenizer::TRIANGLE_TOKEN:
+        return AstObjectParser::parseTriangle(ctx);
+    case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
+        return AstObjectParser::parseSmoothTriangle(ctx);
+    case Tokenizer::CUBIC_TOKEN:
+        return AstObjectParser::parsePoly(ctx, 3);
+    case Tokenizer::QUARTIC_TOKEN:
+        return AstObjectParser::parsePoly(ctx, 4);
+    case Tokenizer::POLY_TOKEN:
+        return AstObjectParser::parsePoly(ctx, 0);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:
@@ -355,6 +367,241 @@ AstObjectParser::parseBlob(ParserContext &ctx)
     return node;
 }
 
+AstTriangleNode *
+AstObjectParser::parseTriangle(ParserContext &ctx)
+{
+    AstTriangleNode *node = new AstTriangleNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    int baseParsed = LegacyBoolean::FALSE_VALUE;
+    while (!baseParsed) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::LEFT_ANGLE_TOKEN:
+            ctx.tokenStream().ungetToken();
+            node->p1 = AstPrimitiveParser::parseVector(ctx);
+            node->p2 = AstPrimitiveParser::parseVector(ctx);
+            node->p3 = AstPrimitiveParser::parseVector(ctx);
+            node->hasInlineData = true;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        case Tokenizer::IDENTIFIER_TOKEN:
+            node->hasReference = true;
+            node->referenceConstantId = ctx.token().identifierNumber;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
+            break;
+        }
+    }
+
+    int done = LegacyBoolean::FALSE_VALUE;
+    while (!done) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
+            break;
+        case Tokenizer::TRANSLATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::ROTATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::SCALE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_SCALE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::INVERSE_TOKEN: {
+            AstVector3 z = {0.0, 0.0, 0.0};
+            AstObjectParser::appendTransformOrFail(
+                ctx, node->transforms, node->transformCount, AST_INVERSE, z);
+            break;
+        }
+        case Tokenizer::COLOUR_TOKEN:
+            node->colour = AstPrimitiveParser::parseColour(ctx);
+            node->hasColour = true;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
+        }
+    }
+
+    return node;
+}
+
+AstSmoothTriangleNode *
+AstObjectParser::parseSmoothTriangle(ParserContext &ctx)
+{
+    AstSmoothTriangleNode *node = new AstSmoothTriangleNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    int baseParsed = LegacyBoolean::FALSE_VALUE;
+    while (!baseParsed) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::LEFT_ANGLE_TOKEN:
+            ctx.tokenStream().ungetToken();
+            node->p1 = AstPrimitiveParser::parseVector(ctx);
+            node->n1 = AstPrimitiveParser::parseVector(ctx);
+            node->p2 = AstPrimitiveParser::parseVector(ctx);
+            node->n2 = AstPrimitiveParser::parseVector(ctx);
+            node->p3 = AstPrimitiveParser::parseVector(ctx);
+            node->n3 = AstPrimitiveParser::parseVector(ctx);
+            node->hasInlineData = true;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        case Tokenizer::IDENTIFIER_TOKEN:
+            node->hasReference = true;
+            node->referenceConstantId = ctx.token().identifierNumber;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
+            break;
+        }
+    }
+
+    int done = LegacyBoolean::FALSE_VALUE;
+    while (!done) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
+            break;
+        case Tokenizer::TRANSLATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::ROTATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::SCALE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_SCALE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::INVERSE_TOKEN: {
+            AstVector3 z = {0.0, 0.0, 0.0};
+            AstObjectParser::appendTransformOrFail(
+                ctx, node->transforms, node->transformCount, AST_INVERSE, z);
+            break;
+        }
+        case Tokenizer::COLOUR_TOKEN:
+            node->colour = AstPrimitiveParser::parseColour(ctx);
+            node->hasColour = true;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
+        }
+    }
+
+    return node;
+}
+
+AstPolyNode *
+AstObjectParser::parsePoly(ParserContext &ctx, int knownOrder)
+{
+    AstPolyNode *node = new AstPolyNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+    node->knownOrder = knownOrder;
+
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    int baseParsed = LegacyBoolean::FALSE_VALUE;
+    while (!baseParsed) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::DASH_TOKEN:
+        case Tokenizer::PLUS_TOKEN:
+        case Tokenizer::FLOAT_TOKEN:
+            if (node->knownOrder > 0) {
+                ParseErrorReporter::Error(
+                    "The order of a polynomial may not be specified twice", ctx);
+            }
+            ctx.tokenStream().ungetToken();
+            node->explicitOrder = (int)AstPrimitiveParser::parseFloat(ctx);
+            if (node->explicitOrder < 2 || node->explicitOrder > PolynomialConstants::MAX_ORDER) {
+                ParseErrorReporter::Error("Order of Poly is out of range", ctx);
+            }
+            break;
+        case Tokenizer::LEFT_ANGLE_TOKEN: {
+            ctx.tokenStream().ungetToken();
+            const int order = node->knownOrder > 0 ? node->knownOrder : node->explicitOrder;
+            if (order < 2 || order > PolynomialConstants::MAX_ORDER) {
+                ParseErrorReporter::Error("Need the order of the Poly", ctx);
+            }
+            const int coeffCount = ctx.termCounts()[order];
+            if (coeffCount <= 0 || coeffCount > AstPolyNode::MAX_AST_POLY_COEFFS) {
+                ParseErrorReporter::Error("Unsupported polynomial coefficient count in AST", ctx);
+            }
+            PrimitiveParser::parseCoeffs(order, &(node->coeffs[0]), ctx);
+            node->coeffCount = coeffCount;
+            node->hasInlineData = true;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        }
+        case Tokenizer::IDENTIFIER_TOKEN:
+            node->hasReference = true;
+            node->referenceConstantId = ctx.token().identifierNumber;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
+            break;
+        }
+    }
+
+    int done = LegacyBoolean::FALSE_VALUE;
+    while (!done) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
+            break;
+        case Tokenizer::STURM_TOKEN:
+            node->sturm = true;
+            break;
+        case Tokenizer::TRANSLATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::ROTATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::SCALE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_SCALE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::INVERSE_TOKEN: {
+            AstVector3 z = {0.0, 0.0, 0.0};
+            AstObjectParser::appendTransformOrFail(
+                ctx, node->transforms, node->transformCount, AST_INVERSE, z);
+            break;
+        }
+        case Tokenizer::COLOUR_TOKEN:
+            node->colour = AstPrimitiveParser::parseColour(ctx);
+            node->hasColour = true;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
+        }
+    }
+
+    return node;
+}
+
 AstSphereNode *
 AstObjectParser::parseSphere(ParserContext &ctx)
 {
@@ -529,6 +776,15 @@ AstObjectParser::parseCsg(ParserContext &ctx, AstCsgOpKind op)
             node->referenceConstantId = ctx.token().identifierNumber;
             break;
         case Tokenizer::SPHERE_TOKEN:
+        case Tokenizer::PLANE_TOKEN:
+        case Tokenizer::BOX_TOKEN:
+        case Tokenizer::QUADRIC_TOKEN:
+        case Tokenizer::BLOB_TOKEN:
+        case Tokenizer::TRIANGLE_TOKEN:
+        case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
+        case Tokenizer::CUBIC_TOKEN:
+        case Tokenizer::QUARTIC_TOKEN:
+        case Tokenizer::POLY_TOKEN:
         case Tokenizer::LIGHT_SOURCE_TOKEN:
         case Tokenizer::UNION_TOKEN:
         case Tokenizer::INTERSECTION_TOKEN:

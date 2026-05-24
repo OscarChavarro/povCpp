@@ -17,7 +17,10 @@ enum AstNodeKind {
     AST_DEFAULT_TEXTURE_NODE = 10,
     AST_BOX_NODE = 11,
     AST_QUADRIC_NODE = 12,
-    AST_BLOB_NODE = 13
+    AST_BLOB_NODE = 13,
+    AST_TRIANGLE_NODE = 14,
+    AST_SMOOTH_TRIANGLE_NODE = 15,
+    AST_POLY_NODE = 16
 };
 
 enum AstTransformKind {
@@ -182,6 +185,60 @@ class AstBlobNode : public AstNode {
     double threshold;
     AstBlobComponent components[MAX_AST_BLOB_COMPONENTS];
     int componentCount;
+    bool sturm;
+    bool hasColour;
+    AstColor colour;
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
+    int transformCount;
+};
+
+class AstTriangleNode : public AstNode {
+  public:
+    AstTriangleNode();
+
+    bool hasInlineData;
+    bool hasReference;
+    int referenceConstantId;
+    AstVector3 p1;
+    AstVector3 p2;
+    AstVector3 p3;
+    bool hasColour;
+    AstColor colour;
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
+    int transformCount;
+};
+
+class AstSmoothTriangleNode : public AstNode {
+  public:
+    AstSmoothTriangleNode();
+
+    bool hasInlineData;
+    bool hasReference;
+    int referenceConstantId;
+    AstVector3 p1;
+    AstVector3 n1;
+    AstVector3 p2;
+    AstVector3 n2;
+    AstVector3 p3;
+    AstVector3 n3;
+    bool hasColour;
+    AstColor colour;
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
+    int transformCount;
+};
+
+class AstPolyNode : public AstNode {
+  public:
+    AstPolyNode();
+
+    static constexpr int MAX_AST_POLY_COEFFS = 220;
+    bool hasInlineData;
+    bool hasReference;
+    int referenceConstantId;
+    int knownOrder;
+    int explicitOrder;
+    double coeffs[MAX_AST_POLY_COEFFS];
+    int coeffCount;
     bool sturm;
     bool hasColour;
     AstColor colour;

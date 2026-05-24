@@ -7,9 +7,12 @@
 #include "environment/camera/Camera.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/InfinitePlane.h"
+#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/elements/SmoothTriangle.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Quadric.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
@@ -450,6 +453,145 @@ AstSceneBuilder::buildBlob(
     return shape;
 }
 
+Triangle *
+AstSceneBuilder::buildTriangle(
+    const AstTriangleNode &node, ParserContext &ctx, const AstDeclTable &decls)
+{
+    Triangle *shape = nullptr;
+    if (node.hasReference) {
+        const AstNode *declNode = findDecl(decls, node.referenceConstantId);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_TRIANGLE_NODE) {
+                ParseErrorReporter::Error("Invalid triangle reference in AST", ctx);
+            }
+            Triangle *declShape = buildTriangle((const AstTriangleNode &)*declNode, ctx, decls);
+            shape = (Triangle *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr || legacyDecl->constantType != ParseGlobals::TRIANGLE_CONSTANT) {
+                ParseErrorReporter::Error("Invalid triangle reference in AST", ctx);
+            }
+            shape = (Triangle *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
+        }
+    } else {
+        shape = ModelBuilder::getTriangleShape();
+        if (node.hasInlineData) {
+            shape->P1 = asVector(node.p1);
+            shape->P2 = asVector(node.p2);
+            shape->P3 = asVector(node.p3);
+            if (!Triangle::computeTriangle(shape)) {
+                ctx.degenerateTriangles() = LegacyBoolean::TRUE_VALUE;
+            }
+        }
+    }
+    if (node.hasColour) {
+        shape->Shape_Colour = ModelBuilder::getColour();
+        shape->Shape_Colour->Red = node.colour.r;
+        shape->Shape_Colour->Green = node.colour.g;
+        shape->Shape_Colour->Blue = node.colour.b;
+        shape->Shape_Colour->Alpha = node.colour.a;
+    }
+    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    return shape;
+}
+
+SmoothTriangle *
+AstSceneBuilder::buildSmoothTriangle(
+    const AstSmoothTriangleNode &node, ParserContext &ctx, const AstDeclTable &decls)
+{
+    SmoothTriangle *shape = nullptr;
+    if (node.hasReference) {
+        const AstNode *declNode = findDecl(decls, node.referenceConstantId);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_SMOOTH_TRIANGLE_NODE) {
+                ParseErrorReporter::Error("Invalid smooth_triangle reference in AST", ctx);
+            }
+            SmoothTriangle *declShape =
+                buildSmoothTriangle((const AstSmoothTriangleNode &)*declNode, ctx, decls);
+            shape = (SmoothTriangle *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr ||
+                legacyDecl->constantType != ParseGlobals::SMOOTH_TRIANGLE_CONSTANT) {
+                ParseErrorReporter::Error("Invalid smooth_triangle reference in AST", ctx);
+            }
+            shape = (SmoothTriangle *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
+        }
+    } else {
+        shape = ModelBuilder::getSmoothTriangleShape();
+        if (node.hasInlineData) {
+            shape->P1 = asVector(node.p1);
+            shape->N1 = asVector(node.n1);
+            shape->N1.normalize();
+            shape->P2 = asVector(node.p2);
+            shape->N2 = asVector(node.n2);
+            shape->N2.normalize();
+            shape->P3 = asVector(node.p3);
+            shape->N3 = asVector(node.n3);
+            shape->N3.normalize();
+            if (!Triangle::computeTriangle((Triangle *)shape)) {
+                ctx.degenerateTriangles() = LegacyBoolean::TRUE_VALUE;
+            }
+        }
+    }
+    if (node.hasColour) {
+        shape->Shape_Colour = ModelBuilder::getColour();
+        shape->Shape_Colour->Red = node.colour.r;
+        shape->Shape_Colour->Green = node.colour.g;
+        shape->Shape_Colour->Blue = node.colour.b;
+        shape->Shape_Colour->Alpha = node.colour.a;
+    }
+    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    return shape;
+}
+
+PolynomialShape *
+AstSceneBuilder::buildPoly(
+    const AstPolyNode &node, ParserContext &ctx, const AstDeclTable &decls)
+{
+    PolynomialShape *shape = nullptr;
+    if (node.hasReference) {
+        const AstNode *declNode = findDecl(decls, node.referenceConstantId);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_POLY_NODE) {
+                ParseErrorReporter::Error("Invalid poly reference in AST", ctx);
+            }
+            PolynomialShape *declShape = buildPoly((const AstPolyNode &)*declNode, ctx, decls);
+            shape = (PolynomialShape *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr || legacyDecl->constantType != ParseGlobals::POLY_CONSTANT) {
+                ParseErrorReporter::Error("Invalid poly reference in AST", ctx);
+            }
+            shape = (PolynomialShape *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
+        }
+    } else {
+        const int order = node.knownOrder > 0 ? node.knownOrder : node.explicitOrder;
+        shape = ModelBuilder::getPolyShape(order, ctx.termCounts());
+        if (node.hasInlineData) {
+            const int coeffCount = ctx.termCounts()[shape->Order];
+            for (int i = 0; i < coeffCount; ++i) {
+                shape->Coeffs[i] = node.coeffs[i];
+            }
+        }
+    }
+    if (node.sturm) {
+        shape->sturmFlag = 1;
+    }
+    if (node.hasColour) {
+        shape->Shape_Colour = ModelBuilder::getColour();
+        shape->Shape_Colour->Red = node.colour.r;
+        shape->Shape_Colour->Green = node.colour.g;
+        shape->Shape_Colour->Blue = node.colour.b;
+        shape->Shape_Colour->Alpha = node.colour.a;
+    }
+    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    return shape;
+}
+
 CSG *
 AstSceneBuilder::buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
@@ -516,6 +658,15 @@ AstSceneBuilder::buildGeometryNode(const AstNode &node, ParserContext &ctx, cons
     }
     if (node.kind == AST_BLOB_NODE) {
         return (Geometry *)buildBlob((const AstBlobNode &)node, ctx, decls);
+    }
+    if (node.kind == AST_TRIANGLE_NODE) {
+        return (Geometry *)buildTriangle((const AstTriangleNode &)node, ctx, decls);
+    }
+    if (node.kind == AST_SMOOTH_TRIANGLE_NODE) {
+        return (Geometry *)buildSmoothTriangle((const AstSmoothTriangleNode &)node, ctx, decls);
+    }
+    if (node.kind == AST_POLY_NODE) {
+        return (Geometry *)buildPoly((const AstPolyNode &)node, ctx, decls);
     }
     if (node.kind == AST_LIGHT_SOURCE_NODE) {
         return (Geometry *)buildLight((const AstLightSourceNode &)node, ctx, decls);
@@ -630,7 +781,8 @@ AstSceneBuilder::buildSimpleBodyNode(const AstNode &node, ParserContext &ctx, co
     }
     if (node.kind == AST_SPHERE_NODE || node.kind == AST_PLANE_NODE ||
         node.kind == AST_BOX_NODE || node.kind == AST_QUADRIC_NODE ||
-        node.kind == AST_BLOB_NODE ||
+        node.kind == AST_BLOB_NODE || node.kind == AST_TRIANGLE_NODE ||
+        node.kind == AST_SMOOTH_TRIANGLE_NODE || node.kind == AST_POLY_NODE ||
         node.kind == AST_LIGHT_SOURCE_NODE ||
         node.kind == AST_CSG_NODE) {
         return (SimpleBody *)buildGeometryNode(node, ctx, decls);
@@ -680,6 +832,22 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
             Blob *blob = buildBlob(*(const AstBlobNode *)node, ctx, declarations);
             SimpleBodyFactory::link((SimpleBody *)blob,
                 (SimpleBody **)&(blob->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_TRIANGLE_NODE) {
+            Triangle *triangle = buildTriangle(*(const AstTriangleNode *)node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)triangle,
+                (SimpleBody **)&(triangle->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_SMOOTH_TRIANGLE_NODE) {
+            SmoothTriangle *triangle =
+                buildSmoothTriangle(*(const AstSmoothTriangleNode *)node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)triangle,
+                (SimpleBody **)&(triangle->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_POLY_NODE) {
+            PolynomialShape *poly = buildPoly(*(const AstPolyNode *)node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)poly,
+                (SimpleBody **)&(poly->nextObject),
                 (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == AST_LIGHT_SOURCE_NODE) {
             Light *light = buildLight(*(const AstLightSourceNode *)node, ctx, declarations);

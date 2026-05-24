@@ -305,6 +305,16 @@ AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
         return AstObjectParser::parseQuadric(ctx);
     case Tokenizer::BLOB_TOKEN:
         return AstObjectParser::parseBlob(ctx);
+    case Tokenizer::TRIANGLE_TOKEN:
+        return AstObjectParser::parseTriangle(ctx);
+    case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
+        return AstObjectParser::parseSmoothTriangle(ctx);
+    case Tokenizer::CUBIC_TOKEN:
+        return AstObjectParser::parsePoly(ctx, 3);
+    case Tokenizer::QUARTIC_TOKEN:
+        return AstObjectParser::parsePoly(ctx, 4);
+    case Tokenizer::POLY_TOKEN:
+        return AstObjectParser::parsePoly(ctx, 0);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:
@@ -411,8 +421,13 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         case Tokenizer::PLANE_TOKEN:
         case Tokenizer::BOX_TOKEN:
         case Tokenizer::QUADRIC_TOKEN:
-        case Tokenizer::BLOB_TOKEN:
-        case Tokenizer::LIGHT_SOURCE_TOKEN:
+    case Tokenizer::BLOB_TOKEN:
+    case Tokenizer::TRIANGLE_TOKEN:
+    case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
+    case Tokenizer::CUBIC_TOKEN:
+    case Tokenizer::QUARTIC_TOKEN:
+    case Tokenizer::POLY_TOKEN:
+    case Tokenizer::LIGHT_SOURCE_TOKEN:
         case Tokenizer::UNION_TOKEN:
         case Tokenizer::INTERSECTION_TOKEN:
         case Tokenizer::DIFFERENCE_TOKEN: {

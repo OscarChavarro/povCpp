@@ -11,6 +11,9 @@ class AstPlaneNode;
 class AstBoxNode;
 class AstQuadricNode;
 class AstBlobNode;
+class AstTriangleNode;
+class AstSmoothTriangleNode;
+class AstPolyNode;
 class AstCsgNode;
 class AstObjectNode;
 class AstCompositeNode;
@@ -29,6 +32,9 @@ class InfinitePlane;
 class Box;
 class Quadric;
 class Blob;
+class Triangle;
+class SmoothTriangle;
+class PolynomialShape;
 class CSG;
 class Composite;
 class ParserContext;
@@ -67,6 +73,12 @@ class AstSceneBuilder {
     static Quadric *buildQuadric(
         const AstQuadricNode &node, ParserContext &ctx, const AstDeclTable &decls);
     static Blob *buildBlob(const AstBlobNode &node, ParserContext &ctx, const AstDeclTable &decls);
+    static Triangle *buildTriangle(
+        const AstTriangleNode &node, ParserContext &ctx, const AstDeclTable &decls);
+    static SmoothTriangle *buildSmoothTriangle(
+        const AstSmoothTriangleNode &node, ParserContext &ctx, const AstDeclTable &decls);
+    static PolynomialShape *buildPoly(
+        const AstPolyNode &node, ParserContext &ctx, const AstDeclTable &decls);
     static CSG *buildCsg(const AstCsgNode &node, ParserContext &ctx,
         const AstDeclTable &decls);
     static SimpleBody *buildObject(
