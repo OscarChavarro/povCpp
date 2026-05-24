@@ -456,7 +456,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::LEFT_ANGLE_TOKEN:
                             ctx.tokenStream().ungetToken();
                             PrimitiveParser::parseVector(
-                                &(texture->Image->imageGradient));
+                                &(texture->Image->imageGradient), ctx);
                             break;
 
                         case Tokenizer::IFF_TOKEN:
@@ -810,7 +810,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::LEFT_ANGLE_TOKEN:
                             ctx.tokenStream().ungetToken();
                             PrimitiveParser::parseVector(
-                                &(texture->Bump_Image->imageGradient));
+                                &(texture->Bump_Image->imageGradient), ctx);
                             break;
 
                         case Tokenizer::IFF_TOKEN:
@@ -928,7 +928,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::LEFT_ANGLE_TOKEN:
                             ctx.tokenStream().ungetToken();
                             PrimitiveParser::parseVector(
-                                &(texture->Material_Image->imageGradient));
+                                &(texture->Material_Image->imageGradient), ctx);
                             break;
 
                         case Tokenizer::IFF_TOKEN:
