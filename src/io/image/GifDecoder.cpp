@@ -15,7 +15,7 @@ static constexpr int BAD_CODE_SIZE = -20;
 
 static constexpr int MAX_CODES = 4095;
 
-static LONG codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
+long GifDecoder::codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
     0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF};
 
 // This function initializes the decoder for reading a new image.
@@ -89,7 +89,7 @@ GifDecoder::getNextCode()
         --navailBytes;
     }
     nbitsLeft -= currSize;
-    ret &= codeMask[currSize];
+    ret &= GifDecoder::codeMask[currSize];
     return ((WORD)(ret));
 }
 

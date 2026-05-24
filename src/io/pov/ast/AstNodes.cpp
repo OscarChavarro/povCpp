@@ -85,7 +85,7 @@ bool
 AstNodes::appendTransform(
     AstTransform *arr, int &count, AstTransformKind kind, const AstVector3 &vec)
 {
-    if (count >= MAX_AST_TRANSFORMS) {
+    if (count >= AstLimits::MAX_AST_TRANSFORMS) {
         return false;
     }
     arr[count].kind = kind;

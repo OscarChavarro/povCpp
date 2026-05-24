@@ -12,6 +12,12 @@ class AstObjectParser {
     static AstCsgNode *parseCsg(ParserContext &ctx, AstCsgOpKind op);
     static AstObjectNode *parseObject(ParserContext &ctx);
     static AstCompositeNode *parseComposite(ParserContext &ctx);
+
+  private:
+    static bool appendTransformOrFail(ParserContext &ctx, AstTransform *arr,
+        int &count, AstTransformKind kind, const AstVector3 &v);
+    static AstNode *parseShapeNode(ParserContext &ctx);
+    static AstNode *parseShapeNodeFromToken(ParserContext &ctx, int tokenId);
 };
 
 #endif

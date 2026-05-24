@@ -12,6 +12,7 @@ class GifDecoder {
     static WORD decoder(int iLinewidth);
 
   private:
+    static long codeMask[13];
     static int badCodeCount;
     static WORD currSize;
     static WORD clear;

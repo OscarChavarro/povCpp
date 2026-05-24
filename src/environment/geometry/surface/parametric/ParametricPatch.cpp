@@ -91,7 +91,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         intersection test. */
     if (ParametricBiCubicPatch::flatEnough(object, patch)) {
         /* The patch is now flat enough to simply store the corners */
-        node->nodeType = PARAMETRIC_LEAF_NODE;
+        node->nodeType = ParametricPatchConstants::PARAMETRIC_LEAF_NODE;
         vertices = ParametricBiCubicPatch::createParametricControlPointsBlock();
         vertices->Vertices[0] = (*patch)[0][0];
         vertices->Vertices[1] = (*patch)[0][3];
@@ -101,7 +101,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
     } else if (depth >= object->uSteps) {
         if (depth >= object->vSteps) {
             /* We are at the max recursion depth. Just store corners. */
-            node->nodeType = PARAMETRIC_LEAF_NODE;
+            node->nodeType = ParametricPatchConstants::PARAMETRIC_LEAF_NODE;
             vertices =
                 ParametricBiCubicPatch::createParametricControlPointsBlock();
             vertices->Vertices[0] = (*patch)[0][0];
@@ -112,7 +112,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         } else {
             ParametricBiCubicPatch::parametricSplitUpDown(patch,
                 (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])upperLeft);
-            node->nodeType = PARAMETRIC_INTERIOR_NODE;
+            node->nodeType = ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE;
             children =
                 ParametricBiCubicPatch::createParametricPatchChildBlock();
             children->Children[0] =
@@ -127,7 +127,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
     } else if (depth >= object->vSteps) {
         ParametricBiCubicPatch::parametricSplitLeftRight(patch,
             (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
-        node->nodeType = PARAMETRIC_INTERIOR_NODE;
+        node->nodeType = ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE;
         children = ParametricBiCubicPatch::createParametricPatchChildBlock();
         children->Children[0] = ParametricBiCubicPatch::parametricTreeBuilder(
             object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
@@ -144,7 +144,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         ParametricBiCubicPatch::parametricSplitUpDown(
             (Vector3Dd(*)[4][4])lowerRight, (Vector3Dd(*)[4][4])lowerRight,
             (Vector3Dd(*)[4][4])upperRight);
-        node->nodeType = PARAMETRIC_INTERIOR_NODE;
+        node->nodeType = ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE;
         children = ParametricBiCubicPatch::createParametricPatchChildBlock();
         children->Children[0] = ParametricBiCubicPatch::parametricTreeBuilder(
             object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
@@ -599,7 +599,7 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray,
     double d;
     double depth;
 
-    if (tcnt + *depthCount >= MAX_BICUBIC_INTERSECTIONS) {
+    if (tcnt + *depthCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -622,7 +622,7 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray,
         }
     }
 
-    if (*depthCount + tcnt >= MAX_BICUBIC_INTERSECTIONS) {
+    if (*depthCount + tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -813,7 +813,7 @@ ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
     int tcnt = object->intersectionCount;
 
     /* Don't waste time if there are already too many intersections */
-    if (tcnt >= MAX_BICUBIC_INTERSECTIONS) {
+    if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -892,14 +892,14 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
     int i;
 
     /* If this is an interior node then continue the descent */
-    if (node->nodeType == PARAMETRIC_INTERIOR_NODE) {
+    if (node->nodeType == ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE) {
         children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
             ParametricBiCubicPatch::parametricTreeDeleter(
                 children->Children[i]);
         }
         delete (ParametricPatchChild *)children;
-    } else if (node->nodeType == PARAMETRIC_LEAF_NODE) {
+    } else if (node->nodeType == ParametricPatchConstants::PARAMETRIC_LEAF_NODE) {
         /* Free the memory used for the vertices. */
         delete (ParametricControlPoints *)node->Data_Ptr;
     }
@@ -926,7 +926,7 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
     int tcnt = shape->intersectionCount;
 
     /* Don't waste time if there are already too many intersections */
-    if (tcnt >= MAX_BICUBIC_INTERSECTIONS) {
+    if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -939,13 +939,13 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
 
     /* If this is an interior node then continue the descent, else
         do a check against the vertices. */
-    if (node->nodeType == PARAMETRIC_INTERIOR_NODE) {
+    if (node->nodeType == ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE) {
         children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
             ParametricBiCubicPatch::parametricTreeWalker(ray, shape,
                 children->Children[i], depth + 1, depthCount, depths);
         }
-    } else if (node->nodeType == PARAMETRIC_LEAF_NODE) {
+    } else if (node->nodeType == ParametricPatchConstants::PARAMETRIC_LEAF_NODE) {
         vertices = (ParametricControlPoints *)node->Data_Ptr;
         vv0 = vertices->Vertices[0];
         vv1 = vertices->Vertices[1];
@@ -966,7 +966,7 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
             }
         }
 
-        if (*depthCount + tcnt >= MAX_BICUBIC_INTERSECTIONS) {
+        if (*depthCount + tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
             return;
         }
 
