@@ -9,7 +9,6 @@
 #include "io/pov/ParseErrorReporter.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/ParserContext.h"
-#include "io/pov/RewindableTokenStream.h"
 #include "io/pov/ast/AstNodes.h"
 #include "io/pov/ast/AstObjectParser.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
@@ -29,6 +28,52 @@ void appendCameraOpOrFail(ParserContext &ctx, AstCameraNode *node, AstCameraOpKi
     node->ops[node->opCount].referenceConstantId = refId;
     node->ops[node->opCount].vectorValue = v;
     node->opCount++;
+}
+
+class PrefixReplayTokenStream : public ITokenStream {
+  public:
+    PrefixReplayTokenStream(ITokenStream *delegate, const TokenStruct *prefix, int count)
+        : mDelegate(delegate), mPrefix(prefix), mCount(count), mPos(0)
+    {
+    }
+
+    ReservedWord *reservedWords() override { return mDelegate->reservedWords(); }
+    TokenStruct &token() override { return mCurrent; }
+    void getToken() override
+    {
+        if (mPos < mCount) {
+            mCurrent = mPrefix[mPos++];
+            return;
+        }
+        mDelegate->getToken();
+        mCurrent = mDelegate->token();
+    }
+    void ungetToken() override
+    {
+        if (mPos > 0 && mPos <= mCount) {
+            mPos--;
+            if (mPos > 0) {
+                mCurrent = mPrefix[mPos - 1];
+            }
+            return;
+        }
+        mDelegate->ungetToken();
+        mCurrent = mDelegate->token();
+    }
+
+  private:
+    ITokenStream *mDelegate;
+    const TokenStruct *mPrefix;
+    int mCount;
+    int mPos;
+    TokenStruct mCurrent;
+};
+
+bool
+isAstDeclareViewPointEnabled()
+{
+    const char *viewPoint = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
+    return viewPoint != nullptr && viewPoint[0] == '1';
 }
 }
 
@@ -169,43 +214,6 @@ AstSceneParser::parseDefaultTextureNode(ParserContext &ctx)
     return node;
 }
 
-bool
-AstSceneParser::isAstDeclareToken(int tokenId)
-{
-    const char *viewPoint = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
-    const char *sphere = std::getenv("POVCPP_AST_DECLARE_SPHERE");
-    const char *light = std::getenv("POVCPP_AST_DECLARE_LIGHT");
-    const char *csg = std::getenv("POVCPP_AST_DECLARE_CSG");
-
-    if (tokenId == Tokenizer::VIEW_POINT_TOKEN) {
-        return viewPoint != nullptr && viewPoint[0] == '1';
-    }
-    if (tokenId == Tokenizer::SPHERE_TOKEN) {
-        return sphere != nullptr && sphere[0] == '1';
-    }
-    if (tokenId == Tokenizer::LIGHT_SOURCE_TOKEN) {
-        return light != nullptr && light[0] == '1';
-    }
-    if (tokenId == Tokenizer::UNION_TOKEN || tokenId == Tokenizer::INTERSECTION_TOKEN ||
-        tokenId == Tokenizer::DIFFERENCE_TOKEN) {
-        return csg != nullptr && csg[0] == '1';
-    }
-    return false;
-}
-
-static bool
-isAnyAstDeclareFlagEnabled()
-{
-    const char *viewPoint = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
-    const char *sphere = std::getenv("POVCPP_AST_DECLARE_SPHERE");
-    const char *light = std::getenv("POVCPP_AST_DECLARE_LIGHT");
-    const char *csg = std::getenv("POVCPP_AST_DECLARE_CSG");
-    return (viewPoint != nullptr && viewPoint[0] == '1') ||
-           (sphere != nullptr && sphere[0] == '1') ||
-           (light != nullptr && light[0] == '1') ||
-           (csg != nullptr && csg[0] == '1');
-}
-
 AstNode *
 AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
 {
@@ -260,40 +268,43 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::DECLARE_TOKEN: {
-            if (!isAnyAstDeclareFlagEnabled()) {
+            if (!isAstDeclareViewPointEnabled()) {
                 DeclarationParser::parseDeclare(ctx);
                 break;
             }
-            try {
-                const int marker = ctx.tokenStream().mark();
 
-                bool parseWithAst = false;
-                bool parsed = false;
+            ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
+            const TokenStruct identifierToken = ctx.token();
+            ParseHelpers::getExpectedToken(Tokenizer::EQUALS_TOKEN, ctx);
+            const TokenStruct equalsToken = ctx.token();
+            ctx.tokenStream().getToken();
+            const TokenStruct valueStartToken = ctx.token();
+
+            if (valueStartToken.tokenId == Tokenizer::VIEW_POINT_TOKEN) {
+                AstDeclareNode *decl = new AstDeclareNode();
+                decl->sourceLine = identifierToken.tokenLineNo + 1;
+                decl->sourceFile = identifierToken.Filename;
+                decl->identifierNumber = identifierToken.identifierNumber;
+                decl->value = parseCameraNode(ctx);
+                if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
+                        AstLimits::MAX_AST_SCENE_NODES, (AstNode *)decl)) {
+                    ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+                }
+            } else {
+                TokenStruct prefix[3];
+                prefix[0] = identifierToken;
+                prefix[1] = equalsToken;
+                prefix[2] = valueStartToken;
+                ITokenStream *original = &ctx.tokenStream();
+                PrefixReplayTokenStream replay(original, prefix, 3);
+                ctx.setTokenStream(&replay);
                 try {
-                    ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
-                    ParseHelpers::getExpectedToken(Tokenizer::EQUALS_TOKEN, ctx);
-                    ctx.tokenStream().getToken();
-                    parseWithAst = isAstDeclareToken(ctx.token().tokenId);
-                    ctx.tokenStream().rewind(marker);
-
-                    if (parseWithAst) {
-                        AstDeclareNode *decl = AstSceneParser::parseDeclareNode(ctx);
-                        if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
-                                AstLimits::MAX_AST_SCENE_NODES, (AstNode *)decl)) {
-                            ParseErrorReporter::Error("Too many AST scene nodes", ctx);
-                        }
-                        parsed = true;
-                    }
-                } catch (const ParseErrorReporter::ParseException &) {
-                    ctx.tokenStream().rewind(marker);
-                }
-
-                if (!parsed) {
-                    ctx.tokenStream().rewind(marker);
                     DeclarationParser::parseDeclare(ctx);
+                } catch (...) {
+                    ctx.setTokenStream(original);
+                    throw;
                 }
-            } catch (...) {
-                throw;
+                ctx.setTokenStream(original);
             }
             break;
         }
