@@ -6,7 +6,6 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricPatchNode.h"
 
-static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 class ParametricControlPoints;
 class ParametricPatchChild;
 class ParametricBiCubicSolver;
@@ -17,6 +16,7 @@ class ParametricBiCubicPatch : public Geometry {
     friend class ParametricBiCubicIntersection;
 
   public:
+    static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
     static Methods methodTable;
     int patchType;
     int uSteps;
@@ -26,8 +26,8 @@ class ParametricBiCubicPatch : public Geometry {
     double boundingSphereRadius;
     double flatnessValue;
     int intersectionCount;
-    Vector3Dd normalVector[MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd Intersection_Point[MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd Intersection_Point[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
     Vector3Dd **Interpolated_Grid;
     Vector3Dd **Interpolated_Normals;
     Vector3Dd **Smooth_Normals;

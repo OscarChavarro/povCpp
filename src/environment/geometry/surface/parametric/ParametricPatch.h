@@ -5,8 +5,11 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
-static constexpr int PARAMETRIC_INTERIOR_NODE = 0;
-static constexpr int PARAMETRIC_LEAF_NODE = 1;
+class ParametricPatchConstants {
+  public:
+    static constexpr int PARAMETRIC_INTERIOR_NODE = 0;
+    static constexpr int PARAMETRIC_LEAF_NODE = 1;
+};
 
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"

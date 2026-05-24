@@ -6,8 +6,9 @@
 #include "io/pov/ParserContext.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
 
-static bool
-appendTransformOrFail(ParserContext &ctx, AstTransform *arr, int &count,
+bool
+AstObjectParser::appendTransformOrFail(ParserContext &ctx, AstTransform *arr,
+    int &count,
     AstTransformKind kind, const AstVector3 &v)
 {
     if (!AstNodes::appendTransform(arr, count, kind, v)) {
@@ -17,21 +18,19 @@ appendTransformOrFail(ParserContext &ctx, AstTransform *arr, int &count,
     return true;
 }
 
-static AstNode *parseShapeNodeFromToken(ParserContext &ctx, int tokenId);
 
-static AstNode *
-parseShapeNode(ParserContext &ctx)
+
+AstNode *AstObjectParser::parseShapeNode(ParserContext &ctx)
 {
     ctx.tokenStream().getToken();
-    AstNode *node = parseShapeNodeFromToken(ctx, ctx.token().tokenId);
+    AstNode *node = AstObjectParser::parseShapeNodeFromToken(ctx, ctx.token().tokenId);
     if (node == nullptr) {
         ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
     }
     return node;
 }
 
-static AstNode *
-parseShapeNodeFromToken(ParserContext &ctx, int tokenId)
+AstNode *AstObjectParser::parseShapeNodeFromToken(ParserContext &ctx, int tokenId)
 {
     switch (tokenId) {
     case Tokenizer::SPHERE_TOKEN:
@@ -90,20 +89,20 @@ AstObjectParser::parseSphere(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
             AstVector3 z = {0.0, 0.0, 0.0};
-            appendTransformOrFail(
+            AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
             break;
         }
@@ -166,15 +165,15 @@ AstObjectParser::parseLightSource(ParserContext &ctx)
             done = LegacyBoolean::TRUE_VALUE;
             break;
         case Tokenizer::TRANSLATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::POINT_AT_TOKEN:
@@ -227,29 +226,29 @@ AstObjectParser::parseCsg(ParserContext &ctx, AstCsgOpKind op)
         case Tokenizer::UNION_TOKEN:
         case Tokenizer::INTERSECTION_TOKEN:
         case Tokenizer::DIFFERENCE_TOKEN: {
-            AstNode *child = parseShapeNodeFromToken(ctx, ctx.token().tokenId);
+            AstNode *child = AstObjectParser::parseShapeNodeFromToken(ctx, ctx.token().tokenId);
             if (child == nullptr ||
                 !AstNodes::appendNode(
-                    node->children, node->childCount, MAX_AST_CHILDREN, child)) {
+                    node->children, node->childCount, AstLimits::MAX_AST_CHILDREN, child)) {
                 ParseErrorReporter::Error("Too many CSG children", ctx);
             }
             break;
         }
         case Tokenizer::TRANSLATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
             AstVector3 z = {0.0, 0.0, 0.0};
-            appendTransformOrFail(
+            AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
             break;
         }
@@ -285,7 +284,7 @@ AstObjectParser::parseObject(ParserContext &ctx)
             break;
         default:
             ctx.tokenStream().ungetToken();
-            node->shape = parseShapeNode(ctx);
+            node->shape = AstObjectParser::parseShapeNode(ctx);
             baseParsed = LegacyBoolean::TRUE_VALUE;
             break;
         }
@@ -303,9 +302,9 @@ AstObjectParser::parseObject(ParserContext &ctx)
                     break;
                 }
                 ctx.tokenStream().ungetToken();
-                AstNode *s = parseShapeNode(ctx);
+                AstNode *s = AstObjectParser::parseShapeNode(ctx);
                 if (!AstNodes::appendNode(node->boundedBy, node->boundedByCount,
-                        MAX_AST_CHILDREN, s)) {
+                        AstLimits::MAX_AST_CHILDREN, s)) {
                     ParseErrorReporter::Error("Too many bounded_by shapes", ctx);
                 }
             }
@@ -318,28 +317,28 @@ AstObjectParser::parseObject(ParserContext &ctx)
                     break;
                 }
                 ctx.tokenStream().ungetToken();
-                AstNode *s = parseShapeNode(ctx);
+                AstNode *s = AstObjectParser::parseShapeNode(ctx);
                 if (!AstNodes::appendNode(node->clippedBy, node->clippedByCount,
-                        MAX_AST_CHILDREN, s)) {
+                        AstLimits::MAX_AST_CHILDREN, s)) {
                     ParseErrorReporter::Error("Too many clipped_by shapes", ctx);
                 }
             }
             break;
         case Tokenizer::TRANSLATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
             AstVector3 z = {0.0, 0.0, 0.0};
-            appendTransformOrFail(
+            AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
             break;
         }
@@ -377,7 +376,7 @@ AstObjectParser::parseComposite(ParserContext &ctx)
         case Tokenizer::OBJECT_TOKEN: {
             AstNode *child = AstObjectParser::parseObject(ctx);
             if (!AstNodes::appendNode(
-                    node->children, node->childCount, MAX_AST_CHILDREN, child)) {
+                    node->children, node->childCount, AstLimits::MAX_AST_CHILDREN, child)) {
                 ParseErrorReporter::Error("Too many composite children", ctx);
             }
             break;
@@ -385,7 +384,7 @@ AstObjectParser::parseComposite(ParserContext &ctx)
         case Tokenizer::COMPOSITE_TOKEN: {
             AstNode *child = AstObjectParser::parseComposite(ctx);
             if (!AstNodes::appendNode(
-                    node->children, node->childCount, MAX_AST_CHILDREN, child)) {
+                    node->children, node->childCount, AstLimits::MAX_AST_CHILDREN, child)) {
                 ParseErrorReporter::Error("Too many composite children", ctx);
             }
             break;
@@ -410,9 +409,9 @@ parse_modifiers:
                     break;
                 }
                 ctx.tokenStream().ungetToken();
-                AstNode *s = parseShapeNode(ctx);
+                AstNode *s = AstObjectParser::parseShapeNode(ctx);
                 if (!AstNodes::appendNode(node->boundedBy, node->boundedByCount,
-                        MAX_AST_CHILDREN, s)) {
+                        AstLimits::MAX_AST_CHILDREN, s)) {
                     ParseErrorReporter::Error("Too many bounded_by shapes", ctx);
                 }
             }
@@ -425,28 +424,28 @@ parse_modifiers:
                     break;
                 }
                 ctx.tokenStream().ungetToken();
-                AstNode *s = parseShapeNode(ctx);
+                AstNode *s = AstObjectParser::parseShapeNode(ctx);
                 if (!AstNodes::appendNode(node->clippedBy, node->clippedByCount,
-                        MAX_AST_CHILDREN, s)) {
+                        AstLimits::MAX_AST_CHILDREN, s)) {
                     ParseErrorReporter::Error("Too many clipped_by shapes", ctx);
                 }
             }
             break;
         case Tokenizer::TRANSLATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::ROTATE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::SCALE_TOKEN:
-            appendTransformOrFail(ctx, node->transforms, node->transformCount,
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
                 AST_SCALE, AstPrimitiveParser::parseVector(ctx));
             break;
         case Tokenizer::INVERSE_TOKEN: {
             AstVector3 z = {0.0, 0.0, 0.0};
-            appendTransformOrFail(
+            AstObjectParser::appendTransformOrFail(
                 ctx, node->transforms, node->transformCount, AST_INVERSE, z);
             break;
         }

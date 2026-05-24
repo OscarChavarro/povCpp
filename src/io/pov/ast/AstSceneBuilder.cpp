@@ -17,20 +17,14 @@
 #include "io/pov/ParserContext.h"
 #include "io/pov/ast/AstNodes.h"
 
-struct AstDeclTable {
-    int count;
-    int ids[ParserConstants::MAX_CONSTANTS];
-    const AstNode *nodes[ParserConstants::MAX_CONSTANTS];
-};
-
-static Vector3Dd
-asVector(const AstVector3 &v)
+Vector3Dd
+AstSceneBuilder::asVector(const AstVector3 &v)
 {
     return Vector3Dd(v.x, v.y, v.z);
 }
 
-static void
-applyTransforms(Geometry *shape, const AstTransform *transforms, int count)
+void
+AstSceneBuilder::applyTransforms(Geometry *shape, const AstTransform *transforms, int count)
 {
     for (int i = 0; i < count; ++i) {
         const AstTransform &t = transforms[i];
@@ -54,8 +48,8 @@ applyTransforms(Geometry *shape, const AstTransform *transforms, int count)
     }
 }
 
-static const AstNode *
-findDecl(const AstDeclTable &decls, int identifierNumber)
+const AstNode *
+AstSceneBuilder::findDecl(const AstDeclTable &decls, int identifierNumber)
 {
     for (int i = 0; i < decls.count; ++i) {
         if (decls.ids[i] == identifierNumber) {
@@ -65,13 +59,8 @@ findDecl(const AstDeclTable &decls, int identifierNumber)
     return nullptr;
 }
 
-static Geometry *buildGeometryNode(
-    const AstNode &node, ParserContext &ctx, const AstDeclTable &decls);
-static SimpleBody *buildSimpleBodyNode(
-    const AstNode &node, ParserContext &ctx, const AstDeclTable &decls);
-
-static Sphere *
-buildSphere(const AstSphereNode &node, ParserContext &ctx, const AstDeclTable &decls)
+Sphere *
+AstSceneBuilder::buildSphere(const AstSphereNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
     Sphere *shape = nullptr;
 
@@ -105,8 +94,8 @@ buildSphere(const AstSphereNode &node, ParserContext &ctx, const AstDeclTable &d
     return shape;
 }
 
-static Light *
-buildLight(
+Light *
+AstSceneBuilder::buildLight(
     const AstLightSourceNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
     Light *shape = nullptr;
@@ -149,8 +138,8 @@ buildLight(
     return shape;
 }
 
-static CSG *
-buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstDeclTable &decls)
+CSG *
+AstSceneBuilder::buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
     CSG *container = nullptr;
     if (node.op == AST_CSG_UNION) {
@@ -186,8 +175,8 @@ buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstDeclTable &decls)
     return container;
 }
 
-static Geometry *
-buildGeometryNode(const AstNode &node, ParserContext &ctx, const AstDeclTable &decls)
+Geometry *
+AstSceneBuilder::buildGeometryNode(const AstNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
     if (node.kind == AST_SPHERE_NODE) {
         return (Geometry *)buildSphere((const AstSphereNode &)node, ctx, decls);
@@ -203,8 +192,8 @@ buildGeometryNode(const AstNode &node, ParserContext &ctx, const AstDeclTable &d
     return nullptr;
 }
 
-static SimpleBody *
-buildObject(const AstObjectNode &node, ParserContext &ctx, const AstDeclTable &decls)
+SimpleBody *
+AstSceneBuilder::buildObject(const AstObjectNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
     SimpleBody *object = nullptr;
     if (node.hasReference) {
@@ -241,8 +230,8 @@ buildObject(const AstObjectNode &node, ParserContext &ctx, const AstDeclTable &d
     return object;
 }
 
-static Composite *
-buildComposite(
+Composite *
+AstSceneBuilder::buildComposite(
     const AstCompositeNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
     Composite *composite = nullptr;
@@ -276,8 +265,8 @@ buildComposite(
     return composite;
 }
 
-static SimpleBody *
-buildSimpleBodyNode(const AstNode &node, ParserContext &ctx, const AstDeclTable &decls)
+SimpleBody *
+AstSceneBuilder::buildSimpleBodyNode(const AstNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
     if (node.kind == AST_OBJECT_NODE) {
         return buildObject((const AstObjectNode &)node, ctx, decls);

@@ -5,14 +5,14 @@
 #include "java/io/FileInputStream.h"
 #include "java/io/FileOutputStream.h"
 
-static constexpr const char *RED_RAW_FILE_EXTENSION   = ".red";
-static constexpr const char *GREEN_RAW_FILE_EXTENSION = ".grn";
-static constexpr const char *BLUE_RAW_FILE_EXTENSION  = ".blu";
-
 class RGBAColor;
 
 class RawFormat : public ImageOutput {
   public:
+    static constexpr const char *RED_RAW_FILE_EXTENSION = ".red";
+    static constexpr const char *GREEN_RAW_FILE_EXTENSION = ".grn";
+    static constexpr const char *BLUE_RAW_FILE_EXTENSION = ".blu";
+
     RawFormat();
     ~RawFormat() override;
     const char *defaultFileName() override;
@@ -22,6 +22,11 @@ class RawFormat : public ImageOutput {
     void close() override;
 
   private:
+    static java::FileInputStream *openRawInputStream(
+        const char *base, const char *ext);
+    static java::FileOutputStream *openRawOutputStream(
+        const char *base, const char *ext, bool append);
+
     java::FileInputStream *redIn;
     java::FileInputStream *greenIn;
     java::FileInputStream *blueIn;

@@ -62,7 +62,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
                     shape->Intersection_Point[tcnt + cnt] = ip;
                     shape->normalVector[tcnt + cnt] = n;
                     depths[cnt] = depth;
-                    if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                    if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
                         /* Too many intersections. Stop looking for more. */
                         return cnt;
                     }
@@ -76,7 +76,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
                     shape->Intersection_Point[tcnt + cnt] = ip;
                     shape->normalVector[tcnt + cnt] = n;
                     depths[cnt] = depth;
-                    if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                    if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
                         /* Too many intersections. Stop looking for more. */
                         return cnt;
                     }
@@ -138,7 +138,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
                 shape->Intersection_Point[tcnt + cnt] = ip;
                 shape->normalVector[tcnt + cnt] = n;
                 depths[cnt] = depth;
-                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
                     /* Too many intersections. Stop looking for more. */
                     return cnt;
                 }
@@ -155,7 +155,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
                 shape->Intersection_Point[tcnt + cnt] = ip;
                 shape->normalVector[tcnt + cnt] = n;
                 depths[cnt] = depth;
-                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
                     /* Too many intersections. Stop looking for more. */
                     return cnt;
                 }
@@ -170,8 +170,8 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch2(
     RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
-    double uValues[MAX_BICUBIC_INTERSECTIONS];
-    double vValues[MAX_BICUBIC_INTERSECTIONS];
+    double uValues[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+    double vValues[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
     Vector3Dd(*patch)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
     ParametricBiCubicPatch::parametricSubdivider(ray, shape, patch, 0.0, 1.0,
@@ -260,7 +260,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
                 shape->Intersection_Point[tcnt + cnt] = ip;
                 shape->normalVector[tcnt + cnt] = ipNorm;
                 depths[cnt] = depth;
-                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
                     /* Too many intersections. Stop looking for more. */
                     return cnt;
                 }
@@ -293,7 +293,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
                 shape->Intersection_Point[tcnt + cnt] = ip;
                 shape->normalVector[tcnt + cnt] = ipNorm;
                 depths[cnt] = depth;
-                if (tcnt + ++cnt >= MAX_BICUBIC_INTERSECTIONS) {
+                if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
                     /* Too many intersections. Stop looking for more. */
                     return cnt;
                 }
@@ -308,7 +308,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     ParametricBiCubicPatch *shape = (ParametricBiCubicPatch *)object;
-    double depths[MAX_BICUBIC_INTERSECTIONS];
+    double depths[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
     Intersection localElement;
     int cnt = 0;
     int tcnt;

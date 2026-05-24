@@ -29,7 +29,8 @@ RawFormat::defaultFileName()
     return "data";
 }
 
-static java::FileInputStream *openRawInputStream(const char *base, const char *ext)
+java::FileInputStream *
+RawFormat::openRawInputStream(const char *base, const char *ext)
 {
     char fileName[256];
     std::strcpy(fileName, base);
@@ -42,7 +43,8 @@ static java::FileInputStream *openRawInputStream(const char *base, const char *e
     return s;
 }
 
-static java::FileOutputStream *openRawOutputStream(const char *base, const char *ext, bool append)
+java::FileOutputStream *
+RawFormat::openRawOutputStream(const char *base, const char *ext, bool append)
 {
     char fileName[256];
     std::strcpy(fileName, base);
@@ -61,9 +63,9 @@ RawFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
 
     switch (mode) {
     case READ_MODE:
-        redIn   = openRawInputStream(name, RED_RAW_FILE_EXTENSION);
-        greenIn = openRawInputStream(name, GREEN_RAW_FILE_EXTENSION);
-        blueIn  = openRawInputStream(name, BLUE_RAW_FILE_EXTENSION);
+        redIn   = RawFormat::openRawInputStream(name, RED_RAW_FILE_EXTENSION);
+        greenIn = RawFormat::openRawInputStream(name, GREEN_RAW_FILE_EXTENSION);
+        blueIn  = RawFormat::openRawInputStream(name, BLUE_RAW_FILE_EXTENSION);
         if (!redIn || !greenIn || !blueIn) {
             return 0;
         }
@@ -72,17 +74,17 @@ RawFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
         break;
 
     case WRITE_MODE:
-        redOut   = openRawOutputStream(name, RED_RAW_FILE_EXTENSION,   false);
-        greenOut = openRawOutputStream(name, GREEN_RAW_FILE_EXTENSION, false);
-        blueOut  = openRawOutputStream(name, BLUE_RAW_FILE_EXTENSION,  false);
+        redOut   = RawFormat::openRawOutputStream(name, RED_RAW_FILE_EXTENSION, false);
+        greenOut = RawFormat::openRawOutputStream(name, GREEN_RAW_FILE_EXTENSION, false);
+        blueOut  = RawFormat::openRawOutputStream(name, BLUE_RAW_FILE_EXTENSION, false);
         width  = *w;
         height = *h;
         break;
 
     case APPEND_MODE:
-        redOut   = openRawOutputStream(name, RED_RAW_FILE_EXTENSION,   true);
-        greenOut = openRawOutputStream(name, GREEN_RAW_FILE_EXTENSION, true);
-        blueOut  = openRawOutputStream(name, BLUE_RAW_FILE_EXTENSION,  true);
+        redOut   = RawFormat::openRawOutputStream(name, RED_RAW_FILE_EXTENSION, true);
+        greenOut = RawFormat::openRawOutputStream(name, GREEN_RAW_FILE_EXTENSION, true);
+        blueOut  = RawFormat::openRawOutputStream(name, BLUE_RAW_FILE_EXTENSION, true);
         width  = *w;
         height = *h;
         break;

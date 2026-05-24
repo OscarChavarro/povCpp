@@ -4,9 +4,8 @@
 #include "environment/camera/Camera.h"
 #include "io/pov/Parse.h"
 
-
-static CONSTANT
-findConstant(ParserContext &ctx)
+CONSTANT
+CameraParser::findConstant(ParserContext &ctx)
 {
     int i;
 
@@ -48,7 +47,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = findConstant(ctx)) != -1) {
+                if ((constantId = CameraParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::VIEW_POINT_CONSTANT) {
                         *givenVp = *((Camera *)ctx.constants()[(int)constantId]

@@ -3,10 +3,6 @@
 
 #include "io/pov/ParserConstants.h"
 
-static constexpr int MAX_AST_TRANSFORMS = 64;
-static constexpr int MAX_AST_CHILDREN = 256;
-static constexpr int MAX_AST_SCENE_NODES = 2048;
-
 enum AstNodeKind {
     AST_DECLARE_NODE = 0,
     AST_SPHERE_NODE = 1,
@@ -47,6 +43,13 @@ struct AstTransform {
     AstVector3 vectorValue;
 };
 
+class AstLimits {
+  public:
+    static constexpr int MAX_AST_TRANSFORMS = 64;
+    static constexpr int MAX_AST_CHILDREN = 256;
+    static constexpr int MAX_AST_SCENE_NODES = 2048;
+};
+
 class AstNode {
   public:
     virtual ~AstNode() {}
@@ -66,7 +69,7 @@ class AstSphereNode : public AstNode {
     double radius;
     bool hasColour;
     AstColor colour;
-    AstTransform transforms[MAX_AST_TRANSFORMS];
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
 
@@ -84,7 +87,7 @@ class AstLightSourceNode : public AstNode {
     double tightness;
     double radiusDegrees;
     double falloffDegrees;
-    AstTransform transforms[MAX_AST_TRANSFORMS];
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
 
@@ -95,9 +98,9 @@ class AstCsgNode : public AstNode {
     AstCsgOpKind op;
     bool hasReference;
     int referenceConstantId;
-    AstNode *children[MAX_AST_CHILDREN];
+    AstNode *children[AstLimits::MAX_AST_CHILDREN];
     int childCount;
-    AstTransform transforms[MAX_AST_TRANSFORMS];
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
 
@@ -116,11 +119,11 @@ class AstObjectNode : public AstNode {
     bool hasReference;
     int referenceConstantId;
     AstNode *shape;
-    AstNode *boundedBy[MAX_AST_CHILDREN];
+    AstNode *boundedBy[AstLimits::MAX_AST_CHILDREN];
     int boundedByCount;
-    AstNode *clippedBy[MAX_AST_CHILDREN];
+    AstNode *clippedBy[AstLimits::MAX_AST_CHILDREN];
     int clippedByCount;
-    AstTransform transforms[MAX_AST_TRANSFORMS];
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
     bool noShadow;
 };
@@ -131,13 +134,13 @@ class AstCompositeNode : public AstNode {
 
     bool hasReference;
     int referenceConstantId;
-    AstNode *children[MAX_AST_CHILDREN];
+    AstNode *children[AstLimits::MAX_AST_CHILDREN];
     int childCount;
-    AstNode *boundedBy[MAX_AST_CHILDREN];
+    AstNode *boundedBy[AstLimits::MAX_AST_CHILDREN];
     int boundedByCount;
-    AstNode *clippedBy[MAX_AST_CHILDREN];
+    AstNode *clippedBy[AstLimits::MAX_AST_CHILDREN];
     int clippedByCount;
-    AstTransform transforms[MAX_AST_TRANSFORMS];
+    AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
 };
 
@@ -145,7 +148,7 @@ class AstScene {
   public:
     AstScene();
 
-    AstNode *nodes[MAX_AST_SCENE_NODES];
+    AstNode *nodes[AstLimits::MAX_AST_SCENE_NODES];
     int nodeCount;
 };
 
