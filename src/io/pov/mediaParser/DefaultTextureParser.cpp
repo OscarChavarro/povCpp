@@ -19,7 +19,7 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case TEXTURE_TOKEN:
                 TextureUtils::defaultTexture()->constantFlag = FALSE;

@@ -152,7 +152,6 @@ sCurve(double a)
     return Texture::sCurve(a);
 }
 
-// These need to be global because they access external variables
 inline short
 hash3d(long a, long b, long c)
 {

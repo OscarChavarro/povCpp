@@ -35,10 +35,10 @@ QuadricParser::parseQuadric(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getQuadricShape();
                 PrimitiveParser::parseVector(&(localShape->object2Terms), ctx);
                 PrimitiveParser::parseVector(&(localShape->objectMixedTerms), ctx);
@@ -81,7 +81,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

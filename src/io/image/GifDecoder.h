@@ -5,6 +5,7 @@ typedef short WORD;
 
 class GifDecoder {
   public:
+    static unsigned char *decoderline;
     static void cleanupGifDecoder(void);
     static WORD initExp(int iSize);
     static WORD getNextCode(void);

@@ -8,6 +8,8 @@ class SceneParser {
   public:
     static void Parse(RenderFrame *framePtr);
     static void Parse(RenderFrame *framePtr, ParserContext &ctx);
+    static void ParseAst(RenderFrame *framePtr);
+    static void ParseAst(RenderFrame *framePtr, ParserContext &ctx);
     static void tokenInit();
     static void tokenInit(ParserContext &ctx);
     static void frameInit();

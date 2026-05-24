@@ -57,7 +57,7 @@ TextureParser::parseTexture(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -74,7 +74,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case FLOAT_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = FALSE;
@@ -141,7 +141,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case COLOUR_TOKEN:
                             texture->Colour1 = ModelBuilder::getColour();
@@ -152,7 +152,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -170,7 +170,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case COLOUR_TOKEN:
                             texture->Colour1 = ModelBuilder::getColour();
@@ -181,7 +181,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -202,7 +202,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case TEXTURE_TOKEN:
                             localTexture = TextureParser::parseTexture(ctx);
@@ -222,7 +222,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             }
                             break;
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -234,7 +234,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case TEXTURE_TOKEN:
                             localTexture = TextureParser::parseTexture(ctx);
@@ -255,7 +255,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             }
                             break;
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -443,18 +443,18 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case DASH_TOKEN:
                         case PLUS_TOKEN:
                         case FLOAT_TOKEN:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             (texture->Image->mapType) =
                                 (int)PrimitiveParser::parseFloat(ctx);
                             break;
 
                         case LEFT_ANGLE_TOKEN:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             PrimitiveParser::parseVector(
                                 &(texture->Image->imageGradient));
                             break;
@@ -498,7 +498,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case ONCE_TOKEN:
                             texture->Image->onceFlag = TRUE;
@@ -526,7 +526,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             int Exit_Flag;
                             Exit_Flag = FALSE;
                             while (!Exit_Flag) {
-                                Tokenizer::getToken();
+                                ctx.tokenStream().getToken();
                                 switch (ctx.token().tokenId) {
                                 case FLOAT_TOKEN:
                                     reg = (int)(ctx.token().tokenFloat + 0.01);
@@ -592,7 +592,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case PHASE_TOKEN:
                             texture->Phase = PrimitiveParser::parseFloat(ctx);
@@ -600,7 +600,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -797,18 +797,18 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case DASH_TOKEN:
                         case PLUS_TOKEN:
                         case FLOAT_TOKEN:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             (texture->Bump_Image->mapType) =
                                 (int)PrimitiveParser::parseFloat(ctx);
                             break;
 
                         case LEFT_ANGLE_TOKEN:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             PrimitiveParser::parseVector(
                                 &(texture->Bump_Image->imageGradient));
                             break;
@@ -852,7 +852,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case ONCE_TOKEN:
                             texture->Bump_Image->onceFlag = TRUE;
@@ -915,18 +915,18 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case DASH_TOKEN:
                         case PLUS_TOKEN:
                         case FLOAT_TOKEN:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             (texture->Image->mapType) =
                                 (int)PrimitiveParser::parseFloat(ctx);
                             break;
 
                         case LEFT_ANGLE_TOKEN:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             PrimitiveParser::parseVector(
                                 &(texture->Material_Image->imageGradient));
                             break;
@@ -973,7 +973,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
 
                         case MAPTYPE_TOKEN:

@@ -9,9 +9,6 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
-extern void MakeBlob(SimpleBody *obj, double threshold, BlobList *components,
-    int npoints, int surfaceType);
-
 Geometry *
 BlobParser::parseBlob()
 {
@@ -38,7 +35,7 @@ BlobParser::parseBlob(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
@@ -54,11 +51,11 @@ BlobParser::parseBlob(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case THRESHOLD_TOKEN:
             case COMPONENT_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBlobShape();
                 blobComponents = nullptr;
                 npoints = 0;
@@ -69,7 +66,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case THRESHOLD_TOKEN:
                             threshold = PrimitiveParser::parseFloat(ctx);
@@ -94,7 +91,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -102,7 +99,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 }
 
                 /* Finally, process the information */
-                MakeBlob((SimpleBody *)localShape, threshold, blobComponents,
+                Blob::makeBlob((SimpleBody *)localShape, threshold, blobComponents,
                     npoints, 0);
                 Exit_Flag = TRUE;
                 break;
@@ -134,7 +131,7 @@ BlobParser::parseBlob(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

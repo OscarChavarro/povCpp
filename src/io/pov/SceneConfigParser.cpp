@@ -35,15 +35,7 @@ SceneConfigParser::findConstant()
 CONSTANT
 SceneConfigParser::findConstant(ParserContext &ctx)
 {
-    int i;
-
-    for (i = 1; i <= ctx.numberOfConstants(); i++) {
-        if (ctx.constants()[i].identifierNumber == ctx.token().identifierNumber) {
-            return (i);
-        }
-    }
-
-    return (-1);
+    return ctx.symbols().findByIdentifierNumber(ctx.token().identifierNumber);
 }
 
 void
@@ -62,7 +54,7 @@ SceneConfigParser::parseFog(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case COLOUR_TOKEN:
                 PrimitiveParser::parseColour(&ctx.parsingFrame()->fogColour, ctx);
@@ -110,7 +102,7 @@ SceneConfigParser::parseCamera(Camera *givenVp, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -228,7 +220,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case OBJECT_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
@@ -365,12 +357,12 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 localTexture = nullptr;
                 constantPtr->constantData = (char *)localTexture;
                 constantPtr->constantType = TEXTURE_CONSTANT;
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 {
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case TEXTURE_TOKEN:
                             localTexture = TextureUtils::defaultTexture();
@@ -396,7 +388,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -433,7 +425,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)ModelBuilder::getVector();
                 constantPtr->constantType = VECTOR_CONSTANT;
@@ -445,7 +437,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)ModelBuilder::getFloat();
                 constantPtr->constantType = FLOAT_CONSTANT;

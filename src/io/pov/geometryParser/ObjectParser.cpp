@@ -70,7 +70,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -272,7 +272,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 break;
 
             default:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 Exit_Flag = TRUE;
                 break;
             }
@@ -283,7 +283,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
@@ -336,7 +336,7 @@ ObjectParser::parseShape(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource(ctx);
@@ -448,7 +448,7 @@ ObjectParser::parseObject(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -482,7 +482,7 @@ ObjectParser::parseObject(ParserContext &ctx)
             case LIGHT_SOURCE_TOKEN:
             case BOX_TOKEN:
             case BLOB_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 if (object == nullptr) {
                     object = SimpleBodyFactory::getObject();
                 }
@@ -506,7 +506,7 @@ ObjectParser::parseObject(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case BOUNDED_TOKEN:
 
@@ -516,14 +516,14 @@ ObjectParser::parseObject(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),
@@ -542,14 +542,14 @@ ObjectParser::parseObject(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),
@@ -643,7 +643,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -681,7 +681,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 break;
 
             case RIGHT_CURLY_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
                 }
@@ -689,7 +689,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 break;
 
             default:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 Exit_Flag = TRUE;
                 break;
             }
@@ -700,7 +700,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
@@ -714,14 +714,14 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),
@@ -741,14 +741,14 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case RIGHT_CURLY_TOKEN:
                             Exit_Flag = TRUE;
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             SimpleBodyFactory::link((SimpleBody *)localShape,
                                 (SimpleBody **)&(localShape->nextObject),

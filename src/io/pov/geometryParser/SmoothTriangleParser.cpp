@@ -35,10 +35,10 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 localShape =
                     (SmoothTriangle *)ModelBuilder::getSmoothTriangleShape();
                 PrimitiveParser::parseVector(&localShape->P1, ctx);
@@ -86,7 +86,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

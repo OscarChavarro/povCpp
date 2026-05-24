@@ -2,27 +2,35 @@
 
 #include "common/color/RGBAColorPaletteSpan.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/scene/SceneFrame.h"
-#include "io/Tokenizer.h"
-#include "io/pov/SceneConfigParser.h"
+#include "io/pov/ITokenStream.h"
+#include "io/pov/TokenizerTokenStream.h"
 #include "processing/PolynomialConstants.h"
 
-static RenderFrame *parsingFramePtrInstance = nullptr;
-static RGBAColorPaletteSpan *constructionMapInstance = nullptr;
-static Constant constantsInstance[MAX_CONSTANTS];
-static int numberOfConstantsInstance = 0;
-static int degenerateTrianglesInstance = 0;
+static TokenizerTokenStream defaultTokenStream;
+static RenderFrame *sharedParsingFramePtr = nullptr;
+static RGBAColorPaletteSpan *sharedConstructionMap = nullptr;
+static SymbolTable sharedSymbols;
+static int sharedDegenerateTriangles = 0;
+
+ParserContext::ParserContext()
+{
+    mTokenStream = &defaultTokenStream;
+    mParsingFramePtr = &sharedParsingFramePtr;
+    mConstructionMap = &sharedConstructionMap;
+    mSymbols = &sharedSymbols;
+    mDegenerateTriangles = &sharedDegenerateTriangles;
+}
 
 ReservedWord *
 ParserContext::reservedWords()
 {
-    return Tokenizer::reservedWords();
+    return mTokenStream->reservedWords();
 }
 
 TokenStruct &
 ParserContext::token()
 {
-    return Tokenizer::token();
+    return mTokenStream->token();
 }
 
 int *
@@ -34,29 +42,49 @@ ParserContext::termCounts()
 RenderFrame *&
 ParserContext::parsingFrame()
 {
-    return parsingFramePtrInstance;
+    return *mParsingFramePtr;
 }
 
 RGBAColorPaletteSpan *&
 ParserContext::constructionMap()
 {
-    return constructionMapInstance;
+    return *mConstructionMap;
 }
 
 Constant *
 ParserContext::constants()
 {
-    return constantsInstance;
+    return mSymbols->data();
 }
 
 int &
 ParserContext::numberOfConstants()
 {
-    return numberOfConstantsInstance;
+    return mSymbols->size();
+}
+
+SymbolTable &
+ParserContext::symbols()
+{
+    return *mSymbols;
 }
 
 int &
 ParserContext::degenerateTriangles()
 {
-    return degenerateTrianglesInstance;
+    return *mDegenerateTriangles;
+}
+
+ITokenStream &
+ParserContext::tokenStream()
+{
+    return *mTokenStream;
+}
+
+void
+ParserContext::setTokenStream(ITokenStream *tokenStream)
+{
+    if (tokenStream != nullptr) {
+        mTokenStream = tokenStream;
+    }
 }

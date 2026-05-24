@@ -9,6 +9,9 @@
 #include "io/image/TargaFormat.h"
 #include "io/pov/Parse.h"
 #include "io/pov/SceneFrameParser.h"
+#include "io/pov/ast/AstSceneBuilder.h"
+#include "io/pov/ast/AstNodes.h"
+#include "io/pov/ast/AstSceneParser.h"
 #include "environment/scene/SceneFrame.h"
 
 #include "environment/camera/Camera.h"
@@ -56,6 +59,31 @@ SceneParser::Parse(RenderFrame *framePtr, ParserContext &ctx)
 }
 
 void
+SceneParser::ParseAst(RenderFrame *framePtr)
+{
+    ParserContext ctx;
+    SceneParser::ParseAst(framePtr, ctx);
+}
+
+void
+SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
+{
+    SimpleBody *object;
+    ctx.parsingFrame() = framePtr;
+
+    ctx.degenerateTriangles() = FALSE;
+    SceneParser::tokenInit(ctx);
+    SceneParser::frameInit(ctx);
+    AstScene *scene = AstSceneParser::parseScene(ctx);
+    AstSceneBuilder::build(*scene, framePtr, ctx);
+    AstNodes::destroyScene(scene);
+    for (object = ctx.parsingFrame()->Objects; object != nullptr;
+        object = object->nextObject) {
+        ParseHelpers::postProcessObject(object);
+    }
+}
+
+void
 SceneParser::tokenInit()
 {
     ParserContext ctx;
@@ -65,10 +93,7 @@ SceneParser::tokenInit()
 void
 SceneParser::tokenInit(ParserContext &ctx)
 {
-    ctx.numberOfConstants() = 0;
-    /*
-       Constants = new Constant[MAX_CONSTANTS];
-    */
+    ctx.symbols().clear();
 }
 
 /* Set up the fields in the frame to default values. */

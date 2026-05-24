@@ -35,10 +35,10 @@ SphereParser::parseSphere(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getSphereShape();
                 PrimitiveParser::parseVector(&(localShape->Center), ctx);
                 localShape->Radius = PrimitiveParser::parseFloat(ctx);
@@ -75,7 +75,7 @@ SphereParser::parseSphere(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

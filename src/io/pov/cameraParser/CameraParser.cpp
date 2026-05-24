@@ -45,7 +45,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = findConstant(ctx)) != -1) {
