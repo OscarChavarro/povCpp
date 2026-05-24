@@ -299,6 +299,12 @@ AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
         return AstObjectParser::parseSphere(ctx);
     case Tokenizer::PLANE_TOKEN:
         return AstObjectParser::parsePlane(ctx);
+    case Tokenizer::BOX_TOKEN:
+        return AstObjectParser::parseBox(ctx);
+    case Tokenizer::QUADRIC_TOKEN:
+        return AstObjectParser::parseQuadric(ctx);
+    case Tokenizer::BLOB_TOKEN:
+        return AstObjectParser::parseBlob(ctx);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:
@@ -403,6 +409,9 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         }
         case Tokenizer::SPHERE_TOKEN:
         case Tokenizer::PLANE_TOKEN:
+        case Tokenizer::BOX_TOKEN:
+        case Tokenizer::QUADRIC_TOKEN:
+        case Tokenizer::BLOB_TOKEN:
         case Tokenizer::LIGHT_SOURCE_TOKEN:
         case Tokenizer::UNION_TOKEN:
         case Tokenizer::INTERSECTION_TOKEN:

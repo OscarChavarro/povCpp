@@ -10,6 +10,9 @@ class AstObjectParser {
     static AstSphereNode *parseSphere(ParserContext &ctx);
     static AstLightSourceNode *parseLightSource(ParserContext &ctx);
     static AstPlaneNode *parsePlane(ParserContext &ctx);
+    static AstBoxNode *parseBox(ParserContext &ctx);
+    static AstQuadricNode *parseQuadric(ParserContext &ctx);
+    static AstBlobNode *parseBlob(ParserContext &ctx);
     static AstCsgNode *parseCsg(ParserContext &ctx, AstCsgOpKind op);
     static AstObjectNode *parseObject(ParserContext &ctx);
     static AstCompositeNode *parseComposite(ParserContext &ctx);
