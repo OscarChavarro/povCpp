@@ -50,7 +50,7 @@ TextureFixture::painted1(
         TextureUtils::DNoise(&colourVector, x, y, z);
         temp = TextureUtils::Noise(colourVector.x * 4 * scale,
             colourVector.y * 4 * scale, colourVector.z * 4 * scale);
-        temp = fabsInline(temp);
+        temp = TextureUtils::fabsInline(temp);
         result.x += temp / scale;
         result.y += temp / scale;
         result.z += temp / scale;
@@ -103,7 +103,7 @@ TextureFixture::painted2(
         z += textureTurbulence.z * turb;
     }
 
-    brkindx = (int)floorInline(x) + (int)floorInline(z);
+    brkindx = (int)TextureUtils::floorInline(x) + (int)TextureUtils::floorInline(z);
 
     if (debugEnabled) {
         Logger::info("checker %g %g %g\n", x, y, z);

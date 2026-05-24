@@ -16,7 +16,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     double z;
     const int debugEnabled = (RenderingConfiguration::global().options & DEBUGGING);
 
-    if (texture->bumpNumber == NO_BUMPS) {
+    if (texture->bumpNumber == Texture::NO_BUMPS) {
         *newNormal = *surfaceNormal;
         return;
     }
@@ -34,40 +34,40 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
 
     switch (texture->bumpNumber) {
 
-    case WAVES:
+    case Texture::WAVES:
         BumpTextureFixture::waves(x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case RIPPLES:
+    case Texture::RIPPLES:
         BumpTextureFixture::ripples(x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case WRINKLES:
+    case Texture::WRINKLES:
         BumpTextureFixture::wrinkles(
             x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case BUMPS:
+    case Texture::BUMPS:
         BumpTextureFixture::bumps(x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case DENTS:
+    case Texture::DENTS:
         BumpTextureFixture::dents(x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case BUMPY1:
+    case Texture::BUMPY1:
         TextureFixture::bumpy1(x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case BUMPY2:
+    case Texture::BUMPY2:
         TextureFixture::bumpy2(x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case BUMPY3:
+    case Texture::BUMPY3:
         TextureFixture::bumpy3(x, y, z, texture, newNormal, debugEnabled);
         break;
 
-    case BUMPMAP:
+    case Texture::BUMPMAP:
         MapTextureFixture::bumpMap(
             x, y, z, texture, newNormal, debugEnabled, Small_Tolerance);
         break;

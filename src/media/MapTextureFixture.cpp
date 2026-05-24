@@ -259,7 +259,7 @@ MapTextureFixture::imageColourAt(
     RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     switch (image->interpolationType) {
-    case NO_INTERPOLATION:
+    case Texture::NO_INTERPOLATION:
         MapTextureFixture::noInterpolation(image, xcoor, ycoor, colour, index);
         break;
     default:
@@ -481,22 +481,22 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
 
     /* Now determine which mapper to use. */
     switch (image->mapType) {
-    case PLANAR_MAP:
+    case Texture::PLANAR_MAP:
         if (!MapTextureFixture::planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
-    case SPHERICAL_MAP:
+    case Texture::SPHERICAL_MAP:
         if (!MapTextureFixture::sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
-    case CYLINDRICAL_MAP:
+    case Texture::CYLINDRICAL_MAP:
         if (!MapTextureFixture::cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
-    case TORUS_MAP:
+    case Texture::TORUS_MAP:
         if (!MapTextureFixture::torusImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
@@ -604,7 +604,7 @@ MapTextureFixture::interp(
         cornerColour[i].Alpha = 0.0;
     }
     /* OK, now that you have the corners, what are you going to do with them? */
-    if (image->interpolationType == BILINEAR) {
+    if (image->interpolationType == Texture::BILINEAR) {
         MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColour[0], &cornersIndex[0]);
         MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
@@ -627,7 +627,7 @@ MapTextureFixture::interp(
         val3 = bilinear(blueCrn, xcoor, ycoor);
         val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
-    if (image->interpolationType == NORMALIZED_DIST) {
+    if (image->interpolationType == Texture::NORMALIZED_DIST) {
         MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColour[0], &cornersIndex[0]);
         MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
@@ -660,10 +660,10 @@ MapTextureFixture::interp(
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];
     }
-    if (image->interpolationType == BILINEAR) {
+    if (image->interpolationType == Texture::BILINEAR) {
         *index = (int)(bilinear(indexCrn, xcoor, ycoor) + 0.5);
     }
-    if (image->interpolationType == NORMALIZED_DIST) {
+    if (image->interpolationType == Texture::NORMALIZED_DIST) {
         *index = (int)(normDist(indexCrn, xcoor, ycoor) + 0.5);
     }
 }
