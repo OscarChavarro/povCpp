@@ -10,6 +10,9 @@ class AstLightSourceNode;
 class AstCsgNode;
 class AstObjectNode;
 class AstCompositeNode;
+class AstFogNode;
+class AstCameraNode;
+class AstMaxTraceLevelNode;
 class AstTransform;
 struct AstVector3;
 class Vector3Dd;
@@ -55,6 +58,10 @@ class AstSceneBuilder {
         const AstObjectNode &node, ParserContext &ctx, const AstDeclTable &decls);
     static Composite *buildComposite(const AstCompositeNode &node,
         ParserContext &ctx, const AstDeclTable &decls);
+    static void applyFog(const AstFogNode &node, RenderFrame *framePtr);
+    static void applyCamera(
+        const AstCameraNode &node, RenderFrame *framePtr, ParserContext &ctx, const AstDeclTable &decls);
+    static void applyMaxTraceLevel(const AstMaxTraceLevelNode &node);
 };
 
 #endif

@@ -5,12 +5,18 @@ class ParserContext;
 class AstNode;
 class AstDeclareNode;
 class AstParsedSceneProgram;
+class AstFogNode;
+class AstCameraNode;
+class AstMaxTraceLevelNode;
 
 class AstSceneParser {
   public:
     static AstParsedSceneProgram *parseProgram(ParserContext &ctx);
 
   private:
+    static AstFogNode *parseFogNode(ParserContext &ctx);
+    static AstCameraNode *parseCameraNode(ParserContext &ctx);
+    static AstMaxTraceLevelNode *parseMaxTraceLevelNode(ParserContext &ctx);
     static AstNode *parseRootNodeForToken(ParserContext &ctx, int tokenId);
     static AstDeclareNode *parseDeclareNode(ParserContext &ctx);
 };

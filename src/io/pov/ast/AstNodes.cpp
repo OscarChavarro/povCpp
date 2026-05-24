@@ -76,6 +76,32 @@ AstCompositeNode::AstCompositeNode()
     transformCount = 0;
 }
 
+AstFogNode::AstFogNode()
+{
+    kind = AST_FOG_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasColour = false;
+    hasDistance = false;
+    distance = 0.0;
+}
+
+AstCameraNode::AstCameraNode()
+{
+    kind = AST_CAMERA_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    opCount = 0;
+}
+
+AstMaxTraceLevelNode::AstMaxTraceLevelNode()
+{
+    kind = AST_MAX_TRACE_LEVEL_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    value = 0.0;
+}
+
 AstScene::AstScene()
 {
     nodeCount = 0;

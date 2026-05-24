@@ -4,11 +4,13 @@
 
 #include "common/color/Color.h"
 #include "common/linealAlgebra/Vector3Dd.h"
+#include "environment/camera/Camera.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
+#include "environment/material/RenderRuntimeState.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/scene/SceneFrame.h"
 #include "environment/scene/SimpleBodyFactory.h"
@@ -47,6 +49,90 @@ AstSceneBuilder::applyTransforms(Geometry *shape, const AstTransform *transforms
             break;
         }
     }
+}
+
+void
+AstSceneBuilder::applyFog(const AstFogNode &node, RenderFrame *framePtr)
+{
+    if (node.hasColour) {
+        framePtr->fogColour.Red = node.colour.r;
+        framePtr->fogColour.Green = node.colour.g;
+        framePtr->fogColour.Blue = node.colour.b;
+        framePtr->fogColour.Alpha = node.colour.a;
+    }
+    if (node.hasDistance) {
+        framePtr->fogDistance = node.distance;
+    }
+}
+
+void
+AstSceneBuilder::applyCamera(const AstCameraNode &node, RenderFrame *framePtr, ParserContext &ctx,
+    const AstDeclTable &decls)
+{
+    Camera *camera = &(framePtr->viewPoint);
+    camera->initializeDefaults();
+    for (int i = 0; i < node.opCount; ++i) {
+        const AstCameraOp &op = node.ops[i];
+        Vector3Dd v = asVector(op.vectorValue);
+        if (op.kind == AST_CAMERA_REF) {
+            const AstNode *declNode = findDecl(decls, op.referenceConstantId);
+            if (declNode != nullptr) {
+                if (declNode->kind != AST_CAMERA_NODE) {
+                    ParseErrorReporter::Error("Invalid camera reference in AST", ctx);
+                }
+                const AstCameraNode &declCamera = (const AstCameraNode &)*declNode;
+                applyCamera(declCamera, framePtr, ctx, decls);
+            } else {
+                const Constant *legacyDecl = findLegacyDecl(ctx, op.referenceConstantId);
+                if (legacyDecl == nullptr ||
+                    legacyDecl->constantType != ParseGlobals::VIEW_POINT_CONSTANT) {
+                    ParseErrorReporter::Error("Invalid camera reference in AST", ctx);
+                }
+                *camera = *((Camera *)legacyDecl->constantData);
+            }
+        } else if (op.kind == AST_CAMERA_LOCATION) {
+            camera->Location = v;
+        } else if (op.kind == AST_CAMERA_DIRECTION) {
+            camera->Direction = v;
+        } else if (op.kind == AST_CAMERA_UP) {
+            camera->Up = v;
+        } else if (op.kind == AST_CAMERA_RIGHT) {
+            camera->Right = v;
+        } else if (op.kind == AST_CAMERA_SKY) {
+            camera->Sky = v;
+        } else if (op.kind == AST_CAMERA_LOOK_AT) {
+            const double directionLength = camera->Direction.length();
+            const double upLength = camera->Up.length();
+            const double rightLength = camera->Right.length();
+            Vector3Dd tempVector = camera->Direction.crossProduct(camera->Up);
+            const double handedness = tempVector.dotProduct(camera->Right);
+            camera->Direction = v;
+            camera->Direction.sub(camera->Location);
+            camera->Direction.normalize();
+            camera->Right = camera->Direction.crossProduct(camera->Sky);
+            camera->Right.normalize();
+            camera->Up = camera->Right.crossProduct(camera->Direction);
+            camera->Direction.scale(directionLength);
+            if (handedness >= 0.0) {
+                camera->Right.scale(rightLength);
+            } else {
+                camera->Right.scale(-rightLength);
+            }
+            camera->Up.scale(upLength);
+        } else if (op.kind == AST_CAMERA_TRANSLATE) {
+            GeometryOperations::translate((SimpleBody *)camera, &v);
+        } else if (op.kind == AST_CAMERA_ROTATE) {
+            GeometryOperations::rotate((SimpleBody *)camera, &v);
+        } else if (op.kind == AST_CAMERA_SCALE) {
+            GeometryOperations::scale((SimpleBody *)camera, &v);
+        }
+    }
+}
+
+void
+AstSceneBuilder::applyMaxTraceLevel(const AstMaxTraceLevelNode &node)
+{
+    RenderRuntimeState::maxTraceLevel() = node.value;
 }
 
 const AstNode *
@@ -375,6 +461,12 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
             SimpleBody *obj = buildSimpleBodyNode(*node, ctx, declarations);
             SimpleBodyFactory::link(
                 obj, &(obj->nextObject), (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_FOG_NODE) {
+            applyFog((const AstFogNode &)*node, framePtr);
+        } else if (node->kind == AST_CAMERA_NODE) {
+            applyCamera((const AstCameraNode &)*node, framePtr, ctx, declarations);
+        } else if (node->kind == AST_MAX_TRACE_LEVEL_NODE) {
+            applyMaxTraceLevel((const AstMaxTraceLevelNode &)*node);
         }
     }
 }
