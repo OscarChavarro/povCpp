@@ -10,6 +10,10 @@ AstSphereNode::AstSphereNode()
     referenceConstantId = -1;
     radius = 0.0;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
 }
 
@@ -38,6 +42,10 @@ AstPlaneNode::AstPlaneNode()
     referenceConstantId = -1;
     distance = 0.0;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
 }
 
@@ -50,6 +58,10 @@ AstBoxNode::AstBoxNode()
     hasReference = false;
     referenceConstantId = -1;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
 }
 
@@ -63,6 +75,10 @@ AstQuadricNode::AstQuadricNode()
     referenceConstantId = -1;
     objectConstant = 0.0;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
 }
 
@@ -78,6 +94,10 @@ AstBlobNode::AstBlobNode()
     componentCount = 0;
     sturm = false;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
 }
 
@@ -90,6 +110,10 @@ AstTriangleNode::AstTriangleNode()
     hasReference = false;
     referenceConstantId = -1;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
 }
 
@@ -102,6 +126,10 @@ AstSmoothTriangleNode::AstSmoothTriangleNode()
     hasReference = false;
     referenceConstantId = -1;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
 }
 
@@ -118,7 +146,19 @@ AstPolyNode::AstPolyNode()
     coeffCount = 0;
     sturm = false;
     hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
+}
+
+AstLegacyGeometryNode::AstLegacyGeometryNode()
+{
+    kind = AST_LEGACY_GEOMETRY_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    shape = nullptr;
 }
 
 AstCsgNode::AstCsgNode()
@@ -152,6 +192,12 @@ AstObjectNode::AstObjectNode()
     shape = nullptr;
     boundedByCount = 0;
     clippedByCount = 0;
+    firstBoundedOrClippedTransformIndex = -1;
+    hasColour = false;
+    hasTexture = false;
+    texture = nullptr;
+    textureAfterTransform = false;
+    textureTransformIndex = -1;
     transformCount = 0;
     noShadow = false;
 }
