@@ -14,6 +14,7 @@ class AstSceneParser {
     static AstParsedSceneProgram *parseProgram(ParserContext &ctx);
 
   private:
+    static bool isAstDeclareToken(int tokenId);
     static AstFogNode *parseFogNode(ParserContext &ctx);
     static AstCameraNode *parseCameraNode(ParserContext &ctx);
     static AstMaxTraceLevelNode *parseMaxTraceLevelNode(ParserContext &ctx);
