@@ -23,7 +23,8 @@ enum AstNodeKind {
     AST_POLY_NODE = 16,
     AST_LEGACY_GEOMETRY_NODE = 17,
     AST_HEIGHT_FIELD_NODE = 18,
-    AST_BICUBIC_PATCH_NODE = 19
+    AST_BICUBIC_PATCH_NODE = 19,
+    AST_TEXTURE_CHAIN_NODE = 20
 };
 
 enum AstTransformKind {
@@ -303,6 +304,13 @@ class AstBicubicPatchNode : public AstNode {
     AstBicubicPatchNode();
 
     Geometry *shape;
+};
+
+class AstTextureChainNode : public AstNode {
+  public:
+    AstTextureChainNode();
+
+    Texture *texture;
 };
 
 class AstCsgNode : public AstNode {

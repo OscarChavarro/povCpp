@@ -259,6 +259,14 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
     }
 
     if (valueTokenId == Tokenizer::TEXTURE_TOKEN) {
+        AstDeclareNode *node = new AstDeclareNode();
+        node->sourceLine = identifierToken.tokenLineNo + 1;
+        node->sourceFile = identifierToken.Filename;
+        node->identifierNumber = identifierToken.identifierNumber;
+        AstTextureChainNode *textureNode = new AstTextureChainNode();
+        textureNode->sourceLine = identifierToken.tokenLineNo + 1;
+        textureNode->sourceFile = identifierToken.Filename;
+
         Texture *localTexture = nullptr;
         Texture *tempTexture = nullptr;
         constantPtr->constantData = (void *)localTexture;
@@ -282,7 +290,9 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
             tempTexture->Next_Texture = (Texture *)constantPtr->constantData;
             constantPtr->constantData = (void *)localTexture;
         }
-        return nullptr;
+        textureNode->texture = (Texture *)constantPtr->constantData;
+        node->value = textureNode;
+        return node;
     }
 
     if (valueTokenId == Tokenizer::OBJECT_TOKEN) {
