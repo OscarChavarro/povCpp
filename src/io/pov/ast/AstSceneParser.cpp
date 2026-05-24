@@ -11,6 +11,7 @@
 #include "io/pov/RenderSettingsParser.h"
 #include "io/pov/ast/AstNodes.h"
 #include "io/pov/ast/AstObjectParser.h"
+#include "io/pov/ast/AstParsedSceneProgram.h"
 #include "io/pov/cameraParser/CameraParser.h"
 #include "io/pov/geometryParser/ObjectParser.h"
 #include "io/pov/mediaParser/DefaultTextureParser.h"
@@ -57,10 +58,12 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
     return node;
 }
 
-AstScene *
-AstSceneParser::parseScene(ParserContext &ctx, RenderFrame *framePtr)
+AstParsedSceneProgram *
+AstSceneParser::parseProgram(ParserContext &ctx)
 {
+    AstParsedSceneProgram *program = new AstParsedSceneProgram();
     AstScene *scene = new AstScene();
+    program->scene = scene;
 
     int done = LegacyBoolean::FALSE_VALUE;
     while (!done) {
@@ -91,26 +94,28 @@ AstSceneParser::parseScene(ParserContext &ctx, RenderFrame *framePtr)
         case Tokenizer::OBJECT_TOKEN: {
             SimpleBody *localObject = ObjectParser::parseObject(ctx);
             SimpleBodyFactory::link(
-                localObject, &(localObject->nextObject), &(framePtr->Objects));
+                localObject, &(localObject->nextObject), (SimpleBody **)&(program->legacyFrame.Objects));
             break;
         }
         case Tokenizer::COMPOSITE_TOKEN: {
             SimpleBody *localObject = ObjectParser::parseComposite(ctx);
             SimpleBodyFactory::link(
-                localObject, &(localObject->nextObject), &(framePtr->Objects));
+                localObject, &(localObject->nextObject), (SimpleBody **)&(program->legacyFrame.Objects));
             break;
         }
         case Tokenizer::FOG_TOKEN:
-            FogParser::parseFog(framePtr, ctx);
+            FogParser::parseFog(&program->legacyFrame, ctx);
+            program->hasFog = true;
             break;
         case Tokenizer::DEFAULT_TOKEN:
-            DefaultTextureParser::parseDefault(framePtr, ctx);
+            DefaultTextureParser::parseDefault(&program->legacyFrame, ctx);
             break;
         case Tokenizer::MAX_TRACE_LEVEL_TOKEN:
             RenderSettingsParser::parseMaxTraceLevel(ctx);
             break;
         case Tokenizer::VIEW_POINT_TOKEN:
-            CameraParser::parseCamera(&(framePtr->viewPoint), ctx);
+            CameraParser::parseCamera(&(program->legacyFrame.viewPoint), ctx);
+            program->hasCamera = true;
             break;
         case Tokenizer::END_OF_FILE_TOKEN:
             done = LegacyBoolean::TRUE_VALUE;
@@ -121,5 +126,5 @@ AstSceneParser::parseScene(ParserContext &ctx, RenderFrame *framePtr)
         }
     }
 
-    return scene;
+    return program;
 }
