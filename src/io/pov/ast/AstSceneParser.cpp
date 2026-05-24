@@ -1,5 +1,7 @@
 #include "io/pov/ast/AstSceneParser.h"
 
+#include <cstdlib>
+
 #include "io/Tokenizer.h"
 #include "environment/scene/SceneFrame.h"
 #include "environment/scene/SimpleBodyFactory.h"
@@ -7,6 +9,7 @@
 #include "io/pov/ParseErrorReporter.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/ParserContext.h"
+#include "io/pov/RewindableTokenStream.h"
 #include "io/pov/ast/AstNodes.h"
 #include "io/pov/ast/AstObjectParser.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
@@ -134,6 +137,12 @@ AstSceneParser::parseMaxTraceLevelNode(ParserContext &ctx)
     return node;
 }
 
+bool
+AstSceneParser::isAstDeclareToken(int tokenId)
+{
+    return tokenId == Tokenizer::VIEW_POINT_TOKEN;
+}
+
 AstNode *
 AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
 {
@@ -188,7 +197,49 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::DECLARE_TOKEN: {
-            DeclarationParser::parseDeclare(ctx);
+            const char *enableAstDeclare = std::getenv("POVCPP_AST_DECLARE_VIEWPOINT");
+            if (enableAstDeclare == nullptr || enableAstDeclare[0] != '1') {
+                DeclarationParser::parseDeclare(ctx);
+                break;
+            }
+
+            ITokenStream *originalStream = &ctx.tokenStream();
+            RewindableTokenStream rewindableStream(originalStream);
+            ctx.setTokenStream(&rewindableStream);
+            try {
+                const int marker = ctx.tokenStream().mark();
+
+                bool parseWithAst = false;
+                bool parsed = false;
+                try {
+                    ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
+                    ParseHelpers::getExpectedToken(Tokenizer::EQUALS_TOKEN, ctx);
+                    ctx.tokenStream().getToken();
+                    parseWithAst = isAstDeclareToken(ctx.token().tokenId);
+                    ctx.tokenStream().rewind(marker);
+
+                    if (parseWithAst) {
+                        AstDeclareNode *decl = AstSceneParser::parseDeclareNode(ctx);
+                        if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
+                                AstLimits::MAX_AST_SCENE_NODES, (AstNode *)decl)) {
+                            ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+                        }
+                        parsed = true;
+                    }
+                } catch (const ParseErrorReporter::ParseException &) {
+                    ctx.tokenStream().rewind(marker);
+                }
+
+                if (!parsed) {
+                    ctx.tokenStream().rewind(marker);
+                    DeclarationParser::parseDeclare(ctx);
+                }
+
+                ctx.setTokenStream(originalStream);
+            } catch (...) {
+                ctx.setTokenStream(originalStream);
+                throw;
+            }
             break;
         }
         case Tokenizer::SPHERE_TOKEN:
