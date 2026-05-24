@@ -13,22 +13,7 @@ unsigned char *GifDecoder::decoderline = nullptr;
 
 static constexpr int BAD_CODE_SIZE = -20;
 
-INT badCodeCount;
-
 static constexpr int MAX_CODES = 4095;
-
-static WORD currSize; // The current code size
-static WORD clear;    // Value for a clear code
-static WORD ending;   // Value for a ending code
-static WORD newcodes; // First available code
-static WORD topSlot;  // Highest code for current size
-static WORD slot;     // Last read code
-
-static WORD navailBytes = 0; // # bytes left in block
-static WORD nbitsLeft = 0;   // # bits left in current byte
-static UTINY b1;             // Current byte
-static UTINY byteBuff[257];  // Current block
-static UTINY *pbytes;        // Pointer to next byte in block
 
 static LONG codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
     0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF};
@@ -115,11 +100,23 @@ GifDecoder::getNextCode()
 // C for speed or for space optimization, see Efficient C by Tom Plum,
 // published by Plum-Hall Associates...)
 //
-// Decoder work buffers are held as file statics and class static members.
+// Decoder work buffers are held as class static members.
 
-static UTINY *dstack; // Stack for storing pixels
-static UTINY *suffix; // Suffix table
-static UWORD *prefix; // Prefix linked list
+int GifDecoder::badCodeCount = 0;
+WORD GifDecoder::currSize = 0;
+WORD GifDecoder::clear = 0;
+WORD GifDecoder::ending = 0;
+WORD GifDecoder::newcodes = 0;
+WORD GifDecoder::topSlot = 0;
+WORD GifDecoder::slot = 0;
+WORD GifDecoder::navailBytes = 0;
+WORD GifDecoder::nbitsLeft = 0;
+UTINY GifDecoder::b1 = 0;
+UTINY GifDecoder::byteBuff[257] = {0};
+UTINY *GifDecoder::pbytes = nullptr;
+UTINY *GifDecoder::dstack = nullptr;
+UTINY *GifDecoder::suffix = nullptr;
+UWORD *GifDecoder::prefix = nullptr;
 
 // WORD decoder(linewidth)
 //     WORD linewidth;                    * Pixels per line of image *

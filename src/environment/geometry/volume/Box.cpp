@@ -23,7 +23,7 @@ Methods Box::methodTable = {Composite::objectIntersect, Box::allBoxIntersections
 int
 Box::closeTo(double x, double y)
 {
-    return fabs(x - y) < kEpsilon ? 1 : 0;
+    return fabs(x - y) < Config::kEpsilon ? 1 : 0;
 }
 int
 Box::allBoxIntersections(
@@ -36,7 +36,7 @@ Box::allBoxIntersections(
     int intersectionFound;
     Box *shape = (Box *)object;
 
-    intersectionFound = FALSE;
+    intersectionFound = LegacyBoolean::FALSE_VALUE;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
@@ -45,7 +45,7 @@ Box::allBoxIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        intersectionFound = TRUE;
+        intersectionFound = LegacyBoolean::TRUE_VALUE;
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
@@ -55,7 +55,7 @@ Box::allBoxIntersections(
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
-            intersectionFound = TRUE;
+            intersectionFound = LegacyBoolean::TRUE_VALUE;
         }
     }
     return (intersectionFound);
@@ -91,7 +91,7 @@ Box::intersectBoxx(
     tmax = HUGE_VAL;
 
     /* Sides first */
-    if (d.x < -kEpsilon) {
+    if (d.x < -Config::kEpsilon) {
         t = (box->bounds[0].x - p.x) / d.x;
         if (t < tmin) {
             return 0;
@@ -106,7 +106,7 @@ Box::intersectBoxx(
             }
             tmin = t;
         }
-    } else if (d.x > kEpsilon) {
+    } else if (d.x > Config::kEpsilon) {
         t = (box->bounds[1].x - p.x) / d.x;
         if (t < tmin) {
             return 0;
@@ -126,7 +126,7 @@ Box::intersectBoxx(
     }
 
     /* Check Top/Bottom */
-    if (d.y < -kEpsilon) {
+    if (d.y < -Config::kEpsilon) {
         t = (box->bounds[0].y - p.y) / d.y;
         if (t < tmin) {
             return 0;
@@ -141,7 +141,7 @@ Box::intersectBoxx(
             }
             tmin = t;
         }
-    } else if (d.y > kEpsilon) {
+    } else if (d.y > Config::kEpsilon) {
         t = (box->bounds[1].y - p.y) / d.y;
         if (t < tmin) {
             return 0;
@@ -161,7 +161,7 @@ Box::intersectBoxx(
     }
 
     /* Now front/back */
-    if (d.z < -kEpsilon) {
+    if (d.z < -Config::kEpsilon) {
         t = (box->bounds[0].z - p.z) / d.z;
         if (t < tmin) {
             return 0;
@@ -176,7 +176,7 @@ Box::intersectBoxx(
             }
             tmin = t;
         }
-    } else if (d.z > kEpsilon) {
+    } else if (d.z > Config::kEpsilon) {
         t = (box->bounds[1].z - p.z) / d.z;
         if (t < tmin) {
             return 0;
@@ -199,18 +199,18 @@ Box::intersectBoxx(
     *depth2 = tmax;
 
     /* Logger::info("Box intersects: %g, %g\n", *Depth1, *Depth2); */
-    if ((*depth1 < Small_Tolerance) || (*depth1 > Max_Distance)) {
-        if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
-            return (FALSE);
+    if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
+        if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
+            return (LegacyBoolean::FALSE_VALUE);
         }
         *depth1 = *depth2;
 
-    } else if ((*depth2 < Small_Tolerance) || (*depth2 > Max_Distance)) {
+    } else if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
         *depth2 = *depth1;
     }
 
     Statistics::global().rayBoxTestsSucceeded++;
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
 int

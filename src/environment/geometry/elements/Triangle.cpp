@@ -143,7 +143,7 @@ Triangle::computeTriangle(Triangle *triangle)
     length = triangle->normalVector.length();
     /* Set up a flag so we can ignore degenerate triangles */
     if (length < 1.0e-9) {
-        triangle->degenerateFlag = TRUE;
+        triangle->degenerateFlag = LegacyBoolean::TRUE_VALUE;
         return (0);
     }
 
@@ -164,7 +164,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
+            if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
                 temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
@@ -182,7 +182,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
+            if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
                 temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
@@ -200,7 +200,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
+            if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
                 temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
@@ -210,7 +210,7 @@ Triangle::computeTriangle(Triangle *triangle)
         break;
     }
 
-    if (triangle->Type == SMOOTH_TRIANGLE_TYPE) {
+    if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
         Triangle::computeSmoothTriangle((SmoothTriangle *)triangle);
     }
     return (1);
@@ -226,7 +226,7 @@ Triangle::allTriangleIntersections(
     Intersection localElement;
 
     if (shape->degenerateFlag) {
-        return (FALSE);
+        return (LegacyBoolean::FALSE_VALUE);
     }
 
     if (intersectTriangle(ray, shape, &depth)) {
@@ -237,9 +237,9 @@ Triangle::allTriangleIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        return (TRUE);
+        return (LegacyBoolean::TRUE_VALUE);
     }
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 int
@@ -253,7 +253,7 @@ Triangle::intersectTriangle(
 
     Statistics::global().rayTriangleTests++;
     if (triangle->degenerateFlag) {
-        return (FALSE);
+        return (LegacyBoolean::FALSE_VALUE);
     }
 
     if (ray->isPrimaryRay) {
@@ -262,13 +262,13 @@ Triangle::intersectTriangle(
                 ray->position);
             triangle->VPNormDotOrigin += triangle->Distance;
             triangle->VPNormDotOrigin *= -1.0;
-            triangle->VPCached = TRUE;
+            triangle->VPCached = LegacyBoolean::TRUE_VALUE;
         }
 
         normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
-        if ((normalDotDirection < Small_Tolerance) &&
-            (normalDotDirection > -Small_Tolerance)) {
-            return (FALSE);
+        if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
+            (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         *depth = triangle->VPNormDotOrigin / normalDotDirection;
@@ -278,16 +278,16 @@ Triangle::intersectTriangle(
         normalDotOrigin *= -1.0;
 
         normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
-        if ((normalDotDirection < Small_Tolerance) &&
-            (normalDotDirection > -Small_Tolerance)) {
-            return (FALSE);
+        if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
+            (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         *depth = normalDotOrigin / normalDotDirection;
     }
 
-    if ((*depth < Small_Tolerance) || (*depth > Max_Distance)) {
-        return (FALSE);
+    if ((*depth < GeometryConstants::Small_Tolerance) || (*depth > GeometryConstants::Max_Distance)) {
+        return (LegacyBoolean::FALSE_VALUE);
     }
 
     switch (triangle->Dominant_Axis) {
@@ -299,34 +299,34 @@ Triangle::intersectTriangle(
             ((triangle->P2.z - t) * (triangle->P2.y - triangle->P1.y))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (((triangle->P3.y - s) * (triangle->P3.z - triangle->P2.z)) <
             ((triangle->P3.z - t) * (triangle->P3.y - triangle->P2.y))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (((triangle->P1.y - s) * (triangle->P1.z - triangle->P3.z)) <
             ((triangle->P1.z - t) * (triangle->P1.y - triangle->P3.y))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (!(int)triangle->Inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
-            return (TRUE);
+            return (LegacyBoolean::TRUE_VALUE);
         }
-        return (FALSE);
+        return (LegacyBoolean::FALSE_VALUE);
 
     case Y_AXIS:
         s = ray->position.x + *depth * ray->direction.x;
@@ -336,34 +336,34 @@ Triangle::intersectTriangle(
             (triangle->P2.z - t) * (triangle->P2.x - triangle->P1.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if ((triangle->P3.x - s) * (triangle->P3.z - triangle->P2.z) <
             (triangle->P3.z - t) * (triangle->P3.x - triangle->P2.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if ((triangle->P1.x - s) * (triangle->P1.z - triangle->P3.z) <
             (triangle->P1.z - t) * (triangle->P1.x - triangle->P3.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (!(int)triangle->Inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
-            return (TRUE);
+            return (LegacyBoolean::TRUE_VALUE);
         }
-        return (FALSE);
+        return (LegacyBoolean::FALSE_VALUE);
 
     case Z_AXIS:
         s = ray->position.x + *depth * ray->direction.x;
@@ -373,42 +373,42 @@ Triangle::intersectTriangle(
             (triangle->P2.y - t) * (triangle->P2.x - triangle->P1.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if ((triangle->P3.x - s) * (triangle->P3.y - triangle->P2.y) <
             (triangle->P3.y - t) * (triangle->P3.x - triangle->P2.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if ((triangle->P1.x - s) * (triangle->P1.y - triangle->P3.y) <
             (triangle->P1.y - t) * (triangle->P1.x - triangle->P3.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (TRUE);
+                return (LegacyBoolean::TRUE_VALUE);
             }
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
 
         if (!(int)triangle->Inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
-            return (TRUE);
+            return (LegacyBoolean::TRUE_VALUE);
         }
-        return (FALSE);
+        return (LegacyBoolean::FALSE_VALUE);
     }
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 int
 Triangle::insideTriangle(Vector3Dd *testPoint, SimpleBody *object)
 {
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 void
@@ -498,7 +498,7 @@ Triangle::invertTriangle(SimpleBody *object)
 {
     Triangle *triangle = (Triangle *)object;
 
-    triangle->Inverted ^= TRUE;
+    triangle->Inverted ^= LegacyBoolean::TRUE_VALUE;
 }
 
 /* Calculate the Phong-interpolated vector within the triangle
@@ -680,5 +680,5 @@ SmoothTriangle::invertSmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
 
-    triangle->Inverted ^= TRUE;
+    triangle->Inverted ^= LegacyBoolean::TRUE_VALUE;
 }

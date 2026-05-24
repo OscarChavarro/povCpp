@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 
-static constexpr double kEpsilon = 1.0e-5;
+class Config {
+  public:
+    static constexpr double kEpsilon = 1.0e-5;
+};
 
 #endif

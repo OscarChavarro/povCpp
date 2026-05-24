@@ -36,39 +36,39 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
     }
 
     i = 0;
-    newColourMap->transparencyFlag = FALSE;
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    newColourMap->transparencyFlag = LegacyBoolean::FALSE_VALUE;
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case LEFT_SQUARE_TOKEN:
+            case Tokenizer::LEFT_SQUARE_TOKEN:
                 ctx.constructionMap()[i].start = PrimitiveParser::parseFloat(ctx);
                 ctx.constructionMap()[i].end = PrimitiveParser::parseFloat(ctx);
 
-                ParseHelpers::getExpectedToken(COLOUR_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColour(
                     &(ctx.constructionMap()[i].startColour), ctx);
                 if (ctx.constructionMap()[i].startColour.Alpha != 0.0) {
-                    newColourMap->transparencyFlag = TRUE;
+                    newColourMap->transparencyFlag = LegacyBoolean::TRUE_VALUE;
                 }
 
-                ParseHelpers::getExpectedToken(COLOUR_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColour(&(ctx.constructionMap()[i].endColour), ctx);
                 if (ctx.constructionMap()[i].endColour.Alpha != 0.0) {
-                    newColourMap->transparencyFlag = TRUE;
+                    newColourMap->transparencyFlag = LegacyBoolean::TRUE_VALUE;
                 }
 
                 i++;
                 if (i > MAX_ENTRIES) {
                     ParseErrorReporter::Error("Colour_Map too long.", ctx);
                 }
-                ParseHelpers::getExpectedToken(RIGHT_SQUARE_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::RIGHT_SQUARE_TOKEN, ctx);
                 break;
 
-            case RIGHT_CURLY_TOKEN:
+            case Tokenizer::RIGHT_CURLY_TOKEN:
                 newColourMap->numberOfEntries = i;
 
                 newColourMap->Colour_Map_Entries = new RGBAColorPaletteSpan[i];
@@ -81,11 +81,11 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                     newColourMap->Colour_Map_Entries[j] = ctx.constructionMap()[j];
                 }
 
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

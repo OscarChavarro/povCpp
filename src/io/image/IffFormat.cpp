@@ -9,9 +9,9 @@
 #include "io/FileLocator.h"
 #include "common/LegacyBoolean.h"
 
-static RGBAPixel *iffColourMap;
-static int colourmapSize;
-static ChunkHeader globalChunkHeader;
+RGBAPixel *IffFormat::sIffColourMap = nullptr;
+int IffFormat::sColourMapSize = 0;
+ChunkHeader IffFormat::sGlobalChunkHeader;
 
 static constexpr long FORM = 0x464f524dL;
 static constexpr long ILBM = 0x494c424dL;
@@ -95,11 +95,11 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
 
     previousRed = previousGreen = previousBlue = 0;
     viewmodes = 0;
-    iffColourMap = nullptr;
+    sIffColourMap = nullptr;
 
     while (true) {
-        IffFormat::readChunkHeader(is, &globalChunkHeader);
-        switch (static_cast<int>(globalChunkHeader.name)) {
+        IffFormat::readChunkHeader(is, &sGlobalChunkHeader);
+        switch (static_cast<int>(sGlobalChunkHeader.name)) {
         case FORM:
             if (IffFormat::readLong(is) != ILBM) {
                 IffFormat::iffError();
@@ -115,7 +115,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             IffFormat::readWord(is);
             IffFormat::readWord(is);
             nPlanes = IffFormat::readByte(is);
-            colourmapSize = 1 << nPlanes;
+            sColourMapSize = 1 << nPlanes;
             IffFormat::readByte(is);
             compression = IffFormat::readByte(is);
             IffFormat::readByte(is);
@@ -128,40 +128,40 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
         case CAMG:
             viewmodes = (int)IffFormat::readLong(is);
             if (viewmodes & HAM) {
-                colourmapSize = 16;
+                sColourMapSize = 16;
             }
             break;
 
         case CMAP:
-            colourmapSize = (int)globalChunkHeader.size / 3;
-            iffColourMap = new RGBAPixel[colourmapSize];
-            if (iffColourMap == nullptr) {
+            sColourMapSize = (int)sGlobalChunkHeader.size / 3;
+            sIffColourMap = new RGBAPixel[sColourMapSize];
+            if (sIffColourMap == nullptr) {
                 Logger::error("Cannot allocate memory for IFF colour map\n");
                 exit(1);
             }
 
-            for (i = 0; i < colourmapSize; i++) {
-                iffColourMap[i].Red   = IffFormat::readByte(is);
-                iffColourMap[i].Green = IffFormat::readByte(is);
-                iffColourMap[i].Blue  = IffFormat::readByte(is);
-                iffColourMap[i].Alpha = 0;
+            for (i = 0; i < sColourMapSize; i++) {
+                sIffColourMap[i].Red   = IffFormat::readByte(is);
+                sIffColourMap[i].Green = IffFormat::readByte(is);
+                sIffColourMap[i].Blue  = IffFormat::readByte(is);
+                sIffColourMap[i].Alpha = 0;
             }
 
-            previousRed   = iffColourMap[0].Red;
-            previousGreen = iffColourMap[0].Green;
-            previousBlue  = iffColourMap[0].Blue;
-            for (i = colourmapSize * 3; (long)i < globalChunkHeader.size; i++) {
+            previousRed   = sIffColourMap[0].Red;
+            previousGreen = sIffColourMap[0].Green;
+            previousBlue  = sIffColourMap[0].Blue;
+            for (i = sColourMapSize * 3; (long)i < sGlobalChunkHeader.size; i++) {
                 IffFormat::readByte(is);
             }
             break;
 
         case BODY:
-            if ((iffColourMap == nullptr) || (viewmodes & HAM)) {
+            if ((sIffColourMap == nullptr) || (viewmodes & HAM)) {
                 image->colourMapSize = 0;
                 image->Colour_Map = nullptr;
             } else {
-                image->colourMapSize = colourmapSize;
-                image->Colour_Map = iffColourMap;
+                image->colourMapSize = sColourMapSize;
+                image->Colour_Map = sIffColourMap;
             }
             rowBytes = new unsigned char *[nPlanes];
             if (rowBytes == nullptr) {
@@ -249,9 +249,9 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
                         line = &image->data.rgb_lines[i];
                         switch (creg >> 4) {
                         case 0:
-                            previousRed   = line->red[j]   = (unsigned char)iffColourMap[creg].Red;
-                            previousGreen = line->green[j] = (unsigned char)iffColourMap[creg].Green;
-                            previousBlue  = line->blue[j]  = (unsigned char)iffColourMap[creg].Blue;
+                            previousRed   = line->red[j]   = (unsigned char)sIffColourMap[creg].Red;
+                            previousGreen = line->green[j] = (unsigned char)sIffColourMap[creg].Green;
+                            previousBlue  = line->blue[j]  = (unsigned char)sIffColourMap[creg].Blue;
                             break;
                         case 1:
                             line->red[j]   = (unsigned char)previousRed;
@@ -299,7 +299,7 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
             return;
 
         default:
-            for (i = 0; (long)i < globalChunkHeader.size; i++) {
+            for (i = 0; (long)i < sGlobalChunkHeader.size; i++) {
                 if (is.read() == -1) {
                     IffFormat::iffError();
                 }

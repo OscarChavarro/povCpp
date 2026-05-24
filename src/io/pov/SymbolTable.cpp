@@ -45,7 +45,7 @@ SymbolTable::upsertByIdentifierNumber(int identifierNumber)
         return &mData[idx];
     }
 
-    if (++mSize >= MAX_CONSTANTS) {
+    if (++mSize >= ParserConstants::MAX_CONSTANTS) {
         return nullptr;
     }
 

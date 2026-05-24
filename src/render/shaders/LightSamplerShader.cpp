@@ -20,7 +20,7 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
     }
 
     lightSourceRay->position = *intersectionPoint;
-    lightSourceRay->quadricConstantsCached = FALSE;
+    lightSourceRay->quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
 
     VectorOps::vSub(lightSourceRay->direction, lightSource->Center, *intersectionPoint);
 

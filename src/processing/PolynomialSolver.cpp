@@ -668,7 +668,7 @@ int
 PolynomialSolver::polysolve(
     int order, double *coeffs, double *roots, double minValue)
 {
-    Polynomial sseq[MAX_ORDER + 1];
+    Polynomial sseq[PolynomialConstants::MAX_ORDER + 1];
     double maxValue;
     int i;
     int nroots;
@@ -691,7 +691,7 @@ PolynomialSolver::polysolve(
     }
 
     /* Bracket the roots */
-    maxValue = POLYNOMIAL_MAX_DISTANCE;
+    maxValue = PolynomialConstants::POLYNOMIAL_MAX_DISTANCE;
 
     atmin = PolynomialSolver::numchanges(np, sseq, minValue);
     atmax = PolynomialSolver::numchanges(np, sseq, maxValue);

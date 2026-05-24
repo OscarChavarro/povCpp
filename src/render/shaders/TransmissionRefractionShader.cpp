@@ -30,7 +30,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         traceLevel++;
         Statistics::global().transmittedRaysTraced++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
-        newRay.quadricConstantsCached = FALSE;
+        newRay.quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
         (color->Red) += tempColor.Red;
@@ -97,7 +97,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         newRay.position = *intersectionPoint;
         traceLevel++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
-        newRay.quadricConstantsCached = FALSE;
+        newRay.quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
 
         traceService->trace(&newRay, &tempColor);
         traceLevel--;

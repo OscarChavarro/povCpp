@@ -7,12 +7,12 @@
 #include "environment/geometry/volume/HeightFieldBlock.h"
 class RGBAImage;
 
-static constexpr int GIF = 0;
-static constexpr int POT = 1;
-static constexpr int TGA = 2;
-
 class HeightField : public Geometry {
   public:
+    static constexpr int GIF = 0;
+    static constexpr int POT = 1;
+    static constexpr int TGA = 2;
+
     static Methods methodTable;
     Transformation *transformation;
     Box *bounding_box;
@@ -38,6 +38,20 @@ class HeightField : public Geometry {
     static inline double maxValue(double x, double y);
 
   private:
+    static int isdx;
+    static int isdz;
+    static int xDom;
+    static double gdx;
+    static double gdy;
+    static double gdz;
+    static double myx;
+    static double mxz;
+    static double mzx;
+    static double myz;
+    static Intersection *hfIntersection;
+    static PriorityQueueNode *hfQueue;
+    static RayWithSegments *rRay;
+
     static double getHeightAt(int x, int z, HeightField *hField);
     static int intersectPixel(int x, int z, RayWithSegments *ray,
         HeightField *hField, double height1, double height2);

@@ -43,7 +43,7 @@ SceneParser::Parse(RenderFrame *framePtr, ParserContext &ctx)
     SimpleBody *object;
     ctx.parsingFrame() = framePtr;
 
-    ctx.degenerateTriangles() = FALSE;
+    ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
     SceneParser::parseFrame(ctx);
@@ -71,7 +71,7 @@ SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
     SimpleBody *object;
     ctx.parsingFrame() = framePtr;
 
-    ctx.degenerateTriangles() = FALSE;
+    ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
     AstScene *scene = AstSceneParser::parseScene(ctx);

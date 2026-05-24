@@ -16,7 +16,7 @@ ShadowShader::shade(Intersection *localIntersection,
         while (localQueue->getHighest()) {
             localQueue->deleteHighest();
         }
-        return TRUE;
+        return LegacyBoolean::TRUE_VALUE;
     }
-    return FALSE;
+    return LegacyBoolean::FALSE_VALUE;
 }

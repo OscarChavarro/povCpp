@@ -30,7 +30,7 @@ void
 Camera::initializeDefaults()
 {
     this->methods = (Methods *)&Camera::methodTable;
-    this->Type = VIEWPOINT_TYPE;
+    this->Type = GeometryOperations::VIEWPOINT_TYPE;
     *&this->Location = Vector3Dd(0.0, 0.0, 0.0);
     *&this->Direction = Vector3Dd(0.0, 0.0, 1.0);
     *&this->Up = Vector3Dd(0.0, 1.0, 0.0);

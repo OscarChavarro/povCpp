@@ -54,32 +54,32 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
     Geometry *localShape;
     Vector3Dd localVector;
     CONSTANT constantId;
-    int firstShapeParsed = FALSE;
+    int firstShapeParsed = LegacyBoolean::FALSE_VALUE;
 
-    if (type == CSG_UNION_TYPE) {
+    if (type == GeometryOperations::CSG_UNION_TYPE) {
         container = ModelBuilder::getCsgUnion();
 
-    } else if ((type == CSG_INTERSECTION_TYPE) ||
-               (type == CSG_DIFFERENCE_TYPE)) {
+    } else if ((type == GeometryOperations::CSG_INTERSECTION_TYPE) ||
+               (type == GeometryOperations::CSG_DIFFERENCE_TYPE)) {
         container = ModelBuilder::getCsgIntersection();
     }
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if ((ctx.constants()[(int)constantId].constantType ==
-                            CSG_INTERSECTION_CONSTANT) ||
+                            ParseGlobals::CSG_INTERSECTION_CONSTANT) ||
                         (ctx.constants()[(int)constantId].constantType ==
-                            CSG_UNION_CONSTANT) ||
+                            ParseGlobals::CSG_UNION_CONSTANT) ||
                         (ctx.constants()[(int)constantId].constantType ==
-                            CSG_DIFFERENCE_CONSTANT)) {
+                            ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
                         container = (CSG *)GeometryOperations::copy(
                             (SimpleBody *)ctx.constants()[(int)constantId]
@@ -92,180 +92,180 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 }
                 break;
 
-            case LIGHT_SOURCE_TOKEN:
+            case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case SPHERE_TOKEN:
+            case Tokenizer::SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case PLANE_TOKEN:
+            case Tokenizer::PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case TRIANGLE_TOKEN:
+            case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case SMOOTH_TRIANGLE_TOKEN:
+            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case QUADRIC_TOKEN:
+            case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case HEIGHT_FIELD_TOKEN:
+            case Tokenizer::HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case CUBIC_TOKEN:
+            case Tokenizer::CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3, ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case QUARTIC_TOKEN:
+            case Tokenizer::QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4, ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case POLY_TOKEN:
+            case Tokenizer::POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0, ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case BOX_TOKEN:
+            case Tokenizer::BOX_TOKEN:
                 localShape = BoxParser::parseBox(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case BLOB_TOKEN:
+            case Tokenizer::BLOB_TOKEN:
                 localShape = BlobParser::parseBlob(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case BICUBIC_PATCH_TOKEN:
+            case Tokenizer::BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch(ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case UNION_TOKEN:
+            case Tokenizer::UNION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(CSG_UNION_TYPE, ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_UNION_TYPE, ctx);
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case INTERSECTION_TOKEN:
+            case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(CSG_INTERSECTION_TYPE, ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_INTERSECTION_TYPE, ctx);
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
                 break;
 
-            case DIFFERENCE_TOKEN:
+            case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(CSG_DIFFERENCE_TYPE, ctx);
-                if ((type == CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_DIFFERENCE_TYPE, ctx);
+                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = TRUE;
+                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -273,7 +273,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             default:
                 ctx.tokenStream().ungetToken();
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
             }
         }
@@ -281,43 +281,43 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)container, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)container, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)container, &localVector);
                 break;
 
-            case INVERSE_TOKEN:
+            case Tokenizer::INVERSE_TOKEN:
                 GeometryOperations::invert((SimpleBody *)container);
                 break;
 
             default:
-                if (type == CSG_UNION_TYPE) {
-                    ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
-                } else if (type == CSG_INTERSECTION_TYPE) {
-                    ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                if (type == GeometryOperations::CSG_UNION_TYPE) {
+                    ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                } else if (type == GeometryOperations::CSG_INTERSECTION_TYPE) {
+                    ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 } else {
-                    ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                    ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 }
                 break;
             }
@@ -334,95 +334,95 @@ ObjectParser::parseShape(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case LIGHT_SOURCE_TOKEN:
+            case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case SPHERE_TOKEN:
+            case Tokenizer::SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case PLANE_TOKEN:
+            case Tokenizer::PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case TRIANGLE_TOKEN:
+            case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case SMOOTH_TRIANGLE_TOKEN:
+            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case QUADRIC_TOKEN:
+            case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case HEIGHT_FIELD_TOKEN:
+            case Tokenizer::HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case CUBIC_TOKEN:
+            case Tokenizer::CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3, ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case QUARTIC_TOKEN:
+            case Tokenizer::QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4, ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case POLY_TOKEN:
+            case Tokenizer::POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0, ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case BOX_TOKEN:
+            case Tokenizer::BOX_TOKEN:
                 localShape = BoxParser::parseBox(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case BLOB_TOKEN:
+            case Tokenizer::BLOB_TOKEN:
                 localShape = BlobParser::parseBlob(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case BICUBIC_PATCH_TOKEN:
+            case Tokenizer::BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch(ctx);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case UNION_TOKEN:
+            case Tokenizer::UNION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(CSG_UNION_TYPE, ctx);
-                Exit_Flag = TRUE;
+                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_UNION_TYPE, ctx);
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case INTERSECTION_TOKEN:
+            case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(CSG_INTERSECTION_TYPE, ctx);
-                Exit_Flag = TRUE;
+                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_INTERSECTION_TYPE, ctx);
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case DIFFERENCE_TOKEN:
+            case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(CSG_DIFFERENCE_TYPE, ctx);
-                Exit_Flag = TRUE;
+                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_DIFFERENCE_TYPE, ctx);
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(QUADRIC_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::QUADRIC_TOKEN, ctx);
                 break;
             }
         }
@@ -442,18 +442,18 @@ ObjectParser::parseObject(ParserContext &ctx)
 
     object = nullptr;
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        OBJECT_CONSTANT) {
+                        ParseGlobals::OBJECT_CONSTANT) {
                         object = (SimpleBody *)GeometryOperations::copy(
                             (SimpleBody *)ctx.constants()[(int)constantId]
                                 .constantData);
@@ -463,25 +463,25 @@ ObjectParser::parseObject(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case SPHERE_TOKEN:
-            case QUADRIC_TOKEN:
-            case QUARTIC_TOKEN:
-            case UNION_TOKEN:
-            case INTERSECTION_TOKEN:
-            case DIFFERENCE_TOKEN:
-            case TRIANGLE_TOKEN:
-            case SMOOTH_TRIANGLE_TOKEN:
-            case PLANE_TOKEN:
-            case CUBIC_TOKEN:
-            case POLY_TOKEN:
-            case BICUBIC_PATCH_TOKEN:
-            case HEIGHT_FIELD_TOKEN:
-            case LIGHT_SOURCE_TOKEN:
-            case BOX_TOKEN:
-            case BLOB_TOKEN:
+            case Tokenizer::SPHERE_TOKEN:
+            case Tokenizer::QUADRIC_TOKEN:
+            case Tokenizer::QUARTIC_TOKEN:
+            case Tokenizer::UNION_TOKEN:
+            case Tokenizer::INTERSECTION_TOKEN:
+            case Tokenizer::DIFFERENCE_TOKEN:
+            case Tokenizer::TRIANGLE_TOKEN:
+            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
+            case Tokenizer::PLANE_TOKEN:
+            case Tokenizer::CUBIC_TOKEN:
+            case Tokenizer::POLY_TOKEN:
+            case Tokenizer::BICUBIC_PATCH_TOKEN:
+            case Tokenizer::HEIGHT_FIELD_TOKEN:
+            case Tokenizer::LIGHT_SOURCE_TOKEN:
+            case Tokenizer::BOX_TOKEN:
+            case Tokenizer::BLOB_TOKEN:
                 ctx.tokenStream().ungetToken();
                 if (object == nullptr) {
                     object = SimpleBodyFactory::getObject();
@@ -491,12 +491,12 @@ ObjectParser::parseObject(ParserContext &ctx)
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(object->Shape));
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(SHAPE_TOKEN, ctx);
-                Exit_Flag = TRUE;
+                ParseErrorReporter::parseError(Tokenizer::SHAPE_TOKEN, ctx);
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
             }
         }
@@ -504,22 +504,22 @@ ObjectParser::parseObject(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case BOUNDED_TOKEN:
+            case Tokenizer::BOUNDED_TOKEN:
 
-                ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
                     int Exit_Flag;
-                    Exit_Flag = FALSE;
+                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
-                        case RIGHT_CURLY_TOKEN:
-                            Exit_Flag = TRUE;
+                        case Tokenizer::RIGHT_CURLY_TOKEN:
+                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
                             break;
 
                         default:
@@ -534,18 +534,18 @@ ObjectParser::parseObject(ParserContext &ctx)
                 }
                 break;
 
-            case CLIPPED_TOKEN:
+            case Tokenizer::CLIPPED_TOKEN:
 
-                ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
                     int Exit_Flag;
-                    Exit_Flag = FALSE;
+                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
-                        case RIGHT_CURLY_TOKEN:
-                            Exit_Flag = TRUE;
+                        case Tokenizer::RIGHT_CURLY_TOKEN:
+                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
                             break;
 
                         default:
@@ -560,12 +560,12 @@ ObjectParser::parseObject(ParserContext &ctx)
                 }
                 break;
 
-            case COLOUR_TOKEN:
+            case Tokenizer::COLOUR_TOKEN:
                 object->objectColour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(object->objectColour, ctx);
                 break;
 
-            case TEXTURE_TOKEN:
+            case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
@@ -584,40 +584,40 @@ ObjectParser::parseObject(ParserContext &ctx)
                 }
                 break;
 
-            case NO_SHADOW_TOKEN:
-                object->noShadowFlag = TRUE;
+            case Tokenizer::NO_SHADOW_TOKEN:
+                object->noShadowFlag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case LIGHT_SOURCE_TOKEN:
+            case Tokenizer::LIGHT_SOURCE_TOKEN:
                 ParseErrorReporter::Error(
                     "Light source must be defined using new syntax", ctx);
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(object, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(object, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(object, &localVector);
                 break;
 
-            case INVERSE_TOKEN:
+            case Tokenizer::INVERSE_TOKEN:
                 GeometryOperations::invert(object);
                 break;
 
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }
@@ -637,18 +637,18 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
     localComposite = nullptr;
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        COMPOSITE_CONSTANT) {
+                        ParseGlobals::COMPOSITE_CONSTANT) {
                         localComposite = (Composite *)GeometryOperations::copy(
                             (SimpleBody *)ctx.constants()[(int)constantId]
                                 .constantData);
@@ -660,7 +660,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 }
                 break;
 
-            case COMPOSITE_TOKEN:
+            case Tokenizer::COMPOSITE_TOKEN:
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
                 }
@@ -671,7 +671,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     (SimpleBody **)&(localComposite->Objects));
                 break;
 
-            case OBJECT_TOKEN:
+            case Tokenizer::OBJECT_TOKEN:
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
                 }
@@ -680,17 +680,17 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     &(localComposite->Objects));
                 break;
 
-            case RIGHT_CURLY_TOKEN:
+            case Tokenizer::RIGHT_CURLY_TOKEN:
                 ctx.tokenStream().ungetToken();
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
                 ctx.tokenStream().ungetToken();
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
             }
         }
@@ -698,26 +698,26 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case BOUNDED_TOKEN:
+            case Tokenizer::BOUNDED_TOKEN:
 
-                ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
                     int Exit_Flag;
-                    Exit_Flag = FALSE;
+                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
-                        case RIGHT_CURLY_TOKEN:
-                            Exit_Flag = TRUE;
+                        case Tokenizer::RIGHT_CURLY_TOKEN:
+                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
                             break;
 
                         default:
@@ -733,18 +733,18 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 }
                 break;
 
-            case CLIPPED_TOKEN:
+            case Tokenizer::CLIPPED_TOKEN:
 
-                ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
                     int Exit_Flag;
-                    Exit_Flag = FALSE;
+                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
-                        case RIGHT_CURLY_TOKEN:
-                            Exit_Flag = TRUE;
+                        case Tokenizer::RIGHT_CURLY_TOKEN:
+                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
                             break;
 
                         default:
@@ -760,30 +760,30 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 }
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localComposite, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localComposite, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localComposite, &localVector);
                 break;
 
-            case INVERSE_TOKEN:
+            case Tokenizer::INVERSE_TOKEN:
                 GeometryOperations::invert((SimpleBody *)localComposite);
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

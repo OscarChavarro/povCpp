@@ -21,19 +21,19 @@ static RootNodeParseFn
 rootNodeParserForToken(int tokenId)
 {
     switch (tokenId) {
-    case SPHERE_TOKEN:
+    case Tokenizer::SPHERE_TOKEN:
         return parseSphereNode;
-    case LIGHT_SOURCE_TOKEN:
+    case Tokenizer::LIGHT_SOURCE_TOKEN:
         return parseLightNode;
-    case UNION_TOKEN:
+    case Tokenizer::UNION_TOKEN:
         return parseUnionNode;
-    case INTERSECTION_TOKEN:
+    case Tokenizer::INTERSECTION_TOKEN:
         return parseIntersectionNode;
-    case DIFFERENCE_TOKEN:
+    case Tokenizer::DIFFERENCE_TOKEN:
         return parseDifferenceNode;
-    case OBJECT_TOKEN:
+    case Tokenizer::OBJECT_TOKEN:
         return parseObjectNode;
-    case COMPOSITE_TOKEN:
+    case Tokenizer::COMPOSITE_TOKEN:
         return parseCompositeNode;
     default:
         return nullptr;
@@ -47,13 +47,13 @@ parseDeclareNode(ParserContext &ctx)
     node->sourceLine = ctx.token().tokenLineNo + 1;
     node->sourceFile = ctx.token().Filename;
 
-    ParseHelpers::getExpectedToken(IDENTIFIER_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
     node->identifierNumber = ctx.token().identifierNumber;
-    ParseHelpers::getExpectedToken(EQUALS_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::EQUALS_TOKEN, ctx);
     ctx.tokenStream().getToken();
     RootNodeParseFn parseFn = rootNodeParserForToken(ctx.token().tokenId);
     if (parseFn == nullptr) {
-        ParseErrorReporter::parseError(SPHERE_TOKEN, ctx);
+        ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
     }
     node->value = parseFn(ctx);
     return node;
@@ -64,11 +64,11 @@ AstSceneParser::parseScene(ParserContext &ctx)
 {
     AstScene *scene = new AstScene();
 
-    int done = FALSE;
+    int done = LegacyBoolean::FALSE_VALUE;
     while (!done) {
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
-        case DECLARE_TOKEN: {
+        case Tokenizer::DECLARE_TOKEN: {
             AstDeclareNode *decl = parseDeclareNode(ctx);
             if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
                     MAX_AST_SCENE_NODES, (AstNode *)decl)) {
@@ -76,16 +76,16 @@ AstSceneParser::parseScene(ParserContext &ctx)
             }
             break;
         }
-        case SPHERE_TOKEN:
-        case LIGHT_SOURCE_TOKEN:
-        case UNION_TOKEN:
-        case INTERSECTION_TOKEN:
-        case DIFFERENCE_TOKEN:
-        case OBJECT_TOKEN:
-        case COMPOSITE_TOKEN: {
+        case Tokenizer::SPHERE_TOKEN:
+        case Tokenizer::LIGHT_SOURCE_TOKEN:
+        case Tokenizer::UNION_TOKEN:
+        case Tokenizer::INTERSECTION_TOKEN:
+        case Tokenizer::DIFFERENCE_TOKEN:
+        case Tokenizer::OBJECT_TOKEN:
+        case Tokenizer::COMPOSITE_TOKEN: {
             RootNodeParseFn parseFn = rootNodeParserForToken(ctx.token().tokenId);
             if (parseFn == nullptr) {
-                ParseErrorReporter::parseError(SPHERE_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
             }
             AstNode *n = parseFn(ctx);
             if (!AstNodes::appendNode(
@@ -94,11 +94,11 @@ AstSceneParser::parseScene(ParserContext &ctx)
             }
             break;
         }
-        case END_OF_FILE_TOKEN:
-            done = TRUE;
+        case Tokenizer::END_OF_FILE_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
             break;
         default:
-            ParseErrorReporter::parseError(SPHERE_TOKEN, ctx);
+            ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
             break;
         }
     }

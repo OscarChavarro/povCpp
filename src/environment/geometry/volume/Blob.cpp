@@ -57,8 +57,8 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     /* Initialize the blob data */
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
-        if (fabs(temp->elem.coeffs[2]) < kEpsilon ||
-            temp->elem.radius2 < kEpsilon) {
+        if (fabs(temp->elem.coeffs[2]) < Config::kEpsilon ||
+            temp->elem.radius2 < Config::kEpsilon) {
             perror("Degenerate blob element\n");
         }
         /* Store blob specific information */
@@ -115,7 +115,7 @@ Blob::determineInfluences(
         b = v.dotProduct(*d);
         t = v.dotProduct(v);
         disc = b * b - t + blob->list[i].radius2;
-        if (disc < kEpsilon) {
+        if (disc < Config::kEpsilon) {
             continue;
         }
         disc = sqrt(disc);
@@ -241,7 +241,7 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
         }
     }
     val = n.dotProduct(n);
-    if (val < kEpsilon) {
+    if (val < Config::kEpsilon) {
         return 0;
     }
     return 1;
@@ -330,7 +330,7 @@ Blob::allBlobIntersections(
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
     BlobInterval *intervals = blob->intervals;
-    int intersectionFound = FALSE;
+    int intersectionFound = LegacyBoolean::FALSE_VALUE;
 
     Statistics::global().rayBlobTests++;
 
@@ -456,7 +456,7 @@ Blob::allBlobIntersections(
                     localElement.Point = intersectionPoint;
                     localElement.Shape = (Geometry *)blob;
                     depthQueue->add(&localElement);
-                    intersectionFound = TRUE;
+                    intersectionFound = LegacyBoolean::TRUE_VALUE;
                 }
             }
         }
@@ -534,7 +534,7 @@ Blob::blobNormal(
     }
     val =
         (result->x * result->x + result->y * result->y + result->z * result->z);
-    if (val < kEpsilon) {
+    if (val < Config::kEpsilon) {
         result->x = 1.0;
         result->y = 0.0;
         result->z = 0.0;

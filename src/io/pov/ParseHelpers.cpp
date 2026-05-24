@@ -53,7 +53,7 @@ ParseHelpers::postProcessObject(SimpleBody *object)
 {
     SimpleBody *temp;
 
-    if (object->Type == COMPOSITE_TYPE) {
+    if (object->Type == GeometryOperations::COMPOSITE_TYPE) {
         for (temp = ((Composite *)object)->Objects; temp != nullptr;
             temp = temp->nextObject) {
             ParseHelpers::postProcessObject(temp);
@@ -75,15 +75,15 @@ ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
 {
     Geometry *tempShape;
 
-    if ((shape->Type == CSG_UNION_TYPE) ||
-        (shape->Type == CSG_INTERSECTION_TYPE) ||
-        (shape->Type == CSG_DIFFERENCE_TYPE)) {
+    if ((shape->Type == GeometryOperations::CSG_UNION_TYPE) ||
+        (shape->Type == GeometryOperations::CSG_INTERSECTION_TYPE) ||
+        (shape->Type == GeometryOperations::CSG_DIFFERENCE_TYPE)) {
         for (tempShape = ((CSG *)shape)->Shapes; tempShape != nullptr;
             tempShape = tempShape->nextObject) {
             ParseHelpers::postProcessShape(tempShape);
         }
-    } else if ((shape->Type == POINT_LIGHT_TYPE) ||
-               (shape->Type == SPOT_LIGHT_TYPE)) {
+    } else if ((shape->Type == GeometryOperations::POINT_LIGHT_TYPE) ||
+               (shape->Type == GeometryOperations::SPOT_LIGHT_TYPE)) {
         ParseHelpers::linkShapes((Light *)shape,
             &(((Light *)shape)->Next_Light_Source),
             &(ctx.parsingFrame()->Light_Sources));

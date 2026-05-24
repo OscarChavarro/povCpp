@@ -15,7 +15,7 @@ class SymbolTable {
     Constant *upsertByIdentifierNumber(int identifierNumber);
 
   private:
-    Constant mData[MAX_CONSTANTS];
+    Constant mData[ParserConstants::MAX_CONSTANTS];
     int mSize;
 };
 

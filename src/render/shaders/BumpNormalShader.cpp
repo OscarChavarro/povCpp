@@ -14,7 +14,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     double x;
     double y;
     double z;
-    const int debugEnabled = (RenderingConfiguration::global().options & DEBUGGING);
+    const int debugEnabled = (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING);
 
     if (texture->bumpNumber == Texture::NO_BUMPS) {
         *newNormal = *surfaceNormal;
@@ -69,7 +69,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
 
     case Texture::BUMPMAP:
         MapTextureFixture::bumpMap(
-            x, y, z, texture, newNormal, debugEnabled, Small_Tolerance);
+            x, y, z, texture, newNormal, debugEnabled, GeometryConstants::Small_Tolerance);
         break;
     }
 }

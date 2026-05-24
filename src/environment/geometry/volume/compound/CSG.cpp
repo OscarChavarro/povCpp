@@ -32,12 +32,12 @@ CSG::allCsgUnionIntersections(
     CSG *shape = (CSG *)object;
     Geometry *localShape;
 
-    intersectionFound = FALSE;
+    intersectionFound = LegacyBoolean::FALSE_VALUE;
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
         if (GeometryOperations::allIntersections(
                 (SimpleBody *)localShape, ray, depthQueue)) {
-            intersectionFound = TRUE;
+            intersectionFound = LegacyBoolean::TRUE_VALUE;
         }
     }
 
@@ -58,7 +58,7 @@ CSG::allCsgIntersectIntersections(
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
 
-    anyIntersectionFound = FALSE;
+    anyIntersectionFound = LegacyBoolean::FALSE_VALUE;
 
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
@@ -70,7 +70,7 @@ CSG::allCsgIntersectIntersections(
             localIntersection != nullptr; localDepthQueue->deleteHighest(),
             localIntersection = localDepthQueue->getHighest()) {
 
-            intersectionFound = TRUE;
+            intersectionFound = LegacyBoolean::TRUE_VALUE;
 
             for (shape2 = shape->Shapes; shape2 != nullptr;
                 shape2 = shape2->nextObject) {
@@ -78,7 +78,7 @@ CSG::allCsgIntersectIntersections(
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
                             &localIntersection->Point, (SimpleBody *)shape2)) {
-                        intersectionFound = FALSE;
+                        intersectionFound = LegacyBoolean::FALSE_VALUE;
                         break;
                     }
                 }
@@ -86,7 +86,7 @@ CSG::allCsgIntersectIntersections(
 
             if (intersectionFound) {
                 depthQueue->add(localIntersection);
-                anyIntersectionFound = TRUE;
+                anyIntersectionFound = LegacyBoolean::TRUE_VALUE;
             }
         }
     }
@@ -106,10 +106,10 @@ CSG::insideCsgUnion(Vector3Dd *testPoint, SimpleBody *object)
         localShape = localShape->nextObject) {
 
         if (GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
-            return (TRUE);
+            return (LegacyBoolean::TRUE_VALUE);
         }
     }
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 int
@@ -122,11 +122,11 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
         localShape = localShape->nextObject) {
 
         if (!GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
-            return (FALSE);
+            return (LegacyBoolean::FALSE_VALUE);
         }
     }
 
-    return (TRUE);
+    return (LegacyBoolean::TRUE_VALUE);
 }
 
 void *
@@ -197,11 +197,11 @@ CSG::invertCsg(SimpleBody *object)
     Geometry *localShape;
     CSG *csg = (CSG *)object;
 
-    if (csg->Type == CSG_INTERSECTION_TYPE) {
-        csg->Type = CSG_UNION_TYPE;
+    if (csg->Type == GeometryOperations::CSG_INTERSECTION_TYPE) {
+        csg->Type = GeometryOperations::CSG_UNION_TYPE;
         csg->methods = &CSG::unionMethodTable;
-    } else if (csg->Type == CSG_UNION_TYPE) {
-        csg->Type = CSG_INTERSECTION_TYPE;
+    } else if (csg->Type == GeometryOperations::CSG_UNION_TYPE) {
+        csg->Type = GeometryOperations::CSG_INTERSECTION_TYPE;
         csg->methods = &CSG::intersectionMethodTable;
     }
 

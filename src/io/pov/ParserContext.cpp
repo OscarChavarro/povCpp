@@ -6,19 +6,19 @@
 #include "io/pov/TokenizerTokenStream.h"
 #include "processing/PolynomialConstants.h"
 
-static TokenizerTokenStream defaultTokenStream;
-static RenderFrame *sharedParsingFramePtr = nullptr;
-static RGBAColorPaletteSpan *sharedConstructionMap = nullptr;
-static SymbolTable sharedSymbols;
-static int sharedDegenerateTriangles = 0;
+TokenizerTokenStream ParserContext::sDefaultTokenStream;
+RenderFrame *ParserContext::sSharedParsingFramePtr = nullptr;
+RGBAColorPaletteSpan *ParserContext::sSharedConstructionMap = nullptr;
+SymbolTable ParserContext::sSharedSymbols;
+int ParserContext::sSharedDegenerateTriangles = 0;
 
 ParserContext::ParserContext()
 {
-    mTokenStream = &defaultTokenStream;
-    mParsingFramePtr = &sharedParsingFramePtr;
-    mConstructionMap = &sharedConstructionMap;
-    mSymbols = &sharedSymbols;
-    mDegenerateTriangles = &sharedDegenerateTriangles;
+    mTokenStream = &sDefaultTokenStream;
+    mParsingFramePtr = &sSharedParsingFramePtr;
+    mConstructionMap = &sSharedConstructionMap;
+    mSymbols = &sSharedSymbols;
+    mDegenerateTriangles = &sSharedDegenerateTriangles;
 }
 
 ReservedWord *

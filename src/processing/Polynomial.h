@@ -7,7 +7,7 @@
 class Polynomial {
   public:
     int ord;
-    double coef[MAX_ORDER + 1];
+    double coef[PolynomialConstants::MAX_ORDER + 1];
 };
 
 #endif

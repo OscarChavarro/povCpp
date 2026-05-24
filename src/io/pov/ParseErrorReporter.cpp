@@ -18,7 +18,7 @@ ParseErrorReporter::getTokenString(TOKEN tokenId, ParserContext &ctx)
 {
     int i;
 
-    for (i = 0; i < LAST_TOKEN; i++) {
+    for (i = 0; i < Tokenizer::LAST_TOKEN; i++) {
         if (ctx.reservedWords()[i].tokenNumber == tokenId) {
             return (char *)(ctx.reservedWords()[i].Token_Name);
         }
@@ -44,7 +44,7 @@ ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
     expected = ParseErrorReporter::getTokenString(tokenId, ctx);
     found = ParseErrorReporter::getTokenString(ctx.token().tokenId, ctx);
     Logger::error( "%s expected but %s found instead\n", expected, found);
-    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         fprintf(
             statFile, "%s expected but %s found instead\n", expected, found);
@@ -68,7 +68,7 @@ ParseErrorReporter::typeError(ParserContext &ctx)
     Logger::error( "Error in file %s line %d\n", ctx.token().Filename,
         ctx.token().tokenLineNo + 1);
     fprintf(stderr, "Identifier %s is the wrong type\n", ctx.token().Token_String);
-    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", ctx.token().Filename,
             ctx.token().tokenLineNo + 1);
@@ -94,7 +94,7 @@ ParseErrorReporter::Undeclared(ParserContext &ctx)
     Logger::error( "Error in file %s line %d\n", ctx.token().Filename,
         ctx.token().tokenLineNo + 1);
     Logger::error( "Undeclared identifier %s\n", ctx.token().Token_String);
-    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", ctx.token().Filename,
             ctx.token().tokenLineNo + 1);
@@ -120,7 +120,7 @@ ParseErrorReporter::Error(const char *str, ParserContext &ctx)
         ctx.token().tokenLineNo + 1);
     Logger::error( "%s\n", str);
 
-    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         fprintf(statFile, "Error in file %s line %d\n", ctx.token().Filename,
             ctx.token().tokenLineNo + 1);

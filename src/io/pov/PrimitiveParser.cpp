@@ -40,19 +40,19 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
     int negative;
     int signParsed;
 
-    negative = FALSE;
-    signParsed = FALSE;
+    negative = LegacyBoolean::FALSE_VALUE;
+    signParsed = LegacyBoolean::FALSE_VALUE;
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        FLOAT_CONSTANT) {
+                        ParseGlobals::FLOAT_CONSTANT) {
                         localFloat = *(
                             (double *)ctx.constants()[(int)constantId].constantData);
                         if (negative) {
@@ -64,34 +64,34 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case PLUS_TOKEN:
+            case Tokenizer::PLUS_TOKEN:
                 if (signParsed) {
-                    ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
+                    ParseErrorReporter::parseError(Tokenizer::FLOAT_TOKEN, ctx);
                 }
-                signParsed = TRUE;
+                signParsed = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case DASH_TOKEN:
+            case Tokenizer::DASH_TOKEN:
                 if (signParsed) {
-                    ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
+                    ParseErrorReporter::parseError(Tokenizer::FLOAT_TOKEN, ctx);
                 }
-                negative = TRUE;
-                signParsed = TRUE;
+                negative = LegacyBoolean::TRUE_VALUE;
+                signParsed = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case FLOAT_TOKEN:
+            case Tokenizer::FLOAT_TOKEN:
                 localFloat = ctx.token().tokenFloat;
                 if (negative) {
                     localFloat *= -1.0;
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(FLOAT_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::FLOAT_TOKEN, ctx);
                 break;
             }
         }
@@ -114,14 +114,14 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        VECTOR_CONSTANT) {
+                        ParseGlobals::VECTOR_CONSTANT) {
                         *givenVector = *((Vector3Dd *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
@@ -130,19 +130,19 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case LEFT_ANGLE_TOKEN:
+            case Tokenizer::LEFT_ANGLE_TOKEN:
                 (givenVector->x) = PrimitiveParser::parseFloat(ctx);
                 (givenVector->y) = PrimitiveParser::parseFloat(ctx);
                 (givenVector->z) = PrimitiveParser::parseFloat(ctx);
-                ParseHelpers::getExpectedToken(RIGHT_ANGLE_TOKEN, ctx);
-                Exit_Flag = TRUE;
+                ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -163,20 +163,20 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case LEFT_ANGLE_TOKEN:
+            case Tokenizer::LEFT_ANGLE_TOKEN:
                 for (i = 0; i < ctx.termCounts()[order]; i++) {
                     givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
                 }
-                ParseHelpers::getExpectedToken(RIGHT_ANGLE_TOKEN, ctx);
-                Exit_Flag = TRUE;
+                ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(LEFT_ANGLE_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
                 break;
             }
         }
@@ -197,14 +197,14 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
     Color::makeColor(givenColour, 0.0, 0.0, 0.0);
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        COLOUR_CONSTANT) {
+                        ParseGlobals::COLOUR_CONSTANT) {
                         *givenColour = *((RGBAColor *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
@@ -215,25 +215,25 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
                 }
                 break;
 
-            case RED_TOKEN:
+            case Tokenizer::RED_TOKEN:
                 (givenColour->Red) = PrimitiveParser::parseFloat(ctx);
                 break;
 
-            case GREEN_TOKEN:
+            case Tokenizer::GREEN_TOKEN:
                 (givenColour->Green) = PrimitiveParser::parseFloat(ctx);
                 break;
 
-            case BLUE_TOKEN:
+            case Tokenizer::BLUE_TOKEN:
                 (givenColour->Blue) = PrimitiveParser::parseFloat(ctx);
                 break;
 
-            case ALPHA_TOKEN:
+            case Tokenizer::ALPHA_TOKEN:
                 (givenColour->Alpha) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             default:
                 ctx.tokenStream().ungetToken();
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
             }
         }

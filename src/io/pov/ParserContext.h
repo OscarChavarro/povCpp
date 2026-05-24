@@ -7,6 +7,7 @@
 #include "io/pov/ParserConstants.h"
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/SymbolTable.h"
+#include "io/pov/TokenizerTokenStream.h"
 
 class RenderFrame;
 class RGBAColorPaletteSpan;
@@ -28,6 +29,12 @@ class ParserContext {
     void setTokenStream(ITokenStream *tokenStream);
 
   private:
+    static TokenizerTokenStream sDefaultTokenStream;
+    static RenderFrame *sSharedParsingFramePtr;
+    static RGBAColorPaletteSpan *sSharedConstructionMap;
+    static SymbolTable sSharedSymbols;
+    static int sSharedDegenerateTriangles;
+
     ITokenStream *mTokenStream;
     RenderFrame **mParsingFramePtr;
     RGBAColorPaletteSpan **mConstructionMap;

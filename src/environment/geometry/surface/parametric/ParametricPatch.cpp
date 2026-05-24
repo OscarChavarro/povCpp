@@ -1014,7 +1014,7 @@ ParametricBiCubicPatch::bicubicPatchNormal(
             return;
         }
     }
-    if (RenderingConfiguration::global().options & DEBUGGING) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
         Logger::info("Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }

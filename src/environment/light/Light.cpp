@@ -17,13 +17,13 @@ int
 Light::allPointIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 int
 Light::insidePoint(Vector3Dd *testPoint, SimpleBody *object)
 {
-    return (FALSE);
+    return (LegacyBoolean::FALSE_VALUE);
 }
 
 void *
@@ -77,7 +77,7 @@ Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
 void
 Light::invertPoint(SimpleBody *object)
 {
-    ((Light *)object)->Inverted ^= TRUE;
+    ((Light *)object)->Inverted ^= LegacyBoolean::TRUE_VALUE;
 }
 
 /* Cubic spline that has tangents of slope 0 at x == low and at x == high.
@@ -112,7 +112,7 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
     Vector3Dd spotDirection;
 
     /* If this is a spotlight then attenuate based on the incidence angle */
-    if (lightSource->Type == SPOT_LIGHT_TYPE) {
+    if (lightSource->Type == GeometryOperations::SPOT_LIGHT_TYPE) {
         VectorOps::vSub(
             spotDirection, lightSource->pointsAt, lightSource->Center);
         len = spotDirection.length();

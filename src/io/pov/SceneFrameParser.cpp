@@ -25,48 +25,48 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case FOG_TOKEN:
+            case Tokenizer::FOG_TOKEN:
                 FogParser::parseFog(framePtr, ctx);
                 break;
 
-            case DEFAULT_TOKEN:
+            case Tokenizer::DEFAULT_TOKEN:
                 DefaultTextureParser::parseDefault(framePtr, ctx);
                 break;
 
-            case MAX_TRACE_LEVEL_TOKEN:
+            case Tokenizer::MAX_TRACE_LEVEL_TOKEN:
                 RenderSettingsParser::parseMaxTraceLevel(ctx);
                 break;
 
-            case OBJECT_TOKEN:
+            case Tokenizer::OBJECT_TOKEN:
                 localObject = ObjectParser::parseObject(ctx);
                 SimpleBodyFactory::link(localObject, &(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 
-            case COMPOSITE_TOKEN:
+            case Tokenizer::COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite(ctx);
                 SimpleBodyFactory::link(localObject, &(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 
-            case VIEW_POINT_TOKEN:
+            case Tokenizer::VIEW_POINT_TOKEN:
                 CameraParser::parseCamera(&(framePtr->viewPoint), ctx);
                 break;
 
-            case DECLARE_TOKEN:
+            case Tokenizer::DECLARE_TOKEN:
                 DeclarationParser::parseDeclare(ctx);
                 break;
 
-            case END_OF_FILE_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::END_OF_FILE_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(OBJECT_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::OBJECT_TOKEN, ctx);
                 break;
             }
         }

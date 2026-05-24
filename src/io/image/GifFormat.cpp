@@ -11,12 +11,11 @@
 #include "io/image/GifDecoder.h"
 #include <cstring>
 
-static RGBAImage *currentImage;
-static int bitmapLine;
-static java::FileInputStream *bitStream;
-
-static RGBAPixel *gifColourMap;
-static int colourmapSize;
+RGBAImage *GifFormat::currentImage = nullptr;
+int GifFormat::bitmapLine = 0;
+java::FileInputStream *GifFormat::bitStream = nullptr;
+RGBAPixel *GifFormat::gifColourMap = nullptr;
+int GifFormat::colourmapSize = 0;
 
 int
 GifFormat::outLine(unsigned char *pixels, int linelen)
@@ -115,11 +114,11 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
         gifColourMap[i].Alpha = 0;
     }
 
-    finished = FALSE;
+    finished = LegacyBoolean::FALSE_VALUE;
     while (!finished) {
         switch (GifFormat::getByte()) {
         case ';':
-            finished = TRUE;
+            finished = LegacyBoolean::TRUE_VALUE;
             status = 0;
             break;
 
@@ -142,7 +141,7 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
             }
 
             if (status < 0) {
-                finished = TRUE;
+                finished = LegacyBoolean::TRUE_VALUE;
                 break;
             }
 
@@ -170,12 +169,12 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
             }
 
             status = GifDecoder::decoder(image->iwidth);
-            finished = TRUE;
+            finished = LegacyBoolean::TRUE_VALUE;
             break;
 
         default:
             status = -1;
-            finished = TRUE;
+            finished = LegacyBoolean::TRUE_VALUE;
             break;
         }
     }

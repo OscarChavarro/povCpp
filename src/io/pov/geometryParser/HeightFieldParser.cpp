@@ -32,18 +32,18 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
     localShape = nullptr;
 
-    ParseHelpers::getExpectedToken(LEFT_CURLY_TOKEN, ctx);
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (
                 ctx.token().tokenId) { /* This should be modified to include
                                            other image types - CdW */
-            case GIF_TOKEN:
-                imageType = GIF;
+            case Tokenizer::GIF_TOKEN:
+                imageType = HeightField::GIF;
                 localShape = ModelBuilder::getHeightFieldShape();
                 image = new RGBAImage;
                 if (image == nullptr) {
@@ -51,7 +51,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "space for Height Field (1st "
                                               "message, ctx).");
                 }
-                ParseHelpers::getExpectedToken(STRING_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 GifFormat::readGifImage(image, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0].x = 1.0;
                 localShape->bounding_box->bounds[0].y = 0.0;
@@ -63,11 +63,11 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / 256.0, 1.0 / (image->height));
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case POT_TOKEN:
-                imageType = POT;
+            case Tokenizer::POT_TOKEN:
+                imageType = HeightField::POT;
                 localShape = ModelBuilder::getHeightFieldShape();
                 image = new RGBAImage;
                 if (image == nullptr) {
@@ -75,7 +75,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "space for Height Field (1st "
                                               "message, ctx).");
                 }
-                ParseHelpers::getExpectedToken(STRING_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 GifFormat::readGifImage(image, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0].x = 1.0;
                 localShape->bounding_box->bounds[0].y = 0.0;
@@ -88,18 +88,18 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / 256.0, 1.0 / image->height);
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case TGA_TOKEN:
-                imageType = TGA;
+            case Tokenizer::TGA_TOKEN:
+                imageType = HeightField::TGA;
                 localShape = ModelBuilder::getHeightFieldShape();
                 image = new RGBAImage;
                 if (image == nullptr) {
                     ParseErrorReporter::Error("Cannot allocate space for "
                                               "Height Field (1st message, ctx).");
                 }
-                ParseHelpers::getExpectedToken(STRING_TOKEN, ctx);
+                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 TargaFormat::readTargaImage(image, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0].x = 1.0;
                 localShape->bounding_box->bounds[0].y = 0.0;
@@ -111,13 +111,13 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / 256.0, 1.0 / image->height);
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
-                        HEIGHT_FIELD_CONSTANT) {
+                        ParseGlobals::HEIGHT_FIELD_CONSTANT) {
                         localShape = (HeightField *)GeometryOperations::copy(
                             (SimpleBody *)ctx.constants()[(int)constantId]
                                 .constantData);
@@ -127,11 +127,11 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = TRUE;
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
             default:
-                ParseErrorReporter::parseError(GIF_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::GIF_TOKEN, ctx);
                 break;
             }
         }
@@ -139,42 +139,42 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
     {
         int Exit_Flag;
-        Exit_Flag = FALSE;
+        Exit_Flag = LegacyBoolean::FALSE_VALUE;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
-            case RIGHT_CURLY_TOKEN:
-                Exit_Flag = TRUE;
+            case Tokenizer::RIGHT_CURLY_TOKEN:
+                Exit_Flag = LegacyBoolean::TRUE_VALUE;
                 break;
 
-            case WATER_LEVEL_TOKEN:
+            case Tokenizer::WATER_LEVEL_TOKEN:
                 localShape->bounding_box->bounds[0].y =
                     PrimitiveParser::parseFloat(ctx);
                 break;
 
-            case TRANSLATE_TOKEN:
+            case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case ROTATE_TOKEN:
+            case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case SCALE_TOKEN:
+            case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            case INVERSE_TOKEN:
+            case Tokenizer::INVERSE_TOKEN:
                 GeometryOperations::invert((SimpleBody *)localShape);
                 break;
 
-            case TEXTURE_TOKEN:
+            case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
@@ -193,13 +193,13 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 }
                 break;
 
-            case COLOUR_TOKEN:
+            case Tokenizer::COLOUR_TOKEN:
                 localShape->Shape_Colour = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
                 break;
 
             default:
-                ParseErrorReporter::parseError(RIGHT_CURLY_TOKEN, ctx);
+                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
             }
         }

@@ -89,7 +89,7 @@ traceServiceShadeShadow(
 {
     (void)context;
     RayShaderPipeline::shadeSurface(
-        intersection, colour, nullptr, TRUE, getTraceService());
+        intersection, colour, nullptr, LegacyBoolean::TRUE_VALUE, getTraceService());
 }
 
 static const TraceService traceService = {
@@ -127,8 +127,8 @@ RenderFrame::createRay(
     ray->direction.add(RenderEngine::renderFrame().viewPoint.Direction);
     ray->direction.normalize();
     ray->initializeContainers();
-    ray->isPrimaryRay = TRUE;
-    ray->quadricConstantsCached = FALSE;
+    ray->isPrimaryRay = LegacyBoolean::TRUE_VALUE;
+    ray->quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
 }
 
 void
@@ -301,7 +301,7 @@ RenderEngine::supersample(
     Color::scaleColor(&colour, &colour, 0.11111111);
     Color::addColor(result, result, &colour);
 
-    if ((y != RenderingConfiguration::global().firstLine - 1) && (RenderingConfiguration::global().options & DISPLAY)) {
+    if ((y != RenderingConfiguration::global().firstLine - 1) && (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY)) {
     }
 }
 
@@ -337,7 +337,7 @@ RenderEngine::startTracing()
     RGBAColor colour;
     int x;
     int y;
-    for (y = (RenderingConfiguration::global().options & ANTIALIAS) ? RenderingConfiguration::global().firstLine - 1 : RenderingConfiguration::global().firstLine; y < RenderingConfiguration::global().lastLine;
+    for (y = (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) ? RenderingConfiguration::global().firstLine - 1 : RenderingConfiguration::global().firstLine; y < RenderingConfiguration::global().lastLine;
         y++) {
 
         RenderFrame::checkStats(y);
@@ -362,12 +362,12 @@ RenderEngine::startTracing()
 
             currentLine[x] = colour;
 
-            if (RenderingConfiguration::global().options & ANTIALIAS) {
+            if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
                 RenderFrame::doAntiAliasing(x, y, &colour);
             }
 
             if (y != RenderingConfiguration::global().firstLine - 1) {
-                if (RenderingConfiguration::global().options & DISPLAY) {
+                if (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY) {
                     (void)x;
                     (void)y;
                 }
@@ -376,7 +376,7 @@ RenderEngine::startTracing()
         RenderFrame::outputLine(y);
     }
 
-    if (RenderingConfiguration::global().options & DISKWRITE) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
         RenderingConfiguration::global().outputFileInputStream->writeLine(
             previousLine, RenderingConfiguration::global().lastLine - 1);
     }
@@ -386,7 +386,7 @@ void
 RenderFrame::checkStats(int y)
 {
     /* New verbose options CdW */
-    if (RenderingConfiguration::global().options & VERBOSE && RenderingConfiguration::global().verboseFormat == '0') {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '0') {
         Logger::info("POV-Ray rendering %s to %s", RenderingConfiguration::global().inputFileName, RenderingConfiguration::global().outputFileName);
         if ((RenderingConfiguration::global().firstLine != 0) || (RenderingConfiguration::global().lastLine != RenderEngine::renderFrame().screenHeight)) {
             Logger::info(" from %4d to %4d:\n", RenderingConfiguration::global().firstLine, RenderingConfiguration::global().lastLine);
@@ -396,11 +396,11 @@ RenderFrame::checkStats(int y)
         Logger::info("Res %4d X %4d. Calc line %4d of %4d", RenderEngine::renderFrame().screenWidth,
             RenderEngine::renderFrame().screenHeight, (y - RenderingConfiguration::global().firstLine) + 1,
             RenderingConfiguration::global().lastLine - RenderingConfiguration::global().firstLine);
-        if (!(RenderingConfiguration::global().options & ANTIALIAS)) {
+        if (!(RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS)) {
             Logger::info(".");
         }
     }
-    if (RenderingConfiguration::global().options & VERBOSE_FILE) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         java::FileOutputStream statFile(RenderingConfiguration::global().statFileName);
         char buf[32];
         snprintf(buf, sizeof(buf), "Line %4d.\n", y);
@@ -411,19 +411,19 @@ RenderFrame::checkStats(int y)
     }
 
     /* Use -vO for Old style verbose */
-    if (RenderingConfiguration::global().options & VERBOSE && (RenderingConfiguration::global().verboseFormat == 'O')) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && (RenderingConfiguration::global().verboseFormat == 'O')) {
         Logger::info("Line %4d", y);
     }
-    if (RenderingConfiguration::global().options & VERBOSE && RenderingConfiguration::global().verboseFormat == '1') {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
             RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight,
             (y - RenderingConfiguration::global().firstLine) + 1, RenderingConfiguration::global().lastLine - RenderingConfiguration::global().firstLine);
-        if (!(RenderingConfiguration::global().options & ANTIALIAS)) {
+        if (!(RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS)) {
             fprintf(stderr, ".");
         }
     }
 
-    if (RenderingConfiguration::global().options & ANTIALIAS) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
         superSampleCount = 0;
     }
 }
@@ -489,7 +489,7 @@ RenderEngine::initializeRenderer()
         currentLine[i].Blue = 0.0;
     }
 
-    if (RenderingConfiguration::global().options & ANTIALIAS) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
         previousLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
         currentLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
 
@@ -508,18 +508,18 @@ RenderFrame::outputLine(int y)
     RGBAColor *tempColourPtr;
     char *tempCharPtr;
 
-    if (RenderingConfiguration::global().options & DISKWRITE) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
         if (y > RenderingConfiguration::global().firstLine) {
             RenderingConfiguration::global().outputFileInputStream->writeLine(previousLine, y - 1);
         }
     }
 
-    if (RenderingConfiguration::global().options & VERBOSE) {
-        if (RenderingConfiguration::global().options & ANTIALIAS && RenderingConfiguration::global().verboseFormat != '1') {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) {
+        if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS && RenderingConfiguration::global().verboseFormat != '1') {
             Logger::info(" supersampled %d times.", superSampleCount);
         }
 
-        if (RenderingConfiguration::global().options & ANTIALIAS && RenderingConfiguration::global().verboseFormat == '1') {
+        if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS && RenderingConfiguration::global().verboseFormat == '1') {
             fprintf(stderr, " supersampled %d times.", superSampleCount);
         }
         if (RenderingConfiguration::global().verboseFormat == '1') {
@@ -548,7 +548,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     Statistics::global().numberOfRays++;
     Color::makeColor(colour, 0.0, 0.0, 0.0);
 
-    intersectionFound = FALSE;
+    intersectionFound = LegacyBoolean::FALSE_VALUE;
     localIntersection = nullptr;
 
     if (RenderEngine::traceLevel() > (int)RenderEngine::maxTraceLevel()) {
@@ -561,7 +561,7 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
         *colour = RenderEngine::renderFrame().fogColour;
     }
 
-    if (RenderingConfiguration::global().options & DEBUGGING) {
+    if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
         Logger::info("Calculating intersections level %d\n", RenderEngine::traceLevel());
     }
 
@@ -581,13 +581,13 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
                 localIntersection = newIntersection;
             }
 
-            intersectionFound = TRUE;
+            intersectionFound = LegacyBoolean::TRUE_VALUE;
         }
     }
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            localIntersection, colour, ray, FALSE, getTraceService());
+            localIntersection, colour, ray, LegacyBoolean::FALSE_VALUE, getTraceService());
         delete localIntersection;
     }
 }

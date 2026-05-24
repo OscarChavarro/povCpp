@@ -1,7 +1,10 @@
 #ifndef __GEOMETRY_CONSTANTS_H__
 #define __GEOMETRY_CONSTANTS_H__
 
-static constexpr double Small_Tolerance = 0.001;
-static constexpr double Max_Distance = 1.0e7;
+class GeometryConstants {
+  public:
+    static constexpr double Small_Tolerance = 0.001;
+    static constexpr double Max_Distance = 1.0e7;
+};
 
 #endif

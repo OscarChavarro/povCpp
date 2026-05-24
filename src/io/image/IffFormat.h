@@ -4,6 +4,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "io/image/ChunkHeader.h"
 #include "java/io/FileInputStream.h"
+class RGBAPixel;
 
 class IffFormat {
   public:
@@ -13,6 +14,11 @@ class IffFormat {
     static long readLong(java::FileInputStream &is);
     static void readChunkHeader(java::FileInputStream &is, ChunkHeader *dest);
     static void readIffImage(RGBAImage *image, char *filename);
+
+  private:
+    static RGBAPixel *sIffColourMap;
+    static int sColourMapSize;
+    static ChunkHeader sGlobalChunkHeader;
 };
 
 #endif
