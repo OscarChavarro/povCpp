@@ -159,6 +159,10 @@ AstSceneParser::parseDefaultTextureNode(ParserContext &ctx)
         switch (ctx.token().tokenId) {
         case Tokenizer::TEXTURE_TOKEN:
             node->texture = TextureParser::parseTexture(ctx);
+            if (node->textureChain == nullptr) {
+                node->textureChain = new AstTextureChainNode();
+            }
+            node->textureChain->texture = TextureParser::copyTexture(node->texture);
             if (node->texture != nullptr) {
                 node->texture->constantFlag = LegacyBoolean::FALSE_VALUE;
                 TextureUtils::defaultTexture() = node->texture;

@@ -79,6 +79,7 @@ struct AstCameraOp {
 
 class Texture;
 class Geometry;
+class AstTextureChainNode;
 
 class AstLimits {
   public:
@@ -108,6 +109,7 @@ class AstSphereNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -145,6 +147,7 @@ class AstPlaneNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -164,6 +167,7 @@ class AstBoxNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -185,6 +189,7 @@ class AstQuadricNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -213,6 +218,7 @@ class AstBlobNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -233,6 +239,7 @@ class AstTriangleNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -256,6 +263,7 @@ class AstSmoothTriangleNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -279,6 +287,7 @@ class AstPolyNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -311,6 +320,7 @@ class AstTextureChainNode : public AstNode {
     AstTextureChainNode();
 
     Texture *texture;
+    AstTextureChainNode *textureChain;
 };
 
 class AstCsgNode : public AstNode {
@@ -350,6 +360,7 @@ class AstObjectNode : public AstNode {
     AstColor colour;
     bool hasTexture;
     Texture *texture;
+    AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
@@ -406,6 +417,7 @@ class AstDefaultTextureNode : public AstNode {
     AstDefaultTextureNode();
 
     Texture *texture;
+    AstTextureChainNode *textureChain;
 };
 
 class AstScene {
