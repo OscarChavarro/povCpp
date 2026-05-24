@@ -995,6 +995,17 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
         const AstNode *node = scene.nodes[i];
         if (node->kind == AST_DECLARE_NODE) {
             const AstDeclareNode *decl = (const AstDeclareNode *)node;
+            if (decl->value != nullptr && decl->value->kind == AST_TEXTURE_CHAIN_NODE) {
+                Constant *constantPtr =
+                    ctx.symbols().upsertByIdentifierNumber(decl->identifierNumber);
+                if (constantPtr == nullptr) {
+                    ParseErrorReporter::Error("Too many constants \"declared\"", ctx);
+                }
+                constantPtr->identifierNumber = decl->identifierNumber;
+                constantPtr->constantType = ParseGlobals::TEXTURE_CONSTANT;
+                constantPtr->constantData =
+                    (void *)((const AstTextureChainNode *)decl->value)->texture;
+            }
             if (declarations.count < ParserConstants::MAX_CONSTANTS) {
                 declarations.ids[declarations.count] = decl->identifierNumber;
                 declarations.nodes[declarations.count] = decl->value;

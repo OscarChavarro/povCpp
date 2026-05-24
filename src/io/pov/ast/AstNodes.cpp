@@ -177,6 +177,14 @@ AstBicubicPatchNode::AstBicubicPatchNode()
     shape = nullptr;
 }
 
+AstTextureChainNode::AstTextureChainNode()
+{
+    kind = AST_TEXTURE_CHAIN_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    texture = nullptr;
+}
+
 AstCsgNode::AstCsgNode()
 {
     kind = AST_CSG_NODE;
