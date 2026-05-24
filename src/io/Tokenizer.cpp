@@ -24,7 +24,6 @@ the token.  */
 static constexpr int MAX_STRING_INDEX = 41;
 char string[MAX_STRING_INDEX];
 int stringIndex;
-extern char libraryPath[];
 
 /* Here are the reserved words.  If you need to add new words, be sure
 to declare them in frame.h */

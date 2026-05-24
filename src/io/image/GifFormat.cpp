@@ -14,7 +14,6 @@
 static RGBAImage *currentImage;
 static int bitmapLine;
 static java::FileInputStream *bitStream;
-unsigned char *decoderline;
 
 static RGBAPixel *gifColourMap;
 static int colourmapSize;
@@ -65,8 +64,8 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
         exit(1);
     }
 
-    decoderline = new unsigned char[2049];
-    if (decoderline == nullptr) {
+    GifDecoder::decoderline = new unsigned char[2049];
+    if (GifDecoder::decoderline == nullptr) {
         Logger::error("Cannot allocate space for GIF decoder line\n");
         bitStream->close();
         delete bitStream;
@@ -74,7 +73,7 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
     }
 
     for (i = 0; i < 2049; i++) {
-        decoderline[i] = (unsigned char)0;
+        GifDecoder::decoderline[i] = (unsigned char)0;
     }
 
     for (i = 0; i < 13; i++) {
@@ -181,7 +180,8 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
         }
     }
 
-    delete decoderline;
+    delete GifDecoder::decoderline;
+    GifDecoder::decoderline = nullptr;
     bitStream->close();
     delete bitStream;
     bitStream = nullptr;

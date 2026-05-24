@@ -47,7 +47,7 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -116,7 +116,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -165,7 +165,7 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
                 for (i = 0; i < ctx.termCounts()[order]; i++) {
@@ -199,7 +199,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case IDENTIFIER_TOKEN:
                 if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
@@ -232,7 +232,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
                 break;
 
             default:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 Exit_Flag = TRUE;
                 break;
             }

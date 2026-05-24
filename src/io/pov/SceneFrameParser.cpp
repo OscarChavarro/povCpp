@@ -27,7 +27,7 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case FOG_TOKEN:
                 FogParser::parseFog(framePtr, ctx);

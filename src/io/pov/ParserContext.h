@@ -3,21 +3,36 @@
 
 #include "io/ReservedWord.h"
 #include "io/TokenStruct.h"
+#include "io/pov/ITokenStream.h"
+#include "io/pov/ParserConstants.h"
 #include "io/pov/ParseGlobals.h"
+#include "io/pov/SymbolTable.h"
 
 class RenderFrame;
 class RGBAColorPaletteSpan;
 
 class ParserContext {
   public:
-    static ReservedWord *reservedWords();
-    static TokenStruct &token();
-    static int *termCounts();
-    static RenderFrame *&parsingFrame();
-    static RGBAColorPaletteSpan *&constructionMap();
-    static Constant *constants();
-    static int &numberOfConstants();
-    static int &degenerateTriangles();
+    ParserContext();
+
+    ReservedWord *reservedWords();
+    TokenStruct &token();
+    int *termCounts();
+    RenderFrame *&parsingFrame();
+    RGBAColorPaletteSpan *&constructionMap();
+    Constant *constants();
+    int &numberOfConstants();
+    SymbolTable &symbols();
+    int &degenerateTriangles();
+    ITokenStream &tokenStream();
+    void setTokenStream(ITokenStream *tokenStream);
+
+  private:
+    ITokenStream *mTokenStream;
+    RenderFrame **mParsingFramePtr;
+    RGBAColorPaletteSpan **mConstructionMap;
+    SymbolTable *mSymbols;
+    int *mDegenerateTriangles;
 };
 
 #endif

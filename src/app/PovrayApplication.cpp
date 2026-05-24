@@ -1,6 +1,7 @@
 #include <cctype>
 #include <cstring>
 #include <ctime> /* BP */
+#include <cstdlib>
 
 #include "io/image/ImageOutput.h"
 #include "render/RenderOutput.h"
@@ -152,6 +153,10 @@ PovrayApplication::run(int argc, char *argv[])
     initializeFromCommandLine(argc, argv);
     configureOutputTarget();
     parseSceneDescription();
+    const char *parseOnly = std::getenv("POVCPP_PARSE_ONLY");
+    if (parseOnly != nullptr && parseOnly[0] == '1') {
+        return;
+    }
     prepareRendering();
     runRenderLoop();
     finalizeRun();
@@ -243,7 +248,12 @@ PovrayApplication::parseSceneDescription()
         fclose(statFile);
     }
 
-    SceneParser::Parse(&RenderEngine::renderFrame());
+    const char *useAstParser = std::getenv("POVCPP_USE_AST");
+    if (useAstParser != nullptr && useAstParser[0] == '1') {
+        SceneParser::ParseAst(&RenderEngine::renderFrame());
+    } else {
+        SceneParser::Parse(&RenderEngine::renderFrame());
+    }
     Tokenizer::terminateTokenizer();
 }
 

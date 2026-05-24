@@ -32,7 +32,7 @@ static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
         coeff * (1 - (r/rad)^2)^2
     This varies in strength from coeff at r = 0, to 0 at r = rad. */
 void
-MakeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
+Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
     int sflag)
 {
     Blob *blob = (Blob *)obj;

@@ -41,12 +41,12 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 if (localShape != nullptr) {
                     ParseErrorReporter::Error(
                         "The order of a polynomial may not be specified twice", ctx);
@@ -59,7 +59,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 break;
 
             case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 if (localShape == nullptr) {
                     Logger::info("Need the order of the Poly");
                 }
@@ -96,7 +96,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

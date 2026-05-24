@@ -7,20 +7,6 @@
 #include "media/Texture.h"
 #include "media/TextureUtils.h"
 
-static CONSTANT
-findConstant(ParserContext &ctx)
-{
-    int i;
-
-    for (i = 1; i <= ctx.numberOfConstants(); i++) {
-        if (ctx.constants()[i].identifierNumber == ctx.token().identifierNumber) {
-            return (i);
-        }
-    }
-
-    return (-1);
-}
-
 void
 DeclarationParser::parseDeclare()
 {
@@ -31,28 +17,23 @@ DeclarationParser::parseDeclare()
 void
 DeclarationParser::parseDeclare(ParserContext &ctx)
 {
-    CONSTANT constantId;
     Texture *localTexture;
     Texture *tempTexture;
     Constant *constantPtr;
 
     ParseHelpers::getExpectedToken(IDENTIFIER_TOKEN, ctx);
-    if ((constantId = findConstant(ctx)) == -1) {
-        if (++ctx.numberOfConstants() >= MAX_CONSTANTS) {
-            ParseErrorReporter::Error("Too many constants \"declared\"", ctx);
-        } else {
-            constantId = ctx.numberOfConstants();
-        }
+    constantPtr =
+        ctx.symbols().upsertByIdentifierNumber(ctx.token().identifierNumber);
+    if (constantPtr == nullptr) {
+        ParseErrorReporter::Error("Too many constants \"declared\"", ctx);
     }
-
-    constantPtr = &(ctx.constants()[(int)constantId]);
     ParseHelpers::getExpectedToken(EQUALS_TOKEN, ctx);
 
     {
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case OBJECT_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
@@ -189,12 +170,12 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 localTexture = nullptr;
                 constantPtr->constantData = (char *)localTexture;
                 constantPtr->constantType = TEXTURE_CONSTANT;
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 {
                     int Exit_Flag;
                     Exit_Flag = FALSE;
                     while (!Exit_Flag) {
-                        Tokenizer::getToken();
+                        ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case TEXTURE_TOKEN:
                             localTexture = TextureUtils::defaultTexture();
@@ -220,7 +201,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                             break;
 
                         default:
-                            Tokenizer::ungetToken();
+                            ctx.tokenStream().ungetToken();
                             Exit_Flag = TRUE;
                             break;
                         }
@@ -257,7 +238,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)ModelBuilder::getVector();
                 constantPtr->constantType = VECTOR_CONSTANT;
@@ -269,7 +250,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)ModelBuilder::getFloat();
                 constantPtr->constantType = FLOAT_CONSTANT;

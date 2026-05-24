@@ -16,19 +16,6 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
-extern int cylindricalImageMap(
-    double x, double y, double z, RGBAImage *image, double *u, double *v);
-extern int sphericalImageMap(
-    double x, double y, double z, RGBAImage *image, double *u, double *v);
-extern int planarImageMap(
-    double x, double y, double z, RGBAImage *image, double *u, double *v);
-extern void noInterpolation(RGBAImage *image, double xcoor, double ycoor,
-    RGBAColor *colour, int *index);
-extern void interp(RGBAImage *image, double xcoor, double ycoor,
-    RGBAColor *colour, int *index);
-extern void imageColourAt(RGBAImage *image, double xcoor, double ycoor,
-    RGBAColor *colour, int *index);
-
 /*
     2-D to 3-D Procedural Texture Mapping of a Bitmapped Image onto an Object:
 
@@ -64,7 +51,8 @@ MapTextureFixture::imageMap(
         colour->Alpha = 1.0;
         return;
     }
-    imageColourAt(texture->Image, xcoor, ycoor, colour, &regNumber);
+    MapTextureFixture::imageColourAt(
+        texture->Image, xcoor, ycoor, colour, &regNumber);
 }
 
 /* Very different stuff than the other routines here. This routine takes  */
@@ -106,7 +94,7 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
             smallTolerance)) {
         materialNumber = 0;
     } else {
-        imageColourAt(
+        MapTextureFixture::imageColourAt(
             texture->Material_Image, xcoor, ycoor, &colour, &regNumber);
 
         if (texture->Material_Image->Colour_Map == nullptr) {
@@ -173,7 +161,8 @@ MapTextureFixture::bumpMap(
         index = 255;
         return;
     }
-    imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour, &index);
+    MapTextureFixture::imageColourAt(
+        texture->Bump_Image, xcoor, ycoor, &colour, &index);
 
     xcoor--;
     ycoor++;
@@ -187,7 +176,8 @@ MapTextureFixture::bumpMap(
     } else if (ycoor >= (double)texture->Bump_Image->iheight) {
         ycoor -= (double)texture->Bump_Image->iheight;
     }
-    imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
+    MapTextureFixture::imageColourAt(
+        texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
 
     xcoor += 2.0;
     if (xcoor < 0.0) {
@@ -196,7 +186,8 @@ MapTextureFixture::bumpMap(
         xcoor -= (double)texture->Bump_Image->iwidth;
     }
 
-    imageColourAt(texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
+    MapTextureFixture::imageColourAt(
+        texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
 
     if (debugEnabled) {
         Logger::info("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
@@ -269,10 +260,10 @@ MapTextureFixture::imageColourAt(
 {
     switch (image->interpolationType) {
     case NO_INTERPOLATION:
-        noInterpolation(image, xcoor, ycoor, colour, index);
+        MapTextureFixture::noInterpolation(image, xcoor, ycoor, colour, index);
         break;
     default:
-        interp(image, xcoor, ycoor, colour, index);
+        MapTextureFixture::interp(image, xcoor, ycoor, colour, index);
         break;
     }
 }
@@ -491,27 +482,27 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     /* Now determine which mapper to use. */
     switch (image->mapType) {
     case PLANAR_MAP:
-        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!MapTextureFixture::planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case SPHERICAL_MAP:
-        if (!sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!MapTextureFixture::sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case CYLINDRICAL_MAP:
-        if (!cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!MapTextureFixture::cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case TORUS_MAP:
-        if (!torusImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!MapTextureFixture::torusImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     default:
-        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!MapTextureFixture::planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
@@ -614,13 +605,13 @@ MapTextureFixture::interp(
     }
     /* OK, now that you have the corners, what are you going to do with them? */
     if (image->interpolationType == BILINEAR) {
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColour[0], &cornersIndex[0]);
-        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
+        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
             &cornersIndex[1]);
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
+        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[2], &cornersIndex[2]);
-        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColour[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;
@@ -637,13 +628,13 @@ MapTextureFixture::interp(
         val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
     if (image->interpolationType == NORMALIZED_DIST) {
-        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColour[0], &cornersIndex[0]);
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
+        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[1], &cornersIndex[1]);
-        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[2],
+        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[2],
             &cornersIndex[2]);
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColour[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;

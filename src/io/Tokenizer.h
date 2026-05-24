@@ -197,7 +197,4 @@ class Tokenizer {
     static int povStricmp(const char *s1, const char *s2);
 };
 
-extern void Tokenize(char *name);
-extern int processToken(void);
-
 #endif

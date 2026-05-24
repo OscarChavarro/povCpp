@@ -35,7 +35,7 @@ ParseHelpers::getExpectedToken(int tokenId)
 void
 ParseHelpers::getExpectedToken(int tokenId, ParserContext &ctx)
 {
-    Tokenizer::getToken();
+    ctx.tokenStream().getToken();
     if (ctx.token().tokenId != tokenId) {
         ParseErrorReporter::parseError(tokenId, ctx);
     }

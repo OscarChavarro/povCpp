@@ -38,6 +38,8 @@ add_executable(povray
   src/io/image/IffFormat.cpp
   src/io/pov/Parse.cpp
   src/io/pov/ParserContext.cpp
+  src/io/pov/SymbolTable.cpp
+  src/io/pov/TokenizerTokenStream.cpp
   src/io/pov/ParseErrorReporter.cpp
   src/io/pov/ParseHelpers.cpp
   src/io/pov/PrimitiveParser.cpp
@@ -63,6 +65,11 @@ add_executable(povray
   src/io/pov/cameraParser/CameraParser.cpp
   src/io/pov/DeclarationParser.cpp
   src/io/pov/SceneFrameParser.cpp
+  src/io/pov/ast/AstPrimitiveParser.cpp
+  src/io/pov/ast/AstNodes.cpp
+  src/io/pov/ast/AstObjectParser.cpp
+  src/io/pov/ast/AstSceneParser.cpp
+  src/io/pov/ast/AstSceneBuilder.cpp
   src/io/image/RawFormat.cpp
   src/io/image/TargaFormat.cpp
   src/io/FileLocator.cpp

@@ -9,6 +9,8 @@ typedef long LONG;
 typedef unsigned long ULONG;
 typedef int INT;
 
+unsigned char *GifDecoder::decoderline = nullptr;
+
 static constexpr int BAD_CODE_SIZE = -20;
 
 INT badCodeCount;
@@ -113,15 +115,11 @@ GifDecoder::getNextCode()
 // C for speed or for space optimization, see Efficient C by Tom Plum,
 // published by Plum-Hall Associates...)
 //
-// I removed the static identifiers in the arrays below and replaced them
-// with 'extern's so as to declare (and re-use) the space elsewhere.
-// The arrays are actually declared in the assembler source.
-//                                                                      Bert Tyler
+// Decoder work buffers are held as file statics and class static members.
 
-static UTINY *dstack;      // Stack for storing pixels
-static UTINY *suffix;      // Suffix table
-static UWORD *prefix;      // Prefix linked list
-extern UTINY *decoderline; // decoded line goes here
+static UTINY *dstack; // Stack for storing pixels
+static UTINY *suffix; // Suffix table
+static UWORD *prefix; // Prefix linked list
 
 // WORD decoder(linewidth)
 //     WORD linewidth;                    * Pixels per line of image *
@@ -182,7 +180,7 @@ GifDecoder::decoder(int iLinewidth)
     // (This shouldn't happen, but we'll try and decode it anyway...)
     oc = fc = 0;
 
-    buf = decoderline;
+    buf = GifDecoder::decoderline;
 
     badCodeCount = 0;
 

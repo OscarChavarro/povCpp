@@ -31,7 +31,7 @@ BoxParser::parseBox(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
@@ -47,10 +47,10 @@ BoxParser::parseBox(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_ANGLE_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBoxShape();
                 PrimitiveParser::parseVector(&(localShape->bounds[0]), ctx);
                 PrimitiveParser::parseVector(&(localShape->bounds[1]), ctx);
@@ -84,7 +84,7 @@ BoxParser::parseBox(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;

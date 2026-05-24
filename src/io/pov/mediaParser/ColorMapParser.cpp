@@ -42,7 +42,7 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case LEFT_SQUARE_TOKEN:
                 ctx.constructionMap()[i].start = PrimitiveParser::parseFloat(ctx);

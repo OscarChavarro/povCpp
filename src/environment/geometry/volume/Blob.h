@@ -28,6 +28,8 @@ class Blob : public Geometry {
     static void rotateBlob(SimpleBody *object, Vector3Dd *vector);
     static void scaleBlob(SimpleBody *object, Vector3Dd *vector);
     static void invertBlob(SimpleBody *object);
+    static void makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist,
+        int npoints, int sflag);
 
   private:
     static int determineInfluences(

@@ -35,12 +35,12 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case DASH_TOKEN:
             case PLUS_TOKEN:
             case FLOAT_TOKEN:
-                Tokenizer::ungetToken();
+                ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBicubicPatchShape();
                 localShape->patchType = (int)PrimitiveParser::parseFloat(ctx);
                 if (localShape->patchType == 2 ||
@@ -90,7 +90,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
         int Exit_Flag;
         Exit_Flag = FALSE;
         while (!Exit_Flag) {
-            Tokenizer::getToken();
+            ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case RIGHT_CURLY_TOKEN:
                 Exit_Flag = TRUE;
