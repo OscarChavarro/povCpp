@@ -4,17 +4,135 @@
 #include "environment/scene/SceneFrame.h"
 #include "environment/scene/SimpleBodyFactory.h"
 #include "io/pov/DeclarationParser.h"
-#include "io/pov/FogParser.h"
 #include "io/pov/ParseErrorReporter.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/ParserContext.h"
-#include "io/pov/RenderSettingsParser.h"
 #include "io/pov/ast/AstNodes.h"
 #include "io/pov/ast/AstObjectParser.h"
+#include "io/pov/ast/AstPrimitiveParser.h"
 #include "io/pov/ast/AstParsedSceneProgram.h"
-#include "io/pov/cameraParser/CameraParser.h"
 #include "io/pov/geometryParser/ObjectParser.h"
 #include "io/pov/mediaParser/DefaultTextureParser.h"
+
+namespace {
+void appendCameraOpOrFail(ParserContext &ctx, AstCameraNode *node, AstCameraOpKind kind,
+    int refId, const AstVector3 &v)
+{
+    if (node->opCount >= AstCameraNode::MAX_AST_CAMERA_OPS) {
+        ParseErrorReporter::Error("Too many AST camera operations", ctx);
+    }
+    node->ops[node->opCount].kind = kind;
+    node->ops[node->opCount].referenceConstantId = refId;
+    node->ops[node->opCount].vectorValue = v;
+    node->opCount++;
+}
+}
+
+AstFogNode *
+AstSceneParser::parseFogNode(ParserContext &ctx)
+{
+    AstFogNode *node = new AstFogNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    int done = LegacyBoolean::FALSE_VALUE;
+    while (!done) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::COLOUR_TOKEN:
+            node->colour = AstPrimitiveParser::parseColour(ctx);
+            node->hasColour = true;
+            break;
+        case Tokenizer::FLOAT_TOKEN:
+        case Tokenizer::PLUS_TOKEN:
+        case Tokenizer::DASH_TOKEN:
+        case Tokenizer::IDENTIFIER_TOKEN:
+            ctx.tokenStream().ungetToken();
+            node->distance = AstPrimitiveParser::parseFloat(ctx);
+            node->hasDistance = true;
+            break;
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
+        }
+    }
+    return node;
+}
+
+AstCameraNode *
+AstSceneParser::parseCameraNode(ParserContext &ctx)
+{
+    AstCameraNode *node = new AstCameraNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    int done = LegacyBoolean::FALSE_VALUE;
+    while (!done) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::IDENTIFIER_TOKEN:
+            appendCameraOpOrFail(ctx, node, AST_CAMERA_REF, ctx.token().identifierNumber,
+                AstVector3 {0.0, 0.0, 0.0});
+            break;
+        case Tokenizer::LOCATION_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_LOCATION, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::DIRECTION_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_DIRECTION, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::UP_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_UP, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::RIGHT_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_RIGHT, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::SKY_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_SKY, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::LOOK_AT_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_LOOK_AT, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::TRANSLATE_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_TRANSLATE, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::ROTATE_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_ROTATE, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::SCALE_TOKEN:
+            appendCameraOpOrFail(
+                ctx, node, AST_CAMERA_SCALE, -1, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
+        }
+    }
+    return node;
+}
+
+AstMaxTraceLevelNode *
+AstSceneParser::parseMaxTraceLevelNode(ParserContext &ctx)
+{
+    AstMaxTraceLevelNode *node = new AstMaxTraceLevelNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+    node->value = AstPrimitiveParser::parseFloat(ctx);
+    return node;
+}
 
 AstNode *
 AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
@@ -103,20 +221,33 @@ AstSceneParser::parseProgram(ParserContext &ctx)
                 localObject, &(localObject->nextObject), (SimpleBody **)&(program->legacyFrame.Objects));
             break;
         }
-        case Tokenizer::FOG_TOKEN:
-            FogParser::parseFog(&program->legacyFrame, ctx);
-            program->hasFog = true;
-            break;
         case Tokenizer::DEFAULT_TOKEN:
             DefaultTextureParser::parseDefault(&program->legacyFrame, ctx);
             break;
         case Tokenizer::MAX_TRACE_LEVEL_TOKEN:
-            RenderSettingsParser::parseMaxTraceLevel(ctx);
+            if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
+                    AstLimits::MAX_AST_SCENE_NODES, parseMaxTraceLevelNode(ctx))) {
+                ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+            }
             break;
-        case Tokenizer::VIEW_POINT_TOKEN:
-            CameraParser::parseCamera(&(program->legacyFrame.viewPoint), ctx);
+        case Tokenizer::VIEW_POINT_TOKEN: {
+            AstCameraNode *camera = parseCameraNode(ctx);
+            if (!AstNodes::appendNode(
+                    scene->nodes, scene->nodeCount, AstLimits::MAX_AST_SCENE_NODES, camera)) {
+                ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+            }
             program->hasCamera = true;
             break;
+        }
+        case Tokenizer::FOG_TOKEN: {
+            AstFogNode *fog = parseFogNode(ctx);
+            if (!AstNodes::appendNode(
+                    scene->nodes, scene->nodeCount, AstLimits::MAX_AST_SCENE_NODES, fog)) {
+                ParseErrorReporter::Error("Too many AST scene nodes", ctx);
+            }
+            program->hasFog = true;
+            break;
+        }
         case Tokenizer::END_OF_FILE_TOKEN:
             done = LegacyBoolean::TRUE_VALUE;
             break;

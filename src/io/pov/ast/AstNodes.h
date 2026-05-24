@@ -9,7 +9,10 @@ enum AstNodeKind {
     AST_LIGHT_SOURCE_NODE = 2,
     AST_CSG_NODE = 3,
     AST_OBJECT_NODE = 4,
-    AST_COMPOSITE_NODE = 5
+    AST_COMPOSITE_NODE = 5,
+    AST_FOG_NODE = 6,
+    AST_CAMERA_NODE = 7,
+    AST_MAX_TRACE_LEVEL_NODE = 8
 };
 
 enum AstTransformKind {
@@ -40,6 +43,25 @@ struct AstColor {
 
 struct AstTransform {
     AstTransformKind kind;
+    AstVector3 vectorValue;
+};
+
+enum AstCameraOpKind {
+    AST_CAMERA_REF = 1,
+    AST_CAMERA_LOCATION = 2,
+    AST_CAMERA_DIRECTION = 3,
+    AST_CAMERA_UP = 4,
+    AST_CAMERA_RIGHT = 5,
+    AST_CAMERA_SKY = 6,
+    AST_CAMERA_LOOK_AT = 7,
+    AST_CAMERA_TRANSLATE = 8,
+    AST_CAMERA_ROTATE = 9,
+    AST_CAMERA_SCALE = 10
+};
+
+struct AstCameraOp {
+    AstCameraOpKind kind;
+    int referenceConstantId;
     AstVector3 vectorValue;
 };
 
@@ -142,6 +164,32 @@ class AstCompositeNode : public AstNode {
     int clippedByCount;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
+};
+
+class AstFogNode : public AstNode {
+  public:
+    AstFogNode();
+
+    bool hasColour;
+    AstColor colour;
+    bool hasDistance;
+    double distance;
+};
+
+class AstCameraNode : public AstNode {
+  public:
+    AstCameraNode();
+
+    static constexpr int MAX_AST_CAMERA_OPS = 128;
+    AstCameraOp ops[MAX_AST_CAMERA_OPS];
+    int opCount;
+};
+
+class AstMaxTraceLevelNode : public AstNode {
+  public:
+    AstMaxTraceLevelNode();
+
+    double value;
 };
 
 class AstScene {

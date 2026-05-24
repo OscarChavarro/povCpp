@@ -38,13 +38,6 @@ AstParsedSceneProgram *parseAstPhase(ParserContext &ctx)
 void applyLegacySemanticPhase(const AstParsedSceneProgram &program, RenderFrame *framePtr)
 {
     framePtr->Objects = program.legacyFrame.Objects;
-    if (program.hasCamera) {
-        framePtr->viewPoint = program.legacyFrame.viewPoint;
-    }
-    if (program.hasFog) {
-        framePtr->fogDistance = program.legacyFrame.fogDistance;
-        framePtr->fogColour = program.legacyFrame.fogColour;
-    }
 }
 
 void buildScenePhase(
