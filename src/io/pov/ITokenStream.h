@@ -11,6 +11,9 @@ class ITokenStream {
     virtual TokenStruct &token() = 0;
     virtual void getToken() = 0;
     virtual void ungetToken() = 0;
+    virtual bool canRewind() const { return false; }
+    virtual int mark() { return -1; }
+    virtual bool rewind(int) { return false; }
 };
 
 #endif

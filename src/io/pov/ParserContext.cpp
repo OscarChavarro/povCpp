@@ -3,10 +3,12 @@
 #include "common/color/RGBAColorPaletteSpan.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "io/pov/ITokenStream.h"
+#include "io/pov/RewindableTokenStream.h"
 #include "io/pov/TokenizerTokenStream.h"
 #include "processing/PolynomialConstants.h"
 
 TokenizerTokenStream ParserContext::sDefaultTokenStream;
+RewindableTokenStream ParserContext::sRewindableDefaultTokenStream(&ParserContext::sDefaultTokenStream);
 RenderFrame *ParserContext::sSharedParsingFramePtr = nullptr;
 RGBAColorPaletteSpan *ParserContext::sSharedConstructionMap = nullptr;
 SymbolTable ParserContext::sSharedSymbols;
@@ -86,5 +88,13 @@ ParserContext::setTokenStream(ITokenStream *tokenStream)
 {
     if (tokenStream != nullptr) {
         mTokenStream = tokenStream;
+    }
+}
+
+void
+ParserContext::resetTokenStreamHistory()
+{
+    if (mTokenStream == &sRewindableDefaultTokenStream) {
+        sRewindableDefaultTokenStream.clear();
     }
 }
