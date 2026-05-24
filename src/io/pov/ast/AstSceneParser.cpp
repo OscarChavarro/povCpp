@@ -199,8 +199,9 @@ AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
     case Tokenizer::POLY_TOKEN:
         return AstObjectParser::parsePoly(ctx, 0);
     case Tokenizer::HEIGHT_FIELD_TOKEN:
+        return AstObjectParser::parseHeightField(ctx);
     case Tokenizer::BICUBIC_PATCH_TOKEN:
-        return AstObjectParser::parseLegacyGeometry(ctx, tokenId);
+        return AstObjectParser::parseBicubicPatch(ctx);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:

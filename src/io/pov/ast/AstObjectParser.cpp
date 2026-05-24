@@ -76,8 +76,9 @@ AstNode *AstObjectParser::parseShapeNodeFromToken(ParserContext &ctx, int tokenI
     case Tokenizer::POLY_TOKEN:
         return AstObjectParser::parsePoly(ctx, 0);
     case Tokenizer::HEIGHT_FIELD_TOKEN:
+        return AstObjectParser::parseHeightField(ctx);
     case Tokenizer::BICUBIC_PATCH_TOKEN:
-        return AstObjectParser::parseLegacyGeometry(ctx, tokenId);
+        return AstObjectParser::parseBicubicPatch(ctx);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:
@@ -723,19 +724,23 @@ AstObjectParser::parsePoly(ParserContext &ctx, int knownOrder)
     return node;
 }
 
-AstLegacyGeometryNode *
-AstObjectParser::parseLegacyGeometry(ParserContext &ctx, int tokenId)
+AstHeightFieldNode *
+AstObjectParser::parseHeightField(ParserContext &ctx)
 {
-    AstLegacyGeometryNode *node = new AstLegacyGeometryNode();
+    AstHeightFieldNode *node = new AstHeightFieldNode();
     node->sourceLine = ctx.token().tokenLineNo + 1;
     node->sourceFile = ctx.token().Filename;
-    if (tokenId == Tokenizer::HEIGHT_FIELD_TOKEN) {
-        node->shape = HeightFieldParser::parseHeightField(ctx);
-    } else if (tokenId == Tokenizer::BICUBIC_PATCH_TOKEN) {
-        node->shape = BicubicPatchParser::parseBicubicPatch(ctx);
-    } else {
-        ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
-    }
+    node->shape = HeightFieldParser::parseHeightField(ctx);
+    return node;
+}
+
+AstBicubicPatchNode *
+AstObjectParser::parseBicubicPatch(ParserContext &ctx)
+{
+    AstBicubicPatchNode *node = new AstBicubicPatchNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+    node->shape = BicubicPatchParser::parseBicubicPatch(ctx);
     return node;
 }
 

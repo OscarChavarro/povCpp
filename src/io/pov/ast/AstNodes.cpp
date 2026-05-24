@@ -161,6 +161,22 @@ AstLegacyGeometryNode::AstLegacyGeometryNode()
     shape = nullptr;
 }
 
+AstHeightFieldNode::AstHeightFieldNode()
+{
+    kind = AST_HEIGHT_FIELD_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    shape = nullptr;
+}
+
+AstBicubicPatchNode::AstBicubicPatchNode()
+{
+    kind = AST_BICUBIC_PATCH_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    shape = nullptr;
+}
+
 AstCsgNode::AstCsgNode()
 {
     kind = AST_CSG_NODE;
