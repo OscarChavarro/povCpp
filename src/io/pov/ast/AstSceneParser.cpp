@@ -474,7 +474,6 @@ AstSceneParser::parseProgram(ParserContext &ctx)
                     scene->nodes, scene->nodeCount, AstLimits::MAX_AST_SCENE_NODES, camera)) {
                 ParseErrorReporter::Error("Too many AST scene nodes", ctx);
             }
-            program->hasCamera = true;
             break;
         }
         case Tokenizer::FOG_TOKEN: {
@@ -483,7 +482,6 @@ AstSceneParser::parseProgram(ParserContext &ctx)
                     scene->nodes, scene->nodeCount, AstLimits::MAX_AST_SCENE_NODES, fog)) {
                 ParseErrorReporter::Error("Too many AST scene nodes", ctx);
             }
-            program->hasFog = true;
             break;
         }
         case Tokenizer::END_OF_FILE_TOKEN:
