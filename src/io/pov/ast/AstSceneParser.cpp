@@ -1,11 +1,19 @@
 #include "io/pov/ast/AstSceneParser.h"
 
 #include "io/Tokenizer.h"
+#include "environment/scene/SceneFrame.h"
+#include "environment/scene/SimpleBodyFactory.h"
+#include "io/pov/DeclarationParser.h"
+#include "io/pov/FogParser.h"
 #include "io/pov/ParseErrorReporter.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/ParserContext.h"
+#include "io/pov/RenderSettingsParser.h"
 #include "io/pov/ast/AstNodes.h"
 #include "io/pov/ast/AstObjectParser.h"
+#include "io/pov/cameraParser/CameraParser.h"
+#include "io/pov/geometryParser/ObjectParser.h"
+#include "io/pov/mediaParser/DefaultTextureParser.h"
 
 AstNode *
 AstSceneParser::parseRootNodeForToken(ParserContext &ctx, int tokenId)
@@ -50,7 +58,7 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
 }
 
 AstScene *
-AstSceneParser::parseScene(ParserContext &ctx)
+AstSceneParser::parseScene(ParserContext &ctx, RenderFrame *framePtr)
 {
     AstScene *scene = new AstScene();
 
@@ -59,20 +67,16 @@ AstSceneParser::parseScene(ParserContext &ctx)
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::DECLARE_TOKEN: {
-            AstDeclareNode *decl = AstSceneParser::parseDeclareNode(ctx);
-            if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
-                    AstLimits::MAX_AST_SCENE_NODES, (AstNode *)decl)) {
-                ParseErrorReporter::Error("Too many AST scene nodes", ctx);
-            }
+            // Keep full DECLARE compatibility by reusing the legacy declaration parser.
+            // AST nodes can still reference declared constants through identifier numbers.
+            DeclarationParser::parseDeclare(ctx);
             break;
         }
         case Tokenizer::SPHERE_TOKEN:
         case Tokenizer::LIGHT_SOURCE_TOKEN:
         case Tokenizer::UNION_TOKEN:
         case Tokenizer::INTERSECTION_TOKEN:
-        case Tokenizer::DIFFERENCE_TOKEN:
-        case Tokenizer::OBJECT_TOKEN:
-        case Tokenizer::COMPOSITE_TOKEN: {
+        case Tokenizer::DIFFERENCE_TOKEN: {
             AstNode *n =
                 AstSceneParser::parseRootNodeForToken(ctx, ctx.token().tokenId);
             if (n == nullptr) {
@@ -84,11 +88,35 @@ AstSceneParser::parseScene(ParserContext &ctx)
             }
             break;
         }
+        case Tokenizer::OBJECT_TOKEN: {
+            SimpleBody *localObject = ObjectParser::parseObject(ctx);
+            SimpleBodyFactory::link(
+                localObject, &(localObject->nextObject), &(framePtr->Objects));
+            break;
+        }
+        case Tokenizer::COMPOSITE_TOKEN: {
+            SimpleBody *localObject = ObjectParser::parseComposite(ctx);
+            SimpleBodyFactory::link(
+                localObject, &(localObject->nextObject), &(framePtr->Objects));
+            break;
+        }
+        case Tokenizer::FOG_TOKEN:
+            FogParser::parseFog(framePtr, ctx);
+            break;
+        case Tokenizer::DEFAULT_TOKEN:
+            DefaultTextureParser::parseDefault(framePtr, ctx);
+            break;
+        case Tokenizer::MAX_TRACE_LEVEL_TOKEN:
+            RenderSettingsParser::parseMaxTraceLevel(ctx);
+            break;
+        case Tokenizer::VIEW_POINT_TOKEN:
+            CameraParser::parseCamera(&(framePtr->viewPoint), ctx);
+            break;
         case Tokenizer::END_OF_FILE_TOKEN:
             done = LegacyBoolean::TRUE_VALUE;
             break;
         default:
-            ParseErrorReporter::parseError(Tokenizer::SPHERE_TOKEN, ctx);
+            ParseErrorReporter::parseError(Tokenizer::OBJECT_TOKEN, ctx);
             break;
         }
     }

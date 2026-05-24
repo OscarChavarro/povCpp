@@ -21,6 +21,7 @@ class CSG;
 class Composite;
 class ParserContext;
 class RenderFrame;
+struct Constant;
 
 class AstSceneBuilder {
   public:
@@ -38,6 +39,8 @@ class AstSceneBuilder {
         Geometry *shape, const AstTransform *transforms, int count);
     static const AstNode *findDecl(
         const AstDeclTable &decls, int identifierNumber);
+    static const Constant *findLegacyDecl(
+        ParserContext &ctx, int identifierNumber);
     static Geometry *buildGeometryNode(
         const AstNode &node, ParserContext &ctx, const AstDeclTable &decls);
     static SimpleBody *buildSimpleBodyNode(

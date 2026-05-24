@@ -13,10 +13,40 @@ SymbolTable::data()
     return mData;
 }
 
+const Constant *
+SymbolTable::data() const
+{
+    return mData;
+}
+
 int &
 SymbolTable::size()
 {
     return mSize;
+}
+
+bool
+SymbolTable::isValidConstantId(int constantId) const
+{
+    return constantId >= 1 && constantId <= mSize;
+}
+
+Constant *
+SymbolTable::byConstantId(int constantId)
+{
+    if (!isValidConstantId(constantId)) {
+        return nullptr;
+    }
+    return &mData[constantId];
+}
+
+const Constant *
+SymbolTable::byConstantId(int constantId) const
+{
+    if (!isValidConstantId(constantId)) {
+        return nullptr;
+    }
+    return &mData[constantId];
 }
 
 void
@@ -49,6 +79,7 @@ SymbolTable::upsertByIdentifierNumber(int identifierNumber)
         return nullptr;
     }
 
+    std::memset(&mData[mSize], 0, sizeof(Constant));
     mData[mSize].identifierNumber = identifierNumber;
     return &mData[mSize];
 }
