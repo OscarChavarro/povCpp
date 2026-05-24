@@ -6,6 +6,7 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
@@ -265,6 +266,49 @@ AstSceneBuilder::buildLight(
     return shape;
 }
 
+InfinitePlane *
+AstSceneBuilder::buildPlane(
+    const AstPlaneNode &node, ParserContext &ctx, const AstDeclTable &decls)
+{
+    InfinitePlane *shape = nullptr;
+
+    if (node.hasReference) {
+        const AstNode *declNode = findDecl(decls, node.referenceConstantId);
+        if (declNode != nullptr) {
+            if (declNode->kind != AST_PLANE_NODE) {
+                ParseErrorReporter::Error("Invalid plane reference in AST", ctx);
+            }
+            InfinitePlane *declShape =
+                buildPlane((const AstPlaneNode &)*declNode, ctx, decls);
+            shape = (InfinitePlane *)GeometryOperations::copy((SimpleBody *)declShape);
+            delete declShape;
+        } else {
+            const Constant *legacyDecl = findLegacyDecl(ctx, node.referenceConstantId);
+            if (legacyDecl == nullptr || legacyDecl->constantType != ParseGlobals::PLANE_CONSTANT) {
+                ParseErrorReporter::Error("Invalid plane reference in AST", ctx);
+            }
+            shape = (InfinitePlane *)GeometryOperations::copy((SimpleBody *)legacyDecl->constantData);
+        }
+    } else {
+        shape = ModelBuilder::getPlaneShape();
+        if (node.hasInlineData) {
+            shape->normalVector = asVector(node.normal);
+            shape->Distance = -node.distance;
+        }
+    }
+
+    if (node.hasColour) {
+        shape->Shape_Colour = ModelBuilder::getColour();
+        shape->Shape_Colour->Red = node.colour.r;
+        shape->Shape_Colour->Green = node.colour.g;
+        shape->Shape_Colour->Blue = node.colour.b;
+        shape->Shape_Colour->Alpha = node.colour.a;
+    }
+
+    applyTransforms((Geometry *)shape, node.transforms, node.transformCount);
+    return shape;
+}
+
 CSG *
 AstSceneBuilder::buildCsg(const AstCsgNode &node, ParserContext &ctx, const AstDeclTable &decls)
 {
@@ -319,6 +363,9 @@ AstSceneBuilder::buildGeometryNode(const AstNode &node, ParserContext &ctx, cons
 {
     if (node.kind == AST_SPHERE_NODE) {
         return (Geometry *)buildSphere((const AstSphereNode &)node, ctx, decls);
+    }
+    if (node.kind == AST_PLANE_NODE) {
+        return (Geometry *)buildPlane((const AstPlaneNode &)node, ctx, decls);
     }
     if (node.kind == AST_LIGHT_SOURCE_NODE) {
         return (Geometry *)buildLight((const AstLightSourceNode &)node, ctx, decls);
@@ -431,7 +478,8 @@ AstSceneBuilder::buildSimpleBodyNode(const AstNode &node, ParserContext &ctx, co
     if (node.kind == AST_COMPOSITE_NODE) {
         return (SimpleBody *)buildComposite((const AstCompositeNode &)node, ctx, decls);
     }
-    if (node.kind == AST_SPHERE_NODE || node.kind == AST_LIGHT_SOURCE_NODE ||
+    if (node.kind == AST_SPHERE_NODE || node.kind == AST_PLANE_NODE ||
+        node.kind == AST_LIGHT_SOURCE_NODE ||
         node.kind == AST_CSG_NODE) {
         return (SimpleBody *)buildGeometryNode(node, ctx, decls);
     }
@@ -460,6 +508,11 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
             Sphere *sphere = buildSphere(*(const AstSphereNode *)node, ctx, declarations);
             SimpleBodyFactory::link((SimpleBody *)sphere,
                 (SimpleBody **)&(sphere->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == AST_PLANE_NODE) {
+            InfinitePlane *plane = buildPlane(*(const AstPlaneNode *)node, ctx, declarations);
+            SimpleBodyFactory::link((SimpleBody *)plane,
+                (SimpleBody **)&(plane->nextObject),
                 (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == AST_LIGHT_SOURCE_NODE) {
             Light *light = buildLight(*(const AstLightSourceNode *)node, ctx, declarations);

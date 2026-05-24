@@ -29,6 +29,8 @@ class ParserContext {
     ITokenStream &tokenStream();
     void setTokenStream(ITokenStream *tokenStream);
     void resetTokenStreamHistory();
+    static void forceTokenStream(ITokenStream *tokenStream);
+    static void clearForcedTokenStream();
 
   private:
     static TokenizerTokenStream sDefaultTokenStream;
@@ -37,6 +39,7 @@ class ParserContext {
     static RGBAColorPaletteSpan *sSharedConstructionMap;
     static SymbolTable sSharedSymbols;
     static int sSharedDegenerateTriangles;
+    static ITokenStream *sForcedTokenStream;
 
     ITokenStream *mTokenStream;
     RenderFrame **mParsingFramePtr;

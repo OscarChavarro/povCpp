@@ -35,6 +35,8 @@ AstNode *AstObjectParser::parseShapeNodeFromToken(ParserContext &ctx, int tokenI
     switch (tokenId) {
     case Tokenizer::SPHERE_TOKEN:
         return AstObjectParser::parseSphere(ctx);
+    case Tokenizer::PLANE_TOKEN:
+        return AstObjectParser::parsePlane(ctx);
     case Tokenizer::LIGHT_SOURCE_TOKEN:
         return AstObjectParser::parseLightSource(ctx);
     case Tokenizer::UNION_TOKEN:
@@ -46,6 +48,75 @@ AstNode *AstObjectParser::parseShapeNodeFromToken(ParserContext &ctx, int tokenI
     default:
         return nullptr;
     }
+}
+
+AstPlaneNode *
+AstObjectParser::parsePlane(ParserContext &ctx)
+{
+    AstPlaneNode *node = new AstPlaneNode();
+    node->sourceLine = ctx.token().tokenLineNo + 1;
+    node->sourceFile = ctx.token().Filename;
+
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+
+    int baseParsed = LegacyBoolean::FALSE_VALUE;
+    while (!baseParsed) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::LEFT_ANGLE_TOKEN:
+            ctx.tokenStream().ungetToken();
+            node->normal = AstPrimitiveParser::parseVector(ctx);
+            node->distance = AstPrimitiveParser::parseFloat(ctx);
+            node->hasInlineData = true;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        case Tokenizer::IDENTIFIER_TOKEN:
+            node->hasReference = true;
+            node->referenceConstantId = ctx.token().identifierNumber;
+            baseParsed = LegacyBoolean::TRUE_VALUE;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
+            break;
+        }
+    }
+
+    int done = LegacyBoolean::FALSE_VALUE;
+    while (!done) {
+        ctx.tokenStream().getToken();
+        switch (ctx.token().tokenId) {
+        case Tokenizer::RIGHT_CURLY_TOKEN:
+            done = LegacyBoolean::TRUE_VALUE;
+            break;
+        case Tokenizer::TRANSLATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_TRANSLATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::ROTATE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_ROTATE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::SCALE_TOKEN:
+            AstObjectParser::appendTransformOrFail(ctx, node->transforms, node->transformCount,
+                AST_SCALE, AstPrimitiveParser::parseVector(ctx));
+            break;
+        case Tokenizer::INVERSE_TOKEN: {
+            AstVector3 z = {0.0, 0.0, 0.0};
+            AstObjectParser::appendTransformOrFail(
+                ctx, node->transforms, node->transformCount, AST_INVERSE, z);
+            break;
+        }
+        case Tokenizer::COLOUR_TOKEN:
+            node->colour = AstPrimitiveParser::parseColour(ctx);
+            node->hasColour = true;
+            break;
+        default:
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+            break;
+        }
+    }
+
+    return node;
 }
 
 AstSphereNode *

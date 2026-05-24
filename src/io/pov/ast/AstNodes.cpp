@@ -28,6 +28,19 @@ AstLightSourceNode::AstLightSourceNode()
     transformCount = 0;
 }
 
+AstPlaneNode::AstPlaneNode()
+{
+    kind = AST_PLANE_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    hasInlineData = false;
+    hasReference = false;
+    referenceConstantId = -1;
+    distance = 0.0;
+    hasColour = false;
+    transformCount = 0;
+}
+
 AstCsgNode::AstCsgNode()
 {
     kind = AST_CSG_NODE;
