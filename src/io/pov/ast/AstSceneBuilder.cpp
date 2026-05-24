@@ -19,6 +19,8 @@
 #include "io/pov/ParserConstants.h"
 #include "io/pov/ParserContext.h"
 #include "io/pov/ast/AstNodes.h"
+#include "media/Texture.h"
+#include "media/TextureUtils.h"
 
 Vector3Dd
 AstSceneBuilder::asVector(const AstVector3 &v)
@@ -133,6 +135,17 @@ void
 AstSceneBuilder::applyMaxTraceLevel(const AstMaxTraceLevelNode &node)
 {
     RenderRuntimeState::maxTraceLevel() = node.value;
+}
+
+void
+AstSceneBuilder::applyDefaultTexture(const AstDefaultTextureNode &node)
+{
+    if (node.texture == nullptr) {
+        return;
+    }
+    node.texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+    TextureUtils::defaultTexture() = node.texture;
+    TextureUtils::defaultTexture()->constantFlag = LegacyBoolean::TRUE_VALUE;
 }
 
 const AstNode *
@@ -467,6 +480,8 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
             applyCamera((const AstCameraNode &)*node, framePtr, ctx, declarations);
         } else if (node->kind == AST_MAX_TRACE_LEVEL_NODE) {
             applyMaxTraceLevel((const AstMaxTraceLevelNode &)*node);
+        } else if (node->kind == AST_DEFAULT_TEXTURE_NODE) {
+            applyDefaultTexture((const AstDefaultTextureNode &)*node);
         }
     }
 }

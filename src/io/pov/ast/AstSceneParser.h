@@ -8,6 +8,7 @@ class AstParsedSceneProgram;
 class AstFogNode;
 class AstCameraNode;
 class AstMaxTraceLevelNode;
+class AstDefaultTextureNode;
 
 class AstSceneParser {
   public:
@@ -18,6 +19,7 @@ class AstSceneParser {
     static AstFogNode *parseFogNode(ParserContext &ctx);
     static AstCameraNode *parseCameraNode(ParserContext &ctx);
     static AstMaxTraceLevelNode *parseMaxTraceLevelNode(ParserContext &ctx);
+    static AstDefaultTextureNode *parseDefaultTextureNode(ParserContext &ctx);
     static AstNode *parseRootNodeForToken(ParserContext &ctx, int tokenId);
     static AstDeclareNode *parseDeclareNode(ParserContext &ctx);
 };
