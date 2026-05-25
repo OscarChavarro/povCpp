@@ -7,7 +7,6 @@
 #include "io/pov/ParserContext.h"
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
-#include "io/pov/geometryParser/BicubicPatchParser.h"
 
 namespace {
 void captureTextureTokens(
@@ -770,7 +769,7 @@ AstObjectParser::parseBicubicPatch(ParserContext &ctx)
     AstBicubicPatchNode *node = new AstBicubicPatchNode();
     node->sourceLine = ctx.token().tokenLineNo + 1;
     node->sourceFile = ctx.token().Filename;
-    node->shape = BicubicPatchParser::parseBicubicPatch(ctx);
+    captureGeometryBlockTokens(ctx, node);
     return node;
 }
 
