@@ -25,6 +25,28 @@
 namespace {
 constexpr bool kAstTextureDeclareParseTimeCompat = true;
 
+void captureTextureTokens(ParserContext &ctx, AstTextureChainNode *textureChain)
+{
+    textureChain->capturedTokens.push_back(ctx.token());
+    ctx.tokenStream().getToken();
+    if (ctx.token().tokenId != Tokenizer::LEFT_CURLY_TOKEN) {
+        ParseErrorReporter::parseError(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    }
+    textureChain->capturedTokens.push_back(ctx.token());
+    int depth = 1;
+    while (depth > 0) {
+        ctx.tokenStream().getToken();
+        textureChain->capturedTokens.push_back(ctx.token());
+        if (ctx.token().tokenId == Tokenizer::LEFT_CURLY_TOKEN) {
+            depth++;
+        } else if (ctx.token().tokenId == Tokenizer::RIGHT_CURLY_TOKEN) {
+            depth--;
+        } else if (ctx.token().tokenId == Tokenizer::END_OF_FILE_TOKEN) {
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+        }
+    }
+}
+
 void appendCameraOpOrFail(ParserContext &ctx, AstCameraNode *node, AstCameraOpKind kind,
     int refId, const AstVector3 &v)
 {
@@ -158,16 +180,10 @@ AstSceneParser::parseDefaultTextureNode(ParserContext &ctx)
         ctx.tokenStream().getToken();
         switch (ctx.token().tokenId) {
         case Tokenizer::TEXTURE_TOKEN:
-            node->texture = TextureParser::parseTexture(ctx);
             if (node->textureChain == nullptr) {
                 node->textureChain = new AstTextureChainNode();
             }
-            node->textureChain->texture = TextureParser::copyTexture(node->texture);
-            if (node->texture != nullptr) {
-                node->texture->constantFlag = LegacyBoolean::FALSE_VALUE;
-                TextureUtils::defaultTexture() = node->texture;
-                TextureUtils::defaultTexture()->constantFlag = LegacyBoolean::TRUE_VALUE;
-            }
+            captureTextureTokens(ctx, node->textureChain);
             break;
         case Tokenizer::RIGHT_CURLY_TOKEN:
             done = LegacyBoolean::TRUE_VALUE;
@@ -425,6 +441,7 @@ AstSceneParser::parseProgram(ParserContext &ctx)
     AstParsedSceneProgram *program = new AstParsedSceneProgram();
     AstScene *scene = new AstScene();
     program->scene = scene;
+    AstObjectParser::setDeferTextureMaterialization(false);
 
     int done = LegacyBoolean::FALSE_VALUE;
     while (!done) {
@@ -487,6 +504,7 @@ AstSceneParser::parseProgram(ParserContext &ctx)
                     AstLimits::MAX_AST_SCENE_NODES, parseDefaultTextureNode(ctx))) {
                 ParseErrorReporter::Error("Too many AST scene nodes", ctx);
             }
+            AstObjectParser::setDeferTextureMaterialization(true);
             break;
         case Tokenizer::MAX_TRACE_LEVEL_TOKEN:
             if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
@@ -519,5 +537,6 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         }
     }
 
+    AstObjectParser::setDeferTextureMaterialization(false);
     return program;
 }

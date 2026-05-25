@@ -1,6 +1,9 @@
 #ifndef __POV_AST_NODES_H__
 #define __POV_AST_NODES_H__
 
+#include <vector>
+
+#include "io/TokenStruct.h"
 #include "io/pov/ParserConstants.h"
 
 enum AstNodeKind {
@@ -320,6 +323,7 @@ class AstTextureChainNode : public AstNode {
     AstTextureChainNode();
 
     Texture *texture;
+    std::vector<TokenStruct> capturedTokens;
 };
 
 class AstCsgNode : public AstNode {
