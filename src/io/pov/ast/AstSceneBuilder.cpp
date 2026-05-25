@@ -38,7 +38,8 @@ class CapturedTextureTokenStream : public ITokenStream {
   public:
     CapturedTextureTokenStream(
         const std::vector<TokenStruct> &tokens, ReservedWord *reservedWords)
-        : mTokens(tokens), mReservedWords(reservedWords), mCursor(0), mCurrent()
+        : mTokens(tokens), mReservedWords(reservedWords), mCursor(0), mCurrent(),
+          mHasUngot(false)
     {
         mCurrent.tokenId = Tokenizer::END_OF_FILE_TOKEN;
     }
@@ -47,6 +48,10 @@ class CapturedTextureTokenStream : public ITokenStream {
     TokenStruct &token() override { return mCurrent; }
     void getToken() override
     {
+        if (mHasUngot) {
+            mHasUngot = false;
+            return;
+        }
         if (mCursor < mTokens.size()) {
             mCurrent = mTokens[mCursor++];
         } else {
@@ -55,12 +60,7 @@ class CapturedTextureTokenStream : public ITokenStream {
     }
     void ungetToken() override
     {
-        if (mCursor > 0) {
-            --mCursor;
-            if (mCursor > 0) {
-                mCurrent = mTokens[mCursor - 1];
-            }
-        }
+        mHasUngot = true;
     }
 
   private:
@@ -68,6 +68,7 @@ class CapturedTextureTokenStream : public ITokenStream {
     ReservedWord *mReservedWords;
     std::size_t mCursor;
     TokenStruct mCurrent;
+    bool mHasUngot;
 };
 
 Texture *materializeCapturedTextureChain(

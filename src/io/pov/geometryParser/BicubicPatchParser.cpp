@@ -10,7 +10,6 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
-
 Geometry *
 BicubicPatchParser::parseBicubicPatch()
 {
@@ -54,7 +53,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 for (i = 0; i < 4; i++) {
                     for (j = 0; j < 4; j++) {
                         PrimitiveParser::parseVector(
-                            &(localShape->Control_Points[i][j]));
+                            &(localShape->Control_Points[i][j]), ctx);
                     }
                 }
                 ParametricBiCubicPatch::precomputePatchValues(
