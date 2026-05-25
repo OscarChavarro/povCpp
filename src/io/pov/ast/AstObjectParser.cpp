@@ -22,10 +22,23 @@ void captureTextureTokens(
         ParseErrorReporter::parseError(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     }
     textureChain->captureToken(ctx.token());
+    int simpleReferenceIdentifierNumber = -1;
+    bool couldBeSimpleReference = true;
     int depth = 1;
     while (depth > 0) {
         ctx.tokenStream().getToken();
         textureChain->captureToken(ctx.token());
+        if (depth == 1) {
+            if (ctx.token().tokenId == Tokenizer::IDENTIFIER_TOKEN) {
+                if (simpleReferenceIdentifierNumber == -1) {
+                    simpleReferenceIdentifierNumber = ctx.token().identifierNumber;
+                } else {
+                    couldBeSimpleReference = false;
+                }
+            } else if (ctx.token().tokenId != Tokenizer::RIGHT_CURLY_TOKEN) {
+                couldBeSimpleReference = false;
+            }
+        }
         if (ctx.token().tokenId == Tokenizer::LEFT_CURLY_TOKEN) {
             depth++;
         } else if (ctx.token().tokenId == Tokenizer::RIGHT_CURLY_TOKEN) {
@@ -34,6 +47,10 @@ void captureTextureTokens(
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
         }
     }
+    if (!(couldBeSimpleReference && simpleReferenceIdentifierNumber >= 0)) {
+        simpleReferenceIdentifierNumber = -1;
+    }
+    textureChain->markCapturedTextureSegment(simpleReferenceIdentifierNumber);
 }
 
 template <typename TNode>

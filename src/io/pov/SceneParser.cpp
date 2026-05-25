@@ -96,13 +96,13 @@ SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
             AstNodes::destroyScene(program->scene);
             delete program;
         }
-        throw ParseErrorReporter::ParseException(e.what());
+        ParseErrorReporter::Error(e.what(), ctx);
     } catch (...) {
         if (program != nullptr) {
             AstNodes::destroyScene(program->scene);
             delete program;
         }
-        throw ParseErrorReporter::ParseException("Unknown parser error");
+        ParseErrorReporter::Error("Unknown parser error", ctx);
     }
     AstNodes::destroyScene(program->scene);
     delete program;

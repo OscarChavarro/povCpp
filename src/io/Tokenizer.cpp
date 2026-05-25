@@ -928,6 +928,7 @@ Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
     ParserContext ctx;
     ctx.token().tokenId = tokenId;
     ctx.token().tokenLineNo = dataFile->lineNumber;
+    ctx.token().tokenColumnNo = 1;
     ctx.token().Filename = dataFile->Filename;
     ctx.token().Token_String = Tokenizer::sString;
 

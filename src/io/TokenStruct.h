@@ -7,6 +7,7 @@ class TokenStruct {
   public:
     int tokenId;
     int tokenLineNo;
+    int tokenColumnNo;
     char *Token_String;
     double tokenFloat;
     int identifierNumber;
