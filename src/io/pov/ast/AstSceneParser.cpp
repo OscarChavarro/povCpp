@@ -18,25 +18,20 @@
 #include "io/pov/ast/AstObjectParser.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
 #include "io/pov/ast/AstParsedSceneProgram.h"
-#include "io/pov/geometryParser/ObjectParser.h"
-#include "io/pov/mediaParser/TextureParser.h"
-#include "media/TextureUtils.h"
 
 namespace {
-constexpr bool kAstTextureDeclareParseTimeCompat = true;
-
 void captureTextureTokens(ParserContext &ctx, AstTextureChainNode *textureChain)
 {
-    textureChain->capturedTokens.push_back(ctx.token());
+    textureChain->captureToken(ctx.token());
     ctx.tokenStream().getToken();
     if (ctx.token().tokenId != Tokenizer::LEFT_CURLY_TOKEN) {
         ParseErrorReporter::parseError(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     }
-    textureChain->capturedTokens.push_back(ctx.token());
+    textureChain->captureToken(ctx.token());
     int depth = 1;
     while (depth > 0) {
         ctx.tokenStream().getToken();
-        textureChain->capturedTokens.push_back(ctx.token());
+        textureChain->captureToken(ctx.token());
         if (ctx.token().tokenId == Tokenizer::LEFT_CURLY_TOKEN) {
             depth++;
         } else if (ctx.token().tokenId == Tokenizer::RIGHT_CURLY_TOKEN) {
@@ -277,7 +272,17 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
             constantPtr->constantType = ParseGlobals::FLOAT_CONSTANT;
             *((double *)constantPtr->constantData) = PrimitiveParser::parseFloat(ctx);
         }
-        return nullptr;
+        AstDeclareNode *node = new AstDeclareNode();
+        node->sourceLine = identifierToken.tokenLineNo + 1;
+        node->sourceFile = identifierToken.Filename;
+        node->identifierNumber = identifierToken.identifierNumber;
+        AstConstantValueNode *value = new AstConstantValueNode();
+        value->sourceLine = identifierToken.tokenLineNo + 1;
+        value->sourceFile = identifierToken.Filename;
+        value->constantType = constantPtr->constantType;
+        value->constantData = constantPtr->constantData;
+        node->value = value;
+        return node;
     }
 
     if (valueTokenId == Tokenizer::TEXTURE_TOKEN) {
@@ -289,8 +294,6 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
         textureNode->sourceLine = identifierToken.tokenLineNo + 1;
         textureNode->sourceFile = identifierToken.Filename;
 
-        Texture *astTextureHead = nullptr;
-        Texture *localTexture = nullptr;
         constantPtr->constantData = nullptr;
         constantPtr->constantType = ParseGlobals::TEXTURE_CONSTANT;
         ctx.tokenStream().ungetToken();
@@ -300,121 +303,10 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 break;
             }
-            localTexture = TextureUtils::defaultTexture();
-            localTexture = TextureParser::parseTexture(ctx);
-            if (localTexture->constantFlag) {
-                localTexture = TextureParser::copyTexture(localTexture);
-            }
-            localTexture->constantFlag = LegacyBoolean::TRUE_VALUE;
-            Texture *astTexture = TextureParser::copyTexture(localTexture);
-            Texture *tempTexture = astTexture;
-            for (; tempTexture->Next_Texture != nullptr; tempTexture = tempTexture->Next_Texture) {
-            }
-            tempTexture->Next_Texture = astTextureHead;
-            astTextureHead = astTexture;
-
-            if (kAstTextureDeclareParseTimeCompat) {
-                tempTexture = localTexture;
-                for (; tempTexture->Next_Texture != nullptr; tempTexture = tempTexture->Next_Texture) {
-                }
-                tempTexture->Next_Texture = (Texture *)constantPtr->constantData;
-                constantPtr->constantData = (void *)localTexture;
-            }
+            captureTextureTokens(ctx, textureNode);
         }
-        textureNode->texture = astTextureHead;
         node->value = textureNode;
         return node;
-    }
-
-    if (valueTokenId == Tokenizer::OBJECT_TOKEN) {
-        constantPtr->constantData = (void *)ObjectParser::parseObject(ctx);
-        constantPtr->constantType = ParseGlobals::OBJECT_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::SPHERE_TOKEN) {
-        constantPtr->constantData = (void *)SphereParser::parseSphere(ctx);
-        constantPtr->constantType = ParseGlobals::SPHERE_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::PLANE_TOKEN) {
-        constantPtr->constantData = (void *)PlaneParser::parsePlane(ctx);
-        constantPtr->constantType = ParseGlobals::PLANE_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::TRIANGLE_TOKEN) {
-        constantPtr->constantData = (void *)TriangleParser::parseTriangle(ctx);
-        constantPtr->constantType = ParseGlobals::TRIANGLE_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::SMOOTH_TRIANGLE_TOKEN) {
-        constantPtr->constantData = (void *)SmoothTriangleParser::parseSmoothTriangle(ctx);
-        constantPtr->constantType = ParseGlobals::SMOOTH_TRIANGLE_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::QUADRIC_TOKEN) {
-        constantPtr->constantData = (void *)QuadricParser::parseQuadric(ctx);
-        constantPtr->constantType = ParseGlobals::QUADRIC_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::CUBIC_TOKEN) {
-        constantPtr->constantData = (void *)PolyParser::parsePoly(3, ctx);
-        constantPtr->constantType = ParseGlobals::POLY_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::QUARTIC_TOKEN) {
-        constantPtr->constantData = (void *)PolyParser::parsePoly(4, ctx);
-        constantPtr->constantType = ParseGlobals::POLY_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::POLY_TOKEN) {
-        constantPtr->constantData = (void *)PolyParser::parsePoly(0, ctx);
-        constantPtr->constantType = ParseGlobals::POLY_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::HEIGHT_FIELD_TOKEN) {
-        constantPtr->constantData = (void *)HeightFieldParser::parseHeightField(ctx);
-        constantPtr->constantType = ParseGlobals::HEIGHT_FIELD_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::BOX_TOKEN) {
-        constantPtr->constantData = (void *)BoxParser::parseBox(ctx);
-        constantPtr->constantType = ParseGlobals::BOX_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::BLOB_TOKEN) {
-        constantPtr->constantData = (void *)BlobParser::parseBlob(ctx);
-        constantPtr->constantType = ParseGlobals::BLOB_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::BICUBIC_PATCH_TOKEN) {
-        constantPtr->constantData = (void *)BicubicPatchParser::parseBicubicPatch(ctx);
-        constantPtr->constantType = ParseGlobals::BICUBIC_PATCH_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::INTERSECTION_TOKEN) {
-        constantPtr->constantData = (void *)ObjectParser::parseCsg(GeometryOperations::CSG_INTERSECTION_TYPE, ctx);
-        constantPtr->constantType = ParseGlobals::CSG_INTERSECTION_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::UNION_TOKEN) {
-        constantPtr->constantData = (void *)ObjectParser::parseCsg(GeometryOperations::CSG_UNION_TYPE, ctx);
-        constantPtr->constantType = ParseGlobals::CSG_UNION_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::DIFFERENCE_TOKEN) {
-        constantPtr->constantData = (void *)ObjectParser::parseCsg(GeometryOperations::CSG_DIFFERENCE_TYPE, ctx);
-        constantPtr->constantType = ParseGlobals::CSG_DIFFERENCE_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::COMPOSITE_TOKEN) {
-        constantPtr->constantData = (void *)ObjectParser::parseComposite(ctx);
-        constantPtr->constantType = ParseGlobals::COMPOSITE_CONSTANT;
-        return nullptr;
-    }
-    if (valueTokenId == Tokenizer::LIGHT_SOURCE_TOKEN) {
-        constantPtr->constantData = (void *)LightSourceParser::parseLightSource(ctx);
-        constantPtr->constantType = ParseGlobals::LIGHT_SOURCE_CONSTANT;
-        return nullptr;
     }
 
     AstDeclareNode *node = new AstDeclareNode();
@@ -441,7 +333,6 @@ AstSceneParser::parseProgram(ParserContext &ctx)
     AstParsedSceneProgram *program = new AstParsedSceneProgram();
     AstScene *scene = new AstScene();
     program->scene = scene;
-    AstObjectParser::setDeferTextureMaterialization(false);
 
     int done = LegacyBoolean::FALSE_VALUE;
     while (!done) {
@@ -504,7 +395,6 @@ AstSceneParser::parseProgram(ParserContext &ctx)
                     AstLimits::MAX_AST_SCENE_NODES, parseDefaultTextureNode(ctx))) {
                 ParseErrorReporter::Error("Too many AST scene nodes", ctx);
             }
-            AstObjectParser::setDeferTextureMaterialization(true);
             break;
         case Tokenizer::MAX_TRACE_LEVEL_TOKEN:
             if (!AstNodes::appendNode(scene->nodes, scene->nodeCount,
@@ -537,6 +427,5 @@ AstSceneParser::parseProgram(ParserContext &ctx)
         }
     }
 
-    AstObjectParser::setDeferTextureMaterialization(false);
     return program;
 }

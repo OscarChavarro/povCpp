@@ -87,6 +87,9 @@ Texture *materializeCapturedTextureChain(
             ParseErrorReporter::parseError(Tokenizer::TEXTURE_TOKEN, ctx);
         }
         Texture *texture = TextureParser::parseTexture(ctx);
+        if (texture->constantFlag) {
+            texture = TextureParser::copyTexture(texture);
+        }
         if (updateDefault) {
             texture->constantFlag = LegacyBoolean::FALSE_VALUE;
             TextureUtils::defaultTexture() = texture;
@@ -1108,6 +1111,7 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
         const AstNode *node = scene.nodes[i];
         if (node->kind == AST_DECLARE_NODE) {
             const AstDeclareNode *decl = (const AstDeclareNode *)node;
+            bool materializedDeclaration = false;
             if (decl->value != nullptr && decl->value->kind == AST_TEXTURE_CHAIN_NODE) {
                 const AstTextureChainNode *textureDecl = (const AstTextureChainNode *)decl->value;
                 Constant *constantPtr =
@@ -1117,9 +1121,119 @@ AstSceneBuilder::build(const AstScene &scene, RenderFrame *framePtr, ParserConte
                 }
                 constantPtr->identifierNumber = decl->identifierNumber;
                 constantPtr->constantType = ParseGlobals::TEXTURE_CONSTANT;
-                constantPtr->constantData = (void *)TextureParser::copyTexture(textureDecl->texture);
+                Texture *texture =
+                    materializeCapturedTextureChain(textureDecl, ctx, false);
+                for (Texture *part = texture; part != nullptr; part = part->Next_Texture) {
+                    part->constantFlag = LegacyBoolean::TRUE_VALUE;
+                }
+                constantPtr->constantData = (void *)texture;
+                materializedDeclaration = true;
+            } else if (decl->value != nullptr &&
+                decl->value->kind == AST_CONSTANT_VALUE_NODE) {
+                const AstConstantValueNode *constantDecl =
+                    (const AstConstantValueNode *)decl->value;
+                Constant *constantPtr =
+                    ctx.symbols().upsertByIdentifierNumber(decl->identifierNumber);
+                if (constantPtr == nullptr) {
+                    ParseErrorReporter::Error("Too many constants \"declared\"", ctx);
+                }
+                constantPtr->identifierNumber = decl->identifierNumber;
+                constantPtr->constantType = constantDecl->constantType;
+                constantPtr->constantData = constantDecl->constantData;
+                materializedDeclaration = true;
+            } else if (decl->value != nullptr) {
+                Constant *constantPtr =
+                    ctx.symbols().upsertByIdentifierNumber(decl->identifierNumber);
+                if (constantPtr == nullptr) {
+                    ParseErrorReporter::Error("Too many constants \"declared\"", ctx);
+                }
+                constantPtr->identifierNumber = decl->identifierNumber;
+                switch (decl->value->kind) {
+                case AST_SPHERE_NODE:
+                    constantPtr->constantData =
+                        (void *)buildSphere(*(const AstSphereNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::SPHERE_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_PLANE_NODE:
+                    constantPtr->constantData =
+                        (void *)buildPlane(*(const AstPlaneNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::PLANE_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_BOX_NODE:
+                    constantPtr->constantData =
+                        (void *)buildBox(*(const AstBoxNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::BOX_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_QUADRIC_NODE:
+                    constantPtr->constantData =
+                        (void *)buildQuadric(*(const AstQuadricNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::QUADRIC_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_BLOB_NODE:
+                    constantPtr->constantData =
+                        (void *)buildBlob(*(const AstBlobNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::BLOB_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_TRIANGLE_NODE:
+                    constantPtr->constantData =
+                        (void *)buildTriangle(*(const AstTriangleNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::TRIANGLE_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_SMOOTH_TRIANGLE_NODE:
+                    constantPtr->constantData = (void *)buildSmoothTriangle(
+                        *(const AstSmoothTriangleNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::SMOOTH_TRIANGLE_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_POLY_NODE:
+                    constantPtr->constantData =
+                        (void *)buildPoly(*(const AstPolyNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::POLY_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_CSG_NODE: {
+                    const AstCsgNode *csgDecl = (const AstCsgNode *)decl->value;
+                    constantPtr->constantData = (void *)buildCsg(*csgDecl, ctx, declarations);
+                    if (csgDecl->op == AST_CSG_UNION) {
+                        constantPtr->constantType = ParseGlobals::CSG_UNION_CONSTANT;
+                    } else if (csgDecl->op == AST_CSG_INTERSECTION) {
+                        constantPtr->constantType = ParseGlobals::CSG_INTERSECTION_CONSTANT;
+                    } else {
+                        constantPtr->constantType = ParseGlobals::CSG_DIFFERENCE_CONSTANT;
+                    }
+                    materializedDeclaration = true;
+                    break;
+                }
+                case AST_OBJECT_NODE:
+                    constantPtr->constantData =
+                        (void *)buildObject(*(const AstObjectNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::OBJECT_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_COMPOSITE_NODE:
+                    constantPtr->constantData = (void *)buildComposite(
+                        *(const AstCompositeNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::COMPOSITE_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                case AST_LIGHT_SOURCE_NODE:
+                    constantPtr->constantData =
+                        (void *)buildLight(*(const AstLightSourceNode *)decl->value, ctx, declarations);
+                    constantPtr->constantType = ParseGlobals::LIGHT_SOURCE_CONSTANT;
+                    materializedDeclaration = true;
+                    break;
+                default:
+                    break;
+                }
             }
-            if (declarations.count < ParserConstants::MAX_CONSTANTS) {
+            if (!materializedDeclaration &&
+                declarations.count < ParserConstants::MAX_CONSTANTS) {
                 declarations.ids[declarations.count] = decl->identifierNumber;
                 declarations.nodes[declarations.count] = decl->value;
                 declarations.count++;

@@ -1,5 +1,7 @@
 #include "io/pov/ast/AstNodes.h"
 
+#include <cstring>
+
 AstSphereNode::AstSphereNode()
 {
     kind = AST_SPHERE_NODE;
@@ -191,6 +193,40 @@ AstTextureChainNode::AstTextureChainNode()
     sourceLine = -1;
     sourceFile = nullptr;
     texture = nullptr;
+}
+
+AstTextureChainNode::~AstTextureChainNode()
+{
+    for (TokenStruct &token : capturedTokens) {
+        delete[] token.Token_String;
+        delete[] token.Filename;
+    }
+}
+
+void
+AstTextureChainNode::captureToken(const TokenStruct &token)
+{
+    TokenStruct captured = token;
+    if (token.Token_String != nullptr) {
+        const std::size_t length = std::strlen(token.Token_String) + 1;
+        captured.Token_String = new char[length];
+        std::memcpy(captured.Token_String, token.Token_String, length);
+    }
+    if (token.Filename != nullptr) {
+        const std::size_t length = std::strlen(token.Filename) + 1;
+        captured.Filename = new char[length];
+        std::memcpy(captured.Filename, token.Filename, length);
+    }
+    capturedTokens.push_back(captured);
+}
+
+AstConstantValueNode::AstConstantValueNode()
+{
+    kind = AST_CONSTANT_VALUE_NODE;
+    sourceLine = -1;
+    sourceFile = nullptr;
+    constantType = 0;
+    constantData = nullptr;
 }
 
 AstCsgNode::AstCsgNode()

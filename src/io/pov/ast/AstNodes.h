@@ -27,7 +27,8 @@ enum AstNodeKind {
     AST_LEGACY_GEOMETRY_NODE = 17,
     AST_HEIGHT_FIELD_NODE = 18,
     AST_BICUBIC_PATCH_NODE = 19,
-    AST_TEXTURE_CHAIN_NODE = 20
+    AST_TEXTURE_CHAIN_NODE = 20,
+    AST_CONSTANT_VALUE_NODE = 21
 };
 
 enum AstTransformKind {
@@ -88,6 +89,7 @@ class AstLimits {
   public:
     static constexpr int MAX_AST_TRANSFORMS = 64;
     static constexpr int MAX_AST_CHILDREN = 256;
+    static constexpr int MAX_AST_CSG_CHILDREN = 512;
     static constexpr int MAX_AST_SCENE_NODES = 2048;
 };
 
@@ -321,9 +323,19 @@ class AstBicubicPatchNode : public AstNode {
 class AstTextureChainNode : public AstNode {
   public:
     AstTextureChainNode();
+    ~AstTextureChainNode() override;
+    void captureToken(const TokenStruct &token);
 
     Texture *texture;
     std::vector<TokenStruct> capturedTokens;
+};
+
+class AstConstantValueNode : public AstNode {
+  public:
+    AstConstantValueNode();
+
+    int constantType;
+    void *constantData;
 };
 
 class AstCsgNode : public AstNode {
@@ -333,7 +345,7 @@ class AstCsgNode : public AstNode {
     AstCsgOpKind op;
     bool hasReference;
     int referenceConstantId;
-    AstNode *children[AstLimits::MAX_AST_CHILDREN];
+    AstNode *children[AstLimits::MAX_AST_CSG_CHILDREN];
     int childCount;
     AstTransform transforms[AstLimits::MAX_AST_TRANSFORMS];
     int transformCount;
