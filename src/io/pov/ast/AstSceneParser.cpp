@@ -23,6 +23,8 @@
 #include "media/TextureUtils.h"
 
 namespace {
+constexpr bool kAstTextureDeclareParseTimeCompat = true;
+
 void appendCameraOpOrFail(ParserContext &ctx, AstCameraNode *node, AstCameraOpKind kind,
     int refId, const AstVector3 &v)
 {
@@ -271,8 +273,8 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
         textureNode->sourceLine = identifierToken.tokenLineNo + 1;
         textureNode->sourceFile = identifierToken.Filename;
 
+        Texture *astTextureHead = nullptr;
         Texture *localTexture = nullptr;
-        Texture *tempTexture = nullptr;
         constantPtr->constantData = nullptr;
         constantPtr->constantType = ParseGlobals::TEXTURE_CONSTANT;
         ctx.tokenStream().ungetToken();
@@ -288,13 +290,22 @@ AstSceneParser::parseDeclareNode(ParserContext &ctx)
                 localTexture = TextureParser::copyTexture(localTexture);
             }
             localTexture->constantFlag = LegacyBoolean::TRUE_VALUE;
-            for (tempTexture = localTexture; tempTexture->Next_Texture != nullptr;
-                 tempTexture = tempTexture->Next_Texture) {
+            Texture *astTexture = TextureParser::copyTexture(localTexture);
+            Texture *tempTexture = astTexture;
+            for (; tempTexture->Next_Texture != nullptr; tempTexture = tempTexture->Next_Texture) {
             }
-            tempTexture->Next_Texture = (Texture *)constantPtr->constantData;
-            constantPtr->constantData = (void *)localTexture;
+            tempTexture->Next_Texture = astTextureHead;
+            astTextureHead = astTexture;
+
+            if (kAstTextureDeclareParseTimeCompat) {
+                tempTexture = localTexture;
+                for (; tempTexture->Next_Texture != nullptr; tempTexture = tempTexture->Next_Texture) {
+                }
+                tempTexture->Next_Texture = (Texture *)constantPtr->constantData;
+                constantPtr->constantData = (void *)localTexture;
+            }
         }
-        textureNode->texture = (Texture *)constantPtr->constantData;
+        textureNode->texture = astTextureHead;
         node->value = textureNode;
         return node;
     }
