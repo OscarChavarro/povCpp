@@ -80,11 +80,32 @@ SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
     ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
-    AstParsedSceneProgram *program = parseAstPhase(ctx);
-    buildScenePhase(*program, framePtr, ctx);
+    AstParsedSceneProgram *program = nullptr;
+    try {
+        program = parseAstPhase(ctx);
+        buildScenePhase(*program, framePtr, ctx);
+        postProcessPhase(ctx);
+    } catch (const ParseErrorReporter::ParseException &) {
+        if (program != nullptr) {
+            AstNodes::destroyScene(program->scene);
+            delete program;
+        }
+        throw;
+    } catch (const std::exception &e) {
+        if (program != nullptr) {
+            AstNodes::destroyScene(program->scene);
+            delete program;
+        }
+        throw ParseErrorReporter::ParseException(e.what());
+    } catch (...) {
+        if (program != nullptr) {
+            AstNodes::destroyScene(program->scene);
+            delete program;
+        }
+        throw ParseErrorReporter::ParseException("Unknown parser error");
+    }
     AstNodes::destroyScene(program->scene);
     delete program;
-    postProcessPhase(ctx);
     if (ctx.degenerateTriangles()) {
         fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
     }
