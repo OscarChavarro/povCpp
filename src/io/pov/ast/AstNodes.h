@@ -113,7 +113,6 @@ class AstSphereNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -151,7 +150,6 @@ class AstPlaneNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -171,7 +169,6 @@ class AstBoxNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -193,7 +190,6 @@ class AstQuadricNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -222,7 +218,6 @@ class AstBlobNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -243,7 +238,6 @@ class AstTriangleNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -267,7 +261,6 @@ class AstSmoothTriangleNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -291,7 +284,6 @@ class AstPolyNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -332,7 +324,6 @@ class AstTextureChainNode : public AstNode {
     ~AstTextureChainNode() override;
     void captureToken(const TokenStruct &token);
 
-    Texture *texture;
     std::vector<TokenStruct> capturedTokens;
 };
 
@@ -380,7 +371,6 @@ class AstObjectNode : public AstNode {
     bool hasColour;
     AstColor colour;
     bool hasTexture;
-    Texture *texture;
     AstTextureChainNode *textureChain;
     bool textureAfterTransform;
     int textureTransformIndex;
@@ -437,7 +427,6 @@ class AstDefaultTextureNode : public AstNode {
   public:
     AstDefaultTextureNode();
 
-    Texture *texture;
     AstTextureChainNode *textureChain;
 };
 
