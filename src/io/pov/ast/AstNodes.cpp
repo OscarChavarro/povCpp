@@ -179,12 +179,62 @@ AstHeightFieldNode::AstHeightFieldNode()
     shape = nullptr;
 }
 
+AstHeightFieldNode::~AstHeightFieldNode()
+{
+    for (TokenStruct &token : capturedTokens) {
+        delete[] token.Token_String;
+        delete[] token.Filename;
+    }
+}
+
+void
+AstHeightFieldNode::captureToken(const TokenStruct &token)
+{
+    TokenStruct captured = token;
+    if (token.Token_String != nullptr) {
+        const std::size_t length = std::strlen(token.Token_String) + 1;
+        captured.Token_String = new char[length];
+        std::memcpy(captured.Token_String, token.Token_String, length);
+    }
+    if (token.Filename != nullptr) {
+        const std::size_t length = std::strlen(token.Filename) + 1;
+        captured.Filename = new char[length];
+        std::memcpy(captured.Filename, token.Filename, length);
+    }
+    capturedTokens.push_back(captured);
+}
+
 AstBicubicPatchNode::AstBicubicPatchNode()
 {
     kind = AST_BICUBIC_PATCH_NODE;
     sourceLine = -1;
     sourceFile = nullptr;
     shape = nullptr;
+}
+
+AstBicubicPatchNode::~AstBicubicPatchNode()
+{
+    for (TokenStruct &token : capturedTokens) {
+        delete[] token.Token_String;
+        delete[] token.Filename;
+    }
+}
+
+void
+AstBicubicPatchNode::captureToken(const TokenStruct &token)
+{
+    TokenStruct captured = token;
+    if (token.Token_String != nullptr) {
+        const std::size_t length = std::strlen(token.Token_String) + 1;
+        captured.Token_String = new char[length];
+        std::memcpy(captured.Token_String, token.Token_String, length);
+    }
+    if (token.Filename != nullptr) {
+        const std::size_t length = std::strlen(token.Filename) + 1;
+        captured.Filename = new char[length];
+        std::memcpy(captured.Filename, token.Filename, length);
+    }
+    capturedTokens.push_back(captured);
 }
 
 AstTextureChainNode::AstTextureChainNode()
