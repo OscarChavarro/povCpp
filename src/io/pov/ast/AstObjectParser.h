@@ -7,6 +7,7 @@ class ParserContext;
 
 class AstObjectParser {
   public:
+    static void setDeferTextureMaterialization(bool defer);
     static AstSphereNode *parseSphere(ParserContext &ctx);
     static AstLightSourceNode *parseLightSource(ParserContext &ctx);
     static AstPlaneNode *parsePlane(ParserContext &ctx);

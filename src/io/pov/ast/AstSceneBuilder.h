@@ -90,7 +90,7 @@ class AstSceneBuilder {
     static void applyCamera(
         const AstCameraNode &node, RenderFrame *framePtr, ParserContext &ctx, const AstDeclTable &decls);
     static void applyMaxTraceLevel(const AstMaxTraceLevelNode &node);
-    static void applyDefaultTexture(const AstDefaultTextureNode &node);
+    static void applyDefaultTexture(const AstDefaultTextureNode &node, ParserContext &ctx);
 };
 
 #endif

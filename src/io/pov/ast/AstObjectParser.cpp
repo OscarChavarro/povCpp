@@ -13,6 +13,8 @@
 #include "media/Texture.h"
 
 namespace {
+bool deferTextureMaterialization = false;
+
 void prependTexture(Texture *parsedTexture, bool &hasTexture, Texture *&textureHead)
 {
     if (parsedTexture == nullptr) {
@@ -27,40 +29,42 @@ void prependTexture(Texture *parsedTexture, bool &hasTexture, Texture *&textureH
     hasTexture = true;
 }
 
-void prependTextureToChain(
-    Texture *parsedTexture, AstTextureChainNode *&textureChain, bool copyForChain)
+void captureTextureTokens(
+    ParserContext &ctx, bool &hasTexture, Texture *&textureHead, AstTextureChainNode *&textureChain)
 {
-    if (parsedTexture == nullptr) {
+    if (!deferTextureMaterialization) {
+        prependTexture(TextureParser::parseTexture(ctx), hasTexture, textureHead);
         return;
     }
-    Texture *capturedTexture =
-        copyForChain ? TextureParser::copyTexture(parsedTexture) : parsedTexture;
     if (textureChain == nullptr) {
         textureChain = new AstTextureChainNode();
     }
-    Texture *tail = capturedTexture;
-    while (tail->Next_Texture != nullptr) {
-        tail = tail->Next_Texture;
+    hasTexture = true;
+    textureChain->capturedTokens.push_back(ctx.token());
+    ctx.tokenStream().getToken();
+    if (ctx.token().tokenId != Tokenizer::LEFT_CURLY_TOKEN) {
+        ParseErrorReporter::parseError(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     }
-    tail->Next_Texture = textureChain->texture;
-    textureChain->texture = capturedTexture;
+    textureChain->capturedTokens.push_back(ctx.token());
+    int depth = 1;
+    while (depth > 0) {
+        ctx.tokenStream().getToken();
+        textureChain->capturedTokens.push_back(ctx.token());
+        if (ctx.token().tokenId == Tokenizer::LEFT_CURLY_TOKEN) {
+            depth++;
+        } else if (ctx.token().tokenId == Tokenizer::RIGHT_CURLY_TOKEN) {
+            depth--;
+        } else if (ctx.token().tokenId == Tokenizer::END_OF_FILE_TOKEN) {
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+        }
+    }
+}
 }
 
-void parseAndCaptureTexture(
-    ParserContext &ctx, bool &hasTexture, Texture *&textureHead, AstTextureChainNode *&textureChain,
-    bool copyForChain = true)
+void
+AstObjectParser::setDeferTextureMaterialization(bool defer)
 {
-    Texture *parsedTexture = TextureParser::parseTexture(ctx);
-    prependTexture(parsedTexture, hasTexture, textureHead);
-    if (!copyForChain) {
-        if (textureChain == nullptr) {
-            textureChain = new AstTextureChainNode();
-        }
-        textureChain->texture = textureHead;
-        return;
-    }
-    prependTextureToChain(parsedTexture, textureChain, copyForChain);
-}
+    deferTextureMaterialization = defer;
 }
 
 bool
@@ -199,11 +203,7 @@ AstObjectParser::parsePlane(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            prependTexture(TextureParser::parseTexture(ctx), node->hasTexture, node->texture);
-            if (node->textureChain == nullptr) {
-                node->textureChain = new AstTextureChainNode();
-            }
-            node->textureChain->texture = node->texture;
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -286,8 +286,7 @@ AstObjectParser::parseBox(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(
-                ctx, node->hasTexture, node->texture, node->textureChain, false);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -372,8 +371,7 @@ AstObjectParser::parseQuadric(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(
-                ctx, node->hasTexture, node->texture, node->textureChain, false);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -477,7 +475,7 @@ AstObjectParser::parseBlob(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(ctx, node->hasTexture, node->texture, node->textureChain);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -560,7 +558,7 @@ AstObjectParser::parseTriangle(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(ctx, node->hasTexture, node->texture, node->textureChain);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -646,7 +644,7 @@ AstObjectParser::parseSmoothTriangle(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(ctx, node->hasTexture, node->texture, node->textureChain);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -754,7 +752,7 @@ AstObjectParser::parsePoly(ParserContext &ctx, int knownOrder)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(ctx, node->hasTexture, node->texture, node->textureChain);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -859,7 +857,7 @@ AstObjectParser::parseSphere(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(ctx, node->hasTexture, node->texture, node->textureChain);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         default:
             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -1129,7 +1127,7 @@ AstObjectParser::parseObject(ParserContext &ctx)
                 node->textureTransformIndex = node->transformCount;
                 sawTexture = LegacyBoolean::TRUE_VALUE;
             }
-            parseAndCaptureTexture(ctx, node->hasTexture, node->texture, node->textureChain);
+            captureTextureTokens(ctx, node->hasTexture, node->texture, node->textureChain);
             break;
         case Tokenizer::RIGHT_CURLY_TOKEN:
             done = LegacyBoolean::TRUE_VALUE;
