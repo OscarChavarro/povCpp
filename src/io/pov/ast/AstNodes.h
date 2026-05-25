@@ -309,15 +309,21 @@ class AstLegacyGeometryNode : public AstNode {
 class AstHeightFieldNode : public AstNode {
   public:
     AstHeightFieldNode();
+    ~AstHeightFieldNode() override;
+    void captureToken(const TokenStruct &token);
 
     Geometry *shape;
+    std::vector<TokenStruct> capturedTokens;
 };
 
 class AstBicubicPatchNode : public AstNode {
   public:
     AstBicubicPatchNode();
+    ~AstBicubicPatchNode() override;
+    void captureToken(const TokenStruct &token);
 
     Geometry *shape;
+    std::vector<TokenStruct> capturedTokens;
 };
 
 class AstTextureChainNode : public AstNode {

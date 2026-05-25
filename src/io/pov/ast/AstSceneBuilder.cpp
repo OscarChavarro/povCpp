@@ -27,6 +27,8 @@
 #include "io/pov/ParserConstants.h"
 #include "io/pov/ParserContext.h"
 #include "io/pov/ast/AstNodes.h"
+#include "io/pov/geometryParser/BicubicPatchParser.h"
+#include "io/pov/geometryParser/HeightFieldParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 #include "media/Texture.h"
 #include "media/TextureUtils.h"
@@ -55,6 +57,9 @@ class CapturedTextureTokenStream : public ITokenStream {
     {
         if (mCursor > 0) {
             --mCursor;
+            if (mCursor > 0) {
+                mCurrent = mTokens[mCursor - 1];
+            }
         }
     }
 
@@ -103,6 +108,31 @@ Texture *materializeCapturedTextureChain(
     }
     ctx.setTokenStream(&outerStream);
     return textureHead;
+}
+
+template <typename TNode, typename TParserFn>
+Geometry *materializeCapturedGeometry(
+    const TNode &node, ParserContext &ctx, TOKEN expectedRootToken, TParserFn parserFn)
+{
+    if (node.capturedTokens.empty()) {
+        return nullptr;
+    }
+
+    ITokenStream &outerStream = ctx.tokenStream();
+    CapturedTextureTokenStream tokenStream(node.capturedTokens, ctx.reservedWords());
+    ctx.setTokenStream(&tokenStream);
+    try {
+        tokenStream.getToken();
+        if (tokenStream.token().tokenId != expectedRootToken) {
+            ParseErrorReporter::parseError(expectedRootToken, ctx);
+        }
+        Geometry *shape = parserFn(ctx);
+        ctx.setTokenStream(&outerStream);
+        return shape;
+    } catch (...) {
+        ctx.setTokenStream(&outerStream);
+        throw;
+    }
 }
 }
 
@@ -914,17 +944,28 @@ AstSceneBuilder::buildGeometryNode(const AstNode &node, ParserContext &ctx, cons
     }
     if (node.kind == AST_HEIGHT_FIELD_NODE) {
         const AstHeightFieldNode &heightFieldNode = (const AstHeightFieldNode &)node;
-        if (heightFieldNode.shape == nullptr) {
+        Geometry *shape = heightFieldNode.shape;
+        if (shape == nullptr) {
+            shape = materializeCapturedGeometry(heightFieldNode, ctx, Tokenizer::HEIGHT_FIELD_TOKEN,
+                [](ParserContext &localCtx) { return HeightFieldParser::parseHeightField(localCtx); });
+        }
+        if (shape == nullptr) {
             ParseErrorReporter::Error("Invalid height_field AST node", ctx);
         }
-        return (Geometry *)GeometryOperations::copy((SimpleBody *)heightFieldNode.shape);
+        return (Geometry *)GeometryOperations::copy((SimpleBody *)shape);
     }
     if (node.kind == AST_BICUBIC_PATCH_NODE) {
         const AstBicubicPatchNode &bicubicPatchNode = (const AstBicubicPatchNode &)node;
-        if (bicubicPatchNode.shape == nullptr) {
+        Geometry *shape = bicubicPatchNode.shape;
+        if (shape == nullptr) {
+            shape = materializeCapturedGeometry(
+                bicubicPatchNode, ctx, Tokenizer::BICUBIC_PATCH_TOKEN,
+                [](ParserContext &localCtx) { return BicubicPatchParser::parseBicubicPatch(localCtx); });
+        }
+        if (shape == nullptr) {
             ParseErrorReporter::Error("Invalid bicubic_patch AST node", ctx);
         }
-        return (Geometry *)GeometryOperations::copy((SimpleBody *)bicubicPatchNode.shape);
+        return (Geometry *)GeometryOperations::copy((SimpleBody *)shape);
     }
     if (node.kind == AST_LIGHT_SOURCE_NODE) {
         return (Geometry *)buildLight((const AstLightSourceNode &)node, ctx, decls);

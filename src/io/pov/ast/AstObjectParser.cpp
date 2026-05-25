@@ -8,7 +8,6 @@
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/ast/AstPrimitiveParser.h"
 #include "io/pov/geometryParser/BicubicPatchParser.h"
-#include "io/pov/geometryParser/HeightFieldParser.h"
 
 namespace {
 void captureTextureTokens(
@@ -28,6 +27,26 @@ void captureTextureTokens(
     while (depth > 0) {
         ctx.tokenStream().getToken();
         textureChain->captureToken(ctx.token());
+        if (ctx.token().tokenId == Tokenizer::LEFT_CURLY_TOKEN) {
+            depth++;
+        } else if (ctx.token().tokenId == Tokenizer::RIGHT_CURLY_TOKEN) {
+            depth--;
+        } else if (ctx.token().tokenId == Tokenizer::END_OF_FILE_TOKEN) {
+            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+        }
+    }
+}
+
+template <typename TNode>
+void captureGeometryBlockTokens(ParserContext &ctx, TNode *node)
+{
+    node->captureToken(ctx.token());
+    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+    node->captureToken(ctx.token());
+    int depth = 1;
+    while (depth > 0) {
+        ctx.tokenStream().getToken();
+        node->captureToken(ctx.token());
         if (ctx.token().tokenId == Tokenizer::LEFT_CURLY_TOKEN) {
             depth++;
         } else if (ctx.token().tokenId == Tokenizer::RIGHT_CURLY_TOKEN) {
@@ -741,7 +760,7 @@ AstObjectParser::parseHeightField(ParserContext &ctx)
     AstHeightFieldNode *node = new AstHeightFieldNode();
     node->sourceLine = ctx.token().tokenLineNo + 1;
     node->sourceFile = ctx.token().Filename;
-    node->shape = HeightFieldParser::parseHeightField(ctx);
+    captureGeometryBlockTokens(ctx, node);
     return node;
 }
 
