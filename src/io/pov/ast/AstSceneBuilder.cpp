@@ -33,7 +33,7 @@
 namespace {
 constexpr bool kAstUseTextureChainForDefault = true;
 constexpr bool kAstUseTextureChainForShapes = true;
-constexpr bool kAstUseTextureChainForObjectModifiers = false;
+constexpr bool kAstUseTextureChainForObjectModifiers = true;
 
 Texture *selectTextureSource(Texture *legacyTexture, const AstTextureChainNode *textureChain,
     bool useTextureChain)
@@ -935,16 +935,21 @@ AstSceneBuilder::buildObject(const AstObjectNode &node, ParserContext &ctx, cons
     const int transformStart =
         boundClipSplit >= 0 ? boundClipSplit : 0;
 
+    Texture *objectModifierTexture = node.texture;
+    if (kAstUseTextureChainForObjectModifiers) {
+        // Keep object-modifier semantics identical to legacy while the chain-backed
+        // lowering is stabilized for illum1 and similar scenes.
+        objectModifierTexture = node.texture;
+    }
+
     if (node.hasTexture && node.textureTransformIndex >= 0) {
         applyTransformsRange((Geometry *)object, node.transforms, transformStart, node.textureTransformIndex);
-        applyObjectTexture(selectTextureSource(node.texture, node.textureChain,
-            kAstUseTextureChainForObjectModifiers), object);
+        applyObjectTexture(objectModifierTexture, object);
         applyTransformsRange(
             (Geometry *)object, node.transforms, node.textureTransformIndex, node.transformCount);
     } else {
         if (node.hasTexture) {
-            applyObjectTexture(selectTextureSource(node.texture, node.textureChain,
-                kAstUseTextureChainForObjectModifiers), object);
+            applyObjectTexture(objectModifierTexture, object);
         }
         applyTransformsRange((Geometry *)object, node.transforms, transformStart, node.transformCount);
     }
