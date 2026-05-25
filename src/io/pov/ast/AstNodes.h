@@ -323,8 +323,13 @@ class AstTextureChainNode : public AstNode {
     AstTextureChainNode();
     ~AstTextureChainNode() override;
     void captureToken(const TokenStruct &token);
+    void markCapturedTextureSegment(int simpleReferenceIdentifierNumber);
+    bool allSegmentsAreSimpleReferences() const;
 
     std::vector<TokenStruct> capturedTokens;
+    std::vector<int> simpleReferenceIdentifierNumbers;
+    int capturedTextureSegmentCount;
+    int capturedSimpleReferenceCount;
 };
 
 class AstConstantValueNode : public AstNode {

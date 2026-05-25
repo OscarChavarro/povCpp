@@ -234,6 +234,8 @@ AstTextureChainNode::AstTextureChainNode()
     kind = AST_TEXTURE_CHAIN_NODE;
     sourceLine = -1;
     sourceFile = nullptr;
+    capturedTextureSegmentCount = 0;
+    capturedSimpleReferenceCount = 0;
 }
 
 AstTextureChainNode::~AstTextureChainNode()
@@ -259,6 +261,23 @@ AstTextureChainNode::captureToken(const TokenStruct &token)
         std::memcpy(captured.Filename, token.Filename, length);
     }
     capturedTokens.push_back(captured);
+}
+
+void
+AstTextureChainNode::markCapturedTextureSegment(int simpleReferenceIdentifierNumber)
+{
+    capturedTextureSegmentCount++;
+    if (simpleReferenceIdentifierNumber >= 0) {
+        capturedSimpleReferenceCount++;
+        simpleReferenceIdentifierNumbers.push_back(simpleReferenceIdentifierNumber);
+    }
+}
+
+bool
+AstTextureChainNode::allSegmentsAreSimpleReferences() const
+{
+    return capturedTextureSegmentCount > 0 &&
+        capturedTextureSegmentCount == capturedSimpleReferenceCount;
 }
 
 AstConstantValueNode::AstConstantValueNode()

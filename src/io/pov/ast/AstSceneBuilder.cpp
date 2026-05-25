@@ -78,6 +78,54 @@ Texture *materializeCapturedTextureChain(
         return nullptr;
     }
 
+    auto tryMaterializeReferenceOnlyChain = [&]() -> Texture * {
+        if (!textureChain->allSegmentsAreSimpleReferences()) {
+            return nullptr;
+        }
+
+        Texture *textureHead = nullptr;
+        for (int identifierNumber : textureChain->simpleReferenceIdentifierNumbers) {
+            const int constantId = ctx.symbols().findByIdentifierNumber(identifierNumber);
+            if (constantId == -1) {
+                ParseErrorReporter::Error("Undeclared texture reference in AST texture chain", ctx);
+            }
+            const Constant *constantPtr = ctx.symbols().byConstantId(constantId);
+            if (constantPtr == nullptr ||
+                constantPtr->constantType != ParseGlobals::TEXTURE_CONSTANT) {
+                ParseErrorReporter::Error("Invalid texture reference in AST texture chain", ctx);
+            }
+
+            Texture *texture = (Texture *)constantPtr->constantData;
+            if (texture != nullptr && texture->constantFlag) {
+                texture = TextureParser::copyTexture(texture);
+                texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+            }
+            if (updateDefault) {
+                if (texture != nullptr) {
+                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    TextureUtils::defaultTexture() = texture;
+                    TextureUtils::defaultTexture()->constantFlag = LegacyBoolean::TRUE_VALUE;
+                }
+                textureHead = texture;
+            } else {
+                Texture *tail = texture;
+                while (tail != nullptr && tail->Next_Texture != nullptr) {
+                    tail = tail->Next_Texture;
+                }
+                if (tail != nullptr) {
+                    tail->Next_Texture = textureHead;
+                }
+                textureHead = texture;
+            }
+        }
+        return textureHead;
+    };
+
+    Texture *referenceOnlyTexture = tryMaterializeReferenceOnlyChain();
+    if (referenceOnlyTexture != nullptr) {
+        return referenceOnlyTexture;
+    }
+
     ITokenStream &outerStream = ctx.tokenStream();
     CapturedTextureTokenStream tokenStream(textureChain->capturedTokens, ctx.reservedWords());
     ctx.setTokenStream(&tokenStream);
