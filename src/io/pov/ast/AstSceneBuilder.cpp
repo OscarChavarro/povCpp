@@ -83,29 +83,34 @@ Texture *materializeCapturedTextureChain(
     ctx.setTokenStream(&tokenStream);
 
     Texture *textureHead = nullptr;
-    tokenStream.getToken();
-    while (tokenStream.token().tokenId != Tokenizer::END_OF_FILE_TOKEN) {
-        if (tokenStream.token().tokenId != Tokenizer::TEXTURE_TOKEN) {
-            ParseErrorReporter::parseError(Tokenizer::TEXTURE_TOKEN, ctx);
-        }
-        Texture *texture = TextureParser::parseTexture(ctx);
-        if (texture->constantFlag) {
-            texture = TextureParser::copyTexture(texture);
-        }
-        if (updateDefault) {
-            texture->constantFlag = LegacyBoolean::FALSE_VALUE;
-            TextureUtils::defaultTexture() = texture;
-            TextureUtils::defaultTexture()->constantFlag = LegacyBoolean::TRUE_VALUE;
-            textureHead = texture;
-        } else {
-            Texture *tail = texture;
-            while (tail->Next_Texture != nullptr) {
-                tail = tail->Next_Texture;
-            }
-            tail->Next_Texture = textureHead;
-            textureHead = texture;
-        }
+    try {
         tokenStream.getToken();
+        while (tokenStream.token().tokenId != Tokenizer::END_OF_FILE_TOKEN) {
+            if (tokenStream.token().tokenId != Tokenizer::TEXTURE_TOKEN) {
+                ParseErrorReporter::parseError(Tokenizer::TEXTURE_TOKEN, ctx);
+            }
+            Texture *texture = TextureParser::parseTexture(ctx);
+            if (texture->constantFlag) {
+                texture = TextureParser::copyTexture(texture);
+            }
+            if (updateDefault) {
+                texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                TextureUtils::defaultTexture() = texture;
+                TextureUtils::defaultTexture()->constantFlag = LegacyBoolean::TRUE_VALUE;
+                textureHead = texture;
+            } else {
+                Texture *tail = texture;
+                while (tail->Next_Texture != nullptr) {
+                    tail = tail->Next_Texture;
+                }
+                tail->Next_Texture = textureHead;
+                textureHead = texture;
+            }
+            tokenStream.getToken();
+        }
+    } catch (...) {
+        ctx.setTokenStream(&outerStream);
+        throw;
     }
     ctx.setTokenStream(&outerStream);
     return textureHead;
