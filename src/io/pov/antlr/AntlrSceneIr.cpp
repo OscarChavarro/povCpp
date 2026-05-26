@@ -1,5 +1,51 @@
 #include "io/pov/antlr/AntlrSceneIr.h"
 
+namespace {
+void destroyCompositeChildren(AntlrIrCompositeNode *comp);
+
+void destroyObjectChildren(AntlrIrObjectNode *obj)
+{
+    if (obj == nullptr) {
+        return;
+    }
+    for (int i = 0; i < obj->childSphereCount; ++i) {
+        delete obj->childSpheres[i];
+        obj->childSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childObjectCount; ++i) {
+        destroyObjectChildren(obj->childObjects[i]);
+        delete obj->childObjects[i];
+        obj->childObjects[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childCompositeCount; ++i) {
+        destroyCompositeChildren(obj->childComposites[i]);
+        delete obj->childComposites[i];
+        obj->childComposites[i] = nullptr;
+    }
+}
+
+void destroyCompositeChildren(AntlrIrCompositeNode *comp)
+{
+    if (comp == nullptr) {
+        return;
+    }
+    for (int i = 0; i < comp->childSphereCount; ++i) {
+        delete comp->childSpheres[i];
+        comp->childSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < comp->childObjectCount; ++i) {
+        destroyObjectChildren(comp->childObjects[i]);
+        delete comp->childObjects[i];
+        comp->childObjects[i] = nullptr;
+    }
+    for (int i = 0; i < comp->childCompositeCount; ++i) {
+        destroyCompositeChildren(comp->childComposites[i]);
+        delete comp->childComposites[i];
+        comp->childComposites[i] = nullptr;
+    }
+}
+}
+
 AntlrIrMaxTraceLevelNode::AntlrIrMaxTraceLevelNode()
 {
     kind = ANTLR_IR_MAX_TRACE_LEVEL_NODE;
@@ -75,7 +121,18 @@ AntlrIrObjectNode::AntlrIrObjectNode()
     sourceColumn = -1;
     sourceFile = nullptr;
     hasReference = false;
-    childShapeCount = 0;
+    childSphereCount = 0;
+    for (int i = 0; i < MAX_CHILD_SPHERES; ++i) {
+        childSpheres[i] = nullptr;
+    }
+    childObjectCount = 0;
+    for (int i = 0; i < MAX_CHILD_OBJECTS; ++i) {
+        childObjects[i] = nullptr;
+    }
+    childCompositeCount = 0;
+    for (int i = 0; i < MAX_CHILD_COMPOSITES; ++i) {
+        childComposites[i] = nullptr;
+    }
     childReferenceCount = 0;
     hasColour = false;
     hasTextureChain = false;
@@ -90,7 +147,18 @@ AntlrIrCompositeNode::AntlrIrCompositeNode()
     sourceColumn = -1;
     sourceFile = nullptr;
     hasReference = false;
-    childShapeCount = 0;
+    childSphereCount = 0;
+    for (int i = 0; i < MAX_CHILD_SPHERES; ++i) {
+        childSpheres[i] = nullptr;
+    }
+    childObjectCount = 0;
+    for (int i = 0; i < MAX_CHILD_OBJECTS; ++i) {
+        childObjects[i] = nullptr;
+    }
+    childCompositeCount = 0;
+    for (int i = 0; i < MAX_CHILD_COMPOSITES; ++i) {
+        childComposites[i] = nullptr;
+    }
     childReferenceCount = 0;
     transformCount = 0;
 }
@@ -149,13 +217,19 @@ AntlrSceneIrNodes::destroyNode(AntlrSceneIrNode *node)
             declareNode->sphereValue = nullptr;
         }
         if (declareNode->objectValue != nullptr) {
+            destroyObjectChildren(declareNode->objectValue);
             delete declareNode->objectValue;
             declareNode->objectValue = nullptr;
         }
         if (declareNode->compositeValue != nullptr) {
+            destroyCompositeChildren(declareNode->compositeValue);
             delete declareNode->compositeValue;
             declareNode->compositeValue = nullptr;
         }
+    } else if (node->kind == ANTLR_IR_OBJECT_NODE) {
+        destroyObjectChildren((AntlrIrObjectNode *)node);
+    } else if (node->kind == ANTLR_IR_COMPOSITE_NODE) {
+        destroyCompositeChildren((AntlrIrCompositeNode *)node);
     }
     delete node;
 }

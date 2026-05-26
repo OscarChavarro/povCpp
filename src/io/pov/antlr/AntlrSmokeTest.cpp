@@ -93,13 +93,13 @@ int main()
             }
         } else if (n->kind == ANTLR_IR_OBJECT_NODE) {
             AntlrIrObjectNode *o = (AntlrIrObjectNode *)n;
-            if (o->childShapeCount > 0 && o->noShadow &&
+            if (o->childSphereCount > 0 && o->noShadow &&
                 o->transformCount > 0 && o->hasTextureChain) {
                 foundObject = true;
             }
         } else if (n->kind == ANTLR_IR_COMPOSITE_NODE) {
             AntlrIrCompositeNode *c = (AntlrIrCompositeNode *)n;
-            if (c->childShapeCount > 0 && c->transformCount > 0) {
+            if (c->childSphereCount > 0 && c->transformCount > 0) {
                 foundComposite = true;
             }
         }

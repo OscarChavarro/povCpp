@@ -154,14 +154,20 @@ class AntlrIrSphereNode : public AntlrSceneIrNode {
 class AntlrIrObjectNode : public AntlrSceneIrNode {
   public:
     static constexpr int MAX_TRANSFORMS = 64;
-    static constexpr int MAX_CHILD_SHAPES = 256;
+    static constexpr int MAX_CHILD_SPHERES = 256;
+    static constexpr int MAX_CHILD_OBJECTS = 128;
+    static constexpr int MAX_CHILD_COMPOSITES = 128;
     static constexpr int MAX_CHILD_REFERENCES = 256;
 
     AntlrIrObjectNode();
     bool hasReference;
     std::string referenceIdentifier;
-    int childShapeCount;
-    std::string childShapeTexts[MAX_CHILD_SHAPES];
+    int childSphereCount;
+    AntlrIrSphereNode *childSpheres[MAX_CHILD_SPHERES];
+    int childObjectCount;
+    AntlrIrObjectNode *childObjects[MAX_CHILD_OBJECTS];
+    int childCompositeCount;
+    AntlrIrCompositeNode *childComposites[MAX_CHILD_COMPOSITES];
     int childReferenceCount;
     std::string childReferenceIdentifiers[MAX_CHILD_REFERENCES];
     bool hasColour;
@@ -176,14 +182,20 @@ class AntlrIrObjectNode : public AntlrSceneIrNode {
 class AntlrIrCompositeNode : public AntlrSceneIrNode {
   public:
     static constexpr int MAX_TRANSFORMS = 64;
-    static constexpr int MAX_CHILD_SHAPES = 512;
+    static constexpr int MAX_CHILD_SPHERES = 512;
+    static constexpr int MAX_CHILD_OBJECTS = 256;
+    static constexpr int MAX_CHILD_COMPOSITES = 256;
     static constexpr int MAX_CHILD_REFERENCES = 512;
 
     AntlrIrCompositeNode();
     bool hasReference;
     std::string referenceIdentifier;
-    int childShapeCount;
-    std::string childShapeTexts[MAX_CHILD_SHAPES];
+    int childSphereCount;
+    AntlrIrSphereNode *childSpheres[MAX_CHILD_SPHERES];
+    int childObjectCount;
+    AntlrIrObjectNode *childObjects[MAX_CHILD_OBJECTS];
+    int childCompositeCount;
+    AntlrIrCompositeNode *childComposites[MAX_CHILD_COMPOSITES];
     int childReferenceCount;
     std::string childReferenceIdentifiers[MAX_CHILD_REFERENCES];
     AntlrIrTransform transforms[MAX_TRANSFORMS];

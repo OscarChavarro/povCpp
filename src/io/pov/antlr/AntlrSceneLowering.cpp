@@ -1,8 +1,5 @@
 #include "io/pov/antlr/AntlrSceneLowering.h"
 
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -71,33 +68,6 @@ Sphere *buildSphere(const AntlrIrSphereNode &node)
     return sphere;
 }
 
-bool parseSphereText(const std::string &text, AntlrIrSphereNode &out)
-{
-    const std::size_t left = text.find('<');
-    const std::size_t right = text.find('>', left == std::string::npos ? 0 : left + 1);
-    if (left == std::string::npos || right == std::string::npos || right <= left + 1) {
-        return false;
-    }
-    const std::string vec = text.substr(left + 1, right - left - 1);
-    double x = 0.0, y = 0.0, z = 0.0;
-    if (std::sscanf(vec.c_str(), "%lf,%lf,%lf", &x, &y, &z) != 3) {
-        return false;
-    }
-    std::size_t p = right + 1;
-    while (p < text.size() && std::isspace((unsigned char)text[p])) {
-        ++p;
-    }
-    char *endPtr = nullptr;
-    const double radius = std::strtod(text.c_str() + p, &endPtr);
-    if (endPtr == text.c_str() + p) {
-        return false;
-    }
-    out.hasInlineBase = true;
-    out.center = {x, y, z};
-    out.radius = radius;
-    return true;
-}
-
 bool buildDeclaredSphereByName(const std::string &name,
     const std::unordered_map<std::string, const AntlrIrSphereNode *> &declaredSpheres, Sphere *&out)
 {
@@ -107,6 +77,116 @@ bool buildDeclaredSphereByName(const std::string &name,
     }
     out = buildSphere(*it->second);
     return out != nullptr;
+}
+
+Texture *materializeTextureChain(const AntlrIrTextureChain &chain,
+    const std::unordered_map<std::string, Texture *> &declaredTextures);
+void applyObjectTexture(Texture *srcTexture, SimpleBody *object);
+
+SimpleBody *buildObjectFromIr(const AntlrIrObjectNode &node,
+    const std::unordered_map<std::string, Texture *> &declaredTextures,
+    const std::unordered_map<std::string, const AntlrIrSphereNode *> &declaredSpheres,
+    const std::unordered_map<std::string, const AntlrIrObjectNode *> &declaredObjects, int depth)
+{
+    if (depth > 16) {
+        throw std::runtime_error("ANTLR object lowering exceeded max recursion depth");
+    }
+
+    const AntlrIrObjectNode *effectiveNode = &node;
+    if (node.hasReference) {
+        auto oit = declaredObjects.find(node.referenceIdentifier);
+        if (oit == declaredObjects.end()) {
+            throw std::runtime_error("Unknown ANTLR object reference");
+        }
+        effectiveNode = oit->second;
+    }
+
+    SimpleBody *obj = SimpleBodyFactory::getObject();
+    if (effectiveNode->hasColour) {
+        obj->objectColour = ModelBuilder::getColour();
+        obj->objectColour->Red = effectiveNode->colour.r;
+        obj->objectColour->Green = effectiveNode->colour.g;
+        obj->objectColour->Blue = effectiveNode->colour.b;
+        obj->objectColour->Alpha = effectiveNode->colour.a;
+    }
+    obj->noShadowFlag = effectiveNode->noShadow ? 1 : 0;
+    if (effectiveNode->hasTextureChain) {
+        applyObjectTexture(materializeTextureChain(effectiveNode->textureChain, declaredTextures), obj);
+    }
+    if (effectiveNode->childObjectCount > 0 || effectiveNode->childCompositeCount > 0) {
+        throw std::runtime_error(
+            "ANTLR object lowering does not support object/composite child as Shape yet");
+    }
+    if (effectiveNode->childSphereCount > 0 && effectiveNode->childSpheres[0] != nullptr) {
+        obj->Shape = (Geometry *)buildSphere(*effectiveNode->childSpheres[0]);
+    } else if (effectiveNode->childReferenceCount > 0) {
+        Sphere *resolved = nullptr;
+        if (buildDeclaredSphereByName(
+                effectiveNode->childReferenceIdentifiers[0], declaredSpheres, resolved)) {
+            obj->Shape = (Geometry *)resolved;
+        }
+    }
+    return obj;
+}
+
+SimpleBody *buildCompositeFromIr(const AntlrIrCompositeNode &node,
+    const std::unordered_map<std::string, Texture *> &declaredTextures,
+    const std::unordered_map<std::string, const AntlrIrSphereNode *> &declaredSpheres,
+    const std::unordered_map<std::string, const AntlrIrObjectNode *> &declaredObjects,
+    const std::unordered_map<std::string, const AntlrIrCompositeNode *> &declaredComposites, int depth)
+{
+    if (depth > 16) {
+        throw std::runtime_error("ANTLR composite lowering exceeded max recursion depth");
+    }
+
+    const AntlrIrCompositeNode *effectiveNode = &node;
+    if (node.hasReference) {
+        auto it = declaredComposites.find(node.referenceIdentifier);
+        if (it == declaredComposites.end()) {
+            throw std::runtime_error("Unknown ANTLR composite reference");
+        }
+        effectiveNode = it->second;
+    }
+
+    Composite *comp = ModelBuilder::getCompositeObject();
+    for (int k = 0; k < effectiveNode->childSphereCount; ++k) {
+        if (effectiveNode->childSpheres[k] == nullptr) {
+            continue;
+        }
+        Sphere *child = buildSphere(*effectiveNode->childSpheres[k]);
+        SimpleBodyFactory::link((SimpleBody *)child, (SimpleBody **)&(child->nextObject),
+            (SimpleBody **)&(comp->Objects));
+    }
+    for (int k = 0; k < effectiveNode->childReferenceCount; ++k) {
+        Sphere *resolved = nullptr;
+        if (!buildDeclaredSphereByName(
+                effectiveNode->childReferenceIdentifiers[k], declaredSpheres, resolved)) {
+            continue;
+        }
+        SimpleBodyFactory::link((SimpleBody *)resolved, (SimpleBody **)&(resolved->nextObject),
+            (SimpleBody **)&(comp->Objects));
+    }
+    for (int k = 0; k < effectiveNode->childObjectCount; ++k) {
+        if (effectiveNode->childObjects[k] == nullptr) {
+            continue;
+        }
+        SimpleBody *childObj = buildObjectFromIr(
+            *effectiveNode->childObjects[k], declaredTextures, declaredSpheres, declaredObjects, depth + 1);
+        applyTransforms(childObj, effectiveNode->childObjects[k]->transforms,
+            effectiveNode->childObjects[k]->transformCount);
+        SimpleBodyFactory::link(childObj, &(childObj->nextObject), (SimpleBody **)&(comp->Objects));
+    }
+    for (int k = 0; k < effectiveNode->childCompositeCount; ++k) {
+        if (effectiveNode->childComposites[k] == nullptr) {
+            continue;
+        }
+        SimpleBody *childComp = buildCompositeFromIr(*effectiveNode->childComposites[k],
+            declaredTextures, declaredSpheres, declaredObjects, declaredComposites, depth + 1);
+        applyTransforms(childComp, effectiveNode->childComposites[k]->transforms,
+            effectiveNode->childComposites[k]->transformCount);
+        SimpleBodyFactory::link(childComp, &(childComp->nextObject), (SimpleBody **)&(comp->Objects));
+    }
+    return (SimpleBody *)comp;
 }
 
 Texture *cloneTexture(Texture *texture)
@@ -311,73 +391,16 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
                 (SimpleBody **)&(sphere->nextObject), (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == ANTLR_IR_OBJECT_NODE) {
             const AntlrIrObjectNode *n = (const AntlrIrObjectNode *)node;
-            const AntlrIrObjectNode *effectiveNode = n;
-            if (n->hasReference) {
-                auto oit = declaredObjects.find(n->referenceIdentifier);
-                if (oit == declaredObjects.end()) {
-                    throw std::runtime_error("Unknown ANTLR object reference");
-                }
-                effectiveNode = oit->second;
-            }
-            SimpleBody *obj = SimpleBodyFactory::getObject();
-            if (effectiveNode->hasColour) {
-                obj->objectColour = ModelBuilder::getColour();
-                obj->objectColour->Red = effectiveNode->colour.r;
-                obj->objectColour->Green = effectiveNode->colour.g;
-                obj->objectColour->Blue = effectiveNode->colour.b;
-                obj->objectColour->Alpha = effectiveNode->colour.a;
-            }
-            obj->noShadowFlag = effectiveNode->noShadow ? 1 : 0;
-            if (effectiveNode->hasTextureChain) {
-                applyObjectTexture(
-                    materializeTextureChain(effectiveNode->textureChain, declaredTextures), obj);
-            }
-            if (effectiveNode->childShapeCount > 0) {
-                AntlrIrSphereNode childSphere;
-                if (parseSphereText(effectiveNode->childShapeTexts[0], childSphere)) {
-                    obj->Shape = (Geometry *)buildSphere(childSphere);
-                }
-            } else if (effectiveNode->childReferenceCount > 0) {
-                Sphere *resolved = nullptr;
-                if (buildDeclaredSphereByName(
-                        effectiveNode->childReferenceIdentifiers[0], declaredSpheres, resolved)) {
-                    obj->Shape = (Geometry *)resolved;
-                }
-            }
+            SimpleBody *obj = buildObjectFromIr(
+                *n, declaredTextures, declaredSpheres, declaredObjects, 0);
             applyTransforms(obj, n->transforms, n->transformCount);
             SimpleBodyFactory::link(obj, &(obj->nextObject), (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == ANTLR_IR_COMPOSITE_NODE) {
             const AntlrIrCompositeNode *n = (const AntlrIrCompositeNode *)node;
-            const AntlrIrCompositeNode *effectiveNode = n;
-            if (n->hasReference) {
-                auto it = declaredComposites.find(n->referenceIdentifier);
-                if (it == declaredComposites.end()) {
-                    throw std::runtime_error("Unknown ANTLR composite reference");
-                }
-                effectiveNode = it->second;
-            }
-            Composite *comp = ModelBuilder::getCompositeObject();
-            for (int k = 0; k < effectiveNode->childShapeCount; ++k) {
-                AntlrIrSphereNode childSphere;
-                if (!parseSphereText(effectiveNode->childShapeTexts[k], childSphere)) {
-                    continue;
-                }
-                Sphere *child = buildSphere(childSphere);
-                SimpleBodyFactory::link((SimpleBody *)child, (SimpleBody **)&(child->nextObject),
-                    (SimpleBody **)&(comp->Objects));
-            }
-            for (int k = 0; k < effectiveNode->childReferenceCount; ++k) {
-                Sphere *resolved = nullptr;
-                if (!buildDeclaredSphereByName(
-                        effectiveNode->childReferenceIdentifiers[k], declaredSpheres, resolved)) {
-                    continue;
-                }
-                SimpleBodyFactory::link((SimpleBody *)resolved, (SimpleBody **)&(resolved->nextObject),
-                    (SimpleBody **)&(comp->Objects));
-            }
-            applyTransforms((SimpleBody *)comp, n->transforms, n->transformCount);
-            SimpleBodyFactory::link((SimpleBody *)comp,
-                (SimpleBody **)&(comp->nextObject), (SimpleBody **)&(framePtr->Objects));
+            SimpleBody *comp = buildCompositeFromIr(
+                *n, declaredTextures, declaredSpheres, declaredObjects, declaredComposites, 0);
+            applyTransforms(comp, n->transforms, n->transformCount);
+            SimpleBodyFactory::link(comp, &(comp->nextObject), (SimpleBody **)&(framePtr->Objects));
 #endif
         }
     }
