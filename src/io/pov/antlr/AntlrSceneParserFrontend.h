@@ -25,6 +25,8 @@ class AntlrSceneParserFrontend {
     static bool appendObjectNode(AntlrSceneIrProgram &program, AntlrIrObjectNode *objectNode);
     static bool appendCompositeNode(
         AntlrSceneIrProgram &program, AntlrIrCompositeNode *compositeNode);
+    static bool appendLightNode(AntlrSceneIrProgram &program, AntlrIrLightNode *lightNode);
+    static bool appendCsgNode(AntlrSceneIrProgram &program, AntlrIrCsgNode *csgNode);
 };
 
 #endif

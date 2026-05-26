@@ -5,6 +5,7 @@
 
 #include "environment/material/RenderRuntimeState.h"
 #include "io/pov/antlr/AntlrParsedSceneProgram.h"
+#include "io/pov/antlr/AntlrParseDiagnostics.h"
 #include "io/pov/antlr/AntlrParseTreeToIrMapper.h"
 #include "io/pov/antlr/AntlrSceneIr.h"
 #include "io/pov/antlr/AntlrSceneLowering.h"
@@ -22,15 +23,96 @@ int main()
     std::cerr << "ANTLR runtime not enabled.\n";
     return 2;
 #else
+    class FirstSyntaxErrorListener : public antlr4::BaseErrorListener {
+      public:
+        bool hasError = false;
+        int line = 1;
+        int column = 1;
+        std::string message;
+
+        void syntaxError(antlr4::Recognizer * /*recognizer*/, antlr4::Token * /*offendingSymbol*/,
+            size_t lineArg, size_t charPositionInLine, const std::string &msg,
+            std::exception_ptr /*e*/) override
+        {
+            if (hasError) {
+                return;
+            }
+            hasError = true;
+            line = (int)lineArg;
+            column = (int)charPositionInLine + 1;
+            message = msg;
+        }
+    };
+
+    auto expectParseFailureWithLocation = [](const std::string &text, const std::string &name) -> bool {
+        antlr4::ANTLRInputStream stream(text);
+        POVLexer lexer(&stream);
+        antlr4::CommonTokenStream tokens(&lexer);
+        POVParser parser(&tokens);
+        FirstSyntaxErrorListener listener;
+        parser.removeErrorListeners();
+        parser.addErrorListener(&listener);
+        parser.scene();
+        if (!listener.hasError) {
+            return false;
+        }
+        try {
+            AntlrParseDiagnostics::raiseSyntaxError(name, listener.line, listener.column, listener.message);
+        } catch (const ParseErrorReporter::ParseException &) {
+            return true;
+        }
+        return false;
+    };
+
+    const std::string invalidDeclare =
+        "#declare X = sphere { <1,2,3> }\n";
+    if (!expectParseFailureWithLocation(invalidDeclare, "<invalid-declare>")) {
+        std::cerr << "Expected syntax error with location for malformed #declare.\n";
+        return 1;
+    }
+
+    const std::string invalidMissingBrace =
+        "sphere { <1,2,3> 4\n"
+        "camera { location <0,0,-5> }\n";
+    if (!expectParseFailureWithLocation(invalidMissingBrace, "<invalid-missing-brace>")) {
+        std::cerr << "Expected syntax error with location for malformed input (missing brace).\n";
+        return 1;
+    }
+
+    const std::string invalidBadVector =
+        "sphere { <1,2> 4 }\n";
+    if (!expectParseFailureWithLocation(invalidBadVector, "<invalid-bad-vector>")) {
+        std::cerr << "Expected syntax error with location for malformed input (bad vector literal).\n";
+        return 1;
+    }
+
+    const std::string invalidLightField =
+        "light_source { <0,0,0> colour <1,1,1> point_at <0,0> }\n";
+    if (!expectParseFailureWithLocation(invalidLightField, "<invalid-light>")) {
+        std::cerr << "Expected syntax error with location for malformed light field.\n";
+        return 1;
+    }
+
+    const std::string invalidCsgNesting =
+        "difference { union { sphere { <0,0,0> 1 } sphere { <1,0,0> 1 } }\n";
+    if (!expectParseFailureWithLocation(invalidCsgNesting, "<invalid-csg>")) {
+        std::cerr << "Expected syntax error with location for malformed CSG nesting.\n";
+        return 1;
+    }
+
     const std::string input =
         "#declare TexA = texture { wood }\n"
         "#declare SRef = sphere { <2,2,2> 1 }\n"
         "#declare ORef = object { SRef }\n"
         "#declare CRef = composite { sphere { <1,1,1> 1 } }\n"
+        "#declare LRef = light_source { <0,5,-5> colour <1,1,1> }\n"
+        "#declare URef = union { sphere { <0,0,0> 1 } sphere { <1,0,0> 1 } }\n"
         "default { texture { TexA } }\n"
         "sphere { SRef texture { TexA } }\n"
         "object { ORef }\n"
         "composite { CRef }\n"
+        "light_source { LRef spotlight point_at <0,0,0> }\n"
+        "difference { URef sphere { <0.5,0,0> 0.5 } }\n"
         "sphere { <1,2,3> 4 colour <0.5,0.6,0.7> texture { TexA } translate <1,0,0> }\n"
         "object { sphere { <0,0,0> 1 } no_shadow translate <0,1,0> texture { TexA } }\n"
         "composite { sphere { <0,0,0> 2 } rotate <0,45,0> }\n"
@@ -63,6 +145,8 @@ int main()
     bool foundSphere = false;
     bool foundObject = false;
     bool foundComposite = false;
+    bool foundLight = false;
+    bool foundCsg = false;
     for (int i = 0; i < parsed->program->nodeCount; ++i) {
         AntlrSceneIrNode *n = parsed->program->nodes[i];
         if (n == nullptr) {
@@ -102,12 +186,22 @@ int main()
             if (c->childSphereCount > 0 && c->transformCount > 0) {
                 foundComposite = true;
             }
+        } else if (n->kind == ANTLR_IR_LIGHT_NODE) {
+            AntlrIrLightNode *l = (AntlrIrLightNode *)n;
+            if ((l->hasCenter || l->hasReference) && (l->spotlight || l->hasPointAt)) {
+                foundLight = true;
+            }
+        } else if (n->kind == ANTLR_IR_CSG_NODE) {
+            AntlrIrCsgNode *csg = (AntlrIrCsgNode *)n;
+            if (csg->childSphereCount > 0 || csg->hasReference) {
+                foundCsg = true;
+            }
         }
     }
 
     if (!foundMaxTrace || !foundFog || !foundCamera ||
         !foundDeclareTexture || !foundDefaultTexture || !foundSphere ||
-        !foundObject || !foundComposite) {
+        !foundObject || !foundComposite || !foundLight || !foundCsg) {
         std::cerr << "IR smoke check failed."
                   << " max=" << foundMaxTrace
                   << " fog=" << foundFog
@@ -116,7 +210,9 @@ int main()
                   << " default=" << foundDefaultTexture
                   << " sphere=" << foundSphere
                   << " object=" << foundObject
-                  << " composite=" << foundComposite << "\n";
+                  << " composite=" << foundComposite
+                  << " light=" << foundLight
+                  << " csg=" << foundCsg << "\n";
         return 1;
     }
 

@@ -156,3 +156,29 @@ AntlrSceneParserFrontend::appendCompositeNode(
     }
     return true;
 }
+
+bool
+AntlrSceneParserFrontend::appendLightNode(AntlrSceneIrProgram &program, AntlrIrLightNode *lightNode)
+{
+    if (lightNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR light node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, lightNode)) {
+        delete lightNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
+AntlrSceneParserFrontend::appendCsgNode(AntlrSceneIrProgram &program, AntlrIrCsgNode *csgNode)
+{
+    if (csgNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR csg node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, csgNode)) {
+        delete csgNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}

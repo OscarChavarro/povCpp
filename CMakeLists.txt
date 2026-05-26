@@ -225,6 +225,8 @@ add_executable(povray
   src/io/pov/antlr/AntlrSceneIrBuilder.cpp
   src/io/pov/antlr/AntlrSceneParserFrontend.cpp
   src/io/pov/antlr/AntlrSceneLowering.cpp
+  src/io/pov/antlr/AntlrParseDiagnostics.cpp
+  src/io/pov/antlr/AntlrSceneRuntimePipeline.cpp
   src/io/image/RawFormat.cpp
   src/io/image/TargaFormat.cpp
   src/io/FileLocator.cpp

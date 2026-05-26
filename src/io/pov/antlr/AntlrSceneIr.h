@@ -14,7 +14,9 @@ enum AntlrSceneIrNodeKind {
     ANTLR_IR_DEFAULT_TEXTURE_NODE = 5,
     ANTLR_IR_SPHERE_NODE = 6,
     ANTLR_IR_OBJECT_NODE = 7,
-    ANTLR_IR_COMPOSITE_NODE = 8
+    ANTLR_IR_COMPOSITE_NODE = 8,
+    ANTLR_IR_LIGHT_NODE = 9,
+    ANTLR_IR_CSG_NODE = 10
 };
 
 struct AntlrIrVector3 {
@@ -102,6 +104,8 @@ class AntlrIrTextureChain {
 class AntlrIrSphereNode;
 class AntlrIrObjectNode;
 class AntlrIrCompositeNode;
+class AntlrIrLightNode;
+class AntlrIrCsgNode;
 
 class AntlrIrDeclareNode : public AntlrSceneIrNode {
   public:
@@ -110,7 +114,9 @@ class AntlrIrDeclareNode : public AntlrSceneIrNode {
         DECLARE_TEXTURE_CHAIN = 1,
         DECLARE_SPHERE = 2,
         DECLARE_OBJECT = 3,
-        DECLARE_COMPOSITE = 4
+        DECLARE_COMPOSITE = 4,
+        DECLARE_LIGHT = 5,
+        DECLARE_CSG = 6
     };
 
     AntlrIrDeclareNode();
@@ -124,6 +130,10 @@ class AntlrIrDeclareNode : public AntlrSceneIrNode {
     AntlrIrObjectNode *objectValue;
     bool hasCompositeValue;
     AntlrIrCompositeNode *compositeValue;
+    bool hasLightValue;
+    AntlrIrLightNode *lightValue;
+    bool hasCsgValue;
+    AntlrIrCsgNode *csgValue;
 };
 
 class AntlrIrDefaultTextureNode : public AntlrSceneIrNode {
@@ -198,6 +208,64 @@ class AntlrIrCompositeNode : public AntlrSceneIrNode {
     AntlrIrCompositeNode *childComposites[MAX_CHILD_COMPOSITES];
     int childReferenceCount;
     std::string childReferenceIdentifiers[MAX_CHILD_REFERENCES];
+    AntlrIrTransform transforms[MAX_TRANSFORMS];
+    int transformCount;
+};
+
+class AntlrIrLightNode : public AntlrSceneIrNode {
+  public:
+    static constexpr int MAX_TRANSFORMS = 64;
+
+    AntlrIrLightNode();
+    bool hasReference;
+    std::string referenceIdentifier;
+    bool hasCenter;
+    AntlrIrVector3 center;
+    bool hasColour;
+    AntlrIrColor colour;
+    bool hasPointAt;
+    AntlrIrVector3 pointAt;
+    bool hasTightness;
+    double tightness;
+    bool hasRadius;
+    double radiusDegrees;
+    bool hasFalloff;
+    double falloffDegrees;
+    bool spotlight;
+    AntlrIrTransform transforms[MAX_TRANSFORMS];
+    int transformCount;
+};
+
+enum AntlrIrCsgOpKind {
+    ANTLR_IR_CSG_UNION = 1,
+    ANTLR_IR_CSG_INTERSECTION = 2,
+    ANTLR_IR_CSG_DIFFERENCE = 3
+};
+
+class AntlrIrCsgNode : public AntlrSceneIrNode {
+  public:
+    static constexpr int MAX_TRANSFORMS = 64;
+    static constexpr int MAX_CHILD_SPHERES = 512;
+    static constexpr int MAX_CHILD_OBJECTS = 256;
+    static constexpr int MAX_CHILD_COMPOSITES = 256;
+    static constexpr int MAX_CHILD_CSGS = 256;
+    static constexpr int MAX_CHILD_REFERENCES = 512;
+
+    AntlrIrCsgNode();
+    AntlrIrCsgOpKind op;
+    bool hasReference;
+    std::string referenceIdentifier;
+    int childSphereCount;
+    AntlrIrSphereNode *childSpheres[MAX_CHILD_SPHERES];
+    int childObjectCount;
+    AntlrIrObjectNode *childObjects[MAX_CHILD_OBJECTS];
+    int childCompositeCount;
+    AntlrIrCompositeNode *childComposites[MAX_CHILD_COMPOSITES];
+    int childCsgCount;
+    AntlrIrCsgNode *childCsgs[MAX_CHILD_CSGS];
+    int childReferenceCount;
+    std::string childReferenceIdentifiers[MAX_CHILD_REFERENCES];
+    bool inverted;
     AntlrIrTransform transforms[MAX_TRANSFORMS];
     int transformCount;
 };
