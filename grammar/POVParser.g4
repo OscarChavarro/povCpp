@@ -7,7 +7,10 @@ scene
     ;
 
 topLevelStatement
-    : declareStatement
+    : includeStatement
+    | declareStatement
+    | lightSourceStatement
+    | csgStatement
     | sphereStatement
     | objectStatement
     | compositeStatement
@@ -15,6 +18,10 @@ topLevelStatement
     | fogStatement
     | defaultStatement
     | maxTraceLevelStatement
+    ;
+
+includeStatement
+    : INCLUDE STRING
     ;
 
 declareStatement
@@ -25,6 +32,8 @@ declareValue
     : sphereStatement
     | objectStatement
     | compositeStatement
+    | lightSourceStatement
+    | csgStatement
     | cameraStatement
     | textureChain
     | vectorLiteral
@@ -80,6 +89,29 @@ shapeStatement
     : sphereStatement
     | objectStatement
     | compositeStatement
+    | csgStatement
+    ;
+
+csgStatement
+    : csgKeyword LEFT_CURLY csgBodyElement* RIGHT_CURLY
+    ;
+
+csgKeyword
+    : UNION
+    | INTERSECTION
+    | DIFFERENCE
+    ;
+
+csgBodyElement
+    : shapeStatement
+    | boundedByBlock
+    | clippedByBlock
+    | transform
+    | textureElement
+    | colourLiteral
+    | INVERSE
+    | NO_SHADOW
+    | IDENTIFIER
     ;
 
 boundedByBlock
@@ -88,6 +120,22 @@ boundedByBlock
 
 clippedByBlock
     : CLIPPED_BY LEFT_CURLY shapeStatement* RIGHT_CURLY
+    ;
+
+lightSourceStatement
+    : LIGHT_SOURCE LEFT_CURLY lightSourceElement* RIGHT_CURLY
+    ;
+
+lightSourceElement
+    : vectorLiteral
+    | colourLiteral
+    | POINT_AT vectorLiteral
+    | TIGHTNESS signedNumber
+    | RADIUS signedNumber
+    | FALLOFF signedNumber
+    | SPOTLIGHT
+    | transform
+    | IDENTIFIER
     ;
 
 cameraStatement
