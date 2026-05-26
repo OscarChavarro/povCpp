@@ -126,11 +126,47 @@ void fillSphereNodeFromContext(AntlrIrSphereNode &node, POVParser::SphereStateme
     }
 }
 
+AntlrIrSphereNode *makeSphereNodeFromContext(POVParser::SphereStatementContext *ctx)
+{
+    if (ctx == nullptr) {
+        return nullptr;
+    }
+    AntlrIrSphereNode *node = new AntlrIrSphereNode();
+    fillSphereNodeFromContext(*node, ctx);
+    return node;
+}
+
+void fillObjectNodeFromContext(AntlrIrObjectNode &node, POVParser::ObjectStatementContext *ctx)
+;
+void fillCompositeNodeFromContext(
+    AntlrIrCompositeNode &node, POVParser::CompositeStatementContext *ctx);
+
+AntlrIrObjectNode *makeObjectNodeFromContext(POVParser::ObjectStatementContext *ctx)
+{
+    if (ctx == nullptr) {
+        return nullptr;
+    }
+    AntlrIrObjectNode *node = new AntlrIrObjectNode();
+    fillObjectNodeFromContext(*node, ctx);
+    return node;
+}
+
+AntlrIrCompositeNode *makeCompositeNodeFromContext(POVParser::CompositeStatementContext *ctx)
+{
+    if (ctx == nullptr) {
+        return nullptr;
+    }
+    AntlrIrCompositeNode *node = new AntlrIrCompositeNode();
+    fillCompositeNodeFromContext(*node, ctx);
+    return node;
+}
+
 void fillObjectNodeFromContext(AntlrIrObjectNode &node, POVParser::ObjectStatementContext *ctx)
 {
     for (POVParser::ObjectBodyElementContext *elem : ctx->objectBodyElement()) {
         if (elem->IDENTIFIER() != nullptr) {
-            if (!node.hasReference && node.childShapeCount == 0) {
+            if (!node.hasReference && node.childSphereCount == 0 &&
+                node.childObjectCount == 0 && node.childCompositeCount == 0) {
                 node.hasReference = true;
                 node.referenceIdentifier = elem->IDENTIFIER()->getText();
             } else if (node.childReferenceCount < AntlrIrObjectNode::MAX_CHILD_REFERENCES) {
@@ -142,10 +178,28 @@ void fillObjectNodeFromContext(AntlrIrObjectNode &node, POVParser::ObjectStateme
             continue;
         }
         if (elem->shapeStatement() != nullptr) {
-            if (node.childShapeCount < AntlrIrObjectNode::MAX_CHILD_SHAPES) {
-                node.childShapeTexts[node.childShapeCount++] = elem->shapeStatement()->getText();
-            } else {
-                throw std::runtime_error("Too many ANTLR IR object child shapes");
+            POVParser::ShapeStatementContext *shape = elem->shapeStatement();
+            if (shape->sphereStatement() != nullptr) {
+                if (node.childSphereCount < AntlrIrObjectNode::MAX_CHILD_SPHERES) {
+                    node.childSpheres[node.childSphereCount++] =
+                        makeSphereNodeFromContext(shape->sphereStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR object child spheres");
+                }
+            } else if (shape->objectStatement() != nullptr) {
+                if (node.childObjectCount < AntlrIrObjectNode::MAX_CHILD_OBJECTS) {
+                    node.childObjects[node.childObjectCount++] =
+                        makeObjectNodeFromContext(shape->objectStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR object child objects");
+                }
+            } else if (shape->compositeStatement() != nullptr) {
+                if (node.childCompositeCount < AntlrIrObjectNode::MAX_CHILD_COMPOSITES) {
+                    node.childComposites[node.childCompositeCount++] =
+                        makeCompositeNodeFromContext(shape->compositeStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR object child composites");
+                }
             }
             continue;
         }
@@ -187,7 +241,9 @@ void fillCompositeNodeFromContext(
 {
     for (POVParser::CompositeBodyElementContext *elem : ctx->compositeBodyElement()) {
         if (elem->IDENTIFIER() != nullptr) {
-            if (!node.hasReference && node.childShapeCount == 0 && node.childReferenceCount == 0) {
+            if (!node.hasReference && node.childSphereCount == 0 &&
+                node.childObjectCount == 0 && node.childCompositeCount == 0 &&
+                node.childReferenceCount == 0) {
                 node.hasReference = true;
                 node.referenceIdentifier = elem->IDENTIFIER()->getText();
             } else if (node.childReferenceCount < AntlrIrCompositeNode::MAX_CHILD_REFERENCES) {
@@ -199,10 +255,28 @@ void fillCompositeNodeFromContext(
             continue;
         }
         if (elem->shapeStatement() != nullptr) {
-            if (node.childShapeCount < AntlrIrCompositeNode::MAX_CHILD_SHAPES) {
-                node.childShapeTexts[node.childShapeCount++] = elem->shapeStatement()->getText();
-            } else {
-                throw std::runtime_error("Too many ANTLR IR composite child shapes");
+            POVParser::ShapeStatementContext *shape = elem->shapeStatement();
+            if (shape->sphereStatement() != nullptr) {
+                if (node.childSphereCount < AntlrIrCompositeNode::MAX_CHILD_SPHERES) {
+                    node.childSpheres[node.childSphereCount++] =
+                        makeSphereNodeFromContext(shape->sphereStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR composite child spheres");
+                }
+            } else if (shape->objectStatement() != nullptr) {
+                if (node.childObjectCount < AntlrIrCompositeNode::MAX_CHILD_OBJECTS) {
+                    node.childObjects[node.childObjectCount++] =
+                        makeObjectNodeFromContext(shape->objectStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR composite child objects");
+                }
+            } else if (shape->compositeStatement() != nullptr) {
+                if (node.childCompositeCount < AntlrIrCompositeNode::MAX_CHILD_COMPOSITES) {
+                    node.childComposites[node.childCompositeCount++] =
+                        makeCompositeNodeFromContext(shape->compositeStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR composite child composites");
+                }
             }
             continue;
         }
