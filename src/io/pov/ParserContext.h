@@ -6,7 +6,6 @@
 #include "io/pov/ITokenStream.h"
 #include "io/pov/ParserConstants.h"
 #include "io/pov/ParseGlobals.h"
-#include "io/pov/RewindableTokenStream.h"
 #include "io/pov/SymbolTable.h"
 #include "io/pov/TokenizerTokenStream.h"
 
@@ -34,7 +33,6 @@ class ParserContext {
 
   private:
     static TokenizerTokenStream sDefaultTokenStream;
-    static RewindableTokenStream sRewindableDefaultTokenStream;
     static RenderFrame *sSharedParsingFramePtr;
     static RGBAColorPaletteSpan *sSharedConstructionMap;
     static SymbolTable sSharedSymbols;

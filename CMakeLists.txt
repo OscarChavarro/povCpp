@@ -187,7 +187,6 @@ add_executable(povray
   src/io/image/IffFormat.cpp
   src/io/pov/Parse.cpp
   src/io/pov/ParserContext.cpp
-  src/io/pov/RewindableTokenStream.cpp
   src/io/pov/SymbolTable.cpp
   src/io/pov/TokenizerTokenStream.cpp
   src/io/pov/ParseErrorReporter.cpp
