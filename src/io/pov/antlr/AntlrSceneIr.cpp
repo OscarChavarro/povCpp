@@ -2,6 +2,7 @@
 
 namespace {
 void destroyCompositeChildren(AntlrIrCompositeNode *comp);
+void destroyCsgChildren(AntlrIrCsgNode *csg);
 
 void destroyObjectChildren(AntlrIrObjectNode *obj)
 {
@@ -42,6 +43,32 @@ void destroyCompositeChildren(AntlrIrCompositeNode *comp)
         destroyCompositeChildren(comp->childComposites[i]);
         delete comp->childComposites[i];
         comp->childComposites[i] = nullptr;
+    }
+}
+
+void destroyCsgChildren(AntlrIrCsgNode *csg)
+{
+    if (csg == nullptr) {
+        return;
+    }
+    for (int i = 0; i < csg->childSphereCount; ++i) {
+        delete csg->childSpheres[i];
+        csg->childSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childObjectCount; ++i) {
+        destroyObjectChildren(csg->childObjects[i]);
+        delete csg->childObjects[i];
+        csg->childObjects[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childCompositeCount; ++i) {
+        destroyCompositeChildren(csg->childComposites[i]);
+        delete csg->childComposites[i];
+        csg->childComposites[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childCsgCount; ++i) {
+        destroyCsgChildren(csg->childCsgs[i]);
+        delete csg->childCsgs[i];
+        csg->childCsgs[i] = nullptr;
     }
 }
 }
@@ -89,6 +116,10 @@ AntlrIrDeclareNode::AntlrIrDeclareNode()
     objectValue = nullptr;
     hasCompositeValue = false;
     compositeValue = nullptr;
+    hasLightValue = false;
+    lightValue = nullptr;
+    hasCsgValue = false;
+    csgValue = nullptr;
 }
 
 AntlrIrDefaultTextureNode::AntlrIrDefaultTextureNode()
@@ -163,6 +194,55 @@ AntlrIrCompositeNode::AntlrIrCompositeNode()
     transformCount = 0;
 }
 
+AntlrIrLightNode::AntlrIrLightNode()
+{
+    kind = ANTLR_IR_LIGHT_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReference = false;
+    hasCenter = false;
+    hasColour = false;
+    hasPointAt = false;
+    hasTightness = false;
+    tightness = 0.0;
+    hasRadius = false;
+    radiusDegrees = 0.0;
+    hasFalloff = false;
+    falloffDegrees = 0.0;
+    spotlight = false;
+    transformCount = 0;
+}
+
+AntlrIrCsgNode::AntlrIrCsgNode()
+{
+    kind = ANTLR_IR_CSG_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    op = ANTLR_IR_CSG_UNION;
+    hasReference = false;
+    childSphereCount = 0;
+    for (int i = 0; i < MAX_CHILD_SPHERES; ++i) {
+        childSpheres[i] = nullptr;
+    }
+    childObjectCount = 0;
+    for (int i = 0; i < MAX_CHILD_OBJECTS; ++i) {
+        childObjects[i] = nullptr;
+    }
+    childCompositeCount = 0;
+    for (int i = 0; i < MAX_CHILD_COMPOSITES; ++i) {
+        childComposites[i] = nullptr;
+    }
+    childCsgCount = 0;
+    for (int i = 0; i < MAX_CHILD_CSGS; ++i) {
+        childCsgs[i] = nullptr;
+    }
+    childReferenceCount = 0;
+    inverted = false;
+    transformCount = 0;
+}
+
 AntlrSceneIrProgram::AntlrSceneIrProgram()
 {
     nodeCount = 0;
@@ -226,10 +306,21 @@ AntlrSceneIrNodes::destroyNode(AntlrSceneIrNode *node)
             delete declareNode->compositeValue;
             declareNode->compositeValue = nullptr;
         }
+        if (declareNode->lightValue != nullptr) {
+            delete declareNode->lightValue;
+            declareNode->lightValue = nullptr;
+        }
+        if (declareNode->csgValue != nullptr) {
+            destroyCsgChildren(declareNode->csgValue);
+            delete declareNode->csgValue;
+            declareNode->csgValue = nullptr;
+        }
     } else if (node->kind == ANTLR_IR_OBJECT_NODE) {
         destroyObjectChildren((AntlrIrObjectNode *)node);
     } else if (node->kind == ANTLR_IR_COMPOSITE_NODE) {
         destroyCompositeChildren((AntlrIrCompositeNode *)node);
+    } else if (node->kind == ANTLR_IR_CSG_NODE) {
+        destroyCsgChildren((AntlrIrCsgNode *)node);
     }
     delete node;
 }

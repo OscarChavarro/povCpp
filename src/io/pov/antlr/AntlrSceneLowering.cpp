@@ -1,5 +1,6 @@
 #include "io/pov/antlr/AntlrSceneLowering.h"
 
+#include <cmath>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -11,8 +12,10 @@
 #include "environment/geometry/GeometryOperations.h"
 #ifndef POV_ANTLR_MINIMAL_BRIDGE
 #include "environment/geometry/volume/Sphere.h"
+#include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/RenderRuntimeState.h"
+#include "environment/light/Light.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/scene/SimpleBodyFactory.h"
 #endif
@@ -77,6 +80,48 @@ bool buildDeclaredSphereByName(const std::string &name,
     }
     out = buildSphere(*it->second);
     return out != nullptr;
+}
+
+Light *buildLight(const AntlrIrLightNode &node,
+    const std::unordered_map<std::string, const AntlrIrLightNode *> &declaredLights)
+{
+    static constexpr double PI = 3.14159265358979323846;
+    const AntlrIrLightNode *effectiveNode = &node;
+    if (node.hasReference) {
+        auto it = declaredLights.find(node.referenceIdentifier);
+        if (it == declaredLights.end()) {
+            throw std::runtime_error("Unknown ANTLR light reference");
+        }
+        effectiveNode = it->second;
+    }
+
+    Light *light = ModelBuilder::getLightSourceShape();
+    if (effectiveNode->hasCenter) {
+        light->Center = toVector(effectiveNode->center);
+    }
+    if (effectiveNode->hasColour && light->Shape_Colour != nullptr) {
+        light->Shape_Colour->Red = effectiveNode->colour.r;
+        light->Shape_Colour->Green = effectiveNode->colour.g;
+        light->Shape_Colour->Blue = effectiveNode->colour.b;
+        light->Shape_Colour->Alpha = effectiveNode->colour.a;
+    }
+    if (effectiveNode->hasPointAt) {
+        light->pointsAt = toVector(effectiveNode->pointAt);
+    }
+    if (effectiveNode->hasTightness) {
+        light->Coeff = effectiveNode->tightness;
+    }
+    if (effectiveNode->hasRadius) {
+        light->Radius = std::cos(effectiveNode->radiusDegrees * PI / 180.0);
+    }
+    if (effectiveNode->hasFalloff) {
+        light->Falloff = std::cos(effectiveNode->falloffDegrees * PI / 180.0);
+    }
+    if (effectiveNode->spotlight) {
+        light->Type = GeometryOperations::SPOT_LIGHT_TYPE;
+    }
+    applyTransforms((SimpleBody *)light, effectiveNode->transforms, effectiveNode->transformCount);
+    return light;
 }
 
 std::string formatSourceLocation(const AntlrSceneIrNode &node)
@@ -203,6 +248,104 @@ SimpleBody *buildCompositeFromIr(const AntlrIrCompositeNode &node,
         SimpleBodyFactory::link(childComp, &(childComp->nextObject), (SimpleBody **)&(comp->Objects));
     }
     return (SimpleBody *)comp;
+}
+
+CSG *buildCsgFromIr(const AntlrIrCsgNode &node,
+    const std::unordered_map<std::string, Texture *> &declaredTextures,
+    const std::unordered_map<std::string, const AntlrIrSphereNode *> &declaredSpheres,
+    const std::unordered_map<std::string, const AntlrIrObjectNode *> &declaredObjects,
+    const std::unordered_map<std::string, const AntlrIrCompositeNode *> &declaredComposites,
+    const std::unordered_map<std::string, const AntlrIrCsgNode *> &declaredCsgs, int depth)
+{
+    if (depth > 16) {
+        throw std::runtime_error("ANTLR csg lowering exceeded max recursion depth");
+    }
+
+    const AntlrIrCsgNode *effectiveNode = &node;
+    if (node.hasReference) {
+        auto it = declaredCsgs.find(node.referenceIdentifier);
+        if (it == declaredCsgs.end()) {
+            throw std::runtime_error("Unknown ANTLR csg reference");
+        }
+        effectiveNode = it->second;
+    }
+
+    CSG *container = nullptr;
+    if (effectiveNode->op == ANTLR_IR_CSG_UNION) {
+        container = ModelBuilder::getCsgUnion();
+    } else {
+        container = ModelBuilder::getCsgIntersection();
+    }
+
+    int firstShapeParsed = LegacyBoolean::FALSE_VALUE;
+    auto linkCsgChild = [&](Geometry *child) {
+        if (child == nullptr) {
+            return;
+        }
+        if (effectiveNode->op == ANTLR_IR_CSG_DIFFERENCE && firstShapeParsed) {
+            GeometryOperations::invert((SimpleBody *)child);
+        }
+        firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+        SimpleBodyFactory::link((SimpleBody *)child, (SimpleBody **)&(child->nextObject),
+            (SimpleBody **)&(container->Shapes));
+    };
+
+    for (int i = 0; i < effectiveNode->childSphereCount; ++i) {
+        if (effectiveNode->childSpheres[i] != nullptr) {
+            linkCsgChild((Geometry *)buildSphere(*effectiveNode->childSpheres[i]));
+        }
+    }
+    for (int i = 0; i < effectiveNode->childObjectCount; ++i) {
+        if (effectiveNode->childObjects[i] != nullptr) {
+            linkCsgChild((Geometry *)buildObjectFromIr(*effectiveNode->childObjects[i],
+                declaredTextures, declaredSpheres, declaredObjects, depth + 1));
+        }
+    }
+    for (int i = 0; i < effectiveNode->childCompositeCount; ++i) {
+        if (effectiveNode->childComposites[i] != nullptr) {
+            linkCsgChild((Geometry *)buildCompositeFromIr(*effectiveNode->childComposites[i],
+                declaredTextures, declaredSpheres, declaredObjects, declaredComposites, depth + 1));
+        }
+    }
+    for (int i = 0; i < effectiveNode->childCsgCount; ++i) {
+        if (effectiveNode->childCsgs[i] != nullptr) {
+            linkCsgChild((Geometry *)buildCsgFromIr(*effectiveNode->childCsgs[i],
+                declaredTextures, declaredSpheres, declaredObjects, declaredComposites,
+                declaredCsgs, depth + 1));
+        }
+    }
+    for (int i = 0; i < effectiveNode->childReferenceCount; ++i) {
+        const std::string &name = effectiveNode->childReferenceIdentifiers[i];
+        auto sit = declaredSpheres.find(name);
+        if (sit != declaredSpheres.end()) {
+            linkCsgChild((Geometry *)buildSphere(*sit->second));
+            continue;
+        }
+        auto oit = declaredObjects.find(name);
+        if (oit != declaredObjects.end()) {
+            linkCsgChild((Geometry *)buildObjectFromIr(
+                *oit->second, declaredTextures, declaredSpheres, declaredObjects, depth + 1));
+            continue;
+        }
+        auto cit = declaredComposites.find(name);
+        if (cit != declaredComposites.end()) {
+            linkCsgChild((Geometry *)buildCompositeFromIr(*cit->second,
+                declaredTextures, declaredSpheres, declaredObjects, declaredComposites, depth + 1));
+            continue;
+        }
+        auto csgIt = declaredCsgs.find(name);
+        if (csgIt != declaredCsgs.end()) {
+            linkCsgChild((Geometry *)buildCsgFromIr(*csgIt->second,
+                declaredTextures, declaredSpheres, declaredObjects, declaredComposites,
+                declaredCsgs, depth + 1));
+        }
+    }
+
+    if (effectiveNode->inverted) {
+        GeometryOperations::invert((SimpleBody *)container);
+    }
+    applyTransforms((SimpleBody *)container, effectiveNode->transforms, effectiveNode->transformCount);
+    return container;
 }
 
 Texture *cloneTexture(Texture *texture)
@@ -336,6 +479,8 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
     std::unordered_map<std::string, const AntlrIrSphereNode *> declaredSpheres;
     std::unordered_map<std::string, const AntlrIrObjectNode *> declaredObjects;
     std::unordered_map<std::string, const AntlrIrCompositeNode *> declaredComposites;
+    std::unordered_map<std::string, const AntlrIrLightNode *> declaredLights;
+    std::unordered_map<std::string, const AntlrIrCsgNode *> declaredCsgs;
 #endif
     for (int i = 0; i < program.nodeCount; ++i) {
         AntlrSceneIrNode *node = program.nodes[i];
@@ -377,6 +522,10 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
             } else if (
                 n->valueKind == AntlrIrDeclareNode::DECLARE_COMPOSITE && n->hasCompositeValue) {
                 declaredComposites[n->identifier] = n->compositeValue;
+            } else if (n->valueKind == AntlrIrDeclareNode::DECLARE_LIGHT && n->hasLightValue) {
+                declaredLights[n->identifier] = n->lightValue;
+            } else if (n->valueKind == AntlrIrDeclareNode::DECLARE_CSG && n->hasCsgValue) {
+                declaredCsgs[n->identifier] = n->csgValue;
             }
         } else if (node->kind == ANTLR_IR_DEFAULT_TEXTURE_NODE) {
             const AntlrIrDefaultTextureNode *n = (const AntlrIrDefaultTextureNode *)node;
@@ -417,6 +566,17 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
                 *n, declaredTextures, declaredSpheres, declaredObjects, declaredComposites, 0);
             applyTransforms(comp, n->transforms, n->transformCount);
             SimpleBodyFactory::link(comp, &(comp->nextObject), (SimpleBody **)&(framePtr->Objects));
+        } else if (node->kind == ANTLR_IR_LIGHT_NODE) {
+            const AntlrIrLightNode *n = (const AntlrIrLightNode *)node;
+            Light *light = buildLight(*n, declaredLights);
+            light->Next_Light_Source = framePtr->Light_Sources;
+            framePtr->Light_Sources = light;
+        } else if (node->kind == ANTLR_IR_CSG_NODE) {
+            const AntlrIrCsgNode *n = (const AntlrIrCsgNode *)node;
+            CSG *csg = buildCsgFromIr(*n, declaredTextures, declaredSpheres,
+                declaredObjects, declaredComposites, declaredCsgs, 0);
+            SimpleBodyFactory::link((SimpleBody *)csg, (SimpleBody **)&(csg->nextObject),
+                (SimpleBody **)&(framePtr->Objects));
 #endif
         }
     }

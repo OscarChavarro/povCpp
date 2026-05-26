@@ -140,6 +140,8 @@ void fillObjectNodeFromContext(AntlrIrObjectNode &node, POVParser::ObjectStateme
 ;
 void fillCompositeNodeFromContext(
     AntlrIrCompositeNode &node, POVParser::CompositeStatementContext *ctx);
+void fillLightNodeFromContext(AntlrIrLightNode &node, POVParser::LightSourceStatementContext *ctx);
+void fillCsgNodeFromContext(AntlrIrCsgNode &node, POVParser::CsgStatementContext *ctx);
 
 AntlrIrObjectNode *makeObjectNodeFromContext(POVParser::ObjectStatementContext *ctx)
 {
@@ -299,6 +301,152 @@ void fillCompositeNodeFromContext(
     }
 }
 
+void fillLightNodeFromContext(AntlrIrLightNode &node, POVParser::LightSourceStatementContext *ctx)
+{
+    for (POVParser::LightSourceElementContext *elem : ctx->lightSourceElement()) {
+        if (elem->IDENTIFIER() != nullptr) {
+            if (!node.hasReference && !node.hasCenter) {
+                node.hasReference = true;
+                node.referenceIdentifier = elem->IDENTIFIER()->getText();
+            }
+            continue;
+        }
+        if (elem->vectorLiteral() != nullptr && elem->POINT_AT() == nullptr) {
+            if (!node.hasCenter) {
+                node.hasCenter = true;
+                node.center = parseVector(elem->vectorLiteral());
+            }
+            continue;
+        }
+        if (elem->colourLiteral() != nullptr) {
+            node.hasColour = true;
+            node.colour = parseColour(elem->colourLiteral());
+            continue;
+        }
+        if (elem->POINT_AT() != nullptr && elem->vectorLiteral() != nullptr) {
+            node.hasPointAt = true;
+            node.pointAt = parseVector(elem->vectorLiteral());
+            continue;
+        }
+        if (elem->TIGHTNESS() != nullptr && elem->signedNumber() != nullptr) {
+            node.hasTightness = true;
+            node.tightness = parseNumberText(elem->signedNumber()->getText());
+            continue;
+        }
+        if (elem->RADIUS() != nullptr && elem->signedNumber() != nullptr) {
+            node.hasRadius = true;
+            node.radiusDegrees = parseNumberText(elem->signedNumber()->getText());
+            continue;
+        }
+        if (elem->FALLOFF() != nullptr && elem->signedNumber() != nullptr) {
+            node.hasFalloff = true;
+            node.falloffDegrees = parseNumberText(elem->signedNumber()->getText());
+            continue;
+        }
+        if (elem->SPOTLIGHT() != nullptr) {
+            node.spotlight = true;
+            continue;
+        }
+        if (elem->transform() != nullptr) {
+            POVParser::TransformContext *t = elem->transform();
+            AntlrIrVector3 v = parseVector(t->vectorLiteral());
+            AntlrIrTransformKind kind = ANTLR_IR_TRANSLATE;
+            if (t->TRANSLATE() != nullptr) {
+                kind = ANTLR_IR_TRANSLATE;
+            } else if (t->ROTATE() != nullptr) {
+                kind = ANTLR_IR_ROTATE;
+            } else if (t->SCALE() != nullptr) {
+                kind = ANTLR_IR_SCALE;
+            }
+            if (!AntlrSceneIrNodes::appendTransform(node.transforms, node.transformCount, kind, v)) {
+                throw std::runtime_error("Too many ANTLR IR light transforms");
+            }
+        }
+    }
+}
+
+void fillCsgNodeFromContext(AntlrIrCsgNode &node, POVParser::CsgStatementContext *ctx)
+{
+    if (ctx->csgKeyword()->UNION() != nullptr) {
+        node.op = ANTLR_IR_CSG_UNION;
+    } else if (ctx->csgKeyword()->INTERSECTION() != nullptr) {
+        node.op = ANTLR_IR_CSG_INTERSECTION;
+    } else {
+        node.op = ANTLR_IR_CSG_DIFFERENCE;
+    }
+
+    for (POVParser::CsgBodyElementContext *elem : ctx->csgBodyElement()) {
+        if (elem->IDENTIFIER() != nullptr) {
+            if (!node.hasReference && node.childSphereCount == 0 &&
+                node.childObjectCount == 0 && node.childCompositeCount == 0 &&
+                node.childCsgCount == 0 && node.childReferenceCount == 0) {
+                node.hasReference = true;
+                node.referenceIdentifier = elem->IDENTIFIER()->getText();
+            } else if (node.childReferenceCount < AntlrIrCsgNode::MAX_CHILD_REFERENCES) {
+                node.childReferenceIdentifiers[node.childReferenceCount++] =
+                    elem->IDENTIFIER()->getText();
+            } else {
+                throw std::runtime_error("Too many ANTLR IR csg child references");
+            }
+            continue;
+        }
+        if (elem->shapeStatement() != nullptr) {
+            POVParser::ShapeStatementContext *shape = elem->shapeStatement();
+            if (shape->sphereStatement() != nullptr) {
+                if (node.childSphereCount < AntlrIrCsgNode::MAX_CHILD_SPHERES) {
+                    node.childSpheres[node.childSphereCount++] =
+                        makeSphereNodeFromContext(shape->sphereStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR csg child spheres");
+                }
+            } else if (shape->objectStatement() != nullptr) {
+                if (node.childObjectCount < AntlrIrCsgNode::MAX_CHILD_OBJECTS) {
+                    node.childObjects[node.childObjectCount++] =
+                        makeObjectNodeFromContext(shape->objectStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR csg child objects");
+                }
+            } else if (shape->compositeStatement() != nullptr) {
+                if (node.childCompositeCount < AntlrIrCsgNode::MAX_CHILD_COMPOSITES) {
+                    node.childComposites[node.childCompositeCount++] =
+                        makeCompositeNodeFromContext(shape->compositeStatement());
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR csg child composites");
+                }
+            } else if (shape->csgStatement() != nullptr) {
+                if (node.childCsgCount < AntlrIrCsgNode::MAX_CHILD_CSGS) {
+                    AntlrIrCsgNode *child = new AntlrIrCsgNode();
+                    fillCsgNodeFromContext(*child, shape->csgStatement());
+                    node.childCsgs[node.childCsgCount++] = child;
+                } else {
+                    throw std::runtime_error("Too many ANTLR IR csg child csgs");
+                }
+            }
+            continue;
+        }
+        if (elem->transform() != nullptr) {
+            POVParser::TransformContext *t = elem->transform();
+            AntlrIrVector3 v = parseVector(t->vectorLiteral());
+            AntlrIrTransformKind kind = ANTLR_IR_TRANSLATE;
+            if (t->TRANSLATE() != nullptr) {
+                kind = ANTLR_IR_TRANSLATE;
+            } else if (t->ROTATE() != nullptr) {
+                kind = ANTLR_IR_ROTATE;
+            } else if (t->SCALE() != nullptr) {
+                kind = ANTLR_IR_SCALE;
+            }
+            if (!AntlrSceneIrNodes::appendTransform(node.transforms, node.transformCount, kind, v)) {
+                throw std::runtime_error("Too many ANTLR IR csg transforms");
+            }
+            continue;
+        }
+        if (elem->INVERSE() != nullptr) {
+            node.inverted = !node.inverted;
+            continue;
+        }
+    }
+}
+
 class PovIrSubsetVisitor : public POVParserBaseVisitor {
   public:
     PovIrSubsetVisitor(AntlrSceneIrProgram &program)
@@ -343,6 +491,16 @@ class PovIrSubsetVisitor : public POVParserBaseVisitor {
             node->hasCompositeValue = true;
             node->compositeValue = new AntlrIrCompositeNode();
             fillCompositeNodeFromContext(*node->compositeValue, value->compositeStatement());
+        } else if (value != nullptr && value->lightSourceStatement() != nullptr) {
+            node->valueKind = AntlrIrDeclareNode::DECLARE_LIGHT;
+            node->hasLightValue = true;
+            node->lightValue = new AntlrIrLightNode();
+            fillLightNodeFromContext(*node->lightValue, value->lightSourceStatement());
+        } else if (value != nullptr && value->csgStatement() != nullptr) {
+            node->valueKind = AntlrIrDeclareNode::DECLARE_CSG;
+            node->hasCsgValue = true;
+            node->csgValue = new AntlrIrCsgNode();
+            fillCsgNodeFromContext(*node->csgValue, value->csgStatement());
         }
         AntlrSceneParserFrontend::appendDeclareNode(mProgram, node);
         return nullptr;
@@ -384,6 +542,28 @@ class PovIrSubsetVisitor : public POVParserBaseVisitor {
         fillCompositeNodeFromContext(*node, ctx);
 
         AntlrSceneParserFrontend::appendCompositeNode(mProgram, node);
+        return nullptr;
+    }
+
+    antlrcpp::Any visitLightSourceStatement(POVParser::LightSourceStatementContext *ctx) override
+    {
+        AntlrIrLightNode *node = new AntlrIrLightNode();
+        node->sourceLine = (int)ctx->getStart()->getLine();
+        node->sourceColumn = (int)ctx->getStart()->getCharPositionInLine() + 1;
+        node->sourceFile = "<antlr>";
+        fillLightNodeFromContext(*node, ctx);
+        AntlrSceneParserFrontend::appendLightNode(mProgram, node);
+        return nullptr;
+    }
+
+    antlrcpp::Any visitCsgStatement(POVParser::CsgStatementContext *ctx) override
+    {
+        AntlrIrCsgNode *node = new AntlrIrCsgNode();
+        node->sourceLine = (int)ctx->getStart()->getLine();
+        node->sourceColumn = (int)ctx->getStart()->getCharPositionInLine() + 1;
+        node->sourceFile = "<antlr>";
+        fillCsgNodeFromContext(*node, ctx);
+        AntlrSceneParserFrontend::appendCsgNode(mProgram, node);
         return nullptr;
     }
 

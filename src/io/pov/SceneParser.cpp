@@ -1,4 +1,6 @@
 #include "io/pov/ParserContext.h"
+#include <cstdlib>
+#include <string>
 #include "common/LegacyBoolean.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/linealAlgebra/Transformation.h"
@@ -9,6 +11,7 @@
 #include "io/image/TargaFormat.h"
 #include "io/pov/Parse.h"
 #include "io/pov/SceneFrameParser.h"
+#include "io/pov/antlr/AntlrSceneRuntimePipeline.h"
 #include "io/pov/ast/AstSceneBuilder.h"
 #include "io/pov/ast/AstNodes.h"
 #include "io/pov/ast/AstParsedSceneProgram.h"
@@ -62,6 +65,23 @@ SceneParser::Parse(RenderFrame *framePtr)
 void
 SceneParser::Parse(RenderFrame *framePtr, ParserContext &ctx)
 {
+    const char *useAntlr = std::getenv("POVCPP_USE_ANTLR");
+    if (useAntlr != nullptr && useAntlr[0] == '1') {
+        ctx.parsingFrame() = framePtr;
+        ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
+        SceneParser::tokenInit(ctx);
+        SceneParser::frameInit(ctx);
+
+        std::string antlrError;
+        if (AntlrSceneRuntimePipeline::parseAndApply(framePtr, ctx, antlrError)) {
+            postProcessPhase(ctx);
+            if (ctx.degenerateTriangles()) {
+                fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
+            }
+            return;
+        }
+        ParseErrorReporter::Error(antlrError.c_str(), ctx);
+    }
     SceneParser::ParseAst(framePtr, ctx);
 }
 
