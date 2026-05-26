@@ -79,6 +79,21 @@ bool buildDeclaredSphereByName(const std::string &name,
     return out != nullptr;
 }
 
+std::string formatSourceLocation(const AntlrSceneIrNode &node)
+{
+    std::string out;
+    if (node.sourceFile != nullptr) {
+        out += node.sourceFile;
+    } else {
+        out += "<unknown>";
+    }
+    out += ":";
+    out += std::to_string(node.sourceLine);
+    out += ":";
+    out += std::to_string(node.sourceColumn);
+    return out;
+}
+
 Texture *materializeTextureChain(const AntlrIrTextureChain &chain,
     const std::unordered_map<std::string, Texture *> &declaredTextures);
 void applyObjectTexture(Texture *srcTexture, SimpleBody *object);
@@ -115,7 +130,8 @@ SimpleBody *buildObjectFromIr(const AntlrIrObjectNode &node,
     }
     if (effectiveNode->childObjectCount > 0 || effectiveNode->childCompositeCount > 0) {
         throw std::runtime_error(
-            "ANTLR object lowering does not support object/composite child as Shape yet");
+            "ANTLR object lowering does not support object/composite child as Shape yet at " +
+            formatSourceLocation(node));
     }
     if (effectiveNode->childSphereCount > 0 && effectiveNode->childSpheres[0] != nullptr) {
         obj->Shape = (Geometry *)buildSphere(*effectiveNode->childSpheres[0]);
