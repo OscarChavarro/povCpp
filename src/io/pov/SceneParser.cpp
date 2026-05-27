@@ -1,6 +1,5 @@
 #include "io/pov/ParserContext.h"
 #include <cstdlib>
-#include <map>
 #include <string>
 #include "common/LegacyBoolean.h"
 #include "environment/material/RendererConfiguration.h"
@@ -13,10 +12,6 @@
 #include "io/pov/Parse.h"
 #include "io/pov/SceneFrameParser.h"
 #include "io/pov/antlr/AntlrSceneRuntimePipeline.h"
-#include "io/pov/ast/AstSceneBuilder.h"
-#include "io/pov/ast/AstNodes.h"
-#include "io/pov/ast/AstParsedSceneProgram.h"
-#include "io/pov/ast/AstSceneParser.h"
 #include "environment/scene/SceneFrame.h"
 
 #include "environment/camera/Camera.h"
@@ -34,27 +29,6 @@
 #include "environment/light/Light.h"
 
 namespace {
-#ifndef POVCPP_DEFAULT_USE_ANTLR
-#define POVCPP_DEFAULT_USE_ANTLR 1
-#endif
-#ifndef POVCPP_DEFAULT_ANTLR_STRICT
-#define POVCPP_DEFAULT_ANTLR_STRICT 1
-#endif
-#ifndef POVCPP_DEFAULT_ANTLR_ROUTING_STATS
-#define POVCPP_DEFAULT_ANTLR_ROUTING_STATS 1
-#endif
-
-AstParsedSceneProgram *parseAstPhase(ParserContext &ctx)
-{
-    return AstSceneParser::parseProgram(ctx);
-}
-
-void buildScenePhase(
-    const AstParsedSceneProgram &program, RenderFrame *framePtr, ParserContext &ctx)
-{
-    AstSceneBuilder::build(*program.scene, framePtr, ctx);
-}
-
 void postProcessPhase(ParserContext &ctx)
 {
     for (SimpleBody *object = ctx.parsingFrame()->Objects; object != nullptr;
@@ -67,8 +41,7 @@ struct AntlrRoutingStats {
     long parseCalls = 0;
     long antlrAttempts = 0;
     long antlrSuccess = 0;
-    long astFallbacks = 0;
-    std::map<std::string, long> fallbackByReason;
+    long antlrFailures = 0;
 };
 
 AntlrRoutingStats &
@@ -82,22 +55,13 @@ void printAntlrRoutingSummary()
 {
     AntlrRoutingStats &stats = antlrRoutingStats();
     fprintf(stderr,
-        "ANTLR routing summary: parse_calls=%ld antlr_attempts=%ld antlr_success=%ld ast_fallbacks=%ld\n",
-        stats.parseCalls, stats.antlrAttempts, stats.antlrSuccess, stats.astFallbacks);
-    for (const auto &kv : stats.fallbackByReason) {
-        fprintf(stderr, "  fallback_reason[%s]=%ld\n", kv.first.c_str(), kv.second);
-    }
+        "ANTLR routing summary: parse_calls=%ld antlr_attempts=%ld antlr_success=%ld antlr_failures=%ld\n",
+        stats.parseCalls, stats.antlrAttempts, stats.antlrSuccess, stats.antlrFailures);
 }
 
 void ensureAntlrRoutingSummaryHook()
 {
-    static bool enabled = false;
-    static bool enabledInitialized = false;
-    if (!enabledInitialized) {
-        enabledInitialized = true;
-        const char *env = std::getenv("POVCPP_ANTLR_ROUTING_STATS");
-        enabled = (env != nullptr) ? (env[0] == '1') : (POVCPP_DEFAULT_ANTLR_ROUTING_STATS == 1);
-    }
+    static bool enabled = true;
     if (!enabled) {
         return;
     }
@@ -108,25 +72,6 @@ void ensureAntlrRoutingSummaryHook()
         std::atexit(printAntlrRoutingSummary);
     }
 }
-
-#ifdef POV_WITH_ANTLR_RUNTIME
-std::string classifyAntlrFallbackReason(const std::string &error)
-{
-    if (error.empty()) {
-        return "antlr_returned_false_without_error";
-    }
-    if (error.find("syntax error") != std::string::npos) {
-        return "antlr_syntax_error";
-    }
-    if (error.find("Unknown ANTLR") != std::string::npos) {
-        return "antlr_semantic_unknown_reference";
-    }
-    if (error.find("requires inline") != std::string::npos) {
-        return "antlr_semantic_inline_requirement";
-    }
-    return "antlr_runtime_or_other_error";
-}
-#endif
 }
 
 
@@ -145,113 +90,46 @@ SceneParser::Parse(RenderFrame *framePtr, ParserContext &ctx)
     AntlrRoutingStats &stats = antlrRoutingStats();
     ++stats.parseCalls;
 
-    bool useAntlr = (POVCPP_DEFAULT_USE_ANTLR == 1);
-    const char *useAntlrEnv = std::getenv("POVCPP_USE_ANTLR");
-    if (useAntlrEnv != nullptr) {
-        useAntlr = (useAntlrEnv[0] == '1');
-    }
-
-    if (useAntlr) {
 #ifdef POV_WITH_ANTLR_RUNTIME
-        bool antlrStrict = (POVCPP_DEFAULT_ANTLR_STRICT == 1);
-        const char *antlrStrictEnv = std::getenv("POVCPP_ANTLR_STRICT");
-        if (antlrStrictEnv != nullptr) {
-            antlrStrict = (antlrStrictEnv[0] == '1');
-        }
-
-        ++stats.antlrAttempts;
-        ctx.parsingFrame() = framePtr;
-        ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
-        SceneParser::tokenInit(ctx);
-        SceneParser::frameInit(ctx);
-
-        std::string antlrError;
-        try {
-            if (AntlrSceneRuntimePipeline::parseAndApply(framePtr, antlrError)) {
-                ++stats.antlrSuccess;
-                postProcessPhase(ctx);
-                if (ctx.degenerateTriangles()) {
-                    fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
-                }
-                return;
-            }
-        } catch (const ParseErrorReporter::ParseException &e) {
-            antlrError = e.what();
-        } catch (const std::exception &e) {
-            antlrError = e.what();
-        } catch (...) {
-            antlrError = "Unknown ANTLR runtime pipeline error";
-        }
-
-        if (antlrStrict) {
-            if (antlrError.empty()) {
-                antlrError = "ANTLR pipeline failed in strict mode";
-            }
-            ParseErrorReporter::Error(antlrError.c_str(), ctx);
-        }
-
-        ++stats.astFallbacks;
-        ++stats.fallbackByReason[classifyAntlrFallbackReason(antlrError)];
-        if (!antlrError.empty()) {
-            fprintf(stderr, "ANTLR pipeline fallback to AST: %s\n", antlrError.c_str());
-        } else {
-            fprintf(stderr, "ANTLR pipeline fallback to AST\n");
-        }
-#else
-        ++stats.astFallbacks;
-        ++stats.fallbackByReason["antlr_runtime_not_compiled"];
-#endif
-    } else {
-        ++stats.astFallbacks;
-        ++stats.fallbackByReason["antlr_disabled_by_env"];
-    }
-    SceneParser::ParseAst(framePtr, ctx);
-}
-
-void
-SceneParser::ParseAst(RenderFrame *framePtr)
-{
-    ParserContext astCtx;
-    SceneParser::ParseAst(framePtr, astCtx);
-}
-
-void
-SceneParser::ParseAst(RenderFrame *framePtr, ParserContext &ctx)
-{
+    ++stats.antlrAttempts;
     ctx.parsingFrame() = framePtr;
-
     ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
-    AstParsedSceneProgram *program = nullptr;
+
+    std::string antlrError;
     try {
-        program = parseAstPhase(ctx);
-        buildScenePhase(*program, framePtr, ctx);
-        postProcessPhase(ctx);
-    } catch (const ParseErrorReporter::ParseException &) {
-        if (program != nullptr) {
-            AstNodes::destroyScene(program->scene);
-            delete program;
+        if (AntlrSceneRuntimePipeline::parseAndApply(framePtr, antlrError)) {
+            ++stats.antlrSuccess;
+            postProcessPhase(ctx);
+            if (ctx.degenerateTriangles()) {
+                fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
+            }
+            return;
         }
-        throw;
+    } catch (const ParseErrorReporter::ParseException &e) {
+        antlrError = e.what();
     } catch (const std::exception &e) {
-        if (program != nullptr) {
-            AstNodes::destroyScene(program->scene);
-            delete program;
-        }
-        ParseErrorReporter::Error(e.what(), ctx);
+        antlrError = e.what();
     } catch (...) {
-        if (program != nullptr) {
-            AstNodes::destroyScene(program->scene);
-            delete program;
-        }
-        ParseErrorReporter::Error("Unknown parser error", ctx);
+        antlrError = "Unknown ANTLR runtime pipeline error";
     }
-    AstNodes::destroyScene(program->scene);
-    delete program;
+    ++stats.antlrFailures;
+    if (antlrError.empty()) {
+        antlrError = "ANTLR pipeline failed";
+    }
+    ParseErrorReporter::Error(antlrError.c_str(), ctx);
+#else
+    ctx.parsingFrame() = framePtr;
+    ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
+    SceneParser::tokenInit(ctx);
+    SceneParser::frameInit(ctx);
+    SceneParser::parseFrame(ctx);
+    postProcessPhase(ctx);
     if (ctx.degenerateTriangles()) {
         fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
     }
+#endif
 }
 
 void

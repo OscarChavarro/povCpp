@@ -108,6 +108,16 @@ class AntlrIrTextureChain {
   public:
     std::vector<std::string> rawElements;
     std::vector<std::string> simpleReferenceIdentifiers;
+    std::vector<AntlrIrTransform> transforms;
+
+    // Procedural bump/noise parameters extracted directly from AST
+    double bumpsAmount = 0.0;
+    double ripplesAmount = 0.0;
+    double wrinklesAmount = 0.0;
+    double dentsAmount = 0.0;
+    double bumpy1Amount = 0.0;
+    double bumpy2Amount = 0.0;
+    double bumpy3Amount = 0.0;
 };
 
 class AntlrIrSphereNode;
@@ -118,6 +128,7 @@ class AntlrIrSmoothTriangleNode;
 class AntlrIrQuadricNode;
 class AntlrIrQuarticNode;
 class AntlrIrBlobNode;
+class AntlrIrBicubicPatchNode;
 class AntlrIrObjectNode;
 class AntlrIrCompositeNode;
 class AntlrIrLightNode;
@@ -353,6 +364,26 @@ class AntlrIrBlobNode : public AntlrSceneIrNode {
     int transformCount;
 };
 
+class AntlrIrBicubicPatchNode : public AntlrSceneIrNode {
+  public:
+    static constexpr int MAX_TRANSFORMS = 64;
+
+    AntlrIrBicubicPatchNode();
+    bool hasInlineBase;
+    int patchType;
+    double flatnessValue;
+    int uSteps;
+    int vSteps;
+    AntlrIrVector3 controlPoints[4][4];
+    bool hasColour;
+    AntlrIrColor colour;
+    bool hasTextureChain;
+    AntlrIrTextureChain textureChain;
+    bool inverted;
+    AntlrIrTransform transforms[MAX_TRANSFORMS];
+    int transformCount;
+};
+
 class AntlrIrObjectNode : public AntlrSceneIrNode {
   public:
     static constexpr int MAX_TRANSFORMS = 64;
@@ -364,6 +395,7 @@ class AntlrIrObjectNode : public AntlrSceneIrNode {
     static constexpr int MAX_CHILD_QUADRICS = 128;
     static constexpr int MAX_CHILD_QUARTICS = 128;
     static constexpr int MAX_CHILD_BLOBS = 128;
+    static constexpr int MAX_CHILD_BICUBIC_PATCHES = 64;
     static constexpr int MAX_CHILD_LIGHTS = 64;
     static constexpr int MAX_CHILD_OBJECTS = 128;
     static constexpr int MAX_CHILD_COMPOSITES = 128;
@@ -395,6 +427,8 @@ class AntlrIrObjectNode : public AntlrSceneIrNode {
     AntlrIrQuarticNode *childQuartics[MAX_CHILD_QUARTICS];
     int childBlobCount;
     AntlrIrBlobNode *childBlobs[MAX_CHILD_BLOBS];
+    int childBicubicPatchCount;
+    AntlrIrBicubicPatchNode *childBicubicPatches[MAX_CHILD_BICUBIC_PATCHES];
     int childLightCount;
     AntlrIrLightNode *childLights[MAX_CHILD_LIGHTS];
     int childObjectCount;

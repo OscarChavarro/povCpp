@@ -434,7 +434,7 @@ MapTextureFixture::planarImageMap(
         if (image->imageGradient.x > 0) {
             *u = fmod(x * image->width, image->width);
         } else {
-            *v = fmod(x * image->height, image->height);
+            *v = fmod(y * image->height, image->height);
         }
     }
     if (image->imageGradient.y != 0.0) {

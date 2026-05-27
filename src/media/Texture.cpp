@@ -601,6 +601,29 @@ TextureUtils::copyTexture(Texture *texture)
             *newTexture->Texture_Transformation =
                 *localTexture->Texture_Transformation;
         }
+        // Deep copy Colour_Map if present (don't share pointers)
+        if (newTexture->Colour_Map != nullptr) {
+            RGBAColorPalette *newMap = new RGBAColorPalette();
+            if (newMap == nullptr) {
+                Logger::error(
+                    "Out of memory. Cannot allocate colour map\n");
+                exit(1);
+            }
+            newMap->numberOfEntries = localTexture->Colour_Map->numberOfEntries;
+            newMap->transparencyFlag = localTexture->Colour_Map->transparencyFlag;
+            newMap->Colour_Map_Entries =
+                new RGBAColorPaletteSpan[localTexture->Colour_Map->numberOfEntries];
+            if (newMap->Colour_Map_Entries == nullptr) {
+                Logger::error(
+                    "Out of memory. Cannot allocate colour map entries\n");
+                exit(1);
+            }
+            for (int i = 0; i < localTexture->Colour_Map->numberOfEntries; i++) {
+                newMap->Colour_Map_Entries[i] =
+                    localTexture->Colour_Map->Colour_Map_Entries[i];
+            }
+            newTexture->Colour_Map = newMap;
+        }
         newTexture->constantFlag = LegacyBoolean::FALSE_VALUE;
         previousTexture = newTexture;
     }

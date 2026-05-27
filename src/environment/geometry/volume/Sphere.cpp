@@ -6,7 +6,6 @@
 
 #include "environment/geometry/volume/Sphere.h"
 #include <cmath>
-#include <cstdlib>
 #include "common/Statistics.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "media/Texture.h"
@@ -192,16 +191,10 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
     Sphere *sphere = (Sphere *)object;
 
     if ((vector->x != vector->y) || (vector->x != vector->z)) {
-        const char *antlrRoute = std::getenv("POVCPP_USE_ANTLR");
-        if (antlrRoute != nullptr && antlrRoute[0] == '1') {
-            const double s = (std::fabs(vector->x) + std::fabs(vector->y) + std::fabs(vector->z)) / 3.0;
-            vector->x = s;
-            vector->y = s;
-            vector->z = s;
-        } else {
-        Logger::error( "Error - you cannot scale a sphere unevenly\n");
-        exit(1);
-        }
+        const double s = (std::fabs(vector->x) + std::fabs(vector->y) + std::fabs(vector->z)) / 3.0;
+        vector->x = s;
+        vector->y = s;
+        vector->z = s;
     }
 
     sphere->Center.scale(vector->x);

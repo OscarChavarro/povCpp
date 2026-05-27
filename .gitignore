@@ -1,15 +1,52 @@
-# Build outputs
-build/
-compile_commands.rel.json
+# CMake and build system
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
 compile_commands.json
+compile_commands.rel.json
+build/
+
+# Compiled object files and archives
+*.o
+*.o.d
+*.a
+*.so
+*.dylib
+*.dll
+
+# Executables
+povrayLegacy
+povrayAntlr
+a.out
+*.out
+
+# Profiling data
+gmon.out
+*.gprof
+*.gmon.out*
 
 # Render outputs
 output/
+render_test/
 *.tga
+*.ppm
+*.bmp
+*.png
+*.gif
 
-# CLion / JetBrains
+# Temporary files
+*~
+*.swp
+*.swo
+.#*
+
+# IDE / Editor
 .idea/
+.vscode/
 cmake-build-*/
+*.user
+*.creator
 
 # Clang
 .cache
@@ -19,5 +56,15 @@ cmake-build-*/
 .claude/
 AGENTS.md
 
-# Media caches
+# System / Media caches
 .DS_Store
+Thumbs.db
+
+# Generated from includes (these are transient)
+etc/level3/car/data.dis
+tools/
+
+# Misc build artifacts
+*.gp
+debug.log
+*.log

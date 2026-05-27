@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <limits.h>
+#include <unistd.h>
 
 #include "io/FileLocator.h"
 
@@ -22,6 +24,7 @@
 #include "POVParser.h"
 #include "antlr4-runtime.h"
 #include "io/pov/antlr/AntlrParseTreeToIrMapper.h"
+#include "common/logger/Logger.h"
 
 namespace {
 bool startsWith(const std::string &text, const char *prefix)
@@ -75,6 +78,25 @@ std::string joinPath(const std::string &a, const std::string &b)
         return an + bn;
     }
     return an + "/" + bn;
+}
+
+std::string canonicalizePath(const std::string &path)
+{
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) == nullptr) {
+        return normalizePath(path);
+    }
+
+    std::string absPath = path;
+    if (path.empty() || (path[0] != '/' && (path.size() <= 1 || path[1] != ':'))) {
+        absPath = joinPath(cwd, path);
+    }
+
+    absPath = normalizePath(absPath);
+
+    // Try to simplify the path by opening and getting the canonical name
+    // For now, just return the normalized absolute path
+    return absPath;
 }
 
 bool readFileText(const std::string &path, std::string &out)
@@ -145,6 +167,7 @@ void expandIncludesRecursive(const std::string &path, std::set<std::string> &act
     std::string &out)
 {
     const std::string normalized = normalizePath(path);
+
     if (activeStack.find(normalized) != activeStack.end()) {
         throw std::runtime_error("Cyclic #include detected while expanding ANTLR input: " + normalized);
     }
@@ -164,10 +187,12 @@ void expandIncludesRecursive(const std::string &path, std::set<std::string> &act
             if (!extractQuotedString(trimmed, includeName)) {
                 throw std::runtime_error("Malformed #include directive in: " + normalized);
             }
+
             std::string resolved;
             if (!resolveIncludePath(includeName, normalized, resolved)) {
                 throw std::runtime_error("Failed to resolve #include '" + includeName + "' from: " + normalized);
             }
+
             expandIncludesRecursive(resolved, activeStack, out);
             out.push_back('\n');
             continue;
@@ -211,15 +236,23 @@ AntlrSceneRuntimePipeline::parseAndApply(RenderFrame *framePtr, std::string &err
     return false;
 #else
     const char *inputPath = RenderingConfiguration::global().inputFileName;
+    Logger::info("[ANTLR-PIPELINE] parseAndApply called with inputPath: %s\n",
+        (inputPath != nullptr ? inputPath : "null"));
+
     if (inputPath == nullptr || inputPath[0] == '\0') {
         error = "Missing input file name for ANTLR pipeline";
+        Logger::error("[ANTLR-PIPELINE] %s\n", error.c_str());
         return false;
     }
+
+    std::string canonPath = canonicalizePath(inputPath);
+    Logger::info("[ANTLR-PIPELINE] Canonicalized path: %s\n", canonPath.c_str());
 
     std::string input;
     try {
         std::set<std::string> includeStack;
-        expandIncludesRecursive(inputPath, includeStack, input);
+        Logger::info("[ANTLR-PIPELINE] Starting include expansion\n");
+        expandIncludesRecursive(canonPath, includeStack, input);
         const char *dumpExpanded = std::getenv("POVCPP_ANTLR_DUMP_EXPANDED");
         if (dumpExpanded != nullptr && dumpExpanded[0] != '\0') {
             std::ofstream out(dumpExpanded, std::ios::out | std::ios::trunc);

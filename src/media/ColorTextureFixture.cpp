@@ -280,14 +280,52 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
     /* AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug */
     brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
 
+    /* INSTRUMENTATION: Print texture parameters on first call */
+    static int checkerDiagCallCount = 0;
+    if (checkerDiagCallCount++ == 0) {
+        Logger::info("[CHECKER-DIAG] textureNumber=%d reflection=%g\n",
+            texture->textureNumber, texture->objectReflection);
+        if (texture->Colour1) {
+            Logger::info("[CHECKER-DIAG] Colour1 R=%g G=%g B=%g A=%g\n",
+                texture->Colour1->Red, texture->Colour1->Green,
+                texture->Colour1->Blue, texture->Colour1->Alpha);
+        } else {
+            Logger::info("[CHECKER-DIAG] Colour1=NULL\n");
+        }
+        if (texture->Colour2) {
+            Logger::info("[CHECKER-DIAG] Colour2 R=%g G=%g B=%g A=%g\n",
+                texture->Colour2->Red, texture->Colour2->Green,
+                texture->Colour2->Blue, texture->Colour2->Alpha);
+        } else {
+            Logger::info("[CHECKER-DIAG] Colour2=NULL\n");
+        }
+        if (texture->Texture_Transformation) {
+            for (int r = 0; r < 4; r++) {
+                Logger::info("[CHECKER-DIAG] Transform row%d: %g %g %g %g\n", r,
+                    texture->Texture_Transformation->matrix[r][0],
+                    texture->Texture_Transformation->matrix[r][1],
+                    texture->Texture_Transformation->matrix[r][2],
+                    texture->Texture_Transformation->matrix[r][3]);
+            }
+        } else {
+            Logger::info("[CHECKER-DIAG] Texture_Transformation=NULL\n");
+        }
+    }
+
     if (debugEnabled) {
         Logger::info("checker %g %g %g\n", x, y, z);
     }
 
     if (brkindx & 1) {
-        *colour = *texture->Colour1;
+        colour->Red += texture->Colour1->Red;
+        colour->Green += texture->Colour1->Green;
+        colour->Blue += texture->Colour1->Blue;
+        colour->Alpha += texture->Colour1->Alpha;
     } else {
-        *colour = *texture->Colour2;
+        colour->Red += texture->Colour2->Red;
+        colour->Green += texture->Colour2->Green;
+        colour->Blue += texture->Colour2->Blue;
+        colour->Alpha += texture->Colour2->Alpha;
     }
 }
 

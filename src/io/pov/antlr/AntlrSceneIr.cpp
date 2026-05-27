@@ -1,4 +1,5 @@
 #include "io/pov/antlr/AntlrSceneIr.h"
+#include "common/linealAlgebra/Vector3Dd.h"
 
 namespace {
 void destroyCompositeChildren(AntlrIrCompositeNode *comp);
@@ -40,6 +41,10 @@ void destroyObjectChildren(AntlrIrObjectNode *obj)
     for (int i = 0; i < obj->childBlobCount; ++i) {
         delete obj->childBlobs[i];
         obj->childBlobs[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childBicubicPatchCount; ++i) {
+        delete obj->childBicubicPatches[i];
+        obj->childBicubicPatches[i] = nullptr;
     }
     for (int i = 0; i < obj->childLightCount; ++i) {
         delete obj->childLights[i];
@@ -357,6 +362,30 @@ AntlrIrBlobNode::AntlrIrBlobNode()
     transformCount = 0;
 }
 
+AntlrIrBicubicPatchNode::AntlrIrBicubicPatchNode()
+{
+    kind = ANTLR_IR_UNKNOWN_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasInlineBase = false;
+    patchType = 0;
+    flatnessValue = 0.1;
+    uSteps = 0;
+    vSteps = 0;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            controlPoints[i][j].x = 0.0;
+            controlPoints[i][j].y = 0.0;
+            controlPoints[i][j].z = 0.0;
+        }
+    }
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
 AntlrIrQuarticNode::AntlrIrQuarticNode()
 {
     kind = ANTLR_IR_QUARTIC_NODE;
@@ -414,6 +443,10 @@ AntlrIrObjectNode::AntlrIrObjectNode()
     childBlobCount = 0;
     for (int i = 0; i < MAX_CHILD_BLOBS; ++i) {
         childBlobs[i] = nullptr;
+    }
+    childBicubicPatchCount = 0;
+    for (int i = 0; i < MAX_CHILD_BICUBIC_PATCHES; ++i) {
+        childBicubicPatches[i] = nullptr;
     }
     childLightCount = 0;
     for (int i = 0; i < MAX_CHILD_LIGHTS; ++i) {

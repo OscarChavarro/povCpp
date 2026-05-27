@@ -1,16 +1,23 @@
 #include "io/pov/antlr/AntlrSceneLowering.h"
 
 #include <cmath>
+#include <algorithm>
+#include <cctype>
 #include <cstdlib>
+#include <cstring>
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "common/LegacyBoolean.h"
 #include "common/color/Color.h"
+#include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/surface/parametric/ParametricPatch.h"
 #ifndef POV_ANTLR_MINIMAL_BRIDGE
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -33,10 +40,19 @@
 #include "io/pov/antlr/AntlrSceneIr.h"
 #include "media/Texture.h"
 #include "media/TextureUtils.h"
+#include "media/RGBAImage.h"
+#include "io/image/GifFormat.h"
+#include "io/image/TargaFormat.h"
+#include "io/image/IffFormat.h"
 #include "render/RenderFrame.h"
+
+#ifdef POV_WITH_ANTLR_RUNTIME
+extern std::unordered_map<std::string, AntlrIrColor> gAntlrDeclaredColours;
+#endif
 
 namespace {
 const std::unordered_map<std::string, const AntlrIrQuarticNode *> *gDeclaredQuartics = nullptr;
+const std::unordered_map<std::string, Texture *> *gDeclaredTextures = nullptr;
 
 const std::unordered_map<std::string, const AntlrIrQuarticNode *> &declaredQuarticsRef()
 {
@@ -47,6 +63,14 @@ const std::unordered_map<std::string, const AntlrIrQuarticNode *> &declaredQuart
 Vector3Dd toVector(const AntlrIrVector3 &v)
 {
     return Vector3Dd(v.x, v.y, v.z);
+}
+
+std::string toLowerAscii(std::string s)
+{
+    for (char &c : s) {
+        c = (char)std::tolower((unsigned char)c);
+    }
+    return s;
 }
 
 std::string formatSourceLocation(const AntlrSceneIrNode &node)
@@ -63,6 +87,334 @@ std::string formatSourceLocation(const AntlrSceneIrNode &node)
     out += std::to_string(node.sourceColumn);
     return out;
 }
+
+bool shouldLogMonkeyDiagnostics()
+{
+    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
+    return flag != nullptr && flag[0] != '\0';
+}
+
+int countGeometryChain(const Geometry *g)
+{
+    int count = 0;
+    for (const Geometry *cur = g; cur != nullptr; cur = cur->nextObject) {
+        ++count;
+    }
+    return count;
+}
+
+void logCameraOnce(const char *prefix, const Camera *camera)
+{
+    static int logged = 0;
+    if (!shouldLogMonkeyDiagnostics() || logged++ > 0 || camera == nullptr) {
+        return;
+    }
+    Logger::info(
+        "[DIAG-MONKEY] %s camera loc=<%.6f,%.6f,%.6f> dir=<%.6f,%.6f,%.6f> up=<%.6f,%.6f,%.6f> right=<%.6f,%.6f,%.6f> sky=<%.6f,%.6f,%.6f>\n",
+        prefix,
+        camera->Location.x, camera->Location.y, camera->Location.z,
+        camera->Direction.x, camera->Direction.y, camera->Direction.z,
+        camera->Up.x, camera->Up.y, camera->Up.z,
+        camera->Right.x, camera->Right.y, camera->Right.z,
+        camera->Sky.x, camera->Sky.y, camera->Sky.z);
+}
+
+void logCameraOp(const char *prefix, const char *opName, const Vector3Dd *value)
+{
+    if (!shouldLogMonkeyDiagnostics() || value == nullptr) {
+        return;
+    }
+    Logger::info(
+        "[DIAG-MONKEY] %s camera op=%s value=<%.6f,%.6f,%.6f>\n",
+        prefix, opName, value->x, value->y, value->z);
+}
+
+void logObjectOnce(const char *prefix, const SimpleBody *object)
+{
+    static int logged = 0;
+    if (!shouldLogMonkeyDiagnostics() || logged++ > 0 || object == nullptr) {
+        return;
+    }
+
+    const Geometry *shape = object->Shape;
+    const Geometry *bounding = object->boundingShapes;
+    const Geometry *clipping = object->clippingShapes;
+    Logger::info("[DIAG-MONKEY] %s object type=%d shapeCount=%d boundingCount=%d clippingCount=%d\n",
+        prefix, object->Type, countGeometryChain(shape), countGeometryChain(bounding),
+        countGeometryChain(clipping));
+    if (shape != nullptr) {
+        Logger::info("[DIAG-MONKEY] %s object firstShapeType=%d\n", prefix, shape->Type);
+    }
+    if (bounding != nullptr) {
+        Logger::info("[DIAG-MONKEY] %s boundingFirstType=%d\n", prefix, bounding->Type);
+    }
+    if (clipping != nullptr) {
+        Logger::info("[DIAG-MONKEY] %s clippingFirstType=%d\n", prefix, clipping->Type);
+    }
+#ifndef POV_ANTLR_MINIMAL_BRIDGE
+    auto logCsgChildren = [prefix](const char *tag, const Geometry *maybeCsg) {
+        if (maybeCsg == nullptr || maybeCsg->Type != GeometryOperations::CSG_INTERSECTION_TYPE) {
+            return;
+        }
+        const CSG *csg = (const CSG *)maybeCsg;
+        int childIndex = 0;
+        for (const Geometry *child = csg->Shapes; child != nullptr; child = child->nextObject, ++childIndex) {
+            Logger::info("[DIAG-MONKEY] %s %s child[%d] type=%d\n", prefix, tag, childIndex, child->Type);
+            if (child->Type == GeometryOperations::PLANE_TYPE) {
+                const InfinitePlane *plane = (const InfinitePlane *)child;
+                Logger::info("[DIAG-MONKEY] %s %s plane normal=<%.6f,%.6f,%.6f> dist=%.6f\n",
+                    prefix, tag, plane->normalVector.x, plane->normalVector.y, plane->normalVector.z,
+                    plane->Distance);
+            } else if (child->Type == GeometryOperations::CSG_INTERSECTION_TYPE) {
+                const CSG *nested = (const CSG *)child;
+                int nestedIndex = 0;
+                for (const Geometry *nestedChild = nested->Shapes; nestedChild != nullptr;
+                    nestedChild = nestedChild->nextObject, ++nestedIndex) {
+                    if (nestedChild->Type == GeometryOperations::PLANE_TYPE) {
+                        const InfinitePlane *plane = (const InfinitePlane *)nestedChild;
+                        Logger::info("[DIAG-MONKEY] %s %s nested child[%d] plane normal=<%.6f,%.6f,%.6f> dist=%.6f\n",
+                            prefix, tag, nestedIndex, plane->normalVector.x, plane->normalVector.y,
+                            plane->normalVector.z, plane->Distance);
+                    }
+                }
+            } else if (child->Type == GeometryOperations::POLY_TYPE) {
+                const PolynomialShape *poly = (const PolynomialShape *)child;
+                const int coeffCount = PolynomialShape::termCounts()[poly->Order];
+                Logger::info("[DIAG-MONKEY] %s %s poly order=%d coeffCount=%d\n",
+                    prefix, tag, poly->Order, coeffCount);
+                for (int i = 0; i < coeffCount; ++i) {
+                    if (std::fabs(poly->Coeffs[i]) > 1.0e-12) {
+                        Logger::info("[DIAG-MONKEY] %s %s poly coeff[%d]=%.6f\n",
+                            prefix, tag, i, poly->Coeffs[i]);
+                    }
+                }
+                if (poly->Transform != nullptr) {
+                    Logger::info(
+                        "[DIAG-MONKEY] %s %s poly transform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n",
+                        prefix, tag,
+                        poly->Transform->matrix[0][0], poly->Transform->matrix[0][1], poly->Transform->matrix[0][2], poly->Transform->matrix[0][3],
+                        poly->Transform->matrix[1][0], poly->Transform->matrix[1][1], poly->Transform->matrix[1][2], poly->Transform->matrix[1][3],
+                        poly->Transform->matrix[2][0], poly->Transform->matrix[2][1], poly->Transform->matrix[2][2], poly->Transform->matrix[2][3],
+                        poly->Transform->matrix[3][0], poly->Transform->matrix[3][1], poly->Transform->matrix[3][2], poly->Transform->matrix[3][3]);
+                }
+            }
+        }
+    };
+    logCsgChildren("object csg", shape);
+    logCsgChildren("bounding csg", bounding);
+#endif
+}
+
+#ifndef POV_ANTLR_MINIMAL_BRIDGE
+void logPlaneOnce(const char *prefix, const InfinitePlane *plane)
+{
+    if (!shouldLogMonkeyDiagnostics() || plane == nullptr) {
+        return;
+    }
+    const Texture *texture = plane->Shape_Texture;
+    const RGBAColor *colour = plane->Shape_Colour;
+    Logger::info(
+        "[DIAG-MONKEY] %s plane type=%d normal=<%.6f,%.6f,%.6f> dist=%.6f vpcached=%d texNum=%d colour=<%.6f,%.6f,%.6f,%.6f>\n",
+        prefix, plane->Type, plane->normalVector.x, plane->normalVector.y,
+        plane->normalVector.z, plane->Distance, plane->VPCached,
+        texture != nullptr ? texture->textureNumber : -1,
+        colour != nullptr ? colour->Red : -1.0,
+        colour != nullptr ? colour->Green : -1.0,
+        colour != nullptr ? colour->Blue : -1.0,
+        colour != nullptr ? colour->Alpha : -1.0);
+}
+
+void logCsgOnce(const char *prefix, const CSG *csg)
+{
+    if (!shouldLogMonkeyDiagnostics() || csg == nullptr) {
+        return;
+    }
+    Logger::info("[DIAG-MONKEY] %s csg type=%d shapeCount=%d\n",
+        prefix, csg->Type, countGeometryChain(csg->Shapes));
+    if (csg->Shapes != nullptr) {
+        Logger::info("[DIAG-MONKEY] %s csg firstShapeType=%d\n", prefix, csg->Shapes->Type);
+    }
+}
+
+void logSphereOnce(const char *prefix, const Sphere *sphere)
+{
+    if (!shouldLogMonkeyDiagnostics() || sphere == nullptr) {
+        return;
+    }
+    const RGBAColor *colour = sphere->Shape_Colour;
+    const Texture *texture = sphere->Shape_Texture;
+    Logger::info(
+        "[DIAG-MONKEY] %s sphere center=<%.6f,%.6f,%.6f> radius=%.6f colour=<%.6f,%.6f,%.6f,%.6f> texNum=%d amb=%.6f diff=%.6f spec=%.6f rough=%.6f phong=%.6f texColour1=<%.6f,%.6f,%.6f,%.6f>\n",
+        prefix, sphere->Center.x, sphere->Center.y, sphere->Center.z, sphere->Radius,
+        colour != nullptr ? colour->Red : -1.0,
+        colour != nullptr ? colour->Green : -1.0,
+        colour != nullptr ? colour->Blue : -1.0,
+        colour != nullptr ? colour->Alpha : -1.0,
+        texture != nullptr ? texture->textureNumber : -1,
+        texture != nullptr ? texture->objectAmbient : -1.0,
+        texture != nullptr ? texture->objectDiffuse : -1.0,
+        texture != nullptr ? texture->objectSpecular : -1.0,
+        texture != nullptr ? texture->objectRoughness : -1.0,
+        texture != nullptr ? texture->objectPhong : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Red : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Green : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Blue : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Alpha : -1.0);
+}
+
+bool shouldLogTextureState()
+{
+    const char *flag = std::getenv("POVCPP_DIAG_TEXTURE_STATE");
+    return flag != nullptr && flag[0] != '\0';
+}
+
+void logTextureStateAntlr(const char *prefix, const Texture *texture)
+{
+    if (!shouldLogTextureState() || texture == nullptr) {
+        return;
+    }
+
+    Logger::info(
+        "[TEXTURE-STATE] %s type=%d ambient=%.6f diffuse=%.6f brilliance=%.6f reflection=%.6f turbulence=%.6f frequency=%.6f phase=%.6f octaves=%d bumpNumber=%d bumpAmount=%.6f texXform=%s\n",
+        prefix,
+        texture->textureNumber,
+        texture->objectAmbient,
+        texture->objectDiffuse,
+        texture->objectBrilliance,
+        texture->objectReflection,
+        texture->Turbulence,
+        texture->Frequency,
+        texture->Phase,
+        texture->Octaves,
+        texture->bumpNumber,
+        texture->bumpAmount,
+        texture->Texture_Transformation != nullptr ? "yes" : "no");
+    if (texture->Texture_Transformation != nullptr) {
+        Logger::info(
+            "[TEXTURE-STATE] %s xform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n",
+            prefix,
+            texture->Texture_Transformation->matrix[0][0], texture->Texture_Transformation->matrix[0][1],
+            texture->Texture_Transformation->matrix[0][2], texture->Texture_Transformation->matrix[0][3],
+            texture->Texture_Transformation->matrix[1][0], texture->Texture_Transformation->matrix[1][1],
+            texture->Texture_Transformation->matrix[1][2], texture->Texture_Transformation->matrix[1][3],
+            texture->Texture_Transformation->matrix[2][0], texture->Texture_Transformation->matrix[2][1],
+            texture->Texture_Transformation->matrix[2][2], texture->Texture_Transformation->matrix[2][3],
+            texture->Texture_Transformation->matrix[3][0], texture->Texture_Transformation->matrix[3][1],
+            texture->Texture_Transformation->matrix[3][2], texture->Texture_Transformation->matrix[3][3]);
+    }
+}
+
+void logLightOnce(const char *prefix, const Light *light)
+{
+    if (!shouldLogMonkeyDiagnostics() || light == nullptr) {
+        return;
+    }
+    const RGBAColor *colour = light->Shape_Colour;
+    Logger::info(
+        "[DIAG-MONKEY] %s light center=<%.6f,%.6f,%.6f> pointsAt=<%.6f,%.6f,%.6f> colour=<%.6f,%.6f,%.6f,%.6f> coeff=%.6f radius=%.6f falloff=%.6f type=%d\n",
+        prefix,
+        light->Center.x, light->Center.y, light->Center.z,
+        light->pointsAt.x, light->pointsAt.y, light->pointsAt.z,
+        colour != nullptr ? colour->Red : -1.0,
+        colour != nullptr ? colour->Green : -1.0,
+        colour != nullptr ? colour->Blue : -1.0,
+        colour != nullptr ? colour->Alpha : -1.0,
+        light->Coeff, light->Radius, light->Falloff, light->Type);
+}
+#endif
+
+#ifndef POV_ANTLR_MINIMAL_BRIDGE
+void logPolyOnce(const char *prefix, const PolynomialShape *shape)
+{
+    if (!shouldLogMonkeyDiagnostics() || shape == nullptr) {
+        return;
+    }
+    const int coeffCount = PolynomialShape::termCounts()[shape->Order];
+    const Texture *texture = shape->Shape_Texture;
+    const RGBAColor *colour = shape->Shape_Colour;
+    Logger::info("[DIAG-MONKEY] %s quartic order=%d sturm=%d coeffCount=%d\n",
+        prefix, shape->Order, shape->sturmFlag, coeffCount);
+    Logger::info(
+        "[DIAG-MONKEY] %s quartic colour=<%.6f,%.6f,%.6f,%.6f> texNum=%d amb=%.6f diff=%.6f spec=%.6f rough=%.6f phong=%.6f texColour1=<%.6f,%.6f,%.6f,%.6f>\n",
+        prefix,
+        colour != nullptr ? colour->Red : -1.0,
+        colour != nullptr ? colour->Green : -1.0,
+        colour != nullptr ? colour->Blue : -1.0,
+        colour != nullptr ? colour->Alpha : -1.0,
+        texture != nullptr ? texture->textureNumber : -1,
+        texture != nullptr ? texture->objectAmbient : -1.0,
+        texture != nullptr ? texture->objectDiffuse : -1.0,
+        texture != nullptr ? texture->objectSpecular : -1.0,
+        texture != nullptr ? texture->objectRoughness : -1.0,
+        texture != nullptr ? texture->objectPhong : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Red : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Green : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Blue : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Alpha : -1.0);
+    Logger::info(
+        "[DIAG-MONKEY] %s quartic texture full number=%d ambient=%.6f diffuse=%.6f brilliance=%.6f refraction=%.6f transmit=%.6f specular=%.6f roughness=%.6f phong=%.6f colour2=<%.6f,%.6f,%.6f,%.6f>\n",
+        prefix,
+        texture != nullptr ? texture->textureNumber : -1,
+        texture != nullptr ? texture->objectAmbient : -1.0,
+        texture != nullptr ? texture->objectDiffuse : -1.0,
+        texture != nullptr ? texture->objectBrilliance : -1.0,
+        texture != nullptr ? texture->objectRefraction : -1.0,
+        texture != nullptr ? texture->objectTransmit : -1.0,
+        texture != nullptr ? texture->objectSpecular : -1.0,
+        texture != nullptr ? texture->objectRoughness : -1.0,
+        texture != nullptr ? texture->objectPhong : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Red : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Green : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Blue : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Alpha : -1.0);
+    for (int i = 0; i < coeffCount; ++i) {
+        if (std::fabs(shape->Coeffs[i]) > 1.0e-12) {
+            Logger::info("[DIAG-MONKEY] %s quartic coeff[%d]=%.6f\n", prefix, i, shape->Coeffs[i]);
+        }
+    }
+}
+
+void logBicubicPatchOnce(const char *prefix, const ParametricBiCubicPatch *shape)
+{
+    static int logged = 0;
+    if (!shouldLogMonkeyDiagnostics() || logged++ > 0 || shape == nullptr) {
+        return;
+    }
+    const Texture *texture = shape->Shape_Texture;
+    const RGBAColor *colour = shape->Shape_Colour;
+    Logger::info(
+        "[DIAG-MONKEY] %s bicubic patchType=%d flatness=%.6f uSteps=%d vSteps=%d colour=<%.6f,%.6f,%.6f,%.6f> texNum=%d amb=%.6f diff=%.6f spec=%.6f rough=%.6f phong=%.6f cp00=<%.6f,%.6f,%.6f> cp33=<%.6f,%.6f,%.6f>\n",
+        prefix, shape->patchType, shape->flatnessValue, shape->uSteps, shape->vSteps,
+        colour != nullptr ? colour->Red : -1.0,
+        colour != nullptr ? colour->Green : -1.0,
+        colour != nullptr ? colour->Blue : -1.0,
+        colour != nullptr ? colour->Alpha : -1.0,
+        texture != nullptr ? texture->textureNumber : -1,
+        texture != nullptr ? texture->objectAmbient : -1.0,
+        texture != nullptr ? texture->objectDiffuse : -1.0,
+        texture != nullptr ? texture->objectSpecular : -1.0,
+        texture != nullptr ? texture->objectRoughness : -1.0,
+        texture != nullptr ? texture->objectPhong : -1.0,
+        shape->Control_Points[0][0].x, shape->Control_Points[0][0].y, shape->Control_Points[0][0].z,
+        shape->Control_Points[3][3].x, shape->Control_Points[3][3].y, shape->Control_Points[3][3].z);
+    if (texture != nullptr && texture->Colour1 != nullptr) {
+        Logger::info(
+            "[DIAG-MONKEY] %s bicubic texColour1=<%.6f,%.6f,%.6f,%.6f>\n",
+            prefix, texture->Colour1->Red, texture->Colour1->Green, texture->Colour1->Blue,
+            texture->Colour1->Alpha);
+    }
+    if (texture != nullptr && texture->Colour2 != nullptr) {
+        Logger::info(
+            "[DIAG-MONKEY] %s bicubic texColour2=<%.6f,%.6f,%.6f,%.6f>\n",
+            prefix, texture->Colour2->Red, texture->Colour2->Green, texture->Colour2->Blue,
+            texture->Colour2->Alpha);
+    }
+}
+#endif
+
+Texture *materializeTextureChain(const AntlrIrTextureChain &chain,
+    const std::unordered_map<std::string, Texture *> &declaredTextures);
+void applyShapeTexture(Texture *srcTexture, Geometry *shape);
 
 AntlrIrSphereNode makeFallbackSphereNode()
 {
@@ -138,8 +490,20 @@ Sphere *buildSphere(const AntlrIrSphereNode &node)
         sphere->Shape_Colour->Green = node.colour.g;
         sphere->Shape_Colour->Blue = node.colour.b;
         sphere->Shape_Colour->Alpha = node.colour.a;
+
+        const char *debugLog = std::getenv("POVCPP_ANTLR_DEBUG_SPHERE_COLOR");
+        if (debugLog != nullptr && debugLog[0] == '1') {
+            fprintf(stderr, "ANTLR_SPHERE_COLOR: center=<%.3f,%.3f,%.3f> radius=%.3f RGBA<%.3f,%.3f,%.3f,%.3f>\n",
+                    node.center.x, node.center.y, node.center.z, node.radius,
+                    node.colour.r, node.colour.g, node.colour.b, node.colour.a);
+        }
     }
     applyTransforms((SimpleBody *)sphere, node.transforms, node.transformCount);
+    if (node.hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(materializeTextureChain(node.textureChain, *gDeclaredTextures),
+            (Geometry *)sphere);
+    }
+    logSphereOnce("antlr", sphere);
     return sphere;
 }
 
@@ -170,6 +534,11 @@ Sphere *buildSphereResolved(const AntlrIrSphereNode &node,
         base->Shape_Colour->Alpha = node.colour.a;
     }
     applyTransforms((SimpleBody *)base, node.transforms, node.transformCount);
+    if (node.hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(materializeTextureChain(node.textureChain, *gDeclaredTextures),
+            (Geometry *)base);
+    }
+    logSphereOnce("antlr", base);
     return base;
 }
 
@@ -218,6 +587,15 @@ InfinitePlane *buildPlane(const AntlrIrPlaneNode &node,
     if (effectiveNode->inverted) {
         GeometryOperations::invert((SimpleBody *)plane);
     }
+    if (effectiveNode->hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(materializeTextureChain(effectiveNode->textureChain, *gDeclaredTextures),
+            (Geometry *)plane);
+    }
+    if (node.hasReferenceBase && node.hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(materializeTextureChain(node.textureChain, *gDeclaredTextures),
+            (Geometry *)plane);
+    }
+    logPlaneOnce("antlr", plane);
     return plane;
 }
 
@@ -354,53 +732,125 @@ SmoothTriangle *buildSmoothTriangle(const AntlrIrSmoothTriangleNode &node,
 Quadric *buildQuadric(const AntlrIrQuadricNode &node,
     const std::unordered_map<std::string, const AntlrIrQuadricNode *> &declaredQuadrics)
 {
-    const AntlrIrQuadricNode *effectiveNode = &node;
+    const AntlrIrQuadricNode *baseNode = &node;
     AntlrIrQuadricNode fallback;
-    bool useFallback = false;
     int depth = 0;
-    while (effectiveNode->hasReferenceBase) {
+    const char *dbgQuadric = std::getenv("POVCPP_ANTLR_DEBUG_QUADRIC");
+    while (baseNode->hasReferenceBase) {
         if (++depth > 16) {
             throw std::runtime_error("ANTLR quadric lowering exceeded max recursion depth");
         }
-        auto it = declaredQuadrics.find(effectiveNode->referenceIdentifier);
-        if (it == declaredQuadrics.end()) {
-            fallback.hasReferenceBase = false;
-            fallback.hasInlineBase = true;
-            fallback.object2Terms = {1.0, 1.0, 1.0};
-            fallback.objectMixedTerms = {0.0, 0.0, 0.0};
-            fallback.objectTerms = {0.0, 0.0, 0.0};
-            fallback.objectConstant = -1.0;
-            useFallback = true;
-            break;
+        auto it = declaredQuadrics.find(baseNode->referenceIdentifier);
+        if (it != declaredQuadrics.end()) {
+            if (dbgQuadric != nullptr && dbgQuadric[0] == '1') {
+                fprintf(stderr, "[QUADRIC_REF] Found '%s' in declaredQuadrics\n",
+                    baseNode->referenceIdentifier.c_str());
+            }
+            baseNode = it->second;
+            continue;
         }
-        effectiveNode = it->second;
+
+        // Minimal built-in fallback for legacy include constants commonly used by scenes.
+        const std::string ref = toLowerAscii(baseNode->referenceIdentifier);
+        if (dbgQuadric != nullptr && dbgQuadric[0] == '1') {
+            fprintf(stderr, "[QUADRIC_FALLBACK] Using fallback for '%s' (ref='%s')\n",
+                baseNode->referenceIdentifier.c_str(), ref.c_str());
+        }
+        fallback.hasReferenceBase = false;
+        fallback.hasInlineBase = true;
+        fallback.objectMixedTerms = {0.0, 0.0, 0.0};
+        fallback.objectTerms = {0.0, 0.0, 0.0};
+        if (ref == "ellipsoid" || ref == "sphere") {
+            fallback.object2Terms = {1.0, 1.0, 1.0};
+            fallback.objectConstant = -1.0;
+        } else if (ref == "cylinder_x") {
+            fallback.object2Terms = {0.0, 1.0, 1.0};
+            fallback.objectConstant = -1.0;
+        } else if (ref == "cylinder_y") {
+            fallback.object2Terms = {1.0, 0.0, 1.0};
+            fallback.objectConstant = -1.0;
+        } else if (ref == "cylinder_z") {
+            fallback.object2Terms = {1.0, 1.0, 0.0};
+            fallback.objectConstant = -1.0;
+        } else if (ref == "qcone_x") {
+            fallback.object2Terms = {-1.0, 1.0, 1.0};
+            fallback.objectConstant = 0.0;
+        } else if (ref == "qcone_y") {
+            fallback.object2Terms = {1.0, -1.0, 1.0};
+            fallback.objectConstant = 0.0;
+        } else if (ref == "qcone_z") {
+            fallback.object2Terms = {1.0, 1.0, -1.0};
+            fallback.objectConstant = 0.0;
+        } else if (ref == "hyperboloid_y") {
+            fallback.object2Terms = {1.0, -1.0, 1.0};
+            fallback.objectConstant = -1.0;
+        } else {
+            fallback.object2Terms = {1.0, 1.0, 1.0};
+            fallback.objectConstant = -1.0;
+        }
+        baseNode = &fallback;
+        break;
     }
-    if (useFallback) {
-        effectiveNode = &fallback;
-    }
-    if (!effectiveNode->hasInlineBase) {
-        throw std::runtime_error("ANTLR lowering quadric requires inline base");
+    if (!baseNode->hasInlineBase) {
+        throw std::runtime_error("ANTLR lowering quadric requires inline base at " +
+            formatSourceLocation(node));
     }
 
     Quadric *quadric = ModelBuilder::getQuadricShape();
-    quadric->object2Terms = toVector(effectiveNode->object2Terms);
-    quadric->objectMixedTerms = toVector(effectiveNode->objectMixedTerms);
-    quadric->objectTerms = toVector(effectiveNode->objectTerms);
-    quadric->objectConstant = effectiveNode->objectConstant;
+    quadric->object2Terms = toVector(baseNode->object2Terms);
+    quadric->objectMixedTerms = toVector(baseNode->objectMixedTerms);
+    quadric->objectTerms = toVector(baseNode->objectTerms);
+    quadric->objectConstant = baseNode->objectConstant;
     quadric->nonZeroSquareTerm =
         !((quadric->object2Terms.x == 0.0) && (quadric->object2Terms.y == 0.0) &&
             (quadric->object2Terms.z == 0.0) && (quadric->objectMixedTerms.x == 0.0) &&
             (quadric->objectMixedTerms.y == 0.0) && (quadric->objectMixedTerms.z == 0.0));
-    if (effectiveNode->hasColour) {
+    if (baseNode->hasColour) {
         quadric->Shape_Colour = ModelBuilder::getColour();
-        quadric->Shape_Colour->Red = effectiveNode->colour.r;
-        quadric->Shape_Colour->Green = effectiveNode->colour.g;
-        quadric->Shape_Colour->Blue = effectiveNode->colour.b;
-        quadric->Shape_Colour->Alpha = effectiveNode->colour.a;
+        quadric->Shape_Colour->Red = baseNode->colour.r;
+        quadric->Shape_Colour->Green = baseNode->colour.g;
+        quadric->Shape_Colour->Blue = baseNode->colour.b;
+        quadric->Shape_Colour->Alpha = baseNode->colour.a;
     }
-    applyTransforms((SimpleBody *)quadric, effectiveNode->transforms, effectiveNode->transformCount);
-    if (effectiveNode->inverted) {
+    applyTransforms((SimpleBody *)quadric, baseNode->transforms, baseNode->transformCount);
+    if (baseNode->inverted) {
         GeometryOperations::invert((SimpleBody *)quadric);
+    }
+
+    // If this node references another quadric, apply local modifiers after base resolution.
+    if (node.hasReferenceBase && baseNode != &node) {
+        if (dbgQuadric != nullptr && dbgQuadric[0] == '1') {
+            fprintf(stderr, "[QUADRIC_TRANSFORMS] Applying node transforms: count=%d\n",
+                node.transformCount);
+        }
+        if (node.hasColour) {
+            if (quadric->Shape_Colour == nullptr) {
+                quadric->Shape_Colour = ModelBuilder::getColour();
+            }
+            quadric->Shape_Colour->Red = node.colour.r;
+            quadric->Shape_Colour->Green = node.colour.g;
+            quadric->Shape_Colour->Blue = node.colour.b;
+            quadric->Shape_Colour->Alpha = node.colour.a;
+        }
+        applyTransforms((SimpleBody *)quadric, node.transforms, node.transformCount);
+        if (node.inverted) {
+            GeometryOperations::invert((SimpleBody *)quadric);
+        }
+    }
+
+    // Apply the quadric's texture chain, mirroring buildQuartic. Without this the
+    // quadric renders with no texture (e.g. the coordinate-axis cylinders in
+    // axisbox.inc, `quadric { Cylinder_X ... texture { color X_Axis_Color } }`,
+    // would lose their colour and render black).
+    if (baseNode->hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(
+            materializeTextureChain(baseNode->textureChain, *gDeclaredTextures),
+            (Geometry *)quadric);
+    }
+    if (node.hasReferenceBase && node.hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(
+            materializeTextureChain(node.textureChain, *gDeclaredTextures),
+            (Geometry *)quadric);
     }
     return quadric;
 }
@@ -411,6 +861,7 @@ PolynomialShape *buildQuartic(const AntlrIrQuarticNode &node)
         declaredQuarticsRef();
 
     const AntlrIrQuarticNode *effectiveNode = &node;
+    const char *dbgQuartic = std::getenv("POVCPP_ANTLR_DEBUG_QUARTIC_BUILD");
     if (node.hasReferenceBase) {
         auto it = declaredQuartics.find(node.referenceIdentifier);
         if (it == declaredQuartics.end()) {
@@ -430,10 +881,25 @@ PolynomialShape *buildQuartic(const AntlrIrQuarticNode &node)
         throw std::runtime_error("ANTLR lowering quartic requires exactly " +
             std::to_string(coeffCount) + " coefficients at " + formatSourceLocation(node));
     }
+    if (dbgQuartic != nullptr && dbgQuartic[0] == '1') {
+        fprintf(stderr, "[QUARTIC_BUILD] coeffCount=%d, transformCount=%d, inverted=%d\n",
+            effectiveNode->coefficientCount, effectiveNode->transformCount, effectiveNode->inverted);
+    }
 
     PolynomialShape *poly = ModelBuilder::getPolyShape(order, PolynomialShape::termCounts());
     for (int i = 0; i < coeffCount; ++i) {
         poly->Coeffs[i] = effectiveNode->coefficients[i];
+    }
+    if (dbgQuartic != nullptr && dbgQuartic[0] == '1') {
+        fprintf(stderr, "[QUARTIC_COEFFS] First 5 coeffs: ");
+        for (int i = 0; i < 5 && i < coeffCount; ++i) {
+            fprintf(stderr, "%.6f ", poly->Coeffs[i]);
+        }
+        fprintf(stderr, "... Last 5: ");
+        for (int i = coeffCount - 5; i < coeffCount; ++i) {
+            if (i >= 0) fprintf(stderr, "%.6f ", poly->Coeffs[i]);
+        }
+        fprintf(stderr, "\n");
     }
     if (effectiveNode->sturm) {
         poly->sturmFlag = 1;
@@ -449,6 +915,37 @@ PolynomialShape *buildQuartic(const AntlrIrQuarticNode &node)
     if (effectiveNode->inverted) {
         GeometryOperations::invert((SimpleBody *)poly);
     }
+
+    // Apply local modifiers for quartic references, matching legacy behavior.
+    if (node.hasReferenceBase && effectiveNode != &node) {
+        if (node.sturm) {
+            poly->sturmFlag = 1;
+        }
+        if (node.hasColour) {
+            if (poly->Shape_Colour == nullptr) {
+                poly->Shape_Colour = ModelBuilder::getColour();
+            }
+            poly->Shape_Colour->Red = node.colour.r;
+            poly->Shape_Colour->Green = node.colour.g;
+            poly->Shape_Colour->Blue = node.colour.b;
+            poly->Shape_Colour->Alpha = node.colour.a;
+        }
+        applyTransforms((SimpleBody *)poly, node.transforms, node.transformCount);
+        if (node.inverted) {
+            GeometryOperations::invert((SimpleBody *)poly);
+        }
+    }
+
+    if (effectiveNode->hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(materializeTextureChain(effectiveNode->textureChain, *gDeclaredTextures),
+            (Geometry *)poly);
+    }
+    if (node.hasReferenceBase && node.hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(materializeTextureChain(node.textureChain, *gDeclaredTextures),
+            (Geometry *)poly);
+    }
+    logPolyOnce("antlr", poly);
+
     return poly;
 }
 
@@ -513,6 +1010,42 @@ Blob *buildBlob(const AntlrIrBlobNode &node,
     return blob;
 }
 
+ParametricBiCubicPatch *buildBicubicPatch(const AntlrIrBicubicPatchNode &node)
+{
+    if (!node.hasInlineBase) {
+        throw std::runtime_error("ANTLR lowering bicubic_patch requires inline base");
+    }
+
+    ParametricBiCubicPatch *patch = ModelBuilder::getBicubicPatchShape();
+    patch->patchType = node.patchType;
+    patch->flatnessValue = node.flatnessValue;
+    patch->uSteps = node.uSteps;
+    patch->vSteps = node.vSteps;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            patch->Control_Points[i][j] = toVector(node.controlPoints[i][j]);
+        }
+    }
+    ParametricBiCubicPatch::precomputePatchValues(patch);
+    if (node.hasColour) {
+        patch->Shape_Colour = ModelBuilder::getColour();
+        patch->Shape_Colour->Red = node.colour.r;
+        patch->Shape_Colour->Green = node.colour.g;
+        patch->Shape_Colour->Blue = node.colour.b;
+        patch->Shape_Colour->Alpha = node.colour.a;
+    }
+    applyTransforms((SimpleBody *)patch, node.transforms, node.transformCount);
+    if (node.inverted) {
+        GeometryOperations::invert((SimpleBody *)patch);
+    }
+    if (node.hasTextureChain && gDeclaredTextures != nullptr) {
+        applyShapeTexture(materializeTextureChain(node.textureChain, *gDeclaredTextures),
+            (Geometry *)patch);
+    }
+    logBicubicPatchOnce("antlr", patch);
+    return patch;
+}
+
 Light *buildLight(const AntlrIrLightNode &node,
     const std::unordered_map<std::string, const AntlrIrLightNode *> &declaredLights)
 {
@@ -560,13 +1093,1132 @@ Light *buildLight(const AntlrIrLightNode &node,
         light->Type = GeometryOperations::SPOT_LIGHT_TYPE;
     }
     applyTransforms((SimpleBody *)light, effectiveNode->transforms, effectiveNode->transformCount);
+    logLightOnce("antlr", light);
     return light;
 }
 
-Texture *materializeTextureChain(const AntlrIrTextureChain &chain,
-    const std::unordered_map<std::string, Texture *> &declaredTextures);
-void applyShapeTexture(Texture *srcTexture, Geometry *shape);
 void applyObjectTexture(Texture *srcTexture, SimpleBody *object);
+Texture *cloneDefaultTexture();
+double parseScalarAfterKeyword(const std::string &lower, const char *keyword, bool &ok)
+{
+    ok = false;
+    const size_t keyLen = std::char_traits<char>::length(keyword);
+    size_t pos = 0;
+    while ((pos = lower.find(keyword, pos)) != std::string::npos) {
+        const size_t endPos = pos + keyLen;
+
+        if (pos > 0) {
+            char prevChar = lower[pos - 1];
+            if (std::isalnum((unsigned char)prevChar) || prevChar == '_') {
+                pos = endPos;
+                continue;
+            }
+        }
+
+        if (endPos < lower.size()) {
+            char nextChar = lower[endPos];
+            if (std::isalnum((unsigned char)nextChar) || nextChar == '_') {
+                pos = endPos;
+                continue;
+            }
+        }
+
+        size_t i = endPos;
+        while (i < lower.size() && std::isspace((unsigned char)lower[i])) {
+            ++i;
+        }
+        if (i >= lower.size()) {
+            return 0.0;
+        }
+        char *endPtr = nullptr;
+        const double value = std::strtod(lower.c_str() + i, &endPtr);
+        if (endPtr != lower.c_str() + i) {
+            ok = true;
+            return value;
+        }
+        pos = endPos;
+    }
+    return 0.0;
+}
+
+AntlrIrColor parseNamedColourIdentifierForLowering(const std::string &name)
+{
+    const char *debugLog = std::getenv("POVCPP_ANTLR_DEBUG_COLOR_RESOLVE");
+
+#ifdef POV_WITH_ANTLR_RUNTIME
+    auto it = gAntlrDeclaredColours.find(name);
+    if (it != gAntlrDeclaredColours.end()) {
+        if (debugLog != nullptr && debugLog[0] == '1') {
+            fprintf(stderr, "ANTLR_COLOR_RESOLVE: '%s' found in gAntlrDeclaredColours: RGBA<%.3f,%.3f,%.3f,%.3f>\n",
+                    name.c_str(), it->second.r, it->second.g, it->second.b, it->second.a);
+        }
+        return it->second;
+    }
+#endif
+
+    if (gDeclaredTextures != nullptr) {
+        auto it2 = gDeclaredTextures->find(name);
+        if (it2 != gDeclaredTextures->end() && it2->second != nullptr && it2->second->Colour1 != nullptr) {
+            if (debugLog != nullptr && debugLog[0] == '1') {
+                fprintf(stderr, "ANTLR_COLOR_RESOLVE: '%s' found in gDeclaredTextures: RGBA<%.3f,%.3f,%.3f,%.3f>\n",
+                        name.c_str(), it2->second->Colour1->Red, it2->second->Colour1->Green,
+                        it2->second->Colour1->Blue, it2->second->Colour1->Alpha);
+            }
+            return {
+                it2->second->Colour1->Red,
+                it2->second->Colour1->Green,
+                it2->second->Colour1->Blue,
+                it2->second->Colour1->Alpha
+            };
+        }
+    }
+
+    std::string key = name;
+    for (char &c : key) {
+        c = (char)std::tolower((unsigned char)c);
+    }
+
+    // Extract base color name and number for colors like Gray80, Gray50
+    std::string baseName = key;
+    int colorNumber = -1;
+    {
+        size_t firstDigit = key.find_first_of("0123456789");
+        if (firstDigit != std::string::npos) {
+            baseName = key.substr(0, firstDigit);
+            std::string numPart = key.substr(firstDigit);
+            try {
+                colorNumber = std::stoi(numPart);
+            } catch (...) {
+                colorNumber = -1;
+            }
+        }
+    }
+
+    AntlrIrColor result = {1.0, 1.0, 1.0, 0.0};
+    if (key == "white") result = {1.0, 1.0, 1.0, 0.0};
+    else if (key == "clear") result = {1.0, 1.0, 1.0, 1.0};
+    else if (key == "black") result = {0.0, 0.0, 0.0, 0.0};
+    else if (key == "red") result = {1.0, 0.0, 0.0, 0.0};
+    else if (key == "green") result = {0.0, 1.0, 0.0, 0.0};
+    else if (key == "blue") result = {0.0, 0.0, 1.0, 0.0};
+    else if (key == "yellow") result = {1.0, 1.0, 0.0, 0.0};
+    else if (key == "cyan") result = {0.0, 1.0, 1.0, 0.0};
+    else if (key == "magenta") result = {1.0, 0.0, 1.0, 0.0};
+    else if (key == "gray" || key == "grey") result = {0.5, 0.5, 0.5, 0.0};
+    else if (key == "lightgray" || key == "lightgrey") result = {0.75, 0.75, 0.75, 0.0};
+    else if (key == "darkgray" || key == "darkgrey") result = {0.25, 0.25, 0.25, 0.0};
+    else if (key == "dimgray" || key == "dimgrey") result = {0.41, 0.41, 0.41, 0.0};
+    // Support GrayXX where XX is 0-100
+    else if ((baseName == "gray" || baseName == "grey") && colorNumber >= 0 && colorNumber <= 100) {
+        double intensity = colorNumber / 100.0;
+        result = {intensity, intensity, intensity, 0.0};
+    }
+
+    if (debugLog != nullptr && debugLog[0] == '1') {
+        fprintf(stderr, "ANTLR_COLOR_RESOLVE: '%s' resolved to builtin: RGBA<%.3f,%.3f,%.3f,%.3f>\n",
+                name.c_str(), result.r, result.g, result.b, result.a);
+    }
+    return result;
+}
+
+std::vector<std::string> extractIdentifiers(const std::string &text)
+{
+    std::vector<std::string> ids;
+    std::string current;
+    for (char ch : text) {
+        const bool identChar = std::isalnum((unsigned char)ch) || ch == '_';
+        if (identChar) {
+            current.push_back(ch);
+            continue;
+        }
+        if (!current.empty() && std::isalpha((unsigned char)current[0])) {
+            ids.push_back(current);
+        }
+        current.clear();
+    }
+    if (!current.empty() && std::isalpha((unsigned char)current[0])) {
+        ids.push_back(current);
+    }
+    return ids;
+}
+
+void skipSpaces(const std::string &s, size_t &i)
+{
+    while (i < s.size() && std::isspace((unsigned char)s[i])) {
+        ++i;
+    }
+}
+
+bool readIdentifier(const std::string &s, size_t &i, std::string &out)
+{
+    skipSpaces(s, i);
+    if (i >= s.size() || !(std::isalpha((unsigned char)s[i]) || s[i] == '_')) {
+        return false;
+    }
+    size_t start = i++;
+    while (i < s.size() && (std::isalpha((unsigned char)s[i]) || s[i] == '_')) {
+        ++i;
+    }
+    out = s.substr(start, i - start);
+    return true;
+}
+
+bool readNumber(const std::string &s, size_t &i, double &out)
+{
+    skipSpaces(s, i);
+    if (i >= s.size()) {
+        return false;
+    }
+    char *endPtr = nullptr;
+    out = std::strtod(s.c_str() + i, &endPtr);
+    if (endPtr == s.c_str() + i) {
+        return false;
+    }
+    i = (size_t)(endPtr - s.c_str());
+    return true;
+}
+
+bool parseColourSpec(const std::string &s, size_t &i, AntlrIrColor &out)
+{
+    std::string kwToken;
+    if (!readIdentifier(s, i, kwToken)) {
+        return false;
+    }
+    const char *debugColorSpec = std::getenv("POVCPP_ANTLR_DEBUG_COLORSPEC");
+    if (debugColorSpec != nullptr && debugColorSpec[0] == '1') {
+        fprintf(stderr, "parseColourSpec: kwToken='%s'\n", kwToken.c_str());
+    }
+    std::string lowKwToken = toLowerAscii(kwToken);
+    std::string head;
+    if (lowKwToken == "color" || lowKwToken == "colour") {
+        if (!readIdentifier(s, i, head)) {
+            return false;
+        }
+        // Also read trailing digits if present (for color names like Gray80, Gray50)
+        while (i < s.size() && std::isdigit((unsigned char)s[i])) {
+            head += s[i];
+            ++i;
+        }
+    } else if (lowKwToken.rfind("color", 0) == 0 && kwToken.size() > 5) {
+        head = kwToken.substr(5);
+    } else if (lowKwToken.rfind("colour", 0) == 0 && kwToken.size() > 6) {
+        head = kwToken.substr(6);
+    } else {
+        return false;
+    }
+    std::string lowHead = toLowerAscii(head);
+    if (lowHead != "red" && lowHead != "green" && lowHead != "blue" && lowHead != "alpha") {
+        if (debugColorSpec != nullptr && debugColorSpec[0] == '1') {
+            fprintf(stderr, "parseColourSpec: resolved named color '%s'\n", head.c_str());
+        }
+        out = parseNamedColourIdentifierForLowering(head);
+        size_t probe = i;
+        // Optional "alpha <n>" after named colour.
+        size_t opt = probe;
+        std::string nextId;
+        if (readIdentifier(s, opt, nextId) && toLowerAscii(nextId) == "alpha") {
+            double a = 0.0;
+            if (readNumber(s, opt, a)) {
+                out.a = a;
+                probe = opt;
+            }
+        }
+        i = probe;
+        return true;
+    }
+
+    out = {0.0, 0.0, 0.0, 0.0};
+    double v = 0.0;
+    if (!readNumber(s, i, v)) {
+        return false;
+    }
+    if (lowHead == "red") out.r = v;
+    else if (lowHead == "green") out.g = v;
+    else if (lowHead == "blue") out.b = v;
+    else out.a = v;
+
+    while (true) {
+        std::string comp;
+        size_t mark = i;
+        if (!readIdentifier(s, mark, comp)) {
+            break;
+        }
+        std::string lowComp = toLowerAscii(comp);
+        if (lowComp != "red" && lowComp != "green" && lowComp != "blue" && lowComp != "alpha") {
+            break;
+        }
+        double v = 0.0;
+        if (!readNumber(s, mark, v)) {
+            break;
+        }
+        if (lowComp == "red") out.r = v;
+        else if (lowComp == "green") out.g = v;
+        else if (lowComp == "blue") out.b = v;
+        else out.a = v;
+        i = mark;
+    }
+    return true;
+}
+
+bool parseColourMapRaw(const std::string &raw, RGBAColorPalette *&outPalette)
+{
+    outPalette = nullptr;
+    const char *debugColourMapRaw = std::getenv("POVCPP_ANTLR_DEBUG_COLOURMAP_RAW");
+    if (debugColourMapRaw != nullptr && debugColourMapRaw[0] == '1') {
+        fprintf(stderr, "DEBUG_COLOURMAP_RAW_INPUT: %s\n", raw.c_str());
+    }
+    std::vector<RGBAColorPaletteSpan> spans;
+    size_t i = 0;
+    while (i < raw.size()) {
+        if (raw[i] != '[') {
+            ++i;
+            continue;
+        }
+        size_t startBracket = i++;
+        size_t endBracket = raw.find(']', i);
+        if (endBracket == std::string::npos) {
+            break;
+        }
+        std::string entry = raw.substr(startBracket + 1, endBracket - startBracket - 1);
+
+        // Pre-normalize: insert space before known keywords when preceded by letter/digit
+        // This fixes "Graycolor" → "Gray color", "Orangeambient" → "Orange ambient", "red1alpha" → "red 1 alpha"
+        for (const char *kw : {"colour", "color", "alpha", "ambient", "diffuse", "phong", "reflection",
+                               "turbulence", "frequency", "phase", "octaves", "scale", "translate", "rotate",
+                               "bumps", "ripples", "wrinkles", "dents", "bumpy1", "bumpy2", "bumpy3"}) {
+            std::string needle = kw;
+            size_t pos = 0;
+            while ((pos = entry.find(needle, pos)) != std::string::npos) {
+                // Check if preceded by letter or digit (not start of string)
+                if (pos > 0 && (std::isalpha((unsigned char)entry[pos - 1]) ||
+                                std::isdigit((unsigned char)entry[pos - 1]))) {
+                    entry.insert(pos, " ");
+                    pos += needle.size() + 1;
+                } else {
+                    pos += needle.size();
+                }
+            }
+        }
+
+        // Normalize: insert spaces between numbers and before letters
+        std::string normalized;
+        for (size_t k = 0; k < entry.size(); ++k) {
+            const char c = entry[k];
+            const char prev = (k > 0) ? entry[k-1] : ' ';
+            const char next = (k + 1 < entry.size()) ? entry[k+1] : ' ';
+
+            // Insert space before letters (color keywords) if preceded by digit or '.'
+            if (std::isalpha((unsigned char)c) && (std::isdigit((unsigned char)prev) || prev == '.')) {
+                normalized += ' ';
+            }
+            // Insert space before '.' or digit if preceded by letter (after color name)
+            else if ((c == '.' || std::isdigit((unsigned char)c)) && std::isalpha((unsigned char)prev)) {
+                normalized += ' ';
+            }
+            normalized += c;
+
+            // Insert space after '.' if next is '.' (transition between two numbers like 0.0 and 0.95)
+            if (c == '.' && next == '.') {
+                normalized += ' ';
+            }
+        }
+
+        size_t p = 0;
+        double start = 0.0;
+        double end = 0.0;
+        if (!readNumber(normalized, p, start) || !readNumber(normalized, p, end)) {
+            i = endBracket + 1;
+            continue;
+        }
+        AntlrIrColor c1 = {1.0, 1.0, 1.0, 0.0};
+        AntlrIrColor c2 = {1.0, 1.0, 1.0, 0.0};
+        if (!parseColourSpec(entry, p, c1) || !parseColourSpec(entry, p, c2)) {
+            i = endBracket + 1;
+            continue;
+        }
+
+        RGBAColorPaletteSpan span;
+        span.start = start;
+        span.end = end;
+        span.startColour.Red = c1.r;
+        span.startColour.Green = c1.g;
+        span.startColour.Blue = c1.b;
+        span.startColour.Alpha = c1.a;
+        span.endColour.Red = c2.r;
+        span.endColour.Green = c2.g;
+        span.endColour.Blue = c2.b;
+        span.endColour.Alpha = c2.a;
+        spans.push_back(span);
+        i = endBracket + 1;
+    }
+
+    if (spans.empty()) {
+        return false;
+    }
+
+    std::sort(spans.begin(), spans.end(),
+        [](const RGBAColorPaletteSpan &a, const RGBAColorPaletteSpan &b) {
+            return a.start < b.start;
+        });
+    for (RGBAColorPaletteSpan &span : spans) {
+        if (span.start > span.end) {
+            const double tmp = span.start;
+            span.start = span.end;
+            span.end = tmp;
+        }
+        if (span.start < 0.0) span.start = 0.0;
+        if (span.end > 1.0) span.end = 1.0;
+    }
+    if (!spans.empty()) {
+        spans.front().start = 0.0;
+        spans.back().end = 1.0;
+        for (size_t i = 1; i < spans.size(); ++i) {
+            if (spans[i].start > spans[i - 1].end) {
+                spans[i].start = spans[i - 1].end;
+            }
+            if (spans[i].end < spans[i].start) {
+                spans[i].end = spans[i].start;
+            }
+        }
+    }
+
+    RGBAColorPalette *palette = new RGBAColorPalette();
+    palette->numberOfEntries = (int)spans.size();
+    palette->transparencyFlag = LegacyBoolean::FALSE_VALUE;
+    palette->Colour_Map_Entries = new RGBAColorPaletteSpan[spans.size()];
+
+    const char *debugColourMap = std::getenv("POVCPP_ANTLR_DEBUG_COLOURMAP");
+    if (debugColourMap != nullptr && debugColourMap[0] == '1') {
+        fprintf(stderr, "DEBUG_COLOURMAP: parsing %zu spans\n", spans.size());
+    }
+
+    for (size_t k = 0; k < spans.size(); ++k) {
+        palette->Colour_Map_Entries[k] = spans[k];
+        if (debugColourMap != nullptr && debugColourMap[0] == '1') {
+            fprintf(stderr, "  SPAN[%zu]: [%.2f %.2f] start=(R:%.3f G:%.3f B:%.3f A:%.3f) end=(R:%.3f G:%.3f B:%.3f A:%.3f)\n",
+                k, spans[k].start, spans[k].end,
+                spans[k].startColour.Red, spans[k].startColour.Green, spans[k].startColour.Blue, spans[k].startColour.Alpha,
+                spans[k].endColour.Red, spans[k].endColour.Green, spans[k].endColour.Blue, spans[k].endColour.Alpha);
+        }
+        if (spans[k].startColour.Alpha > 0.0 || spans[k].endColour.Alpha > 0.0) {
+            palette->transparencyFlag = LegacyBoolean::TRUE_VALUE;
+        }
+    }
+
+    outPalette = palette;
+    return true;
+}
+
+std::vector<std::string> extractInlineTextureBlocks(const std::string &raw)
+{
+    std::vector<std::string> blocks;
+    std::string lower = raw;
+    for (char &ch : lower) {
+        ch = (char)std::tolower((unsigned char)ch);
+    }
+
+    // First, find the content inside tiles{...}
+    size_t tilesPos = lower.find("tiles");
+    if (tilesPos == std::string::npos) {
+        return blocks;
+    }
+
+    size_t tilesOpenPos = lower.find('{', tilesPos + 5);
+    if (tilesOpenPos == std::string::npos) {
+        return blocks;
+    }
+
+    // Find the matching closing brace for tiles{...}
+    int depth = 0;
+    size_t tilesClosePos = tilesOpenPos;
+    bool tilesFound = false;
+    for (; tilesClosePos < raw.size(); ++tilesClosePos) {
+        const char c = raw[tilesClosePos];
+        if (c == '{') {
+            ++depth;
+        } else if (c == '}') {
+            --depth;
+            if (depth == 0) {
+                tilesFound = true;
+                break;
+            }
+        }
+    }
+
+    if (!tilesFound) {
+        return blocks;
+    }
+
+    // Extract content between tiles{ and }
+    std::string tilesContent = raw.substr(tilesOpenPos + 1, tilesClosePos - tilesOpenPos - 1);
+    std::string tilesContentLower = tilesContent;
+    for (char &ch : tilesContentLower) {
+        ch = (char)std::tolower((unsigned char)ch);
+    }
+
+    // Now find texture blocks within this content
+    size_t pos = 0;
+    while (true) {
+        pos = tilesContentLower.find("texture", pos);
+        if (pos == std::string::npos) {
+            break;
+        }
+        size_t bracePos = tilesContentLower.find('{', pos + 7);
+        if (bracePos == std::string::npos) {
+            break;
+        }
+
+        int bDepth = 0;
+        size_t endPos = bracePos;
+        bool closed = false;
+        for (; endPos < tilesContent.size(); ++endPos) {
+            const char c = tilesContent[endPos];
+            if (c == '{') {
+                ++bDepth;
+            } else if (c == '}') {
+                --bDepth;
+                if (bDepth == 0) {
+                    closed = true;
+                    ++endPos;
+                    break;
+                }
+            }
+        }
+        if (!closed || endPos <= pos) {
+            break;
+        }
+
+        blocks.push_back(tilesContent.substr(pos, endPos - pos));
+        pos = endPos;
+    }
+
+    return blocks;
+}
+
+static bool parseVectorAfterKeyword(const std::string &s, const char *keyword,
+                                    double &x, double &y, double &z)
+{
+    size_t pos = s.find(keyword);
+    if (pos == std::string::npos) return false;
+
+    size_t keylen = std::strlen(keyword);
+    if (pos > 0) {
+        char prevChar = s[pos - 1];
+        if (std::isalnum((unsigned char)prevChar) || prevChar == '_') {
+            return false;
+        }
+    }
+
+    if (pos + keylen < s.size()) {
+        char nextChar = s[pos + keylen];
+        if (std::isalnum((unsigned char)nextChar) || nextChar == '_') {
+            return false;
+        }
+    }
+
+    pos += keylen;
+    while (pos < s.size() && s[pos] != '<') ++pos;
+    if (pos >= s.size()) return false;
+    ++pos;
+    char *end = nullptr;
+    x = std::strtod(s.c_str() + pos, &end);
+    if (end == s.c_str() + pos) return false;
+    pos = end - s.c_str();
+
+    while (pos < s.size() && (s[pos] == ',' || s[pos] == ' ' || s[pos] == '\t')) ++pos;
+    if (pos >= s.size() || s[pos] == '>') return false;
+    y = std::strtod(s.c_str() + pos, &end);
+    if (end == s.c_str() + pos) return false;
+    pos = end - s.c_str();
+
+    while (pos < s.size() && (s[pos] == ',' || s[pos] == ' ' || s[pos] == '\t')) ++pos;
+    if (pos >= s.size() || s[pos] == '>') return false;
+    z = std::strtod(s.c_str() + pos, &end);
+    if (end == s.c_str() + pos) return false;
+    return true;
+}
+
+static void applyInlineTextureTransforms(Texture *texture, const std::string &rawBlockElement)
+{
+    if (texture == nullptr || rawBlockElement.empty()) {
+        return;
+    }
+
+    const char *debugTransforms = std::getenv("POVCPP_ANTLR_DEBUG_INLINE_TRANSFORMS");
+    if (debugTransforms != nullptr && debugTransforms[0] == '1') {
+        fprintf(stderr, "[ANTLR_INLINE_TRANSFORMS] Processing transforms from rawElement (len=%zu)\n", rawBlockElement.size());
+    }
+
+    std::string lower = rawBlockElement;
+    for (char &ch : lower) {
+        ch = (char)std::tolower((unsigned char)ch);
+    }
+
+    double x, y, z;
+
+    // Apply scale transform
+    if (parseVectorAfterKeyword(lower, "scale", x, y, z)) {
+        Vector3Dd v(x, y, z);
+        if (debugTransforms != nullptr && debugTransforms[0] == '1') {
+            fprintf(stderr, "[ANTLR_INLINE_TRANSFORMS] Applying scale <%.3f, %.3f, %.3f>\n", x, y, z);
+        }
+        TextureUtils::scaleTexture(&texture, &v);
+    }
+
+    // Apply rotate transform
+    if (parseVectorAfterKeyword(lower, "rotate", x, y, z)) {
+        Vector3Dd v(x, y, z);
+        if (debugTransforms != nullptr && debugTransforms[0] == '1') {
+            fprintf(stderr, "[ANTLR_INLINE_TRANSFORMS] Applying rotate <%.3f, %.3f, %.3f>\n", x, y, z);
+        }
+        TextureUtils::rotateTexture(&texture, &v);
+    }
+
+    // Apply translate transform
+    if (parseVectorAfterKeyword(lower, "translate", x, y, z)) {
+        Vector3Dd v(x, y, z);
+        if (debugTransforms != nullptr && debugTransforms[0] == '1') {
+            fprintf(stderr, "[ANTLR_INLINE_TRANSFORMS] Applying translate <%.3f, %.3f, %.3f>\n", x, y, z);
+        }
+        TextureUtils::translateTexture(&texture, &v);
+    }
+}
+
+bool applyRawTextureElement(Texture *texture, const std::string &rawElement, bool applyInlineTransforms = true)
+{
+    if (texture == nullptr || rawElement.empty()) {
+        return false;
+    }
+
+    std::string lower = rawElement;
+    for (char &ch : lower) {
+        ch = (char)std::tolower((unsigned char)ch);
+    }
+
+    bool touched = false;
+    bool ok = false;
+    bool detectedProceduralTexture = false;
+    bool isTilesTexture = false;
+
+    // Process image_map
+    if (lower.find("image_map") != std::string::npos) {
+        Logger::info("[ANTLR-IMAGE_MAP] Detected image_map in rawElement\n");
+
+        // Extract filename from image_map - search for gif/tga/iff with optional space before quote
+        size_t gifPos = rawElement.find("gif");
+        size_t tgaPos = rawElement.find("tga");
+        size_t iffPos = rawElement.find("iff");
+        size_t imageTypePos = std::string::npos;
+        std::string detectedFormat;
+
+        if (gifPos != std::string::npos) {
+            imageTypePos = gifPos;
+            detectedFormat = "gif";
+        }
+        if (tgaPos != std::string::npos && (imageTypePos == std::string::npos || tgaPos < imageTypePos)) {
+            imageTypePos = tgaPos;
+            detectedFormat = "tga";
+        }
+        if (iffPos != std::string::npos && (imageTypePos == std::string::npos || iffPos < imageTypePos)) {
+            imageTypePos = iffPos;
+            detectedFormat = "iff";
+        }
+
+        if (imageTypePos != std::string::npos) {
+            size_t startQuote = rawElement.find('"', imageTypePos + 3);
+            size_t endQuote = rawElement.find('"', startQuote + 1);
+            if (startQuote != std::string::npos && endQuote != std::string::npos) {
+                std::string filename = rawElement.substr(startQuote + 1, endQuote - startQuote - 1);
+                Logger::info("[ANTLR-IMAGE_MAP] Extracted filename: %s (format: %s)\n", filename.c_str(), detectedFormat.c_str());
+
+                // Create and load image
+                if (texture->Image == nullptr) {
+                    texture->Image = new RGBAImage();
+                }
+                if (texture->Image != nullptr) {
+                    // Default values from legacy parser
+                    Vector3Dd imageGradient(1.0, -1.0, 0.0);
+
+                    // Parse image_map gradient vector if present (e.g., <1.0 0.0 -1.0>)
+                    size_t imageMapPos = rawElement.find("image_map");
+                    if (imageMapPos != std::string::npos) {
+                        size_t openBracket = rawElement.find('<', imageMapPos);
+                        if (openBracket != std::string::npos && openBracket < imageTypePos) {
+                            size_t closeBracket = rawElement.find('>', openBracket);
+                            if (closeBracket != std::string::npos) {
+                                std::string gradientStr = rawElement.substr(openBracket + 1, closeBracket - openBracket - 1);
+                                // Parse three floats from "1.0 0.0 -1.0"
+                                double gx = 0.0, gy = 0.0, gz = 0.0;
+                                int parsed = sscanf(gradientStr.c_str(), "%lf %lf %lf", &gx, &gy, &gz);
+                                if (parsed == 3) {
+                                    imageGradient = Vector3Dd(gx, gy, gz);
+                                    Logger::info("[ANTLR-IMAGE_MAP] Parsed gradient vector: <%f %f %f>\n", gx, gy, gz);
+                                }
+                            }
+                        }
+                    }
+
+                    texture->Image->imageGradient = imageGradient;
+                    texture->Image->mapType = Texture::PLANAR_MAP;
+                    texture->Image->interpolationType = Texture::NO_INTERPOLATION;
+                    texture->Image->onceFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->Image->useColourFlag = LegacyBoolean::TRUE_VALUE;
+
+                    // Parse interpolate flag if present (e.g., "interpolate 2")
+                    if (lower.find("interpolate") != std::string::npos) {
+                        bool interp_ok = false;
+                        const double interpolateVal = parseScalarAfterKeyword(lower, "interpolate", interp_ok);
+                        if (interp_ok && interpolateVal > 0.0) {
+                            int interpType = (int)interpolateVal;
+                            if (interpType >= 0 && interpType <= 3) {
+                                texture->Image->interpolationType = interpType;
+                                Logger::info("[ANTLR-IMAGE_MAP] Set interpolation type: %d\n", interpType);
+                            }
+                        }
+                    }
+
+                    // Parse once flag if present
+                    if (lower.find("once") != std::string::npos) {
+                        texture->Image->onceFlag = LegacyBoolean::TRUE_VALUE;
+                        Logger::info("[ANTLR-IMAGE_MAP] Set once flag\n");
+                    }
+
+                    // Try to load the image (with error handling)
+                    try {
+                        char *filenameC = new char[filename.size() + 1];
+                        std::strcpy(filenameC, filename.c_str());
+                        Logger::info("[ANTLR-IMAGE_MAP] Attempting to load: %s as %s\n", filenameC, detectedFormat.c_str());
+
+                        if (detectedFormat == "gif") {
+                            GifFormat::readGifImage(texture->Image, filenameC);
+                        } else if (detectedFormat == "tga") {
+                            TargaFormat::readTargaImage(texture->Image, filenameC);
+                        } else if (detectedFormat == "iff") {
+                            IffFormat::readIffImage(texture->Image, filenameC);
+                        }
+
+                        delete[] filenameC;
+
+                        texture->textureNumber = Texture::IMAGEMAP_TEXTURE;
+                        touched = true;
+                        Logger::info("[ANTLR-IMAGE_MAP] Created IMAGEMAP_TEXTURE for: %s\n", filename.c_str());
+                    } catch (const std::exception &e) {
+                        Logger::error("[ANTLR-IMAGE_MAP] Failed to load image %s (%s): %s\n", filename.c_str(), detectedFormat.c_str(), e.what());
+                    } catch (...) {
+                        Logger::error("[ANTLR-IMAGE_MAP] Failed to load image %s (%s): unknown error\n", filename.c_str(), detectedFormat.c_str());
+                    }
+                }
+            }
+        }
+    }
+
+    const char *debugTextureParams = std::getenv("POVCPP_ANTLR_DEBUG_TEXTURE_PARAMS");
+    if (debugTextureParams != nullptr && debugTextureParams[0] == '1') {
+        fprintf(stderr, "ANTLR_TEXTURE_PARAMS_RAW: %s\n", rawElement.c_str());
+    }
+
+    const char *auditTextureRaw = std::getenv("POVCPP_AUDIT_TEXTURE_RAW");
+    if (auditTextureRaw != nullptr && auditTextureRaw[0] == '1') {
+        if (lower.find("tile2") != std::string::npos ||
+            lower.find("tiles") != std::string::npos ||
+            lower.find("checker_texture") != std::string::npos) {
+            fprintf(stderr, "ANTLR_TEXTURE_RAW %s\n", rawElement.c_str());
+        }
+    }
+
+    if (lower.find("tiles") != std::string::npos) {
+        texture->textureNumber = Texture::CHECKER_TEXTURE_TEXTURE;
+        touched = true;
+        isTilesTexture = true;
+
+        std::vector<std::string> blocks = extractInlineTextureBlocks(rawElement);
+        if (blocks.size() >= 2) {
+            size_t firstIdx = 0;
+            size_t secondIdx = 1;
+            if (blocks.size() >= 3) {
+                firstIdx = 1;
+                secondIdx = 2;
+            }
+            Texture *t1 = cloneDefaultTexture();
+            Texture *t2 = cloneDefaultTexture();
+            if (t1 != nullptr && t2 != nullptr) {
+                applyRawTextureElement(t1, blocks[firstIdx]);
+                applyRawTextureElement(t2, blocks[secondIdx]);
+                texture->Colour1 = (RGBAColor *)t1;
+                texture->Colour2 = (RGBAColor *)t2;
+            }
+        }
+    }
+
+    const double ambient = parseScalarAfterKeyword(lower, "ambient", ok);
+    if (ok) {
+        texture->objectAmbient = ambient;
+        touched = true;
+    }
+    const double diffuse = parseScalarAfterKeyword(lower, "diffuse", ok);
+    if (ok) {
+        texture->objectDiffuse = diffuse;
+        touched = true;
+    }
+    const double phong = parseScalarAfterKeyword(lower, "phong", ok);
+    if (ok) {
+        texture->objectPhong = phong;
+        touched = true;
+    }
+    const double phongSize = parseScalarAfterKeyword(lower, "phong_size", ok);
+    if (ok) {
+        texture->objectPhongSize = phongSize;
+        touched = true;
+    }
+    const double brilliance = parseScalarAfterKeyword(lower, "brilliance", ok);
+    if (ok) {
+        texture->objectBrilliance = brilliance;
+        touched = true;
+    }
+    const double reflection = parseScalarAfterKeyword(lower, "reflection", ok);
+    if (ok) {
+        texture->objectReflection = reflection;
+        touched = true;
+    }
+    const double refraction = parseScalarAfterKeyword(lower, "refraction", ok);
+    if (ok) {
+        texture->objectRefraction = refraction;
+        touched = true;
+    }
+    const double ior = parseScalarAfterKeyword(lower, "ior", ok);
+    if (ok) {
+        texture->objectIndexOfRefraction = ior;
+        touched = true;
+    }
+    const double specular = parseScalarAfterKeyword(lower, "specular", ok);
+    if (ok) {
+        texture->objectSpecular = specular;
+        touched = true;
+    }
+    const double roughness = parseScalarAfterKeyword(lower, "roughness", ok);
+    if (ok) {
+        texture->objectRoughness = roughness;
+        touched = true;
+    }
+    const double metallic = parseScalarAfterKeyword(lower, "metallic", ok);
+    if (ok) {
+        texture->metallicFlag = (metallic > 0.0) ? LegacyBoolean::TRUE_VALUE : LegacyBoolean::FALSE_VALUE;
+        touched = true;
+    }
+    const double transmit = parseScalarAfterKeyword(lower, "transmit", ok);
+    if (ok) {
+        texture->objectTransmit = transmit;
+        touched = true;
+    }
+    const double turbulence = parseScalarAfterKeyword(lower, "turbulence", ok);
+    if (ok) {
+        texture->Turbulence = turbulence;
+        touched = true;
+    }
+    const double octaves = parseScalarAfterKeyword(lower, "octaves", ok);
+    if (ok) {
+        int o = (int)octaves;
+        if (o < 1) {
+            o = 6;
+        }
+        if (o > 10) {
+            o = 10;
+        }
+        texture->Octaves = o;
+        touched = true;
+    }
+    const double frequency = parseScalarAfterKeyword(lower, "frequency", ok);
+    if (ok) {
+        texture->Frequency = frequency;
+        touched = true;
+    }
+    const double phase = parseScalarAfterKeyword(lower, "phase", ok);
+    if (ok) {
+        texture->Phase = phase;
+        touched = true;
+    }
+    const double mortar = parseScalarAfterKeyword(lower, "mortar", ok);
+    if (ok) {
+        texture->Mortar = mortar < 0.0 ? 0.2 : mortar;
+        touched = true;
+    }
+
+    const double bumps = parseScalarAfterKeyword(lower, "bumps", ok);
+    if (ok) {
+        texture->bumpNumber = Texture::BUMPS;
+        texture->bumpAmount = bumps;
+        touched = true;
+    }
+    const double ripples = parseScalarAfterKeyword(lower, "ripples", ok);
+    if (ok) {
+        texture->bumpNumber = Texture::RIPPLES;
+        texture->bumpAmount = ripples;
+        touched = true;
+    }
+    const double wrinkles = parseScalarAfterKeyword(lower, "wrinkles", ok);
+    if (ok) {
+        texture->bumpNumber = Texture::WRINKLES;
+        texture->bumpAmount = wrinkles;
+        touched = true;
+    }
+    const double dents = parseScalarAfterKeyword(lower, "dents", ok);
+    if (ok) {
+        texture->bumpNumber = Texture::DENTS;
+        texture->bumpAmount = dents;
+        touched = true;
+    }
+    const double bumpy1 = parseScalarAfterKeyword(lower, "bumpy1", ok);
+    if (ok) {
+        texture->bumpNumber = Texture::BUMPY1;
+        texture->bumpAmount = bumpy1;
+        touched = true;
+    }
+    const double bumpy2 = parseScalarAfterKeyword(lower, "bumpy2", ok);
+    if (ok) {
+        texture->bumpNumber = Texture::BUMPY2;
+        texture->bumpAmount = bumpy2;
+        touched = true;
+    }
+    const double bumpy3 = parseScalarAfterKeyword(lower, "bumpy3", ok);
+    if (ok) {
+        texture->bumpNumber = Texture::BUMPY3;
+        texture->bumpAmount = bumpy3;
+        touched = true;
+    }
+
+    if (!isTilesTexture && lower.find("gradient") != std::string::npos) {
+        texture->textureNumber = Texture::GRADIENT_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+        double gx = 0.0, gy = 0.0, gz = 0.0;
+        if (parseVectorAfterKeyword(rawElement, "gradient", gx, gy, gz)) {
+            texture->textureGradient.x = gx;
+            texture->textureGradient.y = gy;
+            texture->textureGradient.z = gz;
+        }
+    } else if (!isTilesTexture && lower.find("granite") != std::string::npos) {
+        texture->textureNumber = Texture::GRANITE_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("marble") != std::string::npos) {
+        texture->textureNumber = Texture::MARBLE_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("wood") != std::string::npos) {
+        texture->textureNumber = Texture::WOOD_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("checker") != std::string::npos &&
+        texture->textureNumber != Texture::CHECKER_TEXTURE_TEXTURE) {
+        Logger::info("[ANTLR-LOWERING] Detected checker texture\n");
+        texture->textureNumber = Texture::CHECKER_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("bozo") != std::string::npos) {
+        texture->textureNumber = Texture::BOZO_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("agate") != std::string::npos) {
+        texture->textureNumber = Texture::AGATE_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("spotted") != std::string::npos) {
+        texture->textureNumber = Texture::SPOTTED_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("onion") != std::string::npos) {
+        texture->textureNumber = Texture::ONION_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("leopard") != std::string::npos) {
+        texture->textureNumber = Texture::LEOPARD_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    } else if (!isTilesTexture && lower.find("brick") != std::string::npos) {
+        texture->textureNumber = Texture::BRICK_TEXTURE;
+        touched = true;
+        detectedProceduralTexture = true;
+    }
+
+    const bool containsColorMap = (lower.find("color_map") != std::string::npos) ||
+        (lower.find("colour_map") != std::string::npos);
+    const bool isCheckerOrBrick = texture->textureNumber == Texture::CHECKER_TEXTURE ||
+        texture->textureNumber == Texture::BRICK_TEXTURE;
+
+    if (isCheckerOrBrick && texture->Colour1 == nullptr) {
+        size_t firstColourPos = lower.find("colour");
+        size_t firstColorPos = lower.find("color");
+        size_t firstPos = std::string::npos;
+        if (firstColourPos != std::string::npos && firstColorPos != std::string::npos) {
+            firstPos = (firstColourPos < firstColorPos) ? firstColourPos : firstColorPos;
+        } else if (firstColourPos != std::string::npos) {
+            firstPos = firstColourPos;
+        } else if (firstColorPos != std::string::npos) {
+            firstPos = firstColorPos;
+        }
+
+        if (firstPos != std::string::npos) {
+            const std::string firstColourSpec = rawElement.substr(firstPos);
+            size_t firstParsePos = 0;
+            AntlrIrColor c1 = {0.0, 0.0, 0.0, 0.0};
+            if (parseColourSpec(firstColourSpec, firstParsePos, c1)) {
+                texture->Colour1 = ModelBuilder::getColour();
+                texture->Colour1->Red = c1.r;
+                texture->Colour1->Green = c1.g;
+                texture->Colour1->Blue = c1.b;
+                texture->Colour1->Alpha = c1.a;
+                touched = true;
+            }
+        }
+    } else {
+        bool hasRed = false;
+        bool hasGreen = false;
+        bool hasBlue = false;
+        const double red = parseScalarAfterKeyword(lower, "red", hasRed);
+        const double green = parseScalarAfterKeyword(lower, "green", hasGreen);
+        const double blue = parseScalarAfterKeyword(lower, "blue", hasBlue);
+        if (!containsColorMap && (hasRed || hasGreen || hasBlue)) {
+            if (texture->Colour1 == nullptr) {
+                texture->Colour1 = ModelBuilder::getColour();
+            }
+            if (hasRed) {
+                texture->Colour1->Red = red;
+            }
+            if (hasGreen) {
+                texture->Colour1->Green = green;
+            }
+            if (hasBlue) {
+                texture->Colour1->Blue = blue;
+            }
+            bool hasAlpha = false;
+            const double alpha = parseScalarAfterKeyword(lower, "alpha", hasAlpha);
+            if (hasAlpha) {
+                texture->Colour1->Alpha = alpha;
+            }
+            if (!detectedProceduralTexture &&
+                (texture->textureNumber == Texture::NO_TEXTURE || texture->textureNumber == Texture::COLOUR_TEXTURE)) {
+                texture->textureNumber = Texture::COLOUR_TEXTURE;
+            }
+            touched = true;
+        }
+    }
+
+    if (containsColorMap && texture->Colour_Map == nullptr) {
+        RGBAColorPalette *palette = nullptr;
+        if (parseColourMapRaw(rawElement, palette)) {
+            texture->Colour_Map = palette;
+            touched = true;
+        }
+    }
+
+    const size_t colourPos = lower.find("colour");
+    const size_t colorPos = lower.find("color");
+    const size_t pos = (colourPos != std::string::npos) ? colourPos : colorPos;
+    if (!isCheckerOrBrick && pos != std::string::npos && !containsColorMap) {
+        // Pre-normalize: insert spaces before known keywords in the raw element
+        std::string normalizedElement = rawElement;
+        for (const char *kw : {"ambient", "diffuse", "phong", "reflection", "turbulence",
+                              "frequency", "phase", "octaves", "scale", "translate", "rotate"}) {
+            std::string needle = kw;
+            size_t searchPos = 0;
+            while ((searchPos = normalizedElement.find(needle, searchPos)) != std::string::npos) {
+                if (searchPos > 0 && std::isalpha((unsigned char)normalizedElement[searchPos - 1])) {
+                    normalizedElement.insert(searchPos, " ");
+                    searchPos += needle.size() + 1;
+                } else {
+                    searchPos += needle.size();
+                }
+            }
+        }
+
+        size_t nameStart = pos + ((colourPos != std::string::npos) ? 6 : 5);
+        while (nameStart < normalizedElement.size() && !std::isalpha((unsigned char)normalizedElement[nameStart])) {
+            ++nameStart;
+        }
+        size_t nameEnd = nameStart;
+        while (nameEnd < normalizedElement.size()) {
+            const char c = normalizedElement[nameEnd];
+            if (!std::isalnum((unsigned char)c) && c != '_') {
+                break;
+            }
+            ++nameEnd;
+        }
+        if (nameEnd > nameStart) {
+            const std::string rawName = normalizedElement.substr(nameStart, nameEnd - nameStart);
+            const AntlrIrColor c = parseNamedColourIdentifierForLowering(rawName);
+            if (texture->Colour1 == nullptr) {
+                texture->Colour1 = ModelBuilder::getColour();
+            }
+            texture->Colour1->Red = c.r;
+            texture->Colour1->Green = c.g;
+            texture->Colour1->Blue = c.b;
+            texture->Colour1->Alpha = c.a;
+            // Allow explicit alpha to override named color's alpha
+            bool hasExplicitAlpha = false;
+            const double explicitAlpha = parseScalarAfterKeyword(lower, "alpha", hasExplicitAlpha);
+            if (hasExplicitAlpha) {
+                texture->Colour1->Alpha = explicitAlpha;
+            }
+            // Only set COLOUR_TEXTURE if no procedural texture was already detected
+            if (texture->textureNumber == Texture::NO_TEXTURE) {
+                texture->textureNumber = Texture::COLOUR_TEXTURE;
+            }
+            touched = true;
+        }
+    }
+
+    // For CHECKER_TEXTURE and BRICK_TEXTURE, parse second color for Colour2 even when
+    // the first color was specified with explicit red/green/blue components.
+    if (isCheckerOrBrick &&
+        texture->Colour2 == nullptr) {
+        // Search for second "colour" or "color" after the first one
+        size_t secondColourPos = rawElement.find("colour", pos + 1);
+        size_t secondColorPos = rawElement.find("color", pos + 1);
+
+        // Pick whichever comes first and is not npos
+        size_t secondPos = std::string::npos;
+        if (secondColourPos != std::string::npos && secondColorPos != std::string::npos) {
+            secondPos = (secondColourPos < secondColorPos) ? secondColourPos : secondColorPos;
+        } else if (secondColourPos != std::string::npos) {
+            secondPos = secondColourPos;
+        } else if (secondColorPos != std::string::npos) {
+            secondPos = secondColorPos;
+        }
+
+        if (secondPos != std::string::npos) {
+            const std::string secondColourSpec = rawElement.substr(secondPos);
+            size_t secondParsePos = 0;
+            AntlrIrColor c2 = {0.0, 0.0, 0.0, 0.0};
+            bool parsedSecondColour = parseColourSpec(secondColourSpec, secondParsePos, c2);
+            if (std::getenv("POVCPP_ANTLR_DEBUG_TEXTURE") != nullptr) {
+                Logger::info("[ANTLR-CHECKER] secondPos=%zu parsed=%d slice='%s' c2=<%.6f,%.6f,%.6f,%.6f> parsePos=%zu\n",
+                    secondPos, parsedSecondColour ? 1 : 0, secondColourSpec.c_str(),
+                    c2.r, c2.g, c2.b, c2.a, secondParsePos);
+            }
+            if (parsedSecondColour) {
+                texture->Colour2 = ModelBuilder::getColour();
+                texture->Colour2->Red = c2.r;
+                texture->Colour2->Green = c2.g;
+                texture->Colour2->Blue = c2.b;
+                texture->Colour2->Alpha = c2.a;
+            }
+        }
+    }
+
+    if (debugTextureParams != nullptr && debugTextureParams[0] == '1' && touched) {
+        fprintf(stderr, "ANTLR_TEXTURE_PARSED: type=%d ambient=%.3f diffuse=%.3f phong=%.3f "
+                        "brilliance=%.3f reflection=%.3f turbulence=%.3f bumpNumber=%d bumpAmount=%.3f\n",
+                texture->textureNumber, texture->objectAmbient, texture->objectDiffuse,
+                texture->objectPhong, texture->objectBrilliance, texture->objectReflection,
+                texture->Turbulence, texture->bumpNumber, texture->bumpAmount);
+    }
+
+    if (touched && applyInlineTransforms) {
+        applyInlineTextureTransforms(texture, rawElement);
+    }
+
+    return touched;
+}
 void linkShapeToGeometryList(Geometry *shape, Geometry **listHead)
 {
     if (shape == nullptr || listHead == nullptr) {
@@ -574,6 +2226,23 @@ void linkShapeToGeometryList(Geometry *shape, Geometry **listHead)
     }
     SimpleBodyFactory::link((SimpleBody *)shape, (SimpleBody **)&(shape->nextObject),
         (SimpleBody **)listHead);
+}
+
+void appendShapeToGeometryList(Geometry *shape, Geometry **listHead)
+{
+    if (shape == nullptr || listHead == nullptr) {
+        return;
+    }
+    shape->nextObject = nullptr;
+    if (*listHead == nullptr) {
+        *listHead = shape;
+        return;
+    }
+    Geometry *tail = *listHead;
+    while (tail->nextObject != nullptr) {
+        tail = tail->nextObject;
+    }
+    tail->nextObject = shape;
 }
 CSG *buildCsgFromIr(const AntlrIrCsgNode &node,
     const std::unordered_map<std::string, Texture *> &declaredTextures,
@@ -665,6 +2334,10 @@ SimpleBody *buildObjectFromIr(const AntlrIrObjectNode &node,
         obj->Shape = (Geometry *)buildQuartic(*effectiveNode->childQuartics[0]);
     } else if (effectiveNode->childBlobCount > 0 && effectiveNode->childBlobs[0] != nullptr) {
         obj->Shape = (Geometry *)buildBlob(*effectiveNode->childBlobs[0], declaredBlobs);
+    } else if (
+        effectiveNode->childBicubicPatchCount > 0 &&
+        effectiveNode->childBicubicPatches[0] != nullptr) {
+        obj->Shape = (Geometry *)buildBicubicPatch(*effectiveNode->childBicubicPatches[0]);
     } else if (effectiveNode->childLightCount > 0 && effectiveNode->childLights[0] != nullptr) {
         obj->Shape = (Geometry *)buildLight(*effectiveNode->childLights[0], declaredLights);
     } else if (effectiveNode->childObjectCount > 0 && effectiveNode->childObjects[0] != nullptr) {
@@ -672,8 +2345,6 @@ SimpleBody *buildObjectFromIr(const AntlrIrObjectNode &node,
             declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
             declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites, declaredCsgs,
             depth + 1);
-        applyTransforms(childObj, effectiveNode->childObjects[0]->transforms,
-            effectiveNode->childObjects[0]->transformCount);
         if (childObj->Shape == nullptr) {
             throw std::runtime_error("ANTLR object child object has null Shape at " +
                 formatSourceLocation(node));
@@ -685,8 +2356,6 @@ SimpleBody *buildObjectFromIr(const AntlrIrObjectNode &node,
             declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
             declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites, declaredCsgs,
             depth + 1);
-        applyTransforms(childComp, effectiveNode->childComposites[0]->transforms,
-            effectiveNode->childComposites[0]->transformCount);
         obj->Shape = (Geometry *)childComp;
     } else if (effectiveNode->childCsgCount > 0 && effectiveNode->childCsgs[0] != nullptr) {
         obj->Shape = (Geometry *)buildCsgFromIr(*effectiveNode->childCsgs[0], declaredTextures,
@@ -862,7 +2531,7 @@ resolved_child_reference_done:;
         if (effectiveNode->boundedSpheres[i] != nullptr) {
             Geometry *shape = (Geometry *)buildSphereResolved(
                 *effectiveNode->boundedSpheres[i], declaredSpheres, depth + 1);
-            linkShapeToGeometryList(shape, &(obj->boundingShapes));
+            appendShapeToGeometryList(shape, &(obj->boundingShapes));
         }
     }
     for (int i = 0; i < effectiveNode->boundedCsgCount; ++i) {
@@ -871,14 +2540,14 @@ resolved_child_reference_done:;
                 declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
                 declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites, declaredCsgs,
                 depth + 1);
-            linkShapeToGeometryList(shape, &(obj->boundingShapes));
+            appendShapeToGeometryList(shape, &(obj->boundingShapes));
         }
     }
     for (int i = 0; i < effectiveNode->clippedSphereCount; ++i) {
         if (effectiveNode->clippedSpheres[i] != nullptr) {
             Geometry *shape = (Geometry *)buildSphereResolved(
                 *effectiveNode->clippedSpheres[i], declaredSpheres, depth + 1);
-            linkShapeToGeometryList(shape, &(obj->clippingShapes));
+            appendShapeToGeometryList(shape, &(obj->clippingShapes));
         }
     }
     for (int i = 0; i < effectiveNode->clippedCsgCount; ++i) {
@@ -887,9 +2556,14 @@ resolved_child_reference_done:;
                 declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
                 declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites, declaredCsgs,
                 depth + 1);
-            linkShapeToGeometryList(shape, &(obj->clippingShapes));
+            appendShapeToGeometryList(shape, &(obj->clippingShapes));
         }
     }
+    applyTransforms(obj, effectiveNode->transforms, effectiveNode->transformCount);
+    if (effectiveNode != &node) {
+        applyTransforms(obj, node.transforms, node.transformCount);
+    }
+    logObjectOnce("antlr", obj);
     return obj;
 }
 
@@ -937,8 +2611,6 @@ SimpleBody *buildCompositeFromIr(const AntlrIrCompositeNode &node,
             *effectiveNode->childObjects[k], declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes,
             declaredTriangles, declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects,
             declaredComposites, declaredCsgs, depth + 1);
-        applyTransforms(childObj, effectiveNode->childObjects[k]->transforms,
-            effectiveNode->childObjects[k]->transformCount);
         SimpleBodyFactory::link(childObj, &(childObj->nextObject), (SimpleBody **)&(comp->Objects));
     }
     for (int k = 0; k < effectiveNode->childCompositeCount; ++k) {
@@ -949,8 +2621,6 @@ SimpleBody *buildCompositeFromIr(const AntlrIrCompositeNode &node,
             declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
             declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites,
             declaredCsgs, depth + 1);
-        applyTransforms(childComp, effectiveNode->childComposites[k]->transforms,
-            effectiveNode->childComposites[k]->transformCount);
         SimpleBodyFactory::link(childComp, &(childComp->nextObject), (SimpleBody **)&(comp->Objects));
     }
     for (int k = 0; k < effectiveNode->childReferenceCount; ++k) {
@@ -1001,7 +2671,7 @@ SimpleBody *buildCompositeFromIr(const AntlrIrCompositeNode &node,
         if (effectiveNode->boundedSpheres[i] != nullptr) {
             Geometry *shape = (Geometry *)buildSphereResolved(
                 *effectiveNode->boundedSpheres[i], declaredSpheres, depth + 1);
-            linkShapeToGeometryList(shape, &(comp->boundingShapes));
+            appendShapeToGeometryList(shape, &(comp->boundingShapes));
         }
     }
     for (int i = 0; i < effectiveNode->boundedCsgCount; ++i) {
@@ -1010,14 +2680,14 @@ SimpleBody *buildCompositeFromIr(const AntlrIrCompositeNode &node,
                 declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
                 declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites, declaredCsgs,
                 depth + 1);
-            linkShapeToGeometryList(shape, &(comp->boundingShapes));
+            appendShapeToGeometryList(shape, &(comp->boundingShapes));
         }
     }
     for (int i = 0; i < effectiveNode->clippedSphereCount; ++i) {
         if (effectiveNode->clippedSpheres[i] != nullptr) {
             Geometry *shape = (Geometry *)buildSphereResolved(
                 *effectiveNode->clippedSpheres[i], declaredSpheres, depth + 1);
-            linkShapeToGeometryList(shape, &(comp->clippingShapes));
+            appendShapeToGeometryList(shape, &(comp->clippingShapes));
         }
     }
     for (int i = 0; i < effectiveNode->clippedCsgCount; ++i) {
@@ -1026,8 +2696,12 @@ SimpleBody *buildCompositeFromIr(const AntlrIrCompositeNode &node,
                 declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
                 declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites, declaredCsgs,
                 depth + 1);
-            linkShapeToGeometryList(shape, &(comp->clippingShapes));
+            appendShapeToGeometryList(shape, &(comp->clippingShapes));
         }
+    }
+    applyTransforms((SimpleBody *)comp, effectiveNode->transforms, effectiveNode->transformCount);
+    if (effectiveNode != &node) {
+        applyTransforms((SimpleBody *)comp, node.transforms, node.transformCount);
     }
     return (SimpleBody *)comp;
 }
@@ -1053,10 +2727,17 @@ CSG *buildCsgFromIr(const AntlrIrCsgNode &node,
     const AntlrIrCsgNode *effectiveNode = &node;
     AntlrIrCsgNode referenceAsChildNode;
     bool hasReferenceAsChildNode = false;
+    const char *dbgCsgRef = std::getenv("POVCPP_ANTLR_DEBUG_CSG_REF");
     if (node.hasReference) {
         auto it = declaredCsgs.find(node.referenceIdentifier);
         if (it != declaredCsgs.end()) {
             effectiveNode = it->second;
+            if (dbgCsgRef != nullptr && dbgCsgRef[0] == '1') {
+                fprintf(stderr, "[CSG_REF] resolved '%s': node.transformCount=%d (LOST), "
+                    "effectiveNode(declared).transformCount=%d, effectiveNode.inverted=%d node.inverted=%d\n",
+                    node.referenceIdentifier.c_str(), node.transformCount,
+                    effectiveNode->transformCount, effectiveNode->inverted, node.inverted);
+            }
         } else {
             // Degrade gracefully for references defined in legacy include files not
             // visible in current ANTLR subset: treat as one child reference and let
@@ -1083,95 +2764,191 @@ CSG *buildCsgFromIr(const AntlrIrCsgNode &node,
     }
 
     CSG *container = nullptr;
+    const char *dbgCsgOp = std::getenv("POVCPP_ANTLR_DEBUG_CSG_OP");
     if (effectiveNode->op == ANTLR_IR_CSG_UNION) {
+        if (dbgCsgOp != nullptr && dbgCsgOp[0] == '1') {
+            fprintf(stderr, "[CSG_OP] UNION detected, depth=%d\n", depth);
+        }
         container = ModelBuilder::getCsgUnion();
+    } else if (effectiveNode->op == ANTLR_IR_CSG_INTERSECTION) {
+        if (dbgCsgOp != nullptr && dbgCsgOp[0] == '1') {
+            fprintf(stderr, "[CSG_OP] INTERSECTION detected, depth=%d\n", depth);
+        }
+        container = ModelBuilder::getCsgIntersection();
+    } else if (effectiveNode->op == ANTLR_IR_CSG_DIFFERENCE) {
+        if (dbgCsgOp != nullptr && dbgCsgOp[0] == '1') {
+            fprintf(stderr, "[CSG_OP] DIFFERENCE detected, depth=%d\n", depth);
+        }
+        container = ModelBuilder::getCsgIntersection();
     } else {
+        if (dbgCsgOp != nullptr && dbgCsgOp[0] == '1') {
+            fprintf(stderr, "[CSG_OP] UNKNOWN op=%d detected, defaulting to INTERSECTION, depth=%d\n",
+                effectiveNode->op, depth);
+        }
         container = ModelBuilder::getCsgIntersection();
     }
 
     int firstShapeParsed = LegacyBoolean::FALSE_VALUE;
+    int childCount = 0;
+    const bool preserveDeclaredChildOrder = (node.hasReference && effectiveNode != &node);
     auto linkCsgChild = [&](Geometry *child) {
         if (child == nullptr) {
             return;
         }
+        if (dbgCsgOp != nullptr && dbgCsgOp[0] == '1') {
+            fprintf(stderr, "[CSG_CHILD] depth=%d, childCount=%d, op=%d (DIFF=%d), firstShapeParsed=%d\n",
+                depth, childCount, effectiveNode->op, ANTLR_IR_CSG_DIFFERENCE, firstShapeParsed);
+        }
         if (effectiveNode->op == ANTLR_IR_CSG_DIFFERENCE && firstShapeParsed) {
+            if (dbgCsgOp != nullptr && dbgCsgOp[0] == '1') {
+                fprintf(stderr, "[CSG_INVERT] Inverting child at depth=%d\n", depth);
+            }
             GeometryOperations::invert((SimpleBody *)child);
         }
         firstShapeParsed = LegacyBoolean::TRUE_VALUE;
-        SimpleBodyFactory::link((SimpleBody *)child, (SimpleBody **)&(child->nextObject),
-            (SimpleBody **)&(container->Shapes));
+        childCount++;
+        if (preserveDeclaredChildOrder) {
+            appendShapeToGeometryList(child, &(container->Shapes));
+        } else {
+            SimpleBodyFactory::link((SimpleBody *)child, (SimpleBody **)&(child->nextObject),
+                (SimpleBody **)&(container->Shapes));
+        }
+    };
+
+    struct OrderedCsgChild {
+        int line;
+        int column;
+        std::function<Geometry *()> build;
+    };
+    std::vector<OrderedCsgChild> orderedChildren;
+    orderedChildren.reserve(
+        effectiveNode->childSphereCount + effectiveNode->childPlaneCount +
+        effectiveNode->childBoxCount + effectiveNode->childTriangleCount +
+        effectiveNode->childSmoothTriangleCount + effectiveNode->childQuadricCount +
+        effectiveNode->childQuarticCount + effectiveNode->childBlobCount +
+        effectiveNode->childLightCount + effectiveNode->childObjectCount +
+        effectiveNode->childCompositeCount + effectiveNode->childCsgCount);
+
+    auto addOrderedChild = [&](int line, int column, std::function<Geometry *()> build) {
+        orderedChildren.push_back({line, column, std::move(build)});
     };
 
     for (int i = 0; i < effectiveNode->childSphereCount; ++i) {
         if (effectiveNode->childSpheres[i] != nullptr) {
-            linkCsgChild((Geometry *)buildSphereResolved(
-                *effectiveNode->childSpheres[i], declaredSpheres, depth + 1));
+            AntlrIrSphereNode *childNode = effectiveNode->childSpheres[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildSphereResolved(*childNode, declaredSpheres, depth + 1);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childPlaneCount; ++i) {
         if (effectiveNode->childPlanes[i] != nullptr) {
-            linkCsgChild((Geometry *)buildPlane(*effectiveNode->childPlanes[i], declaredPlanes));
+            AntlrIrPlaneNode *childNode = effectiveNode->childPlanes[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildPlane(*childNode, declaredPlanes);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childBoxCount; ++i) {
         if (effectiveNode->childBoxes[i] != nullptr) {
-            linkCsgChild((Geometry *)buildBox(*effectiveNode->childBoxes[i], declaredBoxes));
+            AntlrIrBoxNode *childNode = effectiveNode->childBoxes[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildBox(*childNode, declaredBoxes);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childTriangleCount; ++i) {
         if (effectiveNode->childTriangles[i] != nullptr) {
-            linkCsgChild((Geometry *)buildTriangle(*effectiveNode->childTriangles[i], declaredTriangles));
+            AntlrIrTriangleNode *childNode = effectiveNode->childTriangles[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildTriangle(*childNode, declaredTriangles);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childSmoothTriangleCount; ++i) {
         if (effectiveNode->childSmoothTriangles[i] != nullptr) {
-            linkCsgChild((Geometry *)buildSmoothTriangle(
-                *effectiveNode->childSmoothTriangles[i], declaredSmoothTriangles));
+            AntlrIrSmoothTriangleNode *childNode = effectiveNode->childSmoothTriangles[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildSmoothTriangle(*childNode, declaredSmoothTriangles);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childQuadricCount; ++i) {
         if (effectiveNode->childQuadrics[i] != nullptr) {
-            linkCsgChild((Geometry *)buildQuadric(*effectiveNode->childQuadrics[i], declaredQuadrics));
+            AntlrIrQuadricNode *childNode = effectiveNode->childQuadrics[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildQuadric(*childNode, declaredQuadrics);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childQuarticCount; ++i) {
         if (effectiveNode->childQuartics[i] != nullptr) {
-            linkCsgChild((Geometry *)buildQuartic(*effectiveNode->childQuartics[i]));
+            AntlrIrQuarticNode *childNode = effectiveNode->childQuartics[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildQuartic(*childNode);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childBlobCount; ++i) {
         if (effectiveNode->childBlobs[i] != nullptr) {
-            linkCsgChild((Geometry *)buildBlob(*effectiveNode->childBlobs[i], declaredBlobs));
+            AntlrIrBlobNode *childNode = effectiveNode->childBlobs[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildBlob(*childNode, declaredBlobs);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childLightCount; ++i) {
         if (effectiveNode->childLights[i] != nullptr) {
-            linkCsgChild((Geometry *)buildLight(*effectiveNode->childLights[i], declaredLights));
+            AntlrIrLightNode *childNode = effectiveNode->childLights[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildLight(*childNode, declaredLights);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childObjectCount; ++i) {
         if (effectiveNode->childObjects[i] != nullptr) {
-            linkCsgChild((Geometry *)buildObjectFromIr(*effectiveNode->childObjects[i],
-                declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
-                declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects,
-                declaredComposites, declaredCsgs, depth + 1));
+            AntlrIrObjectNode *childNode = effectiveNode->childObjects[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildObjectFromIr(*childNode, declaredTextures, declaredSpheres,
+                    declaredPlanes, declaredBoxes, declaredTriangles, declaredSmoothTriangles,
+                    declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites,
+                    declaredCsgs, depth + 1);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childCompositeCount; ++i) {
         if (effectiveNode->childComposites[i] != nullptr) {
-            linkCsgChild((Geometry *)buildCompositeFromIr(*effectiveNode->childComposites[i],
-                declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
-                declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites,
-                declaredCsgs, depth + 1));
+            AntlrIrCompositeNode *childNode = effectiveNode->childComposites[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildCompositeFromIr(*childNode, declaredTextures, declaredSpheres,
+                    declaredPlanes, declaredBoxes, declaredTriangles, declaredSmoothTriangles,
+                    declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites,
+                    declaredCsgs, depth + 1);
+            });
         }
     }
     for (int i = 0; i < effectiveNode->childCsgCount; ++i) {
         if (effectiveNode->childCsgs[i] != nullptr) {
-            linkCsgChild((Geometry *)buildCsgFromIr(*effectiveNode->childCsgs[i],
-                declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
-                declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites,
-                declaredCsgs, depth + 1));
+            AntlrIrCsgNode *childNode = effectiveNode->childCsgs[i];
+            addOrderedChild(childNode->sourceLine, childNode->sourceColumn, [&, childNode]() {
+                return (Geometry *)buildCsgFromIr(*childNode, declaredTextures, declaredSpheres,
+                    declaredPlanes, declaredBoxes, declaredTriangles, declaredSmoothTriangles,
+                    declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites,
+                    declaredCsgs, depth + 1);
+            });
         }
+    }
+
+    std::sort(orderedChildren.begin(), orderedChildren.end(),
+        [](const OrderedCsgChild &a, const OrderedCsgChild &b) {
+            if (a.line != b.line) {
+                return a.line < b.line;
+            }
+            return a.column < b.column;
+        });
+
+    for (const OrderedCsgChild &child : orderedChildren) {
+        linkCsgChild(child.build());
     }
     for (int i = 0; i < effectiveNode->childReferenceCount; ++i) {
         const std::string &name = effectiveNode->childReferenceIdentifiers[i];
@@ -1240,6 +3017,19 @@ CSG *buildCsgFromIr(const AntlrIrCsgNode &node,
             continue;
         }
 
+        // Fallbacks for common shapes from legacy include files not visible in ANTLR subset.
+        const std::string refLower = toLowerAscii(name);
+        if (refLower == "cube") {
+            AntlrIrBoxNode fallbackBox;
+            fallbackBox.hasReferenceBase = false;
+            fallbackBox.hasInlineBase = true;
+            fallbackBox.minBounds = {-1.0, -1.0, -1.0};
+            fallbackBox.maxBounds = {1.0, 1.0, 1.0};
+            fallbackBox.transformCount = 0;
+            linkCsgChild((Geometry *)buildBox(fallbackBox, declaredBoxes));
+            continue;
+        }
+
         if (!hasReferenceAsChildNode) {
             continue;
         }
@@ -1253,6 +3043,13 @@ CSG *buildCsgFromIr(const AntlrIrCsgNode &node,
         GeometryOperations::invert((SimpleBody *)container);
     }
     applyTransforms((SimpleBody *)container, effectiveNode->transforms, effectiveNode->transformCount);
+    if (effectiveNode != &node) {
+        if (node.inverted) {
+            GeometryOperations::invert((SimpleBody *)container);
+        }
+        applyTransforms((SimpleBody *)container, node.transforms, node.transformCount);
+    }
+    logCsgOnce("antlr", container);
     return container;
 }
 
@@ -1266,14 +3063,188 @@ Texture *cloneTexture(Texture *texture)
 
 Texture *cloneDefaultTexture()
 {
-    return cloneTexture(TextureUtils::defaultTexture());
+    // Create a new default texture with NO_TEXTURE type
+    Texture *newTex = new Texture();
+    if (newTex != nullptr) {
+        newTex->textureNumber = Texture::NO_TEXTURE;
+        newTex->Colour1 = nullptr;
+        newTex->Colour2 = nullptr;
+        newTex->Colour_Map = nullptr;
+        newTex->Image = nullptr;
+        newTex->Bump_Image = nullptr;
+        newTex->Material_Image = nullptr;
+        newTex->Next_Texture = nullptr;
+        newTex->Next_Material = nullptr;
+        newTex->numberOfMaterials = 0;
+        newTex->Texture_Transformation = nullptr;
+        newTex->objectAmbient = 0.1;
+        newTex->objectDiffuse = 0.6;
+        newTex->objectReflection = 0.0;
+        newTex->objectBrilliance = 1.0;
+        newTex->objectIndexOfRefraction = 1.0;
+        newTex->objectRefraction = 0.0;
+        newTex->objectTransmit = 0.0;
+        newTex->objectSpecular = 0.0;
+        newTex->objectRoughness = 0.05;
+        newTex->objectPhong = 0.0;
+        newTex->objectPhongSize = 40.0;
+        newTex->bumpAmount = 0.0;
+        newTex->bumpNumber = Texture::NO_BUMPS;
+        newTex->textureRandomness = 0.0;
+        newTex->Turbulence = 0.0;
+        newTex->Frequency = 1.0;
+        newTex->Phase = 0.0;
+        newTex->Octaves = 6;
+        newTex->Mortar = 0.2;
+        newTex->constantFlag = LegacyBoolean::TRUE_VALUE;
+        newTex->textureIndex = 0;
+        newTex->metallicFlag = LegacyBoolean::FALSE_VALUE;
+        newTex->onceFlag = LegacyBoolean::FALSE_VALUE;
+        newTex->textureGradient = Vector3Dd(0.0, 0.0, 0.0);
+    }
+    return newTex;
+}
+
+void sanitizeTextureChain(Texture *texture)
+{
+    for (Texture *current = texture; current != nullptr; current = current->Next_Texture) {
+        if (current->textureNumber == Texture::COLOUR_TEXTURE && current->Colour1 == nullptr) {
+            current->Colour1 = ModelBuilder::getColour();
+        }
+        if (current->textureNumber == Texture::CHECKER_TEXTURE) {
+            if (current->Colour1 == nullptr) {
+                current->Colour1 = ModelBuilder::getColour();
+                Color::makeColor(current->Colour1, 1.0, 1.0, 1.0);
+            }
+            if (current->Colour2 == nullptr) {
+                current->Colour2 = ModelBuilder::getColour();
+                Color::makeColor(current->Colour2, 0.0, 0.0, 0.0);
+            }
+        }
+        if (current->textureNumber == Texture::BRICK_TEXTURE) {
+            if (current->Colour1 == nullptr) {
+                current->Colour1 = ModelBuilder::getColour();
+                Color::makeColor(current->Colour1, 1.0, 1.0, 1.0);
+            }
+            if (current->Colour2 == nullptr) {
+                current->Colour2 = ModelBuilder::getColour();
+                Color::makeColor(current->Colour2, 0.0, 0.0, 0.0);
+            }
+        }
+        if (current->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
+            if (current->Colour1 == nullptr) {
+                Texture *t1 = cloneDefaultTexture();
+                if (t1 != nullptr) {
+                    t1->textureNumber = Texture::COLOUR_TEXTURE;
+                    if (t1->Colour1 == nullptr) {
+                        t1->Colour1 = ModelBuilder::getColour();
+                    }
+                    Color::makeColor(t1->Colour1, 1.0, 1.0, 1.0);
+                    current->Colour1 = (RGBAColor *)t1;
+                }
+            }
+            if (current->Colour2 == nullptr) {
+                Texture *t2 = cloneDefaultTexture();
+                if (t2 != nullptr) {
+                    t2->textureNumber = Texture::COLOUR_TEXTURE;
+                    if (t2->Colour1 == nullptr) {
+                        t2->Colour1 = ModelBuilder::getColour();
+                    }
+                    Color::makeColor(t2->Colour1, 0.0, 0.0, 0.0);
+                    current->Colour2 = (RGBAColor *)t2;
+                }
+            }
+        }
+    }
 }
 
 Texture *materializeTextureChain(const AntlrIrTextureChain &chain,
     const std::unordered_map<std::string, Texture *> &declaredTextures)
 {
+    const bool debugTextureLowering = std::getenv("POVCPP_ANTLR_DEBUG_TEXTURE") != nullptr;
     Texture *head = nullptr;
+
+    if (!chain.rawElements.empty()) {
+        Logger::info("[ANTLR-MATERIALIZE] Processing %zu rawElements\n", chain.rawElements.size());
+        for (const std::string &raw : chain.rawElements) {
+            // FIX: detect declared texture reference BEFORE applying modifiers
+            std::string declaredRef;
+            const std::vector<std::string> ids = extractIdentifiers(raw);
+            std::unordered_set<std::string> seen;
+            for (const std::string &id : ids) {
+                if (!seen.insert(id).second) {
+                    continue;
+                }
+                if (declaredTextures.count(id)) {
+                    declaredRef = id;
+                    break;
+                }
+            }
+
+            // FIX: clone declared texture as base if found, else default
+            Texture *piece = nullptr;
+            if (!declaredRef.empty()) {
+                piece = cloneTexture(declaredTextures.at(declaredRef));
+            } else {
+                piece = cloneDefaultTexture();
+            }
+            if (piece == nullptr) {
+                continue;
+            }
+
+            // Apply modifiers and parameters inline on the base texture
+            bool handled = applyRawTextureElement(piece, raw, false);
+            Logger::info("[ANTLR-MATERIALIZE] After applyRawTextureElement: textureNumber=%d, handled=%d\n",
+                piece->textureNumber, handled);
+
+            // Apply chain-level transforms to this piece
+            for (const AntlrIrTransform &tr : chain.transforms) {
+                Vector3Dd v = toVector(tr.vectorValue);
+                if (tr.kind == ANTLR_IR_TRANSLATE) {
+                    TextureUtils::translateTexture(&piece, &v);
+                } else if (tr.kind == ANTLR_IR_ROTATE) {
+                    TextureUtils::rotateTexture(&piece, &v);
+                } else if (tr.kind == ANTLR_IR_SCALE) {
+                    TextureUtils::scaleTexture(&piece, &v);
+                }
+            }
+
+            sanitizeTextureChain(piece);
+            logTextureStateAntlr("antlr", piece);
+
+            if (debugTextureLowering) {
+                fprintf(stderr,
+                    "ANTLR_TEXTURE raw_seen: %s | tex=%d amb=%g diff=%g spec=%g rough=%g phong=%g\n",
+                    raw.c_str(), piece->textureNumber, piece->objectAmbient, piece->objectDiffuse,
+                    piece->objectSpecular, piece->objectRoughness, piece->objectPhong);
+            }
+
+            // Link piece into head chain
+            Texture *tail = piece;
+            while (tail->Next_Texture != nullptr) {
+                tail = tail->Next_Texture;
+            }
+            tail->Next_Texture = head;
+            head = piece;
+        }
+    }
+
+    // Process simple references (texture { TextureName }) - only if not already in rawElements
+    // to avoid double-materialization
     for (const std::string &name : chain.simpleReferenceIdentifiers) {
+        // Skip if this identifier was already processed as a rawElement
+        bool alreadyProcessed = false;
+        for (const std::string &raw : chain.rawElements) {
+            const std::vector<std::string> ids = extractIdentifiers(raw);
+            if (std::find(ids.begin(), ids.end(), name) != ids.end()) {
+                alreadyProcessed = true;
+                break;
+            }
+        }
+        if (alreadyProcessed) {
+            continue;
+        }
+
         auto it = declaredTextures.find(name);
         Texture *piece = nullptr;
         if (it != declaredTextures.end()) {
@@ -1284,6 +3255,7 @@ Texture *materializeTextureChain(const AntlrIrTextureChain &chain,
         if (piece == nullptr) {
             continue;
         }
+        sanitizeTextureChain(piece);
         Texture *tail = piece;
         while (tail->Next_Texture != nullptr) {
             tail = tail->Next_Texture;
@@ -1291,6 +3263,38 @@ Texture *materializeTextureChain(const AntlrIrTextureChain &chain,
         tail->Next_Texture = head;
         head = piece;
     }
+
+    // Apply procedural bump parameters extracted from AST
+    // Only apply if not already set by raw element parsing (to avoid overwriting explicit settings)
+    if (head != nullptr) {
+        Texture *tex = head;
+        while (tex != nullptr) {
+            if (chain.bumpsAmount > 0.0 && tex->bumpNumber == Texture::NO_BUMPS) {
+                tex->bumpNumber = Texture::BUMPS;
+                tex->bumpAmount = chain.bumpsAmount;
+            } else if (chain.ripplesAmount > 0.0 && tex->bumpNumber == Texture::NO_BUMPS) {
+                tex->bumpNumber = Texture::RIPPLES;
+                tex->bumpAmount = chain.ripplesAmount;
+            } else if (chain.wrinklesAmount > 0.0 && tex->bumpNumber == Texture::NO_BUMPS) {
+                tex->bumpNumber = Texture::WRINKLES;
+                tex->bumpAmount = chain.wrinklesAmount;
+            } else if (chain.dentsAmount > 0.0 && tex->bumpNumber == Texture::NO_BUMPS) {
+                tex->bumpNumber = Texture::DENTS;
+                tex->bumpAmount = chain.dentsAmount;
+            } else if (chain.bumpy1Amount > 0.0 && tex->bumpNumber == Texture::NO_BUMPS) {
+                tex->bumpNumber = Texture::BUMPY1;
+                tex->bumpAmount = chain.bumpy1Amount;
+            } else if (chain.bumpy2Amount > 0.0 && tex->bumpNumber == Texture::NO_BUMPS) {
+                tex->bumpNumber = Texture::BUMPY2;
+                tex->bumpAmount = chain.bumpy2Amount;
+            } else if (chain.bumpy3Amount > 0.0 && tex->bumpNumber == Texture::NO_BUMPS) {
+                tex->bumpNumber = Texture::BUMPY3;
+                tex->bumpAmount = chain.bumpy3Amount;
+            }
+            tex = tex->Next_Texture;
+        }
+    }
+
     return head;
 }
 
@@ -1299,6 +3303,21 @@ void applyShapeTexture(Texture *srcTexture, Geometry *shape)
     if (srcTexture == nullptr || shape == nullptr) {
         return;
     }
+
+    const char *debugLog = std::getenv("POVCPP_ANTLR_DEBUG_SHAPE_TEXTURE");
+    if (debugLog != nullptr && debugLog[0] == '1') {
+        fprintf(stderr, "ANTLR_SHAPE_TEXTURE: applying texture(type=%d) to shape; texture.Colour1: ",
+                srcTexture->textureNumber);
+        if (srcTexture->Colour1 != nullptr) {
+            fprintf(stderr, "RGBA<%.3f,%.3f,%.3f,%.3f>",
+                    srcTexture->Colour1->Red, srcTexture->Colour1->Green,
+                    srcTexture->Colour1->Blue, srcTexture->Colour1->Alpha);
+        } else {
+            fprintf(stderr, "NULL");
+        }
+        fprintf(stderr, "\n");
+    }
+
     Texture *tail = srcTexture;
     while (tail->Next_Texture != nullptr) {
         tail = tail->Next_Texture;
@@ -1311,6 +3330,9 @@ void applyObjectTexture(Texture *srcTexture, SimpleBody *object)
 {
     if (srcTexture == nullptr || object == nullptr) {
         return;
+    }
+    if (srcTexture->textureNumber == 5) { // CHECKER_TEXTURE
+        Logger::info("[ANTLR-APPLY-TEXTURE] Applying checker texture to object, textureNumber=%d\n", srcTexture->textureNumber);
     }
     if (object->objectTexture == TextureUtils::defaultTexture()) {
         object->objectTexture = srcTexture;
@@ -1350,14 +3372,19 @@ void applyCameraNode(const AntlrIrCameraNode &node, RenderFrame *framePtr,
             throw std::runtime_error("ANTLR lowering does not support camera reference yet");
         } else if (op.kind == ANTLR_IR_CAMERA_LOCATION) {
             camera->Location = v;
+            logCameraOp("antlr", "location", &camera->Location);
         } else if (op.kind == ANTLR_IR_CAMERA_DIRECTION) {
             camera->Direction = v;
+            logCameraOp("antlr", "direction", &camera->Direction);
         } else if (op.kind == ANTLR_IR_CAMERA_UP) {
             camera->Up = v;
+            logCameraOp("antlr", "up", &camera->Up);
         } else if (op.kind == ANTLR_IR_CAMERA_RIGHT) {
             camera->Right = v;
+            logCameraOp("antlr", "right", &camera->Right);
         } else if (op.kind == ANTLR_IR_CAMERA_SKY) {
             camera->Sky = v;
+            logCameraOp("antlr", "sky", &camera->Sky);
         } else if (op.kind == ANTLR_IR_CAMERA_LOOK_AT) {
             const double directionLength = camera->Direction.length();
             const double upLength = camera->Up.length();
@@ -1365,6 +3392,7 @@ void applyCameraNode(const AntlrIrCameraNode &node, RenderFrame *framePtr,
             Vector3Dd tempVector = camera->Direction.crossProduct(camera->Up);
             const double handedness = tempVector.dotProduct(camera->Right);
             camera->Direction = v;
+            logCameraOp("antlr", "look_at", &camera->Direction);
             camera->Direction.sub(camera->Location);
             camera->Direction.normalize();
             camera->Right = camera->Direction.crossProduct(camera->Sky);
@@ -1385,6 +3413,7 @@ void applyCameraNode(const AntlrIrCameraNode &node, RenderFrame *framePtr,
             GeometryOperations::scale((SimpleBody *)camera, &v);
         }
     }
+    logCameraOnce("antlr", camera);
 }
 }
 
@@ -1411,6 +3440,7 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
     std::unordered_map<std::string, const AntlrIrLightNode *> declaredLights;
     std::unordered_map<std::string, const AntlrIrCsgNode *> declaredCsgs;
     gDeclaredQuartics = &declaredQuartics;
+    gDeclaredTextures = &declaredTextures;
 #endif
     for (int i = 0; i < program.nodeCount; ++i) {
         AntlrSceneIrNode *node = program.nodes[i];
@@ -1565,7 +3595,6 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
                 *n, declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
                 declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects,
                 declaredComposites, declaredCsgs, 0);
-            applyTransforms(obj, n->transforms, n->transformCount);
             SimpleBodyFactory::link(obj, &(obj->nextObject), (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == ANTLR_IR_COMPOSITE_NODE) {
             const AntlrIrCompositeNode *n = (const AntlrIrCompositeNode *)node;
@@ -1573,7 +3602,6 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
                 *n, declaredTextures, declaredSpheres, declaredPlanes, declaredBoxes, declaredTriangles,
                 declaredSmoothTriangles, declaredQuadrics, declaredBlobs, declaredLights, declaredObjects, declaredComposites,
                 declaredCsgs, 0);
-            applyTransforms(comp, n->transforms, n->transformCount);
             SimpleBodyFactory::link(comp, &(comp->nextObject), (SimpleBody **)&(framePtr->Objects));
         } else if (node->kind == ANTLR_IR_LIGHT_NODE) {
             const AntlrIrLightNode *n = (const AntlrIrLightNode *)node;
@@ -1592,5 +3620,6 @@ AntlrSceneLowering::applyProgram(const AntlrSceneIrProgram &program, RenderFrame
     }
 #ifndef POV_ANTLR_MINIMAL_BRIDGE
     gDeclaredQuartics = nullptr;
+    gDeclaredTextures = nullptr;
 #endif
 }

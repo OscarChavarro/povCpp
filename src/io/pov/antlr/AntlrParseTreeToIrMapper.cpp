@@ -4,16 +4,65 @@
 
 #include <cstdlib>
 #include <cctype>
+#include <cstdio>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <unordered_map>
+#include <set>
+#include <vector>
 
 #include "POVParserBaseVisitor.h"
+#include "POVLexer.h"
+#include "POVParser.h"
+#include "antlr4-runtime.h"
 #include "io/pov/antlr/AntlrParsedSceneProgram.h"
 #include "io/pov/antlr/AntlrSceneIr.h"
 #include "io/pov/antlr/AntlrSceneParserFrontend.h"
+#include "common/logger/Logger.h"
+
+std::unordered_map<std::string, AntlrIrColor> gAntlrDeclaredColours;
 
 namespace {
 std::unordered_map<std::string, double> gDeclaredScalars;
+std::set<std::string> gIncludeStack;
+
+template<typename CtxType>
+void setSourceLocation(AntlrSceneIrNode &node, CtxType *ctx)
+{
+    if (ctx == nullptr || ctx->getStart() == nullptr) {
+        node.sourceLine = -1;
+        node.sourceColumn = -1;
+        node.sourceFile = nullptr;
+        return;
+    }
+    node.sourceLine = (int)ctx->getStart()->getLine();
+    node.sourceColumn = (int)ctx->getStart()->getCharPositionInLine() + 1;
+    node.sourceFile = "<antlr>";
+}
+
+template<typename CtxType>
+std::string contextTextPreserveSpacing(CtxType *ctx)
+{
+    if (ctx == nullptr) {
+        return "";
+    }
+
+    // Extract original text directly from CharStream to preserve all whitespace
+    auto* startToken = ctx->getStart();
+    auto* stopToken = ctx->getStop();
+    if (startToken && stopToken && startToken->getInputStream()) {
+        try {
+            return startToken->getInputStream()->getText(
+                antlr4::misc::Interval(startToken->getStartIndex(), stopToken->getStopIndex()));
+        } catch (...) {
+            // Fallback to getText() if CharStream extraction fails
+        }
+    }
+
+    // Fallback: use default getText() (loses whitespace but won't crash)
+    return ctx->getText();
+}
 
 double parseNumberText(const std::string &text)
 {
@@ -68,10 +117,94 @@ AntlrIrVector3 parseTransformVector(POVParser::TransformContext *ctx)
         return parseVector(ctx->vectorLiteral());
     }
     if (ctx->scalarLiteral() != nullptr) {
-        const double s = parseScalarLiteral(ctx->scalarLiteral());
+        // `scale` carries its operand through scalarLiteral, but the operand
+        // may be a declared *vector* identifier (e.g. `scale Axes_X_Radii`
+        // where Axes_X_Radii = <1.0 0.01 0.01>). Such vectors live in the
+        // shared colour map; resolve them to a non-uniform scale before
+        // falling back to a uniform scalar scale.
+        POVParser::ScalarLiteralContext *sc = ctx->scalarLiteral();
+        if (sc->IDENTIFIER() != nullptr) {
+            std::string name = sc->getText();
+            bool negative = false;
+            if (!name.empty() && (name[0] == '+' || name[0] == '-')) {
+                negative = (name[0] == '-');
+                name = name.substr(1);
+            }
+            const auto vec = gAntlrDeclaredColours.find(name);
+            if (vec != gAntlrDeclaredColours.end()) {
+                const double sign = negative ? -1.0 : 1.0;
+                return {sign * vec->second.r, sign * vec->second.g,
+                    sign * vec->second.b};
+            }
+        }
+        const double s = parseScalarLiteral(sc);
         return {s, s, s};
     }
+    if (ctx->IDENTIFIER() != nullptr) {
+        // translate/rotate may take a declared vector identifier (e.g.
+        // `rotate Steiner_Orientation`). Declared vectors are stored in the
+        // shared colour map (x,y,z packed as r,g,b).
+        const std::string name = ctx->IDENTIFIER()->getText();
+        const auto it = gAntlrDeclaredColours.find(name);
+        if (it != gAntlrDeclaredColours.end()) {
+            return {it->second.r, it->second.g, it->second.b};
+        }
+        Logger::error(
+            "[ANTLR] Failed to resolve transform vector identifier %s\n",
+            name.c_str());
+    }
     return {0.0, 0.0, 0.0};
+}
+
+bool readFileText(const std::string &path, std::string &out)
+{
+    std::ifstream in(path.c_str(), std::ios::binary);
+    if (!in.good()) {
+        return false;
+    }
+    std::ostringstream buffer;
+    buffer << in.rdbuf();
+    out = buffer.str();
+    return true;
+}
+
+bool resolveIncludeFile(const std::string &includeName, std::string &resolvedPath)
+{
+    std::string contentProbe;
+
+    if (readFileText(includeName, contentProbe)) {
+        resolvedPath = includeName;
+        return true;
+    }
+
+    std::vector<std::string> candidates = {
+        "../include/" + includeName,
+        "../../include/" + includeName,
+        "../../../include/" + includeName,
+        "../../../../include/" + includeName
+    };
+
+    for (const auto &candidate : candidates) {
+        if (readFileText(candidate, contentProbe)) {
+            resolvedPath = candidate;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool extractQuotedString(const std::string &text, std::string &out)
+{
+    const size_t first = text.find('"');
+    if (first == std::string::npos) {
+        return false;
+    }
+    const size_t second = text.find('"', first + 1);
+    if (second == std::string::npos || second <= first + 1) {
+        return false;
+    }
+    out = text.substr(first + 1, second - first - 1);
+    return true;
 }
 
 AntlrIrColor parseColour(POVParser::ColourLiteralContext *ctx)
@@ -93,22 +226,34 @@ AntlrIrColor parseColourKeywordLiteral(POVParser::ColourKeywordLiteralContext *c
     }
     const auto ids = ctx->IDENTIFIER();
     const auto scalars = ctx->scalarLiteral();
-    if (ids.size() < 3 || scalars.size() < 3) {
+    if (ids.size() == 0 || scalars.size() == 0) {
         return out;
     }
+
+    bool hasRed = false, hasGreen = false, hasBlue = false, hasAlpha = false;
+
     for (size_t i = 0; i < ids.size() && i < scalars.size(); ++i) {
         const std::string key = ids[i]->getText();
         const double value = parseScalarLiteral(scalars[i]);
-        if (key == "red") {
+        std::string lowerKey = key;
+        for (char &c : lowerKey) {
+            c = (char)std::tolower((unsigned char)c);
+        }
+        if (lowerKey == "red") {
             out.r = value;
-        } else if (key == "green") {
+            hasRed = true;
+        } else if (lowerKey == "green") {
             out.g = value;
-        } else if (key == "blue") {
+            hasGreen = true;
+        } else if (lowerKey == "blue") {
             out.b = value;
-        } else if (key == "alpha") {
+            hasBlue = true;
+        } else if (lowerKey == "alpha") {
             out.a = value;
+            hasAlpha = true;
         }
     }
+
     return out;
 }
 
@@ -123,9 +268,20 @@ std::string toLowerAscii(const std::string &s)
 
 AntlrIrColor parseNamedColourIdentifier(const std::string &name)
 {
+    const auto declared = gAntlrDeclaredColours.find(name);
+    if (declared != gAntlrDeclaredColours.end()) {
+        Logger::info("[ANTLR] Using declared color %s = <%.3f, %.3f, %.3f, %.3f>\n",
+            name.c_str(), declared->second.r, declared->second.g, declared->second.b, declared->second.a);
+        return declared->second;
+    }
+
     AntlrIrColor out = {1.0, 1.0, 1.0, 0.0};
     const std::string key = toLowerAscii(name);
-    if (key == "white") return out;
+    if (key == "white") {
+        Logger::info("[ANTLR] Using builtin color white for: %s\n", name.c_str());
+        return out;
+    }
+    if (key == "clear") return {1.0, 1.0, 1.0, 1.0};
     if (key == "black") return {0.0, 0.0, 0.0, 0.0};
     if (key == "red") return {1.0, 0.0, 0.0, 0.0};
     if (key == "green") return {0.0, 1.0, 0.0, 0.0};
@@ -137,6 +293,7 @@ AntlrIrColor parseNamedColourIdentifier(const std::string &name)
     if (key == "lightgray" || key == "lightgrey") return {0.75, 0.75, 0.75, 0.0};
     if (key == "darkgray" || key == "darkgrey") return {0.25, 0.25, 0.25, 0.0};
     if (key == "dimgray" || key == "dimgrey") return {0.41, 0.41, 0.41, 0.0};
+    Logger::error("[ANTLR] Unknown color: %s (using white as fallback)\n", name.c_str());
     return out;
 }
 
@@ -159,11 +316,65 @@ AntlrIrTextureChain parseTextureChain(POVParser::TextureChainContext *ctx)
         if (elem == nullptr) {
             continue;
         }
-        out.rawElements.push_back(elem->getText());
+        out.rawElements.push_back(contextTextPreserveSpacing(elem));
 
         const auto bodies = elem->textureBodyElement();
         if (bodies.size() == 1 && bodies[0] != nullptr && bodies[0]->IDENTIFIER() != nullptr) {
             out.simpleReferenceIdentifiers.push_back(bodies[0]->IDENTIFIER()->getText());
+        }
+        for (POVParser::TextureBodyElementContext *body : bodies) {
+            if (body == nullptr) {
+                continue;
+            }
+
+            // Extract procedural bump parameters directly from AST
+            if (body->IDENTIFIER() != nullptr) {
+                std::string idText = body->IDENTIFIER()->getText();
+                std::string idLower = idText;
+                for (char &c : idLower) {
+                    c = (char)std::tolower((unsigned char)c);
+                }
+
+                const auto args = body->textureArgument();
+                if (!args.empty() && args[0] != nullptr) {
+                    double value = 0.0;
+                    if (args[0]->scalarLiteral() != nullptr) {
+                        value = parseScalarLiteral(args[0]->scalarLiteral());
+                    }
+
+                    if (idLower == "bumps") {
+                        out.bumpsAmount = value;
+                    } else if (idLower == "ripples") {
+                        out.ripplesAmount = value;
+                    } else if (idLower == "wrinkles") {
+                        out.wrinklesAmount = value;
+                    } else if (idLower == "dents") {
+                        out.dentsAmount = value;
+                    } else if (idLower == "bumpy1") {
+                        out.bumpy1Amount = value;
+                    } else if (idLower == "bumpy2") {
+                        out.bumpy2Amount = value;
+                    } else if (idLower == "bumpy3") {
+                        out.bumpy3Amount = value;
+                    }
+                }
+            }
+
+            // Handle transforms
+            if (body->transform() != nullptr) {
+                POVParser::TransformContext *t = body->transform();
+                AntlrIrTransform tr;
+                tr.kind = ANTLR_IR_TRANSLATE;
+                tr.vectorValue = parseTransformVector(t);
+                if (t->TRANSLATE() != nullptr) {
+                    tr.kind = ANTLR_IR_TRANSLATE;
+                } else if (t->ROTATE() != nullptr) {
+                    tr.kind = ANTLR_IR_ROTATE;
+                } else if (t->SCALE() != nullptr) {
+                    tr.kind = ANTLR_IR_SCALE;
+                }
+                out.transforms.push_back(tr);
+            }
         }
     }
     return out;
@@ -175,10 +386,37 @@ AntlrIrTextureChain parseSingleTextureElement(POVParser::TextureElementContext *
     if (ctx == nullptr) {
         return out;
     }
-    out.rawElements.push_back(ctx->getText());
+    const std::string fullText = contextTextPreserveSpacing(ctx);
+    out.rawElements.push_back(fullText);
+
+    const char *debugRaw = std::getenv("POVCPP_ANTLR_DEBUG_TEXTURE_RAW");
+    if (debugRaw != nullptr && debugRaw[0] == '1') {
+        fprintf(stderr, "\n=== ANTLR_TEXTURE_RAW_ELEMENT_START ===\n");
+        fprintf(stderr, "%s\n", fullText.c_str());
+        fprintf(stderr, "=== ANTLR_TEXTURE_RAW_ELEMENT_END === (len=%zu)\n\n", fullText.size());
+        fflush(stderr);
+    }
+
     const auto bodies = ctx->textureBodyElement();
     if (bodies.size() == 1 && bodies[0] != nullptr && bodies[0]->IDENTIFIER() != nullptr) {
         out.simpleReferenceIdentifiers.push_back(bodies[0]->IDENTIFIER()->getText());
+    }
+    for (POVParser::TextureBodyElementContext *body : bodies) {
+        if (body == nullptr || body->transform() == nullptr) {
+            continue;
+        }
+        POVParser::TransformContext *t = body->transform();
+        AntlrIrTransform tr;
+        tr.kind = ANTLR_IR_TRANSLATE;
+        tr.vectorValue = parseTransformVector(t);
+        if (t->TRANSLATE() != nullptr) {
+            tr.kind = ANTLR_IR_TRANSLATE;
+        } else if (t->ROTATE() != nullptr) {
+            tr.kind = ANTLR_IR_ROTATE;
+        } else if (t->SCALE() != nullptr) {
+            tr.kind = ANTLR_IR_SCALE;
+        }
+        out.transforms.push_back(tr);
     }
     return out;
 }
@@ -190,6 +428,9 @@ void appendTextureChain(AntlrIrTextureChain &dst, const AntlrIrTextureChain &src
     }
     for (const std::string &id : src.simpleReferenceIdentifiers) {
         dst.simpleReferenceIdentifiers.push_back(id);
+    }
+    for (const AntlrIrTransform &tr : src.transforms) {
+        dst.transforms.push_back(tr);
     }
 }
 
@@ -241,6 +482,7 @@ AntlrIrSphereNode *makeSphereNodeFromContext(POVParser::SphereStatementContext *
         return nullptr;
     }
     AntlrIrSphereNode *node = new AntlrIrSphereNode();
+    setSourceLocation(*node, ctx);
     fillSphereNodeFromContext(*node, ctx);
     return node;
 }
@@ -510,6 +752,7 @@ AntlrIrQuadricNode *makeQuadricNodeFromContext(POVParser::QuadricStatementContex
         return nullptr;
     }
     AntlrIrQuadricNode *node = new AntlrIrQuadricNode();
+    setSourceLocation(*node, ctx);
     fillQuadricNodeFromContext(*node, ctx);
     return node;
 }
@@ -569,6 +812,7 @@ AntlrIrQuarticNode *makeQuarticNodeFromContext(POVParser::QuarticStatementContex
         return nullptr;
     }
     AntlrIrQuarticNode *node = new AntlrIrQuarticNode();
+    setSourceLocation(*node, ctx);
     fillQuarticNodeFromContext(*node, ctx);
     return node;
 }
@@ -637,7 +881,169 @@ AntlrIrBlobNode *makeBlobNodeFromContext(POVParser::BlobStatementContext *ctx)
         return nullptr;
     }
     AntlrIrBlobNode *node = new AntlrIrBlobNode();
+    setSourceLocation(*node, ctx);
     fillBlobNodeFromContext(*node, ctx);
+    return node;
+}
+
+void fillBicubicPatchNodeFromInvocation(
+    AntlrIrBicubicPatchNode &node, POVParser::IdentifierInvocationContext *inv)
+{
+    if (inv == nullptr) {
+        return;
+    }
+
+    const auto args = inv->objectArgument();
+    size_t argIndex = 0;
+    if (!args.empty()) {
+        node.hasInlineBase = true;
+        node.patchType = (int)parseScalarLiteral(
+            args.size() > argIndex ? args[argIndex]->scalarLiteral() : nullptr);
+        ++argIndex;
+        if (node.patchType == 2 || node.patchType == 3) {
+            node.flatnessValue = parseScalarLiteral(
+                args.size() > argIndex ? args[argIndex]->scalarLiteral() : nullptr);
+            ++argIndex;
+        } else {
+            node.flatnessValue = 0.1;
+        }
+        node.uSteps = (int)parseScalarLiteral(
+            args.size() > argIndex ? args[argIndex]->scalarLiteral() : nullptr);
+        ++argIndex;
+        node.vSteps = (int)parseScalarLiteral(
+            args.size() > argIndex ? args[argIndex]->scalarLiteral() : nullptr);
+        ++argIndex;
+    }
+
+    int controlPointIndex = 0;
+    for (; argIndex < args.size(); ++argIndex) {
+        POVParser::ObjectArgumentContext *arg = args[argIndex];
+        if (arg == nullptr || arg->vectorLiteral() == nullptr) {
+            continue;
+        }
+        if (controlPointIndex >= 16) {
+            throw std::runtime_error("Too many ANTLR IR bicubic patch control points");
+        }
+        const int row = controlPointIndex / 4;
+        const int col = controlPointIndex % 4;
+        node.controlPoints[row][col] = parseVector(arg->vectorLiteral());
+        ++controlPointIndex;
+    }
+    if (std::getenv("POVCPP_DIAG_MONKEY") != nullptr) {
+        Logger::info("[DIAG-MONKEY] bicubic init bodyCount=%zu argCount=%zu patchType=%d flatness=%.6f u=%d v=%d cps=%d\n",
+            inv->objectBodyElement().size(), args.size(), node.patchType, node.flatnessValue,
+            node.uSteps, node.vSteps, controlPointIndex);
+    }
+    for (POVParser::ObjectBodyElementContext *elem : inv->objectBodyElement()) {
+        if (elem == nullptr) {
+            continue;
+        }
+        if (std::getenv("POVCPP_DIAG_MONKEY") != nullptr) {
+            Logger::info("[DIAG-MONKEY] bicubic elem text='%s' signed=%d vector=%d texture=%d transform=%d\n",
+                contextTextPreserveSpacing(elem).c_str(), elem->signedNumber() != nullptr,
+                elem->vectorLiteral() != nullptr, elem->textureElement() != nullptr,
+                elem->transform() != nullptr);
+        }
+        if (elem->signedNumber() != nullptr) {
+            const double value = parseNumberText(elem->signedNumber()->getText());
+            if (node.patchType == 0 && controlPointIndex == 0) {
+                node.patchType = (int)value;
+                node.hasInlineBase = true;
+                continue;
+            }
+            if ((node.patchType == 2 || node.patchType == 3) && node.flatnessValue == 0.1 &&
+                node.uSteps == 0 && node.vSteps == 0 && controlPointIndex == 0) {
+                node.flatnessValue = value;
+                continue;
+            }
+            if (node.uSteps == 0) {
+                node.uSteps = (int)value;
+                continue;
+            }
+            if (node.vSteps == 0) {
+                node.vSteps = (int)value;
+                continue;
+            }
+        }
+        if (elem->vectorLiteral() != nullptr || elem->angleScalarList() != nullptr) {
+            if (controlPointIndex >= 16) {
+                throw std::runtime_error("Too many ANTLR IR bicubic patch control points");
+            }
+            const int row = controlPointIndex / 4;
+            const int col = controlPointIndex % 4;
+            if (elem->vectorLiteral() != nullptr) {
+                node.controlPoints[row][col] = parseVector(elem->vectorLiteral());
+            } else {
+                POVParser::AngleScalarListContext *list = elem->angleScalarList();
+                node.controlPoints[row][col].x =
+                    parseScalarLiteral(list->scalarLiteral(0));
+                node.controlPoints[row][col].y =
+                    parseScalarLiteral(list->scalarLiteral(1));
+                node.controlPoints[row][col].z =
+                    parseScalarLiteral(list->scalarLiteral(2));
+            }
+            ++controlPointIndex;
+            continue;
+        }
+        if (elem->transform() != nullptr) {
+            POVParser::TransformContext *t = elem->transform();
+            AntlrIrVector3 v = parseTransformVector(t);
+            AntlrIrTransformKind kind = ANTLR_IR_TRANSLATE;
+            if (t->TRANSLATE() != nullptr) {
+                kind = ANTLR_IR_TRANSLATE;
+            } else if (t->ROTATE() != nullptr) {
+                kind = ANTLR_IR_ROTATE;
+            } else if (t->SCALE() != nullptr) {
+                kind = ANTLR_IR_SCALE;
+            }
+            if (!AntlrSceneIrNodes::appendTransform(node.transforms, node.transformCount, kind, v)) {
+                throw std::runtime_error("Too many ANTLR IR bicubic patch transforms");
+            }
+            continue;
+        }
+        if (elem->colourLiteral() != nullptr) {
+            node.colour = parseColour(elem->colourLiteral());
+            node.hasColour = true;
+            continue;
+        }
+        if (elem->colourNamedLiteral() != nullptr) {
+            node.colour = parseColourNamedLiteral(elem->colourNamedLiteral());
+            node.hasColour = true;
+            continue;
+        }
+        if (elem->colourKeywordLiteral() != nullptr) {
+            node.colour = parseColourKeywordLiteral(elem->colourKeywordLiteral());
+            node.hasColour = true;
+            continue;
+        }
+        if (elem->textureElement() != nullptr) {
+            node.hasTextureChain = true;
+            appendTextureChain(node.textureChain, parseSingleTextureElement(elem->textureElement()));
+            continue;
+        }
+        if (elem->INVERSE() != nullptr) {
+            node.inverted = !node.inverted;
+            continue;
+        }
+    }
+
+    if (controlPointIndex != 16) {
+        throw std::runtime_error("ANTLR IR bicubic patch requires exactly 16 control points");
+    }
+    node.hasInlineBase = true;
+}
+
+AntlrIrBicubicPatchNode *makeBicubicPatchNodeFromInvocation(
+    POVParser::IdentifierInvocationContext *inv)
+{
+    if (inv == nullptr) {
+        return nullptr;
+    }
+    AntlrIrBicubicPatchNode *node = new AntlrIrBicubicPatchNode();
+    node->sourceLine = (int)inv->getStart()->getLine();
+    node->sourceColumn = (int)inv->getStart()->getCharPositionInLine() + 1;
+    node->sourceFile = "<antlr>";
+    fillBicubicPatchNodeFromInvocation(*node, inv);
     return node;
 }
 
@@ -659,6 +1065,7 @@ AntlrIrObjectNode *makeObjectNodeFromContext(POVParser::ObjectStatementContext *
         return nullptr;
     }
     AntlrIrObjectNode *node = new AntlrIrObjectNode();
+    setSourceLocation(*node, ctx);
     fillObjectNodeFromContext(*node, ctx);
     return node;
 }
@@ -669,6 +1076,7 @@ AntlrIrCompositeNode *makeCompositeNodeFromContext(POVParser::CompositeStatement
         return nullptr;
     }
     AntlrIrCompositeNode *node = new AntlrIrCompositeNode();
+    setSourceLocation(*node, ctx);
     fillCompositeNodeFromContext(*node, ctx);
     return node;
 }
@@ -677,6 +1085,16 @@ void fillObjectNodeFromContext(AntlrIrObjectNode &node, POVParser::ObjectStateme
 {
     for (POVParser::ObjectBodyElementContext *elem : ctx->objectBodyElement()) {
         POVParser::IdentifierInvocationContext *inv = elem->identifierInvocation();
+        if (inv != nullptr && inv->IDENTIFIER() != nullptr &&
+            inv->IDENTIFIER()->getText() == "bicubic_patch") {
+            if (node.childBicubicPatchCount < AntlrIrObjectNode::MAX_CHILD_BICUBIC_PATCHES) {
+                node.childBicubicPatches[node.childBicubicPatchCount++] =
+                    makeBicubicPatchNodeFromInvocation(inv);
+            } else {
+                throw std::runtime_error("Too many ANTLR IR object child bicubic patches");
+            }
+            continue;
+        }
         if (inv != nullptr && inv->LEFT_CURLY() == nullptr && inv->objectArgument().empty()) {
             if (!node.hasReference && node.childSphereCount == 0 &&
                 node.childPlaneCount == 0 && node.childBoxCount == 0 &&
@@ -808,6 +1226,16 @@ void fillObjectNodeFromContext(AntlrIrObjectNode &node, POVParser::ObjectStateme
         }
         if (elem->colourLiteral() != nullptr) {
             node.colour = parseColour(elem->colourLiteral());
+            node.hasColour = true;
+            continue;
+        }
+        if (elem->colourNamedLiteral() != nullptr) {
+            node.colour = parseColourNamedLiteral(elem->colourNamedLiteral());
+            node.hasColour = true;
+            continue;
+        }
+        if (elem->colourKeywordLiteral() != nullptr) {
+            node.colour = parseColourKeywordLiteral(elem->colourKeywordLiteral());
             node.hasColour = true;
             continue;
         }
@@ -949,6 +1377,7 @@ void appendObjectBoundedShape(
     }
     if (shape->csgStatement() != nullptr) {
         AntlrIrCsgNode *child = new AntlrIrCsgNode();
+        setSourceLocation(*child, shape->csgStatement());
         fillCsgNodeFromContext(*child, shape->csgStatement());
         if (!clipped && node.boundedCsgCount < AntlrIrObjectNode::MAX_BOUNDED_CSGS) {
             node.boundedCsgs[node.boundedCsgCount++] = child;
@@ -998,6 +1427,7 @@ void appendCompositeBoundedShape(
     }
     if (shape->csgStatement() != nullptr) {
         AntlrIrCsgNode *child = new AntlrIrCsgNode();
+        setSourceLocation(*child, shape->csgStatement());
         fillCsgNodeFromContext(*child, shape->csgStatement());
         if (!clipped && node.boundedCsgCount < AntlrIrCompositeNode::MAX_BOUNDED_CSGS) {
             node.boundedCsgs[node.boundedCsgCount++] = child;
@@ -1032,6 +1462,7 @@ AntlrIrCsgNode *makeCsgWrapperFromShape(POVParser::ShapeStatementContext *shape)
         return nullptr;
     }
     AntlrIrCsgNode *wrapped = new AntlrIrCsgNode();
+    setSourceLocation(*wrapped, shape);
     wrapped->op = ANTLR_IR_CSG_UNION;
     if (shape->planeStatement() != nullptr) {
         wrapped->childPlanes[wrapped->childPlaneCount++] = makePlaneNodeFromContext(shape->planeStatement());
@@ -1293,6 +1724,7 @@ void fillCsgNodeFromContext(AntlrIrCsgNode &node, POVParser::CsgStatementContext
             } else if (shape->csgStatement() != nullptr) {
                 if (node.childCsgCount < AntlrIrCsgNode::MAX_CHILD_CSGS) {
                     AntlrIrCsgNode *child = new AntlrIrCsgNode();
+                    setSourceLocation(*child, shape->csgStatement());
                     fillCsgNodeFromContext(*child, shape->csgStatement());
                     node.childCsgs[node.childCsgCount++] = child;
                 } else {
@@ -1437,8 +1869,100 @@ class PovIrSubsetVisitor : public POVParserBaseVisitor {
             fillCameraNodeFromContext(*node->cameraValue, value->cameraStatement());
         } else if (value != nullptr && value->signedNumber() != nullptr) {
             gDeclaredScalars[node->identifier] = parseNumberText(value->signedNumber()->getText());
+        } else if (value != nullptr && value->colourLiteral() != nullptr) {
+            AntlrIrColor c = parseColour(value->colourLiteral());
+            gAntlrDeclaredColours[node->identifier] = c;
+            Logger::info("[ANTLR] Declared color %s = <%.3f, %.3f, %.3f, %.3f>\n",
+                node->identifier.c_str(), c.r, c.g, c.b, c.a);
+        } else if (value != nullptr && value->colourKeywordLiteral() != nullptr) {
+            AntlrIrColor c = parseColourKeywordLiteral(value->colourKeywordLiteral());
+            gAntlrDeclaredColours[node->identifier] = c;
+            Logger::info("[ANTLR] Declared keyword color %s = <%.3f, %.3f, %.3f, %.3f>\n",
+                node->identifier.c_str(), c.r, c.g, c.b, c.a);
+        } else if (value != nullptr && value->colourNamedLiteral() != nullptr) {
+            AntlrIrColor c = parseColourNamedLiteral(value->colourNamedLiteral());
+            gAntlrDeclaredColours[node->identifier] = c;
+            Logger::info("[ANTLR] Declared named color %s = <%.3f, %.3f, %.3f, %.3f>\n",
+                node->identifier.c_str(), c.r, c.g, c.b, c.a);
+        } else if (value != nullptr && value->vectorLiteral() != nullptr) {
+            AntlrIrVector3 v = parseVector(value->vectorLiteral());
+            AntlrIrColor c = {v.x, v.y, v.z, 0.0};
+            gAntlrDeclaredColours[node->identifier] = c;
+            Logger::info("[ANTLR] Declared vector-based color %s = <%.3f, %.3f, %.3f, %.3f>\n",
+                node->identifier.c_str(), c.r, c.g, c.b, c.a);
+        } else if (value != nullptr && value->IDENTIFIER() != nullptr) {
+            const auto it = gAntlrDeclaredColours.find(value->IDENTIFIER()->getText());
+            if (it != gAntlrDeclaredColours.end()) {
+                gAntlrDeclaredColours[node->identifier] = it->second;
+                Logger::info("[ANTLR] Declared color %s = <%.3f, %.3f, %.3f, %.3f> (reference to %s)\n",
+                    node->identifier.c_str(), it->second.r, it->second.g, it->second.b, it->second.a,
+                    value->IDENTIFIER()->getText().c_str());
+            } else {
+                Logger::error("[ANTLR] Failed to resolve color reference %s for %s\n",
+                    value->IDENTIFIER()->getText().c_str(), node->identifier.c_str());
+            }
         }
         AntlrSceneParserFrontend::appendDeclareNode(mProgram, node);
+        return nullptr;
+    }
+
+    antlrcpp::Any visitIncludeStatement(POVParser::IncludeStatementContext *ctx) override
+    {
+        if (ctx == nullptr || ctx->STRING() == nullptr) {
+            return nullptr;
+        }
+
+        std::string quotedFilename = ctx->STRING()->getText();
+        std::string includeName;
+        if (!extractQuotedString(quotedFilename, includeName)) {
+            return nullptr;
+        }
+
+        Logger::info("[ANTLR] Processing #include \"%s\"\n", includeName.c_str());
+
+        std::string resolvedPath;
+        if (!resolveIncludeFile(includeName, resolvedPath)) {
+            Logger::error("[ANTLR] Failed to resolve include file: %s\n", includeName.c_str());
+            return nullptr;
+        }
+
+        Logger::info("[ANTLR] Resolved include to: %s\n", resolvedPath.c_str());
+
+        if (gIncludeStack.find(resolvedPath) != gIncludeStack.end()) {
+            Logger::info("[ANTLR] Include already processed (circular): %s\n", resolvedPath.c_str());
+            return nullptr;
+        }
+        gIncludeStack.insert(resolvedPath);
+
+        std::string fileContent;
+        if (!readFileText(resolvedPath, fileContent)) {
+            Logger::error("[ANTLR] Failed to read file: %s\n", resolvedPath.c_str());
+            gIncludeStack.erase(resolvedPath);
+            return nullptr;
+        }
+
+        Logger::info("[ANTLR] Loaded %zu bytes from %s\n", fileContent.size(), resolvedPath.c_str());
+
+        try {
+            antlr4::ANTLRInputStream stream(fileContent);
+            POVLexer lexer(&stream);
+            antlr4::CommonTokenStream tokens(&lexer);
+            POVParser parser(&tokens);
+
+            POVParser::SceneContext *sceneCtx = parser.scene();
+            if (sceneCtx != nullptr) {
+                size_t colorsBeforeInclude = gAntlrDeclaredColours.size();
+                PovIrSubsetVisitor visitor(mProgram);
+                visitor.visitScene(sceneCtx);
+                size_t colorsAfterInclude = gAntlrDeclaredColours.size();
+                Logger::info("[ANTLR] Include added %zu new colors (total: %zu)\n",
+                    colorsAfterInclude - colorsBeforeInclude, colorsAfterInclude);
+            }
+        } catch (...) {
+            Logger::error("[ANTLR] Exception while parsing include: %s\n", resolvedPath.c_str());
+        }
+
+        gIncludeStack.erase(resolvedPath);
         return nullptr;
     }
 
@@ -1647,6 +2171,8 @@ AntlrParseTreeToIrMapper::mapScene(POVParser::SceneContext *sceneCtx)
     }
 
     gDeclaredScalars.clear();
+    gAntlrDeclaredColours.clear();
+    gIncludeStack.clear();
     PovIrSubsetVisitor visitor(*parsed->program);
     visitor.visitScene(sceneCtx);
     return parsed;

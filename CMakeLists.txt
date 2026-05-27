@@ -7,21 +7,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
-option(ENABLE_ANTLR_GENERATION "Generate ANTLR C++ sources into build/ at build time" OFF)
-option(ENABLE_ANTLR_CPP_RUNTIME "Compile ANTLR-generated C++ sources into a bridge target" OFF)
+option(ENABLE_ANTLR_GENERATION "Generate ANTLR C++ sources into build/ at build time" ON)
+option(ENABLE_ANTLR_CPP_RUNTIME "Compile ANTLR-generated C++ sources into a bridge target" ON)
 option(ENABLE_ANTLR_MINIMAL_BRIDGE "Build ANTLR bridge in minimal-link mode" ON)
 option(ENABLE_ANTLR_FULL_LOWERING_TEST_MODE
   "Build ANTLR bridge tests with full semantic lowering (disables minimal bridge define)" OFF)
 set(ANTLR4_JAR "" CACHE FILEPATH "Path to antlr-4.x-complete.jar")
-option(ENABLE_ANTLR_DOWNLOAD "Auto-download ANTLR jar when not provided" OFF)
+option(ENABLE_ANTLR_DOWNLOAD "Auto-download ANTLR jar when not provided" ON)
 set(ANTLR4_VERSION "4.9.3" CACHE STRING "ANTLR version used for code generation")
 set(ANTLR_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated/antlr")
 set(ANTLR_GRAMMAR_DIR "${CMAKE_SOURCE_DIR}/grammar")
-set(ANTLR4_RUNTIME_INCLUDE_DIR "" CACHE PATH "Path to antlr4-runtime C++ headers")
-set(ANTLR4_RUNTIME_LIBRARY "" CACHE FILEPATH "Path to antlr4-runtime C++ library")
-set(POVCPP_DEFAULT_USE_ANTLR "1" CACHE STRING "Default for POVCPP_USE_ANTLR when env var is unset")
-set(POVCPP_DEFAULT_ANTLR_STRICT "1" CACHE STRING "Default for POVCPP_ANTLR_STRICT when env var is unset")
-set(POVCPP_DEFAULT_ANTLR_ROUTING_STATS "1" CACHE STRING "Default for POVCPP_ANTLR_ROUTING_STATS when env var is unset")
+set(ANTLR4_RUNTIME_INCLUDE_DIR "/usr/include/antlr4-runtime" CACHE PATH "Path to antlr4-runtime C++ headers")
+set(ANTLR4_RUNTIME_LIBRARY "/usr/lib/x86_64-linux-gnu/libantlr4-runtime.so" CACHE FILEPATH "Path to antlr4-runtime C++ library")
 
 if(ENABLE_ANTLR_GENERATION)
   if(NOT EXISTS "${ANTLR4_JAR}" AND ENABLE_ANTLR_DOWNLOAD)
@@ -268,12 +265,6 @@ add_executable(povray
   src/io/pov/cameraParser/CameraParser.cpp
   src/io/pov/DeclarationParser.cpp
   src/io/pov/SceneFrameParser.cpp
-  src/io/pov/ast/AstPrimitiveParser.cpp
-  src/io/pov/ast/AstNodes.cpp
-  src/io/pov/ast/AstObjectParser.cpp
-  src/io/pov/ast/AstParsedSceneProgram.cpp
-  src/io/pov/ast/AstSceneParser.cpp
-  src/io/pov/ast/AstSceneBuilder.cpp
   src/io/pov/antlr/AntlrSceneIr.cpp
   src/io/pov/antlr/AntlrParsedSceneProgram.cpp
   src/io/pov/antlr/AntlrSceneIrBuilder.cpp
@@ -305,6 +296,7 @@ add_executable(povray
   src/render/shaders/LocalSurfaceShader.cpp
   src/render/RayShaderPipeline.cpp
   src/render/RenderEngine.cpp
+  src/render/SceneDump.cpp
   src/environment/material/RendererConfiguration.cpp
   src/environment/material/RenderRuntimeState.cpp
   src/common/Statistics.cpp
@@ -321,11 +313,6 @@ add_executable(povray
 
 target_include_directories(povray PRIVATE src)
 target_compile_options(povray PRIVATE -O3 -Wall -pedantic)
-target_compile_definitions(povray PRIVATE
-  POVCPP_DEFAULT_USE_ANTLR=${POVCPP_DEFAULT_USE_ANTLR}
-  POVCPP_DEFAULT_ANTLR_STRICT=${POVCPP_DEFAULT_ANTLR_STRICT}
-  POVCPP_DEFAULT_ANTLR_ROUTING_STATS=${POVCPP_DEFAULT_ANTLR_ROUTING_STATS}
-)
 
 target_link_libraries(povray PRIVATE m)
 
