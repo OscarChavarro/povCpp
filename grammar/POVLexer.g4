@@ -2,8 +2,18 @@ lexer grammar POVLexer;
 
 // Directives and top-level keywords
 DECLARE: '#declare';
-INCLUDE: '#include';
+INCLUDE: '#include' | 'include';
 SPHERE: 'sphere';
+PLANE: 'plane';
+BOX: 'box';
+TRIANGLE: 'triangle';
+SMOOTH_TRIANGLE: 'smooth_triangle';
+QUADRIC: 'quadric';
+QUARTIC: 'quartic';
+BLOB: 'blob';
+THRESHOLD: 'threshold';
+COMPONENT: 'component';
+STURM: 'sturm';
 LIGHT_SOURCE: 'light_source';
 UNION: 'union';
 INTERSECTION: 'intersection';
@@ -25,6 +35,7 @@ INVERSE: 'inverse';
 NO_SHADOW: 'no_shadow';
 TEXTURE: 'texture';
 COLOUR: 'colour' | 'color';
+COLOUR_MAP: 'colour_map' | 'color_map';
 
 // Camera fields
 LOCATION: 'location';

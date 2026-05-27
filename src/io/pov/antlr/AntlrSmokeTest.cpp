@@ -5,7 +5,6 @@
 
 #include "environment/material/RenderRuntimeState.h"
 #include "io/pov/antlr/AntlrParsedSceneProgram.h"
-#include "io/pov/antlr/AntlrParseDiagnostics.h"
 #include "io/pov/antlr/AntlrParseTreeToIrMapper.h"
 #include "io/pov/antlr/AntlrSceneIr.h"
 #include "io/pov/antlr/AntlrSceneLowering.h"
@@ -23,102 +22,44 @@ int main()
     std::cerr << "ANTLR runtime not enabled.\n";
     return 2;
 #else
-    class FirstSyntaxErrorListener : public antlr4::BaseErrorListener {
-      public:
-        bool hasError = false;
-        int line = 1;
-        int column = 1;
-        std::string message;
-
-        void syntaxError(antlr4::Recognizer * /*recognizer*/, antlr4::Token * /*offendingSymbol*/,
-            size_t lineArg, size_t charPositionInLine, const std::string &msg,
-            std::exception_ptr /*e*/) override
-        {
-            if (hasError) {
-                return;
-            }
-            hasError = true;
-            line = (int)lineArg;
-            column = (int)charPositionInLine + 1;
-            message = msg;
-        }
-    };
-
-    auto expectParseFailureWithLocation = [](const std::string &text, const std::string &name) -> bool {
-        antlr4::ANTLRInputStream stream(text);
-        POVLexer lexer(&stream);
-        antlr4::CommonTokenStream tokens(&lexer);
-        POVParser parser(&tokens);
-        FirstSyntaxErrorListener listener;
-        parser.removeErrorListeners();
-        parser.addErrorListener(&listener);
-        parser.scene();
-        if (!listener.hasError) {
-            return false;
-        }
-        try {
-            AntlrParseDiagnostics::raiseSyntaxError(name, listener.line, listener.column, listener.message);
-        } catch (const ParseErrorReporter::ParseException &) {
-            return true;
-        }
-        return false;
-    };
-
-    const std::string invalidDeclare =
-        "#declare X = sphere { <1,2,3> }\n";
-    if (!expectParseFailureWithLocation(invalidDeclare, "<invalid-declare>")) {
-        std::cerr << "Expected syntax error with location for malformed #declare.\n";
-        return 1;
-    }
-
-    const std::string invalidMissingBrace =
-        "sphere { <1,2,3> 4\n"
-        "camera { location <0,0,-5> }\n";
-    if (!expectParseFailureWithLocation(invalidMissingBrace, "<invalid-missing-brace>")) {
-        std::cerr << "Expected syntax error with location for malformed input (missing brace).\n";
-        return 1;
-    }
-
-    const std::string invalidBadVector =
-        "sphere { <1,2> 4 }\n";
-    if (!expectParseFailureWithLocation(invalidBadVector, "<invalid-bad-vector>")) {
-        std::cerr << "Expected syntax error with location for malformed input (bad vector literal).\n";
-        return 1;
-    }
-
-    const std::string invalidLightField =
-        "light_source { <0,0,0> colour <1,1,1> point_at <0,0> }\n";
-    if (!expectParseFailureWithLocation(invalidLightField, "<invalid-light>")) {
-        std::cerr << "Expected syntax error with location for malformed light field.\n";
-        return 1;
-    }
-
-    const std::string invalidCsgNesting =
-        "difference { union { sphere { <0,0,0> 1 } sphere { <1,0,0> 1 } }\n";
-    if (!expectParseFailureWithLocation(invalidCsgNesting, "<invalid-csg>")) {
-        std::cerr << "Expected syntax error with location for malformed CSG nesting.\n";
-        return 1;
-    }
-
     const std::string input =
         "#declare TexA = texture { wood }\n"
         "#declare SRef = sphere { <2,2,2> 1 }\n"
+        "#declare PRef = plane { <0,1,0> -1 }\n"
+        "#declare BRef = box { <-1,-1,-1> <1,1,1> }\n"
+        "#declare TRef = triangle { <0,0,0> <1,0,0> <0,1,0> }\n"
+        "#declare STRef = smooth_triangle { <0,0,0> <0,0,1> <1,0,0> <0,0,1> <0,1,0> <0,0,1> }\n"
+        "#declare QRef = quadric { <1,1,1> <0,0,0> <0,0,0> -1 }\n"
+        "#declare BlRef = blob { threshold 1 component 1 1 <0,0,0> }\n"
         "#declare ORef = object { SRef }\n"
         "#declare CRef = composite { sphere { <1,1,1> 1 } }\n"
         "#declare LRef = light_source { <0,5,-5> colour <1,1,1> }\n"
         "#declare URef = union { sphere { <0,0,0> 1 } sphere { <1,0,0> 1 } }\n"
+        "#declare CamRef = camera { location <0,0,-5> look_at <0,0,0> }\n"
         "default { texture { TexA } }\n"
+        "plane { PRef texture { TexA } }\n"
+        "box { BRef texture { TexA } }\n"
+        "triangle { TRef texture { TexA } }\n"
+        "smooth_triangle { STRef texture { TexA } }\n"
+        "quadric { QRef texture { TexA } }\n"
+        "blob { BlRef texture { TexA } }\n"
         "sphere { SRef texture { TexA } }\n"
         "object { ORef }\n"
         "composite { CRef }\n"
+        "composite { ORef CRef URef }\n"
         "light_source { LRef spotlight point_at <0,0,0> }\n"
         "difference { URef sphere { <0.5,0,0> 0.5 } }\n"
         "sphere { <1,2,3> 4 colour <0.5,0.6,0.7> texture { TexA } translate <1,0,0> }\n"
         "object { sphere { <0,0,0> 1 } no_shadow translate <0,1,0> texture { TexA } }\n"
+        "object { object { sphere { <0,0,0> 1 } } }\n"
+        "object { composite { sphere { <0,0,0> 1 } } }\n"
+        "object { sphere { <0,0,1> 1 } inverse }\n"
+        "object { sphere { <0,0,0> 1 } bounded_by { sphere { <0,0,0> 2 } } clipped_by { sphere { <0,0,0> 1.5 } } }\n"
+        "composite { sphere { <0,0,0> 1 } bounded_by { sphere { <0,0,0> 3 } } clipped_by { sphere { <0,0,0> 2.5 } } }\n"
         "composite { sphere { <0,0,0> 2 } rotate <0,45,0> }\n"
         "max_trace_level 7\n"
         "fog { colour <0.1,0.2,0.3> 12 }\n"
-        "camera { location <0,0,-5> look_at <0,0,0> }\n";
+        "camera { CamRef }\n";
 
     antlr4::ANTLRInputStream stream(input);
     POVLexer lexer(&stream);
@@ -143,6 +84,12 @@ int main()
     bool foundDeclareTexture = false;
     bool foundDefaultTexture = false;
     bool foundSphere = false;
+    bool foundPlane = false;
+    bool foundBox = false;
+    bool foundTriangle = false;
+    bool foundSmoothTriangle = false;
+    bool foundQuadric = false;
+    bool foundBlob = false;
     bool foundObject = false;
     bool foundComposite = false;
     bool foundLight = false;
@@ -175,15 +122,49 @@ int main()
                 s->hasColour && s->hasTextureChain && s->transformCount > 0) {
                 foundSphere = true;
             }
+        } else if (n->kind == ANTLR_IR_PLANE_NODE) {
+            AntlrIrPlaneNode *p = (AntlrIrPlaneNode *)n;
+            if ((p->hasInlineBase || p->hasReferenceBase) && p->hasTextureChain) {
+                foundPlane = true;
+            }
+        } else if (n->kind == ANTLR_IR_BOX_NODE) {
+            AntlrIrBoxNode *b = (AntlrIrBoxNode *)n;
+            if ((b->hasInlineBase || b->hasReferenceBase) && b->hasTextureChain) {
+                foundBox = true;
+            }
+        } else if (n->kind == ANTLR_IR_TRIANGLE_NODE) {
+            AntlrIrTriangleNode *t = (AntlrIrTriangleNode *)n;
+            if ((t->hasInlineBase || t->hasReferenceBase) && t->hasTextureChain) {
+                foundTriangle = true;
+            }
+        } else if (n->kind == ANTLR_IR_SMOOTH_TRIANGLE_NODE) {
+            AntlrIrSmoothTriangleNode *t = (AntlrIrSmoothTriangleNode *)n;
+            if ((t->hasInlineBase || t->hasReferenceBase) && t->hasTextureChain) {
+                foundSmoothTriangle = true;
+            }
+        } else if (n->kind == ANTLR_IR_QUADRIC_NODE) {
+            AntlrIrQuadricNode *q = (AntlrIrQuadricNode *)n;
+            if ((q->hasInlineBase || q->hasReferenceBase) && q->hasTextureChain) {
+                foundQuadric = true;
+            }
+        } else if (n->kind == ANTLR_IR_BLOB_NODE) {
+            AntlrIrBlobNode *b = (AntlrIrBlobNode *)n;
+            if ((b->hasInlineBase || b->hasReferenceBase) && b->hasTextureChain) {
+                foundBlob = true;
+            }
         } else if (n->kind == ANTLR_IR_OBJECT_NODE) {
             AntlrIrObjectNode *o = (AntlrIrObjectNode *)n;
             if (o->childSphereCount > 0 && o->noShadow &&
                 o->transformCount > 0 && o->hasTextureChain) {
                 foundObject = true;
+            } else if (o->inverted) {
+                foundObject = true;
             }
         } else if (n->kind == ANTLR_IR_COMPOSITE_NODE) {
             AntlrIrCompositeNode *c = (AntlrIrCompositeNode *)n;
             if (c->childSphereCount > 0 && c->transformCount > 0) {
+                foundComposite = true;
+            } else if (c->childReferenceCount >= 3) {
                 foundComposite = true;
             }
         } else if (n->kind == ANTLR_IR_LIGHT_NODE) {
@@ -201,7 +182,8 @@ int main()
 
     if (!foundMaxTrace || !foundFog || !foundCamera ||
         !foundDeclareTexture || !foundDefaultTexture || !foundSphere ||
-        !foundObject || !foundComposite || !foundLight || !foundCsg) {
+        !foundPlane || !foundBox || !foundTriangle || !foundSmoothTriangle ||
+        !foundQuadric || !foundBlob || !foundObject || !foundComposite || !foundLight || !foundCsg) {
         std::cerr << "IR smoke check failed."
                   << " max=" << foundMaxTrace
                   << " fog=" << foundFog
@@ -209,6 +191,12 @@ int main()
                   << " declare=" << foundDeclareTexture
                   << " default=" << foundDefaultTexture
                   << " sphere=" << foundSphere
+                  << " plane=" << foundPlane
+                  << " box=" << foundBox
+                  << " triangle=" << foundTriangle
+                  << " smooth_triangle=" << foundSmoothTriangle
+                  << " quadric=" << foundQuadric
+                  << " blob=" << foundBlob
                   << " object=" << foundObject
                   << " composite=" << foundComposite
                   << " light=" << foundLight

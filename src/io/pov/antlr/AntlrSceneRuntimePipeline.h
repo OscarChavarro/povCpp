@@ -3,12 +3,11 @@
 
 #include <string>
 
-class ParserContext;
 class RenderFrame;
 
 class AntlrSceneRuntimePipeline {
   public:
-    static bool parseAndApply(RenderFrame *framePtr, ParserContext &ctx, std::string &error);
+    static bool parseAndApply(RenderFrame *framePtr, std::string &error);
 };
 
 #endif

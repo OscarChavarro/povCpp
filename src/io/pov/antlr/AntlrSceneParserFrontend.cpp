@@ -131,6 +131,101 @@ AntlrSceneParserFrontend::appendSphereNode(AntlrSceneIrProgram &program, AntlrIr
 }
 
 bool
+AntlrSceneParserFrontend::appendPlaneNode(AntlrSceneIrProgram &program, AntlrIrPlaneNode *planeNode)
+{
+    if (planeNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR plane node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, planeNode)) {
+        delete planeNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
+AntlrSceneParserFrontend::appendBoxNode(AntlrSceneIrProgram &program, AntlrIrBoxNode *boxNode)
+{
+    if (boxNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR box node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, boxNode)) {
+        delete boxNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
+AntlrSceneParserFrontend::appendTriangleNode(
+    AntlrSceneIrProgram &program, AntlrIrTriangleNode *triangleNode)
+{
+    if (triangleNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR triangle node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, triangleNode)) {
+        delete triangleNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
+AntlrSceneParserFrontend::appendSmoothTriangleNode(
+    AntlrSceneIrProgram &program, AntlrIrSmoothTriangleNode *smoothTriangleNode)
+{
+    if (smoothTriangleNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR smooth_triangle node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, smoothTriangleNode)) {
+        delete smoothTriangleNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
+AntlrSceneParserFrontend::appendQuadricNode(
+    AntlrSceneIrProgram &program, AntlrIrQuadricNode *quadricNode)
+{
+    if (quadricNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR quadric node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, quadricNode)) {
+        delete quadricNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
+AntlrSceneParserFrontend::appendQuarticNode(
+    AntlrSceneIrProgram &program, AntlrIrQuarticNode *quarticNode)
+{
+    if (quarticNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR quartic node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, quarticNode)) {
+        delete quarticNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
+AntlrSceneParserFrontend::appendBlobNode(AntlrSceneIrProgram &program, AntlrIrBlobNode *blobNode)
+{
+    if (blobNode == nullptr) {
+        throw std::runtime_error("Invalid ANTLR IR blob node");
+    }
+    if (!AntlrSceneIrNodes::appendNode(program, blobNode)) {
+        delete blobNode;
+        throw std::runtime_error("Too many ANTLR IR scene nodes");
+    }
+    return true;
+}
+
+bool
 AntlrSceneParserFrontend::appendObjectNode(AntlrSceneIrProgram &program, AntlrIrObjectNode *objectNode)
 {
     if (objectNode == nullptr) {

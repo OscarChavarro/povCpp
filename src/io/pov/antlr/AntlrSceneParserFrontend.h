@@ -22,6 +22,14 @@ class AntlrSceneParserFrontend {
     static bool appendDefaultTextureNode(
         AntlrSceneIrProgram &program, AntlrIrDefaultTextureNode *defaultTextureNode);
     static bool appendSphereNode(AntlrSceneIrProgram &program, AntlrIrSphereNode *sphereNode);
+    static bool appendPlaneNode(AntlrSceneIrProgram &program, AntlrIrPlaneNode *planeNode);
+    static bool appendBoxNode(AntlrSceneIrProgram &program, AntlrIrBoxNode *boxNode);
+    static bool appendTriangleNode(AntlrSceneIrProgram &program, AntlrIrTriangleNode *triangleNode);
+    static bool appendSmoothTriangleNode(
+        AntlrSceneIrProgram &program, AntlrIrSmoothTriangleNode *smoothTriangleNode);
+    static bool appendQuadricNode(AntlrSceneIrProgram &program, AntlrIrQuadricNode *quadricNode);
+    static bool appendQuarticNode(AntlrSceneIrProgram &program, AntlrIrQuarticNode *quarticNode);
+    static bool appendBlobNode(AntlrSceneIrProgram &program, AntlrIrBlobNode *blobNode);
     static bool appendObjectNode(AntlrSceneIrProgram &program, AntlrIrObjectNode *objectNode);
     static bool appendCompositeNode(
         AntlrSceneIrProgram &program, AntlrIrCompositeNode *compositeNode);

@@ -9,15 +9,35 @@ scene
 topLevelStatement
     : includeStatement
     | declareStatement
+    | anonymousTopLevelBlock
+    | topLevelLiteralStatement
+    | identifierInvocation
     | lightSourceStatement
     | csgStatement
     | sphereStatement
+    | planeStatement
+    | boxStatement
+    | triangleStatement
+    | smoothTriangleStatement
+    | quadricStatement
+    | quarticStatement
+    | blobStatement
     | objectStatement
     | compositeStatement
     | cameraStatement
     | fogStatement
     | defaultStatement
     | maxTraceLevelStatement
+    ;
+
+topLevelLiteralStatement
+    : scalarLiteral
+    | vectorLiteral
+    | STRING
+    ;
+
+anonymousTopLevelBlock
+    : LEFT_CURLY topLevelStatement* RIGHT_CURLY
     ;
 
 includeStatement
@@ -30,15 +50,25 @@ declareStatement
 
 declareValue
     : sphereStatement
+    | planeStatement
+    | boxStatement
+    | triangleStatement
+    | smoothTriangleStatement
+    | quadricStatement
+    | quarticStatement
+    | blobStatement
     | objectStatement
     | compositeStatement
     | lightSourceStatement
     | csgStatement
     | cameraStatement
+    | identifierInvocation
     | textureChain
     | vectorLiteral
     | signedNumber
     | colourLiteral
+    | colourKeywordLiteral
+    | colourNamedLiteral
     | IDENTIFIER
     ;
 
@@ -46,8 +76,141 @@ sphereStatement
     : SPHERE LEFT_CURLY sphereBase sphereModifier* RIGHT_CURLY
     ;
 
+planeStatement
+    : PLANE LEFT_CURLY planeBase planeModifier* RIGHT_CURLY
+    ;
+
+boxStatement
+    : BOX LEFT_CURLY boxBase boxModifier* RIGHT_CURLY
+    ;
+
+triangleStatement
+    : TRIANGLE LEFT_CURLY triangleBase triangleModifier* RIGHT_CURLY
+    ;
+
+smoothTriangleStatement
+    : SMOOTH_TRIANGLE LEFT_CURLY smoothTriangleBase smoothTriangleModifier* RIGHT_CURLY
+    ;
+
+quadricStatement
+    : QUADRIC LEFT_CURLY quadricBase quadricModifier* RIGHT_CURLY
+    ;
+
+quarticStatement
+    : QUARTIC LEFT_CURLY quarticBase quarticModifier* RIGHT_CURLY
+    ;
+
+blobStatement
+    : BLOB LEFT_CURLY blobBase blobModifier* RIGHT_CURLY
+    ;
+
+planeBase
+    : vectorLiteral scalarLiteral
+    | IDENTIFIER
+    ;
+
+planeModifier
+    : transform
+    | textureElement
+    | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
+boxBase
+    : vectorLiteral vectorLiteral
+    | IDENTIFIER
+    ;
+
+boxModifier
+    : transform
+    | textureElement
+    | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
+triangleBase
+    : vectorLiteral vectorLiteral vectorLiteral
+    | IDENTIFIER
+    ;
+
+triangleModifier
+    : transform
+    | textureElement
+    | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
+smoothTriangleBase
+    : vectorLiteral vectorLiteral vectorLiteral vectorLiteral vectorLiteral vectorLiteral
+    | IDENTIFIER
+    ;
+
+smoothTriangleModifier
+    : transform
+    | textureElement
+    | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
+quadricBase
+    : vectorLiteral vectorLiteral vectorLiteral scalarLiteral
+    | IDENTIFIER
+    ;
+
+quadricModifier
+    : transform
+    | textureElement
+    | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
+quarticBase
+    : IDENTIFIER
+    | LEFT_ANGLE scalarLiteral+ RIGHT_ANGLE
+    ;
+
+quarticModifier
+    : STURM
+    | transform
+    | textureElement
+    | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
+blobBase
+    : IDENTIFIER
+    | blobElement+
+    ;
+
+blobElement
+    : THRESHOLD scalarLiteral
+    | COMPONENT scalarLiteral scalarLiteral vectorLiteral
+    ;
+
+blobModifier
+    : STURM
+    | transform
+    | textureElement
+    | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
 sphereBase
-    : vectorLiteral signedNumber
+    : vectorLiteral scalarLiteral
     | IDENTIFIER
     ;
 
@@ -55,6 +218,19 @@ sphereModifier
     : transform
     | textureElement
     | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | INVERSE
+    ;
+
+identifierInvocation
+    : IDENTIFIER objectArgument* (LEFT_CURLY objectBodyElement* RIGHT_CURLY)?
+    ;
+
+objectArgument
+    : scalarLiteral
+    | vectorLiteral
+    | STRING
     ;
 
 objectStatement
@@ -63,14 +239,25 @@ objectStatement
 
 objectBodyElement
     : shapeStatement
+    | identifierInvocation
+    | lightSourceStatement
     | boundedByBlock
     | clippedByBlock
     | transform
     | textureElement
     | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | angleScalarList
+    | vectorLiteral
+    | signedNumber
+    | STRING
     | INVERSE
     | NO_SHADOW
-    | IDENTIFIER
+    ;
+
+angleScalarList
+    : LEFT_ANGLE scalarLiteral+ RIGHT_ANGLE
     ;
 
 compositeStatement
@@ -87,6 +274,13 @@ compositeBodyElement
 
 shapeStatement
     : sphereStatement
+    | planeStatement
+    | boxStatement
+    | triangleStatement
+    | smoothTriangleStatement
+    | quadricStatement
+    | quarticStatement
+    | blobStatement
     | objectStatement
     | compositeStatement
     | csgStatement
@@ -104,22 +298,26 @@ csgKeyword
 
 csgBodyElement
     : shapeStatement
-    | boundedByBlock
-    | clippedByBlock
+    | identifierInvocation
+    | lightSourceStatement
     | transform
-    | textureElement
     | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
     | INVERSE
-    | NO_SHADOW
-    | IDENTIFIER
     ;
 
 boundedByBlock
-    : BOUNDED_BY LEFT_CURLY shapeStatement* RIGHT_CURLY
+    : BOUNDED_BY LEFT_CURLY boundedShapeElement* RIGHT_CURLY
     ;
 
 clippedByBlock
-    : CLIPPED_BY LEFT_CURLY shapeStatement* RIGHT_CURLY
+    : CLIPPED_BY LEFT_CURLY boundedShapeElement* RIGHT_CURLY
+    ;
+
+boundedShapeElement
+    : shapeStatement
+    | identifierInvocation
     ;
 
 lightSourceStatement
@@ -129,10 +327,12 @@ lightSourceStatement
 lightSourceElement
     : vectorLiteral
     | colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
     | POINT_AT vectorLiteral
-    | TIGHTNESS signedNumber
-    | RADIUS signedNumber
-    | FALLOFF signedNumber
+    | TIGHTNESS scalarLiteral
+    | RADIUS scalarLiteral
+    | FALLOFF scalarLiteral
     | SPOTLIGHT
     | transform
     | IDENTIFIER
@@ -159,6 +359,8 @@ fogStatement
 
 fogElement
     : colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
     | signedNumber
     ;
 
@@ -179,25 +381,66 @@ textureElement
     ;
 
 textureBodyElement
-    : IDENTIFIER
+    : IDENTIFIER textureArgument* (LEFT_CURLY textureBodyElement* RIGHT_CURLY)?
+    | COLOUR
     | vectorLiteral
     | signedNumber
     | STRING
     | textureElement
+    | transform
+    | colourMapBlock
+    ;
+
+textureArgument
+    : scalarLiteral
+    | vectorLiteral
+    | STRING
+    ;
+
+colourMapBlock
+    : COLOUR_MAP LEFT_CURLY colourMapEntry* RIGHT_CURLY
+    ;
+
+colourMapEntry
+    : LEFT_SQUARE scalarLiteral scalarLiteral colourMapColourStop+ RIGHT_SQUARE
+    ;
+
+colourMapColourStop
+    : colourLiteral
+    | colourNamedLiteral
+    | colourKeywordLiteral
+    | IDENTIFIER
+    | vectorLiteral
+    | signedNumber
     ;
 
 colourLiteral
     : COLOUR vectorLiteral
     ;
 
+colourNamedLiteral
+    : COLOUR IDENTIFIER
+    ;
+
+colourKeywordLiteral
+    : COLOUR (IDENTIFIER scalarLiteral)+
+    ;
+
 transform
-    : TRANSLATE vectorLiteral
-    | ROTATE vectorLiteral
-    | SCALE vectorLiteral
+    : TRANSLATE (vectorLiteral | IDENTIFIER)
+    | ROTATE (vectorLiteral | IDENTIFIER)
+    | SCALE (vectorLiteral | scalarLiteral)
     ;
 
 vectorLiteral
-    : LEFT_ANGLE signedNumber COMMA? signedNumber COMMA? signedNumber RIGHT_ANGLE
+    : LEFT_ANGLE scalarLiteral COMMA? scalarLiteral COMMA? scalarLiteral RIGHT_ANGLE
+    ;
+
+scalarLiteral
+    : signedNumber
+    | DASH IDENTIFIER
+    | PLUS IDENTIFIER
+    | IDENTIFIER
     ;
 
 signedNumber

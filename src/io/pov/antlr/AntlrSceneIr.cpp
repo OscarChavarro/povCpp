@@ -13,6 +13,38 @@ void destroyObjectChildren(AntlrIrObjectNode *obj)
         delete obj->childSpheres[i];
         obj->childSpheres[i] = nullptr;
     }
+    for (int i = 0; i < obj->childPlaneCount; ++i) {
+        delete obj->childPlanes[i];
+        obj->childPlanes[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childBoxCount; ++i) {
+        delete obj->childBoxes[i];
+        obj->childBoxes[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childTriangleCount; ++i) {
+        delete obj->childTriangles[i];
+        obj->childTriangles[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childSmoothTriangleCount; ++i) {
+        delete obj->childSmoothTriangles[i];
+        obj->childSmoothTriangles[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childQuadricCount; ++i) {
+        delete obj->childQuadrics[i];
+        obj->childQuadrics[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childQuarticCount; ++i) {
+        delete obj->childQuartics[i];
+        obj->childQuartics[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childBlobCount; ++i) {
+        delete obj->childBlobs[i];
+        obj->childBlobs[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childLightCount; ++i) {
+        delete obj->childLights[i];
+        obj->childLights[i] = nullptr;
+    }
     for (int i = 0; i < obj->childObjectCount; ++i) {
         destroyObjectChildren(obj->childObjects[i]);
         delete obj->childObjects[i];
@@ -22,6 +54,29 @@ void destroyObjectChildren(AntlrIrObjectNode *obj)
         destroyCompositeChildren(obj->childComposites[i]);
         delete obj->childComposites[i];
         obj->childComposites[i] = nullptr;
+    }
+    for (int i = 0; i < obj->childCsgCount; ++i) {
+        destroyCsgChildren(obj->childCsgs[i]);
+        delete obj->childCsgs[i];
+        obj->childCsgs[i] = nullptr;
+    }
+    for (int i = 0; i < obj->boundedSphereCount; ++i) {
+        delete obj->boundedSpheres[i];
+        obj->boundedSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < obj->boundedCsgCount; ++i) {
+        destroyCsgChildren(obj->boundedCsgs[i]);
+        delete obj->boundedCsgs[i];
+        obj->boundedCsgs[i] = nullptr;
+    }
+    for (int i = 0; i < obj->clippedSphereCount; ++i) {
+        delete obj->clippedSpheres[i];
+        obj->clippedSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < obj->clippedCsgCount; ++i) {
+        destroyCsgChildren(obj->clippedCsgs[i]);
+        delete obj->clippedCsgs[i];
+        obj->clippedCsgs[i] = nullptr;
     }
 }
 
@@ -44,6 +99,24 @@ void destroyCompositeChildren(AntlrIrCompositeNode *comp)
         delete comp->childComposites[i];
         comp->childComposites[i] = nullptr;
     }
+    for (int i = 0; i < comp->boundedSphereCount; ++i) {
+        delete comp->boundedSpheres[i];
+        comp->boundedSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < comp->boundedCsgCount; ++i) {
+        destroyCsgChildren(comp->boundedCsgs[i]);
+        delete comp->boundedCsgs[i];
+        comp->boundedCsgs[i] = nullptr;
+    }
+    for (int i = 0; i < comp->clippedSphereCount; ++i) {
+        delete comp->clippedSpheres[i];
+        comp->clippedSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < comp->clippedCsgCount; ++i) {
+        destroyCsgChildren(comp->clippedCsgs[i]);
+        delete comp->clippedCsgs[i];
+        comp->clippedCsgs[i] = nullptr;
+    }
 }
 
 void destroyCsgChildren(AntlrIrCsgNode *csg)
@@ -54,6 +127,38 @@ void destroyCsgChildren(AntlrIrCsgNode *csg)
     for (int i = 0; i < csg->childSphereCount; ++i) {
         delete csg->childSpheres[i];
         csg->childSpheres[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childPlaneCount; ++i) {
+        delete csg->childPlanes[i];
+        csg->childPlanes[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childBoxCount; ++i) {
+        delete csg->childBoxes[i];
+        csg->childBoxes[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childTriangleCount; ++i) {
+        delete csg->childTriangles[i];
+        csg->childTriangles[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childSmoothTriangleCount; ++i) {
+        delete csg->childSmoothTriangles[i];
+        csg->childSmoothTriangles[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childQuadricCount; ++i) {
+        delete csg->childQuadrics[i];
+        csg->childQuadrics[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childQuarticCount; ++i) {
+        delete csg->childQuartics[i];
+        csg->childQuartics[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childBlobCount; ++i) {
+        delete csg->childBlobs[i];
+        csg->childBlobs[i] = nullptr;
+    }
+    for (int i = 0; i < csg->childLightCount; ++i) {
+        delete csg->childLights[i];
+        csg->childLights[i] = nullptr;
     }
     for (int i = 0; i < csg->childObjectCount; ++i) {
         destroyObjectChildren(csg->childObjects[i]);
@@ -99,6 +204,7 @@ AntlrIrCameraNode::AntlrIrCameraNode()
     sourceLine = -1;
     sourceColumn = -1;
     sourceFile = nullptr;
+    hasReference = false;
     opCount = 0;
 }
 
@@ -112,6 +218,20 @@ AntlrIrDeclareNode::AntlrIrDeclareNode()
     hasTextureChainValue = false;
     hasSphereValue = false;
     sphereValue = nullptr;
+    hasPlaneValue = false;
+    planeValue = nullptr;
+    hasBoxValue = false;
+    boxValue = nullptr;
+    hasTriangleValue = false;
+    triangleValue = nullptr;
+    hasSmoothTriangleValue = false;
+    smoothTriangleValue = nullptr;
+    hasQuadricValue = false;
+    quadricValue = nullptr;
+    hasQuarticValue = false;
+    quarticValue = nullptr;
+    hasBlobValue = false;
+    blobValue = nullptr;
     hasObjectValue = false;
     objectValue = nullptr;
     hasCompositeValue = false;
@@ -120,6 +240,8 @@ AntlrIrDeclareNode::AntlrIrDeclareNode()
     lightValue = nullptr;
     hasCsgValue = false;
     csgValue = nullptr;
+    hasCameraValue = false;
+    cameraValue = nullptr;
 }
 
 AntlrIrDefaultTextureNode::AntlrIrDefaultTextureNode()
@@ -145,6 +267,115 @@ AntlrIrSphereNode::AntlrIrSphereNode()
     transformCount = 0;
 }
 
+AntlrIrPlaneNode::AntlrIrPlaneNode()
+{
+    kind = ANTLR_IR_PLANE_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReferenceBase = false;
+    hasInlineBase = false;
+    distance = 0.0;
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
+AntlrIrBoxNode::AntlrIrBoxNode()
+{
+    kind = ANTLR_IR_BOX_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReferenceBase = false;
+    hasInlineBase = false;
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
+AntlrIrTriangleNode::AntlrIrTriangleNode()
+{
+    kind = ANTLR_IR_TRIANGLE_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReferenceBase = false;
+    hasInlineBase = false;
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
+AntlrIrSmoothTriangleNode::AntlrIrSmoothTriangleNode()
+{
+    kind = ANTLR_IR_SMOOTH_TRIANGLE_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReferenceBase = false;
+    hasInlineBase = false;
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
+AntlrIrQuadricNode::AntlrIrQuadricNode()
+{
+    kind = ANTLR_IR_QUADRIC_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReferenceBase = false;
+    hasInlineBase = false;
+    objectConstant = 0.0;
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
+AntlrIrBlobNode::AntlrIrBlobNode()
+{
+    kind = ANTLR_IR_BLOB_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReferenceBase = false;
+    hasInlineBase = false;
+    hasThreshold = false;
+    threshold = 1.0;
+    componentCount = 0;
+    sturm = false;
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
+AntlrIrQuarticNode::AntlrIrQuarticNode()
+{
+    kind = ANTLR_IR_QUARTIC_NODE;
+    sourceLine = -1;
+    sourceColumn = -1;
+    sourceFile = nullptr;
+    hasReferenceBase = false;
+    hasInlineBase = false;
+    coefficientCount = 0;
+    for (int i = 0; i < MAX_COEFFICIENTS; ++i) {
+        coefficients[i] = 0.0;
+    }
+    sturm = false;
+    hasColour = false;
+    hasTextureChain = false;
+    inverted = false;
+    transformCount = 0;
+}
+
 AntlrIrObjectNode::AntlrIrObjectNode()
 {
     kind = ANTLR_IR_OBJECT_NODE;
@@ -156,6 +387,38 @@ AntlrIrObjectNode::AntlrIrObjectNode()
     for (int i = 0; i < MAX_CHILD_SPHERES; ++i) {
         childSpheres[i] = nullptr;
     }
+    childPlaneCount = 0;
+    for (int i = 0; i < MAX_CHILD_PLANES; ++i) {
+        childPlanes[i] = nullptr;
+    }
+    childBoxCount = 0;
+    for (int i = 0; i < MAX_CHILD_BOXES; ++i) {
+        childBoxes[i] = nullptr;
+    }
+    childTriangleCount = 0;
+    for (int i = 0; i < MAX_CHILD_TRIANGLES; ++i) {
+        childTriangles[i] = nullptr;
+    }
+    childSmoothTriangleCount = 0;
+    for (int i = 0; i < MAX_CHILD_SMOOTH_TRIANGLES; ++i) {
+        childSmoothTriangles[i] = nullptr;
+    }
+    childQuadricCount = 0;
+    for (int i = 0; i < MAX_CHILD_QUADRICS; ++i) {
+        childQuadrics[i] = nullptr;
+    }
+    childQuarticCount = 0;
+    for (int i = 0; i < MAX_CHILD_QUARTICS; ++i) {
+        childQuartics[i] = nullptr;
+    }
+    childBlobCount = 0;
+    for (int i = 0; i < MAX_CHILD_BLOBS; ++i) {
+        childBlobs[i] = nullptr;
+    }
+    childLightCount = 0;
+    for (int i = 0; i < MAX_CHILD_LIGHTS; ++i) {
+        childLights[i] = nullptr;
+    }
     childObjectCount = 0;
     for (int i = 0; i < MAX_CHILD_OBJECTS; ++i) {
         childObjects[i] = nullptr;
@@ -164,10 +427,33 @@ AntlrIrObjectNode::AntlrIrObjectNode()
     for (int i = 0; i < MAX_CHILD_COMPOSITES; ++i) {
         childComposites[i] = nullptr;
     }
+    childCsgCount = 0;
+    for (int i = 0; i < MAX_CHILD_CSGS; ++i) {
+        childCsgs[i] = nullptr;
+    }
     childReferenceCount = 0;
+    boundedSphereCount = 0;
+    for (int i = 0; i < MAX_BOUNDED_SPHERES; ++i) {
+        boundedSpheres[i] = nullptr;
+    }
+    boundedCsgCount = 0;
+    for (int i = 0; i < MAX_BOUNDED_CSGS; ++i) {
+        boundedCsgs[i] = nullptr;
+    }
+    boundedReferenceCount = 0;
+    clippedSphereCount = 0;
+    for (int i = 0; i < MAX_CLIPPED_SPHERES; ++i) {
+        clippedSpheres[i] = nullptr;
+    }
+    clippedCsgCount = 0;
+    for (int i = 0; i < MAX_CLIPPED_CSGS; ++i) {
+        clippedCsgs[i] = nullptr;
+    }
+    clippedReferenceCount = 0;
     hasColour = false;
     hasTextureChain = false;
     noShadow = false;
+    inverted = false;
     transformCount = 0;
 }
 
@@ -191,6 +477,24 @@ AntlrIrCompositeNode::AntlrIrCompositeNode()
         childComposites[i] = nullptr;
     }
     childReferenceCount = 0;
+    boundedSphereCount = 0;
+    for (int i = 0; i < MAX_BOUNDED_SPHERES; ++i) {
+        boundedSpheres[i] = nullptr;
+    }
+    boundedCsgCount = 0;
+    for (int i = 0; i < MAX_BOUNDED_CSGS; ++i) {
+        boundedCsgs[i] = nullptr;
+    }
+    boundedReferenceCount = 0;
+    clippedSphereCount = 0;
+    for (int i = 0; i < MAX_CLIPPED_SPHERES; ++i) {
+        clippedSpheres[i] = nullptr;
+    }
+    clippedCsgCount = 0;
+    for (int i = 0; i < MAX_CLIPPED_CSGS; ++i) {
+        clippedCsgs[i] = nullptr;
+    }
+    clippedReferenceCount = 0;
     transformCount = 0;
 }
 
@@ -225,6 +529,38 @@ AntlrIrCsgNode::AntlrIrCsgNode()
     childSphereCount = 0;
     for (int i = 0; i < MAX_CHILD_SPHERES; ++i) {
         childSpheres[i] = nullptr;
+    }
+    childPlaneCount = 0;
+    for (int i = 0; i < MAX_CHILD_PLANES; ++i) {
+        childPlanes[i] = nullptr;
+    }
+    childBoxCount = 0;
+    for (int i = 0; i < MAX_CHILD_BOXES; ++i) {
+        childBoxes[i] = nullptr;
+    }
+    childTriangleCount = 0;
+    for (int i = 0; i < MAX_CHILD_TRIANGLES; ++i) {
+        childTriangles[i] = nullptr;
+    }
+    childSmoothTriangleCount = 0;
+    for (int i = 0; i < MAX_CHILD_SMOOTH_TRIANGLES; ++i) {
+        childSmoothTriangles[i] = nullptr;
+    }
+    childQuadricCount = 0;
+    for (int i = 0; i < MAX_CHILD_QUADRICS; ++i) {
+        childQuadrics[i] = nullptr;
+    }
+    childQuarticCount = 0;
+    for (int i = 0; i < MAX_CHILD_QUARTICS; ++i) {
+        childQuartics[i] = nullptr;
+    }
+    childBlobCount = 0;
+    for (int i = 0; i < MAX_CHILD_BLOBS; ++i) {
+        childBlobs[i] = nullptr;
+    }
+    childLightCount = 0;
+    for (int i = 0; i < MAX_CHILD_LIGHTS; ++i) {
+        childLights[i] = nullptr;
     }
     childObjectCount = 0;
     for (int i = 0; i < MAX_CHILD_OBJECTS; ++i) {
@@ -296,6 +632,34 @@ AntlrSceneIrNodes::destroyNode(AntlrSceneIrNode *node)
             delete declareNode->sphereValue;
             declareNode->sphereValue = nullptr;
         }
+        if (declareNode->planeValue != nullptr) {
+            delete declareNode->planeValue;
+            declareNode->planeValue = nullptr;
+        }
+        if (declareNode->boxValue != nullptr) {
+            delete declareNode->boxValue;
+            declareNode->boxValue = nullptr;
+        }
+        if (declareNode->triangleValue != nullptr) {
+            delete declareNode->triangleValue;
+            declareNode->triangleValue = nullptr;
+        }
+        if (declareNode->smoothTriangleValue != nullptr) {
+            delete declareNode->smoothTriangleValue;
+            declareNode->smoothTriangleValue = nullptr;
+        }
+        if (declareNode->quadricValue != nullptr) {
+            delete declareNode->quadricValue;
+            declareNode->quadricValue = nullptr;
+        }
+        if (declareNode->quarticValue != nullptr) {
+            delete declareNode->quarticValue;
+            declareNode->quarticValue = nullptr;
+        }
+        if (declareNode->blobValue != nullptr) {
+            delete declareNode->blobValue;
+            declareNode->blobValue = nullptr;
+        }
         if (declareNode->objectValue != nullptr) {
             destroyObjectChildren(declareNode->objectValue);
             delete declareNode->objectValue;
@@ -314,6 +678,10 @@ AntlrSceneIrNodes::destroyNode(AntlrSceneIrNode *node)
             destroyCsgChildren(declareNode->csgValue);
             delete declareNode->csgValue;
             declareNode->csgValue = nullptr;
+        }
+        if (declareNode->cameraValue != nullptr) {
+            delete declareNode->cameraValue;
+            declareNode->cameraValue = nullptr;
         }
     } else if (node->kind == ANTLR_IR_OBJECT_NODE) {
         destroyObjectChildren((AntlrIrObjectNode *)node);

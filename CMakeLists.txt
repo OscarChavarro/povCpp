@@ -9,6 +9,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
 option(ENABLE_ANTLR_GENERATION "Generate ANTLR C++ sources into build/ at build time" OFF)
 option(ENABLE_ANTLR_CPP_RUNTIME "Compile ANTLR-generated C++ sources into a bridge target" OFF)
+option(ENABLE_ANTLR_MINIMAL_BRIDGE "Build ANTLR bridge in minimal-link mode" ON)
+option(ENABLE_ANTLR_FULL_LOWERING_TEST_MODE
+  "Build ANTLR bridge tests with full semantic lowering (disables minimal bridge define)" OFF)
 set(ANTLR4_JAR "" CACHE FILEPATH "Path to antlr-4.x-complete.jar")
 option(ENABLE_ANTLR_DOWNLOAD "Auto-download ANTLR jar when not provided" OFF)
 set(ANTLR4_VERSION "4.9.3" CACHE STRING "ANTLR version used for code generation")
@@ -16,6 +19,9 @@ set(ANTLR_OUTPUT_DIR "${CMAKE_BINARY_DIR}/generated/antlr")
 set(ANTLR_GRAMMAR_DIR "${CMAKE_SOURCE_DIR}/grammar")
 set(ANTLR4_RUNTIME_INCLUDE_DIR "" CACHE PATH "Path to antlr4-runtime C++ headers")
 set(ANTLR4_RUNTIME_LIBRARY "" CACHE FILEPATH "Path to antlr4-runtime C++ library")
+set(POVCPP_DEFAULT_USE_ANTLR "1" CACHE STRING "Default for POVCPP_USE_ANTLR when env var is unset")
+set(POVCPP_DEFAULT_ANTLR_STRICT "1" CACHE STRING "Default for POVCPP_ANTLR_STRICT when env var is unset")
+set(POVCPP_DEFAULT_ANTLR_ROUTING_STATS "1" CACHE STRING "Default for POVCPP_ANTLR_ROUTING_STATS when env var is unset")
 
 if(ENABLE_ANTLR_GENERATION)
   if(NOT EXISTS "${ANTLR4_JAR}" AND ENABLE_ANTLR_DOWNLOAD)
@@ -94,7 +100,7 @@ if(ENABLE_ANTLR_GENERATION)
     DEPENDS
       "${ANTLR_PARSER_GRAMMAR}"
       "${ANTLR_LEXER_GRAMMAR}"
-      "${ANTLR_OUTPUT_DIR}/POVLexer.tokens"
+      "${ANTLR_LEXER_STAMP}"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     COMMENT "Generating ANTLR parser from POVParser.g4"
     VERBATIM
@@ -125,13 +131,32 @@ if(ENABLE_ANTLR_GENERATION)
       src/io/pov/antlr/AntlrParsedSceneProgram.cpp
       src/io/pov/antlr/AntlrSceneIrBuilder.cpp
       src/io/pov/antlr/AntlrSceneLowering.cpp
+      src/io/pov/antlr/AntlrParseDiagnostics.cpp
       src/environment/camera/Camera.cpp
+      src/environment/geometry/elements/RayWithSegments.cpp
+      src/environment/geometry/elements/Triangle.cpp
+      src/environment/geometry/surface/InfinitePlane.cpp
+      src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
+      src/environment/geometry/surface/parametric/ParametricBiCubicSolver.cpp
+      src/environment/geometry/surface/parametric/ParametricPatch.cpp
+      src/environment/geometry/volume/Blob.cpp
+      src/environment/geometry/volume/Box.cpp
+      src/environment/geometry/volume/HeightField.cpp
+      src/environment/geometry/volume/Quadric.cpp
+      src/environment/geometry/volume/Sphere.cpp
+      src/environment/geometry/volume/polynomial/PolynomialShape.cpp
+      src/environment/geometry/volume/compound/CSG.cpp
+      src/environment/geometry/volume/compound/Composite.cpp
+      src/environment/light/Light.cpp
       src/environment/material/RenderRuntimeState.cpp
+      src/environment/material/RendererConfiguration.cpp
       src/common/linealAlgebra/Transformation.cpp
       src/common/logger/Logger.cpp
+      src/common/Statistics.cpp
       src/environment/scene/ModelBuilder.cpp
       src/environment/scene/SimpleBodyFactory.cpp
       src/media/Texture.cpp
+      src/processing/PolynomialSolver.cpp
     )
     add_dependencies(pov_antlr_bridge antlr_generate)
     target_include_directories(pov_antlr_bridge
@@ -141,7 +166,9 @@ if(ENABLE_ANTLR_GENERATION)
         "${ANTLR4_RUNTIME_INCLUDE_DIR}"
     )
     target_compile_definitions(pov_antlr_bridge PRIVATE POV_WITH_ANTLR_RUNTIME=1)
-    target_compile_definitions(pov_antlr_bridge PRIVATE POV_ANTLR_MINIMAL_BRIDGE=1)
+    if(ENABLE_ANTLR_MINIMAL_BRIDGE AND NOT ENABLE_ANTLR_FULL_LOWERING_TEST_MODE)
+      target_compile_definitions(pov_antlr_bridge PRIVATE POV_ANTLR_MINIMAL_BRIDGE=1)
+    endif()
     target_link_libraries(pov_antlr_bridge PUBLIC "${ANTLR4_RUNTIME_LIBRARY}")
     target_compile_features(pov_antlr_bridge PUBLIC cxx_std_11)
 
@@ -153,6 +180,33 @@ if(ENABLE_ANTLR_GENERATION)
     target_link_libraries(pov_antlr_smoke PRIVATE pov_antlr_bridge "${ANTLR4_RUNTIME_LIBRARY}")
     target_compile_definitions(pov_antlr_smoke PRIVATE POV_WITH_ANTLR_RUNTIME=1)
     target_compile_features(pov_antlr_smoke PRIVATE cxx_std_11)
+
+    add_executable(pov_antlr_negative
+      src/io/pov/antlr/AntlrNegativeTest.cpp
+    )
+    add_dependencies(pov_antlr_negative pov_antlr_bridge)
+    target_include_directories(pov_antlr_negative PRIVATE src "${ANTLR_OUTPUT_DIR}" "${ANTLR4_RUNTIME_INCLUDE_DIR}")
+    target_link_libraries(pov_antlr_negative PRIVATE pov_antlr_bridge "${ANTLR4_RUNTIME_LIBRARY}")
+    target_compile_definitions(pov_antlr_negative PRIVATE POV_WITH_ANTLR_RUNTIME=1)
+    target_compile_features(pov_antlr_negative PRIVATE cxx_std_11)
+
+    add_executable(pov_antlr_lowering_negative
+      src/io/pov/antlr/AntlrLoweringNegativeTest.cpp
+    )
+    add_dependencies(pov_antlr_lowering_negative pov_antlr_bridge)
+    target_include_directories(pov_antlr_lowering_negative PRIVATE src "${ANTLR_OUTPUT_DIR}" "${ANTLR4_RUNTIME_INCLUDE_DIR}")
+    target_link_libraries(pov_antlr_lowering_negative PRIVATE pov_antlr_bridge "${ANTLR4_RUNTIME_LIBRARY}")
+    target_compile_definitions(pov_antlr_lowering_negative PRIVATE POV_WITH_ANTLR_RUNTIME=1)
+    target_compile_features(pov_antlr_lowering_negative PRIVATE cxx_std_11)
+
+    add_executable(pov_antlr_etc_lex
+      src/io/pov/antlr/AntlrEtcLexSweep.cpp
+    )
+    add_dependencies(pov_antlr_etc_lex pov_antlr_bridge)
+    target_include_directories(pov_antlr_etc_lex PRIVATE src "${ANTLR_OUTPUT_DIR}" "${ANTLR4_RUNTIME_INCLUDE_DIR}")
+    target_link_libraries(pov_antlr_etc_lex PRIVATE pov_antlr_bridge "${ANTLR4_RUNTIME_LIBRARY}")
+    target_compile_definitions(pov_antlr_etc_lex PRIVATE POV_WITH_ANTLR_RUNTIME=1)
+    target_compile_features(pov_antlr_etc_lex PRIVATE cxx_std_11)
   endif()
 endif()
 
@@ -267,10 +321,26 @@ add_executable(povray
 
 target_include_directories(povray PRIVATE src)
 target_compile_options(povray PRIVATE -O3 -Wall -pedantic)
+target_compile_definitions(povray PRIVATE
+  POVCPP_DEFAULT_USE_ANTLR=${POVCPP_DEFAULT_USE_ANTLR}
+  POVCPP_DEFAULT_ANTLR_STRICT=${POVCPP_DEFAULT_ANTLR_STRICT}
+  POVCPP_DEFAULT_ANTLR_ROUTING_STATS=${POVCPP_DEFAULT_ANTLR_ROUTING_STATS}
+)
 
 target_link_libraries(povray PRIVATE m)
 
 if(ENABLE_ANTLR_GENERATION)
   add_dependencies(povray antlr_generate)
   target_include_directories(povray PRIVATE "${ANTLR_OUTPUT_DIR}")
+endif()
+
+if(ENABLE_ANTLR_CPP_RUNTIME)
+  target_sources(povray PRIVATE
+    "${ANTLR_OUTPUT_DIR}/POVLexer.cpp"
+    "${ANTLR_OUTPUT_DIR}/POVParser.cpp"
+    src/io/pov/antlr/AntlrParseTreeToIrMapper.cpp
+  )
+  target_include_directories(povray PRIVATE "${ANTLR4_RUNTIME_INCLUDE_DIR}")
+  target_compile_definitions(povray PRIVATE POV_WITH_ANTLR_RUNTIME=1)
+  target_link_libraries(povray PRIVATE "${ANTLR4_RUNTIME_LIBRARY}")
 endif()
