@@ -3,7 +3,7 @@
 
 #include "common/logger/Logger.h"
 #include "java/util/ArrayList.h"
-#include "io/PersistenceElement.h"
+#include "io/base/PersistenceElement.h"
 
 const bool PersistenceElement::bigEndianArchitecture = false;
 unsigned char PersistenceElement::byteBuffer1byte[1] = {0};

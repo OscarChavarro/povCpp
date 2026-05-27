@@ -11,6 +11,63 @@
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
+namespace {
+bool shouldLogMonkeyDiagnostics()
+{
+    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
+    return flag != nullptr && flag[0] != '\0';
+}
+
+void logPolyOnce(const char *prefix, const PolynomialShape *shape)
+{
+    if (!shouldLogMonkeyDiagnostics() || shape == nullptr) {
+        return;
+    }
+    const int coeffCount = PolynomialShape::termCounts()[shape->Order];
+    const Texture *texture = shape->Shape_Texture;
+    const RGBAColor *colour = shape->Shape_Colour;
+    Logger::info("[DIAG-MONKEY] %s quartic order=%d sturm=%d coeffCount=%d\n",
+        prefix, shape->Order, shape->sturmFlag, coeffCount);
+    Logger::info(
+        "[DIAG-MONKEY] %s quartic colour=<%.6f,%.6f,%.6f,%.6f> texNum=%d amb=%.6f diff=%.6f spec=%.6f rough=%.6f phong=%.6f texColour1=<%.6f,%.6f,%.6f,%.6f>\n",
+        prefix,
+        colour != nullptr ? colour->Red : -1.0,
+        colour != nullptr ? colour->Green : -1.0,
+        colour != nullptr ? colour->Blue : -1.0,
+        colour != nullptr ? colour->Alpha : -1.0,
+        texture != nullptr ? texture->textureNumber : -1,
+        texture != nullptr ? texture->objectAmbient : -1.0,
+        texture != nullptr ? texture->objectDiffuse : -1.0,
+        texture != nullptr ? texture->objectSpecular : -1.0,
+        texture != nullptr ? texture->objectRoughness : -1.0,
+        texture != nullptr ? texture->objectPhong : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Red : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Green : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Blue : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Alpha : -1.0);
+    Logger::info(
+        "[DIAG-MONKEY] %s quartic texture full number=%d ambient=%.6f diffuse=%.6f brilliance=%.6f refraction=%.6f transmit=%.6f specular=%.6f roughness=%.6f phong=%.6f colour2=<%.6f,%.6f,%.6f,%.6f>\n",
+        prefix,
+        texture != nullptr ? texture->textureNumber : -1,
+        texture != nullptr ? texture->objectAmbient : -1.0,
+        texture != nullptr ? texture->objectDiffuse : -1.0,
+        texture != nullptr ? texture->objectBrilliance : -1.0,
+        texture != nullptr ? texture->objectRefraction : -1.0,
+        texture != nullptr ? texture->objectTransmit : -1.0,
+        texture != nullptr ? texture->objectSpecular : -1.0,
+        texture != nullptr ? texture->objectRoughness : -1.0,
+        texture != nullptr ? texture->objectPhong : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Red : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Green : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Blue : -1.0,
+        texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Alpha : -1.0);
+    for (int i = 0; i < coeffCount; ++i) {
+        if (std::fabs(shape->Coeffs[i]) > 1.0e-12) {
+            Logger::info("[DIAG-MONKEY] %s quartic coeff[%d]=%.6f\n", prefix, i, shape->Coeffs[i]);
+        }
+    }
+}
+}
 
 Geometry *
 PolyParser::parsePoly(int knownOrder)
@@ -151,5 +208,6 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
         }
     }
 
+    logPolyOnce("legacy", localShape);
     return ((Geometry *)localShape);
 }

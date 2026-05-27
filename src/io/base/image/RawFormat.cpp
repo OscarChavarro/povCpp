@@ -5,7 +5,7 @@
  *
  *****************************************************************************/
 
-#include "io/image/RawFormat.h"
+#include "io/base/image/RawFormat.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
 #include <cmath>

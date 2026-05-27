@@ -2,7 +2,7 @@
 #define __IFF_FORMAT_H__
 
 #include "environment/geometry/GeometryOperations.h"
-#include "io/image/ChunkHeader.h"
+#include "io/base/image/ChunkHeader.h"
 #include "java/io/FileInputStream.h"
 class RGBAPixel;
 

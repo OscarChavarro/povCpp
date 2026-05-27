@@ -1,7 +1,7 @@
 #ifndef __TARGA_FORMAT_H__
 #define __TARGA_FORMAT_H__
 
-#include "io/image/ImageOutput.h"
+#include "io/base/image/ImageOutput.h"
 #include "media/ImageData.h"
 #include "java/io/FileInputStream.h"
 #include "java/io/FileOutputStream.h"

@@ -1,11 +1,12 @@
 #include "io/pov/ParserContext.h"
 #include "common/LegacyBoolean.h"
+#include "common/logger/Logger.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/image/DumpFormat.h"
-#include "io/image/GifFormat.h"
-#include "io/image/IffFormat.h"
-#include "io/image/TargaFormat.h"
+#include "io/base/image/DumpFormat.h"
+#include "io/base/image/GifFormat.h"
+#include "io/base/image/IffFormat.h"
+#include "io/base/image/TargaFormat.h"
 #include "io/pov/Parse.h"
 
 #include "environment/camera/Camera.h"
@@ -21,6 +22,50 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
+
+namespace {
+bool shouldLogTextureState()
+{
+    const char *flag = std::getenv("POVCPP_DIAG_TEXTURE_STATE");
+    return flag != nullptr && flag[0] != '\0';
+}
+
+void logTextureStateLegacy(const char *prefix, const Texture *texture)
+{
+    if (!shouldLogTextureState() || texture == nullptr) {
+        return;
+    }
+
+    Logger::info(
+        "[TEXTURE-STATE] %s type=%d ambient=%.6f diffuse=%.6f brilliance=%.6f reflection=%.6f turbulence=%.6f frequency=%.6f phase=%.6f octaves=%d bumpNumber=%d bumpAmount=%.6f texXform=%s\n",
+        prefix,
+        texture->textureNumber,
+        texture->objectAmbient,
+        texture->objectDiffuse,
+        texture->objectBrilliance,
+        texture->objectReflection,
+        texture->Turbulence,
+        texture->Frequency,
+        texture->Phase,
+        texture->Octaves,
+        texture->bumpNumber,
+        texture->bumpAmount,
+        texture->Texture_Transformation != nullptr ? "yes" : "no");
+    if (texture->Texture_Transformation != nullptr) {
+        Logger::info(
+            "[TEXTURE-STATE] %s xform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n",
+            prefix,
+            texture->Texture_Transformation->matrix[0][0], texture->Texture_Transformation->matrix[0][1],
+            texture->Texture_Transformation->matrix[0][2], texture->Texture_Transformation->matrix[0][3],
+            texture->Texture_Transformation->matrix[1][0], texture->Texture_Transformation->matrix[1][1],
+            texture->Texture_Transformation->matrix[1][2], texture->Texture_Transformation->matrix[1][3],
+            texture->Texture_Transformation->matrix[2][0], texture->Texture_Transformation->matrix[2][1],
+            texture->Texture_Transformation->matrix[2][2], texture->Texture_Transformation->matrix[2][3],
+            texture->Texture_Transformation->matrix[3][0], texture->Texture_Transformation->matrix[3][1],
+            texture->Texture_Transformation->matrix[3][2], texture->Texture_Transformation->matrix[3][3]);
+    }
+}
+}
 
 
 
@@ -1023,5 +1068,28 @@ TextureParser::parseTexture(ParserContext &ctx)
             }
         }
     }
+    if (std::getenv("POVCPP_DIAG_MONKEY") != nullptr) {
+        Logger::info(
+            "[DIAG-MONKEY] legacy texture number=%d ambient=%.6f diffuse=%.6f brilliance=%.6f refraction=%.6f transmit=%.6f specular=%.6f roughness=%.6f phong=%.6f colour1=<%.6f,%.6f,%.6f,%.6f> colour2=<%.6f,%.6f,%.6f,%.6f> materials=%d\n",
+            texture != nullptr ? texture->textureNumber : -1,
+            texture != nullptr ? texture->objectAmbient : -1.0,
+            texture != nullptr ? texture->objectDiffuse : -1.0,
+            texture != nullptr ? texture->objectBrilliance : -1.0,
+            texture != nullptr ? texture->objectIndexOfRefraction : -1.0,
+            texture != nullptr ? texture->objectTransmit : -1.0,
+            texture != nullptr ? texture->objectSpecular : -1.0,
+            texture != nullptr ? texture->objectRoughness : -1.0,
+            texture != nullptr ? texture->objectPhong : -1.0,
+            texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Red : -1.0,
+            texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Green : -1.0,
+            texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Blue : -1.0,
+            texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Alpha : -1.0,
+            texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Red : -1.0,
+            texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Green : -1.0,
+            texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Blue : -1.0,
+            texture != nullptr && texture->Colour2 != nullptr ? texture->Colour2->Alpha : -1.0,
+            texture != nullptr ? texture->numberOfMaterials : -1);
+    }
+    logTextureStateLegacy("legacy", texture);
     return (texture);
 }

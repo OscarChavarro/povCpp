@@ -13,6 +13,7 @@
  *****************************************************************************/
 
 #include "render/RenderEngine.h"
+#include "render/SceneDump.h"
 #include "common/logger/Logger.h"
 #include "common/color/Color.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -334,6 +335,11 @@ RenderEngine::readRenderedPart()
 void
 RenderEngine::startTracing()
 {
+    const char *dumpEnv = std::getenv("POVCPP_DUMP_SCENE");
+    if (dumpEnv != nullptr && dumpEnv[0] == '1') {
+        dumpSceneStructure(stderr);
+    }
+
     RGBAColor colour;
     int x;
     int y;

@@ -8,6 +8,28 @@
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
+#include "common/logger/Logger.h"
+#include <cstdlib>
+
+namespace {
+bool shouldLogMonkeyDiagnostics()
+{
+    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
+    return flag != nullptr && flag[0] != '\0';
+}
+
+void logPlaneOnce(const char *prefix, const InfinitePlane *plane)
+{
+    static int logged = 0;
+    if (!shouldLogMonkeyDiagnostics() || logged++ > 7 || plane == nullptr) {
+        return;
+    }
+    Logger::info(
+        "[DIAG-MONKEY] %s plane type=%d normal=<%.6f,%.6f,%.6f> dist=%.6f vpcached=%d\n",
+        prefix, plane->Type, plane->normalVector.x, plane->normalVector.y,
+        plane->normalVector.z, plane->Distance, plane->VPCached);
+}
+}
 
 
 Geometry *
@@ -126,6 +148,8 @@ PlaneParser::parsePlane(ParserContext &ctx)
             }
         }
     }
+
+    logPlaneOnce("legacy", localShape);
 
     return ((Geometry *)localShape);
 }

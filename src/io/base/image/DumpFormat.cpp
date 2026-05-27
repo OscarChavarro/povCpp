@@ -15,10 +15,10 @@
  *
  *****************************************************************************/
 
-#include "io/image/DumpFormat.h"
+#include "io/base/image/DumpFormat.h"
 #include "common/color/RGBAColor.h"
-#include "io/FileLocator.h"
-#include "io/PersistenceElement.h"
+#include "io/base/FileLocator.h"
+#include "io/base/PersistenceElement.h"
 #include "common/logger/Logger.h"
 #include "media/ImageData.h"
 #include "media/RGBAImage.h"
