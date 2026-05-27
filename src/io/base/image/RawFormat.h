@@ -1,7 +1,7 @@
 #ifndef __RAW_FORMAT_H__
 #define __RAW_FORMAT_H__
 
-#include "io/image/ImageOutput.h"
+#include "io/base/image/ImageOutput.h"
 #include "java/io/FileInputStream.h"
 #include "java/io/FileOutputStream.h"
 

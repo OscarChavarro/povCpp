@@ -5,9 +5,6 @@ start_time=$(date +%s)
 
 POVRAY_BIN="$(pwd)/build/povray"
 
-cmake -S . -B build
-cmake --build build
-
 mkdir -p output/level1 output/level2 output/level3 output/math
 
 render_scene() {

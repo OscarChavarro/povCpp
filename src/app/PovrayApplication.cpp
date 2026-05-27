@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <exception>
 
-#include "io/image/ImageOutput.h"
+#include "io/base/image/ImageOutput.h"
 #include "render/RenderOutput.h"
 
 #include "common/dataStructures/PriorityQueue.h"
@@ -14,12 +14,12 @@
 #include "environment/scene/SceneFrame.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/RenderRuntimeState.h"
-#include "io/FileLocator.h"
+#include "io/base/FileLocator.h"
 #include "io/Parse.h"
 #include "io/pov/ParseErrorReporter.h"
-#include "io/image/DumpFormat.h"
-#include "io/image/RawFormat.h"
-#include "io/image/TargaFormat.h"
+#include "io/base/image/DumpFormat.h"
+#include "io/base/image/RawFormat.h"
+#include "io/base/image/TargaFormat.h"
 #include "render/RenderEngine.h"
 
 #include "app/PovrayApplication.h"

@@ -8,6 +8,42 @@
 #include "io/pov/PrimitiveParser.h"
 #include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
+#include "common/logger/Logger.h"
+#include <cstdlib>
+
+namespace {
+bool shouldLogMonkeyDiagnostics()
+{
+    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
+    return flag != nullptr && flag[0] != '\0';
+}
+
+void logSphereOnce(const char *prefix, const Sphere *sphere)
+{
+    if (!shouldLogMonkeyDiagnostics() || sphere == nullptr) {
+        return;
+    }
+    const RGBAColor *colour = sphere->Shape_Colour;
+    const Texture *texture = sphere->Shape_Texture;
+    Logger::info(
+        "[DIAG-MONKEY] %s sphere center=<%.6f,%.6f,%.6f> radius=%.6f colour=<%.6f,%.6f,%.6f,%.6f> texNum=%d amb=%.6f diff=%.6f spec=%.6f rough=%.6f phong=%.6f texColour1=<%.6f,%.6f,%.6f,%.6f>\n",
+        prefix, sphere->Center.x, sphere->Center.y, sphere->Center.z, sphere->Radius,
+        colour != nullptr ? colour->Red : -1.0,
+        colour != nullptr ? colour->Green : -1.0,
+        colour != nullptr ? colour->Blue : -1.0,
+        colour != nullptr ? colour->Alpha : -1.0,
+        texture != nullptr ? texture->textureNumber : -1,
+        texture != nullptr ? texture->objectAmbient : -1.0,
+        texture != nullptr ? texture->objectDiffuse : -1.0,
+        texture != nullptr ? texture->objectSpecular : -1.0,
+        texture != nullptr ? texture->objectRoughness : -1.0,
+        texture != nullptr ? texture->objectPhong : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Red : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Green : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Blue : -1.0,
+        texture != nullptr && texture->Colour1 != nullptr ? texture->Colour1->Alpha : -1.0);
+}
+}
 
 
 Geometry *
@@ -132,5 +168,6 @@ SphereParser::parseSphere(ParserContext &ctx)
         }
     }
 
+    logSphereOnce("legacy", localShape);
     return ((Geometry *)localShape);
 }

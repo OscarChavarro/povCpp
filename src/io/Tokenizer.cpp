@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include "io/Tokenizer.h"
-#include "io/FileLocator.h"
+#include "io/base/FileLocator.h"
 #include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "environment/material/RenderRuntimeState.h"

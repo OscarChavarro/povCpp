@@ -1,4 +1,4 @@
-#include "io/FileLocator.h"
+#include "io/base/FileLocator.h"
 
 java::ArrayList<java::String> FileLocator::sLibraryPaths;
 

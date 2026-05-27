@@ -5,11 +5,13 @@
  *
  *****************************************************************************/
 
-#include "io/image/GifFormat.h"
-#include "io/FileLocator.h"
+#include "io/base/image/GifFormat.h"
+#include "io/base/FileLocator.h"
 #include "common/LegacyBoolean.h"
-#include "io/image/GifDecoder.h"
+#include "io/base/image/GifDecoder.h"
 #include <cstring>
+#include <string>
+#include <stdexcept>
 
 RGBAImage *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;
@@ -59,8 +61,8 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
 
     bitStream = FileLocator::locateAsStream(filename);
     if (bitStream == nullptr) {
-        Logger::error("Cannot open GIF file %s\n", filename);
-        exit(1);
+        std::string errmsg = "Cannot open GIF file " + std::string(filename);
+        throw std::runtime_error(errmsg);
     }
 
     GifDecoder::decoderline = new unsigned char[2049];
