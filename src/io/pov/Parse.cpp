@@ -6,7 +6,6 @@
  *
  *****************************************************************************/
 
-#include "io/pov/Parse.h"
 #include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"

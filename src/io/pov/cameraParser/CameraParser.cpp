@@ -3,7 +3,10 @@
 #include <cstdlib>
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
-#include "io/pov/Parse.h"
+#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/ParseGlobals.h"
+#include "io/pov/ParseHelpers.h"
+#include "io/pov/PrimitiveParser.h"
 #include "common/logger/Logger.h"
 
 namespace {

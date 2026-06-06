@@ -7,7 +7,8 @@
 #include "io/base/image/GifFormat.h"
 #include "io/base/image/IffFormat.h"
 #include "io/base/image/TargaFormat.h"
-#include "io/pov/Parse.h"
+#include "io/pov/ParseHelpers.h"
+#include "io/pov/SceneParser.h"
 #include "io/pov/SceneFrameParser.h"
 #include "environment/scene/SceneFrame.h"
 
