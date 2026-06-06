@@ -8,8 +8,7 @@
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/Composite.h"
-Methods InfinitePlane::methodTable = {Composite::objectIntersect,
+Methods InfinitePlane::methodTable = {
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
     InfinitePlane::planeNormal, InfinitePlane::copyPlane,
     InfinitePlane::translatePlane, InfinitePlane::rotatePlane,

@@ -8,7 +8,6 @@
 class Intersection;
 class SimpleBody;
 
-typedef Intersection *(*INTERSECTION_METHOD)(SimpleBody *, RayWithSegments *);
 typedef int (*ALL_INTERSECTIONS_METHOD)(
     SimpleBody *, RayWithSegments *, PriorityQueueNode *);
 typedef int (*INSIDE_METHOD)(Vector3Dd *, SimpleBody *);
@@ -21,7 +20,6 @@ typedef void (*INVERT_METHOD)(SimpleBody *);
 
 class Methods {
   public:
-    INTERSECTION_METHOD intersectionMethod;
     ALL_INTERSECTIONS_METHOD allIntersectionsMethod;
     INSIDE_METHOD insideMethod;
     NORMAL_METHOD normalMethod;

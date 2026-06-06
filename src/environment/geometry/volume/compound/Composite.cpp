@@ -41,43 +41,17 @@ createBasicObject()
     return newObject;
 }
 
-Methods Composite::compositeMethodTable = {Composite::objectIntersect,
+Methods Composite::compositeMethodTable = {
     Composite::allCompositeIntersections, Composite::insideCompositeObject,
     nullptr, Composite::copyCompositeObject,
     Composite::translateCompositeObject, Composite::rotateCompositeObject,
     Composite::scaleCompositeObject, Composite::invertCompositeObject};
 
-Methods Composite::basicObjectMethodTable = {Composite::objectIntersect,
+Methods Composite::basicObjectMethodTable = {
     Composite::allObjectIntersections, Composite::insideBasicObject, nullptr,
     Composite::copyBasicObject, Composite::translateBasicObject,
     Composite::rotateBasicObject, Composite::scaleBasicObject,
     Composite::invertBasicObject};
-
-Intersection *
-Composite::objectIntersect(SimpleBody *object, RayWithSegments *ray)
-{
-    Intersection *localIntersection;
-    Intersection *queueElement;
-    PriorityQueueNode *depthQueue;
-
-    depthQueue = IntersectionPriorityQueuePool::pqPop(128);
-
-    if ((GeometryOperations::allIntersections(object, ray, depthQueue)) &&
-        ((queueElement = depthQueue->getHighest()) != nullptr)) {
-        if ((localIntersection = new Intersection) == nullptr) {
-            Logger::info("Cannot allocate memory for local intersection\n");
-            exit(1);
-        }
-        localIntersection->Point = queueElement->Point;
-        localIntersection->Shape = queueElement->Shape;
-        localIntersection->Depth = queueElement->Depth;
-        localIntersection->Object = queueElement->Object;
-        IntersectionPriorityQueuePool::pqPush(depthQueue);
-        return localIntersection;
-    }
-    IntersectionPriorityQueuePool::pqPush(depthQueue);
-    return nullptr;
-}
 
 int
 Composite::allCompositeIntersections(

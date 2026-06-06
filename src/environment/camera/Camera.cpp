@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "environment/camera/Camera.h"
-Methods Camera::methodTable = {nullptr, nullptr, nullptr, nullptr,
+Methods Camera::methodTable = {nullptr, nullptr, nullptr,
     Camera::copyCamera, Camera::translateCamera,
     Camera::rotateCamera, Camera::scaleCamera, nullptr};
 void *

@@ -68,3 +68,5 @@ tools/
 *.gp
 debug.log
 *.log
+
+compile_commands.json
