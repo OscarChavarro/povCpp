@@ -6,7 +6,11 @@
 #include "io/base/image/GifFormat.h"
 #include "io/base/image/IffFormat.h"
 #include "io/base/image/TargaFormat.h"
-#include "io/pov/Parse.h"
+#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/ParseGlobals.h"
+#include "io/pov/ParseHelpers.h"
+#include "io/pov/PrimitiveParser.h"
+#include "io/pov/SceneConfigParser.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"

@@ -8,6 +8,8 @@
 #include "render/RenderOutput.h"
 
 #include "common/dataStructures/PriorityQueue.h"
+#include "common/dataStructures/PriorityQueuePool.h"
+#include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "common/Statistics.h"
 #include "environment/geometry/Intersection.h"
@@ -15,11 +17,13 @@
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/RenderRuntimeState.h"
 #include "io/base/FileLocator.h"
-#include "io/Parse.h"
+#include "io/Tokenizer.h"
 #include "io/pov/ParseErrorReporter.h"
+#include "io/pov/SceneParser.h"
 #include "io/base/image/DumpFormat.h"
 #include "io/base/image/RawFormat.h"
 #include "io/base/image/TargaFormat.h"
+#include "media/TextureUtils.h"
 #include "render/RenderEngine.h"
 
 #include "app/PovrayApplication.h"

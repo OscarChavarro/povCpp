@@ -2,7 +2,7 @@
 #include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
-#include "io/pov/Parse.h"
+#include "io/pov/ParseErrorReporter.h"
 
 namespace {
 void reportLocation(ParserContext &ctx)

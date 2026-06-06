@@ -1,6 +1,8 @@
 #include "io/pov/ParserContext.h"
 #include "io/pov/mediaParser/DefaultTextureParser.h"
-#include "io/pov/Parse.h"
+#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/ParseHelpers.h"
+#include "io/pov/mediaParser/TextureParser.h"
 #include "environment/scene/SceneFrame.h"
 
 void
