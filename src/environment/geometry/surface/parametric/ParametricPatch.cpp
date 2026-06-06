@@ -15,11 +15,10 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
-Methods ParametricBiCubicPatch::methodTable = {Composite::objectIntersect,
+Methods ParametricBiCubicPatch::methodTable = {
     ParametricBiCubicSolver::allParametricBiCubicPatchIntersections,
     ParametricBiCubicPatch::insideBicubicPatch,
     ParametricBiCubicPatch::bicubicPatchNormal,

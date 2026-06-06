@@ -8,8 +8,7 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/Composite.h"
-Methods Quadric::methodTable = {Composite::objectIntersect,
+Methods Quadric::methodTable = {
     Quadric::allQuadricIntersections, Quadric::insideQuadric,
     Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
     Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};

@@ -17,7 +17,6 @@
 #include "environment/geometry/volume/HeightField.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "media/Texture.h"
 #include "media/Texture.h"
 
@@ -39,7 +38,7 @@ HeightField::maxValue(double x, double y)
     return (x < y) ? y : x;
 }
 
-Methods HeightField::methodTable = {Composite::objectIntersect,
+Methods HeightField::methodTable = {
     HeightField::allHeightfldIntersections, HeightField::insideHeightfld,
     HeightField::heightFldNormal, HeightField::copyHeightfld,
     HeightField::translateHeightfld, HeightField::rotateHeightfld,

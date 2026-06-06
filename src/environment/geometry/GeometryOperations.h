@@ -16,7 +16,10 @@ class SimpleBody;
 #include "environment/geometry/SimpleBody.h"
 
 #include "common/dataStructures/PriorityQueue.h"
+#include "common/logger/Logger.h"
 #include "media/Texture.h"
+
+#include <cstdlib>
 
 class GeometryOperations {
   public:
@@ -46,10 +49,36 @@ class GeometryOperations {
         return ((*((x)->methods->allIntersectionsMethod))(x, y, z));
     }
 
+    /*
+        Generic "nearest hit" routine. Formerly the per-object
+        intersectionMethod slot, which was identical for every shape
+        (Composite::objectIntersect / its Triangle clone). The slot was
+        removed; this is now the single dispatch point. It works purely
+        through the object's own allIntersectionsMethod, so no shape needs
+        to depend on Composite just to fill a method-table entry.
+    */
     static inline Intersection *
     intersect(SimpleBody *x, RayWithSegments *y)
     {
-        return (Intersection *)((*((x)->methods->intersectionMethod))(x, y));
+        Intersection *queueElement;
+        PriorityQueueNode *depthQueue = IntersectionPriorityQueuePool::pqPop(128);
+
+        if (allIntersections(x, y, depthQueue) &&
+            ((queueElement = depthQueue->getHighest()) != nullptr)) {
+            Intersection *localIntersection = new Intersection;
+            if (localIntersection == nullptr) {
+                Logger::info("Cannot allocate memory for local intersection\n");
+                exit(1);
+            }
+            localIntersection->Point = queueElement->Point;
+            localIntersection->Shape = queueElement->Shape;
+            localIntersection->Depth = queueElement->Depth;
+            localIntersection->Object = queueElement->Object;
+            IntersectionPriorityQueuePool::pqPush(depthQueue);
+            return localIntersection;
+        }
+        IntersectionPriorityQueuePool::pqPush(depthQueue);
+        return nullptr;
     }
 
     static inline int

@@ -7,12 +7,11 @@
 #include "environment/geometry/volume/Sphere.h"
 #include <cmath>
 #include "common/Statistics.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "media/Texture.h"
 
 //===========================================================================
 
-Methods Sphere::methodTable = {Composite::objectIntersect,
+Methods Sphere::methodTable = {
     Sphere::allSphereIntersections, Sphere::insideSphere, Sphere::sphereNormal,
     Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
     Sphere::scaleSphere, Sphere::invertSphere};

@@ -18,8 +18,6 @@ class Composite {
     Geometry *clippingShapes;
     SimpleBody *Objects;
 
-    static Intersection *objectIntersect(
-        SimpleBody *object, RayWithSegments *ray);
     static int allCompositeIntersections(SimpleBody *object,
         RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int allObjectIntersections(SimpleBody *object, RayWithSegments *ray,

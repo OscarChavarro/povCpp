@@ -13,9 +13,8 @@
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include <cstring>
-Methods Box::methodTable = {Composite::objectIntersect, Box::allBoxIntersections,
+Methods Box::methodTable = {Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
     Box::rotateBox, Box::scaleBox, Box::invertBox};
 

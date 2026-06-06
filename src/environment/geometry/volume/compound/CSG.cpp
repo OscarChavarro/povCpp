@@ -6,12 +6,11 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/compound/CSG.h"
-#include "environment/geometry/volume/compound/Composite.h"
-Methods CSG::unionMethodTable = {Composite::objectIntersect,
+Methods CSG::unionMethodTable = {
     CSG::allCsgUnionIntersections, CSG::insideCsgUnion, nullptr, CSG::copyCsg,
     CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
 
-Methods CSG::intersectionMethodTable = {Composite::objectIntersect,
+Methods CSG::intersectionMethodTable = {
     CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr,
     CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
     CSG::invertCsg};

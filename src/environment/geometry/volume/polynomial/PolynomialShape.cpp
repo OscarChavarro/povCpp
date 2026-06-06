@@ -13,7 +13,6 @@
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
 /* Basic form of a quartic equation
@@ -41,7 +40,7 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 int factorials[PolynomialConstants::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 static int termCountsInstance[PolynomialConstants::MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
 
-Methods PolynomialShape::methodTable = {Composite::objectIntersect,
+Methods PolynomialShape::methodTable = {
     PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
     PolynomialShape::polyNormal, PolynomialShape::copyPoly,
     PolynomialShape::translatePoly, PolynomialShape::rotatePoly,

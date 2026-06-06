@@ -13,10 +13,9 @@
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
-Methods Blob::methodTable = {Composite::objectIntersect, Blob::allBlobIntersections,
+Methods Blob::methodTable = {Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
     Blob::rotateBlob, Blob::scaleBlob, Blob::invertBlob};
 
