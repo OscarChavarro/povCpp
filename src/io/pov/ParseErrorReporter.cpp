@@ -1,4 +1,4 @@
-#include "io/pov/ParserContext.h"
+#include "io/pov/context/ParserContext.h"
 #include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
 #include "io/pov/ParseErrorReporter.h"
@@ -94,14 +94,14 @@ ParseErrorReporter::typeError(ParserContext &ctx)
 }
 
 void
-ParseErrorReporter::Undeclared()
+ParseErrorReporter::reportUndeclared()
 {
     ParserContext ctx;
-    ParseErrorReporter::Undeclared(ctx);
+    ParseErrorReporter::reportUndeclared(ctx);
 }
 
 void
-ParseErrorReporter::Undeclared(ParserContext &ctx)
+ParseErrorReporter::reportUndeclared(ParserContext &ctx)
 {
     FILE *statFile;
     reportLocation(ctx);
@@ -117,14 +117,14 @@ ParseErrorReporter::Undeclared(ParserContext &ctx)
 }
 
 void
-ParseErrorReporter::Error(const char *str)
+ParseErrorReporter::reportError(const char *str)
 {
     ParserContext ctx;
-    ParseErrorReporter::Error(str, ctx);
+    ParseErrorReporter::reportError(str, ctx);
 }
 
 void
-ParseErrorReporter::Error(const char *str, ParserContext &ctx)
+ParseErrorReporter::reportError(const char *str, ParserContext &ctx)
 {
     FILE *statFile;
     reportLocation(ctx);

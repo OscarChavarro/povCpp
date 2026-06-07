@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <exception>
 
-#include "io/base/image/ImageOutput.h"
+#include "io/image/ImageOutput.h"
 #include "render/RenderOutput.h"
 
 #include "common/dataStructures/PriorityQueue.h"
@@ -15,13 +15,13 @@
 #include "environment/scene/SceneFrame.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/RenderRuntimeState.h"
-#include "io/base/FileLocator.h"
-#include "io/Tokenizer.h"
+#include "io/binaryIo/FileLocator.h"
+#include "io/pov/lexer/Tokenizer.h"
 #include "io/pov/ParseErrorReporter.h"
-#include "io/pov/SceneParser.h"
-#include "io/base/image/DumpFormat.h"
-#include "io/base/image/RawFormat.h"
-#include "io/base/image/TargaFormat.h"
+#include "io/pov/scene/SceneParser.h"
+#include "io/image/RawDumpFormat.h"
+#include "io/image/RawFormat.h"
+#include "io/image/TargaFormat.h"
 #include "media/TextureUtils.h"
 #include "render/RenderEngine.h"
 
@@ -215,7 +215,7 @@ PovrayApplication::configureOutputTarget()
     case '\0':
     case 'd':
     case 'D':
-        if ((selectedImageOutput = new DumpFormat()) == nullptr) {
+        if ((selectedImageOutput = new RawDumpFormat()) == nullptr) {
             closeAll();
             exit(1);
         }
@@ -263,7 +263,7 @@ PovrayApplication::parseSceneDescription()
         fclose(statFile);
     }
 
-    SceneParser::Parse(&RenderEngine::renderFrame());
+    SceneParser::parse(&RenderEngine::renderFrame());
     Tokenizer::terminateTokenizer();
 }
 

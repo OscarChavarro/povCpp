@@ -3,7 +3,7 @@
 
 #include <stdexcept>
 
-#include "io/Tokenizer.h"
+#include "io/pov/lexer/Tokenizer.h"
 
 class ParserContext;
 
@@ -14,14 +14,14 @@ class ParseErrorReporter {
         explicit ParseException(const char *message) : std::runtime_error(message) {}
     };
 
-    static void Error(const char *str);
-    static void Error(const char *str, ParserContext &ctx);
+    static void reportError(const char *str);
+    static void reportError(const char *str, ParserContext &ctx);
     static void parseError(TOKEN tokenId);
     static void parseError(TOKEN tokenId, ParserContext &ctx);
     static void typeError();
     static void typeError(ParserContext &ctx);
-    static void Undeclared();
-    static void Undeclared(ParserContext &ctx);
+    static void reportUndeclared();
+    static void reportUndeclared(ParserContext &ctx);
     static char *getTokenString(TOKEN tokenId);
     static char *getTokenString(TOKEN tokenId, ParserContext &ctx);
 };
