@@ -11,7 +11,8 @@ class RenderOutput {
 
     virtual ~RenderOutput() {}
     virtual const char *defaultFileName() = 0;
-    virtual int open(char *name, int *width, int *height, int bufferSize, int mode) = 0;
+    virtual int open(char *name, int *width, int *height, int bufferSize, int mode,
+                     int firstLine) = 0;
     virtual void writeLine(RGBAColor *lineData, int lineNumber) = 0;
     virtual int readLine(RGBAColor *lineData, int *lineNumber) = 0;
     virtual void close() = 0;

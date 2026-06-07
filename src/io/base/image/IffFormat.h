@@ -1,10 +1,10 @@
 #ifndef __IFF_FORMAT_H__
 #define __IFF_FORMAT_H__
 
-#include "environment/geometry/GeometryOperations.h"
+#include "media/RGBAImage.h"
+#include "media/RGBAPixel.h"
 #include "io/base/image/ChunkHeader.h"
 #include "java/io/FileInputStream.h"
-class RGBAPixel;
 
 class IffFormat {
   public:

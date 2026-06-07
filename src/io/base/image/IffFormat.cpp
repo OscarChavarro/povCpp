@@ -7,6 +7,7 @@
 
 #include "io/base/image/IffFormat.h"
 #include "io/base/FileLocator.h"
+#include "common/logger/Logger.h"
 #include <string>
 #include <stdexcept>
 
