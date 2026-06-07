@@ -32,43 +32,41 @@ add_executable(povray
   src/environment/scene/SimpleBodyFactory.cpp
   src/environment/geometry/elements/Triangle.cpp
   src/environment/camera/Camera.cpp
-  src/io/base/image/DumpFormat.cpp
-  src/io/base/image/GifFormat.cpp
-  src/io/base/image/GifDecoder.cpp
-  src/io/base/image/IffFormat.cpp
-  src/io/pov/Parse.cpp
-  src/io/pov/ParserContext.cpp
-  src/io/pov/SymbolTable.cpp
-  src/io/pov/TokenizerTokenStream.cpp
+  src/io/image/RawDumpFormat.cpp
+  src/io/image/GifFormat.cpp
+  src/io/image/GifDecoder.cpp
+  src/io/image/IffFormat.cpp
+  src/io/pov/context/ParserContext.cpp
+  src/io/pov/context/SymbolTable.cpp
+  src/io/pov/lexer/TokenizerStream.cpp
   src/io/pov/ParseErrorReporter.cpp
   src/io/pov/ParseHelpers.cpp
   src/io/pov/PrimitiveParser.cpp
-  src/io/pov/mediaParser/TextureParser.cpp
-  src/io/pov/mediaParser/ColorMapParser.cpp
-  src/io/pov/geometryParser/SphereParser.cpp
-  src/io/pov/lightParser/LightSourceParser.cpp
-  src/io/pov/geometryParser/PlaneParser.cpp
-  src/io/pov/geometryParser/TriangleParser.cpp
-  src/io/pov/geometryParser/SmoothTriangleParser.cpp
-  src/io/pov/geometryParser/QuadricParser.cpp
-  src/io/pov/geometryParser/PolyParser.cpp
-  src/io/pov/geometryParser/BicubicPatchParser.cpp
-  src/io/pov/geometryParser/BoxParser.cpp
-  src/io/pov/geometryParser/BlobParser.cpp
-  src/io/pov/geometryParser/HeightFieldParser.cpp
-  src/io/pov/geometryParser/ObjectParser.cpp
-  src/io/pov/SceneConfigParser.cpp
-  src/io/pov/SceneParser.cpp
+  src/io/pov/texture/TextureParser.cpp
+  src/io/pov/texture/ColorMapParser.cpp
+  src/io/pov/geometry/SphereParser.cpp
+  src/io/pov/light/LightSourceParser.cpp
+  src/io/pov/geometry/PlaneParser.cpp
+  src/io/pov/geometry/TriangleParser.cpp
+  src/io/pov/geometry/SmoothTriangleParser.cpp
+  src/io/pov/geometry/QuadricParser.cpp
+  src/io/pov/geometry/PolyParser.cpp
+  src/io/pov/geometry/BicubicPatchParser.cpp
+  src/io/pov/geometry/BoxParser.cpp
+  src/io/pov/geometry/BlobParser.cpp
+  src/io/pov/geometry/HeightFieldParser.cpp
+  src/io/pov/geometry/ObjectParser.cpp
+  src/io/pov/scene/SceneParser.cpp
   src/io/pov/FogParser.cpp
-  src/io/pov/mediaParser/DefaultTextureParser.cpp
+  src/io/pov/texture/DefaultTextureParser.cpp
   src/io/pov/RenderSettingsParser.cpp
-  src/io/pov/cameraParser/CameraParser.cpp
-  src/io/pov/DeclarationParser.cpp
-  src/io/pov/SceneFrameParser.cpp
-  src/io/base/image/RawFormat.cpp
-  src/io/base/image/TargaFormat.cpp
-  src/io/base/FileLocator.cpp
-  src/io/Tokenizer.cpp
+  src/io/pov/camera/CameraParser.cpp
+  src/io/pov/scene/DeclarationParser.cpp
+  src/io/pov/scene/SceneFrameParser.cpp
+  src/io/image/RawFormat.cpp
+  src/io/image/TargaFormat.cpp
+  src/io/binaryIo/FileLocator.cpp
+  src/io/pov/lexer/Tokenizer.cpp
   src/media/Texture.cpp
   src/media/BumpTextureFixture.cpp
   src/media/ColorTextureFixture.cpp
@@ -101,7 +99,7 @@ add_executable(povray
   src/java/io/File.cpp
   src/java/io/FileInputStream.cpp
   src/java/io/FileOutputStream.cpp
-  src/io/base/PersistenceElement.cpp
+  src/io/PersistenceElement.cpp
 )
 
 target_include_directories(povray PRIVATE src)

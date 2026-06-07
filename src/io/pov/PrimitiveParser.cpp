@@ -1,28 +1,11 @@
-#include "io/pov/ParserContext.h"
+#include "io/pov/context/ParserContext.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/base/image/DumpFormat.h"
-#include "io/base/image/GifFormat.h"
-#include "io/base/image/IffFormat.h"
-#include "io/base/image/TargaFormat.h"
+#include "common/color/Color.h"
 #include "io/pov/ParseErrorReporter.h"
-#include "io/pov/ParseGlobals.h"
+#include "io/pov/context/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-
-#include "environment/camera/Camera.h"
-#include "environment/geometry/elements/Triangle.h"
-#include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "environment/geometry/volume/Blob.h"
-#include "environment/geometry/volume/Box.h"
-#include "environment/geometry/volume/HeightField.h"
-#include "environment/geometry/volume/Quadric.h"
-#include "environment/geometry/volume/Sphere.h"
-#include "environment/geometry/volume/compound/CSG.h"
-#include "environment/geometry/volume/compound/Composite.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/light/Light.h"
 
 
 
@@ -64,7 +47,7 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
                         ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared(ctx);
+                    ParseErrorReporter::reportUndeclared(ctx);
                 }
                 Exit_Flag = true;
                 break;
@@ -130,7 +113,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
                         ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared(ctx);
+                    ParseErrorReporter::reportUndeclared(ctx);
                 }
                 Exit_Flag = true;
                 break;
@@ -213,7 +196,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
                         ParseErrorReporter::typeError(ctx);
                     }
                 } else {
-                    ParseErrorReporter::Undeclared(ctx);
+                    ParseErrorReporter::reportUndeclared(ctx);
                 }
                 break;
 
