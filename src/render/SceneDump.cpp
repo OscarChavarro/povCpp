@@ -43,9 +43,9 @@ void dumpSceneStructure(FILE *f)
                     tex->bumpAmount);
 
             fprintf(f, "  tex.grad=%.6f,%.6f,%.6f\n",
-                    tex->textureGradient.x,
-                    tex->textureGradient.y,
-                    tex->textureGradient.z);
+                    tex->textureGradient.x(),
+                    tex->textureGradient.y(),
+                    tex->textureGradient.z());
 
             if (tex->Colour1) {
                 fprintf(f, "  tex.c1=%.6f,%.6f,%.6f,%.6f",
@@ -89,9 +89,9 @@ void dumpSceneStructure(FILE *f)
 
             if (tex->Image) {
                 fprintf(f, "  tex.img grad=(%.6f,%.6f,%.6f) map=%d interp=%d once=%d w=%.0f h=%.0f\n",
-                        tex->Image->imageGradient.x,
-                        tex->Image->imageGradient.y,
-                        tex->Image->imageGradient.z,
+                        tex->Image->imageGradient.x(),
+                        tex->Image->imageGradient.y(),
+                        tex->Image->imageGradient.z(),
                         tex->Image->mapType,
                         tex->Image->interpolationType,
                         tex->Image->onceFlag,

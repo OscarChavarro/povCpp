@@ -1,6 +1,6 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/HeightFieldParser.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "io/image/GifFormat.h"
@@ -54,13 +54,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 GifFormat::readGifImage(image, ctx.token().Token_String);
-                localShape->bounding_box->bounds[0].x = 1.0;
-                localShape->bounding_box->bounds[0].y = 0.0;
-                localShape->bounding_box->bounds[0].z = 1.0;
-                localShape->bounding_box->bounds[1].x = image->width - 2.0;
-                localShape->bounding_box->bounds[1].y = 256.0;
-                localShape->bounding_box->bounds[1].z = image->height - 2.0;
-                VectorOps::makeVector(&localVector, 1.0 / (image->width),
+                localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
+                localShape->bounding_box->bounds[1] =
+                    Vector3Dd(image->width - 2.0, 256.0, image->height - 2.0);
+                localVector = Vector3Dd(1.0 / (image->width),
                     1.0 / 256.0, 1.0 / (image->height));
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
@@ -78,14 +75,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 GifFormat::readGifImage(image, ctx.token().Token_String);
-                localShape->bounding_box->bounds[0].x = 1.0;
-                localShape->bounding_box->bounds[0].y = 0.0;
-                localShape->bounding_box->bounds[0].z = 1.0;
-                localShape->bounding_box->bounds[1].x =
-                    image->width / 2.0 - 2.0;
-                localShape->bounding_box->bounds[1].y = 256.0;
-                localShape->bounding_box->bounds[1].z = image->height - 2.0;
-                VectorOps::makeVector(&localVector, 2.0 / image->width,
+                localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
+                localShape->bounding_box->bounds[1] = Vector3Dd(
+                    image->width / 2.0 - 2.0, 256.0, image->height - 2.0);
+                localVector = Vector3Dd(2.0 / image->width,
                     1.0 / 256.0, 1.0 / image->height);
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
@@ -102,13 +95,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 TargaFormat::readTargaImage(image, ctx.token().Token_String);
-                localShape->bounding_box->bounds[0].x = 1.0;
-                localShape->bounding_box->bounds[0].y = 0.0;
-                localShape->bounding_box->bounds[0].z = 1.0;
-                localShape->bounding_box->bounds[1].x = image->width - 2.0;
-                localShape->bounding_box->bounds[1].y = 256.0;
-                localShape->bounding_box->bounds[1].z = image->height - 2.0;
-                VectorOps::makeVector(&localVector, 1.0 / image->width,
+                localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
+                localShape->bounding_box->bounds[1] =
+                    Vector3Dd(image->width - 2.0, 256.0, image->height - 2.0);
+                localVector = Vector3Dd(1.0 / image->width,
                     1.0 / 256.0, 1.0 / image->height);
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
@@ -149,8 +139,9 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 break;
 
             case Tokenizer::WATER_LEVEL_TOKEN:
-                localShape->bounding_box->bounds[0].y =
-                    PrimitiveParser::parseFloat(ctx);
+                localShape->bounding_box->bounds[0] =
+                    localShape->bounding_box->bounds[0].withY(
+                        PrimitiveParser::parseFloat(ctx));
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

@@ -12,7 +12,8 @@
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "media/Texture.h"
 
 /*
@@ -83,9 +84,9 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
         transformedPoint = *intersectionPoint;
     }
 
-    x = transformedPoint.x;
-    y = transformedPoint.y;
-    z = transformedPoint.z;
+    x = transformedPoint.x();
+    y = transformedPoint.y();
+    z = transformedPoint.z();
 
     /* now we have transformed x, y, z we use image mapping routine */
     /* to determine texture index */
@@ -194,45 +195,38 @@ MapTextureFixture::bumpMap(
 
     if (texture->Bump_Image->Colour_Map == nullptr ||
         texture->Bump_Image->useColourFlag) {
-        p1.x = 0;
-        p1.y =
+        p1 = Vector3Dd(0,
             texture->bumpAmount *
-            (0.229 * colour.Red + 0.587 * colour.Green + 0.114 * colour.Blue);
-        p1.z = 0;
-        p2.x = 0;
-        p2.y = texture->bumpAmount *
-               (0.229 * colour2.Red + 0.587 * colour2.Green +
-                   0.114 * colour2.Blue);
-        p2.z = 1;
-        p3.x = 1;
-        p3.y = texture->bumpAmount *
-               (0.229 * colour3.Red + 0.587 * colour3.Green +
-                   0.114 * colour3.Blue);
-        p3.z = 1;
+                (0.229 * colour.Red + 0.587 * colour.Green + 0.114 * colour.Blue),
+            0);
+        p2 = Vector3Dd(0,
+            texture->bumpAmount *
+                (0.229 * colour2.Red + 0.587 * colour2.Green +
+                    0.114 * colour2.Blue),
+            1);
+        p3 = Vector3Dd(1,
+            texture->bumpAmount *
+                (0.229 * colour3.Red + 0.587 * colour3.Green +
+                    0.114 * colour3.Blue),
+            1);
     } else {
-        p1.x = 0;
-        p1.y = texture->bumpAmount * index;
-        p1.z = 0;
-        p2.x = 0;
-        p2.y = texture->bumpAmount * index2;
-        p2.z = 1;
-        p3.x = 1;
-        p3.y = texture->bumpAmount * index3;
-        p3.z = 1;
+        p1 = Vector3Dd(0, texture->bumpAmount * index, 0);
+        p2 = Vector3Dd(0, texture->bumpAmount * index2, 1);
+        p3 = Vector3Dd(1, texture->bumpAmount * index3, 1);
     }
     /* we have points 1,2,3 for a triangle now we need the surface normal for it
      */
-    VectorOps::vSub(xprime, p1, p2);
-    VectorOps::vSub(yprime, p3, p2);
+    xprime = p1.subtract(p2);
+    yprime = p3.subtract(p2);
     bumpNormal = yprime.crossProduct(xprime);
-    bumpNormal.normalize();
+    bumpNormal = Vec3::normalized(bumpNormal);
 
-    *&yprime = Vector3Dd(normal->x, normal->y, normal->z);
+    *&yprime = Vector3Dd(normal->x(), normal->y(), normal->z());
     *&temp = Vector3Dd(0.0, 1.0, 0.0);
     xprime = yprime.crossProduct(temp);
     length = xprime.length();
     if (length < 1.0e-9) {
-        if (fabs(normal->y - 1.0) < smallTolerance) {
+        if (fabs(normal->y() - 1.0) < smallTolerance) {
             *&yprime = Vector3Dd(0.0, 1.0, 0.0);
             *&xprime = Vector3Dd(1.0, 0.0, 0.0);
             length = 1.0;
@@ -242,15 +236,15 @@ MapTextureFixture::bumpMap(
             length = 1.0;
         }
     }
-    xprime.scale(1.0 / length);
+    xprime = Vec3::scaled(xprime, 1.0 / length);
     zprime = xprime.crossProduct(yprime);
-    zprime.normalize();
-    xprime.scale(bumpNormal.x);
-    yprime.scale(bumpNormal.y);
-    zprime.scale(bumpNormal.z);
-    VectorOps::vAdd(temp, xprime, yprime);
-    VectorOps::vAdd(*normal, temp, zprime);
-    (*normal).normalize();
+    zprime = Vec3::normalized(zprime);
+    xprime = Vec3::scaled(xprime, bumpNormal.x());
+    yprime = Vec3::scaled(yprime, bumpNormal.y());
+    zprime = Vec3::scaled(zprime, bumpNormal.z());
+    temp = xprime.add(yprime);
+    *normal = temp.add(zprime);
+    *normal = Vec3::normalized(*normal);
 }
 
 void
@@ -322,7 +316,7 @@ MapTextureFixture::torusImageMap(
     double theta;
     double r0;
 
-    r0 = image->imageGradient.x;
+    r0 = image->imageGradient.x();
 
     /* Determine its angle from the x-axis. */
     len = sqrt(x * x + z * z);
@@ -426,31 +420,31 @@ int
 MapTextureFixture::planarImageMap(
     double x, double y, double z, RGBAImage *image, double *u, double *v)
 {
-    if (image->imageGradient.x != 0.0) {
+    if (image->imageGradient.x() != 0.0) {
         if ((image->onceFlag) && ((x < 0.0) || (x > 1.0))) {
             return 0;
         }
-        if (image->imageGradient.x > 0) {
+        if (image->imageGradient.x() > 0) {
             *u = fmod(x * image->width, image->width);
         } else {
             *v = fmod(x * image->height, image->height);
         }
     }
-    if (image->imageGradient.y != 0.0) {
+    if (image->imageGradient.y() != 0.0) {
         if ((image->onceFlag) && ((y < 0.0) || (y > 1.0))) {
             return 0;
         }
-        if (image->imageGradient.y > 0) {
+        if (image->imageGradient.y() > 0) {
             *u = fmod(y * image->width, image->width);
         } else {
             *v = fmod(y * image->height, image->height);
         }
     }
-    if (image->imageGradient.z != 0.0) {
+    if (image->imageGradient.z() != 0.0) {
         if ((image->onceFlag) && ((z < 0.0) || (z > 1.0))) {
             return 0;
         }
-        if (image->imageGradient.z > 0) {
+        if (image->imageGradient.z() > 0) {
             *u = fmod(z * image->width, image->width);
         } else {
             *v = fmod(z * image->height, image->height);
@@ -472,9 +466,9 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     if ((turb = texture->Turbulence) != 0.0)
     {
         DTurbulence (&textureTurbulence, x, y, z, texture->Octaves);
-        x += TextureTurbulence.x * turb;
-        y += TextureTurbulence.y * turb;
-        z += TextureTurbulence.z * turb;
+        x += TextureTurbulence.x() * turb;
+        y += TextureTurbulence.y() * turb;
+        z += TextureTurbulence.z() * turb;
     }
     */
 

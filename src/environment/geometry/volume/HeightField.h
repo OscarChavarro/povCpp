@@ -1,7 +1,7 @@
 #ifndef __HEIGHT_FIELD_H__
 #define __HEIGHT_FIELD_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
 class RGBAImage;

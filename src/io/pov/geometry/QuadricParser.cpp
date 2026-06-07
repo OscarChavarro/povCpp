@@ -1,6 +1,6 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/QuadricParser.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/scene/ModelBuilder.h"
@@ -46,12 +46,12 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 PrimitiveParser::parseVector(&(localShape->objectTerms), ctx);
                 (localShape->objectConstant) = PrimitiveParser::parseFloat(ctx);
                 localShape->nonZeroSquareTerm =
-                    !((localShape->object2Terms.x == 0.0) &&
-                        (localShape->object2Terms.y == 0.0) &&
-                        (localShape->object2Terms.z == 0.0) &&
-                        (localShape->objectMixedTerms.x == 0.0) &&
-                        (localShape->objectMixedTerms.y == 0.0) &&
-                        (localShape->objectMixedTerms.z == 0.0));
+                    !((localShape->object2Terms.x() == 0.0) &&
+                        (localShape->object2Terms.y() == 0.0) &&
+                        (localShape->object2Terms.z() == 0.0) &&
+                        (localShape->objectMixedTerms.x() == 0.0) &&
+                        (localShape->objectMixedTerms.y() == 0.0) &&
+                        (localShape->objectMixedTerms.z() == 0.0));
                 Exit_Flag = true;
                 break;
 

@@ -13,7 +13,8 @@
 #include "common/logger/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
 /* Basic form of a quartic equation
@@ -71,24 +72,21 @@ PolynomialShape::allPolyIntersections(
         Transformation::MInvTransVector(
             &newRay.direction, &ray->direction, shape->Transform);
     } else {
-        newRay.position.x = ray->position.x;
-        newRay.position.y = ray->position.y;
-        newRay.position.z = ray->position.z;
-        newRay.direction.x = ray->direction.x;
-        newRay.direction.y = ray->direction.y;
-        newRay.direction.z = ray->direction.z;
+        newRay.position = Vector3Dd(
+            ray->position.x(), ray->position.y(), ray->position.z());
+        newRay.direction = Vector3Dd(
+            ray->direction.x(), ray->direction.y(), ray->direction.z());
     }
     newRay.isShadowRay = ray->isShadowRay;
 
-    len = sqrt(newRay.direction.x * newRay.direction.x +
-               newRay.direction.y * newRay.direction.y +
-               newRay.direction.z * newRay.direction.z);
+    len = sqrt(newRay.direction.x() * newRay.direction.x() +
+               newRay.direction.y() * newRay.direction.y() +
+               newRay.direction.z() * newRay.direction.z());
     if (len == 0.0) {
         return 0;
     }
-    newRay.direction.x /= len;
-    newRay.direction.y /= len;
-    newRay.direction.z /= len;
+    newRay.direction = Vector3Dd(newRay.direction.x() / len,
+        newRay.direction.y() / len, newRay.direction.z() / len);
 
     intersectionFound = false;
     Statistics::global().rayPolyTests++;
@@ -111,15 +109,15 @@ PolynomialShape::allPolyIntersections(
                 goto l0;
             }
         }
-        VectorOps::vScale(intersectionPoint, newRay.direction, depths[j]);
-        intersectionPoint.add(newRay.position);
+        intersectionPoint = Vec3::scaled(newRay.direction, depths[j]);
+        intersectionPoint = intersectionPoint.add(newRay.position);
         /* Transform the point into world space */
         if (shape->Transform != nullptr) {
             Transformation::MTransformVector(
                 &intersectionPoint, &intersectionPoint, shape->Transform);
         }
 
-        VectorOps::vSub(dv, intersectionPoint, ray->position);
+        dv = intersectionPoint.subtract(ray->position);
         len = dv.length();
         localElement.Depth = len;
         localElement.Object = nullptr;
@@ -226,12 +224,12 @@ PolynomialShape::intersect(
         a[i] = coeffs[i];
     }
     Transformation::MZero((MATRIX *)&q[0][0]);
-    q[0][0] = ray->direction.x;
-    q[3][0] = ray->position.x;
-    q[0][1] = ray->direction.y;
-    q[3][1] = ray->position.y;
-    q[0][2] = ray->direction.z;
-    q[3][2] = ray->position.z;
+    q[0][0] = ray->direction.x();
+    q[3][0] = ray->position.x();
+    q[0][1] = ray->direction.y();
+    q[3][1] = ray->position.y();
+    q[0][2] = ray->direction.z();
+    q[3][2] = ray->position.z();
     PolynomialShape::transform(order, a, (MATRIX *)&q[0][0]);
     /* The equation is now in terms of one variable.  Use numerical
         techniques to solve the polynomial that represents the intersections. */
@@ -273,9 +271,9 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
     x[0] = 1.0;
     y[0] = 1.0;
     z[0] = 1.0;
-    x[1] = point->x;
-    y[1] = point->y;
-    z[1] = point->z;
+    x[1] = point->x();
+    y[1] = point->y();
+    z[1] = point->z();
     for (i = 2; i <= PolynomialConstants::MAX_ORDER; i++) {
         x[i] = x[1] * x[i - 1];
         y[i] = y[1] * y[i - 1];
@@ -309,40 +307,35 @@ PolynomialShape::normalp(
     x[0] = 1.0;
     y[0] = 1.0;
     z[0] = 1.0;
-    x[1] = intersectionPoint->x;
-    y[1] = intersectionPoint->y;
-    z[1] = intersectionPoint->z;
+    x[1] = intersectionPoint->x();
+    y[1] = intersectionPoint->y();
+    z[1] = intersectionPoint->z();
     for (i = 2; i <= order; i++) {
-        x[i] = intersectionPoint->x * x[i - 1];
-        y[i] = intersectionPoint->y * y[i - 1];
-        z[i] = intersectionPoint->z * z[i - 1];
+        x[i] = intersectionPoint->x() * x[i - 1];
+        y[i] = intersectionPoint->y() * y[i - 1];
+        z[i] = intersectionPoint->z() * z[i - 1];
     }
     a = coeffs;
-    result->x = 0.0;
-    result->y = 0.0;
-    result->z = 0.0;
+    double rx = 0.0;
+    double ry = 0.0;
+    double rz = 0.0;
     for (i = 0; i < termCountsInstance[order]; i++) {
         PolynomialShape::unroll(order, i, &xp, &yp, &zp, &wp);
         if (xp >= 1) {
-            result->x += xp * a[i] * x[xp - 1] * y[yp] * z[zp];
+            rx += xp * a[i] * x[xp - 1] * y[yp] * z[zp];
         }
         if (yp >= 1) {
-            result->y += yp * a[i] * x[xp] * y[yp - 1] * z[zp];
+            ry += yp * a[i] * x[xp] * y[yp - 1] * z[zp];
         }
         if (zp >= 1) {
-            result->z += zp * a[i] * x[xp] * y[yp] * z[zp - 1];
+            rz += zp * a[i] * x[xp] * y[yp] * z[zp - 1];
         }
     }
-    double vTemp = sqrt(
-        result->x * result->x + result->y * result->y + result->z * result->z);
+    double vTemp = sqrt(rx * rx + ry * ry + rz * rz);
     if (vTemp > 0.0) {
-        result->x /= vTemp;
-        result->y /= vTemp;
-        result->z /= vTemp;
+        *result = Vector3Dd(rx / vTemp, ry / vTemp, rz / vTemp);
     } else {
-        result->x = 1.0;
-        result->y = 0.0;
-        result->z = 0.0;
+        *result = Vector3Dd(1.0, 0.0, 0.0);
     }
 }
 
@@ -526,12 +519,12 @@ PolynomialShape::intersectQuartic(
     double yyZz;
     double temp;
 
-    x = ray->position.x;
-    y = ray->position.y;
-    z = ray->position.z;
-    xx = ray->direction.x;
-    yy = ray->direction.y;
-    zz = ray->direction.z;
+    x = ray->position.x();
+    y = ray->position.y();
+    z = ray->position.z();
+    xx = ray->direction.x();
+    yy = ray->direction.y();
+    zz = ray->direction.z();
     x2 = x * x;
     y2 = y * y;
     z2 = z * z;
@@ -743,9 +736,9 @@ PolynomialShape::quarticNormal(
     double z3;
 
     a = shape->Coeffs;
-    x = intersectionPoint->x;
-    y = intersectionPoint->y;
-    z = intersectionPoint->z;
+    x = intersectionPoint->x();
+    y = intersectionPoint->y();
+    z = intersectionPoint->z();
     x2 = x * x;
     y2 = y * y;
     z2 = z * z;
@@ -753,7 +746,7 @@ PolynomialShape::quarticNormal(
     y3 = y * y2;
     z3 = z * z2;
 
-    result->x =
+    const double nx =
         4 * a[0] * x3 + 3 * x2 * (a[1] * y + a[2] * z + a[3]) +
         2 * x *
             (a[4] * y2 + y * (a[5] * z + a[6]) + a[7] * z2 + a[8] * z + a[9]) +
@@ -761,29 +754,28 @@ PolynomialShape::quarticNormal(
         y * (a[13] * z2 + a[14] * z + a[15]) + a[16] * z3 + a[17] * z2 +
         a[18] * z + a[19];
 
-    result->y = a[1] * x3 + x2 * (2 * a[4] * y + a[5] * z + a[6]) +
+    const double ny = a[1] * x3 + x2 * (2 * a[4] * y + a[5] * z + a[6]) +
                 x * (3 * a[10] * y2 + 2 * y * (a[11] * z + a[12]) + a[13] * z2 +
                         a[14] * z + a[15]) +
                 4 * a[20] * y3 + 3 * y2 * (a[21] * z + a[22]) +
                 2 * y * (a[23] * z2 + a[24] * z + a[25]) + a[26] * z3 +
                 a[27] * z2 + a[28] * z + a[29];
 
-    result->z = a[2] * x3 + x2 * (a[5] * y + 2 * a[7] * z + a[8]) +
+    const double nz = a[2] * x3 + x2 * (a[5] * y + 2 * a[7] * z + a[8]) +
                 x * (a[11] * y2 + y * (2 * a[13] * z + a[14]) + 3 * a[16] * z2 +
                         2 * a[17] * z + a[18]) +
                 a[21] * y3 + y2 * (2 * a[23] * z + a[24]) +
                 y * (3 * a[26] * z2 + 2 * a[27] * z + a[28]) + 4 * a[30] * z3 +
                 3 * a[31] * z2 + 2 * a[32] * z + a[33];
+    *result = Vector3Dd(nx, ny, nz);
     double vTemp = sqrt(
-        result->x * result->x + result->y * result->y + result->z * result->z);
+        result->x() * result->x() + result->y() * result->y() +
+        result->z() * result->z());
     if (vTemp > 0.0) {
-        result->x /= vTemp;
-        result->y /= vTemp;
-        result->z /= vTemp;
+        *result = Vector3Dd(
+            result->x() / vTemp, result->y() / vTemp, result->z() / vTemp);
     } else {
-        result->x = 1.0;
-        result->y = 0.0;
-        result->z = 0.0;
+        *result = Vector3Dd(1.0, 0.0, 0.0);
     }
 }
 
@@ -822,9 +814,8 @@ PolynomialShape::polyNormal(
         Transformation::MInverseTransformVector(
             &newPoint, intersectionPoint, shape->Transform);
     } else {
-        newPoint.x = intersectionPoint->x;
-        newPoint.y = intersectionPoint->y;
-        newPoint.z = intersectionPoint->z;
+        newPoint = Vector3Dd(
+            intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
     }
 
     if (shape->Order == 4) {
@@ -838,7 +829,7 @@ PolynomialShape::polyNormal(
     if (shape->Transform != nullptr) {
         Transformation::MTransNormal(result, result, shape->Transform);
     }
-    (*result).normalize();
+    *result = Vec3::normalized(*result);
 }
 
 /* Make a copy of a polynomial object */

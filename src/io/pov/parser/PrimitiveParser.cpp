@@ -1,7 +1,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "common/PolynomialTermCounts.h"
 #include "common/linealAlgebra/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/color/Color.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -119,13 +119,16 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
                 Exit_Flag = true;
                 break;
 
-            case Tokenizer::LEFT_ANGLE_TOKEN:
-                (givenVector->x) = PrimitiveParser::parseFloat(ctx);
-                (givenVector->y) = PrimitiveParser::parseFloat(ctx);
-                (givenVector->z) = PrimitiveParser::parseFloat(ctx);
+            case Tokenizer::LEFT_ANGLE_TOKEN: {
+                /* parseFloat consumes tokens; keep left-to-right order. */
+                double vx = PrimitiveParser::parseFloat(ctx);
+                double vy = PrimitiveParser::parseFloat(ctx);
+                double vz = PrimitiveParser::parseFloat(ctx);
+                *givenVector = Vector3Dd(vx, vy, vz);
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
                 Exit_Flag = true;
                 break;
+            }
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);

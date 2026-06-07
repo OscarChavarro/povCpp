@@ -2,7 +2,7 @@
 #define __Intersection
 
 #include "common/dataStructures/PriorityQueueNode.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class SimpleBody;
 class Geometry;

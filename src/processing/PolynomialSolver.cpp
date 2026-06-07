@@ -8,7 +8,7 @@
 
 #include "processing/PolynomialSolver.h"
 #include "processing/Polynomial.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;

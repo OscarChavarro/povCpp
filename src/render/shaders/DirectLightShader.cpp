@@ -34,9 +34,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     RGBAColor lightColor;
     PriorityQueueNode *localQueue;
 
-    rEye.x = 0;
-    rEye.y = 0;
-    rEye.z = 0;
+    rEye = Vector3Dd(0, 0, 0);
 
     if ((texture->objectDiffuse == 0.0) && (texture->objectSpecular == 0.0) &&
         (texture->objectPhong == 0.0)) {
@@ -44,9 +42,8 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     }
 
     if (texture->objectSpecular != 0.0) {
-        rEye.x = -eye->direction.x;
-        rEye.y = -eye->direction.y;
-        rEye.z = -eye->direction.z;
+        rEye = Vector3Dd(
+            -eye->direction.x(), -eye->direction.y(), -eye->direction.z());
     }
 
     localQueue = IntersectionPriorityQueuePool::pqPop(128);

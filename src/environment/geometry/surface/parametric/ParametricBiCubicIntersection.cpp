@@ -1,5 +1,6 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryOperations.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
@@ -14,18 +15,16 @@ ParametricBiCubicIntersection::subpatchNormal(
     Vector3Dd edge2;
     double length;
 
-    VectorOps::vSub(edge1, *v1, *v2);
-    VectorOps::vSub(edge2, *v3, *v2);
+    edge1 = v1->subtract(*v2);
+    edge2 = v3->subtract(*v2);
     *result = edge1.crossProduct(edge2);
     length = (*result).length();
     if (length < EPSILON) {
-        result->x = 1.0;
-        result->y = 0.0;
-        result->z = 0.0;
-        *d = -1.0 * v1->x;
+        *result = Vector3Dd(1.0, 0.0, 0.0);
+        *d = -1.0 * v1->x();
         return 0;
     }
-    (*result).inverseScale(length);
+    *result = Vec3::inverseScaled(*result, length);
     *d = (*result).dotProduct(*v1);
     *d = 0.0 - *d;
     return 1;
@@ -70,43 +69,43 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     if (*depth < GeometryConstants::Small_Tolerance) {
         return 0;
     }
-    VectorOps::vScale(*ip, ray->direction, *depth);
-    (*ip).add(ray->position);
+    *ip = Vec3::scaled(ray->direction, *depth);
+    *ip = ip->add(ray->position);
 
     /* Map the intersection point and the triangle onto a plane. */
-    x = fabs(n->x);
-    y = fabs(n->y);
-    z = fabs(n->z);
+    x = fabs(n->x());
+    y = fabs(n->y());
+    z = fabs(n->z());
     if (x > y) {
         if (x > z) {
-            x1 = v1->y - ip->y;
-            y1 = v1->z - ip->z;
-            x2 = v2->y - ip->y;
-            y2 = v2->z - ip->z;
-            x3 = v3->y - ip->y;
-            y3 = v3->z - ip->z;
+            x1 = v1->y() - ip->y();
+            y1 = v1->z() - ip->z();
+            x2 = v2->y() - ip->y();
+            y2 = v2->z() - ip->z();
+            x3 = v3->y() - ip->y();
+            y3 = v3->z() - ip->z();
         } else {
-            x1 = v1->x - ip->x;
-            y1 = v1->y - ip->y;
-            x2 = v2->x - ip->x;
-            y2 = v2->y - ip->y;
-            x3 = v3->x - ip->x;
-            y3 = v3->y - ip->y;
+            x1 = v1->x() - ip->x();
+            y1 = v1->y() - ip->y();
+            x2 = v2->x() - ip->x();
+            y2 = v2->y() - ip->y();
+            x3 = v3->x() - ip->x();
+            y3 = v3->y() - ip->y();
         }
     } else if (y > z) {
-        x1 = v1->x - ip->x;
-        y1 = v1->z - ip->z;
-        x2 = v2->x - ip->x;
-        y2 = v2->z - ip->z;
-        x3 = v3->x - ip->x;
-        y3 = v3->z - ip->z;
+        x1 = v1->x() - ip->x();
+        y1 = v1->z() - ip->z();
+        x2 = v2->x() - ip->x();
+        y2 = v2->z() - ip->z();
+        x3 = v3->x() - ip->x();
+        y3 = v3->z() - ip->z();
     } else {
-        x1 = v1->x - ip->x;
-        y1 = v1->y - ip->y;
-        x2 = v2->x - ip->x;
-        y2 = v2->y - ip->y;
-        x3 = v3->x - ip->x;
-        y3 = v3->y - ip->y;
+        x1 = v1->x() - ip->x();
+        y1 = v1->y() - ip->y();
+        x2 = v2->x() - ip->x();
+        y2 = v2->y() - ip->y();
+        x3 = v3->x() - ip->x();
+        y3 = v3->y() - ip->y();
     }
 
     /* Determine crossing count */
@@ -188,47 +187,47 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
         return 1;
     }
     if (patchType == 4) {
-        VectorOps::vSub(tempV1, *v2, *v3);
-        tempV1.normalize();
-        VectorOps::vSub(tempV2, *v1, *v3);
+        tempV1 = v2->subtract(*v3);
+        tempV1 = Vec3::normalized(tempV1);
+        tempV2 = v1->subtract(*v3);
         proj = tempV2.dotProduct(tempV1);
-        tempV1.scale(proj);
-        VectorOps::vSub(perp, tempV1, tempV2);
-        perp.normalize();
+        tempV1 = Vec3::scaled(tempV1, proj);
+        perp = tempV1.subtract(tempV2);
+        perp = Vec3::normalized(perp);
         mu = tempV2.dotProduct(perp);
         mu = -1.0 / mu;
-        perp.scale(mu);
-        VectorOps::vSub(tempV1, *ip, *v1);
+        perp = Vec3::scaled(perp, mu);
+        tempV1 = ip->subtract(*v1);
         s = tempV1.dotProduct(perp);
         if (s < EPSILON) {
             *ipNorm = *n1;
             return 1;
         }
-        VectorOps::vSub(tempV1, *v3, *v2);
-        x = fabs(tempV1.x);
-        y = fabs(tempV1.y);
-        z = fabs(tempV1.z);
+        tempV1 = v3->subtract(*v2);
+        x = fabs(tempV1.x());
+        y = fabs(tempV1.y());
+        z = fabs(tempV1.z());
         if (x > y) {
             if (x > z) {
-                t = (tempV1.x / s + v1->x - v2->x) / tempV1.x;
+                t = (tempV1.x() / s + v1->x() - v2->x()) / tempV1.x();
             } else {
-                t = (tempV1.z / s + v1->z - v2->z) / tempV1.z;
+                t = (tempV1.z() / s + v1->z() - v2->z()) / tempV1.z();
             }
         } else if (y > z) {
-            t = (tempV1.y / s + v1->y - v2->y) / tempV1.y;
+            t = (tempV1.y() / s + v1->y() - v2->y()) / tempV1.y();
         } else {
-            t = (tempV1.z / s + v1->z - v2->z) / tempV1.z;
+            t = (tempV1.z() / s + v1->z() - v2->z()) / tempV1.z();
         }
-        VectorOps::vSub(tempV1, *n2, *n1);
-        tempV1.scale(s);
-        tempV1.add(*n1);
-        VectorOps::vSub(tempV2, *n3, *n1);
-        tempV2.scale(s);
-        tempV2.add(*n1);
-        VectorOps::vSub(*ipNorm, tempV2, tempV1);
-        (*ipNorm).scale(t);
-        (*ipNorm).add(tempV1);
-        (*ipNorm).normalize();
+        tempV1 = n2->subtract(*n1);
+        tempV1 = Vec3::scaled(tempV1, s);
+        tempV1 = tempV1.add(*n1);
+        tempV2 = n3->subtract(*n1);
+        tempV2 = Vec3::scaled(tempV2, s);
+        tempV2 = tempV2.add(*n1);
+        *ipNorm = tempV2.subtract(tempV1);
+        *ipNorm = Vec3::scaled(*ipNorm, t);
+        *ipNorm = ipNorm->add(tempV1);
+        *ipNorm = Vec3::normalized(*ipNorm);
         return 1;
     }
     return 0;
@@ -243,15 +242,15 @@ ParametricBiCubicIntersection::sphericalBoundsCheck(
     double z;
     double dist1;
     double dist2;
-    x = center->x - ray->position.x;
-    y = center->y - ray->position.y;
-    z = center->z - ray->position.z;
+    x = center->x() - ray->position.x();
+    y = center->y() - ray->position.y();
+    z = center->z() - ray->position.z();
     dist1 = x * x + y * y + z * z;
     if (dist1 < radius) {
         /* ray starts inside sphere - assume it intersects. */
         return 1;
     }
-    dist2 = x * ray->direction.x + y * ray->direction.y + z * ray->direction.z;
+    dist2 = x * ray->direction.x() + y * ray->direction.y() + z * ray->direction.z();
     dist2 = dist2 * dist2;
     if (dist2 > 0 && (dist1 - dist2 < radius)) {
         return 1;

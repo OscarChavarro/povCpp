@@ -19,6 +19,7 @@
 #include "common/Statistics.h"
 #include "media/Texture.h"
 #include "media/Texture.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 
 inline int
 HeightField::signInline(double x)
@@ -97,10 +98,10 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
     y3 = HeightField::getHeightAt(x, z + 1, hField);
     y4 = HeightField::getHeightAt(x + 1, z + 1, hField);
 
-    VectorOps::makeVector(&t1V1, (double)x, y1, (double)z);
+    t1V1 = Vector3Dd((double)x, y1, (double)z);
     *&t1V2 = Vector3Dd(1.0, y2 - y1, 0.0);
     *&t1V3 = Vector3Dd(0.0, y3 - y1, 1.0);
-    VectorOps::makeVector(&t2V1, (double)(x + 1), y4, (double)(z + 1));
+    t2V1 = Vector3Dd((double)(x + 1), y4, (double)(z + 1));
     *&t2V2 = Vector3Dd(-1.0, y3 - y4, 0.0);
     *&t2V3 = Vector3Dd(0.0, y2 - y4, -1.0);
 
@@ -124,8 +125,8 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
             depth1 = pos1 / dot;
 
             if ((depth1 > GeometryConstants::Small_Tolerance) && (depth1 < GeometryConstants::Max_Distance)) {
-                s = ray->position.x + (depth1 * ray->direction.x) - (double)x;
-                t = ray->position.z + (depth1 * ray->direction.z) - (double)z;
+                s = ray->position.x() + (depth1 * ray->direction.x()) - (double)x;
+                t = ray->position.z() + (depth1 * ray->direction.z()) - (double)z;
 
                 if ((s < -Config::kEpsilon) || (t < -Config::kEpsilon) ||
                     ((s + t) > 1.0 + Config::kEpsilon)) {
@@ -161,8 +162,8 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
             depth2 = pos1 / dot;
 
             if ((depth2 > GeometryConstants::Small_Tolerance) && (depth2 < GeometryConstants::Max_Distance)) {
-                s = ray->position.x + (depth2 * ray->direction.x) - (double)x;
-                t = ray->position.z + (depth2 * ray->direction.z) - (double)z;
+                s = ray->position.x() + (depth2 * ray->direction.x()) - (double)x;
+                t = ray->position.z() + (depth2 * ray->direction.z()) - (double)z;
 
                 if ((s > 1.0 + Config::kEpsilon) || (t > 1.0 + Config::kEpsilon) ||
                     ((s + t) < 1.0 - Config::kEpsilon)) {
@@ -181,16 +182,16 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
     if (depth2 < depth1) {
         hfIntersection->Depth = depth2;
         hfIntersection->Object = nullptr;
-        VectorOps::vScale(t1V1, rRay->direction, depth2);
-        t1V1.add(rRay->position);
+        t1V1 = Vec3::scaled(rRay->direction, depth2);
+        t1V1 = t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
     } else {
         hfIntersection->Depth = depth1;
         hfIntersection->Object = nullptr;
-        VectorOps::vScale(t1V1, rRay->direction, depth1);
-        t1V1.add(rRay->position);
+        t1V1 = Vec3::scaled(rRay->direction, depth1);
+        t1V1 = t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
         hfQueue->add(hfIntersection);
@@ -216,19 +217,19 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
     int length;
     int i;
 
-    if (HeightField::minValue(start->y, end->y) > block->maxY) {
+    if (HeightField::minValue(start->y(), end->y()) > block->maxY) {
         return (false);
     }
 
-    if (HeightField::maxValue(start->y, end->y) < block->minY) {
+    if (HeightField::maxValue(start->y(), end->y()) < block->minY) {
         return (false);
     }
 
-    sx = start->x;
-    sy = start->y;
-    sz = start->z;
-    ex = end->x;
-    ez = end->z;
+    sx = start->x();
+    sy = start->y();
+    sz = start->z();
+    ex = end->x();
+    ez = end->z();
 
     if (xDom) {
         if (isdx >= 0) {
@@ -367,12 +368,12 @@ HeightField::intersectHfNode(
     int length;
     int i;
 
-    x = sx = start->x;
-    y = sy = start->y;
-    z = sz = start->z;
-    ex = end->x;
-    ey = end->y;
-    ez = end->z;
+    x = sx = start->x();
+    y = sy = start->y();
+    z = sz = start->z();
+    ex = end->x();
+    ey = end->y();
+    ez = end->z();
 
     blockSize = hField->blockSize;
     invBlkSize = hField->invBlkSize;
@@ -699,7 +700,7 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                                 (double)((double)temp1 + (double)temp2 / 256.0);
                             break;
                         }
-                        if (tempY <= hField->bounding_box->bounds[0].y) {
+                        if (tempY <= hField->bounding_box->bounds[0].y()) {
                             hField->Map[z][x] = -10000.0;
                         } else {
                             hField->Map[z][x] = (float)tempY;
@@ -709,8 +710,8 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                         hField->Map[z][x] = (float)tempY;
                     }
 
-                    if (tempY < hField->bounding_box->bounds[0].y) {
-                        tempY = hField->bounding_box->bounds[0].y;
+                    if (tempY < hField->bounding_box->bounds[0].y()) {
+                        tempY = hField->bounding_box->bounds[0].y();
                     }
                     if (tempY < hField->Block[i][j].minY) {
                         hField->Block[i][j].minY = tempY;
@@ -768,41 +769,41 @@ HeightField::allHeightfldIntersections(
 
     if (depth1 == depth2) {
         depth1 = 0.0;
-        VectorOps::vScale(temp1, tempRay.direction, depth1);
-        temp1.add(tempRay.position);
-        VectorOps::vScale(temp2, tempRay.direction, depth2);
-        temp2.add(tempRay.position);
+        temp1 = Vec3::scaled(tempRay.direction, depth1);
+        temp1 = temp1.add(tempRay.position);
+        temp2 = Vec3::scaled(tempRay.direction, depth2);
+        temp2 = temp2.add(tempRay.position);
     } else {
-        VectorOps::vScale(temp1, tempRay.direction, depth1);
-        temp1.add(tempRay.position);
-        VectorOps::vScale(temp2, tempRay.direction, depth2);
-        temp2.add(tempRay.position);
+        temp1 = Vec3::scaled(tempRay.direction, depth1);
+        temp1 = temp1.add(tempRay.position);
+        temp2 = Vec3::scaled(tempRay.direction, depth2);
+        temp2 = temp2.add(tempRay.position);
     }
 
-    if (fabs(tempRay.direction.x) > Config::kEpsilon) {
-        mzx = tempRay.direction.z / tempRay.direction.x;
-        myx = tempRay.direction.y / tempRay.direction.x;
+    if (fabs(tempRay.direction.x()) > Config::kEpsilon) {
+        mzx = tempRay.direction.z() / tempRay.direction.x();
+        myx = tempRay.direction.y() / tempRay.direction.x();
     } else {
-        mzx = tempRay.direction.z / Config::kEpsilon;
-        myx = tempRay.direction.y / Config::kEpsilon;
+        mzx = tempRay.direction.z() / Config::kEpsilon;
+        myx = tempRay.direction.y() / Config::kEpsilon;
     }
-    if (fabs(tempRay.direction.z) > Config::kEpsilon) {
-        mxz = tempRay.direction.x / tempRay.direction.z;
-        myz = tempRay.direction.y / tempRay.direction.z;
+    if (fabs(tempRay.direction.z()) > Config::kEpsilon) {
+        mxz = tempRay.direction.x() / tempRay.direction.z();
+        myz = tempRay.direction.y() / tempRay.direction.z();
     } else {
-        mxz = tempRay.direction.x / Config::kEpsilon;
-        myz = tempRay.direction.y / Config::kEpsilon;
+        mxz = tempRay.direction.x() / Config::kEpsilon;
+        myz = tempRay.direction.y() / Config::kEpsilon;
     }
 
     hfQueue = depthQueue;
     hfIntersection = &localElement;
     rRay = ray;
 
-    isdx = HeightField::signInline(tempRay.direction.x);
-    isdz = HeightField::signInline(tempRay.direction.z);
+    isdx = HeightField::signInline(tempRay.direction.x());
+    isdz = HeightField::signInline(tempRay.direction.z());
 
     xDom = false;
-    if (fabs(tempRay.direction.x) >= fabs(tempRay.direction.z)) {
+    if (fabs(tempRay.direction.x()) >= fabs(tempRay.direction.z())) {
         xDom = true;
     }
 
@@ -844,45 +845,37 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
     Transformation::MInverseTransformVector(
         &test, testPoint, hField->transformation);
 
-    px = (int)test.x;
-    pz = (int)test.z;
-    x = test.x - (double)px;
-    z = test.z - (double)pz;
+    px = (int)test.x();
+    pz = (int)test.z();
+    x = test.x() - (double)px;
+    z = test.z() - (double)pz;
 
     if ((x + z) < 1.0) {
         y1 = HeightField::getHeightAt(px, pz, hField);
         y2 = HeightField::getHeightAt(px + 1, pz, hField);
         y3 = HeightField::getHeightAt(px, pz + 1, hField);
-        VectorOps::makeVector(&localOrigin, (double)px, y1, (double)pz);
-        temp1.x = 1.0;
-        temp1.z = 0.0;
-        temp1.y = y2 - y1;
-        temp2.x = 0.0;
-        temp2.z = 1.0;
-        temp2.y = y3 - y1;
+        localOrigin = Vector3Dd((double)px, y1, (double)pz);
+        temp1 = Vector3Dd(1.0, y2 - y1, 0.0);
+        temp2 = Vector3Dd(0.0, y3 - y1, 1.0);
     } else {
-        px = ceil(test.x);
-        pz = ceil(test.z);
+        px = ceil(test.x());
+        pz = ceil(test.z());
         y1 = HeightField::getHeightAt(px, pz, hField);
         y2 = HeightField::getHeightAt(px - 1, pz, hField);
         y3 = HeightField::getHeightAt(px, pz - 1, hField);
-        VectorOps::makeVector(&localOrigin, (double)px, y1, (double)pz);
-        temp1.x = -1.0;
-        temp1.z = 0.0;
-        temp1.y = y2 - y1;
-        temp2.x = 0.0;
-        temp2.z = -1.0;
-        temp2.y = y3 - y1;
+        localOrigin = Vector3Dd((double)px, y1, (double)pz);
+        temp1 = Vector3Dd(-1.0, y2 - y1, 0.0);
+        temp2 = Vector3Dd(0.0, y3 - y1, -1.0);
     }
     localNormal = temp2.crossProduct(temp1);
-    if (localNormal.y < 0.0) {
-        localNormal.scale(-1.0);
+    if (localNormal.y() < 0.0) {
+        localNormal = Vec3::scaled(localNormal, -1.0);
     }
     dot1Value = test.dotProduct(localNormal);
     dot2Value = localOrigin.dotProduct(localNormal);
     dot1 = (int)dot1Value;
     dot2 = (int)dot2Value;
-    if ((dot1 < dot2) && (test.y > (hField->bounding_box->bounds[0].y) + 1.0)) {
+    if ((dot1 < dot2) && (test.y() > (hField->bounding_box->bounds[0].y()) + 1.0)) {
         return (true);
     }
     return (false);
@@ -907,37 +900,29 @@ HeightField::heightFldNormal(
     Transformation::MInverseTransformVector(
         &localOrigin, intersectionPoint, hField->transformation);
 
-    px = (int)localOrigin.x;
-    pz = (int)localOrigin.z;
-    x = localOrigin.x - (double)px;
-    z = localOrigin.z - (double)pz;
+    px = (int)localOrigin.x();
+    pz = (int)localOrigin.z();
+    x = localOrigin.x() - (double)px;
+    z = localOrigin.z() - (double)pz;
 
     if ((x + z) <= 1) {
         y1 = HeightField::getHeightAt(px, pz, hField);
         y2 = HeightField::getHeightAt(px + 1, pz, hField);
         y3 = HeightField::getHeightAt(px, pz + 1, hField);
-        temp1.x = 1.0;
-        temp1.z = 0.0;
-        temp1.y = y2 - y1;
-        temp2.x = 0.0;
-        temp2.z = 1.0;
-        temp2.y = y3 - y1;
+        temp1 = Vector3Dd(1.0, y2 - y1, 0.0);
+        temp2 = Vector3Dd(0.0, y3 - y1, 1.0);
     } else {
         y1 = HeightField::getHeightAt(px + 1, pz + 1, hField);
         y2 = HeightField::getHeightAt(px, pz + 1, hField);
         y3 = HeightField::getHeightAt(px + 1, pz, hField);
-        temp1.x = -1.0;
-        temp1.z = 0.0;
-        temp1.y = y2 - y1;
-        temp2.x = 0.0;
-        temp2.z = -1.0;
-        temp2.y = y3 - y1;
+        temp1 = Vector3Dd(-1.0, y2 - y1, 0.0);
+        temp2 = Vector3Dd(0.0, y3 - y1, -1.0);
     }
 
     Transformation::MTransVector(&temp1, &temp1, hField->transformation);
     Transformation::MTransVector(&temp2, &temp2, hField->transformation);
     *result = temp2.crossProduct(temp1);
-    (*result).normalize();
+    *result = Vec3::normalized(*result);
 }
 
 void *

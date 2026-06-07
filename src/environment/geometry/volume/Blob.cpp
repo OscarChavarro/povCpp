@@ -12,7 +12,8 @@
 #include "common/logger/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
 Methods Blob::methodTable = {Blob::allBlobIntersections,
@@ -68,9 +69,8 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
         blob->list[i].coeffs[2] = coeff;
         blob->list[i].coeffs[1] = -(2.0 * coeff) / rad;
         blob->list[i].coeffs[0] = coeff / (rad * rad);
-        blob->list[i].pos.x = temp->elem.pos.x;
-        blob->list[i].pos.y = temp->elem.pos.y;
-        blob->list[i].pos.z = temp->elem.pos.z;
+        blob->list[i].pos = Vector3Dd(
+            temp->elem.pos.x(), temp->elem.pos.y(), temp->elem.pos.z());
 
         bloblist = bloblist->next;
         delete temp;
@@ -110,7 +110,7 @@ Blob::determineInfluences(
         /* Use standard sphere intersection routine
             to determine where the ray hits the volume
             of influence of each component of the blob. */
-        VectorOps::vSub(v, blob->list[i].pos, *p);
+        v = blob->list[i].pos.subtract(*p);
         b = v.dotProduct(*d);
         t = v.dotProduct(v);
         disc = b * b - t + blob->list[i].radius2;
@@ -202,7 +202,7 @@ Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
 
     density = 0.0;
     for (i = 0, ptr = &(blob->list[0]); i < blob->count; i++, ptr++) {
-        VectorOps::vSub(v, ptr->pos, *pos);
+        v = ptr->pos.subtract(*pos);
         len = v.dotProduct(v);
         if (len < ptr->radius2) {
             /* Inside the radius of influence of this
@@ -225,18 +225,15 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
     Vector3Dd v;
     Vector3Dd n;
 
-    n.x = 0.0;
-    n.y = 0.0;
-    n.z = 0.0;
+    n = Vector3Dd(0.0, 0.0, 0.0);
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
-        VectorOps::vSub(v, *p, temp->pos);
+        v = p->subtract(temp->pos);
         dist = v.dotProduct(v);
         if (dist <= temp->radius2) {
             val = -2.0 * (2.0 * temp->coeffs[0] * dist + temp->coeffs[1]);
-            n.x += val * v.x;
-            n.y += val * v.y;
-            n.z += val * v.z;
+            n = Vector3Dd(n.x() + val * v.x(), n.y() + val * v.y(),
+                n.z() + val * v.z());
         }
     }
     val = n.dotProduct(n);
@@ -339,21 +336,15 @@ Blob::allBlobIntersections(
             &p, &ray->position, blob->Transform);
         Transformation::MInvTransVector(&d, &ray->direction, blob->Transform);
     } else {
-        p.x = ray->position.x;
-        p.y = ray->position.y;
-        p.z = ray->position.z;
-        d.x = ray->direction.x;
-        d.y = ray->direction.y;
-        d.z = ray->direction.z;
+        p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
+        d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
     }
 
-    len = sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
+    len = sqrt(d.x() * d.x() + d.y() * d.y() + d.z() * d.z());
     if (len == 0.0) {
         return 0;
     }
-    d.x /= len;
-    d.y /= len;
-    d.z /= len;
+    d = Vector3Dd(d.x() / len, d.y() / len, d.z() / len);
 
     /* Figure out the intervals along the ray where each
     component of the blob has an effect. */
@@ -379,7 +370,7 @@ Blob::allBlobIntersections(
             inFlag++;
             element = blob->list + intervals[i].index;
 
-            VectorOps::vSub(v, p, element->pos);
+            v = p.subtract(element->pos);
             c0 = element->coeffs[0];
             c1 = element->coeffs[1];
             c2 = element->coeffs[2];
@@ -438,8 +429,8 @@ Blob::allBlobIntersections(
                 the currently active components of the blob */
             if ((dist >= intervals[i].bound) &&
                 (dist <= intervals[i + 1].bound)) {
-                VectorOps::vScale(intersectionPoint, d, dist);
-                intersectionPoint.add(p);
+                intersectionPoint = Vec3::scaled(d, dist);
+                intersectionPoint = intersectionPoint.add(p);
                 if (true || Blob::validateHit(blob, &intersectionPoint)) {
                     /* Only add this hit if it really is near the surface, we
                        can get fooled by numerical inaccuracies */
@@ -448,7 +439,7 @@ Blob::allBlobIntersections(
                         Transformation::MTransformVector(&intersectionPoint,
                             &intersectionPoint, blob->Transform);
                     }
-                    VectorOps::vSub(dv, intersectionPoint, ray->position);
+                    dv = intersectionPoint.subtract(ray->position);
                     len = dv.length();
                     localElement.Depth = len;
                     localElement.Object = nullptr;
@@ -506,49 +497,40 @@ Blob::blobNormal(
         Transformation::MInverseTransformVector(
             &newPoint, intersectionPoint, blob->Transform);
     } else {
-        newPoint.x = intersectionPoint->x;
-        newPoint.y = intersectionPoint->y;
-        newPoint.z = intersectionPoint->z;
+        newPoint = Vector3Dd(
+            intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
     }
 
-    result->x = 0.0;
-    result->y = 0.0;
-    result->z = 0.0;
+    *result = Vector3Dd(0.0, 0.0, 0.0);
 
     /* For each component that contributes to this point, add
         its bit to the normal */
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
-        v.x = newPoint.x - temp->pos.x;
-        v.y = newPoint.y - temp->pos.y;
-        v.z = newPoint.z - temp->pos.z;
-        dist = (v.x * v.x + v.y * v.y + v.z * v.z);
+        v = Vector3Dd(newPoint.x() - temp->pos.x(),
+            newPoint.y() - temp->pos.y(), newPoint.z() - temp->pos.z());
+        dist = (v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
 
         if (dist <= temp->radius2) {
             val = -2.0 * (2.0 * temp->coeffs[0] * dist + temp->coeffs[1]);
-            result->x += val * v.x;
-            result->y += val * v.y;
-            result->z += val * v.z;
+            *result = Vector3Dd(result->x() + val * v.x(),
+                result->y() + val * v.y(), result->z() + val * v.z());
         }
     }
-    val =
-        (result->x * result->x + result->y * result->y + result->z * result->z);
+    val = (result->x() * result->x() + result->y() * result->y() +
+           result->z() * result->z());
     if (val < Config::kEpsilon) {
-        result->x = 1.0;
-        result->y = 0.0;
-        result->z = 0.0;
+        *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
         val = 1.0 / sqrt(val);
-        result->x *= val;
-        result->y *= val;
-        result->z *= val;
+        *result = Vec3::scaled(*result, val);
     }
 
     /* Transform back to world space */
     if (blob->Transform != nullptr) {
         Transformation::MTransNormal(result, result, blob->Transform);
     }
-    (*result).normalize();
+    *result = Vec3::normalized(*result);
 }
 
 void *
@@ -568,7 +550,9 @@ Blob::copyBlob(SimpleBody *object)
         Logger::info("Failed to allocate blob data\n");
         exit(1);
     }
-    memcpy(blob->list, oldShape->list, oldShape->count * sizeof(BlobElement));
+    for (int i = 0; i < oldShape->count; i++) {
+        blob->list[i] = oldShape->list[i];
+    }
     blob->intervals = new BlobInterval[2 * blob->count];
     if (blob->intervals == nullptr) {
         Logger::info("Failed to allocate blob data\n");

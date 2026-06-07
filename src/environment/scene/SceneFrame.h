@@ -1,7 +1,7 @@
 #ifndef __SCENE_FRAME_H__
 #define __SCENE_FRAME_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
 #include "environment/light/Light.h"
 #include "environment/scene/SceneObject.h"

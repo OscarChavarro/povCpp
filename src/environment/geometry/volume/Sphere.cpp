@@ -8,6 +8,7 @@
 #include <cmath>
 #include "common/Statistics.h"
 #include "media/Texture.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 
 //===========================================================================
 
@@ -38,7 +39,7 @@ Sphere::intersectSphere(
 
     if (ray->isPrimaryRay) {
         if (!sphere->VPCached) {
-            VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->position);
+            sphere->VPOtoC = sphere->Center.subtract(ray->position);
             sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);
             sphere->VPinside = (sphere->VPOCSquared < sphere->radiusSquared);
             sphere->VPCached = true;
@@ -50,7 +51,7 @@ Sphere::intersectSphere(
         tHalfChordSquared = sphere->radiusSquared - sphere->VPOCSquared +
                             (tClosestApproach * tClosestApproach);
     } else {
-        VectorOps::vSub(originToCenter, sphere->Center, ray->position);
+        originToCenter = sphere->Center.subtract(ray->position);
         ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->radiusSquared);
         tClosestApproach = originToCenter.dotProduct(ray->direction);
@@ -102,8 +103,8 @@ Sphere::allSphereIntersections(
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
-        VectorOps::vScale(intersectionPoint, ray->direction, depth1);
-        intersectionPoint.add(ray->position);
+        intersectionPoint = Vec3::scaled(ray->direction, depth1);
+        intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -112,8 +113,8 @@ Sphere::allSphereIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = nullptr;
-            VectorOps::vScale(intersectionPoint, ray->direction, depth2);
-            intersectionPoint.add(ray->position);
+            intersectionPoint = Vec3::scaled(ray->direction, depth2);
+            intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -130,7 +131,7 @@ Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
     double ocSquared;
     Sphere *sphere = (Sphere *)object;
 
-    VectorOps::vSub(originToCenter, sphere->Center, *testPoint);
+    originToCenter = sphere->Center.subtract(*testPoint);
     ocSquared = originToCenter.dotProduct(originToCenter);
 
     if (sphere->Inverted) {
@@ -145,8 +146,8 @@ Sphere::sphereNormal(
 {
     Sphere *sphere = (Sphere *)object;
 
-    VectorOps::vSub(*result, *intersectionPoint, sphere->Center);
-    (*result).scale(sphere->inverseRadius);
+    *result = intersectionPoint->subtract(sphere->Center);
+    *result = Vec3::scaled(*result, sphere->inverseRadius);
 }
 
 void *
@@ -169,7 +170,7 @@ Sphere::copySphere(SimpleBody *object)
 void
 Sphere::translateSphere(SimpleBody *object, Vector3Dd *vector)
 {
-    ((Sphere *)object)->Center.add(*vector);
+    ((Sphere *)object)->Center = ((Sphere *)object)->Center.add(*vector);
     TextureUtils::translateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
@@ -189,15 +190,13 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
 {
     Sphere *sphere = (Sphere *)object;
 
-    if ((vector->x != vector->y) || (vector->x != vector->z)) {
-        const double s = (std::fabs(vector->x) + std::fabs(vector->y) + std::fabs(vector->z)) / 3.0;
-        vector->x = s;
-        vector->y = s;
-        vector->z = s;
+    if ((vector->x() != vector->y()) || (vector->x() != vector->z())) {
+        const double s = (std::fabs(vector->x()) + std::fabs(vector->y()) + std::fabs(vector->z())) / 3.0;
+        *vector = Vector3Dd(s, s, s);
     }
 
-    sphere->Center.scale(vector->x);
-    sphere->Radius *= vector->x;
+    sphere->Center = Vec3::scaled(sphere->Center, vector->x());
+    sphere->Radius *= vector->x();
     sphere->radiusSquared = sphere->Radius * sphere->Radius;
     sphere->inverseRadius = 1.0 / sphere->Radius;
     TextureUtils::scaleTexture(&((Sphere *)object)->Shape_Texture, vector);

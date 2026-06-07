@@ -2,7 +2,7 @@
 #include "io/pov/geometry/PolyParser.h"
 #include "common/PolynomialTermCounts.h"
 #include "common/logger/Logger.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/SimpleBodyFactory.h"

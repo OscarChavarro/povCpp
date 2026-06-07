@@ -1,7 +1,7 @@
 #ifndef ____
 #define ____
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class CSG : public Geometry {

@@ -41,8 +41,8 @@ Camera::initializeDefaults()
 void
 Camera::translateCamera(SimpleBody *object, Vector3Dd *vector)
 {
-    VectorOps::vAdd(((Camera *)object)->Location,
-        ((Camera *)object)->Location, *vector);
+    ((Camera *)object)->Location =
+        ((Camera *)object)->Location.add(*vector);
 }
 
 void

@@ -1,6 +1,7 @@
 #include "render/shaders/LightSamplerShader.h"
 #include "common/color/Color.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/light/Light.h"
 
@@ -22,12 +23,13 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
     lightSourceRay->position = *intersectionPoint;
     lightSourceRay->quadricConstantsCached = false;
 
-    VectorOps::vSub(lightSourceRay->direction, lightSource->Center, *intersectionPoint);
+    lightSourceRay->direction =
+        lightSource->Center.subtract(*intersectionPoint);
 
     *lightSourceDepth = lightSourceRay->direction.length();
 
-    VectorOps::vScale(
-        lightSourceRay->direction, lightSourceRay->direction, 1.0 / (*lightSourceDepth));
+    lightSourceRay->direction =
+        Vec3::scaled(lightSourceRay->direction, 1.0 / (*lightSourceDepth));
 
     attenuation = Light::attenuateLight(lightSource, lightSourceRay);
 

@@ -1,6 +1,6 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/light/LightSourceParser.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/light/Light.h"
 #include "environment/scene/ModelBuilder.h"

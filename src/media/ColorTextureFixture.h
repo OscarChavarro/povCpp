@@ -1,7 +1,7 @@
 #ifndef __TXTCOLOR_H__
 #define __TXTCOLOR_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 class ColorTextureFixture {

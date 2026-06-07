@@ -397,9 +397,7 @@ ModelBuilder::getVector()
         exit(1);
     }
 
-    newVector->x = 0.0;
-    newVector->y = 0.0;
-    newVector->z = 0.0;
+    *newVector = Vector3Dd(0.0, 0.0, 0.0);
     return (newVector);
 }
 

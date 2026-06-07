@@ -1,6 +1,6 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/scene/SimpleBodyFactory.h"

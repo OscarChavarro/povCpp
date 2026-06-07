@@ -1,7 +1,7 @@
 #ifndef __LAMBERT_SHADER_H__
 #define __LAMBERT_SHADER_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 class RayWithSegments;

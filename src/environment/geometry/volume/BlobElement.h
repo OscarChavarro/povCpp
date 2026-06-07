@@ -1,7 +1,7 @@
 #ifndef __BLOB_ELEMENT_H__
 #define __BLOB_ELEMENT_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class BlobElement {
   public:

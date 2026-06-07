@@ -1,7 +1,7 @@
 #ifndef __PARAMETRIC_BICUBIC_INTERSECTION_H__
 #define __PARAMETRIC_BICUBIC_INTERSECTION_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
 class ParametricBiCubicPatch;

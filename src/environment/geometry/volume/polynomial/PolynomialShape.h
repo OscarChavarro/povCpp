@@ -1,7 +1,7 @@
 #ifndef __POLY_H__
 #define __POLY_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class PolynomialShape : public Geometry {

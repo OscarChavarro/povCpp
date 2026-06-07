@@ -15,7 +15,8 @@
 #include "media/ColorTextureFixture.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "media/MapTextureFixture.h"
 #include "media/Texture.h"
 #include "media/TextureFixture.h"
@@ -32,12 +33,12 @@ ColorTextureFixture::colourAt(
     double z;
     Vector3Dd transformedPoint;
 
-    if ((intersectionPoint->x > COORDINATE_LIMIT) ||
-        (intersectionPoint->y > COORDINATE_LIMIT) ||
-        (intersectionPoint->z > COORDINATE_LIMIT) ||
-        (intersectionPoint->x < -COORDINATE_LIMIT) ||
-        (intersectionPoint->y < -COORDINATE_LIMIT) ||
-        (intersectionPoint->z < -COORDINATE_LIMIT)) {
+    if ((intersectionPoint->x() > COORDINATE_LIMIT) ||
+        (intersectionPoint->y() > COORDINATE_LIMIT) ||
+        (intersectionPoint->z() > COORDINATE_LIMIT) ||
+        (intersectionPoint->x() < -COORDINATE_LIMIT) ||
+        (intersectionPoint->y() < -COORDINATE_LIMIT) ||
+        (intersectionPoint->z() < -COORDINATE_LIMIT)) {
         *&transformedPoint = Vector3Dd(0.0, 0.0, 0.0);
     } else {
         if (texture->Texture_Transformation) {
@@ -48,9 +49,9 @@ ColorTextureFixture::colourAt(
         }
     }
 
-    x = transformedPoint.x;
-    y = transformedPoint.y;
-    z = transformedPoint.z;
+    x = transformedPoint.x();
+    y = transformedPoint.y();
+    z = transformedPoint.z();
 
     switch (texture->textureNumber) {
     case Texture::NO_TEXTURE:
@@ -193,9 +194,9 @@ ColorTextureFixture::bozo(
 
     if ((turb = texture->Turbulence) != 0.0) {
         TextureUtils::DTurbulence(&bozoTurbulence, x, y, z, texture->Octaves);
-        x += bozoTurbulence.x * turb;
-        y += bozoTurbulence.y * turb;
-        z += bozoTurbulence.z * turb;
+        x += bozoTurbulence.x() * turb;
+        y += bozoTurbulence.y() * turb;
+        z += bozoTurbulence.z() * turb;
     }
 
     noise = TextureUtils::Noise(x, y, z);
@@ -380,23 +381,23 @@ ColorTextureFixture::gradient(
 
     if ((turb = texture->Turbulence) != 0.0) {
         TextureUtils::DTurbulence(&gradTurbulence, x, y, z, texture->Octaves);
-        x += gradTurbulence.x * turb;
-        y += gradTurbulence.y * turb;
-        z += gradTurbulence.z * turb;
+        x += gradTurbulence.x() * turb;
+        y += gradTurbulence.y() * turb;
+        z += gradTurbulence.z() * turb;
     }
 
     if (texture->Colour_Map == nullptr) {
         return;
     }
-    if (texture->textureGradient.x != 0.0) {
+    if (texture->textureGradient.x() != 0.0) {
         x = TextureUtils::fabsInline(x);
         value += x - TextureUtils::floorInline(x); /* obtain fractional X component */
     }
-    if (texture->textureGradient.y != 0.0) {
+    if (texture->textureGradient.y() != 0.0) {
         y = TextureUtils::fabsInline(y);
         value += y - TextureUtils::floorInline(y); /* obtain fractional Y component */
     }
-    if (texture->textureGradient.z != 0.0) {
+    if (texture->textureGradient.z() != 0.0) {
         z = TextureUtils::fabsInline(z);
         value += z - TextureUtils::floorInline(z); /* obtain fractional Z component */
     }
@@ -538,17 +539,17 @@ ColorTextureFixture::wood(
         Logger::info("wood %g %g %g", x, y, z);
     }
 
-    point.x =
-        TextureUtils::cycloidal((x + woodTurbulence.x) * texture->Turbulence);
-    point.y =
-        TextureUtils::cycloidal((y + woodTurbulence.y) * texture->Turbulence);
-    point.z = 0.0;
+    double pointX =
+        TextureUtils::cycloidal((x + woodTurbulence.x()) * texture->Turbulence);
+    double pointY =
+        TextureUtils::cycloidal((y + woodTurbulence.y()) * texture->Turbulence);
 
-    point.x += x;
-    point.y += y;
+    pointX += x;
+    pointY += y;
 
     /*  point.z += z;         Deleted per David Buck --  BP 7/91 */
 
+    point = Vector3Dd(pointX, pointY, 0.0);
     length = point.length();
 
     noise = TextureUtils::triangleWave(length);
@@ -599,17 +600,17 @@ ColorTextureFixture::leopard(
     if ((turb = texture->Turbulence) != 0.0) {
         TextureUtils::DTurbulence(
             &leopardTurbulence, x, y, z, texture->Octaves);
-        x += leopardTurbulence.x * turb;
-        y += leopardTurbulence.y * turb;
-        z += leopardTurbulence.z * turb;
+        x += leopardTurbulence.x() * turb;
+        y += leopardTurbulence.y() * turb;
+        z += leopardTurbulence.z() * turb;
     }
     /* This form didn't work with Zortech 386 compiler */
-    /* noise = VectorOps::sqr((sin(x)+sin(y)+sin(z))/3); */
+    /* noise = Vec3::sqr((sin(x)+sin(y)+sin(z))/3); */
     /* So we break it down. */
     temp1 = sin(x);
     temp2 = sin(y);
     temp3 = sin(z);
-    noise = VectorOps::sqr((temp1 + temp2 + temp3) / 3);
+    noise = Vec3::sqr((temp1 + temp2 + temp3) / 3);
 
     if (debugEnabled) {
         Logger::info("temp123 %g %g %g  ", temp1, temp2, temp3);
@@ -650,20 +651,20 @@ ColorTextureFixture::onion(
 
     if ((turb = texture->Turbulence) != 0.0) {
         TextureUtils::DTurbulence(&onionTurbulence, x, y, z, texture->Octaves);
-        x += onionTurbulence.x * turb;
-        y += onionTurbulence.y * turb;
-        z += onionTurbulence.z * turb;
+        x += onionTurbulence.x() * turb;
+        y += onionTurbulence.y() * turb;
+        z += onionTurbulence.z() * turb;
     }
 
     /* This ramp goes 0-1,1-0,0-1,1-0...
     noise =
-    (fmod(std::sqrt(VectorOps::sqr(x)+VectorOps::sqr(y)+VectorOps::sqr(z)),2.0)-1.0);
+    (fmod(std::sqrt(Vec3::sqr(x)+Vec3::sqr(y)+Vec3::sqr(z)),2.0)-1.0);
     if (noise<0.0) {noise = 0.0-noise;}
     */
 
     /* This ramp goes 0-1,0-1,0-1,0-1... */
     noise = (fmod(
-        std::sqrt(VectorOps::sqr(x) + VectorOps::sqr(y) + VectorOps::sqr(z)),
+        std::sqrt(Vec3::sqr(x) + Vec3::sqr(y) + Vec3::sqr(z)),
         1.0));
 
     if (debugEnabled) {

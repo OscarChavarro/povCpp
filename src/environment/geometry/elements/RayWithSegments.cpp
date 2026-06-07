@@ -9,7 +9,8 @@
 
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "common/logger/Logger.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 
 RayWithSegments::RayWithSegments()
 {
@@ -23,9 +24,7 @@ inline void
 RayWithSegments::mixVectorTerms(
     Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
 {
-    a.x = b.x * c.y;
-    a.y = b.x * c.z;
-    a.z = b.y * c.z;
+    a = Vector3Dd(b.x() * c.y(), b.x() * c.z(), b.y() * c.z());
 }
 
 void
@@ -33,10 +32,9 @@ RayWithSegments::makeRay()
 {
     Vector3Dd tempInitDir;
 
-    VectorOps::vSquareTerms(this->position2, this->position);
-    VectorOps::vSquareTerms(this->direction2, this->direction);
-    VectorOps::vEvaluate(
-        this->positionDirection, this->position, this->direction);
+    this->position2 = Vec3::squareTerms(this->position);
+    this->direction2 = Vec3::squareTerms(this->direction);
+    this->positionDirection = Vec3::evaluated(this->position, this->direction);
     RayWithSegments::mixVectorTerms(
         this->mixedPositionPosition, this->position, this->position);
     RayWithSegments::mixVectorTerms(
@@ -45,7 +43,8 @@ RayWithSegments::makeRay()
         tempInitDir, this->position, this->direction);
     RayWithSegments::mixVectorTerms(
         this->mixedPositionDirection, this->direction, this->position);
-    this->mixedPositionDirection.add(tempInitDir);
+    this->mixedPositionDirection =
+        this->mixedPositionDirection.add(tempInitDir);
     this->quadricConstantsCached = true;
 }
 

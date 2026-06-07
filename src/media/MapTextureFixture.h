@@ -1,7 +1,7 @@
 #ifndef __TXTMAP_H__
 #define __TXTMAP_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 class MapTextureFixture {

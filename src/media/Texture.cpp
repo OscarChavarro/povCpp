@@ -21,7 +21,8 @@
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 
 static Texture *defaultTextureInstance;
 static double *sinTableInstance;
@@ -197,7 +198,7 @@ TextureUtils::initializeNoise()
 
     for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         TextureUtils::DNoise(&point, (double)i, 0.0, 0.0);
-        VectorOps::vNormalize(TextureUtils::waveSources()[i], point);
+        TextureUtils::waveSources()[i] = Vec3::normalized(point);
         TextureUtils::waveFrequency()[i] = (rand() & Texture::RNDMASK) / Texture::rndDivisor + 0.01;
     }
 }
@@ -243,7 +244,7 @@ TextureUtils::InitRTable()
     }
 
     for (i = 0; i < Texture::MAXSIZE; i++) {
-        rp.x = rp.y = rp.z = (double)i;
+        rp = Vector3Dd((double)i, (double)i, (double)i);
         TextureUtils::rTable()[i] = (unsigned int)TextureUtils::R(&rp) * Texture::realScale - 1.0;
     }
 }
@@ -251,9 +252,7 @@ TextureUtils::InitRTable()
 int
 TextureUtils::R(Vector3Dd *v)
 {
-    v->x *= .12345;
-    v->y *= .12345;
-    v->z *= .12345;
+    *v = Vector3Dd(v->x() * .12345, v->y() * .12345, v->z() * .12345);
 
     return (TextureUtils::Crc16((char *)v, sizeof(Vector3Dd)));
 }
@@ -407,58 +406,59 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     py = y - iy;
     pz = z - iz;
     s = tx * ty * tz;
-    result->x = TextureUtils::incrSum(m, s, px, py, pz);
-    result->y = TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z = TextureUtils::incrSum(m + 8, s, px, py, pz);
+    double rx = TextureUtils::incrSum(m, s, px, py, pz);
+    double ry = TextureUtils::incrSum(m + 4, s, px, py, pz);
+    double rz = TextureUtils::incrSum(m + 8, s, px, py, pz);
 
     m = TextureUtils::hash3d(jx, iy, iz) & 0xFF;
     px = x - jx;
     s = sx * ty * tz;
-    result->x += TextureUtils::incrSum(m, s, px, py, pz);
-    result->y += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += TextureUtils::incrSum(m, s, px, py, pz);
+    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
+    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
 
     m = TextureUtils::hash3d(jx, jy, iz) & 0xFF;
     py = y - jy;
     s = sx * sy * tz;
-    result->x += TextureUtils::incrSum(m, s, px, py, pz);
-    result->y += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += TextureUtils::incrSum(m, s, px, py, pz);
+    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
+    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
 
     m = TextureUtils::hash3d(ix, jy, iz) & 0xFF;
     px = x - ix;
     s = tx * sy * tz;
-    result->x += TextureUtils::incrSum(m, s, px, py, pz);
-    result->y += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += TextureUtils::incrSum(m, s, px, py, pz);
+    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
+    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
 
     m = TextureUtils::hash3d(ix, jy, jz) & 0xFF;
     pz = z - jz;
     s = tx * sy * sz;
-    result->x += TextureUtils::incrSum(m, s, px, py, pz);
-    result->y += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += TextureUtils::incrSum(m, s, px, py, pz);
+    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
+    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
 
     m = TextureUtils::hash3d(jx, jy, jz) & 0xFF;
     px = x - jx;
     s = sx * sy * sz;
-    result->x += TextureUtils::incrSum(m, s, px, py, pz);
-    result->y += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += TextureUtils::incrSum(m, s, px, py, pz);
+    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
+    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
 
     m = TextureUtils::hash3d(jx, iy, jz) & 0xFF;
     py = y - iy;
     s = sx * ty * sz;
-    result->x += TextureUtils::incrSum(m, s, px, py, pz);
-    result->y += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += TextureUtils::incrSum(m, s, px, py, pz);
+    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
+    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
 
     m = TextureUtils::hash3d(ix, iy, jz) & 0xFF;
     px = x - ix;
     s = tx * ty * sz;
-    result->x += TextureUtils::incrSum(m, s, px, py, pz);
-    result->y += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    result->z += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += TextureUtils::incrSum(m, s, px, py, pz);
+    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
+    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    *result = Vector3Dd(rx, ry, rz);
 }
 
 double
@@ -484,18 +484,19 @@ TextureUtils::DTurbulence(
     double scale;
     Vector3Dd value;
 
-    result->x = 0.0;
-    result->y = 0.0;
-    result->z = 0.0;
+    double rx = 0.0;
+    double ry = 0.0;
+    double rz = 0.0;
 
-    value.x = value.y = value.z = 0.0;
+    value = Vector3Dd(0.0, 0.0, 0.0);
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
         TextureUtils::DNoise(&value, x / scale, y / scale, z / scale);
-        result->x += value.x * scale;
-        result->y += value.y * scale;
-        result->z += value.z * scale;
+        rx += value.x() * scale;
+        ry += value.y() * scale;
+        rz += value.z() * scale;
     }
+    *result = Vector3Dd(rx, ry, rz);
 }
 
 double

@@ -12,7 +12,8 @@
 #include "common/logger/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include <cstring>
 Methods Box::methodTable = {Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
@@ -39,8 +40,8 @@ Box::allBoxIntersections(
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
-        VectorOps::vScale(intersectionPoint, ray->direction, depth1);
-        intersectionPoint.add(ray->position);
+        intersectionPoint = Vec3::scaled(ray->direction, depth1);
+        intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -49,8 +50,8 @@ Box::allBoxIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = nullptr;
-            VectorOps::vScale(intersectionPoint, ray->direction, depth2);
-            intersectionPoint.add(ray->position);
+            intersectionPoint = Vec3::scaled(ray->direction, depth2);
+            intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -78,119 +79,115 @@ Box::intersectBoxx(
             &p, &ray->position, box->Transform);
         Transformation::MInvTransVector(&d, &ray->direction, box->Transform);
     } else {
-        p.x = ray->position.x;
-        p.y = ray->position.y;
-        p.z = ray->position.z;
-        d.x = ray->direction.x;
-        d.y = ray->direction.y;
-        d.z = ray->direction.z;
+        p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
+        d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
     }
 
     tmin = 0.0;
     tmax = HUGE_VAL;
 
     /* Sides first */
-    if (d.x < -Config::kEpsilon) {
-        t = (box->bounds[0].x - p.x) / d.x;
+    if (d.x() < -Config::kEpsilon) {
+        t = (box->bounds[0].x() - p.x()) / d.x();
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[1].x - p.x) / d.x;
+        t = (box->bounds[1].x() - p.x()) / d.x();
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (d.x > Config::kEpsilon) {
-        t = (box->bounds[1].x - p.x) / d.x;
+    } else if (d.x() > Config::kEpsilon) {
+        t = (box->bounds[1].x() - p.x()) / d.x();
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[0].x - p.x) / d.x;
+        t = (box->bounds[0].x() - p.x()) / d.x();
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (p.x < box->bounds[0].x || p.x > box->bounds[1].x) {
+    } else if (p.x() < box->bounds[0].x() || p.x() > box->bounds[1].x()) {
         return 0;
     }
 
     /* Check Top/Bottom */
-    if (d.y < -Config::kEpsilon) {
-        t = (box->bounds[0].y - p.y) / d.y;
+    if (d.y() < -Config::kEpsilon) {
+        t = (box->bounds[0].y() - p.y()) / d.y();
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[1].y - p.y) / d.y;
+        t = (box->bounds[1].y() - p.y()) / d.y();
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (d.y > Config::kEpsilon) {
-        t = (box->bounds[1].y - p.y) / d.y;
+    } else if (d.y() > Config::kEpsilon) {
+        t = (box->bounds[1].y() - p.y()) / d.y();
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[0].y - p.y) / d.y;
+        t = (box->bounds[0].y() - p.y()) / d.y();
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (p.y < box->bounds[0].y || p.y > box->bounds[1].y) {
+    } else if (p.y() < box->bounds[0].y() || p.y() > box->bounds[1].y()) {
         return 0;
     }
 
     /* Now front/back */
-    if (d.z < -Config::kEpsilon) {
-        t = (box->bounds[0].z - p.z) / d.z;
+    if (d.z() < -Config::kEpsilon) {
+        t = (box->bounds[0].z() - p.z()) / d.z();
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[1].z - p.z) / d.z;
+        t = (box->bounds[1].z() - p.z()) / d.z();
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (d.z > Config::kEpsilon) {
-        t = (box->bounds[1].z - p.z) / d.z;
+    } else if (d.z() > Config::kEpsilon) {
+        t = (box->bounds[1].z() - p.z()) / d.z();
         if (t < tmin) {
             return 0;
         }
         if (t <= tmax) {
             tmax = t;
         }
-        t = (box->bounds[0].z - p.z) / d.z;
+        t = (box->bounds[0].z() - p.z()) / d.z();
         if (t >= tmin) {
             if (t > tmax) {
                 return 0;
             }
             tmin = t;
         }
-    } else if (p.z < box->bounds[0].z || p.z > box->bounds[1].z) {
+    } else if (p.z() < box->bounds[0].z() || p.z() > box->bounds[1].z()) {
         return 0;
     }
 
@@ -227,13 +224,13 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
     }
 
     /* Test to see if we are inside the box */
-    if (newPoint.x < box->bounds[0].x || newPoint.x > box->bounds[1].x) {
+    if (newPoint.x() < box->bounds[0].x() || newPoint.x() > box->bounds[1].x()) {
         return ((int)box->Inverted);
     }
-    if (newPoint.y < box->bounds[0].y || newPoint.y > box->bounds[1].y) {
+    if (newPoint.y() < box->bounds[0].y() || newPoint.y() > box->bounds[1].y()) {
         return ((int)box->Inverted);
     }
-    if (newPoint.z < box->bounds[0].z || newPoint.z > box->bounds[1].z) {
+    if (newPoint.z() < box->bounds[0].z() || newPoint.z() > box->bounds[1].z()) {
         return ((int)box->Inverted);
     }
     /* Inside the box */
@@ -252,35 +249,32 @@ Box::boxNormal(
         Transformation::MInverseTransformVector(
             &newPoint, intersectionPoint, box->Transform);
     } else {
-        newPoint.x = intersectionPoint->x;
-        newPoint.y = intersectionPoint->y;
-        newPoint.z = intersectionPoint->z;
+        newPoint = Vector3Dd(
+            intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
     }
 
-    result->x = 0.0;
-    result->y = 0.0;
-    result->z = 0.0;
-    if (Box::closeTo(newPoint.x, box->bounds[1].x)) {
-        result->x = 1.0;
-    } else if (Box::closeTo(newPoint.x, box->bounds[0].x)) {
-        result->x = -1.0;
-    } else if (Box::closeTo(newPoint.y, box->bounds[1].y)) {
-        result->y = 1.0;
-    } else if (Box::closeTo(newPoint.y, box->bounds[0].y)) {
-        result->y = -1.0;
-    } else if (Box::closeTo(newPoint.z, box->bounds[1].z)) {
-        result->z = 1.0;
-    } else if (closeTo(newPoint.z, box->bounds[0].z)) {
-        result->z = -1.0;
+    *result = Vector3Dd(0.0, 0.0, 0.0);
+    if (Box::closeTo(newPoint.x(), box->bounds[1].x())) {
+        *result = result->withX(1.0);
+    } else if (Box::closeTo(newPoint.x(), box->bounds[0].x())) {
+        *result = result->withX(-1.0);
+    } else if (Box::closeTo(newPoint.y(), box->bounds[1].y())) {
+        *result = result->withY(1.0);
+    } else if (Box::closeTo(newPoint.y(), box->bounds[0].y())) {
+        *result = result->withY(-1.0);
+    } else if (Box::closeTo(newPoint.z(), box->bounds[1].z())) {
+        *result = result->withZ(1.0);
+    } else if (closeTo(newPoint.z(), box->bounds[0].z())) {
+        *result = result->withZ(-1.0);
     } else {
         /* Bad result, should we do something with it? */
-        result->x = 1.0;
+        *result = result->withX(1.0);
     }
 
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
         Transformation::MTransNormal(result, result, box->Transform);
-        (*result).normalize();
+        *result = Vec3::normalized(*result);
     }
 }
 

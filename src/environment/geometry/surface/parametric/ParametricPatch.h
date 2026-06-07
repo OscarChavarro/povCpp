@@ -1,7 +1,7 @@
 #ifndef __PARAMETRIC_PATCH_H__
 #define __PARAMETRIC_PATCH_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class ParametricPatchConstants {

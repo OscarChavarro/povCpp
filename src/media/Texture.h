@@ -3,7 +3,7 @@
 
 #include "common/color/Color.h"
 #include "common/linealAlgebra/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/RGBAImage.h"
 #include "media/RGBAPixel.h"
 #include "media/TextureUtils.h"

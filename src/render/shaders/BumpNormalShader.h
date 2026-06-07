@@ -1,7 +1,7 @@
 #ifndef __BUMP_NORMAL_SHADER_H__
 #define __BUMP_NORMAL_SHADER_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 class BumpNormalShader {

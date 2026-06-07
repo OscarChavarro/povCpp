@@ -1,7 +1,7 @@
 #ifndef __LIGHT_SAMPLER_SHADER_H__
 #define __LIGHT_SAMPLER_SHADER_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class Light;
 class RayWithSegments;
