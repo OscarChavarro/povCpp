@@ -13,7 +13,6 @@
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include <cstring>
 Methods Box::methodTable = {Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
@@ -40,7 +39,7 @@ Box::allBoxIntersections(
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
-        intersectionPoint = Vec3::scaled(ray->direction, depth1);
+        intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
@@ -50,7 +49,7 @@ Box::allBoxIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = nullptr;
-            intersectionPoint = Vec3::scaled(ray->direction, depth2);
+            intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
@@ -274,7 +273,7 @@ Box::boxNormal(
     /* Transform the point into the boxes space */
     if (box->Transform != nullptr) {
         Transformation::MTransNormal(result, result, box->Transform);
-        *result = Vec3::normalized(*result);
+        *result = (*result).normalizedFast();
     }
 }
 

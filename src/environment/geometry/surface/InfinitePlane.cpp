@@ -8,7 +8,6 @@
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 Methods InfinitePlane::methodTable = {
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
     InfinitePlane::planeNormal, InfinitePlane::copyPlane,
@@ -28,7 +27,7 @@ InfinitePlane::allPlaneIntersections(
         if (depth > GeometryConstants::Small_Tolerance) {
             localElement.Depth = depth;
             localElement.Object = nullptr;
-            intersectionPoint = Vec3::scaled(ray->direction, depth);
+            intersectionPoint = ray->direction.multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
@@ -130,7 +129,7 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
     InfinitePlane *plane = (InfinitePlane *)object;
     Vector3Dd translation;
 
-    translation = Vec3::evaluated(plane->normalVector, *vector);
+    translation = plane->normalVector.multiply(*vector);
     plane->Distance -= translation.x() + translation.y() + translation.z();
 
     TextureUtils::translateTexture(&plane->Shape_Texture, vector);
@@ -161,7 +160,7 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
         plane->normalVector.z() / vector->z());
 
     length = plane->normalVector.length();
-    plane->normalVector = Vec3::scaled(plane->normalVector, 1.0 / length);
+    plane->normalVector = plane->normalVector.multiply(1.0 / length);
     plane->Distance /= length;
 
     TextureUtils::scaleTexture(
@@ -173,6 +172,6 @@ InfinitePlane::invertPlane(SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
-    plane->normalVector = Vec3::scaled(plane->normalVector, -1.0);
+    plane->normalVector = plane->normalVector.multiply(-1.0);
     plane->Distance *= -1.0;
 }

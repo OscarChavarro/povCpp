@@ -3,7 +3,6 @@
 #include "common/Statistics.h"
 #include "common/color/Color.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
@@ -44,7 +43,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
                 surfaceNormal->x(), surfaceNormal->y(), surfaceNormal->z());
             normalComponent *= -1.0;
         } else {
-            localNormal = Vec3::scaled(*surfaceNormal, -1.0);
+            localNormal = (*surfaceNormal).multiply(-1.0);
         }
 
         newRay.copyContainersFrom(ray);
@@ -88,10 +87,10 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         }
 
         temp = ior * normalComponent - sqrt(temp);
-        localNormal = Vec3::scaled(localNormal, temp);
-        rayDirection = Vec3::scaled(ray->direction, ior);
+        localNormal = localNormal.multiply(temp);
+        rayDirection = ray->direction.multiply(ior);
         newRay.direction = localNormal.add(rayDirection);
-        newRay.direction = Vec3::normalized(newRay.direction);
+        newRay.direction = newRay.direction.normalizedFast();
 
         newRay.position = *intersectionPoint;
         traceLevel++;

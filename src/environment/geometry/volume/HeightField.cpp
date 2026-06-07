@@ -19,7 +19,6 @@
 #include "common/Statistics.h"
 #include "media/Texture.h"
 #include "media/Texture.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 
 inline int
 HeightField::signInline(double x)
@@ -182,7 +181,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
     if (depth2 < depth1) {
         hfIntersection->Depth = depth2;
         hfIntersection->Object = nullptr;
-        t1V1 = Vec3::scaled(rRay->direction, depth2);
+        t1V1 = rRay->direction.multiply(depth2);
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
@@ -190,7 +189,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
     } else {
         hfIntersection->Depth = depth1;
         hfIntersection->Object = nullptr;
-        t1V1 = Vec3::scaled(rRay->direction, depth1);
+        t1V1 = rRay->direction.multiply(depth1);
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
@@ -769,14 +768,14 @@ HeightField::allHeightfldIntersections(
 
     if (depth1 == depth2) {
         depth1 = 0.0;
-        temp1 = Vec3::scaled(tempRay.direction, depth1);
+        temp1 = tempRay.direction.multiply(depth1);
         temp1 = temp1.add(tempRay.position);
-        temp2 = Vec3::scaled(tempRay.direction, depth2);
+        temp2 = tempRay.direction.multiply(depth2);
         temp2 = temp2.add(tempRay.position);
     } else {
-        temp1 = Vec3::scaled(tempRay.direction, depth1);
+        temp1 = tempRay.direction.multiply(depth1);
         temp1 = temp1.add(tempRay.position);
-        temp2 = Vec3::scaled(tempRay.direction, depth2);
+        temp2 = tempRay.direction.multiply(depth2);
         temp2 = temp2.add(tempRay.position);
     }
 
@@ -869,7 +868,7 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
     }
     localNormal = temp2.crossProduct(temp1);
     if (localNormal.y() < 0.0) {
-        localNormal = Vec3::scaled(localNormal, -1.0);
+        localNormal = localNormal.multiply(-1.0);
     }
     dot1Value = test.dotProduct(localNormal);
     dot2Value = localOrigin.dotProduct(localNormal);
@@ -922,7 +921,7 @@ HeightField::heightFldNormal(
     Transformation::MTransVector(&temp1, &temp1, hField->transformation);
     Transformation::MTransVector(&temp2, &temp2, hField->transformation);
     *result = temp2.crossProduct(temp1);
-    *result = Vec3::normalized(*result);
+    *result = (*result).normalizedFast();
 }
 
 void *

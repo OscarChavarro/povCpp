@@ -14,7 +14,6 @@
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
 /* Basic form of a quartic equation
@@ -109,7 +108,7 @@ PolynomialShape::allPolyIntersections(
                 goto l0;
             }
         }
-        intersectionPoint = Vec3::scaled(newRay.direction, depths[j]);
+        intersectionPoint = newRay.direction.multiply(depths[j]);
         intersectionPoint = intersectionPoint.add(newRay.position);
         /* Transform the point into world space */
         if (shape->Transform != nullptr) {
@@ -829,7 +828,7 @@ PolynomialShape::polyNormal(
     if (shape->Transform != nullptr) {
         Transformation::MTransNormal(result, result, shape->Transform);
     }
-    *result = Vec3::normalized(*result);
+    *result = (*result).normalizedFast();
 }
 
 /* Make a copy of a polynomial object */

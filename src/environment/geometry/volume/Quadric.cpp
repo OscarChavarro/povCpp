@@ -8,7 +8,6 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 Methods Quadric::methodTable = {
     Quadric::allQuadricIntersections, Quadric::insideQuadric,
     Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
@@ -29,7 +28,7 @@ Quadric::allQuadricIntersections(
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
-        intersectionPoint = Vec3::scaled(ray->direction, depth1);
+        intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
@@ -39,7 +38,7 @@ Quadric::allQuadricIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = nullptr;
-            intersectionPoint = Vec3::scaled(ray->direction, depth2);
+            intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
@@ -155,7 +154,7 @@ Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
 
     linearTerm = (*testPoint).dotProduct(shape->objectTerms);
     result = linearTerm + shape->objectConstant;
-    newPoint = Vec3::squareTerms(*testPoint);
+    newPoint = (*testPoint).multiply(*testPoint);
     squareTerm = newPoint.dotProduct(shape->object2Terms);
     result += squareTerm;
     result += shape->objectMixedTerms.x() * (testPoint->x()) * (testPoint->y()) +
@@ -177,8 +176,8 @@ Quadric::quadricNormal(
     Vector3Dd derivativeLinear;
     double len;
 
-    derivativeLinear = Vec3::scaled(intersectionShape->object2Terms, 2.0);
-    *result = Vec3::evaluated(derivativeLinear, *intersectionPoint);
+    derivativeLinear = intersectionShape->object2Terms.multiply(2.0);
+    *result = derivativeLinear.multiply(*intersectionPoint);
     *result = result->add(intersectionShape->objectTerms);
 
     const double nx = result->x() +
@@ -306,8 +305,8 @@ Quadric::invertQuadric(SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
 
-    shape->object2Terms = Vec3::scaled(shape->object2Terms, -1.0);
-    shape->objectMixedTerms = Vec3::scaled(shape->objectMixedTerms, -1.0);
-    shape->objectTerms = Vec3::scaled(shape->objectTerms, -1.0);
+    shape->object2Terms = shape->object2Terms.multiply(-1.0);
+    shape->objectMixedTerms = shape->objectMixedTerms.multiply(-1.0);
+    shape->objectTerms = shape->objectTerms.multiply(-1.0);
     shape->objectConstant *= -1.0;
 }

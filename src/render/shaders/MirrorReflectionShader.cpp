@@ -3,7 +3,6 @@
 #include "common/Statistics.h"
 #include "common/color/Color.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
@@ -27,18 +26,17 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
             localNormal = *surfaceNormal;
             normalComponent *= -1.0;
         } else {
-            localNormal = Vec3::scaled(*surfaceNormal, -1.0);
+            localNormal = (*surfaceNormal).multiply(-1.0);
         }
 
-        normalProjection = Vec3::scaled(localNormal, normalComponent);
-        normalProjection = Vec3::scaled(normalProjection, 2.0);
+        normalProjection = localNormal.multiply(normalComponent);
+        normalProjection = normalProjection.multiply(2.0);
         newRay.direction = ray->direction.add(normalProjection);
         newRay.position = *intersectionPoint;
 
         /* ARE 08/25/91 */
 
-        surfaceOffset = Vec3::scaled(
-            newRay.direction, 2.0 * GeometryConstants::Small_Tolerance);
+        surfaceOffset = newRay.direction.multiply(2.0 * GeometryConstants::Small_Tolerance);
         newRay.position = newRay.position.add(surfaceOffset);
 
         newRay.copyContainersFrom(ray);

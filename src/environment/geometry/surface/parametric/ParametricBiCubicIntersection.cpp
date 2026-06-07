@@ -1,6 +1,5 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryOperations.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
@@ -24,7 +23,7 @@ ParametricBiCubicIntersection::subpatchNormal(
         *d = -1.0 * v1->x();
         return 0;
     }
-    *result = Vec3::inverseScaled(*result, length);
+    *result = Vector3Dd((*result).x() / length, (*result).y() / length, (*result).z() / length);
     *d = (*result).dotProduct(*v1);
     *d = 0.0 - *d;
     return 1;
@@ -69,7 +68,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     if (*depth < GeometryConstants::Small_Tolerance) {
         return 0;
     }
-    *ip = Vec3::scaled(ray->direction, *depth);
+    *ip = ray->direction.multiply(*depth);
     *ip = ip->add(ray->position);
 
     /* Map the intersection point and the triangle onto a plane. */
@@ -188,15 +187,15 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     }
     if (patchType == 4) {
         tempV1 = v2->subtract(*v3);
-        tempV1 = Vec3::normalized(tempV1);
+        tempV1 = tempV1.normalizedFast();
         tempV2 = v1->subtract(*v3);
         proj = tempV2.dotProduct(tempV1);
-        tempV1 = Vec3::scaled(tempV1, proj);
+        tempV1 = tempV1.multiply(proj);
         perp = tempV1.subtract(tempV2);
-        perp = Vec3::normalized(perp);
+        perp = perp.normalizedFast();
         mu = tempV2.dotProduct(perp);
         mu = -1.0 / mu;
-        perp = Vec3::scaled(perp, mu);
+        perp = perp.multiply(mu);
         tempV1 = ip->subtract(*v1);
         s = tempV1.dotProduct(perp);
         if (s < EPSILON) {
@@ -219,15 +218,15 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
             t = (tempV1.z() / s + v1->z() - v2->z()) / tempV1.z();
         }
         tempV1 = n2->subtract(*n1);
-        tempV1 = Vec3::scaled(tempV1, s);
+        tempV1 = tempV1.multiply(s);
         tempV1 = tempV1.add(*n1);
         tempV2 = n3->subtract(*n1);
-        tempV2 = Vec3::scaled(tempV2, s);
+        tempV2 = tempV2.multiply(s);
         tempV2 = tempV2.add(*n1);
         *ipNorm = tempV2.subtract(tempV1);
-        *ipNorm = Vec3::scaled(*ipNorm, t);
+        *ipNorm = (*ipNorm).multiply(t);
         *ipNorm = ipNorm->add(tempV1);
-        *ipNorm = Vec3::normalized(*ipNorm);
+        *ipNorm = (*ipNorm).normalizedFast();
         return 1;
     }
     return 0;

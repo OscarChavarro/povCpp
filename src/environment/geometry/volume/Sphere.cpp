@@ -8,7 +8,6 @@
 #include <cmath>
 #include "common/Statistics.h"
 #include "media/Texture.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 
 //===========================================================================
 
@@ -103,7 +102,7 @@ Sphere::allSphereIntersections(
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
-        intersectionPoint = Vec3::scaled(ray->direction, depth1);
+        intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
@@ -113,7 +112,7 @@ Sphere::allSphereIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = nullptr;
-            intersectionPoint = Vec3::scaled(ray->direction, depth2);
+            intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
@@ -147,7 +146,7 @@ Sphere::sphereNormal(
     Sphere *sphere = (Sphere *)object;
 
     *result = intersectionPoint->subtract(sphere->Center);
-    *result = Vec3::scaled(*result, sphere->inverseRadius);
+    *result = (*result).multiply(sphere->inverseRadius);
 }
 
 void *
@@ -195,7 +194,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
         *vector = Vector3Dd(s, s, s);
     }
 
-    sphere->Center = Vec3::scaled(sphere->Center, vector->x());
+    sphere->Center = sphere->Center.multiply(vector->x());
     sphere->Radius *= vector->x();
     sphere->radiusSquared = sphere->Radius * sphere->Radius;
     sphere->inverseRadius = 1.0 / sphere->Radius;

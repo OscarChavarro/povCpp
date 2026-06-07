@@ -7,7 +7,6 @@
 
 #include "environment/light/Light.h"
 #include "common/logger/Logger.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 Methods Light::methodTable = {
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,
@@ -117,7 +116,7 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
             lightSource->pointsAt.subtract(lightSource->Center);
         len = spotDirection.length();
         if (len > 0.0) {
-            spotDirection = Vec3::inverseScaled(spotDirection, len);
+            spotDirection = Vector3Dd(spotDirection.x() / len, spotDirection.y() / len, spotDirection.z() / len);
             costheta = lightSourceRay->direction.dotProduct(spotDirection);
             costheta *= -1.0;
             if (costheta > 0.0) {

@@ -13,7 +13,6 @@
 #include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "media/Texture.h"
 
 /*
@@ -219,7 +218,7 @@ MapTextureFixture::bumpMap(
     xprime = p1.subtract(p2);
     yprime = p3.subtract(p2);
     bumpNormal = yprime.crossProduct(xprime);
-    bumpNormal = Vec3::normalized(bumpNormal);
+    bumpNormal = bumpNormal.normalizedFast();
 
     *&yprime = Vector3Dd(normal->x(), normal->y(), normal->z());
     *&temp = Vector3Dd(0.0, 1.0, 0.0);
@@ -236,15 +235,15 @@ MapTextureFixture::bumpMap(
             length = 1.0;
         }
     }
-    xprime = Vec3::scaled(xprime, 1.0 / length);
+    xprime = xprime.multiply(1.0 / length);
     zprime = xprime.crossProduct(yprime);
-    zprime = Vec3::normalized(zprime);
-    xprime = Vec3::scaled(xprime, bumpNormal.x());
-    yprime = Vec3::scaled(yprime, bumpNormal.y());
-    zprime = Vec3::scaled(zprime, bumpNormal.z());
+    zprime = zprime.normalizedFast();
+    xprime = xprime.multiply(bumpNormal.x());
+    yprime = yprime.multiply(bumpNormal.y());
+    zprime = zprime.multiply(bumpNormal.z());
     temp = xprime.add(yprime);
     *normal = temp.add(zprime);
-    *normal = Vec3::normalized(*normal);
+    *normal = (*normal).normalizedFast();
 }
 
 void

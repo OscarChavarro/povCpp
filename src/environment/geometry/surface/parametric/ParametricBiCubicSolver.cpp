@@ -1,7 +1,6 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
@@ -243,15 +242,15 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
              * normal */
             t = n0.dotProduct(n);
             if (t < 0) {
-                n0 = Vec3::scaled(n0, -1.0);
+                n0 = n0.multiply(-1.0);
             }
             t = n1.dotProduct(n);
             if (t < 0) {
-                n1 = Vec3::scaled(n1, -1.0);
+                n1 = n1.multiply(-1.0);
             }
             t = n2.dotProduct(n);
             if (t < 0) {
-                n2 = Vec3::scaled(n2, -1.0);
+                n2 = n2.multiply(-1.0);
             }
 
             /* Check for intersections in this subpatch. */
@@ -277,15 +276,15 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
              * normal */
             t = n1.dotProduct(n);
             if (t > 0) {
-                n1 = Vec3::scaled(n0, -1.0);
+                n1 = n0.multiply(-1.0);
             }
             t = n2.dotProduct(n);
             if (t > 0) {
-                n2 = Vec3::scaled(n1, -1.0);
+                n2 = n1.multiply(-1.0);
             }
             t = n3.dotProduct(n);
             if (t > 0) {
-                n3 = Vec3::scaled(n2, -1.0);
+                n3 = n2.multiply(-1.0);
             }
 
             if (ParametricBiCubicIntersection::intersectSubpatch(
