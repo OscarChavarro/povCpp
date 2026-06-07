@@ -29,7 +29,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     RayWithSegments lightSourceRay;
     Light *lightSource;
     SimpleBody *blockingObject;
-    int intersectionFound;
+    bool intersectionFound;
     Intersection *localIntersection;
     Vector3Dd rEye;
     RGBAColor lightColor;
@@ -51,12 +51,12 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     }
 
     localQueue = IntersectionPriorityQueuePool::pqPop(128);
-    lightSourceRay.isShadowRay = LegacyBoolean::TRUE_VALUE;
-    lightSourceRay.isPrimaryRay = LegacyBoolean::FALSE_VALUE;
+    lightSourceRay.isShadowRay = true;
+    lightSourceRay.isPrimaryRay = false;
 
     for (lightSource = frame.Light_Sources; lightSource != nullptr;
         lightSource = lightSource->Next_Light_Source) {
-        intersectionFound = LegacyBoolean::FALSE_VALUE;
+        intersectionFound = false;
 
         LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,
             intersectionPoint, &lightColor);
@@ -81,7 +81,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
                         if (!localIntersection->Object->noShadowFlag) {
                             if (ShadowShader::shade(localIntersection, &lightColor,
                                     localQueue, traceService)) {
-                                intersectionFound = LegacyBoolean::TRUE_VALUE;
+                                intersectionFound = true;
                                 break;
                             }
                         }

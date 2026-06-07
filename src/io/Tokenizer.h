@@ -3,7 +3,6 @@
 
 #include <cstdio>
 
-#include "common/LegacyBoolean.h"
 #include "io/DataFile.h"
 #include "io/ReservedWord.h"
 #include "io/TokenStruct.h"

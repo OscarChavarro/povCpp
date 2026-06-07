@@ -1,7 +1,6 @@
 #ifndef __POINT_H__
 #define __POINT_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -11,7 +10,7 @@ class Light : public Geometry {
     Vector3Dd Center;
     Vector3Dd pointsAt;
     Light *Next_Light_Source;
-    short Inverted;
+    bool Inverted;
     double Coeff;
     double Radius;
     double Falloff;

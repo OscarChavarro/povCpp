@@ -1,7 +1,6 @@
 #ifndef __QUADRIC_H__
 #define __QUADRIC_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -13,8 +12,8 @@ class Quadric : public Geometry {
     Vector3Dd objectTerms;
     double objectConstant;
     double objectVpConstant;
-    int constantCached;
-    int nonZeroSquareTerm;
+    bool constantCached;
+    bool nonZeroSquareTerm;
 
     static int allQuadricIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

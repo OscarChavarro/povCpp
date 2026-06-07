@@ -47,7 +47,7 @@ Methods HeightField::methodTable = {
 
 int HeightField::isdx;
 int HeightField::isdz;
-int HeightField::xDom;
+bool HeightField::xDom;
 double HeightField::gdx;
 double HeightField::gdy;
 double HeightField::gdz;
@@ -175,7 +175,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
     }
 
     if ((depth1 >= GeometryConstants::Max_Distance) && (depth2 >= GeometryConstants::Max_Distance)) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     if (depth2 < depth1) {
@@ -196,7 +196,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
         hfQueue->add(hfIntersection);
     }
     Statistics::global().rayHtFieldTestsSucceeded++;
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 int
@@ -217,11 +217,11 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
     int i;
 
     if (HeightField::minValue(start->y, end->y) > block->maxY) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     if (HeightField::maxValue(start->y, end->y) < block->minY) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     sx = start->x;
@@ -267,13 +267,13 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
 
         for (i = 0; i <= length; i++) {
             if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
             f += gdz;
             if (f >= 0.0) {
                 iz += isdz;
                 if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
-                    return (LegacyBoolean::TRUE_VALUE);
+                    return (true);
                 }
                 f -= 1.0;
             }
@@ -319,13 +319,13 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
 
         for (i = 0; i <= length; i++) {
             if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
             f += gdx;
             if (f >= 0.0) {
                 ix += isdx;
                 if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
-                    return (LegacyBoolean::TRUE_VALUE);
+                    return (true);
                 }
                 f -= 1.0;
             }
@@ -334,7 +334,7 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
             y2 += gdy;
         }
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int
@@ -407,7 +407,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -422,7 +422,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -456,7 +456,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -471,7 +471,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -506,7 +506,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -521,7 +521,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -554,7 +554,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -569,7 +569,7 @@ HeightField::intersectHfNode(
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->Block[ix][iz]),
                             ray, hField, curr, next)) {
-                        return (LegacyBoolean::TRUE_VALUE);
+                        return (true);
                     }
                     temp = curr;
                     curr = next;
@@ -597,9 +597,9 @@ HeightField::intersectHfNode(
     }
     if (HeightField::intersectSubBlock(
             &(hField->Block[ix][iz]), ray, hField, curr, next)) {
-        return (LegacyBoolean::TRUE_VALUE);
+        return (true);
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 void
@@ -748,7 +748,7 @@ HeightField::allHeightfldIntersections(
     RayWithSegments tempRay;
     double depth1;
     double depth2;
-    int retVal = LegacyBoolean::FALSE_VALUE;
+    bool retVal = false;
     HeightField *hField = (HeightField *)object;
     Intersection localElement;
 
@@ -760,7 +760,7 @@ HeightField::allHeightfldIntersections(
         &(tempRay.direction), &(ray->direction), hField->transformation);
 
     if (!Box::intersectBoxx(&tempRay, hField->bounding_box, &depth1, &depth2)) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     /*    if(      fabs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::kEpsilon if
@@ -801,9 +801,9 @@ HeightField::allHeightfldIntersections(
     isdx = HeightField::signInline(tempRay.direction.x);
     isdz = HeightField::signInline(tempRay.direction.z);
 
-    xDom = LegacyBoolean::FALSE_VALUE;
+    xDom = false;
     if (fabs(tempRay.direction.x) >= fabs(tempRay.direction.z)) {
-        xDom = LegacyBoolean::TRUE_VALUE;
+        xDom = true;
     }
 
     gdx = fabs(mxz);
@@ -815,7 +815,7 @@ HeightField::allHeightfldIntersections(
     }
 
     if (HeightField::intersectHfNode(&tempRay, hField, &temp1, &temp2)) {
-        retVal = LegacyBoolean::TRUE_VALUE;
+        retVal = true;
     }
     return (retVal);
 }
@@ -883,9 +883,9 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
     dot1 = (int)dot1Value;
     dot2 = (int)dot2Value;
     if ((dot1 < dot2) && (test.y > (hField->bounding_box->bounds[0].y) + 1.0)) {
-        return (LegacyBoolean::TRUE_VALUE);
+        return (true);
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 void

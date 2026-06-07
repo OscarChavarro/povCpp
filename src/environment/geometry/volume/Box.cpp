@@ -32,10 +32,10 @@ Box::allBoxIntersections(
     double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    int intersectionFound;
+    bool intersectionFound;
     Box *shape = (Box *)object;
 
-    intersectionFound = LegacyBoolean::FALSE_VALUE;
+    intersectionFound = false;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
@@ -44,7 +44,7 @@ Box::allBoxIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        intersectionFound = LegacyBoolean::TRUE_VALUE;
+        intersectionFound = true;
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
@@ -54,7 +54,7 @@ Box::allBoxIntersections(
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
-            intersectionFound = LegacyBoolean::TRUE_VALUE;
+            intersectionFound = true;
         }
     }
     return (intersectionFound);
@@ -200,7 +200,7 @@ Box::intersectBoxx(
     /* Logger::info("Box intersects: %g, %g\n", *Depth1, *Depth2); */
     if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
         if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
         *depth1 = *depth2;
 
@@ -209,7 +209,7 @@ Box::intersectBoxx(
     }
 
     Statistics::global().rayBoxTestsSucceeded++;
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 int
@@ -354,5 +354,5 @@ Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
 void
 Box::invertBox(SimpleBody *object)
 {
-    ((Box *)object)->Inverted = 1 - ((Box *)object)->Inverted;
+    ((Box *)object)->Inverted = !((Box *)object)->Inverted;
 }

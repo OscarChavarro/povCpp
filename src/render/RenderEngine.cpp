@@ -90,7 +90,7 @@ traceServiceShadeShadow(
 {
     (void)context;
     RayShaderPipeline::shadeSurface(
-        intersection, colour, nullptr, LegacyBoolean::TRUE_VALUE, getTraceService());
+        intersection, colour, nullptr, true, getTraceService());
 }
 
 static const TraceService traceService = {
@@ -128,8 +128,8 @@ RenderFrame::createRay(
     ray->direction.add(RenderEngine::renderFrame().viewPoint.Direction);
     ray->direction.normalize();
     ray->initializeContainers();
-    ray->isPrimaryRay = LegacyBoolean::TRUE_VALUE;
-    ray->quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
+    ray->isPrimaryRay = true;
+    ray->quadricConstantsCached = false;
 }
 
 void
@@ -549,12 +549,12 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     SimpleBody *object;
     Intersection *localIntersection;
     Intersection *newIntersection;
-    int intersectionFound;
+    bool intersectionFound;
 
     Statistics::global().numberOfRays++;
     Color::makeColor(colour, 0.0, 0.0, 0.0);
 
-    intersectionFound = LegacyBoolean::FALSE_VALUE;
+    intersectionFound = false;
     localIntersection = nullptr;
 
     if (RenderEngine::traceLevel() > (int)RenderEngine::maxTraceLevel()) {
@@ -587,13 +587,13 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
                 localIntersection = newIntersection;
             }
 
-            intersectionFound = LegacyBoolean::TRUE_VALUE;
+            intersectionFound = true;
         }
     }
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            localIntersection, colour, ray, LegacyBoolean::FALSE_VALUE, getTraceService());
+            localIntersection, colour, ray, false, getTraceService());
         delete localIntersection;
     }
 }

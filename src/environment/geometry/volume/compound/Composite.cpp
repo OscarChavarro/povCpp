@@ -35,7 +35,7 @@ createBasicObject()
     newObject->clippingShapes = nullptr;
     newObject->objectTexture = TextureUtils::defaultTexture();
     newObject->objectColour = nullptr;
-    newObject->noShadowFlag = LegacyBoolean::FALSE_VALUE;
+    newObject->noShadowFlag = false;
     newObject->Type = GeometryOperations::OBJECT_TYPE;
     newObject->methods = &Composite::basicObjectMethodTable;
     return newObject;
@@ -57,8 +57,8 @@ int
 Composite::allCompositeIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    int intersectionFound;
-    int anyIntersectionFound;
+    bool intersectionFound;
+    bool anyIntersectionFound;
     Geometry *boundingShape;
     Geometry *clippingShape;
     Intersection *localIntersection;
@@ -74,13 +74,13 @@ Composite::allCompositeIntersections(
             delete localIntersection;
         } else if (!GeometryOperations::inside(
                        &ray->position, (SimpleBody *)boundingShape)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
         Statistics::global().boundingRegionTestsSucceeded++;
     }
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
-    anyIntersectionFound = LegacyBoolean::FALSE_VALUE;
+    anyIntersectionFound = false;
 
     for (localObject = ((Composite *)object)->Objects; localObject != nullptr;
         localObject = localObject->nextObject) {
@@ -92,14 +92,14 @@ Composite::allCompositeIntersections(
         localIntersection != nullptr; localDepthQueue->deleteHighest(),
         localIntersection = localDepthQueue->getHighest()) {
 
-        intersectionFound = LegacyBoolean::TRUE_VALUE;
+        intersectionFound = true;
 
         for (clippingShape = object->clippingShapes; clippingShape != nullptr;
             clippingShape = clippingShape->nextObject) {
             Statistics::global().clippingRegionTests++;
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
-                intersectionFound = LegacyBoolean::FALSE_VALUE;
+                intersectionFound = false;
                 break;
             }
             Statistics::global().clippingRegionTestsSucceeded++;
@@ -107,7 +107,7 @@ Composite::allCompositeIntersections(
 
         if (intersectionFound) {
             depthQueue->add(localIntersection);
-            anyIntersectionFound = LegacyBoolean::TRUE_VALUE;
+            anyIntersectionFound = true;
         }
     }
     IntersectionPriorityQueuePool::pqPush(localDepthQueue);
@@ -118,8 +118,8 @@ int
 Composite::allObjectIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    int intersectionFound;
-    int anyIntersectionFound;
+    bool intersectionFound;
+    bool anyIntersectionFound;
     Intersection *localIntersection;
     Geometry *boundingShape;
     Geometry *clippingShape;
@@ -134,13 +134,13 @@ Composite::allObjectIntersections(
             delete localIntersection;
         } else if (!GeometryOperations::inside(
                        &ray->position, (SimpleBody *)boundingShape)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
         Statistics::global().boundingRegionTestsSucceeded++;
     }
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
-    anyIntersectionFound = LegacyBoolean::FALSE_VALUE;
+    anyIntersectionFound = false;
     GeometryOperations::allIntersections(
         (SimpleBody *)object->Shape, ray, localDepthQueue);
 
@@ -149,7 +149,7 @@ Composite::allObjectIntersections(
         localIntersection = localDepthQueue->getHighest()) {
 
         localIntersection->Object = object;
-        intersectionFound = LegacyBoolean::TRUE_VALUE;
+        intersectionFound = true;
 
         for (clippingShape = object->clippingShapes; clippingShape != nullptr;
             clippingShape = clippingShape->nextObject) {
@@ -164,7 +164,7 @@ Composite::allObjectIntersections(
                 if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                     Logger::info("not ok\n");
                 }
-                intersectionFound = LegacyBoolean::FALSE_VALUE;
+                intersectionFound = false;
                 break;
             }
             Statistics::global().clippingRegionTestsSucceeded++;
@@ -175,7 +175,7 @@ Composite::allObjectIntersections(
                 Logger::info("ok\n");
             }
             depthQueue->add(localIntersection);
-            anyIntersectionFound = LegacyBoolean::TRUE_VALUE;
+            anyIntersectionFound = true;
         }
     }
     IntersectionPriorityQueuePool::pqPush(localDepthQueue);
@@ -193,7 +193,7 @@ Composite::insideBasicObject(Vector3Dd *testPoint, SimpleBody *object)
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)boundingShape)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
     }
 
@@ -202,14 +202,14 @@ Composite::insideBasicObject(Vector3Dd *testPoint, SimpleBody *object)
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)clippingShape)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
     }
 
     if (GeometryOperations::inside(testPoint, (SimpleBody *)object->Shape)) {
-        return (LegacyBoolean::TRUE_VALUE);
+        return (true);
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int
@@ -224,7 +224,7 @@ Composite::insideCompositeObject(Vector3Dd *testPoint, SimpleBody *object)
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)boundingShape)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
     }
 
@@ -233,7 +233,7 @@ Composite::insideCompositeObject(Vector3Dd *testPoint, SimpleBody *object)
 
         if (!GeometryOperations::inside(
                 testPoint, (SimpleBody *)clippingShape)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
     }
 
@@ -241,11 +241,11 @@ Composite::insideCompositeObject(Vector3Dd *testPoint, SimpleBody *object)
         localObject = localObject->nextObject) {
 
         if (GeometryOperations::inside(testPoint, localObject)) {
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
     }
 
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 void *

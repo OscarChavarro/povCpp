@@ -9,7 +9,6 @@
 
 #include "io/Tokenizer.h"
 #include "io/base/FileLocator.h"
-#include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "environment/material/RenderRuntimeState.h"
 #include <cctype>
@@ -165,7 +164,7 @@ Tokenizer::initializeTokenizer(char *filename)
         exit(1);
     }
 
-    ctx.token().endOfFile = LegacyBoolean::FALSE_VALUE;
+    ctx.token().endOfFile = false;
     Tokenizer::sNumberOfSymbols = 0;
 }
 
@@ -210,7 +209,7 @@ Tokenizer::getToken()
         exit(1);
     }
     if (ctx.token().ungetToken) {
-        ctx.token().ungetToken = LegacyBoolean::FALSE_VALUE;
+        ctx.token().ungetToken = false;
         return;
     }
 
@@ -228,7 +227,7 @@ Tokenizer::getToken()
         if (c == EOF) {
             if (Tokenizer::sGlobalIncludeFileIndex == 0) {
                 ctx.token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
-                ctx.token().endOfFile = LegacyBoolean::TRUE_VALUE;
+                ctx.token().endOfFile = true;
                 /*putchar ('\n');*/
                 fprintf(stderr, "\n");
                 return;
@@ -400,7 +399,7 @@ Tokenizer::getToken()
         case '9':
         case '.':
             ungetc(c, Tokenizer::sGlobalDataFile->File);
-            if (Tokenizer::sGlobalDataFile->readFloat() != LegacyBoolean::TRUE_VALUE) {
+            if (Tokenizer::sGlobalDataFile->readFloat() != true) {
                 return;
             }
             break;
@@ -459,7 +458,7 @@ Tokenizer::getToken()
         case 'Z':
         case '_':
             ungetc(c, Tokenizer::sGlobalDataFile->File);
-            if (Tokenizer::sGlobalDataFile->readSymbol() != LegacyBoolean::TRUE_VALUE) {
+            if (Tokenizer::sGlobalDataFile->readSymbol() != true) {
                 return;
             }
             break;
@@ -476,7 +475,7 @@ Tokenizer::getToken()
             break;
         }
         if (ctx.token().tokenId == Tokenizer::INCLUDE_TOKEN) {
-            if (Tokenizer::sGlobalDataFile->skipSpaces() != LegacyBoolean::TRUE_VALUE) {
+            if (Tokenizer::sGlobalDataFile->skipSpaces() != true) {
                 Tokenizer::tokenError(
                     Tokenizer::sGlobalDataFile, "Expecting a Tokenizer::sString after INCLUDE\n");
             }
@@ -537,7 +536,7 @@ void
 Tokenizer::ungetToken()
 {
     ParserContext ctx;
-    ctx.token().ungetToken = LegacyBoolean::TRUE_VALUE;
+    ctx.token().ungetToken = true;
 }
 
 /* Skip over spaces in the input file */
@@ -547,10 +546,10 @@ DataFile::skipSpaces()
 {
     int c;
 
-    while (LegacyBoolean::TRUE_VALUE) {
+    while (true) {
         c = getc(this->File);
         if (c == EOF) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (!(isspace(c) || c == 0x0A)) {
@@ -563,7 +562,7 @@ DataFile::skipSpaces()
     }
 
     ungetc(c, this->File);
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 /* The comments on comments are outdated and incorrect */
@@ -577,14 +576,14 @@ int
 DataFile::parseComments()
 {
     int c;
-    int endOfComment;
+    bool endOfComment;
 
-    endOfComment = LegacyBoolean::FALSE_VALUE;
+    endOfComment = false;
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "No closing comment found");
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (c == (int)'\n') {
@@ -593,14 +592,14 @@ DataFile::parseComments()
 
         if (c == (int)'{') {
             if (!this->parseComments()) {
-                return (LegacyBoolean::FALSE_VALUE);
+                return (false);
             }
         } else {
             endOfComment = (c == (int)'}');
         }
     }
 
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 /* C style comments with asterik and slash - CdW 8/91 */
@@ -610,15 +609,15 @@ DataFile::parseCComments()
 {
     int c;
     int c2;
-    int endOfComment;
+    bool endOfComment;
 
-    endOfComment = LegacyBoolean::FALSE_VALUE;
+    endOfComment = false;
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
             Tokenizer::tokenError(
                 Tokenizer::sGlobalDataFile, "No */ closing comment found");
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (c == (int)'\n') {
@@ -630,7 +629,7 @@ DataFile::parseCComments()
             if (c2 != (int)'/') {
                 ungetc(c2, this->File);
             } else {
-                endOfComment = LegacyBoolean::TRUE_VALUE;
+                endOfComment = true;
             }
         }
         /* Check for and handle nested comments */
@@ -643,7 +642,7 @@ DataFile::parseCComments()
             }
         }
     }
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 /* The following routines make it easier to handle strings.  They stuff
@@ -687,10 +686,10 @@ DataFile::readFloat()
 {
     ParserContext ctx;
     int c;
-    int finished;
+    bool finished;
     int phase;
 
-    finished = LegacyBoolean::FALSE_VALUE;
+    finished = false;
     phase = 0;
 
     Tokenizer::beginString();
@@ -698,7 +697,7 @@ DataFile::readFloat()
         c = getc(this->File);
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "Unexpected end of file");
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         switch (phase) {
@@ -725,7 +724,7 @@ DataFile::readFloat()
                 Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
                 phase = 3;
             } else {
-                finished = LegacyBoolean::TRUE_VALUE;
+                finished = true;
             }
             break;
 
@@ -736,7 +735,7 @@ DataFile::readFloat()
                 Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
                 phase = 3;
             } else {
-                finished = LegacyBoolean::TRUE_VALUE;
+                finished = true;
             }
             break;
 
@@ -745,7 +744,7 @@ DataFile::readFloat()
                 Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
                 phase = 4;
             } else {
-                finished = LegacyBoolean::TRUE_VALUE;
+                finished = true;
             }
             break;
 
@@ -753,7 +752,7 @@ DataFile::readFloat()
             if (isdigit(c)) {
                 Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
             } else {
-                finished = LegacyBoolean::TRUE_VALUE;
+                finished = true;
             }
             break;
         }
@@ -764,10 +763,10 @@ DataFile::readFloat()
 
     Tokenizer::writeToken(Tokenizer::FLOAT_TOKEN, Tokenizer::sGlobalDataFile);
     if (sscanf(Tokenizer::sString, "%lf", &ctx.token().tokenFloat) == 0) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 /* Parse a Tokenizer::sString from the input file into a token. */
@@ -778,7 +777,7 @@ DataFile::parseString()
     int c;
 
     Tokenizer::beginString();
-    while (LegacyBoolean::TRUE_VALUE) {
+    while (true) {
         c = getc(this->File);
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "No end quote for Tokenizer::sString");
@@ -809,11 +808,11 @@ DataFile::readSymbol()
     int symbolId;
 
     Tokenizer::beginString();
-    while (LegacyBoolean::TRUE_VALUE) {
+    while (true) {
         c = getc(this->File);
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "Unexpected end of file");
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (isalpha(c) || isdigit(c) || c == (int)'_') {
@@ -831,7 +830,7 @@ DataFile::readSymbol()
     } else {
         /* Ignore the symbol if it was meant for the tokenizer (-2) */
         if (symbolId == -2) {
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
 
         if ((symbolId = Tokenizer::findSymbol()) == -1) {
@@ -855,7 +854,7 @@ DataFile::readSymbol()
         Tokenizer::writeToken(Tokenizer::LAST_TOKEN + symbolId, Tokenizer::sGlobalDataFile);
     }
 
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 /* Return the index the token in the reserved words table or -1 if it

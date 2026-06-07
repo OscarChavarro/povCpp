@@ -37,8 +37,8 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (
@@ -65,7 +65,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / 256.0, 1.0 / (image->height));
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::POT_TOKEN:
@@ -90,7 +90,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / 256.0, 1.0 / image->height);
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TGA_TOKEN:
@@ -113,7 +113,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / 256.0, 1.0 / image->height);
                 Transformation::getScalingTransformation(
                     localShape->transformation, &localVector);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -129,7 +129,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -140,13 +140,13 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::WATER_LEVEL_TOKEN:

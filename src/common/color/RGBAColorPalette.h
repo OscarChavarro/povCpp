@@ -7,7 +7,7 @@ class RGBAColorPalette {
   public:
     int numberOfEntries;
     RGBAColorPaletteSpan *Colour_Map_Entries;
-    int transparencyFlag;
+    bool transparencyFlag;
 };
 
 #endif

@@ -7,7 +7,6 @@
 
 #include "io/base/image/GifFormat.h"
 #include "io/base/FileLocator.h"
-#include "common/LegacyBoolean.h"
 #include "io/base/image/GifDecoder.h"
 #include <cstring>
 #include <string>
@@ -116,11 +115,11 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
         gifColourMap[i].Alpha = 0;
     }
 
-    finished = LegacyBoolean::FALSE_VALUE;
+    finished = false;
     while (!finished) {
         switch (GifFormat::getByte()) {
         case ';':
-            finished = LegacyBoolean::TRUE_VALUE;
+            finished = true;
             status = 0;
             break;
 
@@ -143,7 +142,7 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
             }
 
             if (status < 0) {
-                finished = LegacyBoolean::TRUE_VALUE;
+                finished = true;
                 break;
             }
 
@@ -171,12 +170,12 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
             }
 
             status = GifDecoder::decoder(image->iwidth);
-            finished = LegacyBoolean::TRUE_VALUE;
+            finished = true;
             break;
 
         default:
             status = -1;
-            finished = LegacyBoolean::TRUE_VALUE;
+            finished = true;
             break;
         }
     }

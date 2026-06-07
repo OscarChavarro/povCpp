@@ -16,13 +16,13 @@ int
 Light::allPointIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int
 Light::insidePoint(Vector3Dd *testPoint, SimpleBody *object)
 {
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 void *
@@ -76,7 +76,7 @@ Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
 void
 Light::invertPoint(SimpleBody *object)
 {
-    ((Light *)object)->Inverted ^= LegacyBoolean::TRUE_VALUE;
+    ((Light *)object)->Inverted ^= true;
 }
 
 /* Cubic spline that has tangents of slope 0 at x == low and at x == high.

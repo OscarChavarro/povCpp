@@ -5,7 +5,6 @@
  *
  *****************************************************************************/
 
-#include "common/LegacyBoolean.h"
 #include "common/color/Color.h"
 
 inline double

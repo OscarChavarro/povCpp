@@ -41,11 +41,11 @@ Sphere::intersectSphere(
             VectorOps::vSub(sphere->VPOtoC, sphere->Center, ray->position);
             sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);
             sphere->VPinside = (sphere->VPOCSquared < sphere->radiusSquared);
-            sphere->VPCached = LegacyBoolean::TRUE_VALUE;
+            sphere->VPCached = true;
         }
         tClosestApproach = sphere->VPOtoC.dotProduct(ray->direction);
         if (!sphere->VPinside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
-            return LegacyBoolean::FALSE_VALUE;
+            return false;
         }
         tHalfChordSquared = sphere->radiusSquared - sphere->VPOCSquared +
                             (tClosestApproach * tClosestApproach);
@@ -55,7 +55,7 @@ Sphere::intersectSphere(
         inside = (ocSquared < sphere->radiusSquared);
         tClosestApproach = originToCenter.dotProduct(ray->direction);
         if (!inside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
-            return LegacyBoolean::FALSE_VALUE;
+            return false;
         }
 
         tHalfChordSquared = sphere->radiusSquared - ocSquared +
@@ -63,7 +63,7 @@ Sphere::intersectSphere(
     }
 
     if (tHalfChordSquared < GeometryConstants::Small_Tolerance) {
-        return LegacyBoolean::FALSE_VALUE;
+        return false;
     }
 
     halfChord = sqrt(tHalfChordSquared);
@@ -72,7 +72,7 @@ Sphere::intersectSphere(
 
     if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
         if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
-            return LegacyBoolean::FALSE_VALUE;
+            return false;
         }
         *depth1 = *depth2;
 
@@ -84,7 +84,7 @@ Sphere::intersectSphere(
 
     //--------------------------------------------------------------------------
     Statistics::global().raySphereTestsSucceeded++;
-    return LegacyBoolean::TRUE_VALUE;
+    return true;
 }
 
 int
@@ -95,10 +95,10 @@ Sphere::allSphereIntersections(
     double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    int intersectionFound;
+    bool intersectionFound;
     Sphere *shape = (Sphere *)object;
 
-    intersectionFound = LegacyBoolean::FALSE_VALUE;
+    intersectionFound = false;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
@@ -107,7 +107,7 @@ Sphere::allSphereIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        intersectionFound = LegacyBoolean::TRUE_VALUE;
+        intersectionFound = true;
 
         if (depth2 != depth1) {
             localElement.Depth = depth2;
@@ -117,7 +117,7 @@ Sphere::allSphereIntersections(
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
-            intersectionFound = LegacyBoolean::TRUE_VALUE;
+            intersectionFound = true;
         }
     }
     return intersectionFound;
@@ -206,7 +206,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
 void
 Sphere::invertSphere(SimpleBody *object)
 {
-    ((Sphere *)object)->Inverted ^= LegacyBoolean::TRUE_VALUE;
+    ((Sphere *)object)->Inverted ^= true;
 }
 
 //===========================================================================

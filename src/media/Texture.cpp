@@ -18,7 +18,6 @@
 
 #include "media/Texture.h"
 #include "common/Statistics.h"
-#include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
@@ -545,7 +544,7 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
             if (texture->constantFlag) {
                 texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
-                texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                texture->constantFlag = false;
             }
 
             if (!texture->Texture_Transformation) {
@@ -624,7 +623,7 @@ TextureUtils::copyTexture(Texture *texture)
             }
             newTexture->Colour_Map = newMap;
         }
-        newTexture->constantFlag = LegacyBoolean::FALSE_VALUE;
+        newTexture->constantFlag = false;
         previousTexture = newTexture;
     }
     return (firstTexture);
@@ -662,12 +661,12 @@ TextureUtils::getTexture()
     newTexture->bumpNumber = Texture::NO_BUMPS;
     newTexture->Turbulence = 0.0;
     newTexture->Colour_Map = nullptr;
-    newTexture->onceFlag = LegacyBoolean::FALSE_VALUE;
-    newTexture->metallicFlag = LegacyBoolean::FALSE_VALUE;
+    newTexture->onceFlag = false;
+    newTexture->metallicFlag = false;
     newTexture->Octaves = 6;  /* dmf, for turbulence functs */
     newTexture->Mortar = 0.2; /* rha, for brick texture */
 
-    newTexture->constantFlag = LegacyBoolean::TRUE_VALUE;
+    newTexture->constantFlag = true;
     newTexture->Colour1 = nullptr;
     newTexture->Colour2 = nullptr;
     *&newTexture->textureGradient = Vector3Dd(0.0, 0.0, 0.0);
@@ -692,7 +691,7 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
             if (texture->constantFlag) {
                 texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
-                texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                texture->constantFlag = false;
             }
 
             if (!texture->Texture_Transformation) {
@@ -728,7 +727,7 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
             if (texture->constantFlag) {
                 texture = TextureUtils::copyTexture(texture);
                 *texturePtr = texture;
-                texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                texture->constantFlag = false;
             }
 
             if (!texture->Texture_Transformation) {

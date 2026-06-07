@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/base/image/DumpFormat.h"
@@ -41,15 +40,15 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
 {
     double localFloat = 0.0;
     CONSTANT constantId;
-    int negative;
-    int signParsed;
+    bool negative;
+    bool signParsed;
 
-    negative = LegacyBoolean::FALSE_VALUE;
-    signParsed = LegacyBoolean::FALSE_VALUE;
+    negative = false;
+    signParsed = false;
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -68,22 +67,22 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::PLUS_TOKEN:
                 if (signParsed) {
                     ParseErrorReporter::parseError(Tokenizer::FLOAT_TOKEN, ctx);
                 }
-                signParsed = LegacyBoolean::TRUE_VALUE;
+                signParsed = true;
                 break;
 
             case Tokenizer::DASH_TOKEN:
                 if (signParsed) {
                     ParseErrorReporter::parseError(Tokenizer::FLOAT_TOKEN, ctx);
                 }
-                negative = LegacyBoolean::TRUE_VALUE;
-                signParsed = LegacyBoolean::TRUE_VALUE;
+                negative = true;
+                signParsed = true;
                 break;
 
             case Tokenizer::FLOAT_TOKEN:
@@ -91,7 +90,7 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
                 if (negative) {
                     localFloat *= -1.0;
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -117,8 +116,8 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
     CONSTANT constantId;
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -134,7 +133,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::LEFT_ANGLE_TOKEN:
@@ -142,7 +141,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
                 (givenVector->y) = PrimitiveParser::parseFloat(ctx);
                 (givenVector->z) = PrimitiveParser::parseFloat(ctx);
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -166,8 +165,8 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
     int i;
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -176,7 +175,7 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
                     givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -200,8 +199,8 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
     CONSTANT constantId;
     Color::makeColor(givenColour, 0.0, 0.0, 0.0);
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -237,7 +236,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
 
             default:
                 ctx.tokenStream().ungetToken();
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
             }
         }

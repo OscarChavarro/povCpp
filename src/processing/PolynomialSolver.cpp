@@ -7,7 +7,6 @@
  *****************************************************************************/
 
 #include "processing/PolynomialSolver.h"
-#include "common/LegacyBoolean.h"
 #include "processing/Polynomial.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 

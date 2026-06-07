@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "common/LegacyBoolean.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -49,7 +48,7 @@ void
 SceneParser::Parse(RenderFrame *framePtr, ParserContext &ctx)
 {
     ctx.parsingFrame() = framePtr;
-    ctx.degenerateTriangles() = LegacyBoolean::FALSE_VALUE;
+    ctx.degenerateTriangles() = false;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
     SceneParser::parseFrame(ctx);

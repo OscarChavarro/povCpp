@@ -1,7 +1,6 @@
 #ifndef __HEIGHT_FIELD_H__
 #define __HEIGHT_FIELD_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
@@ -40,7 +39,7 @@ class HeightField : public Geometry {
   private:
     static int isdx;
     static int isdz;
-    static int xDom;
+    static bool xDom;
     static double gdx;
     static double gdy;
     static double gdz;

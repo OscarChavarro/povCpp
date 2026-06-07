@@ -1,7 +1,6 @@
 #ifndef __COMPOSITE_H__
 #define __COMPOSITE_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/CSG.h"

@@ -10,7 +10,6 @@
 
 #include "media/MapTextureFixture.h"
 #include "common/logger/Logger.h"
-#include "common/LegacyBoolean.h"
 #include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"

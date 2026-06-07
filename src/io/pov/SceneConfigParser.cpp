@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/base/image/DumpFormat.h"
@@ -70,8 +69,8 @@ SceneConfigParser::parseFog(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -84,7 +83,7 @@ SceneConfigParser::parseFog(ParserContext &ctx)
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -118,8 +117,8 @@ SceneConfigParser::parseCamera(Camera *givenVp, ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -197,7 +196,7 @@ SceneConfigParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -236,8 +235,8 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::EQUALS_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -246,7 +245,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)ObjectParser::parseObject(ctx);
                 constantPtr->constantType = ParseGlobals::OBJECT_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::SPHERE_TOKEN:
@@ -254,14 +253,14 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)SphereParser::parseSphere(ctx);
                 constantPtr->constantType = ParseGlobals::SPHERE_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::PLANE_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)PlaneParser::parsePlane(ctx);
                 constantPtr->constantType = ParseGlobals::PLANE_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TRIANGLE_TOKEN:
@@ -269,7 +268,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)TriangleParser::parseTriangle(ctx);
                 constantPtr->constantType = ParseGlobals::TRIANGLE_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
@@ -277,7 +276,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)SmoothTriangleParser::parseSmoothTriangle(ctx);
                 constantPtr->constantType = ParseGlobals::SMOOTH_TRIANGLE_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::QUADRIC_TOKEN:
@@ -285,21 +284,21 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)QuadricParser::parseQuadric(ctx);
                 constantPtr->constantType = ParseGlobals::QUADRIC_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::CUBIC_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)PolyParser::parsePoly(3, ctx);
                 constantPtr->constantType = ParseGlobals::POLY_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::QUARTIC_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)PolyParser::parsePoly(4, ctx);
                 constantPtr->constantType = ParseGlobals::POLY_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
@@ -307,28 +306,28 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)HeightFieldParser::parseHeightField(ctx);
                 constantPtr->constantType = ParseGlobals::HEIGHT_FIELD_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::POLY_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)PolyParser::parsePoly(0, ctx);
                 constantPtr->constantType = ParseGlobals::POLY_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::BOX_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)BoxParser::parseBox(ctx);
                 constantPtr->constantType = ParseGlobals::BOX_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::BLOB_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
                 constantPtr->constantData = (char *)BlobParser::parseBlob(ctx);
                 constantPtr->constantType = ParseGlobals::BLOB_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
@@ -336,7 +335,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)BicubicPatchParser::parseBicubicPatch(ctx);
                 constantPtr->constantType = ParseGlobals::BICUBIC_PATCH_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
@@ -344,7 +343,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)ObjectParser::parseCsg(GeometryOperations::CSG_INTERSECTION_TYPE, ctx);
                 constantPtr->constantType = ParseGlobals::CSG_INTERSECTION_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::UNION_TOKEN:
@@ -352,7 +351,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)ObjectParser::parseCsg(GeometryOperations::CSG_UNION_TYPE, ctx);
                 constantPtr->constantType = ParseGlobals::CSG_UNION_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
@@ -360,7 +359,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)ObjectParser::parseCsg(GeometryOperations::CSG_DIFFERENCE_TYPE, ctx);
                 constantPtr->constantType = ParseGlobals::CSG_DIFFERENCE_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::COMPOSITE_TOKEN:
@@ -368,7 +367,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)ObjectParser::parseComposite(ctx);
                 constantPtr->constantType = ParseGlobals::COMPOSITE_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -378,8 +377,8 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantType = ParseGlobals::TEXTURE_CONSTANT;
                 ctx.tokenStream().ungetToken();
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -391,7 +390,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
 
-                            localTexture->constantFlag = LegacyBoolean::TRUE_VALUE;
+                            localTexture->constantFlag = true;
 
                             {
                                 for (tempTexture = localTexture;
@@ -408,12 +407,12 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         }
                     }
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::VIEW_POINT_TOKEN:
@@ -423,7 +422,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantType = ParseGlobals::VIEW_POINT_CONSTANT;
                 SceneConfigParser::parseCamera(
                     (Camera *)constantPtr->constantData, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
@@ -432,7 +431,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantType = ParseGlobals::COLOUR_CONSTANT;
                 PrimitiveParser::parseColour(
                     (RGBAColor *)constantPtr->constantData, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
@@ -440,7 +439,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData =
                     (char *)LightSourceParser::parseLightSource(ctx);
                 constantPtr->constantType = ParseGlobals::LIGHT_SOURCE_CONSTANT;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::LEFT_ANGLE_TOKEN:
@@ -450,7 +449,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantType = ParseGlobals::VECTOR_CONSTANT;
                 PrimitiveParser::parseVector(
                     (Vector3Dd *)constantPtr->constantData, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::DASH_TOKEN:
@@ -462,7 +461,7 @@ SceneConfigParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantType = ParseGlobals::FLOAT_CONSTANT;
                 *((double *)constantPtr->constantData) =
                     PrimitiveParser::parseFloat(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:

@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
 #include "io/pov/ParseErrorReporter.h"

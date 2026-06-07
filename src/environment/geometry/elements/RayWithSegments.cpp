@@ -14,9 +14,9 @@
 RayWithSegments::RayWithSegments()
 {
     containingIndex = -1;
-    quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
-    isShadowRay = LegacyBoolean::FALSE_VALUE;
-    isPrimaryRay = LegacyBoolean::FALSE_VALUE;
+    quadricConstantsCached = false;
+    isShadowRay = false;
+    isPrimaryRay = false;
 }
 
 inline void
@@ -46,15 +46,15 @@ RayWithSegments::makeRay()
     RayWithSegments::mixVectorTerms(
         this->mixedPositionDirection, this->direction, this->position);
     this->mixedPositionDirection.add(tempInitDir);
-    this->quadricConstantsCached = LegacyBoolean::TRUE_VALUE;
+    this->quadricConstantsCached = true;
 }
 
 void
 RayWithSegments::initializeContainers()
 {
     this->containingIndex = -1;
-    this->isShadowRay = LegacyBoolean::FALSE_VALUE;
-    this->isPrimaryRay = LegacyBoolean::FALSE_VALUE;
+    this->isShadowRay = false;
+    this->isPrimaryRay = false;
 }
 
 void
@@ -68,7 +68,7 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
         exit(1);
     }
     this->isShadowRay = sourceRay->isShadowRay;
-    this->isPrimaryRay = LegacyBoolean::FALSE_VALUE;
+    this->isPrimaryRay = false;
 
     for (i = 0; i < RayWithSegments::MAX_CONTAINING_OBJECTS; i++) {
         this->containingTextures[i] = sourceRay->containingTextures[i];

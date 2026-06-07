@@ -66,7 +66,7 @@ PolynomialShape::allPolyIntersections(
     int cnt;
     int i;
     int j;
-    int intersectionFound;
+    bool intersectionFound;
     RayWithSegments newRay;
 
     /* Transform the ray into the polynomial's space */
@@ -95,7 +95,7 @@ PolynomialShape::allPolyIntersections(
     newRay.direction.y /= len;
     newRay.direction.z /= len;
 
-    intersectionFound = LegacyBoolean::FALSE_VALUE;
+    intersectionFound = false;
     Statistics::global().rayPolyTests++;
     if (shape->Order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
@@ -131,7 +131,7 @@ PolynomialShape::allPolyIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        intersectionFound = LegacyBoolean::TRUE_VALUE;
+        intersectionFound = true;
     l0:;
     }
     return (intersectionFound);
@@ -923,5 +923,5 @@ void
 PolynomialShape::invertPoly(SimpleBody *object)
 {
     ((PolynomialShape *)object)->Inverted =
-        1 - ((PolynomialShape *)object)->Inverted;
+        !((PolynomialShape *)object)->Inverted;
 }

@@ -329,7 +329,7 @@ Blob::allBlobIntersections(
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
     BlobInterval *intervals = blob->intervals;
-    int intersectionFound = LegacyBoolean::FALSE_VALUE;
+    bool intersectionFound = false;
 
     Statistics::global().rayBlobTests++;
 
@@ -455,7 +455,7 @@ Blob::allBlobIntersections(
                     localElement.Point = intersectionPoint;
                     localElement.Shape = (Geometry *)blob;
                     depthQueue->add(&localElement);
-                    intersectionFound = LegacyBoolean::TRUE_VALUE;
+                    intersectionFound = true;
                 }
             }
         }
@@ -635,5 +635,5 @@ Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
 void
 Blob::invertBlob(SimpleBody *object)
 {
-    ((Blob *)object)->Inverted = 1 - ((Blob *)object)->Inverted;
+    ((Blob *)object)->Inverted = !((Blob *)object)->Inverted;
 }

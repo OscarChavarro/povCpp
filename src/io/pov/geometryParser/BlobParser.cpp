@@ -34,13 +34,13 @@ BlobParser::parseBlob(ParserContext &ctx)
 
     localShape = nullptr;
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LEFT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
             default:
                 ParseErrorReporter::parseError(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -50,8 +50,8 @@ BlobParser::parseBlob(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -65,8 +65,8 @@ BlobParser::parseBlob(ParserContext &ctx)
 
                 /* Here is where we get the blob coefficients */
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -94,7 +94,7 @@ BlobParser::parseBlob(ParserContext &ctx)
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         }
                     }
@@ -103,7 +103,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 /* Finally, process the information */
                 Blob::makeBlob((SimpleBody *)localShape, threshold, blobComponents,
                     npoints, 0);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -119,7 +119,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -130,13 +130,13 @@ BlobParser::parseBlob(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::STURM_TOKEN:

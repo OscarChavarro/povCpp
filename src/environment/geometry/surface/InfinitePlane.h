@@ -1,7 +1,6 @@
 #ifndef __INFINITE_PLANE_H__
 #define __INFINITE_PLANE_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -11,7 +10,7 @@ class InfinitePlane : public Geometry {
     Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
-    int VPCached;
+    bool VPCached;
 
     static int allPlaneIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

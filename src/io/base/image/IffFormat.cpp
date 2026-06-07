@@ -7,7 +7,6 @@
 
 #include "io/base/image/IffFormat.h"
 #include "io/base/FileLocator.h"
-#include "common/LegacyBoolean.h"
 #include <string>
 #include <stdexcept>
 

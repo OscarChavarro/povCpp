@@ -13,7 +13,6 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 
 #include "media/BumpTextureFixture.h"
 #include "common/logger/Logger.h"
-#include "common/LegacyBoolean.h"
 #include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"

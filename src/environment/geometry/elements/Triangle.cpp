@@ -116,7 +116,7 @@ Triangle::computeTriangle(Triangle *triangle)
     length = triangle->normalVector.length();
     /* Set up a flag so we can ignore degenerate triangles */
     if (length < 1.0e-9) {
-        triangle->degenerateFlag = LegacyBoolean::TRUE_VALUE;
+        triangle->degenerateFlag = true;
         return (0);
     }
 
@@ -199,7 +199,7 @@ Triangle::allTriangleIntersections(
     Intersection localElement;
 
     if (shape->degenerateFlag) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     if (intersectTriangle(ray, shape, &depth)) {
@@ -210,9 +210,9 @@ Triangle::allTriangleIntersections(
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
-        return (LegacyBoolean::TRUE_VALUE);
+        return (true);
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int
@@ -226,7 +226,7 @@ Triangle::intersectTriangle(
 
     Statistics::global().rayTriangleTests++;
     if (triangle->degenerateFlag) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     if (ray->isPrimaryRay) {
@@ -235,13 +235,13 @@ Triangle::intersectTriangle(
                 ray->position);
             triangle->VPNormDotOrigin += triangle->Distance;
             triangle->VPNormDotOrigin *= -1.0;
-            triangle->VPCached = LegacyBoolean::TRUE_VALUE;
+            triangle->VPCached = true;
         }
 
         normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
         if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
             (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         *depth = triangle->VPNormDotOrigin / normalDotDirection;
@@ -253,14 +253,14 @@ Triangle::intersectTriangle(
         normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
         if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
             (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         *depth = normalDotOrigin / normalDotDirection;
     }
 
     if ((*depth < GeometryConstants::Small_Tolerance) || (*depth > GeometryConstants::Max_Distance)) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     switch (triangle->Dominant_Axis) {
@@ -272,34 +272,34 @@ Triangle::intersectTriangle(
             ((triangle->P2.z - t) * (triangle->P2.y - triangle->P1.y))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (((triangle->P3.y - s) * (triangle->P3.z - triangle->P2.z)) <
             ((triangle->P3.z - t) * (triangle->P3.y - triangle->P2.y))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (((triangle->P1.y - s) * (triangle->P1.z - triangle->P3.z)) <
             ((triangle->P1.z - t) * (triangle->P1.y - triangle->P3.y))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (!(int)triangle->Inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
 
     case Y_AXIS:
         s = ray->position.x + *depth * ray->direction.x;
@@ -309,34 +309,34 @@ Triangle::intersectTriangle(
             (triangle->P2.z - t) * (triangle->P2.x - triangle->P1.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if ((triangle->P3.x - s) * (triangle->P3.z - triangle->P2.z) <
             (triangle->P3.z - t) * (triangle->P3.x - triangle->P2.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if ((triangle->P1.x - s) * (triangle->P1.z - triangle->P3.z) <
             (triangle->P1.z - t) * (triangle->P1.x - triangle->P3.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (!(int)triangle->Inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
 
     case Z_AXIS:
         s = ray->position.x + *depth * ray->direction.x;
@@ -346,42 +346,42 @@ Triangle::intersectTriangle(
             (triangle->P2.y - t) * (triangle->P2.x - triangle->P1.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if ((triangle->P3.x - s) * (triangle->P3.y - triangle->P2.y) <
             (triangle->P3.y - t) * (triangle->P3.x - triangle->P2.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if ((triangle->P1.x - s) * (triangle->P1.y - triangle->P3.y) <
             (triangle->P1.y - t) * (triangle->P1.x - triangle->P3.x)) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
-                return (LegacyBoolean::TRUE_VALUE);
+                return (true);
             }
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         if (!(int)triangle->Inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int
 Triangle::insideTriangle(Vector3Dd *testPoint, SimpleBody *object)
 {
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 void
@@ -471,7 +471,7 @@ Triangle::invertTriangle(SimpleBody *object)
 {
     Triangle *triangle = (Triangle *)object;
 
-    triangle->Inverted ^= LegacyBoolean::TRUE_VALUE;
+    triangle->Inverted ^= true;
 }
 
 /* Calculate the Phong-interpolated vector within the triangle
@@ -653,5 +653,5 @@ SmoothTriangle::invertSmoothTriangle(SimpleBody *object)
 {
     SmoothTriangle *triangle = (SmoothTriangle *)object;
 
-    triangle->Inverted ^= LegacyBoolean::TRUE_VALUE;
+    triangle->Inverted ^= true;
 }

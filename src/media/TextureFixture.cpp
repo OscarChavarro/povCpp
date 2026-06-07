@@ -13,7 +13,6 @@
 
 #include "media/TextureFixture.h"
 #include "common/logger/Logger.h"
-#include "common/LegacyBoolean.h"
 #include <cstdio>
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
