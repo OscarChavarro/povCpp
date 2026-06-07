@@ -1,4 +1,3 @@
-#include "io/pov/context/ParserContext.h"
 /****************************************************************************
  *                     tokenize.c
  *
@@ -10,7 +9,6 @@
 #include "io/pov/lexer/Tokenizer.h"
 #include "io/binaryIo/FileLocator.h"
 #include "common/logger/Logger.h"
-#include "environment/material/RenderRuntimeState.h"
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
@@ -142,7 +140,6 @@ Tokenizer::getMaxSymbols()
 void
 Tokenizer::initializeTokenizer(char *filename)
 {
-    ParserContext ctx;
     Tokenizer::sSymbolTable = nullptr;
     Tokenizer::sGlobalDataFile = nullptr;
 
@@ -164,7 +161,7 @@ Tokenizer::initializeTokenizer(char *filename)
         exit(1);
     }
 
-    ctx.token().endOfFile = false;
+    Tokenizer::token().endOfFile = false;
     Tokenizer::sNumberOfSymbols = 0;
 }
 
@@ -202,32 +199,28 @@ read another token. */
 void
 Tokenizer::getToken()
 {
-    ParserContext ctx;
     int c;
     int c2;
-    if (RenderRuntimeState::stopFlag()) {
-        exit(1);
-    }
-    if (ctx.token().ungetToken) {
-        ctx.token().ungetToken = false;
+    if (Tokenizer::token().ungetToken) {
+        Tokenizer::token().ungetToken = false;
         return;
     }
 
-    if (ctx.token().endOfFile) {
+    if (Tokenizer::token().endOfFile) {
         return;
     }
 
-    ctx.token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
+    Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
 
-    while (ctx.token().tokenId == Tokenizer::END_OF_FILE_TOKEN) {
+    while (Tokenizer::token().tokenId == Tokenizer::END_OF_FILE_TOKEN) {
 
         Tokenizer::sGlobalDataFile->skipSpaces();
 
         c = getc(Tokenizer::sGlobalDataFile->File);
         if (c == EOF) {
             if (Tokenizer::sGlobalIncludeFileIndex == 0) {
-                ctx.token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
-                ctx.token().endOfFile = true;
+                Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
+                Tokenizer::token().endOfFile = true;
                 /*putchar ('\n');*/
                 fprintf(stderr, "\n");
                 return;
@@ -474,7 +467,7 @@ Tokenizer::getToken()
             Logger::error("Illegal character in input file, value is %02x\n", c);
             break;
         }
-        if (ctx.token().tokenId == Tokenizer::INCLUDE_TOKEN) {
+        if (Tokenizer::token().tokenId == Tokenizer::INCLUDE_TOKEN) {
             if (Tokenizer::sGlobalDataFile->skipSpaces() != true) {
                 Tokenizer::tokenError(
                     Tokenizer::sGlobalDataFile, "Expecting a Tokenizer::sString after INCLUDE\n");
@@ -496,22 +489,22 @@ Tokenizer::getToken()
             Tokenizer::sGlobalDataFile->lineNumber = 0;
 
             Tokenizer::sGlobalDataFile->Filename =
-                new char[strlen(ctx.token().Token_String) + 1];
+                new char[strlen(Tokenizer::token().Token_String) + 1];
             if (Tokenizer::sGlobalDataFile->Filename == nullptr) {
                 Logger::error("Out of memory opening include file: %s\n",
-                    ctx.token().Token_String);
+                    Tokenizer::token().Token_String);
                 exit(1);
             }
 
-            strcpy(Tokenizer::sGlobalDataFile->Filename, ctx.token().Token_String);
+            strcpy(Tokenizer::sGlobalDataFile->Filename, Tokenizer::token().Token_String);
 
             if ((Tokenizer::sGlobalDataFile->File = FileLocator::locate(
-                     ctx.token().Token_String, "r")) == nullptr) {
+                     Tokenizer::token().Token_String, "r")) == nullptr) {
                 Logger::error("Cannot open include file: %s\n",
-                    ctx.token().Token_String);
+                    Tokenizer::token().Token_String);
                 exit(1);
             }
-            ctx.token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
+            Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
         }
     }
 
@@ -535,8 +528,7 @@ new one from the file. */
 void
 Tokenizer::ungetToken()
 {
-    ParserContext ctx;
-    ctx.token().ungetToken = true;
+    Tokenizer::token().ungetToken = true;
 }
 
 /* Skip over spaces in the input file */
@@ -684,7 +676,6 @@ DataFile::endString()
 int
 DataFile::readFloat()
 {
-    ParserContext ctx;
     int c;
     bool finished;
     int phase;
@@ -762,7 +753,7 @@ DataFile::readFloat()
     this->endString();
 
     Tokenizer::writeToken(Tokenizer::FLOAT_TOKEN, Tokenizer::sGlobalDataFile);
-    if (sscanf(Tokenizer::sString, "%lf", &ctx.token().tokenFloat) == 0) {
+    if (sscanf(Tokenizer::sString, "%lf", &Tokenizer::token().tokenFloat) == 0) {
         return (false);
     }
 
@@ -773,7 +764,6 @@ DataFile::readFloat()
 void
 DataFile::parseString()
 {
-    ParserContext ctx;
     int c;
 
     Tokenizer::beginString();
@@ -792,7 +782,7 @@ DataFile::parseString()
     this->endString();
 
     Tokenizer::writeToken(Tokenizer::STRING_TOKEN, Tokenizer::sGlobalDataFile);
-    ctx.token().Token_String = Tokenizer::sString;
+    Tokenizer::token().Token_String = Tokenizer::sString;
 }
 
 /* Read in a symbol from the input file.  Check to see if it is a reserved
@@ -862,7 +852,6 @@ DataFile::readSymbol()
 int
 Tokenizer::findReserved()
 {
-    ParserContext ctx;
     int i;
 
     if (Tokenizer::povStricmp("case_sensitive_yes", &(Tokenizer::sString[0])) == 0) {
@@ -882,13 +871,13 @@ Tokenizer::findReserved()
 
     for (i = 0; i < Tokenizer::LAST_TOKEN; i++) {
         if (Tokenizer::sCaseSensitiveFlag == 0) {
-            if (strcmp(ctx.reservedWords()[i].Token_Name, &(Tokenizer::sString[0])) == 0) {
-                return (ctx.reservedWords()[i].tokenNumber);
+            if (strcmp(Tokenizer::reservedWords()[i].Token_Name, &(Tokenizer::sString[0])) == 0) {
+                return (Tokenizer::reservedWords()[i].tokenNumber);
             }
         } else {
-            if (Tokenizer::povStricmp((char *)ctx.reservedWords()[i].Token_Name,
+            if (Tokenizer::povStricmp((char *)Tokenizer::reservedWords()[i].Token_Name,
                     &(Tokenizer::sString[0])) == 0) {
-                return (ctx.reservedWords()[i].tokenNumber);
+                return (Tokenizer::reservedWords()[i].tokenNumber);
             }
         }
     }
@@ -924,17 +913,16 @@ Tokenizer::findSymbol()
 void
 Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
 {
-    ParserContext ctx;
-    ctx.token().tokenId = tokenId;
-    ctx.token().tokenLineNo = dataFile->lineNumber;
-    ctx.token().tokenColumnNo = 1;
-    ctx.token().Filename = dataFile->Filename;
-    ctx.token().Token_String = Tokenizer::sString;
+    Tokenizer::token().tokenId = tokenId;
+    Tokenizer::token().tokenLineNo = dataFile->lineNumber;
+    Tokenizer::token().tokenColumnNo = 1;
+    Tokenizer::token().Filename = dataFile->Filename;
+    Tokenizer::token().Token_String = Tokenizer::sString;
 
-    if (ctx.token().tokenId > Tokenizer::LAST_TOKEN) {
-        ctx.token().identifierNumber =
-            (int)ctx.token().tokenId - (int)Tokenizer::LAST_TOKEN;
-        ctx.token().tokenId = Tokenizer::IDENTIFIER_TOKEN;
+    if (Tokenizer::token().tokenId > Tokenizer::LAST_TOKEN) {
+        Tokenizer::token().identifierNumber =
+            (int)Tokenizer::token().tokenId - (int)Tokenizer::LAST_TOKEN;
+        Tokenizer::token().tokenId = Tokenizer::IDENTIFIER_TOKEN;
     }
 }
 

@@ -1,4 +1,4 @@
-#include "environment/material/RenderRuntimeState.h"
+#include "common/RenderRuntimeState.h"
 
 static double maxTraceLevelInstance = 5.0;
 static volatile int stopFlagInstance = 0;

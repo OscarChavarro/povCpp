@@ -3,9 +3,9 @@
 #include "common/color/RGBAColorPalette.h"
 #include "common/color/RGBAColorPaletteSpan.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/pov/ParseErrorReporter.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/parser/ParseErrorReporter.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 
 
 RGBAColorPalette *

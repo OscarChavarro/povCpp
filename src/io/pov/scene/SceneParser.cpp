@@ -2,19 +2,18 @@
 #include "environment/material/RendererConfiguration.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/pov/ParseHelpers.h"
+#include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneParser.h"
 #include "io/pov/scene/SceneFrameParser.h"
 #include "environment/scene/SceneFrame.h"
 
-namespace {
-void postProcessPhase(ParserContext &ctx)
+void
+SceneParser::postProcessPhase(ParserContext &ctx)
 {
     for (SimpleBody *object = ctx.parsingFrame()->Objects; object != nullptr;
         object = object->nextObject) {
         ParseHelpers::postProcessObject(object);
     }
-}
 }
 
 

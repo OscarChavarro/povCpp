@@ -22,7 +22,7 @@
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/TraceService.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/material/RenderRuntimeState.h"
+#include "common/RenderRuntimeState.h"
 #include "common/Statistics.h"
 
 RenderFrame RenderEngine::sRenderFrame;

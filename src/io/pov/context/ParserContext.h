@@ -6,7 +6,7 @@
 #include "io/pov/lexer/ITokenStream.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/SymbolTable.h"
-#include "io/pov/lexer/TokenizerStream.h"
+#include "io/pov/context/TokenizerStream.h"
 
 class RenderFrame;
 class RGBAColorPaletteSpan;
@@ -17,7 +17,6 @@ class ParserContext {
 
     ReservedWord *reservedWords();
     TokenStruct &token();
-    int *termCounts();
     RenderFrame *&parsingFrame();
     RGBAColorPaletteSpan *&constructionMap();
     Constant *constants();

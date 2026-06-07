@@ -1,10 +1,7 @@
 #include "io/pov/context/ParserContext.h"
 
-#include "common/color/RGBAColorPaletteSpan.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "io/pov/lexer/ITokenStream.h"
-#include "io/pov/lexer/TokenizerStream.h"
-#include "processing/PolynomialConstants.h"
+#include "io/pov/context/TokenizerStream.h"
 
 TokenizerStream ParserContext::sDefaultTokenStream;
 RenderFrame *ParserContext::sSharedParsingFramePtr = nullptr;
@@ -32,12 +29,6 @@ TokenStruct &
 ParserContext::token()
 {
     return mTokenStream->token();
-}
-
-int *
-ParserContext::termCounts()
-{
-    return PolynomialShape::termCounts();
 }
 
 RenderFrame *&

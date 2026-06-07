@@ -9,6 +9,10 @@ class TextureParser {
     static Texture *parseTexture();
     static Texture *parseTexture(ParserContext &ctx);
     static Texture *copyTexture(Texture *texture);
+
+  private:
+    static bool shouldLogTextureState();
+    static void logTextureStateLegacy(const char *prefix, const Texture *texture);
 };
 
 #endif

@@ -1,11 +1,12 @@
 #include "io/pov/context/ParserContext.h"
+#include "common/PolynomialTermCounts.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "common/color/Color.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 
 
 
@@ -153,7 +154,7 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
-                for (i = 0; i < ctx.termCounts()[order]; i++) {
+                for (i = 0; i < PolynomialTermCounts::table()[order]; i++) {
                     givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);

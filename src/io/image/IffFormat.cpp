@@ -8,8 +8,7 @@
 #include "io/image/IffFormat.h"
 #include "io/binaryIo/FileLocator.h"
 #include "common/logger/Logger.h"
-#include <string>
-#include <stdexcept>
+#include <cstdlib>
 
 RGBAPixel *IffFormat::sIffColourMap = nullptr;
 int IffFormat::sColourMapSize = 0;
@@ -27,7 +26,8 @@ static constexpr int HAM = 0x800;
 void
 IffFormat::iffError()
 {
-    throw std::runtime_error("Invalid IFF file");
+    Logger::error("Invalid IFF file\n");
+    exit(1);
 }
 
 int
@@ -88,8 +88,8 @@ IffFormat::readIffImage(RGBAImage *image, char *filename)
 
     java::FileInputStream *fileStream = FileLocator::locateAsStream(filename);
     if (fileStream == nullptr) {
-        std::string errmsg = "Cannot open IFF file " + std::string(filename);
-        throw std::runtime_error(errmsg);
+        Logger::error("Cannot open IFF file %s\n", filename);
+        exit(1);
     }
 
     java::FileInputStream &is = *fileStream;

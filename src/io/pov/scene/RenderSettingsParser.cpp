@@ -1,7 +1,7 @@
 #include "io/pov/context/ParserContext.h"
-#include "io/pov/RenderSettingsParser.h"
-#include "io/pov/PrimitiveParser.h"
-#include "environment/material/RenderRuntimeState.h"
+#include "io/pov/scene/RenderSettingsParser.h"
+#include "io/pov/parser/PrimitiveParser.h"
+#include "common/RenderRuntimeState.h"
 
 
 void

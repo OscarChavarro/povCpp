@@ -9,6 +9,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
 add_executable(povray
   src/app/main.cpp
+  src/app/ImageOutputAdapter.cpp
+  src/app/options/CommandLineOptions.cpp
   src/app/PovrayApplication.cpp
   src/common/color/Color.cpp
   src/common/logger/Logger.cpp
@@ -38,10 +40,10 @@ add_executable(povray
   src/io/image/IffFormat.cpp
   src/io/pov/context/ParserContext.cpp
   src/io/pov/context/SymbolTable.cpp
-  src/io/pov/lexer/TokenizerStream.cpp
-  src/io/pov/ParseErrorReporter.cpp
-  src/io/pov/ParseHelpers.cpp
-  src/io/pov/PrimitiveParser.cpp
+  src/io/pov/context/TokenizerStream.cpp
+  src/io/pov/parser/ParseErrorReporter.cpp
+  src/io/pov/parser/ParseHelpers.cpp
+  src/io/pov/parser/PrimitiveParser.cpp
   src/io/pov/texture/TextureParser.cpp
   src/io/pov/texture/ColorMapParser.cpp
   src/io/pov/geometry/SphereParser.cpp
@@ -57,9 +59,9 @@ add_executable(povray
   src/io/pov/geometry/HeightFieldParser.cpp
   src/io/pov/geometry/ObjectParser.cpp
   src/io/pov/scene/SceneParser.cpp
-  src/io/pov/FogParser.cpp
+  src/io/pov/scene/FogParser.cpp
   src/io/pov/texture/DefaultTextureParser.cpp
-  src/io/pov/RenderSettingsParser.cpp
+  src/io/pov/scene/RenderSettingsParser.cpp
   src/io/pov/camera/CameraParser.cpp
   src/io/pov/scene/DeclarationParser.cpp
   src/io/pov/scene/SceneFrameParser.cpp
@@ -89,8 +91,9 @@ add_executable(povray
   src/render/RenderEngine.cpp
   src/render/SceneDump.cpp
   src/environment/material/RendererConfiguration.cpp
-  src/environment/material/RenderRuntimeState.cpp
+  src/common/RenderRuntimeState.cpp
   src/common/Statistics.cpp
+  src/common/PolynomialTermCounts.cpp
   src/java/lang/Object.cpp
   src/java/lang/String.cpp
   src/java/util/Formatter.cpp

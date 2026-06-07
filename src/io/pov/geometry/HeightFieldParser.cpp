@@ -6,10 +6,10 @@
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"
 #include "environment/scene/ModelBuilder.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/TextureParser.h"
 
 
