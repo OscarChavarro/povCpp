@@ -3,7 +3,7 @@
 
 #include "io/image/ImageOutput.h"
 #include "java/io/FileInputStream.h"
-#include "java/io/FileOutputStream.h"
+#include "java/io/OutputStream.h"
 
 class RGBAColor;
 
@@ -25,15 +25,15 @@ class RawFormat : public ImageOutput {
   private:
     static java::FileInputStream *openRawInputStream(
         const char *base, const char *ext);
-    static java::FileOutputStream *openRawOutputStream(
+    static java::OutputStream *openRawOutputStream(
         const char *base, const char *ext, bool append);
 
     java::FileInputStream *redIn;
     java::FileInputStream *greenIn;
     java::FileInputStream *blueIn;
-    java::FileOutputStream *redOut;
-    java::FileOutputStream *greenOut;
-    java::FileOutputStream *blueOut;
+    java::OutputStream *redOut;
+    java::OutputStream *greenOut;
+    java::OutputStream *blueOut;
     int width;
     int height;
     int mode;

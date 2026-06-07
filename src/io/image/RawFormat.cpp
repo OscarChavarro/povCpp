@@ -8,8 +8,62 @@
 #include "io/image/RawFormat.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
+#include "java/io/FileOutputStream.h"
 #include <cmath>
 #include <cstring>
+#include <cstdio>
+
+namespace {
+
+class AppendableFileOutputStream : public java::OutputStream {
+  public:
+    explicit AppendableFileOutputStream(const char *fileName)
+        : stream(nullptr)
+    {
+        if (fileName != nullptr && fileName[0] != '\0') {
+            stream = std::fopen(fileName, "ab");
+        }
+    }
+
+    ~AppendableFileOutputStream() override
+    {
+        close();
+    }
+
+    void write(int value) override
+    {
+        if (stream != nullptr) {
+            std::fputc(static_cast<unsigned char>(value & 0xFF), stream);
+        }
+    }
+
+    void write(const unsigned char *buffer, int offset, int length) override
+    {
+        if (stream != nullptr && buffer != nullptr && offset >= 0 && length > 0) {
+            std::fwrite(buffer + offset, 1, static_cast<size_t>(length), stream);
+        }
+    }
+
+    void flush() override
+    {
+        if (stream != nullptr) {
+            std::fflush(stream);
+        }
+    }
+
+    void close() override
+    {
+        if (stream != nullptr) {
+            std::fclose(stream);
+            stream = nullptr;
+        }
+    }
+
+  private:
+    FILE *stream;
+};
+
+}
 
 RawFormat::RawFormat()
     : redIn(nullptr), greenIn(nullptr), blueIn(nullptr),
@@ -36,20 +90,24 @@ RawFormat::openRawInputStream(const char *base, const char *ext)
     std::strcpy(fileName, base);
     std::strcat(fileName, ext);
     java::FileInputStream *s = new java::FileInputStream(fileName);
-    if (!s->isOpen()) {
+    java::File probe(fileName);
+    if (!probe.canRead()) {
         delete s;
         return nullptr;
     }
     return s;
 }
 
-java::FileOutputStream *
+java::OutputStream *
 RawFormat::openRawOutputStream(const char *base, const char *ext, bool append)
 {
     char fileName[256];
     std::strcpy(fileName, base);
     std::strcat(fileName, ext);
-    return new java::FileOutputStream(fileName, append);
+    if (append) {
+        return new AppendableFileOutputStream(fileName);
+    }
+    return new java::FileOutputStream(fileName);
 }
 
 int

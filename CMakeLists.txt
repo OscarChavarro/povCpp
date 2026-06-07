@@ -7,6 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
+add_subdirectory(base)
+
 add_executable(povray
   src/app/main.cpp
   src/app/ImageOutputAdapter.cpp
@@ -94,18 +96,13 @@ add_executable(povray
   src/common/RenderRuntimeState.cpp
   src/common/Statistics.cpp
   src/common/PolynomialTermCounts.cpp
-  src/java/lang/Object.cpp
-  src/java/lang/String.cpp
-  src/java/util/Formatter.cpp
-  src/java/io/InputStream.cpp
-  src/java/io/OutputStream.cpp
-  src/java/io/File.cpp
-  src/java/io/FileInputStream.cpp
-  src/java/io/FileOutputStream.cpp
-  src/io/PersistenceElement.cpp
 )
 
-target_include_directories(povray PRIVATE src)
+target_include_directories(povray PRIVATE
+  ${CMAKE_SOURCE_DIR}/base/src/main
+  ${CMAKE_SOURCE_DIR}/base/src
+  src
+)
 target_compile_options(povray PRIVATE -O3 -Wall -pedantic)
 
-target_link_libraries(povray PRIVATE m)
+target_link_libraries(povray PRIVATE vitral_base m)

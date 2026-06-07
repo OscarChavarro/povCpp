@@ -4,7 +4,7 @@
 #include "io/image/ImageOutput.h"
 #include "media/ImageData.h"
 #include "java/io/FileInputStream.h"
-#include "java/io/FileOutputStream.h"
+#include "java/io/OutputStream.h"
 
 class RGBAColor;
 class RGBAImage;
@@ -24,7 +24,7 @@ class TargaFormat : public ImageOutput {
   private:
     int readIntLine(ImageLine *lineData);
     java::FileInputStream *inputStream;
-    java::FileOutputStream *outputStream;
+    java::OutputStream *outputStream;
     int width;
     int height;
     int mode;

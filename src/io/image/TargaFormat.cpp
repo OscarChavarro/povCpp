@@ -10,10 +10,64 @@
 #include "io/binaryIo/FileLocator.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
+#include "java/io/FileOutputStream.h"
 #include "media/ImageData.h"
 #include "media/RGBAImage.h"
 #include <cmath>
 #include <cstdlib>
+#include <cstdio>
+
+namespace {
+
+class AppendableFileOutputStream : public java::OutputStream {
+  public:
+    explicit AppendableFileOutputStream(const char *fileName)
+        : stream(nullptr)
+    {
+        if (fileName != nullptr && fileName[0] != '\0') {
+            stream = std::fopen(fileName, "ab");
+        }
+    }
+
+    ~AppendableFileOutputStream() override
+    {
+        close();
+    }
+
+    void write(int value) override
+    {
+        if (stream != nullptr) {
+            std::fputc(static_cast<unsigned char>(value & 0xFF), stream);
+        }
+    }
+
+    void write(const unsigned char *buffer, int offset, int length) override
+    {
+        if (stream != nullptr && buffer != nullptr && offset >= 0 && length > 0) {
+            std::fwrite(buffer + offset, 1, static_cast<size_t>(length), stream);
+        }
+    }
+
+    void flush() override
+    {
+        if (stream != nullptr) {
+            std::fflush(stream);
+        }
+    }
+
+    void close() override
+    {
+        if (stream != nullptr) {
+            std::fclose(stream);
+            stream = nullptr;
+        }
+    }
+
+  private:
+    FILE *stream;
+};
+
+}
 
 TargaFormat::TargaFormat()
     : inputStream(nullptr), outputStream(nullptr),
@@ -94,7 +148,7 @@ TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int 
         break;
 
     case APPEND_MODE:
-        outputStream = new java::FileOutputStream(name, true);
+        outputStream = new AppendableFileOutputStream(name);
         width = *w;
         height = *h;
         break;
