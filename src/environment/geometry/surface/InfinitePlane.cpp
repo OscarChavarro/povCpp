@@ -32,11 +32,11 @@ InfinitePlane::allPlaneIntersections(
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
     }
 
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int
@@ -53,21 +53,21 @@ InfinitePlane::intersectPlane(
                 plane->normalVector.dotProduct(ray->position);
             plane->VPNormDotOrigin += plane->Distance;
             plane->VPNormDotOrigin *= -1.0;
-            plane->VPCached = LegacyBoolean::TRUE_VALUE;
+            plane->VPCached = true;
         }
 
         normalDotDirection = plane->normalVector.dotProduct(ray->direction);
         if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
             (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
 
         *depth = plane->VPNormDotOrigin / normalDotDirection;
         if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
             Statistics::global().rayPlaneTestsSucceeded++;
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
     normalDotOrigin = plane->normalVector.dotProduct(ray->position);
     normalDotOrigin += plane->Distance;
@@ -76,15 +76,15 @@ InfinitePlane::intersectPlane(
     normalDotDirection = plane->normalVector.dotProduct(ray->direction);
     if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
         (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
-        return (LegacyBoolean::FALSE_VALUE);
+        return (false);
     }
 
     *depth = normalDotOrigin / normalDotDirection;
     if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
         Statistics::global().rayPlaneTestsSucceeded++;
-        return (LegacyBoolean::TRUE_VALUE);
+        return (true);
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int

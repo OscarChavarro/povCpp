@@ -34,8 +34,8 @@ TriangleParser::parseTriangle(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -49,9 +49,9 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                     Logger::error(
                         "Degenerate triangle on line %d.  Please remove.\n",
                         ctx.token().tokenLineNo);
-                    ctx.degenerateTriangles() = LegacyBoolean::TRUE_VALUE;
+                    ctx.degenerateTriangles() = true;
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -67,7 +67,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -78,13 +78,13 @@ TriangleParser::parseTriangle(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

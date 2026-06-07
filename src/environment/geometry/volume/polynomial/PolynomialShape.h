@@ -1,7 +1,6 @@
 #ifndef __POLY_H__
 #define __POLY_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -10,7 +9,7 @@ class PolynomialShape : public Geometry {
     static Methods methodTable;
     static int *termCounts();
     Transformation *Transform;
-    short Inverted;
+    bool Inverted;
     int Order;
     int sturmFlag;
     double *Coeffs;

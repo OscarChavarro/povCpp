@@ -27,16 +27,16 @@ int
 CSG::allCsgUnionIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    int intersectionFound;
+    bool intersectionFound;
     CSG *shape = (CSG *)object;
     Geometry *localShape;
 
-    intersectionFound = LegacyBoolean::FALSE_VALUE;
+    intersectionFound = false;
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
         if (GeometryOperations::allIntersections(
                 (SimpleBody *)localShape, ray, depthQueue)) {
-            intersectionFound = LegacyBoolean::TRUE_VALUE;
+            intersectionFound = true;
         }
     }
 
@@ -47,8 +47,8 @@ int
 CSG::allCsgIntersectIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    int intersectionFound;
-    int anyIntersectionFound;
+    bool intersectionFound;
+    bool anyIntersectionFound;
     CSG *shape = (CSG *)object;
     Geometry *localShape;
     Geometry *shape2;
@@ -57,7 +57,7 @@ CSG::allCsgIntersectIntersections(
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
 
-    anyIntersectionFound = LegacyBoolean::FALSE_VALUE;
+    anyIntersectionFound = false;
 
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
@@ -69,7 +69,7 @@ CSG::allCsgIntersectIntersections(
             localIntersection != nullptr; localDepthQueue->deleteHighest(),
             localIntersection = localDepthQueue->getHighest()) {
 
-            intersectionFound = LegacyBoolean::TRUE_VALUE;
+            intersectionFound = true;
 
             for (shape2 = shape->Shapes; shape2 != nullptr;
                 shape2 = shape2->nextObject) {
@@ -77,7 +77,7 @@ CSG::allCsgIntersectIntersections(
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
                             &localIntersection->Point, (SimpleBody *)shape2)) {
-                        intersectionFound = LegacyBoolean::FALSE_VALUE;
+                        intersectionFound = false;
                         break;
                     }
                 }
@@ -85,7 +85,7 @@ CSG::allCsgIntersectIntersections(
 
             if (intersectionFound) {
                 depthQueue->add(localIntersection);
-                anyIntersectionFound = LegacyBoolean::TRUE_VALUE;
+                anyIntersectionFound = true;
             }
         }
     }
@@ -105,10 +105,10 @@ CSG::insideCsgUnion(Vector3Dd *testPoint, SimpleBody *object)
         localShape = localShape->nextObject) {
 
         if (GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
-            return (LegacyBoolean::TRUE_VALUE);
+            return (true);
         }
     }
-    return (LegacyBoolean::FALSE_VALUE);
+    return (false);
 }
 
 int
@@ -121,11 +121,11 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
         localShape = localShape->nextObject) {
 
         if (!GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
-            return (LegacyBoolean::FALSE_VALUE);
+            return (false);
         }
     }
 
-    return (LegacyBoolean::TRUE_VALUE);
+    return (true);
 }
 
 void *

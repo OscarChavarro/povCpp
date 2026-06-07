@@ -36,11 +36,11 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
     }
 
     i = 0;
-    newColourMap->transparencyFlag = LegacyBoolean::FALSE_VALUE;
+    newColourMap->transparencyFlag = false;
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -52,13 +52,13 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                 PrimitiveParser::parseColour(
                     &(ctx.constructionMap()[i].startColour), ctx);
                 if (ctx.constructionMap()[i].startColour.Alpha != 0.0) {
-                    newColourMap->transparencyFlag = LegacyBoolean::TRUE_VALUE;
+                    newColourMap->transparencyFlag = true;
                 }
 
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColour(&(ctx.constructionMap()[i].endColour), ctx);
                 if (ctx.constructionMap()[i].endColour.Alpha != 0.0) {
-                    newColourMap->transparencyFlag = LegacyBoolean::TRUE_VALUE;
+                    newColourMap->transparencyFlag = true;
                 }
 
                 i++;
@@ -81,7 +81,7 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                     newColourMap->Colour_Map_Entries[j] = ctx.constructionMap()[j];
                 }
 
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:

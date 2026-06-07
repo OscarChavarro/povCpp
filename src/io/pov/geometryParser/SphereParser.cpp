@@ -70,8 +70,8 @@ SphereParser::parseSphere(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -83,7 +83,7 @@ SphereParser::parseSphere(ParserContext &ctx)
                 localShape->radiusSquared =
                     localShape->Radius * localShape->Radius;
                 localShape->inverseRadius = 1.0 / localShape->Radius;
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -99,7 +99,7 @@ SphereParser::parseSphere(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -110,13 +110,13 @@ SphereParser::parseSphere(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

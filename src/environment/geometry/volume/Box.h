@@ -1,7 +1,6 @@
 #ifndef __BOX_H__
 #define __BOX_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -10,7 +9,7 @@ class Box : public Geometry {
     static Methods methodTable;
     Transformation *Transform;
     Vector3Dd bounds[2];
-    short Inverted;
+    bool Inverted;
 
     static int allBoxIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

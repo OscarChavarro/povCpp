@@ -43,7 +43,7 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
         newRay.copyContainersFrom(ray);
         traceLevel++;
         Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
-        newRay.quadricConstantsCached = LegacyBoolean::FALSE_VALUE;
+        newRay.quadricConstantsCached = false;
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 

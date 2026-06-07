@@ -30,13 +30,13 @@ BoxParser::parseBox(ParserContext &ctx)
 
     localShape = nullptr;
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LEFT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
             default:
                 ParseErrorReporter::parseError(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -46,8 +46,8 @@ BoxParser::parseBox(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -56,7 +56,7 @@ BoxParser::parseBox(ParserContext &ctx)
                 localShape = ModelBuilder::getBoxShape();
                 PrimitiveParser::parseVector(&(localShape->bounds[0]), ctx);
                 PrimitiveParser::parseVector(&(localShape->bounds[1]), ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -72,7 +72,7 @@ BoxParser::parseBox(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -83,13 +83,13 @@ BoxParser::parseBox(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

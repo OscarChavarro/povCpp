@@ -1,7 +1,6 @@
 #ifndef __POLYNOMIAL_H__
 #define __POLYNOMIAL_H__
 
-#include "common/LegacyBoolean.h"
 #include "processing/PolynomialConstants.h"
 
 class Polynomial {

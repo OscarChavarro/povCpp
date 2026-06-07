@@ -30,8 +30,8 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -44,7 +44,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 localShape->Shape_Colour->Alpha = 0.0;
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -60,7 +60,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -71,13 +71,13 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

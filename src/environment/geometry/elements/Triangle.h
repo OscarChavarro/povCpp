@@ -1,7 +1,6 @@
 #ifndef __TRIANGLE_H__
 #define __TRIANGLE_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -21,7 +20,7 @@ class Triangle : public Geometry {
     Vector3Dd P1;
     Vector3Dd P2;
     Vector3Dd P3;
-    short int degenerateFlag;
+    bool degenerateFlag;
 
     static int computeTriangle(Triangle *triangle);
     static int allTriangleIntersections(SimpleBody *object,

@@ -1,7 +1,6 @@
 #ifndef __RENDERING_CONFIGURATION_H__
 #define __RENDERING_CONFIGURATION_H__
 
-#include "common/LegacyBoolean.h"
 
 class RenderOutput;
 

@@ -1,7 +1,6 @@
 #ifndef __BLOB_H__
 #define __BLOB_H__
 
-#include "common/LegacyBoolean.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"
@@ -11,7 +10,7 @@ class Blob : public Geometry {
   public:
     static Methods methodTable;
     Transformation *Transform;
-    short Inverted;
+    bool Inverted;
     int count;
     double threshold;
     BlobElement *list;

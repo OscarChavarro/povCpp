@@ -1,7 +1,6 @@
 #ifndef __SIMPLE_BODY_H__
 #define __SIMPLE_BODY_H__
 
-#include "common/LegacyBoolean.h"
 
 class Methods;
 class Geometry;
@@ -15,7 +14,7 @@ class SimpleBody {
     Geometry *boundingShapes;
     Geometry *clippingShapes;
     Geometry *Shape;
-    char noShadowFlag;
+    bool noShadowFlag;
     RGBAColor *objectColour;
     Texture *objectTexture;
 };

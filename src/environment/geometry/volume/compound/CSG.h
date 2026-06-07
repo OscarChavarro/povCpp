@@ -1,7 +1,6 @@
 #ifndef ____
 #define ____
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 

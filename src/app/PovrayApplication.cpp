@@ -9,7 +9,6 @@
 
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/dataStructures/PriorityQueuePool.h"
-#include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "common/Statistics.h"
 #include "environment/geometry/Intersection.h"
@@ -36,8 +35,8 @@ FILE *bfp;
 
 
 static int numberOfFiles;
-static int inFlag;
-static int outFlag;
+static bool inFlag;
+static bool outFlag;
 static ImageOutput *selectedImageOutput = nullptr;
 
 class ImageOutputAdapter : public RenderOutput {
@@ -455,18 +454,18 @@ PovrayApplication::readOptions(char *optionLine)
 {
     int c;
     int stringIndex;
-    int optionStarted;
+    bool optionStarted;
     short optionLineIndex = 0;
     char optionString[80];
 
     stringIndex = 0;
-    optionStarted = LegacyBoolean::FALSE_VALUE;
+    optionStarted = false;
     while ((c = optionLine[optionLineIndex++]) != '\0') {
         if (optionStarted) {
             if (isspace(c)) {
                 optionString[stringIndex] = '\0';
                 PovrayApplication::parseOption(optionString);
-                optionStarted = LegacyBoolean::FALSE_VALUE;
+                optionStarted = false;
                 stringIndex = 0;
             } else {
                 optionString[stringIndex++] = (char)c;
@@ -476,7 +475,7 @@ PovrayApplication::readOptions(char *optionLine)
             if ((c == (int)'-') || (c == (int)'+')) {
                 stringIndex = 0;
                 optionString[stringIndex++] = (char)c;
-                optionStarted = LegacyBoolean::TRUE_VALUE;
+                optionStarted = true;
             } else if (!isspace(c)) {
                 Logger::error(
                     "\nBad default file format.  Offending char: (%c), val: "
@@ -496,16 +495,16 @@ PovrayApplication::readOptions(char *optionLine)
 void
 PovrayApplication::parseOption(char *optionString)
 {
-    int addOption;
+    bool addOption;
     unsigned int optionNumber = 0;
     double threshold;
 
-    inFlag = outFlag = LegacyBoolean::FALSE_VALUE; /* if these flags aren't immediately used, reset
+    inFlag = outFlag = false; /* if these flags aren't immediately used, reset
                                  them on next -/+ option! */
     if (*(optionString++) == '-') {
-        addOption = LegacyBoolean::FALSE_VALUE;
+        addOption = false;
     } else {
-        addOption = LegacyBoolean::TRUE_VALUE;
+        addOption = true;
     }
 
     switch (*optionString) {
@@ -591,7 +590,7 @@ PovrayApplication::parseOption(char *optionString)
     case 'I':
     case 'i':
         if (optionString[1] == '\0') {
-            inFlag = LegacyBoolean::TRUE_VALUE;
+            inFlag = true;
         } else {
             strncpy(RenderingConfiguration::global().inputFileName, &optionString[1], RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
             RenderingConfiguration::global().inputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
@@ -602,7 +601,7 @@ PovrayApplication::parseOption(char *optionString)
     case 'O':
     case 'o':
         if (optionString[1] == '\0') {
-            outFlag = LegacyBoolean::TRUE_VALUE;
+            outFlag = true;
         } else {
             strncpy(RenderingConfiguration::global().outputFileName, &optionString[1], RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
             RenderingConfiguration::global().outputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
@@ -777,7 +776,7 @@ PovrayApplication::parseFileName(char *fileName)
     {
         strncpy(RenderingConfiguration::global().inputFileName, fileName, RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
         RenderingConfiguration::global().inputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
-        inFlag = LegacyBoolean::FALSE_VALUE;
+        inFlag = false;
         return;
     }
 
@@ -786,7 +785,7 @@ PovrayApplication::parseFileName(char *fileName)
     {
         strncpy(RenderingConfiguration::global().outputFileName, fileName, RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
         RenderingConfiguration::global().outputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
-        outFlag = LegacyBoolean::FALSE_VALUE;
+        outFlag = false;
         return;
     }
 

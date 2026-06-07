@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "io/base/image/DumpFormat.h"

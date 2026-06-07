@@ -1,7 +1,6 @@
 #ifndef __SPHERE_H__
 #define __SPHERE_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
@@ -15,8 +14,8 @@ class Sphere : public Geometry {
     Vector3Dd VPOtoC;
     double VPOCSquared;
     short VPinside;
-    short VPCached;
-    short Inverted;
+    bool VPCached;
+    bool Inverted;
 
     static int allSphereIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);

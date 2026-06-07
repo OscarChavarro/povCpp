@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/ParseErrorReporter.h"
@@ -179,7 +178,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
     Geometry *localShape;
     Vector3Dd localVector;
     CONSTANT constantId;
-    int firstShapeParsed = LegacyBoolean::FALSE_VALUE;
+    bool firstShapeParsed = false;
 
     if (type == GeometryOperations::CSG_UNION_TYPE) {
         container = ModelBuilder::getCsgUnion();
@@ -192,8 +191,8 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -222,7 +221,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -233,7 +232,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -244,7 +243,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -255,7 +254,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -266,7 +265,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -277,7 +276,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -288,7 +287,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -299,7 +298,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -310,7 +309,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -321,7 +320,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -332,7 +331,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -343,7 +342,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -354,7 +353,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -366,7 +365,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -378,7 +377,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -390,7 +389,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
-                firstShapeParsed = LegacyBoolean::TRUE_VALUE;
+                firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(container->Shapes));
@@ -398,20 +397,20 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             default:
                 ctx.tokenStream().ungetToken();
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
             }
         }
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
@@ -460,92 +459,92 @@ ObjectParser::parseShape(ParserContext &ctx)
     Geometry *localShape = nullptr;
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::BOX_TOKEN:
                 localShape = BoxParser::parseBox(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::BLOB_TOKEN:
                 localShape = BlobParser::parseBlob(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch(ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
                     (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_UNION_TYPE, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
                     (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_INTERSECTION_TYPE, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
                     (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_DIFFERENCE_TYPE, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -572,8 +571,8 @@ ObjectParser::parseObject(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -590,7 +589,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 } else {
                     ParseErrorReporter::Undeclared(ctx);
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::SPHERE_TOKEN:
@@ -618,20 +617,20 @@ ObjectParser::parseObject(ParserContext &ctx)
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
                     (SimpleBody **)&(object->Shape));
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::SHAPE_TOKEN, ctx);
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
             }
         }
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -640,13 +639,13 @@ ObjectParser::parseObject(ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
@@ -666,13 +665,13 @@ ObjectParser::parseObject(ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
@@ -712,7 +711,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::NO_SHADOW_TOKEN:
-                object->noShadowFlag = LegacyBoolean::TRUE_VALUE;
+                object->noShadowFlag = true;
                 break;
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
@@ -740,7 +739,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
@@ -769,8 +768,8 @@ ObjectParser::parseComposite(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -814,25 +813,25 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
                 }
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:
                 ctx.tokenStream().ungetToken();
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
             }
         }
     }
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             case Tokenizer::BOUNDED_TOKEN:
@@ -840,13 +839,13 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
@@ -867,13 +866,13 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:

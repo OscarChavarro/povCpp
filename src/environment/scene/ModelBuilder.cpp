@@ -1,6 +1,5 @@
 #include "environment/scene/ModelBuilder.h"
 
-#include "common/LegacyBoolean.h"
 #include "processing/PolynomialConstants.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/color/Color.h"
@@ -57,8 +56,8 @@ ModelBuilder::getSphereShape()
     newShape->Type = GeometryOperations::SPHERE_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Sphere::methodTable;
-    newShape->VPCached = LegacyBoolean::FALSE_VALUE;
-    newShape->Inverted = LegacyBoolean::FALSE_VALUE;
+    newShape->VPCached = false;
+    newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     return (newShape);
@@ -79,7 +78,7 @@ ModelBuilder::getLightSourceShape()
     newShape->Type = GeometryOperations::POINT_LIGHT_TYPE;
     newShape->methods = &Light::methodTable;
     newShape->nextObject = nullptr;
-    newShape->Inverted = LegacyBoolean::FALSE_VALUE;
+    newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = ModelBuilder::getColour();
     Color::makeColor(newShape->Shape_Colour, 1.0, 1.0, 1.0);
@@ -106,8 +105,8 @@ ModelBuilder::getQuadricShape()
     *&(newShape->objectTerms) = Vector3Dd(0.0, 0.0, 0.0);
     newShape->objectConstant = 1.0;
     newShape->objectVpConstant = HUGE_VAL;
-    newShape->constantCached = LegacyBoolean::FALSE_VALUE;
-    newShape->nonZeroSquareTerm = LegacyBoolean::FALSE_VALUE;
+    newShape->constantCached = false;
+    newShape->nonZeroSquareTerm = false;
     newShape->Type = GeometryOperations::QUADRIC_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Quadric::methodTable;
@@ -166,7 +165,7 @@ ModelBuilder::getBoxShape()
     newShape->Type = GeometryOperations::BOX_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Box::methodTable;
-    newShape->Inverted = LegacyBoolean::FALSE_VALUE;
+    newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     return (newShape);
@@ -187,7 +186,7 @@ ModelBuilder::getBlobShape()
     newShape->Type = GeometryOperations::BLOB_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Blob::methodTable;
-    newShape->Inverted = LegacyBoolean::FALSE_VALUE;
+    newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
     return (newShape);
@@ -278,14 +277,14 @@ ModelBuilder::getTriangleShape()
     *&(newShape->P2) = Vector3Dd(1.0, 0.0, 0.0);
     *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
-    newShape->Inverted = LegacyBoolean::FALSE_VALUE;
+    newShape->Inverted = false;
     newShape->Type = GeometryOperations::TRIANGLE_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Triangle::methodTable;
-    newShape->VPCached = LegacyBoolean::FALSE_VALUE;
+    newShape->VPCached = false;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
-    newShape->degenerateFlag = LegacyBoolean::FALSE_VALUE;
+    newShape->degenerateFlag = false;
     return (newShape);
 }
 
@@ -309,13 +308,13 @@ ModelBuilder::getSmoothTriangleShape()
     *&(newShape->N3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Type = GeometryOperations::SMOOTH_TRIANGLE_TYPE;
-    newShape->Inverted = LegacyBoolean::FALSE_VALUE;
+    newShape->Inverted = false;
     newShape->nextObject = nullptr;
     newShape->methods = &Triangle::smoothMethodTable;
     newShape->VPCached = 0;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
-    newShape->degenerateFlag = LegacyBoolean::FALSE_VALUE;
+    newShape->degenerateFlag = false;
     return (newShape);
 }
 

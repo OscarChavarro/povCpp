@@ -2,7 +2,6 @@
 #define __TEXTURE_H__
 
 #include "common/color/Color.h"
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/RGBAImage.h"
@@ -105,9 +104,9 @@ class Texture {
     RGBAImage *Image;
     RGBAImage *Bump_Image;
     RGBAImage *Material_Image;
-    short metallicFlag;
-    short onceFlag;
-    short constantFlag;
+    bool metallicFlag;
+    bool onceFlag;
+    bool constantFlag;
     int Octaves;   /* dmf, 1/92 for turb */
     double Mortar; /* rha, 2/92 for brick */
 };

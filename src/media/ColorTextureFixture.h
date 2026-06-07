@@ -1,7 +1,6 @@
 #ifndef __TXTCOLOR_H__
 #define __TXTCOLOR_H__
 
-#include "common/LegacyBoolean.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 

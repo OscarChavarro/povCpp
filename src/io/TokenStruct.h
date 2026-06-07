@@ -1,7 +1,6 @@
 #ifndef __TOKEN_STRUCT_H__
 #define __TOKEN_STRUCT_H__
 
-#include "common/LegacyBoolean.h"
 
 class TokenStruct {
   public:
@@ -11,8 +10,8 @@ class TokenStruct {
     char *Token_String;
     double tokenFloat;
     int identifierNumber;
-    int ungetToken;
-    int endOfFile;
+    bool ungetToken;
+    bool endOfFile;
     char *Filename;
 };
 

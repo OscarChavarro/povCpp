@@ -1,7 +1,6 @@
 #ifndef __VECT_H__
 #define __VECT_H__
 
-#include "common/LegacyBoolean.h"
 #include "processing/PolynomialConstants.h"
 #include "processing/Polynomial.h"
 

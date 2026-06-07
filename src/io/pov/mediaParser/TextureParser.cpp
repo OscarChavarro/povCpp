@@ -1,5 +1,4 @@
 #include "io/pov/ParserContext.h"
-#include "common/LegacyBoolean.h"
 #include "common/logger/Logger.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
@@ -106,8 +105,8 @@ TextureParser::parseTexture(ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        int Exit_Flag;
-        Exit_Flag = LegacyBoolean::FALSE_VALUE;
+        bool Exit_Flag;
+        Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
@@ -129,7 +128,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureRandomness = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -137,15 +136,15 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::ONCE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
-                texture->onceFlag = LegacyBoolean::TRUE_VALUE;
+                texture->onceFlag = true;
                 break;
 
             case Tokenizer::TURBULENCE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->Turbulence = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -153,7 +152,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::OCTAVES_TOKEN: /* dmf 02/05 for turb */
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->Octaves = (int)PrimitiveParser::parseFloat(ctx);
                 if (texture->Octaves < 1) {
@@ -167,7 +166,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BOZO_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::BOZO_TEXTURE;
                 break;
@@ -175,7 +174,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::MORTAR_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->Mortar = PrimitiveParser::parseFloat(ctx);
                 if (texture->Mortar < 0) {
@@ -186,12 +185,12 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BRICK_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::BRICK_TEXTURE;
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -205,7 +204,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         }
                     }
@@ -215,12 +214,12 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::CHECKER_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::CHECKER_TEXTURE;
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -234,7 +233,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         }
                     }
@@ -244,15 +243,15 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::CHECKER_TEXTURE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::CHECKER_TEXTURE_TEXTURE;
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -275,7 +274,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         }
                     }
@@ -283,8 +282,8 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                 ParseHelpers::getExpectedToken(Tokenizer::TILE2_TOKEN, ctx);
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -308,7 +307,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         }
                     }
@@ -319,7 +318,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::MARBLE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::MARBLE_TEXTURE;
                 break;
@@ -327,7 +326,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::WOOD_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::WOOD_TEXTURE;
                 break;
@@ -335,7 +334,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::SPOTTED_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::SPOTTED_TEXTURE;
                 break;
@@ -343,7 +342,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::AGATE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::AGATE_TEXTURE;
                 break;
@@ -351,7 +350,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::GRANITE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::GRANITE_TEXTURE;
                 break;
@@ -359,7 +358,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::GRADIENT_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::GRADIENT_TEXTURE;
                 PrimitiveParser::parseVector(&(texture->textureGradient), ctx);
@@ -368,7 +367,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::AMBIENT_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectAmbient) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -376,7 +375,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BRILLIANCE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectBrilliance) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -384,7 +383,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::ROUGHNESS_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectRoughness) = PrimitiveParser::parseFloat(ctx);
                 /* No training wheels */
@@ -397,7 +396,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::PHONGSIZE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectPhongSize) = PrimitiveParser::parseFloat(ctx);
                 /* No training wheels */
@@ -410,7 +409,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::DIFFUSE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectDiffuse) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -418,7 +417,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::SPECULAR_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectSpecular) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -426,7 +425,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::PHONG_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectPhong) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -434,15 +433,15 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::METALLIC_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
-                texture->metallicFlag = LegacyBoolean::TRUE_VALUE;
+                texture->metallicFlag = true;
                 break;
 
             case Tokenizer::IOR_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectIndexOfRefraction) =
                     PrimitiveParser::parseFloat(ctx);
@@ -451,7 +450,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::REFRACTION_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectRefraction) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -459,7 +458,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::TRANSMIT_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectTransmit) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -467,7 +466,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::REFLECTION_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 (texture->objectReflection) = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -475,7 +474,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::IMAGEMAP_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::IMAGEMAP_TEXTURE;
                 texture->Image = new RGBAImage;
@@ -486,14 +485,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                 *&texture->Image->imageGradient = Vector3Dd(1.0, -1.0, 0.0);
                 texture->Image->mapType = Texture::PLANAR_MAP;
                 texture->Image->interpolationType = Texture::NO_INTERPOLATION;
-                texture->Image->onceFlag = LegacyBoolean::FALSE_VALUE;
-                texture->Image->useColourFlag = LegacyBoolean::TRUE_VALUE;
+                texture->Image->onceFlag = false;
+                texture->Image->useColourFlag = true;
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -515,28 +514,28 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IffFormat::readIffImage(
                                 texture->Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::GIF_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             GifFormat::readGifImage(
                                 texture->Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
                                 texture->Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             DumpFormat::readDumpImage(
                                 texture->Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
@@ -547,13 +546,13 @@ TextureParser::parseTexture(ParserContext &ctx)
                 }
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::ONCE_TOKEN:
-                            texture->Image->onceFlag = LegacyBoolean::TRUE_VALUE;
+                            texture->Image->onceFlag = true;
                             break;
 
                         case Tokenizer::INTERPOLATE_TOKEN:
@@ -567,16 +566,16 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->Image->useColourFlag = LegacyBoolean::TRUE_VALUE;
+                            texture->Image->useColourFlag = true;
                             break;
 
                         case Tokenizer::USE_INDEX_TOKEN:
-                            texture->Image->useColourFlag = LegacyBoolean::FALSE_VALUE;
+                            texture->Image->useColourFlag = false;
                             break;
 
                         case Tokenizer::ALPHA_TOKEN: {
-                            int Exit_Flag;
-                            Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                            bool Exit_Flag;
+                            Exit_Flag = false;
                             while (!Exit_Flag) {
                                 ctx.tokenStream().getToken();
                                 switch (ctx.token().tokenId) {
@@ -600,7 +599,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
-                                    Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                                    Exit_Flag = true;
                                     break;
 
                                 case Tokenizer::ALL_TOKEN: {
@@ -613,7 +612,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                         texture->Image->Colour_Map[reg].Alpha =
                                             (unsigned short)(alpha * 255.0);
                                     }
-                                    Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                                    Exit_Flag = true;
                                 }
 
                                 break;
@@ -622,7 +621,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         } break;
 
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
@@ -636,24 +635,24 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::WAVES_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::WAVES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::PHASE_TOKEN:
                             texture->Phase = PrimitiveParser::parseFloat(ctx);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         }
                     }
@@ -663,7 +662,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::FREQUENCY_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->Frequency = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -671,7 +670,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::PHASE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->Phase = PrimitiveParser::parseFloat(ctx);
                 break;
@@ -679,7 +678,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::RIPPLES_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::RIPPLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -688,7 +687,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::WRINKLES_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::WRINKLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -697,7 +696,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BUMPS_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::BUMPS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -706,7 +705,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::DENTS_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::DENTS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -715,7 +714,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
                 TextureUtils::translateTexture(&texture, &localVector);
@@ -724,7 +723,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::ROTATE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
                 TextureUtils::rotateTexture(&texture, &localVector);
@@ -733,7 +732,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::SCALE_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
                 TextureUtils::scaleTexture(&texture, &localVector);
@@ -742,7 +741,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::COLOUR_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->Colour1 = ModelBuilder::getColour();
                 PrimitiveParser::parseColour(texture->Colour1, ctx);
@@ -752,7 +751,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::COLOUR_MAP_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->Colour_Map = ColorMapParser::parseColorMap(ctx);
                 break;
@@ -760,7 +759,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::ONION_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::ONION_TEXTURE;
                 break;
@@ -768,7 +767,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::LEOPARD_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::LEOPARD_TEXTURE;
                 break;
@@ -777,7 +776,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::PAINTED1_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::PAINTED1_TEXTURE;
                 break;
@@ -785,7 +784,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::PAINTED2_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::PAINTED2_TEXTURE;
                 break;
@@ -793,7 +792,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::PAINTED3_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::PAINTED3_TEXTURE;
                 break;
@@ -801,7 +800,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BUMPY1_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::BUMPY1;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -810,7 +809,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BUMPY2_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::BUMPY2;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -819,7 +818,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BUMPY3_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::BUMPY3;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -828,7 +827,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             case Tokenizer::BUMPMAP_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::BUMPMAP;
                 texture->Bump_Image = new RGBAImage;
@@ -840,14 +839,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                     Vector3Dd(1.0, -1.0, 0.0);
                 texture->Bump_Image->mapType = Texture::PLANAR_MAP;
                 texture->Bump_Image->interpolationType = Texture::NO_INTERPOLATION;
-                texture->Bump_Image->onceFlag = LegacyBoolean::FALSE_VALUE;
-                texture->Bump_Image->useColourFlag = LegacyBoolean::TRUE_VALUE;
+                texture->Bump_Image->onceFlag = false;
+                texture->Bump_Image->useColourFlag = true;
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -869,28 +868,28 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IffFormat::readIffImage(
                                 texture->Bump_Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::GIF_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             GifFormat::readGifImage(
                                 texture->Bump_Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
                                 texture->Bump_Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             DumpFormat::readDumpImage(
                                 texture->Bump_Image, ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
@@ -901,13 +900,13 @@ TextureParser::parseTexture(ParserContext &ctx)
                 }
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::ONCE_TOKEN:
-                            texture->Bump_Image->onceFlag = LegacyBoolean::TRUE_VALUE;
+                            texture->Bump_Image->onceFlag = true;
                             break;
 
                         case Tokenizer::MAPTYPE_TOKEN:
@@ -926,14 +925,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->Bump_Image->useColourFlag = LegacyBoolean::TRUE_VALUE;
+                            texture->Bump_Image->useColourFlag = true;
                             break;
                         case Tokenizer::USE_INDEX_TOKEN:
-                            texture->Bump_Image->useColourFlag = LegacyBoolean::FALSE_VALUE;
+                            texture->Bump_Image->useColourFlag = false;
                             break;
 
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
                         default:
                             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -947,7 +946,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = LegacyBoolean::FALSE_VALUE;
+                    texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::MATERIAL_MAP_TEXTURE;
                 texture->Material_Image = new RGBAImage;
@@ -958,14 +957,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                 *&texture->textureGradient = Vector3Dd(1.0, -1.0, 0.0);
                 texture->Material_Image->mapType = Texture::PLANAR_MAP;
                 texture->Material_Image->interpolationType = Texture::NO_INTERPOLATION;
-                texture->Material_Image->onceFlag = LegacyBoolean::FALSE_VALUE;
-                texture->Material_Image->useColourFlag = LegacyBoolean::FALSE_VALUE;
+                texture->Material_Image->onceFlag = false;
+                texture->Material_Image->useColourFlag = false;
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -987,28 +986,28 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IffFormat::readIffImage(texture->Material_Image,
                                 ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::GIF_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             GifFormat::readGifImage(texture->Material_Image,
                                 ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(texture->Material_Image,
                                 ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             DumpFormat::readDumpImage(texture->Material_Image,
                                 ctx.token().Token_String);
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                             break;
 
                         default:
@@ -1022,8 +1021,8 @@ TextureParser::parseTexture(ParserContext &ctx)
                 firstTexture = texture;
 
                 {
-                    int Exit_Flag;
-                    Exit_Flag = LegacyBoolean::FALSE_VALUE;
+                    bool Exit_Flag;
+                    Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
@@ -1039,7 +1038,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::ONCE_TOKEN:
-                            texture->Material_Image->onceFlag = LegacyBoolean::TRUE_VALUE;
+                            texture->Material_Image->onceFlag = true;
                             break;
 
                         case Tokenizer::TEXTURE_TOKEN: {
@@ -1054,7 +1053,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::RIGHT_CURLY_TOKEN: {
                             texture->Next_Material = nullptr;
                             texture = firstTexture;
-                            Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                            Exit_Flag = true;
                         } break;
 
                         default:
@@ -1066,7 +1065,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = LegacyBoolean::TRUE_VALUE;
+                Exit_Flag = true;
                 break;
 
             default:

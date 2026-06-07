@@ -1,7 +1,6 @@
 #ifndef __VECTOR3DD_H__
 #define __VECTOR3DD_H__
 
-#include "common/LegacyBoolean.h"
 #include <cmath>
 
 class Vector3Dd {
