@@ -70,6 +70,12 @@ ParserContext::symbols()
     return *mSymbols;
 }
 
+int
+ParserContext::findConstant()
+{
+    return symbols().findByIdentifierNumber(token().identifierNumber);
+}
+
 int &
 ParserContext::degenerateTriangles()
 {

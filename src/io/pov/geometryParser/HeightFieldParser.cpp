@@ -10,7 +10,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
 
@@ -26,7 +25,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 {
     (void)ctx;
     HeightField *localShape;
-    CONSTANT constantId;
+    int constantId;
     Vector3Dd localVector;
     Texture *localTexture;
     RGBAImage *image = nullptr;
@@ -117,7 +116,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::HEIGHT_FIELD_CONSTANT) {
                         localShape = (HeightField *)GeometryOperations::copy(

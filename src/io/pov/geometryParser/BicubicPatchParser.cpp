@@ -9,7 +9,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 #include "common/logger/Logger.h"
 #include <cstdlib>
@@ -60,7 +59,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     (void)ctx;
     ParametricBiCubicPatch *localShape = nullptr;
     Vector3Dd localVector;
-    CONSTANT constantId;
+    int constantId;
     Texture *localTexture;
     int i;
     int j;
@@ -99,7 +98,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::BICUBIC_PATCH_CONSTANT) {
                         localShape =

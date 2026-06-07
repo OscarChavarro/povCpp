@@ -1,8 +1,6 @@
 #ifndef __SCENE_CONFIG_PARSER_H__
 #define __SCENE_CONFIG_PARSER_H__
 
-#include "io/pov/ParserConstants.h"
-
 class Camera;
 class ParserContext;
 
@@ -14,8 +12,6 @@ class SceneConfigParser {
     static void parseFog(ParserContext &ctx);
     static void parseDeclare();
     static void parseDeclare(ParserContext &ctx);
-    static CONSTANT findConstant();
-    static CONSTANT findConstant(ParserContext &ctx);
 };
 
 #endif

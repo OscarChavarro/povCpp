@@ -9,7 +9,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 
 
 Geometry *
@@ -25,7 +24,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     (void)ctx;
     Light *localShape = nullptr;
     Vector3Dd localVector;
-    CONSTANT constantId;
+    int constantId;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -48,7 +47,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::LIGHT_SOURCE_CONSTANT) {
                         localShape = (Light *)GeometryOperations::copy(

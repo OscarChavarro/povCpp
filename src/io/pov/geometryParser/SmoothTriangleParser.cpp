@@ -8,7 +8,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
 
@@ -24,7 +23,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
 {
     (void)ctx;
     SmoothTriangle *localShape;
-    CONSTANT constantId;
+    int constantId;
     Vector3Dd localVector;
     Texture *localTexture;
     Texture *tempTexture;
@@ -62,7 +61,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::SMOOTH_TRIANGLE_CONSTANT) {
                         localShape = (SmoothTriangle *)GeometryOperations::copy(

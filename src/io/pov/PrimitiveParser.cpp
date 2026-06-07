@@ -9,7 +9,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -39,7 +38,7 @@ double
 PrimitiveParser::parseFloat(ParserContext &ctx)
 {
     double localFloat = 0.0;
-    CONSTANT constantId;
+    int constantId;
     bool negative;
     bool signParsed;
 
@@ -53,7 +52,7 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::FLOAT_CONSTANT) {
                         localFloat = *(
@@ -113,7 +112,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector)
 void
 PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
 {
-    CONSTANT constantId;
+    int constantId;
 
     {
         bool Exit_Flag;
@@ -122,7 +121,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::VECTOR_CONSTANT) {
                         *givenVector = *((Vector3Dd *)ctx.constants()[(int)constantId]
@@ -196,7 +195,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour)
 void
 PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
 {
-    CONSTANT constantId;
+    int constantId;
     Color::makeColor(givenColour, 0.0, 0.0, 0.0);
     {
         bool Exit_Flag;
@@ -205,7 +204,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::COLOUR_CONSTANT) {
                         *givenColour = *((RGBAColor *)ctx.constants()[(int)constantId]

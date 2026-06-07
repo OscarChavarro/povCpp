@@ -43,20 +43,6 @@ void logCameraOp(const char *prefix, const char *opName, const Vector3Dd *value)
 }
 }
 
-CONSTANT
-CameraParser::findConstant(ParserContext &ctx)
-{
-    int i;
-
-    for (i = 1; i <= ctx.numberOfConstants(); i++) {
-        if (ctx.constants()[i].identifierNumber == ctx.token().identifierNumber) {
-            return (i);
-        }
-    }
-
-    return (-1);
-}
-
 void
 CameraParser::parseCamera(Camera *givenVp)
 {
@@ -67,7 +53,7 @@ CameraParser::parseCamera(Camera *givenVp)
 void
 CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 {
-    CONSTANT constantId;
+    int constantId;
     Vector3Dd localVector;
     Vector3Dd tempVector;
     double directionLength;
@@ -86,7 +72,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = CameraParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::VIEW_POINT_CONSTANT) {
                         *givenVp = *((Camera *)ctx.constants()[(int)constantId]

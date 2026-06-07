@@ -9,7 +9,6 @@
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/light/Light.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/scene/SceneFrame.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
 #include "render/shaders/LambertShader.h"
 #include "render/shaders/LightSamplerShader.h"
@@ -23,7 +22,7 @@ void
 DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     RayWithSegments *eye, Vector3Dd *surfaceNormal, RGBAColor *surfaceColor,
     RGBAColor *color, double attenuation, const TraceService *traceService,
-    const RenderFrame &frame)
+    Light *lightSources, SimpleBody *objects)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
@@ -54,7 +53,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
     lightSourceRay.isShadowRay = true;
     lightSourceRay.isPrimaryRay = false;
 
-    for (lightSource = frame.Light_Sources; lightSource != nullptr;
+    for (lightSource = lightSources; lightSource != nullptr;
         lightSource = lightSource->Next_Light_Source) {
         intersectionFound = false;
 
@@ -63,7 +62,7 @@ DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
 
         /* What objects does this ray intersect? */
         if (RenderingConfiguration::global().quality > 3) {
-            for (blockingObject = frame.Objects;
+            for (blockingObject = objects;
                 blockingObject != nullptr;
                 blockingObject = blockingObject->nextObject) {
 

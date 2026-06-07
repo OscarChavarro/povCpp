@@ -14,8 +14,8 @@ void
 LocalSurfaceShader::shade(RayWithSegments *ray, Texture *texture,
     Intersection *rayIntersection, RGBAColor *surfaceColor,
     RGBAColor *filterColor, RGBAColor *color,
-    const TraceService *traceService, const RenderFrame &frame,
-    int &traceLevel)
+    const TraceService *traceService, Light *lightSources,
+    SimpleBody *objects, int &traceLevel)
 {
     Vector3Dd surfaceNormal;
     double normalDirection;
@@ -58,7 +58,8 @@ of the object and how much is transmited through. */
 
     AmbientLightShader::shade(texture, surfaceColor, &emittedColor, attenuation);
     DirectLightShader::shade(texture, &rayIntersection->Point, ray, &surfaceNormal,
-        surfaceColor, &emittedColor, attenuation, traceService, frame);
+        surfaceColor, &emittedColor, attenuation, traceService,
+        lightSources, objects);
     color->Red += emittedColor.Red;
     color->Green += emittedColor.Green;
     color->Blue += emittedColor.Blue;

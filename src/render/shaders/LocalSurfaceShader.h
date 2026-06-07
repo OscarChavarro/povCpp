@@ -7,15 +7,16 @@ class RayWithSegments;
 class Intersection;
 class RGBAColor;
 class TraceService;
-class RenderFrame;
+class Light;
+class SimpleBody;
 
 class LocalSurfaceShader {
 public:
     static void shade(RayWithSegments *ray, Texture *texture,
         Intersection *rayIntersection, RGBAColor *surfaceColor,
         RGBAColor *filterColor, RGBAColor *color,
-        const TraceService *traceService, const RenderFrame &frame,
-        int &traceLevel);
+        const TraceService *traceService, Light *lightSources,
+        SimpleBody *objects, int &traceLevel);
 };
 
 #endif

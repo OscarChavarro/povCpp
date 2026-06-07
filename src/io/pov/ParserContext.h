@@ -24,6 +24,7 @@ class ParserContext {
     Constant *constants();
     int &numberOfConstants();
     SymbolTable &symbols();
+    int findConstant();
     int &degenerateTriangles();
     ITokenStream &tokenStream();
     void setTokenStream(ITokenStream *tokenStream);

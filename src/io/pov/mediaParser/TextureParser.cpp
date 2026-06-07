@@ -11,7 +11,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/ColorMapParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
@@ -93,7 +92,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 {
     (void)ctx;
     Vector3Dd localVector;
-    CONSTANT constantId;
+    int constantId;
     Texture *texture;
     Texture *localTexture;
     Texture *firstTexture;
@@ -111,7 +110,7 @@ TextureParser::parseTexture(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::TEXTURE_CONSTANT) {
                         texture = ((Texture *)ctx.constants()[(int)constantId]

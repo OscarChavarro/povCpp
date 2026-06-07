@@ -6,6 +6,4 @@ class ParserConstants {
     static constexpr int MAX_CONSTANTS = 1000;
 };
 
-typedef int CONSTANT;
-
 #endif

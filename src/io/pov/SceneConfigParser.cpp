@@ -43,19 +43,6 @@
 
 
 
-CONSTANT
-SceneConfigParser::findConstant()
-{
-    ParserContext ctx;
-    return SceneConfigParser::findConstant(ctx);
-}
-
-CONSTANT
-SceneConfigParser::findConstant(ParserContext &ctx)
-{
-    return ctx.symbols().findByIdentifierNumber(ctx.token().identifierNumber);
-}
-
 void
 SceneConfigParser::parseFog()
 {
@@ -104,7 +91,7 @@ SceneConfigParser::parseCamera(Camera *givenVp)
 void
 SceneConfigParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 {
-    CONSTANT constantId;
+    int constantId;
     Vector3Dd localVector;
     Vector3Dd tempVector;
     double directionLength;
@@ -123,7 +110,7 @@ SceneConfigParser::parseCamera(Camera *givenVp, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::VIEW_POINT_CONSTANT) {
                         *givenVp = *((Camera *)ctx.constants()[(int)constantId]
@@ -217,13 +204,13 @@ SceneConfigParser::parseDeclare()
 void
 SceneConfigParser::parseDeclare(ParserContext &ctx)
 {
-    CONSTANT constantId;
+    int constantId;
     Texture *localTexture;
     Texture *tempTexture;
     Constant *constantPtr;
 
     ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
-    if ((constantId = SceneConfigParser::findConstant(ctx)) == -1) {
+    if ((constantId = ctx.findConstant()) == -1) {
         if (++ctx.numberOfConstants() >= ParserConstants::MAX_CONSTANTS) {
             ParseErrorReporter::Error("Too many constants \"declared\"", ctx);
         } else {
