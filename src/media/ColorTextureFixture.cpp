@@ -16,7 +16,6 @@
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "media/MapTextureFixture.h"
 #include "media/Texture.h"
 #include "media/TextureFixture.h"
@@ -605,12 +604,12 @@ ColorTextureFixture::leopard(
         z += leopardTurbulence.z() * turb;
     }
     /* This form didn't work with Zortech 386 compiler */
-    /* noise = Vec3::sqr((sin(x)+sin(y)+sin(z))/3); */
+    /* noise = (((sin(x)+sin(y)+sin(z))/3)*((sin(x)+sin(y)+sin(z))/3)); */
     /* So we break it down. */
     temp1 = sin(x);
     temp2 = sin(y);
     temp3 = sin(z);
-    noise = Vec3::sqr((temp1 + temp2 + temp3) / 3);
+    noise = (((temp1 + temp2 + temp3) / 3)*((temp1 + temp2 + temp3) / 3));
 
     if (debugEnabled) {
         Logger::info("temp123 %g %g %g  ", temp1, temp2, temp3);
@@ -658,13 +657,13 @@ ColorTextureFixture::onion(
 
     /* This ramp goes 0-1,1-0,0-1,1-0...
     noise =
-    (fmod(std::sqrt(Vec3::sqr(x)+Vec3::sqr(y)+Vec3::sqr(z)),2.0)-1.0);
+    (fmod(std::sqrt(((x)*(x))+((y)*(y))+((z)*(z))),2.0)-1.0);
     if (noise<0.0) {noise = 0.0-noise;}
     */
 
     /* This ramp goes 0-1,0-1,0-1,0-1... */
     noise = (fmod(
-        std::sqrt(Vec3::sqr(x) + Vec3::sqr(y) + Vec3::sqr(z)),
+        std::sqrt(((x)*(x)) + ((y)*(y)) + ((z)*(z))),
         1.0));
 
     if (debugEnabled) {

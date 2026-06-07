@@ -9,7 +9,6 @@
 
 #include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "common/logger/Logger.h"
 
 void
@@ -237,7 +236,7 @@ Transformation::getRotationTransformation(
     double siny;
     double sinz;
 
-    radianVector = Vec3::scaled(*vector, M_PI / 180.0);
+    radianVector = (*vector).multiply(M_PI / 180.0);
     Transformation::MIdentity((MATRIX *)transformation->matrix);
     cosx = cos(radianVector.x());
     sinx = sin(radianVector.x());

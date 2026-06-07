@@ -9,7 +9,6 @@
 #include "common/logger/Logger.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include <cstdio>
 #include <cstdlib>
@@ -92,15 +91,15 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     }
 
     vTemp1 = triangle->P2.subtract(triangle->P3);
-    vTemp1 = Vec3::normalized(vTemp1);
+    vTemp1 = vTemp1.normalizedFast();
     vTemp2 = triangle->P1.subtract(triangle->P3);
     proj = vTemp2.dotProduct(vTemp1);
-    vTemp1 = Vec3::scaled(vTemp1, proj);
+    vTemp1 = vTemp1.multiply(proj);
     triangle->Perp = vTemp1.subtract(vTemp2);
-    triangle->Perp = Vec3::normalized(triangle->Perp);
+    triangle->Perp = triangle->Perp.normalizedFast();
     uDenominator = vTemp2.dotProduct(triangle->Perp);
     uDenominator = -1.0 / uDenominator;
-    triangle->Perp = Vec3::scaled(triangle->Perp, uDenominator);
+    triangle->Perp = triangle->Perp.multiply(uDenominator);
 }
 
 int
@@ -122,7 +121,7 @@ Triangle::computeTriangle(Triangle *triangle)
     }
 
     /* Normalize the normal vector. */
-    triangle->normalVector = Vec3::scaled(triangle->normalVector, 1.0 / length);
+    triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
 
     triangle->Distance = triangle->normalVector.dotProduct(triangle->P1);
     triangle->Distance *= -1.0;
@@ -206,7 +205,7 @@ Triangle::allTriangleIntersections(
     if (intersectTriangle(ray, shape, &depth)) {
         localElement.Depth = depth;
         localElement.Object = nullptr;
-        intersectionPoint = Vec3::scaled(ray->direction, depth);
+        intersectionPoint = ray->direction.multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
@@ -417,7 +416,7 @@ Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
     Triangle *triangle = (Triangle *)object;
     Vector3Dd translation;
 
-    translation = Vec3::evaluated(triangle->normalVector, *vector);
+    translation = triangle->normalVector.multiply(*vector);
     triangle->Distance -= translation.x() + translation.y() + translation.z();
     triangle->P1 = triangle->P1.add(*vector);
     triangle->P2 = triangle->P2.add(*vector);
@@ -458,12 +457,12 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
         triangle->normalVector.z() / vector->z());
 
     length = triangle->normalVector.length();
-    triangle->normalVector = Vec3::scaled(triangle->normalVector, 1.0 / length);
+    triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
     triangle->Distance /= length;
 
-    triangle->P1 = Vec3::evaluated(triangle->P1, *vector);
-    triangle->P2 = Vec3::evaluated(triangle->P2, *vector);
-    triangle->P3 = Vec3::evaluated(triangle->P3, *vector);
+    triangle->P1 = triangle->P1.multiply(*vector);
+    triangle->P2 = triangle->P2.multiply(*vector);
+    triangle->P3 = triangle->P3.multiply(*vector);
 
     TextureUtils::scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
@@ -556,15 +555,15 @@ SmoothTriangle::smoothTriangleNormal(
     }
 
     nTemp1 = triangle->N2.subtract(triangle->N1);
-    nTemp1 = Vec3::scaled(nTemp1, u);
+    nTemp1 = nTemp1.multiply(u);
     nTemp1 = nTemp1.add(triangle->N1);
     nTemp2 = triangle->N3.subtract(triangle->N1);
-    nTemp2 = Vec3::scaled(nTemp2, u);
+    nTemp2 = nTemp2.multiply(u);
     nTemp2 = nTemp2.add(triangle->N1);
     *result = nTemp2.subtract(nTemp1);
-    *result = Vec3::scaled(*result, v);
+    *result = (*result).multiply(v);
     *result = result->add(nTemp1);
-    *result = Vec3::normalized(*result);
+    *result = (*result).normalizedFast();
 }
 
 void *
@@ -616,7 +615,7 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     Vector3Dd translation;
 
-    translation = Vec3::evaluated(triangle->normalVector, *vector);
+    translation = triangle->normalVector.multiply(*vector);
     triangle->Distance -= translation.x() + translation.y() + translation.z();
     triangle->P1 = triangle->P1.add(*vector);
     triangle->P2 = triangle->P2.add(*vector);
@@ -639,12 +638,12 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
         triangle->normalVector.z() / vector->z());
 
     length = triangle->normalVector.length();
-    triangle->normalVector = Vec3::scaled(triangle->normalVector, 1.0 / length);
+    triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
     triangle->Distance /= length;
 
-    triangle->P1 = Vec3::evaluated(triangle->P1, *vector);
-    triangle->P2 = Vec3::evaluated(triangle->P2, *vector);
-    triangle->P3 = Vec3::evaluated(triangle->P3, *vector);
+    triangle->P1 = triangle->P1.multiply(*vector);
+    triangle->P2 = triangle->P2.multiply(*vector);
+    triangle->P3 = triangle->P3.multiply(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
     TextureUtils::scaleTexture(

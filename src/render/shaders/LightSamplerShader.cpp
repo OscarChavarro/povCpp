@@ -1,7 +1,6 @@
 #include "render/shaders/LightSamplerShader.h"
 #include "common/color/Color.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/light/Light.h"
 
@@ -29,7 +28,7 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
     *lightSourceDepth = lightSourceRay->direction.length();
 
     lightSourceRay->direction =
-        Vec3::scaled(lightSourceRay->direction, 1.0 / (*lightSourceDepth));
+        lightSourceRay->direction.multiply(1.0 / (*lightSourceDepth));
 
     attenuation = Light::attenuateLight(lightSource, lightSourceRay);
 

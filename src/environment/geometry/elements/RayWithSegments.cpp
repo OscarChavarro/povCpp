@@ -10,7 +10,6 @@
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "common/logger/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 
 RayWithSegments::RayWithSegments()
 {
@@ -32,9 +31,9 @@ RayWithSegments::makeRay()
 {
     Vector3Dd tempInitDir;
 
-    this->position2 = Vec3::squareTerms(this->position);
-    this->direction2 = Vec3::squareTerms(this->direction);
-    this->positionDirection = Vec3::evaluated(this->position, this->direction);
+    this->position2 = this->position.multiply(this->position);
+    this->direction2 = this->direction.multiply(this->direction);
+    this->positionDirection = this->position.multiply(this->direction);
     RayWithSegments::mixVectorTerms(
         this->mixedPositionPosition, this->position, this->position);
     RayWithSegments::mixVectorTerms(

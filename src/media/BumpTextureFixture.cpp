@@ -15,7 +15,6 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "media/Texture.h"
 
 void
@@ -48,11 +47,10 @@ BumpTextureFixture::ripples(
             Logger::info(" index %g scalar %g length %g\n", index, scalar, length);
         }
 
-        point = Vec3::scaled(
-            point, scalar / length / (double)Texture::NUMBER_OF_WAVES);
+        point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
     }
-    *normal = Vec3::normalized(*normal);
+    *normal = (*normal).normalizedFast();
 }
 
 void
@@ -83,11 +81,10 @@ BumpTextureFixture::waves(
         sinValue = TextureUtils::cycloidal(index);
 
         scalar = sinValue * texture->bumpAmount / TextureUtils::waveFrequency()[i];
-        point = Vec3::scaled(
-            point, scalar / length / (double)Texture::NUMBER_OF_WAVES);
+        point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
     }
-    *normal = Vec3::normalized(*normal);
+    *normal = (*normal).normalizedFast();
 }
 
 void
@@ -105,9 +102,9 @@ BumpTextureFixture::bumps(
     }
 
     TextureUtils::DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
-    bumpTurb = Vec3::scaled(bumpTurb, texture->bumpAmount);
+    bumpTurb = bumpTurb.multiply(texture->bumpAmount);
     *normal = normal->add(bumpTurb); /* displace "normal" */
-    *normal = Vec3::normalized(*normal);   /* normalize normal! */
+    *normal = (*normal).normalizedFast();   /* normalize normal! */
 }
 
 /*
@@ -136,9 +133,9 @@ BumpTextureFixture::dents(
     TextureUtils::DNoise(
         &stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
 
-    stuccoTurb = Vec3::scaled(stuccoTurb, noise);
+    stuccoTurb = stuccoTurb.multiply(noise);
     *normal = normal->add(stuccoTurb); /* displace "normal" */
-    *normal = Vec3::normalized(*normal);     /* normalize normal! */
+    *normal = (*normal).normalizedFast();     /* normalize normal! */
 }
 
 /*
@@ -185,7 +182,7 @@ BumpTextureFixture::wrinkles(
     }
     result = Vector3Dd(rx, ry, rz);
 
-    result = Vec3::scaled(result, texture->bumpAmount);
+    result = result.multiply(texture->bumpAmount);
     *normal = normal->add(result); /* displace "normal" */
-    *normal = Vec3::normalized(*normal); /* normalize normal! */
+    *normal = (*normal).normalizedFast(); /* normalize normal! */
 }

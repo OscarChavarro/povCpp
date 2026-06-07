@@ -22,7 +22,6 @@
 #include <cstdio>
 #include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 
 static Texture *defaultTextureInstance;
 static double *sinTableInstance;
@@ -198,7 +197,7 @@ TextureUtils::initializeNoise()
 
     for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         TextureUtils::DNoise(&point, (double)i, 0.0, 0.0);
-        TextureUtils::waveSources()[i] = Vec3::normalized(point);
+        TextureUtils::waveSources()[i] = point.normalizedFast();
         TextureUtils::waveFrequency()[i] = (rand() & Texture::RNDMASK) / Texture::rndDivisor + 0.01;
     }
 }

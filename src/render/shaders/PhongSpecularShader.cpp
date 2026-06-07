@@ -1,6 +1,5 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include <cmath>
 
@@ -22,11 +21,11 @@ PhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
         localNormal = *surfaceNormal;
         cosAngleOfIncidence = -cosAngleOfIncidence;
     } else {
-        localNormal = Vec3::scaled(*surfaceNormal, -1.0);
+        localNormal = (*surfaceNormal).multiply(-1.0);
     }
 
-    normalProjection = Vec3::scaled(localNormal, cosAngleOfIncidence);
-    normalProjection = Vec3::scaled(normalProjection, 2.0);
+    normalProjection = localNormal.multiply(cosAngleOfIncidence);
+    normalProjection = normalProjection.multiply(2.0);
     reflectDirection = eye.add(normalProjection);
 
     cosAngleOfIncidence =

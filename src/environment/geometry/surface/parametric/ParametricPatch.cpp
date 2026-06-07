@@ -12,7 +12,6 @@
 #include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
@@ -640,12 +639,12 @@ ParametricBiCubicPatch::parametricSplitLeftRight(Vector3Dd (*patch)[4][4],
     int j;
     for (i = 0; i < 4; i++) {
         temp1[0] = (*patch)[i][0];
-        temp1[1] = Vec3::half((*patch)[i][0], (*patch)[i][1]);
-        half = Vec3::half((*patch)[i][1], (*patch)[i][2]);
-        temp1[2] = Vec3::half(temp1[1], half);
-        temp2[2] = Vec3::half((*patch)[i][2], (*patch)[i][3]);
-        temp2[1] = Vec3::half(half, temp2[2]);
-        temp1[3] = Vec3::half(temp1[2], temp2[1]);
+        temp1[1] = ((*patch)[i][0]).midpoint((*patch)[i][1]);
+        half = ((*patch)[i][1]).midpoint((*patch)[i][2]);
+        temp1[2] = temp1[1].midpoint(half);
+        temp2[2] = ((*patch)[i][2]).midpoint((*patch)[i][3]);
+        temp2[1] = half.midpoint(temp2[2]);
+        temp1[3] = temp1[2].midpoint(temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[i][3];
         for (j = 0; j < 4; j++) {
@@ -668,12 +667,12 @@ ParametricBiCubicPatch::parametricSplitUpDown(Vector3Dd (*patch)[4][4],
     for (i = 0; i < 4; i++) {
         /* Split Left */
         temp1[0] = (*patch)[0][i];
-        temp1[1] = Vec3::half((*patch)[0][i], (*patch)[1][i]);
-        half = Vec3::half((*patch)[1][i], (*patch)[2][i]);
-        temp1[2] = Vec3::half(temp1[1], half);
-        temp2[2] = Vec3::half((*patch)[2][i], (*patch)[3][i]);
-        temp2[1] = Vec3::half(half, temp2[2]);
-        temp1[3] = Vec3::half(temp1[2], temp2[1]);
+        temp1[1] = ((*patch)[0][i]).midpoint((*patch)[1][i]);
+        half = ((*patch)[1][i]).midpoint((*patch)[2][i]);
+        temp1[2] = temp1[1].midpoint(half);
+        temp2[2] = ((*patch)[2][i]).midpoint((*patch)[3][i]);
+        temp2[1] = half.midpoint(temp2[2]);
+        temp1[3] = temp1[2].midpoint(temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[3][i];
         for (j = 0; j < 4; j++) {
@@ -1076,7 +1075,7 @@ ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
             patch->Control_Points[i][j] =
-                Vec3::evaluated(patch->Control_Points[i][j], *vector);
+                patch->Control_Points[i][j].multiply(*vector);
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);

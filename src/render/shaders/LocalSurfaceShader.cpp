@@ -1,5 +1,4 @@
 #include "render/shaders/LocalSurfaceShader.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "render/shaders/TraceService.h"
 #include "common/color/Color.h"
 #include "environment/geometry/Intersection.h"
@@ -52,7 +51,7 @@ of the object and how much is transmited through. */
     /* If the surface normal points away, flip its direction. */
     normalDirection = surfaceNormal.dotProduct(ray->direction);
     if (normalDirection > 0.0) {
-        surfaceNormal = Vec3::scaled(surfaceNormal, -1.0);
+        surfaceNormal = surfaceNormal.multiply(-1.0);
     }
 
     attenuation = filterColor->Alpha * (1.0 - surfaceColor->Alpha);

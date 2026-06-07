@@ -13,7 +13,6 @@
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/linealAlgebra/Vector3DdOps.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>
 Methods Blob::methodTable = {Blob::allBlobIntersections,
@@ -429,7 +428,7 @@ Blob::allBlobIntersections(
                 the currently active components of the blob */
             if ((dist >= intervals[i].bound) &&
                 (dist <= intervals[i + 1].bound)) {
-                intersectionPoint = Vec3::scaled(d, dist);
+                intersectionPoint = d.multiply(dist);
                 intersectionPoint = intersectionPoint.add(p);
                 if (true || Blob::validateHit(blob, &intersectionPoint)) {
                     /* Only add this hit if it really is near the surface, we
@@ -523,14 +522,14 @@ Blob::blobNormal(
         *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
         val = 1.0 / sqrt(val);
-        *result = Vec3::scaled(*result, val);
+        *result = (*result).multiply(val);
     }
 
     /* Transform back to world space */
     if (blob->Transform != nullptr) {
         Transformation::MTransNormal(result, result, blob->Transform);
     }
-    *result = Vec3::normalized(*result);
+    *result = (*result).normalizedFast();
 }
 
 void *

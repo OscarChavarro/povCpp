@@ -15,26 +15,6 @@
 
 Vector2Df::Vector2Df(const Vector2Dd& other) : x_((float)other.x), y_((float)other.y) {}
 
-Vector3Dd Vector3Dd::crossProduct(const Vector3Dd& other) const
-{
-    return Vector3Dd(y_ * other.z_ - z_ * other.y_, z_ * other.x_ - x_ * other.z_, x_ * other.y_ - y_ * other.x_);
-}
-
-double Vector3Dd::dotProduct(const Vector3Dd& other) const { return x_ * other.x_ + y_ * other.y_ + z_ * other.z_; }
-
-double Vector3Dd::length() const { return std::sqrt(x_ * x_ + y_ * y_ + z_ * z_); }
-
-Vector3Dd Vector3Dd::normalized() const
-{
-    double t = x_ * x_ + y_ * y_ + z_ * z_;
-    if ( std::abs(t) < VSDK::EPSILON ) return *this;
-    if ( t != 0.0 && t != 1.0 ) t = 1.0 / std::sqrt(t);
-    return Vector3Dd(x_ * t, y_ * t, z_ * t);
-}
-
-Vector3Dd Vector3Dd::add(const Vector3Dd& b) const { return Vector3Dd(x_ + b.x_, y_ + b.y_, z_ + b.z_); }
-Vector3Dd Vector3Dd::subtract(const Vector3Dd& b) const { return Vector3Dd(x_ - b.x_, y_ - b.y_, z_ - b.z_); }
-
 bool Vector3Dd::epsilonEquals(const Vector3Dd& other, double epsilon) const
 {
     if ( epsilon < 0.0 ) throw std::invalid_argument("epsilon must be >= 0");

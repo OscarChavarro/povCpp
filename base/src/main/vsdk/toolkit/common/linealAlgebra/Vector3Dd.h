@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <cstring>
+#include "vsdk/toolkit/common/VSDK.h"
 #include "java/lang/String.h"
 
 class Vector3Dd {
@@ -21,19 +22,57 @@ class Vector3Dd {
     }
 
 public:
-    Vector3Dd() : x_(0.0), y_(0.0), z_(0.0) {}
-    Vector3Dd(double x, double y, double z) : x_(x), y_(y), z_(z) {}
-    Vector3Dd(const Vector3Dd& other) : x_(other.x_), y_(other.y_), z_(other.z_) {}
+    inline Vector3Dd() : x_(0.0), y_(0.0), z_(0.0) {}
+    inline Vector3Dd(double x, double y, double z) : x_(x), y_(y), z_(z) {}
+    inline Vector3Dd(const Vector3Dd& other) : x_(other.x_), y_(other.y_), z_(other.z_) {}
 
-    static Vector3Dd copyOf(const Vector3Dd& other) { return Vector3Dd(other); }
+    static inline Vector3Dd copyOf(const Vector3Dd& other) { return Vector3Dd(other); }
 
-    Vector3Dd multiply(double a) const { return Vector3Dd(a * x_, a * y_, a * z_); }
-    Vector3Dd crossProduct(const Vector3Dd& other) const;
-    double dotProduct(const Vector3Dd& other) const;
-    Vector3Dd normalized() const;
-    double length() const;
-    Vector3Dd add(const Vector3Dd& b) const;
-    Vector3Dd subtract(const Vector3Dd& b) const;
+    inline Vector3Dd multiply(double a) const { return Vector3Dd(a * x_, a * y_, a * z_); }
+    inline Vector3Dd multiply(const Vector3Dd& other) const
+    {
+        return Vector3Dd(x_ * other.x_, y_ * other.y_, z_ * other.z_);
+    }
+    inline Vector3Dd midpoint(const Vector3Dd& other) const
+    {
+        return Vector3Dd(
+            0.5 * (x_ + other.x_), 0.5 * (y_ + other.y_), 0.5 * (z_ + other.z_));
+    }
+    inline Vector3Dd crossProduct(const Vector3Dd& other) const
+    {
+        return Vector3Dd(
+            y_ * other.z_ - z_ * other.y_, z_ * other.x_ - x_ * other.z_,
+            x_ * other.y_ - y_ * other.x_);
+    }
+    inline double dotProduct(const Vector3Dd& other) const
+    {
+        return x_ * other.x_ + y_ * other.y_ + z_ * other.z_;
+    }
+    inline Vector3Dd normalized() const
+    {
+        double t = x_ * x_ + y_ * y_ + z_ * z_;
+        if (std::abs(t) < VSDK::EPSILON) {
+            return *this;
+        }
+        if (t != 0.0 && t != 1.0) {
+            t = 1.0 / std::sqrt(t);
+        }
+        return Vector3Dd(x_ * t, y_ * t, z_ * t);
+    }
+    inline Vector3Dd normalizedFast() const
+    {
+        const double vTemp = std::sqrt(x_*x_ + y_*y_ + z_*z_);
+        return Vector3Dd(x_ / vTemp, y_ / vTemp, z_ / vTemp);
+    }
+    inline double length() const { return std::sqrt(x_ * x_ + y_ * y_ + z_ * z_); }
+    inline Vector3Dd add(const Vector3Dd& b) const
+    {
+        return Vector3Dd(x_ + b.x_, y_ + b.y_, z_ + b.z_);
+    }
+    inline Vector3Dd subtract(const Vector3Dd& b) const
+    {
+        return Vector3Dd(x_ - b.x_, y_ - b.y_, z_ - b.z_);
+    }
     float* exportToFloatArrayVector() const;
     double obtainSphericalThetaAngle() const;
     double obtainSphericalPhiAngle() const;
