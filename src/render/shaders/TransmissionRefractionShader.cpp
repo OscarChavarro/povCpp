@@ -5,7 +5,6 @@
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/scene/SceneFrame.h"
 
 
 void

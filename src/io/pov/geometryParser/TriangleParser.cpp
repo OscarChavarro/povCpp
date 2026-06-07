@@ -8,7 +8,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 #include "io/pov/mediaParser/TextureParser.h"
 
 
@@ -24,7 +23,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
 {
     (void)ctx;
     Triangle *localShape;
-    CONSTANT constantId;
+    int constantId;
     Vector3Dd localVector;
     Texture *localTexture;
     Texture *tempTexture;
@@ -55,7 +54,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 break;
 
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::TRIANGLE_CONSTANT) {
                         localShape = (Triangle *)GeometryOperations::copy(

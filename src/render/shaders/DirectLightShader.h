@@ -7,14 +7,16 @@
 class RayWithSegments;
 class RGBAColor;
 class TraceService;
-class RenderFrame;
+class Light;
+class SimpleBody;
 
 class DirectLightShader {
 public:
     static void shade(Texture *texture, Vector3Dd *intersectionPoint,
         RayWithSegments *eye, Vector3Dd *surfaceNormal,
         RGBAColor *surfaceColor, RGBAColor *color, double attenuation,
-        const TraceService *traceService, const RenderFrame &frame);
+        const TraceService *traceService, Light *lightSources,
+        SimpleBody *objects);
 };
 
 #endif

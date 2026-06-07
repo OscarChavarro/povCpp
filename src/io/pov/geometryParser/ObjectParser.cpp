@@ -5,7 +5,6 @@
 #include "io/pov/ParseGlobals.h"
 #include "io/pov/ParseHelpers.h"
 #include "io/pov/PrimitiveParser.h"
-#include "io/pov/SceneConfigParser.h"
 #include "io/pov/geometryParser/BicubicPatchParser.h"
 #include "io/pov/geometryParser/BlobParser.h"
 #include "io/pov/geometryParser/BoxParser.h"
@@ -177,7 +176,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
     CSG *container = nullptr;
     Geometry *localShape;
     Vector3Dd localVector;
-    CONSTANT constantId;
+    int constantId;
     bool firstShapeParsed = false;
 
     if (type == GeometryOperations::CSG_UNION_TYPE) {
@@ -197,7 +196,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if ((ctx.constants()[(int)constantId].constantType ==
                             ParseGlobals::CSG_INTERSECTION_CONSTANT) ||
                         (ctx.constants()[(int)constantId].constantType ==
@@ -562,7 +561,7 @@ ObjectParser::parseObject(ParserContext &ctx)
     SimpleBody *object;
     Geometry *localShape;
     Vector3Dd localVector;
-    CONSTANT constantId;
+    int constantId;
     Texture *localTexture;
     Texture *tempTexture;
 
@@ -577,7 +576,7 @@ ObjectParser::parseObject(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::OBJECT_CONSTANT) {
                         object = (SimpleBody *)GeometryOperations::copy(
@@ -760,7 +759,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
     Composite *localComposite;
     SimpleBody *localObject;
     Geometry *localShape;
-    CONSTANT constantId;
+    int constantId;
     Vector3Dd localVector;
 
     localComposite = nullptr;
@@ -774,7 +773,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
-                if ((constantId = SceneConfigParser::findConstant(ctx)) != -1) {
+                if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
                         localComposite = (Composite *)GeometryOperations::copy(
