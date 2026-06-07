@@ -14,7 +14,7 @@
 #include "media/TextureFixture.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
 /* Test new textures in the routines that follow */
@@ -41,21 +41,22 @@ TextureFixture::painted1(
         Logger::info("painted1 %g %g %g\n", x, y, z);
     }
 
-    result.x = 0.0;
-    result.y = 0.0;
-    result.z = 0.0;
+    double rx = 0.0;
+    double ry = 0.0;
+    double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
         TextureUtils::DNoise(&colourVector, x, y, z);
-        temp = TextureUtils::Noise(colourVector.x * 4 * scale,
-            colourVector.y * 4 * scale, colourVector.z * 4 * scale);
+        temp = TextureUtils::Noise(colourVector.x() * 4 * scale,
+            colourVector.y() * 4 * scale, colourVector.z() * 4 * scale);
         temp = TextureUtils::fabsInline(temp);
-        result.x += temp / scale;
-        result.y += temp / scale;
-        result.z += temp / scale;
+        rx += temp / scale;
+        ry += temp / scale;
+        rz += temp / scale;
     }
+    result = Vector3Dd(rx, ry, rz);
 
-    temp = result.x;
+    temp = result.x();
     if (texture->Colour_Map != nullptr) {
         TextureUtils::computeColour(&newColour, texture->Colour_Map, temp);
         colour->Red += newColour.Red;
@@ -97,9 +98,9 @@ TextureFixture::painted2(
     if ((turb = texture->Turbulence) != 0.0) {
         TextureUtils::DTurbulence(
             &textureTurbulence, x, y, z, texture->Octaves);
-        x += textureTurbulence.x * turb;
-        y += textureTurbulence.y * turb;
-        z += textureTurbulence.z * turb;
+        x += textureTurbulence.x() * turb;
+        y += textureTurbulence.y() * turb;
+        z += textureTurbulence.z() * turb;
     }
 
     brkindx = (int)TextureUtils::floorInline(x) + (int)TextureUtils::floorInline(z);

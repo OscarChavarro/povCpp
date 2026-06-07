@@ -2,7 +2,8 @@
 #include "render/shaders/TraceService.h"
 #include "common/Statistics.h"
 #include "common/color/Color.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
@@ -26,19 +27,19 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
             localNormal = *surfaceNormal;
             normalComponent *= -1.0;
         } else {
-            VectorOps::vScale(localNormal, *surfaceNormal, -1.0);
+            localNormal = Vec3::scaled(*surfaceNormal, -1.0);
         }
 
-        VectorOps::vScale(normalProjection, localNormal, normalComponent);
-        normalProjection.scale(2.0);
-        VectorOps::vAdd(newRay.direction, ray->direction, normalProjection);
+        normalProjection = Vec3::scaled(localNormal, normalComponent);
+        normalProjection = Vec3::scaled(normalProjection, 2.0);
+        newRay.direction = ray->direction.add(normalProjection);
         newRay.position = *intersectionPoint;
 
         /* ARE 08/25/91 */
 
-        VectorOps::vScale(
-            surfaceOffset, newRay.direction, 2.0 * GeometryConstants::Small_Tolerance);
-        newRay.position.add(surfaceOffset);
+        surfaceOffset = Vec3::scaled(
+            newRay.direction, 2.0 * GeometryConstants::Small_Tolerance);
+        newRay.position = newRay.position.add(surfaceOffset);
 
         newRay.copyContainersFrom(ray);
         traceLevel++;

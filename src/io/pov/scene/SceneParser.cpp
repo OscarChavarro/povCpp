@@ -1,7 +1,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/linealAlgebra/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneParser.h"
 #include "io/pov/scene/SceneFrameParser.h"

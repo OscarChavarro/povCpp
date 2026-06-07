@@ -2,7 +2,7 @@
 #include "io/pov/texture/ColorMapParser.h"
 #include "common/color/RGBAColorPalette.h"
 #include "common/color/RGBAColorPaletteSpan.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"

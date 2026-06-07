@@ -1,5 +1,5 @@
 #include "io/pov/context/ParserContext.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"

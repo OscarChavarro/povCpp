@@ -1,6 +1,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/SmoothTriangleParser.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/scene/ModelBuilder.h"
@@ -44,13 +45,13 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                     (SmoothTriangle *)ModelBuilder::getSmoothTriangleShape();
                 PrimitiveParser::parseVector(&localShape->P1, ctx);
                 PrimitiveParser::parseVector(&localShape->N1, ctx);
-                localShape->N1.normalize();
+                localShape->N1 = Vec3::normalized(localShape->N1);
                 PrimitiveParser::parseVector(&localShape->P2, ctx);
                 PrimitiveParser::parseVector(&localShape->N2, ctx);
-                localShape->N2.normalize();
+                localShape->N2 = Vec3::normalized(localShape->N2);
                 PrimitiveParser::parseVector(&localShape->P3, ctx);
                 PrimitiveParser::parseVector(&localShape->N3, ctx);
-                localShape->N3.normalize();
+                localShape->N3 = Vec3::normalized(localShape->N3);
                 if (!Triangle::computeTriangle((Triangle *)localShape)) {
                     Logger::error(
                         "Degenerate triangle on line %d.  Please remove.\n",

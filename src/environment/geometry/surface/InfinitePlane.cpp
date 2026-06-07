@@ -7,7 +7,8 @@
 
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "common/Statistics.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 Methods InfinitePlane::methodTable = {
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
     InfinitePlane::planeNormal, InfinitePlane::copyPlane,
@@ -27,8 +28,8 @@ InfinitePlane::allPlaneIntersections(
         if (depth > GeometryConstants::Small_Tolerance) {
             localElement.Depth = depth;
             localElement.Object = nullptr;
-            VectorOps::vScale(intersectionPoint, ray->direction, depth);
-            intersectionPoint.add(ray->position);
+            intersectionPoint = Vec3::scaled(ray->direction, depth);
+            intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -129,8 +130,8 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
     InfinitePlane *plane = (InfinitePlane *)object;
     Vector3Dd translation;
 
-    VectorOps::vEvaluate(translation, plane->normalVector, *vector);
-    plane->Distance -= translation.x + translation.y + translation.z;
+    translation = Vec3::evaluated(plane->normalVector, *vector);
+    plane->Distance -= translation.x() + translation.y() + translation.z();
 
     TextureUtils::translateTexture(&plane->Shape_Texture, vector);
 }
@@ -154,12 +155,13 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
     double length;
     InfinitePlane *plane = (InfinitePlane *)object;
 
-    plane->normalVector.x = plane->normalVector.x / vector->x;
-    plane->normalVector.y = plane->normalVector.y / vector->y;
-    plane->normalVector.z = plane->normalVector.z / vector->z;
+    plane->normalVector = Vector3Dd(
+        plane->normalVector.x() / vector->x(),
+        plane->normalVector.y() / vector->y(),
+        plane->normalVector.z() / vector->z());
 
     length = plane->normalVector.length();
-    plane->normalVector.scale(1.0 / length);
+    plane->normalVector = Vec3::scaled(plane->normalVector, 1.0 / length);
     plane->Distance /= length;
 
     TextureUtils::scaleTexture(
@@ -171,6 +173,6 @@ InfinitePlane::invertPlane(SimpleBody *object)
 {
     InfinitePlane *plane = (InfinitePlane *)object;
 
-    plane->normalVector.scale(-1.0);
+    plane->normalVector = Vec3::scaled(plane->normalVector, -1.0);
     plane->Distance *= -1.0;
 }

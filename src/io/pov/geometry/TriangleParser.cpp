@@ -1,6 +1,6 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/TriangleParser.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/scene/ModelBuilder.h"

@@ -1,4 +1,5 @@
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/camera/Camera.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/camera/CameraParser.h"
@@ -77,19 +78,20 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 handedness = tempVector.dotProduct(givenVp->Right);
                 PrimitiveParser::parseVector(&givenVp->Direction, ctx);
 
-                givenVp->Direction.sub(givenVp->Location);
-                givenVp->Direction.normalize();
+                givenVp->Direction =
+                    givenVp->Direction.subtract(givenVp->Location);
+                givenVp->Direction = Vec3::normalized(givenVp->Direction);
                 givenVp->Right = givenVp->Direction.crossProduct(givenVp->Sky);
-                givenVp->Right.normalize();
+                givenVp->Right = Vec3::normalized(givenVp->Right);
                 givenVp->Up = givenVp->Right.crossProduct(givenVp->Direction);
-                givenVp->Direction.scale(directionLength);
+                givenVp->Direction = Vec3::scaled(givenVp->Direction, directionLength);
                 if (handedness >= 0.0) {
-                    givenVp->Right.scale(rightLength);
+                    givenVp->Right = Vec3::scaled(givenVp->Right, rightLength);
                 } else {
-                    givenVp->Right.scale(-rightLength);
+                    givenVp->Right = Vec3::scaled(givenVp->Right, -rightLength);
                 }
 
-                givenVp->Up.scale(upLength);
+                givenVp->Up = Vec3::scaled(givenVp->Up, upLength);
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

@@ -28,9 +28,9 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
         transformedPoint = *intersectionPoint;
     }
 
-    x = transformedPoint.x;
-    y = transformedPoint.y;
-    z = transformedPoint.z;
+    x = transformedPoint.x();
+    y = transformedPoint.y();
+    z = transformedPoint.z();
 
     switch (texture->bumpNumber) {
 

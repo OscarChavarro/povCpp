@@ -11,7 +11,8 @@
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
@@ -205,16 +206,17 @@ ParametricBiCubicPatch::parametricValue(
     t[3][2] = 3.0 * u3 * v2 * vv1;
     t[3][3] = u3 * v3;
 
-    result->x = 0.0;
-    result->y = 0.0;
-    result->z = 0.0;
+    double rx = 0.0;
+    double ry = 0.0;
+    double rz = 0.0;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            result->x += t[i][j] * (*controlPoints)[i][j].x;
-            result->y += t[i][j] * (*controlPoints)[i][j].y;
-            result->z += t[i][j] * (*controlPoints)[i][j].z;
+            rx += t[i][j] * (*controlPoints)[i][j].x();
+            ry += t[i][j] * (*controlPoints)[i][j].y();
+            rz += t[i][j] * (*controlPoints)[i][j].z();
         }
     }
+    *result = Vector3Dd(rx, ry, rz);
 }
 
 /* Calculate the normal to a bezier patch for a particular axis, at
@@ -265,27 +267,25 @@ ParametricBiCubicPatch::parametricPartial(
     t[3][1] = 9.0 * u2 * v * (v2 - 2.0 * v + 1.0);
     t[3][2] = 9.0 * u2 * v2 * (v - 1.0);
     t[3][3] = 3.0 * u2 * v3;
-    uVec.x = 0.0;
-    uVec.y = 0.0;
-    uVec.z = 0.0;
+    double ux = 0.0;
+    double uy = 0.0;
+    double uz = 0.0;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            uVec.x += t[i][j] * shape->Control_Points[i][j].x;
-            uVec.y += t[i][j] * shape->Control_Points[i][j].y;
-            uVec.z += t[i][j] * shape->Control_Points[i][j].z;
+            ux += t[i][j] * shape->Control_Points[i][j].x();
+            uy += t[i][j] * shape->Control_Points[i][j].y();
+            uz += t[i][j] * shape->Control_Points[i][j].z();
         }
     }
-    temp = uVec.x * uVec.x + uVec.y * uVec.y + uVec.z * uVec.z;
+    temp = ux * ux + uy * uy + uz * uz;
     if (temp < EPSILON) {
         /* Partial with respect to u is undefined. */
-        result->x = 1.0;
-        result->y = 0.0;
-        result->z = 0.0;
+        *result = Vector3Dd(1.0, 0.0, 0.0);
         /* *Result = *n; */
         return;
     }
     temp = sqrt(temp);
-    uVec.inverseScale(temp);
+    uVec = Vector3Dd(ux / temp, uy / temp, uz / temp);
 
     /* Calculate the derivative with respect to v */
     t[0][0] = 3.0 * (v2 - 2.0 * v + 1.0) * (u3 - 3.0 * u2 + 3.0 * u - 1.0);
@@ -305,26 +305,24 @@ ParametricBiCubicPatch::parametricPartial(
     t[3][1] = 3.0 * u3 * (3.0 * v2 - 4.0 * v + 1.0);
     t[3][2] = 3.0 * u3 * v * (3.0 * v - 2.0);
     t[3][3] = 3.0 * u3 * v2;
-    vVec.x = 0.0;
-    vVec.y = 0.0;
-    vVec.z = 0.0;
+    double vx = 0.0;
+    double vy = 0.0;
+    double vz = 0.0;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            vVec.x += t[i][j] * shape->Control_Points[i][j].x;
-            vVec.y += t[i][j] * shape->Control_Points[i][j].y;
-            vVec.z += t[i][j] * shape->Control_Points[i][j].z;
+            vx += t[i][j] * shape->Control_Points[i][j].x();
+            vy += t[i][j] * shape->Control_Points[i][j].y();
+            vz += t[i][j] * shape->Control_Points[i][j].z();
         }
     }
-    temp = vVec.x * vVec.x + vVec.y * vVec.y + vVec.z * vVec.z;
+    temp = vx * vx + vy * vy + vz * vz;
     if (temp < EPSILON) {
         /* Partial with respect to u is undefined. */
-        result->x = 1.0;
-        result->y = 0.0;
-        result->z = 0.0;
+        *result = Vector3Dd(1.0, 0.0, 0.0);
         return;
     }
     temp = sqrt(temp);
-    vVec.inverseScale(temp);
+    vVec = Vector3Dd(vx / temp, vy / temp, vz / temp);
 
     *result = uVec.crossProduct(vVec);
 }
@@ -344,26 +342,24 @@ ParametricBiCubicPatch::findAverage(
     double z0;
     int i;
     for (i = 0; i < vectorCount; i++) {
-        xc += vectors[i].x;
-        yc += vectors[i].y;
-        zc += vectors[i].z;
+        xc += vectors[i].x();
+        yc += vectors[i].y();
+        zc += vectors[i].z();
     }
     xc /= (double)vectorCount;
     yc /= (double)vectorCount;
     zc /= (double)vectorCount;
     r0 = 0.0;
     for (i = 0; i < vectorCount; i++) {
-        x0 = vectors[i].x - xc;
-        y0 = vectors[i].y - yc;
-        z0 = vectors[i].z - zc;
+        x0 = vectors[i].x() - xc;
+        y0 = vectors[i].y() - yc;
+        z0 = vectors[i].z() - zc;
         r1 = x0 * x0 + y0 * y0 + z0 * z0;
         if (r1 > r0) {
             r0 = r1;
         }
     }
-    center->x = xc;
-    center->y = yc;
-    center->z = zc;
+    *center = Vector3Dd(xc, yc, zc);
     *radius = r0;
 }
 
@@ -386,9 +382,9 @@ ParametricBiCubicPatch::parametricBoundingSphere(
     int j;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            xc += (*patch)[i][j].x;
-            yc += (*patch)[i][j].y;
-            zc += (*patch)[i][j].z;
+            xc += (*patch)[i][j].x();
+            yc += (*patch)[i][j].y();
+            zc += (*patch)[i][j].z();
         }
     }
     xc /= 16.0;
@@ -397,18 +393,16 @@ ParametricBiCubicPatch::parametricBoundingSphere(
     r0 = 0.0;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            x0 = (*patch)[i][j].x - xc;
-            y0 = (*patch)[i][j].y - yc;
-            z0 = (*patch)[i][j].z - zc;
+            x0 = (*patch)[i][j].x() - xc;
+            y0 = (*patch)[i][j].y() - yc;
+            z0 = (*patch)[i][j].z() - zc;
             r1 = x0 * x0 + y0 * y0 + z0 * z0;
             if (r1 > r0) {
                 r0 = r1;
             }
         }
     }
-    center->x = xc;
-    center->y = yc;
-    center->z = zc;
+    *center = Vector3Dd(xc, yc, zc);
     *radius = r0;
 }
 
@@ -549,9 +543,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
                     shape->Interpolated_Normals[i][2 * j] = n;
                     shape->Interpolated_D[i][2 * j] = d;
                 } else {
-                    shape->Interpolated_Normals[i][2 * j].x = 0.0;
-                    shape->Interpolated_Normals[i][2 * j].y = 0.0;
-                    shape->Interpolated_Normals[i][2 * j].z = 0.0;
+                    shape->Interpolated_Normals[i][2 * j] = Vector3Dd(0.0, 0.0, 0.0);
                     shape->Interpolated_D[i][2 * j] = 0.0;
                 }
 
@@ -560,9 +552,8 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
                     shape->Interpolated_Normals[i][2 * j + 1] = n;
                     shape->Interpolated_D[i][2 * j + 1] = d;
                 } else {
-                    shape->Interpolated_Normals[i][2 * j + 1].x = 0.0;
-                    shape->Interpolated_Normals[i][2 * j + 1].y = 0.0;
-                    shape->Interpolated_Normals[i][2 * j + 1].z = 0.0;
+                    shape->Interpolated_Normals[i][2 * j + 1] =
+                        Vector3Dd(0.0, 0.0, 0.0);
                     shape->Interpolated_D[i][2 * j + 1] = 0.0;
                 }
             }
@@ -649,12 +640,12 @@ ParametricBiCubicPatch::parametricSplitLeftRight(Vector3Dd (*patch)[4][4],
     int j;
     for (i = 0; i < 4; i++) {
         temp1[0] = (*patch)[i][0];
-        VectorOps::vHalf(temp1[1], (*patch)[i][0], (*patch)[i][1]);
-        VectorOps::vHalf(half, (*patch)[i][1], (*patch)[i][2]);
-        temp1[2] = temp1[1].half(half);
-        VectorOps::vHalf(temp2[2], (*patch)[i][2], (*patch)[i][3]);
-        temp2[1] = half.half(temp2[2]);
-        temp1[3] = temp1[2].half(temp2[1]);
+        temp1[1] = Vec3::half((*patch)[i][0], (*patch)[i][1]);
+        half = Vec3::half((*patch)[i][1], (*patch)[i][2]);
+        temp1[2] = Vec3::half(temp1[1], half);
+        temp2[2] = Vec3::half((*patch)[i][2], (*patch)[i][3]);
+        temp2[1] = Vec3::half(half, temp2[2]);
+        temp1[3] = Vec3::half(temp1[2], temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[i][3];
         for (j = 0; j < 4; j++) {
@@ -677,12 +668,12 @@ ParametricBiCubicPatch::parametricSplitUpDown(Vector3Dd (*patch)[4][4],
     for (i = 0; i < 4; i++) {
         /* Split Left */
         temp1[0] = (*patch)[0][i];
-        VectorOps::vHalf(temp1[1], (*patch)[0][i], (*patch)[1][i]);
-        VectorOps::vHalf(half, (*patch)[1][i], (*patch)[2][i]);
-        temp1[2] = temp1[1].half(half);
-        VectorOps::vHalf(temp2[2], (*patch)[2][i], (*patch)[3][i]);
-        temp2[1] = half.half(temp2[2]);
-        temp1[3] = temp1[2].half(temp2[1]);
+        temp1[1] = Vec3::half((*patch)[0][i], (*patch)[1][i]);
+        half = Vec3::half((*patch)[1][i], (*patch)[2][i]);
+        temp1[2] = Vec3::half(temp1[1], half);
+        temp2[2] = Vec3::half((*patch)[2][i], (*patch)[3][i]);
+        temp2[1] = Vec3::half(half, temp2[2]);
+        temp1[3] = Vec3::half(temp1[2], temp2[1]);
         temp2[0] = temp1[3];
         temp2[3] = (*patch)[3][i];
         for (j = 0; j < 4; j++) {
@@ -709,7 +700,7 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
 
     vertices[0] = (*patch)[0][0];
     vertices[1] = (*patch)[0][3];
-    VectorOps::vSub(tempV, vertices[0], vertices[1]);
+    tempV = vertices[0].subtract(vertices[1]);
     temp1 = tempV.length();
     if (fabs(temp1) < EPSILON) {
         /* Degenerate in the V direction for U = 0. This is ok if the other
@@ -717,40 +708,40 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
             are cases where the corners coincide and the middle has good values,
             but that is somewhat pathalogical and won't be considered. */
         vertices[1] = (*patch)[3][3];
-        VectorOps::vSub(tempV, vertices[0], vertices[1]);
+        tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
         vertices[2] = (*patch)[3][0];
-        VectorOps::vSub(tempV, vertices[0], vertices[1]);
+        tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
-        VectorOps::vSub(tempV, vertices[1], vertices[2]);
+        tempV = vertices[1].subtract(vertices[2]);
         temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             return -1.0;
         }
     } else {
         vertices[2] = (*patch)[3][0];
-        VectorOps::vSub(tempV, vertices[0], vertices[1]);
+        tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
         if (fabs(temp1) < EPSILON) {
             vertices[2] = (*patch)[3][3];
-            VectorOps::vSub(tempV, vertices[0], vertices[2]);
+            tempV = vertices[0].subtract(vertices[2]);
             temp1 = tempV.length();
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }
-            VectorOps::vSub(tempV, vertices[1], vertices[2]);
+            tempV = vertices[1].subtract(vertices[2]);
             temp1 = tempV.length();
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
             }
         } else {
-            VectorOps::vSub(tempV, vertices[1], vertices[2]);
+            tempV = vertices[1].subtract(vertices[2]);
             temp1 = tempV.length();
             if (fabs(temp1) < EPSILON) {
                 return -1.0;
@@ -1004,12 +995,10 @@ ParametricBiCubicPatch::bicubicPatchNormal(
        intersection was computed.  Look on the list of associated intersection
        points and normals */
     for (i = 0; i < patch->intersectionCount; i++) {
-        if (intersectionPoint->x == patch->Intersection_Point[i].x &&
-            intersectionPoint->y == patch->Intersection_Point[i].y &&
-            intersectionPoint->z == patch->Intersection_Point[i].z) {
-            result->x = patch->normalVector[i].x;
-            result->y = patch->normalVector[i].y;
-            result->z = patch->normalVector[i].z;
+        if (intersectionPoint->x() == patch->Intersection_Point[i].x() &&
+            intersectionPoint->y() == patch->Intersection_Point[i].y() &&
+            intersectionPoint->z() == patch->Intersection_Point[i].z()) {
+            *result = patch->normalVector[i];
             return;
         }
     }
@@ -1017,9 +1006,7 @@ ParametricBiCubicPatch::bicubicPatchNormal(
         Logger::info("Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }
-    result->x = 1.0;
-    result->y = 0.0;
-    result->z = 0.0;
+    *result = Vector3Dd(1.0, 0.0, 0.0);
 }
 
 void *
@@ -1050,8 +1037,8 @@ ParametricBiCubicPatch::translateBicubicPatch(
     int j;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            VectorOps::vAdd(patch->Control_Points[i][j],
-                patch->Control_Points[i][j], *vector);
+            patch->Control_Points[i][j] =
+                patch->Control_Points[i][j].add(*vector);
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
@@ -1088,8 +1075,8 @@ ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
     int j;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            VectorOps::vEvaluate(patch->Control_Points[i][j],
-                patch->Control_Points[i][j], *vector);
+            patch->Control_Points[i][j] =
+                Vec3::evaluated(patch->Control_Points[i][j], *vector);
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);

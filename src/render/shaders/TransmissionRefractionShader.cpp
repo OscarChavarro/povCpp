@@ -2,7 +2,8 @@
 #include "render/shaders/TraceService.h"
 #include "common/Statistics.h"
 #include "common/color/Color.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
@@ -39,12 +40,11 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         Statistics::global().refractedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
         if (normalComponent <= 0.0) {
-            localNormal.x = surfaceNormal->x;
-            localNormal.y = surfaceNormal->y;
-            localNormal.z = surfaceNormal->z;
+            localNormal = Vector3Dd(
+                surfaceNormal->x(), surfaceNormal->y(), surfaceNormal->z());
             normalComponent *= -1.0;
         } else {
-            VectorOps::vScale(localNormal, *surfaceNormal, -1.0);
+            localNormal = Vec3::scaled(*surfaceNormal, -1.0);
         }
 
         newRay.copyContainersFrom(ray);
@@ -88,10 +88,10 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         }
 
         temp = ior * normalComponent - sqrt(temp);
-        localNormal.scale(temp);
-        VectorOps::vScale(rayDirection, ray->direction, ior);
-        VectorOps::vAdd(newRay.direction, localNormal, rayDirection);
-        newRay.direction.normalize();
+        localNormal = Vec3::scaled(localNormal, temp);
+        rayDirection = Vec3::scaled(ray->direction, ior);
+        newRay.direction = localNormal.add(rayDirection);
+        newRay.direction = Vec3::normalized(newRay.direction);
 
         newRay.position = *intersectionPoint;
         traceLevel++;

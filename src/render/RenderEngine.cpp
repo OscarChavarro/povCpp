@@ -16,7 +16,8 @@
 #include "render/SceneDump.h"
 #include "common/logger/Logger.h"
 #include "common/color/Color.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "render/RenderOutput.h"
 #include "java/io/FileOutputStream.h"
 #include "render/RayShaderPipeline.h"
@@ -122,11 +123,12 @@ RenderFrame::createRay(
         (((double)(RenderEngine::renderFrame().screenHeight - 1) - y) - (double)height / 2.0) /
         (double)height;
 
-    VectorOps::vScale(tempVect1, RenderEngine::renderFrame().viewPoint.Up, yScalar);
-    VectorOps::vScale(tempVect2, RenderEngine::renderFrame().viewPoint.Right, xScalar);
-    VectorOps::vAdd(ray->direction, tempVect1, tempVect2);
-    ray->direction.add(RenderEngine::renderFrame().viewPoint.Direction);
-    ray->direction.normalize();
+    tempVect1 = Vec3::scaled(RenderEngine::renderFrame().viewPoint.Up, yScalar);
+    tempVect2 = Vec3::scaled(RenderEngine::renderFrame().viewPoint.Right, xScalar);
+    ray->direction = tempVect1.add(tempVect2);
+    ray->direction =
+        ray->direction.add(RenderEngine::renderFrame().viewPoint.Direction);
+    ray->direction = Vec3::normalized(ray->direction);
     ray->initializeContainers();
     ray->isPrimaryRay = true;
     ray->quadricConstantsCached = false;

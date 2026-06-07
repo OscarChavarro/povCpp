@@ -1,6 +1,7 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "common/Statistics.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
@@ -126,7 +127,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
             }
 
             n = shape->Interpolated_Normals[i][2 * j];
-            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+            if (n.x() == 0.0 && n.y() == 0.0 && n.z() == 0.0) {
                 goto l0;
             }
             d = shape->Interpolated_D[i][2 * j];
@@ -145,7 +146,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
             }
         l0:
             n = shape->Interpolated_Normals[i][2 * j + 1];
-            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+            if (n.x() == 0.0 && n.y() == 0.0 && n.z() == 0.0) {
                 continue;
             }
             d = shape->Interpolated_D[i][2 * j + 1];
@@ -233,7 +234,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
             n3 = shape->Smooth_Normals[i + 1][j + 1];
 
             n = shape->Interpolated_Normals[i][2 * j];
-            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+            if (n.x() == 0.0 && n.y() == 0.0 && n.z() == 0.0) {
                 goto l0;
             }
             d = shape->Interpolated_D[i][2 * j];
@@ -242,15 +243,15 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
              * normal */
             t = n0.dotProduct(n);
             if (t < 0) {
-                n0.scale(-1.0);
+                n0 = Vec3::scaled(n0, -1.0);
             }
             t = n1.dotProduct(n);
             if (t < 0) {
-                n1.scale(-1.0);
+                n1 = Vec3::scaled(n1, -1.0);
             }
             t = n2.dotProduct(n);
             if (t < 0) {
-                n2.scale(-1.0);
+                n2 = Vec3::scaled(n2, -1.0);
             }
 
             /* Check for intersections in this subpatch. */
@@ -267,7 +268,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
             }
         l0:
             n = shape->Interpolated_Normals[i][2 * j + 1];
-            if (n.x == 0.0 && n.y == 0.0 && n.z == 0.0) {
+            if (n.x() == 0.0 && n.y() == 0.0 && n.z() == 0.0) {
                 continue;
             }
             d = shape->Interpolated_D[i][2 * j + 1];
@@ -276,15 +277,15 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
              * normal */
             t = n1.dotProduct(n);
             if (t > 0) {
-                VectorOps::vScale(n1, n0, -1.0);
+                n1 = Vec3::scaled(n0, -1.0);
             }
             t = n2.dotProduct(n);
             if (t > 0) {
-                VectorOps::vScale(n2, n1, -1.0);
+                n2 = Vec3::scaled(n1, -1.0);
             }
             t = n3.dotProduct(n);
             if (t > 0) {
-                VectorOps::vScale(n3, n2, -1.0);
+                n3 = Vec3::scaled(n2, -1.0);
             }
 
             if (ParametricBiCubicIntersection::intersectSubpatch(

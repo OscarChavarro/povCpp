@@ -1,7 +1,7 @@
 #ifndef __PRIMITIVE_PARSER_H__
 #define __PRIMITIVE_PARSER_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class RGBAColor;
 class ParserContext;

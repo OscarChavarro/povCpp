@@ -1,5 +1,6 @@
 #include "render/RenderEngine.h"
 #include "render/RayShaderPipeline.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "render/shaders/TraceService.h"
 #include "common/color/Color.h"
 #include "common/logger/Logger.h"
@@ -157,7 +158,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             /* If the surface normal points away, flip its direction. */
             normalDirection = surfaceNormal.dotProduct(ray->direction);
             if (normalDirection > 0.0) {
-                surfaceNormal.scale(-1.0);
+                surfaceNormal = Vec3::scaled(surfaceNormal, -1.0);
             }
 
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, &surfaceNormal,

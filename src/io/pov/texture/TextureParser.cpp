@@ -1,7 +1,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "common/logger/Logger.h"
 #include "common/linealAlgebra/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/GifFormat.h"
 #include "io/image/IffFormat.h"

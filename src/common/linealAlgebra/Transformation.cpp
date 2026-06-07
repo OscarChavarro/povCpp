@@ -8,7 +8,8 @@
 #include <cstdlib>
 
 #include "common/linealAlgebra/Transformation.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "common/logger/Logger.h"
 
 void
@@ -109,14 +110,12 @@ Transformation::MTransformVector(
     matrix = (MATRIX *)transformation->matrix;
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x * (*matrix)[0][i] +
-                         vector->y * (*matrix)[1][i] +
-                         vector->z * (*matrix)[2][i] + (*matrix)[3][i];
+        answerArray[i] = vector->x() * (*matrix)[0][i] +
+                         vector->y() * (*matrix)[1][i] +
+                         vector->z() * (*matrix)[2][i] + (*matrix)[3][i];
     }
 
-    result->x = answerArray[0];
-    result->y = answerArray[1];
-    result->z = answerArray[2];
+    *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
 }
 
 void
@@ -130,14 +129,12 @@ Transformation::MInverseTransformVector(
     matrix = (MATRIX *)transformation->inverse;
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x * (*matrix)[0][i] +
-                         vector->y * (*matrix)[1][i] +
-                         vector->z * (*matrix)[2][i] + (*matrix)[3][i];
+        answerArray[i] = vector->x() * (*matrix)[0][i] +
+                         vector->y() * (*matrix)[1][i] +
+                         vector->z() * (*matrix)[2][i] + (*matrix)[3][i];
     }
 
-    result->x = answerArray[0];
-    result->y = answerArray[1];
-    result->z = answerArray[2];
+    *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
 }
 
 void
@@ -151,14 +148,12 @@ Transformation::MTransVector(
     matrix = (MATRIX *)transformation->matrix;
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x * (*matrix)[0][i] +
-                         vector->y * (*matrix)[1][i] +
-                         vector->z * (*matrix)[2][i];
+        answerArray[i] = vector->x() * (*matrix)[0][i] +
+                         vector->y() * (*matrix)[1][i] +
+                         vector->z() * (*matrix)[2][i];
     }
 
-    result->x = answerArray[0];
-    result->y = answerArray[1];
-    result->z = answerArray[2];
+    *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
 }
 
 void
@@ -172,14 +167,12 @@ Transformation::MInvTransVector(
     matrix = (MATRIX *)transformation->inverse;
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x * (*matrix)[0][i] +
-                         vector->y * (*matrix)[1][i] +
-                         vector->z * (*matrix)[2][i];
+        answerArray[i] = vector->x() * (*matrix)[0][i] +
+                         vector->y() * (*matrix)[1][i] +
+                         vector->z() * (*matrix)[2][i];
     }
 
-    result->x = answerArray[0];
-    result->y = answerArray[1];
-    result->z = answerArray[2];
+    *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
 }
 
 void
@@ -193,14 +186,12 @@ Transformation::MTransNormal(
     matrix = (MATRIX *)transformation->inverse;
 
     for (i = 0; i < 3; i++) {
-        answerArray[i] = vector->x * (*matrix)[i][0] +
-                         vector->y * (*matrix)[i][1] +
-                         vector->z * (*matrix)[i][2];
+        answerArray[i] = vector->x() * (*matrix)[i][0] +
+                         vector->y() * (*matrix)[i][1] +
+                         vector->z() * (*matrix)[i][2];
     }
 
-    result->x = answerArray[0];
-    result->y = answerArray[1];
-    result->z = answerArray[2];
+    *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
 }
 
 void
@@ -208,14 +199,14 @@ Transformation::getScalingTransformation(
     Transformation *result, Vector3Dd *vector)
 {
     Transformation::MIdentity((MATRIX *)result->matrix);
-    (result->matrix)[0][0] = vector->x;
-    (result->matrix)[1][1] = vector->y;
-    (result->matrix)[2][2] = vector->z;
+    (result->matrix)[0][0] = vector->x();
+    (result->matrix)[1][1] = vector->y();
+    (result->matrix)[2][2] = vector->z();
 
     Transformation::MIdentity((MATRIX *)result->inverse);
-    (result->inverse)[0][0] = 1.0 / vector->x;
-    (result->inverse)[1][1] = 1.0 / vector->y;
-    (result->inverse)[2][2] = 1.0 / vector->z;
+    (result->inverse)[0][0] = 1.0 / vector->x();
+    (result->inverse)[1][1] = 1.0 / vector->y();
+    (result->inverse)[2][2] = 1.0 / vector->z();
 }
 
 void
@@ -223,14 +214,14 @@ Transformation::getTranslationTransformation(
     Transformation *transformation, Vector3Dd *vector)
 {
     Transformation::MIdentity((MATRIX *)transformation->matrix);
-    (transformation->matrix)[3][0] = vector->x;
-    (transformation->matrix)[3][1] = vector->y;
-    (transformation->matrix)[3][2] = vector->z;
+    (transformation->matrix)[3][0] = vector->x();
+    (transformation->matrix)[3][1] = vector->y();
+    (transformation->matrix)[3][2] = vector->z();
 
     Transformation::MIdentity((MATRIX *)transformation->inverse);
-    (transformation->inverse)[3][0] = 0.0 - vector->x;
-    (transformation->inverse)[3][1] = 0.0 - vector->y;
-    (transformation->inverse)[3][2] = 0.0 - vector->z;
+    (transformation->inverse)[3][0] = 0.0 - vector->x();
+    (transformation->inverse)[3][1] = 0.0 - vector->y();
+    (transformation->inverse)[3][2] = 0.0 - vector->z();
 }
 
 void
@@ -246,14 +237,14 @@ Transformation::getRotationTransformation(
     double siny;
     double sinz;
 
-    VectorOps::vScale(radianVector, *vector, M_PI / 180.0);
+    radianVector = Vec3::scaled(*vector, M_PI / 180.0);
     Transformation::MIdentity((MATRIX *)transformation->matrix);
-    cosx = cos(radianVector.x);
-    sinx = sin(radianVector.x);
-    cosy = cos(radianVector.y);
-    siny = sin(radianVector.y);
-    cosz = cos(radianVector.z);
-    sinz = sin(radianVector.z);
+    cosx = cos(radianVector.x());
+    sinx = sin(radianVector.x());
+    cosy = cos(radianVector.y());
+    siny = sin(radianVector.y());
+    cosz = cos(radianVector.z());
+    sinz = sin(radianVector.z());
 
     (transformation->matrix)[1][1] = cosx;
     (transformation->matrix)[2][2] = cosx;

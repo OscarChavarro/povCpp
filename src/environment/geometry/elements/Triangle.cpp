@@ -8,7 +8,8 @@
 #include "environment/geometry/elements/Triangle.h"
 #include "common/logger/Logger.h"
 #include "common/Statistics.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include <cstdio>
 #include <cstdlib>
@@ -40,9 +41,9 @@ Triangle::findTriangleDominantAxis(Triangle *triangle)
     double y;
     double z;
 
-    x = fabs(triangle->normalVector.x);
-    y = fabs(triangle->normalVector.y);
-    z = fabs(triangle->normalVector.z);
+    x = fabs(triangle->normalVector.x());
+    y = fabs(triangle->normalVector.y());
+    z = fabs(triangle->normalVector.z());
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
         triangle->Dominant_Axis = X_AXIS;
@@ -68,38 +69,38 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     double uDenominator;
     double proj;
 
-    VectorOps::vSub(p3MinusP2, triangle->P3, triangle->P2);
-    x = fabs(p3MinusP2.x);
-    y = fabs(p3MinusP2.y);
-    z = fabs(p3MinusP2.z);
+    p3MinusP2 = triangle->P3.subtract(triangle->P2);
+    x = fabs(p3MinusP2.x());
+    y = fabs(p3MinusP2.y());
+    z = fabs(p3MinusP2.z());
 
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
         triangle->vAxis = X_AXIS;
-        triangle->BaseDelta = p3MinusP2.x;
+        triangle->BaseDelta = p3MinusP2.x();
         break;
 
     case 2:
         triangle->vAxis = Y_AXIS;
-        triangle->BaseDelta = p3MinusP2.y;
+        triangle->BaseDelta = p3MinusP2.y();
         break;
 
     case 3:
         triangle->vAxis = Z_AXIS;
-        triangle->BaseDelta = p3MinusP2.z;
+        triangle->BaseDelta = p3MinusP2.z();
         break;
     }
 
-    VectorOps::vSub(vTemp1, triangle->P2, triangle->P3);
-    vTemp1.normalize();
-    VectorOps::vSub(vTemp2, triangle->P1, triangle->P3);
+    vTemp1 = triangle->P2.subtract(triangle->P3);
+    vTemp1 = Vec3::normalized(vTemp1);
+    vTemp2 = triangle->P1.subtract(triangle->P3);
     proj = vTemp2.dotProduct(vTemp1);
-    vTemp1.scale(proj);
-    VectorOps::vSub(triangle->Perp, vTemp1, vTemp2);
-    triangle->Perp.normalize();
+    vTemp1 = Vec3::scaled(vTemp1, proj);
+    triangle->Perp = vTemp1.subtract(vTemp2);
+    triangle->Perp = Vec3::normalized(triangle->Perp);
     uDenominator = vTemp2.dotProduct(triangle->Perp);
     uDenominator = -1.0 / uDenominator;
-    triangle->Perp.scale(uDenominator);
+    triangle->Perp = Vec3::scaled(triangle->Perp, uDenominator);
 }
 
 int
@@ -110,8 +111,8 @@ Triangle::computeTriangle(Triangle *triangle)
     Vector3Dd temp;
     double length;
 
-    VectorOps::vSub(v1, triangle->P1, triangle->P2);
-    VectorOps::vSub(v2, triangle->P3, triangle->P2);
+    v1 = triangle->P1.subtract(triangle->P2);
+    v2 = triangle->P3.subtract(triangle->P2);
     triangle->normalVector = v1.crossProduct(v2);
     length = triangle->normalVector.length();
     /* Set up a flag so we can ignore degenerate triangles */
@@ -121,7 +122,7 @@ Triangle::computeTriangle(Triangle *triangle)
     }
 
     /* Normalize the normal vector. */
-    triangle->normalVector.scale(1.0 / length);
+    triangle->normalVector = Vec3::scaled(triangle->normalVector, 1.0 / length);
 
     triangle->Distance = triangle->normalVector.dotProduct(triangle->P1);
     triangle->Distance *= -1.0;
@@ -129,10 +130,10 @@ Triangle::computeTriangle(Triangle *triangle)
 
     switch (triangle->Dominant_Axis) {
     case X_AXIS:
-        if ((triangle->P2.y - triangle->P3.y) *
-                (triangle->P2.z - triangle->P1.z) <
-            (triangle->P2.z - triangle->P3.z) *
-                (triangle->P2.y - triangle->P1.y)) {
+        if ((triangle->P2.y() - triangle->P3.y()) *
+                (triangle->P2.z() - triangle->P1.z()) <
+            (triangle->P2.z() - triangle->P3.z()) *
+                (triangle->P2.y() - triangle->P1.y())) {
 
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
@@ -147,10 +148,10 @@ Triangle::computeTriangle(Triangle *triangle)
         break;
 
     case Y_AXIS:
-        if ((triangle->P2.x - triangle->P3.x) *
-                (triangle->P2.z - triangle->P1.z) <
-            (triangle->P2.z - triangle->P3.z) *
-                (triangle->P2.x - triangle->P1.x)) {
+        if ((triangle->P2.x() - triangle->P3.x()) *
+                (triangle->P2.z() - triangle->P1.z()) <
+            (triangle->P2.z() - triangle->P3.z()) *
+                (triangle->P2.x() - triangle->P1.x())) {
 
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
@@ -165,10 +166,10 @@ Triangle::computeTriangle(Triangle *triangle)
         break;
 
     case Z_AXIS:
-        if ((triangle->P2.x - triangle->P3.x) *
-                (triangle->P2.y - triangle->P1.y) <
-            (triangle->P2.y - triangle->P3.y) *
-                (triangle->P2.x - triangle->P1.x)) {
+        if ((triangle->P2.x() - triangle->P3.x()) *
+                (triangle->P2.y() - triangle->P1.y()) <
+            (triangle->P2.y() - triangle->P3.y()) *
+                (triangle->P2.x() - triangle->P1.x())) {
 
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
@@ -205,8 +206,8 @@ Triangle::allTriangleIntersections(
     if (intersectTriangle(ray, shape, &depth)) {
         localElement.Depth = depth;
         localElement.Object = nullptr;
-        VectorOps::vScale(intersectionPoint, ray->direction, depth);
-        intersectionPoint.add(ray->position);
+        intersectionPoint = Vec3::scaled(ray->direction, depth);
+        intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -231,8 +232,8 @@ Triangle::intersectTriangle(
 
     if (ray->isPrimaryRay) {
         if (!triangle->VPCached) {
-            VectorOps::vDot(triangle->VPNormDotOrigin, triangle->normalVector,
-                ray->position);
+            triangle->VPNormDotOrigin =
+                triangle->normalVector.dotProduct(ray->position);
             triangle->VPNormDotOrigin += triangle->Distance;
             triangle->VPNormDotOrigin *= -1.0;
             triangle->VPCached = true;
@@ -265,11 +266,11 @@ Triangle::intersectTriangle(
 
     switch (triangle->Dominant_Axis) {
     case X_AXIS:
-        s = ray->position.y + *depth * ray->direction.y;
-        t = ray->position.z + *depth * ray->direction.z;
+        s = ray->position.y() + *depth * ray->direction.y();
+        t = ray->position.z() + *depth * ray->direction.z();
 
-        if (((triangle->P2.y - s) * (triangle->P2.z - triangle->P1.z)) <
-            ((triangle->P2.z - t) * (triangle->P2.y - triangle->P1.y))) {
+        if (((triangle->P2.y() - s) * (triangle->P2.z() - triangle->P1.z())) <
+            ((triangle->P2.z() - t) * (triangle->P2.y() - triangle->P1.y()))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -277,8 +278,8 @@ Triangle::intersectTriangle(
             return (false);
         }
 
-        if (((triangle->P3.y - s) * (triangle->P3.z - triangle->P2.z)) <
-            ((triangle->P3.z - t) * (triangle->P3.y - triangle->P2.y))) {
+        if (((triangle->P3.y() - s) * (triangle->P3.z() - triangle->P2.z())) <
+            ((triangle->P3.z() - t) * (triangle->P3.y() - triangle->P2.y()))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -286,8 +287,8 @@ Triangle::intersectTriangle(
             return (false);
         }
 
-        if (((triangle->P1.y - s) * (triangle->P1.z - triangle->P3.z)) <
-            ((triangle->P1.z - t) * (triangle->P1.y - triangle->P3.y))) {
+        if (((triangle->P1.y() - s) * (triangle->P1.z() - triangle->P3.z())) <
+            ((triangle->P1.z() - t) * (triangle->P1.y() - triangle->P3.y()))) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -302,11 +303,11 @@ Triangle::intersectTriangle(
         return (false);
 
     case Y_AXIS:
-        s = ray->position.x + *depth * ray->direction.x;
-        t = ray->position.z + *depth * ray->direction.z;
+        s = ray->position.x() + *depth * ray->direction.x();
+        t = ray->position.z() + *depth * ray->direction.z();
 
-        if ((triangle->P2.x - s) * (triangle->P2.z - triangle->P1.z) <
-            (triangle->P2.z - t) * (triangle->P2.x - triangle->P1.x)) {
+        if ((triangle->P2.x() - s) * (triangle->P2.z() - triangle->P1.z()) <
+            (triangle->P2.z() - t) * (triangle->P2.x() - triangle->P1.x())) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -314,8 +315,8 @@ Triangle::intersectTriangle(
             return (false);
         }
 
-        if ((triangle->P3.x - s) * (triangle->P3.z - triangle->P2.z) <
-            (triangle->P3.z - t) * (triangle->P3.x - triangle->P2.x)) {
+        if ((triangle->P3.x() - s) * (triangle->P3.z() - triangle->P2.z()) <
+            (triangle->P3.z() - t) * (triangle->P3.x() - triangle->P2.x())) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -323,8 +324,8 @@ Triangle::intersectTriangle(
             return (false);
         }
 
-        if ((triangle->P1.x - s) * (triangle->P1.z - triangle->P3.z) <
-            (triangle->P1.z - t) * (triangle->P1.x - triangle->P3.x)) {
+        if ((triangle->P1.x() - s) * (triangle->P1.z() - triangle->P3.z()) <
+            (triangle->P1.z() - t) * (triangle->P1.x() - triangle->P3.x())) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -339,11 +340,11 @@ Triangle::intersectTriangle(
         return (false);
 
     case Z_AXIS:
-        s = ray->position.x + *depth * ray->direction.x;
-        t = ray->position.y + *depth * ray->direction.y;
+        s = ray->position.x() + *depth * ray->direction.x();
+        t = ray->position.y() + *depth * ray->direction.y();
 
-        if ((triangle->P2.x - s) * (triangle->P2.y - triangle->P1.y) <
-            (triangle->P2.y - t) * (triangle->P2.x - triangle->P1.x)) {
+        if ((triangle->P2.x() - s) * (triangle->P2.y() - triangle->P1.y()) <
+            (triangle->P2.y() - t) * (triangle->P2.x() - triangle->P1.x())) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -351,8 +352,8 @@ Triangle::intersectTriangle(
             return (false);
         }
 
-        if ((triangle->P3.x - s) * (triangle->P3.y - triangle->P2.y) <
-            (triangle->P3.y - t) * (triangle->P3.x - triangle->P2.x)) {
+        if ((triangle->P3.x() - s) * (triangle->P3.y() - triangle->P2.y()) <
+            (triangle->P3.y() - t) * (triangle->P3.x() - triangle->P2.x())) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -360,8 +361,8 @@ Triangle::intersectTriangle(
             return (false);
         }
 
-        if ((triangle->P1.x - s) * (triangle->P1.y - triangle->P3.y) <
-            (triangle->P1.y - t) * (triangle->P1.x - triangle->P3.x)) {
+        if ((triangle->P1.x() - s) * (triangle->P1.y() - triangle->P3.y()) <
+            (triangle->P1.y() - t) * (triangle->P1.x() - triangle->P3.x())) {
             if ((int)triangle->Inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
@@ -416,11 +417,11 @@ Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
     Triangle *triangle = (Triangle *)object;
     Vector3Dd translation;
 
-    VectorOps::vEvaluate(translation, triangle->normalVector, *vector);
-    triangle->Distance -= translation.x + translation.y + translation.z;
-    triangle->P1.add(*vector);
-    triangle->P2.add(*vector);
-    triangle->P3.add(*vector);
+    translation = Vec3::evaluated(triangle->normalVector, *vector);
+    triangle->Distance -= translation.x() + translation.y() + translation.z();
+    triangle->P1 = triangle->P1.add(*vector);
+    triangle->P2 = triangle->P2.add(*vector);
+    triangle->P3 = triangle->P3.add(*vector);
     TextureUtils::translateTexture(
         &((Triangle *)object)->Shape_Texture, vector);
 }
@@ -451,17 +452,18 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
     Triangle *triangle = (Triangle *)object;
     double length;
 
-    triangle->normalVector.x = triangle->normalVector.x / vector->x;
-    triangle->normalVector.y = triangle->normalVector.y / vector->y;
-    triangle->normalVector.z = triangle->normalVector.z / vector->z;
+    triangle->normalVector = Vector3Dd(
+        triangle->normalVector.x() / vector->x(),
+        triangle->normalVector.y() / vector->y(),
+        triangle->normalVector.z() / vector->z());
 
     length = triangle->normalVector.length();
-    triangle->normalVector.scale(1.0 / length);
+    triangle->normalVector = Vec3::scaled(triangle->normalVector, 1.0 / length);
     triangle->Distance /= length;
 
-    triangle->P1.evaluate(*vector);
-    triangle->P2.evaluate(*vector);
-    triangle->P3.evaluate(*vector);
+    triangle->P1 = Vec3::evaluated(triangle->P1, *vector);
+    triangle->P2 = Vec3::evaluated(triangle->P2, *vector);
+    triangle->P3 = Vec3::evaluated(triangle->P3, *vector);
 
     TextureUtils::scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
@@ -526,7 +528,7 @@ SmoothTriangle::smoothTriangleNormal(
     double u = 0.0;
     double v = 0.0;
 
-    VectorOps::vSub(piMinusP1, *intersectionPoint, triangle->P1);
+    piMinusP1 = intersectionPoint->subtract(triangle->P1);
     u = piMinusP1.dotProduct(triangle->Perp);
     if (u < 1.0e-9) {
         *result = triangle->N1;
@@ -538,31 +540,31 @@ SmoothTriangle::smoothTriangleNormal(
 
     switch (triangle->vAxis) {
     case X_AXIS:
-        v = (piMinusP1.x / u + triangle->P1.x - triangle->P2.x) /
+        v = (piMinusP1.x() / u + triangle->P1.x() - triangle->P2.x()) /
             triangle->BaseDelta;
         break;
 
     case Y_AXIS:
-        v = (piMinusP1.y / u + triangle->P1.y - triangle->P2.y) /
+        v = (piMinusP1.y() / u + triangle->P1.y() - triangle->P2.y()) /
             triangle->BaseDelta;
         break;
 
     case Z_AXIS:
-        v = (piMinusP1.z / u + triangle->P1.z - triangle->P2.z) /
+        v = (piMinusP1.z() / u + triangle->P1.z() - triangle->P2.z()) /
             triangle->BaseDelta;
         break;
     }
 
-    VectorOps::vSub(nTemp1, triangle->N2, triangle->N1);
-    nTemp1.scale(u);
-    nTemp1.add(triangle->N1);
-    VectorOps::vSub(nTemp2, triangle->N3, triangle->N1);
-    nTemp2.scale(u);
-    nTemp2.add(triangle->N1);
-    VectorOps::vSub(*result, nTemp2, nTemp1);
-    (*result).scale(v);
-    (*result).add(nTemp1);
-    (*result).normalize();
+    nTemp1 = triangle->N2.subtract(triangle->N1);
+    nTemp1 = Vec3::scaled(nTemp1, u);
+    nTemp1 = nTemp1.add(triangle->N1);
+    nTemp2 = triangle->N3.subtract(triangle->N1);
+    nTemp2 = Vec3::scaled(nTemp2, u);
+    nTemp2 = nTemp2.add(triangle->N1);
+    *result = nTemp2.subtract(nTemp1);
+    *result = Vec3::scaled(*result, v);
+    *result = result->add(nTemp1);
+    *result = Vec3::normalized(*result);
 }
 
 void *
@@ -614,11 +616,11 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     Vector3Dd translation;
 
-    VectorOps::vEvaluate(translation, triangle->normalVector, *vector);
-    triangle->Distance -= translation.x + translation.y + translation.z;
-    triangle->P1.add(*vector);
-    triangle->P2.add(*vector);
-    triangle->P3.add(*vector);
+    translation = Vec3::evaluated(triangle->normalVector, *vector);
+    triangle->Distance -= translation.x() + translation.y() + translation.z();
+    triangle->P1 = triangle->P1.add(*vector);
+    triangle->P2 = triangle->P2.add(*vector);
+    triangle->P3 = triangle->P3.add(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
     TextureUtils::translateTexture(
@@ -631,17 +633,18 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     SmoothTriangle *triangle = (SmoothTriangle *)object;
     double length;
 
-    triangle->normalVector.x = triangle->normalVector.x / vector->x;
-    triangle->normalVector.y = triangle->normalVector.y / vector->y;
-    triangle->normalVector.z = triangle->normalVector.z / vector->z;
+    triangle->normalVector = Vector3Dd(
+        triangle->normalVector.x() / vector->x(),
+        triangle->normalVector.y() / vector->y(),
+        triangle->normalVector.z() / vector->z());
 
     length = triangle->normalVector.length();
-    triangle->normalVector.scale(1.0 / length);
+    triangle->normalVector = Vec3::scaled(triangle->normalVector, 1.0 / length);
     triangle->Distance /= length;
 
-    triangle->P1.evaluate(*vector);
-    triangle->P2.evaluate(*vector);
-    triangle->P3.evaluate(*vector);
+    triangle->P1 = Vec3::evaluated(triangle->P1, *vector);
+    triangle->P2 = Vec3::evaluated(triangle->P2, *vector);
+    triangle->P3 = Vec3::evaluated(triangle->P3, *vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
     TextureUtils::scaleTexture(

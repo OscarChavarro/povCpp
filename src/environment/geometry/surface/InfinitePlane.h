@@ -1,7 +1,7 @@
 #ifndef __INFINITE_PLANE_H__
 #define __INFINITE_PLANE_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class InfinitePlane : public Geometry {

@@ -1,7 +1,7 @@
 #ifndef __MODEL_BUILDER_H__
 #define __MODEL_BUILDER_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class Composite;
 class Sphere;

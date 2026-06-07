@@ -1,5 +1,6 @@
 #include "render/shaders/BlinnPhongSpecularShader.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include <cmath>
 
@@ -15,7 +16,7 @@ BlinnPhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRa
     double roughness;
     Vector3Dd halfway;
 
-    halfway = rEye.half(lightSourceRay->direction);
+    halfway = Vec3::half(rEye, lightSourceRay->direction);
     normalLength = (*surfaceNormal).length();
     halfwayLength = halfway.length();
     cosAngleOfIncidence = halfway.dotProduct(*surfaceNormal);

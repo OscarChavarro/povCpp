@@ -7,7 +7,8 @@
 
 #include "environment/geometry/volume/Quadric.h"
 #include "common/Statistics.h"
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 Methods Quadric::methodTable = {
     Quadric::allQuadricIntersections, Quadric::insideQuadric,
     Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
@@ -28,8 +29,8 @@ Quadric::allQuadricIntersections(
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.Depth = depth1;
         localElement.Object = nullptr;
-        VectorOps::vScale(intersectionPoint, ray->direction, depth1);
-        intersectionPoint.add(ray->position);
+        intersectionPoint = Vec3::scaled(ray->direction, depth1);
+        intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->add(&localElement);
@@ -38,8 +39,8 @@ Quadric::allQuadricIntersections(
         if (depth2 != depth1) {
             localElement.Depth = depth2;
             localElement.Object = nullptr;
-            VectorOps::vScale(intersectionPoint, ray->direction, depth2);
-            intersectionPoint.add(ray->position);
+            intersectionPoint = Vec3::scaled(ray->direction, depth2);
+            intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->add(&localElement);
@@ -154,12 +155,12 @@ Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
 
     linearTerm = (*testPoint).dotProduct(shape->objectTerms);
     result = linearTerm + shape->objectConstant;
-    VectorOps::vSquareTerms(newPoint, *testPoint);
+    newPoint = Vec3::squareTerms(*testPoint);
     squareTerm = newPoint.dotProduct(shape->object2Terms);
     result += squareTerm;
-    result += shape->objectMixedTerms.x * (testPoint->x) * (testPoint->y) +
-              shape->objectMixedTerms.y * (testPoint->x) * (testPoint->z) +
-              shape->objectMixedTerms.z * (testPoint->y) * (testPoint->z);
+    result += shape->objectMixedTerms.x() * (testPoint->x()) * (testPoint->y()) +
+              shape->objectMixedTerms.y() * (testPoint->x()) * (testPoint->z()) +
+              shape->objectMixedTerms.z() * (testPoint->y()) * (testPoint->z());
 
     if (result < GeometryConstants::Small_Tolerance) {
         return (true);
@@ -176,34 +177,32 @@ Quadric::quadricNormal(
     Vector3Dd derivativeLinear;
     double len;
 
-    VectorOps::vScale(derivativeLinear, intersectionShape->object2Terms, 2.0);
-    VectorOps::vEvaluate(*result, derivativeLinear, *intersectionPoint);
-    (*result).add(intersectionShape->objectTerms);
+    derivativeLinear = Vec3::scaled(intersectionShape->object2Terms, 2.0);
+    *result = Vec3::evaluated(derivativeLinear, *intersectionPoint);
+    *result = result->add(intersectionShape->objectTerms);
 
-    result->x +=
-        intersectionShape->objectMixedTerms.x * intersectionPoint->y +
-        intersectionShape->objectMixedTerms.y * intersectionPoint->z;
+    const double nx = result->x() +
+        intersectionShape->objectMixedTerms.x() * intersectionPoint->y() +
+        intersectionShape->objectMixedTerms.y() * intersectionPoint->z();
+    const double ny = result->y() +
+        intersectionShape->objectMixedTerms.x() * intersectionPoint->x() +
+        intersectionShape->objectMixedTerms.z() * intersectionPoint->z();
+    const double nz = result->z() +
+        intersectionShape->objectMixedTerms.y() * intersectionPoint->x() +
+        intersectionShape->objectMixedTerms.z() * intersectionPoint->y();
+    *result = Vector3Dd(nx, ny, nz);
 
-    result->y +=
-        intersectionShape->objectMixedTerms.x * intersectionPoint->x +
-        intersectionShape->objectMixedTerms.z * intersectionPoint->z;
-
-    result->z +=
-        intersectionShape->objectMixedTerms.y * intersectionPoint->x +
-        intersectionShape->objectMixedTerms.z * intersectionPoint->y;
-
-    len = result->x * result->x + result->y * result->y + result->z * result->z;
+    len = result->x() * result->x() + result->y() * result->y() +
+          result->z() * result->z();
     len = sqrt(len);
     if (len == 0.0) {
         /* The normal is not defined at this point of the surface.  Set it
             to any arbitrary direction. */
-        result->x = 1.0;
-        result->y = 0.0;
-        result->z = 0.0;
+        *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
-        result->x /= len; /* normalize the normal */
-        result->y /= len;
-        result->z /= len;
+        /* normalize the normal */
+        *result = Vector3Dd(
+            result->x() / len, result->y() / len, result->z() / len);
     }
 }
 
@@ -228,30 +227,27 @@ void
 Quadric::quadricToMatrix(Quadric *quadric, MATRIX *matrix)
 {
     Transformation::MZero(matrix);
-    (*matrix)[0][0] = quadric->object2Terms.x;
-    (*matrix)[1][1] = quadric->object2Terms.y;
-    (*matrix)[2][2] = quadric->object2Terms.z;
-    (*matrix)[0][1] = quadric->objectMixedTerms.x;
-    (*matrix)[0][2] = quadric->objectMixedTerms.y;
-    (*matrix)[0][3] = quadric->objectTerms.x;
-    (*matrix)[1][2] = quadric->objectMixedTerms.z;
-    (*matrix)[1][3] = quadric->objectTerms.y;
-    (*matrix)[2][3] = quadric->objectTerms.z;
+    (*matrix)[0][0] = quadric->object2Terms.x();
+    (*matrix)[1][1] = quadric->object2Terms.y();
+    (*matrix)[2][2] = quadric->object2Terms.z();
+    (*matrix)[0][1] = quadric->objectMixedTerms.x();
+    (*matrix)[0][2] = quadric->objectMixedTerms.y();
+    (*matrix)[0][3] = quadric->objectTerms.x();
+    (*matrix)[1][2] = quadric->objectMixedTerms.z();
+    (*matrix)[1][3] = quadric->objectTerms.y();
+    (*matrix)[2][3] = quadric->objectTerms.z();
     (*matrix)[3][3] = quadric->objectConstant;
 }
 
 void
 Quadric::matrixToQuadric(MATRIX *matrix, Quadric *quadric)
 {
-    quadric->object2Terms.x = (*matrix)[0][0];
-    quadric->object2Terms.y = (*matrix)[1][1];
-    quadric->object2Terms.z = (*matrix)[2][2];
-    quadric->objectMixedTerms.x = (*matrix)[0][1] + (*matrix)[1][0];
-    quadric->objectMixedTerms.y = (*matrix)[0][2] + (*matrix)[2][0];
-    quadric->objectTerms.x = (*matrix)[0][3] + (*matrix)[3][0];
-    quadric->objectMixedTerms.z = (*matrix)[1][2] + (*matrix)[2][1];
-    quadric->objectTerms.y = (*matrix)[1][3] + (*matrix)[3][1];
-    quadric->objectTerms.z = (*matrix)[2][3] + (*matrix)[3][2];
+    quadric->object2Terms =
+        Vector3Dd((*matrix)[0][0], (*matrix)[1][1], (*matrix)[2][2]);
+    quadric->objectMixedTerms = Vector3Dd((*matrix)[0][1] + (*matrix)[1][0],
+        (*matrix)[0][2] + (*matrix)[2][0], (*matrix)[1][2] + (*matrix)[2][1]);
+    quadric->objectTerms = Vector3Dd((*matrix)[0][3] + (*matrix)[3][0],
+        (*matrix)[1][3] + (*matrix)[3][1], (*matrix)[2][3] + (*matrix)[3][2]);
     quadric->objectConstant = (*matrix)[3][3];
 }
 
@@ -310,8 +306,8 @@ Quadric::invertQuadric(SimpleBody *object)
 {
     Quadric *shape = (Quadric *)object;
 
-    shape->object2Terms.scale(-1.0);
-    shape->objectMixedTerms.scale(-1.0);
-    shape->objectTerms.scale(-1.0);
+    shape->object2Terms = Vec3::scaled(shape->object2Terms, -1.0);
+    shape->objectMixedTerms = Vec3::scaled(shape->objectMixedTerms, -1.0);
+    shape->objectTerms = Vec3::scaled(shape->objectTerms, -1.0);
     shape->objectConstant *= -1.0;
 }

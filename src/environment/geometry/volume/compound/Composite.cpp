@@ -156,8 +156,8 @@ Composite::allObjectIntersections(
 
             Statistics::global().clippingRegionTests++;
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-                Logger::info("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x,
-                    localIntersection->Point.y, localIntersection->Point.z);
+                Logger::info("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x(),
+                    localIntersection->Point.y(), localIntersection->Point.z());
             }
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {

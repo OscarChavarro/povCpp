@@ -7,6 +7,7 @@
 
 #include "environment/light/Light.h"
 #include "common/logger/Logger.h"
+#include "common/linealAlgebra/Vector3DdOps.h"
 Methods Light::methodTable = {
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,
@@ -46,8 +47,8 @@ Light::copyPoint(SimpleBody *object)
 void
 Light::translatePoint(SimpleBody *object, Vector3Dd *vector)
 {
-    ((Light *)object)->Center.add(*vector);
-    ((Light *)object)->pointsAt.add(*vector);
+    ((Light *)object)->Center = ((Light *)object)->Center.add(*vector);
+    ((Light *)object)->pointsAt = ((Light *)object)->pointsAt.add(*vector);
 }
 
 void
@@ -112,11 +113,11 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
 
     /* If this is a spotlight then attenuate based on the incidence angle */
     if (lightSource->Type == GeometryOperations::SPOT_LIGHT_TYPE) {
-        VectorOps::vSub(
-            spotDirection, lightSource->pointsAt, lightSource->Center);
+        spotDirection =
+            lightSource->pointsAt.subtract(lightSource->Center);
         len = spotDirection.length();
         if (len > 0.0) {
-            spotDirection.inverseScale(len);
+            spotDirection = Vec3::inverseScaled(spotDirection, len);
             costheta = lightSourceRay->direction.dotProduct(spotDirection);
             costheta *= -1.0;
             if (costheta > 0.0) {

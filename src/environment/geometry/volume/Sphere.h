@@ -1,7 +1,7 @@
 #ifndef __SPHERE_H__
 #define __SPHERE_H__
 
-#include "common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class Sphere : public Geometry {
