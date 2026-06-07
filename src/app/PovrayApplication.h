@@ -1,22 +1,28 @@
 #ifndef __POVRAY_APPLICATION_H__
 #define __POVRAY_APPLICATION_H__
 
+class ImageOutput;
+class Statistics;
+class RenderFrame;
+class RenderingConfiguration;
+
 class PovrayApplication {
   private:
+    static ImageOutput *selectedImageOutput;
+
+    static void printStatistics(
+        const Statistics &stats,
+        const RenderFrame &frame,
+        const RenderingConfiguration &configuration);
+
     static void initializeFromCommandLine(int argc, char *argv[]);
     static void configureOutputTarget();
     static void parseSceneDescription();
     static void prepareRendering();
     static void runRenderLoop();
     static void finalizeRun();
-    static void usage();
     static void initVars();
     static void closeAll();
-    static void getDefaults();
-    static void readOptions(char *optionLine);
-    static void parseOption(char *optionString);
-    static void printOptions();
-    static void parseFileName(char *fileName);
     static void printCredits();
 
   public:

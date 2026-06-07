@@ -14,8 +14,6 @@
 #include "media/RGBAImage.h"
 #include <cmath>
 #include <cstdlib>
-#include <string>
-#include <stdexcept>
 
 TargaFormat::TargaFormat()
     : inputStream(nullptr), outputStream(nullptr),
@@ -189,8 +187,8 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
 {
     TargaFormat fmt;
     if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
-        std::string errmsg = "Cannot open Targa file " + std::string(name);
-        throw std::runtime_error(errmsg);
+        Logger::error("Cannot open Targa file %s\n", name);
+        exit(1);
     }
 
     image->width = (double)image->iwidth;
@@ -200,8 +198,8 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
 
     image->data.rgb_lines = new ImageLine[image->iheight];
     if (image->data.rgb_lines == nullptr) {
-        std::string errmsg = "Cannot allocate memory for picture: " + std::string(name);
-        throw std::runtime_error(errmsg);
+        Logger::error("Cannot allocate memory for picture: %s\n", name);
+        exit(1);
     }
 
     for (int row = 0; row < image->iheight &&

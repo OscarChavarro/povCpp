@@ -1,14 +1,13 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/light/LightSourceParser.h"
-#include "common/logger/Logger.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/light/Light.h"
 #include "environment/scene/ModelBuilder.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 
 
 Geometry *
@@ -129,20 +128,6 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 break;
             }
         }
-    }
-
-    static bool loggedOnce = false;
-    if (!loggedOnce && localShape != nullptr && std::getenv("POVCPP_DIAG_MONKEY") != nullptr) {
-        loggedOnce = true;
-        Logger::info(
-            "[DIAG-MONKEY] legacy light center=<%.6f,%.6f,%.6f> pointsAt=<%.6f,%.6f,%.6f> colour=<%.6f,%.6f,%.6f,%.6f> coeff=%.6f radius=%.6f falloff=%.6f type=%d\n",
-            localShape->Center.x, localShape->Center.y, localShape->Center.z,
-            localShape->pointsAt.x, localShape->pointsAt.y, localShape->pointsAt.z,
-            localShape->Shape_Colour != nullptr ? localShape->Shape_Colour->Red : -1.0,
-            localShape->Shape_Colour != nullptr ? localShape->Shape_Colour->Green : -1.0,
-            localShape->Shape_Colour != nullptr ? localShape->Shape_Colour->Blue : -1.0,
-            localShape->Shape_Colour != nullptr ? localShape->Shape_Colour->Alpha : -1.0,
-            localShape->Coeff, localShape->Radius, localShape->Falloff, localShape->Type);
     }
 
     return ((Geometry *)localShape);

@@ -5,46 +5,11 @@
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/scene/SimpleBodyFactory.h"
 #include "environment/scene/ModelBuilder.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/TextureParser.h"
-#include "common/logger/Logger.h"
-#include <cstdlib>
-
-namespace {
-bool shouldLogMonkeyDiagnostics()
-{
-    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
-    return flag != nullptr && flag[0] != '\0';
-}
-
-void logBicubicPatchOnce(const char *prefix, const ParametricBiCubicPatch *shape)
-{
-    static int logged = 0;
-    if (!shouldLogMonkeyDiagnostics() || logged++ > 0 || shape == nullptr) {
-        return;
-    }
-    const Texture *texture = shape->Shape_Texture;
-    const RGBAColor *colour = shape->Shape_Colour;
-    Logger::info(
-        "[DIAG-MONKEY] %s bicubic patchType=%d flatness=%.6f uSteps=%d vSteps=%d colour=<%.6f,%.6f,%.6f,%.6f> texNum=%d amb=%.6f diff=%.6f spec=%.6f rough=%.6f phong=%.6f cp00=<%.6f,%.6f,%.6f> cp33=<%.6f,%.6f,%.6f>\n",
-        prefix, shape->patchType, shape->flatnessValue, shape->uSteps, shape->vSteps,
-        colour != nullptr ? colour->Red : -1.0,
-        colour != nullptr ? colour->Green : -1.0,
-        colour != nullptr ? colour->Blue : -1.0,
-        colour != nullptr ? colour->Alpha : -1.0,
-        texture != nullptr ? texture->textureNumber : -1,
-        texture != nullptr ? texture->objectAmbient : -1.0,
-        texture != nullptr ? texture->objectDiffuse : -1.0,
-        texture != nullptr ? texture->objectSpecular : -1.0,
-        texture != nullptr ? texture->objectRoughness : -1.0,
-        texture != nullptr ? texture->objectPhong : -1.0,
-        shape->Control_Points[0][0].x, shape->Control_Points[0][0].y, shape->Control_Points[0][0].z,
-        shape->Control_Points[3][3].x, shape->Control_Points[3][3].y, shape->Control_Points[3][3].z);
-}
-}
 
 Geometry *
 BicubicPatchParser::parseBicubicPatch()
@@ -176,6 +141,5 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
         }
     }
 
-    logBicubicPatchOnce("legacy", localShape);
     return ((Geometry *)localShape);
 }

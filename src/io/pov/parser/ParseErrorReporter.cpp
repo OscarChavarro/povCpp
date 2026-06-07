@@ -1,10 +1,12 @@
+#include <cstdlib>
+
 #include "io/pov/context/ParserContext.h"
 #include "common/logger/Logger.h"
 #include "environment/material/RendererConfiguration.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 
-namespace {
-void reportLocation(ParserContext &ctx)
+void
+ParseErrorReporter::reportLocation(ParserContext &ctx)
 {
     const char *file = (ctx.token().Filename != nullptr) ? ctx.token().Filename : "<unknown>";
     const int line = ctx.token().tokenLineNo + 1;
@@ -12,13 +14,13 @@ void reportLocation(ParserContext &ctx)
     Logger::error("Error at %s:%d:%d\n", file, line, column);
 }
 
-void writeVerboseStatLine(FILE *statFile, ParserContext &ctx)
+void
+ParseErrorReporter::writeVerboseStatLine(FILE *statFile, ParserContext &ctx)
 {
     const char *file = (ctx.token().Filename != nullptr) ? ctx.token().Filename : "<unknown>";
     const int line = ctx.token().tokenLineNo + 1;
     const int column = (ctx.token().tokenColumnNo > 0) ? ctx.token().tokenColumnNo : 1;
     fprintf(statFile, "Error at %s:%d:%d\n", file, line, column);
-}
 }
 
 char *
@@ -66,7 +68,7 @@ ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
         fclose(statFile);
     }
 
-    throw ParseException("Parse error");
+    exit(1);
 }
 
 void
@@ -90,7 +92,7 @@ ParseErrorReporter::typeError(ParserContext &ctx)
         fclose(statFile);
     }
 
-    throw ParseException("Type error");
+    exit(1);
 }
 
 void
@@ -113,7 +115,7 @@ ParseErrorReporter::reportUndeclared(ParserContext &ctx)
         fclose(statFile);
     }
 
-    throw ParseException("Undeclared identifier");
+    exit(1);
 }
 
 void
@@ -136,5 +138,5 @@ ParseErrorReporter::reportError(const char *str, ParserContext &ctx)
         fprintf(statFile, "%s\n", str);
         fclose(statFile);
     }
-    throw ParseException(str);
+    exit(1);
 }

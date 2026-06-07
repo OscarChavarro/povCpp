@@ -14,6 +14,9 @@ class SceneParser {
     static void frameInit(ParserContext &ctx);
     static void parseFrame();
     static void parseFrame(ParserContext &ctx);
+
+  private:
+    static void postProcessPhase(ParserContext &ctx);
 };
 
 #endif

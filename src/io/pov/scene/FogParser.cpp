@@ -1,8 +1,8 @@
 #include "io/pov/context/ParserContext.h"
-#include "io/pov/FogParser.h"
-#include "io/pov/ParseErrorReporter.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/scene/FogParser.h"
+#include "io/pov/parser/ParseErrorReporter.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 #include "environment/scene/SceneFrame.h"
 
 

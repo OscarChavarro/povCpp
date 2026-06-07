@@ -1,10 +1,10 @@
 #include "io/pov/context/ParserContext.h"
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/scene/ModelBuilder.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
 #include "io/pov/geometry/BoxParser.h"
@@ -21,7 +21,6 @@
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
-#include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
@@ -30,117 +29,8 @@
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/SimpleBodyFactory.h"
 #include "environment/light/Light.h"
-#include "common/logger/Logger.h"
-#include <cmath>
-#include <cstdlib>
-
-namespace {
-bool shouldLogMonkeyDiagnostics()
-{
-    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
-    return flag != nullptr && flag[0] != '\0';
-}
-
-int countGeometryChain(const Geometry *g)
-{
-    int count = 0;
-    for (const Geometry *cur = g; cur != nullptr; cur = cur->nextObject) {
-        ++count;
-    }
-    return count;
-}
-
-void logCsgOnce(const char *prefix, const CSG *csg)
-{
-    if (!shouldLogMonkeyDiagnostics() || csg == nullptr) {
-        return;
-    }
-    Logger::info(
-        "[DIAG-MONKEY] %s csg type=%d shapeCount=%d\n",
-        prefix, csg->Type, countGeometryChain(csg->Shapes));
-    if (csg->Shapes != nullptr) {
-        Logger::info("[DIAG-MONKEY] %s csg firstShapeType=%d\n", prefix, csg->Shapes->Type);
-    }
-}
-
-void logObjectOnce(const char *prefix, const SimpleBody *object)
-{
-    static int logged = 0;
-    if (!shouldLogMonkeyDiagnostics() || logged++ > 0 || object == nullptr) {
-        return;
-    }
-
-    const Geometry *shape = object->Shape;
-    const Geometry *bounding = object->boundingShapes;
-    const Geometry *clipping = object->clippingShapes;
-    Logger::info("[DIAG-MONKEY] %s object type=%d shapeCount=%d boundingCount=%d clippingCount=%d\n",
-        prefix, object->Type, countGeometryChain(shape), countGeometryChain(bounding),
-        countGeometryChain(clipping));
-    if (shape != nullptr) {
-        Logger::info("[DIAG-MONKEY] %s object firstShapeType=%d\n", prefix, shape->Type);
-    }
-    if (bounding != nullptr) {
-        Logger::info("[DIAG-MONKEY] %s boundingFirstType=%d\n", prefix, bounding->Type);
-    }
-    if (clipping != nullptr) {
-        Logger::info("[DIAG-MONKEY] %s clippingFirstType=%d\n", prefix, clipping->Type);
-    }
-    auto logCsgChildren = [prefix](const char *tag, const Geometry *maybeCsg) {
-        if (maybeCsg == nullptr || maybeCsg->Type != GeometryOperations::CSG_INTERSECTION_TYPE) {
-            return;
-        }
-        const CSG *csg = (const CSG *)maybeCsg;
-        int childIndex = 0;
-        for (const Geometry *child = csg->Shapes; child != nullptr; child = child->nextObject, ++childIndex) {
-            Logger::info("[DIAG-MONKEY] %s %s child[%d] type=%d\n", prefix, tag, childIndex, child->Type);
-            if (child->Type == GeometryOperations::PLANE_TYPE) {
-                const InfinitePlane *plane = (const InfinitePlane *)child;
-                Logger::info("[DIAG-MONKEY] %s %s plane normal=<%.6f,%.6f,%.6f> dist=%.6f\n",
-                    prefix, tag, plane->normalVector.x, plane->normalVector.y, plane->normalVector.z,
-                    plane->Distance);
-            } else if (child->Type == GeometryOperations::CSG_INTERSECTION_TYPE) {
-                const CSG *nested = (const CSG *)child;
-                int nestedIndex = 0;
-                for (const Geometry *nestedChild = nested->Shapes; nestedChild != nullptr;
-                    nestedChild = nestedChild->nextObject, ++nestedIndex) {
-                    if (nestedChild->Type == GeometryOperations::PLANE_TYPE) {
-                        const InfinitePlane *plane = (const InfinitePlane *)nestedChild;
-                        Logger::info("[DIAG-MONKEY] %s %s nested child[%d] plane normal=<%.6f,%.6f,%.6f> dist=%.6f\n",
-                            prefix, tag, nestedIndex, plane->normalVector.x, plane->normalVector.y,
-                            plane->normalVector.z, plane->Distance);
-                    }
-                }
-            } else if (child->Type == GeometryOperations::POLY_TYPE) {
-                const PolynomialShape *poly = (const PolynomialShape *)child;
-                const int coeffCount = PolynomialShape::termCounts()[poly->Order];
-                Logger::info("[DIAG-MONKEY] %s %s poly order=%d coeffCount=%d\n",
-                    prefix, tag, poly->Order, coeffCount);
-                for (int i = 0; i < coeffCount; ++i) {
-                    if (std::fabs(poly->Coeffs[i]) > 1.0e-12) {
-                        Logger::info("[DIAG-MONKEY] %s %s poly coeff[%d]=%.6f\n",
-                            prefix, tag, i, poly->Coeffs[i]);
-                    }
-                }
-                if (poly->Transform != nullptr) {
-                    Logger::info(
-                        "[DIAG-MONKEY] %s %s poly transform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n",
-                        prefix, tag,
-                        poly->Transform->matrix[0][0], poly->Transform->matrix[0][1], poly->Transform->matrix[0][2], poly->Transform->matrix[0][3],
-                        poly->Transform->matrix[1][0], poly->Transform->matrix[1][1], poly->Transform->matrix[1][2], poly->Transform->matrix[1][3],
-                        poly->Transform->matrix[2][0], poly->Transform->matrix[2][1], poly->Transform->matrix[2][2], poly->Transform->matrix[2][3],
-                        poly->Transform->matrix[3][0], poly->Transform->matrix[3][1], poly->Transform->matrix[3][2], poly->Transform->matrix[3][3]);
-                }
-            }
-        }
-    };
-    logCsgChildren("object csg", shape);
-    logCsgChildren("bounding csg", bounding);
-}
-}
-
 
 CSG *
 ObjectParser::parseCsg(int type)
@@ -447,8 +337,6 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
         }
     }
 
-    logCsgOnce("legacy", container);
-
     return ((CSG *)container);
 }
 
@@ -747,8 +635,6 @@ ObjectParser::parseObject(ParserContext &ctx)
             }
         }
     }
-
-    logObjectOnce("legacy", object);
 
     return (object);
 }

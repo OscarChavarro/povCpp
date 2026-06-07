@@ -4,34 +4,11 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/scene/ModelBuilder.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/TextureParser.h"
-#include "common/logger/Logger.h"
-#include <cstdlib>
-
-namespace {
-bool shouldLogMonkeyDiagnostics()
-{
-    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
-    return flag != nullptr && flag[0] != '\0';
-}
-
-void logPlaneOnce(const char *prefix, const InfinitePlane *plane)
-{
-    static int logged = 0;
-    if (!shouldLogMonkeyDiagnostics() || logged++ > 7 || plane == nullptr) {
-        return;
-    }
-    Logger::info(
-        "[DIAG-MONKEY] %s plane type=%d normal=<%.6f,%.6f,%.6f> dist=%.6f vpcached=%d\n",
-        prefix, plane->Type, plane->normalVector.x, plane->normalVector.y,
-        plane->normalVector.z, plane->Distance, plane->VPCached);
-}
-}
-
 
 Geometry *
 PlaneParser::parsePlane()
@@ -149,8 +126,6 @@ PlaneParser::parsePlane(ParserContext &ctx)
             }
         }
     }
-
-    logPlaneOnce("legacy", localShape);
 
     return ((Geometry *)localShape);
 }

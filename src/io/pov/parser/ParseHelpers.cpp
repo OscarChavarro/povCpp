@@ -1,8 +1,8 @@
 #include "io/pov/context/ParserContext.h"
 #include "common/linealAlgebra/Transformation.h"
 #include "common/linealAlgebra/Vector3Dd.h"
-#include "io/pov/ParseErrorReporter.h"
-#include "io/pov/ParseHelpers.h"
+#include "io/pov/parser/ParseErrorReporter.h"
+#include "io/pov/parser/ParseHelpers.h"
 #include "environment/scene/SceneFrame.h"
 
 #include "environment/geometry/volume/compound/CSG.h"

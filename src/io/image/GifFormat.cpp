@@ -10,8 +10,6 @@
 #include "io/image/GifDecoder.h"
 #include "common/logger/Logger.h"
 #include <cstring>
-#include <string>
-#include <stdexcept>
 
 RGBAImage *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;
@@ -61,8 +59,8 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
 
     bitStream = FileLocator::locateAsStream(filename);
     if (bitStream == nullptr) {
-        std::string errmsg = "Cannot open GIF file " + std::string(filename);
-        throw std::runtime_error(errmsg);
+        Logger::error("Cannot open GIF file %s\n", filename);
+        exit(1);
     }
 
     GifDecoder::decoderline = new unsigned char[2049];

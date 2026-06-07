@@ -1,47 +1,11 @@
-#include "io/pov/context/ParserContext.h"
-#include "io/pov/camera/CameraParser.h"
-#include <cstdlib>
 #include "common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
-#include "io/pov/ParseErrorReporter.h"
+#include "io/pov/context/ParserContext.h"
+#include "io/pov/camera/CameraParser.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
-#include "io/pov/ParseHelpers.h"
-#include "io/pov/PrimitiveParser.h"
-#include "common/logger/Logger.h"
-
-namespace {
-bool shouldLogMonkeyDiagnostics()
-{
-    const char *flag = std::getenv("POVCPP_DIAG_MONKEY");
-    return flag != nullptr && flag[0] != '\0';
-}
-
-void logCameraOnce(const char *prefix, const Camera *camera)
-{
-    static int logged = 0;
-    if (!shouldLogMonkeyDiagnostics() || logged++ > 0 || camera == nullptr) {
-        return;
-    }
-    Logger::info(
-        "[DIAG-MONKEY] %s camera loc=<%.6f,%.6f,%.6f> dir=<%.6f,%.6f,%.6f> up=<%.6f,%.6f,%.6f> right=<%.6f,%.6f,%.6f> sky=<%.6f,%.6f,%.6f>\n",
-        prefix,
-        camera->Location.x, camera->Location.y, camera->Location.z,
-        camera->Direction.x, camera->Direction.y, camera->Direction.z,
-        camera->Up.x, camera->Up.y, camera->Up.z,
-        camera->Right.x, camera->Right.y, camera->Right.z,
-        camera->Sky.x, camera->Sky.y, camera->Sky.z);
-}
-
-void logCameraOp(const char *prefix, const char *opName, const Vector3Dd *value)
-{
-    if (!shouldLogMonkeyDiagnostics() || value == nullptr) {
-        return;
-    }
-    Logger::info(
-        "[DIAG-MONKEY] %s camera op=%s value=<%.6f,%.6f,%.6f>\n",
-        prefix, opName, value->x, value->y, value->z);
-}
-}
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 
 void
 CameraParser::parseCamera(Camera *givenVp)
@@ -87,27 +51,22 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 
             case Tokenizer::LOCATION_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Location), ctx);
-                logCameraOp("legacy", "location", &givenVp->Location);
                 break;
 
             case Tokenizer::DIRECTION_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Direction), ctx);
-                logCameraOp("legacy", "direction", &givenVp->Direction);
                 break;
 
             case Tokenizer::UP_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Up), ctx);
-                logCameraOp("legacy", "up", &givenVp->Up);
                 break;
 
             case Tokenizer::RIGHT_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Right), ctx);
-                logCameraOp("legacy", "right", &givenVp->Right);
                 break;
 
             case Tokenizer::SKY_TOKEN:
                 PrimitiveParser::parseVector(&(givenVp->Sky), ctx);
-                logCameraOp("legacy", "sky", &givenVp->Sky);
                 break;
 
             case Tokenizer::LOOK_AT_TOKEN:
@@ -117,7 +76,6 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 tempVector = givenVp->Direction.crossProduct(givenVp->Up);
                 handedness = tempVector.dotProduct(givenVp->Right);
                 PrimitiveParser::parseVector(&givenVp->Direction, ctx);
-                logCameraOp("legacy", "look_at", &givenVp->Direction);
 
                 givenVp->Direction.sub(givenVp->Location);
                 givenVp->Direction.normalize();
@@ -160,6 +118,4 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
             }
         }
     }
-
-    logCameraOnce("legacy", givenVp);
 }

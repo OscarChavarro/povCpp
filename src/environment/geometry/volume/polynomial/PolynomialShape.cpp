@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "common/PolynomialTermCounts.h"
 #include "common/logger/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
@@ -38,19 +39,13 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1}};
 
 int factorials[PolynomialConstants::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
-static int termCountsInstance[PolynomialConstants::MAX_ORDER + 1] = {1, 4, 10, 20, 35, 56, 84, 120};
+static const int *termCountsInstance = PolynomialTermCounts::table();
 
 Methods PolynomialShape::methodTable = {
     PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
     PolynomialShape::polyNormal, PolynomialShape::copyPoly,
     PolynomialShape::translatePoly, PolynomialShape::rotatePoly,
     PolynomialShape::scalePoly, PolynomialShape::invertPoly};
-
-int *
-PolynomialShape::termCounts()
-{
-    return termCountsInstance;
-}
 
 
 int
