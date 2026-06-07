@@ -44,9 +44,10 @@ class ImageOutputAdapter : public RenderOutput {
     explicit ImageOutputAdapter(ImageOutput *delegate) : delegate(delegate) {}
 
     const char *defaultFileName() override { return delegate->defaultFileName(); }
-    int open(char *name, int *width, int *height, int bufferSize, int mode) override
+    int open(char *name, int *width, int *height, int bufferSize, int mode,
+             int firstLine) override
     {
-        return delegate->open(name, width, height, bufferSize, mode);
+        return delegate->open(name, width, height, bufferSize, mode, firstLine);
     }
     void writeLine(RGBAColor *lineData, int lineNumber) override
     {
@@ -277,7 +278,8 @@ PovrayApplication::prepareRendering()
         if (RenderingConfiguration::global().options & RenderingConfiguration::CONTINUE_TRACE) {
             if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
                     &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                    RenderingConfiguration::global().fileBufferSize, RenderOutput::READ_MODE) != 1) {
+                    RenderingConfiguration::global().fileBufferSize, RenderOutput::READ_MODE,
+                    RenderingConfiguration::global().firstLine) != 1) {
                 Logger::error("Error opening continue trace output file\n");
                 fprintf(
                     stderr, "Opening new output file %s.\n", RenderingConfiguration::global().outputFileName);
@@ -285,7 +287,8 @@ PovrayApplication::prepareRendering()
 
                 if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
                         &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                        RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
+                        RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE,
+                        RenderingConfiguration::global().firstLine) != 1) {
                     Logger::error("Error opening output file\n");
                     closeAll();
                     exit(1);
@@ -299,7 +302,8 @@ PovrayApplication::prepareRendering()
         } else {
             if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
                     &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                    RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE) != 1) {
+                    RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE,
+                    RenderingConfiguration::global().firstLine) != 1) {
                 Logger::error("Error opening output file\n");
                 closeAll();
                 exit(1);

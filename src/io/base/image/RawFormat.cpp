@@ -53,7 +53,7 @@ RawFormat::openRawOutputStream(const char *base, const char *ext, bool append)
 }
 
 int
-RawFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
+RawFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int /*firstLine*/)
 {
     mode = openMode;
     filename = name;

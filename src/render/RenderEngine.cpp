@@ -322,7 +322,8 @@ RenderEngine::readRenderedPart()
         if (RenderingConfiguration::global().outputFileInputStream->open(
                 RenderingConfiguration::global().outputFileName,
                 &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                RenderingConfiguration::global().fileBufferSize, RenderOutput::APPEND_MODE) != 1) {
+                RenderingConfiguration::global().fileBufferSize, RenderOutput::APPEND_MODE,
+                RenderingConfiguration::global().firstLine) != 1) {
             Logger::error("Error opening output file\n");
             exit(1);
         }

@@ -1,7 +1,8 @@
 #ifndef __GIF_FORMAT_H__
 #define __GIF_FORMAT_H__
 
-#include "environment/geometry/GeometryOperations.h"
+#include "media/RGBAImage.h"
+#include "media/RGBAPixel.h"
 #include "java/io/FileInputStream.h"
 
 class GifFormat {

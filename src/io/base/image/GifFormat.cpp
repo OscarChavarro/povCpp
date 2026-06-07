@@ -8,6 +8,7 @@
 #include "io/base/image/GifFormat.h"
 #include "io/base/FileLocator.h"
 #include "io/base/image/GifDecoder.h"
+#include "common/logger/Logger.h"
 #include <cstring>
 #include <string>
 #include <stdexcept>

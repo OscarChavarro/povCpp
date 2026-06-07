@@ -43,7 +43,7 @@ DumpFormat::defaultFileName()
 }
 
 int
-DumpFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
+DumpFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int /*firstLine*/)
 {
     mode = openMode;
     filename = name;
@@ -199,7 +199,7 @@ void
 DumpFormat::readDumpImage(RGBAImage *image, char *name)
 {
     DumpFormat fmt;
-    if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE)) {
+    if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
         Logger::error("Cannot open dump file %s\n", name);
         exit(1);
     }

@@ -8,7 +8,6 @@
 
 #include "io/base/image/TargaFormat.h"
 #include "io/base/FileLocator.h"
-#include "environment/material/RendererConfiguration.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
 #include "media/ImageData.h"
@@ -36,7 +35,7 @@ TargaFormat::defaultFileName()
 }
 
 int
-TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
+TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int firstLine)
 {
     mode = openMode;
     filename = name;
@@ -84,8 +83,8 @@ TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode)
         for (int i = 0; i < 10; i++) {
             outputStream->write(i == 2 ? 2 : 0);
         }
-        outputStream->write(RenderingConfiguration::global().firstLine % 256);
-        outputStream->write(RenderingConfiguration::global().firstLine / 256);
+        outputStream->write(firstLine % 256);
+        outputStream->write(firstLine / 256);
         outputStream->write(*w % 256);
         outputStream->write(*w / 256);
         outputStream->write(*h % 256);
@@ -189,7 +188,7 @@ void
 TargaFormat::readTargaImage(RGBAImage *image, char *name)
 {
     TargaFormat fmt;
-    if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE)) {
+    if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
         std::string errmsg = "Cannot open Targa file " + std::string(name);
         throw std::runtime_error(errmsg);
     }

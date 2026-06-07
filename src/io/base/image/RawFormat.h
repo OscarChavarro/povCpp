@@ -16,7 +16,8 @@ class RawFormat : public ImageOutput {
     RawFormat();
     ~RawFormat() override;
     const char *defaultFileName() override;
-    int open(char *name, int *width, int *height, int bufferSize, int mode) override;
+    int open(char *name, int *width, int *height, int bufferSize, int mode,
+             int firstLine) override;
     void writeLine(RGBAColor *lineData, int lineNumber) override;
     int readLine(RGBAColor *lineData, int *lineNumber) override;
     void close() override;
