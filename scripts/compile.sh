@@ -11,7 +11,7 @@ else
     jobs="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)"
 fi
 
-cmake --build build -j"${jobs}"
+cmake --build build --target all -j"${jobs}"
 
 if [[ -f build/compile_commands.json ]]; then
     cp build/compile_commands.json compile_commands.json
