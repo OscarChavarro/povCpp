@@ -3,6 +3,10 @@
  *
  *  This module implements solid texturing functions that perturb the surface
  *  normal to create a bumpy effect.
+
+References:
+[PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
+
  *
  *****************************************************************************/
 /*
@@ -17,6 +21,8 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
+// [PERL1985].291-292 - Ripples: superimposed wave fronts from point sources
+// Implements: normal += wave(point - center), wave(v) = direction(v) * cycloid(norm(v))
 void
 BumpTextureFixture::ripples(
     double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
@@ -53,6 +59,8 @@ BumpTextureFixture::ripples(
     *normal = (*normal).normalizedFast();
 }
 
+// [PERL1985].291-292 - Waves: superimposed wave fronts with 1/f frequency distribution
+// Implements: wave(v) = direction((point-c)*f)/f with per-source frequency scaling
 void
 BumpTextureFixture::waves(
     double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
@@ -87,6 +95,8 @@ BumpTextureFixture::waves(
     *normal = (*normal).normalizedFast();
 }
 
+// [PERL1985].290 - Bumps: direct DNoise gradient-based normal perturbation (Bumpy Donut example)
+// Implements: normal += Dnoise(point)
 void
 BumpTextureFixture::bumps(
     double x, double y, double z, Texture *texture, Vector3Dd *normal, int debugEnabled)
@@ -107,6 +117,8 @@ BumpTextureFixture::bumps(
     *normal = (*normal).normalizedFast();   /* normalize normal! */
 }
 
+// [PERL1985].290 - Dents: Noise() modulated DNoise() gradient perturbation
+// Combines scalar Noise (page 289-290) to gate gradient-based displacement
 /*
 dents is similar to bumps, but uses noise() to control the amount of
 dnoise() perturbation of the object normal...
@@ -138,6 +150,8 @@ BumpTextureFixture::dents(
     *normal = (*normal).normalizedFast();     /* normalize normal! */
 }
 
+// [PERL1985].290,Appendix - Wrinkles: 1/f fractal composition of DNoise() over octaves
+// Vector-valued turbulence: sum over octaves of |DNoise(p*scale)| / scale
 /*
     Ideas garnered from the April 89 Byte Graphics Supplement on RenderMan,
     refined from "The RenderMan Companion, by Steve Upstill of Pixar, (C) 1990

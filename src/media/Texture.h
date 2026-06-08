@@ -1,3 +1,7 @@
+// [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85 (Volume 19, Number 3, pages 287-296)
+// This header defines solid texture types and procedural primitives based on Perlin's noise function.
+// See implementations in Texture.cpp, ColorTextureFixture.cpp, and BumpTextureFixture.cpp for details.
+
 #ifndef __TEXTURE_H__
 #define __TEXTURE_H__
 
