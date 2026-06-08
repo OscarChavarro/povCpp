@@ -223,48 +223,51 @@ Quadric::copyQuadric(SimpleBody *object)
 }
 
 void
-Quadric::quadricToMatrix(Quadric *quadric, MATRIX *matrix)
+Quadric::quadricToMatrix(Quadric *quadric, Matrix4x4d *matrix)
 {
     Transformation::MZero(matrix);
-    (*matrix)[0][0] = quadric->object2Terms.x();
-    (*matrix)[1][1] = quadric->object2Terms.y();
-    (*matrix)[2][2] = quadric->object2Terms.z();
-    (*matrix)[0][1] = quadric->objectMixedTerms.x();
-    (*matrix)[0][2] = quadric->objectMixedTerms.y();
-    (*matrix)[0][3] = quadric->objectTerms.x();
-    (*matrix)[1][2] = quadric->objectMixedTerms.z();
-    (*matrix)[1][3] = quadric->objectTerms.y();
-    (*matrix)[2][3] = quadric->objectTerms.z();
-    (*matrix)[3][3] = quadric->objectConstant;
+    *matrix = matrix->withVal(0, 0, quadric->object2Terms.x());
+    *matrix = matrix->withVal(1, 1, quadric->object2Terms.y());
+    *matrix = matrix->withVal(2, 2, quadric->object2Terms.z());
+    *matrix = matrix->withVal(0, 1, quadric->objectMixedTerms.x());
+    *matrix = matrix->withVal(0, 2, quadric->objectMixedTerms.y());
+    *matrix = matrix->withVal(0, 3, quadric->objectTerms.x());
+    *matrix = matrix->withVal(1, 2, quadric->objectMixedTerms.z());
+    *matrix = matrix->withVal(1, 3, quadric->objectTerms.y());
+    *matrix = matrix->withVal(2, 3, quadric->objectTerms.z());
+    *matrix = matrix->withVal(3, 3, quadric->objectConstant);
 }
 
 void
-Quadric::matrixToQuadric(MATRIX *matrix, Quadric *quadric)
+Quadric::matrixToQuadric(Matrix4x4d *matrix, Quadric *quadric)
 {
     quadric->object2Terms =
-        Vector3Dd((*matrix)[0][0], (*matrix)[1][1], (*matrix)[2][2]);
-    quadric->objectMixedTerms = Vector3Dd((*matrix)[0][1] + (*matrix)[1][0],
-        (*matrix)[0][2] + (*matrix)[2][0], (*matrix)[1][2] + (*matrix)[2][1]);
-    quadric->objectTerms = Vector3Dd((*matrix)[0][3] + (*matrix)[3][0],
-        (*matrix)[1][3] + (*matrix)[3][1], (*matrix)[2][3] + (*matrix)[3][2]);
-    quadric->objectConstant = (*matrix)[3][3];
+        Vector3Dd(matrix->get(0, 0), matrix->get(1, 1), matrix->get(2, 2));
+    quadric->objectMixedTerms = Vector3Dd(
+        matrix->get(0, 1) + matrix->get(1, 0),
+        matrix->get(0, 2) + matrix->get(2, 0),
+        matrix->get(1, 2) + matrix->get(2, 1));
+    quadric->objectTerms = Vector3Dd(
+        matrix->get(0, 3) + matrix->get(3, 0),
+        matrix->get(1, 3) + matrix->get(3, 1),
+        matrix->get(2, 3) + matrix->get(3, 2));
+    quadric->objectConstant = matrix->get(3, 3);
 }
 
 void
 Quadric::transformQuadric(Quadric *shape, Transformation *transformation)
 {
-    MATRIX quadricMatrix;
-    MATRIX transformTransposed;
+    Matrix4x4d quadricMatrix;
+    Matrix4x4d transformTransposed;
 
-    Quadric::quadricToMatrix(shape, (MATRIX *)&quadricMatrix[0][0]);
-    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0],
-        (MATRIX *)&(transformation->inverse[0][0]),
-        (MATRIX *)&quadricMatrix[0][0]);
-    Transformation::MTranspose((MATRIX *)&transformTransposed[0][0],
-        (MATRIX *)&(transformation->inverse[0][0]));
-    Transformation::MTimes((MATRIX *)&quadricMatrix[0][0],
-        (MATRIX *)&quadricMatrix[0][0], (MATRIX *)&transformTransposed[0][0]);
-    Quadric::matrixToQuadric((MATRIX *)&quadricMatrix[0][0], shape);
+    Quadric::quadricToMatrix(shape, &quadricMatrix);
+    Transformation::MTimes(&quadricMatrix,
+        &(transformation->inverse), &quadricMatrix);
+    Transformation::MTranspose(&transformTransposed,
+        &(transformation->inverse));
+    Transformation::MTimes(&quadricMatrix,
+        &quadricMatrix, &transformTransposed);
+    Quadric::matrixToQuadric(&quadricMatrix, shape);
 }
 
 void

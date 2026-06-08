@@ -290,7 +290,7 @@ Box::copyBox(SimpleBody *object)
     /* Copy any associated transformation */
     if (newShape->Transform != nullptr) {
         tr = Transformation::getTransformation();
-        memcpy(tr, newShape->Transform, sizeof(Transformation));
+        *tr = *(newShape->Transform);
         newShape->Transform = tr;
     }
 

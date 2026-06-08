@@ -2,6 +2,7 @@
 #define __QUADRIC_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class Quadric : public Geometry {
@@ -29,8 +30,8 @@ class Quadric : public Geometry {
     static void invertQuadric(SimpleBody *object);
 
   private:
-    static void quadricToMatrix(Quadric *quadric, MATRIX *matrix);
-    static void matrixToQuadric(MATRIX *matrix, Quadric *quadric);
+    static void quadricToMatrix(Quadric *quadric, Matrix4x4d *matrix);
+    static void matrixToQuadric(Matrix4x4d *matrix, Quadric *quadric);
     static void transformQuadric(
         Quadric *shape, Transformation *transformation);
 };

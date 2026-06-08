@@ -61,14 +61,14 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
         Logger::info(
             "[TEXTURE-STATE] %s xform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n",
             prefix,
-            texture->Texture_Transformation->matrix[0][0], texture->Texture_Transformation->matrix[0][1],
-            texture->Texture_Transformation->matrix[0][2], texture->Texture_Transformation->matrix[0][3],
-            texture->Texture_Transformation->matrix[1][0], texture->Texture_Transformation->matrix[1][1],
-            texture->Texture_Transformation->matrix[1][2], texture->Texture_Transformation->matrix[1][3],
-            texture->Texture_Transformation->matrix[2][0], texture->Texture_Transformation->matrix[2][1],
-            texture->Texture_Transformation->matrix[2][2], texture->Texture_Transformation->matrix[2][3],
-            texture->Texture_Transformation->matrix[3][0], texture->Texture_Transformation->matrix[3][1],
-            texture->Texture_Transformation->matrix[3][2], texture->Texture_Transformation->matrix[3][3]);
+            texture->Texture_Transformation->matrix.get(0, 0), texture->Texture_Transformation->matrix.get(0, 1),
+            texture->Texture_Transformation->matrix.get(0, 2), texture->Texture_Transformation->matrix.get(0, 3),
+            texture->Texture_Transformation->matrix.get(1, 0), texture->Texture_Transformation->matrix.get(1, 1),
+            texture->Texture_Transformation->matrix.get(1, 2), texture->Texture_Transformation->matrix.get(1, 3),
+            texture->Texture_Transformation->matrix.get(2, 0), texture->Texture_Transformation->matrix.get(2, 1),
+            texture->Texture_Transformation->matrix.get(2, 2), texture->Texture_Transformation->matrix.get(2, 3),
+            texture->Texture_Transformation->matrix.get(3, 0), texture->Texture_Transformation->matrix.get(3, 1),
+            texture->Texture_Transformation->matrix.get(3, 2), texture->Texture_Transformation->matrix.get(3, 3));
     }
 }
 

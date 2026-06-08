@@ -206,7 +206,7 @@ int
 PolynomialShape::intersect(
     RayWithSegments *ray, int order, double *coeffs, double *depths)
 {
-    MATRIX q;
+    Matrix4x4d q;
     double *a;
     double t[PolynomialConstants::MAX_ORDER + 1];
     int i;
@@ -222,14 +222,14 @@ PolynomialShape::intersect(
     for (i = 0; i < termCountsInstance[order]; i++) {
         a[i] = coeffs[i];
     }
-    Transformation::MZero((MATRIX *)&q[0][0]);
-    q[0][0] = ray->direction.x();
-    q[3][0] = ray->position.x();
-    q[0][1] = ray->direction.y();
-    q[3][1] = ray->position.y();
-    q[0][2] = ray->direction.z();
-    q[3][2] = ray->position.z();
-    PolynomialShape::transform(order, a, (MATRIX *)&q[0][0]);
+    Transformation::MZero(&q);
+    q = q.withVal(0, 0, ray->direction.x());
+    q = q.withVal(3, 0, ray->position.x());
+    q = q.withVal(0, 1, ray->direction.y());
+    q = q.withVal(3, 1, ray->position.y());
+    q = q.withVal(0, 2, ray->direction.z());
+    q = q.withVal(3, 2, ray->position.z());
+    PolynomialShape::transform(order, a, &q);
     /* The equation is now in terms of one variable.  Use numerical
         techniques to solve the polynomial that represents the intersections. */
     for (i = 0; i <= order; i++) {
@@ -340,7 +340,7 @@ PolynomialShape::normalp(
 
 double
 PolynomialShape::doPartialTerm(
-    MATRIX *q, int row, int pwr, int i, int j, int k, int l)
+    Matrix4x4d *q, int row, int pwr, int i, int j, int k, int l)
 {
     double result;
     int n;
@@ -349,22 +349,22 @@ PolynomialShape::doPartialTerm(
                                             factorials[k] * factorials[l]));
     if (i > 0) {
         for (n = 0; n < i; n++) {
-            result *= (*q)[0][row];
+            result *= q->get(0, row);
         }
     }
     if (j > 0) {
         for (n = 0; n < j; n++) {
-            result *= (*q)[1][row];
+            result *= q->get(1, row);
         }
     }
     if (k > 0) {
         for (n = 0; n < k; n++) {
-            result *= (*q)[2][row];
+            result *= q->get(2, row);
         }
     }
     if (l > 0) {
         for (n = 0; n < l; n++) {
-            result *= (*q)[3][row];
+            result *= q->get(3, row);
         }
     }
     return result;
@@ -373,7 +373,7 @@ PolynomialShape::doPartialTerm(
 /* Using the transformation matrix q, transform the general polynomial
     equation given by a. */
 void
-PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
+PolynomialShape::transform(int order, double *coeffs, Matrix4x4d *q)
 {
     int termIndex;
     int partialIndex;
@@ -404,8 +404,8 @@ PolynomialShape::transform(int order, double *coeffs, MATRIX *q)
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            if ((*q)[i][j] > -COEFF_LIMIT && (*q)[i][j] < COEFF_LIMIT) {
-                (*q)[i][j] = 0.0;
+            if (q->get(i, j) > -COEFF_LIMIT && q->get(i, j) < COEFF_LIMIT) {
+                *q = q->withVal(i, j, 0.0);
             }
         }
     }
@@ -847,7 +847,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
     /* Copy any associated transformation */
     if (shape->Transform != nullptr) {
         newShape->Transform = Transformation::getTransformation();
-        memcpy(newShape->Transform, shape->Transform, sizeof(Transformation));
+        *(newShape->Transform) = *(shape->Transform);
     }
     for (i = 0; i < termCountsInstance[newShape->Order]; i++) {
         newShape->Coeffs[i] = shape->Coeffs[i];

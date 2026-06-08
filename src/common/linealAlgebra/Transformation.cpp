@@ -12,7 +12,7 @@
 #include "common/logger/Logger.h"
 
 void
-Transformation::MZero(MATRIX *result)
+Transformation::MZero(Matrix4x4d *result)
 {
     /* Initialize the matrix to the following values:
     0.0    0.0    0.0    0.0
@@ -22,16 +22,19 @@ Transformation::MZero(MATRIX *result)
     */
     int i;
     int j;
+    double tempMatrix[4][4];
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            (*result)[i][j] = 0.0;
+            tempMatrix[i][j] = 0.0;
         }
     }
+
+    *result = Matrix4x4d(tempMatrix);
 }
 
 void
-Transformation::MIdentity(MATRIX *result)
+Transformation::MIdentity(Matrix4x4d *result)
 {
     /* Initialize the matrix to the following values:
     1.0    0.0    0.0    0.0
@@ -39,63 +42,19 @@ Transformation::MIdentity(MATRIX *result)
     0.0    0.0    1.0    0.0
     0.0    0.0    0.0    1.0
     */
-    int i;
-    int j;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            if (i == j) {
-                (*result)[i][j] = 1.0;
-            } else {
-                (*result)[i][j] = 0.0;
-            }
-        }
-    }
+    *result = Matrix4x4d::identityMatrix();
 }
 
 void
-Transformation::MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2)
+Transformation::MTimes(Matrix4x4d *result, Matrix4x4d *matrix1, Matrix4x4d *matrix2)
 {
-    int i;
-    int j;
-    int k;
-    MATRIX tempMatrix;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            tempMatrix[i][j] = 0.0;
-            for (k = 0; k < 4; k++) {
-                tempMatrix[i][j] += (*matrix1)[i][k] * (*matrix2)[k][j];
-            }
-        }
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            (*result)[i][j] = tempMatrix[i][j];
-        }
-    }
-
+    *result = matrix1->multiply(*matrix2);
 }
 
 void
-Transformation::MTranspose(MATRIX *result, MATRIX *matrix1)
+Transformation::MTranspose(Matrix4x4d *result, Matrix4x4d *matrix1)
 {
-    int i;
-    int j;
-    MATRIX tempMatrix;
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            tempMatrix[i][j] = (*matrix1)[j][i];
-        }
-    }
-
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            (*result)[i][j] = tempMatrix[i][j];
-        }
-    }
+    *result = matrix1->transpose();
 }
 
 void
@@ -104,14 +63,14 @@ Transformation::MTransformVector(
 {
     int i;
     double answerArray[4];
-    MATRIX *matrix;
+    Matrix4x4d *matrix;
 
-    matrix = (MATRIX *)transformation->matrix;
+    matrix = &(transformation->matrix);
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x() * (*matrix)[0][i] +
-                         vector->y() * (*matrix)[1][i] +
-                         vector->z() * (*matrix)[2][i] + (*matrix)[3][i];
+        answerArray[i] = vector->x() * matrix->get(0, i) +
+                         vector->y() * matrix->get(1, i) +
+                         vector->z() * matrix->get(2, i) + matrix->get(3, i);
     }
 
     *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
@@ -123,14 +82,14 @@ Transformation::MInverseTransformVector(
 {
     int i;
     double answerArray[4];
-    MATRIX *matrix;
+    Matrix4x4d *matrix;
 
-    matrix = (MATRIX *)transformation->inverse;
+    matrix = &(transformation->inverse);
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x() * (*matrix)[0][i] +
-                         vector->y() * (*matrix)[1][i] +
-                         vector->z() * (*matrix)[2][i] + (*matrix)[3][i];
+        answerArray[i] = vector->x() * matrix->get(0, i) +
+                         vector->y() * matrix->get(1, i) +
+                         vector->z() * matrix->get(2, i) + matrix->get(3, i);
     }
 
     *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
@@ -142,14 +101,14 @@ Transformation::MTransVector(
 {
     int i;
     double answerArray[4];
-    MATRIX *matrix;
+    Matrix4x4d *matrix;
 
-    matrix = (MATRIX *)transformation->matrix;
+    matrix = &(transformation->matrix);
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x() * (*matrix)[0][i] +
-                         vector->y() * (*matrix)[1][i] +
-                         vector->z() * (*matrix)[2][i];
+        answerArray[i] = vector->x() * matrix->get(0, i) +
+                         vector->y() * matrix->get(1, i) +
+                         vector->z() * matrix->get(2, i);
     }
 
     *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
@@ -161,14 +120,14 @@ Transformation::MInvTransVector(
 {
     int i;
     double answerArray[4];
-    MATRIX *matrix;
+    Matrix4x4d *matrix;
 
-    matrix = (MATRIX *)transformation->inverse;
+    matrix = &(transformation->inverse);
 
     for (i = 0; i < 4; i++) {
-        answerArray[i] = vector->x() * (*matrix)[0][i] +
-                         vector->y() * (*matrix)[1][i] +
-                         vector->z() * (*matrix)[2][i];
+        answerArray[i] = vector->x() * matrix->get(0, i) +
+                         vector->y() * matrix->get(1, i) +
+                         vector->z() * matrix->get(2, i);
     }
 
     *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
@@ -180,14 +139,14 @@ Transformation::MTransNormal(
 {
     int i;
     double answerArray[3];
-    MATRIX *matrix;
+    Matrix4x4d *matrix;
 
-    matrix = (MATRIX *)transformation->inverse;
+    matrix = &(transformation->inverse);
 
     for (i = 0; i < 3; i++) {
-        answerArray[i] = vector->x() * (*matrix)[i][0] +
-                         vector->y() * (*matrix)[i][1] +
-                         vector->z() * (*matrix)[i][2];
+        answerArray[i] = vector->x() * matrix->get(i, 0) +
+                         vector->y() * matrix->get(i, 1) +
+                         vector->z() * matrix->get(i, 2);
     }
 
     *result = Vector3Dd(answerArray[0], answerArray[1], answerArray[2]);
@@ -197,37 +156,31 @@ void
 Transformation::getScalingTransformation(
     Transformation *result, Vector3Dd *vector)
 {
-    Transformation::MIdentity((MATRIX *)result->matrix);
-    (result->matrix)[0][0] = vector->x();
-    (result->matrix)[1][1] = vector->y();
-    (result->matrix)[2][2] = vector->z();
-
-    Transformation::MIdentity((MATRIX *)result->inverse);
-    (result->inverse)[0][0] = 1.0 / vector->x();
-    (result->inverse)[1][1] = 1.0 / vector->y();
-    (result->inverse)[2][2] = 1.0 / vector->z();
+    result->matrix = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    result->inverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
 }
 
 void
 Transformation::getTranslationTransformation(
     Transformation *transformation, Vector3Dd *vector)
 {
-    Transformation::MIdentity((MATRIX *)transformation->matrix);
-    (transformation->matrix)[3][0] = vector->x();
-    (transformation->matrix)[3][1] = vector->y();
-    (transformation->matrix)[3][2] = vector->z();
+    Transformation::MIdentity(&(transformation->matrix));
+    transformation->matrix = transformation->matrix.withVal(3, 0, vector->x());
+    transformation->matrix = transformation->matrix.withVal(3, 1, vector->y());
+    transformation->matrix = transformation->matrix.withVal(3, 2, vector->z());
 
-    Transformation::MIdentity((MATRIX *)transformation->inverse);
-    (transformation->inverse)[3][0] = 0.0 - vector->x();
-    (transformation->inverse)[3][1] = 0.0 - vector->y();
-    (transformation->inverse)[3][2] = 0.0 - vector->z();
+    Transformation::MIdentity(&(transformation->inverse));
+    transformation->inverse = transformation->inverse.withVal(3, 0, 0.0 - vector->x());
+    transformation->inverse = transformation->inverse.withVal(3, 1, 0.0 - vector->y());
+    transformation->inverse = transformation->inverse.withVal(3, 2, 0.0 - vector->z());
 }
 
 void
 Transformation::getRotationTransformation(
     Transformation *transformation, Vector3Dd *vector)
 {
-    MATRIX matrix;
+    Matrix4x4d matrix;
     Vector3Dd radianVector;
     double cosx;
     double cosy;
@@ -237,7 +190,7 @@ Transformation::getRotationTransformation(
     double sinz;
 
     radianVector = (*vector).multiply(M_PI / 180.0);
-    Transformation::MIdentity((MATRIX *)transformation->matrix);
+    Transformation::MIdentity(&(transformation->matrix));
     cosx = cos(radianVector.x());
     sinx = sin(radianVector.x());
     cosy = cos(radianVector.y());
@@ -245,47 +198,47 @@ Transformation::getRotationTransformation(
     cosz = cos(radianVector.z());
     sinz = sin(radianVector.z());
 
-    (transformation->matrix)[1][1] = cosx;
-    (transformation->matrix)[2][2] = cosx;
-    (transformation->matrix)[1][2] = sinx;
-    (transformation->matrix)[2][1] = 0.0 - sinx;
+    transformation->matrix = transformation->matrix.withVal(1, 1, cosx);
+    transformation->matrix = transformation->matrix.withVal(2, 2, cosx);
+    transformation->matrix = transformation->matrix.withVal(1, 2, sinx);
+    transformation->matrix = transformation->matrix.withVal(2, 1, 0.0 - sinx);
     Transformation::MTranspose(
-        (MATRIX *)transformation->inverse, (MATRIX *)transformation->matrix);
+        &(transformation->inverse), &(transformation->matrix));
 
-    Transformation::MIdentity((MATRIX *)matrix);
-    matrix[0][0] = cosy;
-    matrix[2][2] = cosy;
-    matrix[0][2] = 0.0 - siny;
-    matrix[2][0] = siny;
-    Transformation::MTimes((MATRIX *)transformation->matrix,
-        (MATRIX *)transformation->matrix, (MATRIX *)matrix);
-    Transformation::MTranspose((MATRIX *)matrix, (MATRIX *)matrix);
-    Transformation::MTimes((MATRIX *)transformation->inverse, (MATRIX *)matrix,
-        (MATRIX *)transformation->inverse);
+    Transformation::MIdentity(&matrix);
+    matrix = matrix.withVal(0, 0, cosy);
+    matrix = matrix.withVal(2, 2, cosy);
+    matrix = matrix.withVal(0, 2, 0.0 - siny);
+    matrix = matrix.withVal(2, 0, siny);
+    Transformation::MTimes(&(transformation->matrix),
+        &(transformation->matrix), &matrix);
+    Transformation::MTranspose(&matrix, &matrix);
+    Transformation::MTimes(&(transformation->inverse), &matrix,
+        &(transformation->inverse));
 
-    Transformation::MIdentity((MATRIX *)matrix);
-    matrix[0][0] = cosz;
-    matrix[1][1] = cosz;
-    matrix[0][1] = sinz;
-    matrix[1][0] = 0.0 - sinz;
-    Transformation::MTimes((MATRIX *)transformation->matrix,
-        (MATRIX *)transformation->matrix, (MATRIX *)matrix);
-    Transformation::MTranspose((MATRIX *)matrix, (MATRIX *)matrix);
-    Transformation::MTimes((MATRIX *)transformation->inverse, (MATRIX *)matrix,
-        (MATRIX *)transformation->inverse);
+    Transformation::MIdentity(&matrix);
+    matrix = matrix.withVal(0, 0, cosz);
+    matrix = matrix.withVal(1, 1, cosz);
+    matrix = matrix.withVal(0, 1, sinz);
+    matrix = matrix.withVal(1, 0, 0.0 - sinz);
+    Transformation::MTimes(&(transformation->matrix),
+        &(transformation->matrix), &matrix);
+    Transformation::MTranspose(&matrix, &matrix);
+    Transformation::MTimes(&(transformation->inverse), &matrix,
+        &(transformation->inverse));
 }
 
 void
 Transformation::composeTransformations(
     Transformation *originalTransformation, Transformation *newTransformation)
 {
-    Transformation::MTimes((MATRIX *)originalTransformation->matrix,
-        (MATRIX *)originalTransformation->matrix,
-        (MATRIX *)newTransformation->matrix);
+    Transformation::MTimes(&(originalTransformation->matrix),
+        &(originalTransformation->matrix),
+        &(newTransformation->matrix));
 
-    Transformation::MTimes((MATRIX *)originalTransformation->inverse,
-        (MATRIX *)newTransformation->inverse,
-        (MATRIX *)originalTransformation->inverse);
+    Transformation::MTimes(&(originalTransformation->inverse),
+        &(newTransformation->inverse),
+        &(originalTransformation->inverse));
 }
 
 Transformation *
@@ -300,7 +253,7 @@ Transformation::getTransformation()
         exit(1);
     }
 
-    Transformation::MIdentity((MATRIX *)&(newTransformation->matrix[0][0]));
-    Transformation::MIdentity((MATRIX *)&(newTransformation->inverse[0][0]));
+    Transformation::MIdentity(&(newTransformation->matrix));
+    Transformation::MIdentity(&(newTransformation->inverse));
     return (newTransformation);
 }
