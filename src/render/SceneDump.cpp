@@ -2,7 +2,7 @@
 #include "render/RenderEngine.h"
 #include "environment/geometry/SimpleBody.h"
 #include "media/Texture.h"
-#include "common/linealAlgebra/Transformation.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "common/color/RGBAColorPaletteSpan.h"
 
 void dumpSceneStructure(FILE *f)
@@ -99,12 +99,12 @@ void dumpSceneStructure(FILE *f)
                         tex->Image->height);
             }
 
-            if (tex->Texture_Transformation) {
-                Transformation *xform = tex->Texture_Transformation;
+            if (tex->textureTransformation) {
+                Matrix4x4d *xform = tex->textureTransformation;
                 fprintf(f, "  tex.xform=");
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {
-                        fprintf(f, "%.6f", xform->matrix.get(i, j));
+                        fprintf(f, "%.6f", xform->get(i, j));
                         if (i < 3 || j < 3) fprintf(f, ",");
                     }
                 }

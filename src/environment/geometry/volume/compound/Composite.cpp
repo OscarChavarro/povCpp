@@ -360,7 +360,6 @@ void
 Composite::rotateBasicObject(SimpleBody *object, Vector3Dd *vector)
 {
     Geometry *localShape;
-    Transformation transformation;
 
     for (localShape = object->boundingShapes; localShape != nullptr;
         localShape = localShape->nextObject) {
@@ -375,7 +374,6 @@ Composite::rotateBasicObject(SimpleBody *object, Vector3Dd *vector)
     }
 
     GeometryOperations::rotate((SimpleBody *)object->Shape, vector);
-    Transformation::getRotationTransformation(&transformation, vector);
 
     TextureUtils::rotateTexture(&object->objectTexture, vector);
 }

@@ -13,7 +13,8 @@ class HeightField : public Geometry {
     static constexpr int TGA = 2;
 
     static Methods methodTable;
-    Transformation *transformation;
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
     Box *bounding_box;
     double blockSize;
     double invBlkSize;

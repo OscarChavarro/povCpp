@@ -48,39 +48,26 @@ Camera::translateCamera(SimpleBody *object, Vector3Dd *vector)
 void
 Camera::rotateCamera(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
     Camera *viewpoint = (Camera *)object;
 
-    Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(
-        &(viewpoint->Location), &(viewpoint->Location), &transformation);
-
-    Transformation::MTransformVector(
-        &(viewpoint->Direction), &(viewpoint->Direction), &transformation);
-
-    Transformation::MTransformVector(
-        &(viewpoint->Up), &(viewpoint->Up), &transformation);
-
-    Transformation::MTransformVector(
-        &(viewpoint->Right), &(viewpoint->Right), &transformation);
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
+    viewpoint->Location = transformation.transpose().multiply(viewpoint->Location);
+    viewpoint->Direction = transformation.transpose().multiply(viewpoint->Direction);
+    viewpoint->Up = transformation.transpose().multiply(viewpoint->Up);
+    viewpoint->Right = transformation.transpose().multiply(viewpoint->Right);
 }
 
 void
 Camera::scaleCamera(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
     Camera *viewpoint = (Camera *)object;
 
-    Transformation::getScalingTransformation(&transformation, vector);
-    Transformation::MTransformVector(
-        &(viewpoint->Location), &(viewpoint->Location), &transformation);
-
-    Transformation::MTransformVector(
-        &(viewpoint->Direction), &(viewpoint->Direction), &transformation);
-
-    Transformation::MTransformVector(
-        &(viewpoint->Up), &(viewpoint->Up), &transformation);
-
-    Transformation::MTransformVector(
-        &(viewpoint->Right), &(viewpoint->Right), &transformation);
+    transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    viewpoint->Location = transformation.transpose().multiply(viewpoint->Location);
+    viewpoint->Direction = transformation.transpose().multiply(viewpoint->Direction);
+    viewpoint->Up = transformation.transpose().multiply(viewpoint->Up);
+    viewpoint->Right = transformation.transpose().multiply(viewpoint->Right);
 }

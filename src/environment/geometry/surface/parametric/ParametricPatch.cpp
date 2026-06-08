@@ -1049,16 +1049,17 @@ void
 ParametricBiCubicPatch::rotateBicubicPatch(
     SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
     ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
     int i;
     int j;
 
-    Transformation::getRotationTransformation(&transformation, vector);
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
-            Transformation::MTransformVector(&(patch->Control_Points[i][j]),
-                &(patch->Control_Points[i][j]), &transformation);
+            patch->Control_Points[i][j] = transformation.transpose().multiply(
+                patch->Control_Points[i][j]);
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);

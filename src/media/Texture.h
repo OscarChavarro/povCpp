@@ -2,8 +2,8 @@
 #define __TEXTURE_H__
 
 #include "common/color/Color.h"
-#include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "media/RGBAImage.h"
 #include "media/RGBAPixel.h"
 #include "media/TextureUtils.h"
@@ -95,7 +95,8 @@ class Texture {
     int textureNumber;
     int bumpNumber;
     int textureIndex;
-    Transformation *Texture_Transformation;
+    Matrix4x4d *textureTransformation;
+    Matrix4x4d *textureTransformationInverse;
     RGBAColor *Colour1;
     RGBAColor *Colour2;
     double Turbulence;

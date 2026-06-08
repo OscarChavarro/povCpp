@@ -2,12 +2,14 @@
 #define __BOX_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class Box : public Geometry {
   public:
     static Methods methodTable;
-    Transformation *Transform;
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
     Vector3Dd bounds[2];
     bool Inverted;
 

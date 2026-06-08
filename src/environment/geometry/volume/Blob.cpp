@@ -330,10 +330,10 @@ Blob::allBlobIntersections(
     Statistics::global().rayBlobTests++;
 
     /* Transform the ray into the blob space */
-    if (blob->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &p, &ray->position, blob->Transform);
-        Transformation::MInvTransVector(&d, &ray->direction, blob->Transform);
+    if (blob->transformation != nullptr) {
+        p = blob->transformationInverse->transpose().multiply(ray->position);
+        d = blob->transformationInverse->transpose().withoutTranslation().multiply(
+            ray->direction);
     } else {
         p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
         d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
@@ -434,9 +434,9 @@ Blob::allBlobIntersections(
                     /* Only add this hit if it really is near the surface, we
                        can get fooled by numerical inaccuracies */
                     /* Transform the point into world space */
-                    if (blob->Transform != nullptr) {
-                        Transformation::MTransformVector(&intersectionPoint,
-                            &intersectionPoint, blob->Transform);
+                    if (blob->transformation != nullptr) {
+                        intersectionPoint = blob->transformation->transpose().multiply(
+                            intersectionPoint);
                     }
                     dv = intersectionPoint.subtract(ray->position);
                     len = dv.length();
@@ -465,9 +465,8 @@ Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
     Blob *blob = (Blob *)object;
 
     /* Transform the point into blob space */
-    if (blob->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &newPoint, testPoint, blob->Transform);
+    if (blob->transformation != nullptr) {
+        newPoint = blob->transformationInverse->transpose().multiply(*testPoint);
     } else {
         newPoint = *testPoint;
     }
@@ -492,9 +491,8 @@ Blob::blobNormal(
     BlobElement *temp;
 
     /* Transform the point into the blobs space */
-    if (blob->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &newPoint, intersectionPoint, blob->Transform);
+    if (blob->transformation != nullptr) {
+        newPoint = blob->transformationInverse->transpose().multiply(*intersectionPoint);
     } else {
         newPoint = Vector3Dd(
             intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
@@ -526,8 +524,8 @@ Blob::blobNormal(
     }
 
     /* Transform back to world space */
-    if (blob->Transform != nullptr) {
-        Transformation::MTransNormal(result, result, blob->Transform);
+    if (blob->transformation != nullptr) {
+        *result = blob->transformationInverse->withoutTranslation().multiply(*result);
     }
     *result = (*result).normalizedFast();
 }
@@ -537,7 +535,6 @@ Blob::copyBlob(SimpleBody *object)
 {
     Blob *blob;
     Blob *oldShape = (Blob *)object;
-    Transformation *tr;
 
     blob = new Blob;
     memcpy(blob, oldShape, sizeof(Blob));
@@ -559,10 +556,9 @@ Blob::copyBlob(SimpleBody *object)
     }
 
     /* Copy any associated transformation */
-    if (blob->Transform != nullptr) {
-        tr = Transformation::getTransformation();
-        *tr = *(blob->Transform);
-        blob->Transform = tr;
+    if (blob->transformation != nullptr) {
+        blob->transformation = new Matrix4x4d(*(blob->transformation));
+        blob->transformationInverse = new Matrix4x4d(*(blob->transformationInverse));
     }
 
     /* Copy any associated texture */
@@ -576,13 +572,20 @@ Blob::copyBlob(SimpleBody *object)
 void
 Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     Blob *blob = (Blob *)object;
-    if (blob->Transform == nullptr) {
-        blob->Transform = Transformation::getTransformation();
+    if (blob->transformation == nullptr) {
+        blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getTranslationTransformation(&transform, vector);
-    Transformation::composeTransformations(blob->Transform, &transform);
+    deltaTransformation = Matrix4x4d().translation(
+        vector->x(), vector->y(), vector->z()).transpose();
+    deltaTransformationInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    *blob->transformation = blob->transformation->multiply(deltaTransformation);
+    *blob->transformationInverse =
+        deltaTransformationInverse.multiply(*blob->transformationInverse);
 
     TextureUtils::translateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
@@ -590,13 +593,17 @@ Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
 void
 Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     Blob *blob = (Blob *)object;
-    if (blob->Transform == nullptr) {
-        blob->Transform = Transformation::getTransformation();
+    if (blob->transformation == nullptr) {
+        blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getRotationTransformation(&transform, vector);
-    Transformation::composeTransformations(blob->Transform, &transform);
+    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
+    *blob->transformation = blob->transformation->multiply(deltaTransformation);
+    *blob->transformationInverse =
+        deltaTransformationInverse.multiply(*blob->transformationInverse);
 
     TextureUtils::rotateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
@@ -604,13 +611,19 @@ Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
 void
 Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     Blob *blob = (Blob *)object;
-    if (blob->Transform == nullptr) {
-        blob->Transform = Transformation::getTransformation();
+    if (blob->transformation == nullptr) {
+        blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getScalingTransformation(&transform, vector);
-    Transformation::composeTransformations(blob->Transform, &transform);
+    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    deltaTransformationInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+    *blob->transformation = blob->transformation->multiply(deltaTransformation);
+    *blob->transformationInverse =
+        deltaTransformationInverse.multiply(*blob->transformationInverse);
 
     TextureUtils::scaleTexture(&((Blob *)object)->Shape_Texture, vector);
 }

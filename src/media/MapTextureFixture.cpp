@@ -11,7 +11,6 @@
 #include "media/MapTextureFixture.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
-#include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/Texture.h"
 
@@ -76,9 +75,9 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
     Color::makeColor(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
 
-    if (texture->Texture_Transformation) {
-        Transformation::MInverseTransformVector(&transformedPoint,
-            intersectionPoint, texture->Texture_Transformation);
+    if (texture->textureTransformation) {
+        transformedPoint = texture->textureTransformationInverse->transpose().multiply(
+            *intersectionPoint);
     } else {
         transformedPoint = *intersectionPoint;
     }

@@ -176,11 +176,12 @@ Sphere::translateSphere(SimpleBody *object, Vector3Dd *vector)
 void
 Sphere::rotateSphere(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
 
-    Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((Sphere *)object)->Center,
-        &((Sphere *)object)->Center, &transformation);
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
+    ((Sphere *)object)->Center =
+        transformation.transpose().multiply(((Sphere *)object)->Center);
     TextureUtils::rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 

@@ -1,7 +1,6 @@
 #include "environment/scene/ModelBuilder.h"
 
 #include "processing/PolynomialConstants.h"
-#include "common/linealAlgebra/Transformation.h"
 #include "common/color/Color.h"
 #include "common/logger/Logger.h"
 #include "environment/camera/Camera.h"
@@ -132,7 +131,8 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
     newShape->methods = &PolynomialShape::methodTable;
     newShape->Shape_Texture = nullptr;
     newShape->Shape_Colour = nullptr;
-    newShape->Transform = nullptr;
+    newShape->transformation = nullptr;
+    newShape->transformationInverse = nullptr;
     newShape->Inverted = 0;
     newShape->Order = order;
     newShape->sturmFlag = 0;
@@ -161,7 +161,8 @@ ModelBuilder::getBoxShape()
 
     *&(newShape->bounds[0]) = Vector3Dd(-1.0, -1.0, -1.0);
     *&(newShape->bounds[1]) = Vector3Dd(1.0, 1.0, 1.0);
-    newShape->Transform = nullptr;
+    newShape->transformation = nullptr;
+    newShape->transformationInverse = nullptr;
     newShape->Type = GeometryOperations::BOX_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Box::methodTable;
@@ -182,7 +183,8 @@ ModelBuilder::getBlobShape()
         exit(1);
     }
 
-    newShape->Transform = nullptr;
+    newShape->transformation = nullptr;
+    newShape->transformationInverse = nullptr;
     newShape->Type = GeometryOperations::BLOB_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Blob::methodTable;
@@ -230,7 +232,8 @@ ModelBuilder::getHeightFieldShape()
     }
     newShape->bounding_box = ModelBuilder::getBoxShape();
     newShape->Map = nullptr;
-    newShape->transformation = Transformation::getTransformation();
+    newShape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+    newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->Type = GeometryOperations::HEIGHT_FIELD_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &HeightField::methodTable;

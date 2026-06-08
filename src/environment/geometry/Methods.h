@@ -2,7 +2,6 @@
 #define __METHODS_H__
 
 #include "common/dataStructures/PriorityQueueNode.h"
-#include "common/linealAlgebra/Transformation.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
 class Intersection;

@@ -59,8 +59,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     Vector3Dd(image->width - 2.0, 256.0, image->height - 2.0);
                 localVector = Vector3Dd(1.0 / (image->width),
                     1.0 / 256.0, 1.0 / (image->height));
-                Transformation::getScalingTransformation(
-                    localShape->transformation, &localVector);
+                *localShape->transformation = Matrix4x4d().scale(
+                    localVector.x(), localVector.y(), localVector.z());
+                *localShape->transformationInverse = Matrix4x4d().scale(
+                    1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
                 Exit_Flag = true;
                 break;
 
@@ -80,8 +82,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     image->width / 2.0 - 2.0, 256.0, image->height - 2.0);
                 localVector = Vector3Dd(2.0 / image->width,
                     1.0 / 256.0, 1.0 / image->height);
-                Transformation::getScalingTransformation(
-                    localShape->transformation, &localVector);
+                *localShape->transformation = Matrix4x4d().scale(
+                    localVector.x(), localVector.y(), localVector.z());
+                *localShape->transformationInverse = Matrix4x4d().scale(
+                    1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
                 Exit_Flag = true;
                 break;
 
@@ -100,8 +104,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     Vector3Dd(image->width - 2.0, 256.0, image->height - 2.0);
                 localVector = Vector3Dd(1.0 / image->width,
                     1.0 / 256.0, 1.0 / image->height);
-                Transformation::getScalingTransformation(
-                    localShape->transformation, &localVector);
+                *localShape->transformation = Matrix4x4d().scale(
+                    localVector.x(), localVector.y(), localVector.z());
+                *localShape->transformationInverse = Matrix4x4d().scale(
+                    1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
                 Exit_Flag = true;
                 break;
 

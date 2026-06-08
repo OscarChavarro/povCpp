@@ -1,6 +1,5 @@
 #include "io/pov/context/ParserContext.h"
 #include "common/logger/Logger.h"
-#include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/GifFormat.h"
@@ -56,19 +55,19 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
         texture->Octaves,
         texture->bumpNumber,
         texture->bumpAmount,
-        texture->Texture_Transformation != nullptr ? "yes" : "no");
-    if (texture->Texture_Transformation != nullptr) {
+        texture->textureTransformation != nullptr ? "yes" : "no");
+    if (texture->textureTransformation != nullptr) {
         Logger::info(
             "[TEXTURE-STATE] %s xform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n",
             prefix,
-            texture->Texture_Transformation->matrix.get(0, 0), texture->Texture_Transformation->matrix.get(0, 1),
-            texture->Texture_Transformation->matrix.get(0, 2), texture->Texture_Transformation->matrix.get(0, 3),
-            texture->Texture_Transformation->matrix.get(1, 0), texture->Texture_Transformation->matrix.get(1, 1),
-            texture->Texture_Transformation->matrix.get(1, 2), texture->Texture_Transformation->matrix.get(1, 3),
-            texture->Texture_Transformation->matrix.get(2, 0), texture->Texture_Transformation->matrix.get(2, 1),
-            texture->Texture_Transformation->matrix.get(2, 2), texture->Texture_Transformation->matrix.get(2, 3),
-            texture->Texture_Transformation->matrix.get(3, 0), texture->Texture_Transformation->matrix.get(3, 1),
-            texture->Texture_Transformation->matrix.get(3, 2), texture->Texture_Transformation->matrix.get(3, 3));
+            texture->textureTransformation->get(0, 0), texture->textureTransformation->get(0, 1),
+            texture->textureTransformation->get(0, 2), texture->textureTransformation->get(0, 3),
+            texture->textureTransformation->get(1, 0), texture->textureTransformation->get(1, 1),
+            texture->textureTransformation->get(1, 2), texture->textureTransformation->get(1, 3),
+            texture->textureTransformation->get(2, 0), texture->textureTransformation->get(2, 1),
+            texture->textureTransformation->get(2, 2), texture->textureTransformation->get(2, 3),
+            texture->textureTransformation->get(3, 0), texture->textureTransformation->get(3, 1),
+            texture->textureTransformation->get(3, 2), texture->textureTransformation->get(3, 3));
     }
 }
 

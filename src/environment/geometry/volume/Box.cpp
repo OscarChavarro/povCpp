@@ -73,10 +73,10 @@ Box::intersectBoxx(
     Statistics::global().rayBoxTests++;
 
     /* Transform the point into the boxes space */
-    if (box->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &p, &ray->position, box->Transform);
-        Transformation::MInvTransVector(&d, &ray->direction, box->Transform);
+    if (box->transformation != nullptr) {
+        p = box->transformationInverse->transpose().multiply(ray->position);
+        d = box->transformationInverse->transpose().withoutTranslation().multiply(
+            ray->direction);
     } else {
         p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
         d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
@@ -215,9 +215,8 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
     Box *box = (Box *)object;
 
     /* Transform the point into the boxes space */
-    if (box->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &newPoint, testPoint, box->Transform);
+    if (box->transformation != nullptr) {
+        newPoint = box->transformationInverse->transpose().multiply(*testPoint);
     } else {
         newPoint = *testPoint;
     }
@@ -244,9 +243,8 @@ Box::boxNormal(
     Box *box = (Box *)object;
 
     /* Transform the point into the boxes space */
-    if (box->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &newPoint, intersectionPoint, box->Transform);
+    if (box->transformation != nullptr) {
+        newPoint = box->transformationInverse->transpose().multiply(*intersectionPoint);
     } else {
         newPoint = Vector3Dd(
             intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
@@ -271,8 +269,8 @@ Box::boxNormal(
     }
 
     /* Transform the point into the boxes space */
-    if (box->Transform != nullptr) {
-        Transformation::MTransNormal(result, result, box->Transform);
+    if (box->transformation != nullptr) {
+        *result = box->transformationInverse->withoutTranslation().multiply(*result);
         *result = (*result).normalizedFast();
     }
 }
@@ -281,17 +279,16 @@ void *
 Box::copyBox(SimpleBody *object)
 {
     Box *newShape;
-    Transformation *tr;
 
     newShape = new Box;
     *newShape = *((Box *)object);
     newShape->nextObject = nullptr;
 
     /* Copy any associated transformation */
-    if (newShape->Transform != nullptr) {
-        tr = Transformation::getTransformation();
-        *tr = *(newShape->Transform);
-        newShape->Transform = tr;
+    if (newShape->transformation != nullptr) {
+        newShape->transformation = new Matrix4x4d(*(newShape->transformation));
+        newShape->transformationInverse =
+            new Matrix4x4d(*(newShape->transformationInverse));
     }
 
     if (newShape->Shape_Texture != nullptr) {
@@ -305,13 +302,20 @@ Box::copyBox(SimpleBody *object)
 void
 Box::translateBox(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     Box *box = (Box *)object;
-    if (box->Transform == nullptr) {
-        box->Transform = Transformation::getTransformation();
+    if (box->transformation == nullptr) {
+        box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getTranslationTransformation(&transform, vector);
-    Transformation::composeTransformations(box->Transform, &transform);
+    deltaTransformation = Matrix4x4d().translation(
+        vector->x(), vector->y(), vector->z()).transpose();
+    deltaTransformationInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    *box->transformation = box->transformation->multiply(deltaTransformation);
+    *box->transformationInverse =
+        deltaTransformationInverse.multiply(*box->transformationInverse);
 
     TextureUtils::translateTexture(&((Box *)object)->Shape_Texture, vector);
 }
@@ -319,13 +323,17 @@ Box::translateBox(SimpleBody *object, Vector3Dd *vector)
 void
 Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     Box *box = (Box *)object;
-    if (box->Transform == nullptr) {
-        box->Transform = Transformation::getTransformation();
+    if (box->transformation == nullptr) {
+        box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getRotationTransformation(&transform, vector);
-    Transformation::composeTransformations(box->Transform, &transform);
+    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
+    *box->transformation = box->transformation->multiply(deltaTransformation);
+    *box->transformationInverse =
+        deltaTransformationInverse.multiply(*box->transformationInverse);
 
     TextureUtils::rotateTexture(&((Box *)object)->Shape_Texture, vector);
 }
@@ -333,13 +341,19 @@ Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
 void
 Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     Box *box = (Box *)object;
-    if (box->Transform == nullptr) {
-        box->Transform = Transformation::getTransformation();
+    if (box->transformation == nullptr) {
+        box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getScalingTransformation(&transform, vector);
-    Transformation::composeTransformations(box->Transform, &transform);
+    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    deltaTransformationInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+    *box->transformation = box->transformation->multiply(deltaTransformation);
+    *box->transformationInverse =
+        deltaTransformationInverse.multiply(*box->transformationInverse);
 
     TextureUtils::scaleTexture(&((Box *)object)->Shape_Texture, vector);
 }

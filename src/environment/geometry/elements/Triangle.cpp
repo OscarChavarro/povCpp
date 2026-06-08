@@ -428,18 +428,15 @@ Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
 void
 Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
     Triangle *triangle = (Triangle *)object;
 
-    Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(
-        &triangle->normalVector, &triangle->normalVector, &transformation);
-    Transformation::MTransformVector(
-        &triangle->P1, &triangle->P1, &transformation);
-    Transformation::MTransformVector(
-        &triangle->P2, &triangle->P2, &transformation);
-    Transformation::MTransformVector(
-        &triangle->P3, &triangle->P3, &transformation);
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
+    triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
+    triangle->P1 = transformation.transpose().multiply(triangle->P1);
+    triangle->P2 = transformation.transpose().multiply(triangle->P2);
+    triangle->P3 = transformation.transpose().multiply(triangle->P3);
     Triangle::computeTriangle(triangle);
 
     TextureUtils::rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
@@ -586,24 +583,18 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 void
 SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
     SmoothTriangle *triangle = (SmoothTriangle *)object;
 
-    Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(
-        &triangle->normalVector, &triangle->normalVector, &transformation);
-    Transformation::MTransformVector(
-        &triangle->P1, &triangle->P1, &transformation);
-    Transformation::MTransformVector(
-        &triangle->P2, &triangle->P2, &transformation);
-    Transformation::MTransformVector(
-        &triangle->P3, &triangle->P3, &transformation);
-    Transformation::MTransformVector(
-        &triangle->N1, &triangle->N1, &transformation);
-    Transformation::MTransformVector(
-        &triangle->N2, &triangle->N2, &transformation);
-    Transformation::MTransformVector(
-        &triangle->N3, &triangle->N3, &transformation);
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
+    triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
+    triangle->P1 = transformation.transpose().multiply(triangle->P1);
+    triangle->P2 = transformation.transpose().multiply(triangle->P2);
+    triangle->P3 = transformation.transpose().multiply(triangle->P3);
+    triangle->N1 = transformation.transpose().multiply(triangle->N1);
+    triangle->N2 = transformation.transpose().multiply(triangle->N2);
+    triangle->N3 = transformation.transpose().multiply(triangle->N3);
     Triangle::computeTriangle((Triangle *)triangle);
 
     TextureUtils::rotateTexture(&((Triangle *)object)->Shape_Texture, vector);

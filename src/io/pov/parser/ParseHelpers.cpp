@@ -1,5 +1,4 @@
 #include "io/pov/context/ParserContext.h"
-#include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"

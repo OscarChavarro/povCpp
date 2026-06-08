@@ -225,7 +225,7 @@ Quadric::copyQuadric(SimpleBody *object)
 void
 Quadric::quadricToMatrix(Quadric *quadric, Matrix4x4d *matrix)
 {
-    Transformation::MZero(matrix);
+    *matrix = Matrix4x4d::identityMatrix().multiply(0.0);
     *matrix = matrix->withVal(0, 0, quadric->object2Terms.x());
     *matrix = matrix->withVal(1, 1, quadric->object2Terms.y());
     *matrix = matrix->withVal(2, 2, quadric->object2Terms.z());
@@ -255,28 +255,26 @@ Quadric::matrixToQuadric(Matrix4x4d *matrix, Quadric *quadric)
 }
 
 void
-Quadric::transformQuadric(Quadric *shape, Transformation *transformation)
+Quadric::transformQuadric(Quadric *shape, Matrix4x4d *transformationInverse)
 {
     Matrix4x4d quadricMatrix;
     Matrix4x4d transformTransposed;
 
     Quadric::quadricToMatrix(shape, &quadricMatrix);
-    Transformation::MTimes(&quadricMatrix,
-        &(transformation->inverse), &quadricMatrix);
-    Transformation::MTranspose(&transformTransposed,
-        &(transformation->inverse));
-    Transformation::MTimes(&quadricMatrix,
-        &quadricMatrix, &transformTransposed);
+    quadricMatrix = transformationInverse->multiply(quadricMatrix);
+    transformTransposed = transformationInverse->transpose();
+    quadricMatrix = quadricMatrix.multiply(transformTransposed);
     Quadric::matrixToQuadric(&quadricMatrix, shape);
 }
 
 void
 Quadric::translateQuadric(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformationInverse;
 
-    Transformation::getTranslationTransformation(&transformation, vector);
-    Quadric::transformQuadric((Quadric *)object, &transformation);
+    transformationInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    Quadric::transformQuadric((Quadric *)object, &transformationInverse);
 
     TextureUtils::translateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
@@ -284,10 +282,11 @@ Quadric::translateQuadric(SimpleBody *object, Vector3Dd *vector)
 void
 Quadric::rotateQuadric(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
 
-    Transformation::getRotationTransformation(&transformation, vector);
-    Quadric::transformQuadric((Quadric *)object, &transformation);
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
+    Quadric::transformQuadric((Quadric *)object, &transformationInverse);
 
     TextureUtils::rotateTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
@@ -295,10 +294,11 @@ Quadric::rotateQuadric(SimpleBody *object, Vector3Dd *vector)
 void
 Quadric::scaleQuadric(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformationInverse;
 
-    Transformation::getScalingTransformation(&transformation, vector);
-    Quadric::transformQuadric((Quadric *)object, &transformation);
+    transformationInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+    Quadric::transformQuadric((Quadric *)object, &transformationInverse);
 
     TextureUtils::scaleTexture(&((Quadric *)object)->Shape_Texture, vector);
 }
