@@ -9,6 +9,7 @@
 #include <cstdlib>
 
 #include "media/MapTextureFixture.h"
+#include "media/TextureImage.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -95,7 +96,7 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
         MapTextureFixture::imageColourAt(
             texture->Material_Image, xcoor, ycoor, &colour, &regNumber);
 
-        if (texture->Material_Image->Colour_Map == nullptr) {
+        if (texture->Material_Image->colorMap == nullptr) {
             materialNumber = (int)colour.Red * 255;
         } else {
             materialNumber = regNumber;
@@ -191,7 +192,7 @@ MapTextureFixture::bumpMap(
         Logger::info("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
     }
 
-    if (texture->Bump_Image->Colour_Map == nullptr ||
+    if (texture->Bump_Image->colorMap == nullptr ||
         texture->Bump_Image->useColourFlag) {
         p1 = Vector3Dd(0,
             texture->bumpAmount *
@@ -247,7 +248,7 @@ MapTextureFixture::bumpMap(
 
 void
 MapTextureFixture::imageColourAt(
-    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+    TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     switch (image->interpolationType) {
     case Texture::NO_INTERPOLATION:
@@ -263,7 +264,7 @@ MapTextureFixture::imageColourAt(
     axis of symmetry along the y-axis to the square [0,1]x[0,1]. */
 int
 MapTextureFixture::cylindricalImageMap(
-    double x, double y, double z, RGBAImage *image, double *u, double *v)
+    double x, double y, double z, TextureImage *image, double *u, double *v)
 {
     double len;
     double theta;
@@ -307,7 +308,7 @@ MapTextureFixture::cylindricalImageMap(
 /* Map a point (x, y, z) on a torus  to a 2-d image. */
 int
 MapTextureFixture::torusImageMap(
-    double x, double y, double z, RGBAImage *image, double *u, double *v)
+    double x, double y, double z, TextureImage *image, double *u, double *v)
 {
     double len;
     double phi;
@@ -416,7 +417,7 @@ MapTextureFixture::sphericalImageMap(
     if a good mapping is found. */
 int
 MapTextureFixture::planarImageMap(
-    double x, double y, double z, RGBAImage *image, double *u, double *v)
+    double x, double y, double z, TextureImage *image, double *u, double *v)
 {
     if (image->imageGradient.x() != 0.0) {
         if ((image->onceFlag) && ((x < 0.0) || (x > 1.0))) {
@@ -454,7 +455,7 @@ MapTextureFixture::planarImageMap(
 /* Map returns 1 if no color found (invisible) or 0 if color found */
 int
 MapTextureFixture::map(double x, double y, double z, Texture *texture,
-    RGBAImage *image, double *xcoor, double *ycoor, double smallTolerance)
+    TextureImage *image, double *xcoor, double *ycoor, double smallTolerance)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -533,7 +534,7 @@ MapTextureFixture::noInterpolation(
     ImageLine *line;
     int iycoor;
     int ixcoor;
-    RGBAPixel *mapColour;
+    RGBAPixel16Bits *mapColour;
 
     if (xcoor < 0.0) {
         xcoor += (double)image->iwidth;
@@ -548,22 +549,22 @@ MapTextureFixture::noInterpolation(
 
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
-    if (image->Colour_Map == nullptr) {
-        line = &image->data.rgb_lines[iycoor];
-        colour->Red += (double)line->red[ixcoor] / 255.0;
-        colour->Green += (double)line->green[ixcoor] / 255.0;
-        colour->Blue += (double)line->blue[ixcoor] / 255.0;
+    if (image->colorMap == nullptr) {
+        line = &image->data.lines[iycoor];
+        colour->Red += (double)line->r[ixcoor] / 255.0;
+        colour->Green += (double)line->g[ixcoor] / 255.0;
+        colour->Blue += (double)line->b[ixcoor] / 255.0;
         *index = -1;
     } else {
-        *index = image->data.map_lines[iycoor][ixcoor];
-        mapColour = &image->Colour_Map[*index];
+        *index = image->data.mapLines[iycoor][ixcoor];
+        mapColour = &image->colorMap[*index];
         /*Logger::info("icat index %d xc %d yc %d  CLR %d %d %d
      %d\n",*index,ixcoor,iycoor,
      map_colour->Red,map_colour->Green,map_colour->Blue,map_colour->Alpha ); */
-        colour->Red += (double)mapColour->Red / 255.0;
-        colour->Green += (double)mapColour->Green / 255.0;
-        colour->Blue += (double)mapColour->Blue / 255.0;
-        colour->Alpha += (double)mapColour->Alpha / 255.0;
+        colour->Red += (double)mapColour->r / 255.0;
+        colour->Green += (double)mapColour->g / 255.0;
+        colour->Blue += (double)mapColour->b / 255.0;
+        colour->Alpha += (double)mapColour->a / 255.0;
     }
 
 }
@@ -571,7 +572,7 @@ MapTextureFixture::noInterpolation(
 /* Interpolate color and alpha values when mapping */
 void
 MapTextureFixture::interp(
-    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+    TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     int iycoor;
     int ixcoor;

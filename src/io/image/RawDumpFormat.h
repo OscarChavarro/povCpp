@@ -2,7 +2,7 @@
 #define __RAW_DUMP_FORMAT_H__
 
 #include "io/image/ImageOutput.h"
-#include "media/ImageData.h"
+#include "media/ImageLine.h"
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"
 

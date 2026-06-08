@@ -27,8 +27,6 @@
 #include <cstdlib>
 #include <cstdio>
 
-namespace {
-
 class AppendableFileOutputStream : public java::OutputStream {
   public:
     explicit AppendableFileOutputStream(const char *fileName)
@@ -76,8 +74,6 @@ class AppendableFileOutputStream : public java::OutputStream {
   private:
     FILE *stream;
 };
-
-}
 
 RawDumpFormat::RawDumpFormat()
     : inputStream(nullptr), outputStream(nullptr),
@@ -202,33 +198,33 @@ RawDumpFormat::readIntLine(ImageLine *lineData, int *lineNumber)
     }
     *lineNumber = lo + hi * 256;
 
-    lineData->red   = new unsigned char[width];
-    lineData->green = new unsigned char[width];
-    lineData->blue  = new unsigned char[width];
+    lineData->r   = new unsigned char[width];
+    lineData->g = new unsigned char[width];
+    lineData->b  = new unsigned char[width];
 
-    if (lineData->red == nullptr || lineData->green == nullptr || lineData->blue == nullptr) {
+    if (lineData->r == nullptr || lineData->g == nullptr || lineData->b == nullptr) {
         Logger::error("Cannot allocate memory for picture: %s\n", filename);
         exit(1);
     }
 
     for (int i = 0; i < width; i++) {
-        lineData->red[i] = lineData->green[i] = lineData->blue[i] = 0;
+        lineData->r[i] = lineData->g[i] = lineData->b[i] = 0;
     }
 
     for (int i = 0; i < width; i++) {
         int data = inputStream->read();
         if (data == -1) return -1;
-        lineData->red[i] = (unsigned char)data;
+        lineData->r[i] = (unsigned char)data;
     }
     for (int i = 0; i < width; i++) {
         int data = inputStream->read();
         if (data == -1) return -1;
-        lineData->green[i] = (unsigned char)data;
+        lineData->g[i] = (unsigned char)data;
     }
     for (int i = 0; i < width; i++) {
         int data = inputStream->read();
         if (data == -1) return -1;
-        lineData->blue[i] = (unsigned char)data;
+        lineData->b[i] = (unsigned char)data;
     }
 
     return 1;
@@ -261,10 +257,10 @@ RawDumpFormat::readDumpImage(RGBAImage *image, char *name)
     image->width = (double)image->iwidth;
     image->height = (double)image->iheight;
     image->colourMapSize = 0;
-    image->Colour_Map = nullptr;
+    image->colorMap = nullptr;
 
-    image->data.rgb_lines = new ImageLine[image->iheight];
-    if (image->data.rgb_lines == nullptr) {
+    image->data.lines = new ImageLine[image->iheight];
+    if (image->data.lines == nullptr) {
         Logger::error("Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }
@@ -273,7 +269,7 @@ RawDumpFormat::readDumpImage(RGBAImage *image, char *name)
     int row;
     int rc;
     while ((rc = fmt.readIntLine(&line, &row)) == 1) {
-        image->data.rgb_lines[row] = line;
+        image->data.lines[row] = line;
     }
 
     fmt.close();

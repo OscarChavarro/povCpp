@@ -1,23 +1,14 @@
-/****************************************************************************
- *                     targa.c
- *
- *  This module contains the code to read and write the Targa output file
- *  format.
- *
- *****************************************************************************/
-
-#include "io/image/TargaFormat.h"
-#include "io/binaryIo/FileLocator.h"
-#include "common/logger/Logger.h"
-#include "common/color/RGBAColor.h"
-#include "java/io/FileOutputStream.h"
-#include "media/ImageData.h"
-#include "media/RGBAImage.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
 
-namespace {
+#include "java/io/FileOutputStream.h"
+#include "common/logger/Logger.h"
+#include "common/color/RGBAColor.h"
+#include "media/ImageData.h"
+#include "media/RGBAImage.h"
+#include "io/image/TargaFormat.h"
+#include "io/binaryIo/FileLocator.h"
 
 class AppendableFileOutputStream : public java::OutputStream {
   public:
@@ -66,8 +57,6 @@ class AppendableFileOutputStream : public java::OutputStream {
   private:
     FILE *stream;
 };
-
-}
 
 TargaFormat::TargaFormat()
     : inputStream(nullptr), outputStream(nullptr),
@@ -194,11 +183,11 @@ TargaFormat::readLine(RGBAColor *lineData, int *lineNumber)
 int
 TargaFormat::readIntLine(ImageLine *lineData)
 {
-    lineData->red   = new unsigned char[width];
-    lineData->green = new unsigned char[width];
-    lineData->blue  = new unsigned char[width];
+    lineData->r   = new unsigned char[width];
+    lineData->g = new unsigned char[width];
+    lineData->b  = new unsigned char[width];
 
-    if (lineData->red == nullptr || lineData->green == nullptr || lineData->blue == nullptr) {
+    if (lineData->r == nullptr || lineData->g == nullptr || lineData->b == nullptr) {
         Logger::error("Cannot allocate memory for picture: %s\n", filename);
         exit(1);
     }
@@ -208,15 +197,15 @@ TargaFormat::readIntLine(ImageLine *lineData)
         if (data == -1) {
             return (x == 0) ? 0 : -1;
         }
-        lineData->blue[x] = (unsigned char)data;
+        lineData->b[x] = (unsigned char)data;
 
         data = inputStream->read();
         if (data == -1) return -1;
-        lineData->green[x] = (unsigned char)data;
+        lineData->g[x] = (unsigned char)data;
 
         data = inputStream->read();
         if (data == -1) return -1;
-        lineData->red[x] = (unsigned char)data;
+        lineData->r[x] = (unsigned char)data;
     }
     return 1;
 }
@@ -248,16 +237,16 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
     image->width = (double)image->iwidth;
     image->height = (double)image->iheight;
     image->colourMapSize = 0;
-    image->Colour_Map = nullptr;
+    image->colorMap = nullptr;
 
-    image->data.rgb_lines = new ImageLine[image->iheight];
-    if (image->data.rgb_lines == nullptr) {
+    image->data.lines = new ImageLine[image->iheight];
+    if (image->data.lines == nullptr) {
         Logger::error("Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }
 
     for (int row = 0; row < image->iheight &&
-         fmt.readIntLine(&image->data.rgb_lines[row]);
+         fmt.readIntLine(&image->data.lines[row]);
          row++) {
     }
 

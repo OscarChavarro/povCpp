@@ -12,6 +12,7 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/ColorMapParser.h"
 #include "io/pov/texture/TextureParser.h"
+#include "media/TextureImage.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -475,7 +476,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::IMAGEMAP_TEXTURE;
-                texture->Image = new RGBAImage;
+                texture->Image = new TextureImage;
                 if (texture->Image == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate imagemap texture", ctx);
@@ -579,7 +580,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                 switch (ctx.token().tokenId) {
                                 case Tokenizer::FLOAT_TOKEN:
                                     reg = (int)(ctx.token().tokenFloat + 0.01);
-                                    if (texture->Image->Colour_Map == nullptr) {
+                                    if (texture->Image->colorMap == nullptr) {
                                         ParseErrorReporter::reportError(
                                             "Can't apply ALPHA to a non "
                                             "colour-mapped image\n", ctx);
@@ -593,7 +594,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                             "of range.\n", ctx);
                                     }
 
-                                    texture->Image->Colour_Map[reg].Alpha =
+                                    texture->Image->colorMap[reg].a =
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
@@ -607,7 +608,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     for (reg = 0;
                                         reg < texture->Image->colourMapSize;
                                         reg++) {
-                                        texture->Image->Colour_Map[reg].Alpha =
+                                        texture->Image->colorMap[reg].a =
                                             (unsigned short)(alpha * 255.0);
                                     }
                                     Exit_Flag = true;
@@ -828,7 +829,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->bumpNumber = Texture::BUMPMAP;
-                texture->Bump_Image = new RGBAImage;
+                texture->Bump_Image = new TextureImage;
                 if (texture->Bump_Image == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate bumpmap texture", ctx);
@@ -947,7 +948,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = Texture::MATERIAL_MAP_TEXTURE;
-                texture->Material_Image = new RGBAImage;
+                texture->Material_Image = new TextureImage;
                 if (texture->Material_Image == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate material map texture", ctx);
