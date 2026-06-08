@@ -301,10 +301,10 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
         if (texture->Texture_Transformation) {
             for (int r = 0; r < 4; r++) {
                 Logger::info("[CHECKER-DIAG] Transform row%d: %g %g %g %g\n", r,
-                    texture->Texture_Transformation->matrix[r][0],
-                    texture->Texture_Transformation->matrix[r][1],
-                    texture->Texture_Transformation->matrix[r][2],
-                    texture->Texture_Transformation->matrix[r][3]);
+                    texture->Texture_Transformation->matrix.get(r, 0),
+                    texture->Texture_Transformation->matrix.get(r, 1),
+                    texture->Texture_Transformation->matrix.get(r, 2),
+                    texture->Texture_Transformation->matrix.get(r, 3));
             }
         } else {
             Logger::info("[CHECKER-DIAG] Texture_Transformation=NULL\n");

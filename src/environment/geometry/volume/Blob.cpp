@@ -561,7 +561,7 @@ Blob::copyBlob(SimpleBody *object)
     /* Copy any associated transformation */
     if (blob->Transform != nullptr) {
         tr = Transformation::getTransformation();
-        memcpy(tr, blob->Transform, sizeof(Transformation));
+        *tr = *(blob->Transform);
         blob->Transform = tr;
     }
 

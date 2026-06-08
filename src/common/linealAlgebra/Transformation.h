@@ -2,18 +2,17 @@
 #define __TRANSFORMATION_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
-typedef double MATRIX[4][4];
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
 class Transformation {
   public:
-    MATRIX matrix;
-    MATRIX inverse;
+    Matrix4x4d matrix;
+    Matrix4x4d inverse;
 
-    static void MZero(MATRIX *result);
-    static void MIdentity(MATRIX *result);
-    static void MTimes(MATRIX *result, MATRIX *matrix1, MATRIX *matrix2);
-    static void MTranspose(MATRIX *result, MATRIX *matrix1);
+    static void MZero(Matrix4x4d *result);
+    static void MIdentity(Matrix4x4d *result);
+    static void MTimes(Matrix4x4d *result, Matrix4x4d *matrix1, Matrix4x4d *matrix2);
+    static void MTranspose(Matrix4x4d *result, Matrix4x4d *matrix1);
     static void MTransformVector(
         Vector3Dd *result, Vector3Dd *vector, Transformation *transformation);
     static void MInverseTransformVector(

@@ -2,6 +2,7 @@
 #define __POLY_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class PolynomialShape : public Geometry {
@@ -25,7 +26,7 @@ class PolynomialShape : public Geometry {
     static void invertPoly(SimpleBody *object);
 
   private:
-    static void transform(int order, double *coeffs, MATRIX *q);
+    static void transform(int order, double *coeffs, Matrix4x4d *q);
     static int roll(int order, int x, int y, int z);
     static void unroll(int order, int index, int *x, int *y, int *z, int *w);
     static int intersect(
@@ -38,7 +39,7 @@ class PolynomialShape : public Geometry {
     static void normalp(Vector3Dd *result, int order, double *coeffs,
         Vector3Dd *intersectionPoint);
     static double doPartialTerm(
-        MATRIX *q, int row, int pwr, int i, int j, int k, int l);
+        Matrix4x4d *q, int row, int pwr, int i, int j, int k, int l);
 };
 
 #endif

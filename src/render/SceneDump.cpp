@@ -104,7 +104,7 @@ void dumpSceneStructure(FILE *f)
                 fprintf(f, "  tex.xform=");
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {
-                        fprintf(f, "%.6f", xform->matrix[i][j]);
+                        fprintf(f, "%.6f", xform->matrix.get(i, j));
                         if (i < 3 || j < 3) fprintf(f, ",");
                     }
                 }
