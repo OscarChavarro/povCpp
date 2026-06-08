@@ -33,6 +33,6 @@ class Quadric : public Geometry {
     static void quadricToMatrix(Quadric *quadric, Matrix4x4d *matrix);
     static void matrixToQuadric(Matrix4x4d *matrix, Quadric *quadric);
     static void transformQuadric(
-        Quadric *shape, Transformation *transformation);
+        Quadric *shape, Matrix4x4d *transformationInverse);
 };
 #endif

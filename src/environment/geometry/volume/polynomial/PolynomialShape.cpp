@@ -65,11 +65,12 @@ PolynomialShape::allPolyIntersections(
     RayWithSegments newRay;
 
     /* Transform the ray into the polynomial's space */
-    if (shape->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &newRay.position, &ray->position, shape->Transform);
-        Transformation::MInvTransVector(
-            &newRay.direction, &ray->direction, shape->Transform);
+    if (shape->transformation != nullptr) {
+        newRay.position =
+            shape->transformationInverse->transpose().multiply(ray->position);
+        newRay.direction =
+            shape->transformationInverse->transpose().withoutTranslation().multiply(
+                ray->direction);
     } else {
         newRay.position = Vector3Dd(
             ray->position.x(), ray->position.y(), ray->position.z());
@@ -111,9 +112,9 @@ PolynomialShape::allPolyIntersections(
         intersectionPoint = newRay.direction.multiply(depths[j]);
         intersectionPoint = intersectionPoint.add(newRay.position);
         /* Transform the point into world space */
-        if (shape->Transform != nullptr) {
-            Transformation::MTransformVector(
-                &intersectionPoint, &intersectionPoint, shape->Transform);
+        if (shape->transformation != nullptr) {
+            intersectionPoint =
+                shape->transformation->transpose().multiply(intersectionPoint);
         }
 
         dv = intersectionPoint.subtract(ray->position);
@@ -222,7 +223,7 @@ PolynomialShape::intersect(
     for (i = 0; i < termCountsInstance[order]; i++) {
         a[i] = coeffs[i];
     }
-    Transformation::MZero(&q);
+    q = Matrix4x4d::identityMatrix().multiply(0.0);
     q = q.withVal(0, 0, ray->direction.x());
     q = q.withVal(3, 0, ray->position.x());
     q = q.withVal(0, 1, ray->direction.y());
@@ -786,9 +787,8 @@ PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
     double result;
 
     /* Transform the point into polynomial's space */
-    if (shape->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &newPoint, testPoint, shape->Transform);
+    if (shape->transformation != nullptr) {
+        newPoint = shape->transformationInverse->transpose().multiply(*testPoint);
     } else {
         newPoint = *testPoint;
     }
@@ -809,9 +809,9 @@ PolynomialShape::polyNormal(
     Vector3Dd newPoint;
 
     /* Transform the point into the polynomials space */
-    if (shape->Transform != nullptr) {
-        Transformation::MInverseTransformVector(
-            &newPoint, intersectionPoint, shape->Transform);
+    if (shape->transformation != nullptr) {
+        newPoint =
+            shape->transformationInverse->transpose().multiply(*intersectionPoint);
     } else {
         newPoint = Vector3Dd(
             intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
@@ -825,8 +825,8 @@ PolynomialShape::polyNormal(
     }
 
     /* Transform back to world space */
-    if (shape->Transform != nullptr) {
-        Transformation::MTransNormal(result, result, shape->Transform);
+    if (shape->transformation != nullptr) {
+        *result = shape->transformationInverse->withoutTranslation().multiply(*result);
     }
     *result = (*result).normalizedFast();
 }
@@ -842,12 +842,14 @@ PolynomialShape::copyPoly(SimpleBody *object)
     *newShape = *shape;
     newShape->nextObject = nullptr;
     newShape->Coeffs = new double[termCountsInstance[newShape->Order]];
-    newShape->Transform = nullptr;
+    newShape->transformation = nullptr;
+    newShape->transformationInverse = nullptr;
 
     /* Copy any associated transformation */
-    if (shape->Transform != nullptr) {
-        newShape->Transform = Transformation::getTransformation();
-        *(newShape->Transform) = *(shape->Transform);
+    if (shape->transformation != nullptr) {
+        newShape->transformation = new Matrix4x4d(*(shape->transformation));
+        newShape->transformationInverse =
+            new Matrix4x4d(*(shape->transformationInverse));
     }
     for (i = 0; i < termCountsInstance[newShape->Order]; i++) {
         newShape->Coeffs[i] = shape->Coeffs[i];
@@ -865,13 +867,20 @@ PolynomialShape::copyPoly(SimpleBody *object)
 void
 PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     PolynomialShape *shape = (PolynomialShape *)object;
-    if (shape->Transform == nullptr) {
-        shape->Transform = Transformation::getTransformation();
+    if (shape->transformation == nullptr) {
+        shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getTranslationTransformation(&transform, vector);
-    Transformation::composeTransformations(shape->Transform, &transform);
+    deltaTransformation = Matrix4x4d().translation(
+        vector->x(), vector->y(), vector->z()).transpose();
+    deltaTransformationInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    *shape->transformation = shape->transformation->multiply(deltaTransformation);
+    *shape->transformationInverse =
+        deltaTransformationInverse.multiply(*shape->transformationInverse);
 
     TextureUtils::translateTexture(&shape->Shape_Texture, vector);
 }
@@ -879,13 +888,17 @@ PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
 void
 PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     PolynomialShape *shape = (PolynomialShape *)object;
-    if (shape->Transform == nullptr) {
-        shape->Transform = Transformation::getTransformation();
+    if (shape->transformation == nullptr) {
+        shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getRotationTransformation(&transform, vector);
-    Transformation::composeTransformations(shape->Transform, &transform);
+    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
+    *shape->transformation = shape->transformation->multiply(deltaTransformation);
+    *shape->transformationInverse =
+        deltaTransformationInverse.multiply(*shape->transformationInverse);
 
     TextureUtils::rotateTexture(&shape->Shape_Texture, vector);
 }
@@ -893,13 +906,19 @@ PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
 void
 PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transform;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     PolynomialShape *shape = (PolynomialShape *)object;
-    if (shape->Transform == nullptr) {
-        shape->Transform = Transformation::getTransformation();
+    if (shape->transformation == nullptr) {
+        shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getScalingTransformation(&transform, vector);
-    Transformation::composeTransformations(shape->Transform, &transform);
+    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    deltaTransformationInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+    *shape->transformation = shape->transformation->multiply(deltaTransformation);
+    *shape->transformationInverse =
+        deltaTransformationInverse.multiply(*shape->transformationInverse);
 
     TextureUtils::scaleTexture(&shape->Shape_Texture, vector);
 }

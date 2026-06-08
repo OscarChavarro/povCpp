@@ -20,7 +20,6 @@
 #include "common/Statistics.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
-#include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 static Texture *defaultTextureInstance;
@@ -534,7 +533,8 @@ void
 TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
-    Transformation transformation;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
 
     while (texture != nullptr) {
         if (((texture->textureNumber != Texture::NO_TEXTURE) &&
@@ -547,14 +547,20 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
                 texture->constantFlag = false;
             }
 
-            if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation =
-                    Transformation::getTransformation();
+            if (!texture->textureTransformation) {
+                texture->textureTransformation =
+                    new Matrix4x4d(Matrix4x4d::identityMatrix());
+                texture->textureTransformationInverse =
+                    new Matrix4x4d(Matrix4x4d::identityMatrix());
             }
-            Transformation::getTranslationTransformation(
-                &transformation, vector);
-            Transformation::composeTransformations(
-                texture->Texture_Transformation, &transformation);
+            deltaTransformation = Matrix4x4d().translation(
+                vector->x(), vector->y(), vector->z()).transpose();
+            deltaTransformationInverse = Matrix4x4d().translation(
+                0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+            *texture->textureTransformation =
+                texture->textureTransformation->multiply(deltaTransformation);
+            *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
+                *texture->textureTransformationInverse);
             if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
                 TextureUtils::translateTexture(
                     (Texture **)&texture->Colour1, vector);
@@ -590,15 +596,11 @@ TextureUtils::copyTexture(Texture *texture)
             previousTexture->Next_Texture = newTexture;
         }
 
-        if (newTexture->Texture_Transformation) {
-            newTexture->Texture_Transformation = new Transformation;
-            if (newTexture->Texture_Transformation == nullptr) {
-                Logger::error(
-                    "Out of memory. Cannot allocate texture transformation\n");
-                exit(1);
-            }
-            *newTexture->Texture_Transformation =
-                *localTexture->Texture_Transformation;
+        if (newTexture->textureTransformation) {
+            newTexture->textureTransformation =
+                new Matrix4x4d(*localTexture->textureTransformation);
+            newTexture->textureTransformationInverse =
+                new Matrix4x4d(*localTexture->textureTransformationInverse);
         }
         // Deep copy Colour_Map if present (don't share pointers)
         if (newTexture->Colour_Map != nullptr) {
@@ -657,7 +659,8 @@ TextureUtils::getTexture()
     newTexture->Phase = 0.0;
     newTexture->Frequency = 1.0;
     newTexture->textureNumber = Texture::NO_TEXTURE;
-    newTexture->Texture_Transformation = nullptr;
+    newTexture->textureTransformation = nullptr;
+    newTexture->textureTransformationInverse = nullptr;
     newTexture->bumpNumber = Texture::NO_BUMPS;
     newTexture->Turbulence = 0.0;
     newTexture->Colour_Map = nullptr;
@@ -681,7 +684,8 @@ void
 TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
-    Transformation transformation;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
 
     while (texture != nullptr) {
         if (((texture->textureNumber != Texture::NO_TEXTURE) &&
@@ -694,13 +698,17 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
                 texture->constantFlag = false;
             }
 
-            if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation =
-                    Transformation::getTransformation();
+            if (!texture->textureTransformation) {
+                texture->textureTransformation =
+                    new Matrix4x4d(Matrix4x4d::identityMatrix());
+                texture->textureTransformationInverse =
+                    new Matrix4x4d(Matrix4x4d::identityMatrix());
             }
-            Transformation::getRotationTransformation(&transformation, vector);
-            Transformation::composeTransformations(
-                texture->Texture_Transformation, &transformation);
+            deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
+            *texture->textureTransformation =
+                texture->textureTransformation->multiply(deltaTransformation);
+            *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
+                *texture->textureTransformationInverse);
             if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
                 TextureUtils::rotateTexture(
                     (Texture **)&texture->Colour1, vector);
@@ -717,7 +725,8 @@ void
 TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
-    Transformation transformation;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
 
     while (texture != nullptr) {
         if (((texture->textureNumber != Texture::NO_TEXTURE) &&
@@ -730,13 +739,19 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
                 texture->constantFlag = false;
             }
 
-            if (!texture->Texture_Transformation) {
-                texture->Texture_Transformation =
-                    Transformation::getTransformation();
+            if (!texture->textureTransformation) {
+                texture->textureTransformation =
+                    new Matrix4x4d(Matrix4x4d::identityMatrix());
+                texture->textureTransformationInverse =
+                    new Matrix4x4d(Matrix4x4d::identityMatrix());
             }
-            Transformation::getScalingTransformation(&transformation, vector);
-            Transformation::composeTransformations(
-                texture->Texture_Transformation, &transformation);
+            deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+            deltaTransformationInverse = Matrix4x4d().scale(
+                1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+            *texture->textureTransformation =
+                texture->textureTransformation->multiply(deltaTransformation);
+            *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
+                *texture->textureTransformationInverse);
 
             if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
                 TextureUtils::scaleTexture(

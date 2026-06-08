@@ -1,7 +1,6 @@
 #ifndef __GEOMETRY_OPERATIONS_H__
 #define __GEOMETRY_OPERATIONS_H__
 
-#include "common/linealAlgebra/Transformation.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 

@@ -53,23 +53,26 @@ Light::translatePoint(SimpleBody *object, Vector3Dd *vector)
 void
 Light::rotatePoint(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
-    Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((Light *)object)->Center,
-        &((Light *)object)->Center, &transformation);
-    Transformation::MTransformVector(&((Light *)object)->pointsAt,
-        &((Light *)object)->pointsAt, &transformation);
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
+
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
+    ((Light *)object)->Center =
+        transformation.transpose().multiply(((Light *)object)->Center);
+    ((Light *)object)->pointsAt =
+        transformation.transpose().multiply(((Light *)object)->pointsAt);
 }
 
 void
 Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
-    Transformation::getScalingTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((Light *)object)->Center,
-        &((Light *)object)->Center, &transformation);
-    Transformation::MTransformVector(&((Light *)object)->pointsAt,
-        &((Light *)object)->pointsAt, &transformation);
+    Matrix4x4d transformation;
+
+    transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    ((Light *)object)->Center =
+        transformation.transpose().multiply(((Light *)object)->Center);
+    ((Light *)object)->pointsAt =
+        transformation.transpose().multiply(((Light *)object)->pointsAt);
     TextureUtils::scaleTexture(&((Light *)object)->Shape_Texture, vector);
 }
 

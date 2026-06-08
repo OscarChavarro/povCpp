@@ -1,6 +1,7 @@
 #ifndef __BLOB_H__
 #define __BLOB_H__
 
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"
@@ -9,7 +10,8 @@
 class Blob : public Geometry {
   public:
     static Methods methodTable;
-    Transformation *Transform;
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
     bool Inverted;
     int count;
     double threshold;

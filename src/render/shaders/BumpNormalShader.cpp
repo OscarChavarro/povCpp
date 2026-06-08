@@ -1,5 +1,4 @@
 #include "render/shaders/BumpNormalShader.h"
-#include "common/linealAlgebra/Transformation.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/material/RendererConfiguration.h"
 #include "media/BumpTextureFixture.h"
@@ -21,9 +20,9 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
         return;
     }
 
-    if (texture->Texture_Transformation) {
-        Transformation::MInverseTransformVector(&transformedPoint,
-            intersectionPoint, texture->Texture_Transformation);
+    if (texture->textureTransformation) {
+        transformedPoint = texture->textureTransformationInverse->transpose().multiply(
+            *intersectionPoint);
     } else {
         transformedPoint = *intersectionPoint;
     }

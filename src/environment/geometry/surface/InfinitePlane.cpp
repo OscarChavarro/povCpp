@@ -138,11 +138,12 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
 void
 InfinitePlane::rotatePlane(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d transformation;
+    Matrix4x4d transformationInverse;
 
-    Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::MTransformVector(&((InfinitePlane *)object)->normalVector,
-        &((InfinitePlane *)object)->normalVector, &transformation);
+    transformation.axisRotationRodrigues(&transformationInverse, vector);
+    ((InfinitePlane *)object)->normalVector = transformation.transpose().multiply(
+        ((InfinitePlane *)object)->normalVector);
 
     TextureUtils::rotateTexture(
         &((InfinitePlane *)object)->Shape_Texture, vector);

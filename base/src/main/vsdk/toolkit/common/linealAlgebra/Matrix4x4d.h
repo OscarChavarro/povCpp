@@ -2,6 +2,8 @@
 #define __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4D_H__
 
 
+#include <cmath>
+
 #include "vsdk/toolkit/common/linealAlgebra/Quaterniond.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector4Dd.h"
@@ -39,6 +41,7 @@ public:
     Matrix4x4d eulerAnglesRotation(double yaw, double pitch, double roll) const;
     Matrix4x4d axisRotation(double angle, const Vector3Dd& axis) const;
     Matrix4x4d axisRotation(double angle, double x, double y, double z) const;
+    void axisRotationRodrigues(Matrix4x4d *matrixInverse, Vector3Dd *vector);
 
     Matrix4x4d inverse() const;
     Matrix4x4d invert() const;
@@ -71,6 +74,63 @@ public:
     bool equals(const Matrix4x4d& other) const { return (*this) == other; }
     int hashCode() const;
 };
+
+
+/* Composes a rotation as a sequence of three per-axis rotations (X, then Y,
+   then Z), tracking the inverse alongside via transposition (rotation
+   matrices are orthogonal, so M^-1 == M^T). This per-axis cos/sin placement
+   and composition order follows the classical construction described by
+   Olinde Rodrigues in "Des lois géométriques qui régissent les déplacements
+   d'un système solide dans l'espace, et de la variation des coordonnées
+   provenant de ces déplacements considérés indépendamment des causes qui
+   peuvent les produire" (Journal de Mathématiques Pures et Appliquées, 1840).
+   `*this` accumulates the composed rotation matrix — the role `matrix` played
+   in the legacy code — and `*matrixInverse` accumulates its inverse. */
+inline void
+Matrix4x4d::axisRotationRodrigues(Matrix4x4d *matrixInverse, Vector3Dd *vector)
+{
+    Matrix4x4d tempMatrix;
+    Vector3Dd radianVector;
+    double cosx;
+    double cosy;
+    double cosz;
+    double sinx;
+    double siny;
+    double sinz;
+
+    radianVector = (*vector).multiply(M_PI / 180.0);
+    *this = Matrix4x4d::identityMatrix();
+    cosx = std::cos(radianVector.x());
+    sinx = std::sin(radianVector.x());
+    cosy = std::cos(radianVector.y());
+    siny = std::sin(radianVector.y());
+    cosz = std::cos(radianVector.z());
+    sinz = std::sin(radianVector.z());
+
+    *this = this->withVal(1, 1, cosx);
+    *this = this->withVal(2, 2, cosx);
+    *this = this->withVal(1, 2, sinx);
+    *this = this->withVal(2, 1, 0.0 - sinx);
+    *matrixInverse = this->transpose();
+
+    tempMatrix = Matrix4x4d::identityMatrix();
+    tempMatrix = tempMatrix.withVal(0, 0, cosy);
+    tempMatrix = tempMatrix.withVal(2, 2, cosy);
+    tempMatrix = tempMatrix.withVal(0, 2, 0.0 - siny);
+    tempMatrix = tempMatrix.withVal(2, 0, siny);
+    *this = this->multiply(tempMatrix);
+    tempMatrix = tempMatrix.transpose();
+    *matrixInverse = tempMatrix.multiply(*matrixInverse);
+
+    tempMatrix = Matrix4x4d::identityMatrix();
+    tempMatrix = tempMatrix.withVal(0, 0, cosz);
+    tempMatrix = tempMatrix.withVal(1, 1, cosz);
+    tempMatrix = tempMatrix.withVal(0, 1, sinz);
+    tempMatrix = tempMatrix.withVal(1, 0, 0.0 - sinz);
+    *this = this->multiply(tempMatrix);
+    tempMatrix = tempMatrix.transpose();
+    *matrixInverse = tempMatrix.multiply(*matrixInverse);
+}
 
 
 #endif // __VSDK_TOOLKIT_COMMON_LINEALALGEBRA_MATRIX4X4D_H__

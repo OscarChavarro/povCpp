@@ -754,10 +754,11 @@ HeightField::allHeightfldIntersections(
 
     Statistics::global().rayHtFieldTests++;
 
-    Transformation::MInverseTransformVector(
-        &(tempRay.position), &(ray->position), hField->transformation);
-    Transformation::MInvTransVector(
-        &(tempRay.direction), &(ray->direction), hField->transformation);
+    tempRay.position =
+        hField->transformationInverse->transpose().multiply(ray->position);
+    tempRay.direction =
+        hField->transformationInverse->transpose().withoutTranslation().multiply(
+            ray->direction);
 
     if (!Box::intersectBoxx(&tempRay, hField->bounding_box, &depth1, &depth2)) {
         return (false);
@@ -841,8 +842,7 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
     Vector3Dd localNormal;
     Vector3Dd test;
 
-    Transformation::MInverseTransformVector(
-        &test, testPoint, hField->transformation);
+    test = hField->transformationInverse->transpose().multiply(*testPoint);
 
     px = (int)test.x();
     pz = (int)test.z();
@@ -896,8 +896,7 @@ HeightField::heightFldNormal(
     Vector3Dd temp1;
     Vector3Dd temp2;
 
-    Transformation::MInverseTransformVector(
-        &localOrigin, intersectionPoint, hField->transformation);
+    localOrigin = hField->transformationInverse->transpose().multiply(*intersectionPoint);
 
     px = (int)localOrigin.x();
     pz = (int)localOrigin.z();
@@ -918,8 +917,8 @@ HeightField::heightFldNormal(
         temp2 = Vector3Dd(0.0, y3 - y1, -1.0);
     }
 
-    Transformation::MTransVector(&temp1, &temp1, hField->transformation);
-    Transformation::MTransVector(&temp2, &temp2, hField->transformation);
+    temp1 = hField->transformation->transpose().withoutTranslation().multiply(temp1);
+    temp2 = hField->transformation->transpose().withoutTranslation().multiply(temp2);
     *result = temp2.crossProduct(temp1);
     *result = (*result).normalizedFast();
 }
@@ -945,14 +944,20 @@ void
 HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
     HeightField *hField = (HeightField *)object;
-    Transformation transformation;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
 
     if (!hField->transformation) {
-        hField->transformation = Transformation::getTransformation();
+        hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        hField->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getTranslationTransformation(&transformation, vector);
-    Transformation::composeTransformations(
-        hField->transformation, &transformation);
+    deltaTransformation = Matrix4x4d().translation(
+        vector->x(), vector->y(), vector->z()).transpose();
+    deltaTransformationInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    *hField->transformation = hField->transformation->multiply(deltaTransformation);
+    *hField->transformationInverse =
+        deltaTransformationInverse.multiply(*hField->transformationInverse);
 
     TextureUtils::translateTexture(
         &((HeightField *)object)->Shape_Texture, vector);
@@ -961,15 +966,18 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
 void
 HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
-    Transformation transformation;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     HeightField *hField = (HeightField *)object;
 
     if (!hField->transformation) {
-        hField->transformation = Transformation::getTransformation();
+        hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        hField->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getRotationTransformation(&transformation, vector);
-    Transformation::composeTransformations(
-        hField->transformation, &transformation);
+    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
+    *hField->transformation = hField->transformation->multiply(deltaTransformation);
+    *hField->transformationInverse =
+        deltaTransformationInverse.multiply(*hField->transformationInverse);
 
     TextureUtils::rotateTexture(
         &((HeightField *)object)->Shape_Texture, vector);
@@ -979,14 +987,19 @@ void
 HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
     HeightField *hField = (HeightField *)object;
-    Transformation transformation;
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
 
     if (!hField->transformation) {
-        hField->transformation = Transformation::getTransformation();
+        hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        hField->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
-    Transformation::getScalingTransformation(&transformation, vector);
-    Transformation::composeTransformations(
-        hField->transformation, &transformation);
+    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    deltaTransformationInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+    *hField->transformation = hField->transformation->multiply(deltaTransformation);
+    *hField->transformationInverse =
+        deltaTransformationInverse.multiply(*hField->transformationInverse);
 
     TextureUtils::scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
