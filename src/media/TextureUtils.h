@@ -1,3 +1,8 @@
+// [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85
+// Core Perlin noise primitives: Noise() and DNoise() functions for solid texturing.
+// See Texture.cpp for detailed implementations of lattice-based interpolation,
+// pseudorandom gradients via hash tables, and s-curve smoothing.
+
 #ifndef __TEXTURE_UTILS_H__
 #define __TEXTURE_UTILS_H__
 

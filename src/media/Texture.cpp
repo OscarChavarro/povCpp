@@ -7,6 +7,9 @@
  *  The noise function used here is the one described by Ken Perlin in
  *  "Hypertexture", SIGGRAPH '89 Conference Proceedings page 253.
  *
+References:
+[PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
+
  *****************************************************************************/
 /*
     Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
@@ -113,12 +116,14 @@ TextureUtils::fabsInline(double x)
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
+// [PERL1985].289 - S-curve interpolation function for smooth lattice transitions
 double
 TextureUtils::sCurve(double a)
 {
     return a * a * (3.0 - 2.0 * a);
 }
 
+// [PERL1985].289 - Hash function using permutation table for pseudorandom lattice values
 short
 TextureUtils::hash3d(long a, long b, long c)
 {
@@ -201,6 +206,7 @@ TextureUtils::initializeNoise()
     }
 }
 
+// [PERL1985].289 - Initialize permutation hash table for lattice pseudorandom values
 void
 TextureUtils::InitTextureTable()
 {
@@ -226,7 +232,8 @@ TextureUtils::InitTextureTable()
     }
 }
 
-/* modified by AAC to work properly with little bitty integers (16 bits) */
+// [PERL1985].289 - Initialize pseudorandom gradient table via CRC hashing
+// modified by AAC to work properly with little bitty integers (16 bits)
 void
 TextureUtils::InitRTable()
 {
@@ -255,12 +262,10 @@ TextureUtils::R(Vector3Dd *v)
     return (TextureUtils::Crc16((char *)v, sizeof(Vector3Dd)));
 }
 
-/*
- * Note that passing a Vector3Dd array to Crc16 and interpreting it as
- * an array of chars means that machines with different floating-point
- * representation schemes will evaluate TextureUtils::Noise(point) differently.
- */
-
+// [PERL1985].289 - CRC-based pseudorandom value generator from 3D points
+// Note that passing a Vector3Dd array to Crc16 and interpreting it as
+// an array of chars means that machines with different floating-point
+// representation schemes will evaluate TextureUtils::Noise(point) differently.
 int
 TextureUtils::Crc16(char *buf, int count)
 {
@@ -273,10 +278,9 @@ TextureUtils::Crc16(char *buf, int count)
     return ((int)crc);
 }
 
-/*
-Robert's Skinner's Perlin-style "Noise" function - modified by AAC
-to ensure uniformly distributed clamped values between 0 and 1.0...
-*/
+// [PERL1985].289 - Integer lattice setup: map continuous space to lattice points
+// Robert's Skinner's Perlin-style "Noise" function - modified by AAC
+// to ensure uniformly distributed clamped values between 0 and 1.0...
 void
 setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
     long *jx, long *jy, long *jz, double *sx, double *sy, double *sz,
@@ -305,6 +309,8 @@ setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
     *tz = 1.0 - *sz;
 }
 
+// [PERL1985].289 - Perlin noise function: scalar-valued procedural texture
+// using lattice-based interpolation with pseudorandom gradients
 double
 TextureUtils::Noise(double x, double y, double z)
 {
@@ -367,9 +373,8 @@ TextureUtils::Noise(double x, double y, double z)
     return (sum);
 }
 
-/*
-Vector-valued version of "Noise"
-*/
+// [PERL1985].289 - DNoise: vector-valued differential of Noise function
+// Returns the gradient (directional derivatives) of the noise field
 void
 TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
 {
@@ -459,6 +464,8 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     *result = Vector3Dd(rx, ry, rz);
 }
 
+// [PERL1985].Appendix - Turbulence: functional composition of Noise() over multiple octaves
+// Creates self-similar fractal patterns by summing scaled noise at different frequencies
 double
 TextureUtils::Turbulence(double x, double y, double z, int octaves)
 {
@@ -474,6 +481,8 @@ TextureUtils::Turbulence(double x, double y, double z, int octaves)
     return (t);
 }
 
+// [PERL1985].Appendix - DTurbulence: vector-valued version of turbulence
+// Returns gradient of turbulent field by composing DNoise() over octaves
 void
 TextureUtils::DTurbulence(
     Vector3Dd *result, double x, double y, double z, int octaves)

@@ -4,6 +4,8 @@
  *  This module implements solid texturing functions that modify the color
  *  transparency of an object's surface.
  *
+References:
+[PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
  *****************************************************************************/
 
 /*
@@ -134,6 +136,7 @@ ColorTextureFixture::colourAt(
     }
 }
 
+// [PERL1985].290 - Agate: combines turbulence modulation with periodic wave function
 void
 ColorTextureFixture::agate(
     double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
@@ -179,6 +182,7 @@ ColorTextureFixture::agate(
     }
 }
 
+// [PERL1985].290 - Bozo: displaced Noise() via DTurbulence gradient perturbation
 void
 ColorTextureFixture::bozo(
     double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
@@ -418,6 +422,7 @@ ColorTextureFixture::gradient(
     Granite - kind of a union of the "spotted" and the "dented" textures,
     using a 1/f fractal noise function for color values.  Typically used
     w/ small scaling values.  Should work with colour maps for pink granite...
+    [PERL1985].290 - Granite: 1/f fractal composition of Noise() over octaves
 */
 void
 ColorTextureFixture::granite(
@@ -454,6 +459,8 @@ ColorTextureFixture::granite(
     colour->Blue += noise;
 }
 
+// [PERL1985].291 - Marble: sine-wave color splining with turbulence-perturbed phase
+// Implements: x = point[1] + turbulence(point); color = marble_color(sin(x))
 void
 ColorTextureFixture::marble(
     double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
@@ -496,6 +503,8 @@ ColorTextureFixture::marble(
     metal.    With tiny scaling values can look like masonry or concrete.
     Works with color maps.
 */
+// [PERL1985].290 - Spotted: basic noise-based random surface texture (Spotted Donut example)
+// Implements: color = white * Noise(point)
 void
 ColorTextureFixture::spotted(
     double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
@@ -523,6 +532,8 @@ ColorTextureFixture::spotted(
     colour->Blue += noise;
 }
 
+// [PERL1985].291 - Wood: turbulence-based ring patterns via periodic wave on radial distance
+// Uses DTurbulence gradient perturbation + cycloidal() for ring bands
 void
 ColorTextureFixture::wood(
     double x, double y, double z, Texture *texture, RGBAColor *colour, int debugEnabled)
