@@ -15,9 +15,10 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/HeightField.h"
+#include "media/IndexedImage.h"
+#include "media/RGBAImage.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
-#include "media/Texture.h"
 #include "media/Texture.h"
 
 inline int
@@ -602,58 +603,33 @@ HeightField::intersectHfNode(
     return (false);
 }
 
-void
-HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
+static void
+allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
+    double width, double height)
 {
-    int n;
-    int i;
-    int i2;
-    int j;
-    int j2;
-    int x;
-    int z;
-    int w;
-    int h;
-    int maxX;
-    int maxZ;
-    int temp1;
-    int temp2;
-    double size;
-    double tempY = 0;
-    double blockSize;
-    double invBlkSize;
+    double size = (double)HeightField::maxValue(maxX, maxZ);
+    hField->blockSize = ceil(sqrt(size + 1.0));
+    hField->invBlkSize = 1.0 / hField->blockSize;
 
-    maxX = image->iwidth;
-    if (imageType == HeightField::POT) {
-        maxX = maxX / 2;
-    }
-    maxZ = image->iheight;
-
-    size = (double)HeightField::maxValue(maxX, maxZ);
-    hField->blockSize = blockSize = ceil(sqrt(size + 1.0));
-    hField->invBlkSize = invBlkSize = 1.0 / blockSize;
-    n = (int)blockSize;
-
-    w = (int)ceil((image->width + 1.0) * invBlkSize);
-    h = (int)ceil((image->height + 1.0) * invBlkSize);
+    int w = (int)ceil((width + 1.0) * hField->invBlkSize);
+    int h = (int)ceil((height + 1.0) * hField->invBlkSize);
 
     hField->Map = (float **)calloc(maxZ + 1, sizeof(float *));
     if (hField->Map == nullptr) {
-        Logger::error( "Cannot allocate memory for height field\n");
+        Logger::error("Cannot allocate memory for height field\n");
     }
 
     hField->Block = (HeightFieldBlock **)calloc(w, sizeof(HeightFieldBlock *));
     if (hField->Block == nullptr) {
-        Logger::error( "Cannot allocate memory for height field buffer\n");
+        Logger::error("Cannot allocate memory for height field buffer\n");
     }
-    for (i = 0; i < w; i++) {
+    for (int i = 0; i < w; i++) {
         hField->Block[i] =
             (HeightFieldBlock *)calloc(h, sizeof(HeightFieldBlock));
         if (hField->Block[i] == nullptr) {
-            Logger::error(
-                "Cannot allocate memory for height field buffer line\n");
+            Logger::error("Cannot allocate memory for height field buffer line\n");
         }
-        for (j = 0; j < h; j++) {
+        for (int j = 0; j < h; j++) {
             hField->Block[i][j].minY = 65536.0;
             hField->Block[i][j].maxY = 0.0;
         }
@@ -661,43 +637,45 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
 
     hField->Map[0] = (float *)calloc(maxX + 1, sizeof(float));
     if (hField->Map[0] == nullptr) {
-        Logger::error( "Cannot allocate memory for height field\n");
+        Logger::error("Cannot allocate memory for height field\n");
     }
+}
 
-    for (j = 0; j < h; j++) {
-        for (j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
-            z = j * n + j2;
+void
+HeightField::findHfMinMax(HeightField *hField, IndexedImage *image, int imageType)
+{
+    int maxX = image->iwidth;
+    if (imageType == HeightField::POT) {
+        maxX = maxX / 2;
+    }
+    int maxZ = image->iheight;
+
+    allocateHfBlocks(hField, maxX, maxZ, image->width, image->height);
+
+    int n = (int)hField->blockSize;
+    int w = (int)ceil((image->width + 1.0) * hField->invBlkSize);
+    int h = (int)ceil((image->height + 1.0) * hField->invBlkSize);
+
+    for (int j = 0; j < h; j++) {
+        for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
+            int z = j * n + j2;
             if (j2 != 0) {
                 hField->Map[z] = (float *)calloc(maxX + 1, sizeof(float));
                 if (hField->Map[z] == nullptr) {
-                    fprintf(
-                        stderr, "Cannot allocate memory for height field\n");
+                    fprintf(stderr, "Cannot allocate memory for height field\n");
                 }
             }
-            for (i = 0; i < w; i++) {
-                for (i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
-                    x = i * n + i2;
-                    if ((x > 1) && (x < maxX - 1) && (z > 1) &&
-                        (z < maxZ - 1)) {
-                        switch (imageType) {
-                        case HeightField::GIF:
-                            temp1 = image->data.mapLines[maxZ - z - 1][x];
-                            tempY = (double)(temp1);
-                            break;
-                        case HeightField::POT:
-                            temp1 = image->data.mapLines[maxZ - z - 1][x];
-                            temp2 =
-                                image->data.mapLines[maxZ - z - 1][x + maxX];
-                            tempY =
-                                (double)((double)temp1 + (double)temp2 / 256.0);
-                            break;
-                        case HeightField::TGA:
-                            temp1 = image->data.lines[maxZ - z - 1].r[x];
-                            temp2 =
-                                image->data.lines[maxZ - z - 1].g[x];
-                            tempY =
-                                (double)((double)temp1 + (double)temp2 / 256.0);
-                            break;
+            for (int i = 0; i < w; i++) {
+                for (int i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
+                    int x = i * n + i2;
+                    double tempY = 0;
+                    if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
+                        int temp1 = image->mapLines[maxZ - z - 1][x];
+                        if (imageType == HeightField::POT) {
+                            int temp2 = image->mapLines[maxZ - z - 1][x + maxX];
+                            tempY = (double)temp1 + (double)temp2 / 256.0;
+                        } else {
+                            tempY = (double)temp1;
                         }
                         if (tempY <= hField->bounding_box->bounds[0].y()) {
                             hField->Map[z][x] = -10000.0;
@@ -721,19 +699,67 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                 }
             }
             if ((z >= 0) && (z < maxZ) && (j2 != n)) {
-                switch (imageType) {
-                case HeightField::GIF:
-                    delete image->data.mapLines[maxZ - z - 1];
-                    break;
-                case HeightField::POT:
-                    delete image->data.mapLines[maxZ - z - 1];
-                    break;
-                case HeightField::TGA:
-                    delete image->data.lines[maxZ - z - 1].b;
-                    delete image->data.lines[maxZ - z - 1].g;
-                    delete image->data.lines[maxZ - z - 1].r;
-                    break;
+                delete image->mapLines[maxZ - z - 1];
+            }
+        }
+    }
+}
+
+void
+HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
+{
+    (void)imageType;
+    int maxX = image->iwidth;
+    int maxZ = image->iheight;
+
+    allocateHfBlocks(hField, maxX, maxZ, image->width, image->height);
+
+    int n = (int)hField->blockSize;
+    int w = (int)ceil((image->width + 1.0) * hField->invBlkSize);
+    int h = (int)ceil((image->height + 1.0) * hField->invBlkSize);
+
+    for (int j = 0; j < h; j++) {
+        for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
+            int z = j * n + j2;
+            if (j2 != 0) {
+                hField->Map[z] = (float *)calloc(maxX + 1, sizeof(float));
+                if (hField->Map[z] == nullptr) {
+                    fprintf(stderr, "Cannot allocate memory for height field\n");
                 }
+            }
+            for (int i = 0; i < w; i++) {
+                for (int i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
+                    int x = i * n + i2;
+                    double tempY = 0;
+                    if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
+                        int temp1 = image->lines[maxZ - z - 1].r[x];
+                        int temp2 = image->lines[maxZ - z - 1].g[x];
+                        tempY = (double)temp1 + (double)temp2 / 256.0;
+                        if (tempY <= hField->bounding_box->bounds[0].y()) {
+                            hField->Map[z][x] = -10000.0;
+                        } else {
+                            hField->Map[z][x] = (float)tempY;
+                        }
+                    } else {
+                        tempY = -10000.0;
+                        hField->Map[z][x] = (float)tempY;
+                    }
+
+                    if (tempY < hField->bounding_box->bounds[0].y()) {
+                        tempY = hField->bounding_box->bounds[0].y();
+                    }
+                    if (tempY < hField->Block[i][j].minY) {
+                        hField->Block[i][j].minY = tempY;
+                    }
+                    if (tempY > hField->Block[i][j].maxY) {
+                        hField->Block[i][j].maxY = tempY;
+                    }
+                }
+            }
+            if ((z >= 0) && (z < maxZ) && (j2 != n)) {
+                delete image->lines[maxZ - z - 1].b;
+                delete image->lines[maxZ - z - 1].g;
+                delete image->lines[maxZ - z - 1].r;
             }
         }
     }

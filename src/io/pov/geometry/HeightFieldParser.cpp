@@ -3,6 +3,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
+#include "media/IndexedImage.h"
+#include "media/RGBAImage.h"
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"
 #include "environment/scene/ModelBuilder.h"
@@ -28,7 +30,8 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     int constantId;
     Vector3Dd localVector;
     Texture *localTexture;
-    RGBAImage *image = nullptr;
+    IndexedImage *indexedImage = nullptr;
+    RGBAImage *directImage = nullptr;
     int imageType = 0;
 
     localShape = nullptr;
@@ -46,19 +49,19 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::GIF_TOKEN:
                 imageType = HeightField::GIF;
                 localShape = ModelBuilder::getHeightFieldShape();
-                image = new RGBAImage;
-                if (image == nullptr) {
+                indexedImage = new IndexedImage;
+                if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
                                               "space for Height Field (1st "
                                               "message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                GifFormat::readGifImage(image, ctx.token().Token_String);
+                GifFormat::readGifImage(indexedImage, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->bounding_box->bounds[1] =
-                    Vector3Dd(image->width - 2.0, 256.0, image->height - 2.0);
-                localVector = Vector3Dd(1.0 / (image->width),
-                    1.0 / 256.0, 1.0 / (image->height));
+                    Vector3Dd(indexedImage->width - 2.0, 256.0, indexedImage->height - 2.0);
+                localVector = Vector3Dd(1.0 / (indexedImage->width),
+                    1.0 / 256.0, 1.0 / (indexedImage->height));
                 *localShape->transformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
                 *localShape->transformationInverse = Matrix4x4d().scale(
@@ -69,19 +72,19 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::POT_TOKEN:
                 imageType = HeightField::POT;
                 localShape = ModelBuilder::getHeightFieldShape();
-                image = new RGBAImage;
-                if (image == nullptr) {
+                indexedImage = new IndexedImage;
+                if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
                                               "space for Height Field (1st "
                                               "message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                GifFormat::readGifImage(image, ctx.token().Token_String);
+                GifFormat::readGifImage(indexedImage, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->bounding_box->bounds[1] = Vector3Dd(
-                    image->width / 2.0 - 2.0, 256.0, image->height - 2.0);
-                localVector = Vector3Dd(2.0 / image->width,
-                    1.0 / 256.0, 1.0 / image->height);
+                    indexedImage->width / 2.0 - 2.0, 256.0, indexedImage->height - 2.0);
+                localVector = Vector3Dd(2.0 / indexedImage->width,
+                    1.0 / 256.0, 1.0 / indexedImage->height);
                 *localShape->transformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
                 *localShape->transformationInverse = Matrix4x4d().scale(
@@ -92,18 +95,18 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::TGA_TOKEN:
                 imageType = HeightField::TGA;
                 localShape = ModelBuilder::getHeightFieldShape();
-                image = new RGBAImage;
-                if (image == nullptr) {
+                directImage = new RGBAImage;
+                if (directImage == nullptr) {
                     ParseErrorReporter::reportError("Cannot allocate space for "
                                               "Height Field (1st message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                TargaFormat::readTargaImage(image, ctx.token().Token_String);
+                TargaFormat::readTargaImage(directImage, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->bounding_box->bounds[1] =
-                    Vector3Dd(image->width - 2.0, 256.0, image->height - 2.0);
-                localVector = Vector3Dd(1.0 / image->width,
-                    1.0 / 256.0, 1.0 / image->height);
+                    Vector3Dd(directImage->width - 2.0, 256.0, directImage->height - 2.0);
+                localVector = Vector3Dd(1.0 / directImage->width,
+                    1.0 / 256.0, 1.0 / directImage->height);
                 *localShape->transformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
                 *localShape->transformationInverse = Matrix4x4d().scale(
@@ -203,6 +206,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
         }
     }
 
-    HeightField::findHfMinMax(localShape, image, imageType);
+    if (indexedImage != nullptr) {
+        HeightField::findHfMinMax(localShape, indexedImage, imageType);
+    } else if (directImage != nullptr) {
+        HeightField::findHfMinMax(localShape, directImage, imageType);
+    }
     return ((Geometry *)localShape);
 }

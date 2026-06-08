@@ -12,7 +12,7 @@
 #include "common/logger/Logger.h"
 #include <cstring>
 
-RGBAImage *GifFormat::currentImage = nullptr;
+IndexedImage *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;
 java::FileInputStream *GifFormat::bitStream = nullptr;
 RGBAPixel16Bits *GifFormat::gifColourMap = nullptr;
@@ -21,7 +21,7 @@ int GifFormat::colourmapSize = 0;
 int
 GifFormat::outLine(unsigned char *pixels, int linelen)
 {
-    unsigned char *line = currentImage->data.mapLines[bitmapLine++];
+    unsigned char *line = currentImage->mapLines[bitmapLine++];
 
     for (int x = 0; x < linelen; x++) {
         if ((int)(*pixels) > currentImage->colourMapSize) {
@@ -47,7 +47,7 @@ GifFormat::getByte()
 }
 
 void
-GifFormat::readGifImage(RGBAImage *image, char *filename)
+GifFormat::readGifImage(IndexedImage *image, char *filename)
 {
     int i;
     int j;
@@ -155,15 +155,15 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
             image->colourMapSize = colourmapSize;
             image->colorMap = gifColourMap;
 
-            image->data.mapLines = new unsigned char *[image->iheight];
-            if (image->data.mapLines == nullptr) {
+            image->mapLines = new unsigned char *[image->iheight];
+            if (image->mapLines == nullptr) {
                 Logger::error("Cannot allocate memory for picture\n");
                 exit(1);
             }
 
             for (i = 0; i < image->iheight; i++) {
-                image->data.mapLines[i] = new unsigned char[image->iwidth];
-                if (image->data.mapLines[i] == nullptr) {
+                image->mapLines[i] = new unsigned char[image->iwidth];
+                if (image->mapLines[i] == nullptr) {
                     Logger::error("Cannot allocate memory for picture\n");
                     exit(1);
                 }

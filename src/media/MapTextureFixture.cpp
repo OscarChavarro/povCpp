@@ -96,7 +96,7 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
         MapTextureFixture::imageColourAt(
             texture->Material_Image, xcoor, ycoor, &colour, &regNumber);
 
-        if (texture->Material_Image->colorMap == nullptr) {
+        if (texture->Material_Image->indexedData == nullptr) {
             materialNumber = (int)colour.Red * 255;
         } else {
             materialNumber = regNumber;
@@ -192,7 +192,7 @@ MapTextureFixture::bumpMap(
         Logger::info("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
     }
 
-    if (texture->Bump_Image->colorMap == nullptr ||
+    if (texture->Bump_Image->indexedData == nullptr ||
         texture->Bump_Image->useColourFlag) {
         p1 = Vector3Dd(0,
             texture->bumpAmount *
@@ -529,13 +529,8 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
 
 void
 MapTextureFixture::noInterpolation(
-    RGBAImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+    TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
-    ImageLine *line;
-    int iycoor;
-    int ixcoor;
-    RGBAPixel16Bits *mapColour;
-
     if (xcoor < 0.0) {
         xcoor += (double)image->iwidth;
     } else if (xcoor >= (double)image->iwidth) {
@@ -547,26 +542,24 @@ MapTextureFixture::noInterpolation(
         ycoor -= (double)image->iheight;
     }
 
-    iycoor = (int)ycoor;
-    ixcoor = (int)xcoor;
-    if (image->colorMap == nullptr) {
-        line = &image->data.lines[iycoor];
+    int iycoor = (int)ycoor;
+    int ixcoor = (int)xcoor;
+
+    if (image->indexedData == nullptr) {
+        ImageLine *line = &image->lines[iycoor];
         colour->Red += (double)line->r[ixcoor] / 255.0;
         colour->Green += (double)line->g[ixcoor] / 255.0;
         colour->Blue += (double)line->b[ixcoor] / 255.0;
         *index = -1;
     } else {
-        *index = image->data.mapLines[iycoor][ixcoor];
-        mapColour = &image->colorMap[*index];
-        /*Logger::info("icat index %d xc %d yc %d  CLR %d %d %d
-     %d\n",*index,ixcoor,iycoor,
-     map_colour->Red,map_colour->Green,map_colour->Blue,map_colour->Alpha ); */
+        IndexedImage *idx = image->indexedData;
+        *index = idx->mapLines[iycoor][ixcoor];
+        RGBAPixel16Bits *mapColour = &idx->colorMap[*index];
         colour->Red += (double)mapColour->r / 255.0;
         colour->Green += (double)mapColour->g / 255.0;
         colour->Blue += (double)mapColour->b / 255.0;
         colour->Alpha += (double)mapColour->a / 255.0;
     }
-
 }
 
 /* Interpolate color and alpha values when mapping */
