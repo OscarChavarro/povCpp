@@ -5,7 +5,6 @@
 #include "java/io/FileOutputStream.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
-#include "media/ImageData.h"
 #include "media/RGBAImage.h"
 #include "io/image/TargaFormat.h"
 #include "io/binaryIo/FileLocator.h"
@@ -236,17 +235,15 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
 
     image->width = (double)image->iwidth;
     image->height = (double)image->iheight;
-    image->colourMapSize = 0;
-    image->colorMap = nullptr;
 
-    image->data.lines = new ImageLine[image->iheight];
-    if (image->data.lines == nullptr) {
+    image->lines = new ImageLine[image->iheight];
+    if (image->lines == nullptr) {
         Logger::error("Cannot allocate memory for picture: %s\n", name);
         exit(1);
     }
 
     for (int row = 0; row < image->iheight &&
-         fmt.readIntLine(&image->data.lines[row]);
+         fmt.readIntLine(&image->lines[row]);
          row++) {
     }
 

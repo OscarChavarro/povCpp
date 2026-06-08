@@ -13,6 +13,7 @@
 #include "io/pov/texture/ColorMapParser.h"
 #include "io/pov/texture/TextureParser.h"
 #include "media/TextureImage.h"
+#include "media/IndexedImage.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -27,6 +28,15 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
+
+static void wireIndexedIntoTextureImage(TextureImage *ti, IndexedImage *idx)
+{
+    ti->indexedData = idx;
+    ti->iwidth  = idx->iwidth;
+    ti->iheight = idx->iheight;
+    ti->width   = idx->width;
+    ti->height  = idx->height;
+}
 
 bool
 TextureParser::shouldLogTextureState()
@@ -509,19 +519,25 @@ TextureParser::parseTexture(ParserContext &ctx)
                                 &(texture->Image->imageGradient), ctx);
                             break;
 
-                        case Tokenizer::IFF_TOKEN:
+                        case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IffFormat::readIffImage(
+                            IndexedImage *idx = IffFormat::readIffImage(
                                 texture->Image, ctx.token().Token_String);
+                            if (idx != nullptr) {
+                                wireIndexedIntoTextureImage(texture->Image, idx);
+                            }
                             Exit_Flag = true;
                             break;
+                        }
 
-                        case Tokenizer::GIF_TOKEN:
+                        case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            GifFormat::readGifImage(
-                                texture->Image, ctx.token().Token_String);
+                            IndexedImage *idx = new IndexedImage;
+                            GifFormat::readGifImage(idx, ctx.token().Token_String);
+                            wireIndexedIntoTextureImage(texture->Image, idx);
                             Exit_Flag = true;
                             break;
+                        }
 
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
@@ -580,7 +596,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                 switch (ctx.token().tokenId) {
                                 case Tokenizer::FLOAT_TOKEN:
                                     reg = (int)(ctx.token().tokenFloat + 0.01);
-                                    if (texture->Image->colorMap == nullptr) {
+                                    if (texture->Image->indexedData == nullptr) {
                                         ParseErrorReporter::reportError(
                                             "Can't apply ALPHA to a non "
                                             "colour-mapped image\n", ctx);
@@ -588,13 +604,13 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                                     if ((reg < 0) ||
                                         (reg >=
-                                            texture->Image->colourMapSize)) {
+                                            texture->Image->indexedData->colourMapSize)) {
                                         ParseErrorReporter::reportError(
                                             "ALPHA colour register value out "
                                             "of range.\n", ctx);
                                     }
 
-                                    texture->Image->colorMap[reg].a =
+                                    texture->Image->indexedData->colorMap[reg].a =
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
@@ -606,9 +622,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     alpha = PrimitiveParser::parseFloat(ctx);
 
                                     for (reg = 0;
-                                        reg < texture->Image->colourMapSize;
+                                        reg < texture->Image->indexedData->colourMapSize;
                                         reg++) {
-                                        texture->Image->colorMap[reg].a =
+                                        texture->Image->indexedData->colorMap[reg].a =
                                             (unsigned short)(alpha * 255.0);
                                     }
                                     Exit_Flag = true;
@@ -863,19 +879,25 @@ TextureParser::parseTexture(ParserContext &ctx)
                                 &(texture->Bump_Image->imageGradient), ctx);
                             break;
 
-                        case Tokenizer::IFF_TOKEN:
+                        case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IffFormat::readIffImage(
+                            IndexedImage *idx = IffFormat::readIffImage(
                                 texture->Bump_Image, ctx.token().Token_String);
+                            if (idx != nullptr) {
+                                wireIndexedIntoTextureImage(texture->Bump_Image, idx);
+                            }
                             Exit_Flag = true;
                             break;
+                        }
 
-                        case Tokenizer::GIF_TOKEN:
+                        case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            GifFormat::readGifImage(
-                                texture->Bump_Image, ctx.token().Token_String);
+                            IndexedImage *idx = new IndexedImage;
+                            GifFormat::readGifImage(idx, ctx.token().Token_String);
+                            wireIndexedIntoTextureImage(texture->Bump_Image, idx);
                             Exit_Flag = true;
                             break;
+                        }
 
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
@@ -981,19 +1003,25 @@ TextureParser::parseTexture(ParserContext &ctx)
                                 &(texture->Material_Image->imageGradient), ctx);
                             break;
 
-                        case Tokenizer::IFF_TOKEN:
+                        case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IffFormat::readIffImage(texture->Material_Image,
-                                ctx.token().Token_String);
+                            IndexedImage *idx = IffFormat::readIffImage(
+                                texture->Material_Image, ctx.token().Token_String);
+                            if (idx != nullptr) {
+                                wireIndexedIntoTextureImage(texture->Material_Image, idx);
+                            }
                             Exit_Flag = true;
                             break;
+                        }
 
-                        case Tokenizer::GIF_TOKEN:
+                        case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            GifFormat::readGifImage(texture->Material_Image,
-                                ctx.token().Token_String);
+                            IndexedImage *idx = new IndexedImage;
+                            GifFormat::readGifImage(idx, ctx.token().Token_String);
+                            wireIndexedIntoTextureImage(texture->Material_Image, idx);
                             Exit_Flag = true;
                             break;
+                        }
 
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);

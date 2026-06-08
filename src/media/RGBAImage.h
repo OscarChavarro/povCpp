@@ -1,8 +1,7 @@
 #ifndef __RGBA_IMAGE_H__
 #define __RGBA_IMAGE_H__
 
-#include "media/ImageData.h"
-#include "media/RGBAPixel.h"
+#include "media/ImageLine.h"
 
 class RGBAImage {
   public:
@@ -10,9 +9,7 @@ class RGBAImage {
     double height;
     int iwidth;
     int iheight;
-    short colourMapSize;
-    RGBAPixel16Bits *colorMap;
-    ImageData data;
+    ImageLine *lines = nullptr;
 };
 
 #endif
