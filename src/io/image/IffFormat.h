@@ -16,7 +16,7 @@ class IffFormat {
     static void readIffImage(RGBAImage *image, char *filename);
 
   private:
-    static RGBAPixel *sIffColourMap;
+    static RGBAPixel16Bits *sIffColourMap;
     static int sColourMapSize;
     static ChunkHeader sGlobalChunkHeader;
 };

@@ -1,12 +1,12 @@
-#ifndef __RGBA_PIXEL_H__
-#define __RGBA_PIXEL_H__
+#ifndef __RGBA_PIXEL_16BITS_H__
+#define __RGBA_PIXEL_16BITS_H__
 
-class RGBAPixel {
+class RGBAPixel16Bits {
   public:
-    unsigned short Red;
-    unsigned Green;
-    unsigned Blue;
-    unsigned Alpha;
+    unsigned short r;
+    unsigned short g;
+    unsigned short b;
+    unsigned short a;
 };
 
 #endif

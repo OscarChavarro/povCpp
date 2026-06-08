@@ -13,8 +13,6 @@
 #include <cstring>
 #include <cstdio>
 
-namespace {
-
 class AppendableFileOutputStream : public java::OutputStream {
   public:
     explicit AppendableFileOutputStream(const char *fileName)
@@ -62,8 +60,6 @@ class AppendableFileOutputStream : public java::OutputStream {
   private:
     FILE *stream;
 };
-
-}
 
 RawFormat::RawFormat()
     : redIn(nullptr), greenIn(nullptr), blueIn(nullptr),

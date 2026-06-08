@@ -681,20 +681,20 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                         (z < maxZ - 1)) {
                         switch (imageType) {
                         case HeightField::GIF:
-                            temp1 = image->data.map_lines[maxZ - z - 1][x];
+                            temp1 = image->data.mapLines[maxZ - z - 1][x];
                             tempY = (double)(temp1);
                             break;
                         case HeightField::POT:
-                            temp1 = image->data.map_lines[maxZ - z - 1][x];
+                            temp1 = image->data.mapLines[maxZ - z - 1][x];
                             temp2 =
-                                image->data.map_lines[maxZ - z - 1][x + maxX];
+                                image->data.mapLines[maxZ - z - 1][x + maxX];
                             tempY =
                                 (double)((double)temp1 + (double)temp2 / 256.0);
                             break;
                         case HeightField::TGA:
-                            temp1 = image->data.rgb_lines[maxZ - z - 1].red[x];
+                            temp1 = image->data.lines[maxZ - z - 1].r[x];
                             temp2 =
-                                image->data.rgb_lines[maxZ - z - 1].green[x];
+                                image->data.lines[maxZ - z - 1].g[x];
                             tempY =
                                 (double)((double)temp1 + (double)temp2 / 256.0);
                             break;
@@ -723,15 +723,15 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
             if ((z >= 0) && (z < maxZ) && (j2 != n)) {
                 switch (imageType) {
                 case HeightField::GIF:
-                    delete image->data.map_lines[maxZ - z - 1];
+                    delete image->data.mapLines[maxZ - z - 1];
                     break;
                 case HeightField::POT:
-                    delete image->data.map_lines[maxZ - z - 1];
+                    delete image->data.mapLines[maxZ - z - 1];
                     break;
                 case HeightField::TGA:
-                    delete image->data.rgb_lines[maxZ - z - 1].blue;
-                    delete image->data.rgb_lines[maxZ - z - 1].green;
-                    delete image->data.rgb_lines[maxZ - z - 1].red;
+                    delete image->data.lines[maxZ - z - 1].b;
+                    delete image->data.lines[maxZ - z - 1].g;
+                    delete image->data.lines[maxZ - z - 1].r;
                     break;
                 }
             }

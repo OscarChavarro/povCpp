@@ -5,6 +5,7 @@
  *
  *****************************************************************************/
 
+#include <cstdlib>
 #include "io/image/GifFormat.h"
 #include "io/binaryIo/FileLocator.h"
 #include "io/image/GifDecoder.h"
@@ -14,13 +15,13 @@
 RGBAImage *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;
 java::FileInputStream *GifFormat::bitStream = nullptr;
-RGBAPixel *GifFormat::gifColourMap = nullptr;
+RGBAPixel16Bits *GifFormat::gifColourMap = nullptr;
 int GifFormat::colourmapSize = 0;
 
 int
 GifFormat::outLine(unsigned char *pixels, int linelen)
 {
-    unsigned char *line = currentImage->data.map_lines[bitmapLine++];
+    unsigned char *line = currentImage->data.mapLines[bitmapLine++];
 
     for (int x = 0; x < linelen; x++) {
         if ((int)(*pixels) > currentImage->colourMapSize) {
@@ -92,7 +93,7 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
     planes = ((unsigned)buffer[10] & 0x0F) + 1;
     colourmapSize = (int)(1 << planes);
 
-    gifColourMap = new RGBAPixel[colourmapSize];
+    gifColourMap = new RGBAPixel16Bits[colourmapSize];
     if (gifColourMap == nullptr) {
         Logger::error("Cannot allocate GIF Colour Map\n");
         bitStream->close();
@@ -108,10 +109,10 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
     }
 
     for (i = 0; i < colourmapSize; i++) {
-        gifColourMap[i].Red   = (unsigned char)GifFormat::getByte();
-        gifColourMap[i].Green = (unsigned char)GifFormat::getByte();
-        gifColourMap[i].Blue  = (unsigned char)GifFormat::getByte();
-        gifColourMap[i].Alpha = 0;
+        gifColourMap[i].r   = (unsigned char)GifFormat::getByte();
+        gifColourMap[i].g = (unsigned char)GifFormat::getByte();
+        gifColourMap[i].b  = (unsigned char)GifFormat::getByte();
+        gifColourMap[i].a = 0;
     }
 
     finished = false;
@@ -152,17 +153,17 @@ GifFormat::readGifImage(RGBAImage *image, char *filename)
 
             bitmapLine = 0;
             image->colourMapSize = colourmapSize;
-            image->Colour_Map = gifColourMap;
+            image->colorMap = gifColourMap;
 
-            image->data.map_lines = new unsigned char *[image->iheight];
-            if (image->data.map_lines == nullptr) {
+            image->data.mapLines = new unsigned char *[image->iheight];
+            if (image->data.mapLines == nullptr) {
                 Logger::error("Cannot allocate memory for picture\n");
                 exit(1);
             }
 
             for (i = 0; i < image->iheight; i++) {
-                image->data.map_lines[i] = new unsigned char[image->iwidth];
-                if (image->data.map_lines[i] == nullptr) {
+                image->data.mapLines[i] = new unsigned char[image->iwidth];
+                if (image->data.mapLines[i] == nullptr) {
                     Logger::error("Cannot allocate memory for picture\n");
                     exit(1);
                 }

@@ -8,7 +8,7 @@
 #include "common/color/Color.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "media/RGBAImage.h"
+#include "media/TextureImage.h"
 #include "media/RGBAPixel.h"
 #include "media/TextureUtils.h"
 
@@ -106,9 +106,9 @@ class Texture {
     double Turbulence;
     Vector3Dd textureGradient;
     RGBAColorPalette *Colour_Map;
-    RGBAImage *Image;
-    RGBAImage *Bump_Image;
-    RGBAImage *Material_Image;
+    TextureImage *Image;
+    TextureImage *Bump_Image;
+    TextureImage *Material_Image;
     bool metallicFlag;
     bool onceFlag;
     bool constantFlag;
