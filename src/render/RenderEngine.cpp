@@ -24,7 +24,7 @@
 #include "render/shaders/TraceService.h"
 #include "environment/material/RendererConfiguration.h"
 #include "common/RenderRuntimeState.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 
 RenderFrame RenderEngine::sRenderFrame;
 RayWithSegments *RenderEngine::sPrimaryRay = nullptr;

@@ -18,7 +18,7 @@
 #include "media/IndexedImage.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "common/Config.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "media/solidTexture/Texture.h"
 
 inline int

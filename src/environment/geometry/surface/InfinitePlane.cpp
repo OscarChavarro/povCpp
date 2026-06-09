@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/surface/InfinitePlane.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 Methods InfinitePlane::methodTable = {
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,

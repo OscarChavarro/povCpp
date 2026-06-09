@@ -1,5 +1,5 @@
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"

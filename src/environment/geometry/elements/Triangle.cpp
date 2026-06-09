@@ -7,7 +7,7 @@
 
 #include "environment/geometry/elements/Triangle.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include <cstdio>

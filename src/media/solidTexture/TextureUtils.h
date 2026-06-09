@@ -11,9 +11,11 @@
 
 class RGBAColorPalette;
 class Texture;
+class SolidTextureStatistics;
 
 class TextureUtils {
   public:
+    static void initialize(SolidTextureStatistics* stats);
     static TextureUtils& instance();
 
     double floorInline(double x);
@@ -47,7 +49,9 @@ class TextureUtils {
     Texture *getTexture();
 
   private:
-    TextureUtils() = default;
+    SolidTextureStatistics* solidTextureStats_;
+    static TextureUtils* inst_;
+    explicit TextureUtils(SolidTextureStatistics* stats);
 };
 
 #endif

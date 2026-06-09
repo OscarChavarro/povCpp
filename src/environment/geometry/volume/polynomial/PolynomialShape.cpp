@@ -12,7 +12,7 @@
 #include "common/PolynomialTermCounts.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "processing/PolynomialSolver.h"
 #include <cstring>

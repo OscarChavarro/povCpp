@@ -93,7 +93,7 @@ add_executable(povray
   src/render/SceneDump.cpp
   src/environment/material/RendererConfiguration.cpp
   src/common/RenderRuntimeState.cpp
-  src/common/Statistics.cpp
+  src/common/statistics/Statistics.cpp
   src/common/PolynomialTermCounts.cpp
 )
 

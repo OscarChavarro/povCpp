@@ -1,6 +1,6 @@
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "common/color/Color.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryConstants.h"

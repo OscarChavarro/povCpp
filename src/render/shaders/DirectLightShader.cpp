@@ -1,6 +1,6 @@
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/TraceService.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "common/color/Color.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include "environment/geometry/GeometryConstants.h"

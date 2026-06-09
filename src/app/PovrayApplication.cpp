@@ -8,7 +8,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "common/RenderRuntimeState.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "media/solidTexture/TextureUtils.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/scene/SceneFrame.h"
@@ -87,11 +87,11 @@ PovrayApplication::printStatistics(
         "  Clips         ", stats.clippingRegionTests, stats.clippingRegionTestsSucceeded);
 #undef PRINT_INTERSECTION_ROW
 
-    if (stats.callsToNoise) {
-        fprintf(statOut, "  Calls to Noise:    %10ld\n", stats.callsToNoise);
+    if (stats.solidTextureStatistics.callsToNoise) {
+        fprintf(statOut, "  Calls to Noise:    %10ld\n", stats.solidTextureStatistics.callsToNoise);
     }
-    if (stats.callsToDNoise) {
-        fprintf(statOut, "  Calls to DNoise:  %10ld\n", stats.callsToDNoise);
+    if (stats.solidTextureStatistics.callsToDNoise) {
+        fprintf(statOut, "  Calls to DNoise:  %10ld\n", stats.solidTextureStatistics.callsToDNoise);
     }
     if (stats.shadowRayTests) {
         fprintf(statOut,
@@ -269,6 +269,7 @@ PovrayApplication::prepareRendering()
     }
 
     IntersectionPriorityQueuePool::pqInit();
+    TextureUtils::initialize(Statistics::global().getSolidTextureStatistics());
     TextureUtils::instance().initializeNoise();
 }
 
