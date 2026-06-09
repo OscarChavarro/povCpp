@@ -156,7 +156,9 @@ void
 textureUtils::computeColor(
     ColorRgba *color, RGBAColorPalette *colorMap, double value)
 {
-    *color = colorMap->evalLinear(value);
+    ColorRgba *c = colorMap->evalLinear(value);
+    *color = *c;
+    delete c;
 }
 
 void
@@ -599,8 +601,13 @@ copyTextureNode(Texture *dst, const Texture *src)
     if (dst->colorMap != nullptr) {
         RGBAColorPalette *newMap = new RGBAColorPalette();
         for (int i = 0; i < src->colorMap->size(); i++) {
-            const RGBAColorPaletteSpan *s = src->colorMap->getSpanAt(i);
-            newMap->addSpan(s->start, s->end, s->startColor, s->endColor);
+            ColorRgba *c = src->colorMap->getColorAt(i);
+            if (src->colorMap->hasPositions()) {
+                newMap->addColorAt(src->colorMap->getPositionAt(i), *c);
+            } else {
+                newMap->addColor(*c);
+            }
+            delete c;
         }
         dst->colorMap = newMap;
     }
