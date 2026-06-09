@@ -1,6 +1,8 @@
 #ifndef __STATISTICS_H__
 #define __STATISTICS_H__
 
+#include "common/statistics/SolidTextureStatistics.h"
+
 class Statistics {
   public:
     long numberOfPixels;
@@ -30,8 +32,7 @@ class Statistics {
     long boundingRegionTestsSucceeded;
     long clippingRegionTests;
     long clippingRegionTestsSucceeded;
-    long callsToNoise;
-    long callsToDNoise;
+    SolidTextureStatistics solidTextureStatistics;
     long shadowRayTests;
     long shadowRaysSucceeded;
     long reflectedRaysTraced;
@@ -42,6 +43,7 @@ class Statistics {
     double usedTime;
 
     static Statistics &global();
+    SolidTextureStatistics* getSolidTextureStatistics();
     void reset();
     void startTimer();
     void stopTimer();

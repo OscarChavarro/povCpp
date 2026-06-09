@@ -1,6 +1,6 @@
 #include <ctime>
 
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 
 static Statistics globalStatisticsInstance;
 
@@ -8,6 +8,12 @@ Statistics &
 Statistics::global()
 {
     return globalStatisticsInstance;
+}
+
+SolidTextureStatistics*
+Statistics::getSolidTextureStatistics()
+{
+    return &solidTextureStatistics;
 }
 
 void
@@ -40,8 +46,7 @@ Statistics::reset()
     boundingRegionTestsSucceeded = 0L;
     clippingRegionTests = 0L;
     clippingRegionTestsSucceeded = 0L;
-    callsToNoise = 0L;
-    callsToDNoise = 0L;
+    solidTextureStatistics.reset();
     shadowRayTests = 0L;
     shadowRaysSucceeded = 0L;
     reflectedRaysTraced = 0L;

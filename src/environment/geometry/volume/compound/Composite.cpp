@@ -9,7 +9,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "environment/material/RendererConfiguration.h"
-#include "common/Statistics.h"
+#include "common/statistics/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
 
 static inline void

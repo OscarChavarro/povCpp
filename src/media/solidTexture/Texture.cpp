@@ -20,7 +20,7 @@ References:
 #include <cstdlib>
 
 #include "media/solidTexture/Texture.h"
-#include "common/Statistics.h"
+#include "common/statistics/SolidTextureStatistics.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -32,11 +32,22 @@ static Vector3Dd waveSourcesInstance[Texture::NUMBER_OF_WAVES];
 static double *rTableInstance;
 static short *hashTableInstance;
 
+TextureUtils* TextureUtils::inst_ = nullptr;
+
+TextureUtils::TextureUtils(SolidTextureStatistics* stats)
+    : solidTextureStats_(stats) {}
+
+void
+TextureUtils::initialize(SolidTextureStatistics* stats)
+{
+    static TextureUtils inst(stats);
+    inst_ = &inst;
+}
+
 TextureUtils&
 TextureUtils::instance()
 {
-    static TextureUtils inst;
-    return inst;
+    return *inst_;
 }
 
 Texture *&
@@ -337,7 +348,7 @@ TextureUtils::Noise(double x, double y, double z)
     double sum;
     short m;
 
-    Statistics::global().callsToNoise++;
+    solidTextureStats_->callsToNoise++;
 
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
@@ -404,7 +415,7 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     double tz;
     short m;
 
-    Statistics::global().callsToDNoise++;
+    solidTextureStats_->callsToDNoise++;
 
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
