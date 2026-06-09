@@ -16,7 +16,7 @@
  *****************************************************************************/
 
 #include "io/image/RawDumpFormat.h"
-#include "common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "io/binaryIo/FileLocator.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/io/FileOutputStream.h"

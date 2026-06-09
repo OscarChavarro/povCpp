@@ -4,7 +4,7 @@
 
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/TargaFormat.h"
 #include "io/binaryIo/FileLocator.h"
