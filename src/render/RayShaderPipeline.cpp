@@ -3,7 +3,6 @@
 #include "render/RenderEngine.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/TraceService.h"
-#include "common/color/ColorOperations.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "environment/geometry/GeometryOperations.h"
@@ -35,7 +34,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     int surface;
 
     if (!shadowRay) {
-        ColorOperations::makeColor(color, 0.0, 0.0, 0.0);
+        color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
@@ -54,7 +53,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
     }
 
-    ColorOperations::makeColor(&surfaceColor, 0.0, 0.0, 0.0);
+    surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
 
     mapTextureFixture mapFixture;
     colorTextureFixture colorFixture;
@@ -78,8 +77,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         return;
     }
 
-    ColorOperations::makeColor(&filterColor, 1.0, 1.0, 1.0);
-    filterColor.setA(1.0);
+    filterColor.setR(1.0); filterColor.setG(1.0); filterColor.setB(1.0); filterColor.setA(1.0);
 
     /* Now, we perform the lighting calculations. */
     surface = 0;
@@ -89,14 +87,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         tempTexture = (_layerIdx < 0) ? texture : texture->layers[_layerIdx];
         surface++;
 
-        ColorOperations::makeColor(&surfaceColor, 0.0, 0.0, 0.0);
+        surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
         if (RenderingConfiguration::global().quality <= 5) {
             if (rayIntersection->Shape->shapeColor != nullptr) {
                 surfaceColor = *rayIntersection->Shape->shapeColor;
             } else if (rayIntersection->Object->objectColor != nullptr) {
                 surfaceColor = *rayIntersection->Object->objectColor;
             } else {
-                ColorOperations::makeColor(&surfaceColor, 0.5, 0.5, 0.5);
+                surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
         } else {
             colorFixture.colorAt(
@@ -140,7 +138,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     if (shadowRay) {
 
         if (filterColor.getA() < 0.01) {
-            ColorOperations::makeColor(color, 0.0, 0.0, 0.0);
+            color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
             return;
         }
 
@@ -160,7 +158,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
 
     if ((filterColor.getA() > 0.01) && (RenderingConfiguration::global().quality > 5)) {
-        ColorOperations::makeColor(&refractedColor, 0.0, 0.0, 0.0);
+        refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->objectRefraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
@@ -194,7 +192,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
         if (texture->objectRefraction > 0.0 &&
             texture->objectTransmit > 0.0) {
-            ColorOperations::makeColor(&refractedColor, 0.0, 0.0, 0.0);
+            refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, nullptr,
                 &refractedColor, traceService,
                 RenderEngine::renderFrame().atmosphereIor,

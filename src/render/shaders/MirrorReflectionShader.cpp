@@ -1,7 +1,6 @@
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
 #include "common/statistics/Statistics.h"
-#include "common/color/ColorOperations.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/RayWithSegments.h"
@@ -41,7 +40,7 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
 
         newRay.copyContainersFrom(ray);
         traceLevel++;
-        ColorOperations::makeColor(&tempColor, 0.0, 0.0, 0.0);
+        tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.quadricConstantsCached = false;
         traceService->trace(&newRay, &tempColor);
         traceLevel--;

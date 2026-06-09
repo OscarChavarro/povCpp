@@ -1,5 +1,5 @@
 #include "render/shaders/ExponentialFogShader.h"
-#include "common/color/ColorOperations.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include <cmath>
 
 void

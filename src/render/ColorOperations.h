@@ -5,13 +5,6 @@
 
 class ColorOperations {
   public:
-    static inline void makeColor(ColorRgba *c, double r, double g, double b) {
-        c->setR(r);
-        c->setG(g);
-        c->setB(b);
-        c->setA(0);
-    }
-
     static double colorDistance(ColorRgba *color1, ColorRgba *color2);
     static void addColor(
         ColorRgba *result, ColorRgba *color1, ColorRgba *color2);

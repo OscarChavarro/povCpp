@@ -8,7 +8,7 @@ pseudorandom gradients via hash tables, and s-curve smoothing.
 #ifndef __TEXTURE_UTILS_H__
 #define __TEXTURE_UTILS_H__
 
-#include "common/color/ColorOperations.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class RGBAColorPalette;
