@@ -16,7 +16,7 @@ class Triangle;
 class SmoothTriangle;
 class CSG;
 class Camera;
-class RGBAColor;
+class ColorRgba;
 class ParametricBiCubicPatch;
 
 class ModelBuilder {
@@ -36,7 +36,7 @@ class ModelBuilder {
     static CSG *getCsgUnion();
     static CSG *getCsgIntersection();
     static Camera *getCamera();
-    static RGBAColor *getColor();
+    static ColorRgba *getColor();
     static Vector3Dd *getVector();
     static double *getFloat();
     static ParametricBiCubicPatch *getBicubicPatchShape();

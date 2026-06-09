@@ -356,12 +356,12 @@ ModelBuilder::getCamera()
     return (newViewpoint);
 }
 
-RGBAColor *
+ColorRgba *
 ModelBuilder::getColor()
 {
-    RGBAColor *newColor;
+    ColorRgba *newColor;
 
-    newColor = new RGBAColor;
+    newColor = new ColorRgba;
     if (newColor == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color\n");
     }

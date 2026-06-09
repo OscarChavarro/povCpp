@@ -24,7 +24,7 @@ Specialized projections (cylindrical, spherical, torus) by Alexander Enzmann.
 */
 void
 mapTextureFixture::imageMap(
-    double x, double y, double z, Texture *texture, RGBAColor *color, double smallTolerance)
+    double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance)
 {
     double xcoor = 0.0;
     double ycoor = 0.0;
@@ -32,7 +32,7 @@ mapTextureFixture::imageMap(
 
     if (map(x, y, z, texture, texture->image, &xcoor, &ycoor, smallTolerance)) {
         Color::makeColor(color, 1.0, 1.0, 1.0);
-        color->Alpha = 1.0;
+        color->setA(1.0);
         return;
     }
     imageColorAt(
@@ -53,10 +53,10 @@ mapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
     double xcoor = 0.0;
     double ycoor = 0.0;
     int regNumber = 0;
-    RGBAColor color;
+    ColorRgba color;
     int materialNumber = 0;
     Color::makeColor(&color, 0.0, 0.0, 0.0);
-    color.Alpha = 0.0;
+    color.setA(0.0);
 
     if (texture->textureTransformation) {
         transformedPoint = texture->textureTransformationInverse->transpose().multiply(
@@ -78,7 +78,7 @@ mapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
             texture->materialImage, xcoor, ycoor, &color, &regNumber);
 
         if (texture->materialImage->getIndexedData() == nullptr) {
-            materialNumber = (int)color.Red * 255;
+            materialNumber = (int)color.getR() * 255;
         } else {
             materialNumber = regNumber;
         }
@@ -103,9 +103,9 @@ mapTextureFixture::bumpMap(
     int index;
     int index2;
     int index3;
-    RGBAColor color;
-    RGBAColor color2;
-    RGBAColor color3;
+    ColorRgba color;
+    ColorRgba color2;
+    ColorRgba color3;
     Vector3Dd p1;
     Vector3Dd p2;
     Vector3Dd p3;
@@ -116,11 +116,11 @@ mapTextureFixture::bumpMap(
     Vector3Dd temp;
     double length;
     Color::makeColor(&color, 0.0, 0.0, 0.0);
-    color.Alpha = 0.0;
+    color.setA(0.0);
     Color::makeColor(&color2, 0.0, 0.0, 0.0);
-    color2.Alpha = 0.0;
+    color2.setA(0.0);
     Color::makeColor(&color3, 0.0, 0.0, 0.0);
-    color3.Alpha = 0.0;
+    color3.setA(0.0);
 
     // going to have to change this
     // need to know if bump point is off of image for all 3 points
@@ -128,7 +128,7 @@ mapTextureFixture::bumpMap(
     if (map(
             x, y, z, texture, texture->bumpImage, &xcoor, &ycoor, smallTolerance)) {
         Color::makeColor(&color, 1.0, 1.0, 1.0);
-        color.Alpha = 1.0;
+        color.setA(1.0);
         index = 255;
         return;
     }
@@ -165,17 +165,17 @@ mapTextureFixture::bumpMap(
         texture->bumpImage->getUseColorFlag()) {
         p1 = Vector3Dd(0,
             texture->bumpAmount *
-                (0.229 * color.Red + 0.587 * color.Green + 0.114 * color.Blue),
+                (0.229 * color.getR() + 0.587 * color.getG() + 0.114 * color.getB()),
             0);
         p2 = Vector3Dd(0,
             texture->bumpAmount *
-                (0.229 * color2.Red + 0.587 * color2.Green +
-                    0.114 * color2.Blue),
+                (0.229 * color2.getR() + 0.587 * color2.getG() +
+                    0.114 * color2.getB()),
             1);
         p3 = Vector3Dd(1,
             texture->bumpAmount *
-                (0.229 * color3.Red + 0.587 * color3.Green +
-                    0.114 * color3.Blue),
+                (0.229 * color3.getR() + 0.587 * color3.getG() +
+                    0.114 * color3.getB()),
             1);
     } else {
         p1 = Vector3Dd(0, texture->bumpAmount * index, 0);
@@ -216,7 +216,7 @@ mapTextureFixture::bumpMap(
 
 void
 mapTextureFixture::imageColorAt(
-    textureImage *image, double xcoor, double ycoor, RGBAColor *color, int *index)
+    textureImage *image, double xcoor, double ycoor, ColorRgba *color, int *index)
 {
     switch (image->getInterpolationType()) {
     case (int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION:
@@ -477,7 +477,7 @@ mapTextureFixture::map(double x, double y, double z, Texture *texture,
 
 void
 mapTextureFixture::noInterpolation(
-    textureImage *image, double xcoor, double ycoor, RGBAColor *color, int *index)
+    textureImage *image, double xcoor, double ycoor, ColorRgba *color, int *index)
 {
     if (xcoor < 0.0) {
         xcoor += (double)image->getXSize();
@@ -496,32 +496,32 @@ mapTextureFixture::noInterpolation(
     if (image->getIndexedData() == nullptr) {
         RGBAPixelHDR pixel;
         image->getPixel(ixcoor, iycoor, &pixel);
-        color->Red += (double)pixel.r / 255.0;
-        color->Green += (double)pixel.g / 255.0;
-        color->Blue += (double)pixel.b / 255.0;
+        color->setR(color->getR() + (double)pixel.r / 255.0);
+        color->setG(color->getG() + (double)pixel.g / 255.0);
+        color->setB(color->getB() + (double)pixel.b / 255.0);
         *index = -1;
     } else {
         IndexedImage *idx = image->getIndexedData();
         *index = idx->getPixel(ixcoor, iycoor);
         RGBAPixelHDR *mapColor = &idx->getColorMap()[*index];
-        color->Red += (double)mapColor->r / 255.0;
-        color->Green += (double)mapColor->g / 255.0;
-        color->Blue += (double)mapColor->b / 255.0;
-        color->Alpha += (double)mapColor->a / 255.0;
+        color->setR(color->getR() + (double)mapColor->r / 255.0);
+        color->setG(color->getG() + (double)mapColor->g / 255.0);
+        color->setB(color->getB() + (double)mapColor->b / 255.0);
+        color->setA(color->getA() + (double)mapColor->a / 255.0);
     }
 }
 
 /** Interpolates color and alpha values when mapping. */
 void
 mapTextureFixture::interp(
-    textureImage *image, double xcoor, double ycoor, RGBAColor *color, int *index)
+    textureImage *image, double xcoor, double ycoor, ColorRgba *color, int *index)
 {
     int iycoor;
     int ixcoor;
     int i;
     int cornersIndex[4];
     double indexCrn[4];
-    RGBAColor cornerColor[4];
+    ColorRgba cornerColor[4];
     double redCrn[4];
     double greenCrn[4];
     double blueCrn[4];
@@ -535,7 +535,7 @@ mapTextureFixture::interp(
     ixcoor = (int)xcoor;
     for (i = 0; i < 4; i++) {
         Color::makeColor(&cornerColor[i], 0.0, 0.0, 0.0);
-        cornerColor[i].Alpha = 0.0;
+        cornerColor[i].setA(0.0);
     }
     // sample the four surrounding pixels
     if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::BILINEAR) {
@@ -548,10 +548,10 @@ mapTextureFixture::interp(
         noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColor[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
-            redCrn[i] = cornerColor[i].Red;
-            greenCrn[i] = cornerColor[i].Green;
-            blueCrn[i] = cornerColor[i].Blue;
-            alphaCrn[i] = cornerColor[i].Alpha;
+            redCrn[i] = cornerColor[i].getR();
+            greenCrn[i] = cornerColor[i].getG();
+            blueCrn[i] = cornerColor[i].getB();
+            alphaCrn[i] = cornerColor[i].getA();
             // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
@@ -570,10 +570,10 @@ mapTextureFixture::interp(
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColor[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
-            redCrn[i] = cornerColor[i].Red;
-            greenCrn[i] = cornerColor[i].Green;
-            blueCrn[i] = cornerColor[i].Blue;
-            alphaCrn[i] = cornerColor[i].Alpha;
+            redCrn[i] = cornerColor[i].getR();
+            greenCrn[i] = cornerColor[i].getG();
+            blueCrn[i] = cornerColor[i].getB();
+            alphaCrn[i] = cornerColor[i].getA();
             // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
@@ -583,10 +583,10 @@ mapTextureFixture::interp(
         val4 = normDist(alphaCrn, xcoor, ycoor);
     }
 
-    color->Red += val1;
-    color->Green += val2;
-    color->Blue += val3;
-    color->Alpha += val4;
+    color->setR(color->getR() + val1);
+    color->setG(color->getG() + val2);
+    color->setB(color->getB() + val3);
+    color->setA(color->getA() + val4);
     // Logger::info("Final = %lf %lf %lf\n",val1,val2,val3);
     // use bilinear for index; try average later
     for (i = 0; i < 4; i++) {

@@ -154,7 +154,7 @@ textureUtils::incrSum(int m, double s, double x, double y, double z)
 
 void
 textureUtils::computeColor(
-    RGBAColor *color, RGBAColorPalette *colorMap, double value)
+    ColorRgba *color, RGBAColorPalette *colorMap, double value)
 {
     int i;
     RGBAColorPaletteSpan *ent;
@@ -172,26 +172,26 @@ textureUtils::computeColor(
         i < colorMap->numberOfEntries; i++, ent++) {
         if ((value >= ent->start) && (value <= ent->end)) {
             fraction = (value - ent->start) / (ent->end - ent->start);
-            color->Red =
-                ent->startColor.Red +
-                fraction * (ent->endColor.Red - ent->startColor.Red);
-            color->Green =
-                ent->startColor.Green +
-                fraction * (ent->endColor.Green - ent->startColor.Green);
-            color->Blue =
-                ent->startColor.Blue +
-                fraction * (ent->endColor.Blue - ent->startColor.Blue);
-            color->Alpha =
-                ent->startColor.Alpha +
-                fraction * (ent->endColor.Alpha - ent->startColor.Alpha);
+            color->setR(
+                ent->startColor.getR() +
+                fraction * (ent->endColor.getR() - ent->startColor.getR()));
+            color->setG(
+                ent->startColor.getG() +
+                fraction * (ent->endColor.getG() - ent->startColor.getG()));
+            color->setB(
+                ent->startColor.getB() +
+                fraction * (ent->endColor.getB() - ent->startColor.getB()));
+            color->setA(
+                ent->startColor.getA() +
+                fraction * (ent->endColor.getA() - ent->startColor.getA()));
             return;
         }
     }
 
-    color->Red = 0.0;
-    color->Green = 0.0;
-    color->Blue = 0.0;
-    color->Alpha = 0.0;
+    color->setR(0.0);
+    color->setG(0.0);
+    color->setB(0.0);
+    color->setA(0.0);
     {
         char _logMsg[1024];
         snprintf(_logMsg, sizeof(_logMsg), "No color for value: %g\n", value);

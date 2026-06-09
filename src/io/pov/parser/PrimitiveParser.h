@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-class RGBAColor;
+class ColorRgba;
 class ParserContext;
 
 class PrimitiveParser {
@@ -14,8 +14,8 @@ class PrimitiveParser {
     static void parseVector(Vector3Dd *givenVector, ParserContext &ctx);
     static void parseCoeffs(int order, double *givenCoeffs);
     static void parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx);
-    static void parseColor(RGBAColor *givenColor);
-    static void parseColor(RGBAColor *givenColor, ParserContext &ctx);
+    static void parseColor(ColorRgba *givenColor);
+    static void parseColor(ColorRgba *givenColor, ParserContext &ctx);
 };
 
 #endif

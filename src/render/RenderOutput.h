@@ -1,7 +1,7 @@
 #ifndef __RENDER_OUTPUT_H__
 #define __RENDER_OUTPUT_H__
 
-class RGBAColor;
+class ColorRgba;
 
 class RenderOutput {
   public:
@@ -13,8 +13,8 @@ class RenderOutput {
     virtual const char *defaultFileName() = 0;
     virtual int open(char *name, int *width, int *height, int bufferSize, int mode,
                      int firstLine) = 0;
-    virtual void writeLine(RGBAColor *lineData, int lineNumber) = 0;
-    virtual int readLine(RGBAColor *lineData, int *lineNumber) = 0;
+    virtual void writeLine(ColorRgba *lineData, int lineNumber) = 0;
+    virtual int readLine(ColorRgba *lineData, int *lineNumber) = 0;
     virtual void close() = 0;
 };
 

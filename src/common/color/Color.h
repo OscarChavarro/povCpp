@@ -1,7 +1,7 @@
 #ifndef __COLOUR_H__
 #define __COLOUR_H__
 
-#include "common/color/RGBAColor.h"
+#include "common/color/ColorRgba.h"
 #include "common/color/RGBAColorPalette.h"
 #include "common/color/RGBAColorPaletteSpan.h"
 
@@ -11,17 +11,17 @@ class Color {
     static inline void
     makeColor(ColorT *c, ScalarT r, ScalarT g, ScalarT b)
     {
-        c->Red = r;
-        c->Green = g;
-        c->Blue = b;
-        c->Alpha = 0;
+        c->setR(r);
+        c->setG(g);
+        c->setB(b);
+        c->setA(0);
     }
 
-    static double colorDistance(RGBAColor *color1, RGBAColor *color2);
+    static double colorDistance(ColorRgba *color1, ColorRgba *color2);
     static void addColor(
-        RGBAColor *result, RGBAColor *color1, RGBAColor *color2);
-    static void scaleColor(RGBAColor *result, RGBAColor *color, double factor);
-    static void clipColor(RGBAColor *result, RGBAColor *color);
+        ColorRgba *result, ColorRgba *color1, ColorRgba *color2);
+    static void scaleColor(ColorRgba *result, ColorRgba *color, double factor);
+    static void clipColor(ColorRgba *result, ColorRgba *color);
     static inline double fabsInline(double x);
 };
 

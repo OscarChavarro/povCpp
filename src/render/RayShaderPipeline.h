@@ -2,14 +2,14 @@
 #define __RAY_SHADER_PIPELINE_H__
 
 class Intersection;
-class RGBAColor;
+class ColorRgba;
 class RayWithSegments;
 class TraceService;
 
 class RayShaderPipeline {
 public:
     static void shadeSurface(Intersection *rayIntersection,
-        RGBAColor *color, RayWithSegments *ray, int shadowRay,
+        ColorRgba *color, RayWithSegments *ray, int shadowRay,
         const TraceService *traceService);
 };
 

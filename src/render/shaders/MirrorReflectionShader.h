@@ -5,13 +5,13 @@
 #include "media/solidTexture/Texture.h"
 
 class RayWithSegments;
-class RGBAColor;
+class ColorRgba;
 class TraceService;
 
 class MirrorReflectionShader {
 public:
     static void shade(Texture *texture, Vector3Dd *intersectionPoint,
-        RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *color,
+        RayWithSegments *ray, Vector3Dd *surfaceNormal, ColorRgba *color,
         const TraceService *traceService, int &traceLevel);
 };
 

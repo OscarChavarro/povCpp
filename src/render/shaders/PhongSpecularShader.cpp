@@ -5,8 +5,8 @@
 
 void
 PhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
-    Vector3Dd eye, Vector3Dd *surfaceNormal, RGBAColor *color,
-    RGBAColor *lightColor, RGBAColor *surfaceColor)
+    Vector3Dd eye, Vector3Dd *surfaceNormal, ColorRgba *color,
+    ColorRgba *lightColor, ColorRgba *surfaceColor)
 {
     double cosAngleOfIncidence;
     double normalLength;
@@ -51,12 +51,12 @@ PhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
     intensity *= texture->objectPhong;
 
     if (texture->metallicFlag) {
-        color->Red += intensity * (surfaceColor->Red);
-        color->Green += intensity * (surfaceColor->Green);
-        color->Blue += intensity * (surfaceColor->Blue);
+        color->setR(color->getR() + intensity * (surfaceColor->getR()));
+        color->setG(color->getG() + intensity * (surfaceColor->getG()));
+        color->setB(color->getB() + intensity * (surfaceColor->getB()));
     } else {
-        color->Red += intensity * (lightColor->Red);
-        color->Green += intensity * (lightColor->Green);
-        color->Blue += intensity * (lightColor->Blue);
+        color->setR(color->getR() + intensity * (lightColor->getR()));
+        color->setG(color->getG() + intensity * (lightColor->getG()));
+        color->setB(color->getB() + intensity * (lightColor->getB()));
     }
 }

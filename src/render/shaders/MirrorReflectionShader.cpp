@@ -9,11 +9,11 @@
 
 void
 MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
-    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *color,
+    RayWithSegments *ray, Vector3Dd *surfaceNormal, ColorRgba *color,
     const TraceService *traceService, int &traceLevel)
 {
     RayWithSegments newRay;
-    RGBAColor tempColor;
+    ColorRgba tempColor;
     Vector3Dd localNormal;
     Vector3Dd normalProjection;
     Vector3Dd surfaceOffset;
@@ -46,8 +46,8 @@ MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        color->Red += tempColor.Red * texture->objectReflection;
-        color->Green += tempColor.Green * texture->objectReflection;
-        color->Blue += tempColor.Blue * texture->objectReflection;
+        color->setR(color->getR() + tempColor.getR() * texture->objectReflection);
+        color->setG(color->getG() + tempColor.getG() * texture->objectReflection);
+        color->setB(color->getB() + tempColor.getB() * texture->objectReflection);
     }
 }

@@ -40,8 +40,8 @@ RenderEngine::rand3dInline(int a, int b)
 
 int superSampleCount;
 
-RGBAColor *previousLine;
-RGBAColor *currentLine;
+ColorRgba *previousLine;
+ColorRgba *currentLine;
 char *previousLineAntialiasedFlags;
 char *currentLineAntialiasedFlags;
 RayWithSegments ray;
@@ -79,7 +79,7 @@ RenderEngine::stopFlag()
 static const TraceService *getTraceService();
 
 static void
-traceServiceTrace(void *context, RayWithSegments *ray, RGBAColor *color)
+traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color)
 {
     (void)context;
     RenderEngine::trace(ray, color);
@@ -87,7 +87,7 @@ traceServiceTrace(void *context, RayWithSegments *ray, RGBAColor *color)
 
 static void
 traceServiceShadeShadow(
-    void *context, Intersection *intersection, RGBAColor *color)
+    void *context, Intersection *intersection, ColorRgba *color)
 {
     (void)context;
     RayShaderPipeline::shadeSurface(
@@ -136,9 +136,9 @@ RenderFrame::createRay(
 
 void
 RenderEngine::supersample(
-    RGBAColor *result, int x, int y, int width, int height)
+    ColorRgba *result, int x, int y, int width, int height)
 {
-    RGBAColor color;
+    ColorRgba color;
     double dx;
     double dy;
     double jitterX;
@@ -342,7 +342,7 @@ RenderEngine::startTracing()
         dumpSceneStructure(stderr);
     }
 
-    RGBAColor color;
+    ColorRgba color;
     int x;
     int y;
     for (y = (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) ? RenderingConfiguration::global().firstLine - 1 : RenderingConfiguration::global().firstLine; y < RenderingConfiguration::global().lastLine;
@@ -451,7 +451,7 @@ RenderFrame::checkStats(int y)
 }
 
 void
-RenderFrame::doAntiAliasing(int x, int y, RGBAColor *color)
+RenderFrame::doAntiAliasing(int x, int y, ColorRgba *color)
 {
     char antialiasCenterFlag = 0;
 
@@ -498,17 +498,17 @@ RenderEngine::initializeRenderer()
     int i;
 
     RenderEngine::primaryRay() = &ray;
-    previousLine = new RGBAColor[(RenderEngine::renderFrame().screenWidth + 1)];
-    currentLine = new RGBAColor[(RenderEngine::renderFrame().screenWidth + 1)];
+    previousLine = new ColorRgba[(RenderEngine::renderFrame().screenWidth + 1)];
+    currentLine = new ColorRgba[(RenderEngine::renderFrame().screenWidth + 1)];
 
     for (i = 0; i <= RenderEngine::renderFrame().screenWidth; i++) {
-        previousLine[i].Red = 0.0;
-        previousLine[i].Green = 0.0;
-        previousLine[i].Blue = 0.0;
+        previousLine[i].setR(0.0);
+        previousLine[i].setG(0.0);
+        previousLine[i].setB(0.0);
 
-        currentLine[i].Red = 0.0;
-        currentLine[i].Green = 0.0;
-        currentLine[i].Blue = 0.0;
+        currentLine[i].setR(0.0);
+        currentLine[i].setG(0.0);
+        currentLine[i].setB(0.0);
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
@@ -527,7 +527,7 @@ RenderEngine::initializeRenderer()
 void
 RenderFrame::outputLine(int y)
 {
-    RGBAColor *tempColorPtr;
+    ColorRgba *tempColorPtr;
     char *tempCharPtr;
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
@@ -564,7 +564,7 @@ RenderFrame::outputLine(int y)
 }
 
 void
-RenderEngine::trace(RayWithSegments *ray, RGBAColor *color)
+RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 {
     SimpleBody *object;
     Intersection *localIntersection;

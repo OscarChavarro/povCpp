@@ -5,13 +5,13 @@
 #include "media/solidTexture/Texture.h"
 
 class RayWithSegments;
-class RGBAColor;
+class ColorRgba;
 
 class LambertShader {
 public:
     static void shade(Texture *texture, RayWithSegments *lightSourceRay,
-        Vector3Dd *surfaceNormal, RGBAColor *color, RGBAColor *lightColor,
-        RGBAColor *surfaceColor, double attenuation);
+        Vector3Dd *surfaceNormal, ColorRgba *color, ColorRgba *lightColor,
+        ColorRgba *surfaceColor, double attenuation);
 };
 
 #endif

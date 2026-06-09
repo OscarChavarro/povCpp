@@ -7,21 +7,21 @@
 class colorTextureFixture {
   public:
     void colorAt(
-        RGBAColor *color, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance);
-    void agate(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void bozo(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void brick(double x, double y, double z, Texture *texture, RGBAColor *color);
+        ColorRgba *color, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance);
+    void agate(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void bozo(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void brick(double x, double y, double z, Texture *texture, ColorRgba *color);
     void checker(
-        double x, double y, double z, Texture *texture, RGBAColor *color, double smallTolerance);
+        double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
     void checkerTexture(
-        double x, double y, double z, Texture *texture, RGBAColor *color, double smallTolerance);
-    void gradient(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void granite(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void marble(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void spotted(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void wood(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void leopard(double x, double y, double z, Texture *texture, RGBAColor *color);
-    void onion(double x, double y, double z, Texture *texture, RGBAColor *color);
+        double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
+    void gradient(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void granite(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void marble(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void spotted(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void wood(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void leopard(double x, double y, double z, Texture *texture, ColorRgba *color);
+    void onion(double x, double y, double z, Texture *texture, ColorRgba *color);
 };
 
 #endif

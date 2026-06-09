@@ -18,13 +18,13 @@ ImageOutputAdapter::open(char *name, int *width, int *height, int bufferSize, in
 }
 
 void
-ImageOutputAdapter::writeLine(RGBAColor *lineData, int lineNumber)
+ImageOutputAdapter::writeLine(ColorRgba *lineData, int lineNumber)
 {
     delegate->writeLine(lineData, lineNumber);
 }
 
 int
-ImageOutputAdapter::readLine(RGBAColor *lineData, int *lineNumber)
+ImageOutputAdapter::readLine(ColorRgba *lineData, int *lineNumber)
 {
     return delegate->readLine(lineData, lineNumber);
 }

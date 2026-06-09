@@ -5,13 +5,13 @@
 
 class Light;
 class RayWithSegments;
-class RGBAColor;
+class ColorRgba;
 
 class LightSamplerShader {
 public:
     static void sample(Light *lightSource, double *lightSourceDepth,
         RayWithSegments *lightSourceRay, Vector3Dd *intersectionPoint,
-        RGBAColor *lightColor);
+        ColorRgba *lightColor);
 };
 
 #endif

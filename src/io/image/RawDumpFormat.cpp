@@ -9,14 +9,14 @@
  *
  *  (each scanline:)
  *     llll                - Line number (16 bits, LSB first)
- *     rr rr rr ...     - Red data for line
- *     gg gg gg ...     - Green data for line
- *     bb bb bb ...     - Blue data for line
+ *     rr rr rr ...     - r data for line
+ *     gg gg gg ...     - g data for line
+ *     bb bb bb ...     - b data for line
  *
  *****************************************************************************/
 
 #include "io/image/RawDumpFormat.h"
-#include "common/color/RGBAColor.h"
+#include "common/color/ColorRgba.h"
 #include "io/binaryIo/FileLocator.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/io/FileOutputStream.h"
@@ -129,25 +129,25 @@ RawDumpFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, in
 }
 
 void
-RawDumpFormat::writeLine(RGBAColor *lineData, int lineNumber)
+RawDumpFormat::writeLine(ColorRgba *lineData, int lineNumber)
 {
     PersistenceElement::writeSignedShortLE(*outputStream, lineNumber);
 
     for (int x = 0; x < width; x++) {
-        outputStream->write((int)floor(lineData[x].Red * 255.0));
+        outputStream->write((int)floor(lineData[x].getR() * 255.0));
     }
     for (int x = 0; x < width; x++) {
-        outputStream->write((int)floor(lineData[x].Green * 255.0));
+        outputStream->write((int)floor(lineData[x].getG() * 255.0));
     }
     for (int x = 0; x < width; x++) {
-        outputStream->write((int)floor(lineData[x].Blue * 255.0));
+        outputStream->write((int)floor(lineData[x].getB() * 255.0));
     }
 
     outputStream->flush();
 }
 
 int
-RawDumpFormat::readLine(RGBAColor *lineData, int *lineNumber)
+RawDumpFormat::readLine(ColorRgba *lineData, int *lineNumber)
 {
     int lo = inputStream->read();
     if (lo == -1) {
@@ -164,21 +164,21 @@ RawDumpFormat::readLine(RGBAColor *lineData, int *lineNumber)
         if (data == -1) {
             return -1;
         }
-        lineData[i].Red = (double)data / 255.0;
+        lineData[i].setR((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
         int data = inputStream->read();
         if (data == -1) {
             return -1;
         }
-        lineData[i].Green = (double)data / 255.0;
+        lineData[i].setG((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
         int data = inputStream->read();
         if (data == -1) {
             return -1;
         }
-        lineData[i].Blue = (double)data / 255.0;
+        lineData[i].setB((double)data / 255.0);
     }
 
     return 1;

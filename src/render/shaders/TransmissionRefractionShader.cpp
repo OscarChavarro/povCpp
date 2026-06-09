@@ -9,11 +9,11 @@
 
 void
 TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
-    RayWithSegments *ray, Vector3Dd *surfaceNormal, RGBAColor *color,
+    RayWithSegments *ray, Vector3Dd *surfaceNormal, ColorRgba *color,
     const TraceService *traceService, double atmosphereIor, int &traceLevel)
 {
     RayWithSegments newRay;
-    RGBAColor tempColor;
+    ColorRgba tempColor;
     Vector3Dd localNormal;
     Vector3Dd rayDirection;
     double normalComponent;
@@ -32,9 +32,9 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         newRay.quadricConstantsCached = false;
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
-        (color->Red) += tempColor.Red;
-        (color->Green) += tempColor.Green;
-        (color->Blue) += tempColor.Blue;
+        color->setR(color->getR() + tempColor.getR());
+        color->setG(color->getG() + tempColor.getG());
+        color->setB(color->getB() + tempColor.getB());
     } else {
         Statistics::global().refractedRaysTraced++;
         normalComponent = ray->direction.dotProduct(*surfaceNormal);
@@ -100,8 +100,8 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        (color->Red) += (tempColor.Red) * (texture->objectRefraction);
-        (color->Green) += (tempColor.Green) * (texture->objectRefraction);
-        (color->Blue) += (tempColor.Blue) * (texture->objectRefraction);
+        color->setR(color->getR() + tempColor.getR() * texture->objectRefraction);
+        color->setG(color->getG() + tempColor.getG() * texture->objectRefraction);
+        color->setB(color->getB() + tempColor.getB() * texture->objectRefraction);
     }
 }

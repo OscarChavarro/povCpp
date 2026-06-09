@@ -14,63 +14,63 @@ Color::Color::fabsInline(double x)
 }
 
 double
-Color::colorDistance(RGBAColor *color1, RGBAColor *color2)
+Color::colorDistance(ColorRgba *color1, ColorRgba *color2)
 {
-    return (Color::fabsInline(color1->Red - color2->Red) +
-            Color::fabsInline(color1->Green - color2->Green) +
-            Color::fabsInline(color1->Blue - color2->Blue));
+    return (Color::fabsInline(color1->getR() - color2->getR()) +
+            Color::fabsInline(color1->getG() - color2->getG()) +
+            Color::fabsInline(color1->getB() - color2->getB()));
 }
 
 void
-Color::addColor(RGBAColor *result, RGBAColor *color1, RGBAColor *color2)
+Color::addColor(ColorRgba *result, ColorRgba *color1, ColorRgba *color2)
 {
-    result->Red = color1->Red + color2->Red;
-    result->Green = color1->Green + color2->Green;
-    result->Blue = color1->Blue + color2->Blue;
-    result->Alpha = color1->Alpha + color2->Alpha;
+    result->setR(color1->getR() + color2->getR());
+    result->setG(color1->getG() + color2->getG());
+    result->setB(color1->getB() + color2->getB());
+    result->setA(color1->getA() + color2->getA());
 }
 
 void
-Color::scaleColor(RGBAColor *result, RGBAColor *color, double factor)
+Color::scaleColor(ColorRgba *result, ColorRgba *color, double factor)
 {
-    result->Red = color->Red * factor;
-    result->Green = color->Green * factor;
-    result->Blue = color->Blue * factor;
-    result->Alpha = color->Alpha * factor;
+    result->setR(color->getR() * factor);
+    result->setG(color->getG() * factor);
+    result->setB(color->getB() * factor);
+    result->setA(color->getA() * factor);
 }
 
 void
-Color::clipColor(RGBAColor *result, RGBAColor *color)
+Color::clipColor(ColorRgba *result, ColorRgba *color)
 {
-    if (color->Red > 1.0) {
-        result->Red = 1.0;
-    } else if (color->Red < 0.0) {
-        result->Red = 0.0;
+    if (color->getR() > 1.0) {
+        result->setR(1.0);
+    } else if (color->getR() < 0.0) {
+        result->setR(0.0);
     } else {
-        result->Red = color->Red;
+        result->setR(color->getR());
     }
 
-    if (color->Green > 1.0) {
-        result->Green = 1.0;
-    } else if (color->Green < 0.0) {
-        result->Green = 0.0;
+    if (color->getG() > 1.0) {
+        result->setG(1.0);
+    } else if (color->getG() < 0.0) {
+        result->setG(0.0);
     } else {
-        result->Green = color->Green;
+        result->setG(color->getG());
     }
 
-    if (color->Blue > 1.0) {
-        result->Blue = 1.0;
-    } else if (color->Blue < 0.0) {
-        result->Blue = 0.0;
+    if (color->getB() > 1.0) {
+        result->setB(1.0);
+    } else if (color->getB() < 0.0) {
+        result->setB(0.0);
     } else {
-        result->Blue = color->Blue;
+        result->setB(color->getB());
     }
 
-    if (color->Alpha > 1.0) {
-        result->Alpha = 1.0;
-    } else if (color->Alpha < 0.0) {
-        result->Alpha = 0.0;
+    if (color->getA() > 1.0) {
+        result->setA(1.0);
+    } else if (color->getA() < 0.0) {
+        result->setA(0.0);
     } else {
-        result->Alpha = color->Alpha;
+        result->setA(color->getA());
     }
 }

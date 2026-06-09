@@ -172,14 +172,14 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
 }
 
 void
-PrimitiveParser::parseColor(RGBAColor *givenColor)
+PrimitiveParser::parseColor(ColorRgba *givenColor)
 {
     ParserContext ctx;
     PrimitiveParser::parseColor(givenColor, ctx);
 }
 
 void
-PrimitiveParser::parseColor(RGBAColor *givenColor, ParserContext &ctx)
+PrimitiveParser::parseColor(ColorRgba *givenColor, ParserContext &ctx)
 {
     int constantId;
     Color::makeColor(givenColor, 0.0, 0.0, 0.0);
@@ -193,7 +193,7 @@ PrimitiveParser::parseColor(RGBAColor *givenColor, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::COLOUR_CONSTANT) {
-                        *givenColor = *((RGBAColor *)ctx.constants()[(int)constantId]
+                        *givenColor = *((ColorRgba *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -204,19 +204,19 @@ PrimitiveParser::parseColor(RGBAColor *givenColor, ParserContext &ctx)
                 break;
 
             case Tokenizer::RED_TOKEN:
-                (givenColor->Red) = PrimitiveParser::parseFloat(ctx);
+                givenColor->setR(PrimitiveParser::parseFloat(ctx));
                 break;
 
             case Tokenizer::GREEN_TOKEN:
-                (givenColor->Green) = PrimitiveParser::parseFloat(ctx);
+                givenColor->setG(PrimitiveParser::parseFloat(ctx));
                 break;
 
             case Tokenizer::BLUE_TOKEN:
-                (givenColor->Blue) = PrimitiveParser::parseFloat(ctx);
+                givenColor->setB(PrimitiveParser::parseFloat(ctx));
                 break;
 
             case Tokenizer::ALPHA_TOKEN:
-                (givenColor->Alpha) = PrimitiveParser::parseFloat(ctx);
+                givenColor->setA(PrimitiveParser::parseFloat(ctx));
                 break;
 
             default:

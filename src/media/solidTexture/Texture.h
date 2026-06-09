@@ -44,8 +44,8 @@ class Texture {
     int bumpNumber;
     Matrix4x4d *textureTransformation;
     Matrix4x4d *textureTransformationInverse;
-    RGBAColor *color1;
-    RGBAColor *color2;
+    ColorRgba *color1;
+    ColorRgba *color2;
     double turbulence;
     Vector3Dd textureGradient;
     RGBAColorPalette *colorMap;

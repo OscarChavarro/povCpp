@@ -2,15 +2,14 @@
 #include "common/color/Color.h"
 
 void
-AmbientLightShader::shade(Texture *texture, RGBAColor *surfaceColor,
-    RGBAColor *color, double attenuation)
+AmbientLightShader::shade(Texture *texture, ColorRgba *surfaceColor,
+    ColorRgba *color, double attenuation)
 {
     if (texture->objectAmbient == 0.0) {
         return;
     }
 
-    color->Red += surfaceColor->Red * texture->objectAmbient * attenuation;
-    color->Green +=
-        surfaceColor->Green * texture->objectAmbient * attenuation;
-    color->Blue += surfaceColor->Blue * texture->objectAmbient * attenuation;
+    color->setR(color->getR() + surfaceColor->getR() * texture->objectAmbient * attenuation);
+    color->setG(color->getG() + surfaceColor->getG() * texture->objectAmbient * attenuation);
+    color->setB(color->getB() + surfaceColor->getB() * texture->objectAmbient * attenuation);
 }
