@@ -170,16 +170,16 @@ Tokenizer::terminateTokenizer()
     int i;
 
     if (Tokenizer::sSymbolTable != nullptr) {
-        for (i = 1; i < Tokenizer::sNumberOfSymbols; i++) {
-            delete Tokenizer::sSymbolTable[i];
+        for (i = 1; i <= Tokenizer::sNumberOfSymbols; i++) {
+            delete[] Tokenizer::sSymbolTable[i];
         }
 
-        delete Tokenizer::sSymbolTable;
+        delete[] Tokenizer::sSymbolTable;
     }
 
     if (Tokenizer::sGlobalDataFile != nullptr) {
         fclose(Tokenizer::sGlobalDataFile->File);
-        delete Tokenizer::sGlobalDataFile->Filename;
+        delete[] Tokenizer::sGlobalDataFile->Filename;
     }
 }
 
@@ -225,8 +225,9 @@ Tokenizer::getToken()
                 return;
             }
 
-            fclose(Tokenizer::sGlobalDataFile
-                    ->File); /* added to fix open file buildup JLN 12/91 */
+            fclose(Tokenizer::sGlobalDataFile->File);
+            delete[] Tokenizer::sGlobalDataFile->Filename;
+            Tokenizer::sGlobalDataFile->Filename = nullptr;
 
             Tokenizer::sGlobalDataFile = &Tokenizer::sGlobalIncludeFiles[--Tokenizer::sGlobalIncludeFileIndex];
             continue;
