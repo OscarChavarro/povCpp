@@ -1,6 +1,6 @@
 #include "media/IndexedImage.h"
 
-IndexedImage::IndexedImage() : xSize(0), ySize(0), data(nullptr), colourMapSize(0), colorMap(nullptr) {
+IndexedImage::IndexedImage() : xSize(0), ySize(0), data(nullptr), colorMapSize(0), colorMap(nullptr) {
 }
 
 IndexedImage::~IndexedImage() {
@@ -28,13 +28,13 @@ IndexedImage::setYSize(int h) {
 }
 
 int
-IndexedImage::getColourMapSize() const {
-    return colourMapSize;
+IndexedImage::getColorMapSize() const {
+    return colorMapSize;
 }
 
 void
-IndexedImage::setColourMapSize(int n) {
-    colourMapSize = n;
+IndexedImage::setColorMapSize(int n) {
+    colorMapSize = n;
 }
 
 RGBAPixelHDR *

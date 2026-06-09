@@ -7,8 +7,8 @@ class RGBAColorPaletteSpan {
   public:
     double start;
     double end;
-    RGBAColor startColour;
-    RGBAColor endColour;
+    RGBAColor startColor;
+    RGBAColor endColor;
 };
 
 #endif

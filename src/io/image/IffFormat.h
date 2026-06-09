@@ -19,8 +19,8 @@ class IffFormat {
     static IndexedImage *readIffImage(RGBAImageHDRUncompressed *directOut, char *filename);
 
   private:
-    static RGBAPixelHDR *sIffColourMap;
-    static int sColourMapSize;
+    static RGBAPixelHDR *sIffColorMap;
+    static int sColorMapSize;
     static ChunkHeader sGlobalChunkHeader;
 };
 

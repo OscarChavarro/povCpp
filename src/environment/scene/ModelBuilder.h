@@ -36,7 +36,7 @@ class ModelBuilder {
     static CSG *getCsgUnion();
     static CSG *getCsgIntersection();
     static Camera *getCamera();
-    static RGBAColor *getColour();
+    static RGBAColor *getColor();
     static Vector3Dd *getVector();
     static double *getFloat();
     static ParametricBiCubicPatch *getBicubicPatchShape();

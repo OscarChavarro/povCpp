@@ -22,12 +22,12 @@
 
 void
 RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
-    RGBAColor *colour, RayWithSegments *ray, int shadowRay,
+    RGBAColor *color, RayWithSegments *ray, int shadowRay,
     const TraceService *traceService)
 {
-    RGBAColor surfaceColour;
-    RGBAColor refractedColour;
-    RGBAColor filterColour;
+    RGBAColor surfaceColor;
+    RGBAColor refractedColor;
+    RGBAColor filterColor;
     Texture *tempTexture;
     Texture *texture;
     Vector3Dd surfaceNormal;
@@ -35,14 +35,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     int surface;
 
     if (!shadowRay) {
-        Color::makeColor(colour, 0.0, 0.0, 0.0);
+        Color::makeColor(color, 0.0, 0.0, 0.0);
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-        if (rayIntersection->Shape->Shape_Colour) {
+        if (rayIntersection->Shape->shapeColor) {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour %f %f %f ", rayIntersection->Depth, rayIntersection->Shape->Type,                 rayIntersection->Shape->Shape_Colour->Red,                 rayIntersection->Shape->Shape_Colour->Green,                 rayIntersection->Shape->Shape_Colour->Blue);
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour %f %f %f ", rayIntersection->Depth, rayIntersection->Shape->Type,                 rayIntersection->Shape->shapeColor->Red,                 rayIntersection->Shape->shapeColor->Green,                 rayIntersection->Shape->shapeColor->Blue);
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         } else {
@@ -54,10 +54,10 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
     }
 
-    Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
+    Color::makeColor(&surfaceColor, 0.0, 0.0, 0.0);
 
     mapTextureFixture mapFixture;
-    colorTextureFixture colourFixture;
+    colorTextureFixture colorFixture;
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
@@ -78,35 +78,35 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         return;
     }
 
-    Color::makeColor(&filterColour, 1.0, 1.0, 1.0);
-    filterColour.Alpha = 1.0;
+    Color::makeColor(&filterColor, 1.0, 1.0, 1.0);
+    filterColor.Alpha = 1.0;
 
     /* Now, we perform the lighting calculations. */
     surface = 0;
     for (long int _layerIdx = -1;
-        _layerIdx < texture->layers.size() && filterColour.Alpha > 0.01;
+        _layerIdx < texture->layers.size() && filterColor.Alpha > 0.01;
         _layerIdx++) {
         tempTexture = (_layerIdx < 0) ? texture : texture->layers[_layerIdx];
         surface++;
 
-        Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
+        Color::makeColor(&surfaceColor, 0.0, 0.0, 0.0);
         if (RenderingConfiguration::global().quality <= 5) {
-            if (rayIntersection->Shape->Shape_Colour != nullptr) {
-                surfaceColour = *rayIntersection->Shape->Shape_Colour;
-            } else if (rayIntersection->Object->objectColour != nullptr) {
-                surfaceColour = *rayIntersection->Object->objectColour;
+            if (rayIntersection->Shape->shapeColor != nullptr) {
+                surfaceColor = *rayIntersection->Shape->shapeColor;
+            } else if (rayIntersection->Object->objectColor != nullptr) {
+                surfaceColor = *rayIntersection->Object->objectColor;
             } else {
-                Color::makeColor(&surfaceColour, 0.5, 0.5, 0.5);
+                Color::makeColor(&surfaceColor, 0.5, 0.5, 0.5);
             }
         } else {
-            colourFixture.colorAt(
-                &surfaceColour, tempTexture, &rayIntersection->Point, GeometryConstants::Small_Tolerance);
+            colorFixture.colorAt(
+                &surfaceColor, tempTexture, &rayIntersection->Point, GeometryConstants::Small_Tolerance);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
-                &surfaceColour, &filterColour, colour, traceService,
+                &surfaceColor, &filterColor, color, traceService,
                 RenderEngine::renderFrame().Light_Sources,
                 RenderEngine::renderFrame().Objects, RenderEngine::traceLevel());
         }
@@ -119,48 +119,48 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             }
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,                 surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);
+                snprintf(_logMsg, sizeof(_logMsg), "    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColor.Red,                 surfaceColor.Green, surfaceColor.Blue, surfaceColor.Alpha);
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "                    "Colour: %6.4f %6.4f %6.4f %6.4f  \n", filterColour.Red, filterColour.Green, filterColour.Blue,                 filterColour.Alpha, colour->Red, colour->Green, colour->Blue,                 colour->Alpha);
+                snprintf(_logMsg, sizeof(_logMsg), "    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "                    "Colour: %6.4f %6.4f %6.4f %6.4f  \n", filterColor.Red, filterColor.Green, filterColor.Blue,                 filterColor.Alpha, color->Red, color->Green, color->Blue,                 color->Alpha);
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         }
 
-        filterColour.Red *= surfaceColour.Red;
-        filterColour.Green *= surfaceColour.Green;
-        filterColour.Blue *= surfaceColour.Blue;
+        filterColor.Red *= surfaceColor.Red;
+        filterColor.Green *= surfaceColor.Green;
+        filterColor.Blue *= surfaceColor.Blue;
 
-        filterColour.Alpha *= surfaceColour.Alpha;
+        filterColor.Alpha *= surfaceColor.Alpha;
     }
 
-    /* For shadow rays, we have the filter colour now - time to return */
+    /* For shadow rays, we have the filter color now - time to return */
     if (shadowRay) {
 
-        if (filterColour.Alpha < 0.01) {
-            Color::makeColor(colour, 0.0, 0.0, 0.0);
+        if (filterColor.Alpha < 0.01) {
+            Color::makeColor(color, 0.0, 0.0, 0.0);
             return;
         }
 
         if (texture->objectRefraction > 0.0) {
-            colour->Red *= filterColour.Red * texture->objectRefraction *
-                           filterColour.Alpha;
-            colour->Green *= filterColour.Green * texture->objectRefraction *
-                             filterColour.Alpha;
-            colour->Blue *= filterColour.Blue * texture->objectRefraction *
-                            filterColour.Alpha;
+            color->Red *= filterColor.Red * texture->objectRefraction *
+                           filterColor.Alpha;
+            color->Green *= filterColor.Green * texture->objectRefraction *
+                             filterColor.Alpha;
+            color->Blue *= filterColor.Blue * texture->objectRefraction *
+                            filterColor.Alpha;
         } else {
-            colour->Red *= filterColour.Red * filterColour.Alpha;
-            colour->Green *= filterColour.Green * filterColour.Alpha;
-            colour->Blue *= filterColour.Blue * filterColour.Alpha;
+            color->Red *= filterColor.Red * filterColor.Alpha;
+            color->Green *= filterColor.Green * filterColor.Alpha;
+            color->Blue *= filterColor.Blue * filterColor.Alpha;
         }
         return;
     }
 
-    if ((filterColour.Alpha > 0.01) && (RenderingConfiguration::global().quality > 5)) {
-        Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
+    if ((filterColor.Alpha > 0.01) && (RenderingConfiguration::global().quality > 5)) {
+        Color::makeColor(&refractedColor, 0.0, 0.0, 0.0);
 
         if (texture->objectRefraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
@@ -178,41 +178,41 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             }
 
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, &surfaceNormal,
-                &refractedColour, traceService,
+                &refractedColor, traceService,
                 RenderEngine::renderFrame().atmosphereIor,
                 RenderEngine::traceLevel());
         } else {
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, nullptr,
-                &refractedColour, traceService,
+                &refractedColor, traceService,
                 RenderEngine::renderFrame().atmosphereIor,
                 RenderEngine::traceLevel());
         }
 
-        colour->Red +=
-            filterColour.Red * refractedColour.Red * filterColour.Alpha;
-        colour->Green +=
-            filterColour.Green * refractedColour.Green * filterColour.Alpha;
-        colour->Blue +=
-            filterColour.Blue * refractedColour.Blue * filterColour.Alpha;
+        color->Red +=
+            filterColor.Red * refractedColor.Red * filterColor.Alpha;
+        color->Green +=
+            filterColor.Green * refractedColor.Green * filterColor.Alpha;
+        color->Blue +=
+            filterColor.Blue * refractedColor.Blue * filterColor.Alpha;
 
         if (texture->objectRefraction > 0.0 &&
             texture->objectTransmit > 0.0) {
-            Color::makeColor(&refractedColour, 0.0, 0.0, 0.0);
+            Color::makeColor(&refractedColor, 0.0, 0.0, 0.0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->Point, ray, nullptr,
-                &refractedColour, traceService,
+                &refractedColor, traceService,
                 RenderEngine::renderFrame().atmosphereIor,
                 RenderEngine::traceLevel());
-            colour->Red +=
-                filterColour.Red * refractedColour.Red * filterColour.Alpha;
-            colour->Green +=
-                filterColour.Green * refractedColour.Green * filterColour.Alpha;
-            colour->Blue +=
-                filterColour.Blue * refractedColour.Blue * filterColour.Alpha;
+            color->Red +=
+                filterColor.Red * refractedColor.Red * filterColor.Alpha;
+            color->Green +=
+                filterColor.Green * refractedColor.Green * filterColor.Alpha;
+            color->Blue +=
+                filterColor.Blue * refractedColor.Blue * filterColor.Alpha;
         }
     }
 
     if (RenderEngine::renderFrame().fogDistance != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->Depth, &RenderEngine::renderFrame().fogColour,
-            RenderEngine::renderFrame().fogDistance, colour);
+        ExponentialFogShader::shade(rayIntersection->Depth, &RenderEngine::renderFrame().fogColor,
+            RenderEngine::renderFrame().fogDistance, color);
     }
 }

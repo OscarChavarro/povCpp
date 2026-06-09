@@ -37,11 +37,11 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getLightSourceShape();
                 PrimitiveParser::parseVector(&(localShape->Center), ctx);
-                localShape->Shape_Colour = ModelBuilder::getColour();
-                Color::makeColor(localShape->Shape_Colour, 1.0, 1.0, 1.0);
-                localShape->Shape_Colour->Alpha = 0.0;
+                localShape->shapeColor = ModelBuilder::getColor();
+                Color::makeColor(localShape->shapeColor, 1.0, 1.0, 1.0);
+                localShape->shapeColor->Alpha = 0.0;
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
+                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 Exit_Flag = true;
                 break;
 
@@ -111,7 +111,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
+                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 
             case Tokenizer::FALLOFF_TOKEN:

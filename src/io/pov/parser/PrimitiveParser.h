@@ -14,8 +14,8 @@ class PrimitiveParser {
     static void parseVector(Vector3Dd *givenVector, ParserContext &ctx);
     static void parseCoeffs(int order, double *givenCoeffs);
     static void parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx);
-    static void parseColour(RGBAColor *givenColour);
-    static void parseColour(RGBAColor *givenColour, ParserContext &ctx);
+    static void parseColor(RGBAColor *givenColor);
+    static void parseColor(RGBAColor *givenColor, ParserContext &ctx);
 };
 
 #endif

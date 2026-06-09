@@ -25,7 +25,7 @@ FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::COLOUR_TOKEN:
-                PrimitiveParser::parseColour(&framePtr->fogColour, ctx);
+                PrimitiveParser::parseColor(&framePtr->fogColor, ctx);
                 break;
 
             case Tokenizer::FLOAT_TOKEN:

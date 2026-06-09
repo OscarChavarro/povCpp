@@ -18,7 +18,7 @@ class RenderFrame {
     double atmosphereIor;
     double antialiasThreshold;
     double fogDistance;
-    RGBAColor fogColour;
+    RGBAColor fogColor;
 
   private:
     static void createRay(

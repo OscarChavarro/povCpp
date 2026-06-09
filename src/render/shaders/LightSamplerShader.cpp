@@ -12,11 +12,11 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
     double attenuation = 1.0;
 
     /* Get the light source color. */
-    if ( lightSource->Shape_Colour == 0 ) {
+    if ( lightSource->shapeColor == 0 ) {
         Color::makeColor(lightColor, 1.0, 1.0, 1.0);
     }
     else {
-        *lightColor = *lightSource->Shape_Colour;
+        *lightColor = *lightSource->shapeColor;
     }
 
     lightSourceRay->position = *intersectionPoint;

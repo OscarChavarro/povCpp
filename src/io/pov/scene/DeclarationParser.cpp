@@ -232,9 +232,9 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
             case Tokenizer::COLOUR_TOKEN:
                 constantPtr->identifierNumber = ctx.token().identifierNumber;
-                constantPtr->constantData = (char *)ModelBuilder::getColour();
+                constantPtr->constantData = (char *)ModelBuilder::getColor();
                 constantPtr->constantType = ParseGlobals::COLOUR_CONSTANT;
-                PrimitiveParser::parseColour(
+                PrimitiveParser::parseColor(
                     (RGBAColor *)constantPtr->constantData, ctx);
                 Exit_Flag = true;
                 break;

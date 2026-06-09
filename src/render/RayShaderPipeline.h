@@ -9,7 +9,7 @@ class TraceService;
 class RayShaderPipeline {
 public:
     static void shadeSurface(Intersection *rayIntersection,
-        RGBAColor *colour, RayWithSegments *ray, int shadowRay,
+        RGBAColor *color, RayWithSegments *ray, int shadowRay,
         const TraceService *traceService);
 };
 

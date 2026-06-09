@@ -13,7 +13,7 @@ class Geometry {
     int Type;
     Geometry *nextObject;
     Texture *Shape_Texture;
-    RGBAColor *Shape_Colour;
+    RGBAColor *shapeColor;
 };
 
 #endif
