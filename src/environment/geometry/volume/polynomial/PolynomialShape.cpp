@@ -10,7 +10,7 @@
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "common/PolynomialTermCounts.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -216,9 +216,7 @@ PolynomialShape::intersect(
         as (x,y,z) + (xx,yy,zz)*t.  */
     a = new double[termCountsInstance[order]];
     if (a == nullptr) {
-        Logger::info("Cannot allocate memory for coefficients in poly "
-               "PolynomialShape::intersect()\n");
-        exit(1);
+        Logger::reportMessage("PolynomialShape", Logger::FATAL_ERROR, "", "Cannot allocate memory for coefficients in poly "                "PolynomialShape::intersect()\n");
     }
     for (i = 0; i < termCountsInstance[order]; i++) {
         a[i] = coeffs[i];
@@ -413,9 +411,7 @@ PolynomialShape::transform(int order, double *coeffs, Matrix4x4d *q)
 
     b = new double[termCountsInstance[order]];
     if (b == nullptr) {
-        Logger::info("Cannot allocate memory for b in poly "
-               "PolynomialShape::transform()\n");
-        exit(1);
+        Logger::reportMessage("PolynomialShape", Logger::FATAL_ERROR, "", "Cannot allocate memory for b in poly "                "PolynomialShape::transform()\n");
     }
     for (i = 0; i < termCountsInstance[order]; i++) {
         b[i] = 0.0;

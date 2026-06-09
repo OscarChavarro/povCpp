@@ -1,7 +1,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "common/PolynomialTermCounts.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
@@ -63,7 +63,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 if (localShape == nullptr) {
-                    Logger::info("Need the order of the Poly");
+                    Logger::reportMessage("PolyParser", Logger::WARNING, "", "Need the order of the Poly");
                 }
                 PrimitiveParser::parseCoeffs(
                     localShape->Order, &(localShape->Coeffs[0]));

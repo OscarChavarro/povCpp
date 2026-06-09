@@ -13,7 +13,6 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     double x;
     double y;
     double z;
-    const int debugEnabled = (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING);
 
     if (texture->bumpNumber == Texture::NO_BUMPS) {
         *newNormal = *surfaceNormal;
@@ -34,41 +33,41 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     switch (texture->bumpNumber) {
 
     case Texture::WAVES:
-        BumpTextureFixture::waves(x, y, z, texture, newNormal, debugEnabled);
+        BumpTextureFixture::waves(x, y, z, texture, newNormal);
         break;
 
     case Texture::RIPPLES:
-        BumpTextureFixture::ripples(x, y, z, texture, newNormal, debugEnabled);
+        BumpTextureFixture::ripples(x, y, z, texture, newNormal);
         break;
 
     case Texture::WRINKLES:
         BumpTextureFixture::wrinkles(
-            x, y, z, texture, newNormal, debugEnabled);
+            x, y, z, texture, newNormal);
         break;
 
     case Texture::BUMPS:
-        BumpTextureFixture::bumps(x, y, z, texture, newNormal, debugEnabled);
+        BumpTextureFixture::bumps(x, y, z, texture, newNormal);
         break;
 
     case Texture::DENTS:
-        BumpTextureFixture::dents(x, y, z, texture, newNormal, debugEnabled);
+        BumpTextureFixture::dents(x, y, z, texture, newNormal);
         break;
 
     case Texture::BUMPY1:
-        TextureFixture::bumpy1(x, y, z, texture, newNormal, debugEnabled);
+        TextureFixture::bumpy1(x, y, z, texture, newNormal);
         break;
 
     case Texture::BUMPY2:
-        TextureFixture::bumpy2(x, y, z, texture, newNormal, debugEnabled);
+        TextureFixture::bumpy2(x, y, z, texture, newNormal);
         break;
 
     case Texture::BUMPY3:
-        TextureFixture::bumpy3(x, y, z, texture, newNormal, debugEnabled);
+        TextureFixture::bumpy3(x, y, z, texture, newNormal);
         break;
 
     case Texture::BUMPMAP:
         MapTextureFixture::bumpMap(
-            x, y, z, texture, newNormal, debugEnabled, GeometryConstants::Small_Tolerance);
+            x, y, z, texture, newNormal, GeometryConstants::Small_Tolerance);
         break;
     }
 }

@@ -21,7 +21,7 @@ References:
 
 #include "media/solidTexture/Texture.h"
 #include "common/Statistics.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
@@ -179,7 +179,11 @@ TextureUtils::computeColour(
     colour->Green = 0.0;
     colour->Blue = 0.0;
     colour->Alpha = 0.0;
-    Logger::info("No colour for value: %g\n", value);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "No colour for value: %g\n", value);
+        Logger::reportMessage("Texture", Logger::WARNING, "", _logMsg);
+    }
 }
 
 void
@@ -191,8 +195,7 @@ TextureUtils::initializeNoise()
     TextureUtils::InitRTable();
 
     if ((TextureUtils::sinTable() = new double[Texture::SINTABSIZE]) == nullptr) {
-        Logger::info("Cannot allocate memory for sine table\n");
-        exit(1);
+        Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Cannot allocate memory for sine table\n");
     }
 
     for (i = 0; i < Texture::SINTABSIZE; i++) {
@@ -218,8 +221,7 @@ TextureUtils::InitTextureTable()
 
     TextureUtils::hashTable() = new short int[4096];
     if (TextureUtils::hashTable() == nullptr) {
-        Logger::info("Cannot allocate memory for hash table\n");
-        exit(1);
+        Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Cannot allocate memory for hash table\n");
     }
     for (i = 0; i < 4096; i++) {
         TextureUtils::hashTable()[i] = i;
@@ -244,8 +246,7 @@ TextureUtils::InitRTable()
 
     TextureUtils::rTable() = new double[Texture::MAXSIZE];
     if (TextureUtils::rTable() == nullptr) {
-        Logger::info("Cannot allocate memory for TextureUtils::rTable()\n");
-        exit(1);
+        Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Cannot allocate memory for TextureUtils::rTable()\n");
     }
 
     for (i = 0; i < Texture::MAXSIZE; i++) {
@@ -615,18 +616,14 @@ TextureUtils::copyTexture(Texture *texture)
         if (newTexture->Colour_Map != nullptr) {
             RGBAColorPalette *newMap = new RGBAColorPalette();
             if (newMap == nullptr) {
-                Logger::error(
-                    "Out of memory. Cannot allocate colour map\n");
-                exit(1);
+                Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map\n");
             }
             newMap->numberOfEntries = localTexture->Colour_Map->numberOfEntries;
             newMap->transparencyFlag = localTexture->Colour_Map->transparencyFlag;
             newMap->Colour_Map_Entries =
                 new RGBAColorPaletteSpan[localTexture->Colour_Map->numberOfEntries];
             if (newMap->Colour_Map_Entries == nullptr) {
-                Logger::error(
-                    "Out of memory. Cannot allocate colour map entries\n");
-                exit(1);
+                Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map entries\n");
             }
             for (int i = 0; i < localTexture->Colour_Map->numberOfEntries; i++) {
                 newMap->Colour_Map_Entries[i] =
@@ -647,8 +644,7 @@ TextureUtils::getTexture()
 
     newTexture = new Texture;
     if (newTexture == nullptr) {
-        Logger::error("Out of memory. Cannot allocate object");
-        exit(1);
+        Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
     newTexture->Next_Texture = nullptr;

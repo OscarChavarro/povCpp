@@ -14,7 +14,8 @@
 
 #include "render/RenderEngine.h"
 #include "render/SceneDump.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include "common/color/Color.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "render/RenderOutput.h"
@@ -325,13 +326,12 @@ RenderEngine::readRenderedPart()
                 &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                 RenderingConfiguration::global().fileBufferSize, RenderOutput::APPEND_MODE,
                 RenderingConfiguration::global().firstLine) != 1) {
-            Logger::error("Error opening output file\n");
-            exit(1);
+            Logger::reportMessage("RenderEngine", Logger::FATAL_ERROR, "", "Error opening output file\n");
         }
         return;
     }
 
-    Logger::error("Error reading aborted data file\n");
+    Logger::reportMessage("RenderEngine", Logger::ERROR, "", "Error reading aborted data file\n");
 }
 
 void
@@ -395,17 +395,27 @@ RenderFrame::checkStats(int y)
 {
     /* New verbose options CdW */
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '0') {
-        Logger::info("POV-Ray rendering %s to %s", RenderingConfiguration::global().inputFileName, RenderingConfiguration::global().outputFileName);
-        if ((RenderingConfiguration::global().firstLine != 0) || (RenderingConfiguration::global().lastLine != RenderEngine::renderFrame().screenHeight)) {
-            Logger::info(" from %4d to %4d:\n", RenderingConfiguration::global().firstLine, RenderingConfiguration::global().lastLine);
-        } else {
-            Logger::info(":\n");
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "POV-Ray rendering %s to %s", RenderingConfiguration::global().inputFileName, RenderingConfiguration::global().outputFileName);
+            Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
-        Logger::info("Res %4d X %4d. Calc line %4d of %4d", RenderEngine::renderFrame().screenWidth,
-            RenderEngine::renderFrame().screenHeight, (y - RenderingConfiguration::global().firstLine) + 1,
-            RenderingConfiguration::global().lastLine - RenderingConfiguration::global().firstLine);
+        if ((RenderingConfiguration::global().firstLine != 0) || (RenderingConfiguration::global().lastLine != RenderEngine::renderFrame().screenHeight)) {
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), " from %4d to %4d:\n", RenderingConfiguration::global().firstLine, RenderingConfiguration::global().lastLine);
+                Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
+            }
+        } else {
+            Logger::reportMessage("RenderEngine", Logger::WARNING, "", ":\n");
+        }
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Res %4d X %4d. Calc line %4d of %4d", RenderEngine::renderFrame().screenWidth,             RenderEngine::renderFrame().screenHeight, (y - RenderingConfiguration::global().firstLine) + 1,             RenderingConfiguration::global().lastLine - RenderingConfiguration::global().firstLine);
+            Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
+        }
         if (!(RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS)) {
-            Logger::info(".");
+            Logger::reportMessage("RenderEngine", Logger::WARNING, "", ".");
         }
     }
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
@@ -420,7 +430,11 @@ RenderFrame::checkStats(int y)
 
     /* Use -vO for Old style verbose */
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && (RenderingConfiguration::global().verboseFormat == 'O')) {
-        Logger::info("Line %4d", y);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Line %4d", y);
+            Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
+        }
     }
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
@@ -524,7 +538,11 @@ RenderFrame::outputLine(int y)
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) {
         if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS && RenderingConfiguration::global().verboseFormat != '1') {
-            Logger::info(" supersampled %d times.", superSampleCount);
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), " supersampled %d times.", superSampleCount);
+                Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
+            }
         }
 
         if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS && RenderingConfiguration::global().verboseFormat == '1') {
@@ -570,7 +588,11 @@ RenderEngine::trace(RayWithSegments *ray, RGBAColor *colour)
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-        Logger::info("Calculating intersections level %d\n", RenderEngine::traceLevel());
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Calculating intersections level %d\n", RenderEngine::traceLevel());
+            Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
+        }
     }
 
     /* What objects does this ray intersect? */

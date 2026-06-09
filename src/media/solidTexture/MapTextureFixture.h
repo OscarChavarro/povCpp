@@ -11,14 +11,12 @@ class MapTextureFixture {
         TextureImage *image, double *xcoor, double *ycoor,
         double smallTolerance);
     static void imageMap(
-        double x, double y, double z, Texture *texture, RGBAColor *colour,
-        int debugEnabled, double smallTolerance);
+        double x, double y, double z, Texture *texture, RGBAColor *colour, double smallTolerance);
     static Texture *materialMap(
-        Vector3Dd *intersectionPoint, Texture *texture, int debugEnabled,
+        Vector3Dd *intersectionPoint, Texture *texture,
         double smallTolerance);
     static void bumpMap(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal,
-        int debugEnabled, double smallTolerance);
+        double x, double y, double z, Texture *texture, Vector3Dd *normal, double smallTolerance);
 
   private:
     static int cylindricalImageMap(

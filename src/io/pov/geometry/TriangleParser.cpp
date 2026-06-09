@@ -45,9 +45,11 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 PrimitiveParser::parseVector(&localShape->P2, ctx);
                 PrimitiveParser::parseVector(&localShape->P3, ctx);
                 if (!Triangle::computeTriangle(localShape)) {
-                    Logger::error(
-                        "Degenerate triangle on line %d.  Please remove.\n",
-                        ctx.token().tokenLineNo);
+                    {
+                        char _logMsg[1024];
+                        snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().tokenLineNo);
+                        Logger::reportMessage("TriangleParser", Logger::ERROR, "", _logMsg);
+                    }
                     ctx.degenerateTriangles() = true;
                 }
                 Exit_Flag = true;

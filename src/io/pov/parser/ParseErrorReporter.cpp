@@ -1,7 +1,8 @@
 #include <cstdlib>
 
 #include "io/pov/context/ParserContext.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include "environment/material/RendererConfiguration.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 
@@ -11,7 +12,11 @@ ParseErrorReporter::reportLocation(ParserContext &ctx)
     const char *file = (ctx.token().Filename != nullptr) ? ctx.token().Filename : "<unknown>";
     const int line = ctx.token().tokenLineNo + 1;
     const int column = (ctx.token().tokenColumnNo > 0) ? ctx.token().tokenColumnNo : 1;
-    Logger::error("Error at %s:%d:%d\n", file, line, column);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "Error at %s:%d:%d\n", file, line, column);
+        Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
+    }
 }
 
 void
@@ -59,7 +64,11 @@ ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
     reportLocation(ctx);
     expected = ParseErrorReporter::getTokenString(tokenId, ctx);
     found = ParseErrorReporter::getTokenString(ctx.token().tokenId, ctx);
-    Logger::error( "%s expected but %s found instead\n", expected, found);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "%s expected but %s found instead\n", expected, found);
+        Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
+    }
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         writeVerboseStatLine(statFile, ctx);
@@ -107,7 +116,11 @@ ParseErrorReporter::reportUndeclared(ParserContext &ctx)
 {
     FILE *statFile;
     reportLocation(ctx);
-    Logger::error( "Undeclared identifier %s\n", ctx.token().Token_String);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "Undeclared identifier %s\n", ctx.token().Token_String);
+        Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
+    }
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
         writeVerboseStatLine(statFile, ctx);
@@ -130,7 +143,11 @@ ParseErrorReporter::reportError(const char *str, ParserContext &ctx)
 {
     FILE *statFile;
     reportLocation(ctx);
-    Logger::error( "%s\n", str);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "%s\n", str);
+        Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
+    }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
         statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");

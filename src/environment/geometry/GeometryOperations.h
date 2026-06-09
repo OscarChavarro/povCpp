@@ -15,7 +15,7 @@ class SimpleBody;
 #include "environment/geometry/SimpleBody.h"
 
 #include "common/dataStructures/PriorityQueue.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "media/solidTexture/Texture.h"
 
 #include <cstdlib>
@@ -66,8 +66,7 @@ class GeometryOperations {
             ((queueElement = depthQueue->getHighest()) != nullptr)) {
             Intersection *localIntersection = new Intersection;
             if (localIntersection == nullptr) {
-                Logger::info("Cannot allocate memory for local intersection\n");
-                exit(1);
+                Logger::reportMessage("GeometryOperations", Logger::FATAL_ERROR, "", "Cannot allocate memory for local intersection\n");
             }
             localIntersection->Point = queueElement->Point;
             localIntersection->Shape = queueElement->Shape;

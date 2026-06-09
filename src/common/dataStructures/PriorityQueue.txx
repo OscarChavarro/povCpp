@@ -1,7 +1,8 @@
 #ifndef __PRIOQ_TXX__
 #define __PRIOQ_TXX__
 
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 
 template <class T>
 PriorityQueue<T>::PriorityQueue()
@@ -89,8 +90,11 @@ template <class T>
 void
 PriorityQueue<T>::print()
 {
-    Logger::info("PriorityQueue size=%u entries=%u\n", this->queueSize,
-        this->currentEntry);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "PriorityQueue size=%u entries=%u\n", this->queueSize, this->currentEntry);
+        Logger::reportMessage("PriorityQueue", Logger::WARNING, "", _logMsg);
+    }
 }
 
 #endif

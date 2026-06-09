@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "io/image/RawFormat.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/color/RGBAColor.h"
 #include "java/io/FileOutputStream.h"
 #include <cmath>

@@ -2,7 +2,8 @@
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/TraceService.h"
 #include "common/color/Color.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
@@ -30,7 +31,6 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     Vector3Dd surfaceNormal;
     double normalDirection;
     int surface;
-    const int debugEnabled = (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING);
 
     if (!shadowRay) {
         Color::makeColor(colour, 0.0, 0.0, 0.0);
@@ -38,14 +38,17 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
         if (rayIntersection->Shape->Shape_Colour) {
-            Logger::info("Depth: %f Object %d Colour %f %f %f ",
-                rayIntersection->Depth, rayIntersection->Shape->Type,
-                rayIntersection->Shape->Shape_Colour->Red,
-                rayIntersection->Shape->Shape_Colour->Green,
-                rayIntersection->Shape->Shape_Colour->Blue);
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour %f %f %f ", rayIntersection->Depth, rayIntersection->Shape->Type,                 rayIntersection->Shape->Shape_Colour->Red,                 rayIntersection->Shape->Shape_Colour->Green,                 rayIntersection->Shape->Shape_Colour->Blue);
+                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
+            }
         } else {
-            Logger::info("Depth: %f Object %d Colour NIL ", rayIntersection->Depth,
-                rayIntersection->Shape->Type);
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour NIL ", rayIntersection->Depth,                 rayIntersection->Shape->Type);
+                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
+            }
         }
     }
 
@@ -60,7 +63,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
      */
     if (texture->textureNumber == Texture::MATERIAL_MAP_TEXTURE) {
         texture = MapTextureFixture::materialMap(
-            &rayIntersection->Point, texture, debugEnabled, GeometryConstants::Small_Tolerance);
+            &rayIntersection->Point, texture, GeometryConstants::Small_Tolerance);
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
@@ -89,8 +92,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             }
         } else {
             ColorTextureFixture::colourAt(
-                &surfaceColour, tempTexture, &rayIntersection->Point,
-                debugEnabled, GeometryConstants::Small_Tolerance);
+                &surfaceColour, tempTexture, &rayIntersection->Point, GeometryConstants::Small_Tolerance);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */
@@ -102,14 +104,21 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
 
         if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-            Logger::info("Surface %d\n", surface);
-            Logger::info("    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,
-                surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);
-            Logger::info("    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "
-                   "Colour: %6.4f %6.4f %6.4f %6.4f  \n",
-                filterColour.Red, filterColour.Green, filterColour.Blue,
-                filterColour.Alpha, colour->Red, colour->Green, colour->Blue,
-                colour->Alpha);
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), "Surface %d\n", surface);
+                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
+            }
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), "    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColour.Red,                 surfaceColour.Green, surfaceColour.Blue, surfaceColour.Alpha);
+                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
+            }
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), "    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "                    "Colour: %6.4f %6.4f %6.4f %6.4f  \n", filterColour.Red, filterColour.Green, filterColour.Blue,                 filterColour.Alpha, colour->Red, colour->Green, colour->Blue,                 colour->Alpha);
+                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
+            }
         }
 
         filterColour.Red *= surfaceColour.Red;

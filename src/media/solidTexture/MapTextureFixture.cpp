@@ -11,7 +11,7 @@
 #include "media/solidTexture/MapTextureFixture.h"
 #include "media/IndexedImage.h"
 #include "media/TextureImage.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/solidTexture/Texture.h"
@@ -35,8 +35,7 @@ B. Specialized shape projection variations by Alexander Enzmann:
 
 void
 MapTextureFixture::imageMap(
-    double x, double y, double z, Texture *texture, RGBAColor *colour,
-    int debugEnabled, double smallTolerance)
+    double x, double y, double z, Texture *texture, RGBAColor *colour, double smallTolerance)
 {
     /* determine local object 2-d coords from 3-d coords */
     /* "unwrap" object 2-d coord onto flat 2-d plane */
@@ -59,8 +58,7 @@ MapTextureFixture::imageMap(
 /* an intersection point and a texture and returns a new texture based on */
 /* the index/color of that point in an image/materials map. CdW 7/91        */
 Texture *
-MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
-    int debugEnabled, double smallTolerance)
+MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, double smallTolerance)
 {
     Vector3Dd transformedPoint;
     double x;
@@ -124,8 +122,7 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture,
 
 void
 MapTextureFixture::bumpMap(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal,
-    int debugEnabled, double smallTolerance)
+    double x, double y, double z, Texture *texture, Vector3Dd *normal, double smallTolerance)
 {
     double xcoor = 0.0;
     double ycoor = 0.0;
@@ -189,9 +186,6 @@ MapTextureFixture::bumpMap(
     MapTextureFixture::imageColourAt(
         texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
 
-    if (debugEnabled) {
-        Logger::info("Bump Map %g %g %g xcoor %f ycoor %f\n", x, y, z, xcoor, ycoor);
-    }
 
     if (texture->Bump_Image->indexedData == nullptr ||
         texture->Bump_Image->useColourFlag) {
@@ -521,8 +515,7 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     if ((*xcoor >= (double)image->iwidth) ||
         (*ycoor >= (double)image->iheight) || (*xcoor < 0.0) ||
         (*ycoor < 0.0)) {
-        Logger::info("\nPicture index out of range\n");
-        exit(1);
+        Logger::reportMessage("MapTextureFixture", Logger::FATAL_ERROR, "", "\nPicture index out of range\n");
     }
 
     return (0);

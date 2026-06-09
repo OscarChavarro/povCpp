@@ -5,7 +5,8 @@
 
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/dataStructures/PriorityQueuePool.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include "common/RenderRuntimeState.h"
 #include "common/Statistics.h"
 #include "media/solidTexture/TextureUtils.h"
@@ -184,8 +185,11 @@ PovrayApplication::configureOutputTarget()
         }
         break;
     default:
-        Logger::error("Unrecognized output file format %c\n", RenderingConfiguration::global().outputFormat);
-        exit(1);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Unrecognized output file format %c\n", RenderingConfiguration::global().outputFormat);
+            Logger::reportMessage("PovrayApplication", Logger::FATAL_ERROR, "", _logMsg);
+        }
     }
 
     RenderingConfiguration::global().outputFileInputStream =
@@ -220,7 +224,7 @@ void
 PovrayApplication::prepareRendering()
 {
     if (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY) {
-        Logger::info("Displaying...\n");
+        Logger::reportMessage("PovrayApplication", Logger::WARNING, "", "Displaying...\n");
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
@@ -229,7 +233,7 @@ PovrayApplication::prepareRendering()
                     &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                     RenderingConfiguration::global().fileBufferSize, RenderOutput::READ_MODE,
                     RenderingConfiguration::global().firstLine) != 1) {
-                Logger::error("Error opening continue trace output file\n");
+                Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening continue trace output file\n");
                 fprintf(
                     stderr, "Opening new output file %s.\n", RenderingConfiguration::global().outputFileName);
                 RenderingConfiguration::global().options &= ~RenderingConfiguration::CONTINUE_TRACE;
@@ -238,7 +242,7 @@ PovrayApplication::prepareRendering()
                         &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                         RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE,
                         RenderingConfiguration::global().firstLine) != 1) {
-                    Logger::error("Error opening output file\n");
+                    Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
                     closeAll();
                     exit(1);
                 }
@@ -253,7 +257,7 @@ PovrayApplication::prepareRendering()
                     &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
                     RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE,
                     RenderingConfiguration::global().firstLine) != 1) {
-                Logger::error("Error opening output file\n");
+                Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
                 closeAll();
                 exit(1);
             }
@@ -276,7 +280,7 @@ PovrayApplication::runRenderLoop()
     Statistics::global().startTimer();
 
     if ((RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) && (RenderingConfiguration::global().verboseFormat != '1')) {
-        Logger::info("Rendering...\n");
+        Logger::reportMessage("PovrayApplication", Logger::WARNING, "", "Rendering...\n");
     } else if ((RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) && (RenderingConfiguration::global().verboseFormat == '1')) {
         fprintf(stderr, "POV-Ray rendering %s to %s :\n", RenderingConfiguration::global().inputFileName,
             RenderingConfiguration::global().outputFileName);

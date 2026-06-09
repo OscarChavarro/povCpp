@@ -616,18 +616,18 @@ allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
 
     hField->Map = (float **)calloc(maxZ + 1, sizeof(float *));
     if (hField->Map == nullptr) {
-        Logger::error("Cannot allocate memory for height field\n");
+        Logger::reportMessage("HeightField", Logger::ERROR, "", "Cannot allocate memory for height field\n");
     }
 
     hField->Block = (HeightFieldBlock **)calloc(w, sizeof(HeightFieldBlock *));
     if (hField->Block == nullptr) {
-        Logger::error("Cannot allocate memory for height field buffer\n");
+        Logger::reportMessage("HeightField", Logger::ERROR, "", "Cannot allocate memory for height field buffer\n");
     }
     for (int i = 0; i < w; i++) {
         hField->Block[i] =
             (HeightFieldBlock *)calloc(h, sizeof(HeightFieldBlock));
         if (hField->Block[i] == nullptr) {
-            Logger::error("Cannot allocate memory for height field buffer line\n");
+            Logger::reportMessage("HeightField", Logger::ERROR, "", "Cannot allocate memory for height field buffer line\n");
         }
         for (int j = 0; j < h; j++) {
             hField->Block[i][j].minY = 65536.0;
@@ -637,7 +637,7 @@ allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
 
     hField->Map[0] = (float *)calloc(maxX + 1, sizeof(float));
     if (hField->Map[0] == nullptr) {
-        Logger::error("Cannot allocate memory for height field\n");
+        Logger::reportMessage("HeightField", Logger::ERROR, "", "Cannot allocate memory for height field\n");
     }
 }
 
