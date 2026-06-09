@@ -4,7 +4,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "media/IndexedImage.h"
-#include "media/RGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"
 #include "environment/scene/ModelBuilder.h"
@@ -59,9 +59,9 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 GifFormat::readGifImage(indexedImage, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->bounding_box->bounds[1] =
-                    Vector3Dd(indexedImage->width - 2.0, 256.0, indexedImage->height - 2.0);
-                localVector = Vector3Dd(1.0 / (indexedImage->width),
-                    1.0 / 256.0, 1.0 / (indexedImage->height));
+                    Vector3Dd(indexedImage->getXSize() - 2.0, 256.0, indexedImage->getYSize() - 2.0);
+                localVector = Vector3Dd(1.0 / indexedImage->getXSize(),
+                    1.0 / 256.0, 1.0 / indexedImage->getYSize());
                 *localShape->transformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
                 *localShape->transformationInverse = Matrix4x4d().scale(
@@ -82,9 +82,9 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 GifFormat::readGifImage(indexedImage, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->bounding_box->bounds[1] = Vector3Dd(
-                    indexedImage->width / 2.0 - 2.0, 256.0, indexedImage->height - 2.0);
-                localVector = Vector3Dd(2.0 / indexedImage->width,
-                    1.0 / 256.0, 1.0 / indexedImage->height);
+                    indexedImage->getXSize() / 2.0 - 2.0, 256.0, indexedImage->getYSize() - 2.0);
+                localVector = Vector3Dd(2.0 / indexedImage->getXSize(),
+                    1.0 / 256.0, 1.0 / indexedImage->getYSize());
                 *localShape->transformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
                 *localShape->transformationInverse = Matrix4x4d().scale(
@@ -104,9 +104,9 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 TargaFormat::readTargaImage(directImage, ctx.token().Token_String);
                 localShape->bounding_box->bounds[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->bounding_box->bounds[1] =
-                    Vector3Dd(directImage->width - 2.0, 256.0, directImage->height - 2.0);
-                localVector = Vector3Dd(1.0 / directImage->width,
-                    1.0 / 256.0, 1.0 / directImage->height);
+                    Vector3Dd(directImage->getXSize() - 2.0, 256.0, directImage->getYSize() - 2.0);
+                localVector = Vector3Dd(1.0 / directImage->getXSize(),
+                    1.0 / 256.0, 1.0 / directImage->getYSize());
                 *localShape->transformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
                 *localShape->transformationInverse = Matrix4x4d().scale(

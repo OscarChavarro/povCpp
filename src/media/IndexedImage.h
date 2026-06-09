@@ -1,39 +1,42 @@
 #ifndef __INDEXED_IMAGE_H__
 #define __INDEXED_IMAGE_H__
 
-#include "media/RGBAPixelHDR.h"
+#include "vsdk/toolkit/media/RGBAPixelHDR.h"
 
 class IndexedImage {
   private:
-    unsigned char *data = nullptr;
+    int xSize;
+    int ySize;
+    unsigned char *data;
+    int colourMapSize;
+    RGBAPixelHDR *colorMap;
 
-public:
-    double width = 0;
-    double height = 0;
-    int iwidth = 0;
-    int iheight = 0;
-    int colourMapSize = 0;
-    RGBAPixelHDR *colorMap = nullptr;
+  public:
+    IndexedImage();
+    virtual ~IndexedImage();
 
-    IndexedImage() {}
-    virtual ~IndexedImage() { delete[] data; }
+    int getXSize() const;
+    int getYSize() const;
+    void setXSize(int w);
+    void setYSize(int h);
 
-    void allocate(int w, int h) {
-        iwidth = w;
-        iheight = h;
-        width = (double)w;
-        height = (double)h;
-        delete[] data;
-        data = new unsigned char[w * h]();
-    }
+    int getColourMapSize() const;
+    void setColourMapSize(int n);
+    RGBAPixelHDR *getColorMap() const;
+    void setColorMap(RGBAPixelHDR *cm);
 
-    unsigned char getPixel(int x, int y) const {
-        return data[y * iwidth + x];
-    }
+    void allocate(int w, int h);
 
-    void setPixel(int x, int y, unsigned char value) {
-        data[y * iwidth + x] = value;
-    }
+    unsigned char getPixel(int x, int y) const;
+    void setPixel(int x, int y, unsigned char value);
 };
+
+inline unsigned char IndexedImage::getPixel(int x, int y) const {
+    return data[y * xSize + x];
+}
+
+inline void IndexedImage::setPixel(int x, int y, unsigned char value) {
+    data[y * xSize + x] = value;
+}
 
 #endif

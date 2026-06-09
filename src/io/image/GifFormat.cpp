@@ -23,7 +23,7 @@ int
 GifFormat::outLine(unsigned char *pixels, int linelen)
 {
     for (int x = 0; x < linelen; x++) {
-        if ((int)(*pixels) > currentImage->colourMapSize) {
+        if ((int)(*pixels) > currentImage->getColourMapSize()) {
             Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Error - GIF Image Map Colour out of range\n");
         }
         currentImage->setPixel(x, bitmapLine, *pixels);
@@ -155,17 +155,17 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
                 break;
             }
 
-            image->iwidth  = buffer[4] | (buffer[5] << 8);
-            image->iheight = buffer[6] | (buffer[7] << 8);
-            image->width   = (double)image->iwidth;
-            image->height  = (double)image->iheight;
+            {
+                int gifW = buffer[4] | (buffer[5] << 8);
+                int gifH = buffer[6] | (buffer[7] << 8);
 
-            bitmapLine = 0;
-            image->colourMapSize = colourmapSize;
-            image->colorMap = gifColourMap;
-            image->allocate(image->iwidth, image->iheight);
+                bitmapLine = 0;
+                image->setColourMapSize(colourmapSize);
+                image->setColorMap(gifColourMap);
+                image->allocate(gifW, gifH);
 
-            status = GifDecoder::decoder(image->iwidth);
+                status = GifDecoder::decoder(image->getXSize());
+            }
             finished = true;
             break;
 

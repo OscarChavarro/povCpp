@@ -33,10 +33,7 @@
 static void wireIndexedIntoTextureImage(TextureImage *ti, IndexedImage *idx)
 {
     ti->indexedData = idx;
-    ti->iwidth  = idx->iwidth;
-    ti->iheight = idx->iheight;
-    ti->width   = idx->width;
-    ti->height  = idx->height;
+    ti->allocate(idx->getXSize(), idx->getYSize());
 }
 
 bool
@@ -589,13 +586,13 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                                     if ((reg < 0) ||
                                         (reg >=
-                                            texture->Image->indexedData->colourMapSize)) {
+                                            texture->Image->indexedData->getColourMapSize())) {
                                         ParseErrorReporter::reportError(
                                             "ALPHA colour register value out "
                                             "of range.\n", ctx);
                                     }
 
-                                    texture->Image->indexedData->colorMap[reg].a =
+                                    texture->Image->indexedData->getColorMap()[reg].a =
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
@@ -607,9 +604,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     alpha = PrimitiveParser::parseFloat(ctx);
 
                                     for (reg = 0;
-                                        reg < texture->Image->indexedData->colourMapSize;
+                                        reg < texture->Image->indexedData->getColourMapSize();
                                         reg++) {
-                                        texture->Image->indexedData->colorMap[reg].a =
+                                        texture->Image->indexedData->getColorMap()[reg].a =
                                             (unsigned short)(alpha * 255.0);
                                     }
                                     Exit_Flag = true;

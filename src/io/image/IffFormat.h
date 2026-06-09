@@ -1,7 +1,7 @@
 #ifndef __IFF_FORMAT_H__
 #define __IFF_FORMAT_H__
 
-#include "media/RGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "media/IndexedImage.h"
 #include "io/image/ChunkHeader.h"
 #include "java/io/FileInputStream.h"
