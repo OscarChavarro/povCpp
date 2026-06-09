@@ -66,11 +66,8 @@ PolynomialShape::allPolyIntersections(
 
     /* Transform the ray into the polynomial's space */
     if (shape->transformation != nullptr) {
-        newRay.position =
-            shape->transformationInverse->transpose().multiply(ray->position);
-        newRay.direction =
-            shape->transformationInverse->transpose().withoutTranslation().multiply(
-                ray->direction);
+        newRay.position = shape->transformationInverse->transformPoint(ray->position);
+        newRay.direction = shape->transformationInverse->transformDirection(ray->direction);
     } else {
         newRay.position = Vector3Dd(
             ray->position.x(), ray->position.y(), ray->position.z());
@@ -113,8 +110,7 @@ PolynomialShape::allPolyIntersections(
         intersectionPoint = intersectionPoint.add(newRay.position);
         /* Transform the point into world space */
         if (shape->transformation != nullptr) {
-            intersectionPoint =
-                shape->transformation->transpose().multiply(intersectionPoint);
+            intersectionPoint = shape->transformation->transformPoint(intersectionPoint);
         }
 
         dv = intersectionPoint.subtract(ray->position);
@@ -784,7 +780,7 @@ PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
 
     /* Transform the point into polynomial's space */
     if (shape->transformation != nullptr) {
-        newPoint = shape->transformationInverse->transpose().multiply(*testPoint);
+        newPoint = shape->transformationInverse->transformPoint(*testPoint);
     } else {
         newPoint = *testPoint;
     }
@@ -806,8 +802,7 @@ PolynomialShape::polyNormal(
 
     /* Transform the point into the polynomials space */
     if (shape->transformation != nullptr) {
-        newPoint =
-            shape->transformationInverse->transpose().multiply(*intersectionPoint);
+        newPoint = shape->transformationInverse->transformPoint(*intersectionPoint);
     } else {
         newPoint = Vector3Dd(
             intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());

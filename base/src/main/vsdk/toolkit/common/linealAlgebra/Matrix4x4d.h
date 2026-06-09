@@ -73,6 +73,24 @@ public:
     bool operator==(const Matrix4x4d& other) const;
     bool equals(const Matrix4x4d& other) const { return (*this) == other; }
     int hashCode() const;
+
+    inline Vector3Dd transformPoint(const Vector3Dd& v) const {
+        double vx = v.x(), vy = v.y(), vz = v.z();
+        return Vector3Dd(
+            m_[0][0]*vx + m_[1][0]*vy + m_[2][0]*vz + m_[3][0],
+            m_[0][1]*vx + m_[1][1]*vy + m_[2][1]*vz + m_[3][1],
+            m_[0][2]*vx + m_[1][2]*vy + m_[2][2]*vz + m_[3][2]
+        );
+    }
+
+    inline Vector3Dd transformDirection(const Vector3Dd& v) const {
+        double vx = v.x(), vy = v.y(), vz = v.z();
+        return Vector3Dd(
+            m_[0][0]*vx + m_[1][0]*vy + m_[2][0]*vz,
+            m_[0][1]*vx + m_[1][1]*vy + m_[2][1]*vz,
+            m_[0][2]*vx + m_[1][2]*vy + m_[2][2]*vz
+        );
+    }
 };
 
 

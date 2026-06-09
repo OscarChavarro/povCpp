@@ -328,9 +328,8 @@ Blob::allBlobIntersections(
 
     /* Transform the ray into the blob space */
     if (blob->transformation != nullptr) {
-        p = blob->transformationInverse->transpose().multiply(ray->position);
-        d = blob->transformationInverse->transpose().withoutTranslation().multiply(
-            ray->direction);
+        p = blob->transformationInverse->transformPoint(ray->position);
+        d = blob->transformationInverse->transformDirection(ray->direction);
     } else {
         p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
         d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
@@ -432,7 +431,7 @@ Blob::allBlobIntersections(
                        can get fooled by numerical inaccuracies */
                     /* Transform the point into world space */
                     if (blob->transformation != nullptr) {
-                        intersectionPoint = blob->transformation->transpose().multiply(
+                        intersectionPoint = blob->transformation->transformPoint(
                             intersectionPoint);
                     }
                     dv = intersectionPoint.subtract(ray->position);
@@ -463,7 +462,7 @@ Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
 
     /* Transform the point into blob space */
     if (blob->transformation != nullptr) {
-        newPoint = blob->transformationInverse->transpose().multiply(*testPoint);
+        newPoint = blob->transformationInverse->transformPoint(*testPoint);
     } else {
         newPoint = *testPoint;
     }
@@ -489,7 +488,7 @@ Blob::blobNormal(
 
     /* Transform the point into the blobs space */
     if (blob->transformation != nullptr) {
-        newPoint = blob->transformationInverse->transpose().multiply(*intersectionPoint);
+        newPoint = blob->transformationInverse->transformPoint(*intersectionPoint);
     } else {
         newPoint = Vector3Dd(
             intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());

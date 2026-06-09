@@ -74,9 +74,8 @@ Box::intersectBoxx(
 
     /* Transform the point into the boxes space */
     if (box->transformation != nullptr) {
-        p = box->transformationInverse->transpose().multiply(ray->position);
-        d = box->transformationInverse->transpose().withoutTranslation().multiply(
-            ray->direction);
+        p = box->transformationInverse->transformPoint(ray->position);
+        d = box->transformationInverse->transformDirection(ray->direction);
     } else {
         p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
         d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
@@ -216,7 +215,7 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
 
     /* Transform the point into the boxes space */
     if (box->transformation != nullptr) {
-        newPoint = box->transformationInverse->transpose().multiply(*testPoint);
+        newPoint = box->transformationInverse->transformPoint(*testPoint);
     } else {
         newPoint = *testPoint;
     }
@@ -244,7 +243,7 @@ Box::boxNormal(
 
     /* Transform the point into the boxes space */
     if (box->transformation != nullptr) {
-        newPoint = box->transformationInverse->transpose().multiply(*intersectionPoint);
+        newPoint = box->transformationInverse->transformPoint(*intersectionPoint);
     } else {
         newPoint = Vector3Dd(
             intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
