@@ -52,7 +52,11 @@ double** Matrix4x4d::toArrayCopy() const
 
 Matrix4x4d Matrix4x4d::withoutTranslation() const
 {
-    return withVal(0,3,0.0).withVal(1,3,0.0).withVal(2,3,0.0).withVal(3,0,0.0).withVal(3,1,0.0).withVal(3,2,0.0).withVal(3,3,1.0);
+    Matrix4x4d r(*this);
+    r.m_[0][3] = r.m_[1][3] = r.m_[2][3] = 0.0;
+    r.m_[3][0] = r.m_[3][1] = r.m_[3][2] = 0.0;
+    r.m_[3][3] = 1.0;
+    return r;
 }
 
 Vector3Dd Matrix4x4d::extractTranslation() const { return Vector3Dd(get(0,3), get(1,3), get(2,3)); }

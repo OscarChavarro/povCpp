@@ -772,11 +772,8 @@ HeightField::allHeightfldIntersections(
 
     Statistics::global().rayHtFieldTests++;
 
-    tempRay.position =
-        hField->transformationInverse->transpose().multiply(ray->position);
-    tempRay.direction =
-        hField->transformationInverse->transpose().withoutTranslation().multiply(
-            ray->direction);
+    tempRay.position = hField->transformationInverse->transformPoint(ray->position);
+    tempRay.direction = hField->transformationInverse->transformDirection(ray->direction);
 
     if (!Box::intersectBoxx(&tempRay, hField->bounding_box, &depth1, &depth2)) {
         return (false);
@@ -860,7 +857,7 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
     Vector3Dd localNormal;
     Vector3Dd test;
 
-    test = hField->transformationInverse->transpose().multiply(*testPoint);
+    test = hField->transformationInverse->transformPoint(*testPoint);
 
     px = (int)test.x();
     pz = (int)test.z();
@@ -914,7 +911,7 @@ HeightField::heightFldNormal(
     Vector3Dd temp1;
     Vector3Dd temp2;
 
-    localOrigin = hField->transformationInverse->transpose().multiply(*intersectionPoint);
+    localOrigin = hField->transformationInverse->transformPoint(*intersectionPoint);
 
     px = (int)localOrigin.x();
     pz = (int)localOrigin.z();
@@ -935,8 +932,8 @@ HeightField::heightFldNormal(
         temp2 = Vector3Dd(0.0, y3 - y1, -1.0);
     }
 
-    temp1 = hField->transformation->transpose().withoutTranslation().multiply(temp1);
-    temp2 = hField->transformation->transpose().withoutTranslation().multiply(temp2);
+    temp1 = hField->transformation->transformDirection(temp1);
+    temp2 = hField->transformation->transformDirection(temp2);
     *result = temp2.crossProduct(temp1);
     *result = (*result).normalizedFast();
 }

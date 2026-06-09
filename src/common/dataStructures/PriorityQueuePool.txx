@@ -41,39 +41,4 @@ PriorityQueuePool<T>::pqInit()
     return head;
 }
 
-template <class T>
-PriorityQueue<T> *
-PriorityQueuePool<T>::pqPop(int indexSize)
-{
-    static constexpr int MAX_NUMBER_OF_ENTRIES = 128;
-
-    if (indexSize >= MAX_NUMBER_OF_ENTRIES) {
-        indexSize = MAX_NUMBER_OF_ENTRIES - 1;
-    }
-
-    PriorityQueue<T> *pq;
-
-    if (head == nullptr) {
-        Logger::reportMessage("PriorityQueuePool", Logger::FATAL_ERROR, "", "\nOut of prioqs");
-    }
-    pq = head;
-
-    if (pq == nullptr) {
-        return nullptr;
-    }
-
-    head = pq->next_pq;
-    pq->queueSize = indexSize;
-    pq->currentEntry = 0;
-    return pq;
-}
-
-template <class T>
-void
-PriorityQueuePool<T>::pqPush(PriorityQueue<T> *queue)
-{
-    queue->next_pq = head;
-    head = queue;
-}
-
 #endif
