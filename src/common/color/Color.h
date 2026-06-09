@@ -1,7 +1,7 @@
 #ifndef __COLOUR_H__
 #define __COLOUR_H__
 
-#include "common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "common/color/RGBAColorPalette.h"
 #include "common/color/RGBAColorPaletteSpan.h"
 
