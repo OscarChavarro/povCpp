@@ -5,7 +5,7 @@
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/color/RGBAColor.h"
-#include "media/RGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/TargaFormat.h"
 #include "io/binaryIo/FileLocator.h"
 
@@ -222,7 +222,8 @@ void
 TargaFormat::readTargaImage(RGBAImageHDRUncompressed *image, char *name)
 {
     TargaFormat fmt;
-    if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
+    int w = 0, h = 0;
+    if (!fmt.open(name, &w, &h, 0, READ_MODE, 0)) {
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Cannot open Targa file %s\n", name);
@@ -230,9 +231,9 @@ TargaFormat::readTargaImage(RGBAImageHDRUncompressed *image, char *name)
         }
     }
 
-    image->allocate(image->iwidth, image->iheight);
+    image->allocate(w, h);
 
-    for (int row = 0; row < image->iheight && fmt.readRow(image, row); row++) {
+    for (int row = 0; row < image->getYSize() && fmt.readRow(image, row); row++) {
     }
 
     fmt.close();

@@ -117,10 +117,6 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
         case BMHD:
             iwidth  = IffFormat::readWord(is);
             iheight = IffFormat::readWord(is);
-            directOut->iwidth  = iwidth;
-            directOut->width   = (double)iwidth;
-            directOut->iheight = iheight;
-            directOut->height  = (double)iheight;
 
             IffFormat::readWord(is);
             IffFormat::readWord(is);
@@ -181,12 +177,8 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
             if (isIndexed) {
                 // --- Indexed (paletted) path ---
                 IndexedImage *indexed = new IndexedImage;
-                indexed->iwidth  = iwidth;
-                indexed->iheight = iheight;
-                indexed->width   = (double)iwidth;
-                indexed->height  = (double)iheight;
-                indexed->colourMapSize = sColourMapSize;
-                indexed->colorMap      = sIffColourMap;
+                indexed->setColourMapSize(sColourMapSize);
+                indexed->setColorMap(sIffColourMap);
 
                 indexed->allocate(iwidth, iheight);
 
@@ -230,7 +222,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
                             }
                         }
 
-                        if (creg > (unsigned long)indexed->colourMapSize) {
+                        if (creg > (unsigned long)indexed->getColourMapSize()) {
                             Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Error - IFF Image Map Colour out of range\n");
                         }
                         indexed->setPixel(j, i, (unsigned char)creg);

@@ -1,7 +1,7 @@
 #ifndef __TEXTURE_IMAGE_H__
 #define __TEXTURE_IMAGE_H__
 
-#include "media/RGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "media/IndexedImage.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

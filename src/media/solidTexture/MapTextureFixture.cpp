@@ -164,23 +164,23 @@ MapTextureFixture::bumpMap(
     xcoor--;
     ycoor++;
     if (xcoor < 0.0) {
-        xcoor += (double)texture->Bump_Image->iwidth;
-    } else if (xcoor >= texture->Bump_Image->iwidth) {
-        xcoor -= (double)texture->Bump_Image->iwidth;
+        xcoor += (double)texture->Bump_Image->getXSize();
+    } else if (xcoor >= texture->Bump_Image->getXSize()) {
+        xcoor -= (double)texture->Bump_Image->getXSize();
     }
     if (ycoor < 0.0) {
-        ycoor += (double)texture->Bump_Image->iheight;
-    } else if (ycoor >= (double)texture->Bump_Image->iheight) {
-        ycoor -= (double)texture->Bump_Image->iheight;
+        ycoor += (double)texture->Bump_Image->getYSize();
+    } else if (ycoor >= (double)texture->Bump_Image->getYSize()) {
+        ycoor -= (double)texture->Bump_Image->getYSize();
     }
     MapTextureFixture::imageColourAt(
         texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
 
     xcoor += 2.0;
     if (xcoor < 0.0) {
-        xcoor += (double)texture->Bump_Image->iwidth;
-    } else if (xcoor >= texture->Bump_Image->iwidth) {
-        xcoor -= (double)texture->Bump_Image->iwidth;
+        xcoor += (double)texture->Bump_Image->getXSize();
+    } else if (xcoor >= texture->Bump_Image->getXSize()) {
+        xcoor -= (double)texture->Bump_Image->getXSize();
     }
 
     MapTextureFixture::imageColourAt(
@@ -267,7 +267,7 @@ MapTextureFixture::cylindricalImageMap(
     if ((image->onceFlag) && ((y < 0.0) || (y > 1.0))) {
         return 0;
     }
-    *v = fmod(y * image->height, image->height);
+    *v = fmod(y * image->getYSize(), image->getYSize());
 
     /* Make sure this vector is on the unit sphere. */
     len = sqrt(x * x + y * y + z * z);
@@ -296,7 +296,7 @@ MapTextureFixture::cylindricalImageMap(
     }
     theta /= 2.0 * M_PI; /* This will be from 0 to 1 */
 
-    *u = (theta * image->width);
+    *u = (theta * image->getXSize());
     return 1;
 }
 
@@ -344,8 +344,8 @@ MapTextureFixture::torusImageMap(
     /* Determine the parametric coordinates. */
     theta /= 2.0 * M_PI;
     phi /= 2.0 * M_PI;
-    *u = (-theta * image->width);
-    *v = (phi * image->height);
+    *u = (-theta * image->getXSize());
+    *v = (phi * image->getYSize());
     return 1;
 }
 
@@ -392,8 +392,8 @@ MapTextureFixture::sphericalImageMap(
         }
         theta /= 2.0 * M_PI; /* This will be from 0 to 1 */
     }
-    *u = (theta * image->width);
-    *v = (phi * image->height);
+    *u = (theta * image->getXSize());
+    *v = (phi * image->getYSize());
     return 1;
 }
 
@@ -419,9 +419,9 @@ MapTextureFixture::planarImageMap(
             return 0;
         }
         if (image->imageGradient.x() > 0) {
-            *u = fmod(x * image->width, image->width);
+            *u = fmod(x * image->getXSize(), image->getXSize());
         } else {
-            *v = fmod(x * image->height, image->height);
+            *v = fmod(x * image->getYSize(), image->getYSize());
         }
     }
     if (image->imageGradient.y() != 0.0) {
@@ -429,9 +429,9 @@ MapTextureFixture::planarImageMap(
             return 0;
         }
         if (image->imageGradient.y() > 0) {
-            *u = fmod(y * image->width, image->width);
+            *u = fmod(y * image->getXSize(), image->getXSize());
         } else {
-            *v = fmod(y * image->height, image->height);
+            *v = fmod(y * image->getYSize(), image->getYSize());
         }
     }
     if (image->imageGradient.z() != 0.0) {
@@ -439,9 +439,9 @@ MapTextureFixture::planarImageMap(
             return 0;
         }
         if (image->imageGradient.z() > 0) {
-            *u = fmod(z * image->width, image->width);
+            *u = fmod(z * image->getXSize(), image->getXSize());
         } else {
-            *v = fmod(z * image->height, image->height);
+            *v = fmod(z * image->getYSize(), image->getYSize());
         }
     }
     return 1;
@@ -498,22 +498,22 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     *ycoor += smallTolerance;
     *xcoor += smallTolerance;
     /* Compensate for y coordinates on the images being upsidedown */
-    *ycoor = (double)image->iheight - *ycoor;
+    *ycoor = (double)image->getYSize() - *ycoor;
 
     if (*xcoor < 0.0) {
-        *xcoor += (double)image->iwidth;
-    } else if (*xcoor >= (double)image->iwidth) {
-        *xcoor -= (double)image->iwidth;
+        *xcoor += (double)image->getXSize();
+    } else if (*xcoor >= (double)image->getXSize()) {
+        *xcoor -= (double)image->getXSize();
     }
 
     if (*ycoor < 0.0) {
-        *ycoor += (double)image->iheight;
-    } else if (*ycoor >= (double)image->iheight) {
-        *ycoor -= (double)image->iheight;
+        *ycoor += (double)image->getYSize();
+    } else if (*ycoor >= (double)image->getYSize()) {
+        *ycoor -= (double)image->getYSize();
     }
 
-    if ((*xcoor >= (double)image->iwidth) ||
-        (*ycoor >= (double)image->iheight) || (*xcoor < 0.0) ||
+    if ((*xcoor >= (double)image->getXSize()) ||
+        (*ycoor >= (double)image->getYSize()) || (*xcoor < 0.0) ||
         (*ycoor < 0.0)) {
         Logger::reportMessage("MapTextureFixture", Logger::FATAL_ERROR, "", "\nPicture index out of range\n");
     }
@@ -526,14 +526,14 @@ MapTextureFixture::noInterpolation(
     TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     if (xcoor < 0.0) {
-        xcoor += (double)image->iwidth;
-    } else if (xcoor >= (double)image->iwidth) {
-        xcoor -= (double)image->iwidth;
+        xcoor += (double)image->getXSize();
+    } else if (xcoor >= (double)image->getXSize()) {
+        xcoor -= (double)image->getXSize();
     }
     if (ycoor < 0.0) {
-        ycoor += (double)image->iheight;
-    } else if (ycoor >= (double)image->iheight) {
-        ycoor -= (double)image->iheight;
+        ycoor += (double)image->getYSize();
+    } else if (ycoor >= (double)image->getYSize()) {
+        ycoor -= (double)image->getYSize();
     }
 
     int iycoor = (int)ycoor;
@@ -549,7 +549,7 @@ MapTextureFixture::noInterpolation(
     } else {
         IndexedImage *idx = image->indexedData;
         *index = idx->getPixel(ixcoor, iycoor);
-        RGBAPixelHDR *mapColour = &idx->colorMap[*index];
+        RGBAPixelHDR *mapColour = &idx->getColorMap()[*index];
         colour->Red += (double)mapColour->r / 255.0;
         colour->Green += (double)mapColour->g / 255.0;
         colour->Blue += (double)mapColour->b / 255.0;

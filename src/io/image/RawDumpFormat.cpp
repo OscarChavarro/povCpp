@@ -21,7 +21,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/io/PersistenceElement.h"
-#include "media/RGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
@@ -252,7 +252,8 @@ void
 RawDumpFormat::readDumpImage(RGBAImageHDRUncompressed *image, char *name)
 {
     RawDumpFormat fmt;
-    if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
+    int w = 0, h = 0;
+    if (!fmt.open(name, &w, &h, 0, READ_MODE, 0)) {
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Cannot open dump file %s\n", name);
@@ -260,7 +261,7 @@ RawDumpFormat::readDumpImage(RGBAImageHDRUncompressed *image, char *name)
         }
     }
 
-    image->allocate(image->iwidth, image->iheight);
+    image->allocate(w, h);
 
     int row;
     int rc;

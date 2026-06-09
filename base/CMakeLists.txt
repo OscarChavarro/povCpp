@@ -30,6 +30,7 @@ set(VITRAL_BASE_SOURCES
     src/main/java/util/Formatter.cpp
     src/main/vsdk/toolkit/io/PersistenceElement.cpp
     src/main/vsdk/toolkit/linealAlgebra/processing/LinearAlgebraEngine.cpp
+    src/main/vsdk/toolkit/media/RGBAImageHDRUncompressed.cpp
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ArrayListInstantiations.cpp" [=[

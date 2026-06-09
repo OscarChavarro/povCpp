@@ -95,8 +95,8 @@ void dumpSceneStructure(FILE *f)
                         tex->Image->mapType,
                         tex->Image->interpolationType,
                         tex->Image->onceFlag,
-                        tex->Image->width,
-                        tex->Image->height);
+                        (double)tex->Image->getXSize(),
+                        (double)tex->Image->getYSize());
             }
 
             if (tex->textureTransformation) {

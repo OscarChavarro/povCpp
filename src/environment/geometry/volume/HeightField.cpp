@@ -16,7 +16,7 @@
 
 #include "environment/geometry/volume/HeightField.h"
 #include "media/IndexedImage.h"
-#include "media/RGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "media/solidTexture/Texture.h"
@@ -644,17 +644,17 @@ allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
 void
 HeightField::findHfMinMax(HeightField *hField, IndexedImage *image, int imageType)
 {
-    int maxX = image->iwidth;
+    int maxX = image->getXSize();
     if (imageType == HeightField::POT) {
         maxX = maxX / 2;
     }
-    int maxZ = image->iheight;
+    int maxZ = image->getYSize();
 
-    allocateHfBlocks(hField, maxX, maxZ, image->width, image->height);
+    allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
     int n = (int)hField->blockSize;
-    int w = (int)ceil((image->width + 1.0) * hField->invBlkSize);
-    int h = (int)ceil((image->height + 1.0) * hField->invBlkSize);
+    int w = (int)ceil((image->getXSize() + 1.0) * hField->invBlkSize);
+    int h = (int)ceil((image->getYSize() + 1.0) * hField->invBlkSize);
 
     for (int j = 0; j < h; j++) {
         for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
@@ -706,14 +706,14 @@ void
 HeightField::findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, int imageType)
 {
     (void)imageType;
-    int maxX = image->iwidth;
-    int maxZ = image->iheight;
+    int maxX = image->getXSize();
+    int maxZ = image->getYSize();
 
-    allocateHfBlocks(hField, maxX, maxZ, image->width, image->height);
+    allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
     int n = (int)hField->blockSize;
-    int w = (int)ceil((image->width + 1.0) * hField->invBlkSize);
-    int h = (int)ceil((image->height + 1.0) * hField->invBlkSize);
+    int w = (int)ceil((image->getXSize() + 1.0) * hField->invBlkSize);
+    int h = (int)ceil((image->getYSize() + 1.0) * hField->invBlkSize);
 
     for (int j = 0; j < h; j++) {
         for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
