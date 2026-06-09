@@ -1,7 +1,7 @@
 /**
 Implements texturing utility functions: noise, turbulence, and texture transforms.
-Color, bump, and map texture routines are in ColorTextureFixture.cpp,
-BumpTextureFixture.cpp, and MapTextureFixture.cpp respectively.
+Color, bump, and map texture routines are in colorTextureFixture.cpp,
+bumpTextureFixture.cpp, and mapTextureFixture.cpp respectively.
 
 References:
 [PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
@@ -27,56 +27,56 @@ static Vector3Dd waveSourcesInstance[Texture::NUMBER_OF_WAVES];
 static double *rTableInstance;
 static short *hashTableInstance;
 
-TextureUtils* TextureUtils::inst_ = nullptr;
+textureUtils* textureUtils::inst_ = nullptr;
 
-TextureUtils::TextureUtils(SolidTextureStatistics* stats)
+textureUtils::textureUtils(SolidTextureStatistics* stats)
     : solidTextureStats_(stats) {}
 
 void
-TextureUtils::initialize(SolidTextureStatistics* stats)
+textureUtils::initialize(SolidTextureStatistics* stats)
 {
-    static TextureUtils inst(stats);
+    static textureUtils inst(stats);
     inst_ = &inst;
 }
 
-TextureUtils&
-TextureUtils::instance()
+textureUtils&
+textureUtils::instance()
 {
     return *inst_;
 }
 
 Texture *&
-TextureUtils::defaultTexture()
+textureUtils::defaultTexture()
 {
     return defaultTextureInstance;
 }
 
 double *&
-TextureUtils::rTable()
+textureUtils::rTable()
 {
     return rTableInstance;
 }
 
 short *&
-TextureUtils::hashTable()
+textureUtils::hashTable()
 {
     return hashTableInstance;
 }
 
 double *&
-TextureUtils::sinTable()
+textureUtils::sinTable()
 {
     return sinTableInstance;
 }
 
 double *
-TextureUtils::waveFrequency()
+textureUtils::waveFrequency()
 {
     return frequencyInstance;
 }
 
 Vector3Dd *
-TextureUtils::waveSources()
+textureUtils::waveSources()
 {
     return waveSourcesInstance;
 }
@@ -112,33 +112,33 @@ static unsigned short crcTableInstance[256] = {0x0000, 0xc0c1, 0xc181, 0x0140, 0
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
 
 unsigned short *
-TextureUtils::crcTable()
+textureUtils::crcTable()
 {
     return crcTableInstance;
 }
 
 double
-TextureUtils::floorInline(double x)
+textureUtils::floorInline(double x)
 {
     return (x >= 0.0) ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
 }
 
 double
-TextureUtils::fabsInline(double x)
+textureUtils::fabsInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
 /** [PERL1985].289 - S-curve interpolation function for smooth lattice transitions. */
 double
-TextureUtils::sCurve(double a)
+textureUtils::sCurve(double a)
 {
     return a * a * (3.0 - 2.0 * a);
 }
 
 /** [PERL1985].289 - Hash function using permutation table for pseudorandom lattice values. */
 short
-TextureUtils::hash3d(long a, long b, long c)
+textureUtils::hash3d(long a, long b, long c)
 {
     return hashTable()[(
         int)(hashTable()[(int)(hashTable()[(int)(a & 0xfffL)] ^ (b & 0xfffL))] ^
@@ -146,14 +146,14 @@ TextureUtils::hash3d(long a, long b, long c)
 }
 
 double
-TextureUtils::incrSum(int m, double s, double x, double y, double z)
+textureUtils::incrSum(int m, double s, double x, double y, double z)
 {
     return s * (rTable()[m] * 0.5 + rTable()[m + 1] * x +
                    rTable()[m + 2] * y + rTable()[m + 3] * z);
 }
 
 void
-TextureUtils::computeColour(
+textureUtils::computeColour(
     RGBAColor *colour, RGBAColorPalette *colourMap, double value)
 {
     int i;
@@ -200,7 +200,7 @@ TextureUtils::computeColour(
 }
 
 void
-TextureUtils::initializeNoise()
+textureUtils::initializeNoise()
 {
     int i = 0;
     Vector3Dd point;
@@ -224,7 +224,7 @@ TextureUtils::initializeNoise()
 
 /** [PERL1985].289 - Initialize permutation hash table for lattice pseudorandom values. */
 void
-TextureUtils::InitTextureTable()
+textureUtils::InitTextureTable()
 {
     int i;
     int j;
@@ -252,7 +252,7 @@ TextureUtils::InitTextureTable()
 Modified by AAC to work properly with 16-bit integers.
 */
 void
-TextureUtils::InitRTable()
+textureUtils::InitRTable()
 {
     int i;
     Vector3Dd rp;
@@ -271,7 +271,7 @@ TextureUtils::InitRTable()
 }
 
 int
-TextureUtils::R(Vector3Dd *v)
+textureUtils::R(Vector3Dd *v)
 {
     *v = Vector3Dd(v->x() * .12345, v->y() * .12345, v->z() * .12345);
 
@@ -284,7 +284,7 @@ Note: passing a Vector3Dd as a char array means machines with different
 floating-point representations will produce different Noise() values.
 */
 int
-TextureUtils::Crc16(char *buf, int count)
+textureUtils::Crc16(char *buf, int count)
 {
     unsigned short crc = 0;
 
@@ -318,9 +318,9 @@ setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
     *jy = *iy + 1;
     *jz = *iz + 1;
 
-    *sx = TextureUtils::instance().sCurve(*x - *ix);
-    *sy = TextureUtils::instance().sCurve(*y - *iy);
-    *sz = TextureUtils::instance().sCurve(*z - *iz);
+    *sx = textureUtils::instance().sCurve(*x - *ix);
+    *sy = textureUtils::instance().sCurve(*y - *iy);
+    *sz = textureUtils::instance().sCurve(*z - *iz);
 
     // the complement values of sx,sy,sz
     *tx = 1.0 - *sx;
@@ -333,7 +333,7 @@ setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
 using lattice-based interpolation with pseudorandom gradients.
 */
 double
-TextureUtils::Noise(double x, double y, double z)
+textureUtils::Noise(double x, double y, double z)
 {
     long ix;
     long iy;
@@ -397,7 +397,7 @@ TextureUtils::Noise(double x, double y, double z)
 Returns the gradient (directional derivatives) of the noise field.
 */
 void
-TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
+textureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
 {
     long ix;
     long iy;
@@ -488,7 +488,7 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
 Creates self-similar fractal patterns by summing scaled noise at different frequencies.
 */
 double
-TextureUtils::Turbulence(double x, double y, double z, int octaves)
+textureUtils::Turbulence(double x, double y, double z, int octaves)
 {
     int i; // added -dmf
     double t = 0.0;
@@ -507,7 +507,7 @@ TextureUtils::Turbulence(double x, double y, double z, int octaves)
 Returns gradient of turbulent field by composing DNoise() over octaves.
 */
 void
-TextureUtils::DTurbulence(
+textureUtils::DTurbulence(
     Vector3Dd *result, double x, double y, double z, int octaves)
 {
     int i; // added -dmf
@@ -530,7 +530,7 @@ TextureUtils::DTurbulence(
 }
 
 double
-TextureUtils::cycloidal(double value)
+textureUtils::cycloidal(double value)
 {
     int indx;
 
@@ -544,7 +544,7 @@ TextureUtils::cycloidal(double value)
 }
 
 double
-TextureUtils::triangleWave(double value)
+textureUtils::triangleWave(double value)
 {
     double offset;
     double temp1;
@@ -592,7 +592,7 @@ applyTranslationTransform(Texture *texture, Vector3Dd *vector)
 }
 
 void
-TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
+textureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
     if (texture == nullptr) {
@@ -657,7 +657,7 @@ copyTextureNode(Texture *dst, const Texture *src)
 }
 
 Texture *
-TextureUtils::copyTexture(Texture *texture)
+textureUtils::copyTexture(Texture *texture)
 {
     Texture *newHead = getTexture();
     *newHead = *texture;
@@ -676,7 +676,7 @@ TextureUtils::copyTexture(Texture *texture)
 }
 
 Texture *
-TextureUtils::getTexture()
+textureUtils::getTexture()
 {
     Texture *newTexture;
 
@@ -740,7 +740,7 @@ applyRotationTransform(Texture *texture, Vector3Dd *vector)
 }
 
 void
-TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
+textureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
     if (texture == nullptr) {
@@ -797,7 +797,7 @@ applyScaleTransform(Texture *texture, Vector3Dd *vector)
 }
 
 void
-TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
+textureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
     if (texture == nullptr) {

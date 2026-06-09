@@ -35,7 +35,7 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
-static void wireIndexedIntoTextureImage(TextureImage *ti, IndexedImage *idx)
+static void wireIndexedIntotextureImage(textureImage *ti, IndexedImage *idx)
 {
     ti->setIndexedData(idx);
     ti->allocate(idx->getXSize(), idx->getYSize());
@@ -74,7 +74,7 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
 Texture *
 TextureParser::copyTexture(Texture *texture)
 {
-    return TextureUtils::instance().copyTexture(texture);
+    return textureUtils::instance().copyTexture(texture);
 }
 
 void
@@ -108,7 +108,7 @@ TextureParser::parseTexture(ParserContext &ctx)
     Texture *firstTexture;
     int reg;
 
-    texture = TextureUtils::instance().defaultTexture();
+    texture = textureUtils::instance().defaultTexture();
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -474,7 +474,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = (int)SolidTextureColorTextures::IMAGEMAP_TEXTURE;
-                texture->image = new TextureImage;
+                texture->image = new textureImage;
                 if (texture->image == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate imagemap texture", ctx);
@@ -515,7 +515,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             IndexedImage *idx = IffFormat::readIffImage(
                                 texture->image, ctx.token().Token_String);
                             if (idx != nullptr) {
-                                wireIndexedIntoTextureImage(texture->image, idx);
+                                wireIndexedIntotextureImage(texture->image, idx);
                             }
                             Exit_Flag = true;
                             break;
@@ -525,7 +525,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedImage *idx = new IndexedImage;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
-                            wireIndexedIntoTextureImage(texture->image, idx);
+                            wireIndexedIntotextureImage(texture->image, idx);
                             Exit_Flag = true;
                             break;
                         }
@@ -723,7 +723,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                TextureUtils::instance().translateTexture(&texture, &localVector);
+                textureUtils::instance().translateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
@@ -732,7 +732,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                TextureUtils::instance().rotateTexture(&texture, &localVector);
+                textureUtils::instance().rotateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
@@ -741,7 +741,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                TextureUtils::instance().scaleTexture(&texture, &localVector);
+                textureUtils::instance().scaleTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
@@ -836,7 +836,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->bumpNumber = (int)SolidTextureBumpyTextures::BUMPMAP;
-                texture->bumpImage = new TextureImage;
+                texture->bumpImage = new textureImage;
                 if (texture->bumpImage == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate bumpmap texture", ctx);
@@ -877,7 +877,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             IndexedImage *idx = IffFormat::readIffImage(
                                 texture->bumpImage, ctx.token().Token_String);
                             if (idx != nullptr) {
-                                wireIndexedIntoTextureImage(texture->bumpImage, idx);
+                                wireIndexedIntotextureImage(texture->bumpImage, idx);
                             }
                             Exit_Flag = true;
                             break;
@@ -887,7 +887,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedImage *idx = new IndexedImage;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
-                            wireIndexedIntoTextureImage(texture->bumpImage, idx);
+                            wireIndexedIntotextureImage(texture->bumpImage, idx);
                             Exit_Flag = true;
                             break;
                         }
@@ -963,7 +963,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE;
-                texture->materialImage = new TextureImage;
+                texture->materialImage = new textureImage;
                 if (texture->materialImage == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate material map texture", ctx);
@@ -1004,7 +1004,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             IndexedImage *idx = IffFormat::readIffImage(
                                 texture->materialImage, ctx.token().Token_String);
                             if (idx != nullptr) {
-                                wireIndexedIntoTextureImage(texture->materialImage, idx);
+                                wireIndexedIntotextureImage(texture->materialImage, idx);
                             }
                             Exit_Flag = true;
                             break;
@@ -1014,7 +1014,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedImage *idx = new IndexedImage;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
-                            wireIndexedIntoTextureImage(texture->materialImage, idx);
+                            wireIndexedIntotextureImage(texture->materialImage, idx);
                             Exit_Flag = true;
                             break;
                         }

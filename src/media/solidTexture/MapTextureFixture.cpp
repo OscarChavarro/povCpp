@@ -23,7 +23,7 @@ Planar method by DKB and AAC: transform, find 2-D coords from 3-D, return pixel 
 Specialized projections (cylindrical, spherical, torus) by Alexander Enzmann.
 */
 void
-MapTextureFixture::imageMap(
+mapTextureFixture::imageMap(
     double x, double y, double z, Texture *texture, RGBAColor *colour, double smallTolerance)
 {
     double xcoor = 0.0;
@@ -35,7 +35,7 @@ MapTextureFixture::imageMap(
         colour->Alpha = 1.0;
         return;
     }
-    imageColourAt(
+    imageColorAt(
         texture->image, xcoor, ycoor, colour, &regNumber);
 }
 
@@ -44,7 +44,7 @@ Takes an intersection point and a texture; returns a new texture based on
 the index/color of that point in an image/materials map. CdW 7/91.
 */
 Texture *
-MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, double smallTolerance)
+mapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, double smallTolerance)
 {
     Vector3Dd transformedPoint;
     double x;
@@ -74,7 +74,7 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
             smallTolerance)) {
         materialNumber = 0;
     } else {
-        imageColourAt(
+        imageColorAt(
             texture->materialImage, xcoor, ycoor, &colour, &regNumber);
 
         if (texture->materialImage->getIndexedData() == nullptr) {
@@ -95,7 +95,7 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
 }
 
 void
-MapTextureFixture::bumpMap(
+mapTextureFixture::bumpMap(
     double x, double y, double z, Texture *texture, Vector3Dd *normal, double smallTolerance)
 {
     double xcoor = 0.0;
@@ -132,7 +132,7 @@ MapTextureFixture::bumpMap(
         index = 255;
         return;
     }
-    imageColourAt(
+    imageColorAt(
         texture->bumpImage, xcoor, ycoor, &colour, &index);
 
     xcoor--;
@@ -147,7 +147,7 @@ MapTextureFixture::bumpMap(
     } else if (ycoor >= (double)texture->bumpImage->getYSize()) {
         ycoor -= (double)texture->bumpImage->getYSize();
     }
-    imageColourAt(
+    imageColorAt(
         texture->bumpImage, xcoor, ycoor, &colour2, &index2);
 
     xcoor += 2.0;
@@ -157,7 +157,7 @@ MapTextureFixture::bumpMap(
         xcoor -= (double)texture->bumpImage->getXSize();
     }
 
-    imageColourAt(
+    imageColorAt(
         texture->bumpImage, xcoor, ycoor, &colour3, &index3);
 
 
@@ -215,8 +215,8 @@ MapTextureFixture::bumpMap(
 }
 
 void
-MapTextureFixture::imageColourAt(
-    TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+mapTextureFixture::imageColorAt(
+    textureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     switch (image->getInterpolationType()) {
     case (int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION:
@@ -230,8 +230,8 @@ MapTextureFixture::imageColourAt(
 
 /** Maps a point (x, y, z) on a cylinder of radius 1, height 1 with y-axis symmetry to [0,1]x[0,1]. */
 int
-MapTextureFixture::cylindricalImageMap(
-    double x, double y, double z, TextureImage *image, double *u, double *v)
+mapTextureFixture::cylindricalImageMap(
+    double x, double y, double z, textureImage *image, double *u, double *v)
 {
     double len;
     double theta;
@@ -274,8 +274,8 @@ MapTextureFixture::cylindricalImageMap(
 
 /** Maps a point (x, y, z) on a torus to a 2-D image. */
 int
-MapTextureFixture::torusImageMap(
-    double x, double y, double z, TextureImage *image, double *u, double *v)
+mapTextureFixture::torusImageMap(
+    double x, double y, double z, textureImage *image, double *u, double *v)
 {
     double len;
     double phi;
@@ -322,7 +322,7 @@ MapTextureFixture::torusImageMap(
 
 /** Maps a point (x, y, z) on a unit sphere to a 2-D image. */
 int
-MapTextureFixture::sphericalImageMap(
+mapTextureFixture::sphericalImageMap(
     double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v)
 {
     double len;
@@ -371,8 +371,8 @@ Simplistic planar image projection by DKB and AAC.
 Returns 0 if no color at this point (invisible), 1 if a good mapping is found.
 */
 int
-MapTextureFixture::planarImageMap(
-    double x, double y, double z, TextureImage *image, double *u, double *v)
+mapTextureFixture::planarImageMap(
+    double x, double y, double z, textureImage *image, double *u, double *v)
 {
     if (image->getImageGradient().x() != 0.0) {
         if ((image->getOnceFlag()) && ((x < 0.0) || (x > 1.0))) {
@@ -409,8 +409,8 @@ MapTextureFixture::planarImageMap(
 
 /** Returns 1 if no color found at this point (invisible), 0 if a color was mapped. */
 int
-MapTextureFixture::map(double x, double y, double z, Texture *texture,
-    TextureImage *image, double *xcoor, double *ycoor, double smallTolerance)
+mapTextureFixture::map(double x, double y, double z, Texture *texture,
+    textureImage *image, double *xcoor, double *ycoor, double smallTolerance)
 {
     // Disabled: turbulence on image maps causes problems; left out for this release.
     // if ((turb = texture->turbulence) != 0.0) {
@@ -469,15 +469,15 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     if ((*xcoor >= (double)image->getXSize()) ||
         (*ycoor >= (double)image->getYSize()) || (*xcoor < 0.0) ||
         (*ycoor < 0.0)) {
-        Logger::reportMessage("MapTextureFixture", Logger::FATAL_ERROR, "", "\nPicture index out of range\n");
+        Logger::reportMessage("mapTextureFixture", Logger::FATAL_ERROR, "", "\nPicture index out of range\n");
     }
 
     return (0);
 }
 
 void
-MapTextureFixture::noInterpolation(
-    TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+mapTextureFixture::noInterpolation(
+    textureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     if (xcoor < 0.0) {
         xcoor += (double)image->getXSize();
@@ -513,8 +513,8 @@ MapTextureFixture::noInterpolation(
 
 /** Interpolates color and alpha values when mapping. */
 void
-MapTextureFixture::interp(
-    TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
+mapTextureFixture::interp(
+    textureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     int iycoor;
     int ixcoor;
@@ -605,7 +605,7 @@ Bilinear interpolation. From an article by Girish T. Hagan in
 C Programmer's Journal V 9 No. 8; adapted for POV-Ray by CdW.
 */
 double
-MapTextureFixture::bilinear(double *corners, double x, double y)
+mapTextureFixture::bilinear(double *corners, double x, double y)
 {
     double p;
     double q;
@@ -625,13 +625,13 @@ MapTextureFixture::bilinear(double *corners, double x, double y)
 static constexpr int MAX_PTS = 4;
 
 inline double
-MapTextureFixture::pythagoreanSq(double a, double b)
+mapTextureFixture::pythagoreanSq(double a, double b)
 {
     return a * a + b * b;
 }
 
 double
-MapTextureFixture::normDist(double *corners, double x, double y)
+mapTextureFixture::normDist(double *corners, double x, double y)
 {
     int i;
 

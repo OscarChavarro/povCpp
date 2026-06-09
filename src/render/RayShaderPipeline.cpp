@@ -56,8 +56,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
 
-    MapTextureFixture mapFixture;
-    ColorTextureFixture colourFixture;
+    mapTextureFixture mapFixture;
+    colorTextureFixture colourFixture;
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
@@ -99,7 +99,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 Color::makeColor(&surfaceColour, 0.5, 0.5, 0.5);
             }
         } else {
-            colourFixture.colourAt(
+            colourFixture.colorAt(
                 &surfaceColour, tempTexture, &rayIntersection->Point, GeometryConstants::Small_Tolerance);
         }
         /* We don't need to compute the lighting characteristics for shadow

@@ -269,8 +269,8 @@ PovrayApplication::prepareRendering()
     }
 
     IntersectionPriorityQueuePool::pqInit();
-    TextureUtils::initialize(Statistics::global().getSolidTextureStatistics());
-    TextureUtils::instance().initializeNoise();
+    textureUtils::initialize(Statistics::global().getSolidTextureStatistics());
+    textureUtils::instance().initializeNoise();
 }
 
 void

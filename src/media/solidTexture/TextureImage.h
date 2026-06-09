@@ -5,7 +5,7 @@
 #include "media/IndexedImage.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-class TextureImage : public RGBAImageHDRUncompressed {
+class textureImage : public RGBAImageHDRUncompressed {
   private:
     int mapType = 0;
     int interpolationType = 0;
