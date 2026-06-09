@@ -19,7 +19,7 @@
 #include "io/pov/texture/ColorMapParser.h"
 #include "io/pov/texture/TextureParser.h"
 #include "media/solidTexture/TextureImage.h"
-#include "media/IndexedImage.h"
+#include "media/IndexedColorImageHDRUncompressed.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -35,7 +35,7 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/light/Light.h"
 
-static void wireIndexedIntotextureImage(textureImage *ti, IndexedImage *idx)
+static void wireIndexedIntotextureImage(textureImage *ti, IndexedColorImageHDRUncompressed *idx)
 {
     ti->setIndexedData(idx);
     ti->allocate(idx->getXSize(), idx->getYSize());
@@ -512,7 +512,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedImage *idx = IffFormat::readIffImage(
+                            IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
                                 texture->image, ctx.token().Token_String);
                             if (idx != nullptr) {
                                 wireIndexedIntotextureImage(texture->image, idx);
@@ -523,7 +523,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedImage *idx = new IndexedImage;
+                            IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
                             wireIndexedIntotextureImage(texture->image, idx);
                             Exit_Flag = true;
@@ -873,7 +873,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedImage *idx = IffFormat::readIffImage(
+                            IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
                                 texture->bumpImage, ctx.token().Token_String);
                             if (idx != nullptr) {
                                 wireIndexedIntotextureImage(texture->bumpImage, idx);
@@ -884,7 +884,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedImage *idx = new IndexedImage;
+                            IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
                             wireIndexedIntotextureImage(texture->bumpImage, idx);
                             Exit_Flag = true;
@@ -1000,7 +1000,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedImage *idx = IffFormat::readIffImage(
+                            IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
                                 texture->materialImage, ctx.token().Token_String);
                             if (idx != nullptr) {
                                 wireIndexedIntotextureImage(texture->materialImage, idx);
@@ -1011,7 +1011,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedImage *idx = new IndexedImage;
+                            IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
                             wireIndexedIntotextureImage(texture->materialImage, idx);
                             Exit_Flag = true;

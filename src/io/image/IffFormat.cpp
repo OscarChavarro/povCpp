@@ -65,7 +65,7 @@ IffFormat::readChunkHeader(java::FileInputStream &is, ChunkHeader *dest)
     dest->size = IffFormat::readLong(is);
 }
 
-IndexedImage *
+IndexedColorImageHDRUncompressed *
 IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
 {
     unsigned char **rowBytes;
@@ -176,7 +176,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
 
             if (isIndexed) {
                 // --- Indexed (paletted) path ---
-                IndexedImage *indexed = new IndexedImage;
+                IndexedColorImageHDRUncompressed *indexed = new IndexedColorImageHDRUncompressed;
                 indexed->setColorMapSize(sColorMapSize);
                 indexed->setColorMap(sIffColorMap);
 

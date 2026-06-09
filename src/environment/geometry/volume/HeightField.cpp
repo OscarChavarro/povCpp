@@ -15,7 +15,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/HeightField.h"
-#include "media/IndexedImage.h"
+#include "media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
@@ -642,7 +642,7 @@ allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
 }
 
 void
-HeightField::findHfMinMax(HeightField *hField, IndexedImage *image, int imageType)
+HeightField::findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed *image, int imageType)
 {
     int maxX = image->getXSize();
     if (imageType == HeightField::POT) {
