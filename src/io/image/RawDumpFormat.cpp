@@ -18,7 +18,7 @@
 #include "io/image/RawDumpFormat.h"
 #include "common/color/RGBAColor.h"
 #include "io/binaryIo/FileLocator.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/io/PersistenceElement.h"
 #include "media/RGBAImageHDRUncompressed.h"
@@ -253,8 +253,11 @@ RawDumpFormat::readDumpImage(RGBAImageHDRUncompressed *image, char *name)
 {
     RawDumpFormat fmt;
     if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
-        Logger::error("Cannot open dump file %s\n", name);
-        exit(1);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Cannot open dump file %s\n", name);
+            Logger::reportMessage("RawDumpFormat", Logger::FATAL_ERROR, "", _logMsg);
+        }
     }
 
     image->allocate(image->iwidth, image->iheight);

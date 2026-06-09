@@ -6,7 +6,8 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/compound/Composite.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include "environment/material/RendererConfiguration.h"
 #include "common/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
@@ -25,8 +26,7 @@ createBasicObject()
     SimpleBody *newObject;
 
     if ((newObject = new SimpleBody()) == nullptr) {
-        Logger::error("Out of memory. Cannot allocate object");
-        exit(1);
+        Logger::reportMessage("Composite", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
     newObject->nextObject = nullptr;
@@ -156,13 +156,16 @@ Composite::allObjectIntersections(
 
             Statistics::global().clippingRegionTests++;
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-                Logger::info("Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x(),
-                    localIntersection->Point.y(), localIntersection->Point.z());
+                {
+                    char _logMsg[1024];
+                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x(),                     localIntersection->Point.y(), localIntersection->Point.z());
+                    Logger::reportMessage("Composite", Logger::WARNING, "", _logMsg);
+                }
             }
             if (!GeometryOperations::inside(
                     &localIntersection->Point, (SimpleBody *)clippingShape)) {
                 if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-                    Logger::info("not ok\n");
+                    Logger::reportMessage("Composite", Logger::WARNING, "", "not ok\n");
                 }
                 intersectionFound = false;
                 break;
@@ -172,7 +175,7 @@ Composite::allObjectIntersections(
 
         if (intersectionFound) {
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-                Logger::info("ok\n");
+                Logger::reportMessage("Composite", Logger::WARNING, "", "ok\n");
             }
             depthQueue->add(localIntersection);
             anyIntersectionFound = true;

@@ -1,5 +1,6 @@
 #include "io/pov/context/ParserContext.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/GifFormat.h"
@@ -52,33 +53,17 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
         return;
     }
 
-    Logger::info(
-        "[TEXTURE-STATE] %s type=%d ambient=%.6f diffuse=%.6f brilliance=%.6f reflection=%.6f turbulence=%.6f frequency=%.6f phase=%.6f octaves=%d bumpNumber=%d bumpAmount=%.6f texXform=%s\n",
-        prefix,
-        texture->textureNumber,
-        texture->objectAmbient,
-        texture->objectDiffuse,
-        texture->objectBrilliance,
-        texture->objectReflection,
-        texture->Turbulence,
-        texture->Frequency,
-        texture->Phase,
-        texture->Octaves,
-        texture->bumpNumber,
-        texture->bumpAmount,
-        texture->textureTransformation != nullptr ? "yes" : "no");
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "[TEXTURE-STATE] %s type=%d ambient=%.6f diffuse=%.6f brilliance=%.6f reflection=%.6f turbulence=%.6f frequency=%.6f phase=%.6f octaves=%d bumpNumber=%d bumpAmount=%.6f texXform=%s\n", prefix,         texture->textureNumber,         texture->objectAmbient,         texture->objectDiffuse,         texture->objectBrilliance,         texture->objectReflection,         texture->Turbulence,         texture->Frequency,         texture->Phase,         texture->Octaves,         texture->bumpNumber,         texture->bumpAmount,         texture->textureTransformation != nullptr ? "yes" : "no");
+        Logger::reportMessage("TextureParser", Logger::WARNING, "", _logMsg);
+    }
     if (texture->textureTransformation != nullptr) {
-        Logger::info(
-            "[TEXTURE-STATE] %s xform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n",
-            prefix,
-            texture->textureTransformation->get(0, 0), texture->textureTransformation->get(0, 1),
-            texture->textureTransformation->get(0, 2), texture->textureTransformation->get(0, 3),
-            texture->textureTransformation->get(1, 0), texture->textureTransformation->get(1, 1),
-            texture->textureTransformation->get(1, 2), texture->textureTransformation->get(1, 3),
-            texture->textureTransformation->get(2, 0), texture->textureTransformation->get(2, 1),
-            texture->textureTransformation->get(2, 2), texture->textureTransformation->get(2, 3),
-            texture->textureTransformation->get(3, 0), texture->textureTransformation->get(3, 1),
-            texture->textureTransformation->get(3, 2), texture->textureTransformation->get(3, 3));
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "[TEXTURE-STATE] %s xform row0=<%.6f,%.6f,%.6f,%.6f> row1=<%.6f,%.6f,%.6f,%.6f> row2=<%.6f,%.6f,%.6f,%.6f> row3=<%.6f,%.6f,%.6f,%.6f>\n", prefix,             texture->textureTransformation->get(0, 0), texture->textureTransformation->get(0, 1),             texture->textureTransformation->get(0, 2), texture->textureTransformation->get(0, 3),             texture->textureTransformation->get(1, 0), texture->textureTransformation->get(1, 1),             texture->textureTransformation->get(1, 2), texture->textureTransformation->get(1, 3),             texture->textureTransformation->get(2, 0), texture->textureTransformation->get(2, 1),             texture->textureTransformation->get(2, 2), texture->textureTransformation->get(2, 3),             texture->textureTransformation->get(3, 0), texture->textureTransformation->get(3, 1),             texture->textureTransformation->get(3, 2), texture->textureTransformation->get(3, 3));
+            Logger::reportMessage("TextureParser", Logger::WARNING, "", _logMsg);
+        }
     }
 }
 

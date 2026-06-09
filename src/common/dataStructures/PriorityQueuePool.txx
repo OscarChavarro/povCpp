@@ -1,7 +1,7 @@
 #ifndef __PRIORITY_QUEUE_POOL_TXX__
 #define __PRIORITY_QUEUE_POOL_TXX__
 
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -24,8 +24,7 @@ PriorityQueuePool<T>::pqInit()
     for (i = 0; i < NUMBER_OF_PRIOQS; i++) {
         newNode = new PriorityQueue<T>();
         if (newNode == nullptr) {
-            Logger::error( "\nOut of memory. Cannot allocate queues");
-            exit(1);
+            Logger::reportMessage("PriorityQueuePool", Logger::FATAL_ERROR, "", "\nOut of memory. Cannot allocate queues");
         }
 
         newNode->next_pq = head;
@@ -33,8 +32,7 @@ PriorityQueuePool<T>::pqInit()
 
         newNode->queue = new T[MAX_NUMBER_OF_ENTRIES];
         if (newNode->queue == nullptr) {
-            Logger::error( "\nOut of memory. Cannot allocate queue entries");
-            exit(1);
+            Logger::reportMessage("PriorityQueuePool", Logger::FATAL_ERROR, "", "\nOut of memory. Cannot allocate queue entries");
         }
         newNode->currentEntry = 0;
         newNode->queueSize = 0;
@@ -56,8 +54,7 @@ PriorityQueuePool<T>::pqPop(int indexSize)
     PriorityQueue<T> *pq;
 
     if (head == nullptr) {
-        Logger::error( "\nOut of prioqs");
-        exit(1);
+        Logger::reportMessage("PriorityQueuePool", Logger::FATAL_ERROR, "", "\nOut of prioqs");
     }
     pq = head;
 

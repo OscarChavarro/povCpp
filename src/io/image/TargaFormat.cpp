@@ -3,7 +3,7 @@
 #include <cstdio>
 
 #include "java/io/FileOutputStream.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/color/RGBAColor.h"
 #include "media/RGBAImageHDRUncompressed.h"
 #include "io/image/TargaFormat.h"
@@ -223,8 +223,11 @@ TargaFormat::readTargaImage(RGBAImageHDRUncompressed *image, char *name)
 {
     TargaFormat fmt;
     if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
-        Logger::error("Cannot open Targa file %s\n", name);
-        exit(1);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Cannot open Targa file %s\n", name);
+            Logger::reportMessage("TargaFormat", Logger::FATAL_ERROR, "", _logMsg);
+        }
     }
 
     image->allocate(image->iwidth, image->iheight);

@@ -9,7 +9,8 @@
 #include "io/image/GifFormat.h"
 #include "io/binaryIo/FileLocator.h"
 #include "io/image/GifDecoder.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include <cstring>
 
 IndexedImage *GifFormat::currentImage = nullptr;
@@ -25,8 +26,7 @@ GifFormat::outLine(unsigned char *pixels, int linelen)
 
     for (int x = 0; x < linelen; x++) {
         if ((int)(*pixels) > currentImage->colourMapSize) {
-            Logger::error("Error - GIF Image Map Colour out of range\n");
-            exit(1);
+            Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Error - GIF Image Map Colour out of range\n");
         }
         line[x] = *pixels;
         pixels++;
@@ -41,8 +41,7 @@ GifFormat::getByte()
     if (byte != -1) {
         return byte;
     }
-    Logger::error("Premature End Of File reading GIF image\n");
-    exit(1);
+    Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Premature End Of File reading GIF image\n");
     return 0;
 }
 
@@ -60,13 +59,16 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
 
     bitStream = FileLocator::locateAsStream(filename);
     if (bitStream == nullptr) {
-        Logger::error("Cannot open GIF file %s\n", filename);
-        exit(1);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Cannot open GIF file %s\n", filename);
+            Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", _logMsg);
+        }
     }
 
     GifDecoder::decoderline = new unsigned char[2049];
     if (GifDecoder::decoderline == nullptr) {
-        Logger::error("Cannot allocate space for GIF decoder line\n");
+        Logger::reportMessage("GifFormat", Logger::ERROR, "", "Cannot allocate space for GIF decoder line\n");
         bitStream->close();
         delete bitStream;
         exit(1);
@@ -84,7 +86,11 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
         buffer[3] < '0' || buffer[3] > '9' || buffer[4] < '0' ||
         buffer[4] > '9' || buffer[5] < 'A' || buffer[5] > 'z') {
 
-        Logger::error("Invalid GIF file format: %s\n", filename);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Invalid GIF file format: %s\n", filename);
+            Logger::reportMessage("GifFormat", Logger::ERROR, "", _logMsg);
+        }
         bitStream->close();
         delete bitStream;
         exit(1);
@@ -95,14 +101,18 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
 
     gifColourMap = new RGBAPixelHDR[colourmapSize];
     if (gifColourMap == nullptr) {
-        Logger::error("Cannot allocate GIF Colour Map\n");
+        Logger::reportMessage("GifFormat", Logger::ERROR, "", "Cannot allocate GIF Colour Map\n");
         bitStream->close();
         delete bitStream;
         exit(1);
     }
 
     if ((buffer[10] & 0x80) == 0) {
-        Logger::error("Invalid GIF file format: %s\n", filename);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Invalid GIF file format: %s\n", filename);
+            Logger::reportMessage("GifFormat", Logger::ERROR, "", _logMsg);
+        }
         bitStream->close();
         delete bitStream;
         exit(1);
@@ -157,15 +167,13 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
 
             image->mapLines = new unsigned char *[image->iheight];
             if (image->mapLines == nullptr) {
-                Logger::error("Cannot allocate memory for picture\n");
-                exit(1);
+                Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for picture\n");
             }
 
             for (i = 0; i < image->iheight; i++) {
                 image->mapLines[i] = new unsigned char[image->iwidth];
                 if (image->mapLines[i] == nullptr) {
-                    Logger::error("Cannot allocate memory for picture\n");
-                    exit(1);
+                    Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for picture\n");
                 }
             }
 

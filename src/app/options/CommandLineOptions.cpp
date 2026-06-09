@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/material/RendererConfiguration.h"
 #include "io/binaryIo/FileLocator.h"
 #include "io/pov/lexer/Tokenizer.h"
@@ -29,34 +29,31 @@ CommandLineOptions::reset()
 void
 CommandLineOptions::usage()
 {
-    Logger::info( "\nUsage:");
-    Logger::info( "\n    povray  [+/-] Option1 [+/-] Option2 ...");
-    Logger::info( "\n");
-    Logger::info( "\n Options: ");
-    Logger::info( "\n     dxy = display in format x, using palette option y");
-    Logger::info( "\n     vx  = verbose in format x");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\nUsage:");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n    povray  [+/-] Option1 [+/-] Option2 ...");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n Options: ");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     dxy = display in format x, using palette option y");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     vx  = verbose in format x");
     /*Logger::info("\n     @filename  = verbose to file name -- see docs");*/
-    Logger::info( "\n     p  = pause before exit");
-    Logger::info( "\n     x  = enable early exit by key hit");
-    Logger::info( "\n     fx = write output file in format x");
-    Logger::info( "\n            ft - Uncompressed Targa-24  fd - DKB/QRT "
-                    "Dump  fr - 3 Raw Files");
-    Logger::info( "\n     a  = perform antialiasing");
-    Logger::info( "\n     c  = continue aborted trace");
-    Logger::info( "\n     qx = image quality 0=rough, 9=full");
-    Logger::info( "\n     l<pathname> = library path prefix");
-    Logger::info( "\n     wxxx = width of the screen");
-    Logger::info( "\n     hxxx = height of the screen");
-    Logger::info( "\n     sxxx = start at line number xxx");
-    Logger::info( "\n     exxx = end at line number xxx");
-    Logger::info( "\n     bxxx = Use xxx kilobytes for output file buffer space");
-    Logger::info( "\n     i<filename> = input file name");
-    Logger::info( "\n     o<filename> = output file name");
-    Logger::info( "\n  Ex: +l\\povray\\include +iscene.pov +oscene.tga +w320 "
-                    "+h200 +d -v +x");
-    Logger::info( "\n  Ex: +iscene.pov +oscene.tga +w160 +h200 +v -d +x");
-    Logger::info( "\n");
-    exit(1);
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     p  = pause before exit");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     x  = enable early exit by key hit");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     fx = write output file in format x");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n            ft - Uncompressed Targa-24  fd - DKB/QRT "                     "Dump  fr - 3 Raw Files");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     a  = perform antialiasing");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     c  = continue aborted trace");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     qx = image quality 0=rough, 9=full");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     l<pathname> = library path prefix");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     wxxx = width of the screen");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     hxxx = height of the screen");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     sxxx = start at line number xxx");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     exxx = end at line number xxx");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     bxxx = Use xxx kilobytes for output file buffer space");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     i<filename> = input file name");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     o<filename> = output file name");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n  Ex: +l\\povray\\include +iscene.pov +oscene.tga +w320 "                     "+h200 +d -v +x");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n  Ex: +iscene.pov +oscene.tga +w160 +h200 +v -d +x");
+    Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "\n");
 }
 
 /* Read the default parameters from povray.def */
@@ -127,11 +124,11 @@ CommandLineOptions::readOptions(char *optionLine)
                 optionString[stringIndex++] = (char)c;
                 optionStarted = true;
             } else if (!isspace(c)) {
-                Logger::error(
-                    "\nBad default file format.  Offending char: (%c), val: "
-                    "%d.\n",
-                    (char)c, c);
-                exit(1);
+                {
+                    char _logMsg[1024];
+                    snprintf(_logMsg, sizeof(_logMsg), "\nBad default file format.  Offending char: (%c), val: "                     "%d.\n", (char)c, c);
+                    Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", _logMsg);
+                }
             }
     }
 
@@ -275,8 +272,7 @@ CommandLineOptions::parseOption(char *optionString)
     case 'L':
     case 'l':
         if (FileLocator::searchPaths().size() >= 10) {
-            Logger::error("Too many library directories specified\n");
-            exit(1);
+            Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "Too many library directories specified\n");
         }
         FileLocator::addSearchPath(&optionString[1]);
         optionNumber = 0;
@@ -341,7 +337,11 @@ CommandLineOptions::parseOption(char *optionString)
         break;
 
     default:
-        Logger::error("\nInvalid option: %s\n\n", --optionString);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "\nInvalid option: %s\n\n", --optionString);
+            Logger::reportMessage("CommandLineOptions", Logger::ERROR, "", _logMsg);
+        }
         optionNumber = 0;
     }
 
@@ -357,62 +357,96 @@ CommandLineOptions::parseOption(char *optionString)
 void
 CommandLineOptions::printOptions()
 {
-    Logger::info( "\nPOV-Ray          Options in effect: ");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\nPOV-Ray          Options in effect: ");
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::CONTINUE_TRACE) {
-        Logger::info( "+c ");
+        Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "+c ");
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY) {
-        Logger::info( "+d%c%c ", RenderingConfiguration::global().displayFormat, RenderingConfiguration::global().paletteOption);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "+d%c%c ", RenderingConfiguration::global().displayFormat, RenderingConfiguration::global().paletteOption);
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) {
-        Logger::info( "+v%c ", RenderingConfiguration::global().verboseFormat);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "+v%c ", RenderingConfiguration::global().verboseFormat);
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        Logger::info( "+@%s ", RenderingConfiguration::global().statFileName);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "+@%s ", RenderingConfiguration::global().statFileName);
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
-        Logger::info( "+f%c ", RenderingConfiguration::global().outputFormat);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "+f%c ", RenderingConfiguration::global().outputFormat);
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::PROMPTEXIT) {
-        Logger::info( "+p ");
+        Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "+p ");
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::EXITENABLE) {
-        Logger::info( "+x ");
+        Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "+x ");
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
-        Logger::info( "+a%f ", RenderingConfiguration::global().antialiasThreshold);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "+a%f ", RenderingConfiguration::global().antialiasThreshold);
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-        Logger::info( "+z ");
+        Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "+z ");
     }
 
     if (RenderingConfiguration::global().fileBufferSize != 0) {
-        Logger::info( "-b%d ", RenderingConfiguration::global().fileBufferSize / 1024);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "-b%d ", RenderingConfiguration::global().fileBufferSize / 1024);
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
-    Logger::info( "-q%d -w%d -h%d -s%d -e%d\n-i%s ", RenderingConfiguration::global().quality,
-        RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight, RenderingConfiguration::global().firstLine,
-        RenderingConfiguration::global().lastLine, RenderingConfiguration::global().inputFileName);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "-q%d -w%d -h%d -s%d -e%d\n-i%s ", RenderingConfiguration::global().quality,         RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight, RenderingConfiguration::global().firstLine,         RenderingConfiguration::global().lastLine, RenderingConfiguration::global().inputFileName);
+        Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+    }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
-        Logger::info( "-o%s ", RenderingConfiguration::global().outputFileName);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "-o%s ", RenderingConfiguration::global().outputFileName);
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
     const java::ArrayList<java::String> &paths = FileLocator::searchPaths();
     for (long int i = 0; i < paths.size(); i++) {
-        Logger::info("-l%s ", paths.get(i).toCString());
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "-l%s ", paths.get(i).toCString());
+            Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", _logMsg);
+        }
     }
 
-    Logger::info( "\n");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n");
 }
 
 void
@@ -440,10 +474,11 @@ CommandLineOptions::parseFileName(char *fileName)
     }
 
     if (++numberOfFiles > MAX_FILE_NAMES) {
-        Logger::error(
-            "\nOnly %d option file names are allowed in a command line.",
-            MAX_FILE_NAMES);
-        exit(1);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "\nOnly %d option file names are allowed in a command line.", MAX_FILE_NAMES);
+            Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", _logMsg);
+        }
     }
 
     if ((defaultsFile = FileLocator::locate(fileName, "r")) != nullptr) {
@@ -452,6 +487,10 @@ CommandLineOptions::parseFileName(char *fileName)
         }
         fclose(defaultsFile);
     } else {
-        Logger::error("\nError opening option file %s.", fileName);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "\nError opening option file %s.", fileName);
+            Logger::reportMessage("CommandLineOptions", Logger::ERROR, "", _logMsg);
+        }
     }
 }

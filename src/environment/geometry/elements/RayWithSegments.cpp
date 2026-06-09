@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 RayWithSegments::RayWithSegments()
@@ -62,8 +62,7 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
 
     if ((this->containingIndex = sourceRay->containingIndex) >=
         RayWithSegments::MAX_CONTAINING_OBJECTS) {
-        Logger::error( "ERROR - Containing Index too high\n");
-        exit(1);
+        Logger::reportMessage("RayWithSegments", Logger::FATAL_ERROR, "", "ERROR - Containing Index too high\n");
     }
     this->isShadowRay = sourceRay->isShadowRay;
     this->isPrimaryRay = false;
@@ -80,8 +79,7 @@ RayWithSegments::enterContainingMedium(Texture *texture)
     int index;
 
     if ((index = ++(this->containingIndex)) >= RayWithSegments::MAX_CONTAINING_OBJECTS) {
-        Logger::error( "Too many nested refracting objects\n");
-        exit(1);
+        Logger::reportMessage("RayWithSegments", Logger::FATAL_ERROR, "", "Too many nested refracting objects\n");
     }
 
     this->containingTextures[index] = texture;
@@ -92,7 +90,6 @@ void
 RayWithSegments::exitContainingMedium()
 {
     if (--(this->containingIndex) < -1) {
-        Logger::error( "Too many exits from refractions\n");
-        exit(1);
+        Logger::reportMessage("RayWithSegments", Logger::FATAL_ERROR, "", "Too many exits from refractions\n");
     }
 }

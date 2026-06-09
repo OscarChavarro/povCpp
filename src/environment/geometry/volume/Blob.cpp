@@ -9,7 +9,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/Blob.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -41,14 +41,12 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     BlobList *temp;
 
     if (npoints < 1) {
-        Logger::info("Need at least one component in a blob\n");
-        exit(1);
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Need at least one component in a blob\n");
     }
     blob->threshold = threshold;
     blob->list = new BlobElement[npoints];
     if (blob->list == nullptr) {
-        Logger::info("Failed to allocate blob data\n");
-        exit(1);
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
     }
     blob->count = npoints;
     blob->sturmFlag = sflag;
@@ -79,8 +77,7 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     npoints *= 2;
     blob->intervals = new BlobInterval[npoints];
     if (blob->intervals == nullptr) {
-        Logger::info("Failed to allocate blob data\n");
-        exit(1);
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
     }
 }
 
@@ -543,16 +540,14 @@ Blob::copyBlob(SimpleBody *object)
     /* Allocate space and copy the blob specific data */
     blob->list = new BlobElement[oldShape->count];
     if (blob->list == nullptr) {
-        Logger::info("Failed to allocate blob data\n");
-        exit(1);
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
     }
     for (int i = 0; i < oldShape->count; i++) {
         blob->list[i] = oldShape->list[i];
     }
     blob->intervals = new BlobInterval[2 * blob->count];
     if (blob->intervals == nullptr) {
-        Logger::info("Failed to allocate blob data\n");
-        exit(1);
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
     }
 
     /* Copy any associated transformation */

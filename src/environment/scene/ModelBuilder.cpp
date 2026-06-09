@@ -2,7 +2,7 @@
 
 #include "processing/PolynomialConstants.h"
 #include "common/color/Color.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
@@ -24,8 +24,7 @@ ModelBuilder::getCompositeObject()
 
     newComposite = new Composite;
     if (newComposite == nullptr) {
-        Logger::error("Out of memory. Cannot allocate object\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object\n");
     }
 
     newComposite->Objects = nullptr;
@@ -44,8 +43,7 @@ ModelBuilder::getSphereShape()
 
     newShape = new Sphere();
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
@@ -69,8 +67,7 @@ ModelBuilder::getLightSourceShape()
 
     newShape = new Light;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->pointsAt) = Vector3Dd(0.0, 0.0, 1.0);
@@ -95,8 +92,7 @@ ModelBuilder::getQuadricShape()
 
     newShape = new Quadric;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     *&(newShape->object2Terms) = Vector3Dd(1.0, 1.0, 1.0);
@@ -122,8 +118,7 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
 
     newShape = new PolynomialShape;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     newShape->Type = GeometryOperations::POLY_TYPE;
@@ -138,9 +133,7 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
     newShape->sturmFlag = 0;
     newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
-        Logger::error(
-            "Out of memory. Cannot allocate coefficients for POLY\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate coefficients for POLY\n");
     }
     for (i = 0; i < termCounts[order]; i++) {
         newShape->Coeffs[i] = 0.0;
@@ -155,8 +148,7 @@ ModelBuilder::getBoxShape()
 
     newShape = new Box;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     *&(newShape->bounds[0]) = Vector3Dd(-1.0, -1.0, -1.0);
@@ -179,8 +171,7 @@ ModelBuilder::getBlobShape()
 
     newShape = new Blob;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     newShape->transformation = nullptr;
@@ -201,8 +192,7 @@ ModelBuilder::getBicubicPatchShape()
 
     newShape = new ParametricBiCubicPatch;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     newShape->Type = GeometryOperations::BICUBIC_PATCH_TYPE;
@@ -227,8 +217,7 @@ ModelBuilder::getHeightFieldShape()
 
     newShape = new HeightField;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
     newShape->bounding_box = ModelBuilder::getBoxShape();
     newShape->Map = nullptr;
@@ -249,8 +238,7 @@ ModelBuilder::getPlaneShape()
 
     newShape = new InfinitePlane;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
@@ -271,8 +259,7 @@ ModelBuilder::getTriangleShape()
 
     newShape = new Triangle;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
@@ -298,8 +285,7 @@ ModelBuilder::getSmoothTriangleShape()
 
     newShape = new SmoothTriangle;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
@@ -328,8 +314,7 @@ ModelBuilder::getCsgShape()
 
     newShape = new CSG;
     if (newShape == nullptr) {
-        Logger::error("Out of memory. Cannot allocate shape\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
     newShape->nextObject = nullptr;
@@ -366,8 +351,7 @@ ModelBuilder::getCamera()
 
     newViewpoint = new Camera;
     if (newViewpoint == nullptr) {
-        Logger::error("Out of memory. Cannot allocate viewpoint\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate viewpoint\n");
     }
 
     newViewpoint->initializeDefaults();
@@ -381,8 +365,7 @@ ModelBuilder::getColour()
 
     newColour = new RGBAColor;
     if (newColour == nullptr) {
-        Logger::error("Out of memory. Cannot allocate colour\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour\n");
     }
 
     Color::makeColor(newColour, 0.0, 0.0, 0.0);
@@ -396,8 +379,7 @@ ModelBuilder::getVector()
 
     newVector = new Vector3Dd;
     if (newVector == nullptr) {
-        Logger::error("Out of memory. Cannot allocate vector\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate vector\n");
     }
 
     *newVector = Vector3Dd(0.0, 0.0, 0.0);
@@ -411,8 +393,7 @@ ModelBuilder::getFloat()
 
     newFloat = new double;
     if (newFloat == nullptr) {
-        Logger::error("Out of memory. Cannot allocate float\n");
-        exit(1);
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate float\n");
     }
 
     *newFloat = 0.0;

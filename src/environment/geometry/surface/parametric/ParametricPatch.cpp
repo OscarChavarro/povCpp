@@ -9,7 +9,8 @@
  *****************************************************************************/
 
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include "environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
@@ -36,7 +37,7 @@ ParametricBiCubicPatch::createNewParametricPatchNode()
 {
     ParametricPatchNode *node = new ParametricPatchNode();
     if (node == nullptr) {
-        Logger::info("Failed to allocate Bezier node\n");
+        Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Failed to allocate Bezier node\n");
         exit(0);
     }
     node->Data_Ptr = nullptr;
@@ -48,7 +49,7 @@ ParametricBiCubicPatch::createParametricControlPointsBlock()
 {
     ParametricControlPoints *vertices = new ParametricControlPoints();
     if (vertices == nullptr) {
-        Logger::info("Failed to allocate Bezier vertices\n");
+        Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Failed to allocate Bezier vertices\n");
         exit(0);
     }
     return vertices;
@@ -59,7 +60,7 @@ ParametricBiCubicPatch::createParametricPatchChildBlock()
 {
     ParametricPatchChild *children = new ParametricPatchChild();
     if (children == nullptr) {
-        Logger::info("Failed to allocate Bezier children\n");
+        Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Failed to allocate Bezier children\n");
         exit(0);
     }
     return children;
@@ -449,60 +450,47 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     if (shape->Interpolated_Grid == nullptr) {
         shape->Interpolated_Grid = new Vector3Dd *[shape->uSteps + 1];
         if (shape->Interpolated_Grid == nullptr) {
-            Logger::error("Failed to allocate Interpolated_Grid");
-            exit(1);
+            Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate Interpolated_Grid");
         }
         for (i = 0; i <= shape->uSteps; i++) {
             shape->Interpolated_Grid[i] = new Vector3Dd[shape->vSteps + 1];
             if (shape->Interpolated_Grid == nullptr) {
-                Logger::error(
-                    "Failed to allocate component of Interpolated_Grid");
-                exit(1);
+                Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate component of Interpolated_Grid");
             }
         }
         shape->Interpolated_Normals = new Vector3Dd *[shape->uSteps + 1];
         if (shape->Interpolated_Normals == nullptr) {
-            Logger::error(
-                "Failed to allocate Interpolated_Normals");
-            exit(1);
+            Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate Interpolated_Normals");
         }
         for (i = 0; i <= shape->uSteps; i++) {
             shape->Interpolated_Normals[i] =
                 new Vector3Dd[2 * (shape->vSteps + 1)];
             if (shape->Interpolated_Normals == nullptr) {
-                Logger::error(
-                    "Failed to allocate component of Interpolated_Normals");
-                exit(1);
+                Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate component of Interpolated_Normals");
             }
         }
 
         if (shape->patchType == 4) {
             shape->Smooth_Normals = new Vector3Dd *[shape->uSteps + 1];
             if (shape->Smooth_Normals == nullptr) {
-                Logger::error("Failed to allocate Smooth_Normals");
-                exit(1);
+                Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate Smooth_Normals");
             }
             for (i = 0; i <= shape->uSteps; i++) {
                 shape->Smooth_Normals[i] = new Vector3Dd[shape->vSteps + 1];
                 if (shape->Smooth_Normals == nullptr) {
-                    Logger::error(
-                        "Failed to allocate component of Smooth_Normals");
-                    exit(1);
+                    Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate component of Smooth_Normals");
                 }
             }
         }
 
         shape->Interpolated_D = new double *[shape->uSteps + 1];
         if (shape->Interpolated_D == nullptr) {
-            Logger::error("Failed to allocate Interpolated_D");
-            exit(1);
+            Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate Interpolated_D");
         }
         for (i = 0; i <= shape->uSteps; i++) {
             shape->Interpolated_D[i] = new double[2 * (shape->vSteps + 1)];
             if (shape->Interpolated_D == nullptr) {
-                Logger::error(
-                    "Failed to allocate component of Interpolated_D");
-                exit(1);
+                Logger::reportMessage("ParametricPatch", Logger::FATAL_ERROR, "", "Failed to allocate component of Interpolated_D");
             }
         }
     }
@@ -971,7 +959,11 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
             }
         }
     } else {
-        Logger::info("Bad Node type at depth %d\n", depth);
+        {
+            char _logMsg[1024];
+            snprintf(_logMsg, sizeof(_logMsg), "Bad Node type at depth %d\n", depth);
+            Logger::reportMessage("ParametricPatch", Logger::WARNING, "", _logMsg);
+        }
     }
 }
 
@@ -1002,7 +994,7 @@ ParametricBiCubicPatch::bicubicPatchNormal(
         }
     }
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-        Logger::info("Bicubic patch normal for unknown intersection point\n");
+        Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }
     *result = Vector3Dd(1.0, 0.0, 0.0);

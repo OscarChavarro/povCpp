@@ -8,7 +8,8 @@
 
 #include "io/pov/lexer/Tokenizer.h"
 #include "io/binaryIo/FileLocator.h"
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include <cstdio>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
@@ -148,8 +149,7 @@ Tokenizer::initializeTokenizer(char *filename)
 
     Tokenizer::sGlobalDataFile->File = FileLocator::locate(filename, "r");
     if (Tokenizer::sGlobalDataFile->File == nullptr) {
-        Logger::error("Cannot open input file\n");
-        exit(1);
+        Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "Cannot open input file\n");
     }
 
     Tokenizer::sGlobalDataFile->Filename = new char[strlen(filename) + 1];
@@ -157,8 +157,7 @@ Tokenizer::initializeTokenizer(char *filename)
     Tokenizer::sGlobalDataFile->lineNumber = 0;
 
     if ((Tokenizer::sSymbolTable = new char *[maxSymbols]) == nullptr) {
-        Logger::error("Out of Memory. Cannot allocate space for symbol table\n");
-        exit(1);
+        Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "Out of Memory. Cannot allocate space for symbol table\n");
     }
 
     Tokenizer::token().endOfFile = false;
@@ -462,9 +461,16 @@ Tokenizer::getToken()
             break;
 
         default:
-            Logger::error("Error in %s line %d\n", Tokenizer::sGlobalDataFile->Filename,
-                Tokenizer::sGlobalDataFile->lineNumber + 1);
-            Logger::error("Illegal character in input file, value is %02x\n", c);
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), "Error in %s line %d\n", Tokenizer::sGlobalDataFile->Filename,                 Tokenizer::sGlobalDataFile->lineNumber + 1);
+                Logger::reportMessage("Tokenizer", Logger::ERROR, "", _logMsg);
+            }
+            {
+                char _logMsg[1024];
+                snprintf(_logMsg, sizeof(_logMsg), "Illegal character in input file, value is %02x\n", c);
+                Logger::reportMessage("Tokenizer", Logger::ERROR, "", _logMsg);
+            }
             break;
         }
         if (Tokenizer::token().tokenId == Tokenizer::INCLUDE_TOKEN) {
@@ -491,18 +497,22 @@ Tokenizer::getToken()
             Tokenizer::sGlobalDataFile->Filename =
                 new char[strlen(Tokenizer::token().Token_String) + 1];
             if (Tokenizer::sGlobalDataFile->Filename == nullptr) {
-                Logger::error("Out of memory opening include file: %s\n",
-                    Tokenizer::token().Token_String);
-                exit(1);
+                {
+                    char _logMsg[1024];
+                    snprintf(_logMsg, sizeof(_logMsg), "Out of memory opening include file: %s\n", Tokenizer::token().Token_String);
+                    Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
+                }
             }
 
             strcpy(Tokenizer::sGlobalDataFile->Filename, Tokenizer::token().Token_String);
 
             if ((Tokenizer::sGlobalDataFile->File = FileLocator::locate(
                      Tokenizer::token().Token_String, "r")) == nullptr) {
-                Logger::error("Cannot open include file: %s\n",
-                    Tokenizer::token().Token_String);
-                exit(1);
+                {
+                    char _logMsg[1024];
+                    snprintf(_logMsg, sizeof(_logMsg), "Cannot open include file: %s\n", Tokenizer::token().Token_String);
+                    Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
+                }
             }
             Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
         }
@@ -834,10 +844,7 @@ DataFile::readSymbol()
                 strcpy(Tokenizer::sSymbolTable[Tokenizer::sNumberOfSymbols], Tokenizer::sString);
                 symbolId = Tokenizer::sNumberOfSymbols;
             } else {
-                Logger::error(
-                    "\nToo many symbols. Use +ms### option to raise "
-                    "Max_Symbols.\n");
-                exit(1);
+                Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "\nToo many symbols. Use +ms### option to raise "                     "Max_Symbols.\n");
             }
         }
 
@@ -930,10 +937,16 @@ Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
 void
 Tokenizer::tokenError(DataFile *dataFile, const char *str)
 {
-    Logger::error("Error in %s line %d\n", dataFile->Filename,
-        dataFile->lineNumber);
-    Logger::error("%s\n\n", str);
-    exit(1);
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "Error in %s line %d\n", dataFile->Filename,         dataFile->lineNumber);
+        Logger::reportMessage("Tokenizer", Logger::ERROR, "", _logMsg);
+    }
+    {
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "%s\n\n", str);
+        Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
+    }
 }
 /* Since the stricmp function isn't available on all systems, we've
     provided a simplified version of it here. */

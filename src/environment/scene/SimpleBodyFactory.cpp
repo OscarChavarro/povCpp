@@ -1,6 +1,6 @@
 #include "environment/scene/SimpleBodyFactory.h"
 
-#include "common/logger/Logger.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "media/solidTexture/TextureUtils.h"
@@ -19,8 +19,7 @@ SimpleBodyFactory::getObject()
     SimpleBody *newObject;
 
     if ((newObject = new SimpleBody()) == nullptr) {
-        Logger::error("Out of memory. Cannot allocate object");
-        exit(1);
+        Logger::reportMessage("SimpleBodyFactory", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
     newObject->nextObject = nullptr;

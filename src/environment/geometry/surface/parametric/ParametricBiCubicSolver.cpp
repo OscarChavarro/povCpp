@@ -337,8 +337,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         cnt = ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
             ray, shape, &depths[0]);
     } else {
-        Logger::error("Bad patch type\n");
-        exit(1);
+        Logger::reportMessage("ParametricBiCubicSolver", Logger::FATAL_ERROR, "", "Bad patch type\n");
     }
     if (cnt > 0) {
         Statistics::global().rayBicubicTestsSucceeded++;
