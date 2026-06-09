@@ -16,7 +16,7 @@ class SimpleBody;
 
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/logger/Logger.h"
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 
 #include <cstdlib>
 

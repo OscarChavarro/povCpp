@@ -3,7 +3,7 @@
 #include "common/logger/Logger.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "media/TextureUtils.h"
+#include "media/solidTexture/TextureUtils.h"
 
 void
 SimpleBodyFactory::link(

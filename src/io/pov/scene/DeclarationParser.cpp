@@ -21,8 +21,8 @@
 #include "io/pov/light/LightSourceParser.h"
 #include "io/pov/texture/TextureParser.h"
 #include "io/pov/camera/CameraParser.h"
-#include "media/Texture.h"
-#include "media/TextureUtils.h"
+#include "media/solidTexture/Texture.h"
+#include "media/solidTexture/TextureUtils.h"
 
 void
 DeclarationParser::parseDeclare()

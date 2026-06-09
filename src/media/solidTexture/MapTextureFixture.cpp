@@ -8,12 +8,12 @@
 
 #include <cstdlib>
 
-#include "media/MapTextureFixture.h"
+#include "media/solidTexture/MapTextureFixture.h"
 #include "media/TextureImage.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 
 /*
     2-D to 3-D Procedural Texture Mapping of a Bitmapped Image onto an Object:

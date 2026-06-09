@@ -9,8 +9,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "media/TextureImage.h"
-#include "media/RGBAPixel.h"
-#include "media/TextureUtils.h"
+#include "media/RGBAPixel16Bits.h"
+#include "media/solidTexture/TextureUtils.h"
 
 
 class Texture {

@@ -15,11 +15,11 @@ Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
 Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
-#include "media/BumpTextureFixture.h"
+#include "media/solidTexture/BumpTextureFixture.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 
 // [PERL1985].291-292 - Ripples: superimposed wave fronts from point sources
 // Implements: normal += wave(point - center), wave(v) = direction(v) * cycloid(norm(v))

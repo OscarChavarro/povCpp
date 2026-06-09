@@ -1,7 +1,7 @@
 #ifndef __INDEXED_IMAGE_H__
 #define __INDEXED_IMAGE_H__
 
-#include "media/RGBAPixel.h"
+#include "media/RGBAPixel16Bits.h"
 
 class IndexedImage {
   public:

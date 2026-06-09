@@ -70,11 +70,11 @@ add_executable(povray
   src/io/image/TargaFormat.cpp
   src/io/binaryIo/FileLocator.cpp
   src/io/pov/lexer/Tokenizer.cpp
-  src/media/Texture.cpp
-  src/media/BumpTextureFixture.cpp
-  src/media/ColorTextureFixture.cpp
-  src/media/MapTextureFixture.cpp
-  src/media/TextureFixture.cpp
+  src/media/solidTexture/Texture.cpp
+  src/media/solidTexture/BumpTextureFixture.cpp
+  src/media/solidTexture/ColorTextureFixture.cpp
+  src/media/solidTexture/MapTextureFixture.cpp
+  src/media/solidTexture/TextureFixture.cpp
   src/processing/PolynomialSolver.cpp
   src/render/shaders/LightSamplerShader.cpp
   src/render/shaders/ShadowShader.cpp
