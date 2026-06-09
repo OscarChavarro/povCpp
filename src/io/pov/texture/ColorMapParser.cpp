@@ -19,24 +19,24 @@ RGBAColorPalette *
 ColorMapParser::parseColorMap(ParserContext &ctx)
 {
     static constexpr int MAX_ENTRIES = 20;
-    RGBAColorPalette *newColourMap;
+    RGBAColorPalette *newColorMap;
     int i;
     int j;
 
-    newColourMap = new RGBAColorPalette;
-    if (newColourMap == nullptr) {
-        ParseErrorReporter::reportError("Not enough memory for colour map.", ctx);
+    newColorMap = new RGBAColorPalette;
+    if (newColorMap == nullptr) {
+        ParseErrorReporter::reportError("Not enough memory for color map.", ctx);
     }
 
     if (ctx.constructionMap() == nullptr) {
         ctx.constructionMap() = new RGBAColorPaletteSpan[MAX_ENTRIES];
         if (ctx.constructionMap() == nullptr) {
-            ParseErrorReporter::reportError("Not enough memory for colour map.", ctx);
+            ParseErrorReporter::reportError("Not enough memory for color map.", ctx);
         }
     }
 
     i = 0;
-    newColourMap->transparencyFlag = false;
+    newColorMap->transparencyFlag = false;
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
         bool Exit_Flag;
@@ -49,16 +49,16 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                 ctx.constructionMap()[i].end = PrimitiveParser::parseFloat(ctx);
 
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                PrimitiveParser::parseColour(
-                    &(ctx.constructionMap()[i].startColour), ctx);
-                if (ctx.constructionMap()[i].startColour.Alpha != 0.0) {
-                    newColourMap->transparencyFlag = true;
+                PrimitiveParser::parseColor(
+                    &(ctx.constructionMap()[i].startColor), ctx);
+                if (ctx.constructionMap()[i].startColor.Alpha != 0.0) {
+                    newColorMap->transparencyFlag = true;
                 }
 
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                PrimitiveParser::parseColour(&(ctx.constructionMap()[i].endColour), ctx);
-                if (ctx.constructionMap()[i].endColour.Alpha != 0.0) {
-                    newColourMap->transparencyFlag = true;
+                PrimitiveParser::parseColor(&(ctx.constructionMap()[i].endColor), ctx);
+                if (ctx.constructionMap()[i].endColor.Alpha != 0.0) {
+                    newColorMap->transparencyFlag = true;
                 }
 
                 i++;
@@ -69,16 +69,16 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                newColourMap->numberOfEntries = i;
+                newColorMap->numberOfEntries = i;
 
-                newColourMap->Colour_Map_Entries = new RGBAColorPaletteSpan[i];
-                if (newColourMap == nullptr) {
+                newColorMap->colorMapEntries = new RGBAColorPaletteSpan[i];
+                if (newColorMap == nullptr) {
                     ParseErrorReporter::reportError(
-                        "Not enough memory for colour map.", ctx);
+                        "Not enough memory for color map.", ctx);
                 }
 
                 for (j = 0; j < i; j++) {
-                    newColourMap->Colour_Map_Entries[j] = ctx.constructionMap()[j];
+                    newColorMap->colorMapEntries[j] = ctx.constructionMap()[j];
                 }
 
                 Exit_Flag = true;
@@ -91,5 +91,5 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
         }
     }
 
-    return (newColourMap);
+    return (newColorMap);
 }

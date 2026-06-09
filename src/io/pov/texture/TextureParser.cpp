@@ -203,11 +203,11 @@ TextureParser::parseTexture(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::COLOUR_TOKEN:
-                            texture->color1 = ModelBuilder::getColour();
-                            texture->color2 = ModelBuilder::getColour();
-                            PrimitiveParser::parseColour(texture->color1, ctx);
+                            texture->color1 = ModelBuilder::getColor();
+                            texture->color2 = ModelBuilder::getColor();
+                            PrimitiveParser::parseColor(texture->color1, ctx);
                             ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                            PrimitiveParser::parseColour(texture->color2, ctx);
+                            PrimitiveParser::parseColor(texture->color2, ctx);
                             break;
 
                         default:
@@ -232,11 +232,11 @@ TextureParser::parseTexture(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::COLOUR_TOKEN:
-                            texture->color1 = ModelBuilder::getColour();
-                            texture->color2 = ModelBuilder::getColour();
-                            PrimitiveParser::parseColour(texture->color1, ctx);
+                            texture->color1 = ModelBuilder::getColor();
+                            texture->color2 = ModelBuilder::getColor();
+                            PrimitiveParser::parseColor(texture->color1, ctx);
                             ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                            PrimitiveParser::parseColour(texture->color2, ctx);
+                            PrimitiveParser::parseColor(texture->color2, ctx);
                             break;
 
                         default:
@@ -270,9 +270,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
                             {
-                                Texture *colour1Head = (Texture *)texture->color1;
-                                TextureParser::prependTextureLayers(localTexture, colour1Head);
-                                texture->color1 = (RGBAColor *)colour1Head;
+                                Texture *color1Head = (Texture *)texture->color1;
+                                TextureParser::prependTextureLayers(localTexture, color1Head);
+                                texture->color1 = (RGBAColor *)color1Head;
                             }
                             break;
                         default:
@@ -297,9 +297,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
                             {
-                                Texture *colour2Head = (Texture *)texture->color2;
-                                TextureParser::prependTextureLayers(localTexture, colour2Head);
-                                texture->color2 = (RGBAColor *)colour2Head;
+                                Texture *color2Head = (Texture *)texture->color2;
+                                TextureParser::prependTextureLayers(localTexture, color2Head);
+                                texture->color2 = (RGBAColor *)color2Head;
                             }
                             break;
                         default:
@@ -483,7 +483,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 texture->image->setMapType((int)SolidTextureProjectionMethods::PLANAR_MAP);
                 texture->image->setInterpolationType((int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION);
                 texture->image->setOnceFlag(false);
-                texture->image->setUseColourFlag(true);
+                texture->image->setUseColorFlag(true);
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -572,11 +572,11 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->image->setUseColourFlag(true);
+                            texture->image->setUseColorFlag(true);
                             break;
 
                         case Tokenizer::USE_INDEX_TOKEN:
-                            texture->image->setUseColourFlag(false);
+                            texture->image->setUseColorFlag(false);
                             break;
 
                         case Tokenizer::ALPHA_TOKEN: {
@@ -590,14 +590,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     if (texture->image->getIndexedData() == nullptr) {
                                         ParseErrorReporter::reportError(
                                             "Can't apply ALPHA to a non "
-                                            "colour-mapped image\n", ctx);
+                                            "color-mapped image\n", ctx);
                                     }
 
                                     if ((reg < 0) ||
                                         (reg >=
-                                            texture->image->getIndexedData()->getColourMapSize())) {
+                                            texture->image->getIndexedData()->getColorMapSize())) {
                                         ParseErrorReporter::reportError(
-                                            "ALPHA colour register value out "
+                                            "ALPHA color register value out "
                                             "of range.\n", ctx);
                                     }
 
@@ -613,7 +613,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     alpha = PrimitiveParser::parseFloat(ctx);
 
                                     for (reg = 0;
-                                        reg < texture->image->getIndexedData()->getColourMapSize();
+                                        reg < texture->image->getIndexedData()->getColorMapSize();
                                         reg++) {
                                         texture->image->getIndexedData()->getColorMap()[reg].a =
                                             (unsigned short)(alpha * 255.0);
@@ -749,8 +749,8 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->color1 = ModelBuilder::getColour();
-                PrimitiveParser::parseColour(texture->color1, ctx);
+                texture->color1 = ModelBuilder::getColor();
+                PrimitiveParser::parseColor(texture->color1, ctx);
                 texture->textureNumber = (int)SolidTextureColorTextures::COLOUR_TEXTURE;
                 break;
 
@@ -845,7 +845,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 texture->bumpImage->setMapType((int)SolidTextureProjectionMethods::PLANAR_MAP);
                 texture->bumpImage->setInterpolationType((int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION);
                 texture->bumpImage->setOnceFlag(false);
-                texture->bumpImage->setUseColourFlag(true);
+                texture->bumpImage->setUseColorFlag(true);
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -939,10 +939,10 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->bumpImage->setUseColourFlag(true);
+                            texture->bumpImage->setUseColorFlag(true);
                             break;
                         case Tokenizer::USE_INDEX_TOKEN:
-                            texture->bumpImage->setUseColourFlag(false);
+                            texture->bumpImage->setUseColorFlag(false);
                             break;
 
                         case Tokenizer::RIGHT_CURLY_TOKEN:
@@ -972,7 +972,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 texture->materialImage->setMapType((int)SolidTextureProjectionMethods::PLANAR_MAP);
                 texture->materialImage->setInterpolationType((int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION);
                 texture->materialImage->setOnceFlag(false);
-                texture->materialImage->setUseColourFlag(false);
+                texture->materialImage->setUseColorFlag(false);
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 

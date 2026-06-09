@@ -19,16 +19,16 @@ See colorTextureFixture for similar finished textures (granite, agate, marble, e
 */
 void
 textureFixture::painted1(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
 
     // Swirled()
-    Vector3Dd colourVector;
+    Vector3Dd colorVector;
     Vector3Dd result;
     int i;
     double scale = 1.0;
     double temp;
-    RGBAColor newColour;
+    RGBAColor newColor;
 
 
     double rx = 0.0;
@@ -36,9 +36,9 @@ textureFixture::painted1(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        textureUtils::instance().DNoise(&colourVector, x, y, z);
-        temp = textureUtils::instance().Noise(colourVector.x() * 4 * scale,
-            colourVector.y() * 4 * scale, colourVector.z() * 4 * scale);
+        textureUtils::instance().DNoise(&colorVector, x, y, z);
+        temp = textureUtils::instance().Noise(colorVector.x() * 4 * scale,
+            colorVector.y() * 4 * scale, colorVector.z() * 4 * scale);
         temp = textureUtils::instance().fabsInline(temp);
         rx += temp / scale;
         ry += temp / scale;
@@ -48,40 +48,40 @@ textureFixture::painted1(
 
     temp = result.x();
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, temp);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, temp);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
-    colour->Red += temp;
-    colour->Green += temp;
-    colour->Blue += temp;
+    color->Red += temp;
+    color->Green += temp;
+    color->Blue += temp;
 }
 
 void
 textureFixture::painted2(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     int brkindx;
     double turb;
     Vector3Dd textureTurbulence;
     RGBAColor colour1;
-    RGBAColor colour2;
+    RGBAColor color2;
 
     // You could change the parser to take two colors after PAINTED2, but since
     // the colormap is already parsed it's easier to use it during testing.
     // If the texture works out right you can change the parser later.
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&colour1, texture->colorMap, 0.1);
-        textureUtils::instance().computeColour(&colour2, texture->colorMap, 0.9);
+        textureUtils::instance().computeColor(&colour1, texture->colorMap, 0.1);
+        textureUtils::instance().computeColor(&color2, texture->colorMap, 0.9);
     } else {
         Color::makeColor(&colour1, 1.0, 1.0, 1.0);
         colour1.Alpha = 0.0;
-        Color::makeColor(&colour2, 0.0, 1.0, 0.0);
-        colour2.Alpha = 0.0;
+        Color::makeColor(&color2, 0.0, 1.0, 0.0);
+        color2.Alpha = 0.0;
     }
 
     if ((turb = texture->turbulence) != 0.0) {
@@ -96,22 +96,22 @@ textureFixture::painted2(
 
 
     if (brkindx & 1) {
-        colour->Red = colour1.Red;
-        colour->Green = colour1.Green;
-        colour->Blue = colour1.Blue;
-        colour->Alpha = colour1.Alpha;
+        color->Red = colour1.Red;
+        color->Green = colour1.Green;
+        color->Blue = colour1.Blue;
+        color->Alpha = colour1.Alpha;
     } else {
-        colour->Red = colour2.Red;
-        colour->Green = colour2.Green;
-        colour->Blue = colour2.Blue;
-        colour->Alpha = colour2.Alpha;
+        color->Red = color2.Red;
+        color->Green = color2.Green;
+        color->Blue = color2.Blue;
+        color->Alpha = color2.Alpha;
     }
     return;
 }
 
 void
 textureFixture::painted3(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     ;
 }

@@ -121,8 +121,8 @@ BoxParser::parseBox(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->Shape_Colour = ModelBuilder::getColour();
-                PrimitiveParser::parseColour(localShape->Shape_Colour, ctx);
+                localShape->shapeColor = ModelBuilder::getColor();
+                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 
             default:

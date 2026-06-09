@@ -14,8 +14,8 @@ class GifFormat {
     static IndexedImage *currentImage;
     static int bitmapLine;
     static java::FileInputStream *bitStream;
-    static RGBAPixelHDR *gifColourMap;
-    static int colourmapSize;
+    static RGBAPixelHDR *gifColorMap;
+    static int colorMapSize;
 };
 
 #endif

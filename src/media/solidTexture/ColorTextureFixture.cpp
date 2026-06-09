@@ -21,7 +21,7 @@ static constexpr double COORDINATE_LIMIT = 1.0e17;
 
 void
 colorTextureFixture::colorAt(
-    RGBAColor *colour, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance)
+    RGBAColor *color, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance)
 {
     double x;
     double y;
@@ -54,79 +54,79 @@ colorTextureFixture::colorAt(
     switch (texture->textureNumber) {
     case (int)SolidTextureColorTextures::NO_TEXTURE:
         // No colouring texture has been specified - make it black
-        Color::makeColor(colour, 0.0, 0.0, 0.0);
-        colour->Alpha = 0.0;
+        Color::makeColor(color, 0.0, 0.0, 0.0);
+        color->Alpha = 0.0;
         break;
 
     case (int)SolidTextureColorTextures::COLOUR_TEXTURE:
-        colour->Red += texture->color1->Red;
-        colour->Green += texture->color1->Green;
-        colour->Blue += texture->color1->Blue;
-        colour->Alpha += texture->color1->Alpha;
+        color->Red += texture->color1->Red;
+        color->Green += texture->color1->Green;
+        color->Blue += texture->color1->Blue;
+        color->Alpha += texture->color1->Alpha;
         break;
 
     case (int)SolidTextureColorTextures::BOZO_TEXTURE:
-        bozo(x, y, z, texture, colour);
+        bozo(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::MARBLE_TEXTURE:
-        marble(x, y, z, texture, colour);
+        marble(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::WOOD_TEXTURE:
-        wood(x, y, z, texture, colour);
+        wood(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::BRICK_TEXTURE:
-        brick(x, y, z, texture, colour);
+        brick(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::CHECKER_TEXTURE:
-        checker(x, y, z, texture, colour, smallTolerance);
+        checker(x, y, z, texture, color, smallTolerance);
         break;
 
     case (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE:
-        checkerTexture(x, y, z, texture, colour, smallTolerance);
+        checkerTexture(x, y, z, texture, color, smallTolerance);
         break;
 
     case (int)SolidTextureColorTextures::SPOTTED_TEXTURE:
-        spotted(x, y, z, texture, colour);
+        spotted(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::AGATE_TEXTURE:
-        agate(x, y, z, texture, colour);
+        agate(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::GRANITE_TEXTURE:
-        granite(x, y, z, texture, colour);
+        granite(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::GRADIENT_TEXTURE:
-        gradient(x, y, z, texture, colour);
+        gradient(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::IMAGEMAP_TEXTURE:
-        mapFixture.imageMap(x, y, z, texture, colour, smallTolerance);
+        mapFixture.imageMap(x, y, z, texture, color, smallTolerance);
         break;
 
     case (int)SolidTextureColorTextures::ONION_TEXTURE:
-        onion(x, y, z, texture, colour);
+        onion(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::LEOPARD_TEXTURE:
-        leopard(x, y, z, texture, colour);
+        leopard(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::PAINTED1_TEXTURE:
-        textureFixture.painted1(x, y, z, texture, colour);
+        textureFixture.painted1(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::PAINTED2_TEXTURE:
-        textureFixture.painted2(x, y, z, texture, colour);
+        textureFixture.painted2(x, y, z, texture, color);
         break;
 
     case (int)SolidTextureColorTextures::PAINTED3_TEXTURE:
-        textureFixture.painted3(x, y, z, texture, colour);
+        textureFixture.painted3(x, y, z, texture, color);
         break;
     }
 }
@@ -134,11 +134,11 @@ colorTextureFixture::colorAt(
 /** [PERL1985].290 - Agate: combines turbulence modulation with periodic wave function. */
 void
 colorTextureFixture::agate(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     double noise;
     double hue;
-    RGBAColor newColour;
+    RGBAColor newColor;
 
     noise = textureUtils::instance().cycloidal(
                 1.3 * textureUtils::instance().Turbulence(x, y, z, texture->octaves) +
@@ -149,39 +149,39 @@ colorTextureFixture::agate(
 
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
     hue = 1.0 - noise;
 
     if (noise < 0.5) {
-        colour->Red += (1.0 - (noise / 10));
-        colour->Green += (1.0 - (noise / 5));
-        colour->Blue += hue;
+        color->Red += (1.0 - (noise / 10));
+        color->Green += (1.0 - (noise / 5));
+        color->Blue += hue;
     } else if (noise < 0.6) {
-        colour->Red += 0.9;
-        colour->Green += 0.7;
-        colour->Blue += hue;
+        color->Red += 0.9;
+        color->Green += 0.7;
+        color->Blue += hue;
     } else {
-        colour->Red += (0.6 + hue);
-        colour->Green += (0.3 + hue);
-        colour->Blue += hue;
+        color->Red += (0.6 + hue);
+        color->Green += (0.3 + hue);
+        color->Blue += hue;
     }
 }
 
 /** [PERL1985].290 - Bozo: displaced Noise() via DTurbulence gradient perturbation. */
 void
 colorTextureFixture::bozo(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     double noise;
     double turb;
-    RGBAColor newColour;
+    RGBAColor newColor;
     Vector3Dd bozoTurbulence;
 
     if ((turb = texture->turbulence) != 0.0) {
@@ -194,37 +194,37 @@ colorTextureFixture::bozo(
     noise = textureUtils::instance().Noise(x, y, z);
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
     if (noise < 0.4) {
-        colour->Red += 1.0;
-        colour->Green += 1.0;
-        colour->Blue += 1.0;
+        color->Red += 1.0;
+        color->Green += 1.0;
+        color->Blue += 1.0;
         return;
     }
 
     if (noise < 0.6) {
-        colour->Green += 1.0;
+        color->Green += 1.0;
         return;
     }
 
     if (noise < 0.8) {
-        colour->Blue += 1.0;
+        color->Blue += 1.0;
         return;
     }
 
-    colour->Red += 1.0;
+    color->Red += 1.0;
 }
 
 void
 colorTextureFixture::brick(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     double xr;
     double yr;
@@ -233,24 +233,24 @@ colorTextureFixture::brick(
     xr = fabs(fmod(x, 1.0));
     yr = fabs(fmod(y, 1.0));
     zr = fabs(fmod(z, 1.0));
-    *colour = *texture->color2;
+    *color = *texture->color2;
 
     if (xr > 0 && xr < texture->mortar) {
-        *colour = *texture->color1;
+        *color = *texture->color1;
         return;
     }
     if (yr > 0 && yr < texture->mortar) {
-        *colour = *texture->color1;
+        *color = *texture->color1;
         return;
     }
     if (zr > 0 && zr < texture->mortar) {
-        *colour = *texture->color1;
+        *color = *texture->color1;
     }
 }
 
 void
 colorTextureFixture::checker(double x, double y, double z, Texture *texture,
-    RGBAColor *colour, double smallTolerance)
+    RGBAColor *color, double smallTolerance)
 {
     int brkindx;
 
@@ -263,21 +263,21 @@ colorTextureFixture::checker(double x, double y, double z, Texture *texture,
     brkindx = (int)(textureUtils::instance().floorInline(x) + textureUtils::instance().floorInline(y) + textureUtils::instance().floorInline(z));
 
     if (brkindx & 1) {
-        colour->Red += texture->color1->Red;
-        colour->Green += texture->color1->Green;
-        colour->Blue += texture->color1->Blue;
-        colour->Alpha += texture->color1->Alpha;
+        color->Red += texture->color1->Red;
+        color->Green += texture->color1->Green;
+        color->Blue += texture->color1->Blue;
+        color->Alpha += texture->color1->Alpha;
     } else {
-        colour->Red += texture->color2->Red;
-        colour->Green += texture->color2->Green;
-        colour->Blue += texture->color2->Blue;
-        colour->Alpha += texture->color2->Alpha;
+        color->Red += texture->color2->Red;
+        color->Green += texture->color2->Green;
+        color->Blue += texture->color2->Blue;
+        color->Alpha += texture->color2->Alpha;
     }
 }
 
 void
 colorTextureFixture::checkerTexture(double x, double y, double z,
-    Texture *texture, RGBAColor *colour,
+    Texture *texture, RGBAColor *color,
     double smallTolerance)
 {
     int brkindx;
@@ -293,25 +293,25 @@ colorTextureFixture::checkerTexture(double x, double y, double z,
 
     if (brkindx & 1) {
         colorAt(
-            colour, ((Texture *)texture->color1), &point,
+            color, ((Texture *)texture->color1), &point,
             smallTolerance);
     } else {
         colorAt(
-            colour, ((Texture *)texture->color2), &point,
+            color, ((Texture *)texture->color2), &point,
             smallTolerance);
     }
 }
 
 /**
 Color gradient texture: uses fractional x, y, or z based on which axis components of
-textureGradient are non-zero. Requires a colour map; works best with a circular map where
+textureGradient are non-zero. Requires a color map; works best with a circular map where
 value 1.001 matches value 0.0. Concept from DBW Render, extended to all three axes.
 */
 void
 colorTextureFixture::gradient(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
-    RGBAColor newColour;
+    RGBAColor newColor;
     double value = 0.0;
     double turb;
     Vector3Dd gradTurbulence;
@@ -341,27 +341,27 @@ colorTextureFixture::gradient(
     value = ((value > 1.0) ? fmod(value, 1.0) : value); // clamp to 1.0
 
 
-    textureUtils::instance().computeColour(&newColour, texture->colorMap, value);
-    colour->Red += newColour.Red;
-    colour->Green += newColour.Green;
-    colour->Blue += newColour.Blue;
-    colour->Alpha += newColour.Alpha;
+    textureUtils::instance().computeColor(&newColor, texture->colorMap, value);
+    color->Red += newColor.Red;
+    color->Green += newColor.Green;
+    color->Blue += newColor.Blue;
+    color->Alpha += newColor.Alpha;
 }
 
 /**
 [PERL1985].290 - Granite: 1/f fractal composition of Noise() over octaves.
 Union of spotted and dented textures using a 1/f fractal noise for color values.
-Typically used with small scaling values; works with colour maps for pink granite.
+Typically used with small scaling values; works with color maps for pink granite.
 */
 void
 colorTextureFixture::granite(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     int i;
     double temp;
     double noise = 0.0;
     double freq = 1.0;
-    RGBAColor newColour;
+    RGBAColor newColor;
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
         temp =
@@ -372,51 +372,51 @@ colorTextureFixture::granite(
 
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
-    colour->Red += noise; // white (1.0) * noise
-    colour->Green += noise;
-    colour->Blue += noise;
+    color->Red += noise; // white (1.0) * noise
+    color->Green += noise;
+    color->Blue += noise;
 }
 
 /** [PERL1985].291 - Marble: sine-wave color splining with turbulence-perturbed phase. */
 // Implements: x = point[1] + turbulence(point); color = marble_color(sin(x))
 void
 colorTextureFixture::marble(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     double noise;
     double hue;
-    RGBAColor newColour;
+    RGBAColor newColor;
 
     noise = textureUtils::instance().triangleWave(
         x + textureUtils::instance().Turbulence(x, y, z, texture->octaves) *
                 texture->turbulence);
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
     if (noise < 0.0) {
-        colour->Red += 0.9;
-        colour->Green += 0.8;
-        colour->Blue += 0.8;
+        color->Red += 0.9;
+        color->Green += 0.8;
+        color->Blue += 0.8;
     } else if (noise < 0.9) {
-        colour->Red += 0.9;
+        color->Red += 0.9;
         hue = 0.8 - noise * 0.8;
-        colour->Green += hue;
-        colour->Blue += hue;
+        color->Green += hue;
+        color->Blue += hue;
     }
 }
 
@@ -427,39 +427,39 @@ with tiny scaling values, like masonry or concrete.
 */
 void
 colorTextureFixture::spotted(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     double noise;
-    RGBAColor newColour;
+    RGBAColor newColor;
 
     noise = textureUtils::instance().Noise(x, y, z);
 
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
-    colour->Red += noise; // white (1.0) * noise
-    colour->Green += noise;
-    colour->Blue += noise;
+    color->Red += noise; // white (1.0) * noise
+    color->Green += noise;
+    color->Blue += noise;
 }
 
 /** [PERL1985].291 - Wood: turbulence-based ring patterns via periodic wave on radial distance. */
 // Uses DTurbulence gradient perturbation + cycloidal() for ring bands
 void
 colorTextureFixture::wood(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     double noise;
     double length;
     Vector3Dd woodTurbulence;
     Vector3Dd point;
-    RGBAColor newColour;
+    RGBAColor newColor;
 
     textureUtils::instance().DTurbulence(&woodTurbulence, x, y, z, texture->octaves);
 
@@ -476,29 +476,29 @@ colorTextureFixture::wood(
     noise = textureUtils::instance().triangleWave(length);
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
     if (noise > 0.6) {
-        colour->Red += 0.4;
-        colour->Green += 0.133;
-        colour->Blue += 0.066;
+        color->Red += 0.4;
+        color->Green += 0.133;
+        color->Blue += 0.066;
     } else {
-        colour->Red += 0.666;
-        colour->Green += 0.312;
-        colour->Blue += 0.2;
+        color->Red += 0.666;
+        color->Green += 0.312;
+        color->Blue += 0.2;
     }
 }
 
 /** Leopard texture by Scott Taylor, SWT 7/18/91. */
 void
 colorTextureFixture::leopard(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     // The variable noise is not used as noise in this function
     double noise;
@@ -506,7 +506,7 @@ colorTextureFixture::leopard(
     double temp1;
     double temp2;
     double temp3;
-    RGBAColor newColour;
+    RGBAColor newColor;
     Vector3Dd leopardTurbulence;
 
 
@@ -527,28 +527,28 @@ colorTextureFixture::leopard(
 
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
-    colour->Red += noise;
-    colour->Green += noise;
-    colour->Blue += noise;
+    color->Red += noise;
+    color->Green += noise;
+    color->Blue += noise;
 }
 
 /** Onion texture by Scott Taylor, SWT 7/18/91. */
 void
 colorTextureFixture::onion(
-    double x, double y, double z, Texture *texture, RGBAColor *colour)
+    double x, double y, double z, Texture *texture, RGBAColor *color)
 {
     // The variable noise is not used as noise in this function
     double noise;
     double turb;
-    RGBAColor newColour;
+    RGBAColor newColor;
     Vector3Dd onionTurbulence;
 
 
@@ -569,15 +569,15 @@ colorTextureFixture::onion(
         1.0));
 
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColour(&newColour, texture->colorMap, noise);
-        colour->Red += newColour.Red;
-        colour->Green += newColour.Green;
-        colour->Blue += newColour.Blue;
-        colour->Alpha += newColour.Alpha;
+        textureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        color->Red += newColor.Red;
+        color->Green += newColor.Green;
+        color->Blue += newColor.Blue;
+        color->Alpha += newColor.Alpha;
         return;
     }
 
-    colour->Red += noise;
-    colour->Green += noise;
-    colour->Blue += noise;
+    color->Red += noise;
+    color->Green += noise;
+    color->Blue += noise;
 }

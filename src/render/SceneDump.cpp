@@ -71,18 +71,18 @@ void dumpSceneStructure(FILE *f)
             if (tex->colorMap) {
                 fprintf(f, "  tex.cmap n=%d", tex->colorMap->numberOfEntries);
                 for (int i = 0; i < tex->colorMap->numberOfEntries; i++) {
-                    RGBAColorPaletteSpan &entry = tex->colorMap->Colour_Map_Entries[i];
+                    RGBAColorPaletteSpan &entry = tex->colorMap->colorMapEntries[i];
                     fprintf(f, " [%.6f %.6f %.3f,%.3f,%.3f,%.3f->%.3f,%.3f,%.3f,%.3f]",
                             entry.start,
                             entry.end,
-                            entry.startColour.Red,
-                            entry.startColour.Green,
-                            entry.startColour.Blue,
-                            entry.startColour.Alpha,
-                            entry.endColour.Red,
-                            entry.endColour.Green,
-                            entry.endColour.Blue,
-                            entry.endColour.Alpha);
+                            entry.startColor.Red,
+                            entry.startColor.Green,
+                            entry.startColor.Blue,
+                            entry.startColor.Alpha,
+                            entry.endColor.Red,
+                            entry.endColor.Green,
+                            entry.endColor.Blue,
+                            entry.endColor.Alpha);
                 }
                 fprintf(f, "\n");
             }

@@ -573,8 +573,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                object->objectColour = ModelBuilder::getColour();
-                PrimitiveParser::parseColour(object->objectColour, ctx);
+                object->objectColor = ModelBuilder::getColor();
+                PrimitiveParser::parseColor(object->objectColor, ctx);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:

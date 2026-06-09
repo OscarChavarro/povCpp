@@ -11,8 +11,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-RGBAPixelHDR *IffFormat::sIffColourMap = nullptr;
-int IffFormat::sColourMapSize = 0;
+RGBAPixelHDR *IffFormat::sIffColorMap = nullptr;
+int IffFormat::sColorMapSize = 0;
 ChunkHeader IffFormat::sGlobalChunkHeader;
 
 static constexpr long FORM = 0x464f524dL;
@@ -103,7 +103,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
 
     previousRed = previousGreen = previousBlue = 0;
     viewmodes = 0;
-    sIffColourMap = nullptr;
+    sIffColorMap = nullptr;
 
     while (true) {
         IffFormat::readChunkHeader(is, &sGlobalChunkHeader);
@@ -121,7 +121,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
             IffFormat::readWord(is);
             IffFormat::readWord(is);
             nPlanes = IffFormat::readByte(is);
-            sColourMapSize = 1 << nPlanes;
+            sColorMapSize = 1 << nPlanes;
             IffFormat::readByte(is);
             compression = IffFormat::readByte(is);
             IffFormat::readByte(is);
@@ -134,34 +134,34 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
         case CAMG:
             viewmodes = (int)IffFormat::readLong(is);
             if (viewmodes & HAM) {
-                sColourMapSize = 16;
+                sColorMapSize = 16;
             }
             break;
 
         case CMAP:
-            sColourMapSize = (int)sGlobalChunkHeader.size / 3;
-            sIffColourMap = new RGBAPixelHDR[sColourMapSize];
-            if (sIffColourMap == nullptr) {
-                Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for IFF colour map\n");
+            sColorMapSize = (int)sGlobalChunkHeader.size / 3;
+            sIffColorMap = new RGBAPixelHDR[sColorMapSize];
+            if (sIffColorMap == nullptr) {
+                Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for IFF color map\n");
             }
 
-            for (i = 0; i < sColourMapSize; i++) {
-                sIffColourMap[i].r   = IffFormat::readByte(is);
-                sIffColourMap[i].g = IffFormat::readByte(is);
-                sIffColourMap[i].b  = IffFormat::readByte(is);
-                sIffColourMap[i].a = 0;
+            for (i = 0; i < sColorMapSize; i++) {
+                sIffColorMap[i].r   = IffFormat::readByte(is);
+                sIffColorMap[i].g = IffFormat::readByte(is);
+                sIffColorMap[i].b  = IffFormat::readByte(is);
+                sIffColorMap[i].a = 0;
             }
 
-            previousRed   = sIffColourMap[0].r;
-            previousGreen = sIffColourMap[0].g;
-            previousBlue  = sIffColourMap[0].b;
-            for (i = sColourMapSize * 3; (long)i < sGlobalChunkHeader.size; i++) {
+            previousRed   = sIffColorMap[0].r;
+            previousGreen = sIffColorMap[0].g;
+            previousBlue  = sIffColorMap[0].b;
+            for (i = sColorMapSize * 3; (long)i < sGlobalChunkHeader.size; i++) {
                 IffFormat::readByte(is);
             }
             break;
 
         case BODY: {
-            const bool isIndexed = (sIffColourMap != nullptr) && !(viewmodes & HAM);
+            const bool isIndexed = (sIffColorMap != nullptr) && !(viewmodes & HAM);
 
             rowBytes = new unsigned char *[nPlanes];
             if (rowBytes == nullptr) {
@@ -177,8 +177,8 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
             if (isIndexed) {
                 // --- Indexed (paletted) path ---
                 IndexedImage *indexed = new IndexedImage;
-                indexed->setColourMapSize(sColourMapSize);
-                indexed->setColorMap(sIffColourMap);
+                indexed->setColorMapSize(sColorMapSize);
+                indexed->setColorMap(sIffColorMap);
 
                 indexed->allocate(iwidth, iheight);
 
@@ -222,7 +222,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
                             }
                         }
 
-                        if (creg > (unsigned long)indexed->getColourMapSize()) {
+                        if (creg > (unsigned long)indexed->getColorMapSize()) {
                             Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Error - IFF Image Map Colour out of range\n");
                         }
                         indexed->setPixel(j, i, (unsigned char)creg);
@@ -290,9 +290,9 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
                         if (viewmodes & HAM) {
                             switch (creg >> 4) {
                             case 0:
-                                pixel.r = (unsigned short)sIffColourMap[creg].r;
-                                pixel.g = (unsigned short)sIffColourMap[creg].g;
-                                pixel.b = (unsigned short)sIffColourMap[creg].b;
+                                pixel.r = (unsigned short)sIffColorMap[creg].r;
+                                pixel.g = (unsigned short)sIffColorMap[creg].g;
+                                pixel.b = (unsigned short)sIffColorMap[creg].b;
                                 previousRed   = pixel.r;
                                 previousGreen = pixel.g;
                                 previousBlue  = pixel.b;

@@ -1,5 +1,5 @@
 /****************************************************************************
- *                         colour.c
+ *                         color.c
  *
  *  This module implements routines to manipulate colours.
  *

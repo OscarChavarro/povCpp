@@ -26,8 +26,13 @@ while IFS= read -r generated; do
         continue
     fi
 
-    if ! diff -q "${generated}" "${reference}" >/dev/null; then
-        echo "Different image: ${rel_path}" >&2
+    ae_error=""
+    if ! ae_error=$(compare -metric AE "${generated}" "${reference}" null: 2>&1); then
+        if [[ "${ae_error}" =~ ^[0-9]+$ ]]; then
+            echo "Different image: ${rel_path} (AE=${ae_error})" >&2
+        else
+            echo "compare failed for ${rel_path}: ${ae_error}" >&2
+        fi
         failures=$((failures + 1))
     fi
 done < <(find "${output_dir}" -type f -name '*.tga' | sort)

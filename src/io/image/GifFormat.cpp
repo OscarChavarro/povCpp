@@ -16,14 +16,14 @@
 IndexedImage *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;
 java::FileInputStream *GifFormat::bitStream = nullptr;
-RGBAPixelHDR *GifFormat::gifColourMap = nullptr;
-int GifFormat::colourmapSize = 0;
+RGBAPixelHDR *GifFormat::gifColorMap = nullptr;
+int GifFormat::colorMapSize = 0;
 
 int
 GifFormat::outLine(unsigned char *pixels, int linelen)
 {
     for (int x = 0; x < linelen; x++) {
-        if ((int)(*pixels) > currentImage->getColourMapSize()) {
+        if ((int)(*pixels) > currentImage->getColorMapSize()) {
             Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Error - GIF Image Map Colour out of range\n");
         }
         currentImage->setPixel(x, bitmapLine, *pixels);
@@ -96,10 +96,10 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
     }
 
     planes = ((unsigned)buffer[10] & 0x0F) + 1;
-    colourmapSize = (int)(1 << planes);
+    colorMapSize = (int)(1 << planes);
 
-    gifColourMap = new RGBAPixelHDR[colourmapSize];
-    if (gifColourMap == nullptr) {
+    gifColorMap = new RGBAPixelHDR[colorMapSize];
+    if (gifColorMap == nullptr) {
         Logger::reportMessage("GifFormat", Logger::ERROR, "", "Cannot allocate GIF Colour Map\n");
         bitStream->close();
         delete bitStream;
@@ -117,11 +117,11 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
         exit(1);
     }
 
-    for (i = 0; i < colourmapSize; i++) {
-        gifColourMap[i].r   = (unsigned char)GifFormat::getByte();
-        gifColourMap[i].g = (unsigned char)GifFormat::getByte();
-        gifColourMap[i].b  = (unsigned char)GifFormat::getByte();
-        gifColourMap[i].a = 0;
+    for (i = 0; i < colorMapSize; i++) {
+        gifColorMap[i].r   = (unsigned char)GifFormat::getByte();
+        gifColorMap[i].g = (unsigned char)GifFormat::getByte();
+        gifColorMap[i].b  = (unsigned char)GifFormat::getByte();
+        gifColorMap[i].a = 0;
     }
 
     finished = false;
@@ -160,8 +160,8 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
                 int gifH = buffer[6] | (buffer[7] << 8);
 
                 bitmapLine = 0;
-                image->setColourMapSize(colourmapSize);
-                image->setColorMap(gifColourMap);
+                image->setColorMapSize(colorMapSize);
+                image->setColorMap(gifColorMap);
                 image->allocate(gifW, gifH);
 
                 status = GifDecoder::decoder(image->getXSize());

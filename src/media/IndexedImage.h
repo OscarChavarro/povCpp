@@ -8,7 +8,7 @@ class IndexedImage {
     int xSize;
     int ySize;
     unsigned char *data;
-    int colourMapSize;
+    int colorMapSize;
     RGBAPixelHDR *colorMap;
 
   public:
@@ -20,8 +20,8 @@ class IndexedImage {
     void setXSize(int w);
     void setYSize(int h);
 
-    int getColourMapSize() const;
-    void setColourMapSize(int n);
+    int getColorMapSize() const;
+    void setColorMapSize(int n);
     RGBAPixelHDR *getColorMap() const;
     void setColorMap(RGBAPixelHDR *cm);
 

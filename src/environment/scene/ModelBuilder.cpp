@@ -56,7 +56,7 @@ ModelBuilder::getSphereShape()
     newShape->VPCached = false;
     newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -76,7 +76,7 @@ ModelBuilder::getLightSourceShape()
     newShape->nextObject = nullptr;
     newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     newShape->Coeff = 10.0;
     newShape->Radius = 0.35;
     newShape->Falloff = 0.35;
@@ -104,7 +104,7 @@ ModelBuilder::getQuadricShape()
     newShape->nextObject = nullptr;
     newShape->methods = &Quadric::methodTable;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -123,7 +123,7 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
     newShape->nextObject = nullptr;
     newShape->methods = &PolynomialShape::methodTable;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
     newShape->Inverted = 0;
@@ -158,7 +158,7 @@ ModelBuilder::getBoxShape()
     newShape->methods = &Box::methodTable;
     newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -179,7 +179,7 @@ ModelBuilder::getBlobShape()
     newShape->methods = &Blob::methodTable;
     newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -197,7 +197,7 @@ ModelBuilder::getBicubicPatchShape()
     newShape->nextObject = nullptr;
     newShape->methods = &ParametricBiCubicPatch::methodTable;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     newShape->uSteps = 0;
     newShape->vSteps = 0;
     newShape->intersectionCount = 0;
@@ -225,7 +225,7 @@ ModelBuilder::getHeightFieldShape()
     newShape->nextObject = nullptr;
     newShape->methods = &HeightField::methodTable;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -246,7 +246,7 @@ ModelBuilder::getPlaneShape()
     newShape->methods = &InfinitePlane::methodTable;
     newShape->VPCached = 0;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -271,7 +271,7 @@ ModelBuilder::getTriangleShape()
     newShape->methods = &Triangle::methodTable;
     newShape->VPCached = false;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;
     return (newShape);
 }
@@ -300,7 +300,7 @@ ModelBuilder::getSmoothTriangleShape()
     newShape->methods = &Triangle::smoothMethodTable;
     newShape->VPCached = 0;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = nullptr;
+    newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;
     return (newShape);
 }
@@ -357,17 +357,17 @@ ModelBuilder::getCamera()
 }
 
 RGBAColor *
-ModelBuilder::getColour()
+ModelBuilder::getColor()
 {
-    RGBAColor *newColour;
+    RGBAColor *newColor;
 
-    newColour = new RGBAColor;
-    if (newColour == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour\n");
+    newColor = new RGBAColor;
+    if (newColor == nullptr) {
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color\n");
     }
 
-    Color::makeColor(newColour, 0.0, 0.0, 0.0);
-    return (newColour);
+    Color::makeColor(newColor, 0.0, 0.0, 0.0);
+    return (newColor);
 }
 
 Vector3Dd *

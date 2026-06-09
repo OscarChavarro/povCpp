@@ -153,8 +153,8 @@ textureUtils::incrSum(int m, double s, double x, double y, double z)
 }
 
 void
-textureUtils::computeColour(
-    RGBAColor *colour, RGBAColorPalette *colourMap, double value)
+textureUtils::computeColor(
+    RGBAColor *color, RGBAColorPalette *colorMap, double value)
 {
     int i;
     RGBAColorPaletteSpan *ent;
@@ -168,33 +168,33 @@ textureUtils::computeColour(
         value = 0.0;
     }
 
-    for (i = 0, ent = &(colourMap->Colour_Map_Entries[0]);
-        i < colourMap->numberOfEntries; i++, ent++) {
+    for (i = 0, ent = &(colorMap->colorMapEntries[0]);
+        i < colorMap->numberOfEntries; i++, ent++) {
         if ((value >= ent->start) && (value <= ent->end)) {
             fraction = (value - ent->start) / (ent->end - ent->start);
-            colour->Red =
-                ent->startColour.Red +
-                fraction * (ent->endColour.Red - ent->startColour.Red);
-            colour->Green =
-                ent->startColour.Green +
-                fraction * (ent->endColour.Green - ent->startColour.Green);
-            colour->Blue =
-                ent->startColour.Blue +
-                fraction * (ent->endColour.Blue - ent->startColour.Blue);
-            colour->Alpha =
-                ent->startColour.Alpha +
-                fraction * (ent->endColour.Alpha - ent->startColour.Alpha);
+            color->Red =
+                ent->startColor.Red +
+                fraction * (ent->endColor.Red - ent->startColor.Red);
+            color->Green =
+                ent->startColor.Green +
+                fraction * (ent->endColor.Green - ent->startColor.Green);
+            color->Blue =
+                ent->startColor.Blue +
+                fraction * (ent->endColor.Blue - ent->startColor.Blue);
+            color->Alpha =
+                ent->startColor.Alpha +
+                fraction * (ent->endColor.Alpha - ent->startColor.Alpha);
             return;
         }
     }
 
-    colour->Red = 0.0;
-    colour->Green = 0.0;
-    colour->Blue = 0.0;
-    colour->Alpha = 0.0;
+    color->Red = 0.0;
+    color->Green = 0.0;
+    color->Blue = 0.0;
+    color->Alpha = 0.0;
     {
         char _logMsg[1024];
-        snprintf(_logMsg, sizeof(_logMsg), "No colour for value: %g\n", value);
+        snprintf(_logMsg, sizeof(_logMsg), "No color for value: %g\n", value);
         Logger::reportMessage("Texture", Logger::WARNING, "", _logMsg);
     }
 }
@@ -639,17 +639,17 @@ copyTextureNode(Texture *dst, const Texture *src)
     if (dst->colorMap != nullptr) {
         RGBAColorPalette *newMap = new RGBAColorPalette();
         if (newMap == nullptr) {
-            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map\n");
+            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color map\n");
         }
         newMap->numberOfEntries = src->colorMap->numberOfEntries;
         newMap->transparencyFlag = src->colorMap->transparencyFlag;
-        newMap->Colour_Map_Entries =
+        newMap->colorMapEntries =
             new RGBAColorPaletteSpan[src->colorMap->numberOfEntries];
-        if (newMap->Colour_Map_Entries == nullptr) {
-            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map entries\n");
+        if (newMap->colorMapEntries == nullptr) {
+            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color map entries\n");
         }
         for (int i = 0; i < src->colorMap->numberOfEntries; i++) {
-            newMap->Colour_Map_Entries[i] = src->colorMap->Colour_Map_Entries[i];
+            newMap->colorMapEntries[i] = src->colorMap->colorMapEntries[i];
         }
         dst->colorMap = newMap;
     }

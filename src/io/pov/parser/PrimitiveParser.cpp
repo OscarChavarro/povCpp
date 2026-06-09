@@ -172,17 +172,17 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
 }
 
 void
-PrimitiveParser::parseColour(RGBAColor *givenColour)
+PrimitiveParser::parseColor(RGBAColor *givenColor)
 {
     ParserContext ctx;
-    PrimitiveParser::parseColour(givenColour, ctx);
+    PrimitiveParser::parseColor(givenColor, ctx);
 }
 
 void
-PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
+PrimitiveParser::parseColor(RGBAColor *givenColor, ParserContext &ctx)
 {
     int constantId;
-    Color::makeColor(givenColour, 0.0, 0.0, 0.0);
+    Color::makeColor(givenColor, 0.0, 0.0, 0.0);
     {
         bool Exit_Flag;
         Exit_Flag = false;
@@ -193,7 +193,7 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::COLOUR_CONSTANT) {
-                        *givenColour = *((RGBAColor *)ctx.constants()[(int)constantId]
+                        *givenColor = *((RGBAColor *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -204,19 +204,19 @@ PrimitiveParser::parseColour(RGBAColor *givenColour, ParserContext &ctx)
                 break;
 
             case Tokenizer::RED_TOKEN:
-                (givenColour->Red) = PrimitiveParser::parseFloat(ctx);
+                (givenColor->Red) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::GREEN_TOKEN:
-                (givenColour->Green) = PrimitiveParser::parseFloat(ctx);
+                (givenColor->Green) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::BLUE_TOKEN:
-                (givenColour->Blue) = PrimitiveParser::parseFloat(ctx);
+                (givenColor->Blue) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::ALPHA_TOKEN:
-                (givenColour->Alpha) = PrimitiveParser::parseFloat(ctx);
+                (givenColor->Alpha) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             default:

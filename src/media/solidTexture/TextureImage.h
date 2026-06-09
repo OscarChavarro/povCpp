@@ -10,7 +10,7 @@ class textureImage : public RGBAImageHDRUncompressed {
     int mapType = 0;
     int interpolationType = 0;
     bool onceFlag = false;
-    bool useColourFlag = true;
+    bool useColorFlag = true;
     Vector3Dd imageGradient;
     IndexedImage *indexedData = nullptr;
 
@@ -24,8 +24,8 @@ class textureImage : public RGBAImageHDRUncompressed {
     bool getOnceFlag() const { return onceFlag; }
     void setOnceFlag(bool v) { onceFlag = v; }
 
-    bool getUseColourFlag() const { return useColourFlag; }
-    void setUseColourFlag(bool v) { useColourFlag = v; }
+    bool getUseColorFlag() const { return useColorFlag; }
+    void setUseColorFlag(bool v) { useColorFlag = v; }
 
     const Vector3Dd& getImageGradient() const { return imageGradient; }
     void setImageGradient(const Vector3Dd& v) { imageGradient = v; }
