@@ -76,9 +76,7 @@ ModelBuilder::getLightSourceShape()
     newShape->nextObject = nullptr;
     newShape->Inverted = false;
     newShape->Shape_Texture = nullptr;
-    newShape->Shape_Colour = ModelBuilder::getColour();
-    Color::makeColor(newShape->Shape_Colour, 1.0, 1.0, 1.0);
-    newShape->Shape_Colour->Alpha = 0.0;
+    newShape->Shape_Colour = nullptr;
     newShape->Coeff = 10.0;
     newShape->Radius = 0.35;
     newShape->Falloff = 0.35;
