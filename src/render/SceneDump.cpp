@@ -89,12 +89,12 @@ void dumpSceneStructure(FILE *f)
 
             if (tex->Image) {
                 fprintf(f, "  tex.img grad=(%.6f,%.6f,%.6f) map=%d interp=%d once=%d w=%.0f h=%.0f\n",
-                        tex->Image->imageGradient.x(),
-                        tex->Image->imageGradient.y(),
-                        tex->Image->imageGradient.z(),
-                        tex->Image->mapType,
-                        tex->Image->interpolationType,
-                        tex->Image->onceFlag,
+                        tex->Image->getImageGradient().x(),
+                        tex->Image->getImageGradient().y(),
+                        tex->Image->getImageGradient().z(),
+                        tex->Image->getMapType(),
+                        tex->Image->getInterpolationType(),
+                        tex->Image->getOnceFlag(),
                         (double)tex->Image->getXSize(),
                         (double)tex->Image->getYSize());
             }

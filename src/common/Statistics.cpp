@@ -1,3 +1,5 @@
+#include <ctime>
+
 #include "common/Statistics.h"
 
 static Statistics globalStatisticsInstance;

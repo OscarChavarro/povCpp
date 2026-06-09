@@ -32,6 +32,13 @@ static Vector3Dd waveSourcesInstance[Texture::NUMBER_OF_WAVES];
 static double *rTableInstance;
 static short *hashTableInstance;
 
+TextureUtils&
+TextureUtils::instance()
+{
+    static TextureUtils inst;
+    return inst;
+}
+
 Texture *&
 TextureUtils::defaultTexture()
 {
@@ -127,16 +134,16 @@ TextureUtils::sCurve(double a)
 short
 TextureUtils::hash3d(long a, long b, long c)
 {
-    return TextureUtils::hashTable()[(
-        int)(TextureUtils::hashTable()[(int)(TextureUtils::hashTable()[(int)(a & 0xfffL)] ^ (b & 0xfffL))] ^
+    return hashTable()[(
+        int)(hashTable()[(int)(hashTable()[(int)(a & 0xfffL)] ^ (b & 0xfffL))] ^
              (c & 0xfffL))];
 }
 
 double
 TextureUtils::incrSum(int m, double s, double x, double y, double z)
 {
-    return s * (TextureUtils::rTable()[m] * 0.5 + TextureUtils::rTable()[m + 1] * x +
-                   TextureUtils::rTable()[m + 2] * y + TextureUtils::rTable()[m + 3] * z);
+    return s * (rTable()[m] * 0.5 + rTable()[m + 1] * x +
+                   rTable()[m + 2] * y + rTable()[m + 3] * z);
 }
 
 void
@@ -192,20 +199,20 @@ TextureUtils::initializeNoise()
     int i = 0;
     Vector3Dd point;
 
-    TextureUtils::InitRTable();
+    InitRTable();
 
-    if ((TextureUtils::sinTable() = new double[Texture::SINTABSIZE]) == nullptr) {
+    if ((sinTable() = new double[Texture::SINTABSIZE]) == nullptr) {
         Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Cannot allocate memory for sine table\n");
     }
 
     for (i = 0; i < Texture::SINTABSIZE; i++) {
-        TextureUtils::sinTable()[i] = sin(i / (double)Texture::SINTABSIZE * (3.14159265359 * 2.0));
+        sinTable()[i] = sin(i / (double)Texture::SINTABSIZE * (3.14159265359 * 2.0));
     }
 
     for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
-        TextureUtils::DNoise(&point, (double)i, 0.0, 0.0);
-        TextureUtils::waveSources()[i] = point.normalizedFast();
-        TextureUtils::waveFrequency()[i] = (rand() & Texture::RNDMASK) / Texture::rndDivisor + 0.01;
+        DNoise(&point, (double)i, 0.0, 0.0);
+        waveSources()[i] = point.normalizedFast();
+        waveFrequency()[i] = (rand() & Texture::RNDMASK) / Texture::rndDivisor + 0.01;
     }
 }
 
@@ -219,18 +226,18 @@ TextureUtils::InitTextureTable()
 
     srand(0);
 
-    TextureUtils::hashTable() = new short int[4096];
-    if (TextureUtils::hashTable() == nullptr) {
+    hashTable() = new short int[4096];
+    if (hashTable() == nullptr) {
         Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Cannot allocate memory for hash table\n");
     }
     for (i = 0; i < 4096; i++) {
-        TextureUtils::hashTable()[i] = i;
+        hashTable()[i] = i;
     }
     for (i = 4095; i >= 0; i--) {
         j = rand() % 4096;
-        temp = TextureUtils::hashTable()[i];
-        TextureUtils::hashTable()[i] = TextureUtils::hashTable()[j];
-        TextureUtils::hashTable()[j] = temp;
+        temp = hashTable()[i];
+        hashTable()[i] = hashTable()[j];
+        hashTable()[j] = temp;
     }
 }
 
@@ -242,16 +249,16 @@ TextureUtils::InitRTable()
     int i;
     Vector3Dd rp;
 
-    TextureUtils::InitTextureTable();
+    InitTextureTable();
 
-    TextureUtils::rTable() = new double[Texture::MAXSIZE];
-    if (TextureUtils::rTable() == nullptr) {
-        Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Cannot allocate memory for TextureUtils::rTable()\n");
+    rTable() = new double[Texture::MAXSIZE];
+    if (rTable() == nullptr) {
+        Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Cannot allocate memory for rTable()\n");
     }
 
     for (i = 0; i < Texture::MAXSIZE; i++) {
         rp = Vector3Dd((double)i, (double)i, (double)i);
-        TextureUtils::rTable()[i] = (unsigned int)TextureUtils::R(&rp) * Texture::realScale - 1.0;
+        rTable()[i] = (unsigned int)R(&rp) * Texture::realScale - 1.0;
     }
 }
 
@@ -260,20 +267,20 @@ TextureUtils::R(Vector3Dd *v)
 {
     *v = Vector3Dd(v->x() * .12345, v->y() * .12345, v->z() * .12345);
 
-    return (TextureUtils::Crc16((char *)v, sizeof(Vector3Dd)));
+    return (Crc16((char *)v, sizeof(Vector3Dd)));
 }
 
 // [PERL1985].289 - CRC-based pseudorandom value generator from 3D points
 // Note that passing a Vector3Dd array to Crc16 and interpreting it as
 // an array of chars means that machines with different floating-point
-// representation schemes will evaluate TextureUtils::Noise(point) differently.
+// representation schemes will evaluate Noise(point) differently.
 int
 TextureUtils::Crc16(char *buf, int count)
 {
     unsigned short crc = 0;
 
     while (count--) {
-        crc = (crc >> 8) ^ TextureUtils::crcTable()[(unsigned char)(crc ^ *buf++)];
+        crc = (crc >> 8) ^ crcTable()[(unsigned char)(crc ^ *buf++)];
     }
 
     return ((int)crc);
@@ -300,9 +307,9 @@ setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
     *jy = *iy + 1;
     *jz = *iz + 1;
 
-    *sx = TextureUtils::sCurve(*x - *ix);
-    *sy = TextureUtils::sCurve(*y - *iy);
-    *sz = TextureUtils::sCurve(*z - *iz);
+    *sx = TextureUtils::instance().sCurve(*x - *ix);
+    *sy = TextureUtils::instance().sCurve(*y - *iy);
+    *sz = TextureUtils::instance().sCurve(*z - *iz);
 
     /* the complement values of sx,sy,sz */
     *tx = 1.0 - *sx;
@@ -338,29 +345,29 @@ TextureUtils::Noise(double x, double y, double z)
     /*
      *  interpolate!
      */
-    m = TextureUtils::hash3d(ix, iy, iz) & 0xFF;
-    sum = TextureUtils::incrSum(m, (tx * ty * tz), (x - ix), (y - iy), (z - iz));
+    m = hash3d(ix, iy, iz) & 0xFF;
+    sum = incrSum(m, (tx * ty * tz), (x - ix), (y - iy), (z - iz));
 
-    m = TextureUtils::hash3d(jx, iy, iz) & 0xFF;
-    sum += TextureUtils::incrSum(m, (sx * ty * tz), (x - jx), (y - iy), (z - iz));
+    m = hash3d(jx, iy, iz) & 0xFF;
+    sum += incrSum(m, (sx * ty * tz), (x - jx), (y - iy), (z - iz));
 
-    m = TextureUtils::hash3d(ix, jy, iz) & 0xFF;
-    sum += TextureUtils::incrSum(m, (tx * sy * tz), (x - ix), (y - jy), (z - iz));
+    m = hash3d(ix, jy, iz) & 0xFF;
+    sum += incrSum(m, (tx * sy * tz), (x - ix), (y - jy), (z - iz));
 
-    m = TextureUtils::hash3d(jx, jy, iz) & 0xFF;
-    sum += TextureUtils::incrSum(m, (sx * sy * tz), (x - jx), (y - jy), (z - iz));
+    m = hash3d(jx, jy, iz) & 0xFF;
+    sum += incrSum(m, (sx * sy * tz), (x - jx), (y - jy), (z - iz));
 
-    m = TextureUtils::hash3d(ix, iy, jz) & 0xFF;
-    sum += TextureUtils::incrSum(m, (tx * ty * sz), (x - ix), (y - iy), (z - jz));
+    m = hash3d(ix, iy, jz) & 0xFF;
+    sum += incrSum(m, (tx * ty * sz), (x - ix), (y - iy), (z - jz));
 
-    m = TextureUtils::hash3d(jx, iy, jz) & 0xFF;
-    sum += TextureUtils::incrSum(m, (sx * ty * sz), (x - jx), (y - iy), (z - jz));
+    m = hash3d(jx, iy, jz) & 0xFF;
+    sum += incrSum(m, (sx * ty * sz), (x - jx), (y - iy), (z - jz));
 
-    m = TextureUtils::hash3d(ix, jy, jz) & 0xFF;
-    sum += TextureUtils::incrSum(m, (tx * sy * sz), (x - ix), (y - jy), (z - jz));
+    m = hash3d(ix, jy, jz) & 0xFF;
+    sum += incrSum(m, (tx * sy * sz), (x - ix), (y - jy), (z - jz));
 
-    m = TextureUtils::hash3d(jx, jy, jz) & 0xFF;
-    sum += TextureUtils::incrSum(m, (sx * sy * sz), (x - jx), (y - jy), (z - jz));
+    m = hash3d(jx, jy, jz) & 0xFF;
+    sum += incrSum(m, (sx * sy * sz), (x - jx), (y - jy), (z - jz));
 
     sum = sum + 0.5; /* range at this point -0.5 - 0.5... */
 
@@ -405,63 +412,63 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     /*
      *  interpolate!
      */
-    m = TextureUtils::hash3d(ix, iy, iz) & 0xFF;
+    m = hash3d(ix, iy, iz) & 0xFF;
     px = x - ix;
     py = y - iy;
     pz = z - iz;
     s = tx * ty * tz;
-    double rx = TextureUtils::incrSum(m, s, px, py, pz);
-    double ry = TextureUtils::incrSum(m + 4, s, px, py, pz);
-    double rz = TextureUtils::incrSum(m + 8, s, px, py, pz);
+    double rx = incrSum(m, s, px, py, pz);
+    double ry = incrSum(m + 4, s, px, py, pz);
+    double rz = incrSum(m + 8, s, px, py, pz);
 
-    m = TextureUtils::hash3d(jx, iy, iz) & 0xFF;
+    m = hash3d(jx, iy, iz) & 0xFF;
     px = x - jx;
     s = sx * ty * tz;
-    rx += TextureUtils::incrSum(m, s, px, py, pz);
-    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += incrSum(m, s, px, py, pz);
+    ry += incrSum(m + 4, s, px, py, pz);
+    rz += incrSum(m + 8, s, px, py, pz);
 
-    m = TextureUtils::hash3d(jx, jy, iz) & 0xFF;
+    m = hash3d(jx, jy, iz) & 0xFF;
     py = y - jy;
     s = sx * sy * tz;
-    rx += TextureUtils::incrSum(m, s, px, py, pz);
-    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += incrSum(m, s, px, py, pz);
+    ry += incrSum(m + 4, s, px, py, pz);
+    rz += incrSum(m + 8, s, px, py, pz);
 
-    m = TextureUtils::hash3d(ix, jy, iz) & 0xFF;
+    m = hash3d(ix, jy, iz) & 0xFF;
     px = x - ix;
     s = tx * sy * tz;
-    rx += TextureUtils::incrSum(m, s, px, py, pz);
-    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += incrSum(m, s, px, py, pz);
+    ry += incrSum(m + 4, s, px, py, pz);
+    rz += incrSum(m + 8, s, px, py, pz);
 
-    m = TextureUtils::hash3d(ix, jy, jz) & 0xFF;
+    m = hash3d(ix, jy, jz) & 0xFF;
     pz = z - jz;
     s = tx * sy * sz;
-    rx += TextureUtils::incrSum(m, s, px, py, pz);
-    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += incrSum(m, s, px, py, pz);
+    ry += incrSum(m + 4, s, px, py, pz);
+    rz += incrSum(m + 8, s, px, py, pz);
 
-    m = TextureUtils::hash3d(jx, jy, jz) & 0xFF;
+    m = hash3d(jx, jy, jz) & 0xFF;
     px = x - jx;
     s = sx * sy * sz;
-    rx += TextureUtils::incrSum(m, s, px, py, pz);
-    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += incrSum(m, s, px, py, pz);
+    ry += incrSum(m + 4, s, px, py, pz);
+    rz += incrSum(m + 8, s, px, py, pz);
 
-    m = TextureUtils::hash3d(jx, iy, jz) & 0xFF;
+    m = hash3d(jx, iy, jz) & 0xFF;
     py = y - iy;
     s = sx * ty * sz;
-    rx += TextureUtils::incrSum(m, s, px, py, pz);
-    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += incrSum(m, s, px, py, pz);
+    ry += incrSum(m + 4, s, px, py, pz);
+    rz += incrSum(m + 8, s, px, py, pz);
 
-    m = TextureUtils::hash3d(ix, iy, jz) & 0xFF;
+    m = hash3d(ix, iy, jz) & 0xFF;
     px = x - ix;
     s = tx * ty * sz;
-    rx += TextureUtils::incrSum(m, s, px, py, pz);
-    ry += TextureUtils::incrSum(m + 4, s, px, py, pz);
-    rz += TextureUtils::incrSum(m + 8, s, px, py, pz);
+    rx += incrSum(m, s, px, py, pz);
+    ry += incrSum(m + 4, s, px, py, pz);
+    rz += incrSum(m + 8, s, px, py, pz);
     *result = Vector3Dd(rx, ry, rz);
 }
 
@@ -476,8 +483,8 @@ TextureUtils::Turbulence(double x, double y, double z, int octaves)
     double value;
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
-        value = TextureUtils::Noise(x / scale, y / scale, z / scale);
-        t += TextureUtils::fabsInline(value) * scale;
+        value = Noise(x / scale, y / scale, z / scale);
+        t += fabsInline(value) * scale;
     }
     return (t);
 }
@@ -499,7 +506,7 @@ TextureUtils::DTurbulence(
     value = Vector3Dd(0.0, 0.0, 0.0);
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
-        TextureUtils::DNoise(&value, x / scale, y / scale, z / scale);
+        DNoise(&value, x / scale, y / scale, z / scale);
         rx += value.x() * scale;
         ry += value.y() * scale;
         rz += value.z() * scale;
@@ -514,11 +521,11 @@ TextureUtils::cycloidal(double value)
 
     if (value >= 0.0) {
         indx = (int)((value - floor(value)) * Texture::SINTABSIZE);
-        return (TextureUtils::sinTable()[indx]);
+        return (sinTable()[indx]);
     }
 
     indx = (int)((0.0 - (value + floor(0.0 - value))) * Texture::SINTABSIZE);
-    return (0.0 - TextureUtils::sinTable()[indx]);
+    return (0.0 - sinTable()[indx]);
 }
 
 double
@@ -552,7 +559,7 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
             (texture->bumpNumber != Texture::NO_BUMPS)) {
 
             if (texture->constantFlag) {
-                texture = TextureUtils::copyTexture(texture);
+                texture = copyTexture(texture);
                 *texturePtr = texture;
                 texture->constantFlag = false;
             }
@@ -572,9 +579,9 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
             *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
                 *texture->textureTransformationInverse);
             if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
-                TextureUtils::translateTexture(
+                translateTexture(
                     (Texture **)&texture->Colour1, vector);
-                TextureUtils::translateTexture(
+                translateTexture(
                     (Texture **)&texture->Colour2, vector);
             }
         }
@@ -595,7 +602,7 @@ TextureUtils::copyTexture(Texture *texture)
 
     for (localTexture = texture; localTexture != nullptr;
         localTexture = localTexture->Next_Texture) {
-        newTexture = TextureUtils::getTexture();
+        newTexture = getTexture();
         *newTexture = *localTexture;
 
         if (firstTexture == nullptr) {
@@ -698,7 +705,7 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
             (texture->bumpNumber != Texture::NO_BUMPS)) {
 
             if (texture->constantFlag) {
-                texture = TextureUtils::copyTexture(texture);
+                texture = copyTexture(texture);
                 *texturePtr = texture;
                 texture->constantFlag = false;
             }
@@ -715,9 +722,9 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
             *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
                 *texture->textureTransformationInverse);
             if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
-                TextureUtils::rotateTexture(
+                rotateTexture(
                     (Texture **)&texture->Colour1, vector);
-                TextureUtils::rotateTexture(
+                rotateTexture(
                     (Texture **)&texture->Colour2, vector);
             }
         }
@@ -739,7 +746,7 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
             (texture->bumpNumber != Texture::NO_BUMPS)) {
 
             if (texture->constantFlag) {
-                texture = TextureUtils::copyTexture(texture);
+                texture = copyTexture(texture);
                 *texturePtr = texture;
                 texture->constantFlag = false;
             }
@@ -759,9 +766,9 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
                 *texture->textureTransformationInverse);
 
             if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
-                TextureUtils::scaleTexture(
+                scaleTexture(
                     (Texture **)&texture->Colour1, vector);
-                TextureUtils::scaleTexture(
+                scaleTexture(
                     (Texture **)&texture->Colour2, vector);
             }
         }

@@ -269,7 +269,7 @@ PovrayApplication::prepareRendering()
     }
 
     IntersectionPriorityQueuePool::pqInit();
-    TextureUtils::initializeNoise();
+    TextureUtils::instance().initializeNoise();
 }
 
 void

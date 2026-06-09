@@ -14,37 +14,40 @@ class Texture;
 
 class TextureUtils {
   public:
-    static double floorInline(double x);
-    static double fabsInline(double x);
-    static double sCurve(double a);
-    static short hash3d(long a, long b, long c);
-    static double incrSum(int m, double s, double x, double y, double z);
-    static Texture *&defaultTexture();
-    static double *&rTable();
-    static short *&hashTable();
-    static double *&sinTable();
-    static double *waveFrequency();
-    static Vector3Dd *waveSources();
-    static unsigned short *crcTable();
-    static void computeColour(
-        RGBAColor *colour, RGBAColorPalette *colourMap, double value);
-    static void initializeNoise(void);
-    static void InitTextureTable(void);
-    static void InitRTable(void);
-    static int R(Vector3Dd *v);
-    static int Crc16(char *buf, int count);
-    static double Noise(double x, double y, double z);
-    static void DNoise(Vector3Dd *result, double x, double y, double z);
-    static double cycloidal(double value);
-    static double triangleWave(double value);
-    static double Turbulence(double x, double y, double z, int octaves);
-    static void DTurbulence(
-        Vector3Dd *result, double x, double y, double z, int octaves);
-    static void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-    static void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-    static void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-    static Texture *copyTexture(Texture *texture);
-    static Texture *getTexture();
+    static TextureUtils& instance();
+
+    double floorInline(double x);
+    double fabsInline(double x);
+    double sCurve(double a);
+    short hash3d(long a, long b, long c);
+    double incrSum(int m, double s, double x, double y, double z);
+    Texture *&defaultTexture();
+    double *&rTable();
+    short *&hashTable();
+    double *&sinTable();
+    double *waveFrequency();
+    Vector3Dd *waveSources();
+    unsigned short *crcTable();
+    void computeColour(RGBAColor *colour, RGBAColorPalette *colourMap, double value);
+    void initializeNoise(void);
+    void InitTextureTable(void);
+    void InitRTable(void);
+    int R(Vector3Dd *v);
+    int Crc16(char *buf, int count);
+    double Noise(double x, double y, double z);
+    void DNoise(Vector3Dd *result, double x, double y, double z);
+    double cycloidal(double value);
+    double triangleWave(double value);
+    double Turbulence(double x, double y, double z, int octaves);
+    void DTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
+    void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
+    void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
+    void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
+    Texture *copyTexture(Texture *texture);
+    Texture *getTexture();
+
+  private:
+    TextureUtils() = default;
 };
 
 #endif

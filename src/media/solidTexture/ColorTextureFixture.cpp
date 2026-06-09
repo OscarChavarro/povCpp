@@ -33,6 +33,8 @@ ColorTextureFixture::colourAt(
     double y;
     double z;
     Vector3Dd transformedPoint;
+    MapTextureFixture mapFixture;
+    TextureFixture textureFixture;
 
     if ((intersectionPoint->x() > COORDINATE_LIMIT) ||
         (intersectionPoint->y() > COORDINATE_LIMIT) ||
@@ -70,68 +72,67 @@ ColorTextureFixture::colourAt(
         break;
 
     case Texture::BOZO_TEXTURE:
-        ColorTextureFixture::bozo(x, y, z, texture, colour);
+        bozo(x, y, z, texture, colour);
         break;
 
     case Texture::MARBLE_TEXTURE:
-        ColorTextureFixture::marble(x, y, z, texture, colour);
+        marble(x, y, z, texture, colour);
         break;
 
     case Texture::WOOD_TEXTURE:
-        ColorTextureFixture::wood(x, y, z, texture, colour);
+        wood(x, y, z, texture, colour);
         break;
 
     case Texture::BRICK_TEXTURE:
-        ColorTextureFixture::brick(x, y, z, texture, colour);
+        brick(x, y, z, texture, colour);
         break;
 
     case Texture::CHECKER_TEXTURE:
-        ColorTextureFixture::checker(x, y, z, texture, colour, smallTolerance);
+        checker(x, y, z, texture, colour, smallTolerance);
         break;
 
     case Texture::CHECKER_TEXTURE_TEXTURE:
-        ColorTextureFixture::checkerTexture(x, y, z, texture, colour, smallTolerance);
+        checkerTexture(x, y, z, texture, colour, smallTolerance);
         break;
 
     case Texture::SPOTTED_TEXTURE:
-        ColorTextureFixture::spotted(x, y, z, texture, colour);
+        spotted(x, y, z, texture, colour);
         break;
 
     case Texture::AGATE_TEXTURE:
-        ColorTextureFixture::agate(x, y, z, texture, colour);
+        agate(x, y, z, texture, colour);
         break;
 
     case Texture::GRANITE_TEXTURE:
-        ColorTextureFixture::granite(x, y, z, texture, colour);
+        granite(x, y, z, texture, colour);
         break;
 
     case Texture::GRADIENT_TEXTURE:
-        ColorTextureFixture::gradient(x, y, z, texture, colour);
+        gradient(x, y, z, texture, colour);
         break;
 
     case Texture::IMAGEMAP_TEXTURE:
-        MapTextureFixture::imageMap(
-            x, y, z, texture, colour, smallTolerance);
+        mapFixture.imageMap(x, y, z, texture, colour, smallTolerance);
         break;
 
     case Texture::ONION_TEXTURE:
-        ColorTextureFixture::onion(x, y, z, texture, colour);
+        onion(x, y, z, texture, colour);
         break;
 
     case Texture::LEOPARD_TEXTURE:
-        ColorTextureFixture::leopard(x, y, z, texture, colour);
+        leopard(x, y, z, texture, colour);
         break;
 
     case Texture::PAINTED1_TEXTURE:
-        TextureFixture::painted1(x, y, z, texture, colour);
+        textureFixture.painted1(x, y, z, texture, colour);
         break;
 
     case Texture::PAINTED2_TEXTURE:
-        TextureFixture::painted2(x, y, z, texture, colour);
+        textureFixture.painted2(x, y, z, texture, colour);
         break;
 
     case Texture::PAINTED3_TEXTURE:
-        TextureFixture::painted3(x, y, z, texture, colour);
+        textureFixture.painted3(x, y, z, texture, colour);
         break;
     }
 }
@@ -145,8 +146,8 @@ ColorTextureFixture::agate(
     double hue;
     RGBAColor newColour;
 
-    noise = TextureUtils::cycloidal(
-                1.3 * TextureUtils::Turbulence(x, y, z, texture->Octaves) +
+    noise = TextureUtils::instance().cycloidal(
+                1.3 * TextureUtils::instance().Turbulence(x, y, z, texture->Octaves) +
                 1.1 * z) +
             1;
     noise *= 0.5;
@@ -154,7 +155,7 @@ ColorTextureFixture::agate(
 
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -190,16 +191,16 @@ ColorTextureFixture::bozo(
     Vector3Dd bozoTurbulence;
 
     if ((turb = texture->Turbulence) != 0.0) {
-        TextureUtils::DTurbulence(&bozoTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::instance().DTurbulence(&bozoTurbulence, x, y, z, texture->Octaves);
         x += bozoTurbulence.x() * turb;
         y += bozoTurbulence.y() * turb;
         z += bozoTurbulence.z() * turb;
     }
 
-    noise = TextureUtils::Noise(x, y, z);
+    noise = TextureUtils::instance().Noise(x, y, z);
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -265,7 +266,7 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
 
     // AAC: was just x + z
     // AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug
-    brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
+    brkindx = (int)(TextureUtils::instance().floorInline(x) + TextureUtils::instance().floorInline(y) + TextureUtils::instance().floorInline(z));
 
     if (brkindx & 1) {
         colour->Red += texture->Colour1->Red;
@@ -292,16 +293,16 @@ ColorTextureFixture::checkerTexture(double x, double y, double z,
     y += smallTolerance;
     z += smallTolerance;
 
-    brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
+    brkindx = (int)(TextureUtils::instance().floorInline(x) + TextureUtils::instance().floorInline(y) + TextureUtils::instance().floorInline(z));
 
     *&point = Vector3Dd(x, y, z);
 
     if (brkindx & 1) {
-        ColorTextureFixture::colourAt(
+        colourAt(
             colour, ((Texture *)texture->Colour1), &point,
             smallTolerance);
     } else {
-        ColorTextureFixture::colourAt(
+        colourAt(
             colour, ((Texture *)texture->Colour2), &point,
             smallTolerance);
     }
@@ -325,7 +326,7 @@ ColorTextureFixture::gradient(
     Vector3Dd gradTurbulence;
 
     if ((turb = texture->Turbulence) != 0.0) {
-        TextureUtils::DTurbulence(&gradTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::instance().DTurbulence(&gradTurbulence, x, y, z, texture->Octaves);
         x += gradTurbulence.x() * turb;
         y += gradTurbulence.y() * turb;
         z += gradTurbulence.z() * turb;
@@ -335,21 +336,21 @@ ColorTextureFixture::gradient(
         return;
     }
     if (texture->textureGradient.x() != 0.0) {
-        x = TextureUtils::fabsInline(x);
-        value += x - TextureUtils::floorInline(x); /* obtain fractional X component */
+        x = TextureUtils::instance().fabsInline(x);
+        value += x - TextureUtils::instance().floorInline(x); /* obtain fractional X component */
     }
     if (texture->textureGradient.y() != 0.0) {
-        y = TextureUtils::fabsInline(y);
-        value += y - TextureUtils::floorInline(y); /* obtain fractional Y component */
+        y = TextureUtils::instance().fabsInline(y);
+        value += y - TextureUtils::instance().floorInline(y); /* obtain fractional Y component */
     }
     if (texture->textureGradient.z() != 0.0) {
-        z = TextureUtils::fabsInline(z);
-        value += z - TextureUtils::floorInline(z); /* obtain fractional Z component */
+        z = TextureUtils::instance().fabsInline(z);
+        value += z - TextureUtils::instance().floorInline(z); /* obtain fractional Z component */
     }
     value = ((value > 1.0) ? fmod(value, 1.0) : value); /* clamp to 1.0 */
 
 
-    TextureUtils::computeColour(&newColour, texture->Colour_Map, value);
+    TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, value);
     colour->Red += newColour.Red;
     colour->Green += newColour.Green;
     colour->Blue += newColour.Blue;
@@ -374,14 +375,14 @@ ColorTextureFixture::granite(
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
         temp =
-            0.5 - TextureUtils::Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
-        temp = TextureUtils::fabsInline(temp);
+            0.5 - TextureUtils::instance().Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
+        temp = TextureUtils::instance().fabsInline(temp);
         noise += temp / freq;
     }
 
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -404,12 +405,12 @@ ColorTextureFixture::marble(
     double hue;
     RGBAColor newColour;
 
-    noise = TextureUtils::triangleWave(
-        x + TextureUtils::Turbulence(x, y, z, texture->Octaves) *
+    noise = TextureUtils::instance().triangleWave(
+        x + TextureUtils::instance().Turbulence(x, y, z, texture->Octaves) *
                 texture->Turbulence);
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -443,11 +444,11 @@ ColorTextureFixture::spotted(
     double noise;
     RGBAColor newColour;
 
-    noise = TextureUtils::Noise(x, y, z);
+    noise = TextureUtils::instance().Noise(x, y, z);
 
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -472,22 +473,22 @@ ColorTextureFixture::wood(
     Vector3Dd point;
     RGBAColor newColour;
 
-    TextureUtils::DTurbulence(&woodTurbulence, x, y, z, texture->Octaves);
+    TextureUtils::instance().DTurbulence(&woodTurbulence, x, y, z, texture->Octaves);
 
 
     double pointX =
-        TextureUtils::cycloidal((x + woodTurbulence.x()) * texture->Turbulence);
+        TextureUtils::instance().cycloidal((x + woodTurbulence.x()) * texture->Turbulence);
     double pointY =
-        TextureUtils::cycloidal((y + woodTurbulence.y()) * texture->Turbulence);
+        TextureUtils::instance().cycloidal((y + woodTurbulence.y()) * texture->Turbulence);
 
     pointX += x;
     pointY += y;
     point = Vector3Dd(pointX, pointY, 0.0);
     length = point.length();
-    noise = TextureUtils::triangleWave(length);
+    noise = TextureUtils::instance().triangleWave(length);
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -523,7 +524,7 @@ ColorTextureFixture::leopard(
 
 
     if ((turb = texture->Turbulence) != 0.0) {
-        TextureUtils::DTurbulence(
+        TextureUtils::instance().DTurbulence(
             &leopardTurbulence, x, y, z, texture->Octaves);
         x += leopardTurbulence.x() * turb;
         y += leopardTurbulence.y() * turb;
@@ -540,7 +541,7 @@ ColorTextureFixture::leopard(
 
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -566,7 +567,7 @@ ColorTextureFixture::onion(
 
 
     if ((turb = texture->Turbulence) != 0.0) {
-        TextureUtils::DTurbulence(&onionTurbulence, x, y, z, texture->Octaves);
+        TextureUtils::instance().DTurbulence(&onionTurbulence, x, y, z, texture->Octaves);
         x += onionTurbulence.x() * turb;
         y += onionTurbulence.y() * turb;
         z += onionTurbulence.z() * turb;
@@ -584,7 +585,7 @@ ColorTextureFixture::onion(
         1.0));
 
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;

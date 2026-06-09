@@ -195,7 +195,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::TEXTURE_TOKEN:
-                            localTexture = TextureUtils::defaultTexture();
+                            localTexture = TextureUtils::instance().defaultTexture();
                             localTexture = TextureParser::parseTexture(ctx);
                             if (localTexture->constantFlag) {
                                 localTexture =

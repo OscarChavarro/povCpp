@@ -9,7 +9,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
 #include "common/color/Color.h"
-#include "media/TextureImage.h"
+#include "media/solidTexture/TextureImage.h"
 #include "vsdk/toolkit/media/RGBAPixelHDR.h"
 #include "media/solidTexture/TextureUtils.h"
 

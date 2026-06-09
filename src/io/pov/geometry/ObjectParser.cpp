@@ -584,7 +584,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                if (object->objectTexture == TextureUtils::defaultTexture()) {
+                if (object->objectTexture == TextureUtils::instance().defaultTexture()) {
                     object->objectTexture = localTexture;
                 } else {
                     for (tempTexture = localTexture;

@@ -13,7 +13,7 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/ColorMapParser.h"
 #include "io/pov/texture/TextureParser.h"
-#include "media/TextureImage.h"
+#include "media/solidTexture/TextureImage.h"
 #include "media/IndexedImage.h"
 
 #include "environment/camera/Camera.h"
@@ -32,7 +32,7 @@
 
 static void wireIndexedIntoTextureImage(TextureImage *ti, IndexedImage *idx)
 {
-    ti->indexedData = idx;
+    ti->setIndexedData(idx);
     ti->allocate(idx->getXSize(), idx->getYSize());
 }
 
@@ -69,7 +69,7 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
 Texture *
 TextureParser::copyTexture(Texture *texture)
 {
-    return TextureUtils::copyTexture(texture);
+    return TextureUtils::instance().copyTexture(texture);
 }
 
 Texture *
@@ -91,7 +91,7 @@ TextureParser::parseTexture(ParserContext &ctx)
     Texture *tempTexture;
     int reg;
 
-    texture = TextureUtils::defaultTexture();
+    texture = TextureUtils::instance().defaultTexture();
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -473,11 +473,11 @@ TextureParser::parseTexture(ParserContext &ctx)
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate imagemap texture", ctx);
                 }
-                *&texture->Image->imageGradient = Vector3Dd(1.0, -1.0, 0.0);
-                texture->Image->mapType = Texture::PLANAR_MAP;
-                texture->Image->interpolationType = Texture::NO_INTERPOLATION;
-                texture->Image->onceFlag = false;
-                texture->Image->useColourFlag = true;
+                texture->Image->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
+                texture->Image->setMapType(Texture::PLANAR_MAP);
+                texture->Image->setInterpolationType(Texture::NO_INTERPOLATION);
+                texture->Image->setOnceFlag(false);
+                texture->Image->setUseColourFlag(true);
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -491,14 +491,17 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::PLUS_TOKEN:
                         case Tokenizer::FLOAT_TOKEN:
                             ctx.tokenStream().ungetToken();
-                            (texture->Image->mapType) =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Image->setMapType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::LEFT_ANGLE_TOKEN:
                             ctx.tokenStream().ungetToken();
-                            PrimitiveParser::parseVector(
-                                &(texture->Image->imageGradient), ctx);
+                            {
+                                Vector3Dd _g;
+                                PrimitiveParser::parseVector(&_g, ctx);
+                                texture->Image->setImageGradient(_g);
+                            }
                             break;
 
                         case Tokenizer::IFF_TOKEN: {
@@ -549,25 +552,25 @@ TextureParser::parseTexture(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::ONCE_TOKEN:
-                            texture->Image->onceFlag = true;
+                            texture->Image->setOnceFlag(true);
                             break;
 
                         case Tokenizer::INTERPOLATE_TOKEN:
-                            texture->Image->interpolationType =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Image->setInterpolationType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::MAPTYPE_TOKEN:
-                            (texture->Image->mapType) =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Image->setMapType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->Image->useColourFlag = true;
+                            texture->Image->setUseColourFlag(true);
                             break;
 
                         case Tokenizer::USE_INDEX_TOKEN:
-                            texture->Image->useColourFlag = false;
+                            texture->Image->setUseColourFlag(false);
                             break;
 
                         case Tokenizer::ALPHA_TOKEN: {
@@ -578,7 +581,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                 switch (ctx.token().tokenId) {
                                 case Tokenizer::FLOAT_TOKEN:
                                     reg = (int)(ctx.token().tokenFloat + 0.01);
-                                    if (texture->Image->indexedData == nullptr) {
+                                    if (texture->Image->getIndexedData() == nullptr) {
                                         ParseErrorReporter::reportError(
                                             "Can't apply ALPHA to a non "
                                             "colour-mapped image\n", ctx);
@@ -586,13 +589,13 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                                     if ((reg < 0) ||
                                         (reg >=
-                                            texture->Image->indexedData->getColourMapSize())) {
+                                            texture->Image->getIndexedData()->getColourMapSize())) {
                                         ParseErrorReporter::reportError(
                                             "ALPHA colour register value out "
                                             "of range.\n", ctx);
                                     }
 
-                                    texture->Image->indexedData->getColorMap()[reg].a =
+                                    texture->Image->getIndexedData()->getColorMap()[reg].a =
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
@@ -604,9 +607,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     alpha = PrimitiveParser::parseFloat(ctx);
 
                                     for (reg = 0;
-                                        reg < texture->Image->indexedData->getColourMapSize();
+                                        reg < texture->Image->getIndexedData()->getColourMapSize();
                                         reg++) {
-                                        texture->Image->indexedData->getColorMap()[reg].a =
+                                        texture->Image->getIndexedData()->getColorMap()[reg].a =
                                             (unsigned short)(alpha * 255.0);
                                     }
                                     Exit_Flag = true;
@@ -714,7 +717,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                TextureUtils::translateTexture(&texture, &localVector);
+                TextureUtils::instance().translateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
@@ -723,7 +726,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                TextureUtils::rotateTexture(&texture, &localVector);
+                TextureUtils::instance().rotateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
@@ -732,7 +735,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                TextureUtils::scaleTexture(&texture, &localVector);
+                TextureUtils::instance().scaleTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
@@ -832,12 +835,11 @@ TextureParser::parseTexture(ParserContext &ctx)
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate bumpmap texture", ctx);
                 }
-                *&texture->Bump_Image->imageGradient =
-                    Vector3Dd(1.0, -1.0, 0.0);
-                texture->Bump_Image->mapType = Texture::PLANAR_MAP;
-                texture->Bump_Image->interpolationType = Texture::NO_INTERPOLATION;
-                texture->Bump_Image->onceFlag = false;
-                texture->Bump_Image->useColourFlag = true;
+                texture->Bump_Image->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
+                texture->Bump_Image->setMapType(Texture::PLANAR_MAP);
+                texture->Bump_Image->setInterpolationType(Texture::NO_INTERPOLATION);
+                texture->Bump_Image->setOnceFlag(false);
+                texture->Bump_Image->setUseColourFlag(true);
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -851,14 +853,17 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::PLUS_TOKEN:
                         case Tokenizer::FLOAT_TOKEN:
                             ctx.tokenStream().ungetToken();
-                            (texture->Bump_Image->mapType) =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Bump_Image->setMapType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::LEFT_ANGLE_TOKEN:
                             ctx.tokenStream().ungetToken();
-                            PrimitiveParser::parseVector(
-                                &(texture->Bump_Image->imageGradient), ctx);
+                            {
+                                Vector3Dd _g;
+                                PrimitiveParser::parseVector(&_g, ctx);
+                                texture->Bump_Image->setImageGradient(_g);
+                            }
                             break;
 
                         case Tokenizer::IFF_TOKEN: {
@@ -909,17 +914,17 @@ TextureParser::parseTexture(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::ONCE_TOKEN:
-                            texture->Bump_Image->onceFlag = true;
+                            texture->Bump_Image->setOnceFlag(true);
                             break;
 
                         case Tokenizer::MAPTYPE_TOKEN:
-                            (texture->Bump_Image->mapType) =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Bump_Image->setMapType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::INTERPOLATE_TOKEN:
-                            texture->Bump_Image->interpolationType =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Bump_Image->setInterpolationType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::BUMPSIZE_TOKEN:
@@ -928,10 +933,10 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->Bump_Image->useColourFlag = true;
+                            texture->Bump_Image->setUseColourFlag(true);
                             break;
                         case Tokenizer::USE_INDEX_TOKEN:
-                            texture->Bump_Image->useColourFlag = false;
+                            texture->Bump_Image->setUseColourFlag(false);
                             break;
 
                         case Tokenizer::RIGHT_CURLY_TOKEN:
@@ -958,10 +963,10 @@ TextureParser::parseTexture(ParserContext &ctx)
                         "Out of memory. Cannot allocate material map texture", ctx);
                 }
                 *&texture->textureGradient = Vector3Dd(1.0, -1.0, 0.0);
-                texture->Material_Image->mapType = Texture::PLANAR_MAP;
-                texture->Material_Image->interpolationType = Texture::NO_INTERPOLATION;
-                texture->Material_Image->onceFlag = false;
-                texture->Material_Image->useColourFlag = false;
+                texture->Material_Image->setMapType(Texture::PLANAR_MAP);
+                texture->Material_Image->setInterpolationType(Texture::NO_INTERPOLATION);
+                texture->Material_Image->setOnceFlag(false);
+                texture->Material_Image->setUseColourFlag(false);
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -975,14 +980,17 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::PLUS_TOKEN:
                         case Tokenizer::FLOAT_TOKEN:
                             ctx.tokenStream().ungetToken();
-                            (texture->Image->mapType) =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Image->setMapType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::LEFT_ANGLE_TOKEN:
                             ctx.tokenStream().ungetToken();
-                            PrimitiveParser::parseVector(
-                                &(texture->Material_Image->imageGradient), ctx);
+                            {
+                                Vector3Dd _g;
+                                PrimitiveParser::parseVector(&_g, ctx);
+                                texture->Material_Image->setImageGradient(_g);
+                            }
                             break;
 
                         case Tokenizer::IFF_TOKEN: {
@@ -1037,17 +1045,17 @@ TextureParser::parseTexture(ParserContext &ctx)
                         switch (ctx.token().tokenId) {
 
                         case Tokenizer::MAPTYPE_TOKEN:
-                            (texture->Material_Image->mapType) =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Material_Image->setMapType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::INTERPOLATE_TOKEN:
-                            texture->Material_Image->interpolationType =
-                                (int)PrimitiveParser::parseFloat(ctx);
+                            texture->Material_Image->setInterpolationType(
+                                (int)PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::ONCE_TOKEN:
-                            texture->Material_Image->onceFlag = true;
+                            texture->Material_Image->setOnceFlag(true);
                             break;
 
                         case Tokenizer::TEXTURE_TOKEN: {
