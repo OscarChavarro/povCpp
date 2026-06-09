@@ -1,7 +1,7 @@
-#ifndef __RGBA_PIXEL_16BITS_H__
-#define __RGBA_PIXEL_16BITS_H__
+#ifndef __RGBA_PIXEL_HDR_H__
+#define __RGBA_PIXEL_HDR_H__
 
-class RGBAPixel16Bits {
+class RGBAPixelHDR {
   public:
     unsigned short r;
     unsigned short g;

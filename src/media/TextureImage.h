@@ -1,11 +1,11 @@
 #ifndef __TEXTURE_IMAGE_H__
 #define __TEXTURE_IMAGE_H__
 
-#include "media/RGBAImage.h"
+#include "media/RGBAImageHDRUncompressed.h"
 #include "media/IndexedImage.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-class TextureImage : public RGBAImage {
+class TextureImage : public RGBAImageHDRUncompressed {
   public:
     int mapType;
     int interpolationType;

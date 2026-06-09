@@ -1,7 +1,7 @@
 #ifndef __INDEXED_IMAGE_H__
 #define __INDEXED_IMAGE_H__
 
-#include "media/RGBAPixel16Bits.h"
+#include "media/RGBAPixelHDR.h"
 
 class IndexedImage {
   public:
@@ -10,7 +10,7 @@ class IndexedImage {
     int iwidth;
     int iheight;
     int colourMapSize;
-    RGBAPixel16Bits *colorMap;
+    RGBAPixelHDR *colorMap;
     unsigned char **mapLines;
 };
 

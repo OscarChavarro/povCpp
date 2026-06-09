@@ -15,7 +15,7 @@
 IndexedImage *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;
 java::FileInputStream *GifFormat::bitStream = nullptr;
-RGBAPixel16Bits *GifFormat::gifColourMap = nullptr;
+RGBAPixelHDR *GifFormat::gifColourMap = nullptr;
 int GifFormat::colourmapSize = 0;
 
 int
@@ -93,7 +93,7 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
     planes = ((unsigned)buffer[10] & 0x0F) + 1;
     colourmapSize = (int)(1 << planes);
 
-    gifColourMap = new RGBAPixel16Bits[colourmapSize];
+    gifColourMap = new RGBAPixelHDR[colourmapSize];
     if (gifColourMap == nullptr) {
         Logger::error("Cannot allocate GIF Colour Map\n");
         bitStream->close();

@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
-class RGBAImage;
+class RGBAImageHDRUncompressed;
 class IndexedImage;
 
 class HeightField : public Geometry {
@@ -23,7 +23,7 @@ class HeightField : public Geometry {
     float **Map;
 
     static void findHfMinMax(HeightField *hField, IndexedImage *image, int imageType);
-    static void findHfMinMax(HeightField *hField, RGBAImage *image, int imageType);
+    static void findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, int imageType);
     static int allHeightfldIntersections(SimpleBody *object,
         RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insideHeightfld(Vector3Dd *testPoint, SimpleBody *object);
