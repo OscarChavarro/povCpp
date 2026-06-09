@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/solidTexture/Texture.h"
 
-class TextureFixture {
+class textureFixture {
   public:
     void painted1(double x, double y, double z, Texture *texture, RGBAColor *colour);
     void painted2(double x, double y, double z, Texture *texture, RGBAColor *colour);

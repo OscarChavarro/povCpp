@@ -1,6 +1,6 @@
 /**
 Fill-in-the-blank pre-programmed texture functions for easy modification and testing.
-Create new experimental textures here before promoting them to ColorTextureFixture.
+Create new experimental textures here before promoting them to colorTextureFixture.
 
 References:
 [PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
@@ -15,10 +15,10 @@ References:
 
 /**
 Painted1: takes an x,y,z point on an object and returns the color at that point.
-See ColorTextureFixture for similar finished textures (granite, agate, marble, etc.).
+See colorTextureFixture for similar finished textures (granite, agate, marble, etc.).
 */
 void
-TextureFixture::painted1(
+textureFixture::painted1(
     double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
 
@@ -36,10 +36,10 @@ TextureFixture::painted1(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        TextureUtils::instance().DNoise(&colourVector, x, y, z);
-        temp = TextureUtils::instance().Noise(colourVector.x() * 4 * scale,
+        textureUtils::instance().DNoise(&colourVector, x, y, z);
+        temp = textureUtils::instance().Noise(colourVector.x() * 4 * scale,
             colourVector.y() * 4 * scale, colourVector.z() * 4 * scale);
-        temp = TextureUtils::instance().fabsInline(temp);
+        temp = textureUtils::instance().fabsInline(temp);
         rx += temp / scale;
         ry += temp / scale;
         rz += temp / scale;
@@ -48,7 +48,7 @@ TextureFixture::painted1(
 
     temp = result.x();
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColour(&newColour, texture->colorMap, temp);
+        textureUtils::instance().computeColour(&newColour, texture->colorMap, temp);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -62,7 +62,7 @@ TextureFixture::painted1(
 }
 
 void
-TextureFixture::painted2(
+textureFixture::painted2(
     double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     int brkindx;
@@ -75,8 +75,8 @@ TextureFixture::painted2(
     // the colormap is already parsed it's easier to use it during testing.
     // If the texture works out right you can change the parser later.
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColour(&colour1, texture->colorMap, 0.1);
-        TextureUtils::instance().computeColour(&colour2, texture->colorMap, 0.9);
+        textureUtils::instance().computeColour(&colour1, texture->colorMap, 0.1);
+        textureUtils::instance().computeColour(&colour2, texture->colorMap, 0.9);
     } else {
         Color::makeColor(&colour1, 1.0, 1.0, 1.0);
         colour1.Alpha = 0.0;
@@ -85,14 +85,14 @@ TextureFixture::painted2(
     }
 
     if ((turb = texture->turbulence) != 0.0) {
-        TextureUtils::instance().DTurbulence(
+        textureUtils::instance().DTurbulence(
             &textureTurbulence, x, y, z, texture->octaves);
         x += textureTurbulence.x() * turb;
         y += textureTurbulence.y() * turb;
         z += textureTurbulence.z() * turb;
     }
 
-    brkindx = (int)TextureUtils::instance().floorInline(x) + (int)TextureUtils::instance().floorInline(z);
+    brkindx = (int)textureUtils::instance().floorInline(x) + (int)textureUtils::instance().floorInline(z);
 
 
     if (brkindx & 1) {
@@ -110,7 +110,7 @@ TextureFixture::painted2(
 }
 
 void
-TextureFixture::painted3(
+textureFixture::painted3(
     double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
     ;
@@ -118,24 +118,24 @@ TextureFixture::painted3(
 
 /**
 Bumpy1: takes a point, texture, and surface normal; returns a perturbed normal.
-See BumpTextureFixture for similar finished bump textures (ripples, dents, bumps, etc.).
+See bumpTextureFixture for similar finished bump textures (ripples, dents, bumps, etc.).
 */
 void
-TextureFixture::bumpy1(
+textureFixture::bumpy1(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /** Same as bumpy1 except use VAdd for both cases of brkindex. */
 void
-TextureFixture::bumpy2(
+textureFixture::bumpy2(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /** Same as bumpy2 except scale AFTER setting brkindex. */
 void
-TextureFixture::bumpy3(
+textureFixture::bumpy3(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }

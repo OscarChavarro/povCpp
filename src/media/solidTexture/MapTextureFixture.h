@@ -5,10 +5,10 @@
 #include "media/solidTexture/Texture.h"
 #include "media/solidTexture/TextureImage.h"
 
-class MapTextureFixture {
+class mapTextureFixture {
   public:
     int map(double x, double y, double z, Texture *texture,
-        TextureImage *image, double *xcoor, double *ycoor,
+        textureImage *image, double *xcoor, double *ycoor,
         double smallTolerance);
     void imageMap(
         double x, double y, double z, Texture *texture, RGBAColor *colour, double smallTolerance);
@@ -20,20 +20,20 @@ class MapTextureFixture {
 
   private:
     int cylindricalImageMap(
-        double x, double y, double z, TextureImage *image, double *u, double *v);
+        double x, double y, double z, textureImage *image, double *u, double *v);
     int torusImageMap(
-        double x, double y, double z, TextureImage *image, double *u, double *v);
+        double x, double y, double z, textureImage *image, double *u, double *v);
     int sphericalImageMap(
         double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v);
     int planarImageMap(
-        double x, double y, double z, TextureImage *image, double *u, double *v);
-    void noInterpolation(TextureImage *image, double xcoor, double ycoor,
+        double x, double y, double z, textureImage *image, double *u, double *v);
+    void noInterpolation(textureImage *image, double xcoor, double ycoor,
         RGBAColor *colour, int *index);
     double bilinear(double *corners, double x, double y);
     double normDist(double *corners, double x, double y);
-    void interp(TextureImage *image, double xcoor, double ycoor,
+    void interp(textureImage *image, double xcoor, double ycoor,
         RGBAColor *colour, int *index);
-    void imageColourAt(TextureImage *image, double xcoor, double ycoor,
+    void imageColorAt(textureImage *image, double xcoor, double ycoor,
         RGBAColor *colour, int *index);
     double pythagoreanSq(double a, double b);
 };

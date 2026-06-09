@@ -4,9 +4,9 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/solidTexture/Texture.h"
 
-class ColorTextureFixture {
+class colorTextureFixture {
   public:
-    void colourAt(
+    void colorAt(
         RGBAColor *colour, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance);
     void agate(double x, double y, double z, Texture *texture, RGBAColor *colour);
     void bozo(double x, double y, double z, Texture *texture, RGBAColor *colour);

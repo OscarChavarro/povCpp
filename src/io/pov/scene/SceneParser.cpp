@@ -63,7 +63,7 @@ SceneParser::frameInit()
 void
 SceneParser::frameInit(ParserContext &ctx)
 {
-    TextureUtils::instance().defaultTexture() = TextureUtils::instance().getTexture();
+    textureUtils::instance().defaultTexture() = textureUtils::instance().getTexture();
     ctx.parsingFrame()->viewPoint.initializeDefaults();
     ctx.parsingFrame()->Light_Sources = nullptr;
     ctx.parsingFrame()->Objects = nullptr;
