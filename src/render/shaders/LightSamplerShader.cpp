@@ -1,5 +1,5 @@
 #include "render/shaders/LightSamplerShader.h"
-#include "common/color/Color.h"
+#include "common/color/ColorOperations.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/light/Light.h"
@@ -13,7 +13,7 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
 
     /* Get the light source color. */
     if ( lightSource->shapeColor == 0 ) {
-        Color::makeColor(lightColor, 1.0, 1.0, 1.0);
+        ColorOperations::makeColor(lightColor, 1.0, 1.0, 1.0);
     }
     else {
         *lightColor = *lightSource->shapeColor;

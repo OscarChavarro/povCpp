@@ -1,5 +1,5 @@
 #include "render/shaders/AmbientLightShader.h"
-#include "common/color/Color.h"
+#include "common/color/ColorOperations.h"
 
 void
 AmbientLightShader::shade(Texture *texture, ColorRgba *surfaceColor,

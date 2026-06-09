@@ -54,7 +54,7 @@ colorTextureFixture::colorAt(
     switch (texture->textureNumber) {
     case (int)SolidTextureColorTextures::NO_TEXTURE:
         // No colouring texture has been specified - make it black
-        Color::makeColor(color, 0.0, 0.0, 0.0);
+        ColorOperations::makeColor(color, 0.0, 0.0, 0.0);
         color->setA(0.0);
         break;
 

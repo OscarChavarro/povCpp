@@ -31,7 +31,7 @@ mapTextureFixture::imageMap(
     int regNumber;
 
     if (map(x, y, z, texture, texture->image, &xcoor, &ycoor, smallTolerance)) {
-        Color::makeColor(color, 1.0, 1.0, 1.0);
+        ColorOperations::makeColor(color, 1.0, 1.0, 1.0);
         color->setA(1.0);
         return;
     }
@@ -55,7 +55,7 @@ mapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
     int regNumber = 0;
     ColorRgba color;
     int materialNumber = 0;
-    Color::makeColor(&color, 0.0, 0.0, 0.0);
+    ColorOperations::makeColor(&color, 0.0, 0.0, 0.0);
     color.setA(0.0);
 
     if (texture->textureTransformation) {
@@ -115,11 +115,11 @@ mapTextureFixture::bumpMap(
     Vector3Dd zprime;
     Vector3Dd temp;
     double length;
-    Color::makeColor(&color, 0.0, 0.0, 0.0);
+    ColorOperations::makeColor(&color, 0.0, 0.0, 0.0);
     color.setA(0.0);
-    Color::makeColor(&color2, 0.0, 0.0, 0.0);
+    ColorOperations::makeColor(&color2, 0.0, 0.0, 0.0);
     color2.setA(0.0);
-    Color::makeColor(&color3, 0.0, 0.0, 0.0);
+    ColorOperations::makeColor(&color3, 0.0, 0.0, 0.0);
     color3.setA(0.0);
 
     // going to have to change this
@@ -127,7 +127,7 @@ mapTextureFixture::bumpMap(
 
     if (map(
             x, y, z, texture, texture->bumpImage, &xcoor, &ycoor, smallTolerance)) {
-        Color::makeColor(&color, 1.0, 1.0, 1.0);
+        ColorOperations::makeColor(&color, 1.0, 1.0, 1.0);
         color.setA(1.0);
         index = 255;
         return;
@@ -534,7 +534,7 @@ mapTextureFixture::interp(
     iycoor = (int)ycoor;
     ixcoor = (int)xcoor;
     for (i = 0; i < 4; i++) {
-        Color::makeColor(&cornerColor[i], 0.0, 0.0, 0.0);
+        ColorOperations::makeColor(&cornerColor[i], 0.0, 0.0, 0.0);
         cornerColor[i].setA(0.0);
     }
     // sample the four surrounding pixels
