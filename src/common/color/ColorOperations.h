@@ -2,8 +2,6 @@
 #define __COLOUR_H__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "common/color/RGBAColorPalette.h"
-#include "common/color/RGBAColorPaletteSpan.h"
 
 class ColorOperations {
   public:

@@ -9,7 +9,6 @@
 #include "io/pov/context/TokenizerStream.h"
 
 class RenderFrame;
-class RGBAColorPaletteSpan;
 
 class ParserContext {
   public:
@@ -18,7 +17,6 @@ class ParserContext {
     ReservedWord *reservedWords();
     TokenStruct &token();
     RenderFrame *&parsingFrame();
-    RGBAColorPaletteSpan *&constructionMap();
     Constant *constants();
     int &numberOfConstants();
     SymbolTable &symbols();
@@ -33,14 +31,12 @@ class ParserContext {
   private:
     static TokenizerStream sDefaultTokenStream;
     static RenderFrame *sSharedParsingFramePtr;
-    static RGBAColorPaletteSpan *sSharedConstructionMap;
     static SymbolTable sSharedSymbols;
     static int sSharedDegenerateTriangles;
     static ITokenStream *sForcedTokenStream;
 
     ITokenStream *mTokenStream;
     RenderFrame **mParsingFramePtr;
-    RGBAColorPaletteSpan **mConstructionMap;
     SymbolTable *mSymbols;
     int *mDegenerateTriangles;
 };
