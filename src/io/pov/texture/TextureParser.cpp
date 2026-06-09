@@ -272,7 +272,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             {
                                 Texture *color1Head = (Texture *)texture->color1;
                                 TextureParser::prependTextureLayers(localTexture, color1Head);
-                                texture->color1 = (RGBAColor *)color1Head;
+                                texture->color1 = (ColorRgba *)color1Head;
                             }
                             break;
                         default:
@@ -299,7 +299,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             {
                                 Texture *color2Head = (Texture *)texture->color2;
                                 TextureParser::prependTextureLayers(localTexture, color2Head);
-                                texture->color2 = (RGBAColor *)color2Head;
+                                texture->color2 = (ColorRgba *)color2Head;
                             }
                             break;
                         default:
@@ -615,8 +615,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     for (reg = 0;
                                         reg < texture->image->getIndexedData()->getColorMapSize();
                                         reg++) {
-                                        texture->image->getIndexedData()->getColorMap()[reg].a =
-                                            (unsigned short)(alpha * 255.0);
+                                        texture->image->getIndexedData()->getColorMap()[reg].a = (unsigned short)(alpha * 255.0);
                                     }
                                     Exit_Flag = true;
                                 }

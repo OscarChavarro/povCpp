@@ -3,17 +3,17 @@
 #include <cmath>
 
 void
-ExponentialFogShader::shade(double distance, RGBAColor *fogColor, double fogDistance,
-    RGBAColor *color)
+ExponentialFogShader::shade(double distance, ColorRgba *fogColor, double fogDistance,
+    ColorRgba *color)
 {
     double fogFactor;
     double fogFactorInverse;
 
     fogFactor = exp(-1.0 * distance / fogDistance);
     fogFactorInverse = 1.0 - fogFactor;
-    color->Red = color->Red * fogFactor + fogColor->Red * fogFactorInverse;
-    color->Green =
-        color->Green * fogFactor + fogColor->Green * fogFactorInverse;
-    color->Blue =
-        color->Blue * fogFactor + fogColor->Blue * fogFactorInverse;
+    color->setR(color->getR() * fogFactor + fogColor->getR() * fogFactorInverse);
+    color->setG(
+        color->getG() * fogFactor + fogColor->getG() * fogFactorInverse);
+    color->setB(
+        color->getB() * fogFactor + fogColor->getB() * fogFactorInverse);
 }

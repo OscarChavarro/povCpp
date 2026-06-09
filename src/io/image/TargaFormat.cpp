@@ -4,7 +4,7 @@
 
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/color/RGBAColor.h"
+#include "common/color/ColorRgba.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/TargaFormat.h"
 #include "io/binaryIo/FileLocator.h"
@@ -146,34 +146,34 @@ TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int 
 }
 
 void
-TargaFormat::writeLine(RGBAColor *lineData, int lineNumber)
+TargaFormat::writeLine(ColorRgba *lineData, int lineNumber)
 {
     for (int x = 0; x < width; x++) {
-        outputStream->write((int)floor(lineData[x].Blue * 255.0));
-        outputStream->write((int)floor(lineData[x].Green * 255.0));
-        outputStream->write((int)floor(lineData[x].Red * 255.0));
+        outputStream->write((int)floor(lineData[x].getB() * 255.0));
+        outputStream->write((int)floor(lineData[x].getG() * 255.0));
+        outputStream->write((int)floor(lineData[x].getR() * 255.0));
     }
 
     outputStream->flush();
 }
 
 int
-TargaFormat::readLine(RGBAColor *lineData, int *lineNumber)
+TargaFormat::readLine(ColorRgba *lineData, int *lineNumber)
 {
     for (int x = 0; x < width; x++) {
         int data = inputStream->read();
         if (data == -1) {
             return (x == 0) ? 0 : -1;
         }
-        lineData[x].Blue = (double)data / 255.0;
+        lineData[x].setB((double)data / 255.0);
 
         data = inputStream->read();
         if (data == -1) return -1;
-        lineData[x].Green = (double)data / 255.0;
+        lineData[x].setG((double)data / 255.0);
 
         data = inputStream->read();
         if (data == -1) return -1;
-        lineData[x].Red = (double)data / 255.0;
+        lineData[x].setR((double)data / 255.0);
     }
 
     return 1;

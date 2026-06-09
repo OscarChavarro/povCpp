@@ -12,15 +12,15 @@
 
 void
 LocalSurfaceShader::shade(RayWithSegments *ray, Texture *texture,
-    Intersection *rayIntersection, RGBAColor *surfaceColor,
-    RGBAColor *filterColor, RGBAColor *color,
+    Intersection *rayIntersection, ColorRgba *surfaceColor,
+    ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, Light *lightSources,
     SimpleBody *objects, int &traceLevel)
 {
     Vector3Dd surfaceNormal;
     double normalDirection;
     double attenuation;
-    RGBAColor emittedColor;
+    ColorRgba emittedColor;
 
     /* This variable keeps track of how much color comes from the surface
 of the object and how much is transmited through. */
@@ -32,11 +32,11 @@ of the object and how much is transmited through. */
     }
 
     if (RenderingConfiguration::global().quality <= 1) {
-        surfaceColor->Alpha = 0.0;
+        surfaceColor->setA(0.0);
 
-        color->Red += surfaceColor->Red * filterColor->Alpha;
-        color->Green += surfaceColor->Green * filterColor->Alpha;
-        color->Blue += surfaceColor->Blue * filterColor->Alpha;
+        color->setR(color->getR() + surfaceColor->getR() * filterColor->getA());
+        color->setG(color->getG() + surfaceColor->getG() * filterColor->getA());
+        color->setB(color->getB() + surfaceColor->getB() * filterColor->getA());
         return;
     }
 
@@ -54,15 +54,15 @@ of the object and how much is transmited through. */
         surfaceNormal = surfaceNormal.multiply(-1.0);
     }
 
-    attenuation = filterColor->Alpha * (1.0 - surfaceColor->Alpha);
+    attenuation = filterColor->getA() * (1.0 - surfaceColor->getA());
 
     AmbientLightShader::shade(texture, surfaceColor, &emittedColor, attenuation);
     DirectLightShader::shade(texture, &rayIntersection->Point, ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources, objects);
-    color->Red += emittedColor.Red;
-    color->Green += emittedColor.Green;
-    color->Blue += emittedColor.Blue;
+    color->setR(color->getR() + emittedColor.getR());
+    color->setG(color->getG() + emittedColor.getG());
+    color->setB(color->getB() + emittedColor.getB());
     if (RenderingConfiguration::global().quality >= 8) {
         MirrorReflectionShader::shade(
             texture, &rayIntersection->Point, ray, &surfaceNormal, color,

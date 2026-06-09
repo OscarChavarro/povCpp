@@ -51,13 +51,13 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColor(
                     &(ctx.constructionMap()[i].startColor), ctx);
-                if (ctx.constructionMap()[i].startColor.Alpha != 0.0) {
+                if (ctx.constructionMap()[i].startColor.getA() != 0.0) {
                     newColorMap->transparencyFlag = true;
                 }
 
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColor(&(ctx.constructionMap()[i].endColor), ctx);
-                if (ctx.constructionMap()[i].endColor.Alpha != 0.0) {
+                if (ctx.constructionMap()[i].endColor.getA() != 0.0) {
                     newColorMap->transparencyFlag = true;
                 }
 

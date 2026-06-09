@@ -1,7 +1,7 @@
 #ifndef __GEOMETRY_H__
 #define __GEOMETRY_H__
 
-#include "common/color/RGBAColor.h"
+#include "common/color/ColorRgba.h"
 #include "environment/geometry/GeometryConstants.h"
 
 class Methods;
@@ -13,7 +13,7 @@ class Geometry {
     int Type;
     Geometry *nextObject;
     Texture *Shape_Texture;
-    RGBAColor *shapeColor;
+    ColorRgba *shapeColor;
 };
 
 #endif

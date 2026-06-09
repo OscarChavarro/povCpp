@@ -4,13 +4,13 @@
 #include "common/dataStructures/PriorityQueueNode.h"
 
 class Intersection;
-class RGBAColor;
+class ColorRgba;
 class TraceService;
 
 class ShadowShader {
 public:
     static int shade(Intersection *localIntersection,
-        RGBAColor *lightColor, PriorityQueueNode *localQueue,
+        ColorRgba *lightColor, PriorityQueueNode *localQueue,
         const TraceService *traceService);
 };
 

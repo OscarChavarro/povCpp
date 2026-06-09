@@ -5,7 +5,7 @@
 #include "media/solidTexture/Texture.h"
 
 class RayWithSegments;
-class RGBAColor;
+class ColorRgba;
 class TraceService;
 class Light;
 class SimpleBody;
@@ -14,7 +14,7 @@ class DirectLightShader {
 public:
     static void shade(Texture *texture, Vector3Dd *intersectionPoint,
         RayWithSegments *eye, Vector3Dd *surfaceNormal,
-        RGBAColor *surfaceColor, RGBAColor *color, double attenuation,
+        ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, Light *lightSources,
         SimpleBody *objects);
 };

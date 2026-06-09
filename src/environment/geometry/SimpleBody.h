@@ -15,7 +15,7 @@ class SimpleBody {
     Geometry *clippingShapes;
     Geometry *Shape;
     bool noShadowFlag;
-    RGBAColor *objectColor;
+    ColorRgba *objectColor;
     Texture *objectTexture;
 };
 

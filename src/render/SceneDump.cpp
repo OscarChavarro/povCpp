@@ -49,20 +49,20 @@ void dumpSceneStructure(FILE *f)
 
             if (tex->color1) {
                 fprintf(f, "  tex.c1=%.6f,%.6f,%.6f,%.6f",
-                        tex->color1->Red,
-                        tex->color1->Green,
-                        tex->color1->Blue,
-                        tex->color1->Alpha);
+                        tex->color1->getR(),
+                        tex->color1->getG(),
+                        tex->color1->getB(),
+                        tex->color1->getA());
             } else {
                 fprintf(f, "  tex.c1=none");
             }
 
             if (tex->color2) {
                 fprintf(f, " c2=%.6f,%.6f,%.6f,%.6f",
-                        tex->color2->Red,
-                        tex->color2->Green,
-                        tex->color2->Blue,
-                        tex->color2->Alpha);
+                        tex->color2->getR(),
+                        tex->color2->getG(),
+                        tex->color2->getB(),
+                        tex->color2->getA());
             } else {
                 fprintf(f, " c2=none");
             }
@@ -75,14 +75,14 @@ void dumpSceneStructure(FILE *f)
                     fprintf(f, " [%.6f %.6f %.3f,%.3f,%.3f,%.3f->%.3f,%.3f,%.3f,%.3f]",
                             entry.start,
                             entry.end,
-                            entry.startColor.Red,
-                            entry.startColor.Green,
-                            entry.startColor.Blue,
-                            entry.startColor.Alpha,
-                            entry.endColor.Red,
-                            entry.endColor.Green,
-                            entry.endColor.Blue,
-                            entry.endColor.Alpha);
+                            entry.startColor.getR(),
+                            entry.startColor.getG(),
+                            entry.startColor.getB(),
+                            entry.startColor.getA(),
+                            entry.endColor.getR(),
+                            entry.endColor.getG(),
+                            entry.endColor.getB(),
+                            entry.endColor.getA());
                 }
                 fprintf(f, "\n");
             }

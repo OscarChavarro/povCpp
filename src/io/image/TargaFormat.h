@@ -5,7 +5,7 @@
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"
 
-class RGBAColor;
+class ColorRgba;
 class RGBAImageHDRUncompressed;
 
 class TargaFormat : public ImageOutput {
@@ -15,8 +15,8 @@ class TargaFormat : public ImageOutput {
     const char *defaultFileName() override;
     int open(char *name, int *width, int *height, int bufferSize, int mode,
              int firstLine) override;
-    void writeLine(RGBAColor *lineData, int lineNumber) override;
-    int readLine(RGBAColor *lineData, int *lineNumber) override;
+    void writeLine(ColorRgba *lineData, int lineNumber) override;
+    int readLine(ColorRgba *lineData, int *lineNumber) override;
     void close() override;
     static void readTargaImage(RGBAImageHDRUncompressed *image, char *name);
 

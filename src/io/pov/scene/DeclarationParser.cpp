@@ -235,7 +235,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 constantPtr->constantData = (char *)ModelBuilder::getColor();
                 constantPtr->constantType = ParseGlobals::COLOUR_CONSTANT;
                 PrimitiveParser::parseColor(
-                    (RGBAColor *)constantPtr->constantData, ctx);
+                    (ColorRgba *)constantPtr->constantData, ctx);
                 Exit_Flag = true;
                 break;
 

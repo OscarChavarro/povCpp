@@ -32,7 +32,7 @@ class textureUtils {
     double *waveFrequency();
     Vector3Dd *waveSources();
     unsigned short *crcTable();
-    void computeColor(RGBAColor *color, RGBAColorPalette *colorMap, double value);
+    void computeColor(ColorRgba *color, RGBAColorPalette *colorMap, double value);
     void initializeNoise(void);
     void InitTextureTable(void);
     void InitRTable(void);

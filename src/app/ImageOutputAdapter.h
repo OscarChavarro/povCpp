@@ -11,8 +11,8 @@ class ImageOutputAdapter : public RenderOutput {
     const char *defaultFileName() override;
     int open(char *name, int *width, int *height, int bufferSize, int mode,
              int firstLine) override;
-    void writeLine(RGBAColor *lineData, int lineNumber) override;
-    int readLine(RGBAColor *lineData, int *lineNumber) override;
+    void writeLine(ColorRgba *lineData, int lineNumber) override;
+    int readLine(ColorRgba *lineData, int *lineNumber) override;
     void close() override;
 
   private:

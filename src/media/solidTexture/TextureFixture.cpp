@@ -19,7 +19,7 @@ See colorTextureFixture for similar finished textures (granite, agate, marble, e
 */
 void
 textureFixture::painted1(
-    double x, double y, double z, Texture *texture, RGBAColor *color)
+    double x, double y, double z, Texture *texture, ColorRgba *color)
 {
 
     // Swirled()
@@ -28,7 +28,7 @@ textureFixture::painted1(
     int i;
     double scale = 1.0;
     double temp;
-    RGBAColor newColor;
+    ColorRgba newColor;
 
 
     double rx = 0.0;
@@ -49,27 +49,27 @@ textureFixture::painted1(
     temp = result.x();
     if (texture->colorMap != nullptr) {
         textureUtils::instance().computeColor(&newColor, texture->colorMap, temp);
-        color->Red += newColor.Red;
-        color->Green += newColor.Green;
-        color->Blue += newColor.Blue;
-        color->Alpha += newColor.Alpha;
+        color->setR(color->getR() + newColor.getR());
+        color->setG(color->getG() + newColor.getG());
+        color->setB(color->getB() + newColor.getB());
+        color->setA(color->getA() + newColor.getA());
         return;
     }
 
-    color->Red += temp;
-    color->Green += temp;
-    color->Blue += temp;
+    color->setR(color->getR() + temp);
+    color->setG(color->getG() + temp);
+    color->setB(color->getB() + temp);
 }
 
 void
 textureFixture::painted2(
-    double x, double y, double z, Texture *texture, RGBAColor *color)
+    double x, double y, double z, Texture *texture, ColorRgba *color)
 {
     int brkindx;
     double turb;
     Vector3Dd textureTurbulence;
-    RGBAColor colour1;
-    RGBAColor color2;
+    ColorRgba colour1;
+    ColorRgba color2;
 
     // You could change the parser to take two colors after PAINTED2, but since
     // the colormap is already parsed it's easier to use it during testing.
@@ -79,9 +79,9 @@ textureFixture::painted2(
         textureUtils::instance().computeColor(&color2, texture->colorMap, 0.9);
     } else {
         Color::makeColor(&colour1, 1.0, 1.0, 1.0);
-        colour1.Alpha = 0.0;
+        colour1.setA(0.0);
         Color::makeColor(&color2, 0.0, 1.0, 0.0);
-        color2.Alpha = 0.0;
+        color2.setA(0.0);
     }
 
     if ((turb = texture->turbulence) != 0.0) {
@@ -96,22 +96,22 @@ textureFixture::painted2(
 
 
     if (brkindx & 1) {
-        color->Red = colour1.Red;
-        color->Green = colour1.Green;
-        color->Blue = colour1.Blue;
-        color->Alpha = colour1.Alpha;
+        color->setR(colour1.getR());
+        color->setG(colour1.getG());
+        color->setB(colour1.getB());
+        color->setA(colour1.getA());
     } else {
-        color->Red = color2.Red;
-        color->Green = color2.Green;
-        color->Blue = color2.Blue;
-        color->Alpha = color2.Alpha;
+        color->setR(color2.getR());
+        color->setG(color2.getG());
+        color->setB(color2.getB());
+        color->setA(color2.getA());
     }
     return;
 }
 
 void
 textureFixture::painted3(
-    double x, double y, double z, Texture *texture, RGBAColor *color)
+    double x, double y, double z, Texture *texture, ColorRgba *color)
 {
     ;
 }

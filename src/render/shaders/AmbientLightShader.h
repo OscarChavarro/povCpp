@@ -3,12 +3,12 @@
 
 #include "media/solidTexture/Texture.h"
 
-class RGBAColor;
+class ColorRgba;
 
 class AmbientLightShader {
 public:
-    static void shade(Texture *texture, RGBAColor *surfaceColor,
-        RGBAColor *color, double attenuation);
+    static void shade(Texture *texture, ColorRgba *surfaceColor,
+        ColorRgba *color, double attenuation);
 };
 
 #endif

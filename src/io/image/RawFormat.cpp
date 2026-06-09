@@ -7,7 +7,7 @@
 
 #include "io/image/RawFormat.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/color/RGBAColor.h"
+#include "common/color/ColorRgba.h"
 #include "java/io/FileOutputStream.h"
 #include <cmath>
 #include <cstring>
@@ -147,16 +147,16 @@ RawFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int /*
 }
 
 void
-RawFormat::writeLine(RGBAColor *lineData, int lineNumber)
+RawFormat::writeLine(ColorRgba *lineData, int lineNumber)
 {
     for (int x = 0; x < width; x++) {
-        redOut->write((int)floor(lineData[x].Red * 255.0));
+        redOut->write((int)floor(lineData[x].getR() * 255.0));
     }
     for (int x = 0; x < width; x++) {
-        greenOut->write((int)floor(lineData[x].Green * 255.0));
+        greenOut->write((int)floor(lineData[x].getG() * 255.0));
     }
     for (int x = 0; x < width; x++) {
-        blueOut->write((int)floor(lineData[x].Blue * 255.0));
+        blueOut->write((int)floor(lineData[x].getB() * 255.0));
     }
 
     redOut->flush();
@@ -165,24 +165,24 @@ RawFormat::writeLine(RGBAColor *lineData, int lineNumber)
 }
 
 int
-RawFormat::readLine(RGBAColor *lineData, int *lineNumber)
+RawFormat::readLine(ColorRgba *lineData, int *lineNumber)
 {
     for (int i = 0; i < width; i++) {
         int data = redIn->read();
         if (data == -1) {
             return (i == 0) ? 0 : -1;
         }
-        lineData[i].Red = (double)data / 255.0;
+        lineData[i].setR((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
         int data = greenIn->read();
         if (data == -1) return -1;
-        lineData[i].Green = (double)data / 255.0;
+        lineData[i].setG((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
         int data = blueIn->read();
         if (data == -1) return -1;
-        lineData[i].Blue = (double)data / 255.0;
+        lineData[i].setB((double)data / 255.0);
     }
 
     *lineNumber = lineCounter++;
