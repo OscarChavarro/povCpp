@@ -35,7 +35,6 @@ void
 DeclarationParser::parseDeclare(ParserContext &ctx)
 {
     Texture *localTexture;
-    Texture *tempTexture;
     Constant *constantPtr;
 
     ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
@@ -205,15 +204,9 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                             localTexture->constantFlag = true;
 
                             {
-                                for (tempTexture = localTexture;
-                                    tempTexture->Next_Texture != nullptr;
-                                    tempTexture = tempTexture->Next_Texture) {
-                                }
-
-                                tempTexture->Next_Texture =
-                                    (Texture *)constantPtr->constantData;
-                                constantPtr->constantData =
-                                    (char *)localTexture;
+                                Texture *existingHead = (Texture *)constantPtr->constantData;
+                                TextureParser::prependTextureLayers(localTexture, existingHead);
+                                constantPtr->constantData = (char *)existingHead;
                             }
                             break;
 

@@ -451,7 +451,6 @@ ObjectParser::parseObject(ParserContext &ctx)
     Vector3Dd localVector;
     int constantId;
     Texture *localTexture;
-    Texture *tempTexture;
 
     object = nullptr;
 
@@ -587,13 +586,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if (object->objectTexture == TextureUtils::instance().defaultTexture()) {
                     object->objectTexture = localTexture;
                 } else {
-                    for (tempTexture = localTexture;
-                        tempTexture->Next_Texture != nullptr;
-                        tempTexture = tempTexture->Next_Texture) {
-                    }
-
-                    tempTexture->Next_Texture = object->objectTexture;
-                    object->objectTexture = localTexture;
+                    TextureParser::prependTextureLayers(localTexture, object->objectTexture);
                 }
                 break;
 

@@ -1,25 +1,20 @@
-/****************************************************************************
- *                     texture.c
- *
- *  This module implements texturing functions such as noise, turbulence and
- *  texture transformation functions. The actual texture routines are in the
- *  files txtcolor.c, txtbump.c, txtmap.c, etc.
- *  The noise function used here is the one described by Ken Perlin in
- *  "Hypertexture", SIGGRAPH '89 Conference Proceedings page 253.
- *
+/**
+Implements texturing utility functions: noise, turbulence, and texture transforms.
+Color, bump, and map texture routines are in ColorTextureFixture.cpp,
+BumpTextureFixture.cpp, and MapTextureFixture.cpp respectively.
+
 References:
 [PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
-
- *****************************************************************************/
-/*
-    Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
-    "An Image Synthesizer" By Ken Perlin.
-    Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
+[PERL1989] "Hypertexture" (SIGGRAPH '89, p. 253).
+"The RenderMan Companion" (Addison Wesley).
 */
 
 #include <cstdlib>
 
+#include "java/util/ArrayList.txx"
 #include "media/solidTexture/Texture.h"
+#include "media/solidTexture/SolidTextureColorTextures.h"
+#include "media/solidTexture/SolidTextureBumpyTextures.h"
 #include "common/statistics/SolidTextureStatistics.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
@@ -134,14 +129,14 @@ TextureUtils::fabsInline(double x)
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
-// [PERL1985].289 - S-curve interpolation function for smooth lattice transitions
+/** [PERL1985].289 - S-curve interpolation function for smooth lattice transitions. */
 double
 TextureUtils::sCurve(double a)
 {
     return a * a * (3.0 - 2.0 * a);
 }
 
-// [PERL1985].289 - Hash function using permutation table for pseudorandom lattice values
+/** [PERL1985].289 - Hash function using permutation table for pseudorandom lattice values. */
 short
 TextureUtils::hash3d(long a, long b, long c)
 {
@@ -227,7 +222,7 @@ TextureUtils::initializeNoise()
     }
 }
 
-// [PERL1985].289 - Initialize permutation hash table for lattice pseudorandom values
+/** [PERL1985].289 - Initialize permutation hash table for lattice pseudorandom values. */
 void
 TextureUtils::InitTextureTable()
 {
@@ -252,8 +247,10 @@ TextureUtils::InitTextureTable()
     }
 }
 
-// [PERL1985].289 - Initialize pseudorandom gradient table via CRC hashing
-// modified by AAC to work properly with little bitty integers (16 bits)
+/**
+[PERL1985].289 - Initialize pseudorandom gradient table via CRC hashing.
+Modified by AAC to work properly with 16-bit integers.
+*/
 void
 TextureUtils::InitRTable()
 {
@@ -281,10 +278,11 @@ TextureUtils::R(Vector3Dd *v)
     return (Crc16((char *)v, sizeof(Vector3Dd)));
 }
 
-// [PERL1985].289 - CRC-based pseudorandom value generator from 3D points
-// Note that passing a Vector3Dd array to Crc16 and interpreting it as
-// an array of chars means that machines with different floating-point
-// representation schemes will evaluate Noise(point) differently.
+/**
+[PERL1985].289 - CRC-based pseudorandom value generator from 3D points.
+Note: passing a Vector3Dd as a char array means machines with different
+floating-point representations will produce different Noise() values.
+*/
 int
 TextureUtils::Crc16(char *buf, int count)
 {
@@ -297,20 +295,22 @@ TextureUtils::Crc16(char *buf, int count)
     return ((int)crc);
 }
 
-// [PERL1985].289 - Integer lattice setup: map continuous space to lattice points
-// Robert's Skinner's Perlin-style "Noise" function - modified by AAC
-// to ensure uniformly distributed clamped values between 0 and 1.0...
+/**
+[PERL1985].289 - Integer lattice setup: map continuous space to lattice points.
+Robert Skinner's Perlin-style Noise function, modified by AAC to ensure
+uniformly distributed values clamped between 0.0 and 1.0.
+*/
 void
 setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
     long *jx, long *jy, long *jz, double *sx, double *sy, double *sz,
     double *tx, double *ty, double *tz)
 {
-    /* ensures the values are positive. */
+    // ensures the values are positive.
     *x -= Texture::MINX;
     *y -= Texture::MINY;
     *z -= Texture::MINZ;
 
-    /* its equivalent integer lattice point. */
+    // its equivalent integer lattice point.
     *ix = (long)*x;
     *iy = (long)*y;
     *iz = (long)*z;
@@ -322,14 +322,16 @@ setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
     *sy = TextureUtils::instance().sCurve(*y - *iy);
     *sz = TextureUtils::instance().sCurve(*z - *iz);
 
-    /* the complement values of sx,sy,sz */
+    // the complement values of sx,sy,sz
     *tx = 1.0 - *sx;
     *ty = 1.0 - *sy;
     *tz = 1.0 - *sz;
 }
 
-// [PERL1985].289 - Perlin noise function: scalar-valued procedural texture
-// using lattice-based interpolation with pseudorandom gradients
+/**
+[PERL1985].289 - Perlin noise function: scalar-valued procedural texture
+using lattice-based interpolation with pseudorandom gradients.
+*/
 double
 TextureUtils::Noise(double x, double y, double z)
 {
@@ -353,9 +355,7 @@ TextureUtils::Noise(double x, double y, double z)
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
 
-    /*
-     *  interpolate!
-     */
+    // interpolate!
     m = hash3d(ix, iy, iz) & 0xFF;
     sum = incrSum(m, (tx * ty * tz), (x - ix), (y - iy), (z - iz));
 
@@ -380,7 +380,7 @@ TextureUtils::Noise(double x, double y, double z)
     m = hash3d(jx, jy, jz) & 0xFF;
     sum += incrSum(m, (sx * sy * sz), (x - jx), (y - jy), (z - jz));
 
-    sum = sum + 0.5; /* range at this point -0.5 - 0.5... */
+    sum = sum + 0.5; // range: -0.5 to 0.5 before clamping
 
     if (sum < 0.0) {
         sum = 0.0;
@@ -392,8 +392,10 @@ TextureUtils::Noise(double x, double y, double z)
     return (sum);
 }
 
-// [PERL1985].289 - DNoise: vector-valued differential of Noise function
-// Returns the gradient (directional derivatives) of the noise field
+/**
+[PERL1985].289 - DNoise: vector-valued differential of the Noise function.
+Returns the gradient (directional derivatives) of the noise field.
+*/
 void
 TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
 {
@@ -420,9 +422,7 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
 
-    /*
-     *  interpolate!
-     */
+    // interpolate!
     m = hash3d(ix, iy, iz) & 0xFF;
     px = x - ix;
     py = y - iy;
@@ -483,12 +483,14 @@ TextureUtils::DNoise(Vector3Dd *result, double x, double y, double z)
     *result = Vector3Dd(rx, ry, rz);
 }
 
-// [PERL1985].Appendix - Turbulence: functional composition of Noise() over multiple octaves
-// Creates self-similar fractal patterns by summing scaled noise at different frequencies
+/**
+[PERL1985].Appendix - Turbulence: functional composition of Noise() over multiple octaves.
+Creates self-similar fractal patterns by summing scaled noise at different frequencies.
+*/
 double
 TextureUtils::Turbulence(double x, double y, double z, int octaves)
 {
-    int i; /* added -dmf */
+    int i; // added -dmf
     double t = 0.0;
     double scale;
     double value;
@@ -500,13 +502,15 @@ TextureUtils::Turbulence(double x, double y, double z, int octaves)
     return (t);
 }
 
-// [PERL1985].Appendix - DTurbulence: vector-valued version of turbulence
-// Returns gradient of turbulent field by composing DNoise() over octaves
+/**
+[PERL1985].Appendix - DTurbulence: vector-valued version of turbulence.
+Returns gradient of turbulent field by composing DNoise() over octaves.
+*/
 void
 TextureUtils::DTurbulence(
     Vector3Dd *result, double x, double y, double z, int octaves)
 {
-    int i; /* added -dmf */
+    int i; // added -dmf
     double scale;
     Vector3Dd value;
 
@@ -557,102 +561,118 @@ TextureUtils::triangleWave(double value)
     return (2.0 * offset);
 }
 
+static bool
+needsTransform(const Texture *texture)
+{
+    return ((texture->textureNumber != (int)SolidTextureColorTextures::NO_TEXTURE) &&
+               (texture->textureNumber != (int)SolidTextureColorTextures::COLOUR_TEXTURE)) ||
+           (texture->bumpNumber != (int)SolidTextureBumpyTextures::NO_BUMPS);
+}
+
+static void
+applyTranslationTransform(Texture *texture, Vector3Dd *vector)
+{
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
+
+    if (!texture->textureTransformation) {
+        texture->textureTransformation =
+            new Matrix4x4d(Matrix4x4d::identityMatrix());
+        texture->textureTransformationInverse =
+            new Matrix4x4d(Matrix4x4d::identityMatrix());
+    }
+    deltaTransformation = Matrix4x4d().translation(
+        vector->x(), vector->y(), vector->z()).transpose();
+    deltaTransformationInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    *texture->textureTransformation =
+        texture->textureTransformation->multiply(deltaTransformation);
+    *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
+        *texture->textureTransformationInverse);
+}
+
 void
 TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
+    if (texture == nullptr) {
+        return;
+    }
 
-    while (texture != nullptr) {
-        if (((texture->textureNumber != Texture::NO_TEXTURE) &&
-                (texture->textureNumber != Texture::COLOUR_TEXTURE)) ||
-            (texture->bumpNumber != Texture::NO_BUMPS)) {
+    if (needsTransform(texture)) {
+        if (texture->constantFlag) {
+            texture = copyTexture(texture);
+            *texturePtr = texture;
+        }
+        applyTranslationTransform(texture, vector);
+        if (texture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+            translateTexture((Texture **)&texture->color1, vector);
+            translateTexture((Texture **)&texture->color2, vector);
+        }
+    }
 
-            if (texture->constantFlag) {
-                texture = copyTexture(texture);
-                *texturePtr = texture;
-                texture->constantFlag = false;
+    for (long int i = 0; i < texture->layers.size(); i++) {
+        Texture *layer = texture->layers[i];
+        if (needsTransform(layer)) {
+            if (layer->constantFlag) {
+                layer = copyTexture(layer);
+                texture->layers[i] = layer;
             }
-
-            if (!texture->textureTransformation) {
-                texture->textureTransformation =
-                    new Matrix4x4d(Matrix4x4d::identityMatrix());
-                texture->textureTransformationInverse =
-                    new Matrix4x4d(Matrix4x4d::identityMatrix());
-            }
-            deltaTransformation = Matrix4x4d().translation(
-                vector->x(), vector->y(), vector->z()).transpose();
-            deltaTransformationInverse = Matrix4x4d().translation(
-                0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-            *texture->textureTransformation =
-                texture->textureTransformation->multiply(deltaTransformation);
-            *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
-                *texture->textureTransformationInverse);
-            if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
-                translateTexture(
-                    (Texture **)&texture->Colour1, vector);
-                translateTexture(
-                    (Texture **)&texture->Colour2, vector);
+            applyTranslationTransform(layer, vector);
+            if (layer->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+                translateTexture((Texture **)&layer->color1, vector);
+                translateTexture((Texture **)&layer->color2, vector);
             }
         }
-        texturePtr = &texture->Next_Texture;
-        texture = texture->Next_Texture;
     }
+}
+
+static void
+copyTextureNode(Texture *dst, const Texture *src)
+{
+    if (dst->textureTransformation) {
+        dst->textureTransformation =
+            new Matrix4x4d(*src->textureTransformation);
+        dst->textureTransformationInverse =
+            new Matrix4x4d(*src->textureTransformationInverse);
+    }
+    if (dst->colorMap != nullptr) {
+        RGBAColorPalette *newMap = new RGBAColorPalette();
+        if (newMap == nullptr) {
+            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map\n");
+        }
+        newMap->numberOfEntries = src->colorMap->numberOfEntries;
+        newMap->transparencyFlag = src->colorMap->transparencyFlag;
+        newMap->Colour_Map_Entries =
+            new RGBAColorPaletteSpan[src->colorMap->numberOfEntries];
+        if (newMap->Colour_Map_Entries == nullptr) {
+            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map entries\n");
+        }
+        for (int i = 0; i < src->colorMap->numberOfEntries; i++) {
+            newMap->Colour_Map_Entries[i] = src->colorMap->Colour_Map_Entries[i];
+        }
+        dst->colorMap = newMap;
+    }
+    dst->constantFlag = false;
 }
 
 Texture *
 TextureUtils::copyTexture(Texture *texture)
 {
-    Texture *newTexture;
-    Texture *localTexture;
-    Texture *firstTexture;
-    Texture *previousTexture;
+    Texture *newHead = getTexture();
+    *newHead = *texture;
+    copyTextureNode(newHead, texture);
 
-    previousTexture = firstTexture = nullptr;
-
-    for (localTexture = texture; localTexture != nullptr;
-        localTexture = localTexture->Next_Texture) {
-        newTexture = getTexture();
-        *newTexture = *localTexture;
-
-        if (firstTexture == nullptr) {
-            firstTexture = newTexture;
-        }
-
-        if (previousTexture != nullptr) {
-            previousTexture->Next_Texture = newTexture;
-        }
-
-        if (newTexture->textureTransformation) {
-            newTexture->textureTransformation =
-                new Matrix4x4d(*localTexture->textureTransformation);
-            newTexture->textureTransformationInverse =
-                new Matrix4x4d(*localTexture->textureTransformationInverse);
-        }
-        // Deep copy Colour_Map if present (don't share pointers)
-        if (newTexture->Colour_Map != nullptr) {
-            RGBAColorPalette *newMap = new RGBAColorPalette();
-            if (newMap == nullptr) {
-                Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map\n");
-            }
-            newMap->numberOfEntries = localTexture->Colour_Map->numberOfEntries;
-            newMap->transparencyFlag = localTexture->Colour_Map->transparencyFlag;
-            newMap->Colour_Map_Entries =
-                new RGBAColorPaletteSpan[localTexture->Colour_Map->numberOfEntries];
-            if (newMap->Colour_Map_Entries == nullptr) {
-                Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate colour map entries\n");
-            }
-            for (int i = 0; i < localTexture->Colour_Map->numberOfEntries; i++) {
-                newMap->Colour_Map_Entries[i] =
-                    localTexture->Colour_Map->Colour_Map_Entries[i];
-            }
-            newTexture->Colour_Map = newMap;
-        }
-        newTexture->constantFlag = false;
-        previousTexture = newTexture;
+    newHead->layers.clear();
+    for (long int i = 0; i < texture->layers.size(); i++) {
+        Texture *src = texture->layers[i];
+        Texture *copy = getTexture();
+        *copy = *src;
+        copyTextureNode(copy, src);
+        newHead->layers.add(copy);
     }
-    return (firstTexture);
+
+    return newHead;
 }
 
 Texture *
@@ -665,9 +685,6 @@ TextureUtils::getTexture()
         Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
-    newTexture->Next_Texture = nullptr;
-    newTexture->Next_Material = nullptr;
-    newTexture->numberOfMaterials = 0;
     newTexture->objectReflection = 0.0;
     newTexture->objectAmbient = 0.1;
     newTexture->objectDiffuse = 0.6;
@@ -679,22 +696,22 @@ TextureUtils::getTexture()
 
     newTexture->textureRandomness = 0.0;
     newTexture->bumpAmount = 0.0;
-    newTexture->Phase = 0.0;
-    newTexture->Frequency = 1.0;
-    newTexture->textureNumber = Texture::NO_TEXTURE;
+    newTexture->phase = 0.0;
+    newTexture->frequency = 1.0;
+    newTexture->textureNumber = (int)SolidTextureColorTextures::NO_TEXTURE;
     newTexture->textureTransformation = nullptr;
     newTexture->textureTransformationInverse = nullptr;
-    newTexture->bumpNumber = Texture::NO_BUMPS;
-    newTexture->Turbulence = 0.0;
-    newTexture->Colour_Map = nullptr;
+    newTexture->bumpNumber = (int)SolidTextureBumpyTextures::NO_BUMPS;
+    newTexture->turbulence = 0.0;
+    newTexture->colorMap = nullptr;
     newTexture->onceFlag = false;
     newTexture->metallicFlag = false;
-    newTexture->Octaves = 6;  /* dmf, for turbulence functs */
-    newTexture->Mortar = 0.2; /* rha, for brick texture */
+    newTexture->octaves = 6;  /* dmf, for turbulence functs */
+    newTexture->mortar = 0.2; /* rha, for brick texture */
 
     newTexture->constantFlag = true;
-    newTexture->Colour1 = nullptr;
-    newTexture->Colour2 = nullptr;
+    newTexture->color1 = nullptr;
+    newTexture->color2 = nullptr;
     *&newTexture->textureGradient = Vector3Dd(0.0, 0.0, 0.0);
 
     newTexture->objectIndexOfRefraction = 1.0;
@@ -703,87 +720,114 @@ TextureUtils::getTexture()
     return (newTexture);
 }
 
+static void
+applyRotationTransform(Texture *texture, Vector3Dd *vector)
+{
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
+
+    if (!texture->textureTransformation) {
+        texture->textureTransformation =
+            new Matrix4x4d(Matrix4x4d::identityMatrix());
+        texture->textureTransformationInverse =
+            new Matrix4x4d(Matrix4x4d::identityMatrix());
+    }
+    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
+    *texture->textureTransformation =
+        texture->textureTransformation->multiply(deltaTransformation);
+    *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
+        *texture->textureTransformationInverse);
+}
+
 void
 TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
+    if (texture == nullptr) {
+        return;
+    }
+
+    if (needsTransform(texture)) {
+        if (texture->constantFlag) {
+            texture = copyTexture(texture);
+            *texturePtr = texture;
+        }
+        applyRotationTransform(texture, vector);
+        if (texture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+            rotateTexture((Texture **)&texture->color1, vector);
+            rotateTexture((Texture **)&texture->color2, vector);
+        }
+    }
+
+    for (long int i = 0; i < texture->layers.size(); i++) {
+        Texture *layer = texture->layers[i];
+        if (needsTransform(layer)) {
+            if (layer->constantFlag) {
+                layer = copyTexture(layer);
+                texture->layers[i] = layer;
+            }
+            applyRotationTransform(layer, vector);
+            if (layer->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+                rotateTexture((Texture **)&layer->color1, vector);
+                rotateTexture((Texture **)&layer->color2, vector);
+            }
+        }
+    }
+}
+
+static void
+applyScaleTransform(Texture *texture, Vector3Dd *vector)
+{
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 
-    while (texture != nullptr) {
-        if (((texture->textureNumber != Texture::NO_TEXTURE) &&
-                (texture->textureNumber != Texture::COLOUR_TEXTURE)) ||
-            (texture->bumpNumber != Texture::NO_BUMPS)) {
-
-            if (texture->constantFlag) {
-                texture = copyTexture(texture);
-                *texturePtr = texture;
-                texture->constantFlag = false;
-            }
-
-            if (!texture->textureTransformation) {
-                texture->textureTransformation =
-                    new Matrix4x4d(Matrix4x4d::identityMatrix());
-                texture->textureTransformationInverse =
-                    new Matrix4x4d(Matrix4x4d::identityMatrix());
-            }
-            deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
-            *texture->textureTransformation =
-                texture->textureTransformation->multiply(deltaTransformation);
-            *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
-                *texture->textureTransformationInverse);
-            if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
-                rotateTexture(
-                    (Texture **)&texture->Colour1, vector);
-                rotateTexture(
-                    (Texture **)&texture->Colour2, vector);
-            }
-        }
-        texturePtr = &texture->Next_Texture;
-        texture = texture->Next_Texture;
+    if (!texture->textureTransformation) {
+        texture->textureTransformation =
+            new Matrix4x4d(Matrix4x4d::identityMatrix());
+        texture->textureTransformationInverse =
+            new Matrix4x4d(Matrix4x4d::identityMatrix());
     }
+    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    deltaTransformationInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+    *texture->textureTransformation =
+        texture->textureTransformation->multiply(deltaTransformation);
+    *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
+        *texture->textureTransformationInverse);
 }
 
 void
 TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
 {
     Texture *texture = *texturePtr;
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
+    if (texture == nullptr) {
+        return;
+    }
 
-    while (texture != nullptr) {
-        if (((texture->textureNumber != Texture::NO_TEXTURE) &&
-                (texture->textureNumber != Texture::COLOUR_TEXTURE)) ||
-            (texture->bumpNumber != Texture::NO_BUMPS)) {
+    if (needsTransform(texture)) {
+        if (texture->constantFlag) {
+            texture = copyTexture(texture);
+            *texturePtr = texture;
+        }
+        applyScaleTransform(texture, vector);
+        if (texture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+            scaleTexture((Texture **)&texture->color1, vector);
+            scaleTexture((Texture **)&texture->color2, vector);
+        }
+    }
 
-            if (texture->constantFlag) {
-                texture = copyTexture(texture);
-                *texturePtr = texture;
-                texture->constantFlag = false;
+    for (long int i = 0; i < texture->layers.size(); i++) {
+        Texture *layer = texture->layers[i];
+        if (needsTransform(layer)) {
+            if (layer->constantFlag) {
+                layer = copyTexture(layer);
+                texture->layers[i] = layer;
             }
-
-            if (!texture->textureTransformation) {
-                texture->textureTransformation =
-                    new Matrix4x4d(Matrix4x4d::identityMatrix());
-                texture->textureTransformationInverse =
-                    new Matrix4x4d(Matrix4x4d::identityMatrix());
-            }
-            deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-            deltaTransformationInverse = Matrix4x4d().scale(
-                1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-            *texture->textureTransformation =
-                texture->textureTransformation->multiply(deltaTransformation);
-            *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
-                *texture->textureTransformationInverse);
-
-            if (texture->textureNumber == Texture::CHECKER_TEXTURE_TEXTURE) {
-                scaleTexture(
-                    (Texture **)&texture->Colour1, vector);
-                scaleTexture(
-                    (Texture **)&texture->Colour2, vector);
+            applyScaleTransform(layer, vector);
+            if (layer->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+                scaleTexture((Texture **)&layer->color1, vector);
+                scaleTexture((Texture **)&layer->color2, vector);
             }
         }
-        texturePtr = &texture->Next_Texture;
-        texture = texture->Next_Texture;
     }
 }

@@ -9,6 +9,7 @@ class TextureParser {
     static Texture *parseTexture();
     static Texture *parseTexture(ParserContext &ctx);
     static Texture *copyTexture(Texture *texture);
+    static void prependTextureLayers(Texture *newHead, Texture *&existingHead);
 
   private:
     static bool shouldLogTextureState();
