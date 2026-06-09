@@ -43,10 +43,10 @@ TextureFixture::painted1(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        TextureUtils::DNoise(&colourVector, x, y, z);
-        temp = TextureUtils::Noise(colourVector.x() * 4 * scale,
+        TextureUtils::instance().DNoise(&colourVector, x, y, z);
+        temp = TextureUtils::instance().Noise(colourVector.x() * 4 * scale,
             colourVector.y() * 4 * scale, colourVector.z() * 4 * scale);
-        temp = TextureUtils::fabsInline(temp);
+        temp = TextureUtils::instance().fabsInline(temp);
         rx += temp / scale;
         ry += temp / scale;
         rz += temp / scale;
@@ -55,7 +55,7 @@ TextureFixture::painted1(
 
     temp = result.x();
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&newColour, texture->Colour_Map, temp);
+        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, temp);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -83,8 +83,8 @@ TextureFixture::painted2(
     /* testing. If the texture works out right you can change the parser later.
      */
     if (texture->Colour_Map != nullptr) {
-        TextureUtils::computeColour(&colour1, texture->Colour_Map, 0.1);
-        TextureUtils::computeColour(&colour2, texture->Colour_Map, 0.9);
+        TextureUtils::instance().computeColour(&colour1, texture->Colour_Map, 0.1);
+        TextureUtils::instance().computeColour(&colour2, texture->Colour_Map, 0.9);
     } else {
         Color::makeColor(&colour1, 1.0, 1.0, 1.0);
         colour1.Alpha = 0.0;
@@ -93,14 +93,14 @@ TextureFixture::painted2(
     }
 
     if ((turb = texture->Turbulence) != 0.0) {
-        TextureUtils::DTurbulence(
+        TextureUtils::instance().DTurbulence(
             &textureTurbulence, x, y, z, texture->Octaves);
         x += textureTurbulence.x() * turb;
         y += textureTurbulence.y() * turb;
         z += textureTurbulence.z() * turb;
     }
 
-    brkindx = (int)TextureUtils::floorInline(x) + (int)TextureUtils::floorInline(z);
+    brkindx = (int)TextureUtils::instance().floorInline(x) + (int)TextureUtils::instance().floorInline(z);
 
 
     if (brkindx & 1) {

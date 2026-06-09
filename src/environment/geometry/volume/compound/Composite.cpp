@@ -33,7 +33,7 @@ createBasicObject()
     newObject->Shape = nullptr;
     newObject->boundingShapes = nullptr;
     newObject->clippingShapes = nullptr;
-    newObject->objectTexture = TextureUtils::defaultTexture();
+    newObject->objectTexture = TextureUtils::instance().defaultTexture();
     newObject->objectColour = nullptr;
     newObject->noShadowFlag = false;
     newObject->Type = GeometryOperations::OBJECT_TYPE;
@@ -290,7 +290,7 @@ Composite::copyBasicObject(SimpleBody *object)
 
     if (newObject->objectTexture != nullptr) {
         newObject->objectTexture =
-            TextureUtils::copyTexture(newObject->objectTexture);
+            TextureUtils::instance().copyTexture(newObject->objectTexture);
     }
 
     return ((void *)newObject);
@@ -356,7 +356,7 @@ Composite::translateBasicObject(SimpleBody *object, Vector3Dd *vector)
 
     GeometryOperations::translate((SimpleBody *)object->Shape, vector);
 
-    TextureUtils::translateTexture(&object->objectTexture, vector);
+    TextureUtils::instance().translateTexture(&object->objectTexture, vector);
 }
 
 void
@@ -378,7 +378,7 @@ Composite::rotateBasicObject(SimpleBody *object, Vector3Dd *vector)
 
     GeometryOperations::rotate((SimpleBody *)object->Shape, vector);
 
-    TextureUtils::rotateTexture(&object->objectTexture, vector);
+    TextureUtils::instance().rotateTexture(&object->objectTexture, vector);
 }
 
 void
@@ -400,7 +400,7 @@ Composite::scaleBasicObject(SimpleBody *object, Vector3Dd *vector)
 
     GeometryOperations::scale((SimpleBody *)object->Shape, vector);
 
-    TextureUtils::scaleTexture(&object->objectTexture, vector);
+    TextureUtils::instance().scaleTexture(&object->objectTexture, vector);
 }
 
 void

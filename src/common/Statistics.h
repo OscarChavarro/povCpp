@@ -1,8 +1,6 @@
 #ifndef __STATISTICS_H__
 #define __STATISTICS_H__
 
-#include <ctime>
-
 class Statistics {
   public:
     long numberOfPixels;

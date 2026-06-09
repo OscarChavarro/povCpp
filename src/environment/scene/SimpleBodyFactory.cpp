@@ -26,7 +26,7 @@ SimpleBodyFactory::getObject()
     newObject->Shape = nullptr;
     newObject->boundingShapes = nullptr;
     newObject->clippingShapes = nullptr;
-    newObject->objectTexture = TextureUtils::defaultTexture();
+    newObject->objectTexture = TextureUtils::instance().defaultTexture();
     newObject->objectColour = nullptr;
     newObject->noShadowFlag = false;
     newObject->Type = GeometryOperations::OBJECT_TYPE;

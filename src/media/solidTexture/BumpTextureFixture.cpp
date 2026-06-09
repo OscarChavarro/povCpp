@@ -35,7 +35,7 @@ BumpTextureFixture::ripples(
 
     for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         point = Vector3Dd(x, y, z);
-        point = point.subtract(TextureUtils::waveSources()[i]);
+        point = point.subtract(TextureUtils::instance().waveSources()[i]);
         length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
@@ -43,7 +43,7 @@ BumpTextureFixture::ripples(
 
         length = sqrt(length);
         index = length * texture->Frequency + texture->Phase;
-        scalar = TextureUtils::cycloidal(index) * texture->bumpAmount;
+        scalar = TextureUtils::instance().cycloidal(index) * texture->bumpAmount;
 
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
@@ -66,17 +66,17 @@ BumpTextureFixture::waves(
 
     for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         point = Vector3Dd(x, y, z);
-        point = point.subtract(TextureUtils::waveSources()[i]);
+        point = point.subtract(TextureUtils::instance().waveSources()[i]);
         length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
         }
 
         length = sqrt(length);
-        index = (length * texture->Frequency * TextureUtils::waveFrequency()[i]) + texture->Phase;
-        sinValue = TextureUtils::cycloidal(index);
+        index = (length * texture->Frequency * TextureUtils::instance().waveFrequency()[i]) + texture->Phase;
+        sinValue = TextureUtils::instance().cycloidal(index);
 
-        scalar = sinValue * texture->bumpAmount / TextureUtils::waveFrequency()[i];
+        scalar = sinValue * texture->bumpAmount / TextureUtils::instance().waveFrequency()[i];
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
     }
@@ -96,7 +96,7 @@ BumpTextureFixture::bumps(
     }
 
 
-    TextureUtils::DNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
+    TextureUtils::instance().DNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
     bumpTurb = bumpTurb.multiply(texture->bumpAmount);
     *normal = normal->add(bumpTurb); // displace "normal"
     *normal = (*normal).normalizedFast(); // normalize normal!
@@ -119,12 +119,12 @@ BumpTextureFixture::dents(
         return; // why are we here?
     }
 
-    noise = TextureUtils::Noise(x, y, z);
+    noise = TextureUtils::instance().Noise(x, y, z);
 
     noise = noise * noise * noise * texture->bumpAmount;
 
 
-    TextureUtils::DNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
+    TextureUtils::instance().DNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
 
     stuccoTurb = stuccoTurb.multiply(noise);
     *normal = normal->add(stuccoTurb); // displace "normal"
@@ -142,8 +142,8 @@ BumpTextureFixture::dents(
 /*
     wrinkles - This is my implementation of the dented() routine, using
     a surface iterative fractal derived from DTurbulence.  This is a 3-D vers.
-    (thanks to TextureUtils::DNoise()...) of the usual version using the
-   singular TextureUtils::Noise()... Seems to look a lot like wrinkles,
+    (thanks to TextureUtils::instance().DNoise()...) of the usual version using the
+   singular TextureUtils::instance().Noise()... Seems to look a lot like wrinkles,
    however... (hmmm)
 */
 
@@ -165,10 +165,10 @@ BumpTextureFixture::wrinkles(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        TextureUtils::DNoise(&value, x * scale, y * scale, z * scale); // scale
-        rx += TextureUtils::fabsInline(value.x() / scale);
-        ry += TextureUtils::fabsInline(value.y() / scale);
-        rz += TextureUtils::fabsInline(value.z() / scale);
+        TextureUtils::instance().DNoise(&value, x * scale, y * scale, z * scale); // scale
+        rx += TextureUtils::instance().fabsInline(value.x() / scale);
+        ry += TextureUtils::instance().fabsInline(value.y() / scale);
+        rz += TextureUtils::instance().fabsInline(value.z() / scale);
     }
     result = Vector3Dd(rx, ry, rz);
 

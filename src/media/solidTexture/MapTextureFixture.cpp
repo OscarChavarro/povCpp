@@ -10,7 +10,6 @@
 
 #include "media/solidTexture/MapTextureFixture.h"
 #include "media/IndexedImage.h"
-#include "media/TextureImage.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -50,7 +49,7 @@ MapTextureFixture::imageMap(
         colour->Alpha = 1.0;
         return;
     }
-    MapTextureFixture::imageColourAt(
+    imageColourAt(
         texture->Image, xcoor, ycoor, colour, &regNumber);
 }
 
@@ -92,10 +91,10 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
             smallTolerance)) {
         materialNumber = 0;
     } else {
-        MapTextureFixture::imageColourAt(
+        imageColourAt(
             texture->Material_Image, xcoor, ycoor, &colour, &regNumber);
 
-        if (texture->Material_Image->indexedData == nullptr) {
+        if (texture->Material_Image->getIndexedData() == nullptr) {
             materialNumber = (int)colour.Red * 255;
         } else {
             materialNumber = regNumber;
@@ -158,7 +157,7 @@ MapTextureFixture::bumpMap(
         index = 255;
         return;
     }
-    MapTextureFixture::imageColourAt(
+    imageColourAt(
         texture->Bump_Image, xcoor, ycoor, &colour, &index);
 
     xcoor--;
@@ -173,7 +172,7 @@ MapTextureFixture::bumpMap(
     } else if (ycoor >= (double)texture->Bump_Image->getYSize()) {
         ycoor -= (double)texture->Bump_Image->getYSize();
     }
-    MapTextureFixture::imageColourAt(
+    imageColourAt(
         texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
 
     xcoor += 2.0;
@@ -183,12 +182,12 @@ MapTextureFixture::bumpMap(
         xcoor -= (double)texture->Bump_Image->getXSize();
     }
 
-    MapTextureFixture::imageColourAt(
+    imageColourAt(
         texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
 
 
-    if (texture->Bump_Image->indexedData == nullptr ||
-        texture->Bump_Image->useColourFlag) {
+    if (texture->Bump_Image->getIndexedData() == nullptr ||
+        texture->Bump_Image->getUseColourFlag()) {
         p1 = Vector3Dd(0,
             texture->bumpAmount *
                 (0.229 * colour.Red + 0.587 * colour.Green + 0.114 * colour.Blue),
@@ -245,12 +244,12 @@ void
 MapTextureFixture::imageColourAt(
     TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
-    switch (image->interpolationType) {
+    switch (image->getInterpolationType()) {
     case Texture::NO_INTERPOLATION:
-        MapTextureFixture::noInterpolation(image, xcoor, ycoor, colour, index);
+        noInterpolation(image, xcoor, ycoor, colour, index);
         break;
     default:
-        MapTextureFixture::interp(image, xcoor, ycoor, colour, index);
+        interp(image, xcoor, ycoor, colour, index);
         break;
     }
 }
@@ -264,7 +263,7 @@ MapTextureFixture::cylindricalImageMap(
     double len;
     double theta;
 
-    if ((image->onceFlag) && ((y < 0.0) || (y > 1.0))) {
+    if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
         return 0;
     }
     *v = fmod(y * image->getYSize(), image->getYSize());
@@ -310,7 +309,7 @@ MapTextureFixture::torusImageMap(
     double theta;
     double r0;
 
-    r0 = image->imageGradient.x();
+    r0 = image->getImageGradient().x();
 
     /* Determine its angle from the x-axis. */
     len = sqrt(x * x + z * z);
@@ -414,31 +413,31 @@ int
 MapTextureFixture::planarImageMap(
     double x, double y, double z, TextureImage *image, double *u, double *v)
 {
-    if (image->imageGradient.x() != 0.0) {
-        if ((image->onceFlag) && ((x < 0.0) || (x > 1.0))) {
+    if (image->getImageGradient().x() != 0.0) {
+        if ((image->getOnceFlag()) && ((x < 0.0) || (x > 1.0))) {
             return 0;
         }
-        if (image->imageGradient.x() > 0) {
+        if (image->getImageGradient().x() > 0) {
             *u = fmod(x * image->getXSize(), image->getXSize());
         } else {
             *v = fmod(x * image->getYSize(), image->getYSize());
         }
     }
-    if (image->imageGradient.y() != 0.0) {
-        if ((image->onceFlag) && ((y < 0.0) || (y > 1.0))) {
+    if (image->getImageGradient().y() != 0.0) {
+        if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
             return 0;
         }
-        if (image->imageGradient.y() > 0) {
+        if (image->getImageGradient().y() > 0) {
             *u = fmod(y * image->getXSize(), image->getXSize());
         } else {
             *v = fmod(y * image->getYSize(), image->getYSize());
         }
     }
-    if (image->imageGradient.z() != 0.0) {
-        if ((image->onceFlag) && ((z < 0.0) || (z > 1.0))) {
+    if (image->getImageGradient().z() != 0.0) {
+        if ((image->getOnceFlag()) && ((z < 0.0) || (z > 1.0))) {
             return 0;
         }
-        if (image->imageGradient.z() > 0) {
+        if (image->getImageGradient().z() > 0) {
             *u = fmod(z * image->getXSize(), image->getXSize());
         } else {
             *v = fmod(z * image->getYSize(), image->getYSize());
@@ -467,29 +466,29 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
     */
 
     /* Now determine which mapper to use. */
-    switch (image->mapType) {
+    switch (image->getMapType()) {
     case Texture::PLANAR_MAP:
-        if (!MapTextureFixture::planarImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case Texture::SPHERICAL_MAP:
-        if (!MapTextureFixture::sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case Texture::CYLINDRICAL_MAP:
-        if (!MapTextureFixture::cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     case Texture::TORUS_MAP:
-        if (!MapTextureFixture::torusImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!torusImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
     default:
-        if (!MapTextureFixture::planarImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
@@ -539,7 +538,7 @@ MapTextureFixture::noInterpolation(
     int iycoor = (int)ycoor;
     int ixcoor = (int)xcoor;
 
-    if (image->indexedData == nullptr) {
+    if (image->getIndexedData() == nullptr) {
         RGBAPixelHDR pixel;
         image->getPixel(ixcoor, iycoor, &pixel);
         colour->Red += (double)pixel.r / 255.0;
@@ -547,7 +546,7 @@ MapTextureFixture::noInterpolation(
         colour->Blue += (double)pixel.b / 255.0;
         *index = -1;
     } else {
-        IndexedImage *idx = image->indexedData;
+        IndexedImage *idx = image->getIndexedData();
         *index = idx->getPixel(ixcoor, iycoor);
         RGBAPixelHDR *mapColour = &idx->getColorMap()[*index];
         colour->Red += (double)mapColour->r / 255.0;
@@ -584,14 +583,14 @@ MapTextureFixture::interp(
         cornerColour[i].Alpha = 0.0;
     }
     /* OK, now that you have the corners, what are you going to do with them? */
-    if (image->interpolationType == Texture::BILINEAR) {
-        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+    if (image->getInterpolationType() == Texture::BILINEAR) {
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColour[0], &cornersIndex[0]);
-        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
+        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
             &cornersIndex[1]);
-        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[2], &cornersIndex[2]);
-        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColour[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;
@@ -607,14 +606,14 @@ MapTextureFixture::interp(
         val3 = bilinear(blueCrn, xcoor, ycoor);
         val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
-    if (image->interpolationType == Texture::NORMALIZED_DIST) {
-        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+    if (image->getInterpolationType() == Texture::NORMALIZED_DIST) {
+        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColour[0], &cornersIndex[0]);
-        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
             &cornerColour[1], &cornersIndex[1]);
-        MapTextureFixture::noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[2],
+        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[2],
             &cornersIndex[2]);
-        MapTextureFixture::noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColour[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColour[i].Red;
@@ -640,10 +639,10 @@ MapTextureFixture::interp(
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];
     }
-    if (image->interpolationType == Texture::BILINEAR) {
+    if (image->getInterpolationType() == Texture::BILINEAR) {
         *index = (int)(bilinear(indexCrn, xcoor, ycoor) + 0.5);
     }
-    if (image->interpolationType == Texture::NORMALIZED_DIST) {
+    if (image->getInterpolationType() == Texture::NORMALIZED_DIST) {
         *index = (int)(normDist(indexCrn, xcoor, ycoor) + 0.5);
     }
 }
@@ -672,7 +671,7 @@ MapTextureFixture::bilinear(double *corners, double x, double y)
 static constexpr int MAX_PTS = 4;
 
 inline double
-MapTextureFixture::MapTextureFixture::pythagoreanSq(double a, double b)
+MapTextureFixture::pythagoreanSq(double a, double b)
 {
     return a * a + b * b;
 }
@@ -695,10 +694,10 @@ MapTextureFixture::normDist(double *corners, double x, double y)
         return (*corners); /* upper left */
     }
 
-    wts[0] = MapTextureFixture::pythagoreanSq(p, q);
-    wts[1] = MapTextureFixture::pythagoreanSq(1 - p, q);
-    wts[2] = MapTextureFixture::pythagoreanSq(p, 1 - q);
-    wts[3] = MapTextureFixture::pythagoreanSq(1 - p, 1 - q);
+    wts[0] = pythagoreanSq(p, q);
+    wts[1] = pythagoreanSq(1 - p, q);
+    wts[2] = pythagoreanSq(p, 1 - q);
+    wts[3] = pythagoreanSq(1 - p, 1 - q);
 
     for (i = 0; i < MAX_PTS; i++) {
         sumInvWts += 1 / wts[i];

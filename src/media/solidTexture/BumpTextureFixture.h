@@ -6,16 +6,11 @@
 
 class BumpTextureFixture {
   public:
-    static void bumps(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal);
-    static void dents(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal);
-    static void ripples(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal);
-    static void waves(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal);
-    static void wrinkles(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal);
+    void bumps(double x, double y, double z, Texture *texture, Vector3Dd *normal);
+    void dents(double x, double y, double z, Texture *texture, Vector3Dd *normal);
+    void ripples(double x, double y, double z, Texture *texture, Vector3Dd *normal);
+    void waves(double x, double y, double z, Texture *texture, Vector3Dd *normal);
+    void wrinkles(double x, double y, double z, Texture *texture, Vector3Dd *normal);
 };
 
 #endif

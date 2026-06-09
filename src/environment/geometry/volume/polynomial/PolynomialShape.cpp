@@ -849,7 +849,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
     /* Copy any associated texture */
     if (shape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::copyTexture(shape->Shape_Texture);
+            TextureUtils::instance().copyTexture(shape->Shape_Texture);
     }
 
     return (void *)(newShape);
@@ -873,7 +873,7 @@ PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
 
-    TextureUtils::translateTexture(&shape->Shape_Texture, vector);
+    TextureUtils::instance().translateTexture(&shape->Shape_Texture, vector);
 }
 
 void
@@ -891,7 +891,7 @@ PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
 
-    TextureUtils::rotateTexture(&shape->Shape_Texture, vector);
+    TextureUtils::instance().rotateTexture(&shape->Shape_Texture, vector);
 }
 
 void
@@ -911,7 +911,7 @@ PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
 
-    TextureUtils::scaleTexture(&shape->Shape_Texture, vector);
+    TextureUtils::instance().scaleTexture(&shape->Shape_Texture, vector);
 }
 
 void
