@@ -32,8 +32,11 @@ render_test/
 *.tga
 *.ppm
 *.bmp
-*.png
 *.gif
+
+# Images — exclude globally, but allow documentation assets
+*.png
+!doc/*.png
 
 # Temporary files
 *~
