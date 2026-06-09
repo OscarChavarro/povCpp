@@ -16,7 +16,7 @@
 #include "render/SceneDump.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
-#include "common/color/ColorOperations.h"
+#include "render/ColorOperations.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "render/RenderOutput.h"
 #include "java/io/FileOutputStream.h"
@@ -151,7 +151,7 @@ RenderEngine::supersample(
 
     Statistics::global().numberOfPixelsSupersampled++;
 
-    ColorOperations::makeColor(result, 0.0, 0.0, 0.0);
+    result->setR(0.0); result->setG(0.0); result->setB(0.0); result->setA(0);
 
     jitterX = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
                   32768.0 * 0.33333333 -
@@ -572,7 +572,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     bool intersectionFound;
 
     Statistics::global().numberOfRays++;
-    ColorOperations::makeColor(color, 0.0, 0.0, 0.0);
+    color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
 
     intersectionFound = false;
     localIntersection = nullptr;
@@ -582,7 +582,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     }
 
     if (RenderEngine::renderFrame().fogDistance == 0.0) {
-        ColorOperations::makeColor(color, 0.0, 0.0, 0.0);
+        color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     } else {
         *color = RenderEngine::renderFrame().fogColor;
     }

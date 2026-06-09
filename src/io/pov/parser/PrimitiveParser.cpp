@@ -1,7 +1,7 @@
 #include "io/pov/context/ParserContext.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "common/PolynomialTermCounts.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/color/ColorOperations.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -182,7 +182,7 @@ void
 PrimitiveParser::parseColor(ColorRgba *givenColor, ParserContext &ctx)
 {
     int constantId;
-    ColorOperations::makeColor(givenColor, 0.0, 0.0, 0.0);
+    givenColor->setR(0.0); givenColor->setG(0.0); givenColor->setB(0.0); givenColor->setA(0);
     {
         bool Exit_Flag;
         Exit_Flag = false;

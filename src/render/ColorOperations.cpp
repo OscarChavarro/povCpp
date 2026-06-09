@@ -5,7 +5,7 @@
  *
  *****************************************************************************/
 
-#include "common/color/ColorOperations.h"
+#include "render/ColorOperations.h"
 
 inline double
 ColorOperations::ColorOperations::fabsInline(double x)

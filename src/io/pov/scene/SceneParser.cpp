@@ -70,7 +70,7 @@ SceneParser::frameInit(ParserContext &ctx)
     ctx.parsingFrame()->atmosphereIor = 1.0;
     ctx.parsingFrame()->antialiasThreshold = RenderingConfiguration::global().antialiasThreshold;
     ctx.parsingFrame()->fogDistance = 0.0;
-    ColorOperations::makeColor(&(ctx.parsingFrame()->fogColor), 0.0, 0.0, 0.0);
+    ctx.parsingFrame()->fogColor.setR(0.0); ctx.parsingFrame()->fogColor.setG(0.0); ctx.parsingFrame()->fogColor.setB(0.0); ctx.parsingFrame()->fogColor.setA(0);
 }
 
 void

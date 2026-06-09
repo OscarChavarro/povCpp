@@ -78,10 +78,8 @@ textureFixture::painted2(
         textureUtils::instance().computeColor(&colour1, texture->colorMap, 0.1);
         textureUtils::instance().computeColor(&color2, texture->colorMap, 0.9);
     } else {
-        ColorOperations::makeColor(&colour1, 1.0, 1.0, 1.0);
-        colour1.setA(0.0);
-        ColorOperations::makeColor(&color2, 0.0, 1.0, 0.0);
-        color2.setA(0.0);
+        colour1.setR(1.0); colour1.setG(1.0); colour1.setB(1.0); colour1.setA(0.0);
+        color2.setR(0.0); color2.setG(1.0); color2.setB(0.0); color2.setA(0.0);
     }
 
     if ((turb = texture->turbulence) != 0.0) {

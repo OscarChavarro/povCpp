@@ -1,7 +1,6 @@
 #include "environment/scene/ModelBuilder.h"
 
 #include "processing/PolynomialConstants.h"
-#include "common/color/ColorOperations.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -366,7 +365,7 @@ ModelBuilder::getColor()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color\n");
     }
 
-    ColorOperations::makeColor(newColor, 0.0, 0.0, 0.0);
+    newColor->setR(0.0); newColor->setG(0.0); newColor->setB(0.0); newColor->setA(0);
     return (newColor);
 }
 
