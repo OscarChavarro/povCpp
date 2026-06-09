@@ -3,7 +3,6 @@
 #include "environment/geometry/SimpleBody.h"
 #include "media/solidTexture/Texture.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "common/color/RGBAColorPaletteSpan.h"
 
 void dumpSceneStructure(FILE *f)
 {
@@ -69,9 +68,10 @@ void dumpSceneStructure(FILE *f)
             fprintf(f, "\n");
 
             if (tex->colorMap) {
-                fprintf(f, "  tex.cmap n=%d", tex->colorMap->numberOfEntries);
-                for (int i = 0; i < tex->colorMap->numberOfEntries; i++) {
-                    RGBAColorPaletteSpan &entry = tex->colorMap->colorMapEntries[i];
+                fprintf(f, "  tex.cmap n=%d", tex->colorMap->size());
+                for (int i = 0; i < tex->colorMap->size(); i++) {
+                    const RGBAColorPaletteSpan *entryPtr = tex->colorMap->getSpanAt(i);
+                    const RGBAColorPaletteSpan &entry = *entryPtr;
                     fprintf(f, " [%.6f %.6f %.3f,%.3f,%.3f,%.3f->%.3f,%.3f,%.3f,%.3f]",
                             entry.start,
                             entry.end,

@@ -8,6 +8,7 @@
 #include "vsdk/toolkit/media/RGBAPixelHDR.h"
 
 #include "common/color/ColorOperations.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "media/solidTexture/TextureImage.h"
 #include "media/solidTexture/TextureUtils.h"
 

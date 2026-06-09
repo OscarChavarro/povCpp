@@ -156,47 +156,7 @@ void
 textureUtils::computeColor(
     ColorRgba *color, RGBAColorPalette *colorMap, double value)
 {
-    int i;
-    RGBAColorPaletteSpan *ent;
-    double fraction;
-
-    if (value > 1.0) {
-        value = 1.0;
-    }
-
-    if (value < 0.0) {
-        value = 0.0;
-    }
-
-    for (i = 0, ent = &(colorMap->colorMapEntries[0]);
-        i < colorMap->numberOfEntries; i++, ent++) {
-        if ((value >= ent->start) && (value <= ent->end)) {
-            fraction = (value - ent->start) / (ent->end - ent->start);
-            color->setR(
-                ent->startColor.getR() +
-                fraction * (ent->endColor.getR() - ent->startColor.getR()));
-            color->setG(
-                ent->startColor.getG() +
-                fraction * (ent->endColor.getG() - ent->startColor.getG()));
-            color->setB(
-                ent->startColor.getB() +
-                fraction * (ent->endColor.getB() - ent->startColor.getB()));
-            color->setA(
-                ent->startColor.getA() +
-                fraction * (ent->endColor.getA() - ent->startColor.getA()));
-            return;
-        }
-    }
-
-    color->setR(0.0);
-    color->setG(0.0);
-    color->setB(0.0);
-    color->setA(0.0);
-    {
-        char _logMsg[1024];
-        snprintf(_logMsg, sizeof(_logMsg), "No color for value: %g\n", value);
-        Logger::reportMessage("Texture", Logger::WARNING, "", _logMsg);
-    }
+    *color = colorMap->evalLinear(value);
 }
 
 void
@@ -638,18 +598,9 @@ copyTextureNode(Texture *dst, const Texture *src)
     }
     if (dst->colorMap != nullptr) {
         RGBAColorPalette *newMap = new RGBAColorPalette();
-        if (newMap == nullptr) {
-            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color map\n");
-        }
-        newMap->numberOfEntries = src->colorMap->numberOfEntries;
-        newMap->transparencyFlag = src->colorMap->transparencyFlag;
-        newMap->colorMapEntries =
-            new RGBAColorPaletteSpan[src->colorMap->numberOfEntries];
-        if (newMap->colorMapEntries == nullptr) {
-            Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color map entries\n");
-        }
-        for (int i = 0; i < src->colorMap->numberOfEntries; i++) {
-            newMap->colorMapEntries[i] = src->colorMap->colorMapEntries[i];
+        for (int i = 0; i < src->colorMap->size(); i++) {
+            const RGBAColorPaletteSpan *s = src->colorMap->getSpanAt(i);
+            newMap->addSpan(s->start, s->end, s->startColor, s->endColor);
         }
         dst->colorMap = newMap;
     }

@@ -1,5 +1,5 @@
-#ifndef __RGBA_COLOR_PALETTE_SPAN_H__
-#define __RGBA_COLOR_PALETTE_SPAN_H__
+#ifndef __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTESPAN_H__
+#define __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTESPAN_H__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 
@@ -11,4 +11,4 @@ class RGBAColorPaletteSpan {
     ColorRgba endColor;
 };
 
-#endif
+#endif // __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTESPAN_H__

@@ -31,16 +31,19 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/io/PersistenceElement.cpp
     src/main/vsdk/toolkit/linealAlgebra/processing/LinearAlgebraEngine.cpp
     src/main/vsdk/toolkit/media/RGBAImageHDRUncompressed.cpp
+    src/main/vsdk/toolkit/media/RGBAColorPalette.cpp
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ArrayListInstantiations.cpp" [=[
 #include "java/util/ArrayList.h"
 #include "java/util/ArrayList.txx"
 #include "java/lang/String.h"
+#include "vsdk/toolkit/media/RGBAColorPaletteSpan.h"
 
 namespace java {
 template class ArrayList<String>;
 template class ArrayList<unsigned char>;
+template class ArrayList<RGBAColorPaletteSpan*>;
 }
 ]=])
 
