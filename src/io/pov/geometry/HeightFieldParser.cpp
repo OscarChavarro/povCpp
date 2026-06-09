@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
-#include "media/IndexedImage.h"
+#include "media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"
@@ -30,7 +30,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     int constantId;
     Vector3Dd localVector;
     Texture *localTexture;
-    IndexedImage *indexedImage = nullptr;
+    IndexedColorImageHDRUncompressed *indexedImage = nullptr;
     RGBAImageHDRUncompressed *directImage = nullptr;
     int imageType = 0;
 
@@ -49,7 +49,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::GIF_TOKEN:
                 imageType = HeightField::GIF;
                 localShape = ModelBuilder::getHeightFieldShape();
-                indexedImage = new IndexedImage;
+                indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
                                               "space for Height Field (1st "
@@ -72,7 +72,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::POT_TOKEN:
                 imageType = HeightField::POT;
                 localShape = ModelBuilder::getHeightFieldShape();
-                indexedImage = new IndexedImage;
+                indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
                                               "space for Height Field (1st "

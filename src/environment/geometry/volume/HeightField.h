@@ -5,7 +5,7 @@
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
 class RGBAImageHDRUncompressed;
-class IndexedImage;
+class IndexedColorImageHDRUncompressed;
 
 class HeightField : public Geometry {
   public:
@@ -22,7 +22,7 @@ class HeightField : public Geometry {
     HeightFieldBlock **Block;
     float **Map;
 
-    static void findHfMinMax(HeightField *hField, IndexedImage *image, int imageType);
+    static void findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed *image, int imageType);
     static void findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, int imageType);
     static int allHeightfldIntersections(SimpleBody *object,
         RayWithSegments *ray, PriorityQueueNode *depthQueue);

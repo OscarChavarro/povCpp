@@ -13,7 +13,7 @@
 #include <cstdio>
 #include <cstring>
 
-IndexedImage *GifFormat::currentImage = nullptr;
+IndexedColorImageHDRUncompressed *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;
 java::FileInputStream *GifFormat::bitStream = nullptr;
 RGBAPixelHDR *GifFormat::gifColorMap = nullptr;
@@ -45,7 +45,7 @@ GifFormat::getByte()
 }
 
 void
-GifFormat::readGifImage(IndexedImage *image, char *filename)
+GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, char *filename)
 {
     int i;
     int j;

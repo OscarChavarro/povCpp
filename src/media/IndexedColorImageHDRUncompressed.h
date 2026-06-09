@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/media/RGBAPixelHDR.h"
 
-class IndexedImage {
+class IndexedColorImageHDRUncompressed {
   private:
     int xSize;
     int ySize;
@@ -12,8 +12,8 @@ class IndexedImage {
     RGBAPixelHDR *colorMap;
 
   public:
-    IndexedImage();
-    virtual ~IndexedImage();
+    IndexedColorImageHDRUncompressed();
+    virtual ~IndexedColorImageHDRUncompressed();
 
     int getXSize() const;
     int getYSize() const;
@@ -31,11 +31,11 @@ class IndexedImage {
     void setPixel(int x, int y, unsigned char value);
 };
 
-inline unsigned char IndexedImage::getPixel(int x, int y) const {
+inline unsigned char IndexedColorImageHDRUncompressed::getPixel(int x, int y) const {
     return data[y * xSize + x];
 }
 
-inline void IndexedImage::setPixel(int x, int y, unsigned char value) {
+inline void IndexedColorImageHDRUncompressed::setPixel(int x, int y, unsigned char value) {
     data[y * xSize + x] = value;
 }
 
