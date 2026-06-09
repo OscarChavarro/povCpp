@@ -78,9 +78,9 @@ textureFixture::painted2(
         textureUtils::instance().computeColor(&colour1, texture->colorMap, 0.1);
         textureUtils::instance().computeColor(&color2, texture->colorMap, 0.9);
     } else {
-        Color::makeColor(&colour1, 1.0, 1.0, 1.0);
+        ColorOperations::makeColor(&colour1, 1.0, 1.0, 1.0);
         colour1.setA(0.0);
-        Color::makeColor(&color2, 0.0, 1.0, 0.0);
+        ColorOperations::makeColor(&color2, 0.0, 1.0, 0.0);
         color2.setA(0.0);
     }
 

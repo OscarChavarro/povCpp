@@ -5,12 +5,9 @@
 #include "common/color/RGBAColorPalette.h"
 #include "common/color/RGBAColorPaletteSpan.h"
 
-class Color {
+class ColorOperations {
   public:
-    template <typename ColorT, typename ScalarT>
-    static inline void
-    makeColor(ColorT *c, ScalarT r, ScalarT g, ScalarT b)
-    {
+    static inline void makeColor(ColorRgba *c, double r, double g, double b) {
         c->setR(r);
         c->setG(g);
         c->setB(b);

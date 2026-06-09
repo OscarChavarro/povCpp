@@ -5,24 +5,24 @@
  *
  *****************************************************************************/
 
-#include "common/color/Color.h"
+#include "common/color/ColorOperations.h"
 
 inline double
-Color::Color::fabsInline(double x)
+ColorOperations::ColorOperations::fabsInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
 double
-Color::colorDistance(ColorRgba *color1, ColorRgba *color2)
+ColorOperations::colorDistance(ColorRgba *color1, ColorRgba *color2)
 {
-    return (Color::fabsInline(color1->getR() - color2->getR()) +
-            Color::fabsInline(color1->getG() - color2->getG()) +
-            Color::fabsInline(color1->getB() - color2->getB()));
+    return (ColorOperations::fabsInline(color1->getR() - color2->getR()) +
+            ColorOperations::fabsInline(color1->getG() - color2->getG()) +
+            ColorOperations::fabsInline(color1->getB() - color2->getB()));
 }
 
 void
-Color::addColor(ColorRgba *result, ColorRgba *color1, ColorRgba *color2)
+ColorOperations::addColor(ColorRgba *result, ColorRgba *color1, ColorRgba *color2)
 {
     result->setR(color1->getR() + color2->getR());
     result->setG(color1->getG() + color2->getG());
@@ -31,7 +31,7 @@ Color::addColor(ColorRgba *result, ColorRgba *color1, ColorRgba *color2)
 }
 
 void
-Color::scaleColor(ColorRgba *result, ColorRgba *color, double factor)
+ColorOperations::scaleColor(ColorRgba *result, ColorRgba *color, double factor)
 {
     result->setR(color->getR() * factor);
     result->setG(color->getG() * factor);
@@ -40,7 +40,7 @@ Color::scaleColor(ColorRgba *result, ColorRgba *color, double factor)
 }
 
 void
-Color::clipColor(ColorRgba *result, ColorRgba *color)
+ColorOperations::clipColor(ColorRgba *result, ColorRgba *color)
 {
     if (color->getR() > 1.0) {
         result->setR(1.0);

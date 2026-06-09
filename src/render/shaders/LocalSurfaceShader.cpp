@@ -1,6 +1,6 @@
 #include "render/shaders/LocalSurfaceShader.h"
 #include "render/shaders/TraceService.h"
-#include "common/color/Color.h"
+#include "common/color/ColorOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/geometry/GeometryOperations.h"
@@ -25,7 +25,7 @@ LocalSurfaceShader::shade(RayWithSegments *ray, Texture *texture,
     /* This variable keeps track of how much color comes from the surface
 of the object and how much is transmited through. */
 
-    Color::makeColor(&emittedColor, 0.0, 0.0, 0.0);
+    ColorOperations::makeColor(&emittedColor, 0.0, 0.0, 0.0);
 
     if (texture == nullptr) {
         texture = rayIntersection->Object->objectTexture;

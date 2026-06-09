@@ -16,7 +16,7 @@
 #include "render/SceneDump.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
-#include "common/color/Color.h"
+#include "common/color/ColorOperations.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "render/RenderOutput.h"
 #include "java/io/FileOutputStream.h"
@@ -151,7 +151,7 @@ RenderEngine::supersample(
 
     Statistics::global().numberOfPixelsSupersampled++;
 
-    Color::makeColor(result, 0.0, 0.0, 0.0);
+    ColorOperations::makeColor(result, 0.0, 0.0, 0.0);
 
     jitterX = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
                   32768.0 * 0.33333333 -
@@ -164,9 +164,9 @@ RenderEngine::supersample(
 
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -181,9 +181,9 @@ RenderEngine::supersample(
         dy + jitterY - 0.3333333);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -198,9 +198,9 @@ RenderEngine::supersample(
         RenderEngine::primaryRay(), width, height, dx + jitterX - 0.3333333, dy + jitterY);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -215,9 +215,9 @@ RenderEngine::supersample(
         dy + jitterY + 0.3333333);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -232,9 +232,9 @@ RenderEngine::supersample(
         RenderEngine::primaryRay(), width, height, dx + jitterX, dy + jitterY - 0.3333333);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -249,9 +249,9 @@ RenderEngine::supersample(
         RenderEngine::primaryRay(), width, height, dx + jitterX, dy + jitterY + 0.3333333);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -266,9 +266,9 @@ RenderEngine::supersample(
         dy + jitterY - 0.3333333);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -283,9 +283,9 @@ RenderEngine::supersample(
         RenderEngine::primaryRay(), width, height, dx + jitterX + 0.3333333, dy + jitterY);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
@@ -300,9 +300,9 @@ RenderEngine::supersample(
         dy + jitterY + 0.3333333);
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
-    Color::clipColor(&color, &color);
-    Color::scaleColor(&color, &color, 0.11111111);
-    Color::addColor(result, result, &color);
+    ColorOperations::clipColor(&color, &color);
+    ColorOperations::scaleColor(&color, &color, 0.11111111);
+    ColorOperations::addColor(result, result, &color);
 
     if ((y != RenderingConfiguration::global().firstLine - 1) && (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY)) {
     }
@@ -366,7 +366,7 @@ RenderEngine::startTracing()
                 RenderEngine::renderFrame().screenHeight, (double)x, (double)y);
             RenderEngine::traceLevel() = 0;
             RenderEngine::trace(&ray, &color);
-            Color::clipColor(&color, &color);
+            ColorOperations::clipColor(&color, &color);
 
             currentLine[x] = color;
 
@@ -458,7 +458,7 @@ RenderFrame::doAntiAliasing(int x, int y, ColorRgba *color)
     currentLineAntialiasedFlags[x] = 0;
 
     if (x != 0) {
-        if (Color::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
+        if (ColorOperations::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
             RenderEngine::renderFrame().antialiasThreshold) {
             antialiasCenterFlag = 1;
             if (!(currentLineAntialiasedFlags[x - 1])) {
@@ -471,7 +471,7 @@ RenderFrame::doAntiAliasing(int x, int y, ColorRgba *color)
     }
 
     if (y != RenderingConfiguration::global().firstLine - 1) {
-        if (Color::colorDistance(&previousLine[x], &currentLine[x]) >=
+        if (ColorOperations::colorDistance(&previousLine[x], &currentLine[x]) >=
             RenderEngine::renderFrame().antialiasThreshold) {
             antialiasCenterFlag = 1;
             if (!(previousLineAntialiasedFlags[x])) {
@@ -572,7 +572,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     bool intersectionFound;
 
     Statistics::global().numberOfRays++;
-    Color::makeColor(color, 0.0, 0.0, 0.0);
+    ColorOperations::makeColor(color, 0.0, 0.0, 0.0);
 
     intersectionFound = false;
     localIntersection = nullptr;
@@ -582,7 +582,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     }
 
     if (RenderEngine::renderFrame().fogDistance == 0.0) {
-        Color::makeColor(color, 0.0, 0.0, 0.0);
+        ColorOperations::makeColor(color, 0.0, 0.0, 0.0);
     } else {
         *color = RenderEngine::renderFrame().fogColor;
     }

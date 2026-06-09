@@ -1,6 +1,6 @@
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
-#include "common/color/Color.h"
+#include "common/color/ColorOperations.h"
 #include "environment/geometry/Intersection.h"
 
 int

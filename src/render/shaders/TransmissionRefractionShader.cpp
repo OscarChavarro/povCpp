@@ -1,7 +1,7 @@
 #include "render/shaders/TransmissionRefractionShader.h"
 #include "render/shaders/TraceService.h"
 #include "common/statistics/Statistics.h"
-#include "common/color/Color.h"
+#include "common/color/ColorOperations.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/RayWithSegments.h"
@@ -28,7 +28,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
         newRay.copyContainersFrom(ray);
         traceLevel++;
         Statistics::global().transmittedRaysTraced++;
-        Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
+        ColorOperations::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = false;
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
@@ -94,7 +94,7 @@ TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoi
 
         newRay.position = *intersectionPoint;
         traceLevel++;
-        Color::makeColor(&tempColor, 0.0, 0.0, 0.0);
+        ColorOperations::makeColor(&tempColor, 0.0, 0.0, 0.0);
         newRay.quadricConstantsCached = false;
 
         traceService->trace(&newRay, &tempColor);

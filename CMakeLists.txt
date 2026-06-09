@@ -14,7 +14,7 @@ add_executable(povray
   src/app/ImageOutputAdapter.cpp
   src/app/options/CommandLineOptions.cpp
   src/app/PovrayApplication.cpp
-  src/common/color/Color.cpp
+  src/common/color/ColorOperations.cpp
   src/environment/geometry/elements/Ray.cpp
   src/environment/geometry/elements/RayWithSegments.cpp
   src/environment/geometry/surface/parametric/ParametricPatch.cpp
