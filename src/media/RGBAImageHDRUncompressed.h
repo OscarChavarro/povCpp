@@ -4,13 +4,16 @@
 #include "media/RGBAPixelHDR.h"
 
 class RGBAImageHDRUncompressed {
+  private:
+    RGBAPixelHDR *data = nullptr;
+
   public:
     double width = 0;
     double height = 0;
     int iwidth = 0;
     int iheight = 0;
 
-    RGBAImageHDRUncompressed() = default;
+    RGBAImageHDRUncompressed() {}
     virtual ~RGBAImageHDRUncompressed() { delete[] data; }
 
     void allocate(int w, int h) {
@@ -29,9 +32,6 @@ class RGBAImageHDRUncompressed {
     void setPixel(int x, int y, const RGBAPixelHDR &pixel) {
         data[y * iwidth + x] = pixel;
     }
-
-  private:
-    RGBAPixelHDR *data = nullptr;
 };
 
 #endif
