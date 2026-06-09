@@ -34,11 +34,11 @@ void dumpSceneStructure(FILE *f)
                     tex->metallicFlag);
 
             fprintf(f, "  tex.turb=%.6f oct=%d freq=%.6f phase=%.6f mortar=%.6f bump=%d/%.6f\n",
-                    tex->Turbulence,
-                    tex->Octaves,
-                    tex->Frequency,
-                    tex->Phase,
-                    tex->Mortar,
+                    tex->turbulence,
+                    tex->octaves,
+                    tex->frequency,
+                    tex->phase,
+                    tex->mortar,
                     tex->bumpNumber,
                     tex->bumpAmount);
 
@@ -47,31 +47,31 @@ void dumpSceneStructure(FILE *f)
                     tex->textureGradient.y(),
                     tex->textureGradient.z());
 
-            if (tex->Colour1) {
+            if (tex->color1) {
                 fprintf(f, "  tex.c1=%.6f,%.6f,%.6f,%.6f",
-                        tex->Colour1->Red,
-                        tex->Colour1->Green,
-                        tex->Colour1->Blue,
-                        tex->Colour1->Alpha);
+                        tex->color1->Red,
+                        tex->color1->Green,
+                        tex->color1->Blue,
+                        tex->color1->Alpha);
             } else {
                 fprintf(f, "  tex.c1=none");
             }
 
-            if (tex->Colour2) {
+            if (tex->color2) {
                 fprintf(f, " c2=%.6f,%.6f,%.6f,%.6f",
-                        tex->Colour2->Red,
-                        tex->Colour2->Green,
-                        tex->Colour2->Blue,
-                        tex->Colour2->Alpha);
+                        tex->color2->Red,
+                        tex->color2->Green,
+                        tex->color2->Blue,
+                        tex->color2->Alpha);
             } else {
                 fprintf(f, " c2=none");
             }
             fprintf(f, "\n");
 
-            if (tex->Colour_Map) {
-                fprintf(f, "  tex.cmap n=%d", tex->Colour_Map->numberOfEntries);
-                for (int i = 0; i < tex->Colour_Map->numberOfEntries; i++) {
-                    RGBAColorPaletteSpan &entry = tex->Colour_Map->Colour_Map_Entries[i];
+            if (tex->colorMap) {
+                fprintf(f, "  tex.cmap n=%d", tex->colorMap->numberOfEntries);
+                for (int i = 0; i < tex->colorMap->numberOfEntries; i++) {
+                    RGBAColorPaletteSpan &entry = tex->colorMap->Colour_Map_Entries[i];
                     fprintf(f, " [%.6f %.6f %.3f,%.3f,%.3f,%.3f->%.3f,%.3f,%.3f,%.3f]",
                             entry.start,
                             entry.end,
@@ -87,16 +87,16 @@ void dumpSceneStructure(FILE *f)
                 fprintf(f, "\n");
             }
 
-            if (tex->Image) {
+            if (tex->image) {
                 fprintf(f, "  tex.img grad=(%.6f,%.6f,%.6f) map=%d interp=%d once=%d w=%.0f h=%.0f\n",
-                        tex->Image->getImageGradient().x(),
-                        tex->Image->getImageGradient().y(),
-                        tex->Image->getImageGradient().z(),
-                        tex->Image->getMapType(),
-                        tex->Image->getInterpolationType(),
-                        tex->Image->getOnceFlag(),
-                        (double)tex->Image->getXSize(),
-                        (double)tex->Image->getYSize());
+                        tex->image->getImageGradient().x(),
+                        tex->image->getImageGradient().y(),
+                        tex->image->getImageGradient().z(),
+                        tex->image->getMapType(),
+                        tex->image->getInterpolationType(),
+                        tex->image->getOnceFlag(),
+                        (double)tex->image->getXSize(),
+                        (double)tex->image->getYSize());
             }
 
             if (tex->textureTransformation) {

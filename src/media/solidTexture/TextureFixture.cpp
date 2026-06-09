@@ -1,14 +1,10 @@
-/****************************************************************************
- *                     txttest.c
- *
- *  This module implements "fill-in-the-blank" pre-programmed texture
- *  functions for easy modification and testing. Create new textures here.
- *
- *****************************************************************************/
-/*
-    Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
-    "An Image Synthesizer" By Ken Perlin.
-    Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
+/**
+Fill-in-the-blank pre-programmed texture functions for easy modification and testing.
+Create new experimental textures here before promoting them to ColorTextureFixture.
+
+References:
+[PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
+"The RenderMan Companion" (Addison Wesley).
 */
 
 #include "media/solidTexture/TextureFixture.h"
@@ -17,19 +13,16 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "media/solidTexture/Texture.h"
 
-/* Test new textures in the routines that follow */
-
-/* The painted routines take an x,y,z point on an object and a pointer to the*/
-/* object's texture description and return the color at that point */
-/* Similar routines are granite, agate, marble. See txtcolor.c for examples. */
-
+/**
+Painted1: takes an x,y,z point on an object and returns the color at that point.
+See ColorTextureFixture for similar finished textures (granite, agate, marble, etc.).
+*/
 void
 TextureFixture::painted1(
     double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
 
-    /* Swirled()  */
-
+    // Swirled()
     Vector3Dd colourVector;
     Vector3Dd result;
     int i;
@@ -54,8 +47,8 @@ TextureFixture::painted1(
     result = Vector3Dd(rx, ry, rz);
 
     temp = result.x();
-    if (texture->Colour_Map != nullptr) {
-        TextureUtils::instance().computeColour(&newColour, texture->Colour_Map, temp);
+    if (texture->colorMap != nullptr) {
+        TextureUtils::instance().computeColour(&newColour, texture->colorMap, temp);
         colour->Red += newColour.Red;
         colour->Green += newColour.Green;
         colour->Blue += newColour.Blue;
@@ -78,13 +71,12 @@ TextureFixture::painted2(
     RGBAColor colour1;
     RGBAColor colour2;
 
-    /* You could change the parser to take two colors after PAINTED2, */
-    /* but since the colormap is already parsed it's easier to use it during */
-    /* testing. If the texture works out right you can change the parser later.
-     */
-    if (texture->Colour_Map != nullptr) {
-        TextureUtils::instance().computeColour(&colour1, texture->Colour_Map, 0.1);
-        TextureUtils::instance().computeColour(&colour2, texture->Colour_Map, 0.9);
+    // You could change the parser to take two colors after PAINTED2, but since
+    // the colormap is already parsed it's easier to use it during testing.
+    // If the texture works out right you can change the parser later.
+    if (texture->colorMap != nullptr) {
+        TextureUtils::instance().computeColour(&colour1, texture->colorMap, 0.1);
+        TextureUtils::instance().computeColour(&colour2, texture->colorMap, 0.9);
     } else {
         Color::makeColor(&colour1, 1.0, 1.0, 1.0);
         colour1.Alpha = 0.0;
@@ -92,9 +84,9 @@ TextureFixture::painted2(
         colour2.Alpha = 0.0;
     }
 
-    if ((turb = texture->Turbulence) != 0.0) {
+    if ((turb = texture->turbulence) != 0.0) {
         TextureUtils::instance().DTurbulence(
-            &textureTurbulence, x, y, z, texture->Octaves);
+            &textureTurbulence, x, y, z, texture->octaves);
         x += textureTurbulence.x() * turb;
         y += textureTurbulence.y() * turb;
         z += textureTurbulence.z() * turb;
@@ -124,25 +116,24 @@ TextureFixture::painted3(
     ;
 }
 
-/* The bumpy routines take a point on an object,  a pointer to the */
-/* object's texture description and the surface normal at that point and     */
-/* return a peturb surface normal to create the illusion that the surface    */
-/* has been displaced. */
-/* Similar routines are ripples, dents, bumps. See txtbump.c for examples.  */
+/**
+Bumpy1: takes a point, texture, and surface normal; returns a perturbed normal.
+See BumpTextureFixture for similar finished bump textures (ripples, dents, bumps, etc.).
+*/
 void
 TextureFixture::bumpy1(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
-/* Same as bumpy1 except use VAdd for both cases of brkindex */
+/** Same as bumpy1 except use VAdd for both cases of brkindex. */
 void
 TextureFixture::bumpy2(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
-/* Same as bumpy2 except scale AFTER setting brkindex */
+/** Same as bumpy2 except scale AFTER setting brkindex. */
 void
 TextureFixture::bumpy3(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)

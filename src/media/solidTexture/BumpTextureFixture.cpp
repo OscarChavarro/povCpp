@@ -1,18 +1,9 @@
-/****************************************************************************
- *                     txtbump.c
- *
- *  This module implements solid texturing functions that perturb the surface
- *  normal to create a bumpy effect.
+/**
+Implements solid texturing functions that perturb the surface normal to create bumpy effects.
 
 References:
 [PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
-
- *
- *****************************************************************************/
-/*
-Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
-"An Image Synthesizer" By Ken Perlin.
-Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
+"The RenderMan Companion" (Addison Wesley).
 */
 
 #include <cstdio>
@@ -21,8 +12,10 @@ Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 #include "media/solidTexture/BumpTextureFixture.h"
 #include "media/solidTexture/Texture.h"
 
-// [PERL1985].291-292 - Ripples: superimposed wave fronts from point sources
-// Implements: normal += wave(point - center), wave(v) = direction(v) * cycloid(norm(v))
+/**
+[PERL1985].291-292 - Ripples: superimposed wave fronts from point sources.
+Implements: normal += wave(point - center), wave(v) = direction(v) * cycloid(norm(v)).
+*/
 void
 BumpTextureFixture::ripples(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
@@ -42,7 +35,7 @@ BumpTextureFixture::ripples(
         }
 
         length = sqrt(length);
-        index = length * texture->Frequency + texture->Phase;
+        index = length * texture->frequency + texture->phase;
         scalar = TextureUtils::instance().cycloidal(index) * texture->bumpAmount;
 
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
@@ -51,8 +44,10 @@ BumpTextureFixture::ripples(
     *normal = (*normal).normalizedFast();
 }
 
-// [PERL1985].291-292 - Waves: superimposed wave fronts with 1/f frequency distribution
-// Implements: wave(v) = direction((point-c)*f)/f with per-source frequency scaling
+/**
+[PERL1985].291-292 - Waves: superimposed wave fronts with 1/f frequency distribution.
+Implements: wave(v) = direction((point-c)*f)/f with per-source frequency scaling.
+*/
 void
 BumpTextureFixture::waves(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
@@ -73,7 +68,7 @@ BumpTextureFixture::waves(
         }
 
         length = sqrt(length);
-        index = (length * texture->Frequency * TextureUtils::instance().waveFrequency()[i]) + texture->Phase;
+        index = (length * texture->frequency * TextureUtils::instance().waveFrequency()[i]) + texture->phase;
         sinValue = TextureUtils::instance().cycloidal(index);
 
         scalar = sinValue * texture->bumpAmount / TextureUtils::instance().waveFrequency()[i];
@@ -83,8 +78,10 @@ BumpTextureFixture::waves(
     *normal = (*normal).normalizedFast();
 }
 
-// [PERL1985].290 - Bumps: direct DNoise gradient-based normal perturbation (Bumpy Donut example)
-// Implements: normal += Dnoise(point)
+/**
+[PERL1985].290 - Bumps: direct DNoise gradient-based normal perturbation (Bumpy Donut example).
+Implements: normal += DNoise(point).
+*/
 void
 BumpTextureFixture::bumps(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
@@ -102,11 +99,9 @@ BumpTextureFixture::bumps(
     *normal = (*normal).normalizedFast(); // normalize normal!
 }
 
-// [PERL1985].290 - Dents: Noise() modulated DNoise() gradient perturbation
-// Combines scalar Noise (page 289-290) to gate gradient-based displacement
-/*
-dents is similar to bumps, but uses noise() to control the amount of
-dnoise() perturbation of the object normal...
+/**
+[PERL1985].290 - Dents: Noise() modulated DNoise() gradient perturbation.
+Similar to bumps but uses Noise() to gate the amount of DNoise() perturbation.
 */
 void
 BumpTextureFixture::dents(
@@ -131,22 +126,12 @@ BumpTextureFixture::dents(
     *normal = (*normal).normalizedFast(); // normalize normal!
 }
 
-// [PERL1985].290,Appendix - Wrinkles: 1/f fractal composition of DNoise() over octaves
-// Vector-valued turbulence: sum over octaves of |DNoise(p*scale)| / scale
-/*
-    Ideas garnered from the April 89 Byte Graphics Supplement on RenderMan,
-    refined from "The RenderMan Companion, by Steve Upstill of Pixar, (C) 1990
-    Addison-Wesley.
+/**
+[PERL1985].290,Appendix - Wrinkles: 1/f fractal composition of DNoise() over octaves.
+Vector-valued turbulence: sum over octaves of |DNoise(p*scale)| / scale.
+3-D surface iterative fractal derived from DTurbulence; from "The RenderMan Companion"
+(Addison Wesley / Steve Upstill of Pixar, 1990) and the April 89 Byte RenderMan supplement.
 */
-
-/*
-    wrinkles - This is my implementation of the dented() routine, using
-    a surface iterative fractal derived from DTurbulence.  This is a 3-D vers.
-    (thanks to TextureUtils::instance().DNoise()...) of the usual version using the
-   singular TextureUtils::instance().Noise()... Seems to look a lot like wrinkles,
-   however... (hmmm)
-*/
-
 void
 BumpTextureFixture::wrinkles(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)

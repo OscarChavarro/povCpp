@@ -1,3 +1,5 @@
+#include "java/util/ArrayList.txx"
+#include "media/solidTexture/SolidTextureColorTextures.h"
 #include "render/RenderEngine.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/TraceService.h"
@@ -64,7 +66,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* Check to see if this object/shape has a material_map texture, if so */
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
-    if (texture->textureNumber == Texture::MATERIAL_MAP_TEXTURE) {
+    if (texture->textureNumber == (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE) {
         texture = mapFixture.materialMap(
             &rayIntersection->Point, texture, GeometryConstants::Small_Tolerance);
     }
@@ -80,9 +82,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     filterColour.Alpha = 1.0;
 
     /* Now, we perform the lighting calculations. */
-    for (surface = 1, tempTexture = texture;
-        (tempTexture != nullptr) && (filterColour.Alpha > 0.01);
-        surface++, tempTexture = tempTexture->Next_Texture) {
+    surface = 0;
+    for (long int _layerIdx = -1;
+        _layerIdx < texture->layers.size() && filterColour.Alpha > 0.01;
+        _layerIdx++) {
+        tempTexture = (_layerIdx < 0) ? texture : texture->layers[_layerIdx];
+        surface++;
 
         Color::makeColor(&surfaceColour, 0.0, 0.0, 0.0);
         if (RenderingConfiguration::global().quality <= 5) {

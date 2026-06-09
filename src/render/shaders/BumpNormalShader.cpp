@@ -3,6 +3,7 @@
 #include "environment/material/RendererConfiguration.h"
 #include "media/solidTexture/BumpTextureFixture.h"
 #include "media/solidTexture/MapTextureFixture.h"
+#include "media/solidTexture/SolidTextureBumpyTextures.h"
 #include "media/solidTexture/TextureFixture.h"
 
 void
@@ -14,7 +15,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     double y;
     double z;
 
-    if (texture->bumpNumber == Texture::NO_BUMPS) {
+    if (texture->bumpNumber == (int)SolidTextureBumpyTextures::NO_BUMPS) {
         *newNormal = *surfaceNormal;
         return;
     }
@@ -36,39 +37,39 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
 
     switch (texture->bumpNumber) {
 
-    case Texture::WAVES:
+    case (int)SolidTextureBumpyTextures::WAVES:
         bumpFixture.waves(x, y, z, texture, newNormal);
         break;
 
-    case Texture::RIPPLES:
+    case (int)SolidTextureBumpyTextures::RIPPLES:
         bumpFixture.ripples(x, y, z, texture, newNormal);
         break;
 
-    case Texture::WRINKLES:
+    case (int)SolidTextureBumpyTextures::WRINKLES:
         bumpFixture.wrinkles(x, y, z, texture, newNormal);
         break;
 
-    case Texture::BUMPS:
+    case (int)SolidTextureBumpyTextures::BUMPS:
         bumpFixture.bumps(x, y, z, texture, newNormal);
         break;
 
-    case Texture::DENTS:
+    case (int)SolidTextureBumpyTextures::DENTS:
         bumpFixture.dents(x, y, z, texture, newNormal);
         break;
 
-    case Texture::BUMPY1:
+    case (int)SolidTextureBumpyTextures::BUMPY1:
         textureFixture.bumpy1(x, y, z, texture, newNormal);
         break;
 
-    case Texture::BUMPY2:
+    case (int)SolidTextureBumpyTextures::BUMPY2:
         textureFixture.bumpy2(x, y, z, texture, newNormal);
         break;
 
-    case Texture::BUMPY3:
+    case (int)SolidTextureBumpyTextures::BUMPY3:
         textureFixture.bumpy3(x, y, z, texture, newNormal);
         break;
 
-    case Texture::BUMPMAP:
+    case (int)SolidTextureBumpyTextures::BUMPMAP:
         mapFixture.bumpMap(x, y, z, texture, newNormal, GeometryConstants::Small_Tolerance);
         break;
     }

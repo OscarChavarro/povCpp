@@ -25,7 +25,6 @@ BlobParser::parseBlob(ParserContext &ctx)
     int constantId;
     Vector3Dd localVector;
     Texture *localTexture;
-    Texture *tempTexture;
     double threshold;
     int npoints;
     BlobList *blobComponents;
@@ -169,15 +168,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 if (localTexture->constantFlag) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
-                {
-                    for (tempTexture = localTexture;
-                        tempTexture->Next_Texture != nullptr;
-                        tempTexture = tempTexture->Next_Texture) {
-                    }
-
-                    tempTexture->Next_Texture = localShape->Shape_Texture;
-                    localShape->Shape_Texture = localTexture;
-                }
+                TextureParser::prependTextureLayers(localTexture, localShape->Shape_Texture);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:

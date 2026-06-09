@@ -1,61 +1,48 @@
-/****************************************************************************
- *                     txtmap.c
- *
- *  This module implements the mapped textures including image map, bump map
- *  and material map.
- *
- *****************************************************************************/
+/**
+Implements mapped textures: image map, bump map, and material map.
+Supports planar, spherical, cylindrical, and torus UV projections.
+*/
 
 #include <cstdlib>
+#include <cstdio>
+
+#include "java/util/ArrayList.txx"
+
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "media/solidTexture/MapTextureFixture.h"
 #include "media/IndexedImage.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include <cstdio>
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "media/solidTexture/SolidTextureProjectionMethods.h"
+#include "media/solidTexture/SolidTextureBitmapInterpolationTypes.h"
 #include "media/solidTexture/Texture.h"
 
-/*
-    2-D to 3-D Procedural Texture Mapping of a Bitmapped Image onto an Object:
-
-A. Simplistic (planar) method of image projection devised by DKB and AAC:
-
-    1. Transform texture in 3-D space if requested.
-    2. Determine local object 2-d coords from 3-d coords by <X Y Z> triple.
-    3. Return pixel color value at that position on the 2-d plane of "Image".
-    3. Map colour value in Image [0..255] to a more normal colour range [0..1].
-
-B. Specialized shape projection variations by Alexander Enzmann:
-
-    1. Cylindrical mapping
-    2. Spherical mapping
-    3. Torus mapping
+/**
+2-D to 3-D procedural texture mapping of a bitmap onto an object.
+Planar method by DKB and AAC: transform, find 2-D coords from 3-D, return pixel color.
+Specialized projections (cylindrical, spherical, torus) by Alexander Enzmann.
 */
-
 void
 MapTextureFixture::imageMap(
     double x, double y, double z, Texture *texture, RGBAColor *colour, double smallTolerance)
 {
-    /* determine local object 2-d coords from 3-d coords */
-    /* "unwrap" object 2-d coord onto flat 2-d plane */
-    /* return pixel color value at that posn on 2-d plane */
-
     double xcoor = 0.0;
     double ycoor = 0.0;
     int regNumber;
 
-    if (map(x, y, z, texture, texture->Image, &xcoor, &ycoor, smallTolerance)) {
+    if (map(x, y, z, texture, texture->image, &xcoor, &ycoor, smallTolerance)) {
         Color::makeColor(colour, 1.0, 1.0, 1.0);
         colour->Alpha = 1.0;
         return;
     }
     imageColourAt(
-        texture->Image, xcoor, ycoor, colour, &regNumber);
+        texture->image, xcoor, ycoor, colour, &regNumber);
 }
 
-/* Very different stuff than the other routines here. This routine takes  */
-/* an intersection point and a texture and returns a new texture based on */
-/* the index/color of that point in an image/materials map. CdW 7/91        */
+/**
+Takes an intersection point and a texture; returns a new texture based on
+the index/color of that point in an image/materials map. CdW 7/91.
+*/
 Texture *
 MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, double smallTolerance)
 {
@@ -68,9 +55,6 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
     int regNumber = 0;
     RGBAColor colour;
     int materialNumber = 0;
-    Texture *tempTex;
-    int numtex;
-
     Color::makeColor(&colour, 0.0, 0.0, 0.0);
     colour.Alpha = 0.0;
 
@@ -85,38 +69,29 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
     y = transformedPoint.y();
     z = transformedPoint.z();
 
-    /* now we have transformed x, y, z we use image mapping routine */
-    /* to determine texture index */
-    if (map(x, y, z, texture, texture->Material_Image, &xcoor, &ycoor,
+    // now we have transformed x, y, z: use image mapping to determine texture index
+    if (map(x, y, z, texture, texture->materialImage, &xcoor, &ycoor,
             smallTolerance)) {
         materialNumber = 0;
     } else {
         imageColourAt(
-            texture->Material_Image, xcoor, ycoor, &colour, &regNumber);
+            texture->materialImage, xcoor, ycoor, &colour, &regNumber);
 
-        if (texture->Material_Image->getIndexedData() == nullptr) {
+        if (texture->materialImage->getIndexedData() == nullptr) {
             materialNumber = (int)colour.Red * 255;
         } else {
             materialNumber = regNumber;
         }
     }
 
-    /* Now I've got the Material number, I just have to find it in the */
-    /* texture linked list and return it to Determine_Surface_Colour    */
-    /* Logger::info("-B-Num Mt#%d Mn#%d\n",texture->numberOfMaterials,
-     * Material_Number);    */
-    if (materialNumber > texture->numberOfMaterials) {
-        materialNumber %= texture->numberOfMaterials;
+    int count = (int)texture->materials.size();
+    if (count > 0 && materialNumber >= count) {
+        materialNumber %= count;
     }
-    for (numtex = 0, tempTex = texture->Next_Material;
-        tempTex->Next_Material != nullptr && numtex < materialNumber;
-        tempTex = tempTex->Next_Material, numtex++) {
-        ; /* do nothing */
+    if (materialNumber < count) {
+        return texture->materials[materialNumber];
     }
-
-    /* texture = Temp_Tex;  */
-
-    return (tempTex);
+    return texture;
 }
 
 void
@@ -147,47 +122,47 @@ MapTextureFixture::bumpMap(
     Color::makeColor(&colour3, 0.0, 0.0, 0.0);
     colour3.Alpha = 0.0;
 
-    /* going to have to change this */
-    /* need to know if bump point is off of image for all 3 points */
+    // going to have to change this
+    // need to know if bump point is off of image for all 3 points
 
     if (map(
-            x, y, z, texture, texture->Bump_Image, &xcoor, &ycoor, smallTolerance)) {
+            x, y, z, texture, texture->bumpImage, &xcoor, &ycoor, smallTolerance)) {
         Color::makeColor(&colour, 1.0, 1.0, 1.0);
         colour.Alpha = 1.0;
         index = 255;
         return;
     }
     imageColourAt(
-        texture->Bump_Image, xcoor, ycoor, &colour, &index);
+        texture->bumpImage, xcoor, ycoor, &colour, &index);
 
     xcoor--;
     ycoor++;
     if (xcoor < 0.0) {
-        xcoor += (double)texture->Bump_Image->getXSize();
-    } else if (xcoor >= texture->Bump_Image->getXSize()) {
-        xcoor -= (double)texture->Bump_Image->getXSize();
+        xcoor += (double)texture->bumpImage->getXSize();
+    } else if (xcoor >= texture->bumpImage->getXSize()) {
+        xcoor -= (double)texture->bumpImage->getXSize();
     }
     if (ycoor < 0.0) {
-        ycoor += (double)texture->Bump_Image->getYSize();
-    } else if (ycoor >= (double)texture->Bump_Image->getYSize()) {
-        ycoor -= (double)texture->Bump_Image->getYSize();
+        ycoor += (double)texture->bumpImage->getYSize();
+    } else if (ycoor >= (double)texture->bumpImage->getYSize()) {
+        ycoor -= (double)texture->bumpImage->getYSize();
     }
     imageColourAt(
-        texture->Bump_Image, xcoor, ycoor, &colour2, &index2);
+        texture->bumpImage, xcoor, ycoor, &colour2, &index2);
 
     xcoor += 2.0;
     if (xcoor < 0.0) {
-        xcoor += (double)texture->Bump_Image->getXSize();
-    } else if (xcoor >= texture->Bump_Image->getXSize()) {
-        xcoor -= (double)texture->Bump_Image->getXSize();
+        xcoor += (double)texture->bumpImage->getXSize();
+    } else if (xcoor >= texture->bumpImage->getXSize()) {
+        xcoor -= (double)texture->bumpImage->getXSize();
     }
 
     imageColourAt(
-        texture->Bump_Image, xcoor, ycoor, &colour3, &index3);
+        texture->bumpImage, xcoor, ycoor, &colour3, &index3);
 
 
-    if (texture->Bump_Image->getIndexedData() == nullptr ||
-        texture->Bump_Image->getUseColourFlag()) {
+    if (texture->bumpImage->getIndexedData() == nullptr ||
+        texture->bumpImage->getUseColourFlag()) {
         p1 = Vector3Dd(0,
             texture->bumpAmount *
                 (0.229 * colour.Red + 0.587 * colour.Green + 0.114 * colour.Blue),
@@ -207,8 +182,7 @@ MapTextureFixture::bumpMap(
         p2 = Vector3Dd(0, texture->bumpAmount * index2, 1);
         p3 = Vector3Dd(1, texture->bumpAmount * index3, 1);
     }
-    /* we have points 1,2,3 for a triangle now we need the surface normal for it
-     */
+    // we have points 1,2,3 for a triangle; compute the surface normal
     xprime = p1.subtract(p2);
     yprime = p3.subtract(p2);
     bumpNormal = yprime.crossProduct(xprime);
@@ -245,7 +219,7 @@ MapTextureFixture::imageColourAt(
     TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
 {
     switch (image->getInterpolationType()) {
-    case Texture::NO_INTERPOLATION:
+    case (int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION:
         noInterpolation(image, xcoor, ycoor, colour, index);
         break;
     default:
@@ -254,8 +228,7 @@ MapTextureFixture::imageColourAt(
     }
 }
 
-/* Map a point (x, y, z) on a cylinder of radius 1, height 1, that has its
-    axis of symmetry along the y-axis to the square [0,1]x[0,1]. */
+/** Maps a point (x, y, z) on a cylinder of radius 1, height 1 with y-axis symmetry to [0,1]x[0,1]. */
 int
 MapTextureFixture::cylindricalImageMap(
     double x, double y, double z, TextureImage *image, double *u, double *v)
@@ -268,7 +241,7 @@ MapTextureFixture::cylindricalImageMap(
     }
     *v = fmod(y * image->getYSize(), image->getYSize());
 
-    /* Make sure this vector is on the unit sphere. */
+    // Make sure this vector is on the unit sphere.
     len = sqrt(x * x + y * y + z * z);
     if (len == 0.0) {
         return 0;
@@ -276,7 +249,7 @@ MapTextureFixture::cylindricalImageMap(
     x /= len;
     z /= len;
 
-    /* Determine its angle from the point (1, 0, 0) in the x-z plane. */
+    // Determine its angle from the point (1, 0, 0) in the x-z plane.
     len = sqrt(x * x + z * z);
     if (len == 0.0) {
         return 0;
@@ -293,13 +266,13 @@ MapTextureFixture::cylindricalImageMap(
             theta = 2.0 * M_PI - theta;
         }
     }
-    theta /= 2.0 * M_PI; /* This will be from 0 to 1 */
+    theta /= 2.0 * M_PI; // normalizes theta to [0, 1]
 
     *u = (theta * image->getXSize());
     return 1;
 }
 
-/* Map a point (x, y, z) on a torus  to a 2-d image. */
+/** Maps a point (x, y, z) on a torus to a 2-D image. */
 int
 MapTextureFixture::torusImageMap(
     double x, double y, double z, TextureImage *image, double *u, double *v)
@@ -311,7 +284,7 @@ MapTextureFixture::torusImageMap(
 
     r0 = image->getImageGradient().x();
 
-    /* Determine its angle from the x-axis. */
+    // Determine its angle from the x-axis.
     len = sqrt(x * x + z * z);
     if (len == 0.0) {
         return 0;
@@ -331,8 +304,7 @@ MapTextureFixture::torusImageMap(
 
     theta = 0.0 - theta;
 
-    /* Now rotate about the y-axis to get the point (x, y, z) into the x-y
-     * plane. */
+    // Rotate about the y-axis to get the point (x, y, z) into the x-y plane.
     x = len - r0;
     len = sqrt(x * x + y * y);
     phi = acos(-x / len);
@@ -340,7 +312,7 @@ MapTextureFixture::torusImageMap(
         phi = 2.0 * M_PI - phi;
     }
 
-    /* Determine the parametric coordinates. */
+    // Determine the parametric coordinates.
     theta /= 2.0 * M_PI;
     phi /= 2.0 * M_PI;
     *u = (-theta * image->getXSize());
@@ -348,8 +320,7 @@ MapTextureFixture::torusImageMap(
     return 1;
 }
 
-/* Map a point (x, y, z) on a sphere of radius 1 to a 2-d image. (Or is it the
-    other way around?) */
+/** Maps a point (x, y, z) on a unit sphere to a 2-D image. */
 int
 MapTextureFixture::sphericalImageMap(
     double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v)
@@ -358,7 +329,7 @@ MapTextureFixture::sphericalImageMap(
     double phi;
     double theta;
 
-    /* Make sure this vector is on the unit sphere. */
+    // Make sure this vector is on the unit sphere.
     len = sqrt(x * x + y * y + z * z);
     if (len == 0.0) {
         return 0;
@@ -367,14 +338,13 @@ MapTextureFixture::sphericalImageMap(
     y /= len;
     z /= len;
 
-    /* Determine its angle from the x-z plane. */
-    phi = 0.5 + asin(y) / M_PI; /* This will be from 0 to 1 */
+    // Determine its angle from the x-z plane.
+    phi = 0.5 + asin(y) / M_PI; // normalizes phi to [0, 1]
 
-    /* Determine its angle from the point (1, 0, 0) in the x-z plane. */
+    // Determine its angle from the point (1, 0, 0) in the x-z plane.
     len = sqrt(x * x + z * z);
     if (len == 0.0) {
-        /* This point is at one of the poles. Any value of xcoord will be
-         * ok...*/
+        // at a pole: any xcoord value is valid
         theta = 0;
     } else {
         if (z == 0.0) {
@@ -389,26 +359,17 @@ MapTextureFixture::sphericalImageMap(
                 theta = 2.0 * M_PI - theta;
             }
         }
-        theta /= 2.0 * M_PI; /* This will be from 0 to 1 */
+        theta /= 2.0 * M_PI; // normalizes theta to [0, 1]
     }
     *u = (theta * image->getXSize());
     *v = (phi * image->getYSize());
     return 1;
 }
 
-/*
-    2-D to 3-D Procedural Texture Mapping of a Bitmapped Image onto an Object:
-
-    Simplistic planar method of object image projection devised by DKB and AAC.
-
-    1. Transform texture in 3-D space if requested.
-    2. Determine local object 2-d coords from 3-d coords by <X Y Z> triple.
-    3. Return pixel color value at that position on the 2-d plane of "Image".
-    3. Map colour value in Image [0..255] to a more normal colour range [0..1].
+/**
+Simplistic planar image projection by DKB and AAC.
+Returns 0 if no color at this point (invisible), 1 if a good mapping is found.
 */
-
-/* Return 0 if there is no color at this point (i.e. invisible), return 1
-    if a good mapping is found. */
 int
 MapTextureFixture::planarImageMap(
     double x, double y, double z, TextureImage *image, double *u, double *v)
@@ -446,43 +407,37 @@ MapTextureFixture::planarImageMap(
     return 1;
 }
 
-/* Map returns 1 if no color found (invisible) or 0 if color found */
+/** Returns 1 if no color found at this point (invisible), 0 if a color was mapped. */
 int
 MapTextureFixture::map(double x, double y, double z, Texture *texture,
     TextureImage *image, double *xcoor, double *ycoor, double smallTolerance)
 {
-    /* determine local object 2-d coords from 3-d coords */
-    /* "unwrap" object 2-d coord onto flat 2-d plane */
-    /* return pixel color value at that posn on 2-d plane */
+    // Disabled: turbulence on image maps causes problems; left out for this release.
+    // if ((turb = texture->turbulence) != 0.0) {
+    //     DTurbulence(&textureTurbulence, x, y, z, texture->octaves);
+    //     x += textureTurbulence.x() * turb;
+    //     y += textureTurbulence.y() * turb;
+    //     z += textureTurbulence.z() * turb;
+    // }
 
-    /* This causes problems so let's do without it for this release
-    if ((turb = texture->Turbulence) != 0.0)
-    {
-        DTurbulence (&textureTurbulence, x, y, z, texture->Octaves);
-        x += TextureTurbulence.x() * turb;
-        y += TextureTurbulence.y() * turb;
-        z += TextureTurbulence.z() * turb;
-    }
-    */
-
-    /* Now determine which mapper to use. */
+    // Now determine which mapper to use.
     switch (image->getMapType()) {
-    case Texture::PLANAR_MAP:
+    case (int)SolidTextureProjectionMethods::PLANAR_MAP:
         if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
-    case Texture::SPHERICAL_MAP:
+    case (int)SolidTextureProjectionMethods::SPHERICAL_MAP:
         if (!sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
-    case Texture::CYLINDRICAL_MAP:
+    case (int)SolidTextureProjectionMethods::CYLINDRICAL_MAP:
         if (!cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
         break;
-    case Texture::TORUS_MAP:
+    case (int)SolidTextureProjectionMethods::TORUS_MAP:
         if (!torusImageMap(x, y, z, image, xcoor, ycoor)) {
             return (1);
         }
@@ -493,10 +448,10 @@ MapTextureFixture::map(double x, double y, double z, Texture *texture,
         }
         break;
     }
-    /* Now make sure the point is on the image */
+    // make sure the point is on the image
     *ycoor += smallTolerance;
     *xcoor += smallTolerance;
-    /* Compensate for y coordinates on the images being upsidedown */
+    // compensate for y coordinates on images being upside-down
     *ycoor = (double)image->getYSize() - *ycoor;
 
     if (*xcoor < 0.0) {
@@ -556,7 +511,7 @@ MapTextureFixture::noInterpolation(
     }
 }
 
-/* Interpolate color and alpha values when mapping */
+/** Interpolates color and alpha values when mapping. */
 void
 MapTextureFixture::interp(
     TextureImage *image, double xcoor, double ycoor, RGBAColor *colour, int *index)
@@ -582,8 +537,8 @@ MapTextureFixture::interp(
         Color::makeColor(&cornerColour[i], 0.0, 0.0, 0.0);
         cornerColour[i].Alpha = 0.0;
     }
-    /* OK, now that you have the corners, what are you going to do with them? */
-    if (image->getInterpolationType() == Texture::BILINEAR) {
+    // sample the four surrounding pixels
+    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::BILINEAR) {
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColour[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColour[1],
@@ -597,8 +552,7 @@ MapTextureFixture::interp(
             greenCrn[i] = cornerColour[i].Green;
             blueCrn[i] = cornerColour[i].Blue;
             alphaCrn[i] = cornerColour[i].Alpha;
-            /* Logger::info("Crn %d = %lf %lf
-             * %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]); */
+            // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
         val1 = bilinear(redCrn, xcoor, ycoor);
@@ -606,7 +560,7 @@ MapTextureFixture::interp(
         val3 = bilinear(blueCrn, xcoor, ycoor);
         val4 = bilinear(alphaCrn, xcoor, ycoor);
     }
-    if (image->getInterpolationType() == Texture::NORMALIZED_DIST) {
+    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::NORMALIZED_DIST) {
         noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColour[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
@@ -620,8 +574,7 @@ MapTextureFixture::interp(
             greenCrn[i] = cornerColour[i].Green;
             blueCrn[i] = cornerColour[i].Blue;
             alphaCrn[i] = cornerColour[i].Alpha;
-            /* Logger::info("Crn %d = %lf %lf
-             * %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]); */
+            // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
         val1 = normDist(redCrn, xcoor, ycoor);
@@ -634,22 +587,23 @@ MapTextureFixture::interp(
     colour->Green += val2;
     colour->Blue += val3;
     colour->Alpha += val4;
-    /* Logger::info("Final = %lf %lf %lf\n",val1,val2,val3);  */
-    /* use bilinear for index try average later */
+    // Logger::info("Final = %lf %lf %lf\n",val1,val2,val3);
+    // use bilinear for index; try average later
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];
     }
-    if (image->getInterpolationType() == Texture::BILINEAR) {
+    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::BILINEAR) {
         *index = (int)(bilinear(indexCrn, xcoor, ycoor) + 0.5);
     }
-    if (image->getInterpolationType() == Texture::NORMALIZED_DIST) {
+    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::NORMALIZED_DIST) {
         *index = (int)(normDist(indexCrn, xcoor, ycoor) + 0.5);
     }
 }
 
-/* These interpolation techniques are taken from an article by */
-/* Girish T. Hagan in the C Programmer's Journal V 9 No. 8 */
-/* They were adapted for POV-Ray by CdW */
+/**
+Bilinear interpolation. From an article by Girish T. Hagan in
+C Programmer's Journal V 9 No. 8; adapted for POV-Ray by CdW.
+*/
 double
 MapTextureFixture::bilinear(double *corners, double x, double y)
 {
