@@ -2,7 +2,7 @@
 #define __TXTMAP_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 #include "media/TextureImage.h"
 
 class MapTextureFixture {

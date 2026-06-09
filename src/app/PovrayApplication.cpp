@@ -8,7 +8,7 @@
 #include "common/logger/Logger.h"
 #include "common/RenderRuntimeState.h"
 #include "common/Statistics.h"
-#include "media/TextureUtils.h"
+#include "media/solidTexture/TextureUtils.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/scene/SceneFrame.h"
 #include "environment/material/RendererConfiguration.h"

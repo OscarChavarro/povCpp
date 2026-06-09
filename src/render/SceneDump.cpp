@@ -1,7 +1,7 @@
 #include "render/SceneDump.h"
 #include "render/RenderEngine.h"
 #include "environment/geometry/SimpleBody.h"
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "common/color/RGBAColorPaletteSpan.h"
 

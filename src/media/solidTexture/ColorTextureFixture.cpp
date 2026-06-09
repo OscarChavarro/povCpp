@@ -14,13 +14,13 @@ References:
     Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley).
 */
 
-#include "media/ColorTextureFixture.h"
+#include "media/solidTexture/ColorTextureFixture.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/MapTextureFixture.h"
-#include "media/Texture.h"
-#include "media/TextureFixture.h"
+#include "media/solidTexture/MapTextureFixture.h"
+#include "media/solidTexture/Texture.h"
+#include "media/solidTexture/TextureFixture.h"
 
 static constexpr double COORDINATE_LIMIT = 1.0e17;
 

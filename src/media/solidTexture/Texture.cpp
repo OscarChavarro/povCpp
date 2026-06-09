@@ -19,7 +19,7 @@ References:
 
 #include <cstdlib>
 
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 #include "common/Statistics.h"
 #include "common/logger/Logger.h"
 #include <cstdio>

@@ -1,9 +1,9 @@
 #include "render/shaders/BumpNormalShader.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/material/RendererConfiguration.h"
-#include "media/BumpTextureFixture.h"
-#include "media/MapTextureFixture.h"
-#include "media/TextureFixture.h"
+#include "media/solidTexture/BumpTextureFixture.h"
+#include "media/solidTexture/MapTextureFixture.h"
+#include "media/solidTexture/TextureFixture.h"
 
 void
 BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,

@@ -11,11 +11,11 @@
     Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
-#include "media/TextureFixture.h"
+#include "media/solidTexture/TextureFixture.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 
 /* Test new textures in the routines that follow */
 

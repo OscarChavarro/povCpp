@@ -19,7 +19,7 @@
 #include "media/RGBAImage.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 
 inline int
 HeightField::signInline(double x)

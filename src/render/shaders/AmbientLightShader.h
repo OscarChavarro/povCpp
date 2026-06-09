@@ -1,7 +1,7 @@
 #ifndef __AMBIENT_LIGHT_SHADER_H__
 #define __AMBIENT_LIGHT_SHADER_H__
 
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 
 class RGBAColor;
 

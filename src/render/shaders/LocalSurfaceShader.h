@@ -1,7 +1,7 @@
 #ifndef __LOCAL_SURFACE_SHADER_H__
 #define __LOCAL_SURFACE_SHADER_H__
 
-#include "media/Texture.h"
+#include "media/solidTexture/Texture.h"
 
 class RayWithSegments;
 class Intersection;
