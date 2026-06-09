@@ -10,7 +10,7 @@
 #include "common/logger/Logger.h"
 #include <cstdlib>
 
-RGBAPixel16Bits *IffFormat::sIffColourMap = nullptr;
+RGBAPixelHDR *IffFormat::sIffColourMap = nullptr;
 int IffFormat::sColourMapSize = 0;
 ChunkHeader IffFormat::sGlobalChunkHeader;
 
@@ -66,7 +66,7 @@ IffFormat::readChunkHeader(java::FileInputStream &is, ChunkHeader *dest)
 }
 
 IndexedImage *
-IffFormat::readIffImage(RGBAImage *directOut, char *filename)
+IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
 {
     unsigned char **rowBytes;
     int c;
@@ -83,7 +83,6 @@ IffFormat::readIffImage(RGBAImage *directOut, char *filename)
     int previousRed;
     int previousGreen;
     int previousBlue;
-    ImageLine *line;
     unsigned long creg;
 
     // Dimensions are written to directOut in all cases so callers can read
@@ -142,7 +141,7 @@ IffFormat::readIffImage(RGBAImage *directOut, char *filename)
 
         case CMAP:
             sColourMapSize = (int)sGlobalChunkHeader.size / 3;
-            sIffColourMap = new RGBAPixel16Bits[sColourMapSize];
+            sIffColourMap = new RGBAPixelHDR[sColourMapSize];
             if (sIffColourMap == nullptr) {
                 Logger::error("Cannot allocate memory for IFF colour map\n");
                 exit(1);
@@ -262,20 +261,9 @@ IffFormat::readIffImage(RGBAImage *directOut, char *filename)
 
             } else {
                 // --- Direct-color path (HAM or 24-plane) ---
-                directOut->lines = new ImageLine[iheight];
-                if (directOut->lines == nullptr) {
-                    Logger::error("Cannot allocate memory for picture\n");
-                    exit(1);
-                }
+                directOut->allocate(iwidth, iheight);
 
                 for (i = 0; i < iheight; i++) {
-                    if (((directOut->lines[i].r   = new unsigned char[iwidth]) == nullptr) ||
-                        ((directOut->lines[i].g = new unsigned char[iwidth]) == nullptr) ||
-                        ((directOut->lines[i].b  = new unsigned char[iwidth]) == nullptr)) {
-                        Logger::error("Cannot allocate memory for picture\n");
-                        exit(1);
-                    }
-
                     for (j = 0; j < nPlanes; j++) {
                         if (compression == CMPNONE) {
                             for (k = 0; k < (iwidth + 7) / 8; k++) {
@@ -315,40 +303,48 @@ IffFormat::readIffImage(RGBAImage *directOut, char *filename)
                             }
                         }
 
+                        RGBAPixelHDR pixel;
+                        pixel.a = 0;
+
                         if (viewmodes & HAM) {
-                            line = &directOut->lines[i];
                             switch (creg >> 4) {
                             case 0:
-                                previousRed   = line->r[j]   = (unsigned char)sIffColourMap[creg].r;
-                                previousGreen = line->g[j] = (unsigned char)sIffColourMap[creg].g;
-                                previousBlue  = line->b[j]  = (unsigned char)sIffColourMap[creg].b;
+                                pixel.r = (unsigned short)sIffColourMap[creg].r;
+                                pixel.g = (unsigned short)sIffColourMap[creg].g;
+                                pixel.b = (unsigned short)sIffColourMap[creg].b;
+                                previousRed   = pixel.r;
+                                previousGreen = pixel.g;
+                                previousBlue  = pixel.b;
                                 break;
                             case 1:
-                                line->r[j]   = (unsigned char)previousRed;
-                                line->g[j] = (unsigned char)previousGreen;
-                                line->b[j]  = (unsigned char)(((creg & 0xf) << 4) + (creg & 0xf));
-                                previousBlue   = (int)line->b[j];
+                                pixel.r = (unsigned short)previousRed;
+                                pixel.g = (unsigned short)previousGreen;
+                                pixel.b = (unsigned short)(((creg & 0xf) << 4) + (creg & 0xf));
+                                previousBlue = pixel.b;
                                 break;
                             case 2:
-                                line->r[j]   = (unsigned char)(((creg & 0xf) << 4) + (creg & 0xf));
-                                previousRed    = (int)line->r[j];
-                                line->g[j] = (unsigned char)previousGreen;
-                                line->b[j]  = (unsigned char)previousBlue;
+                                pixel.r = (unsigned short)(((creg & 0xf) << 4) + (creg & 0xf));
+                                pixel.g = (unsigned short)previousGreen;
+                                pixel.b = (unsigned short)previousBlue;
+                                previousRed = pixel.r;
                                 break;
                             case 3:
-                                line->r[j]   = (unsigned char)previousRed;
-                                line->g[j] = (unsigned char)(((creg & 0xf) << 4) + (creg & 0xf));
-                                previousGreen  = (int)line->g[j];
-                                line->b[j]  = (unsigned char)previousBlue;
+                                pixel.r = (unsigned short)previousRed;
+                                pixel.g = (unsigned short)(((creg & 0xf) << 4) + (creg & 0xf));
+                                pixel.b = (unsigned short)previousBlue;
+                                previousGreen = pixel.g;
+                                break;
+                            default:
+                                pixel.r = pixel.g = pixel.b = 0;
                                 break;
                             }
                         } else {
                             // 24-plane direct-color
-                            line = &directOut->lines[i];
-                            line->r[j]   = (unsigned char)((creg >> 16) & 0xFF);
-                            line->g[j] = (unsigned char)((creg >> 8) & 0xFF);
-                            line->b[j]  = (unsigned char)(creg & 0xFF);
+                            pixel.r = (unsigned short)((creg >> 16) & 0xFF);
+                            pixel.g = (unsigned short)((creg >> 8) & 0xFF);
+                            pixel.b = (unsigned short)(creg & 0xFF);
                         }
+                        directOut->setPixel(j, i, pixel);
 
                         mask >>= 1;
                         if (mask == 0) {

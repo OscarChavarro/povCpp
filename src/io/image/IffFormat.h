@@ -1,7 +1,7 @@
 #ifndef __IFF_FORMAT_H__
 #define __IFF_FORMAT_H__
 
-#include "media/RGBAImage.h"
+#include "media/RGBAImageHDRUncompressed.h"
 #include "media/IndexedImage.h"
 #include "io/image/ChunkHeader.h"
 #include "java/io/FileInputStream.h"
@@ -16,10 +16,10 @@ class IffFormat {
 
     // Returns a new IndexedImage* if the file is paletted; fills directOut and
     // returns nullptr if the file is direct-color (HAM or 24-plane).
-    static IndexedImage *readIffImage(RGBAImage *directOut, char *filename);
+    static IndexedImage *readIffImage(RGBAImageHDRUncompressed *directOut, char *filename);
 
   private:
-    static RGBAPixel16Bits *sIffColourMap;
+    static RGBAPixelHDR *sIffColourMap;
     static int sColourMapSize;
     static ChunkHeader sGlobalChunkHeader;
 };

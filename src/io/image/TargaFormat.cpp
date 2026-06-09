@@ -5,7 +5,7 @@
 #include "java/io/FileOutputStream.h"
 #include "common/logger/Logger.h"
 #include "common/color/RGBAColor.h"
-#include "media/RGBAImage.h"
+#include "media/RGBAImageHDRUncompressed.h"
 #include "io/image/TargaFormat.h"
 #include "io/binaryIo/FileLocator.h"
 
@@ -180,31 +180,25 @@ TargaFormat::readLine(RGBAColor *lineData, int *lineNumber)
 }
 
 int
-TargaFormat::readIntLine(ImageLine *lineData)
+TargaFormat::readRow(RGBAImageHDRUncompressed *image, int row)
 {
-    lineData->r   = new unsigned char[width];
-    lineData->g = new unsigned char[width];
-    lineData->b  = new unsigned char[width];
-
-    if (lineData->r == nullptr || lineData->g == nullptr || lineData->b == nullptr) {
-        Logger::error("Cannot allocate memory for picture: %s\n", filename);
-        exit(1);
-    }
-
     for (int x = 0; x < width; x++) {
-        int data = inputStream->read();
-        if (data == -1) {
+        int raw = inputStream->read();
+        if (raw == -1) {
             return (x == 0) ? 0 : -1;
         }
-        lineData->b[x] = (unsigned char)data;
+        RGBAPixelHDR pixel;
+        pixel.b = (unsigned short)raw;
 
-        data = inputStream->read();
-        if (data == -1) return -1;
-        lineData->g[x] = (unsigned char)data;
+        raw = inputStream->read();
+        if (raw == -1) return -1;
+        pixel.g = (unsigned short)raw;
 
-        data = inputStream->read();
-        if (data == -1) return -1;
-        lineData->r[x] = (unsigned char)data;
+        raw = inputStream->read();
+        if (raw == -1) return -1;
+        pixel.r = (unsigned short)raw;
+        pixel.a = 0;
+        image->setPixel(x, row, pixel);
     }
     return 1;
 }
@@ -225,7 +219,7 @@ TargaFormat::close()
 }
 
 void
-TargaFormat::readTargaImage(RGBAImage *image, char *name)
+TargaFormat::readTargaImage(RGBAImageHDRUncompressed *image, char *name)
 {
     TargaFormat fmt;
     if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
@@ -233,18 +227,9 @@ TargaFormat::readTargaImage(RGBAImage *image, char *name)
         exit(1);
     }
 
-    image->width = (double)image->iwidth;
-    image->height = (double)image->iheight;
+    image->allocate(image->iwidth, image->iheight);
 
-    image->lines = new ImageLine[image->iheight];
-    if (image->lines == nullptr) {
-        Logger::error("Cannot allocate memory for picture: %s\n", name);
-        exit(1);
-    }
-
-    for (int row = 0; row < image->iheight &&
-         fmt.readIntLine(&image->lines[row]);
-         row++) {
+    for (int row = 0; row < image->iheight && fmt.readRow(image, row); row++) {
     }
 
     fmt.close();

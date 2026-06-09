@@ -16,7 +16,7 @@
 
 #include "environment/geometry/volume/HeightField.h"
 #include "media/IndexedImage.h"
-#include "media/RGBAImage.h"
+#include "media/RGBAImageHDRUncompressed.h"
 #include "common/Config.h"
 #include "common/Statistics.h"
 #include "media/solidTexture/Texture.h"
@@ -706,7 +706,7 @@ HeightField::findHfMinMax(HeightField *hField, IndexedImage *image, int imageTyp
 }
 
 void
-HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
+HeightField::findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, int imageType)
 {
     (void)imageType;
     int maxX = image->iwidth;
@@ -732,9 +732,9 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                     int x = i * n + i2;
                     double tempY = 0;
                     if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
-                        int temp1 = image->lines[maxZ - z - 1].r[x];
-                        int temp2 = image->lines[maxZ - z - 1].g[x];
-                        tempY = (double)temp1 + (double)temp2 / 256.0;
+                        RGBAPixelHDR pixel;
+                        image->getPixel(x, maxZ - z - 1, &pixel);
+                        tempY = (double)pixel.r + (double)pixel.g / 256.0;
                         if (tempY <= hField->bounding_box->bounds[0].y()) {
                             hField->Map[z][x] = -10000.0;
                         } else {
@@ -755,11 +755,6 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImage *image, int imageType)
                         hField->Block[i][j].maxY = tempY;
                     }
                 }
-            }
-            if ((z >= 0) && (z < maxZ) && (j2 != n)) {
-                delete image->lines[maxZ - z - 1].b;
-                delete image->lines[maxZ - z - 1].g;
-                delete image->lines[maxZ - z - 1].r;
             }
         }
     }

@@ -4,7 +4,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "media/IndexedImage.h"
-#include "media/RGBAImage.h"
+#include "media/RGBAImageHDRUncompressed.h"
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"
 #include "environment/scene/ModelBuilder.h"
@@ -31,7 +31,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     Vector3Dd localVector;
     Texture *localTexture;
     IndexedImage *indexedImage = nullptr;
-    RGBAImage *directImage = nullptr;
+    RGBAImageHDRUncompressed *directImage = nullptr;
     int imageType = 0;
 
     localShape = nullptr;
@@ -95,7 +95,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::TGA_TOKEN:
                 imageType = HeightField::TGA;
                 localShape = ModelBuilder::getHeightFieldShape();
-                directImage = new RGBAImage;
+                directImage = new RGBAImageHDRUncompressed;
                 if (directImage == nullptr) {
                     ParseErrorReporter::reportError("Cannot allocate space for "
                                               "Height Field (1st message, ctx).");

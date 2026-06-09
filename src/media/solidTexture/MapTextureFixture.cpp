@@ -9,6 +9,7 @@
 #include <cstdlib>
 
 #include "media/solidTexture/MapTextureFixture.h"
+#include "media/IndexedImage.h"
 #include "media/TextureImage.h"
 #include "common/logger/Logger.h"
 #include <cstdio>
@@ -358,7 +359,7 @@ MapTextureFixture::torusImageMap(
     other way around?) */
 int
 MapTextureFixture::sphericalImageMap(
-    double x, double y, double z, RGBAImage *image, double *u, double *v)
+    double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v)
 {
     double len;
     double phi;
@@ -546,15 +547,16 @@ MapTextureFixture::noInterpolation(
     int ixcoor = (int)xcoor;
 
     if (image->indexedData == nullptr) {
-        ImageLine *line = &image->lines[iycoor];
-        colour->Red += (double)line->r[ixcoor] / 255.0;
-        colour->Green += (double)line->g[ixcoor] / 255.0;
-        colour->Blue += (double)line->b[ixcoor] / 255.0;
+        RGBAPixelHDR pixel;
+        image->getPixel(ixcoor, iycoor, &pixel);
+        colour->Red += (double)pixel.r / 255.0;
+        colour->Green += (double)pixel.g / 255.0;
+        colour->Blue += (double)pixel.b / 255.0;
         *index = -1;
     } else {
         IndexedImage *idx = image->indexedData;
         *index = idx->mapLines[iycoor][ixcoor];
-        RGBAPixel16Bits *mapColour = &idx->colorMap[*index];
+        RGBAPixelHDR *mapColour = &idx->colorMap[*index];
         colour->Red += (double)mapColour->r / 255.0;
         colour->Green += (double)mapColour->g / 255.0;
         colour->Blue += (double)mapColour->b / 255.0;

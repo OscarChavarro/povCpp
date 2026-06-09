@@ -2,12 +2,11 @@
 #define __TARGA_FORMAT_H__
 
 #include "io/image/ImageOutput.h"
-#include "media/ImageLine.h"
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"
 
 class RGBAColor;
-class RGBAImage;
+class RGBAImageHDRUncompressed;
 
 class TargaFormat : public ImageOutput {
   public:
@@ -19,10 +18,10 @@ class TargaFormat : public ImageOutput {
     void writeLine(RGBAColor *lineData, int lineNumber) override;
     int readLine(RGBAColor *lineData, int *lineNumber) override;
     void close() override;
-    static void readTargaImage(RGBAImage *image, char *name);
+    static void readTargaImage(RGBAImageHDRUncompressed *image, char *name);
 
   private:
-    int readIntLine(ImageLine *lineData);
+    int readRow(RGBAImageHDRUncompressed *image, int row);
     java::FileInputStream *inputStream;
     java::OutputStream *outputStream;
     int width;

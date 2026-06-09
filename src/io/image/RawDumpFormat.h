@@ -2,12 +2,11 @@
 #define __RAW_DUMP_FORMAT_H__
 
 #include "io/image/ImageOutput.h"
-#include "media/ImageLine.h"
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"
 
 class RGBAColor;
-class RGBAImage;
+class RGBAImageHDRUncompressed;
 
 class RawDumpFormat : public ImageOutput {
   public:
@@ -19,10 +18,10 @@ class RawDumpFormat : public ImageOutput {
     void writeLine(RGBAColor *lineData, int lineNumber) override;
     int readLine(RGBAColor *lineData, int *lineNumber) override;
     void close() override;
-    static void readDumpImage(RGBAImage *image, char *name);
+    static void readDumpImage(RGBAImageHDRUncompressed *image, char *name);
 
   private:
-    int readIntLine(ImageLine *lineData, int *lineNumber);
+    int readRow(RGBAImageHDRUncompressed *image, int *lineNumber);
     java::FileInputStream *inputStream;
     java::OutputStream *outputStream;
     int width;

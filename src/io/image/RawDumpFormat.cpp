@@ -21,7 +21,7 @@
 #include "common/logger/Logger.h"
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/io/PersistenceElement.h"
-#include "media/RGBAImage.h"
+#include "media/RGBAImageHDRUncompressed.h"
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
@@ -185,7 +185,7 @@ RawDumpFormat::readLine(RGBAColor *lineData, int *lineNumber)
 }
 
 int
-RawDumpFormat::readIntLine(ImageLine *lineData, int *lineNumber)
+RawDumpFormat::readRow(RGBAImageHDRUncompressed *image, int *lineNumber)
 {
     int lo = inputStream->read();
     if (lo == -1) {
@@ -197,34 +197,38 @@ RawDumpFormat::readIntLine(ImageLine *lineData, int *lineNumber)
     }
     *lineNumber = lo + hi * 256;
 
-    lineData->r   = new unsigned char[width];
-    lineData->g = new unsigned char[width];
-    lineData->b  = new unsigned char[width];
-
-    if (lineData->r == nullptr || lineData->g == nullptr || lineData->b == nullptr) {
-        Logger::error("Cannot allocate memory for picture: %s\n", filename);
-        exit(1);
-    }
+    unsigned char *rBuf = new unsigned char[width]();
+    unsigned char *gBuf = new unsigned char[width]();
+    unsigned char *bBuf = new unsigned char[width]();
 
     for (int i = 0; i < width; i++) {
-        lineData->r[i] = lineData->g[i] = lineData->b[i] = 0;
+        int raw = inputStream->read();
+        if (raw == -1) { delete[] rBuf; delete[] gBuf; delete[] bBuf; return -1; }
+        rBuf[i] = (unsigned char)raw;
+    }
+    for (int i = 0; i < width; i++) {
+        int raw = inputStream->read();
+        if (raw == -1) { delete[] rBuf; delete[] gBuf; delete[] bBuf; return -1; }
+        gBuf[i] = (unsigned char)raw;
+    }
+    for (int i = 0; i < width; i++) {
+        int raw = inputStream->read();
+        if (raw == -1) { delete[] rBuf; delete[] gBuf; delete[] bBuf; return -1; }
+        bBuf[i] = (unsigned char)raw;
     }
 
     for (int i = 0; i < width; i++) {
-        int data = inputStream->read();
-        if (data == -1) return -1;
-        lineData->r[i] = (unsigned char)data;
+        RGBAPixelHDR pixel;
+        pixel.r = rBuf[i];
+        pixel.g = gBuf[i];
+        pixel.b = bBuf[i];
+        pixel.a = 0;
+        image->setPixel(i, *lineNumber, pixel);
     }
-    for (int i = 0; i < width; i++) {
-        int data = inputStream->read();
-        if (data == -1) return -1;
-        lineData->g[i] = (unsigned char)data;
-    }
-    for (int i = 0; i < width; i++) {
-        int data = inputStream->read();
-        if (data == -1) return -1;
-        lineData->b[i] = (unsigned char)data;
-    }
+
+    delete[] rBuf;
+    delete[] gBuf;
+    delete[] bBuf;
 
     return 1;
 }
@@ -245,7 +249,7 @@ RawDumpFormat::close()
 }
 
 void
-RawDumpFormat::readDumpImage(RGBAImage *image, char *name)
+RawDumpFormat::readDumpImage(RGBAImageHDRUncompressed *image, char *name)
 {
     RawDumpFormat fmt;
     if (!fmt.open(name, &image->iwidth, &image->iheight, 0, READ_MODE, 0)) {
@@ -253,20 +257,11 @@ RawDumpFormat::readDumpImage(RGBAImage *image, char *name)
         exit(1);
     }
 
-    image->width = (double)image->iwidth;
-    image->height = (double)image->iheight;
+    image->allocate(image->iwidth, image->iheight);
 
-    image->lines = new ImageLine[image->iheight];
-    if (image->lines == nullptr) {
-        Logger::error("Cannot allocate memory for picture: %s\n", name);
-        exit(1);
-    }
-
-    ImageLine line;
     int row;
     int rc;
-    while ((rc = fmt.readIntLine(&line, &row)) == 1) {
-        image->lines[row] = line;
+    while ((rc = fmt.readRow(image, &row)) == 1) {
     }
 
     fmt.close();
