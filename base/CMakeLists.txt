@@ -38,12 +38,11 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ArrayListInstantiations.cpp" [=[
 #include "java/util/ArrayList.h"
 #include "java/util/ArrayList.txx"
 #include "java/lang/String.h"
-#include "vsdk/toolkit/media/RGBAColorPaletteSpan.h"
 
 namespace java {
 template class ArrayList<String>;
 template class ArrayList<unsigned char>;
-template class ArrayList<RGBAColorPaletteSpan*>;
+template class ArrayList<double>;
 }
 ]=])
 

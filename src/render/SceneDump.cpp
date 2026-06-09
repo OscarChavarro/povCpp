@@ -70,19 +70,16 @@ void dumpSceneStructure(FILE *f)
             if (tex->colorMap) {
                 fprintf(f, "  tex.cmap n=%d", tex->colorMap->size());
                 for (int i = 0; i < tex->colorMap->size(); i++) {
-                    const RGBAColorPaletteSpan *entryPtr = tex->colorMap->getSpanAt(i);
-                    const RGBAColorPaletteSpan &entry = *entryPtr;
-                    fprintf(f, " [%.6f %.6f %.3f,%.3f,%.3f,%.3f->%.3f,%.3f,%.3f,%.3f]",
-                            entry.start,
-                            entry.end,
-                            entry.startColor.getR(),
-                            entry.startColor.getG(),
-                            entry.startColor.getB(),
-                            entry.startColor.getA(),
-                            entry.endColor.getR(),
-                            entry.endColor.getG(),
-                            entry.endColor.getB(),
-                            entry.endColor.getA());
+                    ColorRgba *c = tex->colorMap->getColorAt(i);
+                    if (tex->colorMap->hasPositions()) {
+                        fprintf(f, " [%.6f %.3f,%.3f,%.3f,%.3f]",
+                                tex->colorMap->getPositionAt(i),
+                                c->getR(), c->getG(), c->getB(), c->getA());
+                    } else {
+                        fprintf(f, " [%.3f,%.3f,%.3f,%.3f]",
+                                c->getR(), c->getG(), c->getB(), c->getA());
+                    }
+                    delete c;
                 }
                 fprintf(f, "\n");
             }
