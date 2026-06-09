@@ -5,13 +5,13 @@
 #ifndef __TEXTURE_H__
 #define __TEXTURE_H__
 
-#include "common/color/Color.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+
+#include "common/color/Color.h"
 #include "media/TextureImage.h"
 #include "media/RGBAPixelHDR.h"
 #include "media/solidTexture/TextureUtils.h"
-
 
 class Texture {
   public:

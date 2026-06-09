@@ -188,17 +188,9 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
                 indexed->colourMapSize = sColourMapSize;
                 indexed->colorMap      = sIffColourMap;
 
-                indexed->mapLines = new unsigned char *[iheight];
-                if (indexed->mapLines == nullptr) {
-                    Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for picture\n");
-                }
+                indexed->allocate(iwidth, iheight);
 
                 for (i = 0; i < iheight; i++) {
-                    indexed->mapLines[i] = new unsigned char[iwidth];
-                    if (indexed->mapLines[i] == nullptr) {
-                        Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for picture\n");
-                    }
-
                     for (j = 0; j < nPlanes; j++) {
                         if (compression == CMPNONE) {
                             for (k = 0; k < (iwidth + 7) / 8; k++) {
@@ -241,7 +233,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
                         if (creg > (unsigned long)indexed->colourMapSize) {
                             Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Error - IFF Image Map Colour out of range\n");
                         }
-                        indexed->mapLines[i][j] = (char)creg;
+                        indexed->setPixel(j, i, (unsigned char)creg);
 
                         mask >>= 1;
                         if (mask == 0) {

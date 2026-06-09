@@ -22,15 +22,14 @@ int GifFormat::colourmapSize = 0;
 int
 GifFormat::outLine(unsigned char *pixels, int linelen)
 {
-    unsigned char *line = currentImage->mapLines[bitmapLine++];
-
     for (int x = 0; x < linelen; x++) {
         if ((int)(*pixels) > currentImage->colourMapSize) {
             Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Error - GIF Image Map Colour out of range\n");
         }
-        line[x] = *pixels;
+        currentImage->setPixel(x, bitmapLine, *pixels);
         pixels++;
     }
+    bitmapLine++;
     return 0;
 }
 
@@ -164,18 +163,7 @@ GifFormat::readGifImage(IndexedImage *image, char *filename)
             bitmapLine = 0;
             image->colourMapSize = colourmapSize;
             image->colorMap = gifColourMap;
-
-            image->mapLines = new unsigned char *[image->iheight];
-            if (image->mapLines == nullptr) {
-                Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for picture\n");
-            }
-
-            for (i = 0; i < image->iheight; i++) {
-                image->mapLines[i] = new unsigned char[image->iwidth];
-                if (image->mapLines[i] == nullptr) {
-                    Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for picture\n");
-                }
-            }
+            image->allocate(image->iwidth, image->iheight);
 
             status = GifDecoder::decoder(image->iwidth);
             finished = true;

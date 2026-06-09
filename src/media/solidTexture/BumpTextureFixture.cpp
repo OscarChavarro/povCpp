@@ -15,10 +15,10 @@ Some texture ideas garnered from SIGGRAPH '85 Volume 19 Number 3,
 Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley)
 */
 
-#include "media/solidTexture/BumpTextureFixture.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "media/solidTexture/BumpTextureFixture.h"
 #include "media/solidTexture/Texture.h"
 
 // [PERL1985].291-292 - Ripples: superimposed wave fronts from point sources
@@ -33,7 +33,6 @@ BumpTextureFixture::ripples(
     double scalar;
     double index;
 
-
     for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         point = Vector3Dd(x, y, z);
         point = point.subtract(TextureUtils::waveSources()[i]);
@@ -45,7 +44,6 @@ BumpTextureFixture::ripples(
         length = sqrt(length);
         index = length * texture->Frequency + texture->Phase;
         scalar = TextureUtils::cycloidal(index) * texture->bumpAmount;
-
 
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
@@ -65,7 +63,6 @@ BumpTextureFixture::waves(
     double scalar;
     double index;
     double sinValue;
-
 
     for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
         point = Vector3Dd(x, y, z);
@@ -95,14 +92,14 @@ BumpTextureFixture::bumps(
     Vector3Dd bumpTurb;
 
     if (texture->bumpAmount == 0.0) {
-        return; /* why are we here?? */
+        return; // why are we here?
     }
 
 
-    TextureUtils::DNoise(&bumpTurb, x, y, z); /* Get Normal Displacement Val. */
+    TextureUtils::DNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
     bumpTurb = bumpTurb.multiply(texture->bumpAmount);
-    *normal = normal->add(bumpTurb); /* displace "normal" */
-    *normal = (*normal).normalizedFast();   /* normalize normal! */
+    *normal = normal->add(bumpTurb); // displace "normal"
+    *normal = (*normal).normalizedFast(); // normalize normal!
 }
 
 // [PERL1985].290 - Dents: Noise() modulated DNoise() gradient perturbation
@@ -119,7 +116,7 @@ BumpTextureFixture::dents(
     double noise;
 
     if (texture->bumpAmount == 0.0) {
-        return; /* why are we here?? */
+        return; // why are we here?
     }
 
     noise = TextureUtils::Noise(x, y, z);
@@ -127,12 +124,11 @@ BumpTextureFixture::dents(
     noise = noise * noise * noise * texture->bumpAmount;
 
 
-    TextureUtils::DNoise(
-        &stuccoTurb, x, y, z); /* Get Normal Displacement Val. */
+    TextureUtils::DNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
 
     stuccoTurb = stuccoTurb.multiply(noise);
-    *normal = normal->add(stuccoTurb); /* displace "normal" */
-    *normal = (*normal).normalizedFast();     /* normalize normal! */
+    *normal = normal->add(stuccoTurb); // displace "normal"
+    *normal = (*normal).normalizedFast(); // normalize normal!
 }
 
 // [PERL1985].290,Appendix - Wrinkles: 1/f fractal composition of DNoise() over octaves
@@ -161,17 +157,15 @@ BumpTextureFixture::wrinkles(
     Vector3Dd value;
 
     if (texture->bumpAmount == 0.0) {
-        return; /* why are we here?? */
+        return; // why are we here?
     }
-
 
     double rx = 0.0;
     double ry = 0.0;
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        TextureUtils::DNoise(
-            &value, x * scale, y * scale, z * scale); /* * scale,*/
+        TextureUtils::DNoise(&value, x * scale, y * scale, z * scale); // scale
         rx += TextureUtils::fabsInline(value.x() / scale);
         ry += TextureUtils::fabsInline(value.y() / scale);
         rz += TextureUtils::fabsInline(value.z() / scale);
@@ -179,6 +173,6 @@ BumpTextureFixture::wrinkles(
     result = Vector3Dd(rx, ry, rz);
 
     result = result.multiply(texture->bumpAmount);
-    *normal = normal->add(result); /* displace "normal" */
-    *normal = (*normal).normalizedFast(); /* normalize normal! */
+    *normal = normal->add(result); // displace "normal"
+    *normal = (*normal).normalizedFast(); // normalize normal!
 }

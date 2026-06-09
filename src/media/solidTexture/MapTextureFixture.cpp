@@ -548,7 +548,7 @@ MapTextureFixture::noInterpolation(
         *index = -1;
     } else {
         IndexedImage *idx = image->indexedData;
-        *index = idx->mapLines[iycoor][ixcoor];
+        *index = idx->getPixel(ixcoor, iycoor);
         RGBAPixelHDR *mapColour = &idx->colorMap[*index];
         colour->Red += (double)mapColour->r / 255.0;
         colour->Green += (double)mapColour->g / 255.0;

@@ -670,9 +670,9 @@ HeightField::findHfMinMax(HeightField *hField, IndexedImage *image, int imageTyp
                     int x = i * n + i2;
                     double tempY = 0;
                     if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
-                        int temp1 = image->mapLines[maxZ - z - 1][x];
+                        int temp1 = image->getPixel(x, maxZ - z - 1);
                         if (imageType == HeightField::POT) {
-                            int temp2 = image->mapLines[maxZ - z - 1][x + maxX];
+                            int temp2 = image->getPixel(x + maxX, maxZ - z - 1);
                             tempY = (double)temp1 + (double)temp2 / 256.0;
                         } else {
                             tempY = (double)temp1;
@@ -697,9 +697,6 @@ HeightField::findHfMinMax(HeightField *hField, IndexedImage *image, int imageTyp
                         hField->Block[i][j].maxY = tempY;
                     }
                 }
-            }
-            if ((z >= 0) && (z < maxZ) && (j2 != n)) {
-                delete image->mapLines[maxZ - z - 1];
             }
         }
     }

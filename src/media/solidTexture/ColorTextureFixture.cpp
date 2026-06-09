@@ -14,10 +14,11 @@ References:
     Further Ideas Garnered from "The RenderMan Companion" (Addison Wesley).
 */
 
-#include "media/solidTexture/ColorTextureFixture.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
+
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "media/solidTexture/ColorTextureFixture.h"
 #include "media/solidTexture/MapTextureFixture.h"
 #include "media/solidTexture/Texture.h"
 #include "media/solidTexture/TextureFixture.h"
@@ -56,7 +57,7 @@ ColorTextureFixture::colourAt(
 
     switch (texture->textureNumber) {
     case Texture::NO_TEXTURE:
-        /* No colouring texture has been specified - make it black. */
+        // No colouring texture has been specified - make it black
         Color::makeColor(colour, 0.0, 0.0, 0.0);
         colour->Alpha = 0.0;
         break;
@@ -188,7 +189,6 @@ ColorTextureFixture::bozo(
     RGBAColor newColour;
     Vector3Dd bozoTurbulence;
 
-
     if ((turb = texture->Turbulence) != 0.0) {
         TextureUtils::DTurbulence(&bozoTurbulence, x, y, z, texture->Octaves);
         x += bozoTurbulence.x() * turb;
@@ -197,7 +197,6 @@ ColorTextureFixture::bozo(
     }
 
     noise = TextureUtils::Noise(x, y, z);
-
 
     if (texture->Colour_Map != nullptr) {
         TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
@@ -239,9 +238,7 @@ ColorTextureFixture::brick(
     xr = fabs(fmod(x, 1.0));
     yr = fabs(fmod(y, 1.0));
     zr = fabs(fmod(z, 1.0));
-
     *colour = *texture->Colour2;
-
 
     if (xr > 0 && xr < texture->Mortar) {
         *colour = *texture->Colour1;
@@ -262,16 +259,13 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
 {
     int brkindx;
 
-    x += smallTolerance; /* add a small offset to x, y, z, axes to prevent
-                             noise */
+    x += smallTolerance; // add a small offset to x, y, z, axes to preventd noise
     y += smallTolerance;
     z += smallTolerance;
 
-    /* AAC: was just x + z */
-    /* AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug */
+    // AAC: was just x + z
+    // AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug
     brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
-
-
 
     if (brkindx & 1) {
         colour->Red += texture->Colour1->Red;
@@ -294,13 +288,11 @@ ColorTextureFixture::checkerTexture(double x, double y, double z,
     int brkindx;
     Vector3Dd point;
 
-    x += smallTolerance; /* add a small offset to x, y, z, axes to prevent
-                             noise */
+    x += smallTolerance; // add a small offset to x, y, z, axes to prevent noise
     y += smallTolerance;
     z += smallTolerance;
 
     brkindx = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) + TextureUtils::floorInline(z));
-
 
     *&point = Vector3Dd(x, y, z);
 
@@ -316,12 +308,12 @@ ColorTextureFixture::checkerTexture(double x, double y, double z,
 }
 
 /*
-    Color Gradient Texture - gradient based on the fractional values of x, y or
-    z, based on whether or not the given directional vector is a 1.0 or a 0.0.
-    Note - ONLY works with colour maps, preferably one that is circular - i.e.
-    the last defined colour (value 1.001) is the same as the first colour (with
-    a value of 0.0) in the map.  The basic concept of this is from DBW Render,
-    but Dave Wecker's only supports simple Y axis gradients.
+Color Gradient Texture - gradient based on the fractional values of x, y or
+z, based on whether or not the given directional vector is a 1.0 or a 0.0.
+Note - ONLY works with colour maps, preferably one that is circular - i.e.
+the last defined colour (value 1.001) is the same as the first colour (with
+a value of 0.0) in the map.  The basic concept of this is from DBW Render,
+but Dave Wecker's only supports simple Y axis gradients.
 */
 void
 ColorTextureFixture::gradient(
@@ -365,10 +357,10 @@ ColorTextureFixture::gradient(
 }
 
 /*
-    Granite - kind of a union of the "spotted" and the "dented" textures,
-    using a 1/f fractal noise function for color values.  Typically used
-    w/ small scaling values.  Should work with colour maps for pink granite...
-    [PERL1985].290 - Granite: 1/f fractal composition of Noise() over octaves
+Granite - kind of a union of the "spotted" and the "dented" textures,
+using a 1/f fractal noise function for color values.  Typically used
+w/ small scaling values.  Should work with colour maps for pink granite...
+[PERL1985].290 - Granite: 1/f fractal composition of Noise() over octaves
 */
 void
 ColorTextureFixture::granite(
@@ -416,7 +408,6 @@ ColorTextureFixture::marble(
         x + TextureUtils::Turbulence(x, y, z, texture->Octaves) *
                 texture->Turbulence);
 
-
     if (texture->Colour_Map != nullptr) {
         TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
         colour->Red += newColour.Red;
@@ -439,12 +430,12 @@ ColorTextureFixture::marble(
 }
 
 /*
-    With a little reflectivity and brilliance, can look like organ pipe
-    metal.    With tiny scaling values can look like masonry or concrete.
-    Works with color maps.
+With a little reflectivity and brilliance, can look like organ pipe
+metal.    With tiny scaling values can look like masonry or concrete.
+Works with color maps.
+[PERL1985].290 - Spotted: basic noise-based random surface texture (Spotted Donut example)
+Implements: color = white * Noise(point)
 */
-// [PERL1985].290 - Spotted: basic noise-based random surface texture (Spotted Donut example)
-// Implements: color = white * Noise(point)
 void
 ColorTextureFixture::spotted(
     double x, double y, double z, Texture *texture, RGBAColor *colour)
@@ -491,14 +482,9 @@ ColorTextureFixture::wood(
 
     pointX += x;
     pointY += y;
-
-    /*  point.z += z;         Deleted per David Buck --  BP 7/91 */
-
     point = Vector3Dd(pointX, pointY, 0.0);
     length = point.length();
-
     noise = TextureUtils::triangleWave(length);
-
 
     if (texture->Colour_Map != nullptr) {
         TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);
@@ -596,7 +582,6 @@ ColorTextureFixture::onion(
     noise = (fmod(
         std::sqrt(((x)*(x)) + ((y)*(y)) + ((z)*(z))),
         1.0));
-
 
     if (texture->Colour_Map != nullptr) {
         TextureUtils::computeColour(&newColour, texture->Colour_Map, noise);

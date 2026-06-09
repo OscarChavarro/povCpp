@@ -115,15 +115,12 @@ TextureFixture::painted2(
         colour->Alpha = colour2.Alpha;
     }
     return;
-
-    ;
 }
 
 void
 TextureFixture::painted3(
     double x, double y, double z, Texture *texture, RGBAColor *colour)
 {
-    /* YOUR NAME HERE */
     ;
 }
 
@@ -138,7 +135,6 @@ TextureFixture::bumpy1(
 {
 }
 
-/* Dan Farmer */
 /* Same as bumpy1 except use VAdd for both cases of brkindex */
 void
 TextureFixture::bumpy2(
@@ -146,7 +142,6 @@ TextureFixture::bumpy2(
 {
 }
 
-/* Dan Farmer */
 /* Same as bumpy2 except scale AFTER setting brkindex */
 void
 TextureFixture::bumpy3(
