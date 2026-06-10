@@ -6,11 +6,9 @@ References:
 [UPST1990] "The RenderMan Companion" (Addison Wesley).
 */
 
-#include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/ColorTextureFixture.h"
-#include "solidTexture/ProceduralNoise.h"
+#include "solidTexture/procedural/ColorTextureFixture.h"
+#include "solidTexture/procedural/ProceduralNoise.h"
 #include "solidTexture/TextureUtils.h"
 
 ColorTextureFixture::ColorTextureFixture(

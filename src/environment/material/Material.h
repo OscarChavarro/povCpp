@@ -2,13 +2,13 @@
 #define __MATERIAL_H__
 
 #include "java/util/ArrayList.h"
-#include "solidTexture/SolidTextureColorTextures.h"
-#include "solidTexture/SolidTextureBumpyTextures.h"
-#include "solidTexture/TextureImage.h"
-#include "solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "solidTexture/procedural/SolidTextureBumpyTextures.h"
+#include "solidTexture/procedural/SolidTextureColorTextures.h"
+#include "solidTexture/TextureUtils.h"
 
 class Material {
   public:
@@ -40,9 +40,9 @@ class Material {
     double turbulence;
     Vector3Dd textureGradient;
     RGBAColorPalette *colorMap;
-    TextureImage *image;
-    TextureImage *bumpImage;
-    TextureImage *materialImage;
+    ControlledRGBAImageHDRUncompressed *image;
+    ControlledRGBAImageHDRUncompressed *bumpImage;
+    ControlledRGBAImageHDRUncompressed *materialImage;
     bool metallicFlag;
     bool onceFlag;
     bool constantFlag;

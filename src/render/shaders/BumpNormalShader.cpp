@@ -1,8 +1,8 @@
-#include "solidTexture/BumpTextureFixture.h"
-#include "solidTexture/MapTextureFixture.h"
-#include "solidTexture/SolidTextureBumpyTextures.h"
-#include "environment/geometry/GeometryConstants.h"
 #include "render/shaders/BumpNormalShader.h"
+#include "solidTexture/from2d/ImageTexture.h"
+#include "solidTexture/procedural/BumpTextureFixture.h"
+#include "solidTexture/procedural/SolidTextureBumpyTextures.h"
+#include "environment/geometry/GeometryConstants.h"
 
 void
 BumpNormalShader::shade(Vector3Dd *newNormal, Material *texture,
@@ -30,7 +30,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Material *texture,
     z = transformedPoint.z();
 
     BumpTextureFixture bumpFixture(&TextureUtils::instance().getProceduralNoise());
-    MapTextureFixture mapFixture;
+    ImageTexture mapFixture;
 
     switch (texture->bumpNumber) {
 

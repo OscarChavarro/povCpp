@@ -4,11 +4,12 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
+#include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 
-class TextureImage : public RGBAImageHDRUncompressed {
+class ControlledRGBAImageHDRUncompressed : public RGBAImageHDRUncompressed {
   private:
     int mapType = 0;
-    int interpolationType = 0;
+    ImageToSolidTextureInterpolationTypes interpolationType = ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION;
     bool onceFlag = false;
     bool useColorFlag = true;
     Vector3Dd imageGradient;
@@ -19,7 +20,19 @@ class TextureImage : public RGBAImageHDRUncompressed {
     void setMapType(int v) { mapType = v; }
 
     int getInterpolationType() const { return interpolationType; }
-    void setInterpolationType(int v) { interpolationType = v; }
+    void setInterpolationType(ImageToSolidTextureInterpolationTypes v) { interpolationType = v; }
+
+    void setInterpolationType(int v)
+    {
+        switch (v) {
+            case 1: interpolationType = ImageToSolidTextureInterpolationTypes::NEAREST_NEIGHBOR; break;
+            case 2: interpolationType = ImageToSolidTextureInterpolationTypes::BILINEAR; break;
+            case 3: interpolationType = ImageToSolidTextureInterpolationTypes::CUBIC_SPLINE; break;
+            case 4: interpolationType = ImageToSolidTextureInterpolationTypes::NORMALIZED_DIST; break;
+            default: interpolationType = ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION; break;
+        }
+    }
+
 
     bool getOnceFlag() const { return onceFlag; }
     void setOnceFlag(bool v) { onceFlag = v; }

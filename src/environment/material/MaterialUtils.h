@@ -1,5 +1,9 @@
 /**
 Material utilities: global default texture management.
+
+Material-side utilities: the global default texture, color-map sampling, the wave
+sources/frequencies used by ripple/wave bump textures, and texture-space transforms
+(translate/rotate/scale/copy) for POV-Ray material descriptors.
 */
 
 #ifndef __MATERIAL_UTILS_H__

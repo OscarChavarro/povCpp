@@ -3,14 +3,14 @@ Implements mapped textures: image map, bump map, and material map.
 Supports planar, spherical, cylindrical, and torus UV projections.
 */
 
-#include "java/util/ArrayList.txx"
+#include "solidTexture/from2d/ImageTexture.h"
+#include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
+#include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
+#include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "solidTexture/SolidTextureBitmapInterpolationTypes.h"
-#include "solidTexture/SolidTextureProjectionMethods.h"
-#include "solidTexture/MapTextureFixture.h"
 
 /**
 2-D to 3-D procedural texture mapping of a bitmap onto an object.
@@ -19,19 +19,19 @@ color. Specialized projections (cylindrical, spherical, torus) by Alexander
 Enzmann.
 */
 void
-MapTextureFixture::imageMap(
-    double x, double y, double z, TextureImage *image, ColorRgba *color,
+ImageTexture::imageMap(
+    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, ColorRgba *color,
     double smallTolerance)
 {
-    double xcoor = 0.0;
-    double ycoor = 0.0;
+    double xCoordinate = 0.0;
+    double yCoordinate = 0.0;
     int regNumber;
 
-    if (map(x, y, z, image, &xcoor, &ycoor, smallTolerance)) {
+    if (map(x, y, z, image, &xCoordinate, &yCoordinate, smallTolerance)) {
         color->setR(1.0); color->setG(1.0); color->setB(1.0); color->setA(1.0);
         return;
     }
-    imageColorAt(image, xcoor, ycoor, color, &regNumber);
+    imageColorAt(image, xCoordinate, yCoordinate, color, &regNumber);
 }
 
 /**
@@ -39,10 +39,10 @@ Takes an intersection point and a texture; returns a new texture based on
 the index/color of that point in an image/materials map.
 */
 int
-MapTextureFixture::materialMap(
+ImageTexture::materialMap(
     Vector3Dd *intersectionPoint,
     Matrix4x4d *textureTransformationInverse,
-    TextureImage *materialImage,
+    ControlledRGBAImageHDRUncompressed *materialImage,
     int numberOfMaterials,
     double smallTolerance)
 {
@@ -91,8 +91,8 @@ MapTextureFixture::materialMap(
 }
 
 void
-MapTextureFixture::bumpMap(
-    double x, double y, double z, TextureImage *bumpImage, double bumpAmount,
+ImageTexture::bumpMap(
+    double x, double y, double z, ControlledRGBAImageHDRUncompressed *bumpImage, double bumpAmount,
     Vector3Dd *normal, double smallTolerance)
 {
     double xcoor = 0.0;
@@ -206,11 +206,11 @@ MapTextureFixture::bumpMap(
 }
 
 void
-MapTextureFixture::imageColorAt(
-    TextureImage *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
+ImageTexture::imageColorAt(
+    ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
 {
     switch (image->getInterpolationType()) {
-    case (int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION:
+    case (int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION:
         noInterpolation(image, xCoordinate, yCoordinate, color, index);
         break;
     default:
@@ -221,8 +221,8 @@ MapTextureFixture::imageColorAt(
 
 /** Maps a point (x, y, z) on a cylinder of radius 1, height 1 with y-axis symmetry to [0,1]x[0,1]. */
 int
-MapTextureFixture::cylindricalImageMap(
-    double x, double y, double z, TextureImage *image, double *u, double *v)
+ImageTexture::cylindricalImageMap(
+    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v)
 {
     double len;
     double theta;
@@ -265,8 +265,8 @@ MapTextureFixture::cylindricalImageMap(
 
 /** Maps a point (x, y, z) on a torus to a 2-D image. */
 int
-MapTextureFixture::torusImageMap(
-    double x, double y, double z, TextureImage *image, double *u, double *v)
+ImageTexture::torusImageMap(
+    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v)
 {
     double len;
     double phi;
@@ -313,7 +313,7 @@ MapTextureFixture::torusImageMap(
 
 /** Maps a point (x, y, z) on a unit sphere to a 2-D image. */
 int
-MapTextureFixture::sphericalImageMap(
+ImageTexture::sphericalImageMap(
     double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v)
 {
     double len;
@@ -362,8 +362,8 @@ Simplistic planar image projection by DKB and AAC.
 Returns 0 if no color at this point (invisible), 1 if a good mapping is found.
 */
 int
-MapTextureFixture::planarImageMap(
-    double x, double y, double z, TextureImage *image, double *u, double *v)
+ImageTexture::planarImageMap(
+    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v)
 {
     if (image->getImageGradient().x() != 0.0) {
         if ((image->getOnceFlag()) && ((x < 0.0) || (x > 1.0))) {
@@ -400,27 +400,27 @@ MapTextureFixture::planarImageMap(
 
 /** Returns 1 if no color found at this point (invisible), 0 if a color was mapped. */
 int
-MapTextureFixture::map(double x, double y, double z, TextureImage *image,
+ImageTexture::map(double x, double y, double z, ControlledRGBAImageHDRUncompressed *image,
     double *xCoordinate, double *yCoordinate, double smallTolerance)
 {
     // Now determine which mapper to use.
     switch (image->getMapType()) {
-    case (int)SolidTextureProjectionMethods::PLANAR_MAP:
+    case (int)ImageToSolidTextureProjectionMethods::PLANAR_MAP:
         if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
-    case (int)SolidTextureProjectionMethods::SPHERICAL_MAP:
+    case (int)ImageToSolidTextureProjectionMethods::SPHERICAL_MAP:
         if (!sphericalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
-    case (int)SolidTextureProjectionMethods::CYLINDRICAL_MAP:
+    case (int)ImageToSolidTextureProjectionMethods::CYLINDRICAL_MAP:
         if (!cylindricalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
-    case (int)SolidTextureProjectionMethods::TORUS_MAP:
+    case (int)ImageToSolidTextureProjectionMethods::TORUS_MAP:
         if (!torusImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
@@ -459,8 +459,8 @@ MapTextureFixture::map(double x, double y, double z, TextureImage *image,
 }
 
 void
-MapTextureFixture::noInterpolation(
-    TextureImage *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
+ImageTexture::noInterpolation(
+    ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
 {
     if (xCoordinate < 0.0) {
         xCoordinate += (double)image->getXSize();
@@ -496,8 +496,8 @@ MapTextureFixture::noInterpolation(
 
 /** Interpolates color and alpha values when mapping. */
 void
-MapTextureFixture::interp(
-    TextureImage *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
+ImageTexture::interp(
+    ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
 {
     int iycoor;
     int ixcoor;
@@ -519,8 +519,9 @@ MapTextureFixture::interp(
     for (i = 0; i < 4; i++) {
         cornerColor[i].setR(0.0); cornerColor[i].setG(0.0); cornerColor[i].setB(0.0); cornerColor[i].setA(0.0);
     }
-    // sample the four surrounding pixels
-    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::BILINEAR) {
+
+    // Sample the four surrounding pixels
+    if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::BILINEAR) {
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColor[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColor[1],
@@ -534,7 +535,6 @@ MapTextureFixture::interp(
             greenCrn[i] = cornerColor[i].getG();
             blueCrn[i] = cornerColor[i].getB();
             alphaCrn[i] = cornerColor[i].getA();
-            // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
         val1 = biLinear(redCrn, xCoordinate, yCoordinate);
@@ -542,7 +542,7 @@ MapTextureFixture::interp(
         val3 = biLinear(blueCrn, xCoordinate, yCoordinate);
         val4 = biLinear(alphaCrn, xCoordinate, yCoordinate);
     }
-    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::NORMALIZED_DIST) {
+    if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::NORMALIZED_DIST) {
         noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
             &cornerColor[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
@@ -574,10 +574,10 @@ MapTextureFixture::interp(
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];
     }
-    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::BILINEAR) {
+    if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::BILINEAR) {
         *index = (int)(biLinear(indexCrn, xCoordinate, yCoordinate) + 0.5);
     }
-    if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::NORMALIZED_DIST) {
+    if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::NORMALIZED_DIST) {
         *index = (int)(normDist(indexCrn, xCoordinate, yCoordinate) + 0.5);
     }
 }
@@ -587,7 +587,7 @@ Bilinear interpolation. From an article by Girish T. Hagan in
 C Programmer's Journal V 9 No. 8; adapted for POV-Ray by CdW.
 */
 double
-MapTextureFixture::biLinear(double *corners, double x, double y)
+ImageTexture::biLinear(double *corners, double x, double y)
 {
     double p;
     double q;
@@ -607,16 +607,14 @@ MapTextureFixture::biLinear(double *corners, double x, double y)
 static constexpr int MAX_PTS = 4;
 
 inline double
-MapTextureFixture::pythagoreanSq(double a, double b)
+ImageTexture::pythagoreanSq(double a, double b)
 {
     return a * a + b * b;
 }
 
 double
-MapTextureFixture::normDist(double *corners, double x, double y)
+ImageTexture::normDist(double *corners, double x, double y)
 {
-    int i;
-
     double p;
     double q;
     double wts[MAX_PTS];
@@ -635,10 +633,10 @@ MapTextureFixture::normDist(double *corners, double x, double y)
     wts[2] = pythagoreanSq(p, 1 - q);
     wts[3] = pythagoreanSq(1 - p, 1 - q);
 
-    for (i = 0; i < MAX_PTS; i++) {
+    for (int i = 0; i < MAX_PTS; i++) {
         sumInvWts += 1 / wts[i];
         sumI += *(corners + i) / wts[i];
     }
 
-    return (sumI / sumInvWts);
+    return sumI / sumInvWts;
 }

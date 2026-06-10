@@ -6,11 +6,9 @@ References:
 "The RenderMan Companion" (Addison Wesley).
 */
 
-#include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/BumpTextureFixture.h"
-#include "solidTexture/ProceduralNoise.h"
+#include "solidTexture/procedural/BumpTextureFixture.h"
+#include "solidTexture/procedural/ProceduralNoise.h"
 #include "solidTexture/TextureUtils.h"
 
 BumpTextureFixture::BumpTextureFixture(ProceduralNoise *proceduralNoise)
