@@ -20,14 +20,11 @@ class RenderFrame {
     double fogDistance;
     ColorRgba fogColor;
 
-  private:
     static void createRay(
         RayWithSegments *ray, int width, int height, double x, double y);
     static void checkStats(int y);
     static void doAntiAliasing(int x, int y, ColorRgba *color);
     static void outputLine(int y);
-
-    friend class RenderEngine;
 };
 
 #endif
