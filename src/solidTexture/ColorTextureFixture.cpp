@@ -12,11 +12,17 @@ References:
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "solidTexture/ColorTextureFixture.h"
 #include "solidTexture/MapTextureFixture.h"
+#include "solidTexture/ProceduralNoise.h"
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "solidTexture/Texture.h"
 #include "solidTexture/TextureFixture.h"
 
 static constexpr double COORDINATE_LIMIT = 1.0e17;
+
+ColorTextureFixture::ColorTextureFixture(ProceduralNoise *proceduralNoise)
+    : proceduralNoise(proceduralNoise)
+{
+}
 
 void
 ColorTextureFixture::colorAt(
@@ -27,7 +33,7 @@ ColorTextureFixture::colorAt(
     double z;
     Vector3Dd transformedPoint;
     MapTextureFixture mapFixture;
-    TextureFixture textureFixture;
+    TextureFixture textureFixture(proceduralNoise);
 
     if ((intersectionPoint->x() > COORDINATE_LIMIT) ||
         (intersectionPoint->y() > COORDINATE_LIMIT) ||
@@ -138,8 +144,8 @@ ColorTextureFixture::agate(
     double hue;
     ColorRgba newColor;
 
-    noise = TextureUtils::instance().cycloidal(
-                1.3 * TextureUtils::instance().Turbulence(x, y, z, texture->octaves) +
+    noise = proceduralNoise->cycloidal(
+                1.3 * proceduralNoise->turbulence(x, y, z, texture->octaves) +
                 1.1 * z) +
             1;
     noise *= 0.5;
@@ -183,13 +189,13 @@ ColorTextureFixture::bozo(
     Vector3Dd bozoTurbulence;
 
     if ((turb = texture->turbulence) != 0.0) {
-        TextureUtils::instance().DTurbulence(&bozoTurbulence, x, y, z, texture->octaves);
+        proceduralNoise->dTurbulence(&bozoTurbulence, x, y, z, texture->octaves);
         x += bozoTurbulence.x() * turb;
         y += bozoTurbulence.y() * turb;
         z += bozoTurbulence.z() * turb;
     }
 
-    noise = TextureUtils::instance().Noise(x, y, z);
+    noise = proceduralNoise->noise(x, y, z);
 
     if (texture->colorMap != nullptr) {
         TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
@@ -315,7 +321,7 @@ ColorTextureFixture::gradient(
     Vector3Dd gradTurbulence;
 
     if ((turb = texture->turbulence) != 0.0) {
-        TextureUtils::instance().DTurbulence(&gradTurbulence, x, y, z, texture->octaves);
+        proceduralNoise->dTurbulence(&gradTurbulence, x, y, z, texture->octaves);
         x += gradTurbulence.x() * turb;
         y += gradTurbulence.y() * turb;
         z += gradTurbulence.z() * turb;
@@ -363,7 +369,7 @@ ColorTextureFixture::granite(
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
         temp =
-            0.5 - TextureUtils::instance().Noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
+            0.5 - proceduralNoise->noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
         temp = TextureUtils::instance().fabsInline(temp);
         noise += temp / freq;
     }
@@ -393,8 +399,8 @@ ColorTextureFixture::marble(
     double hue;
     ColorRgba newColor;
 
-    noise = TextureUtils::instance().triangleWave(
-        x + TextureUtils::instance().Turbulence(x, y, z, texture->octaves) *
+    noise = proceduralNoise->triangleWave(
+        x + proceduralNoise->turbulence(x, y, z, texture->octaves) *
                 texture->turbulence);
 
     if (texture->colorMap != nullptr) {
@@ -430,7 +436,7 @@ ColorTextureFixture::spotted(
     double noise;
     ColorRgba newColor;
 
-    noise = TextureUtils::instance().Noise(x, y, z);
+    noise = proceduralNoise->noise(x, y, z);
 
 
     if (texture->colorMap != nullptr) {
@@ -459,19 +465,19 @@ ColorTextureFixture::wood(
     Vector3Dd point;
     ColorRgba newColor;
 
-    TextureUtils::instance().DTurbulence(&woodTurbulence, x, y, z, texture->octaves);
+    proceduralNoise->dTurbulence(&woodTurbulence, x, y, z, texture->octaves);
 
 
     double pointX =
-        TextureUtils::instance().cycloidal((x + woodTurbulence.x()) * texture->turbulence);
+        proceduralNoise->cycloidal((x + woodTurbulence.x()) * texture->turbulence);
     double pointY =
-        TextureUtils::instance().cycloidal((y + woodTurbulence.y()) * texture->turbulence);
+        proceduralNoise->cycloidal((y + woodTurbulence.y()) * texture->turbulence);
 
     pointX += x;
     pointY += y;
     point = Vector3Dd(pointX, pointY, 0.0);
     length = point.length();
-    noise = TextureUtils::instance().triangleWave(length);
+    noise = proceduralNoise->triangleWave(length);
 
     if (texture->colorMap != nullptr) {
         TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
@@ -509,7 +515,7 @@ ColorTextureFixture::leopard(
 
 
     if ((turb = texture->turbulence) != 0.0) {
-        TextureUtils::instance().DTurbulence(
+        proceduralNoise->dTurbulence(
             &leopardTurbulence, x, y, z, texture->octaves);
         x += leopardTurbulence.x() * turb;
         y += leopardTurbulence.y() * turb;
@@ -551,7 +557,7 @@ ColorTextureFixture::onion(
 
 
     if ((turb = texture->turbulence) != 0.0) {
-        TextureUtils::instance().DTurbulence(&onionTurbulence, x, y, z, texture->octaves);
+        proceduralNoise->dTurbulence(&onionTurbulence, x, y, z, texture->octaves);
         x += onionTurbulence.x() * turb;
         y += onionTurbulence.y() * turb;
         z += onionTurbulence.z() * turb;

@@ -31,8 +31,8 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     y = transformedPoint.y();
     z = transformedPoint.z();
 
-    BumpTextureFixture bumpFixture;
-    TextureFixture textureFixture;
+    BumpTextureFixture bumpFixture(&TextureUtils::instance().proceduralNoise());
+    TextureFixture textureFixture(&TextureUtils::instance().proceduralNoise());
     MapTextureFixture mapFixture;
 
     switch (texture->bumpNumber) {

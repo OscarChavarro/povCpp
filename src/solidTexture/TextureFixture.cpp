@@ -10,8 +10,14 @@ References:
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "solidTexture/ProceduralNoise.h"
 #include "solidTexture/Texture.h"
 #include "solidTexture/TextureFixture.h"
+
+TextureFixture::TextureFixture(ProceduralNoise *proceduralNoise)
+    : proceduralNoise(proceduralNoise)
+{
+}
 
 /**
 Painted1: takes an x,y,z point on an object and returns the color at that point.
@@ -36,8 +42,8 @@ TextureFixture::painted1(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        TextureUtils::instance().DNoise(&colorVector, x, y, z);
-        temp = TextureUtils::instance().Noise(colorVector.x() * 4 * scale,
+        proceduralNoise->dNoise(&colorVector, x, y, z);
+        temp = proceduralNoise->noise(colorVector.x() * 4 * scale,
             colorVector.y() * 4 * scale, colorVector.z() * 4 * scale);
         temp = TextureUtils::instance().fabsInline(temp);
         rx += temp / scale;
@@ -83,7 +89,7 @@ TextureFixture::painted2(
     }
 
     if ((turb = texture->turbulence) != 0.0) {
-        TextureUtils::instance().DTurbulence(
+        proceduralNoise->dTurbulence(
             &textureTurbulence, x, y, z, texture->octaves);
         x += textureTurbulence.x() * turb;
         y += textureTurbulence.y() * turb;

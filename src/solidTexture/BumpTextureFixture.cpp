@@ -10,7 +10,13 @@ References:
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "solidTexture/BumpTextureFixture.h"
+#include "solidTexture/ProceduralNoise.h"
 #include "solidTexture/Texture.h"
+
+BumpTextureFixture::BumpTextureFixture(ProceduralNoise *proceduralNoise)
+    : proceduralNoise(proceduralNoise)
+{
+}
 
 /**
 [PERL1985].291-292 - Ripples: superimposed wave fronts from point sources.
@@ -36,7 +42,7 @@ BumpTextureFixture::ripples(
 
         length = sqrt(length);
         index = length * texture->frequency + texture->phase;
-        scalar = TextureUtils::instance().cycloidal(index) * texture->bumpAmount;
+        scalar = proceduralNoise->cycloidal(index) * texture->bumpAmount;
 
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
@@ -69,7 +75,7 @@ BumpTextureFixture::waves(
 
         length = sqrt(length);
         index = (length * texture->frequency * TextureUtils::instance().waveFrequency()[i]) + texture->phase;
-        sinValue = TextureUtils::instance().cycloidal(index);
+        sinValue = proceduralNoise->cycloidal(index);
 
         scalar = sinValue * texture->bumpAmount / TextureUtils::instance().waveFrequency()[i];
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
@@ -93,7 +99,7 @@ BumpTextureFixture::bumps(
     }
 
 
-    TextureUtils::instance().DNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
+    proceduralNoise->dNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
     bumpTurb = bumpTurb.multiply(texture->bumpAmount);
     *normal = normal->add(bumpTurb); // displace "normal"
     *normal = (*normal).normalizedFast(); // normalize normal!
@@ -114,12 +120,12 @@ BumpTextureFixture::dents(
         return; // why are we here?
     }
 
-    noise = TextureUtils::instance().Noise(x, y, z);
+    noise = proceduralNoise->noise(x, y, z);
 
     noise = noise * noise * noise * texture->bumpAmount;
 
 
-    TextureUtils::instance().DNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
+    proceduralNoise->dNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
 
     stuccoTurb = stuccoTurb.multiply(noise);
     *normal = normal->add(stuccoTurb); // displace "normal"
@@ -150,7 +156,7 @@ BumpTextureFixture::wrinkles(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        TextureUtils::instance().DNoise(&value, x * scale, y * scale, z * scale); // scale
+        proceduralNoise->dNoise(&value, x * scale, y * scale, z * scale); // scale
         rx += TextureUtils::instance().fabsInline(value.x() / scale);
         ry += TextureUtils::instance().fabsInline(value.y() / scale);
         rz += TextureUtils::instance().fabsInline(value.z() / scale);
