@@ -7,8 +7,8 @@
 
 #include "environment/geometry/volume/compound/Composite.h"
 #include "common/statistics/Statistics.h"
+#include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
-#include "solidTexture/MaterialUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 

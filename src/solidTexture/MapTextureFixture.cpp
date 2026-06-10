@@ -35,20 +35,22 @@ MapTextureFixture::imageMap(
 
 /**
 Takes an intersection point and a texture; returns a new texture based on
-the index/color of that point in an image/materials map. CdW 7/91.
+the index/color of that point in an image/materials map.
 */
 Material *
 MapTextureFixture::materialMap(
-    Vector3Dd *intersectionPoint, Matrix4x4d *textureTransformationInverse,
-    TextureImage *materialImage, java::ArrayList<Material *> *materials,
+    Vector3Dd *intersectionPoint,
+    Matrix4x4d *textureTransformationInverse,
+    TextureImage *materialImage,
+    java::ArrayList<Material *> *materials,
     double smallTolerance)
 {
     Vector3Dd transformedPoint;
     double x;
     double y;
     double z;
-    double xcoor = 0.0;
-    double ycoor = 0.0;
+    double xCoordinate = 0.0;
+    double yCoordinate = 0.0;
     int regNumber = 0;
     ColorRgba color;
     int materialNumber = 0;
@@ -65,11 +67,11 @@ MapTextureFixture::materialMap(
     y = transformedPoint.y();
     z = transformedPoint.z();
 
-    // now we have transformed x, y, z: use image mapping to determine texture index
-    if (map(x, y, z, materialImage, &xcoor, &ycoor, smallTolerance)) {
+    // Now we have transformed x, y, z: use image mapping to determine texture index
+    if (map(x, y, z, materialImage, &xCoordinate, &yCoordinate, smallTolerance)) {
         materialNumber = 0;
     } else {
-        imageColorAt(materialImage, xcoor, ycoor, &color, &regNumber);
+        imageColorAt(materialImage, xCoordinate, yCoordinate, &color, &regNumber);
 
         if (materialImage->getIndexedData() == nullptr) {
             materialNumber = (int)color.getR() * 255;
@@ -83,7 +85,7 @@ MapTextureFixture::materialMap(
         materialNumber %= count;
     }
     if (materialNumber < count) {
-        return (*materials)[materialNumber];
+        return materials->get(materialNumber);
     }
     return nullptr;
 }
@@ -205,14 +207,14 @@ MapTextureFixture::bumpMap(
 
 void
 MapTextureFixture::imageColorAt(
-    TextureImage *image, double xcoor, double ycoor, ColorRgba *color, int *index)
+    TextureImage *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
 {
     switch (image->getInterpolationType()) {
     case (int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION:
-        noInterpolation(image, xcoor, ycoor, color, index);
+        noInterpolation(image, xCoordinate, yCoordinate, color, index);
         break;
     default:
-        interp(image, xcoor, ycoor, color, index);
+        interp(image, xCoordinate, yCoordinate, color, index);
         break;
     }
 }
@@ -399,57 +401,57 @@ MapTextureFixture::planarImageMap(
 /** Returns 1 if no color found at this point (invisible), 0 if a color was mapped. */
 int
 MapTextureFixture::map(double x, double y, double z, TextureImage *image,
-    double *xcoor, double *ycoor, double smallTolerance)
+    double *xCoordinate, double *yCoordinate, double smallTolerance)
 {
     // Now determine which mapper to use.
     switch (image->getMapType()) {
     case (int)SolidTextureProjectionMethods::PLANAR_MAP:
-        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
     case (int)SolidTextureProjectionMethods::SPHERICAL_MAP:
-        if (!sphericalImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!sphericalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
     case (int)SolidTextureProjectionMethods::CYLINDRICAL_MAP:
-        if (!cylindricalImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!cylindricalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
     case (int)SolidTextureProjectionMethods::TORUS_MAP:
-        if (!torusImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!torusImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
     default:
-        if (!planarImageMap(x, y, z, image, xcoor, ycoor)) {
+        if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
     }
     // make sure the point is on the image
-    *ycoor += smallTolerance;
-    *xcoor += smallTolerance;
+    *yCoordinate += smallTolerance;
+    *xCoordinate += smallTolerance;
     // compensate for y coordinates on images being upside-down
-    *ycoor = (double)image->getYSize() - *ycoor;
+    *yCoordinate = (double)image->getYSize() - *yCoordinate;
 
-    if (*xcoor < 0.0) {
-        *xcoor += (double)image->getXSize();
-    } else if (*xcoor >= (double)image->getXSize()) {
-        *xcoor -= (double)image->getXSize();
+    if (*xCoordinate < 0.0) {
+        *xCoordinate += (double)image->getXSize();
+    } else if (*xCoordinate >= (double)image->getXSize()) {
+        *xCoordinate -= (double)image->getXSize();
     }
 
-    if (*ycoor < 0.0) {
-        *ycoor += (double)image->getYSize();
-    } else if (*ycoor >= (double)image->getYSize()) {
-        *ycoor -= (double)image->getYSize();
+    if (*yCoordinate < 0.0) {
+        *yCoordinate += (double)image->getYSize();
+    } else if (*yCoordinate >= (double)image->getYSize()) {
+        *yCoordinate -= (double)image->getYSize();
     }
 
-    if ((*xcoor >= (double)image->getXSize()) ||
-        (*ycoor >= (double)image->getYSize()) || (*xcoor < 0.0) ||
-        (*ycoor < 0.0)) {
+    if ((*xCoordinate >= (double)image->getXSize()) ||
+        (*yCoordinate >= (double)image->getYSize()) || (*xCoordinate < 0.0) ||
+        (*yCoordinate < 0.0)) {
         Logger::reportMessage("MapTextureFixture", Logger::FATAL_ERROR, "", "\nPicture index out of range\n");
     }
 
@@ -458,21 +460,21 @@ MapTextureFixture::map(double x, double y, double z, TextureImage *image,
 
 void
 MapTextureFixture::noInterpolation(
-    TextureImage *image, double xcoor, double ycoor, ColorRgba *color, int *index)
+    TextureImage *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
 {
-    if (xcoor < 0.0) {
-        xcoor += (double)image->getXSize();
-    } else if (xcoor >= (double)image->getXSize()) {
-        xcoor -= (double)image->getXSize();
+    if (xCoordinate < 0.0) {
+        xCoordinate += (double)image->getXSize();
+    } else if (xCoordinate >= (double)image->getXSize()) {
+        xCoordinate -= (double)image->getXSize();
     }
-    if (ycoor < 0.0) {
-        ycoor += (double)image->getYSize();
-    } else if (ycoor >= (double)image->getYSize()) {
-        ycoor -= (double)image->getYSize();
+    if (yCoordinate < 0.0) {
+        yCoordinate += (double)image->getYSize();
+    } else if (yCoordinate >= (double)image->getYSize()) {
+        yCoordinate -= (double)image->getYSize();
     }
 
-    int iycoor = (int)ycoor;
-    int ixcoor = (int)xcoor;
+    int iycoor = (int)yCoordinate;
+    int ixcoor = (int)xCoordinate;
 
     if (image->getIndexedData() == nullptr) {
         RGBAPixelHDR pixel;
@@ -495,7 +497,7 @@ MapTextureFixture::noInterpolation(
 /** Interpolates color and alpha values when mapping. */
 void
 MapTextureFixture::interp(
-    TextureImage *image, double xcoor, double ycoor, ColorRgba *color, int *index)
+    TextureImage *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
 {
     int iycoor;
     int ixcoor;
@@ -512,8 +514,8 @@ MapTextureFixture::interp(
     double val3 = 0;
     double val4 = 0;
 
-    iycoor = (int)ycoor;
-    ixcoor = (int)xcoor;
+    iycoor = (int)yCoordinate;
+    ixcoor = (int)xCoordinate;
     for (i = 0; i < 4; i++) {
         cornerColor[i].setR(0.0); cornerColor[i].setG(0.0); cornerColor[i].setB(0.0); cornerColor[i].setA(0.0);
     }
@@ -535,10 +537,10 @@ MapTextureFixture::interp(
             // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
-        val1 = bilinear(redCrn, xcoor, ycoor);
-        val2 = bilinear(greenCrn, xcoor, ycoor);
-        val3 = bilinear(blueCrn, xcoor, ycoor);
-        val4 = bilinear(alphaCrn, xcoor, ycoor);
+        val1 = biLinear(redCrn, xCoordinate, yCoordinate);
+        val2 = biLinear(greenCrn, xCoordinate, yCoordinate);
+        val3 = biLinear(blueCrn, xCoordinate, yCoordinate);
+        val4 = biLinear(alphaCrn, xCoordinate, yCoordinate);
     }
     if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::NORMALIZED_DIST) {
         noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
@@ -557,10 +559,10 @@ MapTextureFixture::interp(
             // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
-        val1 = normDist(redCrn, xcoor, ycoor);
-        val2 = normDist(greenCrn, xcoor, ycoor);
-        val3 = normDist(blueCrn, xcoor, ycoor);
-        val4 = normDist(alphaCrn, xcoor, ycoor);
+        val1 = normDist(redCrn, xCoordinate, yCoordinate);
+        val2 = normDist(greenCrn, xCoordinate, yCoordinate);
+        val3 = normDist(blueCrn, xCoordinate, yCoordinate);
+        val4 = normDist(alphaCrn, xCoordinate, yCoordinate);
     }
 
     color->setR(color->getR() + val1);
@@ -573,10 +575,10 @@ MapTextureFixture::interp(
         indexCrn[i] = (double)cornersIndex[i];
     }
     if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::BILINEAR) {
-        *index = (int)(bilinear(indexCrn, xcoor, ycoor) + 0.5);
+        *index = (int)(biLinear(indexCrn, xCoordinate, yCoordinate) + 0.5);
     }
     if (image->getInterpolationType() == (int)SolidTextureBitmapInterpolationTypes::NORMALIZED_DIST) {
-        *index = (int)(normDist(indexCrn, xcoor, ycoor) + 0.5);
+        *index = (int)(normDist(indexCrn, xCoordinate, yCoordinate) + 0.5);
     }
 }
 
@@ -585,7 +587,7 @@ Bilinear interpolation. From an article by Girish T. Hagan in
 C Programmer's Journal V 9 No. 8; adapted for POV-Ray by CdW.
 */
 double
-MapTextureFixture::bilinear(double *corners, double x, double y)
+MapTextureFixture::biLinear(double *corners, double x, double y)
 {
     double p;
     double q;

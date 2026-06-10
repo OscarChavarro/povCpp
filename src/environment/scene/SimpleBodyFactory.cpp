@@ -1,9 +1,9 @@
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/TextureUtils.h"
-#include "solidTexture/MaterialUtils.h"
+#include "environment/scene/SimpleBodyFactory.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/scene/SimpleBodyFactory.h"
+#include "environment/material/MaterialUtils.h"
+#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 
 void
 SimpleBodyFactory::link(
