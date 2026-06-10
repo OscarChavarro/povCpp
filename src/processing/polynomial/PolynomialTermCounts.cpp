@@ -1,4 +1,4 @@
-#include "common/PolynomialTermCounts.h"
+#include "processing/polynomial/PolynomialTermCounts.h"
 
 const int PolynomialTermCounts::termCountsByOrder[] = {1, 4, 10, 20, 35, 56, 84, 120};
 
