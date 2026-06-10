@@ -138,6 +138,30 @@ Tokenizer::getMaxSymbols()
     return maxSymbols;
 }
 
+DataFile *
+Tokenizer::getGlobalDataFile()
+{
+    return Tokenizer::sGlobalDataFile;
+}
+
+char *
+Tokenizer::getString()
+{
+    return Tokenizer::sString;
+}
+
+int &
+Tokenizer::getNumberOfSymbols()
+{
+    return Tokenizer::sNumberOfSymbols;
+}
+
+char **
+Tokenizer::getSymbolTable()
+{
+    return Tokenizer::sSymbolTable;
+}
+
 void
 Tokenizer::initializeTokenizer(char *filename)
 {
@@ -585,7 +609,7 @@ DataFile::parseComments()
     while (!endOfComment) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "No closing comment found");
+            Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "No closing comment found");
             return (false);
         }
 
@@ -619,7 +643,7 @@ DataFile::parseCComments()
         c = getc(this->File);
         if (c == EOF) {
             Tokenizer::tokenError(
-                Tokenizer::sGlobalDataFile, "No */ closing comment found");
+                Tokenizer::getGlobalDataFile(), "No */ closing comment found");
             return (false);
         }
 
@@ -675,7 +699,7 @@ Tokenizer::stuffCharacter(int c, DataFile *dataFile)
 void
 DataFile::endString()
 {
-    Tokenizer::stuffCharacter((int)'\0', Tokenizer::sGlobalDataFile);
+    Tokenizer::stuffCharacter((int)'\0', Tokenizer::getGlobalDataFile());
 }
 
 /* Read a float from the input file and tokenize it as one token. The phase
@@ -698,32 +722,32 @@ DataFile::readFloat()
     while (!finished) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "Unexpected end of file");
+            Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "Unexpected end of file");
             return (false);
         }
 
         switch (phase) {
         case 0:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
             } else if (c == '.') {
-                Tokenizer::stuffCharacter('0', Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter('0', Tokenizer::getGlobalDataFile());
                 ungetc(c, this->File);
             } else {
                 Tokenizer::tokenError(
-                    Tokenizer::sGlobalDataFile, "Error in decimal number");
+                    Tokenizer::getGlobalDataFile(), "Error in decimal number");
             }
             phase = 1;
             break;
 
         case 1:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
             } else if (c == (int)'.') {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
                 phase = 2;
             } else if ((c == 'e') || (c == 'E')) {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
                 phase = 3;
             } else {
                 finished = true;
@@ -732,9 +756,9 @@ DataFile::readFloat()
 
         case 2:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
             } else if ((c == 'e') || (c == 'E')) {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
                 phase = 3;
             } else {
                 finished = true;
@@ -743,7 +767,7 @@ DataFile::readFloat()
 
         case 3:
             if (isdigit(c) || (c == '+') || (c == '-')) {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
                 phase = 4;
             } else {
                 finished = true;
@@ -752,7 +776,7 @@ DataFile::readFloat()
 
         case 4:
             if (isdigit(c)) {
-                Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+                Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
             } else {
                 finished = true;
             }
@@ -763,8 +787,8 @@ DataFile::readFloat()
     ungetc(c, this->File);
     this->endString();
 
-    Tokenizer::writeToken(Tokenizer::FLOAT_TOKEN, Tokenizer::sGlobalDataFile);
-    if (sscanf(Tokenizer::sString, "%lf", &Tokenizer::token().tokenFloat) == 0) {
+    Tokenizer::writeToken(Tokenizer::FLOAT_TOKEN, Tokenizer::getGlobalDataFile());
+    if (sscanf(Tokenizer::getString(), "%lf", &Tokenizer::token().tokenFloat) == 0) {
         return (false);
     }
 
@@ -781,19 +805,19 @@ DataFile::parseString()
     while (true) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "No end quote for Tokenizer::sString");
+            Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "No end quote for Tokenizer::sString");
         }
 
         if (c != (int)'"') {
-            Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+            Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
         } else {
             break;
         }
     }
     this->endString();
 
-    Tokenizer::writeToken(Tokenizer::STRING_TOKEN, Tokenizer::sGlobalDataFile);
-    Tokenizer::token().Token_String = Tokenizer::sString;
+    Tokenizer::writeToken(Tokenizer::STRING_TOKEN, Tokenizer::getGlobalDataFile());
+    Tokenizer::token().Token_String = Tokenizer::getString();
 }
 
 /* Read in a symbol from the input file.  Check to see if it is a reserved
@@ -812,12 +836,12 @@ DataFile::readSymbol()
     while (true) {
         c = getc(this->File);
         if (c == EOF) {
-            Tokenizer::tokenError(Tokenizer::sGlobalDataFile, "Unexpected end of file");
+            Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "Unexpected end of file");
             return (false);
         }
 
         if (isalpha(c) || isdigit(c) || c == (int)'_') {
-            Tokenizer::stuffCharacter(c, Tokenizer::sGlobalDataFile);
+            Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
         } else {
             ungetc(c, this->File);
             break;
@@ -827,7 +851,7 @@ DataFile::readSymbol()
 
     /* Ignore the symbol if it was meant for the tokenizer (-2) */
     if ((symbolId = Tokenizer::findReserved()) != -1 && symbolId != -2) {
-        Tokenizer::writeToken(symbolId, Tokenizer::sGlobalDataFile);
+        Tokenizer::writeToken(symbolId, Tokenizer::getGlobalDataFile());
     } else {
         /* Ignore the symbol if it was meant for the tokenizer (-2) */
         if (symbolId == -2) {
@@ -835,21 +859,21 @@ DataFile::readSymbol()
         }
 
         if ((symbolId = Tokenizer::findSymbol()) == -1) {
-            if (++Tokenizer::sNumberOfSymbols < Tokenizer::getMaxSymbols()) {
-                if ((Tokenizer::sSymbolTable[Tokenizer::sNumberOfSymbols] =
-                            new char[strlen(Tokenizer::sString) + 1]) == nullptr) {
-                    Tokenizer::tokenError(Tokenizer::sGlobalDataFile,
+            if (++Tokenizer::getNumberOfSymbols() < Tokenizer::getMaxSymbols()) {
+                if ((Tokenizer::getSymbolTable()[Tokenizer::getNumberOfSymbols()] =
+                            new char[strlen(Tokenizer::getString()) + 1]) == nullptr) {
+                    Tokenizer::tokenError(Tokenizer::getGlobalDataFile(),
                         "Out of memory. Cannot allocate space for identifier");
                 }
 
-                strcpy(Tokenizer::sSymbolTable[Tokenizer::sNumberOfSymbols], Tokenizer::sString);
-                symbolId = Tokenizer::sNumberOfSymbols;
+                strcpy(Tokenizer::getSymbolTable()[Tokenizer::getNumberOfSymbols()], Tokenizer::getString());
+                symbolId = Tokenizer::getNumberOfSymbols();
             } else {
                 Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "\nToo many symbols. Use +ms### option to raise "                     "Max_Symbols.\n");
             }
         }
 
-        Tokenizer::writeToken(Tokenizer::LAST_TOKEN + symbolId, Tokenizer::sGlobalDataFile);
+        Tokenizer::writeToken(Tokenizer::LAST_TOKEN + symbolId, Tokenizer::getGlobalDataFile());
     }
 
     return (true);

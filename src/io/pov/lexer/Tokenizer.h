@@ -11,7 +11,6 @@ typedef int TOKEN;
 Here's where you dump the information on the current token
 */
 class Tokenizer {
-    friend class DataFile;
   public:
 
     /* Token Definitions for Parser */
@@ -189,6 +188,10 @@ class Tokenizer {
     static void getToken(void);
     static void setMaxSymbols(int value);
     static int getMaxSymbols();
+    static DataFile *getGlobalDataFile();
+    static char *getString();
+    static int &getNumberOfSymbols();
+    static char **getSymbolTable();
 
   private:
     static constexpr int MAX_STRING_INDEX = 41;
