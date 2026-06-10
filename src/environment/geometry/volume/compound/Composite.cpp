@@ -29,13 +29,13 @@ createBasicObject()
     }
 
     newObject->nextObject = nullptr;
-    newObject->Shape = nullptr;
+    newObject->geometry = nullptr;
     newObject->boundingShapes = nullptr;
     newObject->clippingShapes = nullptr;
     newObject->objectTexture = MaterialUtils::instance().defaultTexture();
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
-    newObject->Type = GeometryOperations::OBJECT_TYPE;
+    newObject->type = GeometryOperations::OBJECT_TYPE;
     newObject->methods = &Composite::basicObjectMethodTable;
     return newObject;
 }
@@ -141,7 +141,7 @@ Composite::allObjectIntersections(
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
     anyIntersectionFound = false;
     GeometryOperations::allIntersections(
-        (SimpleBody *)object->Shape, ray, localDepthQueue);
+        (SimpleBody *)object->geometry, ray, localDepthQueue);
 
     for (localIntersection = localDepthQueue->getHighest();
         localIntersection != nullptr; localDepthQueue->deleteHighest(),
@@ -208,7 +208,7 @@ Composite::insideBasicObject(Vector3Dd *testPoint, SimpleBody *object)
         }
     }
 
-    if (GeometryOperations::inside(testPoint, (SimpleBody *)object->Shape)) {
+    if (GeometryOperations::inside(testPoint, (SimpleBody *)object->geometry)) {
         return (true);
     }
     return (false);
@@ -284,8 +284,8 @@ Composite::copyBasicObject(SimpleBody *object)
 
     }
 
-    newObject->Shape =
-        (Geometry *)GeometryOperations::copy((SimpleBody *)object->Shape);
+    newObject->geometry =
+        (Geometry *)GeometryOperations::copy((SimpleBody *)object->geometry);
 
     if (newObject->objectTexture != nullptr) {
         newObject->objectTexture =
@@ -353,7 +353,7 @@ Composite::translateBasicObject(SimpleBody *object, Vector3Dd *vector)
         GeometryOperations::translate((SimpleBody *)localShape, vector);
     }
 
-    GeometryOperations::translate((SimpleBody *)object->Shape, vector);
+    GeometryOperations::translate((SimpleBody *)object->geometry, vector);
 
     MaterialUtils::instance().translateTexture(&object->objectTexture, vector);
 }
@@ -375,7 +375,7 @@ Composite::rotateBasicObject(SimpleBody *object, Vector3Dd *vector)
         GeometryOperations::rotate((SimpleBody *)localShape, vector);
     }
 
-    GeometryOperations::rotate((SimpleBody *)object->Shape, vector);
+    GeometryOperations::rotate((SimpleBody *)object->geometry, vector);
 
     MaterialUtils::instance().rotateTexture(&object->objectTexture, vector);
 }
@@ -397,7 +397,7 @@ Composite::scaleBasicObject(SimpleBody *object, Vector3Dd *vector)
         GeometryOperations::scale((SimpleBody *)localShape, vector);
     }
 
-    GeometryOperations::scale((SimpleBody *)object->Shape, vector);
+    GeometryOperations::scale((SimpleBody *)object->geometry, vector);
 
     MaterialUtils::instance().scaleTexture(&object->objectTexture, vector);
 }
@@ -491,7 +491,7 @@ Composite::invertBasicObject(SimpleBody *object)
         localShape = localShape->nextObject) {
         GeometryOperations::invert((SimpleBody *)localShape);
     }
-    GeometryOperations::invert((SimpleBody *)object->Shape);
+    GeometryOperations::invert((SimpleBody *)object->geometry);
 }
 
 void

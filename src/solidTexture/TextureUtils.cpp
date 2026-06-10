@@ -7,8 +7,6 @@ routines are in ColorTextureFixture.cpp, BumpTextureFixture.cpp, and
 MapTextureFixture.cpp respectively.
 */
 
-#include <cstdlib>
-
 #include "common/statistics/SolidTextureStatistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
@@ -20,7 +18,7 @@ static Vector3Dd waveSourcesInstance[TextureUtils::NUMBER_OF_WAVES];
 TextureUtils* TextureUtils::textureInstance = nullptr;
 
 TextureUtils::TextureUtils(SolidTextureStatistics *stats)
-    : proceduralNoise_(stats)
+    : proceduralNoise(stats)
 {
 }
 
@@ -38,9 +36,9 @@ TextureUtils::instance()
 }
 
 ProceduralNoise&
-TextureUtils::proceduralNoise()
+TextureUtils::getProceduralNoise()
 {
-    return proceduralNoise_;
+    return proceduralNoise;
 }
 
 double *
@@ -58,7 +56,7 @@ TextureUtils::waveSources()
 double
 TextureUtils::floorInline(double x)
 {
-    return (x >= 0.0) ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
+    return x >= 0.0 ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
 }
 
 double
@@ -79,13 +77,12 @@ TextureUtils::computeColor(
 void
 TextureUtils::initializeNoise()
 {
-    int i;
     Vector3Dd point;
 
-    proceduralNoise_.initialize();
+    proceduralNoise.initialize();
 
-    for (i = 0; i < TextureUtils::NUMBER_OF_WAVES; i++) {
-        proceduralNoise_.dNoise(&point, (double)i, 0.0, 0.0);
+    for (int i = 0; i < TextureUtils::NUMBER_OF_WAVES; i++) {
+        proceduralNoise.dNoise(&point, (double)i, 0.0, 0.0);
         waveSources()[i] = point.normalizedFast();
         waveFrequency()[i] = (rand() & ProceduralNoise::RNDMASK) / ProceduralNoise::RND_DIVISOR + 0.01;
     }

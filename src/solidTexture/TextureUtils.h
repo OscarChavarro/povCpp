@@ -10,8 +10,8 @@ triangleWave) live in ProceduralNoise, accessible via proceduralNoise().
 #ifndef __TEXTURE_UTILS_H__
 #define __TEXTURE_UTILS_H__
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "common/statistics/SolidTextureStatistics.h"
 #include "solidTexture/ProceduralNoise.h"
 
 class RGBAColorPalette;
@@ -24,7 +24,7 @@ class TextureUtils {
     static void initialize(SolidTextureStatistics *stats);
     static TextureUtils& instance();
 
-    ProceduralNoise& proceduralNoise();
+    ProceduralNoise& getProceduralNoise();
 
     double floorInline(double x);
     double fabsInline(double x);
@@ -34,7 +34,7 @@ class TextureUtils {
     void initializeNoise();
 
   private:
-    ProceduralNoise proceduralNoise_;
+    ProceduralNoise proceduralNoise;
     static TextureUtils* textureInstance;
     TextureUtils(SolidTextureStatistics *stats);
 };
