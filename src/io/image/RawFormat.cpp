@@ -5,13 +5,13 @@
  *
  *****************************************************************************/
 
-#include "io/image/RawFormat.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "java/io/FileOutputStream.h"
 #include <cmath>
-#include <cstring>
 #include <cstdio>
+#include <cstring>
+#include "java/io/FileOutputStream.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "io/image/RawFormat.h"
 
 class AppendableFileOutputStream : public java::OutputStream {
   public:

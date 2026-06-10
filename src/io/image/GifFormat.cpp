@@ -5,13 +5,13 @@
  *
  *****************************************************************************/
 
+#include <cstdio>
 #include <cstdlib>
-#include "io/image/GifFormat.h"
+#include <cstring>
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "io/binaryIo/FileLocator.h"
 #include "io/image/GifDecoder.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include <cstdio>
-#include <cstring>
+#include "io/image/GifFormat.h"
 
 IndexedColorImageHDRUncompressed *GifFormat::currentImage = nullptr;
 int GifFormat::bitmapLine = 0;

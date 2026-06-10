@@ -5,8 +5,8 @@
  *
  *****************************************************************************/
 
-#include "environment/light/Light.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/light/Light.h"
 Methods Light::methodTable = {
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
     Light::translatePoint, Light::rotatePoint, Light::scalePoint,

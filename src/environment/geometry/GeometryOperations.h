@@ -2,23 +2,20 @@
 #define __GEOMETRY_OPERATIONS_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+
+#include "common/dataStructures/PriorityQueue.h"
+#include "media/solidTexture/Texture.h"
+#include "environment/geometry/Geometry.h"
+#include "environment/geometry/Intersection.h"
+#include "environment/geometry/Methods.h"
+#include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
 class Intersection;
 class Methods;
 class Geometry;
 class SimpleBody;
-
-#include "environment/geometry/Intersection.h"
-#include "environment/geometry/Geometry.h"
-#include "environment/geometry/Methods.h"
-#include "environment/geometry/SimpleBody.h"
-
-#include "common/dataStructures/PriorityQueue.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "media/solidTexture/Texture.h"
-
-#include <cstdlib>
 
 class GeometryOperations {
   public:

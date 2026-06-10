@@ -1,7 +1,7 @@
-#include "render/shaders/PhongSpecularShader.h"
+#include <cmath>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include <cmath>
+#include "render/shaders/PhongSpecularShader.h"
 
 void
 PhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,

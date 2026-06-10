@@ -1,8 +1,8 @@
 #ifndef __RAY_WITH_SEGMENTS_H__
 #define __RAY_WITH_SEGMENTS_H__
 
-#include "environment/geometry/elements/Ray.h"
 #include "media/solidTexture/Texture.h"
+#include "environment/geometry/elements/Ray.h"
 
 class RayWithSegments : public Ray {
   public:

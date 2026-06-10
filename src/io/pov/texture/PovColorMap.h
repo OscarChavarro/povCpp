@@ -1,8 +1,8 @@
 #ifndef __POV_COLOR_MAP_H__
 #define __POV_COLOR_MAP_H__
 
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "java/util/ArrayList.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 
 /**
 POV-ray color_map: a set of explicit-range spans, each interpolating between

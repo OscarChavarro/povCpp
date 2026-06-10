@@ -7,8 +7,8 @@ References:
 */
 
 #include <cstdio>
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "media/solidTexture/BumpTextureFixture.h"
 #include "media/solidTexture/Texture.h"
 

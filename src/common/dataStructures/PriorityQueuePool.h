@@ -1,8 +1,8 @@
 #ifndef __PRIORITY_QUEUE_POOL_H__
 #define __PRIORITY_QUEUE_POOL_H__
 
-#include "common/dataStructures/PriorityQueue.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "common/dataStructures/PriorityQueue.h"
 
 template <class T>
 class PriorityQueuePool {

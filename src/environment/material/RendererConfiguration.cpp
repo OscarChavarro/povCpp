@@ -1,6 +1,5 @@
-#include "environment/material/RendererConfiguration.h"
-
 #include <cstring>
+#include "environment/material/RendererConfiguration.h"
 
 static RenderingConfiguration globalRenderingConfigurationInstance;
 

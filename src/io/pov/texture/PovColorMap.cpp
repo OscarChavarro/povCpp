@@ -1,5 +1,5 @@
-#include "io/pov/texture/PovColorMap.h"
 #include "java/util/ArrayList.txx"
+#include "io/pov/texture/PovColorMap.h"
 
 PovColorMap::PovColorMap() : _transparencyFlag(false) {
 }

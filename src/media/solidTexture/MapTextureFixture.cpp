@@ -3,18 +3,15 @@ Implements mapped textures: image map, bump map, and material map.
 Supports planar, spherical, cylindrical, and torus UV projections.
 */
 
-#include <cstdlib>
 #include <cstdio>
-
+#include <cstdlib>
 #include "java/util/ArrayList.txx"
-
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
-#include "media/solidTexture/MapTextureFixture.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "media/solidTexture/SolidTextureProjectionMethods.h"
+#include "media/solidTexture/MapTextureFixture.h"
 #include "media/solidTexture/SolidTextureBitmapInterpolationTypes.h"
+#include "media/solidTexture/SolidTextureProjectionMethods.h"
 #include "media/solidTexture/Texture.h"
 
 /**

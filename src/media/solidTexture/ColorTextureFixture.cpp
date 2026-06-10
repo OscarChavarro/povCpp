@@ -7,10 +7,9 @@ References:
 */
 
 #include <cstdio>
-
 #include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "media/solidTexture/ColorTextureFixture.h"
 #include "media/solidTexture/MapTextureFixture.h"
 #include "media/solidTexture/SolidTextureColorTextures.h"

@@ -1,8 +1,5 @@
-#include "environment/scene/ModelBuilder.h"
-
-#include "processing/polynomial/PolynomialConstants.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/camera/Camera.h"
+#include "processing/polynomial/PolynomialConstants.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -14,7 +11,9 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/camera/Camera.h"
 #include "environment/light/Light.h"
+#include "environment/scene/ModelBuilder.h"
 
 Composite *
 ModelBuilder::getCompositeObject()

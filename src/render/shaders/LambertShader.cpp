@@ -1,7 +1,7 @@
-#include "render/shaders/LambertShader.h"
-#include "environment/geometry/elements/RayWithSegments.h"
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
+#include "environment/geometry/elements/RayWithSegments.h"
+#include "render/shaders/LambertShader.h"
 
 void
 LambertShader::shade(Texture *texture, RayWithSegments *lightSourceRay,

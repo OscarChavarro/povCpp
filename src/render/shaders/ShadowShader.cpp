@@ -1,7 +1,7 @@
-#include "render/shaders/ShadowShader.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "render/shaders/TraceService.h"
 #include "environment/geometry/Intersection.h"
+#include "render/shaders/ShadowShader.h"
+#include "render/shaders/TraceService.h"
 
 int
 ShadowShader::shade(Intersection *localIntersection,

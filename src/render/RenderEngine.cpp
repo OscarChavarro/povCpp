@@ -12,19 +12,19 @@
  *                      algorithm for anti-aliasing.
  *****************************************************************************/
 
-#include "render/RenderEngine.h"
-#include "render/SceneDump.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
-#include "render/ColorOperations.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "render/RenderOutput.h"
 #include "java/io/FileOutputStream.h"
-#include "render/RayShaderPipeline.h"
-#include "render/shaders/TraceService.h"
-#include "environment/material/RendererConfiguration.h"
-#include "common/RenderRuntimeState.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"
+#include "common/RenderRuntimeState.h"
+#include "environment/material/RendererConfiguration.h"
+#include "render/shaders/TraceService.h"
+#include "render/ColorOperations.h"
+#include "render/RayShaderPipeline.h"
+#include "render/RenderEngine.h"
+#include "render/RenderOutput.h"
+#include "render/SceneDump.h"
 
 RenderFrame RenderEngine::sRenderFrame;
 RayWithSegments *RenderEngine::sPrimaryRay = nullptr;

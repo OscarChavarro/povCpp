@@ -1,9 +1,9 @@
 #ifndef __RAW_FORMAT_H__
 #define __RAW_FORMAT_H__
 
-#include "io/image/ImageOutput.h"
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"
+#include "io/image/ImageOutput.h"
 
 class ColorRgba;
 

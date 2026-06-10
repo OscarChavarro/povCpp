@@ -1,8 +1,8 @@
 #ifndef __VECT_H__
 #define __VECT_H__
 
-#include "processing/polynomial/PolynomialConstants.h"
 #include "processing/polynomial/Polynomial.h"
+#include "processing/polynomial/PolynomialConstants.h"
 
 class PolynomialSolver {
   public:

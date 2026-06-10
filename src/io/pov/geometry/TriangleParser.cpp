@@ -1,14 +1,14 @@
-#include "io/pov/context/ParserContext.h"
-#include "io/pov/geometry/TriangleParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/scene/ModelBuilder.h"
-#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"
+#include "io/pov/context/ParserContext.h"
+#include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/TextureParser.h"
+#include "io/pov/geometry/TriangleParser.h"
 
 
 Geometry *

@@ -5,11 +5,11 @@
  *
  *****************************************************************************/
 
-#include "io/image/IffFormat.h"
-#include "io/binaryIo/FileLocator.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include <cstdlib>
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "io/binaryIo/FileLocator.h"
+#include "io/image/IffFormat.h"
 
 RGBAPixelHDR *IffFormat::sIffColorMap = nullptr;
 int IffFormat::sColorMapSize = 0;

@@ -1,7 +1,7 @@
-#include "render/shaders/LightSamplerShader.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/light/Light.h"
+#include "render/shaders/LightSamplerShader.h"
 
 void
 LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
