@@ -9,12 +9,12 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "common/PolynomialTermCounts.h"
+#include "processing/polynomial/PolynomialTermCounts.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "processing/PolynomialSolver.h"
+#include "processing/polynomial/PolynomialSolver.h"
 #include <cstring>
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
@@ -281,7 +281,7 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 
     /* The Epsilon fudge factor is so that points really near the
         surface are considered inside the surface */
-    return (result > -Config::kEpsilon ? (result < Config::kEpsilon ? 0.0 : result) : result);
+    return (result > -Config::EPSILON ? (result < Config::EPSILON ? 0.0 : result) : result);
 }
 
 /* Normal to a polynomial */

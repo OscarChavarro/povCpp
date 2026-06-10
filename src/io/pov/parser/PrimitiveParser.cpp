@@ -1,6 +1,6 @@
 #include "io/pov/context/ParserContext.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "common/PolynomialTermCounts.h"
+#include "processing/polynomial/PolynomialTermCounts.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/context/ParseGlobals.h"

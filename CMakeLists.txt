@@ -75,7 +75,8 @@ add_executable(povray
   src/media/solidTexture/ColorTextureFixture.cpp
   src/media/solidTexture/MapTextureFixture.cpp
   src/media/solidTexture/TextureFixture.cpp
-  src/processing/PolynomialSolver.cpp
+  src/processing/polynomial/PolynomialSolver.cpp
+  src/processing/polynomial/PolynomialTermCounts.cpp
   src/render/shaders/LightSamplerShader.cpp
   src/render/shaders/ShadowShader.cpp
   src/render/shaders/PhongSpecularShader.cpp
@@ -94,7 +95,6 @@ add_executable(povray
   src/environment/material/RendererConfiguration.cpp
   src/common/RenderRuntimeState.cpp
   src/common/statistics/Statistics.cpp
-  src/common/PolynomialTermCounts.cpp
 )
 
 target_include_directories(povray PRIVATE

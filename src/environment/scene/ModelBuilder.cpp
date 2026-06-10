@@ -1,6 +1,6 @@
 #include "environment/scene/ModelBuilder.h"
 
-#include "processing/PolynomialConstants.h"
+#include "processing/polynomial/PolynomialConstants.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"

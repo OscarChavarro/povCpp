@@ -7,7 +7,7 @@
 
 class Config {
   public:
-    static constexpr double kEpsilon = 1.0e-5;
+    static constexpr double EPSILON = 1.0e-5;
 };
 
 #endif

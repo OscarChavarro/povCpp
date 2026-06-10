@@ -13,7 +13,7 @@
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "processing/PolynomialSolver.h"
+#include "processing/polynomial/PolynomialSolver.h"
 #include <cstring>
 Methods Blob::methodTable = {Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
@@ -54,8 +54,8 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     /* Initialize the blob data */
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
-        if (fabs(temp->elem.coeffs[2]) < Config::kEpsilon ||
-            temp->elem.radius2 < Config::kEpsilon) {
+        if (fabs(temp->elem.coeffs[2]) < Config::EPSILON ||
+            temp->elem.radius2 < Config::EPSILON) {
             perror("Degenerate blob element\n");
         }
         /* Store blob specific information */
@@ -110,7 +110,7 @@ Blob::determineInfluences(
         b = v.dotProduct(*d);
         t = v.dotProduct(v);
         disc = b * b - t + blob->list[i].radius2;
-        if (disc < Config::kEpsilon) {
+        if (disc < Config::EPSILON) {
             continue;
         }
         disc = sqrt(disc);
@@ -233,7 +233,7 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
         }
     }
     val = n.dotProduct(n);
-    if (val < Config::kEpsilon) {
+    if (val < Config::EPSILON) {
         return 0;
     }
     return 1;
@@ -512,7 +512,7 @@ Blob::blobNormal(
     }
     val = (result->x() * result->x() + result->y() * result->y() +
            result->z() * result->z());
-    if (val < Config::kEpsilon) {
+    if (val < Config::EPSILON) {
         *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
         val = 1.0 / sqrt(val);

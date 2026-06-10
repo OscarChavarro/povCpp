@@ -6,8 +6,8 @@
  *
  *****************************************************************************/
 
-#include "processing/PolynomialSolver.h"
-#include "processing/Polynomial.h"
+#include "processing/polynomial/PolynomialSolver.h"
+#include "processing/polynomial/Polynomial.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #undef EPSILON
