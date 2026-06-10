@@ -21,7 +21,7 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/TextureParser.h"
-#include "solidTexture/Material.h"
+#include "environment/material/Material.h"
 #include "solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

@@ -1,7 +1,7 @@
 #ifndef __AMBIENT_LIGHT_SHADER_H__
 #define __AMBIENT_LIGHT_SHADER_H__
 
-#include "solidTexture/Material.h"
+#include "environment/material/Material.h"
 
 class ColorRgba;
 

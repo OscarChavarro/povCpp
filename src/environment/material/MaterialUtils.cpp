@@ -3,7 +3,7 @@ Material utilities: global default texture management.
 */
 
 #include "java/util/ArrayList.txx"
-#include "solidTexture/Material.h"
+#include "environment/material/Material.h"
 #include "solidTexture/SolidTextureBumpyTextures.h"
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

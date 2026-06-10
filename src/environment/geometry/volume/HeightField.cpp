@@ -17,7 +17,7 @@
 #include "environment/geometry/volume/HeightField.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "solidTexture/Material.h"
+#include "environment/material/Material.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 

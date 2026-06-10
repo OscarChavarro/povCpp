@@ -1,1 +1,0 @@
-#include "solidTexture/Material.h"
