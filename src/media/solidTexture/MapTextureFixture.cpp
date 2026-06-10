@@ -12,7 +12,7 @@ Supports planar, spherical, cylindrical, and torus UV projections.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "media/solidTexture/MapTextureFixture.h"
-#include "media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "media/solidTexture/SolidTextureProjectionMethods.h"
 #include "media/solidTexture/SolidTextureBitmapInterpolationTypes.h"
 #include "media/solidTexture/Texture.h"
@@ -497,7 +497,7 @@ mapTextureFixture::noInterpolation(
     } else {
         IndexedColorImageHDRUncompressed *idx = image->getIndexedData();
         *index = idx->getPixel(ixcoor, iycoor);
-        RGBAPixelHDR *mapColor = &idx->getColorMap()[*index];
+        RGBAPixelHDR *mapColor = &idx->getColorTable()[*index];
         color->setR(color->getR() + (double)mapColor->r / 255.0);
         color->setG(color->getG() + (double)mapColor->g / 255.0);
         color->setB(color->getB() + (double)mapColor->b / 255.0);

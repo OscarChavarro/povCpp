@@ -1,6 +1,6 @@
-#include "media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 
-IndexedColorImageHDRUncompressed::IndexedColorImageHDRUncompressed() : xSize(0), ySize(0), data(nullptr), colorMapSize(0), colorMap(nullptr) {
+IndexedColorImageHDRUncompressed::IndexedColorImageHDRUncompressed() : xSize(0), ySize(0), data(nullptr), colorMapSize(0), colorTable(nullptr) {
 }
 
 IndexedColorImageHDRUncompressed::~IndexedColorImageHDRUncompressed() {
@@ -38,13 +38,13 @@ IndexedColorImageHDRUncompressed::setColorMapSize(int n) {
 }
 
 RGBAPixelHDR *
-IndexedColorImageHDRUncompressed::getColorMap() const {
-    return colorMap;
+IndexedColorImageHDRUncompressed::getColorTable() const {
+    return colorTable;
 }
 
 void
-IndexedColorImageHDRUncompressed::setColorMap(RGBAPixelHDR *cm) {
-    colorMap = cm;
+IndexedColorImageHDRUncompressed::setColorTable(RGBAPixelHDR *ct) {
+    colorTable = ct;
 }
 
 void

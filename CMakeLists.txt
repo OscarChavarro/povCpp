@@ -70,7 +70,6 @@ add_executable(povray
   src/io/image/TargaFormat.cpp
   src/io/binaryIo/FileLocator.cpp
   src/io/pov/lexer/Tokenizer.cpp
-  src/media/IndexedColorImageHDRUncompressed.cpp
   src/media/solidTexture/Texture.cpp
   src/media/solidTexture/BumpTextureFixture.cpp
   src/media/solidTexture/ColorTextureFixture.cpp

@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/HeightField.h"
-#include "media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"

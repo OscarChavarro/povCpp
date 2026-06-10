@@ -161,7 +161,7 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, char *filename)
 
                 bitmapLine = 0;
                 image->setColorMapSize(colorMapSize);
-                image->setColorMap(gifColorMap);
+                image->setColorTable(gifColorMap);
                 image->allocate(gifW, gifH);
 
                 status = GifDecoder::decoder(image->getXSize());

@@ -2,7 +2,7 @@
 #define __TEXTURE_IMAGE_H__
 
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class textureImage : public RGBAImageHDRUncompressed {
