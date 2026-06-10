@@ -5,13 +5,11 @@
  *
  *****************************************************************************/
 
-#include <cstdio>
-#include <cstdlib>
+#include "environment/geometry/elements/Triangle.h"
+#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/statistics/Statistics.h"
-#include "common/dataStructures/PriorityQueue.h"
-#include "environment/geometry/elements/Triangle.h"
+
 Methods Triangle::methodTable = {
     Triangle::allTriangleIntersections, Triangle::insideTriangle,
     Triangle::triangleNormal, Triangle::copyTriangle,

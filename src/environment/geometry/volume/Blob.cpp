@@ -8,13 +8,13 @@
  *
  *****************************************************************************/
 
-#include <cstring>
+#include "environment/geometry/volume/Blob.h"
+#include "common/Config.h"
+#include "common/statistics/Statistics.h"
+#include "processing/polynomial/PolynomialSolver.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/statistics/Statistics.h"
-#include "common/Config.h"
-#include "processing/polynomial/PolynomialSolver.h"
-#include "environment/geometry/volume/Blob.h"
+
 Methods Blob::methodTable = {Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
     Blob::rotateBlob, Blob::scaleBlob, Blob::invertBlob};

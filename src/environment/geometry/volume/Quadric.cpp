@@ -5,9 +5,10 @@
  *
  *****************************************************************************/
 
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/Quadric.h"
+#include "common/statistics/Statistics.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 Methods Quadric::methodTable = {
     Quadric::allQuadricIntersections, Quadric::insideQuadric,
     Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
