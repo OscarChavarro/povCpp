@@ -7,16 +7,19 @@
 
 class MapTextureFixture {
   public:
-    int map(double x, double y, double z, Texture *texture,
-        TextureImage *image, double *xcoor, double *ycoor,
-        double smallTolerance);
+    int map(
+        double x, double y, double z, TextureImage *image, double *xcoor,
+        double *ycoor, double smallTolerance);
     void imageMap(
-        double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
+        double x, double y, double z, TextureImage *image, ColorRgba *color,
+        double smallTolerance);
     Texture *materialMap(
-        Vector3Dd *intersectionPoint, Texture *texture,
+        Vector3Dd *intersectionPoint, Matrix4x4d *textureTransformationInverse,
+        TextureImage *materialImage, java::ArrayList<Texture *> *materials,
         double smallTolerance);
     void bumpMap(
-        double x, double y, double z, Texture *texture, Vector3Dd *normal, double smallTolerance);
+        double x, double y, double z, TextureImage *bumpImage,
+        double bumpAmount, Vector3Dd *normal, double smallTolerance);
 
   private:
     int cylindricalImageMap(

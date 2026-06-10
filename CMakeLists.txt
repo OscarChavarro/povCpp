@@ -74,6 +74,7 @@ add_executable(povray
   src/solidTexture/ProceduralNoise.cpp
   src/solidTexture/BumpTextureFixture.cpp
   src/solidTexture/ColorTextureFixture.cpp
+  src/solidTexture/FixturesFacade.cpp
   src/solidTexture/MapTextureFixture.cpp
   src/solidTexture/TextureFixture.cpp
   src/processing/polynomial/PolynomialSolver.cpp

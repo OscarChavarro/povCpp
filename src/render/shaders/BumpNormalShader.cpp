@@ -70,7 +70,9 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
         break;
 
     case (int)SolidTextureBumpyTextures::BUMPMAP:
-        mapFixture.bumpMap(x, y, z, texture, newNormal, GeometryConstants::Small_Tolerance);
+        mapFixture.bumpMap(
+            x, y, z, texture->bumpImage, texture->bumpAmount, newNormal,
+            GeometryConstants::Small_Tolerance);
         break;
     }
 }
