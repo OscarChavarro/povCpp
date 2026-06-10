@@ -5,6 +5,7 @@
 #include "solidTexture/MapTextureFixture.h"
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "solidTexture/ProceduralNoise.h"
+#include "solidTexture/TextureUtils.h"
 
 class TextureFixture {
   public:
@@ -135,40 +136,6 @@ FixturesFacade::FixturesFacade(
 }
 
 void
-FixturesFacade::checkerTexture(
-    double x, double y, double z, ColorRgba *color, ColorRgba *color1,
-    ColorRgba *color2, double smallTolerance)
-{
-    int brkindx;
-    Vector3Dd point;
-    FixturesFacade fixturesFacade(proceduralNoise, textureUtils);
-    Material *texture1 = (Material *)color1;
-    Material *texture2 = (Material *)color2;
-
-    x += smallTolerance; // add a small offset to x, y, z, axes to prevent noise
-    y += smallTolerance;
-    z += smallTolerance;
-
-    brkindx = (int)(textureUtils->floorInline(x) + textureUtils->floorInline(y) + textureUtils->floorInline(z));
-
-    *&point = Vector3Dd(x, y, z);
-
-    if (brkindx & 1) {
-        fixturesFacade.colorAt(
-            color, texture1->textureNumber, texture1->textureTransformationInverse,
-            texture1->image, texture1->color1, texture1->color2,
-            texture1->turbulence, texture1->octaves, texture1->colorMap,
-            texture1->textureGradient, texture1->mortar, &point, smallTolerance);
-    } else {
-        fixturesFacade.colorAt(
-            color, texture2->textureNumber, texture2->textureTransformationInverse,
-            texture2->image, texture2->color1, texture2->color2,
-            texture2->turbulence, texture2->octaves, texture2->colorMap,
-            texture2->textureGradient, texture2->mortar, &point, smallTolerance);
-    }
-}
-
-void
 FixturesFacade::colorAt(
     ColorRgba *color, int textureNumber,
     Matrix4x4d *textureTransformationInverse, TextureImage *image,
@@ -235,10 +202,6 @@ FixturesFacade::colorAt(
 
     case (int)SolidTextureColorTextures::CHECKER_TEXTURE:
         colorFixture.checker(x, y, z, color, color1, color2, smallTolerance);
-        break;
-
-    case (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE:
-        checkerTexture(x, y, z, color, color1, color2, smallTolerance);
         break;
 
     case (int)SolidTextureColorTextures::SPOTTED_TEXTURE:
