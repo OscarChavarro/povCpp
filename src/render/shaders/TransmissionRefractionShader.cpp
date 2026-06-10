@@ -7,7 +7,7 @@
 
 
 void
-TransmissionRefractionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
+TransmissionRefractionShader::shade(Material *texture, Vector3Dd *intersectionPoint,
     RayWithSegments *ray, Vector3Dd *surfaceNormal, ColorRgba *color,
     const TraceService *traceService, double atmosphereIor, int &traceLevel)
 {

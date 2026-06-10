@@ -5,7 +5,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "common/dataStructures/PriorityQueue.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/Methods.h"

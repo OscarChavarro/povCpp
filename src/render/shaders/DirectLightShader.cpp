@@ -18,7 +18,7 @@
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
 void
-DirectLightShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
+DirectLightShader::shade(Material *texture, Vector3Dd *intersectionPoint,
     RayWithSegments *eye, Vector3Dd *surfaceNormal, ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
     Light *lightSources, SimpleBody *objects)

@@ -1,9 +1,12 @@
 #ifndef __FIXTURES_FACADE_H__
 #define __FIXTURES_FACADE_H__
 
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "solidTexture/ProceduralNoise.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/TextureImage.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 
 class TextureUtils;
 

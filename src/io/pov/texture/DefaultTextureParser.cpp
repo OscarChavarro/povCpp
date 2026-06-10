@@ -4,6 +4,7 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/texture/DefaultTextureParser.h"
 #include "io/pov/texture/TextureParser.h"
+#include "solidTexture/MaterialUtils.h"
 
 void
 DefaultTextureParser::parseDefault(RenderFrame *framePtr)
@@ -24,9 +25,9 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::TEXTURE_TOKEN:
-                TextureUtils::instance().defaultTexture()->constantFlag = false;
-                TextureUtils::instance().defaultTexture() = TextureParser::parseTexture(ctx);
-                TextureUtils::instance().defaultTexture()->constantFlag = true;
+                MaterialUtils::instance().defaultTexture()->constantFlag = false;
+                MaterialUtils::instance().setDefaultTexture(TextureParser::parseTexture(ctx));
+                MaterialUtils::instance().defaultTexture()->constantFlag = true;
                 break;
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;

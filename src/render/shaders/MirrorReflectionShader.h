@@ -2,7 +2,7 @@
 #define __MIRROR_REFLECTION_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 
 class RayWithSegments;
 class ColorRgba;
@@ -10,7 +10,7 @@ class TraceService;
 
 class MirrorReflectionShader {
 public:
-    static void shade(Texture *texture, Vector3Dd *intersectionPoint,
+    static void shade(Material *texture, Vector3Dd *intersectionPoint,
         RayWithSegments *ray, Vector3Dd *surfaceNormal, ColorRgba *color,
         const TraceService *traceService, int &traceLevel);
 };

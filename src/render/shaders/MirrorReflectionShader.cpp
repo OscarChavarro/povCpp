@@ -7,7 +7,7 @@
 
 
 void
-MirrorReflectionShader::shade(Texture *texture, Vector3Dd *intersectionPoint,
+MirrorReflectionShader::shade(Material *texture, Vector3Dd *intersectionPoint,
     RayWithSegments *ray, Vector3Dd *surfaceNormal, ColorRgba *color,
     const TraceService *traceService, int &traceLevel)
 {

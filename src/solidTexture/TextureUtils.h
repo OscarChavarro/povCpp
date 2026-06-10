@@ -1,5 +1,5 @@
 /**
-Texture-side utilities: the global default texture, color-map sampling, the wave
+Material-side utilities: the global default texture, color-map sampling, the wave
 sources/frequencies used by ripple/wave bump textures, and texture-space transforms
 (translate/rotate/scale/copy) for POV-Ray material descriptors.
 
@@ -15,10 +15,12 @@ triangleWave) live in ProceduralNoise, accessible via proceduralNoise().
 #include "solidTexture/ProceduralNoise.h"
 
 class RGBAColorPalette;
-class Texture;
+class Material;
 
 class TextureUtils {
   public:
+    static constexpr int NUMBER_OF_WAVES = 10;
+
     static void initialize(SolidTextureStatistics *stats);
     static TextureUtils& instance();
 
@@ -26,16 +28,15 @@ class TextureUtils {
 
     double floorInline(double x);
     double fabsInline(double x);
-    Texture *&defaultTexture();
     double *waveFrequency();
     Vector3Dd *waveSources();
     void computeColor(ColorRgba *color, RGBAColorPalette *colorMap, double value);
     void initializeNoise(void);
-    void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-    void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-    void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
-    Texture *copyTexture(Texture *texture);
-    Texture *getTexture();
+    void translateTexture(Material **texturePtr, Vector3Dd *vector);
+    void rotateTexture(Material **texturePtr, Vector3Dd *vector);
+    void scaleTexture(Material **texturePtr, Vector3Dd *vector);
+    Material *copyTexture(Material *texture);
+    Material *getTexture();
 
   private:
     ProceduralNoise proceduralNoise_;

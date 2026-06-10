@@ -33,6 +33,7 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/texture/ColorMapParser.h"
 #include "io/pov/texture/TextureParser.h"
+#include "solidTexture/MaterialUtils.h"
 
 static void wireIndexedIntotextureImage(TextureImage *ti, IndexedColorImageHDRUncompressed *idx)
 {
@@ -48,7 +49,7 @@ TextureParser::shouldLogTextureState()
 }
 
 void
-TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
+TextureParser::logTextureStateLegacy(const char *prefix, const Material *texture)
 {
     if (!shouldLogTextureState() || texture == nullptr) {
         return;
@@ -70,14 +71,14 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
 
 
 
-Texture *
-TextureParser::copyTexture(Texture *texture)
+Material *
+TextureParser::copyTexture(Material *texture)
 {
     return TextureUtils::instance().copyTexture(texture);
 }
 
 void
-TextureParser::prependTextureLayers(Texture *newHead, Texture *&existingHead)
+TextureParser::prependTextureLayers(Material *newHead, Material *&existingHead)
 {
     if (existingHead != nullptr) {
         newHead->layers.add(existingHead);
@@ -89,25 +90,25 @@ TextureParser::prependTextureLayers(Texture *newHead, Texture *&existingHead)
     existingHead = newHead;
 }
 
-Texture *
+Material *
 TextureParser::parseTexture()
 {
     ParserContext ctx;
     return TextureParser::parseTexture(ctx);
 }
 
-Texture *
+Material *
 TextureParser::parseTexture(ParserContext &ctx)
 {
     (void)ctx;
     Vector3Dd localVector;
     int constantId;
-    Texture *texture;
-    Texture *localTexture;
-    Texture *firstTexture;
+    Material *texture;
+    Material *localTexture;
+    Material *firstTexture;
     int reg;
 
-    texture = TextureUtils::instance().defaultTexture();
+    texture = MaterialUtils::instance().defaultTexture();
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -121,7 +122,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::TEXTURE_CONSTANT) {
-                        texture = ((Texture *)ctx.constants()[(int)constantId]
+                        texture = ((Material *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -269,7 +270,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
                             {
-                                Texture *color1Head = (Texture *)texture->color1;
+                                Material *color1Head = (Material *)texture->color1;
                                 TextureParser::prependTextureLayers(localTexture, color1Head);
                                 texture->color1 = (ColorRgba *)color1Head;
                             }
@@ -296,7 +297,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
                             {
-                                Texture *color2Head = (Texture *)texture->color2;
+                                Material *color2Head = (Material *)texture->color2;
                                 TextureParser::prependTextureLayers(localTexture, color2Head);
                                 texture->color2 = (ColorRgba *)color2Head;
                             }
@@ -776,7 +777,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 texture->textureNumber = (int)SolidTextureColorTextures::LEOPARD_TEXTURE;
                 break;
 
-            /* New Texture Parsing - Cdw */
+            /* New Material Parsing - Cdw */
             case Tokenizer::PAINTED1_TOKEN:
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
@@ -1063,7 +1064,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::TEXTURE_TOKEN: {
-                            Texture *newMat = TextureParser::parseTexture(ctx);
+                            Material *newMat = TextureParser::parseTexture(ctx);
                             firstTexture->materials.add(newMat);
                             texture = newMat;
                         } break;

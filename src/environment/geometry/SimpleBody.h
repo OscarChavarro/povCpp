@@ -4,7 +4,7 @@
 
 class Methods;
 class Geometry;
-class Texture;
+class Material;
 
 class SimpleBody {
   public:
@@ -16,7 +16,7 @@ class SimpleBody {
     Geometry *Shape;
     bool noShadowFlag;
     ColorRgba *objectColor;
-    Texture *objectTexture;
+    Material *objectTexture;
 };
 
 #endif

@@ -24,7 +24,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     ParametricBiCubicPatch *localShape = nullptr;
     Vector3Dd localVector;
     int constantId;
-    Texture *localTexture;
+    Material *localTexture;
     int i;
     int j;
 

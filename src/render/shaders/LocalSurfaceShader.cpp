@@ -10,7 +10,7 @@
 #include "render/shaders/TraceService.h"
 
 void
-LocalSurfaceShader::shade(RayWithSegments *ray, Texture *texture,
+LocalSurfaceShader::shade(RayWithSegments *ray, Material *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
     ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, Light *lightSources,

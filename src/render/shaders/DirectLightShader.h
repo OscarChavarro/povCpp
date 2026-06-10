@@ -2,7 +2,7 @@
 #define __DIRECT_LIGHT_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 
 class RayWithSegments;
 class ColorRgba;
@@ -12,7 +12,7 @@ class SimpleBody;
 
 class DirectLightShader {
 public:
-    static void shade(Texture *texture, Vector3Dd *intersectionPoint,
+    static void shade(Material *texture, Vector3Dd *intersectionPoint,
         RayWithSegments *eye, Vector3Dd *surfaceNormal,
         ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, Light *lightSources,

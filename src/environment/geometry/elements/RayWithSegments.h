@@ -1,7 +1,7 @@
 #ifndef __RAY_WITH_SEGMENTS_H__
 #define __RAY_WITH_SEGMENTS_H__
 
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 #include "environment/geometry/elements/Ray.h"
 
 class RayWithSegments : public Ray {
@@ -16,7 +16,7 @@ class RayWithSegments : public Ray {
     Vector3Dd mixedDirectionDirection; /*  XvYv  XvZv  YvZv  */
     Vector3Dd mixedPositionDirection;  /*  XoYv+XvYo  XoZv+XvZo  YoZv+YvZo  */
     int containingIndex;
-    Texture *containingTextures[MAX_CONTAINING_OBJECTS];
+    Material *containingTextures[MAX_CONTAINING_OBJECTS];
     double containingIORs[MAX_CONTAINING_OBJECTS];
     bool quadricConstantsCached;
     bool isShadowRay;
@@ -25,7 +25,7 @@ class RayWithSegments : public Ray {
     void makeRay();
     void initializeContainers();
     void copyContainersFrom(RayWithSegments *sourceRay);
-    void enterContainingMedium(Texture *texture);
+    void enterContainingMedium(Material *texture);
     void exitContainingMedium();
     static inline void mixVectorTerms(
         Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c);

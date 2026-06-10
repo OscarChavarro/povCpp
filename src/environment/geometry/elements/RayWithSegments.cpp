@@ -73,7 +73,7 @@ RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
 }
 
 void
-RayWithSegments::enterContainingMedium(Texture *texture)
+RayWithSegments::enterContainingMedium(Material *texture)
 {
     int index;
 

@@ -24,7 +24,7 @@ BoxParser::parseBox(ParserContext &ctx)
     Box *localShape;
     int constantId;
     Vector3Dd localVector;
-    Texture *localTexture;
+    Material *localTexture;
 
     localShape = nullptr;
     {

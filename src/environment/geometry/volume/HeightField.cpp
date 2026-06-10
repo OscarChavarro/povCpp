@@ -18,7 +18,7 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "common/statistics/Statistics.h"
 #include "common/Config.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 #include "environment/geometry/volume/HeightField.h"
 
 inline int

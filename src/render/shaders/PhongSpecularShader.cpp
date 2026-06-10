@@ -4,7 +4,7 @@
 #include "render/shaders/PhongSpecularShader.h"
 
 void
-PhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
+PhongSpecularShader::shade(Material *texture, RayWithSegments *lightSourceRay,
     Vector3Dd eye, Vector3Dd *surfaceNormal, ColorRgba *color,
     ColorRgba *lightColor, ColorRgba *surfaceColor)
 {

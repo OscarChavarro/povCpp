@@ -2,7 +2,7 @@
 #define __TXTMAP_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 #include "solidTexture/TextureImage.h"
 
 class MapTextureFixture {
@@ -13,9 +13,9 @@ class MapTextureFixture {
     void imageMap(
         double x, double y, double z, TextureImage *image, ColorRgba *color,
         double smallTolerance);
-    Texture *materialMap(
+    Material *materialMap(
         Vector3Dd *intersectionPoint, Matrix4x4d *textureTransformationInverse,
-        TextureImage *materialImage, java::ArrayList<Texture *> *materials,
+        TextureImage *materialImage, java::ArrayList<Material *> *materials,
         double smallTolerance);
     void bumpMap(
         double x, double y, double z, TextureImage *bumpImage,

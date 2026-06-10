@@ -4,7 +4,7 @@
 #include "render/shaders/BlinnPhongSpecularShader.h"
 
 void
-BlinnPhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,
+BlinnPhongSpecularShader::shade(Material *texture, RayWithSegments *lightSourceRay,
     Vector3Dd rEye, Vector3Dd *surfaceNormal, ColorRgba *color,
     ColorRgba *lightColor, ColorRgba *surfaceColor)
 {

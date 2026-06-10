@@ -10,6 +10,7 @@
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/dataStructures/PriorityQueuePool.h"
 #include "solidTexture/TextureUtils.h"
+#include "solidTexture/MaterialUtils.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"
@@ -270,6 +271,7 @@ PovrayApplication::prepareRendering()
 
     IntersectionPriorityQueuePool::pqInit();
     TextureUtils::initialize(Statistics::global().getSolidTextureStatistics());
+    MaterialUtils::initialize();
     TextureUtils::instance().initializeNoise();
 }
 
