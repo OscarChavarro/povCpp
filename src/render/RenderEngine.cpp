@@ -92,7 +92,7 @@ traceServiceShadeShadow(
 {
     (void)context;
     RayShaderPipeline::shadeSurface(
-        intersection, color, nullptr, true, getTraceService());
+        intersection, color, nullptr, true, getTraceService(), &TextureUtils::instance());
 }
 
 static const TraceService traceService = {
@@ -618,7 +618,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            localIntersection, color, ray, false, getTraceService());
+            localIntersection, color, ray, false, getTraceService(), &TextureUtils::instance());
         delete localIntersection;
     }
 }

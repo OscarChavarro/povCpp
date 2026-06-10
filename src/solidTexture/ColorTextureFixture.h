@@ -5,19 +5,22 @@
 #include "solidTexture/ProceduralNoise.h"
 #include "solidTexture/Texture.h"
 
-class ColorTextureFixture {
-  public:
-    ColorTextureFixture(ProceduralNoise *proceduralNoise);
+class TextureUtils;
 
-    void colorAt(
-        ColorRgba *color, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance);
+class ColorTextureFixture {
+  private:
+    ProceduralNoise *proceduralNoise;
+    TextureUtils *textureUtils;
+
+  public:
+    ColorTextureFixture(ProceduralNoise *proceduralNoise, TextureUtils *textureUtils);
+
+    void colorAt(ColorRgba *color, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance);
     void agate(double x, double y, double z, Texture *texture, ColorRgba *color);
     void bozo(double x, double y, double z, Texture *texture, ColorRgba *color);
     void brick(double x, double y, double z, Texture *texture, ColorRgba *color);
-    void checker(
-        double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
-    void checkerTexture(
-        double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
+    void checker(double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
+    void checkerTexture(double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
     void gradient(double x, double y, double z, Texture *texture, ColorRgba *color);
     void granite(double x, double y, double z, Texture *texture, ColorRgba *color);
     void marble(double x, double y, double z, Texture *texture, ColorRgba *color);
@@ -25,9 +28,6 @@ class ColorTextureFixture {
     void wood(double x, double y, double z, Texture *texture, ColorRgba *color);
     void leopard(double x, double y, double z, Texture *texture, ColorRgba *color);
     void onion(double x, double y, double z, Texture *texture, ColorRgba *color);
-
-  private:
-    ProceduralNoise *proceduralNoise;
 };
 
 #endif

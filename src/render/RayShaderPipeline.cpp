@@ -22,7 +22,7 @@
 void
 RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ColorRgba *color, RayWithSegments *ray, int shadowRay,
-    const TraceService *traceService)
+    const TraceService *traceService, TextureUtils *textureUtils)
 {
     ColorRgba surfaceColor;
     ColorRgba refractedColor;
@@ -56,7 +56,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
 
     MapTextureFixture mapFixture;
-    ColorTextureFixture colorFixture(&TextureUtils::instance().proceduralNoise());
+    ColorTextureFixture colorFixture(&textureUtils->proceduralNoise(), textureUtils);
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {

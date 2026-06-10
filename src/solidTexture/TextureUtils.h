@@ -39,7 +39,7 @@ class TextureUtils {
 
   private:
     ProceduralNoise proceduralNoise_;
-    static TextureUtils* inst_;
+    static TextureUtils* textureInstance;
     TextureUtils(SolidTextureStatistics *stats);
 };
 

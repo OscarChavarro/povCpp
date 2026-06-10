@@ -15,12 +15,14 @@ References:
 #include "solidTexture/ProceduralNoise.h"
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "solidTexture/Texture.h"
+#include "solidTexture/TextureUtils.h"
 #include "solidTexture/TextureFixture.h"
 
 static constexpr double COORDINATE_LIMIT = 1.0e17;
 
-ColorTextureFixture::ColorTextureFixture(ProceduralNoise *proceduralNoise)
-    : proceduralNoise(proceduralNoise)
+ColorTextureFixture::ColorTextureFixture(
+    ProceduralNoise *proceduralNoise, TextureUtils *textureUtils)
+    : proceduralNoise(proceduralNoise), textureUtils(textureUtils)
 {
 }
 
@@ -153,7 +155,7 @@ ColorTextureFixture::agate(
 
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -198,7 +200,7 @@ ColorTextureFixture::bozo(
     noise = proceduralNoise->noise(x, y, z);
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -264,7 +266,7 @@ ColorTextureFixture::checker(double x, double y, double z, Texture *texture,
 
     // AAC: was just x + z
     // AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug
-    brkindx = (int)(TextureUtils::instance().floorInline(x) + TextureUtils::instance().floorInline(y) + TextureUtils::instance().floorInline(z));
+    brkindx = (int)(textureUtils->floorInline(x) + textureUtils->floorInline(y) + textureUtils->floorInline(z));
 
     if (brkindx & 1) {
         color->setR(color->getR() + texture->color1->getR());
@@ -291,7 +293,7 @@ ColorTextureFixture::checkerTexture(double x, double y, double z,
     y += smallTolerance;
     z += smallTolerance;
 
-    brkindx = (int)(TextureUtils::instance().floorInline(x) + TextureUtils::instance().floorInline(y) + TextureUtils::instance().floorInline(z));
+    brkindx = (int)(textureUtils->floorInline(x) + textureUtils->floorInline(y) + textureUtils->floorInline(z));
 
     *&point = Vector3Dd(x, y, z);
 
@@ -331,21 +333,21 @@ ColorTextureFixture::gradient(
         return;
     }
     if (texture->textureGradient.x() != 0.0) {
-        x = TextureUtils::instance().fabsInline(x);
-        value += x - TextureUtils::instance().floorInline(x); // obtain fractional X component
+        x = textureUtils->fabsInline(x);
+        value += x - textureUtils->floorInline(x); // obtain fractional X component
     }
     if (texture->textureGradient.y() != 0.0) {
-        y = TextureUtils::instance().fabsInline(y);
-        value += y - TextureUtils::instance().floorInline(y); // obtain fractional Y component
+        y = textureUtils->fabsInline(y);
+        value += y - textureUtils->floorInline(y); // obtain fractional Y component
     }
     if (texture->textureGradient.z() != 0.0) {
-        z = TextureUtils::instance().fabsInline(z);
-        value += z - TextureUtils::instance().floorInline(z); // obtain fractional Z component
+        z = textureUtils->fabsInline(z);
+        value += z - textureUtils->floorInline(z); // obtain fractional Z component
     }
     value = ((value > 1.0) ? fmod(value, 1.0) : value); // clamp to 1.0
 
 
-    TextureUtils::instance().computeColor(&newColor, texture->colorMap, value);
+    textureUtils->computeColor(&newColor, texture->colorMap, value);
     color->setR(color->getR() + newColor.getR());
     color->setG(color->getG() + newColor.getG());
     color->setB(color->getB() + newColor.getB());
@@ -370,13 +372,13 @@ ColorTextureFixture::granite(
     for (i = 0; i < 6; freq *= 2.0, i++) {
         temp =
             0.5 - proceduralNoise->noise(x * 4 * freq, y * 4 * freq, z * 4 * freq);
-        temp = TextureUtils::instance().fabsInline(temp);
+        temp = textureUtils->fabsInline(temp);
         noise += temp / freq;
     }
 
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -404,7 +406,7 @@ ColorTextureFixture::marble(
                 texture->turbulence);
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -440,7 +442,7 @@ ColorTextureFixture::spotted(
 
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -480,7 +482,7 @@ ColorTextureFixture::wood(
     noise = proceduralNoise->triangleWave(length);
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -531,7 +533,7 @@ ColorTextureFixture::leopard(
 
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -573,7 +575,7 @@ ColorTextureFixture::onion(
         1.0));
 
     if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, noise);
+        textureUtils->computeColor(&newColor, texture->colorMap, noise);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());

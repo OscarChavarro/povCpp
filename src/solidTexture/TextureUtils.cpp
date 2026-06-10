@@ -21,7 +21,7 @@ static Texture *defaultTextureInstance;
 static double frequencyInstance[Texture::NUMBER_OF_WAVES];
 static Vector3Dd waveSourcesInstance[Texture::NUMBER_OF_WAVES];
 
-TextureUtils* TextureUtils::inst_ = nullptr;
+TextureUtils* TextureUtils::textureInstance = nullptr;
 
 TextureUtils::TextureUtils(SolidTextureStatistics *stats)
     : proceduralNoise_(stats)
@@ -32,13 +32,13 @@ void
 TextureUtils::initialize(SolidTextureStatistics *stats)
 {
     static TextureUtils inst(stats);
-    inst_ = &inst;
+    textureInstance = &inst;
 }
 
 TextureUtils&
 TextureUtils::instance()
 {
-    return *inst_;
+    return *textureInstance;
 }
 
 ProceduralNoise&
