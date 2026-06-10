@@ -15,7 +15,7 @@
  *****************************************************************************/
 
 #include "environment/geometry/volume/HeightField.h"
-#include "media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"

@@ -19,7 +19,7 @@
 #include "io/pov/texture/ColorMapParser.h"
 #include "io/pov/texture/TextureParser.h"
 #include "media/solidTexture/TextureImage.h"
-#include "media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -601,7 +601,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                             "of range.\n", ctx);
                                     }
 
-                                    texture->image->getIndexedData()->getColorMap()[reg].a =
+                                    texture->image->getIndexedData()->getColorTable()[reg].a =
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
@@ -615,7 +615,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     for (reg = 0;
                                         reg < texture->image->getIndexedData()->getColorMapSize();
                                         reg++) {
-                                        texture->image->getIndexedData()->getColorMap()[reg].a = (unsigned short)(alpha * 255.0);
+                                        texture->image->getIndexedData()->getColorTable()[reg].a = (unsigned short)(alpha * 255.0);
                                     }
                                     Exit_Flag = true;
                                 }

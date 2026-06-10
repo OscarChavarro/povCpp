@@ -1,15 +1,15 @@
-#ifndef __INDEXED_IMAGE_H__
-#define __INDEXED_IMAGE_H__
+#ifndef __VSDK_TOOLKIT_MEDIA_INDEXEDCOLORIMAGEHDRUNCOMPRESSED_H__
+#define __VSDK_TOOLKIT_MEDIA_INDEXEDCOLORIMAGEHDRUNCOMPRESSED_H__
 
 #include "vsdk/toolkit/media/RGBAPixelHDR.h"
 
 class IndexedColorImageHDRUncompressed {
   private:
+    unsigned char *data;
     int xSize;
     int ySize;
-    unsigned char *data;
     int colorMapSize;
-    RGBAPixelHDR *colorMap;
+    RGBAPixelHDR *colorTable;
 
   public:
     IndexedColorImageHDRUncompressed();
@@ -22,8 +22,8 @@ class IndexedColorImageHDRUncompressed {
 
     int getColorMapSize() const;
     void setColorMapSize(int n);
-    RGBAPixelHDR *getColorMap() const;
-    void setColorMap(RGBAPixelHDR *cm);
+    RGBAPixelHDR *getColorTable() const;
+    void setColorTable(RGBAPixelHDR *ct);
 
     void allocate(int w, int h);
 

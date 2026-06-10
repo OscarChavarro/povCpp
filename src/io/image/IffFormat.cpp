@@ -178,7 +178,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, char *filename)
                 // --- Indexed (paletted) path ---
                 IndexedColorImageHDRUncompressed *indexed = new IndexedColorImageHDRUncompressed;
                 indexed->setColorMapSize(sColorMapSize);
-                indexed->setColorMap(sIffColorMap);
+                indexed->setColorTable(sIffColorMap);
 
                 indexed->allocate(iwidth, iheight);
 
