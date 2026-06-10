@@ -1,9 +1,9 @@
-#include "solidTexture/ColorTextureFixture.h"
-#include "solidTexture/MapTextureFixture.h"
-#include "solidTexture/SolidTextureColorTextures.h"
-#include "solidTexture/ProceduralNoise.h"
-#include "solidTexture/TextureUtils.h"
 #include "render/SolidTextureFixturesFacade.h"
+#include "solidTexture/from2d/ImageTexture.h"
+#include "solidTexture/procedural/ColorTextureFixture.h"
+#include "solidTexture/procedural/SolidTextureColorTextures.h"
+#include "solidTexture/procedural/ProceduralNoise.h"
+#include "solidTexture/TextureUtils.h"
 
 SolidTextureFixturesFacade::SolidTextureFixturesFacade(
     ProceduralNoise *proceduralNoise, TextureUtils *textureUtils)
@@ -15,11 +15,11 @@ void
 SolidTextureFixturesFacade::checkerTexture(
     double x, double y, double z, ColorRgba *color,
     int textureNumber1, Matrix4x4d *textureTransformationInverse1,
-    TextureImage *image1, ColorRgba *color1_1, ColorRgba *color2_1,
+    ControlledRGBAImageHDRUncompressed *image1, ColorRgba *color1_1, ColorRgba *color2_1,
     double turbulence1, int octaves1, RGBAColorPalette *colorMap1,
     Vector3Dd textureGradient1, double mortar1,
     int textureNumber2, Matrix4x4d *textureTransformationInverse2,
-    TextureImage *image2, ColorRgba *color1_2, ColorRgba *color2_2,
+    ControlledRGBAImageHDRUncompressed *image2, ColorRgba *color1_2, ColorRgba *color2_2,
     double turbulence2, int octaves2, RGBAColorPalette *colorMap2,
     Vector3Dd textureGradient2, double mortar2,
     double smallTolerance
@@ -59,7 +59,7 @@ SolidTextureFixturesFacade::colorAt(
     ColorRgba *color,
     int textureNumber,
     Matrix4x4d *textureTransformationInverse,
-    TextureImage *image,
+    ControlledRGBAImageHDRUncompressed *image,
     ColorRgba *color1,
     ColorRgba *color2,
     double turbulence,
@@ -71,7 +71,7 @@ SolidTextureFixturesFacade::colorAt(
     double smallTolerance,
     int textureNumber1,
     Matrix4x4d *textureTransformationInverse1,
-    TextureImage *image1,
+    ControlledRGBAImageHDRUncompressed *image1,
     ColorRgba *color1_1,
     ColorRgba *color2_1,
     double turbulence1,
@@ -81,7 +81,7 @@ SolidTextureFixturesFacade::colorAt(
     double mortar1,
     int textureNumber2,
     Matrix4x4d *textureTransformationInverse2,
-    TextureImage *image2,
+    ControlledRGBAImageHDRUncompressed *image2,
     ColorRgba *color1_2,
     ColorRgba *color2_2,
     double turbulence2,
@@ -94,7 +94,7 @@ SolidTextureFixturesFacade::colorAt(
     double y;
     double z;
     Vector3Dd transformedPoint;
-    MapTextureFixture mapFixture;
+    ImageTexture mapFixture;
     ColorTextureFixture colorFixture(proceduralNoise, textureUtils);
 
     if ((intersectionPoint->x() > COORDINATE_LIMIT) ||

@@ -1,19 +1,19 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/MapTextureFixture.h"
-#include "solidTexture/SolidTextureColorTextures.h"
+#include "solidTexture/from2d/ImageTexture.h"
+#include "solidTexture/procedural/SolidTextureColorTextures.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"
+#include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
+#include "render/SolidTextureFixturesFacade.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
 #include "render/shaders/LocalSurfaceShader.h"
-#include "render/RayShaderPipeline.h"
-#include "render/SolidTextureFixturesFacade.h"
 #include "render/shaders/TransmissionRefractionShader.h"
 
 void
@@ -52,7 +52,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
 
-    MapTextureFixture mapFixture;
+    ImageTexture mapFixture;
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
     /* Is there a texture in the shape?  If not, use the one in the object. */

@@ -3,8 +3,8 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/ProceduralNoise.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
+#include "solidTexture/procedural/ProceduralNoise.h"
 
 class TextureUtils;
 

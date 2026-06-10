@@ -1,8 +1,4 @@
 /**
-Material-side utilities: the global default texture, color-map sampling, the wave
-sources/frequencies used by ripple/wave bump textures, and texture-space transforms
-(translate/rotate/scale/copy) for POV-Ray material descriptors.
-
 The Perlin noise primitives (Noise, DNoise, Turbulence, DTurbulence, cycloidal,
 triangleWave) live in ProceduralNoise, accessible via proceduralNoise().
 */
@@ -10,12 +6,10 @@ triangleWave) live in ProceduralNoise, accessible via proceduralNoise().
 #ifndef __TEXTURE_UTILS_H__
 #define __TEXTURE_UTILS_H__
 
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "common/statistics/SolidTextureStatistics.h"
-#include "solidTexture/ProceduralNoise.h"
-
-class RGBAColorPalette;
-class Material;
+#include "solidTexture/procedural/ProceduralNoise.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 
 class TextureUtils {
   public:
@@ -36,7 +30,7 @@ class TextureUtils {
   private:
     ProceduralNoise proceduralNoise;
     static TextureUtils* textureInstance;
-    TextureUtils(SolidTextureStatistics *stats);
+    explicit TextureUtils(SolidTextureStatistics *stats);
 };
 
 #endif

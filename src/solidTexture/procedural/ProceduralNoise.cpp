@@ -9,10 +9,8 @@ References:
 "The RenderMan Companion" (Addison Wesley).
 */
 
-#include <cmath>
-#include <cstdlib>
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/ProceduralNoise.h"
+#include "solidTexture/procedural/ProceduralNoise.h"
 
 static double
 fabsInline(double x)

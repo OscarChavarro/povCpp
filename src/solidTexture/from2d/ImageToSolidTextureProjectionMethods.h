@@ -1,7 +1,7 @@
 #ifndef __SOLID_TEXTURE_PROJECTION_METHODS_H__
 #define __SOLID_TEXTURE_PROJECTION_METHODS_H__
 
-enum SolidTextureProjectionMethods {
+enum ImageToSolidTextureProjectionMethods {
     PLANAR_MAP = 0,
     SPHERICAL_MAP = 1,
     CYLINDRICAL_MAP = 2,

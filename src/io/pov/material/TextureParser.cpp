@@ -1,18 +1,14 @@
-#include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "solidTexture/SolidTextureBitmapInterpolationTypes.h"
-#include "solidTexture/SolidTextureBumpyTextures.h"
-#include "solidTexture/SolidTextureColorTextures.h"
-#include "solidTexture/SolidTextureProjectionMethods.h"
-#include "solidTexture/TextureImage.h"
-#include "environment/material/MaterialUtils.h"
+#include "io/pov/material/TextureParser.h"
+#include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
+#include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
+#include "solidTexture/procedural/SolidTextureBumpyTextures.h"
+#include "solidTexture/procedural/SolidTextureColorTextures.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
+#include "environment/material/MaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
-#include "io/pov/material/TextureParser.h"
 #include "io/image/GifFormat.h"
 #include "io/image/IffFormat.h"
 #include "io/image/RawDumpFormat.h"
@@ -23,9 +19,13 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 
 static void
-wireIndexedInToTextureImage(TextureImage *ti, IndexedColorImageHDRUncompressed *idx)
+wireIndexedInToTextureImage(ControlledRGBAImageHDRUncompressed *ti, IndexedColorImageHDRUncompressed *idx)
 {
     ti->setIndexedData(idx);
     ti->allocate(idx->getXSize(), idx->getYSize());
@@ -464,14 +464,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = SolidTextureColorTextures::IMAGEMAP_TEXTURE;
-                texture->image = new TextureImage;
+                texture->image = new ControlledRGBAImageHDRUncompressed;
                 if (texture->image == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate imagemap texture", ctx);
                 }
                 texture->image->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
-                texture->image->setMapType(SolidTextureProjectionMethods::PLANAR_MAP);
-                texture->image->setInterpolationType((int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION);
+                texture->image->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
+                texture->image->setInterpolationType(ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
                 texture->image->setOnceFlag(false);
                 texture->image->setUseColorFlag(true);
 
@@ -553,7 +553,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::INTERPOLATE_TOKEN:
                             texture->image->setInterpolationType(
-                                (int)PrimitiveParser::parseFloat(ctx));
+                                PrimitiveParser::parseFloat(ctx));
                             break;
 
                         case Tokenizer::MAPTYPE_TOKEN:
@@ -799,14 +799,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->bumpNumber = SolidTextureBumpyTextures::BUMP_MAP;
-                texture->bumpImage = new TextureImage;
+                texture->bumpImage = new ControlledRGBAImageHDRUncompressed;
                 if (texture->bumpImage == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate bumpmap texture", ctx);
                 }
                 texture->bumpImage->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
-                texture->bumpImage->setMapType(SolidTextureProjectionMethods::PLANAR_MAP);
-                texture->bumpImage->setInterpolationType((int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION);
+                texture->bumpImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
+                texture->bumpImage->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
                 texture->bumpImage->setOnceFlag(false);
                 texture->bumpImage->setUseColorFlag(true);
 
@@ -928,14 +928,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = SolidTextureColorTextures::MATERIAL_MAP_TEXTURE;
-                texture->materialImage = new TextureImage;
+                texture->materialImage = new ControlledRGBAImageHDRUncompressed;
                 if (texture->materialImage == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate material map texture", ctx);
                 }
                 *&texture->textureGradient = Vector3Dd(1.0, -1.0, 0.0);
-                texture->materialImage->setMapType(SolidTextureProjectionMethods::PLANAR_MAP);
-                texture->materialImage->setInterpolationType((int)SolidTextureBitmapInterpolationTypes::NO_INTERPOLATION);
+                texture->materialImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
+                texture->materialImage->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
                 texture->materialImage->setOnceFlag(false);
                 texture->materialImage->setUseColorFlag(false);
 

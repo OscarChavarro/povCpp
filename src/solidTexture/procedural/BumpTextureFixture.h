@@ -1,8 +1,8 @@
 #ifndef __TXTBUMP_H__
 #define __TXTBUMP_H__
 
+#include "solidTexture/procedural/ProceduralNoise.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/ProceduralNoise.h"
 
 class BumpTextureFixture {
   public:
