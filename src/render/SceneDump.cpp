@@ -1,4 +1,5 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/SimpleBody.h"
 #include "render/RenderEngine.h"

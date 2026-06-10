@@ -4,9 +4,10 @@
  *  This module implements the sphere primitive.
  * *****************************************************************************/
 
-#include "environment/geometry/volume/Sphere.h"
 #include "common/statistics/Statistics.h"
+#include "environment/geometry/volume/Sphere.h"
 #include "environment/material/Material.h"
+#include "environment/material/MaterialUtils.h"
 
 //===========================================================================
 
@@ -159,7 +160,7 @@ Sphere::copySphere(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -169,7 +170,7 @@ void
 Sphere::translateSphere(SimpleBody *object, Vector3Dd *vector)
 {
     ((Sphere *)object)->Center = ((Sphere *)object)->Center.add(*vector);
-    TextureUtils::instance().translateTexture(&((Sphere *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
@@ -181,7 +182,7 @@ Sphere::rotateSphere(SimpleBody *object, Vector3Dd *vector)
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     ((Sphere *)object)->Center =
         transformation.transpose().multiply(((Sphere *)object)->Center);
-    TextureUtils::instance().rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void
@@ -198,7 +199,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
     sphere->Radius *= vector->x();
     sphere->radiusSquared = sphere->Radius * sphere->Radius;
     sphere->inverseRadius = 1.0 / sphere->Radius;
-    TextureUtils::instance().scaleTexture(&((Sphere *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Sphere *)object)->Shape_Texture, vector);
 }
 
 void

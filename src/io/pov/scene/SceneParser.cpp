@@ -1,10 +1,10 @@
-#include "io/pov/scene/SceneParser.h"
-#include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"
+#include "io/pov/scene/SceneParser.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneFrameParser.h"
+#include "environment/material/MaterialUtils.h"
 
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
@@ -63,7 +63,7 @@ SceneParser::frameInit()
 void
 SceneParser::frameInit(ParserContext &ctx)
 {
-    MaterialUtils::instance().setDefaultTexture(TextureUtils::instance().getTexture());
+    MaterialUtils::instance().setDefaultTexture(MaterialUtils::instance().getTexture());
     ctx.parsingFrame()->viewPoint.initializeDefaults();
     ctx.parsingFrame()->Light_Sources = nullptr;
     ctx.parsingFrame()->Objects = nullptr;

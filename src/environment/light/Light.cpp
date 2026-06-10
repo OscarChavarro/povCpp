@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 #include "environment/light/Light.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/material/MaterialUtils.h"
 
 Methods Light::methodTable = {
     Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
@@ -38,7 +38,7 @@ Light::copyPoint(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -74,7 +74,7 @@ Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
         transformation.transpose().multiply(((Light *)object)->Center);
     ((Light *)object)->pointsAt =
         transformation.transpose().multiply(((Light *)object)->pointsAt);
-    TextureUtils::instance().scaleTexture(&((Light *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Light *)object)->Shape_Texture, vector);
 }
 
 void

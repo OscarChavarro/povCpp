@@ -5,9 +5,10 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/surface/InfinitePlane.h"
-#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/statistics/Statistics.h"
+#include "environment/geometry/surface/InfinitePlane.h"
+#include "environment/material/MaterialUtils.h"
 
 Methods InfinitePlane::methodTable = {
     InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
@@ -118,7 +119,7 @@ InfinitePlane::copyPlane(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -133,7 +134,7 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
     translation = plane->normalVector.multiply(*vector);
     plane->Distance -= translation.x() + translation.y() + translation.z();
 
-    TextureUtils::instance().translateTexture(&plane->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&plane->Shape_Texture, vector);
 }
 
 void
@@ -146,7 +147,7 @@ InfinitePlane::rotatePlane(SimpleBody *object, Vector3Dd *vector)
     ((InfinitePlane *)object)->normalVector = transformation.transpose().multiply(
         ((InfinitePlane *)object)->normalVector);
 
-    TextureUtils::instance().rotateTexture(
+    MaterialUtils::instance().rotateTexture(
         &((InfinitePlane *)object)->Shape_Texture, vector);
 }
 
@@ -165,7 +166,7 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
     plane->normalVector = plane->normalVector.multiply(1.0 / length);
     plane->Distance /= length;
 
-    TextureUtils::instance().scaleTexture(
+    MaterialUtils::instance().scaleTexture(
         &((InfinitePlane *)object)->Shape_Texture, vector);
 }
 

@@ -1,6 +1,4 @@
 /****************************************************************************
- *                         hfield.c
- *
  *         This file implements the height field shape primitive.  The shape is
  *         implemented as a collection of triangles which are calculated as
  *         needed.  The basic intersection routine first computes the rays
@@ -14,12 +12,13 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/volume/HeightField.h"
-#include "common/Config.h"
-#include "common/statistics/Statistics.h"
-#include "environment/material/Material.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
+#include "common/Config.h"
+#include "common/statistics/Statistics.h"
+#include "environment/geometry/volume/HeightField.h"
+#include "environment/material/Material.h"
+#include "environment/material/MaterialUtils.h"
 
 inline int
 HeightField::signInline(double x)
@@ -949,7 +948,7 @@ HeightField::copyHeightfld(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -974,7 +973,7 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    TextureUtils::instance().translateTexture(
+    MaterialUtils::instance().translateTexture(
         &((HeightField *)object)->Shape_Texture, vector);
 }
 
@@ -994,7 +993,7 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    TextureUtils::instance().rotateTexture(
+    MaterialUtils::instance().rotateTexture(
         &((HeightField *)object)->Shape_Texture, vector);
 }
 
@@ -1016,7 +1015,7 @@ HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    TextureUtils::instance().scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void

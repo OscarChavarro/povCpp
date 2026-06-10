@@ -1,6 +1,4 @@
 /****************************************************************************
- *                     blob.c
- *
  *  This module contains the code for the blob shape.
  *
  *  This file was written by Alexander Enzmann.  He wrote the code for
@@ -8,12 +6,13 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/volume/Blob.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "processing/polynomial/PolynomialSolver.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/geometry/volume/Blob.h"
+#include "environment/material/MaterialUtils.h"
 
 Methods Blob::methodTable = {Blob::allBlobIntersections,
     Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
@@ -557,7 +556,7 @@ Blob::copyBlob(SimpleBody *object)
 
     /* Copy any associated texture */
     if (blob->Shape_Texture != nullptr) {
-        blob->Shape_Texture = TextureUtils::instance().copyTexture(blob->Shape_Texture);
+        blob->Shape_Texture = MaterialUtils::instance().copyTexture(blob->Shape_Texture);
     }
 
     return (blob);
@@ -581,7 +580,7 @@ Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    TextureUtils::instance().translateTexture(&((Blob *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
@@ -599,7 +598,7 @@ Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    TextureUtils::instance().rotateTexture(&((Blob *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
@@ -619,7 +618,7 @@ Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    TextureUtils::instance().scaleTexture(&((Blob *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void

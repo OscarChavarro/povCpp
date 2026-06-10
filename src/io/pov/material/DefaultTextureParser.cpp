@@ -1,10 +1,10 @@
-#include "io/pov/texture/DefaultTextureParser.h"
+#include "io/pov/material/DefaultTextureParser.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/SceneFrame.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
-#include "io/pov/texture/TextureParser.h"
 
 void
 DefaultTextureParser::parseDefault(RenderFrame *framePtr)

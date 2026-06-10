@@ -12,7 +12,7 @@
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/material/MaterialUtils.h"
 
 Methods Box::methodTable = {Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
@@ -292,7 +292,7 @@ Box::copyBox(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -316,7 +316,7 @@ Box::translateBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    TextureUtils::instance().translateTexture(&((Box *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
@@ -334,7 +334,7 @@ Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    TextureUtils::instance().rotateTexture(&((Box *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void
@@ -354,7 +354,7 @@ Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    TextureUtils::instance().scaleTexture(&((Box *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Box *)object)->Shape_Texture, vector);
 }
 
 void

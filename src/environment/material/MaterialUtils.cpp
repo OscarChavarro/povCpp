@@ -3,12 +3,13 @@ Material utilities: global default texture management.
 */
 
 #include "java/util/ArrayList.txx"
-#include "environment/material/Material.h"
-#include "solidTexture/SolidTextureBumpyTextures.h"
-#include "solidTexture/SolidTextureColorTextures.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "solidTexture/SolidTextureBumpyTextures.h"
+#include "solidTexture/SolidTextureColorTextures.h"
 #include "environment/material/MaterialUtils.h"
+#include "environment/material/Material.h"
 
 static Material *defaultTextureInstance;
 
@@ -42,12 +43,13 @@ MaterialUtils::setDefaultTexture(Material *texture)
 {
     defaultTextureInstance = texture;
 }
-static bool
-needsTransform(const Material *texture)
+
+bool
+MaterialUtils::needsTransform(const Material *texture)
 {
-    return ((texture->textureNumber != (int)NO_TEXTURE) &&
-               (texture->textureNumber != (int)COLOUR_TEXTURE)) ||
-           (texture->bumpNumber != (int)NO_BUMPS);
+    return ((texture->textureNumber != SolidTextureColorTextures::NO_TEXTURE) &&
+               (texture->textureNumber != SolidTextureColorTextures::COLOUR_TEXTURE)) ||
+           (texture->bumpNumber != NO_BUMPS);
 }
 static void
 applyTranslationTransform(Material *texture, Vector3Dd *vector)
@@ -71,7 +73,7 @@ applyTranslationTransform(Material *texture, Vector3Dd *vector)
         *texture->textureTransformationInverse);
 }
 void
-TextureUtils::translateTexture(Material **texturePtr, Vector3Dd *vector)
+MaterialUtils::translateTexture(Material **texturePtr, Vector3Dd *vector)
 {
     Material *texture = *texturePtr;
     if (texture == nullptr) {
@@ -130,7 +132,7 @@ copyTextureNode(Material *dst, const Material *src)
     dst->constantFlag = false;
 }
 Material *
-TextureUtils::copyTexture(Material *texture)
+MaterialUtils::copyTexture(Material *texture)
 {
     Material *newHead = getTexture();
     *newHead = *texture;
@@ -148,7 +150,7 @@ TextureUtils::copyTexture(Material *texture)
     return newHead;
 }
 Material *
-TextureUtils::getTexture()
+MaterialUtils::getTexture()
 {
     Material *newTexture;
 
@@ -170,7 +172,7 @@ TextureUtils::getTexture()
     newTexture->bumpAmount = 0.0;
     newTexture->phase = 0.0;
     newTexture->frequency = 1.0;
-    newTexture->textureNumber = (int)NO_TEXTURE;
+    newTexture->textureNumber = NO_TEXTURE;
     newTexture->textureTransformation = nullptr;
     newTexture->textureTransformationInverse = nullptr;
     newTexture->bumpNumber = (int)NO_BUMPS;
@@ -210,7 +212,7 @@ applyRotationTransform(Material *texture, Vector3Dd *vector)
         *texture->textureTransformationInverse);
 }
 void
-TextureUtils::rotateTexture(Material **texturePtr, Vector3Dd *vector)
+MaterialUtils::rotateTexture(Material **texturePtr, Vector3Dd *vector)
 {
     Material *texture = *texturePtr;
     if (texture == nullptr) {
@@ -265,7 +267,7 @@ applyScaleTransform(Material *texture, Vector3Dd *vector)
         *texture->textureTransformationInverse);
 }
 void
-TextureUtils::scaleTexture(Material **texturePtr, Vector3Dd *vector)
+MaterialUtils::scaleTexture(Material **texturePtr, Vector3Dd *vector)
 {
     Material *texture = *texturePtr;
     if (texture == nullptr) {

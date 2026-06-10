@@ -2,16 +2,17 @@
 #define __MATERIAL_H__
 
 #include "java/util/ArrayList.h"
+#include "solidTexture/SolidTextureColorTextures.h"
+#include "solidTexture/TextureImage.h"
+#include "solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
-#include "vsdk/toolkit/media/RGBAPixelHDR.h"
-#include "solidTexture/TextureImage.h"
-#include "solidTexture/TextureUtils.h"
 
 class Material {
   public:
+    Material();
+
     java::ArrayList<Material*> layers; // Ordered list of additional texture layers
     java::ArrayList<Material*> materials; // Material map variants
     double objectReflection;
@@ -29,7 +30,7 @@ class Material {
     double textureRandomness;
     double frequency;
     double phase;
-    int textureNumber;
+    SolidTextureColorTextures textureNumber;
     int bumpNumber;
     Matrix4x4d *textureTransformation;
     Matrix4x4d *textureTransformationInverse;

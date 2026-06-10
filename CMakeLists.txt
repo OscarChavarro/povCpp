@@ -15,7 +15,6 @@ add_executable(povray
   src/app/options/CommandLineOptions.cpp
   src/app/PovrayApplication.cpp
   src/render/ColorOperations.cpp
-  src/io/pov/texture/PovColorMap.cpp
   src/environment/geometry/elements/Ray.cpp
   src/environment/geometry/elements/RayWithSegments.cpp
   src/environment/geometry/surface/parametric/ParametricPatch.cpp
@@ -45,8 +44,10 @@ add_executable(povray
   src/io/pov/parser/ParseErrorReporter.cpp
   src/io/pov/parser/ParseHelpers.cpp
   src/io/pov/parser/PrimitiveParser.cpp
-  src/io/pov/texture/TextureParser.cpp
-  src/io/pov/texture/ColorMapParser.cpp
+  src/io/pov/material/PovColorMap.cpp
+  src/io/pov/material/TextureParser.cpp
+  src/io/pov/material/ColorMapParser.cpp
+  src/io/pov/material/DefaultTextureParser.cpp
   src/io/pov/geometry/SphereParser.cpp
   src/io/pov/light/LightSourceParser.cpp
   src/io/pov/geometry/PlaneParser.cpp
@@ -61,7 +62,6 @@ add_executable(povray
   src/io/pov/geometry/ObjectParser.cpp
   src/io/pov/scene/SceneParser.cpp
   src/io/pov/scene/FogParser.cpp
-  src/io/pov/texture/DefaultTextureParser.cpp
   src/io/pov/scene/RenderSettingsParser.cpp
   src/io/pov/camera/CameraParser.cpp
   src/io/pov/scene/DeclarationParser.cpp
@@ -78,7 +78,6 @@ add_executable(povray
   src/solidTexture/ColorTextureFixture.cpp
   src/solidTexture/FixturesFacade.cpp
   src/solidTexture/MapTextureFixture.cpp
-  src/solidTexture/TextureFixture.cpp
   src/processing/polynomial/PolynomialSolver.cpp
   src/processing/polynomial/PolynomialTermCounts.cpp
   src/render/shaders/LightSamplerShader.cpp
