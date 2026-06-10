@@ -1,6 +1,5 @@
-#include "io/pov/context/ParserContext.h"
-
 #include "io/pov/lexer/ITokenStream.h"
+#include "io/pov/context/ParserContext.h"
 #include "io/pov/context/TokenizerStream.h"
 
 TokenizerStream ParserContext::sDefaultTokenStream;

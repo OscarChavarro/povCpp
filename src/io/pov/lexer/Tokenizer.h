@@ -1,17 +1,15 @@
 #ifndef __TOKENIZER_H__
 #define __TOKENIZER_H__
 
-#include <cstdio>
-
 #include "io/pov/lexer/DataFile.h"
 #include "io/pov/lexer/ReservedWord.h"
 #include "io/pov/lexer/TokenStruct.h"
 
 typedef int TOKEN;
 
-
-/* Here's where you dump the information on the current token (fm. PARSE.C) */
-
+/**
+Here's where you dump the information on the current token
+*/
 class Tokenizer {
     friend class DataFile;
   public:

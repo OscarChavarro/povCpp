@@ -1,12 +1,11 @@
-#include "io/pov/context/ParserContext.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "io/pov/parser/ParseErrorReporter.h"
-#include "io/pov/parser/ParseHelpers.h"
-#include "environment/scene/SceneFrame.h"
-
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
+#include "environment/scene/SceneFrame.h"
+#include "io/pov/context/ParserContext.h"
+#include "io/pov/parser/ParseErrorReporter.h"
+#include "io/pov/parser/ParseHelpers.h"
 
 
 

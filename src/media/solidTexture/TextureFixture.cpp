@@ -7,11 +7,11 @@ References:
 "The RenderMan Companion" (Addison Wesley).
 */
 
-#include "media/solidTexture/TextureFixture.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "media/solidTexture/Texture.h"
+#include "media/solidTexture/TextureFixture.h"
 
 /**
 Painted1: takes an x,y,z point on an object and returns the color at that point.

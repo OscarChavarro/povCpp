@@ -1,6 +1,6 @@
-#include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 

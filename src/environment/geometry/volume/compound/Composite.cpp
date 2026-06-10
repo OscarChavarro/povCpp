@@ -5,12 +5,12 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/volume/compound/Composite.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
-#include "environment/material/RendererConfiguration.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
+#include "environment/material/RendererConfiguration.h"
+#include "environment/geometry/volume/compound/Composite.h"
 
 static inline void
 linkSimpleBody(

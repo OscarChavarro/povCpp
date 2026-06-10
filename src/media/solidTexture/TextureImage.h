@@ -1,9 +1,9 @@
 #ifndef __TEXTURE_IMAGE_H__
 #define __TEXTURE_IMAGE_H__
 
-#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
 class textureImage : public RGBAImageHDRUncompressed {
   private:

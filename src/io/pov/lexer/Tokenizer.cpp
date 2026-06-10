@@ -6,13 +6,13 @@
  *
  *****************************************************************************/
 
-#include "io/pov/lexer/Tokenizer.h"
-#include "io/binaryIo/FileLocator.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include <cstdio>
 #include <cctype>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "io/binaryIo/FileLocator.h"
+#include "io/pov/lexer/Tokenizer.h"
 
 /* This module tokenizes the input file and sends the tokens created
 to the parser (the second stage).  Tokens sent to the parser contain a

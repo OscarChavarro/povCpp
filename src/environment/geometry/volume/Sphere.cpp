@@ -4,10 +4,10 @@
  *  This module implements the sphere primitive.
  * *****************************************************************************/
 
-#include "environment/geometry/volume/Sphere.h"
 #include <cmath>
 #include "common/statistics/Statistics.h"
 #include "media/solidTexture/Texture.h"
+#include "environment/geometry/volume/Sphere.h"
 
 //===========================================================================
 

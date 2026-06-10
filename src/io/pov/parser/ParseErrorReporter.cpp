@@ -1,9 +1,8 @@
-#include <cstdlib>
-
-#include "io/pov/context/ParserContext.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
+#include <cstdlib>
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/material/RendererConfiguration.h"
+#include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 
 void

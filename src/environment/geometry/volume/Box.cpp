@@ -8,12 +8,12 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/volume/Box.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/Config.h"
-#include "common/statistics/Statistics.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include <cstring>
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "common/statistics/Statistics.h"
+#include "common/Config.h"
+#include "environment/geometry/volume/Box.h"
 Methods Box::methodTable = {Box::allBoxIntersections,
     Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
     Box::rotateBox, Box::scaleBox, Box::invertBox};

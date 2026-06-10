@@ -1,8 +1,8 @@
 #ifndef __PRIOQ_TXX__
 #define __PRIOQ_TXX__
 
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
+#include "vsdk/toolkit/common/logging/Logger.h"
 
 template <class T>
 PriorityQueue<T>::PriorityQueue()

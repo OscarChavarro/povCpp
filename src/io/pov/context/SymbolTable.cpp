@@ -1,6 +1,5 @@
-#include "io/pov/context/SymbolTable.h"
-
 #include <cstring>
+#include "io/pov/context/SymbolTable.h"
 
 SymbolTable::SymbolTable()
 {

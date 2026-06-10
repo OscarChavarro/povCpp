@@ -1,7 +1,7 @@
-#include "render/shaders/BlinnPhongSpecularShader.h"
+#include <cmath>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include <cmath>
+#include "render/shaders/BlinnPhongSpecularShader.h"
 
 void
 BlinnPhongSpecularShader::shade(Texture *texture, RayWithSegments *lightSourceRay,

@@ -1,8 +1,8 @@
 #ifndef __GIF_FORMAT_H__
 #define __GIF_FORMAT_H__
 
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "java/io/FileInputStream.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 
 class GifFormat {
   public:

@@ -9,16 +9,15 @@ References:
 "The RenderMan Companion" (Addison Wesley).
 */
 
-#include <cstdlib>
-
-#include "java/util/ArrayList.txx"
-#include "media/solidTexture/Texture.h"
-#include "media/solidTexture/SolidTextureColorTextures.h"
-#include "media/solidTexture/SolidTextureBumpyTextures.h"
-#include "common/statistics/SolidTextureStatistics.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include <cstdio>
+#include <cstdlib>
+#include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "common/statistics/SolidTextureStatistics.h"
+#include "media/solidTexture/SolidTextureBumpyTextures.h"
+#include "media/solidTexture/SolidTextureColorTextures.h"
+#include "media/solidTexture/Texture.h"
 
 static Texture *defaultTextureInstance;
 static double *sinTableInstance;

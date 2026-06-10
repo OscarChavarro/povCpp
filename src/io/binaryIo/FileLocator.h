@@ -2,10 +2,9 @@
 #define __FILE_LOCATOR_H__
 
 #include <cstdio>
-
-#include "java/util/ArrayList.h"
-#include "java/lang/String.h"
 #include "java/io/FileInputStream.h"
+#include "java/lang/String.h"
+#include "java/util/ArrayList.h"
 
 class FileLocator {
   public:

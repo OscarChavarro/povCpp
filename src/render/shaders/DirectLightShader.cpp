@@ -1,18 +1,18 @@
-#include "render/shaders/DirectLightShader.h"
-#include "render/shaders/TraceService.h"
 #include "common/statistics/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/Intersection.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/light/Light.h"
 #include "environment/material/RendererConfiguration.h"
+#include "environment/light/Light.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
+#include "render/shaders/DirectLightShader.h"
 #include "render/shaders/LambertShader.h"
 #include "render/shaders/LightSamplerShader.h"
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
+#include "render/shaders/TraceService.h"
 
 
 static constexpr double SHADOW_TOLERANCE = 0.05;

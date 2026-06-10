@@ -2,13 +2,11 @@
 #define __TEXTURE_H__
 
 #include "java/util/ArrayList.h"
-
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/media/RGBAPixelHDR.h"
-
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
+#include "vsdk/toolkit/media/RGBAPixelHDR.h"
 #include "media/solidTexture/TextureImage.h"
 #include "media/solidTexture/TextureUtils.h"
 

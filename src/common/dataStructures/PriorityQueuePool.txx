@@ -1,10 +1,9 @@
 #ifndef __PRIORITY_QUEUE_POOL_TXX__
 #define __PRIORITY_QUEUE_POOL_TXX__
 
-#include "vsdk/toolkit/common/logging/Logger.h"
-
 #include <cstdio>
 #include <cstdlib>
+#include "vsdk/toolkit/common/logging/Logger.h"
 
 template <class T>
 PriorityQueue<T> *PriorityQueuePool<T>::head = nullptr;

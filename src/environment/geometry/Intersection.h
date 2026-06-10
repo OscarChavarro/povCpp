@@ -1,8 +1,8 @@
 #ifndef __Intersection
 #define __Intersection
 
-#include "common/dataStructures/PriorityQueueNode.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/dataStructures/PriorityQueueNode.h"
 
 class SimpleBody;
 class Geometry;

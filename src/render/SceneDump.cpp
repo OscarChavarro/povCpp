@@ -1,8 +1,8 @@
-#include "render/SceneDump.h"
-#include "render/RenderEngine.h"
-#include "environment/geometry/SimpleBody.h"
-#include "media/solidTexture/Texture.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "media/solidTexture/Texture.h"
+#include "environment/geometry/SimpleBody.h"
+#include "render/RenderEngine.h"
+#include "render/SceneDump.h"
 
 void dumpSceneStructure(FILE *f)
 {

@@ -1,6 +1,6 @@
-#include "render/shaders/ExponentialFogShader.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include <cmath>
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "render/shaders/ExponentialFogShader.h"
 
 void
 ExponentialFogShader::shade(double distance, ColorRgba *fogColor, double fogDistance,

@@ -1,10 +1,10 @@
 #ifndef __IFF_FORMAT_H__
 #define __IFF_FORMAT_H__
 
-#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "io/image/ChunkHeader.h"
 #include "java/io/FileInputStream.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
+#include "io/image/ChunkHeader.h"
 
 class IffFormat {
   public:
