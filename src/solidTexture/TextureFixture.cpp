@@ -1,6 +1,6 @@
 /**
 Fill-in-the-blank pre-programmed texture functions for easy modification and testing.
-Create new experimental textures here before promoting them to colorTextureFixture.
+Create new experimental textures here before promoting them to ColorTextureFixture.
 
 References:
 [PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
@@ -10,15 +10,15 @@ References:
 #include <cstdio>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "media/solidTexture/Texture.h"
-#include "media/solidTexture/TextureFixture.h"
+#include "solidTexture/Texture.h"
+#include "solidTexture/TextureFixture.h"
 
 /**
 Painted1: takes an x,y,z point on an object and returns the color at that point.
-See colorTextureFixture for similar finished textures (granite, agate, marble, etc.).
+See ColorTextureFixture for similar finished textures (granite, agate, marble, etc.).
 */
 void
-textureFixture::painted1(
+TextureFixture::painted1(
     double x, double y, double z, Texture *texture, ColorRgba *color)
 {
 
@@ -36,10 +36,10 @@ textureFixture::painted1(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        textureUtils::instance().DNoise(&colorVector, x, y, z);
-        temp = textureUtils::instance().Noise(colorVector.x() * 4 * scale,
+        TextureUtils::instance().DNoise(&colorVector, x, y, z);
+        temp = TextureUtils::instance().Noise(colorVector.x() * 4 * scale,
             colorVector.y() * 4 * scale, colorVector.z() * 4 * scale);
-        temp = textureUtils::instance().fabsInline(temp);
+        temp = TextureUtils::instance().fabsInline(temp);
         rx += temp / scale;
         ry += temp / scale;
         rz += temp / scale;
@@ -48,7 +48,7 @@ textureFixture::painted1(
 
     temp = result.x();
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColor(&newColor, texture->colorMap, temp);
+        TextureUtils::instance().computeColor(&newColor, texture->colorMap, temp);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -62,7 +62,7 @@ textureFixture::painted1(
 }
 
 void
-textureFixture::painted2(
+TextureFixture::painted2(
     double x, double y, double z, Texture *texture, ColorRgba *color)
 {
     int brkindx;
@@ -75,22 +75,22 @@ textureFixture::painted2(
     // the colormap is already parsed it's easier to use it during testing.
     // If the texture works out right you can change the parser later.
     if (texture->colorMap != nullptr) {
-        textureUtils::instance().computeColor(&colour1, texture->colorMap, 0.1);
-        textureUtils::instance().computeColor(&color2, texture->colorMap, 0.9);
+        TextureUtils::instance().computeColor(&colour1, texture->colorMap, 0.1);
+        TextureUtils::instance().computeColor(&color2, texture->colorMap, 0.9);
     } else {
         colour1.setR(1.0); colour1.setG(1.0); colour1.setB(1.0); colour1.setA(0.0);
         color2.setR(0.0); color2.setG(1.0); color2.setB(0.0); color2.setA(0.0);
     }
 
     if ((turb = texture->turbulence) != 0.0) {
-        textureUtils::instance().DTurbulence(
+        TextureUtils::instance().DTurbulence(
             &textureTurbulence, x, y, z, texture->octaves);
         x += textureTurbulence.x() * turb;
         y += textureTurbulence.y() * turb;
         z += textureTurbulence.z() * turb;
     }
 
-    brkindx = (int)textureUtils::instance().floorInline(x) + (int)textureUtils::instance().floorInline(z);
+    brkindx = (int)TextureUtils::instance().floorInline(x) + (int)TextureUtils::instance().floorInline(z);
 
 
     if (brkindx & 1) {
@@ -108,7 +108,7 @@ textureFixture::painted2(
 }
 
 void
-textureFixture::painted3(
+TextureFixture::painted3(
     double x, double y, double z, Texture *texture, ColorRgba *color)
 {
     ;
@@ -116,24 +116,24 @@ textureFixture::painted3(
 
 /**
 Bumpy1: takes a point, texture, and surface normal; returns a perturbed normal.
-See bumpTextureFixture for similar finished bump textures (ripples, dents, bumps, etc.).
+See BumpTextureFixture for similar finished bump textures (ripples, dents, bumps, etc.).
 */
 void
-textureFixture::bumpy1(
+TextureFixture::bumpy1(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /** Same as bumpy1 except use VAdd for both cases of brkindex. */
 void
-textureFixture::bumpy2(
+TextureFixture::bumpy2(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }
 
 /** Same as bumpy2 except scale AFTER setting brkindex. */
 void
-textureFixture::bumpy3(
+TextureFixture::bumpy3(
     double x, double y, double z, Texture *texture, Vector3Dd *normal)
 {
 }

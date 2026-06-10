@@ -2,9 +2,9 @@
 #define __TXTCOLOR_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/solidTexture/Texture.h"
+#include "solidTexture/Texture.h"
 
-class colorTextureFixture {
+class ColorTextureFixture {
   public:
     void colorAt(
         ColorRgba *color, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance);

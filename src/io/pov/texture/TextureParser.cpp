@@ -3,11 +3,11 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "media/solidTexture/SolidTextureBitmapInterpolationTypes.h"
-#include "media/solidTexture/SolidTextureBumpyTextures.h"
-#include "media/solidTexture/SolidTextureColorTextures.h"
-#include "media/solidTexture/SolidTextureProjectionMethods.h"
-#include "media/solidTexture/TextureImage.h"
+#include "solidTexture/SolidTextureBitmapInterpolationTypes.h"
+#include "solidTexture/SolidTextureBumpyTextures.h"
+#include "solidTexture/SolidTextureColorTextures.h"
+#include "solidTexture/SolidTextureProjectionMethods.h"
+#include "solidTexture/TextureImage.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -34,7 +34,7 @@
 #include "io/pov/texture/ColorMapParser.h"
 #include "io/pov/texture/TextureParser.h"
 
-static void wireIndexedIntotextureImage(textureImage *ti, IndexedColorImageHDRUncompressed *idx)
+static void wireIndexedIntotextureImage(TextureImage *ti, IndexedColorImageHDRUncompressed *idx)
 {
     ti->setIndexedData(idx);
     ti->allocate(idx->getXSize(), idx->getYSize());
@@ -73,7 +73,7 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Texture *texture)
 Texture *
 TextureParser::copyTexture(Texture *texture)
 {
-    return textureUtils::instance().copyTexture(texture);
+    return TextureUtils::instance().copyTexture(texture);
 }
 
 void
@@ -107,7 +107,7 @@ TextureParser::parseTexture(ParserContext &ctx)
     Texture *firstTexture;
     int reg;
 
-    texture = textureUtils::instance().defaultTexture();
+    texture = TextureUtils::instance().defaultTexture();
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -473,7 +473,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = (int)SolidTextureColorTextures::IMAGEMAP_TEXTURE;
-                texture->image = new textureImage;
+                texture->image = new TextureImage;
                 if (texture->image == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate imagemap texture", ctx);
@@ -721,7 +721,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                textureUtils::instance().translateTexture(&texture, &localVector);
+                TextureUtils::instance().translateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
@@ -730,7 +730,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                textureUtils::instance().rotateTexture(&texture, &localVector);
+                TextureUtils::instance().rotateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
@@ -739,7 +739,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
-                textureUtils::instance().scaleTexture(&texture, &localVector);
+                TextureUtils::instance().scaleTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
@@ -834,7 +834,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->bumpNumber = (int)SolidTextureBumpyTextures::BUMPMAP;
-                texture->bumpImage = new textureImage;
+                texture->bumpImage = new TextureImage;
                 if (texture->bumpImage == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate bumpmap texture", ctx);
@@ -961,7 +961,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 texture->textureNumber = (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE;
-                texture->materialImage = new textureImage;
+                texture->materialImage = new TextureImage;
                 if (texture->materialImage == nullptr) {
                     ParseErrorReporter::reportError(
                         "Out of memory. Cannot allocate material map texture", ctx);

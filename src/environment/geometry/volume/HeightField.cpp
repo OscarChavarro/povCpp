@@ -18,7 +18,7 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "common/statistics/Statistics.h"
 #include "common/Config.h"
-#include "media/solidTexture/Texture.h"
+#include "solidTexture/Texture.h"
 #include "environment/geometry/volume/HeightField.h"
 
 inline int
@@ -949,7 +949,7 @@ HeightField::copyHeightfld(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            textureUtils::instance().copyTexture(newShape->Shape_Texture);
+            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -974,7 +974,7 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    textureUtils::instance().translateTexture(
+    TextureUtils::instance().translateTexture(
         &((HeightField *)object)->Shape_Texture, vector);
 }
 
@@ -994,7 +994,7 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    textureUtils::instance().rotateTexture(
+    TextureUtils::instance().rotateTexture(
         &((HeightField *)object)->Shape_Texture, vector);
 }
 
@@ -1016,7 +1016,7 @@ HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    textureUtils::instance().scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
+    TextureUtils::instance().scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
 }
 
 void

@@ -2,13 +2,13 @@
 #define __TXTMAP_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/solidTexture/Texture.h"
-#include "media/solidTexture/TextureImage.h"
+#include "solidTexture/Texture.h"
+#include "solidTexture/TextureImage.h"
 
-class mapTextureFixture {
+class MapTextureFixture {
   public:
     int map(double x, double y, double z, Texture *texture,
-        textureImage *image, double *xcoor, double *ycoor,
+        TextureImage *image, double *xcoor, double *ycoor,
         double smallTolerance);
     void imageMap(
         double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance);
@@ -20,20 +20,20 @@ class mapTextureFixture {
 
   private:
     int cylindricalImageMap(
-        double x, double y, double z, textureImage *image, double *u, double *v);
+        double x, double y, double z, TextureImage *image, double *u, double *v);
     int torusImageMap(
-        double x, double y, double z, textureImage *image, double *u, double *v);
+        double x, double y, double z, TextureImage *image, double *u, double *v);
     int sphericalImageMap(
         double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v);
     int planarImageMap(
-        double x, double y, double z, textureImage *image, double *u, double *v);
-    void noInterpolation(textureImage *image, double xcoor, double ycoor,
+        double x, double y, double z, TextureImage *image, double *u, double *v);
+    void noInterpolation(TextureImage *image, double xcoor, double ycoor,
         ColorRgba *color, int *index);
     double bilinear(double *corners, double x, double y);
     double normDist(double *corners, double x, double y);
-    void interp(textureImage *image, double xcoor, double ycoor,
+    void interp(TextureImage *image, double xcoor, double ycoor,
         ColorRgba *color, int *index);
-    void imageColorAt(textureImage *image, double xcoor, double ycoor,
+    void imageColorAt(TextureImage *image, double xcoor, double ycoor,
         ColorRgba *color, int *index);
     double pythagoreanSq(double a, double b);
 };
