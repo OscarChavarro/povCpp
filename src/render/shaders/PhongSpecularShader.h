@@ -2,7 +2,7 @@
 #define __PHONG_SPECULAR_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/Material.h"
+#include "environment/material/Material.h"
 
 class RayWithSegments;
 class ColorRgba;

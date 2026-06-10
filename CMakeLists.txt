@@ -71,7 +71,7 @@ add_executable(povray
   src/io/binaryIo/FileLocator.cpp
   src/io/pov/lexer/Tokenizer.cpp
   src/solidTexture/TextureUtils.cpp
-  src/solidTexture/Material.cpp
+  src/environment/material/Material.cpp
   src/environment/material/MaterialUtils.cpp
   src/solidTexture/ProceduralNoise.cpp
   src/solidTexture/BumpTextureFixture.cpp
