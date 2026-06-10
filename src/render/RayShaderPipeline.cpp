@@ -1,7 +1,7 @@
 #include <cstdio>
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/ColorTextureFixture.h"
+#include "solidTexture/FixturesFacade.h"
 #include "solidTexture/MapTextureFixture.h"
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "environment/geometry/GeometryConstants.h"
@@ -56,7 +56,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
 
     MapTextureFixture mapFixture;
-    ColorTextureFixture colorFixture(&textureUtils->proceduralNoise(), textureUtils);
+    FixturesFacade fixturesFacade(&textureUtils->proceduralNoise(), textureUtils);
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
@@ -66,8 +66,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->textureNumber == (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE) {
-        texture = mapFixture.materialMap(
-            &rayIntersection->Point, texture, GeometryConstants::Small_Tolerance);
+        Texture *mappedTexture = mapFixture.materialMap(
+            &rayIntersection->Point, texture->textureTransformationInverse,
+            texture->materialImage, &texture->materials,
+            GeometryConstants::Small_Tolerance);
+        if (mappedTexture != nullptr) {
+            texture = mappedTexture;
+        }
     }
 
     /* If this is just a shadow ray and we're rendering low quality, then return
@@ -97,8 +102,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
         } else {
-            colorFixture.colorAt(
-                &surfaceColor, tempTexture, &rayIntersection->Point, GeometryConstants::Small_Tolerance);
+            fixturesFacade.colorAt(
+                &surfaceColor, tempTexture->textureNumber,
+                tempTexture->textureTransformationInverse, tempTexture->image,
+                tempTexture->color1, tempTexture->color2, tempTexture->turbulence,
+                tempTexture->octaves, tempTexture->colorMap,
+                tempTexture->textureGradient, tempTexture->mortar,
+                &rayIntersection->Point, GeometryConstants::Small_Tolerance);
         }
         /* We don't need to compute the lighting characteristics for shadow
          * rays. */

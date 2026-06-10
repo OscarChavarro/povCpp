@@ -25,7 +25,7 @@ See ColorTextureFixture for similar finished textures (granite, agate, marble, e
 */
 void
 TextureFixture::painted1(
-    double x, double y, double z, Texture *texture, ColorRgba *color)
+    double x, double y, double z, RGBAColorPalette *colorMap, ColorRgba *color)
 {
 
     // Swirled()
@@ -53,8 +53,8 @@ TextureFixture::painted1(
     result = Vector3Dd(rx, ry, rz);
 
     temp = result.x();
-    if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&newColor, texture->colorMap, temp);
+    if (colorMap != nullptr) {
+        TextureUtils::instance().computeColor(&newColor, colorMap, temp);
         color->setR(color->getR() + newColor.getR());
         color->setG(color->getG() + newColor.getG());
         color->setB(color->getB() + newColor.getB());
@@ -69,7 +69,8 @@ TextureFixture::painted1(
 
 void
 TextureFixture::painted2(
-    double x, double y, double z, Texture *texture, ColorRgba *color)
+    double x, double y, double z, double turbulence, int octaves,
+    RGBAColorPalette *colorMap, ColorRgba *color)
 {
     int brkindx;
     double turb;
@@ -80,17 +81,17 @@ TextureFixture::painted2(
     // You could change the parser to take two colors after PAINTED2, but since
     // the colormap is already parsed it's easier to use it during testing.
     // If the texture works out right you can change the parser later.
-    if (texture->colorMap != nullptr) {
-        TextureUtils::instance().computeColor(&colour1, texture->colorMap, 0.1);
-        TextureUtils::instance().computeColor(&color2, texture->colorMap, 0.9);
+    if (colorMap != nullptr) {
+        TextureUtils::instance().computeColor(&colour1, colorMap, 0.1);
+        TextureUtils::instance().computeColor(&color2, colorMap, 0.9);
     } else {
         colour1.setR(1.0); colour1.setG(1.0); colour1.setB(1.0); colour1.setA(0.0);
         color2.setR(0.0); color2.setG(1.0); color2.setB(0.0); color2.setA(0.0);
     }
 
-    if ((turb = texture->turbulence) != 0.0) {
+    if ((turb = turbulence) != 0.0) {
         proceduralNoise->dTurbulence(
-            &textureTurbulence, x, y, z, texture->octaves);
+            &textureTurbulence, x, y, z, octaves);
         x += textureTurbulence.x() * turb;
         y += textureTurbulence.y() * turb;
         z += textureTurbulence.z() * turb;
@@ -115,7 +116,7 @@ TextureFixture::painted2(
 
 void
 TextureFixture::painted3(
-    double x, double y, double z, Texture *texture, ColorRgba *color)
+    double x, double y, double z, ColorRgba *color)
 {
     ;
 }

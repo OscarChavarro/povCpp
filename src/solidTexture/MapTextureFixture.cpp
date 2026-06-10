@@ -21,18 +21,18 @@ Specialized projections (cylindrical, spherical, torus) by Alexander Enzmann.
 */
 void
 MapTextureFixture::imageMap(
-    double x, double y, double z, Texture *texture, ColorRgba *color, double smallTolerance)
+    double x, double y, double z, TextureImage *image, ColorRgba *color,
+    double smallTolerance)
 {
     double xcoor = 0.0;
     double ycoor = 0.0;
     int regNumber;
 
-    if (map(x, y, z, texture, texture->image, &xcoor, &ycoor, smallTolerance)) {
+    if (map(x, y, z, image, &xcoor, &ycoor, smallTolerance)) {
         color->setR(1.0); color->setG(1.0); color->setB(1.0); color->setA(1.0);
         return;
     }
-    imageColorAt(
-        texture->image, xcoor, ycoor, color, &regNumber);
+    imageColorAt(image, xcoor, ycoor, color, &regNumber);
 }
 
 /**
@@ -40,7 +40,10 @@ Takes an intersection point and a texture; returns a new texture based on
 the index/color of that point in an image/materials map. CdW 7/91.
 */
 Texture *
-MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, double smallTolerance)
+MapTextureFixture::materialMap(
+    Vector3Dd *intersectionPoint, Matrix4x4d *textureTransformationInverse,
+    TextureImage *materialImage, java::ArrayList<Texture *> *materials,
+    double smallTolerance)
 {
     Vector3Dd transformedPoint;
     double x;
@@ -53,8 +56,8 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
     int materialNumber = 0;
     color.setR(0.0); color.setG(0.0); color.setB(0.0); color.setA(0.0);
 
-    if (texture->textureTransformation) {
-        transformedPoint = texture->textureTransformationInverse->transpose().multiply(
+    if (textureTransformationInverse) {
+        transformedPoint = textureTransformationInverse->transpose().multiply(
             *intersectionPoint);
     } else {
         transformedPoint = *intersectionPoint;
@@ -65,33 +68,32 @@ MapTextureFixture::materialMap(Vector3Dd *intersectionPoint, Texture *texture, d
     z = transformedPoint.z();
 
     // now we have transformed x, y, z: use image mapping to determine texture index
-    if (map(x, y, z, texture, texture->materialImage, &xcoor, &ycoor,
-            smallTolerance)) {
+    if (map(x, y, z, materialImage, &xcoor, &ycoor, smallTolerance)) {
         materialNumber = 0;
     } else {
-        imageColorAt(
-            texture->materialImage, xcoor, ycoor, &color, &regNumber);
+        imageColorAt(materialImage, xcoor, ycoor, &color, &regNumber);
 
-        if (texture->materialImage->getIndexedData() == nullptr) {
+        if (materialImage->getIndexedData() == nullptr) {
             materialNumber = (int)color.getR() * 255;
         } else {
             materialNumber = regNumber;
         }
     }
 
-    int count = (int)texture->materials.size();
+    int count = (int)materials->size();
     if (count > 0 && materialNumber >= count) {
         materialNumber %= count;
     }
     if (materialNumber < count) {
-        return texture->materials[materialNumber];
+        return (*materials)[materialNumber];
     }
-    return texture;
+    return nullptr;
 }
 
 void
 MapTextureFixture::bumpMap(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal, double smallTolerance)
+    double x, double y, double z, TextureImage *bumpImage, double bumpAmount,
+    Vector3Dd *normal, double smallTolerance)
 {
     double xcoor = 0.0;
     double ycoor = 0.0;
@@ -117,61 +119,59 @@ MapTextureFixture::bumpMap(
     // going to have to change this
     // need to know if bump point is off of image for all 3 points
 
-    if (map(
-            x, y, z, texture, texture->bumpImage, &xcoor, &ycoor, smallTolerance)) {
+    if (map(x, y, z, bumpImage, &xcoor, &ycoor, smallTolerance)) {
         color.setR(1.0); color.setG(1.0); color.setB(1.0); color.setA(1.0);
         index = 255;
         return;
     }
-    imageColorAt(
-        texture->bumpImage, xcoor, ycoor, &color, &index);
+    imageColorAt(bumpImage, xcoor, ycoor, &color, &index);
 
     xcoor--;
     ycoor++;
     if (xcoor < 0.0) {
-        xcoor += (double)texture->bumpImage->getXSize();
-    } else if (xcoor >= texture->bumpImage->getXSize()) {
-        xcoor -= (double)texture->bumpImage->getXSize();
+        xcoor += (double)bumpImage->getXSize();
+    } else if (xcoor >= bumpImage->getXSize()) {
+        xcoor -= (double)bumpImage->getXSize();
     }
     if (ycoor < 0.0) {
-        ycoor += (double)texture->bumpImage->getYSize();
-    } else if (ycoor >= (double)texture->bumpImage->getYSize()) {
-        ycoor -= (double)texture->bumpImage->getYSize();
+        ycoor += (double)bumpImage->getYSize();
+    } else if (ycoor >= (double)bumpImage->getYSize()) {
+        ycoor -= (double)bumpImage->getYSize();
     }
     imageColorAt(
-        texture->bumpImage, xcoor, ycoor, &color2, &index2);
+        bumpImage, xcoor, ycoor, &color2, &index2);
 
     xcoor += 2.0;
     if (xcoor < 0.0) {
-        xcoor += (double)texture->bumpImage->getXSize();
-    } else if (xcoor >= texture->bumpImage->getXSize()) {
-        xcoor -= (double)texture->bumpImage->getXSize();
+        xcoor += (double)bumpImage->getXSize();
+    } else if (xcoor >= bumpImage->getXSize()) {
+        xcoor -= (double)bumpImage->getXSize();
     }
 
     imageColorAt(
-        texture->bumpImage, xcoor, ycoor, &color3, &index3);
+        bumpImage, xcoor, ycoor, &color3, &index3);
 
 
-    if (texture->bumpImage->getIndexedData() == nullptr ||
-        texture->bumpImage->getUseColorFlag()) {
+    if (bumpImage->getIndexedData() == nullptr ||
+        bumpImage->getUseColorFlag()) {
         p1 = Vector3Dd(0,
-            texture->bumpAmount *
+            bumpAmount *
                 (0.229 * color.getR() + 0.587 * color.getG() + 0.114 * color.getB()),
             0);
         p2 = Vector3Dd(0,
-            texture->bumpAmount *
+            bumpAmount *
                 (0.229 * color2.getR() + 0.587 * color2.getG() +
                     0.114 * color2.getB()),
             1);
         p3 = Vector3Dd(1,
-            texture->bumpAmount *
+            bumpAmount *
                 (0.229 * color3.getR() + 0.587 * color3.getG() +
                     0.114 * color3.getB()),
             1);
     } else {
-        p1 = Vector3Dd(0, texture->bumpAmount * index, 0);
-        p2 = Vector3Dd(0, texture->bumpAmount * index2, 1);
-        p3 = Vector3Dd(1, texture->bumpAmount * index3, 1);
+        p1 = Vector3Dd(0, bumpAmount * index, 0);
+        p2 = Vector3Dd(0, bumpAmount * index2, 1);
+        p3 = Vector3Dd(1, bumpAmount * index3, 1);
     }
     // we have points 1,2,3 for a triangle; compute the surface normal
     xprime = p1.subtract(p2);
@@ -400,17 +400,9 @@ MapTextureFixture::planarImageMap(
 
 /** Returns 1 if no color found at this point (invisible), 0 if a color was mapped. */
 int
-MapTextureFixture::map(double x, double y, double z, Texture *texture,
-    TextureImage *image, double *xcoor, double *ycoor, double smallTolerance)
+MapTextureFixture::map(double x, double y, double z, TextureImage *image,
+    double *xcoor, double *ycoor, double smallTolerance)
 {
-    // Disabled: turbulence on image maps causes problems; left out for this release.
-    // if ((turb = texture->turbulence) != 0.0) {
-    //     DTurbulence(&textureTurbulence, x, y, z, texture->octaves);
-    //     x += textureTurbulence.x() * turb;
-    //     y += textureTurbulence.y() * turb;
-    //     z += textureTurbulence.z() * turb;
-    // }
-
     // Now determine which mapper to use.
     switch (image->getMapType()) {
     case (int)SolidTextureProjectionMethods::PLANAR_MAP:
