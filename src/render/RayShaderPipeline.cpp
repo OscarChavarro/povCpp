@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "solidTexture/FixturesFacade.h"
@@ -8,6 +9,7 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/RendererConfiguration.h"
+#include "environment/scene/SceneFrame.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
 #include "render/shaders/LocalSurfaceShader.h"
@@ -15,6 +17,7 @@
 #include "render/shaders/TransmissionRefractionShader.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
+
 
 void
 RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
@@ -63,16 +66,18 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->textureNumber == (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE) {
-        int materialIndex = mapFixture.materialMap(
+        Material *mappedTexture = mapFixture.materialMap(
             &rayIntersection->Point, texture->textureTransformationInverse,
-            texture->materialImage, texture->materials.size(),
+            texture->materialImage, &texture->materials,
             GeometryConstants::Small_Tolerance);
-        if (materialIndex != -1) {
-            texture = texture->materials.get(materialIndex);
+        if (mappedTexture != nullptr) {
+            texture = mappedTexture;
         }
     }
 
-    // If this is just a shadow ray and we're rendering low quality, then return
+    /* If this is just a shadow ray and we're rendering low quality, then return
+     */
+
     if (shadowRay && (RenderingConfiguration::global().quality <= 5)) {
         return;
     }
