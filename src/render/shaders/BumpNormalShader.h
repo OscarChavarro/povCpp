@@ -2,7 +2,7 @@
 #define __BUMP_NORMAL_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/solidTexture/Texture.h"
+#include "solidTexture/Texture.h"
 
 class BumpNormalShader {
 public:

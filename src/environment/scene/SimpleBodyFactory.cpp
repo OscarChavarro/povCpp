@@ -1,5 +1,5 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "media/solidTexture/TextureUtils.h"
+#include "solidTexture/TextureUtils.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/scene/SimpleBodyFactory.h"
@@ -25,7 +25,7 @@ SimpleBodyFactory::getObject()
     newObject->Shape = nullptr;
     newObject->boundingShapes = nullptr;
     newObject->clippingShapes = nullptr;
-    newObject->objectTexture = textureUtils::instance().defaultTexture();
+    newObject->objectTexture = TextureUtils::instance().defaultTexture();
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
     newObject->Type = GeometryOperations::OBJECT_TYPE;

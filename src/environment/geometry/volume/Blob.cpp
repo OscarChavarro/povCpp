@@ -557,7 +557,7 @@ Blob::copyBlob(SimpleBody *object)
 
     /* Copy any associated texture */
     if (blob->Shape_Texture != nullptr) {
-        blob->Shape_Texture = textureUtils::instance().copyTexture(blob->Shape_Texture);
+        blob->Shape_Texture = TextureUtils::instance().copyTexture(blob->Shape_Texture);
     }
 
     return (blob);
@@ -581,7 +581,7 @@ Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    textureUtils::instance().translateTexture(&((Blob *)object)->Shape_Texture, vector);
+    TextureUtils::instance().translateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
@@ -599,7 +599,7 @@ Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    textureUtils::instance().rotateTexture(&((Blob *)object)->Shape_Texture, vector);
+    TextureUtils::instance().rotateTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void
@@ -619,7 +619,7 @@ Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    textureUtils::instance().scaleTexture(&((Blob *)object)->Shape_Texture, vector);
+    TextureUtils::instance().scaleTexture(&((Blob *)object)->Shape_Texture, vector);
 }
 
 void

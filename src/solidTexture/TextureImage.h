@@ -5,7 +5,7 @@
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
-class textureImage : public RGBAImageHDRUncompressed {
+class TextureImage : public RGBAImageHDRUncompressed {
   private:
     int mapType = 0;
     int interpolationType = 0;

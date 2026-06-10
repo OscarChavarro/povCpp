@@ -1013,7 +1013,7 @@ ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
     ParametricBiCubicPatch::precomputePatchValues(newShape);
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            textureUtils::instance().copyTexture(newShape->Shape_Texture);
+            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (void *)(newShape);
@@ -1033,7 +1033,7 @@ ParametricBiCubicPatch::translateBicubicPatch(
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    textureUtils::instance().translateTexture(
+    TextureUtils::instance().translateTexture(
         &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 
@@ -1055,7 +1055,7 @@ ParametricBiCubicPatch::rotateBicubicPatch(
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    textureUtils::instance().rotateTexture(
+    TextureUtils::instance().rotateTexture(
         &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 
@@ -1072,7 +1072,7 @@ ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    textureUtils::instance().scaleTexture(
+    TextureUtils::instance().scaleTexture(
         &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 

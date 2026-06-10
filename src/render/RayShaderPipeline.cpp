@@ -1,9 +1,9 @@
 #include <cstdio>
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "media/solidTexture/ColorTextureFixture.h"
-#include "media/solidTexture/MapTextureFixture.h"
-#include "media/solidTexture/SolidTextureColorTextures.h"
+#include "solidTexture/ColorTextureFixture.h"
+#include "solidTexture/MapTextureFixture.h"
+#include "solidTexture/SolidTextureColorTextures.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
@@ -55,8 +55,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
 
-    mapTextureFixture mapFixture;
-    colorTextureFixture colorFixture;
+    MapTextureFixture mapFixture;
+    ColorTextureFixture colorFixture;
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
     if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {

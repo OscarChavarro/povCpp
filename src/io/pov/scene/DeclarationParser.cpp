@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/solidTexture/Texture.h"
-#include "media/solidTexture/TextureUtils.h"
+#include "solidTexture/Texture.h"
+#include "solidTexture/TextureUtils.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -194,7 +194,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::TEXTURE_TOKEN:
-                            localTexture = textureUtils::instance().defaultTexture();
+                            localTexture = TextureUtils::instance().defaultTexture();
                             localTexture = TextureParser::parseTexture(ctx);
                             if (localTexture->constantFlag) {
                                 localTexture =

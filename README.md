@@ -73,7 +73,7 @@ The diagram below was generated directly from the source code using
 | **IO — Scene parser** | `src/io/pov` | Lexer (`Tokenizer`), recursive-descent parser, AST lowering into the scene model |
 | **IO — Image formats** | `src/io/image` | Reading and writing TGA, GIF, IFF, raw dump |
 | **Environment** | `src/environment` | Scene graph (`SceneFrame`), geometry primitives, camera, lights, CSG tree |
-| **Media** | `src/media` | Solid texture evaluation, indexed palette images, image-map sampling |
+| **Solid textures** | `src/solidTexture` | Solid texture evaluation, indexed palette images, image-map sampling |
 | **Render** | `src/render` | `RenderEngine` drives scanline rendering; `RayShaderPipeline` chains per-intersection shaders |
 | **Shaders** | `src/render/shaders` | One class per shading effect (ambient, Lambert, Phong, shadow, reflection, refraction, fog, bump) |
 | **Processing** | `src/processing` | Sturm-sequence polynomial root solver used by quartics and polys |

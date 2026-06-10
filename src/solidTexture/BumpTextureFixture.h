@@ -2,9 +2,9 @@
 #define __TXTBUMP_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/solidTexture/Texture.h"
+#include "solidTexture/Texture.h"
 
-class bumpTextureFixture {
+class BumpTextureFixture {
   public:
     void bumps(double x, double y, double z, Texture *texture, Vector3Dd *normal);
     void dents(double x, double y, double z, Texture *texture, Vector3Dd *normal);

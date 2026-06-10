@@ -2,7 +2,7 @@
 #define __MIRROR_REFLECTION_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/solidTexture/Texture.h"
+#include "solidTexture/Texture.h"
 
 class RayWithSegments;
 class ColorRgba;

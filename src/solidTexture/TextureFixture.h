@@ -2,9 +2,9 @@
 #define __TXTTEST_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "media/solidTexture/Texture.h"
+#include "solidTexture/Texture.h"
 
-class textureFixture {
+class TextureFixture {
   public:
     void painted1(double x, double y, double z, Texture *texture, ColorRgba *color);
     void painted2(double x, double y, double z, Texture *texture, ColorRgba *color);
