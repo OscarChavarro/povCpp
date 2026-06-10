@@ -4,18 +4,19 @@ Supports planar, spherical, cylindrical, and torus UV projections.
 */
 
 #include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "solidTexture/MapTextureFixture.h"
 #include "solidTexture/SolidTextureBitmapInterpolationTypes.h"
 #include "solidTexture/SolidTextureProjectionMethods.h"
-#include "solidTexture/Material.h"
+#include "solidTexture/MapTextureFixture.h"
 
 /**
 2-D to 3-D procedural texture mapping of a bitmap onto an object.
-Planar method by DKB and AAC: transform, find 2-D coords from 3-D, return pixel color.
-Specialized projections (cylindrical, spherical, torus) by Alexander Enzmann.
+Planar method by DKB and AAC: transform, find 2-D coords from 3-D, return pixel
+color. Specialized projections (cylindrical, spherical, torus) by Alexander
+Enzmann.
 */
 void
 MapTextureFixture::imageMap(
@@ -37,12 +38,12 @@ MapTextureFixture::imageMap(
 Takes an intersection point and a texture; returns a new texture based on
 the index/color of that point in an image/materials map.
 */
-Material *
+int
 MapTextureFixture::materialMap(
     Vector3Dd *intersectionPoint,
     Matrix4x4d *textureTransformationInverse,
     TextureImage *materialImage,
-    java::ArrayList<Material *> *materials,
+    int numberOfMaterials,
     double smallTolerance)
 {
     Vector3Dd transformedPoint;
@@ -80,14 +81,13 @@ MapTextureFixture::materialMap(
         }
     }
 
-    int count = (int)materials->size();
-    if (count > 0 && materialNumber >= count) {
-        materialNumber %= count;
+    if (numberOfMaterials > 0 && materialNumber >= numberOfMaterials) {
+        materialNumber %= numberOfMaterials;
     }
-    if (materialNumber < count) {
-        return materials->get(materialNumber);
+    if (materialNumber < numberOfMaterials) {
+        return materialNumber;
     }
-    return nullptr;
+    return -1;
 }
 
 void

@@ -5,6 +5,8 @@
 #include "solidTexture/MapTextureFixture.h"
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "solidTexture/ProceduralNoise.h"
+#include "solidTexture/TextureUtils.h"
+#include "solidTexture/Material.h"
 
 class TextureFixture {
   public:

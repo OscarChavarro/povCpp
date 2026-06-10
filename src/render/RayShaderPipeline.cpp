@@ -66,12 +66,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->textureNumber == (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE) {
-        Material *mappedTexture = mapFixture.materialMap(
+        int index = mapFixture.materialMap(
             &rayIntersection->Point, texture->textureTransformationInverse,
-            texture->materialImage, &texture->materials,
+            texture->materialImage, texture->materials.size(),
             GeometryConstants::Small_Tolerance);
-        if (mappedTexture != nullptr) {
-            texture = mappedTexture;
+        if (index != -1) {
+            texture = texture->materials.get(index);
         }
     }
 
