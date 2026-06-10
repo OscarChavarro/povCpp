@@ -38,23 +38,27 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Texture *texture,
     switch (texture->bumpNumber) {
 
     case (int)SolidTextureBumpyTextures::WAVES:
-        bumpFixture.waves(x, y, z, texture, newNormal);
+        bumpFixture.waves(
+            x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
+            newNormal);
         break;
 
     case (int)SolidTextureBumpyTextures::RIPPLES:
-        bumpFixture.ripples(x, y, z, texture, newNormal);
+        bumpFixture.ripples(
+            x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
+            newNormal);
         break;
 
     case (int)SolidTextureBumpyTextures::WRINKLES:
-        bumpFixture.wrinkles(x, y, z, texture, newNormal);
+        bumpFixture.wrinkles(x, y, z, texture->bumpAmount, newNormal);
         break;
 
     case (int)SolidTextureBumpyTextures::BUMPS:
-        bumpFixture.bumps(x, y, z, texture, newNormal);
+        bumpFixture.bumps(x, y, z, texture->bumpAmount, newNormal);
         break;
 
     case (int)SolidTextureBumpyTextures::DENTS:
-        bumpFixture.dents(x, y, z, texture, newNormal);
+        bumpFixture.dents(x, y, z, texture->bumpAmount, newNormal);
         break;
 
     case (int)SolidTextureBumpyTextures::BUMPY1:

@@ -24,7 +24,8 @@ Implements: normal += wave(point - center), wave(v) = direction(v) * cycloid(nor
 */
 void
 BumpTextureFixture::ripples(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, double frequency,
+    double phase, Vector3Dd *normal)
 {
     int i;
     Vector3Dd point;
@@ -41,8 +42,8 @@ BumpTextureFixture::ripples(
         }
 
         length = sqrt(length);
-        index = length * texture->frequency + texture->phase;
-        scalar = proceduralNoise->cycloidal(index) * texture->bumpAmount;
+        index = length * frequency + phase;
+        scalar = proceduralNoise->cycloidal(index) * bumpAmount;
 
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
@@ -56,7 +57,8 @@ Implements: wave(v) = direction((point-c)*f)/f with per-source frequency scaling
 */
 void
 BumpTextureFixture::waves(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, double frequency,
+    double phase, Vector3Dd *normal)
 {
     int i;
     Vector3Dd point;
@@ -74,10 +76,10 @@ BumpTextureFixture::waves(
         }
 
         length = sqrt(length);
-        index = (length * texture->frequency * TextureUtils::instance().waveFrequency()[i]) + texture->phase;
+        index = (length * frequency * TextureUtils::instance().waveFrequency()[i]) + phase;
         sinValue = proceduralNoise->cycloidal(index);
 
-        scalar = sinValue * texture->bumpAmount / TextureUtils::instance().waveFrequency()[i];
+        scalar = sinValue * bumpAmount / TextureUtils::instance().waveFrequency()[i];
         point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
         *normal = normal->add(point);
     }
@@ -90,17 +92,17 @@ Implements: normal += DNoise(point).
 */
 void
 BumpTextureFixture::bumps(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, Vector3Dd *normal)
 {
     Vector3Dd bumpTurb;
 
-    if (texture->bumpAmount == 0.0) {
+    if (bumpAmount == 0.0) {
         return; // why are we here?
     }
 
 
     proceduralNoise->dNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
-    bumpTurb = bumpTurb.multiply(texture->bumpAmount);
+    bumpTurb = bumpTurb.multiply(bumpAmount);
     *normal = normal->add(bumpTurb); // displace "normal"
     *normal = (*normal).normalizedFast(); // normalize normal!
 }
@@ -111,18 +113,18 @@ Similar to bumps but uses Noise() to gate the amount of DNoise() perturbation.
 */
 void
 BumpTextureFixture::dents(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, Vector3Dd *normal)
 {
     Vector3Dd stuccoTurb;
     double noise;
 
-    if (texture->bumpAmount == 0.0) {
+    if (bumpAmount == 0.0) {
         return; // why are we here?
     }
 
     noise = proceduralNoise->noise(x, y, z);
 
-    noise = noise * noise * noise * texture->bumpAmount;
+    noise = noise * noise * noise * bumpAmount;
 
 
     proceduralNoise->dNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
@@ -140,14 +142,14 @@ Vector-valued turbulence: sum over octaves of |DNoise(p*scale)| / scale.
 */
 void
 BumpTextureFixture::wrinkles(
-    double x, double y, double z, Texture *texture, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, Vector3Dd *normal)
 {
     int i;
     double scale = 1.0;
     Vector3Dd result;
     Vector3Dd value;
 
-    if (texture->bumpAmount == 0.0) {
+    if (bumpAmount == 0.0) {
         return; // why are we here?
     }
 
@@ -163,7 +165,7 @@ BumpTextureFixture::wrinkles(
     }
     result = Vector3Dd(rx, ry, rz);
 
-    result = result.multiply(texture->bumpAmount);
+    result = result.multiply(bumpAmount);
     *normal = normal->add(result); // displace "normal"
     *normal = (*normal).normalizedFast(); // normalize normal!
 }
