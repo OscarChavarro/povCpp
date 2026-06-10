@@ -12,15 +12,7 @@
 
 class Texture {
   public:
-    static constexpr int MINX = -10000; // Ridiculously large scaling offset to ensure positive lattice coords
-    static constexpr int MINY = MINX;
-    static constexpr int MINZ = MINX;
-    static constexpr int MAXSIZE = 267;
-    static constexpr long RNDMASK = 0x7FFF;
-    static constexpr float rndDivisor = static_cast<float>(RNDMASK);
     static constexpr int NUMBER_OF_WAVES = 10;
-    static constexpr int SINTABSIZE = 1000;
-    static constexpr double realScale = (2.0 / 65535.0);
 
     java::ArrayList<Texture*> layers; // Ordered list of additional texture layers
     java::ArrayList<Texture*> materials; // Material map variants

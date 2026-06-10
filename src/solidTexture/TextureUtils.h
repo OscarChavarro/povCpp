@@ -1,8 +1,10 @@
 /**
-[PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85.
-Core Perlin noise primitives: Noise() and DNoise() functions for solid texturing.
-See Texture.cpp for detailed implementations of lattice-based interpolation,
-pseudorandom gradients via hash tables, and s-curve smoothing.
+Texture-side utilities: the global default texture, color-map sampling, the wave
+sources/frequencies used by ripple/wave bump textures, and texture-space transforms
+(translate/rotate/scale/copy) for POV-Ray material descriptors.
+
+The Perlin noise primitives (Noise, DNoise, Turbulence, DTurbulence, cycloidal,
+triangleWave) live in ProceduralNoise, accessible via proceduralNoise().
 */
 
 #ifndef __TEXTURE_UTILS_H__
@@ -10,40 +12,25 @@ pseudorandom gradients via hash tables, and s-curve smoothing.
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "solidTexture/ProceduralNoise.h"
 
 class RGBAColorPalette;
 class Texture;
-class SolidTextureStatistics;
 
 class TextureUtils {
   public:
-    static void initialize(SolidTextureStatistics* stats);
+    static void initialize(SolidTextureStatistics *stats);
     static TextureUtils& instance();
+
+    ProceduralNoise& proceduralNoise();
 
     double floorInline(double x);
     double fabsInline(double x);
-    double sCurve(double a);
-    short hash3d(long a, long b, long c);
-    double incrSum(int m, double s, double x, double y, double z);
     Texture *&defaultTexture();
-    double *&rTable();
-    short *&hashTable();
-    double *&sinTable();
     double *waveFrequency();
     Vector3Dd *waveSources();
-    unsigned short *crcTable();
     void computeColor(ColorRgba *color, RGBAColorPalette *colorMap, double value);
     void initializeNoise(void);
-    void InitTextureTable(void);
-    void InitRTable(void);
-    int R(Vector3Dd *v);
-    int Crc16(char *buf, int count);
-    double Noise(double x, double y, double z);
-    void DNoise(Vector3Dd *result, double x, double y, double z);
-    double cycloidal(double value);
-    double triangleWave(double value);
-    double Turbulence(double x, double y, double z, int octaves);
-    void DTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
     void translateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
     void rotateTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
     void scaleTexture(Texture **Texture_Ptr, Vector3Dd *Vector);
@@ -51,9 +38,9 @@ class TextureUtils {
     Texture *getTexture();
 
   private:
-    SolidTextureStatistics* solidTextureStats_;
+    ProceduralNoise proceduralNoise_;
     static TextureUtils* inst_;
-    explicit TextureUtils(SolidTextureStatistics* stats);
+    TextureUtils(SolidTextureStatistics *stats);
 };
 
 #endif

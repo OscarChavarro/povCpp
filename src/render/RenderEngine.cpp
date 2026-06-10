@@ -33,7 +33,8 @@ int RenderEngine::sTraceLevel = 0;
 inline unsigned short
 RenderEngine::rand3dInline(int a, int b)
 {
-    return TextureUtils::instance().crcTable()[(int)(TextureUtils::instance().hashTable()[(int)(TextureUtils::instance().hashTable()[(int)(a & 0xfff)] ^ b) &
+    ProceduralNoise &noise = TextureUtils::instance().proceduralNoise();
+    return noise.crcTable()[(int)(noise.hashTable()[(int)(noise.hashTable()[(int)(a & 0xfff)] ^ b) &
                                   0xfff]) &
                   0xff];
 }

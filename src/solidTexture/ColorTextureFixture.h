@@ -2,10 +2,13 @@
 #define __TXTCOLOR_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "solidTexture/ProceduralNoise.h"
 #include "solidTexture/Texture.h"
 
 class ColorTextureFixture {
   public:
+    ColorTextureFixture(ProceduralNoise *proceduralNoise);
+
     void colorAt(
         ColorRgba *color, Texture *texture, Vector3Dd *intersectionPoint, double smallTolerance);
     void agate(double x, double y, double z, Texture *texture, ColorRgba *color);
@@ -22,6 +25,9 @@ class ColorTextureFixture {
     void wood(double x, double y, double z, Texture *texture, ColorRgba *color);
     void leopard(double x, double y, double z, Texture *texture, ColorRgba *color);
     void onion(double x, double y, double z, Texture *texture, ColorRgba *color);
+
+  private:
+    ProceduralNoise *proceduralNoise;
 };
 
 #endif
