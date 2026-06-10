@@ -24,7 +24,7 @@ SphereParser::parseSphere(ParserContext &ctx)
     Sphere *localShape;
     int constantId;
     Vector3Dd localVector;
-    Texture *localTexture;
+    Material *localTexture;
 
     localShape = nullptr;
 

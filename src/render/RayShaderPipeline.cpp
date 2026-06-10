@@ -27,8 +27,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ColorRgba surfaceColor;
     ColorRgba refractedColor;
     ColorRgba filterColor;
-    Texture *tempTexture;
-    Texture *texture;
+    Material *tempTexture;
+    Material *texture;
     Vector3Dd surfaceNormal;
     double normalDirection;
     int surface;
@@ -66,7 +66,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
     if (texture->textureNumber == (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE) {
-        Texture *mappedTexture = mapFixture.materialMap(
+        Material *mappedTexture = mapFixture.materialMap(
             &rayIntersection->Point, texture->textureTransformationInverse,
             texture->materialImage, &texture->materials,
             GeometryConstants::Small_Tolerance);

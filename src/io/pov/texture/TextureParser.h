@@ -1,19 +1,19 @@
 #ifndef __TEXTURE_PARSER_H__
 #define __TEXTURE_PARSER_H__
 
-class Texture;
+class Material;
 class ParserContext;
 
 class TextureParser {
   public:
-    static Texture *parseTexture();
-    static Texture *parseTexture(ParserContext &ctx);
-    static Texture *copyTexture(Texture *texture);
-    static void prependTextureLayers(Texture *newHead, Texture *&existingHead);
+    static Material *parseTexture();
+    static Material *parseTexture(ParserContext &ctx);
+    static Material *copyTexture(Material *texture);
+    static void prependTextureLayers(Material *newHead, Material *&existingHead);
 
   private:
     static bool shouldLogTextureState();
-    static void logTextureStateLegacy(const char *prefix, const Texture *texture);
+    static void logTextureStateLegacy(const char *prefix, const Material *texture);
 };
 
 #endif

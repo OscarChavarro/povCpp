@@ -25,7 +25,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
     Quadric *localShape;
     Vector3Dd localVector;
     int constantId;
-    Texture *localTexture;
+    Material *localTexture;
 
     localShape = nullptr;
 

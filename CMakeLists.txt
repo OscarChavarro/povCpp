@@ -71,12 +71,13 @@ add_executable(povray
   src/io/binaryIo/FileLocator.cpp
   src/io/pov/lexer/Tokenizer.cpp
   src/solidTexture/TextureUtils.cpp
+  src/solidTexture/Material.cpp
+  src/solidTexture/MaterialUtils.cpp
   src/solidTexture/ProceduralNoise.cpp
   src/solidTexture/BumpTextureFixture.cpp
   src/solidTexture/ColorTextureFixture.cpp
   src/solidTexture/FixturesFacade.cpp
   src/solidTexture/MapTextureFixture.cpp
-  src/solidTexture/TextureFixture.cpp
   src/processing/polynomial/PolynomialSolver.cpp
   src/processing/polynomial/PolynomialTermCounts.cpp
   src/render/shaders/LightSamplerShader.cpp

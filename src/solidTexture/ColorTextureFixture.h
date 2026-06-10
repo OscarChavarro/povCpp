@@ -1,9 +1,10 @@
 #ifndef __TXTCOLOR_H__
 #define __TXTCOLOR_H__
 
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "solidTexture/ProceduralNoise.h"
-#include "solidTexture/Texture.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 
 class TextureUtils;
 

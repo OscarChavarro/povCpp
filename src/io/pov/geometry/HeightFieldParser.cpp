@@ -29,7 +29,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     HeightField *localShape;
     int constantId;
     Vector3Dd localVector;
-    Texture *localTexture;
+    Material *localTexture;
     IndexedColorImageHDRUncompressed *indexedImage = nullptr;
     RGBAImageHDRUncompressed *directImage = nullptr;
     int imageType = 0;

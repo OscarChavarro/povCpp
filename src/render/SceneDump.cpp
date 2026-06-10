@@ -1,5 +1,5 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 #include "environment/geometry/SimpleBody.h"
 #include "render/RenderEngine.h"
 #include "render/SceneDump.h"
@@ -13,7 +13,7 @@ void dumpSceneStructure(FILE *f)
         fprintf(f, "OBJ %03d type=%d\n", idx, obj->Type);
 
         if (obj->objectTexture) {
-            Texture *tex = obj->objectTexture;
+            Material *tex = obj->objectTexture;
 
             fprintf(f, "  tex.num=%d amb=%.6f dif=%.6f phong=%.6f psize=%.6f bril=%.6f\n",
                     tex->textureNumber,

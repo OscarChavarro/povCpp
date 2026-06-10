@@ -15,11 +15,10 @@ MapTextureFixture.cpp respectively.
 #include "common/statistics/SolidTextureStatistics.h"
 #include "solidTexture/SolidTextureBumpyTextures.h"
 #include "solidTexture/SolidTextureColorTextures.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 
-static Texture *defaultTextureInstance;
-static double frequencyInstance[Texture::NUMBER_OF_WAVES];
-static Vector3Dd waveSourcesInstance[Texture::NUMBER_OF_WAVES];
+static double frequencyInstance[TextureUtils::NUMBER_OF_WAVES];
+static Vector3Dd waveSourcesInstance[TextureUtils::NUMBER_OF_WAVES];
 
 TextureUtils* TextureUtils::textureInstance = nullptr;
 
@@ -45,12 +44,6 @@ ProceduralNoise&
 TextureUtils::proceduralNoise()
 {
     return proceduralNoise_;
-}
-
-Texture *&
-TextureUtils::defaultTexture()
-{
-    return defaultTextureInstance;
 }
 
 double *
@@ -94,7 +87,7 @@ TextureUtils::initializeNoise()
 
     proceduralNoise_.initialize();
 
-    for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
+    for (i = 0; i < TextureUtils::NUMBER_OF_WAVES; i++) {
         proceduralNoise_.dNoise(&point, (double)i, 0.0, 0.0);
         waveSources()[i] = point.normalizedFast();
         waveFrequency()[i] = (rand() & ProceduralNoise::RNDMASK) / ProceduralNoise::RND_DIVISOR + 0.01;
@@ -102,7 +95,7 @@ TextureUtils::initializeNoise()
 }
 
 static bool
-needsTransform(const Texture *texture)
+needsTransform(const Material *texture)
 {
     return ((texture->textureNumber != (int)SolidTextureColorTextures::NO_TEXTURE) &&
                (texture->textureNumber != (int)SolidTextureColorTextures::COLOUR_TEXTURE)) ||
@@ -110,7 +103,7 @@ needsTransform(const Texture *texture)
 }
 
 static void
-applyTranslationTransform(Texture *texture, Vector3Dd *vector)
+applyTranslationTransform(Material *texture, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -132,9 +125,9 @@ applyTranslationTransform(Texture *texture, Vector3Dd *vector)
 }
 
 void
-TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
+TextureUtils::translateTexture(Material **texturePtr, Vector3Dd *vector)
 {
-    Texture *texture = *texturePtr;
+    Material *texture = *texturePtr;
     if (texture == nullptr) {
         return;
     }
@@ -146,13 +139,13 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
         }
         applyTranslationTransform(texture, vector);
         if (texture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
-            translateTexture((Texture **)&texture->color1, vector);
-            translateTexture((Texture **)&texture->color2, vector);
+            translateTexture((Material **)&texture->color1, vector);
+            translateTexture((Material **)&texture->color2, vector);
         }
     }
 
     for (long int i = 0; i < texture->layers.size(); i++) {
-        Texture *layer = texture->layers[i];
+        Material *layer = texture->layers[i];
         if (needsTransform(layer)) {
             if (layer->constantFlag) {
                 layer = copyTexture(layer);
@@ -160,15 +153,15 @@ TextureUtils::translateTexture(Texture **texturePtr, Vector3Dd *vector)
             }
             applyTranslationTransform(layer, vector);
             if (layer->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
-                translateTexture((Texture **)&layer->color1, vector);
-                translateTexture((Texture **)&layer->color2, vector);
+                translateTexture((Material **)&layer->color1, vector);
+                translateTexture((Material **)&layer->color2, vector);
             }
         }
     }
 }
 
 static void
-copyTextureNode(Texture *dst, const Texture *src)
+copyTextureNode(Material *dst, const Material *src)
 {
     if (dst->textureTransformation) {
         dst->textureTransformation =
@@ -192,17 +185,17 @@ copyTextureNode(Texture *dst, const Texture *src)
     dst->constantFlag = false;
 }
 
-Texture *
-TextureUtils::copyTexture(Texture *texture)
+Material *
+TextureUtils::copyTexture(Material *texture)
 {
-    Texture *newHead = getTexture();
+    Material *newHead = getTexture();
     *newHead = *texture;
     copyTextureNode(newHead, texture);
 
     newHead->layers.clear();
     for (long int i = 0; i < texture->layers.size(); i++) {
-        Texture *src = texture->layers[i];
-        Texture *copy = getTexture();
+        Material *src = texture->layers[i];
+        Material *copy = getTexture();
         *copy = *src;
         copyTextureNode(copy, src);
         newHead->layers.add(copy);
@@ -211,14 +204,14 @@ TextureUtils::copyTexture(Texture *texture)
     return newHead;
 }
 
-Texture *
+Material *
 TextureUtils::getTexture()
 {
-    Texture *newTexture;
+    Material *newTexture;
 
-    newTexture = new Texture;
+    newTexture = new Material;
     if (newTexture == nullptr) {
-        Logger::reportMessage("Texture", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
+        Logger::reportMessage("Material", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
     newTexture->objectReflection = 0.0;
@@ -257,7 +250,7 @@ TextureUtils::getTexture()
 }
 
 static void
-applyRotationTransform(Texture *texture, Vector3Dd *vector)
+applyRotationTransform(Material *texture, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -276,9 +269,9 @@ applyRotationTransform(Texture *texture, Vector3Dd *vector)
 }
 
 void
-TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
+TextureUtils::rotateTexture(Material **texturePtr, Vector3Dd *vector)
 {
-    Texture *texture = *texturePtr;
+    Material *texture = *texturePtr;
     if (texture == nullptr) {
         return;
     }
@@ -290,13 +283,13 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
         }
         applyRotationTransform(texture, vector);
         if (texture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
-            rotateTexture((Texture **)&texture->color1, vector);
-            rotateTexture((Texture **)&texture->color2, vector);
+            rotateTexture((Material **)&texture->color1, vector);
+            rotateTexture((Material **)&texture->color2, vector);
         }
     }
 
     for (long int i = 0; i < texture->layers.size(); i++) {
-        Texture *layer = texture->layers[i];
+        Material *layer = texture->layers[i];
         if (needsTransform(layer)) {
             if (layer->constantFlag) {
                 layer = copyTexture(layer);
@@ -304,15 +297,15 @@ TextureUtils::rotateTexture(Texture **texturePtr, Vector3Dd *vector)
             }
             applyRotationTransform(layer, vector);
             if (layer->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
-                rotateTexture((Texture **)&layer->color1, vector);
-                rotateTexture((Texture **)&layer->color2, vector);
+                rotateTexture((Material **)&layer->color1, vector);
+                rotateTexture((Material **)&layer->color2, vector);
             }
         }
     }
 }
 
 static void
-applyScaleTransform(Texture *texture, Vector3Dd *vector)
+applyScaleTransform(Material *texture, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -333,9 +326,9 @@ applyScaleTransform(Texture *texture, Vector3Dd *vector)
 }
 
 void
-TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
+TextureUtils::scaleTexture(Material **texturePtr, Vector3Dd *vector)
 {
-    Texture *texture = *texturePtr;
+    Material *texture = *texturePtr;
     if (texture == nullptr) {
         return;
     }
@@ -347,13 +340,13 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
         }
         applyScaleTransform(texture, vector);
         if (texture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
-            scaleTexture((Texture **)&texture->color1, vector);
-            scaleTexture((Texture **)&texture->color2, vector);
+            scaleTexture((Material **)&texture->color1, vector);
+            scaleTexture((Material **)&texture->color2, vector);
         }
     }
 
     for (long int i = 0; i < texture->layers.size(); i++) {
-        Texture *layer = texture->layers[i];
+        Material *layer = texture->layers[i];
         if (needsTransform(layer)) {
             if (layer->constantFlag) {
                 layer = copyTexture(layer);
@@ -361,8 +354,8 @@ TextureUtils::scaleTexture(Texture **texturePtr, Vector3Dd *vector)
             }
             applyScaleTransform(layer, vector);
             if (layer->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
-                scaleTexture((Texture **)&layer->color1, vector);
-                scaleTexture((Texture **)&layer->color2, vector);
+                scaleTexture((Material **)&layer->color1, vector);
+                scaleTexture((Material **)&layer->color2, vector);
             }
         }
     }

@@ -1,6 +1,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 #include "solidTexture/TextureUtils.h"
+#include "solidTexture/MaterialUtils.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -34,7 +35,7 @@ DeclarationParser::parseDeclare()
 void
 DeclarationParser::parseDeclare(ParserContext &ctx)
 {
-    Texture *localTexture;
+    Material *localTexture;
     Constant *constantPtr;
 
     ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
@@ -194,7 +195,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().tokenId) {
                         case Tokenizer::TEXTURE_TOKEN:
-                            localTexture = TextureUtils::instance().defaultTexture();
+                            localTexture = MaterialUtils::instance().defaultTexture();
                             localTexture = TextureParser::parseTexture(ctx);
                             if (localTexture->constantFlag) {
                                 localTexture =
@@ -204,7 +205,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                             localTexture->constantFlag = true;
 
                             {
-                                Texture *existingHead = (Texture *)constantPtr->constantData;
+                                Material *existingHead = (Material *)constantPtr->constantData;
                                 TextureParser::prependTextureLayers(localTexture, existingHead);
                                 constantPtr->constantData = (char *)existingHead;
                             }

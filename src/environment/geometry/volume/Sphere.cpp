@@ -6,7 +6,7 @@
 
 #include <cmath>
 #include "common/statistics/Statistics.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 #include "environment/geometry/volume/Sphere.h"
 
 //===========================================================================

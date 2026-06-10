@@ -3,8 +3,6 @@ Implements mapped textures: image map, bump map, and material map.
 Supports planar, spherical, cylindrical, and torus UV projections.
 */
 
-#include <cstdio>
-#include <cstdlib>
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
@@ -12,7 +10,7 @@ Supports planar, spherical, cylindrical, and torus UV projections.
 #include "solidTexture/MapTextureFixture.h"
 #include "solidTexture/SolidTextureBitmapInterpolationTypes.h"
 #include "solidTexture/SolidTextureProjectionMethods.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/Material.h"
 
 /**
 2-D to 3-D procedural texture mapping of a bitmap onto an object.
@@ -39,10 +37,10 @@ MapTextureFixture::imageMap(
 Takes an intersection point and a texture; returns a new texture based on
 the index/color of that point in an image/materials map. CdW 7/91.
 */
-Texture *
+Material *
 MapTextureFixture::materialMap(
     Vector3Dd *intersectionPoint, Matrix4x4d *textureTransformationInverse,
-    TextureImage *materialImage, java::ArrayList<Texture *> *materials,
+    TextureImage *materialImage, java::ArrayList<Material *> *materials,
     double smallTolerance)
 {
     Vector3Dd transformedPoint;

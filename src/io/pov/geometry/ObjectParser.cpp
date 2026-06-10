@@ -30,6 +30,7 @@
 #include "io/pov/geometry/SmoothTriangleParser.h"
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
+#include "solidTexture/MaterialUtils.h"
 
 CSG *
 ObjectParser::parseCsg(int type)
@@ -449,7 +450,7 @@ ObjectParser::parseObject(ParserContext &ctx)
     Geometry *localShape;
     Vector3Dd localVector;
     int constantId;
-    Texture *localTexture;
+    Material *localTexture;
 
     object = nullptr;
 
@@ -582,7 +583,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                if (object->objectTexture == TextureUtils::instance().defaultTexture()) {
+                if (object->objectTexture == MaterialUtils::instance().defaultTexture()) {
                     object->objectTexture = localTexture;
                 } else {
                     TextureParser::prependTextureLayers(localTexture, object->objectTexture);

@@ -24,7 +24,7 @@ BlobParser::parseBlob(ParserContext &ctx)
     Blob *localShape;
     int constantId;
     Vector3Dd localVector;
-    Texture *localTexture;
+    Material *localTexture;
     double threshold;
     int npoints;
     BlobList *blobComponents;

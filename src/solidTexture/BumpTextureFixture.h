@@ -3,7 +3,6 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "solidTexture/ProceduralNoise.h"
-#include "solidTexture/Texture.h"
 
 class BumpTextureFixture {
   public:
@@ -15,10 +14,10 @@ class BumpTextureFixture {
         double x, double y, double z, double bumpAmount, Vector3Dd *normal);
     void ripples(
         double x, double y, double z, double bumpAmount, double frequency,
-        double phase, Vector3Dd *normal);
+        double phase, int numberOfWaves, Vector3Dd *normal);
     void waves(
         double x, double y, double z, double bumpAmount, double frequency,
-        double phase, Vector3Dd *normal);
+        double phase, int numberOfWaves, Vector3Dd *normal);
     void wrinkles(
         double x, double y, double z, double bumpAmount, Vector3Dd *normal);
 

@@ -5,14 +5,14 @@
 #include "environment/geometry/GeometryConstants.h"
 
 class Methods;
-class Texture;
+class Material;
 
 class Geometry {
   public:
     Methods *methods;
     int Type;
     Geometry *nextObject;
-    Texture *Shape_Texture;
+    Material *Shape_Texture;
     ColorRgba *shapeColor;
 };
 

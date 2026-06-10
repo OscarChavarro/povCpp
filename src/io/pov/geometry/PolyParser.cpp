@@ -28,7 +28,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     Vector3Dd localVector;
     int constantId;
     int order;
-    Texture *localTexture;
+    Material *localTexture;
 
     if (knownOrder > 0) {
         localShape = ModelBuilder::getPolyShape(knownOrder, PolynomialTermCounts::table());

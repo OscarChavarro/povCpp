@@ -11,7 +11,7 @@ References:
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "solidTexture/BumpTextureFixture.h"
 #include "solidTexture/ProceduralNoise.h"
-#include "solidTexture/Texture.h"
+#include "solidTexture/TextureUtils.h"
 
 BumpTextureFixture::BumpTextureFixture(ProceduralNoise *proceduralNoise)
     : proceduralNoise(proceduralNoise)
@@ -25,7 +25,7 @@ Implements: normal += wave(point - center), wave(v) = direction(v) * cycloid(nor
 void
 BumpTextureFixture::ripples(
     double x, double y, double z, double bumpAmount, double frequency,
-    double phase, Vector3Dd *normal)
+    double phase, int numberOfWaves, Vector3Dd *normal)
 {
     int i;
     Vector3Dd point;
@@ -33,7 +33,7 @@ BumpTextureFixture::ripples(
     double scalar;
     double index;
 
-    for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
+    for (i = 0; i < numberOfWaves; i++) {
         point = Vector3Dd(x, y, z);
         point = point.subtract(TextureUtils::instance().waveSources()[i]);
         length = point.dotProduct(point);
@@ -45,7 +45,7 @@ BumpTextureFixture::ripples(
         index = length * frequency + phase;
         scalar = proceduralNoise->cycloidal(index) * bumpAmount;
 
-        point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
+        point = point.multiply(scalar / length / (double)numberOfWaves);
         *normal = normal->add(point);
     }
     *normal = (*normal).normalizedFast();
@@ -58,7 +58,7 @@ Implements: wave(v) = direction((point-c)*f)/f with per-source frequency scaling
 void
 BumpTextureFixture::waves(
     double x, double y, double z, double bumpAmount, double frequency,
-    double phase, Vector3Dd *normal)
+    double phase, int numberOfWaves, Vector3Dd *normal)
 {
     int i;
     Vector3Dd point;
@@ -67,7 +67,7 @@ BumpTextureFixture::waves(
     double index;
     double sinValue;
 
-    for (i = 0; i < Texture::NUMBER_OF_WAVES; i++) {
+    for (i = 0; i < numberOfWaves; i++) {
         point = Vector3Dd(x, y, z);
         point = point.subtract(TextureUtils::instance().waveSources()[i]);
         length = point.dotProduct(point);
@@ -80,7 +80,7 @@ BumpTextureFixture::waves(
         sinValue = proceduralNoise->cycloidal(index);
 
         scalar = sinValue * bumpAmount / TextureUtils::instance().waveFrequency()[i];
-        point = point.multiply(scalar / length / (double)Texture::NUMBER_OF_WAVES);
+        point = point.multiply(scalar / length / (double)numberOfWaves);
         *normal = normal->add(point);
     }
     *normal = (*normal).normalizedFast();

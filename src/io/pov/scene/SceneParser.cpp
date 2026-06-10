@@ -5,6 +5,7 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneFrameParser.h"
 #include "io/pov/scene/SceneParser.h"
+#include "solidTexture/MaterialUtils.h"
 
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
@@ -63,7 +64,7 @@ SceneParser::frameInit()
 void
 SceneParser::frameInit(ParserContext &ctx)
 {
-    TextureUtils::instance().defaultTexture() = TextureUtils::instance().getTexture();
+    MaterialUtils::instance().setDefaultTexture(TextureUtils::instance().getTexture());
     ctx.parsingFrame()->viewPoint.initializeDefaults();
     ctx.parsingFrame()->Light_Sources = nullptr;
     ctx.parsingFrame()->Objects = nullptr;

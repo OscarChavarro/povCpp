@@ -11,6 +11,7 @@
 #include "common/dataStructures/PriorityQueue.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/volume/compound/Composite.h"
+#include "solidTexture/MaterialUtils.h"
 
 static inline void
 linkSimpleBody(
@@ -33,7 +34,7 @@ createBasicObject()
     newObject->Shape = nullptr;
     newObject->boundingShapes = nullptr;
     newObject->clippingShapes = nullptr;
-    newObject->objectTexture = TextureUtils::instance().defaultTexture();
+    newObject->objectTexture = MaterialUtils::instance().defaultTexture();
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
     newObject->Type = GeometryOperations::OBJECT_TYPE;
