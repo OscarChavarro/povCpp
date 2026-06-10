@@ -78,6 +78,7 @@ add_executable(povray
   src/solidTexture/ColorTextureFixture.cpp
   src/solidTexture/FixturesFacade.cpp
   src/solidTexture/MapTextureFixture.cpp
+  src/solidTexture/TextureFixture.cpp
   src/processing/polynomial/PolynomialSolver.cpp
   src/processing/polynomial/PolynomialTermCounts.cpp
   src/render/shaders/LightSamplerShader.cpp

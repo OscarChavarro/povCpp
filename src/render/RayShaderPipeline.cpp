@@ -101,6 +101,24 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
+        } else if (tempTexture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+            Material *texture1 = (Material *)tempTexture->color1;
+            Material *texture2 = (Material *)tempTexture->color2;
+            fixturesFacade.colorAt(
+                &surfaceColor, tempTexture->textureNumber,
+                tempTexture->textureTransformationInverse, tempTexture->image,
+                tempTexture->color1, tempTexture->color2, tempTexture->turbulence,
+                tempTexture->octaves, tempTexture->colorMap,
+                tempTexture->textureGradient, tempTexture->mortar,
+                &rayIntersection->Point, GeometryConstants::Small_Tolerance,
+                texture1->textureNumber, texture1->textureTransformationInverse,
+                texture1->image, texture1->color1, texture1->color2,
+                texture1->turbulence, texture1->octaves, texture1->colorMap,
+                texture1->textureGradient, texture1->mortar,
+                texture2->textureNumber, texture2->textureTransformationInverse,
+                texture2->image, texture2->color1, texture2->color2,
+                texture2->turbulence, texture2->octaves, texture2->colorMap,
+                texture2->textureGradient, texture2->mortar);
         } else {
             fixturesFacade.colorAt(
                 &surfaceColor, tempTexture->textureNumber,
