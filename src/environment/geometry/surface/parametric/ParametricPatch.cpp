@@ -8,14 +8,14 @@
  *
  *****************************************************************************/
 
-#include <cstdio>
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
-#include "environment/geometry/surface/parametric/ParametricPatch.h"
+#include "environment/material/RendererConfiguration.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
