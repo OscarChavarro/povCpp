@@ -11,7 +11,7 @@ enum SolidTextureBumpyTextures {
     BUMPY1 = 6,
     BUMPY2 = 7,
     BUMPY3 = 8,
-    BUMPMAP = 9
+    BUMP_MAP = 9
 };
 
 #endif

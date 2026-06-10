@@ -2,7 +2,6 @@
 #include "solidTexture/MapTextureFixture.h"
 #include "solidTexture/SolidTextureBumpyTextures.h"
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/material/RendererConfiguration.h"
 #include "render/shaders/BumpNormalShader.h"
 
 void
@@ -14,7 +13,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Material *texture,
     double y;
     double z;
 
-    if (texture->bumpNumber == (int)SolidTextureBumpyTextures::NO_BUMPS) {
+    if (texture->bumpNumber == SolidTextureBumpyTextures::NO_BUMPS) {
         *newNormal = *surfaceNormal;
         return;
     }
@@ -30,39 +29,41 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Material *texture,
     y = transformedPoint.y();
     z = transformedPoint.z();
 
-    BumpTextureFixture bumpFixture(&TextureUtils::instance().proceduralNoise());
+    BumpTextureFixture bumpFixture(&TextureUtils::instance().getProceduralNoise());
     MapTextureFixture mapFixture;
 
     switch (texture->bumpNumber) {
 
-    case (int)SolidTextureBumpyTextures::WAVES:
+    case SolidTextureBumpyTextures::WAVES:
         bumpFixture.waves(
             x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
             TextureUtils::NUMBER_OF_WAVES, newNormal);
         break;
 
-    case (int)SolidTextureBumpyTextures::RIPPLES:
+    case SolidTextureBumpyTextures::RIPPLES:
         bumpFixture.ripples(
             x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
             TextureUtils::NUMBER_OF_WAVES, newNormal);
         break;
 
-    case (int)SolidTextureBumpyTextures::WRINKLES:
+    case SolidTextureBumpyTextures::WRINKLES:
         bumpFixture.wrinkles(x, y, z, texture->bumpAmount, newNormal);
         break;
 
-    case (int)SolidTextureBumpyTextures::BUMPS:
+    case SolidTextureBumpyTextures::BUMPS:
         bumpFixture.bumps(x, y, z, texture->bumpAmount, newNormal);
         break;
 
-    case (int)SolidTextureBumpyTextures::DENTS:
+    case SolidTextureBumpyTextures::DENTS:
         bumpFixture.dents(x, y, z, texture->bumpAmount, newNormal);
         break;
 
-    case (int)SolidTextureBumpyTextures::BUMPMAP:
+    case SolidTextureBumpyTextures::BUMP_MAP:
         mapFixture.bumpMap(
             x, y, z, texture->bumpImage, texture->bumpAmount, newNormal,
             GeometryConstants::Small_Tolerance);
         break;
+
+    default: break;
     }
 }

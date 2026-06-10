@@ -23,13 +23,13 @@ SimpleBodyFactory::getObject()
     }
 
     newObject->nextObject = nullptr;
-    newObject->Shape = nullptr;
+    newObject->geometry = nullptr;
     newObject->boundingShapes = nullptr;
     newObject->clippingShapes = nullptr;
     newObject->objectTexture = MaterialUtils::instance().defaultTexture();
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
-    newObject->Type = GeometryOperations::OBJECT_TYPE;
+    newObject->type = GeometryOperations::OBJECT_TYPE;
     newObject->methods = &Composite::basicObjectMethodTable;
     return (newObject);
 }

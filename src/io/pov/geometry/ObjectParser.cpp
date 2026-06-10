@@ -502,7 +502,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 localShape = ObjectParser::parseShape(ctx);
                 SimpleBodyFactory::link((SimpleBody *)localShape,
                     (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(object->Shape));
+                    (SimpleBody **)&(object->geometry));
                 Exit_Flag = true;
                 break;
 

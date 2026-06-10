@@ -9,11 +9,11 @@ class Material;
 class SimpleBody {
   public:
     Methods *methods;
-    int Type;
+    int type;
     SimpleBody *nextObject;
     Geometry *boundingShapes;
     Geometry *clippingShapes;
-    Geometry *Shape;
+    Geometry *geometry;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;

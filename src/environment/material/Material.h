@@ -3,6 +3,7 @@
 
 #include "java/util/ArrayList.h"
 #include "solidTexture/SolidTextureColorTextures.h"
+#include "solidTexture/SolidTextureBumpyTextures.h"
 #include "solidTexture/TextureImage.h"
 #include "solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
@@ -31,7 +32,7 @@ class Material {
     double frequency;
     double phase;
     SolidTextureColorTextures textureNumber;
-    int bumpNumber;
+    SolidTextureBumpyTextures bumpNumber;
     Matrix4x4d *textureTransformation;
     Matrix4x4d *textureTransformationInverse;
     ColorRgba *color1;

@@ -37,13 +37,13 @@ ParseHelpers::postProcessObject(SimpleBody *object)
 {
     SimpleBody *temp;
 
-    if (object->Type == GeometryOperations::COMPOSITE_TYPE) {
+    if (object->type == GeometryOperations::COMPOSITE_TYPE) {
         for (temp = ((Composite *)object)->Objects; temp != nullptr;
             temp = temp->nextObject) {
             ParseHelpers::postProcessObject(temp);
         }
     } else {
-        ParseHelpers::postProcessShape(object->Shape);
+        ParseHelpers::postProcessShape(object->geometry);
     }
 }
 

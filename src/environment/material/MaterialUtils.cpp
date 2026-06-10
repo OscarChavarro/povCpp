@@ -49,7 +49,7 @@ MaterialUtils::needsTransform(const Material *texture)
 {
     return ((texture->textureNumber != SolidTextureColorTextures::NO_TEXTURE) &&
                (texture->textureNumber != SolidTextureColorTextures::COLOUR_TEXTURE)) ||
-           (texture->bumpNumber != NO_BUMPS);
+           (texture->bumpNumber != SolidTextureBumpyTextures::NO_BUMPS);
 }
 static void
 applyTranslationTransform(Material *texture, Vector3Dd *vector)
@@ -172,15 +172,15 @@ MaterialUtils::getTexture()
     newTexture->bumpAmount = 0.0;
     newTexture->phase = 0.0;
     newTexture->frequency = 1.0;
-    newTexture->textureNumber = NO_TEXTURE;
+    newTexture->textureNumber = SolidTextureColorTextures::NO_TEXTURE;
     newTexture->textureTransformation = nullptr;
     newTexture->textureTransformationInverse = nullptr;
-    newTexture->bumpNumber = (int)NO_BUMPS;
+    newTexture->bumpNumber = SolidTextureBumpyTextures::NO_BUMPS;
     newTexture->turbulence = 0.0;
     newTexture->colorMap = nullptr;
     newTexture->onceFlag = false;
     newTexture->metallicFlag = false;
-    newTexture->octaves = 6;  /* dmf, for turbulence functs */
+    newTexture->octaves = 6;  /* dmf, for turbulence functions */
     newTexture->mortar = 0.2; /* rha, for brick texture */
 
     newTexture->constantFlag = true;

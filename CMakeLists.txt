@@ -76,7 +76,6 @@ add_executable(povray
   src/solidTexture/ProceduralNoise.cpp
   src/solidTexture/BumpTextureFixture.cpp
   src/solidTexture/ColorTextureFixture.cpp
-  src/solidTexture/FixturesFacade.cpp
   src/solidTexture/MapTextureFixture.cpp
   src/processing/polynomial/PolynomialSolver.cpp
   src/processing/polynomial/PolynomialTermCounts.cpp
@@ -92,6 +91,7 @@ add_executable(povray
   src/render/shaders/MirrorReflectionShader.cpp
   src/render/shaders/TransmissionRefractionShader.cpp
   src/render/shaders/LocalSurfaceShader.cpp
+  src/render/SolidTextureFixturesFacade.cpp
   src/render/RayShaderPipeline.cpp
   src/render/RenderEngine.cpp
   src/render/SceneDump.cpp
