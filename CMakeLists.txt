@@ -70,7 +70,7 @@ add_executable(povray
   src/io/image/TargaFormat.cpp
   src/io/binaryIo/FileLocator.cpp
   src/io/pov/lexer/Tokenizer.cpp
-  src/solidTexture/Texture.cpp
+  src/solidTexture/TextureUtils.cpp
   src/solidTexture/ProceduralNoise.cpp
   src/solidTexture/BumpTextureFixture.cpp
   src/solidTexture/ColorTextureFixture.cpp

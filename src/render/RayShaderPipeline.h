@@ -5,12 +5,13 @@ class Intersection;
 class ColorRgba;
 class RayWithSegments;
 class TraceService;
+class TextureUtils;
 
 class RayShaderPipeline {
 public:
     static void shadeSurface(Intersection *rayIntersection,
         ColorRgba *color, RayWithSegments *ray, int shadowRay,
-        const TraceService *traceService);
+        const TraceService *traceService, TextureUtils *textureUtils);
 };
 
 #endif
