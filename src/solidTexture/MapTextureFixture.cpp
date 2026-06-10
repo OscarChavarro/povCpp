@@ -37,12 +37,12 @@ MapTextureFixture::imageMap(
 Takes an intersection point and a texture; returns a new texture based on
 the index/color of that point in an image/materials map.
 */
-int
+Material *
 MapTextureFixture::materialMap(
     Vector3Dd *intersectionPoint,
     Matrix4x4d *textureTransformationInverse,
     TextureImage *materialImage,
-    int numberOfMaterials,
+    java::ArrayList<Material *> *materials,
     double smallTolerance)
 {
     Vector3Dd transformedPoint;
@@ -80,13 +80,14 @@ MapTextureFixture::materialMap(
         }
     }
 
-    if (numberOfMaterials > 0 && materialNumber >= numberOfMaterials) {
-        materialNumber %= numberOfMaterials;
+    int count = (int)materials->size();
+    if (count > 0 && materialNumber >= count) {
+        materialNumber %= count;
     }
-    if (materialNumber < numberOfMaterials) {
-        return materialNumber;
+    if (materialNumber < count) {
+        return materials->get(materialNumber);
     }
-    return -1;
+    return nullptr;
 }
 
 void

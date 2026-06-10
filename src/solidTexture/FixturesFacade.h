@@ -19,6 +19,10 @@ class FixturesFacade {
   public:
     FixturesFacade(ProceduralNoise *proceduralNoise, TextureUtils *textureUtils);
 
+    void checkerTexture(
+        double x, double y, double z, ColorRgba *color, ColorRgba *color1,
+        ColorRgba *color2, double smallTolerance);
+
     void colorAt(
         ColorRgba *color, int textureNumber,
         Matrix4x4d *textureTransformationInverse, TextureImage *image,

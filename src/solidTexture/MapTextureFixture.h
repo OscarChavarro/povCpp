@@ -1,10 +1,9 @@
 #ifndef __TXTMAP_H__
 #define __TXTMAP_H__
 
-#include "solidTexture/TextureImage.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "solidTexture/Material.h"
+#include "solidTexture/TextureImage.h"
 
 class MapTextureFixture {
   public:
@@ -14,9 +13,9 @@ class MapTextureFixture {
     void imageMap(
         double x, double y, double z, TextureImage *image, ColorRgba *color,
         double smallTolerance);
-    int materialMap(
+    Material *materialMap(
         Vector3Dd *intersectionPoint, Matrix4x4d *textureTransformationInverse,
-        TextureImage *materialImage, int numberOfMaterials,
+        TextureImage *materialImage, java::ArrayList<Material *> *materials,
         double smallTolerance);
     void bumpMap(
         double x, double y, double z, TextureImage *bumpImage,
