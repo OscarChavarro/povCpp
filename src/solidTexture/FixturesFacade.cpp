@@ -6,10 +6,6 @@
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "solidTexture/TextureFixture.h"
 
-namespace java {
-template class ArrayList<Texture*>;
-}
-
 FixturesFacade::FixturesFacade(
     ProceduralNoise *proceduralNoise, TextureUtils *textureUtils)
     : proceduralNoise(proceduralNoise), textureUtils(textureUtils)
