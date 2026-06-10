@@ -72,7 +72,7 @@ add_executable(povray
   src/io/pov/lexer/Tokenizer.cpp
   src/solidTexture/TextureUtils.cpp
   src/solidTexture/Material.cpp
-  src/solidTexture/MaterialUtils.cpp
+  src/environment/material/MaterialUtils.cpp
   src/solidTexture/ProceduralNoise.cpp
   src/solidTexture/BumpTextureFixture.cpp
   src/solidTexture/ColorTextureFixture.cpp

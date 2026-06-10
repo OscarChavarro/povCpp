@@ -8,8 +8,8 @@
 class MapTextureFixture {
   public:
     int map(
-        double x, double y, double z, TextureImage *image, double *xcoor,
-        double *ycoor, double smallTolerance);
+        double x, double y, double z, TextureImage *image, double *xCoordinate,
+        double *yCoordinate, double smallTolerance);
     void imageMap(
         double x, double y, double z, TextureImage *image, ColorRgba *color,
         double smallTolerance);
@@ -30,13 +30,13 @@ class MapTextureFixture {
         double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v);
     int planarImageMap(
         double x, double y, double z, TextureImage *image, double *u, double *v);
-    void noInterpolation(TextureImage *image, double xcoor, double ycoor,
+    void noInterpolation(TextureImage *image, double xCoordinate, double yCoordinate,
         ColorRgba *color, int *index);
-    double bilinear(double *corners, double x, double y);
+    double biLinear(double *corners, double x, double y);
     double normDist(double *corners, double x, double y);
-    void interp(TextureImage *image, double xcoor, double ycoor,
+    void interp(TextureImage *image, double xCoordinate, double yCoordinate,
         ColorRgba *color, int *index);
-    void imageColorAt(TextureImage *image, double xcoor, double ycoor,
+    void imageColorAt(TextureImage *image, double xCoordinate, double yCoordinate,
         ColorRgba *color, int *index);
     double pythagoreanSq(double a, double b);
 };

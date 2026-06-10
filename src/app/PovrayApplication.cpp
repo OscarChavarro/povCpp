@@ -4,18 +4,14 @@
 #include <cstring>
 #include <ctime>
 
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/statistics/Statistics.h"
 #include "common/RenderRuntimeState.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include "common/dataStructures/PriorityQueuePool.h"
-#include "solidTexture/TextureUtils.h"
-#include "solidTexture/MaterialUtils.h"
+#include "common/statistics/Statistics.h"
 #include "environment/geometry/Intersection.h"
+#include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"
-#include "render/RenderEngine.h"
-#include "render/RenderOutput.h"
 #include "io/binaryIo/FileLocator.h"
 #include "io/image/ImageOutput.h"
 #include "io/image/RawDumpFormat.h"
@@ -23,6 +19,10 @@
 #include "io/image/TargaFormat.h"
 #include "io/pov/lexer/Tokenizer.h"
 #include "io/pov/scene/SceneParser.h"
+#include "render/RenderEngine.h"
+#include "render/RenderOutput.h"
+#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "app/ImageOutputAdapter.h"
 #include "app/PovrayApplication.h"
