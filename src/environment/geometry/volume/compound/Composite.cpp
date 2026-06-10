@@ -5,12 +5,11 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/volume/compound/Composite.h"
-#include "common/statistics/Statistics.h"
-#include "environment/material/MaterialUtils.h"
-#include "environment/material/RendererConfiguration.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include <cstdio>
+#include "common/statistics/Statistics.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/material/RendererConfiguration.h"
+#include "environment/material/MaterialUtils.h"
 
 static inline void
 linkSimpleBody(
@@ -290,7 +289,7 @@ Composite::copyBasicObject(SimpleBody *object)
 
     if (newObject->objectTexture != nullptr) {
         newObject->objectTexture =
-            TextureUtils::instance().copyTexture(newObject->objectTexture);
+            MaterialUtils::instance().copyTexture(newObject->objectTexture);
     }
 
     return ((void *)newObject);
@@ -356,7 +355,7 @@ Composite::translateBasicObject(SimpleBody *object, Vector3Dd *vector)
 
     GeometryOperations::translate((SimpleBody *)object->Shape, vector);
 
-    TextureUtils::instance().translateTexture(&object->objectTexture, vector);
+    MaterialUtils::instance().translateTexture(&object->objectTexture, vector);
 }
 
 void
@@ -378,7 +377,7 @@ Composite::rotateBasicObject(SimpleBody *object, Vector3Dd *vector)
 
     GeometryOperations::rotate((SimpleBody *)object->Shape, vector);
 
-    TextureUtils::instance().rotateTexture(&object->objectTexture, vector);
+    MaterialUtils::instance().rotateTexture(&object->objectTexture, vector);
 }
 
 void
@@ -400,7 +399,7 @@ Composite::scaleBasicObject(SimpleBody *object, Vector3Dd *vector)
 
     GeometryOperations::scale((SimpleBody *)object->Shape, vector);
 
-    TextureUtils::instance().scaleTexture(&object->objectTexture, vector);
+    MaterialUtils::instance().scaleTexture(&object->objectTexture, vector);
 }
 
 void

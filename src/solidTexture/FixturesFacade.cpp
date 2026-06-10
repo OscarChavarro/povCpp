@@ -1,10 +1,8 @@
-#include "java/util/ArrayList.txx"
 #include "solidTexture/ColorTextureFixture.h"
 #include "solidTexture/MapTextureFixture.h"
 #include "solidTexture/SolidTextureColorTextures.h"
 #include "solidTexture/ProceduralNoise.h"
 #include "solidTexture/TextureUtils.h"
-#include "solidTexture/TextureFixture.h"
 #include "solidTexture/FixturesFacade.h"
 
 FixturesFacade::FixturesFacade(
@@ -78,7 +76,6 @@ FixturesFacade::colorAt(
     Vector3Dd transformedPoint;
     MapTextureFixture mapFixture;
     ColorTextureFixture colorFixture(proceduralNoise, textureUtils);
-    TextureFixture textureFixture(proceduralNoise);
 
     if ((intersectionPoint->x() > COORDINATE_LIMIT) ||
         (intersectionPoint->y() > COORDINATE_LIMIT) ||
@@ -174,18 +171,6 @@ FixturesFacade::colorAt(
 
     case (int)SolidTextureColorTextures::LEOPARD_TEXTURE:
         colorFixture.leopard(x, y, z, turbulence, octaves, colorMap, color);
-        break;
-
-    case (int)SolidTextureColorTextures::PAINTED1_TEXTURE:
-        textureFixture.painted1(x, y, z, colorMap, color);
-        break;
-
-    case (int)SolidTextureColorTextures::PAINTED2_TEXTURE:
-        textureFixture.painted2(x, y, z, turbulence, octaves, colorMap, color);
-        break;
-
-    case (int)SolidTextureColorTextures::PAINTED3_TEXTURE:
-        textureFixture.painted3(x, y, z, color);
         break;
     }
 }

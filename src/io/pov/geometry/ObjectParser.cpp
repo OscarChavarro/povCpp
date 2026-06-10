@@ -26,10 +26,10 @@
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "io/pov/light/LightSourceParser.h"
+#include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "io/pov/texture/TextureParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 CSG *

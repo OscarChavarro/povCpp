@@ -1,20 +1,18 @@
-/****************************************************************************
- *                         bezier.c
- *
- *  This module implements the code for Bezier bicubic patch shapes
- *
- *  This file was written by Alexander Enzmann.  He wrote the code for
- *  bezier bicubic patches and generously provided us these enhancements.
- *
- *****************************************************************************/
+/**
+This module implements the code for Bezier bicubic patch shapes
 
+This file was written by Alexander Enzmann.  He wrote the code for
+bezier bicubic patches and generously provided us these enhancements.
+*/
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/material/RendererConfiguration.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/material/MaterialUtils.h"
 
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
@@ -1013,7 +1011,7 @@ ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
     ParametricBiCubicPatch::precomputePatchValues(newShape);
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (void *)(newShape);
@@ -1033,7 +1031,7 @@ ParametricBiCubicPatch::translateBicubicPatch(
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    TextureUtils::instance().translateTexture(
+    MaterialUtils::instance().translateTexture(
         &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 
@@ -1055,7 +1053,7 @@ ParametricBiCubicPatch::rotateBicubicPatch(
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    TextureUtils::instance().rotateTexture(
+    MaterialUtils::instance().rotateTexture(
         &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 
@@ -1072,7 +1070,7 @@ ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    TextureUtils::instance().scaleTexture(
+    MaterialUtils::instance().scaleTexture(
         &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
 }
 

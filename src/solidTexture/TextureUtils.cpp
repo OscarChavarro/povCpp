@@ -10,9 +10,7 @@ MapTextureFixture.cpp respectively.
 #include <cstdlib>
 
 #include "common/statistics/SolidTextureStatistics.h"
-#include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "solidTexture/TextureUtils.h"
 

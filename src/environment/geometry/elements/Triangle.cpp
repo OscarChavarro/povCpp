@@ -1,14 +1,11 @@
-/****************************************************************************
- *                     triangle.c
- *
- *  This module implements primitives for triangles and smooth triangles.
- *
- *****************************************************************************/
+/**
+This module implements primitives for triangles and smooth triangles.
+*/
 
-#include "environment/geometry/elements/Triangle.h"
-#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
+#include "common/statistics/Statistics.h"
+#include "environment/geometry/elements/Triangle.h"
+#include "environment/material/MaterialUtils.h"
 
 Methods Triangle::methodTable = {
     Triangle::allTriangleIntersections, Triangle::insideTriangle,
@@ -402,7 +399,7 @@ Triangle::copyTriangle(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -419,7 +416,7 @@ Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P1 = triangle->P1.add(*vector);
     triangle->P2 = triangle->P2.add(*vector);
     triangle->P3 = triangle->P3.add(*vector);
-    TextureUtils::instance().translateTexture(
+    MaterialUtils::instance().translateTexture(
         &((Triangle *)object)->Shape_Texture, vector);
 }
 
@@ -437,7 +434,7 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P3 = transformation.transpose().multiply(triangle->P3);
     Triangle::computeTriangle(triangle);
 
-    TextureUtils::instance().rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -459,7 +456,7 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P2 = triangle->P2.multiply(*vector);
     triangle->P3 = triangle->P3.multiply(*vector);
 
-    TextureUtils::instance().scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -572,7 +569,7 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 
     if (newShape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(newShape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
     }
 
     return (newShape);
@@ -595,7 +592,7 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->N3 = transformation.transpose().multiply(triangle->N3);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    TextureUtils::instance().rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
 }
 
 void
@@ -611,7 +608,7 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P3 = triangle->P3.add(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    TextureUtils::instance().translateTexture(
+    MaterialUtils::instance().translateTexture(
         &((Triangle *)object)->Shape_Texture, vector);
 }
 
@@ -635,7 +632,7 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P3 = triangle->P3.multiply(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    TextureUtils::instance().scaleTexture(
+    MaterialUtils::instance().scaleTexture(
         &((SmoothTriangle *)object)->Shape_Texture, vector);
 }
 

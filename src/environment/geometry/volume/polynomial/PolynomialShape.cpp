@@ -8,13 +8,14 @@
  *
  *****************************************************************************/
 
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "processing/polynomial/PolynomialSolver.h"
 #include "processing/polynomial/PolynomialTermCounts.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/material/MaterialUtils.h"
 
 /* Basic form of a quartic equation
     a00*x^4+a01*x^3*y+a02*x^3*z+a03*x^3+a04*x^2*y^2+
@@ -849,7 +850,7 @@ PolynomialShape::copyPoly(SimpleBody *object)
     /* Copy any associated texture */
     if (shape->Shape_Texture != nullptr) {
         newShape->Shape_Texture =
-            TextureUtils::instance().copyTexture(shape->Shape_Texture);
+            MaterialUtils::instance().copyTexture(shape->Shape_Texture);
     }
 
     return (void *)(newShape);
@@ -873,7 +874,7 @@ PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
 
-    TextureUtils::instance().translateTexture(&shape->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&shape->Shape_Texture, vector);
 }
 
 void
@@ -891,7 +892,7 @@ PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
 
-    TextureUtils::instance().rotateTexture(&shape->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&shape->Shape_Texture, vector);
 }
 
 void
@@ -911,12 +912,11 @@ PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
 
-    TextureUtils::instance().scaleTexture(&shape->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&shape->Shape_Texture, vector);
 }
 
 void
 PolynomialShape::invertPoly(SimpleBody *object)
 {
-    ((PolynomialShape *)object)->Inverted =
-        !((PolynomialShape *)object)->Inverted;
+    ((PolynomialShape *)object)->Inverted = !((PolynomialShape *)object)->Inverted;
 }
