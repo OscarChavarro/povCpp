@@ -11,6 +11,7 @@ class Composite {
     static Methods compositeMethodTable;
     static Methods basicObjectMethodTable;
     Methods *methods;
+    GeometryTypes type;
     SimpleBody *nextObject;
     Geometry *boundingShapes;
     Geometry *clippingShapes;
