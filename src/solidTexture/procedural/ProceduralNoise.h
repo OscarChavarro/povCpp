@@ -4,6 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/SolidTextureStatistics.h"
 #include "numericalAnalysis/lookUpTables/LookUpTableSine.h"
+#include "numericalAnalysis/lookUpTables/LookUpTableChecksum16.h"
 
 /**
 [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85.
@@ -17,13 +18,13 @@ class ProceduralNoise {
     short *permutationTable;
     double *rTable;
     LookUpTableSine sineLookUpTable;
+    LookUpTableChecksum16 checksumLookUpTable;
     SolidTextureStatistics *solidTextureStatistics;
 
     static double fabsInline(double x);
     void initTextureTable();
     void initRTable();
     int r(Vector3Dd *v) const;
-    int crc16(const char *buf, int count) const;
     short hash3d(long a, long b, long c) const;
     double incrSum(int m, double s, double x, double y, double z) const;
     void setupLattice(double *x, double *y, double *z, long *ix, long *iy, long *iz,
@@ -51,7 +52,7 @@ class ProceduralNoise {
     double turbulence(double x, double y, double z, int octaves);
     void dTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
     const short *hashTable() const;
-    const unsigned short *crcTable() const;
+    const LookUpTableChecksum16 &checksumTable() const;
 };
 
 #endif

@@ -282,7 +282,7 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 
     /* The Epsilon fudge factor is so that points really near the
         surface are considered inside the surface */
-    return (result > -Config::EPSILON ? (result < Config::EPSILON ? 0.0 : result) : result);
+    return (result > -Config::INTERSECTION_EPSILON ? (result < Config::INTERSECTION_EPSILON ? 0.0 : result) : result);
 }
 
 /* Normal to a polynomial */
