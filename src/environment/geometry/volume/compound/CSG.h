@@ -21,5 +21,9 @@ class CSG : public Geometry {
     static void rotateCsg(SimpleBody *object, Vector3Dd *vector);
     static void scaleCsg(SimpleBody *object, Vector3Dd *vector);
     static void invertCsg(SimpleBody *object);
+
+  private:
+    static inline void linkShapeNode(
+        SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList);
 };
 #endif

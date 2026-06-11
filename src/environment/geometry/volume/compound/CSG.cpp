@@ -15,8 +15,8 @@ Methods CSG::intersectionMethodTable = {
     CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
     CSG::invertCsg};
 
-static inline void
-linkShapeNode(
+inline void
+CSG::linkShapeNode(
     SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList)
 {
     *field = *oldObjectList;
@@ -147,7 +147,7 @@ CSG::copyCsg(SimpleBody *object)
 
         copiedShape =
             (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
-        linkShapeNode((SimpleBody *)copiedShape,
+        CSG::linkShapeNode((SimpleBody *)copiedShape,
             (SimpleBody **)&(copiedShape->nextObject),
             (SimpleBody **)&(newShape->Shapes));
     }
