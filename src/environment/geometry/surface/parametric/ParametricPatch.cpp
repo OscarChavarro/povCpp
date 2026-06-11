@@ -5,6 +5,7 @@ This file was written by Alexander Enzmann.  He wrote the code for
 bezier bicubic patches and generously provided us these enhancements.
 */
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -282,7 +283,7 @@ ParametricBiCubicPatch::parametricPartial(
         /* *Result = *n; */
         return;
     }
-    temp = sqrt(temp);
+    temp = java::Math::sqrt(temp);
     uVec = Vector3Dd(ux / temp, uy / temp, uz / temp);
 
     /* Calculate the derivative with respect to v */
@@ -319,7 +320,7 @@ ParametricBiCubicPatch::parametricPartial(
         *result = Vector3Dd(1.0, 0.0, 0.0);
         return;
     }
-    temp = sqrt(temp);
+    temp = java::Math::sqrt(temp);
     vVec = Vector3Dd(vx / temp, vy / temp, vz / temp);
 
     *result = uVec.crossProduct(vVec);
@@ -687,7 +688,7 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
     vertices[1] = (*patch)[0][3];
     tempV = vertices[0].subtract(vertices[1]);
     temp1 = tempV.length();
-    if (fabs(temp1) < EPSILON) {
+    if (java::Math::abs(temp1) < EPSILON) {
         /* Degenerate in the V direction for U = 0. This is ok if the other
             two corners are distinct from the lower left corner - I'm sure there
             are cases where the corners coincide and the middle has good values,
@@ -695,40 +696,40 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
         vertices[1] = (*patch)[3][3];
         tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
-        if (fabs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON) {
             return -1.0;
         }
         vertices[2] = (*patch)[3][0];
         tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
-        if (fabs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON) {
             return -1.0;
         }
         tempV = vertices[1].subtract(vertices[2]);
         temp1 = tempV.length();
-        if (fabs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON) {
             return -1.0;
         }
     } else {
         vertices[2] = (*patch)[3][0];
         tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
-        if (fabs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON) {
             vertices[2] = (*patch)[3][3];
             tempV = vertices[0].subtract(vertices[2]);
             temp1 = tempV.length();
-            if (fabs(temp1) < EPSILON) {
+            if (java::Math::abs(temp1) < EPSILON) {
                 return -1.0;
             }
             tempV = vertices[1].subtract(vertices[2]);
             temp1 = tempV.length();
-            if (fabs(temp1) < EPSILON) {
+            if (java::Math::abs(temp1) < EPSILON) {
                 return -1.0;
             }
         } else {
             tempV = vertices[1].subtract(vertices[2]);
             temp1 = tempV.length();
-            if (fabs(temp1) < EPSILON) {
+            if (java::Math::abs(temp1) < EPSILON) {
                 return -1.0;
             }
         }
@@ -742,7 +743,7 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
         dist = 0.0;
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
-                temp1 = fabs(ParametricBiCubicIntersection::pointPlaneDistance(
+                temp1 = java::Math::abs(ParametricBiCubicIntersection::pointPlaneDistance(
                     &((*patch)[i][j]), &n, &d));
                 if (temp1 > dist) {
                     dist = temp1;

@@ -6,6 +6,7 @@
  *
  *****************************************************************************/
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
@@ -53,7 +54,7 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     /* Initialize the blob data */
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
-        if (fabs(temp->elem.coeffs[2]) < Config::INTERSECTION_EPSILON ||
+        if (java::Math::abs(temp->elem.coeffs[2]) < Config::INTERSECTION_EPSILON ||
             temp->elem.radius2 < Config::INTERSECTION_EPSILON) {
             perror("Degenerate blob element\n");
         }
@@ -112,7 +113,7 @@ Blob::determineInfluences(
         if (disc < Config::INTERSECTION_EPSILON) {
             continue;
         }
-        disc = sqrt(disc);
+        disc = java::Math::sqrt(disc);
         t1 = b + disc;
         if (t1 < mindist) {
             t1 = 0.0;
@@ -334,7 +335,7 @@ Blob::allBlobIntersections(
         d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
     }
 
-    len = sqrt(d.x() * d.x() + d.y() * d.y() + d.z() * d.z());
+    len = java::Math::sqrt(d.x() * d.x() + d.y() * d.y() + d.z() * d.z());
     if (len == 0.0) {
         return 0;
     }
@@ -402,8 +403,8 @@ Blob::allBlobIntersections(
                 ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
         } else
             /* Sturm sequences */
-            if (fabs(coeffs[0]) < COEFF_LIMIT) {
-                if (fabs(coeffs[1]) < COEFF_LIMIT) {
+            if (java::Math::abs(coeffs[0]) < COEFF_LIMIT) {
+                if (java::Math::abs(coeffs[1]) < COEFF_LIMIT) {
                     rootCount =
                         PolynomialSolver::solveQuadratic(&coeffs[2], &roots[0]);
                 } else {
@@ -514,7 +515,7 @@ Blob::blobNormal(
     if (val < Config::INTERSECTION_EPSILON) {
         *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
-        val = 1.0 / sqrt(val);
+        val = 1.0 / java::Math::sqrt(val);
         *result = (*result).multiply(val);
     }
 

@@ -14,6 +14,7 @@
 
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
+#include "java/lang/Math.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/HeightField.h"
@@ -232,29 +233,29 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
 
     if (xDom) {
         if (isdx >= 0) {
-            f = floor(sx) - sx;
-            sx = floor(sx);
+            f = java::Math::floor(sx) - sx;
+            sx = java::Math::floor(sx);
             sy += myx * f;
             sz += mzx * f;
-            ex = floor(ex);
+            ex = java::Math::floor(ex);
             ix = (int)sx;
         } else {
-            f = ceil(sx) - sx;
-            sx = ceil(sx);
+            f = java::Math::ceil(sx) - sx;
+            sx = java::Math::ceil(sx);
             sy += myx * f;
             sz += mzx * f;
-            ex = ceil(ex);
+            ex = java::Math::ceil(ex);
             ix = (int)sx - 1;
         }
 
-        length = 0.5 + fabs(ex - sx);
+        length = 0.5 + java::Math::abs(ex - sx);
 
         if (isdz >= 0) {
-            f = sz - ceil(sz);
-            iz = (int)floor(sz);
+            f = sz - java::Math::ceil(sz);
+            iz = (int)java::Math::floor(sz);
         } else {
-            f = floor(sz) - sz;
-            iz = (int)ceil(sz) - 1;
+            f = java::Math::floor(sz) - sz;
+            iz = (int)java::Math::ceil(sz) - 1;
         }
 
         if (gdy >= 0.0) {
@@ -284,29 +285,29 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
     } else {
 
         if (isdz >= 0) {
-            f = floor(sz) - sz;
-            sz = floor(sz);
+            f = java::Math::floor(sz) - sz;
+            sz = java::Math::floor(sz);
             sy += myz * f;
             sx += mxz * f;
-            ez = floor(ez);
+            ez = java::Math::floor(ez);
             iz = (int)sz;
         } else {
-            f = ceil(sz) - sz;
-            sz = ceil(sz);
+            f = java::Math::ceil(sz) - sz;
+            sz = java::Math::ceil(sz);
             sy += myz * f;
             sx += mxz * f;
-            ez = ceil(ez);
+            ez = java::Math::ceil(ez);
             iz = (int)sz - 1;
         }
 
-        length = 0.5 + fabs(ez - sz);
+        length = 0.5 + java::Math::abs(ez - sz);
 
         if (isdx >= 0) {
-            f = sx - ceil(sx);
-            ix = (int)floor(sx);
+            f = sx - java::Math::ceil(sx);
+            ix = (int)java::Math::floor(sx);
         } else {
-            f = floor(sx) - sx;
-            ix = (int)ceil(sx) - 1;
+            f = java::Math::floor(sx) - sx;
+            ix = (int)java::Math::ceil(sx) - 1;
         }
 
         if (gdy >= 0.0) {
@@ -388,14 +389,14 @@ HeightField::intersectHfNode(
 
     if (xDom) {
         if (isdx >= 0) {
-            ix = (int)floor(sx * invBlkSize);
+            ix = (int)java::Math::floor(sx * invBlkSize);
             tnear = blockSize * (ix + 1) - sx;
 
             if (isdz >= 0) {
-                iz = (int)floor(sz * invBlkSize);
+                iz = (int)java::Math::floor(sz * invBlkSize);
                 tfar = gdx * (blockSize * (iz + 1) - sz);
             } else {
-                iz = (int)ceil(sz * invBlkSize) - 1;
+                iz = (int)java::Math::ceil(sz * invBlkSize) - 1;
                 tfar = gdx * (sz - blockSize * (iz));
             }
             for (i = 0; i < length; i++) {
@@ -436,14 +437,14 @@ HeightField::intersectHfNode(
                 }
             }
         } else {
-            ix = (int)ceil(sx * invBlkSize) - 1;
+            ix = (int)java::Math::ceil(sx * invBlkSize) - 1;
             tnear = sx - blockSize * (ix);
 
             if (isdz >= 0) {
-                iz = (int)floor(sz * invBlkSize);
+                iz = (int)java::Math::floor(sz * invBlkSize);
                 tfar = gdx * (blockSize * (iz + 1) - sz);
             } else {
-                iz = (int)ceil(sz * invBlkSize) - 1;
+                iz = (int)java::Math::ceil(sz * invBlkSize) - 1;
                 tfar = gdx * (sz - blockSize * (iz));
             }
 
@@ -487,14 +488,14 @@ HeightField::intersectHfNode(
         }
     } else {
         if (isdz >= 0) {
-            iz = (int)floor(sz * invBlkSize);
+            iz = (int)java::Math::floor(sz * invBlkSize);
             tnear = blockSize * (iz + 1) - sz;
 
             if (isdx >= 0) {
-                ix = (int)floor(sx * invBlkSize);
+                ix = (int)java::Math::floor(sx * invBlkSize);
                 tfar = gdz * (blockSize * (ix + 1) - sx);
             } else {
-                ix = (int)ceil(sx * invBlkSize) - 1;
+                ix = (int)java::Math::ceil(sx * invBlkSize) - 1;
                 tfar = gdz * (sx - blockSize * (ix));
             }
             for (i = 0; i < length; i++) {
@@ -535,14 +536,14 @@ HeightField::intersectHfNode(
                 }
             }
         } else {
-            iz = (int)ceil(sz * invBlkSize) - 1;
+            iz = (int)java::Math::ceil(sz * invBlkSize) - 1;
             tnear = sz - blockSize * (iz);
 
             if (isdx >= 0) {
-                ix = (int)floor(sx * invBlkSize);
+                ix = (int)java::Math::floor(sx * invBlkSize);
                 tfar = gdz * (blockSize * (ix + 1) - sx);
             } else {
-                ix = (int)ceil(sx * invBlkSize) - 1;
+                ix = (int)java::Math::ceil(sx * invBlkSize) - 1;
                 tfar = gdz * (sx - blockSize * (ix));
             }
             for (i = 0; i < length; i++) {
@@ -586,14 +587,14 @@ HeightField::intersectHfNode(
     }
     *next = Vector3Dd(ex, ey, ez);
     if (isdx >= 0) {
-        ix = (int)floor(ex * invBlkSize);
+        ix = (int)java::Math::floor(ex * invBlkSize);
     } else {
-        ix = (int)ceil(ex * invBlkSize) - 1;
+        ix = (int)java::Math::ceil(ex * invBlkSize) - 1;
     }
     if (isdz >= 0) {
-        iz = (int)floor(ez * invBlkSize);
+        iz = (int)java::Math::floor(ez * invBlkSize);
     } else {
-        iz = (int)ceil(ez * invBlkSize) - 1;
+        iz = (int)java::Math::ceil(ez * invBlkSize) - 1;
     }
     if (HeightField::intersectSubBlock(
             &(hField->Block[ix][iz]), ray, hField, curr, next)) {
@@ -607,11 +608,11 @@ HeightField::allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
     double width, double height)
 {
     double size = (double)HeightField::maxValue(maxX, maxZ);
-    hField->blockSize = ceil(sqrt(size + 1.0));
+    hField->blockSize = java::Math::ceil(java::Math::sqrt(size + 1.0));
     hField->invBlkSize = 1.0 / hField->blockSize;
 
-    int w = (int)ceil((width + 1.0) * hField->invBlkSize);
-    int h = (int)ceil((height + 1.0) * hField->invBlkSize);
+    int w = (int)java::Math::ceil((width + 1.0) * hField->invBlkSize);
+    int h = (int)java::Math::ceil((height + 1.0) * hField->invBlkSize);
 
     hField->Map = (float **)calloc(maxZ + 1, sizeof(float *));
     if (hField->Map == nullptr) {
@@ -652,8 +653,8 @@ HeightField::findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed 
     HeightField::allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
     int n = (int)hField->blockSize;
-    int w = (int)ceil((image->getXSize() + 1.0) * hField->invBlkSize);
-    int h = (int)ceil((image->getYSize() + 1.0) * hField->invBlkSize);
+    int w = (int)java::Math::ceil((image->getXSize() + 1.0) * hField->invBlkSize);
+    int h = (int)java::Math::ceil((image->getYSize() + 1.0) * hField->invBlkSize);
 
     for (int j = 0; j < h; j++) {
         for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
@@ -711,8 +712,8 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, 
     HeightField::allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
     int n = (int)hField->blockSize;
-    int w = (int)ceil((image->getXSize() + 1.0) * hField->invBlkSize);
-    int h = (int)ceil((image->getYSize() + 1.0) * hField->invBlkSize);
+    int w = (int)java::Math::ceil((image->getXSize() + 1.0) * hField->invBlkSize);
+    int h = (int)java::Math::ceil((image->getYSize() + 1.0) * hField->invBlkSize);
 
     for (int j = 0; j < h; j++) {
         for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
@@ -778,7 +779,7 @@ HeightField::allHeightfldIntersections(
         return (false);
     }
 
-    /*    if(      fabs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::INTERSECTION_EPSILON if
+    /*    if(      java::Math::abs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::INTERSECTION_EPSILON if
      * next line doesn't work */
 
     if (depth1 == depth2) {
@@ -794,14 +795,14 @@ HeightField::allHeightfldIntersections(
         temp2 = temp2.add(tempRay.position);
     }
 
-    if (fabs(tempRay.direction.x()) > Config::INTERSECTION_EPSILON) {
+    if (java::Math::abs(tempRay.direction.x()) > Config::INTERSECTION_EPSILON) {
         mzx = tempRay.direction.z() / tempRay.direction.x();
         myx = tempRay.direction.y() / tempRay.direction.x();
     } else {
         mzx = tempRay.direction.z() / Config::INTERSECTION_EPSILON;
         myx = tempRay.direction.y() / Config::INTERSECTION_EPSILON;
     }
-    if (fabs(tempRay.direction.z()) > Config::INTERSECTION_EPSILON) {
+    if (java::Math::abs(tempRay.direction.z()) > Config::INTERSECTION_EPSILON) {
         mxz = tempRay.direction.x() / tempRay.direction.z();
         myz = tempRay.direction.y() / tempRay.direction.z();
     } else {
@@ -817,12 +818,12 @@ HeightField::allHeightfldIntersections(
     isdz = HeightField::signInline(tempRay.direction.z());
 
     xDom = false;
-    if (fabs(tempRay.direction.x()) >= fabs(tempRay.direction.z())) {
+    if (java::Math::abs(tempRay.direction.x()) >= java::Math::abs(tempRay.direction.z())) {
         xDom = true;
     }
 
-    gdx = fabs(mxz);
-    gdz = fabs(mzx);
+    gdx = java::Math::abs(mxz);
+    gdz = java::Math::abs(mzx);
     if (xDom) {
         gdy = myx * (double)isdx;
     } else {
@@ -871,8 +872,8 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
         temp1 = Vector3Dd(1.0, y2 - y1, 0.0);
         temp2 = Vector3Dd(0.0, y3 - y1, 1.0);
     } else {
-        px = ceil(test.x());
-        pz = ceil(test.z());
+        px = java::Math::ceil(test.x());
+        pz = java::Math::ceil(test.z());
         y1 = HeightField::getHeightAt(px, pz, hField);
         y2 = HeightField::getHeightAt(px - 1, pz, hField);
         y3 = HeightField::getHeightAt(px, pz - 1, hField);

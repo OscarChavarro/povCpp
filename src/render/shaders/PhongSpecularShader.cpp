@@ -1,4 +1,4 @@
-#include <cmath>
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "render/shaders/PhongSpecularShader.h"
@@ -43,7 +43,7 @@ PhongSpecularShader::shade(Material *texture, RayWithSegments *lightSourceRay,
     }
 
     if (texture->objectPhongSize != 1.0) {
-        intensity = pow(cosAngleOfIncidence, texture->objectPhongSize);
+        intensity = java::Math::pow(cosAngleOfIncidence, texture->objectPhongSize);
     } else {
         intensity = cosAngleOfIncidence;
     }

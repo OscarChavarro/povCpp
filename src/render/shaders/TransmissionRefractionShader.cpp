@@ -1,3 +1,4 @@
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/GeometryConstants.h"
@@ -85,7 +86,7 @@ TransmissionRefractionShader::shade(Material *texture, Vector3Dd *intersectionPo
             return;
         }
 
-        temp = ior * normalComponent - sqrt(temp);
+        temp = ior * normalComponent - java::Math::sqrt(temp);
         localNormal = localNormal.multiply(temp);
         rayDirection = ray->direction.multiply(ior);
         newRay.direction = localNormal.add(rayDirection);

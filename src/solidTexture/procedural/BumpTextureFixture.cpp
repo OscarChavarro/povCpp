@@ -6,6 +6,7 @@ References:
 "The RenderMan Companion" (Addison Wesley).
 */
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "solidTexture/procedural/BumpTextureFixture.h"
 #include "solidTexture/procedural/ProceduralNoise.h"
@@ -39,7 +40,7 @@ BumpTextureFixture::ripples(
             length = 1.0;
         }
 
-        length = sqrt(length);
+        length = java::Math::sqrt(length);
         index = length * frequency + phase;
         scalar = proceduralNoise->cycloidal(index) * bumpAmount;
 
@@ -73,7 +74,7 @@ BumpTextureFixture::waves(
             length = 1.0;
         }
 
-        length = sqrt(length);
+        length = java::Math::sqrt(length);
         index = (length * frequency * TextureUtils::instance().waveFrequency()[i]) + phase;
         sinValue = proceduralNoise->cycloidal(index);
 

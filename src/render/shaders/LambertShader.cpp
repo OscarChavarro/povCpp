@@ -1,5 +1,5 @@
-#include <cmath>
 #include <cstdlib>
+#include "java/lang/Math.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "render/shaders/LambertShader.h"
 
@@ -19,7 +19,7 @@ LambertShader::shade(Material *texture, RayWithSegments *lightSourceRay,
     }
 
     if (texture->objectBrilliance != 1.0) {
-        intensity = pow(cosAngleOfIncidence, texture->objectBrilliance);
+        intensity = java::Math::pow(cosAngleOfIncidence, texture->objectBrilliance);
     } else {
         intensity = cosAngleOfIncidence;
     }

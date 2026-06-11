@@ -2,6 +2,7 @@
 This module implements primitives for triangles and smooth triangles.
 */
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/elements/Triangle.h"
@@ -35,9 +36,9 @@ Triangle::findTriangleDominantAxis(Triangle *triangle)
     double y;
     double z;
 
-    x = fabs(triangle->normalVector.x());
-    y = fabs(triangle->normalVector.y());
-    z = fabs(triangle->normalVector.z());
+    x = java::Math::abs(triangle->normalVector.x());
+    y = java::Math::abs(triangle->normalVector.y());
+    z = java::Math::abs(triangle->normalVector.z());
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
         triangle->Dominant_Axis = X_AXIS;
@@ -64,9 +65,9 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     double proj;
 
     p3MinusP2 = triangle->P3.subtract(triangle->P2);
-    x = fabs(p3MinusP2.x());
-    y = fabs(p3MinusP2.y());
-    z = fabs(p3MinusP2.z());
+    x = java::Math::abs(p3MinusP2.x());
+    y = java::Math::abs(p3MinusP2.y());
+    z = java::Math::abs(p3MinusP2.z());
 
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:

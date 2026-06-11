@@ -8,6 +8,7 @@ Supports planar, spherical, cylindrical, and torus UV projections.
 #include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
@@ -184,7 +185,7 @@ ImageTexture::bumpMap(
     xprime = yprime.crossProduct(temp);
     length = xprime.length();
     if (length < 1.0e-9) {
-        if (fabs(normal->y() - 1.0) < smallTolerance) {
+        if (java::Math::abs(normal->y() - 1.0) < smallTolerance) {
             *&yprime = Vector3Dd(0.0, 1.0, 0.0);
             *&xprime = Vector3Dd(1.0, 0.0, 0.0);
             length = 1.0;
@@ -230,10 +231,10 @@ ImageTexture::cylindricalImageMap(
     if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
         return 0;
     }
-    *v = fmod(y * image->getYSize(), image->getYSize());
+    *v = java::Math::fmod(y * image->getYSize(), image->getYSize());
 
     // Make sure this vector is on the unit sphere.
-    len = sqrt(x * x + y * y + z * z);
+    len = java::Math::sqrt(x * x + y * y + z * z);
     if (len == 0.0) {
         return 0;
     }
@@ -241,7 +242,7 @@ ImageTexture::cylindricalImageMap(
     z /= len;
 
     // Determine its angle from the point (1, 0, 0) in the x-z plane.
-    len = sqrt(x * x + z * z);
+    len = java::Math::sqrt(x * x + z * z);
     if (len == 0.0) {
         return 0;
     }
@@ -249,15 +250,15 @@ ImageTexture::cylindricalImageMap(
         if (x > 0) {
             theta = 0.0;
         } else {
-            theta = M_PI;
+            theta = java::Math::PI;
         }
     } else {
-        theta = acos(x / len);
+        theta = java::Math::acos(x / len);
         if (z < 0.0) {
-            theta = 2.0 * M_PI - theta;
+            theta = 2.0 * java::Math::PI - theta;
         }
     }
-    theta /= 2.0 * M_PI; // normalizes theta to [0, 1]
+    theta /= 2.0 * java::Math::PI; // normalizes theta to [0, 1]
 
     *u = (theta * image->getXSize());
     return 1;
@@ -276,7 +277,7 @@ ImageTexture::torusImageMap(
     r0 = image->getImageGradient().x();
 
     // Determine its angle from the x-axis.
-    len = sqrt(x * x + z * z);
+    len = java::Math::sqrt(x * x + z * z);
     if (len == 0.0) {
         return 0;
     }
@@ -284,12 +285,12 @@ ImageTexture::torusImageMap(
         if (x > 0) {
             theta = 0.0;
         } else {
-            theta = M_PI;
+            theta = java::Math::PI;
         }
     } else {
-        theta = acos(x / len);
+        theta = java::Math::acos(x / len);
         if (z < 0.0) {
-            theta = 2.0 * M_PI - theta;
+            theta = 2.0 * java::Math::PI - theta;
         }
     }
 
@@ -297,15 +298,15 @@ ImageTexture::torusImageMap(
 
     // Rotate about the y-axis to get the point (x, y, z) into the x-y plane.
     x = len - r0;
-    len = sqrt(x * x + y * y);
-    phi = acos(-x / len);
+    len = java::Math::sqrt(x * x + y * y);
+    phi = java::Math::acos(-x / len);
     if (y > 0.0) {
-        phi = 2.0 * M_PI - phi;
+        phi = 2.0 * java::Math::PI - phi;
     }
 
     // Determine the parametric coordinates.
-    theta /= 2.0 * M_PI;
-    phi /= 2.0 * M_PI;
+    theta /= 2.0 * java::Math::PI;
+    phi /= 2.0 * java::Math::PI;
     *u = (-theta * image->getXSize());
     *v = (phi * image->getYSize());
     return 1;
@@ -321,7 +322,7 @@ ImageTexture::sphericalImageMap(
     double theta;
 
     // Make sure this vector is on the unit sphere.
-    len = sqrt(x * x + y * y + z * z);
+    len = java::Math::sqrt(x * x + y * y + z * z);
     if (len == 0.0) {
         return 0;
     }
@@ -330,10 +331,10 @@ ImageTexture::sphericalImageMap(
     z /= len;
 
     // Determine its angle from the x-z plane.
-    phi = 0.5 + asin(y) / M_PI; // normalizes phi to [0, 1]
+    phi = 0.5 + java::Math::asin(y) / java::Math::PI; // normalizes phi to [0, 1]
 
     // Determine its angle from the point (1, 0, 0) in the x-z plane.
-    len = sqrt(x * x + z * z);
+    len = java::Math::sqrt(x * x + z * z);
     if (len == 0.0) {
         // at a pole: any xcoord value is valid
         theta = 0;
@@ -342,15 +343,15 @@ ImageTexture::sphericalImageMap(
             if (x > 0) {
                 theta = 0.0;
             } else {
-                theta = M_PI;
+                theta = java::Math::PI;
             }
         } else {
-            theta = acos(x / len);
+            theta = java::Math::acos(x / len);
             if (z < 0.0) {
-                theta = 2.0 * M_PI - theta;
+                theta = 2.0 * java::Math::PI - theta;
             }
         }
-        theta /= 2.0 * M_PI; // normalizes theta to [0, 1]
+        theta /= 2.0 * java::Math::PI; // normalizes theta to [0, 1]
     }
     *u = (theta * image->getXSize());
     *v = (phi * image->getYSize());
@@ -370,9 +371,9 @@ ImageTexture::planarImageMap(
             return 0;
         }
         if (image->getImageGradient().x() > 0) {
-            *u = fmod(x * image->getXSize(), image->getXSize());
+            *u = java::Math::fmod(x * image->getXSize(), image->getXSize());
         } else {
-            *v = fmod(x * image->getYSize(), image->getYSize());
+            *v = java::Math::fmod(x * image->getYSize(), image->getYSize());
         }
     }
     if (image->getImageGradient().y() != 0.0) {
@@ -380,9 +381,9 @@ ImageTexture::planarImageMap(
             return 0;
         }
         if (image->getImageGradient().y() > 0) {
-            *u = fmod(y * image->getXSize(), image->getXSize());
+            *u = java::Math::fmod(y * image->getXSize(), image->getXSize());
         } else {
-            *v = fmod(y * image->getYSize(), image->getYSize());
+            *v = java::Math::fmod(y * image->getYSize(), image->getYSize());
         }
     }
     if (image->getImageGradient().z() != 0.0) {
@@ -390,9 +391,9 @@ ImageTexture::planarImageMap(
             return 0;
         }
         if (image->getImageGradient().z() > 0) {
-            *u = fmod(z * image->getXSize(), image->getXSize());
+            *u = java::Math::fmod(z * image->getXSize(), image->getXSize());
         } else {
-            *v = fmod(z * image->getYSize(), image->getYSize());
+            *v = java::Math::fmod(z * image->getYSize(), image->getYSize());
         }
     }
     return 1;

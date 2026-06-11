@@ -5,6 +5,7 @@
  *
  *****************************************************************************/
 
+#include "java/lang/Math.h"
 #include "environment/light/Light.h"
 #include "environment/material/MaterialUtils.h"
 
@@ -124,7 +125,7 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
             costheta = lightSourceRay->direction.dotProduct(spotDirection);
             costheta *= -1.0;
             if (costheta > 0.0) {
-                attenuation = pow(costheta, lightSource->Coeff);
+                attenuation = java::Math::pow(costheta, lightSource->Coeff);
                 /* If there is a soft falloff region associated with the light
                    then do an interpolation of values between the hot center and
                    the direction at which light falls to nothing. */

@@ -5,8 +5,8 @@
  *
  *****************************************************************************/
 
-#include <cmath>
 #include <cstdio>
+#include "java/lang/Math.h"
 #include <cstring>
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
@@ -150,13 +150,13 @@ void
 RawFormat::writeLine(ColorRgba *lineData, int lineNumber)
 {
     for (int x = 0; x < width; x++) {
-        redOut->write((int)floor(lineData[x].getR() * 255.0));
+        redOut->write((int)java::Math::floor(lineData[x].getR() * 255.0));
     }
     for (int x = 0; x < width; x++) {
-        greenOut->write((int)floor(lineData[x].getG() * 255.0));
+        greenOut->write((int)java::Math::floor(lineData[x].getG() * 255.0));
     }
     for (int x = 0; x < width; x++) {
-        blueOut->write((int)floor(lineData[x].getB() * 255.0));
+        blueOut->write((int)java::Math::floor(lineData[x].getB() * 255.0));
     }
 
     redOut->flush();
