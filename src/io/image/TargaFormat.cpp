@@ -68,7 +68,7 @@ TargaFormat::~TargaFormat()
 }
 
 const char *
-TargaFormat::defaultFileName()
+TargaFormat::defaultFileName() const
 {
     return "data.tga";
 }

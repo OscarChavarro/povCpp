@@ -41,18 +41,6 @@ TextureUtils::getProceduralNoise()
     return proceduralNoise;
 }
 
-double *
-TextureUtils::waveFrequency()
-{
-    return frequencyInstance;
-}
-
-Vector3Dd *
-TextureUtils::waveSources()
-{
-    return waveSourcesInstance;
-}
-
 double
 TextureUtils::floorInline(double x)
 {
@@ -65,9 +53,21 @@ TextureUtils::fabsInline(double x)
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
+double *
+TextureUtils::waveFrequency()
+{
+    return frequencyInstance;
+}
+
+Vector3Dd *
+TextureUtils::waveSources()
+{
+    return waveSourcesInstance;
+}
+
 void
 TextureUtils::computeColor(
-    ColorRgba *color, RGBAColorPalette *colorMap, double value)
+    ColorRgba *color, const RGBAColorPalette *colorMap, double value)
 {
     ColorRgba *c = colorMap->evalLinear(value);
     *color = *c;

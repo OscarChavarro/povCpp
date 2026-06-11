@@ -51,8 +51,8 @@ MaterialUtils::needsTransform(const Material *texture)
                (texture->textureNumber != SolidTextureColorTextures::COLOUR_TEXTURE)) ||
            (texture->bumpNumber != SolidTextureBumpyTextures::NO_BUMPS);
 }
-static void
-applyTranslationTransform(Material *texture, Vector3Dd *vector)
+void
+MaterialUtils::applyTranslationTransform(Material *texture, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -107,8 +107,8 @@ MaterialUtils::translateTexture(Material **texturePtr, Vector3Dd *vector)
         }
     }
 }
-static void
-copyTextureNode(Material *dst, const Material *src)
+void
+MaterialUtils::copyTextureNode(Material *dst, const Material *src)
 {
     if (dst->textureTransformation) {
         dst->textureTransformation =
@@ -193,8 +193,8 @@ MaterialUtils::getTexture()
     newTexture->objectRefraction = 0.0;
     return (newTexture);
 }
-static void
-applyRotationTransform(Material *texture, Vector3Dd *vector)
+void
+MaterialUtils::applyRotationTransform(Material *texture, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -246,8 +246,8 @@ MaterialUtils::rotateTexture(Material **texturePtr, Vector3Dd *vector)
         }
     }
 }
-static void
-applyScaleTransform(Material *texture, Vector3Dd *vector)
+void
+MaterialUtils::applyScaleTransform(Material *texture, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;

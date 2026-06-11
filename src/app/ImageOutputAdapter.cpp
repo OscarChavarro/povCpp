@@ -5,7 +5,7 @@ ImageOutputAdapter::ImageOutputAdapter(ImageOutput *delegate) : delegate(delegat
 }
 
 const char *
-ImageOutputAdapter::defaultFileName()
+ImageOutputAdapter::defaultFileName() const
 {
     return delegate->defaultFileName();
 }
@@ -24,7 +24,7 @@ ImageOutputAdapter::writeLine(ColorRgba *lineData, int lineNumber)
 }
 
 int
-ImageOutputAdapter::readLine(ColorRgba *lineData, int *lineNumber)
+ImageOutputAdapter::readLine(ColorRgba *lineData, int *lineNumber) const
 {
     return delegate->readLine(lineData, lineNumber);
 }

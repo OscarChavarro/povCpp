@@ -8,11 +8,11 @@ class ImageOutputAdapter : public RenderOutput {
   public:
     explicit ImageOutputAdapter(ImageOutput *delegate);
 
-    const char *defaultFileName() override;
+    const char *defaultFileName() const override;
     int open(char *name, int *width, int *height, int bufferSize, int mode,
              int firstLine) override;
     void writeLine(ColorRgba *lineData, int lineNumber) override;
-    int readLine(ColorRgba *lineData, int *lineNumber) override;
+    int readLine(ColorRgba *lineData, int *lineNumber) const override;
     void close() override;
 
   private:

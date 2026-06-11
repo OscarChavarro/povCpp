@@ -86,7 +86,7 @@ RawDumpFormat::~RawDumpFormat()
 }
 
 const char *
-RawDumpFormat::defaultFileName()
+RawDumpFormat::defaultFileName() const
 {
     return "data.dis";
 }

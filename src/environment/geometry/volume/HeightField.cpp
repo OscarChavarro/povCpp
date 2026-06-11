@@ -602,8 +602,8 @@ HeightField::intersectHfNode(
     return (false);
 }
 
-static void
-allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
+void
+HeightField::allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
     double width, double height)
 {
     double size = (double)HeightField::maxValue(maxX, maxZ);
@@ -649,7 +649,7 @@ HeightField::findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed 
     }
     int maxZ = image->getYSize();
 
-    allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
+    HeightField::allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
     int n = (int)hField->blockSize;
     int w = (int)ceil((image->getXSize() + 1.0) * hField->invBlkSize);
@@ -708,7 +708,7 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, 
     int maxX = image->getXSize();
     int maxZ = image->getYSize();
 
-    allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
+    HeightField::allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
     int n = (int)hField->blockSize;
     int w = (int)ceil((image->getXSize() + 1.0) * hField->invBlkSize);

@@ -18,6 +18,10 @@ class MaterialUtils {
     MaterialUtils();
 
     static bool needsTransform(const Material *texture);
+    static void applyTranslationTransform(Material *texture, Vector3Dd *vector);
+    static void applyRotationTransform(Material *texture, Vector3Dd *vector);
+    static void applyScaleTransform(Material *texture, Vector3Dd *vector);
+    static void copyTextureNode(Material *dst, const Material *src);
 
   public:
     static void initialize();
@@ -25,11 +29,11 @@ class MaterialUtils {
 
     static Material *defaultTexture();
     static void setDefaultTexture(Material *texture);
-    void translateTexture(Material **texturePtr, Vector3Dd *vector);
-    void rotateTexture(Material **texturePtr, Vector3Dd *vector);
-    void scaleTexture(Material **texturePtr, Vector3Dd *vector);
-    Material *copyTexture(Material *texture);
-    Material *getTexture();
+    static void translateTexture(Material **texturePtr, Vector3Dd *vector);
+    static void rotateTexture(Material **texturePtr, Vector3Dd *vector);
+    static void scaleTexture(Material **texturePtr, Vector3Dd *vector);
+    static Material *copyTexture(Material *texture);
+    static Material *getTexture();
 };
 
 #endif

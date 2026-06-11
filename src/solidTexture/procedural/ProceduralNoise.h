@@ -18,6 +18,7 @@ class ProceduralNoise {
     double *sinTable;
     SolidTextureStatistics *solidTextureStatistics;
 
+    static double fabsInline(double x);
     void initTextureTable();
     void initRTable();
     int r(Vector3Dd *v) const;

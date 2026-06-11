@@ -10,11 +10,11 @@ class RenderOutput {
     static constexpr int APPEND_MODE = 2;
 
     virtual ~RenderOutput() {}
-    virtual const char *defaultFileName() = 0;
+    virtual const char *defaultFileName() const = 0;
     virtual int open(char *name, int *width, int *height, int bufferSize, int mode,
                      int firstLine) = 0;
     virtual void writeLine(ColorRgba *lineData, int lineNumber) = 0;
-    virtual int readLine(ColorRgba *lineData, int *lineNumber) = 0;
+    virtual int readLine(ColorRgba *lineData, int *lineNumber) const = 0;
     virtual void close() = 0;
 };
 
