@@ -12,8 +12,8 @@ References:
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "solidTexture/procedural/ProceduralNoise.h"
 
-static double
-fabsInline(double x)
+double
+ProceduralNoise::fabsInline(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }

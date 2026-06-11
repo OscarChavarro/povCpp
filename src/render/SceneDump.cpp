@@ -5,7 +5,7 @@
 #include "render/RenderEngine.h"
 #include "render/SceneDump.h"
 
-void dumpSceneStructure(FILE *f)
+void SceneDumper::dumpSceneStructure(FILE *f)
 {
     if (f == nullptr) return;
 

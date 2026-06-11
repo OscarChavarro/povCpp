@@ -74,7 +74,7 @@ RawFormat::~RawFormat()
 }
 
 const char *
-RawFormat::defaultFileName()
+RawFormat::defaultFileName() const
 {
     return "data";
 }

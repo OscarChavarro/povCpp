@@ -70,7 +70,7 @@ PriorityQueue<T>::add(T *queueEntry)
 
 template <class T>
 T *
-PriorityQueue<T>::getHighest()
+PriorityQueue<T>::getHighest() const
 {
     if (this->currentEntry >= 1) {
         return (&(this->queue[1]));
@@ -88,7 +88,7 @@ PriorityQueue<T>::deleteHighest()
 
 template <class T>
 void
-PriorityQueue<T>::print()
+PriorityQueue<T>::print() const
 {
     {
         char _logMsg[1024];

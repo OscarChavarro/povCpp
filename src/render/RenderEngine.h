@@ -2,6 +2,7 @@
 #define __RENDER_ENGINE_H__
 
 #include "environment/scene/SceneFrame.h"
+#include "render/shaders/TraceService.h"
 
 class RenderEngine {
   private:
@@ -23,6 +24,7 @@ class RenderEngine {
     static void trace(RayWithSegments *ray, ColorRgba *color);
     static void initializeRenderer(void);
     static inline unsigned short rand3dInline(int a, int b);
+    static const TraceService *getTraceService();
 };
 
 #endif

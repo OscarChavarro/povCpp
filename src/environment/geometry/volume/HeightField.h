@@ -53,6 +53,8 @@ class HeightField : public Geometry {
     static PriorityQueueNode *hfQueue;
     static RayWithSegments *rRay;
 
+    static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
+        double width, double height);
     static double getHeightAt(int x, int z, HeightField *hField);
     static int intersectPixel(int x, int z, RayWithSegments *ray,
         HeightField *hField, double height1, double height2);

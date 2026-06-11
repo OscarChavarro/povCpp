@@ -14,6 +14,7 @@ class TextureParser {
   private:
     static bool shouldLogTextureState();
     static void logTextureStateLegacy(const char *prefix, const Material *texture);
+    static void wireIndexedInToTextureImage(class ControlledRGBAImageHDRUncompressed *ti, class IndexedColorImageHDRUncompressed *idx);
 };
 
 #endif

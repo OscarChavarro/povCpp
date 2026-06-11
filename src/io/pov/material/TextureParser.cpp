@@ -24,8 +24,8 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 
-static void
-wireIndexedInToTextureImage(ControlledRGBAImageHDRUncompressed *ti, IndexedColorImageHDRUncompressed *idx)
+void
+TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDRUncompressed *ti, IndexedColorImageHDRUncompressed *idx)
 {
     ti->setIndexedData(idx);
     ti->allocate(idx->getXSize(), idx->getYSize());
@@ -504,7 +504,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
                                 texture->image, ctx.token().Token_String);
                             if (idx != nullptr) {
-                                wireIndexedInToTextureImage(
+                                TextureParser::wireIndexedInToTextureImage(
                                     texture->image, idx);
                             }
                             exitFlag = true;
@@ -515,7 +515,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
-                            wireIndexedInToTextureImage(texture->image, idx);
+                            TextureParser::wireIndexedInToTextureImage(texture->image, idx);
                             exitFlag = true;
                             break;
                         }
@@ -840,7 +840,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
                                 texture->bumpImage, ctx.token().Token_String);
                             if (idx != nullptr) {
-                                wireIndexedInToTextureImage(
+                                TextureParser::wireIndexedInToTextureImage(
                                     texture->bumpImage, idx);
                             }
                             Exit_Flag = true;
@@ -851,7 +851,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
-                            wireIndexedInToTextureImage(
+                            TextureParser::wireIndexedInToTextureImage(
                                 texture->bumpImage, idx);
                             Exit_Flag = true;
                             break;
@@ -969,7 +969,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
                                 texture->materialImage, ctx.token().Token_String);
                             if (idx != nullptr) {
-                                wireIndexedInToTextureImage(
+                                TextureParser::wireIndexedInToTextureImage(
                                     texture->materialImage, idx);
                             }
                             Exit_Flag = true;
@@ -980,7 +980,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
-                            wireIndexedInToTextureImage(
+                            TextureParser::wireIndexedInToTextureImage(
                                 texture->materialImage, idx);
                             Exit_Flag = true;
                             break;

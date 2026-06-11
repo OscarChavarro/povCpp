@@ -12,7 +12,7 @@ class TargaFormat : public ImageOutput {
   public:
     TargaFormat();
     ~TargaFormat() override;
-    const char *defaultFileName() override;
+    const char *defaultFileName() const override;
     int open(char *name, int *width, int *height, int bufferSize, int mode,
              int firstLine) override;
     void writeLine(ColorRgba *lineData, int lineNumber) override;

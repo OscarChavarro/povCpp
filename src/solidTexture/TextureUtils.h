@@ -20,11 +20,11 @@ class TextureUtils {
 
     ProceduralNoise& getProceduralNoise();
 
-    double floorInline(double x);
-    double fabsInline(double x);
-    double *waveFrequency();
-    Vector3Dd *waveSources();
-    void computeColor(ColorRgba *color, RGBAColorPalette *colorMap, double value);
+    static double floorInline(double x);
+    static double fabsInline(double x);
+    static double *waveFrequency();
+    static Vector3Dd *waveSources();
+    static void computeColor(ColorRgba *color, const RGBAColorPalette *colorMap, double value);
     void initializeNoise();
 
   private:

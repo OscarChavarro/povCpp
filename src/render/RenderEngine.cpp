@@ -77,32 +77,32 @@ RenderEngine::stopFlag()
     return RenderRuntimeState::stopFlag();
 }
 
-static const TraceService *getTraceService();
+namespace {
+    static void
+    traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color)
+    {
+        (void)context;
+        RenderEngine::trace(ray, color);
+    }
 
-static void
-traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color)
-{
-    (void)context;
-    RenderEngine::trace(ray, color);
+    static void
+    traceServiceShadeShadow(
+        void *context, Intersection *intersection, ColorRgba *color)
+    {
+        (void)context;
+        RayShaderPipeline::shadeSurface(
+            intersection, color, nullptr, true, RenderEngine::getTraceService(), &TextureUtils::instance());
+    }
+
+    static const TraceService traceService = {
+        traceServiceTrace,
+        traceServiceShadeShadow,
+        nullptr
+    };
 }
 
-static void
-traceServiceShadeShadow(
-    void *context, Intersection *intersection, ColorRgba *color)
-{
-    (void)context;
-    RayShaderPipeline::shadeSurface(
-        intersection, color, nullptr, true, getTraceService(), &TextureUtils::instance());
-}
-
-static const TraceService traceService = {
-    traceServiceTrace,
-    traceServiceShadeShadow,
-    nullptr
-};
-
-static const TraceService *
-getTraceService()
+const TraceService *
+RenderEngine::getTraceService()
 {
     return &traceService;
 }
@@ -340,7 +340,7 @@ RenderEngine::startTracing()
 {
     const char *dumpEnv = std::getenv("POVCPP_DUMP_SCENE");
     if (dumpEnv != nullptr && dumpEnv[0] == '1') {
-        dumpSceneStructure(stderr);
+        SceneDumper::dumpSceneStructure(stderr);
     }
 
     ColorRgba color;
@@ -618,7 +618,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            localIntersection, color, ray, false, getTraceService(), &TextureUtils::instance());
+            localIntersection, color, ray, false, RenderEngine::getTraceService(), &TextureUtils::instance());
         delete localIntersection;
     }
 }
