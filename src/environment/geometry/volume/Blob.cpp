@@ -11,7 +11,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "processing/polynomial/PolynomialSolver.h"
+#include "numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/material/MaterialUtils.h"
 

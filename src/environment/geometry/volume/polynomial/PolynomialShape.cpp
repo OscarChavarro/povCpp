@@ -13,8 +13,8 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "processing/polynomial/PolynomialSolver.h"
-#include "processing/polynomial/PolynomialTermCounts.h"
+#include "numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "numericalAnalysis/polynomial/PolynomialTermCounts.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/material/MaterialUtils.h"
 

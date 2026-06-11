@@ -1,7 +1,7 @@
 #ifndef __POLYNOMIAL_H__
 #define __POLYNOMIAL_H__
 
-#include "processing/polynomial/PolynomialConstants.h"
+#include "numericalAnalysis/polynomial/PolynomialConstants.h"
 
 class Polynomial {
   public:
