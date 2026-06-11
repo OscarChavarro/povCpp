@@ -8,6 +8,7 @@
  *
  *****************************************************************************/
 
+#include "java/lang/Math.h"
 #include "environment/geometry/volume/Box.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
@@ -22,7 +23,7 @@ Methods Box::methodTable = {Box::allBoxIntersections,
 int
 Box::closeTo(double x, double y)
 {
-    return fabs(x - y) < Config::INTERSECTION_EPSILON ? 1 : 0;
+    return java::Math::abs(x - y) < Config::INTERSECTION_EPSILON ? 1 : 0;
 }
 int
 Box::allBoxIntersections(

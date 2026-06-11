@@ -9,6 +9,7 @@ MapTextureFixture.cpp respectively.
 
 #include <cstdlib>
 #include "common/statistics/SolidTextureStatistics.h"
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "solidTexture/TextureUtils.h"
@@ -45,7 +46,7 @@ TextureUtils::getProceduralNoise()
 double
 TextureUtils::floorInline(double x)
 {
-    return x >= 0.0 ? floor(x) : (0.0 - floor(0.0 - x) - 1.0);
+    return x >= 0.0 ? java::Math::floor(x) : (0.0 - java::Math::floor(0.0 - x) - 1.0);
 }
 
 double

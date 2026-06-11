@@ -6,6 +6,7 @@ References:
 [UPST1990] "The RenderMan Companion" (Addison Wesley).
 */
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "solidTexture/procedural/ColorTextureFixture.h"
 #include "solidTexture/procedural/ProceduralNoise.h"
@@ -32,7 +33,7 @@ ColorTextureFixture::agate(double x, double y, double z, int octaves, RGBAColorP
                 1.1 * z) +
             1;
     noise *= 0.5;
-    noise = pow(noise, 0.77);
+    noise = java::Math::pow(noise, 0.77);
 
 
     if (colorMap != nullptr) {
@@ -121,9 +122,9 @@ ColorTextureFixture::brick(
     double yr;
     double zr;
 
-    xr = fabs(fmod(x, 1.0));
-    yr = fabs(fmod(y, 1.0));
-    zr = fabs(fmod(z, 1.0));
+    xr = java::Math::abs(java::Math::fmod(x, 1.0));
+    yr = java::Math::abs(java::Math::fmod(y, 1.0));
+    zr = java::Math::abs(java::Math::fmod(z, 1.0));
     *color = *color2;
 
     if (xr > 0 && xr < mortar) {
@@ -205,7 +206,7 @@ ColorTextureFixture::gradient(
         z = textureUtils->fabsInline(z);
         value += z - textureUtils->floorInline(z); // obtain fractional Z component
     }
-    value = ((value > 1.0) ? fmod(value, 1.0) : value); // clamp to 1.0
+    value = ((value > 1.0) ? java::Math::fmod(value, 1.0) : value); // clamp to 1.0
 
 
     textureUtils->computeColor(&newColor, colorMap, value);
@@ -253,7 +254,7 @@ ColorTextureFixture::granite(
 
 /**
 [PERL1985].291 - Marble: sine-wave color splining with turbulence-perturbed phase.
-Implements: x = point[1] + turbulence(point); color = marble_color(sin(x))
+Implements: x = point[1] + turbulence(point); color = marble_color(java::Math::sin(x))
 */
 void
 ColorTextureFixture::marble(
@@ -381,10 +382,10 @@ ColorTextureFixture::leopard(
         z += leopardTurbulence.z() * turb;
     }
     // This form didn't work with Zortech 386 compiler:
-    // noise = (((sin(x)+sin(y)+sin(z))/3)*((sin(x)+sin(y)+sin(z))/3));
-    temp1 = sin(x);
-    temp2 = sin(y);
-    temp3 = sin(z);
+    // noise = (((java::Math::sin(x)+java::Math::sin(y)+java::Math::sin(z))/3)*((java::Math::sin(x)+java::Math::sin(y)+java::Math::sin(z))/3));
+    temp1 = java::Math::sin(x);
+    temp2 = java::Math::sin(y);
+    temp3 = java::Math::sin(z);
     noise = (((temp1 + temp2 + temp3) / 3)*((temp1 + temp2 + temp3) / 3));
 
     if (colorMap != nullptr) {
@@ -423,12 +424,12 @@ ColorTextureFixture::onion(
     }
 
     // Alternative ramp 0-1,1-0,0-1,1-0...:
-    // noise = (fmod(sqrt(x*x+y*y+z*z), 2.0) - 1.0);
+    // noise = (java::Math::fmod(sqrt(x*x+y*y+z*z), 2.0) - 1.0);
     // if (noise < 0.0) { noise = 0.0 - noise; }
 
     // This ramp goes 0-1,0-1,0-1,0-1...
-    noise = (fmod(
-        std::sqrt(((x)*(x)) + ((y)*(y)) + ((z)*(z))),
+    noise = (java::Math::fmod(
+        java::Math::sqrt(((x)*(x)) + ((y)*(y)) + ((z)*(z))),
         1.0));
 
     if (colorMap != nullptr) {

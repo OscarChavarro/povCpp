@@ -1,3 +1,4 @@
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
@@ -72,9 +73,9 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     *ip = ip->add(ray->position);
 
     /* Map the intersection point and the triangle onto a plane. */
-    x = fabs(n->x());
-    y = fabs(n->y());
-    z = fabs(n->z());
+    x = java::Math::abs(n->x());
+    y = java::Math::abs(n->y());
+    z = java::Math::abs(n->z());
     if (x > y) {
         if (x > z) {
             x1 = v1->y() - ip->y();
@@ -203,9 +204,9 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
             return 1;
         }
         tempV1 = v3->subtract(*v2);
-        x = fabs(tempV1.x());
-        y = fabs(tempV1.y());
-        z = fabs(tempV1.z());
+        x = java::Math::abs(tempV1.x());
+        y = java::Math::abs(tempV1.y());
+        z = java::Math::abs(tempV1.z());
         if (x > y) {
             if (x > z) {
                 t = (tempV1.x() / s + v1->x() - v2->x()) / tempV1.x();
@@ -269,7 +270,7 @@ ParametricBiCubicIntersection::pointPlaneDistance(
     temp1 = (*p).dotProduct(*n);
     temp1 += *d;
     temp2 = (*n).length();
-    if (fabs(temp2) < EPSILON) {
+    if (java::Math::abs(temp2) < EPSILON) {
         return 0;
     }
     temp1 /= temp2;

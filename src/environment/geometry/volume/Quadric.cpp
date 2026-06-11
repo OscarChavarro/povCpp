@@ -5,6 +5,7 @@
  *
  *****************************************************************************/
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/Quadric.h"
@@ -115,7 +116,7 @@ Quadric::intersectQuadric(
             return (false);
         }
 
-        determinant = sqrt(determinant2);
+        determinant = java::Math::sqrt(determinant2);
         a2 = squareTerm * 2.0;
         bMinus = linearTerm * -1.0;
 
@@ -195,7 +196,7 @@ Quadric::quadricNormal(
 
     len = result->x() * result->x() + result->y() * result->y() +
           result->z() * result->z();
-    len = sqrt(len);
+    len = java::Math::sqrt(len);
     if (len == 0.0) {
         /* The normal is not defined at this point of the surface.  Set it
             to any arbitrary direction. */

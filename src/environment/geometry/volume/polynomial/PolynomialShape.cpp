@@ -8,6 +8,7 @@
  *
  *****************************************************************************/
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
@@ -77,7 +78,7 @@ PolynomialShape::allPolyIntersections(
     }
     newRay.isShadowRay = ray->isShadowRay;
 
-    len = sqrt(newRay.direction.x() * newRay.direction.x() +
+    len = java::Math::sqrt(newRay.direction.x() * newRay.direction.x() +
                newRay.direction.y() * newRay.direction.y() +
                newRay.direction.z() * newRay.direction.z());
     if (len == 0.0) {
@@ -326,7 +327,7 @@ PolynomialShape::normalp(
             rz += zp * a[i] * x[xp] * y[yp] * z[zp - 1];
         }
     }
-    double vTemp = sqrt(rx * rx + ry * ry + rz * rz);
+    double vTemp = java::Math::sqrt(rx * rx + ry * ry + rz * rz);
     if (vTemp > 0.0) {
         *result = Vector3Dd(rx / vTemp, ry / vTemp, rz / vTemp);
     } else {
@@ -761,7 +762,7 @@ PolynomialShape::quarticNormal(
                 y * (3 * a[26] * z2 + 2 * a[27] * z + a[28]) + 4 * a[30] * z3 +
                 3 * a[31] * z2 + 2 * a[32] * z + a[33];
     *result = Vector3Dd(nx, ny, nz);
-    double vTemp = sqrt(
+    double vTemp = java::Math::sqrt(
         result->x() * result->x() + result->y() * result->y() +
         result->z() * result->z());
     if (vTemp > 0.0) {

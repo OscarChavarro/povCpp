@@ -1,5 +1,5 @@
-#include <cmath>
 #include <cstdio>
+#include "java/lang/Math.h"
 #include <cstdlib>
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
@@ -148,9 +148,9 @@ void
 TargaFormat::writeLine(ColorRgba *lineData, int lineNumber)
 {
     for (int x = 0; x < width; x++) {
-        outputStream->write((int)floor(lineData[x].getB() * 255.0));
-        outputStream->write((int)floor(lineData[x].getG() * 255.0));
-        outputStream->write((int)floor(lineData[x].getR() * 255.0));
+        outputStream->write((int)java::Math::floor(lineData[x].getB() * 255.0));
+        outputStream->write((int)java::Math::floor(lineData[x].getG() * 255.0));
+        outputStream->write((int)java::Math::floor(lineData[x].getR() * 255.0));
     }
 
     outputStream->flush();

@@ -1,3 +1,4 @@
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/light/Light.h"
@@ -106,7 +107,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             case Tokenizer::RADIUS_TOKEN:
                 localShape->Radius =
-                    cos(PrimitiveParser::parseFloat(ctx) * M_PI / 180.0);
+                    java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
@@ -115,7 +116,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             case Tokenizer::FALLOFF_TOKEN:
                 localShape->Falloff =
-                    cos(PrimitiveParser::parseFloat(ctx) * M_PI / 180.0);
+                    java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
                 break;
 
             case Tokenizer::SPOTLIGHT_TOKEN:

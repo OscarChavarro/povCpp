@@ -1,4 +1,4 @@
-#include <cmath>
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "render/shaders/ExponentialFogShader.h"
 
@@ -9,7 +9,7 @@ ExponentialFogShader::shade(double distance, ColorRgba *fogColor, double fogDist
     double fogFactor;
     double fogFactorInverse;
 
-    fogFactor = exp(-1.0 * distance / fogDistance);
+    fogFactor = java::Math::exp(-1.0 * distance / fogDistance);
     fogFactorInverse = 1.0 - fogFactor;
     color->setR(color->getR() * fogFactor + fogColor->getR() * fogFactorInverse);
     color->setG(

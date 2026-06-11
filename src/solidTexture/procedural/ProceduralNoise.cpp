@@ -9,6 +9,7 @@ References:
 "The RenderMan Companion" (Addison Wesley).
 */
 
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "solidTexture/procedural/ProceduralNoise.h"
 
@@ -385,10 +386,10 @@ double
 ProceduralNoise::cycloidal(double value) const
 {
     if (value >= 0.0) {
-        return sineLookUpTable.eval(value - floor(value));
+        return sineLookUpTable.eval(value - java::Math::floor(value));
     }
 
-    return (0.0 - sineLookUpTable.eval(0.0 - (value + floor(0.0 - value))));
+    return (0.0 - sineLookUpTable.eval(0.0 - (value + java::Math::floor(0.0 - value))));
 }
 
 /**
@@ -401,9 +402,9 @@ ProceduralNoise::triangleWave(double value) const
     double temp1;
 
     if (value >= 0.0) {
-        offset = value - floor(value);
+        offset = value - java::Math::floor(value);
     } else {
-        temp1 = -1.0 - floor(fabs(value));
+        temp1 = -1.0 - java::Math::floor(java::Math::abs(value));
         offset = value - temp1;
     }
     if (offset >= 0.5) {

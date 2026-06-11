@@ -4,6 +4,7 @@
  *  This module implements the sphere primitive.
  * *****************************************************************************/
 
+#include "java/lang/Math.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/material/Material.h"
@@ -66,7 +67,7 @@ Sphere::intersectSphere(
         return false;
     }
 
-    halfChord = sqrt(tHalfChordSquared);
+    halfChord = java::Math::sqrt(tHalfChordSquared);
     *depth1 = tClosestApproach + halfChord;
     *depth2 = tClosestApproach - halfChord;
 
@@ -191,7 +192,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
     Sphere *sphere = (Sphere *)object;
 
     if ((vector->x() != vector->y()) || (vector->x() != vector->z())) {
-        const double s = (std::fabs(vector->x()) + std::fabs(vector->y()) + std::fabs(vector->z())) / 3.0;
+        const double s = (java::Math::abs(vector->x()) + java::Math::abs(vector->y()) + java::Math::abs(vector->z())) / 3.0;
         *vector = Vector3Dd(s, s, s);
     }
 

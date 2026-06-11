@@ -1,4 +1,4 @@
-#include <cmath>
+#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
@@ -33,7 +33,7 @@ BlinnPhongSpecularShader::shade(Material *texture, RayWithSegments *lightSourceR
     roughness = 1.0 / texture->objectRoughness;
 
     if (roughness != 1.0) {
-        intensity = pow(cosAngleOfIncidence, roughness);
+        intensity = java::Math::pow(cosAngleOfIncidence, roughness);
     } else {
         intensity = cosAngleOfIncidence;
     }
