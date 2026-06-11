@@ -53,8 +53,8 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     /* Initialize the blob data */
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
-        if (fabs(temp->elem.coeffs[2]) < Config::EPSILON ||
-            temp->elem.radius2 < Config::EPSILON) {
+        if (fabs(temp->elem.coeffs[2]) < Config::INTERSECTION_EPSILON ||
+            temp->elem.radius2 < Config::INTERSECTION_EPSILON) {
             perror("Degenerate blob element\n");
         }
         /* Store blob specific information */
@@ -109,7 +109,7 @@ Blob::determineInfluences(
         b = v.dotProduct(*d);
         t = v.dotProduct(v);
         disc = b * b - t + blob->list[i].radius2;
-        if (disc < Config::EPSILON) {
+        if (disc < Config::INTERSECTION_EPSILON) {
             continue;
         }
         disc = sqrt(disc);
@@ -232,7 +232,7 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
         }
     }
     val = n.dotProduct(n);
-    if (val < Config::EPSILON) {
+    if (val < Config::INTERSECTION_EPSILON) {
         return 0;
     }
     return 1;
@@ -511,7 +511,7 @@ Blob::blobNormal(
     }
     val = (result->x() * result->x() + result->y() * result->y() +
            result->z() * result->z());
-    if (val < Config::EPSILON) {
+    if (val < Config::INTERSECTION_EPSILON) {
         *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
         val = 1.0 / sqrt(val);

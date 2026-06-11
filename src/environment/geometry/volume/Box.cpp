@@ -22,7 +22,7 @@ Methods Box::methodTable = {Box::allBoxIntersections,
 int
 Box::closeTo(double x, double y)
 {
-    return fabs(x - y) < Config::EPSILON ? 1 : 0;
+    return fabs(x - y) < Config::INTERSECTION_EPSILON ? 1 : 0;
 }
 int
 Box::allBoxIntersections(
@@ -85,7 +85,7 @@ Box::intersectBoxx(
     tmax = HUGE_VAL;
 
     /* Sides first */
-    if (d.x() < -Config::EPSILON) {
+    if (d.x() < -Config::INTERSECTION_EPSILON) {
         t = (box->bounds[0].x() - p.x()) / d.x();
         if (t < tmin) {
             return 0;
@@ -100,7 +100,7 @@ Box::intersectBoxx(
             }
             tmin = t;
         }
-    } else if (d.x() > Config::EPSILON) {
+    } else if (d.x() > Config::INTERSECTION_EPSILON) {
         t = (box->bounds[1].x() - p.x()) / d.x();
         if (t < tmin) {
             return 0;
@@ -120,7 +120,7 @@ Box::intersectBoxx(
     }
 
     /* Check Top/Bottom */
-    if (d.y() < -Config::EPSILON) {
+    if (d.y() < -Config::INTERSECTION_EPSILON) {
         t = (box->bounds[0].y() - p.y()) / d.y();
         if (t < tmin) {
             return 0;
@@ -135,7 +135,7 @@ Box::intersectBoxx(
             }
             tmin = t;
         }
-    } else if (d.y() > Config::EPSILON) {
+    } else if (d.y() > Config::INTERSECTION_EPSILON) {
         t = (box->bounds[1].y() - p.y()) / d.y();
         if (t < tmin) {
             return 0;
@@ -155,7 +155,7 @@ Box::intersectBoxx(
     }
 
     /* Now front/back */
-    if (d.z() < -Config::EPSILON) {
+    if (d.z() < -Config::INTERSECTION_EPSILON) {
         t = (box->bounds[0].z() - p.z()) / d.z();
         if (t < tmin) {
             return 0;
@@ -170,7 +170,7 @@ Box::intersectBoxx(
             }
             tmin = t;
         }
-    } else if (d.z() > Config::EPSILON) {
+    } else if (d.z() > Config::INTERSECTION_EPSILON) {
         t = (box->bounds[1].z() - p.z()) / d.z();
         if (t < tmin) {
             return 0;

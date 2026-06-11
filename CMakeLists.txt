@@ -12,6 +12,7 @@ add_executable(povray
     src/common/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
     src/numericalAnalysis/lookUpTables/LookUpTableSine.cpp
+    src/numericalAnalysis/lookUpTables/LookUpTableChecksum16.cpp
     src/solidTexture/procedural/ProceduralNoise.cpp
     src/solidTexture/procedural/BumpTextureFixture.cpp
     src/solidTexture/procedural/ColorTextureFixture.cpp

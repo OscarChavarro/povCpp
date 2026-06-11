@@ -3,7 +3,7 @@
 
 class Config {
   public:
-    static constexpr double EPSILON = 1.0e-5;
+    static constexpr double INTERSECTION_EPSILON = 1.0e-5;
 };
 
 #endif

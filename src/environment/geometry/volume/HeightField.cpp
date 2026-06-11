@@ -114,7 +114,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
         localNormal = t1V3.crossProduct(t1V2);
         dot = localNormal.dotProduct(ray->direction);
 
-        if ((dot > Config::EPSILON) || (dot < -Config::EPSILON)) {
+        if ((dot > Config::INTERSECTION_EPSILON) || (dot < -Config::INTERSECTION_EPSILON)) {
             pos1 = localNormal.dotProduct(t1V1);
 
             pos2 = localNormal.dotProduct(ray->position);
@@ -127,8 +127,8 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
                 s = ray->position.x() + (depth1 * ray->direction.x()) - (double)x;
                 t = ray->position.z() + (depth1 * ray->direction.z()) - (double)z;
 
-                if ((s < -Config::EPSILON) || (t < -Config::EPSILON) ||
-                    ((s + t) > 1.0 + Config::EPSILON)) {
+                if ((s < -Config::INTERSECTION_EPSILON) || (t < -Config::INTERSECTION_EPSILON) ||
+                    ((s + t) > 1.0 + Config::INTERSECTION_EPSILON)) {
                     depth1 = HUGE_VAL;
                 }
             } else {
@@ -152,7 +152,7 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
         localNormal = t2V3.crossProduct(t2V2);
         dot = localNormal.dotProduct(ray->direction);
 
-        if ((dot > Config::EPSILON) || (dot < -Config::EPSILON)) {
+        if ((dot > Config::INTERSECTION_EPSILON) || (dot < -Config::INTERSECTION_EPSILON)) {
             pos1 = localNormal.dotProduct(t2V1);
 
             pos2 = localNormal.dotProduct(ray->position);
@@ -164,8 +164,8 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
                 s = ray->position.x() + (depth2 * ray->direction.x()) - (double)x;
                 t = ray->position.z() + (depth2 * ray->direction.z()) - (double)z;
 
-                if ((s > 1.0 + Config::EPSILON) || (t > 1.0 + Config::EPSILON) ||
-                    ((s + t) < 1.0 - Config::EPSILON)) {
+                if ((s > 1.0 + Config::INTERSECTION_EPSILON) || (t > 1.0 + Config::INTERSECTION_EPSILON) ||
+                    ((s + t) < 1.0 - Config::INTERSECTION_EPSILON)) {
                     depth2 = HUGE_VAL;
                 }
             } else {
@@ -778,7 +778,7 @@ HeightField::allHeightfldIntersections(
         return (false);
     }
 
-    /*    if(      fabs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::EPSILON if
+    /*    if(      fabs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::INTERSECTION_EPSILON if
      * next line doesn't work */
 
     if (depth1 == depth2) {
@@ -794,19 +794,19 @@ HeightField::allHeightfldIntersections(
         temp2 = temp2.add(tempRay.position);
     }
 
-    if (fabs(tempRay.direction.x()) > Config::EPSILON) {
+    if (fabs(tempRay.direction.x()) > Config::INTERSECTION_EPSILON) {
         mzx = tempRay.direction.z() / tempRay.direction.x();
         myx = tempRay.direction.y() / tempRay.direction.x();
     } else {
-        mzx = tempRay.direction.z() / Config::EPSILON;
-        myx = tempRay.direction.y() / Config::EPSILON;
+        mzx = tempRay.direction.z() / Config::INTERSECTION_EPSILON;
+        myx = tempRay.direction.y() / Config::INTERSECTION_EPSILON;
     }
-    if (fabs(tempRay.direction.z()) > Config::EPSILON) {
+    if (fabs(tempRay.direction.z()) > Config::INTERSECTION_EPSILON) {
         mxz = tempRay.direction.x() / tempRay.direction.z();
         myz = tempRay.direction.y() / tempRay.direction.z();
     } else {
-        mxz = tempRay.direction.x() / Config::EPSILON;
-        myz = tempRay.direction.y() / Config::EPSILON;
+        mxz = tempRay.direction.x() / Config::INTERSECTION_EPSILON;
+        myz = tempRay.direction.y() / Config::INTERSECTION_EPSILON;
     }
 
     hfQueue = depthQueue;

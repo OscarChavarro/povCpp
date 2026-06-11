@@ -1,3 +1,5 @@
+#include <cstdio>
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/RenderRuntimeState.h"
 
 static double maxTraceLevelInstance = 5.0;
