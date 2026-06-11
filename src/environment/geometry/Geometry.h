@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/GeometryConstants.h"
+#include "environment/geometry/GeometryTypes.h"
 
 class Methods;
 class Material;
@@ -10,9 +11,9 @@ class Material;
 class Geometry {
   public:
     Methods *methods;
-    int Type;
+    GeometryTypes geometryType;
     Geometry *nextObject;
-    Material *Shape_Texture;
+    Material *material;
     ColorRgba *shapeColor;
 };
 

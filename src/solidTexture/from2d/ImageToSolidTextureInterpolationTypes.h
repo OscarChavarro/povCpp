@@ -4,7 +4,7 @@
 enum ImageToSolidTextureInterpolationTypes {
     NO_INTERPOLATION = 0,
     NEAREST_NEIGHBOR = 1,
-    BILINEAR = 2,
+    BI_LINEAR = 2,
     CUBIC_SPLINE = 3,
     NORMALIZED_DIST = 4
 };

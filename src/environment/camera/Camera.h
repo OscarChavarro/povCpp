@@ -3,12 +3,13 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/GeometryTypes.h"
 
 class Camera {
   public:
     static Methods methodTable;
     Methods *methods;
-    int Type;
+    GeometryTypes Type;
     Vector3Dd Location;
     Vector3Dd Direction;
     Vector3Dd Up;

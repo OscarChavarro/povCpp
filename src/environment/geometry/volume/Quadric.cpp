@@ -216,9 +216,9 @@ Quadric::copyQuadric(SimpleBody *object)
     *newShape = *((Quadric *)object);
     newShape->nextObject = nullptr;
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -278,7 +278,7 @@ Quadric::translateQuadric(SimpleBody *object, Vector3Dd *vector)
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
     Quadric::transformQuadric((Quadric *)object, &transformationInverse);
 
-    MaterialUtils::instance().translateTexture(&((Quadric *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&((Quadric *)object)->material, vector);
 }
 
 void
@@ -290,7 +290,7 @@ Quadric::rotateQuadric(SimpleBody *object, Vector3Dd *vector)
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     Quadric::transformQuadric((Quadric *)object, &transformationInverse);
 
-    MaterialUtils::instance().rotateTexture(&((Quadric *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Quadric *)object)->material, vector);
 }
 
 void
@@ -302,7 +302,7 @@ Quadric::scaleQuadric(SimpleBody *object, Vector3Dd *vector)
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
     Quadric::transformQuadric((Quadric *)object, &transformationInverse);
 
-    MaterialUtils::instance().scaleTexture(&((Quadric *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Quadric *)object)->material, vector);
 }
 
 void

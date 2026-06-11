@@ -180,7 +180,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, localShape->Shape_Texture);
+                TextureParser::prependTextureLayers(localTexture, localShape->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:

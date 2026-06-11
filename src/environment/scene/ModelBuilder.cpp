@@ -1,5 +1,4 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "processing/polynomial/PolynomialConstants.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -25,11 +24,10 @@ ModelBuilder::getCompositeObject()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object\n");
     }
 
-    newComposite->Objects = nullptr;
+    newComposite->simpleBodies = nullptr;
     newComposite->nextObject = nullptr;
     newComposite->boundingShapes = nullptr;
     newComposite->clippingShapes = nullptr;
-    newComposite->Type = GeometryOperations::COMPOSITE_TYPE;
     newComposite->methods = &Composite::compositeMethodTable;
     return (newComposite);
 }
@@ -48,12 +46,12 @@ ModelBuilder::getSphereShape()
     newShape->Radius = 1.0;
     newShape->radiusSquared = 1.0;
     newShape->inverseRadius = 1.0;
-    newShape->Type = GeometryOperations::SPHERE_TYPE;
+    newShape->geometryType = GeometryTypes::SPHERE_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Sphere::methodTable;
     newShape->VPCached = false;
     newShape->Inverted = false;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
 }
@@ -69,11 +67,11 @@ ModelBuilder::getLightSourceShape()
     }
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->pointsAt) = Vector3Dd(0.0, 0.0, 1.0);
-    newShape->Type = GeometryOperations::POINT_LIGHT_TYPE;
+    newShape->geometryType = GeometryTypes::POINT_LIGHT_TYPE;
     newShape->methods = &Light::methodTable;
     newShape->nextObject = nullptr;
     newShape->Inverted = false;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->Coeff = 10.0;
     newShape->Radius = 0.35;
@@ -98,10 +96,10 @@ ModelBuilder::getQuadricShape()
     newShape->objectVpConstant = HUGE_VAL;
     newShape->constantCached = false;
     newShape->nonZeroSquareTerm = false;
-    newShape->Type = GeometryOperations::QUADRIC_TYPE;
+    newShape->geometryType = GeometryTypes::QUARTIC_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Quadric::methodTable;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
 }
@@ -117,10 +115,10 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->Type = GeometryOperations::POLY_TYPE;
+    newShape->geometryType = GeometryTypes::POLY_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &PolynomialShape::methodTable;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
@@ -151,11 +149,11 @@ ModelBuilder::getBoxShape()
     *&(newShape->bounds[1]) = Vector3Dd(1.0, 1.0, 1.0);
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
-    newShape->Type = GeometryOperations::BOX_TYPE;
+    newShape->geometryType = GeometryTypes::BOX_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Box::methodTable;
     newShape->Inverted = false;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
 }
@@ -172,11 +170,11 @@ ModelBuilder::getBlobShape()
 
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
-    newShape->Type = GeometryOperations::BLOB_TYPE;
+    newShape->geometryType = GeometryTypes::BLOB_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Blob::methodTable;
     newShape->Inverted = false;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
 }
@@ -191,10 +189,10 @@ ModelBuilder::getBicubicPatchShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->Type = GeometryOperations::BICUBIC_PATCH_TYPE;
+    newShape->geometryType = GeometryTypes::BICUBIC_PATCH_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &ParametricBiCubicPatch::methodTable;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->uSteps = 0;
     newShape->vSteps = 0;
@@ -219,10 +217,10 @@ ModelBuilder::getHeightFieldShape()
     newShape->Map = nullptr;
     newShape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    newShape->Type = GeometryOperations::HEIGHT_FIELD_TYPE;
+    newShape->geometryType = GeometryTypes::HEIGHT_FIELD_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &HeightField::methodTable;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
 }
@@ -239,11 +237,11 @@ ModelBuilder::getPlaneShape()
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
-    newShape->Type = GeometryOperations::PLANE_TYPE;
+    newShape->geometryType = GeometryTypes::PLANE_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &InfinitePlane::methodTable;
     newShape->VPCached = 0;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
 }
@@ -264,11 +262,11 @@ ModelBuilder::getTriangleShape()
     *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Inverted = false;
-    newShape->Type = GeometryOperations::TRIANGLE_TYPE;
+    newShape->geometryType = GeometryTypes::TRIANGLE_TYPE;
     newShape->nextObject = nullptr;
     newShape->methods = &Triangle::methodTable;
     newShape->VPCached = false;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;
     return (newShape);
@@ -292,12 +290,12 @@ ModelBuilder::getSmoothTriangleShape()
     *&(newShape->N2) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->N3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
-    newShape->Type = GeometryOperations::SMOOTH_TRIANGLE_TYPE;
+    newShape->geometryType = GeometryTypes::SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = false;
     newShape->nextObject = nullptr;
     newShape->methods = &Triangle::smoothMethodTable;
     newShape->VPCached = 0;
-    newShape->Shape_Texture = nullptr;
+    newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;
     return (newShape);
@@ -325,7 +323,7 @@ ModelBuilder::getCsgUnion()
 
     newShape = ModelBuilder::getCsgShape();
     newShape->methods = &CSG::unionMethodTable;
-    newShape->Type = GeometryOperations::CSG_UNION_TYPE;
+    newShape->geometryType = GeometryTypes::CSG_UNION_TYPE;
     return (newShape);
 }
 
@@ -336,7 +334,7 @@ ModelBuilder::getCsgIntersection()
 
     newShape = ModelBuilder::getCsgShape();
     newShape->methods = &CSG::intersectionMethodTable;
-    newShape->Type = GeometryOperations::CSG_INTERSECTION_TYPE;
+    newShape->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
     return (newShape);
 }
 

@@ -463,7 +463,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::IMAGEMAP_TEXTURE;
+                texture->textureNumber = SolidTextureColorTextures::IMAGE_MAP_TEXTURE;
                 texture->image = new ControlledRGBAImageHDRUncompressed;
                 if (texture->image == nullptr) {
                     ParseErrorReporter::reportError(

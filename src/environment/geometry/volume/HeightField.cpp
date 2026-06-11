@@ -946,9 +946,9 @@ HeightField::copyHeightfld(SimpleBody *object)
     *newShape = *((HeightField *)object);
     newShape->nextObject = nullptr;
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -974,7 +974,7 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
     MaterialUtils::instance().translateTexture(
-        &((HeightField *)object)->Shape_Texture, vector);
+        &((HeightField *)object)->material, vector);
 }
 
 void
@@ -994,7 +994,7 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
     MaterialUtils::instance().rotateTexture(
-        &((HeightField *)object)->Shape_Texture, vector);
+        &((HeightField *)object)->material, vector);
 }
 
 void
@@ -1015,7 +1015,7 @@ HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    MaterialUtils::instance().scaleTexture(&((HeightField *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((HeightField *)object)->material, vector);
 }
 
 void

@@ -30,13 +30,13 @@ class ProceduralNoise {
         double *tx, double *ty, double *tz) const;
 
   public:
-    static constexpr int MINX = -10000; // Ridiculously large scaling offset to ensure positive lattice coords
-    static constexpr int MINY = MINX;
-    static constexpr int MINZ = MINX;
+    static constexpr int MIN_X = -10000; // Ridiculously large scaling offset to ensure positive lattice coords
+    static constexpr int MIN_Y = MIN_X;
+    static constexpr int MIN_Z = MIN_X;
     static constexpr int MAXSIZE = 267;
-    static constexpr long RNDMASK = 0x7FFF;
-    static constexpr float RND_DIVISOR = static_cast<float>(RNDMASK);
-    static constexpr int SINTAB_SIZE = 1000;
+    static constexpr long RANDOM_MASK = 0x7FFF;
+    static constexpr float RND_DIVISOR = static_cast<float>(RANDOM_MASK);
+    static constexpr int SIN_TABLE_SIZE = 1000;
     static constexpr double REAL_SCALE = (2.0 / 65535.0);
 
     ProceduralNoise(SolidTextureStatistics *solidTextureStatistics = nullptr);

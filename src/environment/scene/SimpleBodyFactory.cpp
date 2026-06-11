@@ -29,7 +29,7 @@ SimpleBodyFactory::getObject()
     newObject->objectTexture = MaterialUtils::instance().defaultTexture();
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
-    newObject->type = GeometryOperations::OBJECT_TYPE;
+    newObject->type = GeometryTypes::OBJECT_TYPE;
     newObject->methods = &Composite::basicObjectMethodTable;
     return (newObject);
 }

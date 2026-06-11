@@ -33,7 +33,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 CSG *
-ObjectParser::parseCsg(int type)
+ObjectParser::parseCsg(GeometryTypes type)
 {
     ParserContext ctx;
     return ObjectParser::parseCsg(type, ctx);
@@ -61,7 +61,7 @@ ObjectParser::parseComposite()
 }
 
 CSG *
-ObjectParser::parseCsg(int type, ParserContext &ctx)
+ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
 {
     CSG *container = nullptr;
     Geometry *localShape;
@@ -69,11 +69,11 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
     int constantId;
     bool firstShapeParsed = false;
 
-    if (type == GeometryOperations::CSG_UNION_TYPE) {
+    if (type == GeometryTypes::CSG_UNION_TYPE) {
         container = ModelBuilder::getCsgUnion();
 
-    } else if ((type == GeometryOperations::CSG_INTERSECTION_TYPE) ||
-               (type == GeometryOperations::CSG_DIFFERENCE_TYPE)) {
+    } else if ((type == GeometryTypes::CSG_INTERSECTION_TYPE) ||
+               (type == GeometryTypes::CSG_DIFFERENCE_TYPE)) {
         container = ModelBuilder::getCsgIntersection();
     }
 
@@ -107,7 +107,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -118,7 +118,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -129,7 +129,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -140,7 +140,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -151,7 +151,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -162,7 +162,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -173,7 +173,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -184,7 +184,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3, ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -195,7 +195,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4, ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -206,7 +206,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0, ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -217,7 +217,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::BOX_TOKEN:
                 localShape = BoxParser::parseBox(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -228,7 +228,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::BLOB_TOKEN:
                 localShape = BlobParser::parseBlob(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -239,7 +239,7 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch(ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -250,8 +250,8 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_UNION_TYPE, ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx);
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -262,8 +262,8 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_INTERSECTION_TYPE, ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx);
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -274,8 +274,8 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_DIFFERENCE_TYPE, ctx);
-                if ((type == GeometryOperations::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
+                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx);
+                if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert((SimpleBody *)localShape);
                 }
                 firstShapeParsed = true;
@@ -325,9 +325,9 @@ ObjectParser::parseCsg(int type, ParserContext &ctx)
                 break;
 
             default:
-                if (type == GeometryOperations::CSG_UNION_TYPE) {
+                if (type == GeometryTypes::CSG_UNION_TYPE) {
                     ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                } else if (type == GeometryOperations::CSG_INTERSECTION_TYPE) {
+                } else if (type == GeometryTypes::CSG_INTERSECTION_TYPE) {
                     ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 } else {
                     ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -418,19 +418,19 @@ ObjectParser::parseShape(ParserContext &ctx)
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_UNION_TYPE, ctx);
+                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_INTERSECTION_TYPE, ctx);
+                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryOperations::CSG_DIFFERENCE_TYPE, ctx);
+                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx);
                 Exit_Flag = true;
                 break;
 
@@ -674,7 +674,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 localObject = ObjectParser::parseComposite(ctx);
                 SimpleBodyFactory::link((SimpleBody *)localObject,
                     (SimpleBody **)&(localObject->nextObject),
-                    (SimpleBody **)&(localComposite->Objects));
+                    (SimpleBody **)&(localComposite->simpleBodies));
                 break;
 
             case Tokenizer::OBJECT_TOKEN:
@@ -683,7 +683,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 }
                 localObject = ObjectParser::parseObject(ctx);
                 SimpleBodyFactory::link(localObject, &(localObject->nextObject),
-                    &(localComposite->Objects));
+                    &(localComposite->simpleBodies));
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:

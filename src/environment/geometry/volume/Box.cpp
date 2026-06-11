@@ -290,9 +290,9 @@ Box::copyBox(SimpleBody *object)
             new Matrix4x4d(*(newShape->transformationInverse));
     }
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -316,7 +316,7 @@ Box::translateBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    MaterialUtils::instance().translateTexture(&((Box *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&((Box *)object)->material, vector);
 }
 
 void
@@ -334,7 +334,7 @@ Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    MaterialUtils::instance().rotateTexture(&((Box *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Box *)object)->material, vector);
 }
 
 void
@@ -354,7 +354,7 @@ Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    MaterialUtils::instance().scaleTexture(&((Box *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Box *)object)->material, vector);
 }
 
 void

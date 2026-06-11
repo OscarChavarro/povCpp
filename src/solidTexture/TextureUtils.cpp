@@ -7,6 +7,7 @@ routines are in ColorTextureFixture.cpp, BumpTextureFixture.cpp, and
 MapTextureFixture.cpp respectively.
 */
 
+#include <cstdlib>
 #include "common/statistics/SolidTextureStatistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
@@ -84,6 +85,6 @@ TextureUtils::initializeNoise()
     for (int i = 0; i < TextureUtils::NUMBER_OF_WAVES; i++) {
         proceduralNoise.dNoise(&point, (double)i, 0.0, 0.0);
         waveSources()[i] = point.normalizedFast();
-        waveFrequency()[i] = (rand() & ProceduralNoise::RNDMASK) / ProceduralNoise::RND_DIVISOR + 0.01;
+        waveFrequency()[i] = (rand() & ProceduralNoise::RANDOM_MASK) / ProceduralNoise::RND_DIVISOR + 0.01;
     }
 }

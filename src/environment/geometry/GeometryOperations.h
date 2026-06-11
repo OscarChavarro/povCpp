@@ -11,6 +11,7 @@
 #include "environment/geometry/Methods.h"
 #include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/GeometryTypes.h"
 
 class Intersection;
 class Methods;
@@ -19,26 +20,6 @@ class SimpleBody;
 
 class GeometryOperations {
   public:
-    // Object/shape types
-    static constexpr int SPHERE_TYPE = 0;
-    static constexpr int TRIANGLE_TYPE = 1;
-    static constexpr int SMOOTH_TRIANGLE_TYPE = 2;
-    static constexpr int PLANE_TYPE = 3;
-    static constexpr int QUADRIC_TYPE = 4;
-    static constexpr int POLY_TYPE = 5;
-    static constexpr int BICUBIC_PATCH_TYPE = 6;
-    static constexpr int COMPOSITE_TYPE = 7;
-    static constexpr int OBJECT_TYPE = 8;
-    static constexpr int CSG_UNION_TYPE = 9;
-    static constexpr int CSG_INTERSECTION_TYPE = 10;
-    static constexpr int CSG_DIFFERENCE_TYPE = 11;
-    static constexpr int VIEWPOINT_TYPE = 12;
-    static constexpr int HEIGHT_FIELD_TYPE = 13;
-    static constexpr int POINT_LIGHT_TYPE = 14;
-    static constexpr int SPOT_LIGHT_TYPE = 15;
-    static constexpr int BOX_TYPE = 16;
-    static constexpr int BLOB_TYPE = 17;
-
     static inline int
     allIntersections(SimpleBody *x, RayWithSegments *y, PriorityQueueNode *z)
     {

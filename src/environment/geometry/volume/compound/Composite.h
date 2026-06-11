@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/GeometryTypes.h"
 #include "environment/geometry/volume/compound/CSG.h"
 
 class Composite {
@@ -10,12 +11,10 @@ class Composite {
     static Methods compositeMethodTable;
     static Methods basicObjectMethodTable;
     Methods *methods;
-    int Type;
     SimpleBody *nextObject;
-    /*    SimpleBody *Next_Light_Source;*/
     Geometry *boundingShapes;
     Geometry *clippingShapes;
-    SimpleBody *Objects;
+    SimpleBody *simpleBodies;
 
     static int allCompositeIntersections(SimpleBody *object,
         RayWithSegments *ray, PriorityQueueNode *depthQueue);
