@@ -405,22 +405,22 @@ ImageTexture::map(double x, double y, double z, ControlledRGBAImageHDRUncompress
 {
     // Now determine which mapper to use.
     switch (image->getMapType()) {
-    case (int)ImageToSolidTextureProjectionMethods::PLANAR_MAP:
+    case ImageToSolidTextureProjectionMethods::PLANAR_MAP:
         if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
-    case (int)ImageToSolidTextureProjectionMethods::SPHERICAL_MAP:
+    case ImageToSolidTextureProjectionMethods::SPHERICAL_MAP:
         if (!sphericalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
-    case (int)ImageToSolidTextureProjectionMethods::CYLINDRICAL_MAP:
+    case ImageToSolidTextureProjectionMethods::CYLINDRICAL_MAP:
         if (!cylindricalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
         break;
-    case (int)ImageToSolidTextureProjectionMethods::TORUS_MAP:
+    case ImageToSolidTextureProjectionMethods::TORUS_MAP:
         if (!torusImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
             return (1);
         }
@@ -521,7 +521,7 @@ ImageTexture::interp(
     }
 
     // Sample the four surrounding pixels
-    if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::BILINEAR) {
+    if (image->getInterpolationType() == ImageToSolidTextureInterpolationTypes::BI_LINEAR) {
         noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
             &cornerColor[0], &cornersIndex[0]);
         noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColor[1],
@@ -574,7 +574,7 @@ ImageTexture::interp(
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];
     }
-    if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::BILINEAR) {
+    if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::BI_LINEAR) {
         *index = (int)(biLinear(indexCrn, xCoordinate, yCoordinate) + 0.5);
     }
     if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::NORMALIZED_DIST) {

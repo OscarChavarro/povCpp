@@ -158,9 +158,9 @@ Sphere::copySphere(SimpleBody *object)
     *newShape = *((Sphere *)object);
     newShape->nextObject = nullptr;
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -170,7 +170,7 @@ void
 Sphere::translateSphere(SimpleBody *object, Vector3Dd *vector)
 {
     ((Sphere *)object)->Center = ((Sphere *)object)->Center.add(*vector);
-    MaterialUtils::instance().translateTexture(&((Sphere *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&((Sphere *)object)->material, vector);
 }
 
 void
@@ -182,7 +182,7 @@ Sphere::rotateSphere(SimpleBody *object, Vector3Dd *vector)
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     ((Sphere *)object)->Center =
         transformation.transpose().multiply(((Sphere *)object)->Center);
-    MaterialUtils::instance().rotateTexture(&((Sphere *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Sphere *)object)->material, vector);
 }
 
 void
@@ -199,7 +199,7 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
     sphere->Radius *= vector->x();
     sphere->radiusSquared = sphere->Radius * sphere->Radius;
     sphere->inverseRadius = 1.0 / sphere->Radius;
-    MaterialUtils::instance().scaleTexture(&((Sphere *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Sphere *)object)->material, vector);
 }
 
 void

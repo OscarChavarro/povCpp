@@ -36,9 +36,9 @@ Light::copyPoint(SimpleBody *object)
     *newShape = *((Light *)object);
     newShape->nextObject = nullptr;
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -74,7 +74,7 @@ Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
         transformation.transpose().multiply(((Light *)object)->Center);
     ((Light *)object)->pointsAt =
         transformation.transpose().multiply(((Light *)object)->pointsAt);
-    MaterialUtils::instance().scaleTexture(&((Light *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Light *)object)->material, vector);
 }
 
 void
@@ -115,7 +115,7 @@ Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
     Vector3Dd spotDirection;
 
     /* If this is a spotlight then attenuate based on the incidence angle */
-    if (lightSource->Type == GeometryOperations::SPOT_LIGHT_TYPE) {
+    if (lightSource->geometryType == GeometryTypes::SPOT_LIGHT_TYPE) {
         spotDirection =
             lightSource->pointsAt.subtract(lightSource->Center);
         len = spotDirection.length();

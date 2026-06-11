@@ -1,6 +1,8 @@
 #ifndef __OBJECT_PARSER_H__
 #define __OBJECT_PARSER_H__
 
+#include "environment/geometry/GeometryTypes.h"
+
 class Geometry;
 class SimpleBody;
 class CSG;
@@ -14,8 +16,8 @@ class ObjectParser {
     static SimpleBody *parseObject(ParserContext &ctx);
     static SimpleBody *parseComposite();
     static SimpleBody *parseComposite(ParserContext &ctx);
-    static CSG *parseCsg(int type);
-    static CSG *parseCsg(int type, ParserContext &ctx);
+    static CSG *parseCsg(GeometryTypes type);
+    static CSG *parseCsg(GeometryTypes type, ParserContext &ctx);
 };
 
 #endif

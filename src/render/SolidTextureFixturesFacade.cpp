@@ -181,7 +181,7 @@ SolidTextureFixturesFacade::colorAt(
             x, y, z, turbulence, colorMap, textureGradient, octaves, color);
         break;
 
-    case SolidTextureColorTextures::IMAGEMAP_TEXTURE:
+    case SolidTextureColorTextures::IMAGE_MAP_TEXTURE:
         mapFixture.imageMap(x, y, z, image, color, smallTolerance);
         break;
 

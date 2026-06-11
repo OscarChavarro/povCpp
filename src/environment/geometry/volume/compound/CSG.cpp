@@ -138,7 +138,7 @@ CSG::copyCsg(SimpleBody *object)
 
     newShape = new CSG;
     newShape->methods = shape->methods;
-    newShape->Type = shape->Type;
+    newShape->geometryType = shape->geometryType;
     newShape->nextObject = nullptr;
     newShape->Shapes = nullptr;
 
@@ -196,11 +196,11 @@ CSG::invertCsg(SimpleBody *object)
     Geometry *localShape;
     CSG *csg = (CSG *)object;
 
-    if (csg->Type == GeometryOperations::CSG_INTERSECTION_TYPE) {
-        csg->Type = GeometryOperations::CSG_UNION_TYPE;
+    if (csg->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
+        csg->geometryType = GeometryTypes::CSG_UNION_TYPE;
         csg->methods = &CSG::unionMethodTable;
-    } else if (csg->Type == GeometryOperations::CSG_UNION_TYPE) {
-        csg->Type = GeometryOperations::CSG_INTERSECTION_TYPE;
+    } else if (csg->geometryType == GeometryTypes::CSG_UNION_TYPE) {
+        csg->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
         csg->methods = &CSG::intersectionMethodTable;
     }
 

@@ -180,13 +180,13 @@ ProceduralNoise::initialize()
 {
     initRTable();
 
-    sinTable = new double[SINTAB_SIZE];
+    sinTable = new double[SIN_TABLE_SIZE];
     if (sinTable == nullptr) {
         Logger::reportMessage("ProceduralNoise", Logger::FATAL_ERROR, "", "Cannot allocate memory for sine table\n");
     }
 
-    for (int i = 0; i < SINTAB_SIZE; i++) {
-        sinTable[i] = sin(i / (double)SINTAB_SIZE * (3.14159265359 * 2.0));
+    for (int i = 0; i < SIN_TABLE_SIZE; i++) {
+        sinTable[i] = sin(i / (double)SIN_TABLE_SIZE * (3.14159265359 * 2.0));
     }
 }
 
@@ -201,9 +201,9 @@ ProceduralNoise::setupLattice(double *x, double *y, double *z, long *ix, long *i
     double *tx, double *ty, double *tz) const
 {
     // ensures the values are positive.
-    *x -= MINX;
-    *y -= MINY;
-    *z -= MINZ;
+    *x -= MIN_X;
+    *y -= MIN_Y;
+    *z -= MIN_Z;
 
     // its equivalent integer lattice point.
     *ix = (long)*x;
@@ -434,15 +434,15 @@ Periodic wave function used to turn noise/turbulence values into band patterns.
 double
 ProceduralNoise::cycloidal(double value) const
 {
-    int indx;
+    int index;
 
     if (value >= 0.0) {
-        indx = (int)((value - floor(value)) * SINTAB_SIZE);
-        return (sinTable[indx]);
+        index = (int)((value - floor(value)) * SIN_TABLE_SIZE);
+        return (sinTable[index]);
     }
 
-    indx = (int)((0.0 - (value + floor(0.0 - value))) * SINTAB_SIZE);
-    return (0.0 - sinTable[indx]);
+    index = (int)((0.0 - (value + floor(0.0 - value))) * SIN_TABLE_SIZE);
+    return (0.0 - sinTable[index]);
 }
 
 /**

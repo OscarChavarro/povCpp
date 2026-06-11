@@ -117,9 +117,9 @@ InfinitePlane::copyPlane(SimpleBody *object)
     *newShape = *((InfinitePlane *)object);
     newShape->nextObject = nullptr;
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -134,7 +134,7 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
     translation = plane->normalVector.multiply(*vector);
     plane->Distance -= translation.x() + translation.y() + translation.z();
 
-    MaterialUtils::instance().translateTexture(&plane->Shape_Texture, vector);
+    MaterialUtils::instance().translateTexture(&plane->material, vector);
 }
 
 void
@@ -148,7 +148,7 @@ InfinitePlane::rotatePlane(SimpleBody *object, Vector3Dd *vector)
         ((InfinitePlane *)object)->normalVector);
 
     MaterialUtils::instance().rotateTexture(
-        &((InfinitePlane *)object)->Shape_Texture, vector);
+        &((InfinitePlane *)object)->material, vector);
 }
 
 void
@@ -167,7 +167,7 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
     plane->Distance /= length;
 
     MaterialUtils::instance().scaleTexture(
-        &((InfinitePlane *)object)->Shape_Texture, vector);
+        &((InfinitePlane *)object)->material, vector);
 }
 
 void

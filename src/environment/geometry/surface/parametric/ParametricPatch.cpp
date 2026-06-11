@@ -1009,9 +1009,9 @@ ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
 
     newShape->Interpolated_Grid = nullptr;
     ParametricBiCubicPatch::precomputePatchValues(newShape);
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (void *)(newShape);
@@ -1032,7 +1032,7 @@ ParametricBiCubicPatch::translateBicubicPatch(
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
     MaterialUtils::instance().translateTexture(
-        &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
+        &((ParametricBiCubicPatch *)object)->material, vector);
 }
 
 void
@@ -1054,7 +1054,7 @@ ParametricBiCubicPatch::rotateBicubicPatch(
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
     MaterialUtils::instance().rotateTexture(
-        &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
+        &((ParametricBiCubicPatch *)object)->material, vector);
 }
 
 void
@@ -1071,7 +1071,7 @@ ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
     MaterialUtils::instance().scaleTexture(
-        &((ParametricBiCubicPatch *)object)->Shape_Texture, vector);
+        &((ParametricBiCubicPatch *)object)->material, vector);
 }
 
 /* Inversion of a patch really doesn't make sense. */

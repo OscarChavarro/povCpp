@@ -38,13 +38,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (rayIntersection->Shape->shapeColor) {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour %f %f %f ", rayIntersection->Depth, rayIntersection->Shape->Type,                 rayIntersection->Shape->shapeColor->getR(),                 rayIntersection->Shape->shapeColor->getG(),                 rayIntersection->Shape->shapeColor->getB());
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour %f %f %f ", rayIntersection->Depth, static_cast<int>(rayIntersection->Shape->geometryType),                 rayIntersection->Shape->shapeColor->getR(),                 rayIntersection->Shape->shapeColor->getG(),                 rayIntersection->Shape->shapeColor->getB());
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         } else {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour NIL ", rayIntersection->Depth,                 rayIntersection->Shape->Type);
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour NIL ", rayIntersection->Depth,                 static_cast<int>(rayIntersection->Shape->geometryType));
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         }
@@ -56,7 +56,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
     /* Is there a texture in the shape?  If not, use the one in the object. */
-    if ((texture = rayIntersection->Shape->Shape_Texture) == nullptr) {
+    if ((texture = rayIntersection->Shape->material) == nullptr) {
         texture = rayIntersection->Object->objectTexture;
     }
     /* Check to see if this object/shape has a material_map texture, if so */
@@ -72,8 +72,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
     }
 
-    /* If this is just a shadow ray and we're rendering low quality, then return
-     */
+    // If this is just a shadow ray, and we're rendering low quality, then return
 
     if (shadowRay && (RenderingConfiguration::global().quality <= 5)) {
         return;

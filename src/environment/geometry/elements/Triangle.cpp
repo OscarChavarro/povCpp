@@ -132,7 +132,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
+            if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
                 temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
@@ -150,7 +150,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
+            if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
                 temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
@@ -168,7 +168,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
+            if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
                 temp = ((SmoothTriangle *)triangle)->N2;
                 ((SmoothTriangle *)triangle)->N2 =
                     ((SmoothTriangle *)triangle)->N1;
@@ -178,7 +178,7 @@ Triangle::computeTriangle(Triangle *triangle)
         break;
     }
 
-    if (triangle->Type == GeometryOperations::SMOOTH_TRIANGLE_TYPE) {
+    if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
         Triangle::computeSmoothTriangle((SmoothTriangle *)triangle);
     }
     return (1);
@@ -397,9 +397,9 @@ Triangle::copyTriangle(SimpleBody *object)
     *newShape = *((Triangle *)object);
     newShape->nextObject = nullptr;
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -417,7 +417,7 @@ Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P2 = triangle->P2.add(*vector);
     triangle->P3 = triangle->P3.add(*vector);
     MaterialUtils::instance().translateTexture(
-        &((Triangle *)object)->Shape_Texture, vector);
+        &((Triangle *)object)->material, vector);
 }
 
 void
@@ -434,7 +434,7 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P3 = transformation.transpose().multiply(triangle->P3);
     Triangle::computeTriangle(triangle);
 
-    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->material, vector);
 }
 
 void
@@ -456,7 +456,7 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P2 = triangle->P2.multiply(*vector);
     triangle->P3 = triangle->P3.multiply(*vector);
 
-    MaterialUtils::instance().scaleTexture(&((Triangle *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().scaleTexture(&((Triangle *)object)->material, vector);
 }
 
 void
@@ -567,9 +567,9 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
     *newShape = *((SmoothTriangle *)object);
     newShape->nextObject = nullptr;
 
-    if (newShape->Shape_Texture != nullptr) {
-        newShape->Shape_Texture =
-            MaterialUtils::instance().copyTexture(newShape->Shape_Texture);
+    if (newShape->material != nullptr) {
+        newShape->material =
+            MaterialUtils::instance().copyTexture(newShape->material);
     }
 
     return (newShape);
@@ -592,7 +592,7 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->N3 = transformation.transpose().multiply(triangle->N3);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->Shape_Texture, vector);
+    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->material, vector);
 }
 
 void
@@ -609,7 +609,7 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     Triangle::computeTriangle((Triangle *)triangle);
 
     MaterialUtils::instance().translateTexture(
-        &((Triangle *)object)->Shape_Texture, vector);
+        &((Triangle *)object)->material, vector);
 }
 
 void
@@ -633,7 +633,7 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     Triangle::computeTriangle((Triangle *)triangle);
 
     MaterialUtils::instance().scaleTexture(
-        &((SmoothTriangle *)object)->Shape_Texture, vector);
+        &((SmoothTriangle *)object)->material, vector);
 }
 
 void
