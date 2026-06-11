@@ -18,8 +18,8 @@ add_executable(povray
     src/solidTexture/procedural/ColorTextureFixture.cpp
     src/solidTexture/from2d/ImageTexture.cpp
     src/solidTexture/TextureUtils.cpp
-    src/processing/polynomial/PolynomialSolver.cpp
-    src/processing/polynomial/PolynomialTermCounts.cpp
+    src/numericalAnalysis/polynomial/PolynomialSolver.cpp
+    src/numericalAnalysis/polynomial/PolynomialTermCounts.cpp
     src/environment/material/RendererConfiguration.cpp
     src/environment/geometry/elements/Ray.cpp
     src/environment/geometry/elements/RayWithSegments.cpp

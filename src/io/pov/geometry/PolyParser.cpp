@@ -8,8 +8,8 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "processing/polynomial/PolynomialConstants.h"
-#include "processing/polynomial/PolynomialTermCounts.h"
+#include "numericalAnalysis/polynomial/PolynomialConstants.h"
+#include "numericalAnalysis/polynomial/PolynomialTermCounts.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
