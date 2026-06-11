@@ -3,6 +3,8 @@ Implements mapped textures: image map, bump map, and material map.
 Supports planar, spherical, cylindrical, and torus UV projections.
 */
 
+#include <cmath>
+
 #include "solidTexture/from2d/ImageTexture.h"
 #include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
@@ -231,7 +233,7 @@ ImageTexture::cylindricalImageMap(
     if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
         return 0;
     }
-    *v = java::Math::fmod(y * image->getYSize(), image->getYSize());
+    *v = std::fmod(y * image->getYSize(), image->getYSize());
 
     // Make sure this vector is on the unit sphere.
     len = java::Math::sqrt(x * x + y * y + z * z);
@@ -371,9 +373,9 @@ ImageTexture::planarImageMap(
             return 0;
         }
         if (image->getImageGradient().x() > 0) {
-            *u = java::Math::fmod(x * image->getXSize(), image->getXSize());
+            *u = std::fmod(x * image->getXSize(), image->getXSize());
         } else {
-            *v = java::Math::fmod(x * image->getYSize(), image->getYSize());
+            *v = std::fmod(x * image->getYSize(), image->getYSize());
         }
     }
     if (image->getImageGradient().y() != 0.0) {
@@ -381,9 +383,9 @@ ImageTexture::planarImageMap(
             return 0;
         }
         if (image->getImageGradient().y() > 0) {
-            *u = java::Math::fmod(y * image->getXSize(), image->getXSize());
+            *u = std::fmod(y * image->getXSize(), image->getXSize());
         } else {
-            *v = java::Math::fmod(y * image->getYSize(), image->getYSize());
+            *v = std::fmod(y * image->getYSize(), image->getYSize());
         }
     }
     if (image->getImageGradient().z() != 0.0) {
@@ -391,9 +393,9 @@ ImageTexture::planarImageMap(
             return 0;
         }
         if (image->getImageGradient().z() > 0) {
-            *u = java::Math::fmod(z * image->getXSize(), image->getXSize());
+            *u = std::fmod(z * image->getXSize(), image->getXSize());
         } else {
-            *v = java::Math::fmod(z * image->getYSize(), image->getYSize());
+            *v = std::fmod(z * image->getYSize(), image->getYSize());
         }
     }
     return 1;

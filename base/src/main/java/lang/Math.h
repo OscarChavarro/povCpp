@@ -45,8 +45,6 @@ class Math {
     static int getExponent(float a);
     static double scalb(double a, int scaleFactor);
     static float scalb(float a, int scaleFactor);
-    static double fmod(double a, double b);
-    static float fmod(float a, float b);
 };
 
 inline double
@@ -227,16 +225,6 @@ Math::scalb(double a, int scaleFactor) {
 inline float
 Math::scalb(float a, int scaleFactor) {
     return std::ldexp(a, scaleFactor);
-}
-
-inline double
-Math::fmod(double a, double b) {
-    return std::fmod(a, b);
-}
-
-inline float
-Math::fmod(float a, float b) {
-    return std::fmod(a, b);
 }
 
 }

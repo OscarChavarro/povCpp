@@ -15,7 +15,6 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/common/logging/Logger.cpp
     src/main/vsdk/toolkit/common/color/ColorRgb.cpp
     src/main/vsdk/toolkit/common/linealAlgebra/Complex.cpp
-    src/main/vsdk/toolkit/common/linealAlgebra/MatrixNxM.cpp
     src/main/vsdk/toolkit/common/linealAlgebra/Matrix4x4d.cpp
     src/main/vsdk/toolkit/common/linealAlgebra/Matrix4x4f.cpp
     src/main/vsdk/toolkit/common/linealAlgebra/AlgebraPrimitives.cpp
@@ -29,7 +28,6 @@ set(VITRAL_BASE_SOURCES
     src/main/java/io/PrintStream.cpp
     src/main/java/util/Formatter.cpp
     src/main/vsdk/toolkit/io/PersistenceElement.cpp
-    src/main/vsdk/toolkit/linealAlgebra/processing/LinearAlgebraEngine.cpp
     src/main/vsdk/toolkit/media/RGBAImageHDRUncompressed.cpp
     src/main/vsdk/toolkit/media/RGBAColorPalette.cpp
     src/main/vsdk/toolkit/media/IndexedColorImageHDRUncompressed.cpp

@@ -6,6 +6,8 @@ References:
 [UPST1990] "The RenderMan Companion" (Addison Wesley).
 */
 
+#include <cmath>
+
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "solidTexture/procedural/ColorTextureFixture.h"
@@ -122,9 +124,9 @@ ColorTextureFixture::brick(
     double yr;
     double zr;
 
-    xr = java::Math::abs(java::Math::fmod(x, 1.0));
-    yr = java::Math::abs(java::Math::fmod(y, 1.0));
-    zr = java::Math::abs(java::Math::fmod(z, 1.0));
+    xr = java::Math::abs(std::fmod(x, 1.0));
+    yr = java::Math::abs(std::fmod(y, 1.0));
+    zr = java::Math::abs(std::fmod(z, 1.0));
     *color = *color2;
 
     if (xr > 0 && xr < mortar) {
@@ -206,7 +208,7 @@ ColorTextureFixture::gradient(
         z = textureUtils->fabsInline(z);
         value += z - textureUtils->floorInline(z); // obtain fractional Z component
     }
-    value = ((value > 1.0) ? java::Math::fmod(value, 1.0) : value); // clamp to 1.0
+    value = ((value > 1.0) ? std::fmod(value, 1.0) : value); // clamp to 1.0
 
 
     textureUtils->computeColor(&newColor, colorMap, value);
@@ -424,11 +426,11 @@ ColorTextureFixture::onion(
     }
 
     // Alternative ramp 0-1,1-0,0-1,1-0...:
-    // noise = (java::Math::fmod(sqrt(x*x+y*y+z*z), 2.0) - 1.0);
+    // noise = (std::fmod(sqrt(x*x+y*y+z*z), 2.0) - 1.0);
     // if (noise < 0.0) { noise = 0.0 - noise; }
 
     // This ramp goes 0-1,0-1,0-1,0-1...
-    noise = (java::Math::fmod(
+    noise = (std::fmod(
         java::Math::sqrt(((x)*(x)) + ((y)*(y)) + ((z)*(z))),
         1.0));
 
