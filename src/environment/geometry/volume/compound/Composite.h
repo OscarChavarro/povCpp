@@ -33,6 +33,11 @@ class Composite {
     static void scaleCompositeObject(SimpleBody *object, Vector3Dd *vector);
     static void invertBasicObject(SimpleBody *object);
     static void invertCompositeObject(SimpleBody *object);
+
+  private:
+    static inline void linkSimpleBody(
+        SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList);
+    static SimpleBody *createBasicObject();
 };
 
 #endif
