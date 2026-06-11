@@ -78,7 +78,7 @@ ColorTextureFixture::bozo(
     Vector3Dd bozoTurbulence;
 
     if ((turb = turbulence) != 0.0) {
-        proceduralNoise->dTurbulence(&bozoTurbulence, x, y, z, octaves);
+        proceduralNoise->differentialTurbulence(&bozoTurbulence, x, y, z, octaves);
         x += bozoTurbulence.x() * turb;
         y += bozoTurbulence.y() * turb;
         z += bozoTurbulence.z() * turb;
@@ -187,7 +187,7 @@ ColorTextureFixture::gradient(
     Vector3Dd gradTurbulence;
 
     if ((turb = turbulence) != 0.0) {
-        proceduralNoise->dTurbulence(&gradTurbulence, x, y, z, octaves);
+        proceduralNoise->differentialTurbulence(&gradTurbulence, x, y, z, octaves);
         x += gradTurbulence.x() * turb;
         y += gradTurbulence.y() * turb;
         z += gradTurbulence.z() * turb;
@@ -332,7 +332,7 @@ ColorTextureFixture::wood(
     Vector3Dd point;
     ColorRgba newColor;
 
-    proceduralNoise->dTurbulence(&woodTurbulence, x, y, z, octaves);
+    proceduralNoise->differentialTurbulence(&woodTurbulence, x, y, z, octaves);
 
     double pointX = proceduralNoise->cycloidal((x + woodTurbulence.x()) * turbulence) + x;
     double pointY = proceduralNoise->cycloidal((y + woodTurbulence.y()) * turbulence) + y;
@@ -377,7 +377,7 @@ ColorTextureFixture::leopard(
     Vector3Dd leopardTurbulence;
 
     if ((turb = turbulence) != 0.0) {
-        proceduralNoise->dTurbulence(
+        proceduralNoise->differentialTurbulence(
             &leopardTurbulence, x, y, z, octaves);
         x += leopardTurbulence.x() * turb;
         y += leopardTurbulence.y() * turb;
@@ -419,7 +419,7 @@ ColorTextureFixture::onion(
     Vector3Dd onionTurbulence;
 
     if ((turb = turbulence) != 0.0) {
-        proceduralNoise->dTurbulence(&onionTurbulence, x, y, z, octaves);
+        proceduralNoise->differentialTurbulence(&onionTurbulence, x, y, z, octaves);
         x += onionTurbulence.x() * turb;
         y += onionTurbulence.y() * turb;
         z += onionTurbulence.z() * turb;

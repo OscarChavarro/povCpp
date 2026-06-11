@@ -1,10 +1,9 @@
-/****************************************************************************
- *                     tokenize.c
- *
- *  This module implements the first part of a two part parser for the scene
- *  description files.  This phase changes the input file into tokens.
- *
- *****************************************************************************/
+/**
+tokenize.c
+
+This module implements the first part of a two part parser for the scene
+description files.  This phase changes the input file into tokens.
+*/
 
 #include <cctype>
 #include <cstdio>
@@ -14,16 +13,20 @@
 #include "io/binaryIo/FileLocator.h"
 #include "io/pov/lexer/Tokenizer.h"
 
-/* This module tokenizes the input file and sends the tokens created
+/**
+This module tokenizes the input file and sends the tokens created
 to the parser (the second stage).  Tokens sent to the parser contain a
 token ID, the line number of the token, and if necessary, some data for
-the token.  */
+the token.
+*/
 
 char Tokenizer::sString[Tokenizer::MAX_STRING_INDEX];
 int Tokenizer::sStringIndex = 0;
 
-/* Here are the reserved words.  If you need to add new words, be sure
-to declare them in frame.h */
+/**
+Here are the reserved words.  If you need to add new words, be sure
+to declare them in frame.h
+*/
 
 ReservedWord Tokenizer::sReservedWords[Tokenizer::LAST_TOKEN] = {{Tokenizer::AGATE_TOKEN, "agate"},
     {Tokenizer::ALL_TOKEN, "all"}, {Tokenizer::ALPHA_TOKEN, "alpha"}, {Tokenizer::AMBIENT_TOKEN, "ambient"},
@@ -85,7 +88,7 @@ ReservedWord Tokenizer::sReservedWords[Tokenizer::LAST_TOKEN] = {{Tokenizer::AGA
     {Tokenizer::STURM_TOKEN, "sturm"}, {Tokenizer::TEXTURE_TOKEN, "texture"}, {Tokenizer::TGA_TOKEN, "tga"},
     {Tokenizer::TIGHTNESS_TOKEN, "tightness"}, {Tokenizer::TILDE_TOKEN, "~"}, {Tokenizer::TILE2_TOKEN, "tile2"},
     {Tokenizer::THRESHOLD_TOKEN, "threshold"}, {Tokenizer::TRANSLATE_TOKEN, "translate"},
-    {Tokenizer::TRANSMIT_TOKEN, "* disabled *"}, /* Transmit disabled 2/92 */
+    {Tokenizer::TRANSMIT_TOKEN, "* disabled *"}, // Transmit disabled 2/92
     {Tokenizer::TRIANGLE_TOKEN, "triangle"}, {Tokenizer::TURBULENCE_TOKEN, "turbulence"},
     {Tokenizer::UNION_TOKEN, "union"}, {Tokenizer::UP_TOKEN, "up"}, {Tokenizer::USE_COLOUR_TOKEN, "use_color"},
     {Tokenizer::USE_COLOUR_TOKEN, "use_colour"}, {Tokenizer::USE_INDEX_TOKEN, "use_index"},
@@ -93,8 +96,10 @@ ReservedWord Tokenizer::sReservedWords[Tokenizer::LAST_TOKEN] = {{Tokenizer::AGA
     {Tokenizer::WAVES_TOKEN, "waves"}, {Tokenizer::WOOD_TOKEN, "wood"}, {Tokenizer::WRINKLES_TOKEN, "wrinkles"},
     {Tokenizer::LAST_TOKEN, "orville"}};
 
-/* Make a table for user-defined symbols.  500 symbols should be more
-than enough. */
+/**
+Make a table for user-defined symbols.  500 symbols should be more
+than enough.
+*/
 
 int Tokenizer::maxSymbols = 500;
 int Tokenizer::sCaseSensitiveFlag = 0;
@@ -207,17 +212,19 @@ Tokenizer::terminateTokenizer()
     }
 }
 
-/* The main tokenizing routine.  Set up the files and continue parsing
-until the end of file */
+/**
+The main tokenizing routine.  Set up the files and continue parsing
+until the end of file.
 
-/* This function performs most of the work involved in tokenizing.  It
-    reads the first character of the token and decides which function to
-    call to tokenize the rest.  For simple tokens, it simply writes them
-    out to the token buffer.  */
+This function performs most of the work involved in tokenizing.  It
+reads the first character of the token and decides which function to
+call to tokenize the rest.  For simple tokens, it simply writes them
+out to the token buffer.
 
-/* Read a token from the input file and store it in the Token variable.
+Read a token from the input file and store it in the Token variable.
 If the token is an INCLUDE token, then set the include file name and
-read another token. */
+read another token.
+*/
 
 void
 Tokenizer::getToken()
@@ -244,7 +251,7 @@ Tokenizer::getToken()
             if (Tokenizer::sGlobalIncludeFileIndex == 0) {
                 Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
                 Tokenizer::token().endOfFile = true;
-                /*putchar ('\n');*/
+                // putchar ('\n');
                 fprintf(stderr, "\n");
                 return;
             }
@@ -267,7 +274,7 @@ Tokenizer::getToken()
 
         case '{':
             Tokenizer::writeToken(Tokenizer::LEFT_CURLY_TOKEN, Tokenizer::sGlobalDataFile);
-            /* parseComments(GLOBAL_dataFile); */
+            // parseComments(GLOBAL_dataFile);
             break;
 
         case '}':
@@ -318,8 +325,8 @@ Tokenizer::getToken()
             Tokenizer::writeToken(Tokenizer::EXCLAMATION_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
-        case '#': /* Parser doesn't use it, so let's ignore it */
-            /* writeToken (Tokenizer::HASH_TOKEN, GLOBAL_dataFile); */
+        case '#': // Parser doesn't use it, so let's ignore it
+            // writeToken (Tokenizer::HASH_TOKEN, GLOBAL_dataFile);
             break;
 
         case '^':
@@ -362,15 +369,15 @@ Tokenizer::getToken()
             Tokenizer::writeToken(Tokenizer::RIGHT_SQUARE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
-        case ';': /* Parser doesn't use it, so let's ignore it */
-            /* writeToken (Tokenizer::SEMI_COLON_TOKEN, GLOBAL_dataFile); */
+        case ';': // Parser doesn't use it, so let's ignore it
+            // writeToken (Tokenizer::SEMI_COLON_TOKEN, GLOBAL_dataFile);
             break;
 
         case '\'':
             Tokenizer::writeToken(Tokenizer::SINGLE_QUOTE_TOKEN, Tokenizer::sGlobalDataFile);
             break;
 
-            /* enable C++ style commenting */
+            // Enable C++ style commenting
         case '/':
             c2 = getc(Tokenizer::sGlobalDataFile->File);
             if (c2 != (int)'/' && c2 != (int)'*') {
@@ -481,7 +488,7 @@ Tokenizer::getToken()
             break;
         case '\t':
         case '\r':
-        case '\032': /* Control Z - EOF on many systems */
+        case '\032': // Control Z - EOF on many systems
         case '\0':
             break;
 
@@ -556,9 +563,11 @@ Tokenizer::getToken()
     }
 }
 
-/* Mark that the token has been put back into the input stream.  The next
+/**
+Mark that the token has been put back into the input stream.  The next
 call to Get_Token will return the last-read token instead of reading a
-new one from the file. */
+new one from the file.
+*/
 
 void
 Tokenizer::ungetToken()
@@ -566,7 +575,7 @@ Tokenizer::ungetToken()
     Tokenizer::token().ungetToken = true;
 }
 
-/* Skip over spaces in the input file */
+// Skip over spaces in the input file
 
 int
 DataFile::skipSpaces()
@@ -592,12 +601,15 @@ DataFile::skipSpaces()
     return (true);
 }
 
-/* The comments on comments are outdated and incorrect */
-/* Comments start with an open brace ({) and end with a close brace (}).
-    The open brace has been read already.  Continue reading until a close
-    brace is encountered. Be sure to count the lines while you're at it.
-    Incidently, nested comments are supported (in case you do such esoteric
-    things) */
+/**
+The comments on comments are outdated and incorrect.
+
+Comments start with an open brace ({) and end with a close brace (}).
+The open brace has been read already.  Continue reading until a close
+brace is encountered. Be sure to count the lines while you're at it.
+Incidently, nested comments are supported (in case you do such esoteric
+things)
+*/
 
 int
 DataFile::parseComments()
@@ -629,7 +641,7 @@ DataFile::parseComments()
     return (true);
 }
 
-/* C style comments with asterik and slash - CdW 8/91 */
+// C style comments with asterik and slash - CdW 8/91
 
 int
 DataFile::parseCComments()
@@ -659,7 +671,7 @@ DataFile::parseCComments()
                 endOfComment = true;
             }
         }
-        /* Check for and handle nested comments */
+        // Check for and handle nested comments
         if (c == (int)'/') {
             c2 = getc(this->File);
             if (c2 != (int)'*') {
@@ -672,11 +684,13 @@ DataFile::parseCComments()
     return (true);
 }
 
-/* The following routines make it easier to handle strings.  They stuff
-    characters into a Tokenizer::sString buffer one at a time making all the proper
-    range checks.  Call Begin_String to start, Stuff_Character to put
-    characters in, and End_String to finish.  The String variable contains
-    the final Tokenizer::sString. */
+/**
+The following routines make it easier to handle strings.  They stuff
+characters into a Tokenizer::sString buffer one at a time making all the proper
+range checks.  Call Begin_String to start, Stuff_Character to put
+characters in, and End_String to finish.  The String variable contains
+the final Tokenizer::sString.
+*/
 
 void
 Tokenizer::beginString()
@@ -702,11 +716,13 @@ DataFile::endString()
     Tokenizer::stuffCharacter((int)'\0', Tokenizer::getGlobalDataFile());
 }
 
-/* Read a float from the input file and tokenize it as one token. The phase
-    variable is 0 for the first character, 1 for all subsequent characters
-    up to the decimal point, 2 for all characters after the decimal
-    point, 3 for the E+/- and 4 for the exponent.  This helps to insure
-    that the number is formatted properly. E format added 9/91 CEY */
+/**
+Read a float from the input file and tokenize it as one token. The phase
+variable is 0 for the first character, 1 for all subsequent characters
+up to the decimal point, 2 for all characters after the decimal
+point, 3 for the E+/- and 4 for the exponent.  This helps to insure
+that the number is formatted properly. E format added 9/91 CEY
+*/
 
 int
 DataFile::readFloat()
@@ -795,7 +811,7 @@ DataFile::readFloat()
     return (true);
 }
 
-/* Parse a Tokenizer::sString from the input file into a token. */
+// Parse a Tokenizer::sString from the input file into a token
 void
 DataFile::parseString()
 {
@@ -820,11 +836,13 @@ DataFile::parseString()
     Tokenizer::token().Token_String = Tokenizer::getString();
 }
 
-/* Read in a symbol from the input file.  Check to see if it is a reserved
-    word.  If it is, write out the appropriate token.  Otherwise, write the
-    symbol out to the Symbol file and write out an IDENTIFIER token. An
-    Identifier token is a token whose token number is greater than the
-    highest reserved word. */
+/**
+Read in a symbol from the input file.  Check to see if it is a reserved
+word.  If it is, write out the appropriate token.  Otherwise, write the
+symbol out to the Symbol file and write out an IDENTIFIER token. An
+Identifier token is a token whose token number is greater than the
+highest reserved word.
+*/
 
 int
 DataFile::readSymbol()
@@ -849,11 +867,11 @@ DataFile::readSymbol()
     }
     this->endString();
 
-    /* Ignore the symbol if it was meant for the tokenizer (-2) */
+    // Ignore the symbol if it was meant for the tokenizer (-2)
     if ((symbolId = Tokenizer::findReserved()) != -1 && symbolId != -2) {
         Tokenizer::writeToken(symbolId, Tokenizer::getGlobalDataFile());
     } else {
-        /* Ignore the symbol if it was meant for the tokenizer (-2) */
+        // Ignore the symbol if it was meant for the tokenizer (-2)
         if (symbolId == -2) {
             return (true);
         }
@@ -879,8 +897,10 @@ DataFile::readSymbol()
     return (true);
 }
 
-/* Return the index the token in the reserved words table or -1 if it
-    isn't there. */
+/**
+Return the index the token in the reserved words table or -1 if it
+isn't there.
+*/
 int
 Tokenizer::findReserved()
 {
@@ -894,8 +914,8 @@ Tokenizer::findReserved()
         Tokenizer::sCaseSensitiveFlag = 1;
         return (-2);
     }
-    /* The optional case sensitive option only checks keywords unsensitive */
-    /* Symbols can be upper/lower, but not be the same as a keyword */
+    // The optional case sensitive option only checks keywords unsensitive
+    // Symbols can be upper/lower, but not be the same as a keyword
     if (Tokenizer::povStricmp("case_sensitive_opt", &(Tokenizer::sString[0])) == 0) {
         Tokenizer::sCaseSensitiveFlag = 2;
         return (-2);
@@ -917,8 +937,10 @@ Tokenizer::findReserved()
     return (-1);
 }
 
-/* Check to see if a symbol already exists with this name.  If so, return
-     its symbol ID. */
+/**
+Check to see if a symbol already exists with this name.  If so, return
+its symbol ID.
+*/
 
 int
 Tokenizer::findSymbol()
@@ -941,7 +963,7 @@ Tokenizer::findSymbol()
     return (-1);
 }
 
-/* Write a token out to the token file */
+// Write a token out to the token file
 void
 Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
 {
@@ -958,7 +980,7 @@ Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
     }
 }
 
-/* Report an error */
+// Report an error
 void
 Tokenizer::tokenError(DataFile *dataFile, const char *str)
 {
@@ -973,8 +995,10 @@ Tokenizer::tokenError(DataFile *dataFile, const char *str)
         Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
     }
 }
-/* Since the stricmp function isn't available on all systems, we've
-    provided a simplified version of it here. */
+/**
+Since the stricmp function isn't available on all systems, we've
+provided a simplified version of it here.
+*/
 
 int
 Tokenizer::povStricmp(const char *s1, const char *s2)

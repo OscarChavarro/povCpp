@@ -1,12 +1,11 @@
-/****************************************************************************
- *                     boxes.c
- *
- *  This module implements the box primitive.
- *
- *  This file was written by Alexander Enzmann.  He wrote the code for
- *  boxes and generously provided us these enhancements.
- *
- *****************************************************************************/
+/**
+boxes.c
+
+This module implements the box primitive.
+
+This file was written by Alexander Enzmann.  He wrote the code for
+boxes and generously provided us these enhancements.
+*/
 
 #include "java/lang/Math.h"
 #include "environment/geometry/volume/Box.h"
@@ -73,7 +72,7 @@ Box::intersectBoxx(
 
     Statistics::global().rayBoxTests++;
 
-    /* Transform the point into the boxes space */
+    // Transform the point into the boxes space
     if (box->transformation != nullptr) {
         p = box->transformationInverse->transformPoint(ray->position);
         d = box->transformationInverse->transformDirection(ray->direction);
@@ -85,7 +84,7 @@ Box::intersectBoxx(
     tmin = 0.0;
     tmax = HUGE_VAL;
 
-    /* Sides first */
+    // Sides first
     if (d.x() < -Config::INTERSECTION_EPSILON) {
         t = (box->bounds[0].x() - p.x()) / d.x();
         if (t < tmin) {
@@ -120,7 +119,7 @@ Box::intersectBoxx(
         return 0;
     }
 
-    /* Check Top/Bottom */
+    // Check Top/Bottom
     if (d.y() < -Config::INTERSECTION_EPSILON) {
         t = (box->bounds[0].y() - p.y()) / d.y();
         if (t < tmin) {
@@ -155,7 +154,7 @@ Box::intersectBoxx(
         return 0;
     }
 
-    /* Now front/back */
+    // Now front/back
     if (d.z() < -Config::INTERSECTION_EPSILON) {
         t = (box->bounds[0].z() - p.z()) / d.z();
         if (t < tmin) {
@@ -193,7 +192,7 @@ Box::intersectBoxx(
     *depth1 = tmin;
     *depth2 = tmax;
 
-    /* Logger::info("Box intersects: %g, %g\n", *Depth1, *Depth2); */
+    // Logger::info("Box intersects: %g, %g\n", *Depth1, *Depth2);
     if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
         if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
             return (false);
@@ -214,14 +213,14 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
     Vector3Dd newPoint;
     Box *box = (Box *)object;
 
-    /* Transform the point into the boxes space */
+    // Transform the point into the boxes space
     if (box->transformation != nullptr) {
         newPoint = box->transformationInverse->transformPoint(*testPoint);
     } else {
         newPoint = *testPoint;
     }
 
-    /* Test to see if we are inside the box */
+    // Test to see if we are inside the box
     if (newPoint.x() < box->bounds[0].x() || newPoint.x() > box->bounds[1].x()) {
         return ((int)box->Inverted);
     }
@@ -231,7 +230,7 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
     if (newPoint.z() < box->bounds[0].z() || newPoint.z() > box->bounds[1].z()) {
         return ((int)box->Inverted);
     }
-    /* Inside the box */
+    // Inside the box
     return 1 - box->Inverted;
 }
 
@@ -242,7 +241,7 @@ Box::boxNormal(
     Vector3Dd newPoint;
     Box *box = (Box *)object;
 
-    /* Transform the point into the boxes space */
+    // Transform the point into the boxes space
     if (box->transformation != nullptr) {
         newPoint = box->transformationInverse->transformPoint(*intersectionPoint);
     } else {
@@ -264,11 +263,11 @@ Box::boxNormal(
     } else if (closeTo(newPoint.z(), box->bounds[0].z())) {
         *result = result->withZ(-1.0);
     } else {
-        /* Bad result, should we do something with it? */
+        // Bad result, should we do something with it?
         *result = result->withX(1.0);
     }
 
-    /* Transform the point into the boxes space */
+    // Transform the point into the boxes space
     if (box->transformation != nullptr) {
         *result = box->transformationInverse->withoutTranslation().multiply(*result);
         *result = (*result).normalizedFast();
@@ -284,7 +283,7 @@ Box::copyBox(SimpleBody *object)
     *newShape = *((Box *)object);
     newShape->nextObject = nullptr;
 
-    /* Copy any associated transformation */
+    // Copy any associated transformation
     if (newShape->transformation != nullptr) {
         newShape->transformation = new Matrix4x4d(*(newShape->transformation));
         newShape->transformationInverse =

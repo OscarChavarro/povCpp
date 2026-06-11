@@ -1,9 +1,8 @@
-/****************************************************************************
- *                     ray.c
- *
- *  This module implements the code pertaining to rays.
- *
- *****************************************************************************/
+/**
+ray.c
+
+This module implements the code pertaining to rays.
+*/
 
 #include <cstdlib>
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

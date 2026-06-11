@@ -1,10 +1,7 @@
-/****************************************************************************
- *                     vect.c
- *
- *  This file was written by Alexander Enzmann.  He wrote the code for
- *  4th-6th order shapes and generously provided us these enhancements.
- *
- *****************************************************************************/
+/**
+This file was written by Alexander Enzmann.  He wrote the code for
+4th-6th order shapes and generously provided us these enhancements.
+*/
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -15,32 +12,33 @@
 static constexpr double EPSILON = 1.0e-10;
 static constexpr double COEFF_LIMIT = 1.0e-20;
 
-/*                        WARNING      WARNING     WARNING
+/**
+WARNING      WARNING     WARNING
 
-    The following three constants have been defined so that quartic equations
-    will properly render on fpu/compiler combinations that only have 64 bit
-    IEEE precision.  Do not arbitrarily change any of these values.
+The following three constants have been defined so that quartic equations
+will properly render on fpu/compiler combinations that only have 64 bit
+IEEE precision.  Do not arbitrarily change any of these values.
 
-    If you have a machine with a proper fpu/compiler combo - like a Mac with
-    a 68881, then use the native floating format (96 bits) and tune the
-    values for a little less tolerance: something like: factor1 = 1.0e15,
-    factor2 = -1.0e-7, factor3 = 1.0e-10.
+If you have a machine with a proper fpu/compiler combo - like a Mac with
+a 68881, then use the native floating format (96 bits) and tune the
+values for a little less tolerance: something like: factor1 = 1.0e15,
+factor2 = -1.0e-7, factor3 = 1.0e-10.
 
-    The meaning of the three constants are:
-        factor1 - the magnitude of difference between coefficients in a
-                     quartic equation at which the Sturmian root solver will
-                     kick in.  The Sturm solver is quite a bit slower than
-                     the algebraic solver, so the bigger this is, the faster
-                     the root solving will go.  The algebraic solver is less
-                     accurate so the bigger this is, the more likely you will
-                     get bad roots.
+The meaning of the three constants are:
+    factor1 - the magnitude of difference between coefficients in a
+                 quartic equation at which the Sturmian root solver will
+                 kick in.  The Sturm solver is quite a bit slower than
+                 the algebraic solver, so the bigger this is, the faster
+                 the root solving will go.  The algebraic solver is less
+                 accurate so the bigger this is, the more likely you will
+                 get bad roots.
 
-        factor2 - Tolerance value that defines how close the quartic equation
-                     is to being a square of a quadratic.  The closer this can
-                     get to zero before roots disappear, the less the chance
-                     you will get spurious roots.
+    factor2 - Tolerance value that defines how close the quartic equation
+                 is to being a square of a quadratic.  The closer this can
+                 get to zero before roots disappear, the less the chance
+                 you will get spurious roots.
 
-        factor3 - Similar to factor2 at a later stage of the algebraic solver.
+    factor3 - Similar to factor2 at a later stage of the algebraic solver.
 */
 static constexpr double FUDGE_FACTOR1 = 1.0e11;
 static constexpr double FUDGE_FACTOR2 = -1.0e-5;
@@ -62,14 +60,12 @@ static constexpr double TWO_PI_43 = 4.1887902047863909846168;
 static constexpr int MAX_ITERATIONS = 50;
 
 
-/*
- * modp
- *
- *    calculates the modulus of u(x) / v(x) leaving it in r, it
- *  returns 0 if r(x) is a constant.
- *  note: this function assumes the leading coefficient of v
- *    is 1 or -1
- */
+/**
+Calculates the modulus of u(x) / v(x) leaving it in r, it
+returns 0 if r(x) is a constant.
+note: this function assumes the leading coefficient of v
+is 1 or -1
+*/
 int
 PolynomialSolver::modp(Polynomial *u, Polynomial *v, Polynomial *r)
 {
@@ -106,7 +102,7 @@ PolynomialSolver::modp(Polynomial *u, Polynomial *v, Polynomial *r)
     return (r->ord);
 }
 
-/* Build the sturmian sequence for a Polynomial */
+// Build the sturmian sequence for a Polynomial
 int
 PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
 {
@@ -119,7 +115,7 @@ PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
     sseq[0].ord = ord;
     sseq[1].ord = ord - 1;
 
-    /* calculate the derivative and normalize the leading coefficient. */
+    // Calculate the derivative and normalize the leading coefficient
     f = java::Math::abs(sseq[0].coef[ord] * ord);
     fp = sseq[1].coef;
     fc = sseq[0].coef + 1;
@@ -127,19 +123,19 @@ PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
         *fp++ = *fc++ * i / f;
     }
 
-    /* construct the rest of the Sturm sequence */
+    // Construct the rest of the Sturm sequence
     for (sp = sseq + 2; PolynomialSolver::modp(sp - 2, sp - 1, sp); sp++) {
-        /* reverse the sign and normalize */
+        // Reverse the sign and normalize
         f = -java::Math::abs(sp->coef[sp->ord]);
         for (fp = &sp->coef[sp->ord]; fp >= sp->coef; fp--) {
             *fp /= f;
         }
     }
-    sp->coef[0] = -sp->coef[0]; /* reverse the sign */
+    sp->coef[0] = -sp->coef[0]; // Reverse the sign
     return (sp - sseq);
 }
 
-/* Find out how many visible intersections there are */
+// Find out how many visible intersections there are
 int
 PolynomialSolver::visibleRoots(int np, Polynomial *sseq, int *atzer, int *atpos)
 {
@@ -150,7 +146,7 @@ PolynomialSolver::visibleRoots(int np, Polynomial *sseq, int *atzer, int *atpos)
     double lf;
 
     atposinf = atzero = 0;
-    /* changes at positve infinity */
+    // Changes at positve infinity
     lf = sseq[0].coef[sseq[0].ord];
     for (s = sseq + 1; s <= sseq + np; s++) {
         f = s->coef[s->ord];
@@ -160,7 +156,7 @@ PolynomialSolver::visibleRoots(int np, Polynomial *sseq, int *atzer, int *atpos)
         lf = f;
     }
 
-    /* Changes at zero */
+    // Changes at zero
     lf = sseq[0].coef[0];
     for (s = sseq + 1; s <= sseq + np; s++) {
         f = s->coef[0];
@@ -175,12 +171,10 @@ PolynomialSolver::visibleRoots(int np, Polynomial *sseq, int *atzer, int *atpos)
     return (atzero - atposinf);
 }
 
-/*
- * numchanges
- *
- *    return the number of sign changes in the Sturm sequence in
- * sseq at the value a.
- */
+/**
+Return the number of sign changes in the Sturm sequence in
+sseq at the value a.
+*/
 int
 PolynomialSolver::numchanges(int np, Polynomial *sseq, double a)
 {
@@ -200,19 +194,16 @@ PolynomialSolver::numchanges(int np, Polynomial *sseq, double a)
     return (changes);
 }
 
-/*
- * sbisect
- *
- *    uses a bisection based on the sturm sequence for the Polynomial
- * described in sseq to isolate intervals in which roots occur,
- * the roots are returned in the roots array in order of magnitude.
+/**
+Uses a bisection based on the sturm sequence for the Polynomial
+described in sseq to isolate intervals in which roots occur,
+the roots are returned in the roots array in order of magnitude.
 
 Note: This routine has one severe bug: When the interval containing the
-        root [min, max] has a root at one of its endpoints, as well as one
-        within the interval, the root at the endpoint will be returned rather
-        than the one inside.
-
- */
+root [min, max] has a root at one of its endpoints, as well as one
+within the interval, the root at the endpoint will be returned rather
+than the one inside.
+*/
 void
 PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue,
     double maxValue, int atmin, int atmax, double *roots)
@@ -225,11 +216,11 @@ PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue,
     int nroot;
 
     if ((nroot = atmin - atmax) == 1) {
-        /* first try using regula-falsa to find the root.  */
+        // First try using regula-falsa to find the root
         if (PolynomialSolver::regulaFalsa(
                 sseq->ord, sseq->coef, minValue, maxValue, roots)) {
             return;
-        } /* That failed, so now find it by bisection */
+        } // That failed, so now find it by bisection
         for (its = 0; its < MAX_ITERATIONS; its++) {
             mid = (minValue + maxValue) / 2;
             atmid = PolynomialSolver::numchanges(np, sseq, mid);
@@ -247,13 +238,13 @@ PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue,
                 maxValue = mid;
             }
         }
-        /* Bisection took too long - just return what we got */
+        // Bisection took too long - just return what we got
         roots[0] = mid;
         return;
     }
 
-    /* There is more than one root in the interval.
-        Bisect to find new intervals */
+    // There is more than one root in the interval.
+    // Bisect to find new intervals
     for (its = 0; its < MAX_ITERATIONS; its++) {
         mid = (minValue + maxValue) / 2;
         atmid = PolynomialSolver::numchanges(np, sseq, mid);
@@ -273,7 +264,7 @@ PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue,
         }
     }
 
-    /* Took too long to bisect.  Just return what we got. */
+    // Took too long to bisect. Just return what we got
     for (n1 = atmax; n1 < atmin; n1++) {
         roots[n1 - atmax] = mid;
     }
@@ -291,7 +282,7 @@ PolynomialSolver::polyeval(double x, int n, double *coeffs)
     return val;
 }
 
-/* Close in on a root by using regula-falsa */
+// Close in on a root by using regula-falsa
 int
 PolynomialSolver::regulaFalsa(
     int order, double *coef, double a, double b, double *val)
@@ -363,7 +354,7 @@ PolynomialSolver::regulaFalsa(
             }
         }
         if (java::Math::abs(b - a) < EPSILON) {
-            /* Check for underflow in the domain */
+            // Check for underflow in the domain
             *val = x;
             return 1;
         }
@@ -372,12 +363,12 @@ PolynomialSolver::regulaFalsa(
     return 0;
 }
 
-/*
-    Solve the quadratic equation:
-                     x[0] * x^2 + x[1] * x + x[2] = 0.
+/**
+Solve the quadratic equation:
+                 x[0] * x^2 + x[1] * x + x[2] = 0.
 
-    The value returned by this function is the number of real roots.
-    The roots themselves are returned in y[0], y[1].
+The value returned by this function is the number of real roots.
+The roots themselves are returned in y[0], y[1].
 */
 int
 PolynomialSolver::solveQuadratic(double *x, double *y)
@@ -412,19 +403,19 @@ PolynomialSolver::solveQuadratic(double *x, double *y)
     return 2;
 }
 
-/*
-    Solve the cubic equation:
+/**
+Solve the cubic equation:
 
-        x[0] * x^3 + x[1] * x^2 + x[2] * x + x[3] = 0.
+    x[0] * x^3 + x[1] * x^2 + x[2] * x + x[3] = 0.
 
-    The result of this function is an integer that tells how many real
-    roots exist.  Determination of how many are distinct is up to the
-    process that calls this routine.  The roots that exist are stored
-    in (y[0], y[1], y[2]).
+The result of this function is an integer that tells how many real
+roots exist.  Determination of how many are distinct is up to the
+process that calls this routine.  The roots that exist are stored
+in (y[0], y[1], y[2]).
 
-    Note: this function relies very heavily on trigonometric functions and
-    the square root function.  If an alternative solution is found that does
-    not rely on transcendentals this code will be replaced.
+Note: this function relies very heavily on trigonometric functions and
+the square root function.  If an alternative solution is found that does
+not rely on transcendentals this code will be replaced.
 */
 int
 PolynomialSolver::solveCubic(double *x, double *y)
@@ -463,7 +454,7 @@ PolynomialSolver::solveCubic(double *x, double *y)
     d = q3 - r2;
     an = a1 / 3.0;
     if (d >= 0.0) {
-        /* Three real roots. */
+        // Three real roots
         d = r / java::Math::sqrt(q3);
         theta = java::Math::acos(d) / 3.0;
         sQ = -2.0 * java::Math::sqrt(q);
@@ -481,8 +472,10 @@ PolynomialSolver::solveCubic(double *x, double *y)
     return 1;
 }
 
-/* Test to see if any coeffs are more than 6 orders of magnitude
-    larger than the smallest */
+/**
+Test to see if any coeffs are more than 6 orders of magnitude
+larger than the smallest
+*/
 int
 PolynomialSolver::difficultCoeffs(int n, double *x)
 {
@@ -496,7 +489,7 @@ PolynomialSolver::difficultCoeffs(int n, double *x)
         }
     }
 
-    /* Everything is zero no sense in doing any more */
+    // Everything is zero no sense in doing any more
     if (biggest == 0.0) {
         return 0;
     }
@@ -534,7 +527,7 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
     double q2;
     int i;
 
-    /* Figure out the size difference between coefficients */
+    // Figure out the size difference between coefficients
     if (PolynomialSolver::difficultCoeffs(4, x)) {
         if (java::Math::abs(x[0]) < COEFF_LIMIT) {
             if (java::Math::abs(x[1]) < COEFF_LIMIT) {
@@ -564,7 +557,8 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
         c4 = x[4];
     }
 
-    /* The first step is to take the original equation:
+    /**
+    The first step is to take the original equation:
 
         x^4 + b*x^3 + c*x^2 + d*x + e = 0
 
@@ -585,7 +579,8 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
 
         y^3 - c*y^2 + (b*d - 4*e)*y - b^2*e + 4*c*e - d^2 = 0.
 
-    This is called the resolvent of the quartic equation.  */
+    This is called the resolvent of the quartic equation.
+    */
 
     a0 = 4.0 * c4;
     cubic[0] = 1.0;
@@ -599,7 +594,8 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
         return 0;
     }
 
-    /* What we are left with is a quadratic squared on the lhs and a
+    /**
+    What we are left with is a quadratic squared on the lhs and a
         linear term on the right.  The linear term has one of two signs,
         take each and add it to the lhs.  The form of the quartic is now:
 
@@ -622,15 +618,17 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
         if (t1 > FUDGE_FACTOR2) {
             t1 = 0.0;
         } else {
-            /* First Special case, a' < 0 means all roots are complex. */
+            // First Special case, a' < 0 means all roots are complex
             return 0;
         }
     }
     if (t1 < FUDGE_FACTOR3) {
-        /* Second special case, the "x" term on the right hand side above
+        /**
+        Second special case, the "x" term on the right hand side above
             has vanished.  In this case:
                      (x^2 + b*x/2 + y/2) = +java::Math::sqrt(y^2/4 - e), and
-                     (x^2 + b*x/2 + y/2) = -java::Math::sqrt(y^2/4 - e).  */
+                     (x^2 + b*x/2 + y/2) = -java::Math::sqrt(y^2/4 - e).
+        */
         t2 = a1 * a1 - c4;
         if (t2 < 0.0) {
             return 0;
@@ -641,7 +639,7 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
         x1 = java::Math::sqrt(t1);
         d1 = 0.5 * (a0 * y - c3) / x1;
     }
-    /* Solve the first quadratic */
+    // Solve the first quadratic
     q1 = -a0 - x1;
     q2 = a1 + d1;
     d2 = q1 * q1 - 4.0 * q2;
@@ -651,7 +649,7 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
         results[1] = 0.5 * (q1 - d2);
         i = 2;
     }
-    /* Solve the second quadratic */
+    // Solve the second quadratic
     q1 = q1 + x1 + x1;
     q2 = a1 - d1;
     d2 = q1 * q1 - 4.0 * q2;
@@ -663,7 +661,7 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
     return i;
 }
 
-/* Root solver based on the Sturm sequences for a Polynomial. */
+// Root solver based on the Sturm sequences for a Polynomial
 int
 PolynomialSolver::polysolve(
     int order, double *coeffs, double *roots, double minValue)
@@ -676,21 +674,21 @@ PolynomialSolver::polysolve(
     int atmin;
     int atmax;
 
-    /* Put the coefficients into the top of the stack. */
+    // Put the coefficients into the top of the stack
     for (i = 0; i <= order; i++) {
         sseq[0].coef[order - i] = coeffs[i];
     }
 
-    /* Build the Sturm sequence */
+    // Build the Sturm sequence
     np = PolynomialSolver::buildsturm(order, &sseq[0]);
 
-    /* Get the total number of visible roots */
+    // Get the total number of visible roots
     if ((nroots = PolynomialSolver::visibleRoots(np, sseq, &atmin, &atmax)) ==
         0) {
         return 0;
     }
 
-    /* Bracket the roots */
+    // Bracket the roots
     maxValue = PolynomialConstants::POLYNOMIAL_MAX_DISTANCE;
 
     atmin = PolynomialSolver::numchanges(np, sseq, minValue);
@@ -700,7 +698,7 @@ PolynomialSolver::polysolve(
         return 0;
     }
 
-    /* perform the bisection. */
+    // Perform the bisection
     PolynomialSolver::sbisect(
         np, sseq, minValue, maxValue, atmin, atmax, roots);
 

@@ -1,19 +1,18 @@
-/****************************************************************************
- *                         dump.c
- *
- *  This module contains the code to read and write the dump file format.
- *  The format is as follows:
- *
- *  (header:)
- *     wwww hhhh         - Width, Height (16 bits, LSB first)
- *
- *  (each scanline:)
- *     llll                - Line number (16 bits, LSB first)
- *     rr rr rr ...     - r data for line
- *     gg gg gg ...     - g data for line
- *     bb bb bb ...     - b data for line
- *
- *****************************************************************************/
+/**
+dump.c
+
+This module contains the code to read and write the dump file format.
+The format is as follows:
+
+(header:)
+   wwww hhhh         - Width, Height (16 bits, LSB first)
+
+(each scanline:)
+   llll                - Line number (16 bits, LSB first)
+   rr rr rr ...     - r data for line
+   gg gg gg ...     - g data for line
+   bb bb bb ...     - b data for line
+*/
 
 #include <cstdio>
 #include "java/lang/Math.h"

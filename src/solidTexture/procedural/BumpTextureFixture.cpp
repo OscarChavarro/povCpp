@@ -100,7 +100,7 @@ BumpTextureFixture::bumps(
     }
 
 
-    proceduralNoise->dNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
+    proceduralNoise->differentialNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
     bumpTurb = bumpTurb.multiply(bumpAmount);
     *normal = normal->add(bumpTurb); // displace "normal"
     *normal = (*normal).normalizedFast(); // normalize normal!
@@ -126,7 +126,7 @@ BumpTextureFixture::dents(
     noise = noise * noise * noise * bumpAmount;
 
 
-    proceduralNoise->dNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
+    proceduralNoise->differentialNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
 
     stuccoTurb = stuccoTurb.multiply(noise);
     *normal = normal->add(stuccoTurb); // displace "normal"
@@ -157,7 +157,7 @@ BumpTextureFixture::wrinkles(
     double rz = 0.0;
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
-        proceduralNoise->dNoise(&value, x * scale, y * scale, z * scale); // scale
+        proceduralNoise->differentialNoise(&value, x * scale, y * scale, z * scale); // scale
         rx += TextureUtils::instance().fabsInline(value.x() / scale);
         ry += TextureUtils::instance().fabsInline(value.y() / scale);
         rz += TextureUtils::instance().fabsInline(value.z() / scale);

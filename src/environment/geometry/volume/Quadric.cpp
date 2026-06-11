@@ -1,9 +1,8 @@
-/****************************************************************************
- *                     quadrics.c
- *
- *  This module implements the code for the quadric shape primitive.
- *
- *****************************************************************************/
+/**
+quadrics.c
+
+This module implements the code for the quadric shape primitive.
+*/
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -107,7 +106,7 @@ Quadric::intersectQuadric(
     constantTerm += tempTerm;
 
     if (squareTerm != 0.0) {
-        /* The equation is quadratic - find its roots */
+        // The equation is quadratic - find its roots
 
         determinant2 =
             linearTerm * linearTerm - 4.0 * squareTerm * constantTerm;
@@ -123,7 +122,7 @@ Quadric::intersectQuadric(
         *depth1 = (bMinus + determinant) / a2;
         *depth2 = (bMinus - determinant) / a2;
     } else {
-        /* There are no quadratic terms.  Solve the linear equation instead. */
+        // There are no quadratic terms.  Solve the linear equation instead
         if (linearTerm == 0.0) {
             return (false);
         }
@@ -198,11 +197,11 @@ Quadric::quadricNormal(
           result->z() * result->z();
     len = java::Math::sqrt(len);
     if (len == 0.0) {
-        /* The normal is not defined at this point of the surface.  Set it
-            to any arbitrary direction. */
+        // The normal is not defined at this point of the surface.  Set it
+        // to any arbitrary direction
         *result = Vector3Dd(1.0, 0.0, 0.0);
     } else {
-        /* normalize the normal */
+        // Normalize the normal
         *result = Vector3Dd(
             result->x() / len, result->y() / len, result->z() / len);
     }

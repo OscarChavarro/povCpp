@@ -110,13 +110,13 @@ Triangle::computeTriangle(Triangle *triangle)
     v2 = triangle->P3.subtract(triangle->P2);
     triangle->normalVector = v1.crossProduct(v2);
     length = triangle->normalVector.length();
-    /* Set up a flag so we can ignore degenerate triangles */
+    // Set up a flag so we can ignore degenerate triangles
     if (length < 1.0e-9) {
         triangle->degenerateFlag = true;
         return (0);
     }
 
-    /* Normalize the normal vector. */
+    // Normalize the normal vector
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
 
     triangle->Distance = triangle->normalVector.dotProduct(triangle->P1);
@@ -468,45 +468,46 @@ Triangle::invertTriangle(SimpleBody *object)
     triangle->Inverted ^= true;
 }
 
-/* Calculate the Phong-interpolated vector within the triangle
-    at the given intersection point. The math for this is a bit
-    bizarre:
+/**
+Calculate the Phong-interpolated vector within the triangle
+at the given intersection point. The math for this is a bit
+bizarre:
 
-     -            P1
-     |          /|\ \
-     |         / |Perp\
-     |        /  V  \    \
-     |      /    |     \    \
-  u |     /____|_____PI___\
-     |    /      |         \     \
-     -  P2-----|--------|----P3
-                  Pbase     PIntersect
-          |-------------------|
-                              v
+ -            P1
+ |          /|\ \
+ |         / |Perp\
+ |        /  V  \    \
+ |      /    |     \    \
+u |     /____|_____PI___\
+ |    /      |         \     \
+ -  P2-----|--------|----P3
+              Pbase     PIntersect
+      |-------------------|
+                          v
 
-    triangle->Perp is a unit vector from P1 to Pbase. We calculate
+triangle->Perp is a unit vector from P1 to Pbase. We calculate
 
-    u = (PI - P1) DOT Perp / ((P3 - P1) DOT Perp).
+u = (PI - P1) DOT Perp / ((P3 - P1) DOT Perp).
 
-    We then calculate where the line from P1 to PI intersects the line P2 to P3:
-    PIntersect = (PI - P1)/u.
+We then calculate where the line from P1 to PI intersects the line P2 to P3:
+PIntersect = (PI - P1)/u.
 
-    We really only need one coordinate of PIntersect.  We then calculate v as:
+We really only need one coordinate of PIntersect.  We then calculate v as:
 
-        v = PIntersect.x / (P3.x - P2.x)
- or    v = PIntersect.y / (P3.y - P2.y)
- or    v = PIntersect.z / (P3.z - P2.z)
+    v = PIntersect.x / (P3.x - P2.x)
+or    v = PIntersect.y / (P3.y - P2.y)
+or    v = PIntersect.z / (P3.z - P2.z)
 
-    depending on which calculation will give us the best answers.
+depending on which calculation will give us the best answers.
 
-    Once we have u and v, we can perform the normal interpolation as:
+Once we have u and v, we can perform the normal interpolation as:
 
-      NTemp1 = N1 + u(N2 - N1);
-      NTemp2 = N1 + u(N3 - N1);
-      Result = normalize (NTemp1 + v(NTemp2 - NTemp1))
+  NTemp1 = N1 + u(N2 - N1);
+  NTemp2 = N1 + u(N3 - N1);
+  Result = normalize (NTemp1 + v(NTemp2 - NTemp1))
 
-    As always, any values which are constant for the triangle are cached
-    in the triangle.
+As always, any values which are constant for the triangle are cached
+in the triangle.
 */
 
 void
@@ -527,8 +528,8 @@ SmoothTriangle::smoothTriangleNormal(
         return;
     }
 
-    /* BaseDelta contains P3.x-P2.x,  P3.y-P2.y, or P3.z-P2.z depending on the
-        value of vAxis. */
+    // BaseDelta contains P3.x-P2.x,  P3.y-P2.y, or P3.z-P2.z depending on the
+    // value of vAxis.
 
     switch (triangle->vAxis) {
     case X_AXIS:

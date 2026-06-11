@@ -180,8 +180,8 @@ MaterialUtils::getTexture()
     newTexture->colorMap = nullptr;
     newTexture->onceFlag = false;
     newTexture->metallicFlag = false;
-    newTexture->octaves = 6;  /* dmf, for turbulence functions */
-    newTexture->mortar = 0.2; /* rha, for brick texture */
+    newTexture->octaves = 6;  // dmf, for turbulence functions
+    newTexture->mortar = 0.2; // rha, for brick texture
 
     newTexture->constantFlag = true;
     newTexture->color1 = nullptr;

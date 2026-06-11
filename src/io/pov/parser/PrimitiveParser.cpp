@@ -9,7 +9,7 @@
 
 
 
-/* Parse a float.  Doesn't handle exponentiation. */
+// Parse a float.  Doesn't handle exponentiation
 double
 PrimitiveParser::parseFloat()
 {
@@ -119,7 +119,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
                 break;
 
             case Tokenizer::LEFT_ANGLE_TOKEN: {
-                /* parseFloat consumes tokens; keep left-to-right order. */
+                // parseFloat consumes tokens; keep left-to-right order
                 double vx = PrimitiveParser::parseFloat(ctx);
                 double vy = PrimitiveParser::parseFloat(ctx);
                 double vz = PrimitiveParser::parseFloat(ctx);

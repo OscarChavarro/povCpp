@@ -82,14 +82,14 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         maxDepthReached = depth;
     }
 
-    /* Build the bounding sphere for this subpatch */
+    // Build the bounding sphere for this subpatch
     ParametricBiCubicPatch::parametricBoundingSphere(
         patch, &(node->Center), &(node->radiusSquared));
 
-    /* If the patch is close to being flat, then just perform a ray-plane
-        intersection test. */
+    // If the patch is close to being flat, then just perform a ray-plane
+    // intersection test
     if (ParametricBiCubicPatch::flatEnough(object, patch)) {
-        /* The patch is now flat enough to simply store the corners */
+        // The patch is now flat enough to simply store the corners
         node->nodeType = ParametricPatchConstants::PARAMETRIC_LEAF_NODE;
         vertices = ParametricBiCubicPatch::createParametricControlPointsBlock();
         vertices->Vertices[0] = (*patch)[0][0];
@@ -99,7 +99,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         node->Data_Ptr = (void *)vertices;
     } else if (depth >= object->uSteps) {
         if (depth >= object->vSteps) {
-            /* We are at the max recursion depth. Just store corners. */
+            // We are at the max recursion depth. Just store corners
             node->nodeType = ParametricPatchConstants::PARAMETRIC_LEAF_NODE;
             vertices =
                 ParametricBiCubicPatch::createParametricControlPointsBlock();
@@ -159,7 +159,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
     return node;
 }
 
-/* Evaluate a single coordinate point (u, v) on a bezier patch. */
+// Evaluate a single coordinate point (u, v) on a bezier patch
 void
 ParametricBiCubicPatch::parametricValue(
     Vector3Dd *result, double u, double v, Vector3Dd (*controlPoints)[4][4])
@@ -218,23 +218,24 @@ ParametricBiCubicPatch::parametricValue(
     *result = Vector3Dd(rx, ry, rz);
 }
 
-/* Calculate the normal to a bezier patch for a particular axis, at
-    a particular point on the patch.
+/**
+Calculate the normal to a bezier patch for a particular axis, at
+a particular point on the patch.
 
-    The normal at a point of a parametric surface z = f(u, v) is:
+The normal at a point of a parametric surface z = f(u, v) is:
 
-        (|[[dy/du, dy/dv],[dz/du, dz/dv]]|,
-         |[[dz/du, dz/dv],[dx/du, dx/dv]]|,
-         |[[dx/du, dx/dv],[dy/du, dy/dv]]|)
+    (|[[dy/du, dy/dv],[dz/du, dz/dv]]|,
+     |[[dz/du, dz/dv],[dx/du, dx/dv]]|,
+     |[[dx/du, dx/dv],[dy/du, dy/dv]]|)
 
-    The normal is undefined where the determinants vanish.
+The normal is undefined where the determinants vanish.
 */
 void
 ParametricBiCubicPatch::parametricPartial(
     Vector3Dd *result, double u, double v, ParametricBiCubicPatch *shape)
 {
     Vector3Dd uVec;
-    Vector3Dd vVec; /* Partial derivatives with respect to u, and v. */
+    Vector3Dd vVec; // Partial derivatives with respect to u, and v
     double u2;
     double u3;
     double v2;
@@ -249,7 +250,7 @@ ParametricBiCubicPatch::parametricPartial(
     v2 = v * v;
     v3 = v * v2;
 
-    /* Calculate the derivative with respect to u */
+    // Calculate the derivative with respect to u
     t[0][0] = 3.0 * (v3 - 3.0 * v2 + 3.0 * v - 1.0) * (u2 - 2.0 * u + 1.0);
     t[0][1] = 9.0 * v * (v2 - 2.0 * v + 1.0) * (u2 - 2.0 * u + 1.0);
     t[0][2] = 9.0 * v2 * (v - 1.0) * (u2 - 2.0 * u + 1.0);
@@ -278,15 +279,15 @@ ParametricBiCubicPatch::parametricPartial(
     }
     temp = ux * ux + uy * uy + uz * uz;
     if (temp < EPSILON) {
-        /* Partial with respect to u is undefined. */
+        // Partial with respect to u is undefined
         *result = Vector3Dd(1.0, 0.0, 0.0);
-        /* *Result = *n; */
+        // *Result = *n;
         return;
     }
     temp = java::Math::sqrt(temp);
     uVec = Vector3Dd(ux / temp, uy / temp, uz / temp);
 
-    /* Calculate the derivative with respect to v */
+    // Calculate the derivative with respect to v
     t[0][0] = 3.0 * (v2 - 2.0 * v + 1.0) * (u3 - 3.0 * u2 + 3.0 * u - 1.0);
     t[0][1] =
         3.0 * (3.0 * v2 - 4.0 * v + 1.0) * (u3 - 3.0 * u2 + 3.0 * u - 1.0);
@@ -316,7 +317,7 @@ ParametricBiCubicPatch::parametricPartial(
     }
     temp = vx * vx + vy * vy + vz * vz;
     if (temp < EPSILON) {
-        /* Partial with respect to u is undefined. */
+        // Partial with respect to u is undefined
         *result = Vector3Dd(1.0, 0.0, 0.0);
         return;
     }
@@ -326,7 +327,7 @@ ParametricBiCubicPatch::parametricPartial(
     *result = uVec.crossProduct(vVec);
 }
 
-/* Find a sphere that contains all of the points in the list "vectors" */
+// Find a sphere that contains all of the points in the list "vectors"
 void
 ParametricBiCubicPatch::findAverage(
     int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius)
@@ -362,9 +363,11 @@ ParametricBiCubicPatch::findAverage(
     *radius = r0;
 }
 
-/* Find a sphere that bounds all of the control points of a Bezier patch.
-    The values returned are: the center of the bounding sphere, and the
-    square of the radius of the bounding sphere. */
+/**
+Find a sphere that bounds all of the control points of a Bezier patch.
+The values returned are: the center of the bounding sphere, and the
+square of the radius of the bounding sphere.
+*/
 void
 ParametricBiCubicPatch::parametricBoundingSphere(
     Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radius)
@@ -405,7 +408,7 @@ ParametricBiCubicPatch::parametricBoundingSphere(
     *radius = r0;
 }
 
-/* Precompute grid points and normals for a bezier patch */
+// Precompute grid points and normals for a bezier patch
 void
 ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
 {
@@ -424,7 +427,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     Vector3Dd controlPoints[16];
     Vector3Dd(*patchPtr)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
-    /* Calculate the bounding sphere for the entire patch. */
+    // Calculate the bounding sphere for the entire patch
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
             controlPoints[4 * i + j] = shape->Control_Points[i][j];
@@ -432,7 +435,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     }
     ParametricBiCubicPatch::findAverage(16, &controlPoints[0],
         &shape->boundingSphereCenter, &shape->boundingSphereRadius);
-    /* Shape->Node_Tree = NULL; */
+    // Shape->Node_Tree = NULL;
     if (shape->patchType == 0 || shape->patchType == 2) {
         return;
     }
@@ -494,7 +497,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
         }
     }
 
-    /* Calculate the grid values for the given subdivision values. */
+    // Calculate the grid values for the given subdivision values
     for (i = 0; i <= shape->uSteps; i++) {
         u = (double)i / (double)shape->uSteps;
         for (j = 0; j < shape->vSteps; j++) {
@@ -509,7 +512,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
         for (j = 0; j < shape->vSteps; j++) {
             v = (double)j / (double)shape->vSteps;
 
-            /* Calculate surface values for the current patch. */
+            // Calculate surface values for the current patch
             ParametricBiCubicPatch::parametricValue(&v0, u, v, patchPtr);
             ParametricBiCubicPatch::parametricValue(
                 &v1, u + deltaU, v, patchPtr);
@@ -523,7 +526,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
             shape->Interpolated_Grid[i][j + 1] = v2;
             shape->Interpolated_Grid[i + 1][j + 1] = v3;
             if (shape->patchType == 1 || shape->patchType == 4) {
-                /* Calculate the normals */
+                // Calculate the normals
                 if (ParametricBiCubicIntersection::subpatchNormal(
                         &v0, &v2, &v1, &n, &d)) {
                     shape->Interpolated_Normals[i][2 * j] = n;
@@ -547,7 +550,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     }
 
     if (shape->patchType == 4) {
-        /* Calculate normals at the corners of the subpatches */
+        // Calculate normals at the corners of the subpatches
         for (i = 0; i <= shape->uSteps; i++) {
             u = (double)i / (double)shape->uSteps;
             for (j = 0; j <= shape->vSteps; j++) {
@@ -584,8 +587,8 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray,
     vv2 = (*patch)[3][3];
     vv3 = (*patch)[3][0];
 
-    /* Triangulate this subpatch, then check for intersections in
-        the triangles. */
+    // Triangulate this subpatch, then check for intersections in
+    // the triangles
     if (ParametricBiCubicIntersection::subpatchNormal(
             &vv0, &vv1, &vv2, &n, &d)) {
         if (ParametricBiCubicIntersection::intersectSubpatch(shape->patchType,
@@ -652,7 +655,7 @@ ParametricBiCubicPatch::parametricSplitUpDown(Vector3Dd (*patch)[4][4],
     int j;
 
     for (i = 0; i < 4; i++) {
-        /* Split Left */
+        // Split Left
         temp1[0] = (*patch)[0][i];
         temp1[1] = ((*patch)[0][i]).midpoint((*patch)[1][i]);
         half = ((*patch)[1][i]).midpoint((*patch)[2][i]);
@@ -669,9 +672,11 @@ ParametricBiCubicPatch::parametricSplitUpDown(Vector3Dd (*patch)[4][4],
     }
 }
 
-/* See how close to a plane a subpatch is, the patch must have at least
-    three distinct vertices. A negative result from this function indicates
-    that a degenerate value of some sort was encountered. */
+/**
+See how close to a plane a subpatch is, the patch must have at least
+three distinct vertices. A negative result from this function indicates
+that a degenerate value of some sort was encountered.
+*/
 double
 ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
 {
@@ -689,10 +694,12 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
     tempV = vertices[0].subtract(vertices[1]);
     temp1 = tempV.length();
     if (java::Math::abs(temp1) < EPSILON) {
-        /* Degenerate in the V direction for U = 0. This is ok if the other
+        /**
+        Degenerate in the V direction for U = 0. This is ok if the other
             two corners are distinct from the lower left corner - I'm sure there
             are cases where the corners coincide and the middle has good values,
-            but that is somewhat pathalogical and won't be considered. */
+            but that is somewhat pathalogical and won't be considered.
+        */
         vertices[1] = (*patch)[3][3];
         tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
@@ -734,12 +741,12 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
             }
         }
     }
-    /* Now that a good set of candidate points has been found, find the
-        plane equations for the patch */
+    // Now that a good set of candidate points has been found, find the
+    // plane equations for the patch
     if (ParametricBiCubicIntersection::subpatchNormal(
             &vertices[0], &vertices[1], &vertices[2], &n, &d)) {
-        /* Step through all vertices and see what the maximum distance from the
-                 plane happens to be. */
+        // Step through all vertices and see what the maximum distance from the
+        // plane happens to be
         dist = 0.0;
         for (i = 0; i < 4; i++) {
             for (j = 0; j < 4; j++) {
@@ -752,7 +759,7 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
         }
         return dist;
     }
-    /* Logger::info("Subpatch normal failed in determine_subpatch_flatness\n"); */
+    // Logger::info("Subpatch normal failed in determine_subpatch_flatness\n");
     return -1.0;
 }
 
@@ -788,21 +795,21 @@ ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
     double radius;
     int tcnt = object->intersectionCount;
 
-    /* Don't waste time if there are already too many intersections */
+    // Don't waste time if there are already too many intersections
     if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
-    /* Make sure the ray passes through a sphere bounding the control points of
-        the patch */
+    // Make sure the ray passes through a sphere bounding the control points of
+    // the patch
     ParametricBiCubicPatch::parametricBoundingSphere(patch, &center, &radius);
     if (!ParametricBiCubicIntersection::sphericalBoundsCheck(
             ray, &center, radius)) {
         return;
     }
 
-    /* If the patch is close to being flat, then just perform a ray-plane
-        intersection test. */
+    // If the patch is close to being flat, then just perform a ray-plane
+    // intersection test
     if (ParametricBiCubicPatch::flatEnough(object, patch)) {
         ParametricBiCubicPatch::parametricSubpatchIntersect(ray, object, patch,
             u0, u1, v0, recursionDepth + 1, depthCount, depths, uValues,
@@ -867,7 +874,7 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
     ParametricPatchChild *children;
     int i;
 
-    /* If this is an interior node then continue the descent */
+    // If this is an interior node then continue the descent
     if (node->nodeType == ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE) {
         children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
@@ -876,10 +883,10 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
         }
         delete (ParametricPatchChild *)children;
     } else if (node->nodeType == ParametricPatchConstants::PARAMETRIC_LEAF_NODE) {
-        /* Free the memory used for the vertices. */
+        // Free the memory used for the vertices
         delete (ParametricControlPoints *)node->Data_Ptr;
     }
-    /* Free the memory used for the node. */
+    // Free the memory used for the node
     delete node;
 }
 
@@ -901,20 +908,20 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
     int i;
     int tcnt = shape->intersectionCount;
 
-    /* Don't waste time if there are already too many intersections */
+    // Don't waste time if there are already too many intersections
     if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
-    /* Make sure the ray passes through a sphere bounding the control points of
-        the patch */
+    // Make sure the ray passes through a sphere bounding the control points of
+    // the patch
     if (!ParametricBiCubicIntersection::sphericalBoundsCheck(
             ray, &(node->Center), node->radiusSquared)) {
         return;
     }
 
-    /* If this is an interior node then continue the descent, else
-        do a check against the vertices. */
+    // If this is an interior node then continue the descent, else
+    // do a check against the vertices
     if (node->nodeType == ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE) {
         children = (ParametricPatchChild *)node->Data_Ptr;
         for (i = 0; i < node->Count; i++) {
@@ -928,8 +935,8 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
         vv2 = vertices->Vertices[2];
         vv3 = vertices->Vertices[3];
 
-        /* Triangulate this subpatch, then check for intersections in
-            the triangles. */
+        // Triangulate this subpatch, then check for intersections in
+        // the triangles
         if (ParametricBiCubicIntersection::subpatchNormal(
                 &vv0, &vv1, &vv2, &n, &d)) {
             if (ParametricBiCubicIntersection::intersectSubpatch(
@@ -966,7 +973,7 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
     }
 }
 
-/* A patch is not a solid, so an inside test doesn't make sense. */
+// A patch is not a solid, so an inside test doesn't make sense
 int
 ParametricBiCubicPatch::insideBicubicPatch(
     Vector3Dd *testPoint, SimpleBody *object)
@@ -981,9 +988,11 @@ ParametricBiCubicPatch::bicubicPatchNormal(
     ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
     int i;
 
-    /* If all is going well, the normal was computed at the time the
+    /**
+    If all is going well, the normal was computed at the time the
        intersection was computed.  Look on the list of associated intersection
-       points and normals */
+       points and normals
+    */
     for (i = 0; i < patch->intersectionCount; i++) {
         if (intersectionPoint->x() == patch->Intersection_Point[i].x() &&
             intersectionPoint->y() == patch->Intersection_Point[i].y() &&
@@ -1075,7 +1084,7 @@ ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
         &((ParametricBiCubicPatch *)object)->material, vector);
 }
 
-/* Inversion of a patch really doesn't make sense. */
+// Inversion of a patch really doesn't make sense
 void
 ParametricBiCubicPatch::invertBicubicPatch(SimpleBody *object)
 {

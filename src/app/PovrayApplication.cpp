@@ -330,7 +330,7 @@ PovrayApplication::initVars()
     RenderEngine::renderFrame().screenWidth = 100;
 }
 
-/* Close all the stuff that has been opened. */
+// Close all the stuff that has been opened
 void
 PovrayApplication::closeAll()
 {

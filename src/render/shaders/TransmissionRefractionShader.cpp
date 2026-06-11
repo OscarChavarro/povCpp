@@ -49,28 +49,28 @@ TransmissionRefractionShader::shade(Material *texture, Vector3Dd *intersectionPo
         newRay.copyContainersFrom(ray);
 
         if (ray->containingIndex == -1) {
-            /* The ray is entering from the atmosphere */
+            // The ray is entering from the atmosphere
             newRay.enterContainingMedium(texture);
             ior = atmosphereIor /
                   (texture->objectIndexOfRefraction);
         } else {
-            /* The ray is currently inside an object */
+            // The ray is currently inside an object
             if (newRay.containingTextures[newRay.containingIndex] == texture)
-            /*            if (inside) */
+            // if (inside)
             {
-                /* The ray is leaving the current object */
+                // The ray is leaving the current object
                 newRay.exitContainingMedium();
                 if (newRay.containingIndex == -1) {
-                    /* The ray is leaving into the atmosphere */
+                    // The ray is leaving into the atmosphere
                     tempIor = atmosphereIor;
                 } else {
-                    /* The ray is leaving into another object */
+                    // The ray is leaving into another object
                     tempIor = newRay.containingIORs[newRay.containingIndex];
                 }
 
                 ior = (texture->objectIndexOfRefraction) / tempIor;
             } else {
-                /* The ray is entering a new object */
+                // The ray is entering a new object
                 tempIor = newRay.containingIORs[newRay.containingIndex];
                 newRay.enterContainingMedium(texture);
 
@@ -80,9 +80,8 @@ TransmissionRefractionShader::shade(Material *texture, Vector3Dd *intersectionPo
 
         temp = 1.0 + ior * ior * (normalComponent * normalComponent - 1.0);
         if (temp < 0.0) {
-            /* Total internal reflection - not yet implemented.
-    reflect (texture, intersectionPoint, ray, surfaceNormal, color);
-    */
+            // Total internal reflection - not yet implemented.
+            // reflect (texture, intersectionPoint, ray, surfaceNormal, color);
             return;
         }
 

@@ -1,9 +1,8 @@
-/****************************************************************************
- *                     viewpnt.c
- *
- *  This module implements methods for managing the viewpoint.
- *
- *****************************************************************************/
+/**
+viewpnt.c
+
+This module implements methods for managing the viewpoint.
+*/
 
 #include "environment/camera/Camera.h"
 Methods Camera::methodTable = {nullptr, nullptr, nullptr,

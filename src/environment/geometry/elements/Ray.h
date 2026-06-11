@@ -5,8 +5,8 @@
 
 class Ray {
   public:
-    Vector3Dd position;  /*  Xo  Yo  Zo  */
-    Vector3Dd direction; /*  Xv  Yv  Zv  */
+    Vector3Dd position;  // Xo  Yo  Zo
+    Vector3Dd direction; // Xv  Yv  Zv
 };
 
 #endif

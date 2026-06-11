@@ -10,7 +10,7 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
 {
     double attenuation = 1.0;
 
-    /* Get the light source color. */
+    // Get the light source color
     if ( lightSource->shapeColor == 0 ) {
         lightColor->setR(1.0); lightColor->setG(1.0); lightColor->setB(1.0); lightColor->setA(0);
     }
@@ -31,7 +31,7 @@ LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
 
     attenuation = Light::attenuateLight(lightSource, lightSourceRay);
 
-    /* Now scale the color by the attenuation */
+    // Now scale the color by the attenuation
     lightColor->setR(lightColor->getR() * attenuation);
     lightColor->setG(lightColor->getG() * attenuation);
     lightColor->setB(lightColor->getB() * attenuation);

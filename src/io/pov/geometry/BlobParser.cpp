@@ -61,7 +61,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 npoints = 0;
                 threshold = 1.0;
 
-                /* Here is where we get the blob coefficients */
+                // Here is where we get the blob coefficients
                 {
                     bool Exit_Flag;
                     Exit_Flag = false;
@@ -98,7 +98,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                     }
                 }
 
-                /* Finally, process the information */
+                // Finally, process the information
                 Blob::makeBlob((SimpleBody *)localShape, threshold, blobComponents,
                     npoints, 0);
                 Exit_Flag = true;

@@ -33,7 +33,7 @@ MirrorReflectionShader::shade(Material *texture, Vector3Dd *intersectionPoint,
         newRay.direction = ray->direction.add(normalProjection);
         newRay.position = *intersectionPoint;
 
-        /* ARE 08/25/91 */
+        // ARE 08/25/91
 
         surfaceOffset = newRay.direction.multiply(2.0 * GeometryConstants::Small_Tolerance);
         newRay.position = newRay.position.add(surfaceOffset);

@@ -26,13 +26,13 @@ class GeometryOperations {
         return ((*((x)->methods->allIntersectionsMethod))(x, y, z));
     }
 
-    /*
-        Generic "nearest hit" routine. Formerly the per-object
-        intersectionMethod slot, which was identical for every shape
-        (Composite::objectIntersect / its Triangle clone). The slot was
-        removed; this is now the single dispatch point. It works purely
-        through the object's own allIntersectionsMethod, so no shape needs
-        to depend on Composite just to fill a method-table entry.
+    /**
+    Generic "nearest hit" routine. Formerly the per-object
+    intersectionMethod slot, which was identical for every shape
+    (Composite::objectIntersect / its Triangle clone). The slot was
+    removed; this is now the single dispatch point. It works purely
+    through the object's own allIntersectionsMethod, so no shape needs
+    to depend on Composite just to fill a method-table entry.
     */
     static inline Intersection *
     intersect(SimpleBody *x, RayWithSegments *y)

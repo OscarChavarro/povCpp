@@ -151,12 +151,12 @@ ProceduralNoise::setupLattice(double *x, double *y, double *z, long *ix, long *i
     long *jx, long *jy, long *jz, double *sx, double *sy, double *sz,
     double *tx, double *ty, double *tz) const
 {
-    // ensures the values are positive.
+    // Ensures the values are positive.
     *x -= MIN_X;
     *y -= MIN_Y;
     *z -= MIN_Z;
 
-    // its equivalent integer lattice point.
+    // Its equivalent integer lattice point.
     *ix = (long)*x;
     *iy = (long)*y;
     *iz = (long)*z;
@@ -168,7 +168,7 @@ ProceduralNoise::setupLattice(double *x, double *y, double *z, long *ix, long *i
     *sy = sCurve(*y - *iy);
     *sz = sCurve(*z - *iz);
 
-    // the complement values of sx,sy,sz
+    // The complement values of sx,sy,sz
     *tx = 1.0 - *sx;
     *ty = 1.0 - *sy;
     *tz = 1.0 - *sz;
@@ -203,7 +203,7 @@ ProceduralNoise::noise(double x, double y, double z)
     setupLattice(
         &x, &y, &z, &ix, &iy, &iz, &jx, &jy, &jz, &sx, &sy, &sz, &tx, &ty, &tz);
 
-    // interpolate!
+    // Interpolate!
     m = hash3d(ix, iy, iz) & 0xFF;
     sum = incrSum(m, (tx * ty * tz), (x - ix), (y - iy), (z - iz));
 
@@ -245,7 +245,7 @@ ProceduralNoise::noise(double x, double y, double z)
 Returns the gradient (directional derivatives) of the noise field.
 */
 void
-ProceduralNoise::dNoise(Vector3Dd *result, double x, double y, double z)
+ProceduralNoise::differentialNoise(Vector3Dd *result, double x, double y, double z)
 {
     long ix;
     long iy;
@@ -357,7 +357,7 @@ ProceduralNoise::turbulence(double x, double y, double z, int octaves)
 Returns gradient of turbulent field by composing DNoise() over octaves.
 */
 void
-ProceduralNoise::dTurbulence(
+ProceduralNoise::differentialTurbulence(
     Vector3Dd *result, double x, double y, double z, int octaves)
 {
     int i; // added -dmf
@@ -371,7 +371,7 @@ ProceduralNoise::dTurbulence(
     value = Vector3Dd(0.0, 0.0, 0.0);
 
     for (i = 0, scale = 1; i < octaves; i++, scale *= 0.5) {
-        dNoise(&value, x / scale, y / scale, z / scale);
+        differentialNoise(&value, x / scale, y / scale, z / scale);
         rx += value.x() * scale;
         ry += value.y() * scale;
         rz += value.z() * scale;

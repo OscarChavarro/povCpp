@@ -1,9 +1,8 @@
-/****************************************************************************
- *                         csg.c
- *
- *  This module implements routines for constructive solid geometry.
- *
- *****************************************************************************/
+/**
+csg.c
+
+This module implements routines for constructive solid geometry.
+*/
 
 #include "environment/geometry/volume/compound/CSG.h"
 Methods CSG::unionMethodTable = {

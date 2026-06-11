@@ -55,13 +55,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ImageTexture mapFixture;
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
-    /* Is there a texture in the shape?  If not, use the one in the object. */
+    // Is there a texture in the shape?  If not, use the one in the object
     if ((texture = rayIntersection->Shape->material) == nullptr) {
         texture = rayIntersection->Object->objectTexture;
     }
-    /* Check to see if this object/shape has a material_map texture, if so */
-    /* then change the texture pointer to point to the mapped texture - CdW 7/91
-     */
+    // Check to see if this object/shape has a material_map texture, if so
+    // then change the texture pointer to point to the mapped texture - CdW 7/91
     if (texture->textureNumber == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
         int index = mapFixture.materialMap(
             &rayIntersection->Point, texture->textureTransformationInverse,
@@ -80,7 +79,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     filterColor.setR(1.0); filterColor.setG(1.0); filterColor.setB(1.0); filterColor.setA(1.0);
 
-    /* Now, we perform the lighting calculations. */
+    // Now, we perform the lighting calculations
     surface = 0;
     for (long int _layerIdx = -1;
         _layerIdx < texture->layers.size() && filterColor.getA() > 0.01;
@@ -124,8 +123,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 tempTexture->textureGradient, tempTexture->mortar,
                 &rayIntersection->Point, GeometryConstants::Small_Tolerance);
         }
-        /* We don't need to compute the lighting characteristics for shadow
-         * rays. */
+        // We don't need to compute the lighting characteristics for shadow
+        // rays
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
@@ -158,7 +157,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         filterColor.setA(filterColor.getA() * surfaceColor.getA());
     }
 
-    /* For shadow rays, we have the filter color now - time to return */
+    // For shadow rays, we have the filter color now - time to return
     if (shadowRay) {
 
         if (filterColor.getA() < 0.01) {
@@ -193,7 +192,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                     &surfaceNormal);
             }
 
-            /* If the surface normal points away, flip its direction. */
+            // If the surface normal points away, flip its direction
             normalDirection = surfaceNormal.dotProduct(ray->direction);
             if (normalDirection > 0.0) {
                 surfaceNormal = surfaceNormal.multiply(-1.0);
