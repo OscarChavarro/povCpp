@@ -1,7 +1,7 @@
 #ifndef __PARSE_GLOBALS_H__
 #define __PARSE_GLOBALS_H__
 
-/* Types of constants allowed in DECLARE statement */
+// Types of constants allowed in DECLARE statement
 class ParseGlobals {
   public:
     static constexpr int OBJECT_CONSTANT = 0;

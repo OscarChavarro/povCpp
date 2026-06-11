@@ -8,10 +8,10 @@
 
 /**
 [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85.
-Noise field for solid texturing: lattice-based pseudorandom Noise()
-and DNoise() primitives, their fractal Turbulence()/DTurbulence() compositions, and
-the periodic shaping functions (cycloidal, triangleWave) used to build patterns such
-as wood, marble, and agate on top of them.
+Noise field for solid texturing: lattice-based pseudorandom doise()
+and differentialNoise() primitives, their fractal turbulence()/differentialTurbulence()
+compositions, and the periodic shaping functions (cycloidal, triangleWave) used to
+build patterns such as wood, marble, and agate on top of them.
 */
 class ProceduralNoise {
   private:
@@ -48,9 +48,9 @@ class ProceduralNoise {
     double cycloidal(double value) const;
     double triangleWave(double value) const;
     double noise(double x, double y, double z);
-    void dNoise(Vector3Dd *result, double x, double y, double z);
+    void differentialNoise(Vector3Dd *result, double x, double y, double z);
     double turbulence(double x, double y, double z, int octaves);
-    void dTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
+    void differentialTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
     const short *hashTable() const;
     const LookUpTableChecksum16 &checksumTable() const;
 };

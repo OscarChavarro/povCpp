@@ -37,13 +37,13 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
     deltaU = 1.0 / (double)shape->uSteps;
     deltaV = 1.0 / (double)shape->vSteps;
 
-    /* Calculate the initial point */
+    // Calculate the initial point
     for (i = 0; i < shape->uSteps; i++) {
         u = (double)i / (double)shape->uSteps;
         for (j = 0; j < shape->vSteps; j++) {
             v = (double)j / (double)shape->vSteps;
 
-            /* Calculate surface values for the current patch. */
+            // Calculate surface values for the current patch
             ParametricBiCubicPatch::parametricValue(&v0, u, v, patchPtr);
             ParametricBiCubicPatch::parametricValue(
                 &v1, u + deltaU, v, patchPtr);
@@ -52,8 +52,8 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
             ParametricBiCubicPatch::parametricValue(
                 &v3, u + deltaU, v + deltaV, patchPtr);
 
-            /* Triangulate this subpatch, then check for intersections in
-                the triangles. */
+            // Triangulate this subpatch, then check for intersections in
+            // the triangles
             if (ParametricBiCubicIntersection::subpatchNormal(
                     &v0, &v2, &v1, &n, &d)) {
                 if (ParametricBiCubicIntersection::intersectSubpatch(
@@ -63,7 +63,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
                     shape->normalVector[tcnt + cnt] = n;
                     depths[cnt] = depth;
                     if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
-                        /* Too many intersections. Stop looking for more. */
+                        // Too many intersections. Stop looking for more
                         return cnt;
                     }
                 }
@@ -77,7 +77,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
                     shape->normalVector[tcnt + cnt] = n;
                     depths[cnt] = depth;
                     if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
-                        /* Too many intersections. Stop looking for more. */
+                        // Too many intersections. Stop looking for more
                         return cnt;
                     }
                 }
@@ -108,17 +108,17 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
         return 0;
     }
 
-    /* Calculate the initial point */
+    // Calculate the initial point
     for (i = 0; i < shape->uSteps; i++) {
         for (j = 0; j < shape->vSteps; j++) {
 
-            /* Grab precomputed surface values for the current patch. */
+            // Grab precomputed surface values for the current patch
             v[0] = shape->Interpolated_Grid[i][j];
             v[1] = shape->Interpolated_Grid[i + 1][j];
             v[2] = shape->Interpolated_Grid[i][j + 1];
             v[3] = shape->Interpolated_Grid[i + 1][j + 1];
 
-            /* Check the ray against the bounding sphere for this subpatch */
+            // Check the ray against the bounding sphere for this subpatch
             ParametricBiCubicPatch::findAverage(4, &v[0], &center, &radius);
             if (!ParametricBiCubicIntersection::sphericalBoundsCheck(
                     ray, &center, radius)) {
@@ -131,7 +131,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
             }
             d = shape->Interpolated_D[i][2 * j];
 
-            /* Check for intersections in this subpatch. */
+            // Check for intersections in this subpatch
             if (ParametricBiCubicIntersection::intersectSubpatch(
                     shape->patchType, ray, &v[0], &v[2], &v[1], &n, d, nullptr,
                     nullptr, nullptr, &depth, &ip, &n)) {
@@ -139,7 +139,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
                 shape->normalVector[tcnt + cnt] = n;
                 depths[cnt] = depth;
                 if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
-                    /* Too many intersections. Stop looking for more. */
+                    // Too many intersections. Stop looking for more
                     return cnt;
                 }
             }
@@ -156,7 +156,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
                 shape->normalVector[tcnt + cnt] = n;
                 depths[cnt] = depth;
                 if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
-                    /* Too many intersections. Stop looking for more. */
+                    // Too many intersections. Stop looking for more
                     return cnt;
                 }
             }
@@ -217,11 +217,11 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
         return 0;
     }
 
-    /* Calculate the initial point */
+    // Calculate the initial point
     for (i = 0; i < shape->uSteps; i++) {
         for (j = 0; j < shape->vSteps; j++) {
 
-            /* Grab precomputed surface values for the current patch. */
+            // Grab precomputed surface values for the current patch
             v0 = shape->Interpolated_Grid[i][j];
             v1 = shape->Interpolated_Grid[i + 1][j];
             v2 = shape->Interpolated_Grid[i][j + 1];
@@ -238,8 +238,8 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
             }
             d = shape->Interpolated_D[i][2 * j];
 
-            /* Make sure the smooth normals point in the same direction as the
-             * normal */
+            // Make sure the smooth normals point in the same direction as the
+            // normal
             t = n0.dotProduct(n);
             if (t < 0) {
                 n0 = n0.multiply(-1.0);
@@ -253,7 +253,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
                 n2 = n2.multiply(-1.0);
             }
 
-            /* Check for intersections in this subpatch. */
+            // Check for intersections in this subpatch
             if (ParametricBiCubicIntersection::intersectSubpatch(
                     shape->patchType, ray, &v0, &v2, &v1, &n, d, &n0, &n2, &n1,
                     &depth, &ip, &ipNorm)) {
@@ -261,7 +261,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
                 shape->normalVector[tcnt + cnt] = ipNorm;
                 depths[cnt] = depth;
                 if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
-                    /* Too many intersections. Stop looking for more. */
+                    // Too many intersections. Stop looking for more
                     return cnt;
                 }
             }
@@ -272,8 +272,8 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
             }
             d = shape->Interpolated_D[i][2 * j + 1];
 
-            /* Make sure the smooth normals point in the same direction as the
-             * normal */
+            // Make sure the smooth normals point in the same direction as the
+            // normal
             t = n1.dotProduct(n);
             if (t > 0) {
                 n1 = n0.multiply(-1.0);
@@ -294,7 +294,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
                 shape->normalVector[tcnt + cnt] = ipNorm;
                 depths[cnt] = depth;
                 if (tcnt + ++cnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
-                    /* Too many intersections. Stop looking for more. */
+                    // Too many intersections. Stop looking for more
                     return cnt;
                 }
             }

@@ -1,9 +1,8 @@
-/****************************************************************************
- *                         color.c
- *
- *  This module implements routines to manipulate colours.
- *
- *****************************************************************************/
+/**
+color.c
+
+This module implements routines to manipulate colours.
+*/
 
 #include "render/ColorOperations.h"
 

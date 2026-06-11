@@ -1,9 +1,8 @@
-/****************************************************************************
- *                     objects.c
- *
- *  This module implements the methods for objects and composite objects.
- *
- *****************************************************************************/
+/**
+objects.c
+
+This module implements the methods for objects and composite objects.
+*/
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"

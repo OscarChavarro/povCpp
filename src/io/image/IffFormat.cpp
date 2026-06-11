@@ -1,9 +1,8 @@
-/****************************************************************************
- *                         iff.c
- *
- *  This file implements a simple IFF format file reader.
- *
- *****************************************************************************/
+/**
+iff.c
+
+This file implements a simple IFF format file reader.
+*/
 
 #include <cstdio>
 #include <cstdlib>

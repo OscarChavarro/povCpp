@@ -5,8 +5,10 @@
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
-/* Calculate the normal to a subpatch (triangle) return the vector
-    <1.0 0.0 0.0> if the triangle is degenerate. */
+/**
+Calculate the normal to a subpatch (triangle) return the vector
+<1.0 0.0 0.0> if the triangle is degenerate.
+*/
 int
 ParametricBiCubicIntersection::subpatchNormal(
     Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *result, double *d)
@@ -30,9 +32,11 @@ ParametricBiCubicIntersection::subpatchNormal(
     return 1;
 }
 
-/* See if Ray intersects the triangular subpatch defined by the three
-    points v1, v2, v3 and the normal to the triangle n. If so, Depth will
-    be set to the distance along Ray at which the intersection occurs. */
+/**
+See if Ray intersects the triangular subpatch defined by the three
+points v1, v2, v3 and the normal to the triangle n. If so, Depth will
+be set to the distance along Ray at which the intersection occurs.
+*/
 int
 ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     RayWithSegments *ray, Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3,
@@ -59,7 +63,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     int nextSign;
     int crossings;
 
-    /* Calculate the point of intersection and the depth. */
+    // Calculate the point of intersection and the depth
     s = ray->direction.dotProduct(*n);
     if (s == 0.0) {
         return 0;
@@ -72,7 +76,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     *ip = ray->direction.multiply(*depth);
     *ip = ip->add(ray->position);
 
-    /* Map the intersection point and the triangle onto a plane. */
+    // Map the intersection point and the triangle onto a plane
     x = java::Math::abs(n->x());
     y = java::Math::abs(n->y());
     z = java::Math::abs(n->z());
@@ -108,7 +112,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
         y3 = v3->y() - ip->y();
     }
 
-    /* Determine crossing count */
+    // Determine crossing count
     crossings = 0;
     if (y1 < 0) {
         signHolder = -1;
@@ -116,7 +120,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
         signHolder = 1;
     }
 
-    /* Start of winding tests, test the segment from v1 to v2 */
+    // Start of winding tests, test the segment from v1 to v2
     if (y2 < 0) {
         nextSign = -1;
     } else {
@@ -137,7 +141,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
         signHolder = nextSign;
     }
 
-    /* Test the segment from v2 to v3 */
+    // Test the segment from v2 to v3
     if (y3 < 0) {
         nextSign = -1;
     } else {
@@ -158,7 +162,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
         signHolder = nextSign;
     }
 
-    /* Test the segment from v3 to v1 */
+    // Test the segment from v3 to v1
     if (y1 < 0) {
         nextSign = -1;
     } else {
@@ -247,7 +251,7 @@ ParametricBiCubicIntersection::sphericalBoundsCheck(
     z = center->z() - ray->position.z();
     dist1 = x * x + y * y + z * z;
     if (dist1 < radius) {
-        /* ray starts inside sphere - assume it intersects. */
+        // Ray starts inside sphere - assume it intersects
         return 1;
     }
     dist2 = x * ray->direction.x() + y * ray->direction.y() + z * ray->direction.z();
@@ -259,7 +263,7 @@ ParametricBiCubicIntersection::sphericalBoundsCheck(
     return 0;
 }
 
-/* Determine the distance from a point to a plane. */
+// Determine the distance from a point to a plane
 double
 ParametricBiCubicIntersection::pointPlaneDistance(
     Vector3Dd *p, Vector3Dd *n, double *d)

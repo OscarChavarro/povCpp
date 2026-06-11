@@ -84,7 +84,7 @@ TextureUtils::initializeNoise()
     proceduralNoise.initialize();
 
     for (int i = 0; i < TextureUtils::NUMBER_OF_WAVES; i++) {
-        proceduralNoise.dNoise(&point, (double)i, 0.0, 0.0);
+        proceduralNoise.differentialNoise(&point, (double)i, 0.0, 0.0);
         waveSources()[i] = point.normalizedFast();
         waveFrequency()[i] = (rand() & ProceduralNoise::RANDOM_MASK) / ProceduralNoise::RND_DIVISOR + 0.01;
     }

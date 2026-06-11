@@ -599,7 +599,7 @@ ImageTexture::biLinear(double *corners, double x, double y)
     p = x - (int)x;
     q = y - (int)y;
     if ((p == 0.0) && (q == 0.0)) {
-        return (*corners); /* upper left */
+        return (*corners); // Upper left
     }
 
     val = (p * q * *corners) + (q * (1 - p) * *(corners + 1)) +
@@ -628,7 +628,7 @@ ImageTexture::normDist(double *corners, double x, double y)
     q = y - (int)y;
 
     if ((p == 0.0) && (q == 0.0)) {
-        return (*corners); /* upper left */
+        return (*corners); // Upper left
     }
 
     wts[0] = pythagoreanSq(p, q);

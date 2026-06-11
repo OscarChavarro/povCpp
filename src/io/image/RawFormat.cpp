@@ -1,9 +1,8 @@
-/****************************************************************************
- *                     raw.c
- *
- *  This module contains the code to read and write the RAW file format.
- *
- *****************************************************************************/
+/**
+raw.c
+
+This module contains the code to read and write the RAW file format.
+*/
 
 #include <cstdio>
 #include "java/lang/Math.h"

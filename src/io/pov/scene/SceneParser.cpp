@@ -52,7 +52,7 @@ SceneParser::tokenInit(ParserContext &ctx)
     ctx.symbols().clear();
 }
 
-/* Set up the fields in the frame to default values. */
+// Set up the fields in the frame to default values
 void
 SceneParser::frameInit()
 {

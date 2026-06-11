@@ -21,8 +21,8 @@ LocalSurfaceShader::shade(RayWithSegments *ray, Material *texture,
     double attenuation;
     ColorRgba emittedColor;
 
-    /* This variable keeps track of how much color comes from the surface
-of the object and how much is transmited through. */
+    // This variable keeps track of how much color comes from the surface
+    // of the object and how much is transmited through
 
     emittedColor.setR(0.0); emittedColor.setG(0.0); emittedColor.setB(0.0); emittedColor.setA(0);
 
@@ -47,7 +47,7 @@ of the object and how much is transmited through. */
             &surfaceNormal, texture, &rayIntersection->Point, &surfaceNormal);
     }
 
-    /* If the surface normal points away, flip its direction. */
+    // If the surface normal points away, flip its direction
     normalDirection = surfaceNormal.dotProduct(ray->direction);
     if (normalDirection > 0.0) {
         surfaceNormal = surfaceNormal.multiply(-1.0);

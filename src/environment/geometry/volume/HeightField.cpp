@@ -1,16 +1,15 @@
-/****************************************************************************
- *         This file implements the height field shape primitive.  The shape is
- *         implemented as a collection of triangles which are calculated as
- *         needed.  The basic intersection routine first computes the rays
- *         intersection with the box marking the limits of the shape, then
- *         follows the line from one intersection point to the other, testing
- *the two triangles which form the pixel for an intersection with the ray at
- *         each step.
- *                    height field added by Doug Muir
- *                    with lots of advice and support from David Buck
- *                              and Drew Wells.
- *
- *****************************************************************************/
+/**
+This file implements the height field shape primitive.  The shape is
+implemented as a collection of triangles which are calculated as
+needed.  The basic intersection routine first computes the rays
+intersection with the box marking the limits of the shape, then
+follows the line from one intersection point to the other, testing
+the two triangles which form the pixel for an intersection with the ray at
+each step.
+height field added by Doug Muir
+with lots of advice and support from David Buck
+and Drew Wells.
+*/
 
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
@@ -105,10 +104,8 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
     *&t2V2 = Vector3Dd(-1.0, y3 - y4, 0.0);
     *&t2V3 = Vector3Dd(0.0, y2 - y4, -1.0);
 
-    /*
-     * first, we check to see if it is even possible for the ray to
-     * intersect the triangle.
-     */
+    // First, we check to see if it is even possible for the ray to
+    // intersect the triangle.
 
     if ((HeightField::maxValue(y1, HeightField::maxValue(y2, y3)) >= height1) &&
         (HeightField::minValue(y1, HeightField::minValue(y2, y3)) <= height2)) {
@@ -138,14 +135,15 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
         }
     }
 
-    /*
-     * first, we check to see if it is even possible for the ray to
-     * intersect the triangle.
-        Rewritten to get around Code Builder FP stack problem.
-        Original code:
-             if((HeightField::maxValue(y4,HeightField::maxValue(y2,y3)) >=
-     height1) && (HeightField::minValue(y4,HeightField::minValue(y2,y3)) <=
-     height2))                */
+    /**
+    First, we check to see if it is even possible for the ray to
+    intersect the triangle.
+    Rewritten to get around Code Builder FP stack problem.
+    Original code:
+         if((HeightField::maxValue(y4,HeightField::maxValue(y2,y3)) >=
+    height1) && (HeightField::minValue(y4,HeightField::minValue(y2,y3)) <=
+    height2))
+    */
 
     maxHeight = HeightField::maxValue(y4, HeightField::maxValue(y2, y3));
     minHeight = HeightField::minValue(y4, HeightField::minValue(y2, y3));
@@ -779,8 +777,8 @@ HeightField::allHeightfldIntersections(
         return (false);
     }
 
-    /*    if(      java::Math::abs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::INTERSECTION_EPSILON if
-     * next line doesn't work */
+    // if(      java::Math::abs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::INTERSECTION_EPSILON if
+    // next line doesn't work
 
     if (depth1 == depth2) {
         depth1 = 0.0;

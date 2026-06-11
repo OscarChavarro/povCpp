@@ -1,8 +1,8 @@
-/****************************************************************************
- *                     spheres.c
- *
- *  This module implements the sphere primitive.
- * *****************************************************************************/
+/**
+spheres.c
+
+This module implements the sphere primitive.
+*/
 
 #include "java/lang/Math.h"
 #include "common/statistics/Statistics.h"

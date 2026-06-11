@@ -56,7 +56,7 @@ DirectLightShader::shade(Material *texture, Vector3Dd *intersectionPoint,
         LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,
             intersectionPoint, &lightColor);
 
-        /* What objects does this ray intersect? */
+        // What objects does this ray intersect?
         if (RenderingConfiguration::global().quality > 3) {
             for (blockingObject = objects;
                 blockingObject != nullptr;
@@ -72,7 +72,7 @@ DirectLightShader::shade(Material *texture, Vector3Dd *intersectionPoint,
                             lightSourceDepth - GeometryConstants::Small_Tolerance) &&
                         (localIntersection->Depth > SHADOW_TOLERANCE)) {
 
-                        /* Does the object not cast a shadow? */
+                        // Does the object not cast a shadow?
                         if (!localIntersection->Object->noShadowFlag) {
                             if (ShadowShader::shade(localIntersection, &lightColor,
                                     localQueue, traceService)) {
@@ -88,22 +88,21 @@ DirectLightShader::shade(Material *texture, Vector3Dd *intersectionPoint,
             }
         }
 
-        /* If light source was not blocked by any intervening object, then
-              calculate it's contribution to the object's overall illumination
-         */
+        // If light source was not blocked by any intervening object, then
+        // calculate it's contribution to the object's overall illumination
 
         if (!intersectionFound) {
-            if (texture->objectPhong > 0.0) { /* Phong Hilite */
+            if (texture->objectPhong > 0.0) { // Phong Hilite
                 PhongSpecularShader::shade(texture, &lightSourceRay, eye->direction, surfaceNormal,
                     color, &lightColor, surfaceColor);
             }
 
-            if (texture->objectSpecular > 0.0) { /* Specular Hilite */
+            if (texture->objectSpecular > 0.0) { // Specular Hilite
                 BlinnPhongSpecularShader::shade(texture, &lightSourceRay, rEye, surfaceNormal,
                     color, &lightColor, surfaceColor);
             }
 
-            if (texture->objectDiffuse > 0.0) { /* Normal Diffuse Illum. */
+            if (texture->objectDiffuse > 0.0) { // Normal Diffuse Illum.
                 LambertShader::shade(texture, &lightSourceRay, surfaceNormal, color,
                     &lightColor, surfaceColor, attenuation);
             }

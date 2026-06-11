@@ -147,7 +147,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 texture->turbulence = PrimitiveParser::parseFloat(ctx);
                 break;
 
-            case Tokenizer::OCTAVES_TOKEN: /* dmf 02/05 for turb */
+            case Tokenizer::OCTAVES_TOKEN: // dmf 02/05 for turb
                 if (texture->constantFlag) {
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
@@ -156,7 +156,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 if (texture->octaves < 1) {
                     texture->octaves = 6;
                 }
-                if (texture->octaves > 10) { /* Avoid DOMAIN errors */
+                if (texture->octaves > 10) { // Avoid DOMAIN errors
                     texture->octaves = 10;
                 }
                 break;
@@ -373,11 +373,11 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 (texture->objectRoughness) = PrimitiveParser::parseFloat(ctx);
-                /* No training wheels */
-                /* if (texture -> objectRoughness > 1.0)
-                    texture -> objectRoughness = 1.0;
-                if (texture -> objectRoughness < 0.001)
-                    texture -> objectRoughness = 0.001; */
+                // No training wheels
+                // if (texture -> objectRoughness > 1.0)
+                //     texture -> objectRoughness = 1.0;
+                // if (texture -> objectRoughness < 0.001)
+                //     texture -> objectRoughness = 0.001;
                 break;
 
             case Tokenizer::PHONGSIZE_TOKEN:
@@ -386,11 +386,11 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture->constantFlag = false;
                 }
                 (texture->objectPhongSize) = PrimitiveParser::parseFloat(ctx);
-                /* No training wheels */
-                /*if (texture -> objectPhongSize < 1.0)
-                    texture -> objectPhongSize = 1.0;
-                if (texture -> objectPhongSize > 100)
-                    texture -> objectPhongSize = 100; */
+                // No training wheels
+                // if (texture -> objectPhongSize < 1.0)
+                //     texture -> objectPhongSize = 1.0;
+                // if (texture -> objectPhongSize > 100)
+                //     texture -> objectPhongSize = 100;
                 break;
 
             case Tokenizer::DIFFUSE_TOKEN:
@@ -1007,7 +1007,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     }
                 }
 
-                /* remember where the First_Texture is */
+                // Remember where the First_Texture is
                 firstTexture = texture;
 
                 {

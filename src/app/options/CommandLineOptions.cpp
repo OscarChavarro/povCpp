@@ -23,7 +23,7 @@ CommandLineOptions::reset()
     outFlag = false;
 }
 
-/* Print out usage error message */
+// Print out usage error message
 void
 CommandLineOptions::usage()
 {
@@ -33,7 +33,7 @@ CommandLineOptions::usage()
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n Options: ");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     dxy = display in format x, using palette option y");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     vx  = verbose in format x");
-    /*Logger::info("\n     @filename  = verbose to file name -- see docs");*/
+    // Logger::info("\n     @filename  = verbose to file name -- see docs");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     p  = pause before exit");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     x  = enable early exit by key hit");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     fx = write output file in format x");
@@ -54,20 +54,22 @@ CommandLineOptions::usage()
     Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "\n");
 }
 
-/* Read the default parameters from povray.def */
+// Read the default parameters from povray.def
 void
 CommandLineOptions::loadDefaults()
 {
     FILE *defaultsFile;
     char optionString[256];
     char *Option_String_Ptr;
-    /* READ_ENV_VAR_? should be defined in config.h */
-    /* Only one READ_ENV_VAR_? should ever be defined. */
-    /* This allows some machines to read environment variable before */
-    /* reading povray.def and others to do it after depending on the */
-    /* operating system. IBM-PC is before. Default is after if not */
-    /* defined in config.h. CDW 2/92 */
-    /* Set Diskwrite as default */
+    /**
+    READ_ENV_VAR_? should be defined in config.h
+    Only one READ_ENV_VAR_? should ever be defined.
+    This allows some machines to read environment variable before
+    reading povray.def and others to do it after depending on the
+    operating system. IBM-PC is before. Default is after if not
+    defined in config.h. CDW 2/92
+    */
+    // Set Diskwrite as default
     RenderingConfiguration::global().options |= RenderingConfiguration::DISKWRITE;
     RenderingConfiguration::global().outputFormat = RenderingConfiguration::DEFAULT_OUTPUT_FORMAT;
 
@@ -116,7 +118,7 @@ CommandLineOptions::readOptions(char *optionLine)
                 optionString[stringIndex++] = (char)c;
             }
 
-        } else /* Option_Started */
+        } else // Option_Started
             if ((c == (int)'-') || (c == (int)'+')) {
                 stringIndex = 0;
                 optionString[stringIndex++] = (char)c;
@@ -136,7 +138,7 @@ CommandLineOptions::readOptions(char *optionLine)
     }
 }
 
-/* parse the command line parameters */
+// Parse the command line parameters
 void
 CommandLineOptions::parseOption(char *optionString)
 {
@@ -144,8 +146,8 @@ CommandLineOptions::parseOption(char *optionString)
     unsigned int optionNumber = 0;
     double threshold;
 
-    inFlag = outFlag = false; /* if these flags aren't immediately used, reset
-                                 them on next -/+ option! */
+    inFlag = outFlag = false; // If these flags aren't immediately used, reset
+                               // them on next -/+ option!
     if (*(optionString++) == '-') {
         addOption = false;
     } else {
@@ -221,7 +223,7 @@ CommandLineOptions::parseOption(char *optionString)
             RenderingConfiguration::global().outputFormat = optionString[1];
         }
 
-        /* Default the output format to the default in the config file */
+        // Default the output format to the default in the config file
         if (RenderingConfiguration::global().outputFormat == '\0') {
             RenderingConfiguration::global().outputFormat = RenderingConfiguration::DEFAULT_OUTPUT_FORMAT;
         }
@@ -306,10 +308,10 @@ CommandLineOptions::parseOption(char *optionString)
         optionNumber = 0;
         break;
 
-    case 'M': /* Switch used so other max values can be inserted easily */
+    case 'M': // Switch used so other max values can be inserted easily
     case 'm':
         switch (optionString[1]) {
-        case 's': /* Max Symbols */
+        case 's': // Max Symbols
         case 'S': {
             int maxSymbols = Tokenizer::getMaxSymbols();
             sscanf(&optionString[2], "%d", &maxSymbols);
@@ -328,7 +330,7 @@ CommandLineOptions::parseOption(char *optionString)
         optionNumber = 0;
         break;
 
-        /* Turn on debugging print statements. */
+        // Turn on debugging print statements
     case 'Z':
     case 'z':
         optionNumber = RenderingConfiguration::DEBUGGING;
@@ -358,8 +360,7 @@ CommandLineOptions::parseFileName(char *fileName)
     FILE *defaultsFile;
     char optionString[256];
 
-    if (inFlag) /* file names may now be separated by spaces from cmdline option
-                 */
+    if (inFlag) // File names may now be separated by spaces from cmdline option
     {
         strncpy(RenderingConfiguration::global().inputFileName, fileName, RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
         RenderingConfiguration::global().inputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
@@ -367,8 +368,7 @@ CommandLineOptions::parseFileName(char *fileName)
         return;
     }
 
-    if (outFlag) /* file names may now be separated by spaces from cmdline
-                    option */
+    if (outFlag) // File names may now be separated by spaces from cmdline option
     {
         strncpy(RenderingConfiguration::global().outputFileName, fileName, RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
         RenderingConfiguration::global().outputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';

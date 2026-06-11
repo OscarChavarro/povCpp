@@ -57,7 +57,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                     }
                 }
                 ParametricBiCubicPatch::precomputePatchValues(
-                    localShape); /* interpolated mesh coords */
+                    localShape); // interpolated mesh coords
                 Exit_Flag = true;
                 break;
 

@@ -1,16 +1,16 @@
-/****************************************************************************
- *                         render.c
- *
- *  This module implements the main raytracing loop.
- *
- * 01/16/92 dfm     Added David Buck's bug fix to add a different offset
- *                      to x and y coordinates for each call to Rand3D() in the
- *                      subsampling routine.  Said to smooth the anti-aliasing.
- *                      Previously, each call returned the same random number,
- *                      hence, no true jittering.
- *                      I consider this an interim fix until we get a better
- *                      algorithm for anti-aliasing.
- *****************************************************************************/
+/**
+render.c
+
+This module implements the main raytracing loop.
+
+01/16/92 dfm     Added David Buck's bug fix to add a different offset
+                     to x and y coordinates for each call to Rand3D() in the
+                     subsampling routine.  Said to smooth the anti-aliasing.
+                     Previously, each call returned the same random number,
+                     hence, no true jittering.
+                     I consider this an interim fix until we get a better
+                     algorithm for anti-aliasing.
+*/
 
 #include <cstdio>
 #include "java/io/FileOutputStream.h"
@@ -115,10 +115,10 @@ RenderFrame::createRay(
     Vector3Dd tempVect1;
     Vector3Dd tempVect2;
 
-    /* Convert the X Coordinate to be a double from 0.0 to 1.0 */
+    // Convert the X Coordinate to be a double from 0.0 to 1.0
     xScalar = (x - (double)width / 2.0) / (double)width;
 
-    /* Convert the Y Coordinate to be a double from 0.0 to 1.0 */
+    // Convert the Y Coordinate to be a double from 0.0 to 1.0
     yScalar =
         (((double)(RenderEngine::renderFrame().screenHeight - 1) - y) - (double)height / 2.0) /
         (double)height;
@@ -356,7 +356,7 @@ RenderEngine::startTracing()
                 if (RenderingConfiguration::global().outputFileInputStream != nullptr) {
                     RenderingConfiguration::global().outputFileInputStream->close();
                 }
-                /* exit with error if image not completed/user abort*/
+                // Exit with error if image not completed/user abort
                 exit(2);
             }
 
@@ -393,7 +393,7 @@ RenderEngine::startTracing()
 void
 RenderFrame::checkStats(int y)
 {
-    /* New verbose options CdW */
+    // New verbose options CdW
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '0') {
         {
             char _logMsg[1024];
@@ -428,7 +428,7 @@ RenderFrame::checkStats(int y)
         statFile.close();
     }
 
-    /* Use -vO for Old style verbose */
+    // Use -vO for Old style verbose
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && (RenderingConfiguration::global().verboseFormat == 'O')) {
         {
             char _logMsg[1024];
@@ -595,7 +595,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         }
     }
 
-    /* What objects does this ray intersect? */
+    // What objects does this ray intersect?
     for (object = RenderEngine::renderFrame().Objects; object != nullptr;
         object = object->nextObject) {
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=

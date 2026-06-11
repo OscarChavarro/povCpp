@@ -1,10 +1,9 @@
-/****************************************************************************
- *  This module contains the code for the blob shape.
- *
- *  This file was written by Alexander Enzmann.  He wrote the code for
- *  blobs and generously provided us these enhancements.
- *
- *****************************************************************************/
+/**
+This module contains the code for the blob shape.
+
+This file was written by Alexander Enzmann.  He wrote the code for
+blobs and generously provided us these enhancements.
+*/
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -23,13 +22,15 @@ Methods Blob::methodTable = {Blob::allBlobIntersections,
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
 static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
-/* Starting with the density function: (1-r^2)^2, we have a field
-    that varies in strength from 1 at r = 0 to 0 at r = 1.  By
-    substituting r/rad for r, we can adjust the range of influence
-    of a particular component.  By multiplication by coeff, we can
-    adjust the amount of total contribution, giving the formula:
-        coeff * (1 - (r/rad)^2)^2
-    This varies in strength from coeff at r = 0, to 0 at r = rad. */
+/**
+Starting with the density function: (1-r^2)^2, we have a field
+that varies in strength from 1 at r = 0 to 0 at r = 1.  By
+substituting r/rad for r, we can adjust the range of influence
+of a particular component.  By multiplication by coeff, we can
+adjust the amount of total contribution, giving the formula:
+    coeff * (1 - (r/rad)^2)^2
+This varies in strength from coeff at r = 0, to 0 at r = rad.
+*/
 void
 Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
     int sflag)
@@ -51,14 +52,14 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     blob->count = npoints;
     blob->sturmFlag = sflag;
 
-    /* Initialize the blob data */
+    // Initialize the blob data
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
         if (java::Math::abs(temp->elem.coeffs[2]) < Config::INTERSECTION_EPSILON ||
             temp->elem.radius2 < Config::INTERSECTION_EPSILON) {
             perror("Degenerate blob element\n");
         }
-        /* Store blob specific information */
+        // Store blob specific information
         rad = temp->elem.radius2;
         rad *= rad;
         coeff = temp->elem.coeffs[2];
@@ -73,7 +74,7 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
         delete temp;
     }
 
-    /*  Allocate memory for intersection intervals */
+    // Allocate memory for intersection intervals
     npoints *= 2;
     blob->intervals = new BlobInterval[npoints];
     if (blob->intervals == nullptr) {
@@ -81,10 +82,12 @@ Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoint
     }
 }
 
-/* Make a sorted list of points along the ray that the various blob
-    components start and stop adding their influence.  It would take
-    a very complex blob (with many components along the current ray)
-    to warrant the overhead of using a faster sort technique. */
+/**
+Make a sorted list of points along the ray that the various blob
+components start and stop adding their influence.  It would take
+a very complex blob (with many components along the current ray)
+to warrant the overhead of using a faster sort technique.
+*/
 int
 Blob::determineInfluences(
     Vector3Dd *p, Vector3Dd *d, Blob *blob, double mindist)
@@ -103,9 +106,9 @@ Blob::determineInfluences(
 
     cnt = 0;
     for (i = 0; i < blob->count; i++) {
-        /* Use standard sphere intersection routine
-            to determine where the ray hits the volume
-            of influence of each component of the blob. */
+        // Use standard sphere intersection routine
+        // to determine where the ray hits the volume
+        // of influence of each component of the blob
         v = blob->list[i].pos.subtract(*p);
         b = v.dotProduct(*d);
         t = v.dotProduct(v);
@@ -131,19 +134,21 @@ Blob::determineInfluences(
             t1 = disc;
         }
 
-        /* Store the points of intersection of this
-            blob with the ray.  Keep track of: whether
-            this is the start or end point of the hit,
-            which component was pierced by the ray,
-            and the point along the ray that the
-            hit occured at. */
+        /**
+        Store the points of intersection of this
+        blob with the ray.  Keep track of: whether
+        this is the start or end point of the hit,
+        which component was pierced by the ray,
+        and the point along the ray that the
+        hit occured at.
+        */
         for (k = 0; k < cnt && t0 > intervals[k].bound; k++) {
             ;
         }
         if (k < cnt) {
-            /* This hit point is smaller than one that
-                already exists - bump the rest and insert
-                it here */
+            // This hit point is smaller than one that
+            // already exists - bump the rest and insert
+            // it here
             for (j = cnt; j > k; j--) {
                 memcpy(&intervals[j], &intervals[j - 1], sizeof(BlobInterval));
             }
@@ -169,8 +174,8 @@ Blob::determineInfluences(
             }
             cnt++;
         } else {
-            /* Just plop the start and end points at
-                the end of the list */
+            // Just plop the start and end points at
+            // the end of the list
             intervals[cnt].type = 0;
             intervals[cnt].index = i;
             intervals[cnt].bound = t0;
@@ -184,8 +189,10 @@ Blob::determineInfluences(
     return cnt;
 }
 
-/* Calculate the field value of a blob - the position vector
-    "Pos" must already have been transformed into blob space. */
+/**
+Calculate the field value of a blob - the position vector
+"Pos" must already have been transformed into blob space.
+*/
 double
 Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
 {
@@ -201,8 +208,8 @@ Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
         v = ptr->pos.subtract(*pos);
         len = v.dotProduct(v);
         if (len < ptr->radius2) {
-            /* Inside the radius of influence of this
-                component, add it's contribution */
+            // Inside the radius of influence of this
+            // component, add it's contribution
             density +=
                 len * (len * ptr->coeffs[0] + ptr->coeffs[1]) + ptr->coeffs[2];
         }
@@ -210,7 +217,7 @@ Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
     return density;
 }
 
-/* See if the hit in question really is a hit. */
+// See if the hit in question really is a hit
 int
 Blob::validateHit(Blob *blob, Vector3Dd *p)
 {
@@ -239,60 +246,61 @@ Blob::validateHit(Blob *blob, Vector3Dd *p)
     return 1;
 }
 
-/* Generate intervals of influence of each component.  After these
-    are made, determine their aggregate effect on the ray.  As the
-    individual intervals are checked, a quartic is generated
-    that represents the density at a particular point on the ray.
+/**
+Generate intervals of influence of each component.  After these
+are made, determine their aggregate effect on the ray.  As the
+individual intervals are checked, a quartic is generated
+that represents the density at a particular point on the ray.
 
-    After making the substitutions in MakeBlob, there is a formula
-    for each component that has the form:
+After making the substitutions in MakeBlob, there is a formula
+for each component that has the form:
 
-        c0 * r^4 + c1 * r^2 + c2.
+    c0 * r^4 + c1 * r^2 + c2.
 
-    In order to determine the influence on the ray of all of the
-    individual components, we start by determining the distance
-    from any point on the ray to the specified point.  This can
-    be found using the pythagorean theorem, using C as the center
-    of this component, P as the start of the ray, and D as the
-    direction of travel of the ray:
+In order to determine the influence on the ray of all of the
+individual components, we start by determining the distance
+from any point on the ray to the specified point.  This can
+be found using the pythagorean theorem, using C as the center
+of this component, P as the start of the ray, and D as the
+direction of travel of the ray:
 
-        r^2 = (t * D + P - C) . (t * D + P - C)
+    r^2 = (t * D + P - C) . (t * D + P - C)
 
-    we insert this equation for each appearance of r^2 in the
-    components' formula, giving:
+we insert this equation for each appearance of r^2 in the
+components' formula, giving:
 
-        r^2 = D.D t^2 + 2 t D . (P - C) + (P - C) . (P - C)
+    r^2 = D.D t^2 + 2 t D . (P - C) + (P - C) . (P - C)
 
-    Since the direction vector has been normalized, D.D = 1.
-    Using the substitutions:
+Since the direction vector has been normalized, D.D = 1.
+Using the substitutions:
 
-        t0 = (P - C) . (P - C),
-        t1 = D . (P - C)
+    t0 = (P - C) . (P - C),
+    t1 = D . (P - C)
 
-    We can write the formula as:
+We can write the formula as:
 
-        r^2 = t0 + 2 t t1 + t^2
+    r^2 = t0 + 2 t t1 + t^2
 
-    Taking r^2 and substituting into the formula for this component
-    of the blob we get the formula:
+Taking r^2 and substituting into the formula for this component
+of the blob we get the formula:
 
-        density = c0 * (r^2)^2 + c1 * r^2 + c2,
+    density = c0 * (r^2)^2 + c1 * r^2 + c2,
 
-    or:
+or:
 
-        density = c0 * (t0 + 2 t t1 + t^2)^2 +
-                     c1 * (t0 + 2 t t1 + t^2) +
-                     c2
+    density = c0 * (t0 + 2 t t1 + t^2)^2 +
+                 c1 * (t0 + 2 t t1 + t^2) +
+                 c2
 
-    Expanding terms and collecting with respect to "t" gives:
-        t^4 * c0 +
-        t^3 * 4 c0 t1 +
-        t^2 * (c1 + 2 * c0 t0 + 4 c0 t1^2)
-        t    * 2 (c1 t1 + 2 c0 t0 t1) +
-                c2 + c1*t0 + c0*t0^2
+Expanding terms and collecting with respect to "t" gives:
+    t^4 * c0 +
+    t^3 * 4 c0 t1 +
+    t^2 * (c1 + 2 * c0 t0 + 4 c0 t1^2)
+    t    * 2 (c1 t1 + 2 c0 t0 t1) +
+            c2 + c1*t0 + c0*t0^2
 
-    This formula can now be solved for "t" by any of the quartic
-    root solvers that are available.
+This formula can now be solved for "t" by any of the quartic
+root solvers that are available.
 */
 int
 Blob::allBlobIntersections(
@@ -326,7 +334,7 @@ Blob::allBlobIntersections(
 
     Statistics::global().rayBlobTests++;
 
-    /* Transform the ray into the blob space */
+    // Transform the ray into the blob space
     if (blob->transformation != nullptr) {
         p = blob->transformationInverse->transformPoint(ray->position);
         d = blob->transformationInverse->transformDirection(ray->direction);
@@ -341,27 +349,27 @@ Blob::allBlobIntersections(
     }
     d = Vector3Dd(d.x() / len, d.y() / len, d.z() / len);
 
-    /* Figure out the intervals along the ray where each
-    component of the blob has an effect. */
+    // Figure out the intervals along the ray where each
+    // component of the blob has an effect.
     if ((cnt = Blob::determineInfluences(&p, &d, blob, 0.01)) == 0) {
-        /* Ray doesn't hit the sphere of influence of any of
-        its component elements */
+        // Ray doesn't hit the sphere of influence of any of
+        // its component elements
         return 0;
     }
 
-    /* Clear out the coefficients */
+    // Clear out the coefficients
     for (i = 0; i < 4; i++) {
         coeffs[i] = 0.0;
     }
     coeffs[4] = -blob->threshold;
 
-    /* Step through the list of influence points, adding the
-        influence of each blob component as it appears */
+    // Step through the list of influence points, adding the
+    // influence of each blob component as it appears
     for (i = 0, inFlag = 0; i < cnt; i++) {
         if (intervals[i].type == 0) {
-            /* Something is just starting to influence the ray,
-                so calculate its coefficients and add them
-            into the pot. */
+            // Something is just starting to influence the ray,
+            // so calculate its coefficients and add them
+            // into the pot.
             inFlag++;
             element = blob->list + intervals[i].index;
 
@@ -383,26 +391,26 @@ Blob::allBlobIntersections(
                 coeffs[j] += tcoeffs[j];
             }
         } else {
-            /* We are losing the influence of a component, so
-                subtract off its coefficients */
+            // We are losing the influence of a component, so
+            // subtract off its coefficients
             tcoeffs = &(blob->list[intervals[i].index].tcoeffs[0]);
             for (j = 0; j < 5; j++) {
                 coeffs[j] -= tcoeffs[j];
             }
             if (--inFlag == 0) {
-                /* None of the components are currently affecting
-                    the ray - skip ahead. */
+                // None of the components are currently affecting
+                // the ray - skip ahead.
                 continue;
             }
         }
 
-        /* Figure out which root solver to use */
+        // Figure out which root solver to use
         if (blob->sturmFlag == 0) {
-            /* Use Ferrari's method */
+            // Use Ferrari's method
             rootCount = PolynomialSolver::solveQuartic(coeffs, &roots[0],
                 ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
         } else
-            /* Sturm sequences */
+            // Sturm sequences
             if (java::Math::abs(coeffs[0]) < COEFF_LIMIT) {
                 if (java::Math::abs(coeffs[1]) < COEFF_LIMIT) {
                     rootCount =
@@ -417,19 +425,19 @@ Blob::allBlobIntersections(
                     ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
             }
 
-        /* See if any of the roots are valid */
+        // See if any of the roots are valid
         for (j = 0; j < rootCount; j++) {
             dist = roots[j];
-            /* First see if the root is in the interval of influence of
-                the currently active components of the blob */
+            // First see if the root is in the interval of influence of
+            // the currently active components of the blob
             if ((dist >= intervals[i].bound) &&
                 (dist <= intervals[i + 1].bound)) {
                 intersectionPoint = d.multiply(dist);
                 intersectionPoint = intersectionPoint.add(p);
                 if (true || Blob::validateHit(blob, &intersectionPoint)) {
-                    /* Only add this hit if it really is near the surface, we
-                       can get fooled by numerical inaccuracies */
-                    /* Transform the point into world space */
+                    // Only add this hit if it really is near the surface, we
+                    // can get fooled by numerical inaccuracies
+                    // Transform the point into world space
                     if (blob->transformation != nullptr) {
                         intersectionPoint = blob->transformation->transformPoint(
                             intersectionPoint);
@@ -452,15 +460,17 @@ Blob::allBlobIntersections(
     return intersectionFound;
 }
 
-/* Calculate the density at this point, then compare to
-    the threshold to see if we are in or out of the blob */
+/**
+Calculate the density at this point, then compare to
+the threshold to see if we are in or out of the blob
+*/
 int
 Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
 {
     Vector3Dd newPoint;
     Blob *blob = (Blob *)object;
 
-    /* Transform the point into blob space */
+    // Transform the point into blob space
     if (blob->transformation != nullptr) {
         newPoint = blob->transformationInverse->transformPoint(*testPoint);
     } else {
@@ -486,7 +496,7 @@ Blob::blobNormal(
     Blob *blob = (Blob *)object;
     BlobElement *temp;
 
-    /* Transform the point into the blobs space */
+    // Transform the point into the blobs space
     if (blob->transformation != nullptr) {
         newPoint = blob->transformationInverse->transformPoint(*intersectionPoint);
     } else {
@@ -496,8 +506,8 @@ Blob::blobNormal(
 
     *result = Vector3Dd(0.0, 0.0, 0.0);
 
-    /* For each component that contributes to this point, add
-        its bit to the normal */
+    // For each component that contributes to this point, add
+    // its bit to the normal
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
         v = Vector3Dd(newPoint.x() - temp->pos.x(),
@@ -519,7 +529,7 @@ Blob::blobNormal(
         *result = (*result).multiply(val);
     }
 
-    /* Transform back to world space */
+    // Transform back to world space
     if (blob->transformation != nullptr) {
         *result = blob->transformationInverse->withoutTranslation().multiply(*result);
     }
@@ -536,7 +546,7 @@ Blob::copyBlob(SimpleBody *object)
     memcpy(blob, oldShape, sizeof(Blob));
     blob->nextObject = nullptr;
 
-    /* Allocate space and copy the blob specific data */
+    // Allocate space and copy the blob specific data
     blob->list = new BlobElement[oldShape->count];
     if (blob->list == nullptr) {
         Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
@@ -549,13 +559,13 @@ Blob::copyBlob(SimpleBody *object)
         Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
     }
 
-    /* Copy any associated transformation */
+    // Copy any associated transformation
     if (blob->transformation != nullptr) {
         blob->transformation = new Matrix4x4d(*(blob->transformation));
         blob->transformationInverse = new Matrix4x4d(*(blob->transformationInverse));
     }
 
-    /* Copy any associated texture */
+    // Copy any associated texture
     if (blob->material != nullptr) {
         blob->material = MaterialUtils::instance().copyTexture(blob->material);
     }

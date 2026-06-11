@@ -96,7 +96,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                     (SimpleBody *)localShape, &localVector);
                 break;
 
-            /* Point that the spot is pointed at */
+            // Point that the spot is pointed at
             case Tokenizer::POINT_AT_TOKEN:
                 PrimitiveParser::parseVector(&(localShape->pointsAt), ctx);
                 break;
