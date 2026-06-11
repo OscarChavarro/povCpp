@@ -207,8 +207,6 @@ PovrayApplication::parseSceneDescription()
 {
     FILE *statFile;
 
-    CommandLineOptions::printOptions();
-
     Tokenizer::initializeTokenizer(RenderingConfiguration::global().inputFileName);
     fprintf(stderr, "Parsing...");
     if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {

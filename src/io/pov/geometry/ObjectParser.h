@@ -1,7 +1,7 @@
 #ifndef __OBJECT_PARSER_H__
 #define __OBJECT_PARSER_H__
 
-#include "environment/geometry/GeometryTypes.h"
+#include "environment/geometry/elements/GeometryTypes.h"
 
 class Geometry;
 class SimpleBody;

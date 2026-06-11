@@ -6,8 +6,8 @@ Material utilities: global default texture management.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
-#include "solidTexture/procedural/SolidTextureBumpyTextures.h"
-#include "solidTexture/procedural/SolidTextureColorTextures.h"
+#include "environment/material/SolidTextureBumpyNames.h"
+#include "environment/material/SolidTextureColorNames.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/material/Material.h"
 
@@ -47,9 +47,9 @@ MaterialUtils::setDefaultTexture(Material *texture)
 bool
 MaterialUtils::needsTransform(const Material *texture)
 {
-    return ((texture->textureNumber != SolidTextureColorTextures::NO_TEXTURE) &&
-               (texture->textureNumber != SolidTextureColorTextures::COLOUR_TEXTURE)) ||
-           (texture->bumpNumber != SolidTextureBumpyTextures::NO_BUMPS);
+    return ((texture->textureNumber != SolidTextureColorNames::NO_TEXTURE) &&
+               (texture->textureNumber != SolidTextureColorNames::COLOUR_TEXTURE)) ||
+           (texture->bumpNumber != SolidTextureBumpyNames::NO_BUMPS);
 }
 void
 MaterialUtils::applyTranslationTransform(Material *texture, Vector3Dd *vector)
@@ -172,10 +172,10 @@ MaterialUtils::getTexture()
     newTexture->bumpAmount = 0.0;
     newTexture->phase = 0.0;
     newTexture->frequency = 1.0;
-    newTexture->textureNumber = SolidTextureColorTextures::NO_TEXTURE;
+    newTexture->textureNumber = SolidTextureColorNames::NO_TEXTURE;
     newTexture->textureTransformation = nullptr;
     newTexture->textureTransformationInverse = nullptr;
-    newTexture->bumpNumber = SolidTextureBumpyTextures::NO_BUMPS;
+    newTexture->bumpNumber = SolidTextureBumpyNames::NO_BUMPS;
     newTexture->turbulence = 0.0;
     newTexture->colorMap = nullptr;
     newTexture->onceFlag = false;

@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/SolidTextureStatistics.h"
+#include "numericalAnalysis/lookUpTables/LookUpTableSine.h"
 
 /**
 [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85.
@@ -15,7 +16,7 @@ class ProceduralNoise {
   private:
     short *permutationTable;
     double *rTable;
-    double *sinTable;
+    LookUpTableSine sineLookUpTable;
     SolidTextureStatistics *solidTextureStatistics;
 
     static double fabsInline(double x);
@@ -36,7 +37,6 @@ class ProceduralNoise {
     static constexpr int MAXSIZE = 267;
     static constexpr long RANDOM_MASK = 0x7FFF;
     static constexpr float RND_DIVISOR = static_cast<float>(RANDOM_MASK);
-    static constexpr int SIN_TABLE_SIZE = 1000;
     static constexpr double REAL_SCALE = (2.0 / 65535.0);
 
     ProceduralNoise(SolidTextureStatistics *solidTextureStatistics = nullptr);

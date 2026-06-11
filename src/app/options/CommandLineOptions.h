@@ -16,7 +16,6 @@ class CommandLineOptions {
     static void usage();
     static void loadDefaults();
     static void parseArguments(int argc, char *argv[]);
-    static void printOptions();
 };
 
 #endif

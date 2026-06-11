@@ -11,6 +11,7 @@ add_subdirectory(base)
 add_executable(povray
     src/common/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
+    src/numericalAnalysis/lookUpTables/LookUpTableSine.cpp
     src/solidTexture/procedural/ProceduralNoise.cpp
     src/solidTexture/procedural/BumpTextureFixture.cpp
     src/solidTexture/procedural/ColorTextureFixture.cpp

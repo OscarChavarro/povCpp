@@ -6,8 +6,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-#include "solidTexture/procedural/SolidTextureBumpyTextures.h"
-#include "solidTexture/procedural/SolidTextureColorTextures.h"
+#include "environment/material/SolidTextureBumpyNames.h"
+#include "environment/material/SolidTextureColorNames.h"
 #include "solidTexture/TextureUtils.h"
 
 class Material {
@@ -31,8 +31,8 @@ class Material {
     double textureRandomness;
     double frequency;
     double phase;
-    SolidTextureColorTextures textureNumber;
-    SolidTextureBumpyTextures bumpNumber;
+    SolidTextureColorNames textureNumber;
+    SolidTextureBumpyNames bumpNumber;
     Matrix4x4d *textureTransformation;
     Matrix4x4d *textureTransformationInverse;
     ColorRgba *color1;

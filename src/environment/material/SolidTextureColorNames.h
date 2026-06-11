@@ -1,7 +1,7 @@
-#ifndef __SOLID_TEXTURE_COLOR_TEXTURES_H__
-#define __SOLID_TEXTURE_COLOR_TEXTURES_H__
+#ifndef __SOLID_TEXTURE_COLOR_NAMES_H__
+#define __SOLID_TEXTURE_COLOR_NAMES_H__
 
-enum SolidTextureColorTextures {
+enum SolidTextureColorNames {
     NO_TEXTURE = 0,
     COLOUR_TEXTURE = 1,
     BOZO_TEXTURE = 2,

@@ -1,7 +1,7 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "solidTexture/from2d/ImageTexture.h"
-#include "solidTexture/procedural/SolidTextureColorTextures.h"
+#include "environment/material/SolidTextureColorNames.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
@@ -62,7 +62,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     /* Check to see if this object/shape has a material_map texture, if so */
     /* then change the texture pointer to point to the mapped texture - CdW 7/91
      */
-    if (texture->textureNumber == (int)SolidTextureColorTextures::MATERIAL_MAP_TEXTURE) {
+    if (texture->textureNumber == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
         int index = mapFixture.materialMap(
             &rayIntersection->Point, texture->textureTransformationInverse,
             texture->materialImage, texture->materials.size(),
@@ -97,7 +97,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
-        } else if (tempTexture->textureNumber == (int)SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE) {
+        } else if (tempTexture->textureNumber == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
             Material *texture1 = (Material *)tempTexture->color1;
             Material *texture2 = (Material *)tempTexture->color2;
             fixturesFacade.colorAt(

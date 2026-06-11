@@ -1,7 +1,7 @@
 #ifndef __TEXTURE_IMAGE_H__
 #define __TEXTURE_IMAGE_H__
 
-#include "ImageToSolidTextureProjectionMethods.h"
+#include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
