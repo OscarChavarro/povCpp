@@ -11,7 +11,7 @@
 #include "environment/geometry/Methods.h"
 #include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/geometry/GeometryTypes.h"
+#include "environment/geometry/elements/GeometryTypes.h"
 
 class Intersection;
 class Methods;

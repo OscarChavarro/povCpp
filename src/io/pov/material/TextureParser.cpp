@@ -2,8 +2,8 @@
 #include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
-#include "solidTexture/procedural/SolidTextureBumpyTextures.h"
-#include "solidTexture/procedural/SolidTextureColorTextures.h"
+#include "environment/material/SolidTextureBumpyNames.h"
+#include "environment/material/SolidTextureColorNames.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
@@ -166,7 +166,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::BOZO_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::BOZO_TEXTURE;
                 break;
 
             case Tokenizer::MORTAR_TOKEN:
@@ -185,7 +185,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::BRICK_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::BRICK_TEXTURE;
                 {
                     bool Exit_Flag;
                     Exit_Flag = false;
@@ -214,7 +214,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::CHECKER_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::CHECKER_TEXTURE;
                 {
                     bool Exit_Flag;
                     Exit_Flag = false;
@@ -243,7 +243,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE;
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -307,7 +307,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::MARBLE_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::MARBLE_TEXTURE;
                 break;
 
             case Tokenizer::WOOD_TOKEN:
@@ -315,7 +315,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::WOOD_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::WOOD_TEXTURE;
                 break;
 
             case Tokenizer::SPOTTED_TOKEN:
@@ -323,7 +323,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::SPOTTED_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::SPOTTED_TEXTURE;
                 break;
 
             case Tokenizer::AGATE_TOKEN:
@@ -331,7 +331,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::AGATE_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::AGATE_TEXTURE;
                 break;
 
             case Tokenizer::GRANITE_TOKEN:
@@ -339,7 +339,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::GRANITE_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::GRANITE_TEXTURE;
                 break;
 
             case Tokenizer::GRADIENT_TOKEN:
@@ -347,7 +347,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::GRADIENT_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::GRADIENT_TEXTURE;
                 PrimitiveParser::parseVector(&(texture->textureGradient), ctx);
                 break;
 
@@ -463,7 +463,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::IMAGE_MAP_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::IMAGE_MAP_TEXTURE;
                 texture->image = new ControlledRGBAImageHDRUncompressed;
                 if (texture->image == nullptr) {
                     ParseErrorReporter::reportError(
@@ -632,7 +632,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::WAVES;
+                texture->bumpNumber = SolidTextureBumpyNames::WAVES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 {
                     bool exitFlag = false;
@@ -674,7 +674,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::RIPPLES;
+                texture->bumpNumber = SolidTextureBumpyNames::RIPPLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -683,7 +683,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::WRINKLES;
+                texture->bumpNumber = SolidTextureBumpyNames::WRINKLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -692,7 +692,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::BUMPS;
+                texture->bumpNumber = SolidTextureBumpyNames::BUMPS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -701,7 +701,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::DENTS;
+                texture->bumpNumber = SolidTextureBumpyNames::DENTS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -739,7 +739,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 }
                 texture->color1 = ModelBuilder::getColor();
                 PrimitiveParser::parseColor(texture->color1, ctx);
-                texture->textureNumber = SolidTextureColorTextures::COLOUR_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::COLOUR_TEXTURE;
                 break;
 
             case Tokenizer::COLOUR_MAP_TOKEN:
@@ -755,7 +755,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::ONION_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::ONION_TEXTURE;
                 break;
 
             case Tokenizer::LEOPARD_TOKEN:
@@ -763,7 +763,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::LEOPARD_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::LEOPARD_TEXTURE;
                 break;
 
             case Tokenizer::BUMPY1_TOKEN:
@@ -771,7 +771,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::BUMPY1;
+                texture->bumpNumber = SolidTextureBumpyNames::BUMPY1;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -780,7 +780,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::BUMPY2;
+                texture->bumpNumber = SolidTextureBumpyNames::BUMPY2;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -789,7 +789,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::BUMPY3;
+                texture->bumpNumber = SolidTextureBumpyNames::BUMPY3;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
@@ -798,7 +798,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->bumpNumber = SolidTextureBumpyTextures::BUMP_MAP;
+                texture->bumpNumber = SolidTextureBumpyNames::BUMP_MAP;
                 texture->bumpImage = new ControlledRGBAImageHDRUncompressed;
                 if (texture->bumpImage == nullptr) {
                     ParseErrorReporter::reportError(
@@ -927,7 +927,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                     texture = TextureParser::copyTexture(texture);
                     texture->constantFlag = false;
                 }
-                texture->textureNumber = SolidTextureColorTextures::MATERIAL_MAP_TEXTURE;
+                texture->textureNumber = SolidTextureColorNames::MATERIAL_MAP_TEXTURE;
                 texture->materialImage = new ControlledRGBAImageHDRUncompressed;
                 if (texture->materialImage == nullptr) {
                     ParseErrorReporter::reportError(

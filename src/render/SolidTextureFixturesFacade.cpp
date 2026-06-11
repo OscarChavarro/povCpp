@@ -1,7 +1,7 @@
 #include "render/SolidTextureFixturesFacade.h"
 #include "solidTexture/from2d/ImageTexture.h"
 #include "solidTexture/procedural/ColorTextureFixture.h"
-#include "solidTexture/procedural/SolidTextureColorTextures.h"
+#include "environment/material/SolidTextureColorNames.h"
 #include "solidTexture/procedural/ProceduralNoise.h"
 #include "solidTexture/TextureUtils.h"
 
@@ -119,38 +119,38 @@ SolidTextureFixturesFacade::colorAt(
     z = transformedPoint.z();
 
     switch (textureNumber) {
-    case SolidTextureColorTextures::NO_TEXTURE:
+    case SolidTextureColorNames::NO_TEXTURE:
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0.0);
         break;
 
-    case SolidTextureColorTextures::COLOUR_TEXTURE:
+    case SolidTextureColorNames::COLOUR_TEXTURE:
         color->setR(color->getR() + color1->getR());
         color->setG(color->getG() + color1->getG());
         color->setB(color->getB() + color1->getB());
         color->setA(color->getA() + color1->getA());
         break;
 
-    case SolidTextureColorTextures::BOZO_TEXTURE:
+    case SolidTextureColorNames::BOZO_TEXTURE:
         colorFixture.bozo(x, y, z, turbulence, octaves, colorMap, color);
         break;
 
-    case SolidTextureColorTextures::MARBLE_TEXTURE:
+    case SolidTextureColorNames::MARBLE_TEXTURE:
         colorFixture.marble(x, y, z, turbulence, octaves, colorMap, color);
         break;
 
-    case SolidTextureColorTextures::WOOD_TEXTURE:
+    case SolidTextureColorNames::WOOD_TEXTURE:
         colorFixture.wood(x, y, z, turbulence, octaves, colorMap, color);
         break;
 
-    case SolidTextureColorTextures::BRICK_TEXTURE:
+    case SolidTextureColorNames::BRICK_TEXTURE:
         colorFixture.brick(x, y, z, color, color1, color2, mortar);
         break;
 
-    case SolidTextureColorTextures::CHECKER_TEXTURE:
+    case SolidTextureColorNames::CHECKER_TEXTURE:
         colorFixture.checker(x, y, z, color, color1, color2, smallTolerance);
         break;
 
-    case SolidTextureColorTextures::CHECKER_TEXTURE_TEXTURE:
+    case SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE:
         checkerTexture(
             x, y, z, color,
             textureNumber1, textureTransformationInverse1,
@@ -164,32 +164,32 @@ SolidTextureFixturesFacade::colorAt(
             smallTolerance);
         break;
 
-    case SolidTextureColorTextures::SPOTTED_TEXTURE:
+    case SolidTextureColorNames::SPOTTED_TEXTURE:
         colorFixture.spotted(x, y, z, colorMap, color);
         break;
 
-    case SolidTextureColorTextures::AGATE_TEXTURE:
+    case SolidTextureColorNames::AGATE_TEXTURE:
         colorFixture.agate(x, y, z, octaves, colorMap, color);
         break;
 
-    case SolidTextureColorTextures::GRANITE_TEXTURE:
+    case SolidTextureColorNames::GRANITE_TEXTURE:
         colorFixture.granite(x, y, z, colorMap, color);
         break;
 
-    case SolidTextureColorTextures::GRADIENT_TEXTURE:
+    case SolidTextureColorNames::GRADIENT_TEXTURE:
         colorFixture.gradient(
             x, y, z, turbulence, colorMap, textureGradient, octaves, color);
         break;
 
-    case SolidTextureColorTextures::IMAGE_MAP_TEXTURE:
+    case SolidTextureColorNames::IMAGE_MAP_TEXTURE:
         mapFixture.imageMap(x, y, z, image, color, smallTolerance);
         break;
 
-    case SolidTextureColorTextures::ONION_TEXTURE:
+    case SolidTextureColorNames::ONION_TEXTURE:
         colorFixture.onion(x, y, z, turbulence, octaves, colorMap, color);
         break;
 
-    case SolidTextureColorTextures::LEOPARD_TEXTURE:
+    case SolidTextureColorNames::LEOPARD_TEXTURE:
         colorFixture.leopard(x, y, z, turbulence, octaves, colorMap, color);
         break;
     }

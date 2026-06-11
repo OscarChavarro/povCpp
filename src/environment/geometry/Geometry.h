@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/GeometryTypes.h"
+#include "environment/geometry/elements/GeometryTypes.h"
 
 class Methods;
 class Material;

@@ -1,7 +1,7 @@
-#ifndef __SOLID_TEXTURE_BUMPY_TEXTURES_H__
-#define __SOLID_TEXTURE_BUMPY_TEXTURES_H__
+#ifndef __SOLID_TEXTURE_BUMPY_NAMES_H__
+#define __SOLID_TEXTURE_BUMPY_NAMES_H__
 
-enum SolidTextureBumpyTextures {
+enum SolidTextureBumpyNames {
     NO_BUMPS = 0,
     WAVES = 1,
     RIPPLES = 2,

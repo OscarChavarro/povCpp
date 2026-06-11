@@ -2,7 +2,7 @@
 #define __SIMPLE_BODY_H__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/GeometryTypes.h"
+#include "environment/geometry/elements/GeometryTypes.h"
 
 class Methods;
 class Geometry;

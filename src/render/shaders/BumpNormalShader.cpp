@@ -1,7 +1,7 @@
 #include "render/shaders/BumpNormalShader.h"
 #include "solidTexture/from2d/ImageTexture.h"
 #include "solidTexture/procedural/BumpTextureFixture.h"
-#include "solidTexture/procedural/SolidTextureBumpyTextures.h"
+#include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/geometry/GeometryConstants.h"
 
 void
@@ -13,7 +13,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Material *texture,
     double y;
     double z;
 
-    if (texture->bumpNumber == SolidTextureBumpyTextures::NO_BUMPS) {
+    if (texture->bumpNumber == SolidTextureBumpyNames::NO_BUMPS) {
         *newNormal = *surfaceNormal;
         return;
     }
@@ -34,31 +34,31 @@ BumpNormalShader::shade(Vector3Dd *newNormal, Material *texture,
 
     switch (texture->bumpNumber) {
 
-    case SolidTextureBumpyTextures::WAVES:
+    case SolidTextureBumpyNames::WAVES:
         bumpFixture.waves(
             x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
             TextureUtils::NUMBER_OF_WAVES, newNormal);
         break;
 
-    case SolidTextureBumpyTextures::RIPPLES:
+    case SolidTextureBumpyNames::RIPPLES:
         bumpFixture.ripples(
             x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
             TextureUtils::NUMBER_OF_WAVES, newNormal);
         break;
 
-    case SolidTextureBumpyTextures::WRINKLES:
+    case SolidTextureBumpyNames::WRINKLES:
         bumpFixture.wrinkles(x, y, z, texture->bumpAmount, newNormal);
         break;
 
-    case SolidTextureBumpyTextures::BUMPS:
+    case SolidTextureBumpyNames::BUMPS:
         bumpFixture.bumps(x, y, z, texture->bumpAmount, newNormal);
         break;
 
-    case SolidTextureBumpyTextures::DENTS:
+    case SolidTextureBumpyNames::DENTS:
         bumpFixture.dents(x, y, z, texture->bumpAmount, newNormal);
         break;
 
-    case SolidTextureBumpyTextures::BUMP_MAP:
+    case SolidTextureBumpyNames::BUMP_MAP:
         mapFixture.bumpMap(
             x, y, z, texture->bumpImage, texture->bumpAmount, newNormal,
             GeometryConstants::Small_Tolerance);

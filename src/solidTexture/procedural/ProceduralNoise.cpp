@@ -49,7 +49,8 @@ static const unsigned short crcTableData[256] = {0x0000, 0xc0c1, 0xc181, 0x0140,
     0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040};
 
 ProceduralNoise::ProceduralNoise(SolidTextureStatistics *solidTextureStatistics)
-    : permutationTable(nullptr), rTable(nullptr), sinTable(nullptr),
+    : permutationTable(nullptr), rTable(nullptr),
+      sineLookUpTable(11),
       solidTextureStatistics(solidTextureStatistics)
 {
 }
@@ -58,7 +59,6 @@ ProceduralNoise::~ProceduralNoise()
 {
     delete[] permutationTable;
     delete[] rTable;
-    delete[] sinTable;
 }
 
 /**
@@ -173,21 +173,13 @@ ProceduralNoise::initRTable()
 }
 
 /**
-Builds the permutation, gradient, and sine tables used by the functions below.
+Builds the permutation and gradient tables used by the functions below.
+The sine table is built independently by sineLookUpTable's constructor.
 */
 void
 ProceduralNoise::initialize()
 {
     initRTable();
-
-    sinTable = new double[SIN_TABLE_SIZE];
-    if (sinTable == nullptr) {
-        Logger::reportMessage("ProceduralNoise", Logger::FATAL_ERROR, "", "Cannot allocate memory for sine table\n");
-    }
-
-    for (int i = 0; i < SIN_TABLE_SIZE; i++) {
-        sinTable[i] = sin(i / (double)SIN_TABLE_SIZE * (3.14159265359 * 2.0));
-    }
 }
 
 /**
@@ -434,15 +426,11 @@ Periodic wave function used to turn noise/turbulence values into band patterns.
 double
 ProceduralNoise::cycloidal(double value) const
 {
-    int index;
-
     if (value >= 0.0) {
-        index = (int)((value - floor(value)) * SIN_TABLE_SIZE);
-        return (sinTable[index]);
+        return sineLookUpTable.eval(value - floor(value));
     }
 
-    index = (int)((0.0 - (value + floor(0.0 - value))) * SIN_TABLE_SIZE);
-    return (0.0 - sinTable[index]);
+    return (0.0 - sineLookUpTable.eval(0.0 - (value + floor(0.0 - value))));
 }
 
 /**
