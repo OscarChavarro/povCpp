@@ -25,6 +25,7 @@ ModelBuilder::getCompositeObject()
     }
 
     newComposite->simpleBodies = nullptr;
+    newComposite->type = GeometryTypes::COMPOSITE_TYPE;
     newComposite->nextObject = nullptr;
     newComposite->boundingShapes = nullptr;
     newComposite->clippingShapes = nullptr;
