@@ -17,6 +17,7 @@ add_executable(povray
     src/solidTexture/procedural/BumpTextureFixture.cpp
     src/solidTexture/procedural/ColorTextureFixture.cpp
     src/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.cpp
+    src/solidTexture/from2d/SolidTextureCoordinateMapper.cpp
     src/solidTexture/from2d/ImageTexture.cpp
     src/solidTexture/TextureUtils.cpp
     src/numericalAnalysis/polynomial/PolynomialSolver.cpp
