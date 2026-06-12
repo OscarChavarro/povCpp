@@ -1,5 +1,5 @@
-#ifndef __TXTCOLOR_H__
-#define __TXTCOLOR_H__
+#ifndef __COLOR_TEXTURE_FIXTURE_H__
+#define __COLOR_TEXTURE_FIXTURE_H__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

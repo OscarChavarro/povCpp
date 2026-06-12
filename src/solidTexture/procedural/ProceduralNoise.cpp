@@ -5,7 +5,7 @@ periodic shaping functions (cycloidal, triangleWave) used by wood/marble/agate p
 
 References:
 [PERL1985] "An Image Synthesizer" (SIGGRAPH '85, Vol. 19 No. 3, pp. 287-296).
-[PERL1989] "Hypertexture" (SIGGRAPH '89, p. 253).
+[PERL1989] "Hyper-texture" (SIGGRAPH '89, p. 253).
 "The RenderMan Companion" (Addison Wesley).
 */
 

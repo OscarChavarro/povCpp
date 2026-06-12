@@ -8,13 +8,19 @@
 
 /**
 [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85.
-Noise field for solid texturing: lattice-based pseudorandom doise()
+Noise field for solid texturing: lattice-based pseudorandom noise()
 and differentialNoise() primitives, their fractal turbulence()/differentialTurbulence()
 compositions, and the periodic shaping functions (cycloidal, triangleWave) used to
 build patterns such as wood, marble, and agate on top of them.
 */
 class ProceduralNoise {
   private:
+    static constexpr int MIN_X = -10000; // Ridiculously large scaling offset to ensure positive lattice coords
+    static constexpr int MIN_Y = MIN_X;
+    static constexpr int MIN_Z = MIN_X;
+    static constexpr int MAXSIZE = 267;
+    static constexpr double REAL_SCALE = (2.0 / 65535.0);
+
     short *permutationTable;
     double *rTable;
     LookUpTableSine sineLookUpTable;
@@ -32,14 +38,6 @@ class ProceduralNoise {
         double *tx, double *ty, double *tz) const;
 
   public:
-    static constexpr int MIN_X = -10000; // Ridiculously large scaling offset to ensure positive lattice coords
-    static constexpr int MIN_Y = MIN_X;
-    static constexpr int MIN_Z = MIN_X;
-    static constexpr int MAXSIZE = 267;
-    static constexpr long RANDOM_MASK = 0x7FFF;
-    static constexpr float RND_DIVISOR = static_cast<float>(RANDOM_MASK);
-    static constexpr double REAL_SCALE = (2.0 / 65535.0);
-
     ProceduralNoise(SolidTextureStatistics *solidTextureStatistics = nullptr);
     ~ProceduralNoise();
 

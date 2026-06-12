@@ -14,6 +14,11 @@ MapTextureFixture.cpp respectively.
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "solidTexture/TextureUtils.h"
 
+namespace {
+constexpr long kWaveRandomMask = 0x7FFF;
+constexpr float kWaveRandomDivisor = static_cast<float>(kWaveRandomMask);
+}
+
 static double frequencyInstance[TextureUtils::NUMBER_OF_WAVES];
 static Vector3Dd waveSourcesInstance[TextureUtils::NUMBER_OF_WAVES];
 
@@ -86,6 +91,6 @@ TextureUtils::initializeNoise()
     for (int i = 0; i < TextureUtils::NUMBER_OF_WAVES; i++) {
         proceduralNoise.differentialNoise(&point, (double)i, 0.0, 0.0);
         waveSources()[i] = point.normalizedFast();
-        waveFrequency()[i] = (rand() & ProceduralNoise::RANDOM_MASK) / ProceduralNoise::RND_DIVISOR + 0.01;
+        waveFrequency()[i] = (rand() & kWaveRandomMask) / kWaveRandomDivisor + 0.01;
     }
 }
