@@ -21,7 +21,7 @@
 #include "io/pov/scene/SceneParser.h"
 #include "render/RenderEngine.h"
 #include "render/RenderOutput.h"
-#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "app/ImageOutputAdapter.h"

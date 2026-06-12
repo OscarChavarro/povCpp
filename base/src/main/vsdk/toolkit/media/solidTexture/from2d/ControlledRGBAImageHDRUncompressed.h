@@ -4,8 +4,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
-#include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 
 class ControlledRGBAImageHDRUncompressed : public RGBAImageHDRUncompressed {
   private:

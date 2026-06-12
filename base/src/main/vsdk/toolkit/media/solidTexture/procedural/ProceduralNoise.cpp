@@ -11,7 +11,7 @@ References:
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/procedural/ProceduralNoise.h"
+#include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
 
 double
 ProceduralNoise::fabsInline(double x)
