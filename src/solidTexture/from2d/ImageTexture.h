@@ -8,14 +8,6 @@
 
 class ImageTexture {
   private:
-    bool cylindricalImageMap(
-        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const;
-    bool torusImageMap(
-        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const;
-    bool sphericalImageMap(
-        double x, double y, double z, const RGBAImageHDRUncompressed *image, double *u, double *v) const;
-    bool planarImageMap(
-        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const;
     void noInterpolation(const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate,
         ColorRgba *color, int *index) const;
     double biLinear(const double *corners, double x, double y) const;
@@ -27,9 +19,6 @@ class ImageTexture {
     double pythagoreanSq(double a, double b) const;
 
   public:
-    bool map(
-        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *xCoordinate,
-        double *yCoordinate, double smallTolerance) const;
     void imageMap(
         double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, ColorRgba *color,
         double smallTolerance) const;

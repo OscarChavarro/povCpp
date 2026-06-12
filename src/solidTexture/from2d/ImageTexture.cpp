@@ -3,17 +3,14 @@ Implements mapped textures: image map, bump map, and material map.
 Supports planar, spherical, cylindrical, and torus UV projections.
 */
 
-#include <cmath>
-
-#include "java/lang/Math.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "solidTexture/from2d/ImageTexture.h"
 #include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
-#include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "solidTexture/from2d/SolidTextureCoordinateMapper.h"
+#include "java/lang/Math.h"
 
 static constexpr int MAX_PTS = 4;
 
@@ -28,11 +25,12 @@ ImageTexture::imageMap(
     double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, ColorRgba *color,
     double smallTolerance) const
 {
+    SolidTextureCoordinateMapper coordinateMapper;
     double xCoordinate = 0.0;
     double yCoordinate = 0.0;
     int regNumber;
 
-    if (map(x, y, z, image, &xCoordinate, &yCoordinate, smallTolerance)) {
+    if (coordinateMapper.map(x, y, z, image, &xCoordinate, &yCoordinate, smallTolerance)) {
         color->setR(1.0); color->setG(1.0); color->setB(1.0); color->setA(1.0);
         return;
     }
@@ -51,6 +49,7 @@ ImageTexture::materialMap(
     int numberOfMaterials,
     double smallTolerance) const
 {
+    SolidTextureCoordinateMapper coordinateMapper;
     Vector3Dd transformedPoint;
     double x;
     double y;
@@ -75,7 +74,7 @@ ImageTexture::materialMap(
     // Now we have transformed x, y, z: use image mapping to determine texture index
     int materialNumber;
 
-    if (map(x, y, z, materialImage, &xCoordinate, &yCoordinate, smallTolerance)) {
+    if (coordinateMapper.map(x, y, z, materialImage, &xCoordinate, &yCoordinate, smallTolerance)) {
         materialNumber = 0;
     } else {
         imageColorAt(materialImage, xCoordinate, yCoordinate, &color, &regNumber);
@@ -101,6 +100,7 @@ ImageTexture::bumpMap(
     double x, double y, double z, const ControlledRGBAImageHDRUncompressed *bumpImage, double bumpAmount,
     Vector3Dd *normal, double smallTolerance) const
 {
+    SolidTextureCoordinateMapper coordinateMapper;
     double xCoordinate = 0.0;
     double yCoordinate = 0.0;
     int index;
@@ -125,7 +125,7 @@ ImageTexture::bumpMap(
     // going to have to change this
     // need to know if bump point is off of image for all 3 points
 
-    if (map(x, y, z, bumpImage, &xCoordinate, &yCoordinate, smallTolerance)) {
+    if (coordinateMapper.map(x, y, z, bumpImage, &xCoordinate, &yCoordinate, smallTolerance)) {
         color.setR(1.0); color.setG(1.0); color.setB(1.0); color.setA(1.0);
         index = 255;
         return;
@@ -223,251 +223,6 @@ ImageTexture::imageColorAt(
         interp(image, xCoordinate, yCoordinate, color, index);
         break;
     }
-}
-
-/**
-Maps a point (x, y, z) on a cylinder of radius 1, height 1 with y-axis symmetry to [0,1]x[0,1].
-*/
-bool
-ImageTexture::cylindricalImageMap(
-    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
-{
-    double len;
-    double theta;
-
-    if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
-        return false;
-    }
-    *v = std::fmod(y * image->getYSize(), image->getYSize());
-
-    // Make sure this vector is on the unit sphere.
-    len = java::Math::sqrt(x * x + y * y + z * z);
-    if (len == 0.0) {
-        return false;
-    }
-    x /= len;
-    z /= len;
-
-    // Determine its angle from the point (1, 0, 0) in the x-z plane.
-    len = java::Math::sqrt(x * x + z * z);
-    if (len == 0.0) {
-        return false;
-    }
-    if (z == 0.0) {
-        if (x > 0) {
-            theta = 0.0;
-        } else {
-            theta = java::Math::PI;
-        }
-    } else {
-        theta = java::Math::acos(x / len);
-        if (z < 0.0) {
-            theta = 2.0 * java::Math::PI - theta;
-        }
-    }
-    theta /= 2.0 * java::Math::PI; // normalizes theta to [0, 1]
-
-    *u = (theta * image->getXSize());
-    return true;
-}
-
-/**
-Maps a point (x, y, z) on a torus to a 2-D image.
-*/
-bool
-ImageTexture::torusImageMap(
-    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
-{
-    double len;
-    double phi;
-    double theta;
-    double r0;
-
-    r0 = image->getImageGradient().x();
-
-    // Determine its angle from the x-axis.
-    len = java::Math::sqrt(x * x + z * z);
-    if (len == 0.0) {
-        return false;
-    }
-    if (z == 0.0) {
-        if (x > 0) {
-            theta = 0.0;
-        } else {
-            theta = java::Math::PI;
-        }
-    } else {
-        theta = java::Math::acos(x / len);
-        if (z < 0.0) {
-            theta = 2.0 * java::Math::PI - theta;
-        }
-    }
-
-    theta = 0.0 - theta;
-
-    // Rotate about the y-axis to get the point (x, y, z) into the x-y plane.
-    x = len - r0;
-    len = java::Math::sqrt(x * x + y * y);
-    phi = java::Math::acos(-x / len);
-    if (y > 0.0) {
-        phi = 2.0 * java::Math::PI - phi;
-    }
-
-    // Determine the parametric coordinates.
-    theta /= 2.0 * java::Math::PI;
-    phi /= 2.0 * java::Math::PI;
-    *u = (-theta * image->getXSize());
-    *v = (phi * image->getYSize());
-    return true;
-}
-
-/** Maps a point (x, y, z) on a unit sphere to a 2-D image. */
-bool
-ImageTexture::sphericalImageMap(
-    double x, double y, double z, const RGBAImageHDRUncompressed *image, double *u, double *v) const
-{
-    double len;
-    double phi;
-    double theta;
-
-    // Make sure this vector is on the unit sphere.
-    len = java::Math::sqrt(x * x + y * y + z * z);
-    if (len == 0.0) {
-        return false;
-    }
-    x /= len;
-    y /= len;
-    z /= len;
-
-    // Determine its angle from the x-z plane.
-    phi = 0.5 + java::Math::asin(y) / java::Math::PI; // normalizes phi to [0, 1]
-
-    // Determine its angle from the point (1, 0, 0) in the x-z plane.
-    len = java::Math::sqrt(x * x + z * z);
-    if (len == 0.0) {
-        // At a pole: any xCoordinate value is valid
-        theta = 0;
-    } else {
-        if (z == 0.0) {
-            if (x > 0) {
-                theta = 0.0;
-            } else {
-                theta = java::Math::PI;
-            }
-        } else {
-            theta = java::Math::acos(x / len);
-            if (z < 0.0) {
-                theta = 2.0 * java::Math::PI - theta;
-            }
-        }
-        theta /= 2.0 * java::Math::PI; // normalizes theta to [0, 1]
-    }
-    *u = (theta * image->getXSize());
-    *v = (phi * image->getYSize());
-    return true;
-}
-
-/**
-Simplistic planar image projection by DKB and AAC.
-Returns 0 if no color at this point (invisible), 1 if a good mapping is found.
-*/
-bool
-ImageTexture::planarImageMap(
-    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
-{
-    if (image->getImageGradient().x() != 0.0) {
-        if ((image->getOnceFlag()) && ((x < 0.0) || (x > 1.0))) {
-            return false;
-        }
-        if (image->getImageGradient().x() > 0) {
-            *u = std::fmod(x * image->getXSize(), image->getXSize());
-        } else {
-            *v = std::fmod(x * image->getYSize(), image->getYSize());
-        }
-    }
-    if (image->getImageGradient().y() != 0.0) {
-        if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
-            return false;
-        }
-        if (image->getImageGradient().y() > 0) {
-            *u = std::fmod(y * image->getXSize(), image->getXSize());
-        } else {
-            *v = std::fmod(y * image->getYSize(), image->getYSize());
-        }
-    }
-    if (image->getImageGradient().z() != 0.0) {
-        if ((image->getOnceFlag()) && ((z < 0.0) || (z > 1.0))) {
-            return false;
-        }
-        if (image->getImageGradient().z() > 0) {
-            *u = std::fmod(z * image->getXSize(), image->getXSize());
-        } else {
-            *v = std::fmod(z * image->getYSize(), image->getYSize());
-        }
-    }
-    return true;
-}
-
-/**
-Returns 1 if no color found at this point (invisible), 0 if a color was mapped.
-*/
-bool
-ImageTexture::map(double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image,
-    double *xCoordinate, double *yCoordinate, double smallTolerance) const
-{
-    // Now determine which mapper to use.
-    switch (image->getMapType()) {
-    case ImageToSolidTextureProjectionMethods::PLANAR_MAP:
-        if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return true;
-        }
-        break;
-    case ImageToSolidTextureProjectionMethods::SPHERICAL_MAP:
-        if (!sphericalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return true;
-        }
-        break;
-    case ImageToSolidTextureProjectionMethods::CYLINDRICAL_MAP:
-        if (!cylindricalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return true;
-        }
-        break;
-    case ImageToSolidTextureProjectionMethods::TORUS_MAP:
-        if (!torusImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return true;
-        }
-        break;
-    default:
-        if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return true;
-        }
-        break;
-    }
-    // make sure the point is on the image
-    *yCoordinate += smallTolerance;
-    *xCoordinate += smallTolerance;
-    // compensate for y coordinates on images being upside-down
-    *yCoordinate = (double)image->getYSize() - *yCoordinate;
-
-    if (*xCoordinate < 0.0) {
-        *xCoordinate += (double)image->getXSize();
-    } else if (*xCoordinate >= (double)image->getXSize()) {
-        *xCoordinate -= (double)image->getXSize();
-    }
-
-    if (*yCoordinate < 0.0) {
-        *yCoordinate += (double)image->getYSize();
-    } else if (*yCoordinate >= (double)image->getYSize()) {
-        *yCoordinate -= (double)image->getYSize();
-    }
-
-    if ((*xCoordinate >= (double)image->getXSize()) ||
-        (*yCoordinate >= (double)image->getYSize()) || (*xCoordinate < 0.0) ||
-        (*yCoordinate < 0.0)) {
-        Logger::reportMessage("MapTextureFixture", Logger::FATAL_ERROR, "", "\nPicture index out of range\n");
-    }
-
-    return false;
 }
 
 void
