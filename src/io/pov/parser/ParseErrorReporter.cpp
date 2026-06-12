@@ -27,24 +27,24 @@ ParseErrorReporter::writeVerboseStatLine(FILE *statFile, ParserContext &ctx)
     fprintf(statFile, "Error at %s:%d:%d\n", file, line, column);
 }
 
-char *
+const char *
 ParseErrorReporter::getTokenString(TOKEN tokenId)
 {
     ParserContext ctx;
     return ParseErrorReporter::getTokenString(tokenId, ctx);
 }
 
-char *
+const char *
 ParseErrorReporter::getTokenString(TOKEN tokenId, ParserContext &ctx)
 {
     int i;
 
     for (i = 0; i < Tokenizer::LAST_TOKEN; i++) {
         if (ctx.reservedWords()[i].tokenNumber == tokenId) {
-            return (char *)(ctx.reservedWords()[i].Token_Name);
+            return ctx.reservedWords()[i].Token_Name;
         }
     }
-    return (char *)("");
+    return "";
 }
 
 void
@@ -57,8 +57,8 @@ ParseErrorReporter::parseError(TOKEN tokenId)
 void
 ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
 {
-    char *expected;
-    char *found;
+    const char *expected;
+    const char *found;
     FILE *statFile;
     reportLocation(ctx);
     expected = ParseErrorReporter::getTokenString(tokenId, ctx);

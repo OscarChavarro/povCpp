@@ -10,7 +10,7 @@ class TextureUtils;
 class RayShaderPipeline {
 public:
     static void shadeSurface(Intersection *rayIntersection,
-        ColorRgba *color, RayWithSegments *ray, int shadowRay,
+        ColorRgba *color, const RayWithSegments *ray, int shadowRay,
         const TraceService *traceService, TextureUtils *textureUtils);
 };
 

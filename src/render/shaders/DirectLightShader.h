@@ -12,10 +12,10 @@ class SimpleBody;
 
 class DirectLightShader {
 public:
-    static void shade(Material *texture, Vector3Dd *intersectionPoint,
-        RayWithSegments *eye, Vector3Dd *surfaceNormal,
-        ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
-        const TraceService *traceService, Light *lightSources,
+    static void shade(const Material *texture, const Vector3Dd *intersectionPoint,
+        const RayWithSegments *eye, const Vector3Dd *surfaceNormal,
+        const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
+        const TraceService *traceService, const Light *lightSources,
         SimpleBody *objects);
 };
 

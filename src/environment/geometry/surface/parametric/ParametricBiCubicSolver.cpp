@@ -9,10 +9,10 @@
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
-    RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
-    int tcnt = shape->intersectionCount;
+    const int tcnt = shape->intersectionCount;
     int i;
     int j;
     double depth;
@@ -27,7 +27,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
     Vector3Dd v3;
     Vector3Dd n;
     Vector3Dd ip;
-    Vector3Dd(*patchPtr)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
+    Vector3Dd(* const patchPtr)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
     if (!ParametricBiCubicIntersection::sphericalBoundsCheck(ray,
             &(shape->boundingSphereCenter), shape->boundingSphereRadius)) {
@@ -89,10 +89,10 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch0(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
-    RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
-    int tcnt = shape->intersectionCount;
+    const int tcnt = shape->intersectionCount;
     int i;
     int j;
     double depth;
@@ -167,12 +167,12 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch1(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch2(
-    RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     double uValues[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
     double vValues[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd(*patch)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
+    Vector3Dd(* const patch)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
     ParametricBiCubicPatch::parametricSubdivider(ray, shape, patch, 0.0, 1.0,
         0.0, 1.0, 0, &cnt, depths, &uValues[0], &vValues[0]);
@@ -181,7 +181,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch2(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch3(
-    RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
     ParametricBiCubicPatch::parametricTreeWalker(
@@ -191,10 +191,10 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch3(
 
 int
 ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
-    RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
+    const RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths)
 {
     int cnt = 0;
-    int tcnt = shape->intersectionCount;
+    const int tcnt = shape->intersectionCount;
     int i;
     int j;
     double depth;
@@ -307,7 +307,7 @@ int
 ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    ParametricBiCubicPatch *shape = (ParametricBiCubicPatch *)object;
+    ParametricBiCubicPatch * const shape = (ParametricBiCubicPatch *)object;
     double depths[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
     Intersection localElement;
     int cnt = 0;

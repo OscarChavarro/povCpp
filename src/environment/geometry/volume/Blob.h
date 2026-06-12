@@ -33,10 +33,10 @@ class Blob : public Geometry {
         int npoints, int sflag);
 
   private:
-    static int determineInfluences(
-        Vector3Dd *p, Vector3Dd *d, Blob *blob, double mindist);
-    static double calculateFieldValue(SimpleBody *obj, Vector3Dd *pos);
-    static int validateHit(Blob *blob, Vector3Dd *p);
+    static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
+        const Blob *blob, double mindist);
+    static double calculateFieldValue(SimpleBody *obj, const Vector3Dd *pos);
+    static int validateHit(const Blob *blob, const Vector3Dd *p);
 };
 
 #endif

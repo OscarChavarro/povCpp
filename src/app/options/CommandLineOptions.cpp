@@ -97,7 +97,7 @@ CommandLineOptions::parseArguments(int argc, char *argv[])
 }
 
 void
-CommandLineOptions::readOptions(char *optionLine)
+CommandLineOptions::readOptions(const char *optionLine)
 {
     int c;
     int stringIndex;
@@ -140,7 +140,7 @@ CommandLineOptions::readOptions(char *optionLine)
 
 // Parse the command line parameters
 void
-CommandLineOptions::parseOption(char *optionString)
+CommandLineOptions::parseOption(const char *optionString)
 {
     bool addOption;
     unsigned int optionNumber = 0;
@@ -355,7 +355,7 @@ CommandLineOptions::parseOption(char *optionString)
 }
 
 void
-CommandLineOptions::parseFileName(char *fileName)
+CommandLineOptions::parseFileName(const char *fileName)
 {
     FILE *defaultsFile;
     char optionString[256];

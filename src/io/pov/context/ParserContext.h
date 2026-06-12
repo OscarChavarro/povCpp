@@ -36,9 +36,9 @@ class ParserContext {
     static ITokenStream *sForcedTokenStream;
 
     ITokenStream *mTokenStream;
-    RenderFrame **mParsingFramePtr;
-    SymbolTable *mSymbols;
-    int *mDegenerateTriangles;
+    RenderFrame ** const mParsingFramePtr;
+    SymbolTable * const mSymbols;
+    int * const mDegenerateTriangles;
 };
 
 #endif

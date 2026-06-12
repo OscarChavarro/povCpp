@@ -15,7 +15,7 @@ class PriorityQueuePool {
         if (head == nullptr) {
             Logger::reportMessage("PriorityQueuePool", Logger::FATAL_ERROR, "", "\nOut of prioqs");
         }
-        PriorityQueue<T> *pq = head;
+        PriorityQueue<T> * const pq = head;
         if (pq == nullptr) return nullptr;
         head = pq->next_pq;
         pq->queueSize = indexSize;

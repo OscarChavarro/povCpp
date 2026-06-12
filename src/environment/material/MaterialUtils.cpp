@@ -52,7 +52,7 @@ MaterialUtils::needsTransform(const Material *texture)
            (texture->bumpNumber != SolidTextureBumpyNames::NO_BUMPS);
 }
 void
-MaterialUtils::applyTranslationTransform(Material *texture, Vector3Dd *vector)
+MaterialUtils::applyTranslationTransform(Material *texture, const Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -117,9 +117,9 @@ MaterialUtils::copyTextureNode(Material *dst, const Material *src)
             new Matrix4x4d(*src->textureTransformationInverse);
     }
     if (dst->colorMap != nullptr) {
-        RGBAColorPalette *newMap = new RGBAColorPalette();
+        RGBAColorPalette * const newMap = new RGBAColorPalette();
         for (int i = 0; i < src->colorMap->size(); i++) {
-            ColorRgba *c = src->colorMap->getColorAt(i);
+            const ColorRgba *c = src->colorMap->getColorAt(i);
             if (src->colorMap->hasPositions()) {
                 newMap->addColorAt(src->colorMap->getPositionAt(i), *c);
             } else {
@@ -134,14 +134,14 @@ MaterialUtils::copyTextureNode(Material *dst, const Material *src)
 Material *
 MaterialUtils::copyTexture(Material *texture)
 {
-    Material *newHead = getTexture();
+    Material * const newHead = getTexture();
     *newHead = *texture;
     copyTextureNode(newHead, texture);
 
     newHead->layers.clear();
     for (long int i = 0; i < texture->layers.size(); i++) {
-        Material *src = texture->layers[i];
-        Material *copy = getTexture();
+        const Material *src = texture->layers[i];
+        Material * const copy = getTexture();
         *copy = *src;
         copyTextureNode(copy, src);
         newHead->layers.add(copy);
@@ -247,7 +247,7 @@ MaterialUtils::rotateTexture(Material **texturePtr, Vector3Dd *vector)
     }
 }
 void
-MaterialUtils::applyScaleTransform(Material *texture, Vector3Dd *vector)
+MaterialUtils::applyScaleTransform(Material *texture, const Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;

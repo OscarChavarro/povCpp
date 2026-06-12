@@ -4,9 +4,9 @@
 #include "render/shaders/BlinnPhongSpecularShader.h"
 
 void
-BlinnPhongSpecularShader::shade(Material *texture, RayWithSegments *lightSourceRay,
-    Vector3Dd rEye, Vector3Dd *surfaceNormal, ColorRgba *color,
-    ColorRgba *lightColor, ColorRgba *surfaceColor)
+BlinnPhongSpecularShader::shade(const Material *texture, const RayWithSegments *lightSourceRay,
+    Vector3Dd rEye, const Vector3Dd *surfaceNormal, ColorRgba *color,
+    const ColorRgba *lightColor, const ColorRgba *surfaceColor)
 {
     double cosAngleOfIncidence;
     double normalLength;

@@ -10,8 +10,8 @@ LookUpTableSine::LookUpTableSine()
 
 LookUpTableSine::LookUpTableSine(int numberOfApproximationDecimals)
 {
-    double scale = java::Math::pow(10.0, numberOfApproximationDecimals);
-    double pi = java::Math::round(java::Math::PI * scale) / scale;
+    const double scale = java::Math::pow(10.0, numberOfApproximationDecimals);
+    const double pi = java::Math::round(java::Math::PI * scale) / scale;
 
     for (int i = 0; i < SIZE; i++) {
         table[i] = java::Math::sin(i / (double)SIZE * (pi * 2.0));

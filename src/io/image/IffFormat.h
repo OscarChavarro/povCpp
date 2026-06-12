@@ -16,7 +16,7 @@ class IffFormat {
 
     // Returns a new IndexedColorImageHDRUncompressed* if the file is paletted; fills directOut and
     // returns nullptr if the file is direct-color (HAM or 24-plane).
-    static IndexedColorImageHDRUncompressed *readIffImage(RGBAImageHDRUncompressed *directOut, char *filename);
+    static IndexedColorImageHDRUncompressed *readIffImage(RGBAImageHDRUncompressed *directOut, const char *filename);
 
   private:
     static RGBAPixelHDR *sIffColorMap;

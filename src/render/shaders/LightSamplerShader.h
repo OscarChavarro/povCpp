@@ -9,8 +9,8 @@ class ColorRgba;
 
 class LightSamplerShader {
 public:
-    static void sample(Light *lightSource, double *lightSourceDepth,
-        RayWithSegments *lightSourceRay, Vector3Dd *intersectionPoint,
+    static void sample(const Light *lightSource, double *lightSourceDepth,
+        RayWithSegments *lightSourceRay, const Vector3Dd *intersectionPoint,
         ColorRgba *lightColor);
 };
 

@@ -7,7 +7,7 @@ class ColorRgba;
 
 class AmbientLightShader {
 public:
-    static void shade(Material *texture, ColorRgba *surfaceColor,
+    static void shade(const Material *texture, const ColorRgba *surfaceColor,
         ColorRgba *color, double attenuation);
 };
 

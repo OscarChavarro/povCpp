@@ -12,7 +12,7 @@ References:
 #include "solidTexture/procedural/ProceduralNoise.h"
 #include "solidTexture/TextureUtils.h"
 
-BumpTextureFixture::BumpTextureFixture(ProceduralNoise *proceduralNoise)
+BumpTextureFixture::BumpTextureFixture(const ProceduralNoise *proceduralNoise)
     : proceduralNoise(proceduralNoise)
 {
 }
@@ -93,17 +93,16 @@ void
 BumpTextureFixture::bumps(
     double x, double y, double z, double bumpAmount, Vector3Dd *normal)
 {
-    Vector3Dd bumpTurb;
+    Vector3Dd bumpTurbulence;
 
     if (bumpAmount == 0.0) {
         return; // why are we here?
     }
 
-
-    proceduralNoise->differentialNoise(&bumpTurb, x, y, z); // Get Normal Displacement value
-    bumpTurb = bumpTurb.multiply(bumpAmount);
-    *normal = normal->add(bumpTurb); // displace "normal"
-    *normal = (*normal).normalizedFast(); // normalize normal!
+    proceduralNoise->differentialNoise(&bumpTurbulence, x, y, z); // Get Normal Displacement value
+    bumpTurbulence = bumpTurbulence.multiply(bumpAmount);
+    *normal = normal->add(bumpTurbulence); // Displace "normal"
+    *normal = (*normal).normalizedFast(); // Normalize normal
 }
 
 /**
@@ -114,23 +113,22 @@ void
 BumpTextureFixture::dents(
     double x, double y, double z, double bumpAmount, Vector3Dd *normal)
 {
-    Vector3Dd stuccoTurb;
+    Vector3Dd stuccoTurbulence;
     double noise;
 
     if (bumpAmount == 0.0) {
-        return; // why are we here?
+        return; // Why are we here?
     }
 
     noise = proceduralNoise->noise(x, y, z);
 
     noise = noise * noise * noise * bumpAmount;
 
+    proceduralNoise->differentialNoise(&stuccoTurbulence, x, y, z); // Get Normal Displacement value
 
-    proceduralNoise->differentialNoise(&stuccoTurb, x, y, z); // Get Normal Displacement value
-
-    stuccoTurb = stuccoTurb.multiply(noise);
-    *normal = normal->add(stuccoTurb); // displace "normal"
-    *normal = (*normal).normalizedFast(); // normalize normal!
+    stuccoTurbulence = stuccoTurbulence.multiply(noise);
+    *normal = normal->add(stuccoTurbulence); // Displace "normal"
+    *normal = (*normal).normalizedFast(); // Normalize normal!
 }
 
 /**
@@ -149,7 +147,7 @@ BumpTextureFixture::wrinkles(
     Vector3Dd value;
 
     if (bumpAmount == 0.0) {
-        return; // why are we here?
+        return; // Why are we here?
     }
 
     double rx = 0.0;
@@ -165,6 +163,6 @@ BumpTextureFixture::wrinkles(
     result = Vector3Dd(rx, ry, rz);
 
     result = result.multiply(bumpAmount);
-    *normal = normal->add(result); // displace "normal"
-    *normal = (*normal).normalizedFast(); // normalize normal!
+    *normal = normal->add(result); // Displace "normal"
+    *normal = (*normal).normalizedFast(); // Normalize normal!
 }

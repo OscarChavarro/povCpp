@@ -16,7 +16,7 @@ class ImageOutputAdapter : public RenderOutput {
     void close() override;
 
   private:
-    ImageOutput *delegate;
+    ImageOutput * const delegate;
 };
 
 #endif

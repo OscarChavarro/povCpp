@@ -18,9 +18,9 @@ class MaterialUtils {
     MaterialUtils();
 
     static bool needsTransform(const Material *texture);
-    static void applyTranslationTransform(Material *texture, Vector3Dd *vector);
+    static void applyTranslationTransform(Material *texture, const Vector3Dd *vector);
     static void applyRotationTransform(Material *texture, Vector3Dd *vector);
-    static void applyScaleTransform(Material *texture, Vector3Dd *vector);
+    static void applyScaleTransform(Material *texture, const Vector3Dd *vector);
     static void copyTextureNode(Material *dst, const Material *src);
 
   public:

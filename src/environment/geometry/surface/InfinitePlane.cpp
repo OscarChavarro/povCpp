@@ -19,7 +19,7 @@ int
 InfinitePlane::allPlaneIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    InfinitePlane *shape = (InfinitePlane *)object;
+    InfinitePlane * const shape = (InfinitePlane *)object;
     double depth;
     Vector3Dd intersectionPoint;
     Intersection localElement;
@@ -91,7 +91,7 @@ InfinitePlane::intersectPlane(
 int
 InfinitePlane::insidePlane(Vector3Dd *testPoint, SimpleBody *object)
 {
-    InfinitePlane *plane = (InfinitePlane *)object;
+    const InfinitePlane *plane = (InfinitePlane *)object;
     double temp;
 
     temp = (*testPoint).dotProduct(plane->normalVector);
@@ -102,7 +102,7 @@ void
 InfinitePlane::planeNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    InfinitePlane *plane = (InfinitePlane *)object;
+    const InfinitePlane *plane = (InfinitePlane *)object;
 
     *result = plane->normalVector;
 }
@@ -127,7 +127,7 @@ InfinitePlane::copyPlane(SimpleBody *object)
 void
 InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
 {
-    InfinitePlane *plane = (InfinitePlane *)object;
+    InfinitePlane * const plane = (InfinitePlane *)object;
     Vector3Dd translation;
 
     translation = plane->normalVector.multiply(*vector);
@@ -154,7 +154,7 @@ void
 InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
 {
     double length;
-    InfinitePlane *plane = (InfinitePlane *)object;
+    InfinitePlane * const plane = (InfinitePlane *)object;
 
     plane->normalVector = Vector3Dd(
         plane->normalVector.x() / vector->x(),
@@ -172,7 +172,7 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
 void
 InfinitePlane::invertPlane(SimpleBody *object)
 {
-    InfinitePlane *plane = (InfinitePlane *)object;
+    InfinitePlane * const plane = (InfinitePlane *)object;
 
     plane->normalVector = plane->normalVector.multiply(-1.0);
     plane->Distance *= -1.0;

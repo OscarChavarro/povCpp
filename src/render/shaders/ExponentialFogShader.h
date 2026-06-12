@@ -5,7 +5,7 @@ class ColorRgba;
 
 class ExponentialFogShader {
 public:
-    static void shade(double distance, ColorRgba *fogColor, double fogDistance,
+    static void shade(double distance, const ColorRgba *fogColor, double fogDistance,
         ColorRgba *color);
 };
 

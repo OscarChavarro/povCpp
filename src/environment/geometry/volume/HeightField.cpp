@@ -60,12 +60,12 @@ PriorityQueueNode *HeightField::hfQueue;
 RayWithSegments *HeightField::rRay;
 
 double
-HeightField::getHeightAt(int x, int z, HeightField *hField)
+HeightField::getHeightAt(int x, int z, const HeightField *hField)
 {
     return (double)hField->Map[z][x];
 }
 int
-HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
+HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     HeightField *hField, double height1, double height2)
 {
     Vector3Dd t1V1;
@@ -199,8 +199,9 @@ HeightField::intersectPixel(int x, int z, RayWithSegments *ray,
 }
 
 int
-HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
-    HeightField *hField, Vector3Dd *start, Vector3Dd *end)
+HeightField::intersectSubBlock(const HeightFieldBlock *block,
+    const RayWithSegments *ray, HeightField *hField, const Vector3Dd *start,
+    const Vector3Dd *end)
 {
     double y1;
     double y2;
@@ -337,8 +338,8 @@ HeightField::intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
 }
 
 int
-HeightField::intersectHfNode(
-    RayWithSegments *ray, HeightField *hField, Vector3Dd *start, Vector3Dd *end)
+HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
+    const Vector3Dd *start, const Vector3Dd *end)
 {
     Vector3Dd *curr;
     Vector3Dd *next;
@@ -605,12 +606,12 @@ void
 HeightField::allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
     double width, double height)
 {
-    double size = (double)HeightField::maxValue(maxX, maxZ);
+    const double size = (double)HeightField::maxValue(maxX, maxZ);
     hField->blockSize = java::Math::ceil(java::Math::sqrt(size + 1.0));
     hField->invBlkSize = 1.0 / hField->blockSize;
 
-    int w = (int)java::Math::ceil((width + 1.0) * hField->invBlkSize);
-    int h = (int)java::Math::ceil((height + 1.0) * hField->invBlkSize);
+    const int w = (int)java::Math::ceil((width + 1.0) * hField->invBlkSize);
+    const int h = (int)java::Math::ceil((height + 1.0) * hField->invBlkSize);
 
     hField->Map = (float **)calloc(maxZ + 1, sizeof(float *));
     if (hField->Map == nullptr) {
@@ -640,23 +641,24 @@ HeightField::allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
 }
 
 void
-HeightField::findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed *image, int imageType)
+HeightField::findHfMinMax(HeightField *hField,
+    const IndexedColorImageHDRUncompressed *image, int imageType)
 {
     int maxX = image->getXSize();
     if (imageType == HeightField::POT) {
         maxX = maxX / 2;
     }
-    int maxZ = image->getYSize();
+    const int maxZ = image->getYSize();
 
     HeightField::allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
-    int n = (int)hField->blockSize;
-    int w = (int)java::Math::ceil((image->getXSize() + 1.0) * hField->invBlkSize);
-    int h = (int)java::Math::ceil((image->getYSize() + 1.0) * hField->invBlkSize);
+    const int n = (int)hField->blockSize;
+    const int w = (int)java::Math::ceil((image->getXSize() + 1.0) * hField->invBlkSize);
+    const int h = (int)java::Math::ceil((image->getYSize() + 1.0) * hField->invBlkSize);
 
     for (int j = 0; j < h; j++) {
         for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
-            int z = j * n + j2;
+            const int z = j * n + j2;
             if (j2 != 0) {
                 hField->Map[z] = (float *)calloc(maxX + 1, sizeof(float));
                 if (hField->Map[z] == nullptr) {
@@ -665,12 +667,12 @@ HeightField::findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed 
             }
             for (int i = 0; i < w; i++) {
                 for (int i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
-                    int x = i * n + i2;
+                    const int x = i * n + i2;
                     double tempY = 0;
                     if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
-                        int temp1 = image->getPixel(x, maxZ - z - 1);
+                        const int temp1 = image->getPixel(x, maxZ - z - 1);
                         if (imageType == HeightField::POT) {
-                            int temp2 = image->getPixel(x + maxX, maxZ - z - 1);
+                            const int temp2 = image->getPixel(x + maxX, maxZ - z - 1);
                             tempY = (double)temp1 + (double)temp2 / 256.0;
                         } else {
                             tempY = (double)temp1;
@@ -701,21 +703,22 @@ HeightField::findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed 
 }
 
 void
-HeightField::findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, int imageType)
+HeightField::findHfMinMax(HeightField *hField,
+    const RGBAImageHDRUncompressed *image, int imageType)
 {
     (void)imageType;
     int maxX = image->getXSize();
-    int maxZ = image->getYSize();
+    const int maxZ = image->getYSize();
 
     HeightField::allocateHfBlocks(hField, maxX, maxZ, image->getXSize(), image->getYSize());
 
-    int n = (int)hField->blockSize;
-    int w = (int)java::Math::ceil((image->getXSize() + 1.0) * hField->invBlkSize);
-    int h = (int)java::Math::ceil((image->getYSize() + 1.0) * hField->invBlkSize);
+    const int n = (int)hField->blockSize;
+    const int w = (int)java::Math::ceil((image->getXSize() + 1.0) * hField->invBlkSize);
+    const int h = (int)java::Math::ceil((image->getYSize() + 1.0) * hField->invBlkSize);
 
     for (int j = 0; j < h; j++) {
         for (int j2 = 0; (j2 <= n) && (j * n + j2 <= maxZ); j2++) {
-            int z = j * n + j2;
+            const int z = j * n + j2;
             if (j2 != 0) {
                 hField->Map[z] = (float *)calloc(maxX + 1, sizeof(float));
                 if (hField->Map[z] == nullptr) {
@@ -724,7 +727,7 @@ HeightField::findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, 
             }
             for (int i = 0; i < w; i++) {
                 for (int i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
-                    int x = i * n + i2;
+                    const int x = i * n + i2;
                     double tempY = 0;
                     if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
                         RGBAPixelHDR pixel;
@@ -765,7 +768,7 @@ HeightField::allHeightfldIntersections(
     double depth1;
     double depth2;
     bool retVal = false;
-    HeightField *hField = (HeightField *)object;
+    HeightField * const hField = (HeightField *)object;
     Intersection localElement;
 
     Statistics::global().rayHtFieldTests++;
@@ -837,7 +840,7 @@ HeightField::allHeightfldIntersections(
 int
 HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
 {
-    HeightField *hField = (HeightField *)object;
+    const HeightField *hField = (HeightField *)object;
     int px;
     int pz;
     int dot1;
@@ -897,7 +900,7 @@ void
 HeightField::heightFldNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    HeightField *hField = (HeightField *)object;
+    const HeightField *hField = (HeightField *)object;
     int px;
     int pz;
     double x;
@@ -956,7 +959,7 @@ HeightField::copyHeightfld(SimpleBody *object)
 void
 HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
-    HeightField *hField = (HeightField *)object;
+    HeightField * const hField = (HeightField *)object;
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 
@@ -981,7 +984,7 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    HeightField *hField = (HeightField *)object;
+    HeightField * const hField = (HeightField *)object;
 
     if (!hField->transformation) {
         hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -999,7 +1002,7 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
 void
 HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
 {
-    HeightField *hField = (HeightField *)object;
+    HeightField * const hField = (HeightField *)object;
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 

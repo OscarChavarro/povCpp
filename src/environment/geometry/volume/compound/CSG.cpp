@@ -27,7 +27,7 @@ CSG::allCsgUnionIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     bool intersectionFound;
-    CSG *shape = (CSG *)object;
+    const CSG *shape = (CSG *)object;
     Geometry *localShape;
 
     intersectionFound = false;
@@ -48,7 +48,7 @@ CSG::allCsgIntersectIntersections(
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    CSG *shape = (CSG *)object;
+    const CSG *shape = (CSG *)object;
     Geometry *localShape;
     Geometry *shape2;
     PriorityQueueNode *localDepthQueue;
@@ -97,7 +97,7 @@ CSG::allCsgIntersectIntersections(
 int
 CSG::insideCsgUnion(Vector3Dd *testPoint, SimpleBody *object)
 {
-    CSG *shape = (CSG *)object;
+    const CSG *shape = (CSG *)object;
     Geometry *localShape;
 
     for (localShape = shape->Shapes; localShape != nullptr;
@@ -114,7 +114,7 @@ int
 CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
 {
     Geometry *localShape;
-    CSG *shape = (CSG *)object;
+    const CSG *shape = (CSG *)object;
 
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
@@ -130,7 +130,7 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
 void *
 CSG::copyCsg(SimpleBody *object)
 {
-    CSG *shape = (CSG *)object;
+    const CSG *shape = (CSG *)object;
     CSG *newShape;
     Geometry *localShape;
     Geometry *copiedShape;
@@ -193,7 +193,7 @@ void
 CSG::invertCsg(SimpleBody *object)
 {
     Geometry *localShape;
-    CSG *csg = (CSG *)object;
+    CSG * const csg = (CSG *)object;
 
     if (csg->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
         csg->geometryType = GeometryTypes::CSG_UNION_TYPE;

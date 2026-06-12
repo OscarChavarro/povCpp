@@ -30,9 +30,9 @@ class Quadric : public Geometry {
     static void invertQuadric(SimpleBody *object);
 
   private:
-    static void quadricToMatrix(Quadric *quadric, Matrix4x4d *matrix);
-    static void matrixToQuadric(Matrix4x4d *matrix, Quadric *quadric);
+    static void quadricToMatrix(const Quadric *quadric, Matrix4x4d *matrix);
+    static void matrixToQuadric(const Matrix4x4d *matrix, Quadric *quadric);
     static void transformQuadric(
-        Quadric *shape, Matrix4x4d *transformationInverse);
+        Quadric *shape, const Matrix4x4d *transformationInverse);
 };
 #endif

@@ -15,8 +15,8 @@
 // Gaps between non-adjacent spans are left uncovered; evalLinear returns zero
 // for t values that fall in a gap, matching original PovColorMap behaviour.
 static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
-    int n = map->size();
-    RGBAColorPalette* palette = new RGBAColorPalette();
+    const int n = map->size();
+    RGBAColorPalette * const palette = new RGBAColorPalette();
 
     if (n == 0) {
         delete map;
@@ -29,7 +29,7 @@ static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
         sorted[i] = map->getSpanAt(i);
     }
     for (int i = 1; i < n; i++) {
-        const PovColorMap::Span* key = sorted[i];
+        const PovColorMap::Span * const key = sorted[i];
         int j = i - 1;
         while (j >= 0 && sorted[j]->start > key->start) {
             sorted[j + 1] = sorted[j];
@@ -62,7 +62,7 @@ ColorMapParser::parseColorMap()
 RGBAColorPalette *
 ColorMapParser::parseColorMap(ParserContext &ctx)
 {
-    PovColorMap *raw = new PovColorMap();
+    PovColorMap * const raw = new PovColorMap();
     if (raw == nullptr) {
         ParseErrorReporter::reportError("Not enough memory for color map.", ctx);
     }
@@ -74,8 +74,8 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LEFT_SQUARE_TOKEN: {
-                double spanStart = PrimitiveParser::parseFloat(ctx);
-                double spanEnd   = PrimitiveParser::parseFloat(ctx);
+                const double spanStart = PrimitiveParser::parseFloat(ctx);
+                const double spanEnd   = PrimitiveParser::parseFloat(ctx);
 
                 ColorRgba sc, ec;
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);

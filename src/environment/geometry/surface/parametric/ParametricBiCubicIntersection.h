@@ -8,15 +8,17 @@ class ParametricBiCubicPatch;
 
 class ParametricBiCubicIntersection {
   public:
-    static int intersectSubpatch(int patchType, RayWithSegments *ray,
-        Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *n, double d,
-        Vector3Dd *n1, Vector3Dd *n2, Vector3Dd *n3, double *depth,
+    static int intersectSubpatch(int patchType, const RayWithSegments *ray,
+        const Vector3Dd *v1, const Vector3Dd *v2, const Vector3Dd *v3,
+        const Vector3Dd *n, double d, const Vector3Dd *n1,
+        const Vector3Dd *n2, const Vector3Dd *n3, double *depth,
         Vector3Dd *ip, Vector3Dd *ipNorm);
-    static int subpatchNormal(Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3,
-        Vector3Dd *result, double *d);
+    static int subpatchNormal(const Vector3Dd *v1, const Vector3Dd *v2,
+        const Vector3Dd *v3, Vector3Dd *result, double *d);
     static int sphericalBoundsCheck(
-        RayWithSegments *ray, Vector3Dd *center, double radius);
-    static double pointPlaneDistance(Vector3Dd *p, Vector3Dd *n, double *d);
+        const RayWithSegments *ray, const Vector3Dd *center, double radius);
+    static double pointPlaneDistance(
+        const Vector3Dd *p, const Vector3Dd *n, const double *d);
 };
 
 #endif

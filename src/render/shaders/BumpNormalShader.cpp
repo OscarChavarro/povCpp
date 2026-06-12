@@ -1,12 +1,12 @@
-#include "render/shaders/BumpNormalShader.h"
 #include "solidTexture/from2d/ImageTexture.h"
 #include "solidTexture/procedural/BumpTextureFixture.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/geometry/GeometryConstants.h"
+#include "render/shaders/BumpNormalShader.h"
 
 void
-BumpNormalShader::shade(Vector3Dd *newNormal, Material *texture,
-    Vector3Dd *intersectionPoint, Vector3Dd *surfaceNormal)
+BumpNormalShader::shade(Vector3Dd *newNormal, const Material *texture,
+    const Vector3Dd *intersectionPoint, const Vector3Dd *surfaceNormal)
 {
     Vector3Dd transformedPoint;
     double x;

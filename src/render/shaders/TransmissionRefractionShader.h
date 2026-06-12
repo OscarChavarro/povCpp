@@ -10,8 +10,8 @@ class TraceService;
 
 class TransmissionRefractionShader {
 public:
-    static void shade(Material *texture, Vector3Dd *intersectionPoint,
-        RayWithSegments *ray, Vector3Dd *surfaceNormal, ColorRgba *color,
+    static void shade(Material *texture, const Vector3Dd *intersectionPoint,
+        const RayWithSegments *ray, const Vector3Dd *surfaceNormal, ColorRgba *color,
         const TraceService *traceService, double atmosphereIor,
         int &traceLevel);
 };

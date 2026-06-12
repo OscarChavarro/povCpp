@@ -42,11 +42,11 @@ class ParametricBiCubicPatch : public Geometry {
         Vector3Dd (*controlPoints)[4][4]);
     static void findAverage(
         int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius);
-    static void parametricSubdivider(RayWithSegments *ray,
+    static void parametricSubdivider(const RayWithSegments *ray,
         ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], double u0,
         double u1, double v0, double v1, int recursionDepth, int *depthCount,
         double *depths, double *u, double *v);
-    static void parametricTreeWalker(RayWithSegments *ray,
+    static void parametricTreeWalker(const RayWithSegments *ray,
         ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
         int *depthCount, double *depths);
 
@@ -66,7 +66,7 @@ class ParametricBiCubicPatch : public Geometry {
         ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4]);
     static void parametricBoundingSphere(
         Vector3Dd (*patch)[4][4], Vector3Dd *center, double *radiusSquared);
-    static void parametricSubpatchIntersect(RayWithSegments *ray,
+    static void parametricSubpatchIntersect(const RayWithSegments *ray,
         ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], double u0,
         double u1, double v0, int recursionDepth, int *depthCount,
         double *depths, double *u, double *v);

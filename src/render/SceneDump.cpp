@@ -10,11 +10,11 @@ void SceneDumper::dumpSceneStructure(FILE *f)
     if (f == nullptr) return;
 
     int idx = 0;
-    for (SimpleBody *obj = RenderEngine::renderFrame().Objects; obj; obj = obj->nextObject) {
+    for (const SimpleBody *obj = RenderEngine::renderFrame().Objects; obj; obj = obj->nextObject) {
         fprintf(f, "OBJ %03d type=%d\n", idx, static_cast<int>(obj->type));
 
         if (obj->objectTexture) {
-            Material *tex = obj->objectTexture;
+            const Material * const tex = obj->objectTexture;
 
             fprintf(f, "  tex.num=%d amb=%.6f dif=%.6f phong=%.6f psize=%.6f bril=%.6f\n",
                     tex->textureNumber,
@@ -98,7 +98,7 @@ void SceneDumper::dumpSceneStructure(FILE *f)
             }
 
             if (tex->textureTransformation) {
-                Matrix4x4d *xform = tex->textureTransformation;
+                const Matrix4x4d *xform = tex->textureTransformation;
                 fprintf(f, "  tex.xform=");
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {

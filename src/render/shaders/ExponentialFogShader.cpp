@@ -3,7 +3,7 @@
 #include "render/shaders/ExponentialFogShader.h"
 
 void
-ExponentialFogShader::shade(double distance, ColorRgba *fogColor, double fogDistance,
+ExponentialFogShader::shade(double distance, const ColorRgba *fogColor, double fogDistance,
     ColorRgba *color)
 {
     double fogFactor;

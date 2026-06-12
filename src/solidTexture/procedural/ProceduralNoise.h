@@ -19,7 +19,7 @@ class ProceduralNoise {
     double *rTable;
     LookUpTableSine sineLookUpTable;
     LookUpTableChecksum16 checksumLookUpTable;
-    SolidTextureStatistics *solidTextureStatistics;
+    SolidTextureStatistics * const solidTextureStatistics;
 
     static double fabsInline(double x);
     void initTextureTable();
@@ -47,10 +47,10 @@ class ProceduralNoise {
     double sCurve(double a) const;
     double cycloidal(double value) const;
     double triangleWave(double value) const;
-    double noise(double x, double y, double z);
-    void differentialNoise(Vector3Dd *result, double x, double y, double z);
-    double turbulence(double x, double y, double z, int octaves);
-    void differentialTurbulence(Vector3Dd *result, double x, double y, double z, int octaves);
+    double noise(double x, double y, double z) const;
+    void differentialNoise(Vector3Dd *result, double x, double y, double z) const;
+    double turbulence(double x, double y, double z, int octaves) const;
+    void differentialTurbulence(Vector3Dd *result, double x, double y, double z, int octaves) const;
     const short *hashTable() const;
     const LookUpTableChecksum16 &checksumTable() const;
 };

@@ -71,7 +71,7 @@ void
 TextureUtils::computeColor(
     ColorRgba *color, const RGBAColorPalette *colorMap, double value)
 {
-    ColorRgba *c = colorMap->evalLinear(value);
+    const ColorRgba *c = colorMap->evalLinear(value);
     *color = *c;
     delete c;
 }

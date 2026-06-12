@@ -22,8 +22,10 @@ class HeightField : public Geometry {
     HeightFieldBlock **Block;
     float **Map;
 
-    static void findHfMinMax(HeightField *hField, IndexedColorImageHDRUncompressed *image, int imageType);
-    static void findHfMinMax(HeightField *hField, RGBAImageHDRUncompressed *image, int imageType);
+    static void findHfMinMax(HeightField *hField,
+        const IndexedColorImageHDRUncompressed *image, int imageType);
+    static void findHfMinMax(HeightField *hField,
+        const RGBAImageHDRUncompressed *image, int imageType);
     static int allHeightfldIntersections(SimpleBody *object,
         RayWithSegments *ray, PriorityQueueNode *depthQueue);
     static int insideHeightfld(Vector3Dd *testPoint, SimpleBody *object);
@@ -55,13 +57,14 @@ class HeightField : public Geometry {
 
     static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
         double width, double height);
-    static double getHeightAt(int x, int z, HeightField *hField);
-    static int intersectPixel(int x, int z, RayWithSegments *ray,
+    static double getHeightAt(int x, int z, const HeightField *hField);
+    static int intersectPixel(int x, int z, const RayWithSegments *ray,
         HeightField *hField, double height1, double height2);
-    static int intersectSubBlock(HeightFieldBlock *block, RayWithSegments *ray,
-        HeightField *hField, Vector3Dd *start, Vector3Dd *end);
-    static int intersectHfNode(RayWithSegments *ray, HeightField *hField,
-        Vector3Dd *start, Vector3Dd *end);
+    static int intersectSubBlock(const HeightFieldBlock *block,
+        const RayWithSegments *ray, HeightField *hField,
+        const Vector3Dd *start, const Vector3Dd *end);
+    static int intersectHfNode(const RayWithSegments *ray, HeightField *hField,
+        const Vector3Dd *start, const Vector3Dd *end);
 };
 
 #endif

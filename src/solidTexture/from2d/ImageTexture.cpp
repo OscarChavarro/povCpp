@@ -23,8 +23,8 @@ Enzmann.
 */
 void
 ImageTexture::imageMap(
-    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, ColorRgba *color,
-    double smallTolerance)
+    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, ColorRgba *color,
+    double smallTolerance) const
 {
     double xCoordinate = 0.0;
     double yCoordinate = 0.0;
@@ -43,11 +43,11 @@ the index/color of that point in an image/materials map.
 */
 int
 ImageTexture::materialMap(
-    Vector3Dd *intersectionPoint,
-    Matrix4x4d *textureTransformationInverse,
-    ControlledRGBAImageHDRUncompressed *materialImage,
+    const Vector3Dd *intersectionPoint,
+    const Matrix4x4d *textureTransformationInverse,
+    const ControlledRGBAImageHDRUncompressed *materialImage,
     int numberOfMaterials,
-    double smallTolerance)
+    double smallTolerance) const
 {
     Vector3Dd transformedPoint;
     double x;
@@ -95,8 +95,8 @@ ImageTexture::materialMap(
 
 void
 ImageTexture::bumpMap(
-    double x, double y, double z, ControlledRGBAImageHDRUncompressed *bumpImage, double bumpAmount,
-    Vector3Dd *normal, double smallTolerance)
+    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *bumpImage, double bumpAmount,
+    Vector3Dd *normal, double smallTolerance) const
 {
     double xcoor = 0.0;
     double ycoor = 0.0;
@@ -210,7 +210,7 @@ ImageTexture::bumpMap(
 
 void
 ImageTexture::imageColorAt(
-    ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
+    const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index) const
 {
     switch (image->getInterpolationType()) {
     case (int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION:
@@ -225,7 +225,7 @@ ImageTexture::imageColorAt(
 /** Maps a point (x, y, z) on a cylinder of radius 1, height 1 with y-axis symmetry to [0,1]x[0,1]. */
 int
 ImageTexture::cylindricalImageMap(
-    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v)
+    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
 {
     double len;
     double theta;
@@ -269,7 +269,7 @@ ImageTexture::cylindricalImageMap(
 /** Maps a point (x, y, z) on a torus to a 2-D image. */
 int
 ImageTexture::torusImageMap(
-    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v)
+    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
 {
     double len;
     double phi;
@@ -317,7 +317,7 @@ ImageTexture::torusImageMap(
 /** Maps a point (x, y, z) on a unit sphere to a 2-D image. */
 int
 ImageTexture::sphericalImageMap(
-    double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v)
+    double x, double y, double z, const RGBAImageHDRUncompressed *image, double *u, double *v) const
 {
     double len;
     double phi;
@@ -366,7 +366,7 @@ Returns 0 if no color at this point (invisible), 1 if a good mapping is found.
 */
 int
 ImageTexture::planarImageMap(
-    double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v)
+    double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
 {
     if (image->getImageGradient().x() != 0.0) {
         if ((image->getOnceFlag()) && ((x < 0.0) || (x > 1.0))) {
@@ -403,8 +403,8 @@ ImageTexture::planarImageMap(
 
 /** Returns 1 if no color found at this point (invisible), 0 if a color was mapped. */
 int
-ImageTexture::map(double x, double y, double z, ControlledRGBAImageHDRUncompressed *image,
-    double *xCoordinate, double *yCoordinate, double smallTolerance)
+ImageTexture::map(double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image,
+    double *xCoordinate, double *yCoordinate, double smallTolerance) const
 {
     // Now determine which mapper to use.
     switch (image->getMapType()) {
@@ -463,7 +463,7 @@ ImageTexture::map(double x, double y, double z, ControlledRGBAImageHDRUncompress
 
 void
 ImageTexture::noInterpolation(
-    ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
+    const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index) const
 {
     if (xCoordinate < 0.0) {
         xCoordinate += (double)image->getXSize();
@@ -476,8 +476,8 @@ ImageTexture::noInterpolation(
         yCoordinate -= (double)image->getYSize();
     }
 
-    int iycoor = (int)yCoordinate;
-    int ixcoor = (int)xCoordinate;
+    const int iycoor = (int)yCoordinate;
+    const int ixcoor = (int)xCoordinate;
 
     if (image->getIndexedData() == nullptr) {
         RGBAPixelHDR pixel;
@@ -487,9 +487,9 @@ ImageTexture::noInterpolation(
         color->setB(color->getB() + (double)pixel.b / 255.0);
         *index = -1;
     } else {
-        IndexedColorImageHDRUncompressed *idx = image->getIndexedData();
+        const IndexedColorImageHDRUncompressed *idx = image->getIndexedData();
         *index = idx->getPixel(ixcoor, iycoor);
-        RGBAPixelHDR *mapColor = &idx->getColorTable()[*index];
+        const RGBAPixelHDR *mapColor = &idx->getColorTable()[*index];
         color->setR(color->getR() + (double)mapColor->r / 255.0);
         color->setG(color->getG() + (double)mapColor->g / 255.0);
         color->setB(color->getB() + (double)mapColor->b / 255.0);
@@ -500,7 +500,7 @@ ImageTexture::noInterpolation(
 /** Interpolates color and alpha values when mapping. */
 void
 ImageTexture::interp(
-    ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index)
+    const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index) const
 {
     int iycoor;
     int ixcoor;
@@ -590,7 +590,7 @@ Bilinear interpolation. From an article by Girish T. Hagan in
 C Programmer's Journal V 9 No. 8; adapted for POV-Ray by CdW.
 */
 double
-ImageTexture::biLinear(double *corners, double x, double y)
+ImageTexture::biLinear(const double *corners, double x, double y) const
 {
     double p;
     double q;
@@ -610,13 +610,13 @@ ImageTexture::biLinear(double *corners, double x, double y)
 static constexpr int MAX_PTS = 4;
 
 inline double
-ImageTexture::pythagoreanSq(double a, double b)
+ImageTexture::pythagoreanSq(double a, double b) const
 {
     return a * a + b * b;
 }
 
 double
-ImageTexture::normDist(double *corners, double x, double y)
+ImageTexture::normDist(const double *corners, double x, double y) const
 {
     double p;
     double q;

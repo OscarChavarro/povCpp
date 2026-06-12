@@ -14,16 +14,16 @@ SolidTextureFixturesFacade::SolidTextureFixturesFacade(
 void
 SolidTextureFixturesFacade::checkerTexture(
     double x, double y, double z, ColorRgba *color,
-    int textureNumber1, Matrix4x4d *textureTransformationInverse1,
-    ControlledRGBAImageHDRUncompressed *image1, ColorRgba *color1_1, ColorRgba *color2_1,
-    double turbulence1, int octaves1, RGBAColorPalette *colorMap1,
+    int textureNumber1, const Matrix4x4d *textureTransformationInverse1,
+    const ControlledRGBAImageHDRUncompressed *image1, const ColorRgba *color1_1, const ColorRgba *color2_1,
+    double turbulence1, int octaves1, const RGBAColorPalette *colorMap1,
     Vector3Dd textureGradient1, double mortar1,
-    int textureNumber2, Matrix4x4d *textureTransformationInverse2,
-    ControlledRGBAImageHDRUncompressed *image2, ColorRgba *color1_2, ColorRgba *color2_2,
-    double turbulence2, int octaves2, RGBAColorPalette *colorMap2,
+    int textureNumber2, const Matrix4x4d *textureTransformationInverse2,
+    const ControlledRGBAImageHDRUncompressed *image2, const ColorRgba *color1_2, const ColorRgba *color2_2,
+    double turbulence2, int octaves2, const RGBAColorPalette *colorMap2,
     Vector3Dd textureGradient2, double mortar2,
     double smallTolerance
-    )
+    ) const
 {
     int index;
     Vector3Dd point;
@@ -58,37 +58,37 @@ void
 SolidTextureFixturesFacade::colorAt(
     ColorRgba *color,
     int textureNumber,
-    Matrix4x4d *textureTransformationInverse,
-    ControlledRGBAImageHDRUncompressed *image,
-    ColorRgba *color1,
-    ColorRgba *color2,
+    const Matrix4x4d *textureTransformationInverse,
+    const ControlledRGBAImageHDRUncompressed *image,
+    const ColorRgba *color1,
+    const ColorRgba *color2,
     double turbulence,
     int octaves,
-    RGBAColorPalette *colorMap,
+    const RGBAColorPalette *colorMap,
     Vector3Dd textureGradient,
     double mortar,
-    Vector3Dd *intersectionPoint,
+    const Vector3Dd *intersectionPoint,
     double smallTolerance,
     int textureNumber1,
-    Matrix4x4d *textureTransformationInverse1,
-    ControlledRGBAImageHDRUncompressed *image1,
-    ColorRgba *color1_1,
-    ColorRgba *color2_1,
+    const Matrix4x4d *textureTransformationInverse1,
+    const ControlledRGBAImageHDRUncompressed *image1,
+    const ColorRgba *color1_1,
+    const ColorRgba *color2_1,
     double turbulence1,
     int octaves1,
-    RGBAColorPalette *colorMap1,
+    const RGBAColorPalette *colorMap1,
     Vector3Dd textureGradient1,
     double mortar1,
     int textureNumber2,
-    Matrix4x4d *textureTransformationInverse2,
-    ControlledRGBAImageHDRUncompressed *image2,
-    ColorRgba *color1_2,
-    ColorRgba *color2_2,
+    const Matrix4x4d *textureTransformationInverse2,
+    const ControlledRGBAImageHDRUncompressed *image2,
+    const ColorRgba *color1_2,
+    const ColorRgba *color2_2,
     double turbulence2,
     int octaves2,
-    RGBAColorPalette *colorMap2,
+    const RGBAColorPalette *colorMap2,
     Vector3Dd textureGradient2,
-    double mortar2)
+    double mortar2) const
 {
     double x;
     double y;

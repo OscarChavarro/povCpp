@@ -7,9 +7,9 @@ class CommandLineOptions {
     static bool inFlag;
     static bool outFlag;
 
-    static void readOptions(char *optionLine);
-    static void parseOption(char *optionString);
-    static void parseFileName(char *fileName);
+    static void readOptions(const char *optionLine);
+    static void parseOption(const char *optionString);
+    static void parseFileName(const char *fileName);
 
   public:
     static void reset();

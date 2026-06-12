@@ -24,7 +24,7 @@ class Light : public Geometry {
     static void scalePoint(SimpleBody *object, Vector3Dd *vector);
     static void invertPoint(SimpleBody *object);
     static double attenuateLight(
-        Light *lightSource, RayWithSegments *lightSourceRay);
+        const Light *lightSource, const RayWithSegments *lightSourceRay);
 
   private:
     static double cubicSpline(double low, double high, double pos);

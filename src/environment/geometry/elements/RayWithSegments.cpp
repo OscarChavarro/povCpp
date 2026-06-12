@@ -54,7 +54,7 @@ RayWithSegments::initializeContainers()
 }
 
 void
-RayWithSegments::copyContainersFrom(RayWithSegments *sourceRay)
+RayWithSegments::copyContainersFrom(const RayWithSegments *sourceRay)
 {
     int i;
 

@@ -18,14 +18,14 @@
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
 void
-DirectLightShader::shade(Material *texture, Vector3Dd *intersectionPoint,
-    RayWithSegments *eye, Vector3Dd *surfaceNormal, ColorRgba *surfaceColor,
+DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionPoint,
+    const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
-    Light *lightSources, SimpleBody *objects)
+    const Light *lightSources, SimpleBody *objects)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
-    Light *lightSource;
+    const Light *lightSource;
     SimpleBody *blockingObject;
     bool intersectionFound;
     Intersection *localIntersection;

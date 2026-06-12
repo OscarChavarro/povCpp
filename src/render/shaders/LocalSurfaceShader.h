@@ -12,10 +12,10 @@ class SimpleBody;
 
 class LocalSurfaceShader {
 public:
-    static void shade(RayWithSegments *ray, Material *texture,
+    static void shade(const RayWithSegments *ray, Material *texture,
         Intersection *rayIntersection, ColorRgba *surfaceColor,
-        ColorRgba *filterColor, ColorRgba *color,
-        const TraceService *traceService, Light *lightSources,
+        const ColorRgba *filterColor, ColorRgba *color,
+        const TraceService *traceService, const Light *lightSources,
         SimpleBody *objects, int &traceLevel);
 };
 

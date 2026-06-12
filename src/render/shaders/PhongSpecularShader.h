@@ -9,9 +9,9 @@ class ColorRgba;
 
 class PhongSpecularShader {
 public:
-    static void shade(Material *texture, RayWithSegments *lightSourceRay,
-        Vector3Dd eye, Vector3Dd *surfaceNormal, ColorRgba *color,
-        ColorRgba *lightColor, ColorRgba *surfaceColor);
+    static void shade(const Material *texture, const RayWithSegments *lightSourceRay,
+        Vector3Dd eye, const Vector3Dd *surfaceNormal, ColorRgba *color,
+        const ColorRgba *lightColor, const ColorRgba *surfaceColor);
 };
 
 #endif

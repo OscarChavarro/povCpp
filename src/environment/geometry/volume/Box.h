@@ -15,8 +15,8 @@ class Box : public Geometry {
 
     static int allBoxIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);
-    static int intersectBoxx(
-        RayWithSegments *ray, Box *box, double *depth1, double *depth2);
+    static int intersectBoxx(const RayWithSegments *ray, const Box *box,
+        double *depth1, double *depth2);
     static int insideBox(Vector3Dd *point, SimpleBody *object);
     static void boxNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

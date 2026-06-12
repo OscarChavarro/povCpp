@@ -4,8 +4,8 @@
 #include "render/shaders/LightSamplerShader.h"
 
 void
-LightSamplerShader::sample(Light *lightSource, double *lightSourceDepth,
-    RayWithSegments *lightSourceRay, Vector3Dd *intersectionPoint,
+LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
+    RayWithSegments *lightSourceRay, const Vector3Dd *intersectionPoint,
     ColorRgba *lightColor)
 {
     double attenuation = 1.0;
