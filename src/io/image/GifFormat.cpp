@@ -35,7 +35,7 @@ GifFormat::outLine(const unsigned char *pixels, int linelen)
 int
 GifFormat::getByte()
 {
-    int byte = bitStream->read();
+    const int byte = bitStream->read();
     if (byte != -1) {
         return byte;
     }
@@ -155,8 +155,8 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
             }
 
             {
-                int gifW = buffer[4] | (buffer[5] << 8);
-                int gifH = buffer[6] | (buffer[7] << 8);
+                const int gifW = buffer[4] | (buffer[5] << 8);
+                const int gifH = buffer[6] | (buffer[7] << 8);
 
                 bitmapLine = 0;
                 image->setColorMapSize(colorMapSize);

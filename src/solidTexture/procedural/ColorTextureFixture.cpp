@@ -24,7 +24,7 @@ ColorTextureFixture::ColorTextureFixture(
 [PERL1985].290 - Agate: combines turbulence modulation with periodic wave function.
 */
 void
-ColorTextureFixture::agate(double x, double y, double z, int octaves, const RGBAColorPalette *colorMap, ColorRgba *color)
+ColorTextureFixture::agate(double x, double y, double z, int octaves, const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     double noise;
     double hue;
@@ -70,7 +70,7 @@ ColorTextureFixture::agate(double x, double y, double z, int octaves, const RGBA
 void
 ColorTextureFixture::bozo(
     double x, double y, double z, double turbulence, int octaves,
-    const RGBAColorPalette *colorMap, ColorRgba *color)
+    const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     double noise;
     double turb;
@@ -118,7 +118,7 @@ ColorTextureFixture::bozo(
 void
 ColorTextureFixture::brick(
     double x, double y, double z, ColorRgba *color, const ColorRgba *color1,
-    const ColorRgba *color2, double mortar)
+    const ColorRgba *color2, double mortar) const
 {
     double xr;
     double yr;
@@ -145,7 +145,7 @@ ColorTextureFixture::brick(
 void
 ColorTextureFixture::checker(
     double x, double y, double z, ColorRgba *color, const ColorRgba *color1,
-    const ColorRgba *color2, double smallTolerance)
+    const ColorRgba *color2, double smallTolerance) const
 {
     int brkindx;
 
@@ -179,7 +179,7 @@ void
 ColorTextureFixture::gradient(
     double x, double y, double z, double turbulence,
     const RGBAColorPalette *colorMap, Vector3Dd textureGradient, int octaves,
-    ColorRgba *color)
+    ColorRgba *color) const
 {
     ColorRgba newColor;
     double value = 0.0;
@@ -225,7 +225,7 @@ Typically used with small scaling values; works with color maps for pink granite
 */
 void
 ColorTextureFixture::granite(
-    double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color)
+    double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     int i;
     double temp;
@@ -261,7 +261,7 @@ Implements: x = point[1] + turbulence(point); color = marble_color(java::Math::s
 void
 ColorTextureFixture::marble(
     double x, double y, double z, double turbulence, int octaves,
-    const RGBAColorPalette *colorMap, ColorRgba *color)
+    const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     double noise;
     double hue;
@@ -298,7 +298,7 @@ with tiny scaling values, like masonry or concrete.
 */
 void
 ColorTextureFixture::spotted(
-    double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color)
+    double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     double noise = proceduralNoise->noise(x, y, z);
     ColorRgba newColor;
@@ -324,7 +324,7 @@ Uses DTurbulence gradient perturbation + cycloidal() for ring bands
 void
 ColorTextureFixture::wood(
     double x, double y, double z, double turbulence, int octaves,
-    const RGBAColorPalette *colorMap, ColorRgba *color)
+    const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     double noise;
     double length;
@@ -365,7 +365,7 @@ ColorTextureFixture::wood(
 void
 ColorTextureFixture::leopard(
     double x, double y, double z, double turbulence, int octaves,
-    const RGBAColorPalette *colorMap, ColorRgba *color)
+    const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     // The variable noise is not used as noise in this function
     double noise;
@@ -410,7 +410,7 @@ Onion texture by Scott Taylor, SWT 7/18/91.
 void
 ColorTextureFixture::onion(
     double x, double y, double z, double turbulence, int octaves,
-    const RGBAColorPalette *colorMap, ColorRgba *color)
+    const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     // The variable noise is not used as noise in this function
     double noise;

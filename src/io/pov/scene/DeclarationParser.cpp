@@ -36,10 +36,9 @@ void
 DeclarationParser::parseDeclare(ParserContext &ctx)
 {
     Material *localTexture;
-    Constant *constantPtr;
 
     ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
-    constantPtr =
+    Constant * const constantPtr =
         ctx.symbols().upsertByIdentifierNumber(ctx.token().identifierNumber);
     if (constantPtr == nullptr) {
         ParseErrorReporter::reportError("Too many constants \"declared\"", ctx);

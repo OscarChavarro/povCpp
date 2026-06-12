@@ -69,7 +69,7 @@ SymbolTable::findByIdentifierNumber(int identifierNumber) const
 Constant *
 SymbolTable::upsertByIdentifierNumber(int identifierNumber)
 {
-    int idx = findByIdentifierNumber(identifierNumber);
+    const int idx = findByIdentifierNumber(identifierNumber);
     if (idx != -1) {
         return &mData[idx];
     }

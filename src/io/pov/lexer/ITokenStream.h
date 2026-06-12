@@ -7,7 +7,7 @@
 class ITokenStream {
   public:
     virtual ~ITokenStream() {}
-    virtual ReservedWord *reservedWords() = 0;
+    virtual const ReservedWord *reservedWords() = 0;
     virtual TokenStruct &token() = 0;
     virtual void getToken() = 0;
     virtual void ungetToken() = 0;

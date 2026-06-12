@@ -6,7 +6,7 @@
 #include "solidTexture/TextureUtils.h"
 
 SolidTextureFixturesFacade::SolidTextureFixturesFacade(
-    ProceduralNoise *proceduralNoise, TextureUtils *textureUtils)
+    const ProceduralNoise *proceduralNoise, const TextureUtils *textureUtils)
     : proceduralNoise(proceduralNoise), textureUtils(textureUtils)
 {
 }

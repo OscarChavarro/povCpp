@@ -71,7 +71,7 @@ void SceneDumper::dumpSceneStructure(FILE *f)
             if (tex->colorMap) {
                 fprintf(f, "  tex.cmap n=%d", tex->colorMap->size());
                 for (int i = 0; i < tex->colorMap->size(); i++) {
-                    ColorRgba *c = tex->colorMap->getColorAt(i);
+                    const ColorRgba *c = tex->colorMap->getColorAt(i);
                     if (tex->colorMap->hasPositions()) {
                         fprintf(f, " [%.6f %.3f,%.3f,%.3f,%.3f]",
                                 tex->colorMap->getPositionAt(i),

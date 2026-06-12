@@ -167,19 +167,19 @@ int
 RawFormat::readLine(ColorRgba *lineData, int *lineNumber)
 {
     for (int i = 0; i < width; i++) {
-        int data = redIn->read();
+        const int data = redIn->read();
         if (data == -1) {
             return (i == 0) ? 0 : -1;
         }
         lineData[i].setR((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
-        int data = greenIn->read();
+        const int data = greenIn->read();
         if (data == -1) return -1;
         lineData[i].setG((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
-        int data = blueIn->read();
+        const int data = blueIn->read();
         if (data == -1) return -1;
         lineData[i].setB((double)data / 255.0);
     }

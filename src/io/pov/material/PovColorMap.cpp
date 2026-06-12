@@ -52,7 +52,7 @@ ColorRgba PovColorMap::evalLinear(double t) const {
     for (int i = 0; i < (int)_spans.size(); i++) {
         const Span* s = _spans.get(i);
         if (s != nullptr && t >= s->start && t <= s->end) {
-            double frac = (t - s->start) / (s->end - s->start);
+            const double frac = (t - s->start) / (s->end - s->start);
             result.setR(s->startColor.getR() + frac * (s->endColor.getR() - s->startColor.getR()));
             result.setG(s->startColor.getG() + frac * (s->endColor.getG() - s->startColor.getG()));
             result.setB(s->startColor.getB() + frac * (s->endColor.getB() - s->startColor.getB()));

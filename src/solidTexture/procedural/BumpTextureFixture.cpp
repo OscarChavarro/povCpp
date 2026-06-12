@@ -24,7 +24,7 @@ Implements: normal += wave(point - center), wave(v) = direction(v) * cycloid(nor
 void
 BumpTextureFixture::ripples(
     double x, double y, double z, double bumpAmount, double frequency,
-    double phase, int numberOfWaves, Vector3Dd *normal)
+    double phase, int numberOfWaves, Vector3Dd *normal) const
 {
     int i;
     Vector3Dd point;
@@ -57,7 +57,7 @@ Implements: wave(v) = direction((point-c)*f)/f with per-source frequency scaling
 void
 BumpTextureFixture::waves(
     double x, double y, double z, double bumpAmount, double frequency,
-    double phase, int numberOfWaves, Vector3Dd *normal)
+    double phase, int numberOfWaves, Vector3Dd *normal) const
 {
     int i;
     Vector3Dd point;
@@ -91,7 +91,7 @@ Implements: normal += DNoise(point).
 */
 void
 BumpTextureFixture::bumps(
-    double x, double y, double z, double bumpAmount, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, Vector3Dd *normal) const
 {
     Vector3Dd bumpTurbulence;
 
@@ -111,7 +111,7 @@ Similar to bumps but uses Noise() to gate the amount of DNoise() perturbation.
 */
 void
 BumpTextureFixture::dents(
-    double x, double y, double z, double bumpAmount, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, Vector3Dd *normal) const
 {
     Vector3Dd stuccoTurbulence;
     double noise;
@@ -139,7 +139,7 @@ Vector-valued turbulence: sum over octaves of |DNoise(p*scale)| / scale.
 */
 void
 BumpTextureFixture::wrinkles(
-    double x, double y, double z, double bumpAmount, Vector3Dd *normal)
+    double x, double y, double z, double bumpAmount, Vector3Dd *normal) const
 {
     int i;
     double scale = 1.0;

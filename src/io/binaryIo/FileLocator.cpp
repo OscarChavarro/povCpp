@@ -42,7 +42,7 @@ FileLocator::locate(const char *filename, const char *mode)
 java::FileInputStream *
 FileLocator::locateAsStream(const char *filename)
 {
-    java::File file(filename);
+    const java::File file(filename);
     if (file.canRead()) {
         return new java::FileInputStream(filename);
     }
@@ -50,7 +50,7 @@ FileLocator::locateAsStream(const char *filename)
     for (long int i = 0; i < sLibraryPaths.size(); i++) {
         char pathname[512];
         snprintf(pathname, sizeof(pathname), "%s/%s", sLibraryPaths.get(i).toCString(), filename);
-        java::File candidate(pathname);
+        const java::File candidate(pathname);
         if (candidate.canRead()) {
             return new java::FileInputStream(pathname);
         }

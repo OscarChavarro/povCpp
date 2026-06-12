@@ -599,8 +599,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     break;
 
                                 case Tokenizer::ALL_TOKEN: {
-                                    double alpha;
-                                    alpha = PrimitiveParser::parseFloat(ctx);
+                                    const double alpha = PrimitiveParser::parseFloat(ctx);
 
                                     for (reg = 0;
                                         reg < texture->image->getIndexedData()->getColorMapSize();

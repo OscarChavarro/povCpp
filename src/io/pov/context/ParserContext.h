@@ -14,7 +14,7 @@ class ParserContext {
   public:
     ParserContext();
 
-    ReservedWord *reservedWords();
+    const ReservedWord *reservedWords();
     TokenStruct &token();
     RenderFrame *&parsingFrame();
     Constant *constants();
