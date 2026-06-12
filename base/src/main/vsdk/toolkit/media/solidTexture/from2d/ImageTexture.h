@@ -1,7 +1,7 @@
 #ifndef __IMAGE_TEXTURE_H__
 #define __IMAGE_TEXTURE_H__
 
-#include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

@@ -2,9 +2,9 @@
 #define __PROCEDURAL_NOISE_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/statistics/SolidTextureStatistics.h"
-#include "numericalAnalysis/lookUpTables/LookUpTableSine.h"
-#include "numericalAnalysis/lookUpTables/LookUpTableChecksum16.h"
+#include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
+#include "vsdk/toolkit/common/numericalAnalysis/lookUpTables/LookUpTableSine.h"
+#include "vsdk/toolkit/common/numericalAnalysis/lookUpTables/LookUpTableChecksum16.h"
 
 /**
 [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85.

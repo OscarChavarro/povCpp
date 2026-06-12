@@ -2,8 +2,8 @@
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
-#include "solidTexture/from2d/SolidTextureCoordinateMapper.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/SolidTextureCoordinateMapper.h"
 
 bool
 SolidTextureCoordinateMapper::cylindricalImageMap(

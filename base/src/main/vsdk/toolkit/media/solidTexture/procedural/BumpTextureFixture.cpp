@@ -8,9 +8,9 @@ References:
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "solidTexture/procedural/BumpTextureFixture.h"
-#include "solidTexture/procedural/ProceduralNoise.h"
-#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/media/solidTexture/procedural/BumpTextureFixture.h"
+#include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 BumpTextureFixture::BumpTextureFixture(const ProceduralNoise *proceduralNoise)
     : proceduralNoise(proceduralNoise)

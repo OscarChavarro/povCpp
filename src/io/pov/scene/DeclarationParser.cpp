@@ -22,7 +22,7 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 void

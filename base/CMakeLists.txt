@@ -28,6 +28,15 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/media/RGBAImageHDRUncompressed.cpp
     src/main/vsdk/toolkit/media/RGBAColorPalette.cpp
     src/main/vsdk/toolkit/media/IndexedColorImageHDRUncompressed.cpp
+    src/main/vsdk/toolkit/common/numericalAnalysis/lookUpTables/LookUpTableSine.cpp
+    src/main/vsdk/toolkit/common/numericalAnalysis/lookUpTables/LookUpTableChecksum16.cpp
+    src/main/vsdk/toolkit/media/solidTexture/TextureUtils.cpp
+    src/main/vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.cpp
+    src/main/vsdk/toolkit/media/solidTexture/procedural/BumpTextureFixture.cpp
+    src/main/vsdk/toolkit/media/solidTexture/procedural/ColorTextureFixture.cpp
+    src/main/vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.cpp
+    src/main/vsdk/toolkit/media/solidTexture/from2d/SolidTextureCoordinateMapper.cpp
+    src/main/vsdk/toolkit/media/solidTexture/from2d/ImageTexture.cpp
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ArrayListInstantiations.cpp" [=[

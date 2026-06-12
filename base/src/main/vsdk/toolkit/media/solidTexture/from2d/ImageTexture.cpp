@@ -6,10 +6,10 @@ Supports planar, spherical, cylindrical, and torus UV projections.
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "solidTexture/from2d/ImageTexture.h"
-#include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
-#include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-#include "solidTexture/from2d/SolidTextureCoordinateMapper.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/SolidTextureCoordinateMapper.h"
 #include "java/lang/Math.h"
 
 static constexpr int MAX_PTS = 4;

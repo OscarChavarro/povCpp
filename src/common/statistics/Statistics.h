@@ -2,7 +2,7 @@
 #define __STATISTICS_H__
 
 #include <ctime>
-#include "common/statistics/SolidTextureStatistics.h"
+#include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
 
 class Statistics {
   public:

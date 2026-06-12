@@ -1,6 +1,6 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "solidTexture/from2d/ImageTexture.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"

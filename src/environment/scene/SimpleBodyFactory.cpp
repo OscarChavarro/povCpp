@@ -2,7 +2,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/MaterialUtils.h"
-#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 void

@@ -19,7 +19,7 @@ This module implements the main raytracing loop.
 #include "common/statistics/Statistics.h"
 #include "common/RenderRuntimeState.h"
 #include "environment/material/RendererConfiguration.h"
-#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"

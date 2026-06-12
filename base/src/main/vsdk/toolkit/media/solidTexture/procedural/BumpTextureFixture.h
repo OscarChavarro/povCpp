@@ -1,7 +1,7 @@
 #ifndef __BUMP_TEXTURE_FIXTURE_H__
 #define __BUMP_TEXTURE_FIXTURE_H__
 
-#include "solidTexture/procedural/ProceduralNoise.h"
+#include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class BumpTextureFixture {

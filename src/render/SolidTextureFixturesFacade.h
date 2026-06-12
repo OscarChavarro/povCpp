@@ -5,9 +5,9 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
-#include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-#include "solidTexture/procedural/ProceduralNoise.h"
-#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 class SolidTextureFixturesFacade {
   private:

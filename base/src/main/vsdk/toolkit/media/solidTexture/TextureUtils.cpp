@@ -9,11 +9,11 @@ MapTextureFixture.cpp respectively.
 
 #include <cstdlib>
 #include "java/util/ArrayList.txx"
-#include "common/statistics/SolidTextureStatistics.h"
+#include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
-#include "solidTexture/TextureUtils.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 namespace {
 constexpr long kWaveRandomMask = 0x7FFF;

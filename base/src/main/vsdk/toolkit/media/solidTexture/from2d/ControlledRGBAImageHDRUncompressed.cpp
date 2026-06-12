@@ -1,4 +1,4 @@
-#include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 
 int
 ControlledRGBAImageHDRUncompressed::getMapType() const
