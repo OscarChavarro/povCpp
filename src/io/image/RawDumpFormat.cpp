@@ -148,32 +148,32 @@ RawDumpFormat::writeLine(const ColorRgba *lineData, int lineNumber)
 int
 RawDumpFormat::readLine(ColorRgba *lineData, int *lineNumber)
 {
-    int lo = inputStream->read();
+    const int lo = inputStream->read();
     if (lo == -1) {
         return 0;
     }
-    int hi = inputStream->read();
+    const int hi = inputStream->read();
     if (hi == -1) {
         return -1;
     }
     *lineNumber = lo + hi * 256;
 
     for (int i = 0; i < width; i++) {
-        int data = inputStream->read();
+        const int data = inputStream->read();
         if (data == -1) {
             return -1;
         }
         lineData[i].setR((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
-        int data = inputStream->read();
+        const int data = inputStream->read();
         if (data == -1) {
             return -1;
         }
         lineData[i].setG((double)data / 255.0);
     }
     for (int i = 0; i < width; i++) {
-        int data = inputStream->read();
+        const int data = inputStream->read();
         if (data == -1) {
             return -1;
         }
@@ -186,11 +186,11 @@ RawDumpFormat::readLine(ColorRgba *lineData, int *lineNumber)
 int
 RawDumpFormat::readRow(RGBAImageHDRUncompressed *image, int *lineNumber)
 {
-    int lo = inputStream->read();
+    const int lo = inputStream->read();
     if (lo == -1) {
         return 0;
     }
-    int hi = inputStream->read();
+    const int hi = inputStream->read();
     if (hi == -1) {
         return -1;
     }
@@ -201,17 +201,17 @@ RawDumpFormat::readRow(RGBAImageHDRUncompressed *image, int *lineNumber)
     unsigned char * const bBuf = new unsigned char[width]();
 
     for (int i = 0; i < width; i++) {
-        int raw = inputStream->read();
+        const int raw = inputStream->read();
         if (raw == -1) { delete[] rBuf; delete[] gBuf; delete[] bBuf; return -1; }
         rBuf[i] = (unsigned char)raw;
     }
     for (int i = 0; i < width; i++) {
-        int raw = inputStream->read();
+        const int raw = inputStream->read();
         if (raw == -1) { delete[] rBuf; delete[] gBuf; delete[] bBuf; return -1; }
         gBuf[i] = (unsigned char)raw;
     }
     for (int i = 0; i < width; i++) {
-        int raw = inputStream->read();
+        const int raw = inputStream->read();
         if (raw == -1) { delete[] rBuf; delete[] gBuf; delete[] bBuf; return -1; }
         bBuf[i] = (unsigned char)raw;
     }

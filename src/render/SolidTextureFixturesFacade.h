@@ -12,11 +12,11 @@
 class SolidTextureFixturesFacade {
   private:
     static constexpr double COORDINATE_LIMIT = 1.0e17;
-    ProceduralNoise * const proceduralNoise;
-    TextureUtils * const textureUtils;
+    const ProceduralNoise * const proceduralNoise;
+    const TextureUtils * const textureUtils;
 
   public:
-    SolidTextureFixturesFacade(ProceduralNoise *proceduralNoise, TextureUtils *textureUtils);
+    SolidTextureFixturesFacade(const ProceduralNoise *proceduralNoise, const TextureUtils *textureUtils);
 
     void checkerTexture(
         double x, double y, double z, ColorRgba *color,

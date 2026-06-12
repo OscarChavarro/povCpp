@@ -32,7 +32,7 @@ IffFormat::iffError()
 int
 IffFormat::readByte(java::FileInputStream &is)
 {
-    int c = is.read();
+    const int c = is.read();
     if (c == -1) {
         IffFormat::iffError();
     }

@@ -113,7 +113,7 @@ int Tokenizer::sGlobalIncludeFileIndex = 0;
 
 TokenStruct Tokenizer::sToken;
 
-ReservedWord *
+const ReservedWord *
 Tokenizer::reservedWords()
 {
     return sReservedWords;

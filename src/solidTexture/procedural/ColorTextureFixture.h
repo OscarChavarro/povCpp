@@ -18,34 +18,34 @@ class ColorTextureFixture {
 
     void agate(
         double x, double y, double z, int octaves, const RGBAColorPalette *colorMap,
-        ColorRgba *color);
+        ColorRgba *color) const;
     void bozo(
         double x, double y, double z, double turbulence, int octaves,
-        const RGBAColorPalette *colorMap, ColorRgba *color);
+        const RGBAColorPalette *colorMap, ColorRgba *color) const;
     void brick(
         double x, double y, double z, ColorRgba *color, const ColorRgba *color1,
-        const ColorRgba *color2, double mortar);
+        const ColorRgba *color2, double mortar) const;
     void checker(
         double x, double y, double z, ColorRgba *color, const ColorRgba *color1,
-        const ColorRgba *color2, double smallTolerance);
+        const ColorRgba *color2, double smallTolerance) const;
     void gradient(
         double x, double y, double z, double turbulence,
         const RGBAColorPalette *colorMap, Vector3Dd textureGradient, int octaves,
-        ColorRgba *color);
-    void granite(double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color);
+        ColorRgba *color) const;
+    void granite(double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color) const;
     void marble(
         double x, double y, double z, double turbulence, int octaves,
-        const RGBAColorPalette *colorMap, ColorRgba *color);
-    void spotted(double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color);
+        const RGBAColorPalette *colorMap, ColorRgba *color) const;
+    void spotted(double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color) const;
     void wood(
         double x, double y, double z, double turbulence, int octaves,
-        const RGBAColorPalette *colorMap, ColorRgba *color);
+        const RGBAColorPalette *colorMap, ColorRgba *color) const;
     void leopard(
         double x, double y, double z, double turbulence, int octaves,
-        const RGBAColorPalette *colorMap, ColorRgba *color);
+        const RGBAColorPalette *colorMap, ColorRgba *color) const;
     void onion(
         double x, double y, double z, double turbulence, int octaves,
-        const RGBAColorPalette *colorMap, ColorRgba *color);
+        const RGBAColorPalette *colorMap, ColorRgba *color) const;
 };
 
 #endif

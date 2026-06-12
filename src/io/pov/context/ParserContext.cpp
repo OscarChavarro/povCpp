@@ -16,7 +16,7 @@ ParserContext::ParserContext()
 {
 }
 
-ReservedWord *
+const ReservedWord *
 ParserContext::reservedWords()
 {
     return mTokenStream->reservedWords();

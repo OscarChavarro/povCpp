@@ -173,7 +173,7 @@ class Tokenizer {
     static constexpr int LOST_TOKEN = 153;
     static constexpr int LAST_TOKEN = 154;
 
-    static ReservedWord *reservedWords();
+    static const ReservedWord *reservedWords();
     static TokenStruct &token();
     static void setCaseSensitiveIdentifiers(int mode);
     static void initializeTokenizer(const char *inputFileName);
