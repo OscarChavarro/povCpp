@@ -1,6 +1,7 @@
 #ifndef __TEXTURE_UTILS_H__
 #define __TEXTURE_UTILS_H__
 
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "common/statistics/SolidTextureStatistics.h"
@@ -13,8 +14,6 @@ class TextureUtils {
     explicit TextureUtils(SolidTextureStatistics *stats);
 
   public:
-    static constexpr int NUMBER_OF_WAVES = 10;
-
     static void initialize(SolidTextureStatistics *stats);
     static TextureUtils& instance();
     ProceduralNoise& getProceduralNoise();
@@ -23,7 +22,7 @@ class TextureUtils {
     static double *waveFrequency();
     static Vector3Dd *waveSources();
     static void computeColor(ColorRgba *color, const RGBAColorPalette *colorMap, double value);
-    void initializeNoise();
+    void initializeNoise(int numberOfWaves);
 };
 
 #endif

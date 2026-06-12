@@ -8,6 +8,7 @@ MapTextureFixture.cpp respectively.
 */
 
 #include <cstdlib>
+#include <vector>
 #include "common/statistics/SolidTextureStatistics.h"
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -19,8 +20,8 @@ constexpr long kWaveRandomMask = 0x7FFF;
 constexpr float kWaveRandomDivisor = static_cast<float>(kWaveRandomMask);
 }
 
-static double frequencyInstance[TextureUtils::NUMBER_OF_WAVES];
-static Vector3Dd waveSourcesInstance[TextureUtils::NUMBER_OF_WAVES];
+static std::vector<double> frequencyInstance;
+static std::vector<Vector3Dd> waveSourcesInstance;
 
 TextureUtils* TextureUtils::textureInstance = nullptr;
 
@@ -63,13 +64,13 @@ TextureUtils::fabsInline(double x)
 double *
 TextureUtils::waveFrequency()
 {
-    return frequencyInstance;
+    return frequencyInstance.data();
 }
 
 Vector3Dd *
 TextureUtils::waveSources()
 {
-    return waveSourcesInstance;
+    return waveSourcesInstance.data();
 }
 
 void
@@ -82,13 +83,16 @@ TextureUtils::computeColor(
 }
 
 void
-TextureUtils::initializeNoise()
+TextureUtils::initializeNoise(int numberOfWaves)
 {
     Vector3Dd point;
 
     proceduralNoise.initialize();
 
-    for (int i = 0; i < TextureUtils::NUMBER_OF_WAVES; i++) {
+    frequencyInstance.resize(numberOfWaves);
+    waveSourcesInstance.resize(numberOfWaves);
+
+    for (int i = 0; i < numberOfWaves; i++) {
         proceduralNoise.differentialNoise(&point, (double)i, 0.0, 0.0);
         waveSources()[i] = point.normalizedFast();
         waveFrequency()[i] = (rand() & kWaveRandomMask) / kWaveRandomDivisor + 0.01;

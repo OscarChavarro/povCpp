@@ -1,4 +1,5 @@
 #include "solidTexture/from2d/ImageTexture.h"
+#include "solidTexture/TextureUtils.h"
 #include "solidTexture/procedural/BumpTextureFixture.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/geometry/GeometryConstants.h"
@@ -37,13 +38,13 @@ BumpNormalShader::shade(Vector3Dd *newNormal, const Material *texture,
     case SolidTextureBumpyNames::WAVES:
         bumpFixture.waves(
             x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
-            TextureUtils::NUMBER_OF_WAVES, newNormal);
+            texture->numberOfWaves, newNormal);
         break;
 
     case SolidTextureBumpyNames::RIPPLES:
         bumpFixture.ripples(
             x, y, z, texture->bumpAmount, texture->frequency, texture->phase,
-            TextureUtils::NUMBER_OF_WAVES, newNormal);
+            texture->numberOfWaves, newNormal);
         break;
 
     case SolidTextureBumpyNames::WRINKLES:

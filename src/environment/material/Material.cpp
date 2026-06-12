@@ -3,5 +3,5 @@
 
 Material::Material()
 {
-
+    numberOfWaves = DEFAULT_NUMBER_OF_WAVES;
 }
