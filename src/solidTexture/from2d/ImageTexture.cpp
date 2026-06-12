@@ -5,15 +5,17 @@ Supports planar, spherical, cylindrical, and torus UV projections.
 
 #include <cmath>
 
+#include "java/lang/Math.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "solidTexture/from2d/ImageTexture.h"
 #include "solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "java/lang/Math.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
+
+static constexpr int MAX_PTS = 4;
 
 /**
 2-D to 3-D procedural texture mapping of a bitmap onto an object.
@@ -57,7 +59,6 @@ ImageTexture::materialMap(
     double yCoordinate = 0.0;
     int regNumber = 0;
     ColorRgba color;
-    int materialNumber = 0;
     color.setR(0.0); color.setG(0.0); color.setB(0.0); color.setA(0.0);
 
     if (textureTransformationInverse) {
@@ -72,6 +73,8 @@ ImageTexture::materialMap(
     z = transformedPoint.z();
 
     // Now we have transformed x, y, z: use image mapping to determine texture index
+    int materialNumber;
+
     if (map(x, y, z, materialImage, &xCoordinate, &yCoordinate, smallTolerance)) {
         materialNumber = 0;
     } else {
@@ -98,8 +101,8 @@ ImageTexture::bumpMap(
     double x, double y, double z, const ControlledRGBAImageHDRUncompressed *bumpImage, double bumpAmount,
     Vector3Dd *normal, double smallTolerance) const
 {
-    double xcoor = 0.0;
-    double ycoor = 0.0;
+    double xCoordinate = 0.0;
+    double yCoordinate = 0.0;
     int index;
     int index2;
     int index3;
@@ -110,9 +113,9 @@ ImageTexture::bumpMap(
     Vector3Dd p2;
     Vector3Dd p3;
     Vector3Dd bumpNormal;
-    Vector3Dd xprime;
-    Vector3Dd yprime;
-    Vector3Dd zprime;
+    Vector3Dd xPrime;
+    Vector3Dd yPrime;
+    Vector3Dd zPrime;
     Vector3Dd temp;
     double length;
     color.setR(0.0); color.setG(0.0); color.setB(0.0); color.setA(0.0);
@@ -122,38 +125,37 @@ ImageTexture::bumpMap(
     // going to have to change this
     // need to know if bump point is off of image for all 3 points
 
-    if (map(x, y, z, bumpImage, &xcoor, &ycoor, smallTolerance)) {
+    if (map(x, y, z, bumpImage, &xCoordinate, &yCoordinate, smallTolerance)) {
         color.setR(1.0); color.setG(1.0); color.setB(1.0); color.setA(1.0);
         index = 255;
         return;
     }
-    imageColorAt(bumpImage, xcoor, ycoor, &color, &index);
+    imageColorAt(bumpImage, xCoordinate, yCoordinate, &color, &index);
 
-    xcoor--;
-    ycoor++;
-    if (xcoor < 0.0) {
-        xcoor += (double)bumpImage->getXSize();
-    } else if (xcoor >= bumpImage->getXSize()) {
-        xcoor -= (double)bumpImage->getXSize();
+    xCoordinate--;
+    yCoordinate++;
+    if (xCoordinate < 0.0) {
+        xCoordinate += (double)bumpImage->getXSize();
+    } else if (xCoordinate >= bumpImage->getXSize()) {
+        xCoordinate -= (double)bumpImage->getXSize();
     }
-    if (ycoor < 0.0) {
-        ycoor += (double)bumpImage->getYSize();
-    } else if (ycoor >= (double)bumpImage->getYSize()) {
-        ycoor -= (double)bumpImage->getYSize();
+    if (yCoordinate < 0.0) {
+        yCoordinate += (double)bumpImage->getYSize();
+    } else if (yCoordinate >= (double)bumpImage->getYSize()) {
+        yCoordinate -= (double)bumpImage->getYSize();
     }
     imageColorAt(
-        bumpImage, xcoor, ycoor, &color2, &index2);
+        bumpImage, xCoordinate, yCoordinate, &color2, &index2);
 
-    xcoor += 2.0;
-    if (xcoor < 0.0) {
-        xcoor += (double)bumpImage->getXSize();
-    } else if (xcoor >= bumpImage->getXSize()) {
-        xcoor -= (double)bumpImage->getXSize();
+    xCoordinate += 2.0;
+    if (xCoordinate < 0.0) {
+        xCoordinate += (double)bumpImage->getXSize();
+    } else if (xCoordinate >= bumpImage->getXSize()) {
+        xCoordinate -= (double)bumpImage->getXSize();
     }
 
     imageColorAt(
-        bumpImage, xcoor, ycoor, &color3, &index3);
-
+        bumpImage, xCoordinate, yCoordinate, &color3, &index3);
 
     if (bumpImage->getIndexedData() == nullptr ||
         bumpImage->getUseColorFlag()) {
@@ -176,35 +178,36 @@ ImageTexture::bumpMap(
         p2 = Vector3Dd(0, bumpAmount * index2, 1);
         p3 = Vector3Dd(1, bumpAmount * index3, 1);
     }
-    // we have points 1,2,3 for a triangle; compute the surface normal
-    xprime = p1.subtract(p2);
-    yprime = p3.subtract(p2);
-    bumpNormal = yprime.crossProduct(xprime);
+
+    // We have points 1, 2, 3 for a triangle; compute the surface normal
+    xPrime = p1.subtract(p2);
+    yPrime = p3.subtract(p2);
+    bumpNormal = yPrime.crossProduct(xPrime);
     bumpNormal = bumpNormal.normalizedFast();
 
-    *&yprime = Vector3Dd(normal->x(), normal->y(), normal->z());
+    *&yPrime = Vector3Dd(normal->x(), normal->y(), normal->z());
     *&temp = Vector3Dd(0.0, 1.0, 0.0);
-    xprime = yprime.crossProduct(temp);
-    length = xprime.length();
+    xPrime = yPrime.crossProduct(temp);
+    length = xPrime.length();
     if (length < 1.0e-9) {
         if (java::Math::abs(normal->y() - 1.0) < smallTolerance) {
-            *&yprime = Vector3Dd(0.0, 1.0, 0.0);
-            *&xprime = Vector3Dd(1.0, 0.0, 0.0);
+            *&yPrime = Vector3Dd(0.0, 1.0, 0.0);
+            *&xPrime = Vector3Dd(1.0, 0.0, 0.0);
             length = 1.0;
         } else {
-            *&yprime = Vector3Dd(0.0, -1.0, 0.0);
-            *&xprime = Vector3Dd(1.0, 0.0, 0.0);
+            *&yPrime = Vector3Dd(0.0, -1.0, 0.0);
+            *&xPrime = Vector3Dd(1.0, 0.0, 0.0);
             length = 1.0;
         }
     }
-    xprime = xprime.multiply(1.0 / length);
-    zprime = xprime.crossProduct(yprime);
-    zprime = zprime.normalizedFast();
-    xprime = xprime.multiply(bumpNormal.x());
-    yprime = yprime.multiply(bumpNormal.y());
-    zprime = zprime.multiply(bumpNormal.z());
-    temp = xprime.add(yprime);
-    *normal = temp.add(zprime);
+    xPrime = xPrime.multiply(1.0 / length);
+    zPrime = xPrime.crossProduct(yPrime);
+    zPrime = zPrime.normalizedFast();
+    xPrime = xPrime.multiply(bumpNormal.x());
+    yPrime = yPrime.multiply(bumpNormal.y());
+    zPrime = zPrime.multiply(bumpNormal.z());
+    temp = xPrime.add(yPrime);
+    *normal = temp.add(zPrime);
     *normal = (*normal).normalizedFast();
 }
 
@@ -213,17 +216,19 @@ ImageTexture::imageColorAt(
     const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index) const
 {
     switch (image->getInterpolationType()) {
-    case (int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION:
+      case (int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION:
         noInterpolation(image, xCoordinate, yCoordinate, color, index);
         break;
-    default:
+      default:
         interp(image, xCoordinate, yCoordinate, color, index);
         break;
     }
 }
 
-/** Maps a point (x, y, z) on a cylinder of radius 1, height 1 with y-axis symmetry to [0,1]x[0,1]. */
-int
+/**
+Maps a point (x, y, z) on a cylinder of radius 1, height 1 with y-axis symmetry to [0,1]x[0,1].
+*/
+bool
 ImageTexture::cylindricalImageMap(
     double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
 {
@@ -231,14 +236,14 @@ ImageTexture::cylindricalImageMap(
     double theta;
 
     if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
-        return 0;
+        return false;
     }
     *v = std::fmod(y * image->getYSize(), image->getYSize());
 
     // Make sure this vector is on the unit sphere.
     len = java::Math::sqrt(x * x + y * y + z * z);
     if (len == 0.0) {
-        return 0;
+        return false;
     }
     x /= len;
     z /= len;
@@ -246,7 +251,7 @@ ImageTexture::cylindricalImageMap(
     // Determine its angle from the point (1, 0, 0) in the x-z plane.
     len = java::Math::sqrt(x * x + z * z);
     if (len == 0.0) {
-        return 0;
+        return false;
     }
     if (z == 0.0) {
         if (x > 0) {
@@ -263,11 +268,13 @@ ImageTexture::cylindricalImageMap(
     theta /= 2.0 * java::Math::PI; // normalizes theta to [0, 1]
 
     *u = (theta * image->getXSize());
-    return 1;
+    return true;
 }
 
-/** Maps a point (x, y, z) on a torus to a 2-D image. */
-int
+/**
+Maps a point (x, y, z) on a torus to a 2-D image.
+*/
+bool
 ImageTexture::torusImageMap(
     double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
 {
@@ -281,7 +288,7 @@ ImageTexture::torusImageMap(
     // Determine its angle from the x-axis.
     len = java::Math::sqrt(x * x + z * z);
     if (len == 0.0) {
-        return 0;
+        return false;
     }
     if (z == 0.0) {
         if (x > 0) {
@@ -311,11 +318,11 @@ ImageTexture::torusImageMap(
     phi /= 2.0 * java::Math::PI;
     *u = (-theta * image->getXSize());
     *v = (phi * image->getYSize());
-    return 1;
+    return true;
 }
 
 /** Maps a point (x, y, z) on a unit sphere to a 2-D image. */
-int
+bool
 ImageTexture::sphericalImageMap(
     double x, double y, double z, const RGBAImageHDRUncompressed *image, double *u, double *v) const
 {
@@ -326,7 +333,7 @@ ImageTexture::sphericalImageMap(
     // Make sure this vector is on the unit sphere.
     len = java::Math::sqrt(x * x + y * y + z * z);
     if (len == 0.0) {
-        return 0;
+        return false;
     }
     x /= len;
     y /= len;
@@ -338,7 +345,7 @@ ImageTexture::sphericalImageMap(
     // Determine its angle from the point (1, 0, 0) in the x-z plane.
     len = java::Math::sqrt(x * x + z * z);
     if (len == 0.0) {
-        // at a pole: any xcoord value is valid
+        // At a pole: any xCoordinate value is valid
         theta = 0;
     } else {
         if (z == 0.0) {
@@ -357,20 +364,20 @@ ImageTexture::sphericalImageMap(
     }
     *u = (theta * image->getXSize());
     *v = (phi * image->getYSize());
-    return 1;
+    return true;
 }
 
 /**
 Simplistic planar image projection by DKB and AAC.
 Returns 0 if no color at this point (invisible), 1 if a good mapping is found.
 */
-int
+bool
 ImageTexture::planarImageMap(
     double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const
 {
     if (image->getImageGradient().x() != 0.0) {
         if ((image->getOnceFlag()) && ((x < 0.0) || (x > 1.0))) {
-            return 0;
+            return false;
         }
         if (image->getImageGradient().x() > 0) {
             *u = std::fmod(x * image->getXSize(), image->getXSize());
@@ -380,7 +387,7 @@ ImageTexture::planarImageMap(
     }
     if (image->getImageGradient().y() != 0.0) {
         if ((image->getOnceFlag()) && ((y < 0.0) || (y > 1.0))) {
-            return 0;
+            return false;
         }
         if (image->getImageGradient().y() > 0) {
             *u = std::fmod(y * image->getXSize(), image->getXSize());
@@ -390,7 +397,7 @@ ImageTexture::planarImageMap(
     }
     if (image->getImageGradient().z() != 0.0) {
         if ((image->getOnceFlag()) && ((z < 0.0) || (z > 1.0))) {
-            return 0;
+            return false;
         }
         if (image->getImageGradient().z() > 0) {
             *u = std::fmod(z * image->getXSize(), image->getXSize());
@@ -398,11 +405,13 @@ ImageTexture::planarImageMap(
             *v = std::fmod(z * image->getYSize(), image->getYSize());
         }
     }
-    return 1;
+    return true;
 }
 
-/** Returns 1 if no color found at this point (invisible), 0 if a color was mapped. */
-int
+/**
+Returns 1 if no color found at this point (invisible), 0 if a color was mapped.
+*/
+bool
 ImageTexture::map(double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image,
     double *xCoordinate, double *yCoordinate, double smallTolerance) const
 {
@@ -410,27 +419,27 @@ ImageTexture::map(double x, double y, double z, const ControlledRGBAImageHDRUnco
     switch (image->getMapType()) {
     case ImageToSolidTextureProjectionMethods::PLANAR_MAP:
         if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return (1);
+            return true;
         }
         break;
     case ImageToSolidTextureProjectionMethods::SPHERICAL_MAP:
         if (!sphericalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return (1);
+            return true;
         }
         break;
     case ImageToSolidTextureProjectionMethods::CYLINDRICAL_MAP:
         if (!cylindricalImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return (1);
+            return true;
         }
         break;
     case ImageToSolidTextureProjectionMethods::TORUS_MAP:
         if (!torusImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return (1);
+            return true;
         }
         break;
     default:
         if (!planarImageMap(x, y, z, image, xCoordinate, yCoordinate)) {
-            return (1);
+            return true;
         }
         break;
     }
@@ -458,7 +467,7 @@ ImageTexture::map(double x, double y, double z, const ControlledRGBAImageHDRUnco
         Logger::reportMessage("MapTextureFixture", Logger::FATAL_ERROR, "", "\nPicture index out of range\n");
     }
 
-    return (0);
+    return false;
 }
 
 void
@@ -476,19 +485,19 @@ ImageTexture::noInterpolation(
         yCoordinate -= (double)image->getYSize();
     }
 
-    const int iycoor = (int)yCoordinate;
-    const int ixcoor = (int)xCoordinate;
+    const int x = (int)xCoordinate;
+    const int y = (int)yCoordinate;
 
     if (image->getIndexedData() == nullptr) {
         RGBAPixelHDR pixel;
-        image->getPixel(ixcoor, iycoor, &pixel);
+        image->getPixel(x, y, &pixel);
         color->setR(color->getR() + (double)pixel.r / 255.0);
         color->setG(color->getG() + (double)pixel.g / 255.0);
         color->setB(color->getB() + (double)pixel.b / 255.0);
         *index = -1;
     } else {
         const IndexedColorImageHDRUncompressed *idx = image->getIndexedData();
-        *index = idx->getPixel(ixcoor, iycoor);
+        *index = idx->getPixel(x, y);
         const RGBAPixelHDR *mapColor = &idx->getColorTable()[*index];
         color->setR(color->getR() + (double)mapColor->r / 255.0);
         color->setG(color->getG() + (double)mapColor->g / 255.0);
@@ -497,14 +506,13 @@ ImageTexture::noInterpolation(
     }
 }
 
-/** Interpolates color and alpha values when mapping. */
+/**
+Interpolates color and alpha values when mapping.
+*/
 void
 ImageTexture::interp(
     const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate, ColorRgba *color, int *index) const
 {
-    int iycoor;
-    int ixcoor;
-    int i;
     int cornersIndex[4];
     double indexCrn[4];
     ColorRgba cornerColor[4];
@@ -516,22 +524,24 @@ ImageTexture::interp(
     double val2 = 0;
     double val3 = 0;
     double val4 = 0;
+    int x = (int)xCoordinate;
+    int y = (int)yCoordinate;
 
-    iycoor = (int)yCoordinate;
-    ixcoor = (int)xCoordinate;
+    int i;
+
     for (i = 0; i < 4; i++) {
         cornerColor[i].setR(0.0); cornerColor[i].setG(0.0); cornerColor[i].setB(0.0); cornerColor[i].setA(0.0);
     }
 
     // Sample the four surrounding pixels
     if (image->getInterpolationType() == ImageToSolidTextureInterpolationTypes::BI_LINEAR) {
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+        noInterpolation(image, (double)x + 1, (double)y,
             &cornerColor[0], &cornersIndex[0]);
-        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColor[1],
+        noInterpolation(image, (double)x, (double)y, &cornerColor[1],
             &cornersIndex[1]);
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
+        noInterpolation(image, (double)x + 1, (double)y - 1,
             &cornerColor[2], &cornersIndex[2]);
-        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+        noInterpolation(image, (double)x, (double)y - 1,
             &cornerColor[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColor[i].getR();
@@ -546,20 +556,19 @@ ImageTexture::interp(
         val4 = biLinear(alphaCrn, xCoordinate, yCoordinate);
     }
     if (image->getInterpolationType() == (int)ImageToSolidTextureInterpolationTypes::NORMALIZED_DIST) {
-        noInterpolation(image, (double)ixcoor, (double)iycoor - 1,
+        noInterpolation(image, (double)x, (double)y - 1,
             &cornerColor[0], &cornersIndex[0]);
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor - 1,
+        noInterpolation(image, (double)x + 1, (double)y - 1,
             &cornerColor[1], &cornersIndex[1]);
-        noInterpolation(image, (double)ixcoor, (double)iycoor, &cornerColor[2],
+        noInterpolation(image, (double)x, (double)y, &cornerColor[2],
             &cornersIndex[2]);
-        noInterpolation(image, (double)ixcoor + 1, (double)iycoor,
+        noInterpolation(image, (double)x + 1, (double)y,
             &cornerColor[3], &cornersIndex[3]);
         for (i = 0; i < 4; i++) {
             redCrn[i] = cornerColor[i].getR();
             greenCrn[i] = cornerColor[i].getG();
             blueCrn[i] = cornerColor[i].getB();
             alphaCrn[i] = cornerColor[i].getA();
-            // Logger::info("Crn %d = %lf %lf %lf\n",i,Red_Crn[i],Blue_Crn[i],Green_Crn[i]);
         }
 
         val1 = normDist(redCrn, xCoordinate, yCoordinate);
@@ -572,8 +581,8 @@ ImageTexture::interp(
     color->setG(color->getG() + val2);
     color->setB(color->getB() + val3);
     color->setA(color->getA() + val4);
-    // Logger::info("Final = %lf %lf %lf\n",val1,val2,val3);
-    // use bilinear for index; try average later
+
+    // Use bi-linear for index; try average later
     for (i = 0; i < 4; i++) {
         indexCrn[i] = (double)cornersIndex[i];
     }
@@ -586,7 +595,7 @@ ImageTexture::interp(
 }
 
 /**
-Bilinear interpolation. From an article by Girish T. Hagan in
+Bi-linear interpolation. From an article by Girish T. Hagan in
 C Programmer's Journal V 9 No. 8; adapted for POV-Ray by CdW.
 */
 double
@@ -594,7 +603,6 @@ ImageTexture::biLinear(const double *corners, double x, double y) const
 {
     double p;
     double q;
-    double val = 0.0;
 
     p = x - (int)x;
     q = y - (int)y;
@@ -602,12 +610,9 @@ ImageTexture::biLinear(const double *corners, double x, double y) const
         return (*corners); // Upper left
     }
 
-    val = (p * q * *corners) + (q * (1 - p) * *(corners + 1)) +
+    return (p * q * *corners) + (q * (1 - p) * *(corners + 1)) +
           (p * (1 - q) * *(corners + 2)) + ((1 - p) * (1 - q) * *(corners + 3));
-    return (val);
 }
-
-static constexpr int MAX_PTS = 4;
 
 inline double
 ImageTexture::pythagoreanSq(double a, double b) const

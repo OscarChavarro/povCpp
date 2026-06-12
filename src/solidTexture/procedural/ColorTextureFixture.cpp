@@ -73,15 +73,15 @@ ColorTextureFixture::bozo(
     const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     double noise;
-    double turb;
+    double currentTurbulence;
     ColorRgba newColor;
     Vector3Dd bozoTurbulence;
 
-    if ((turb = turbulence) != 0.0) {
+    if ((currentTurbulence = turbulence) != 0.0) {
         proceduralNoise->differentialTurbulence(&bozoTurbulence, x, y, z, octaves);
-        x += bozoTurbulence.x() * turb;
-        y += bozoTurbulence.y() * turb;
-        z += bozoTurbulence.z() * turb;
+        x += bozoTurbulence.x() * currentTurbulence;
+        y += bozoTurbulence.y() * currentTurbulence;
+        z += bozoTurbulence.z() * currentTurbulence;
     }
 
     noise = proceduralNoise->noise(x, y, z);
@@ -147,17 +147,17 @@ ColorTextureFixture::checker(
     double x, double y, double z, ColorRgba *color, const ColorRgba *color1,
     const ColorRgba *color2, double smallTolerance) const
 {
-    int brkindx;
+    int index;
 
-    x += smallTolerance; // add a small offset to x, y, z, axes to preventd noise
+    x += smallTolerance; // add a small offset to x, y, z, axes to prevent differentialNoise
     y += smallTolerance;
     z += smallTolerance;
 
     // AAC: was just x + z
     // AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug
-    brkindx = (int)(textureUtils->floorInline(x) + textureUtils->floorInline(y) + textureUtils->floorInline(z));
+    index = (int)(textureUtils->floorInline(x) + textureUtils->floorInline(y) + textureUtils->floorInline(z));
 
-    if (brkindx & 1) {
+    if (index & 1) {
         color->setR(color->getR() + color1->getR());
         color->setG(color->getG() + color1->getG());
         color->setB(color->getB() + color1->getB());
@@ -183,14 +183,14 @@ ColorTextureFixture::gradient(
 {
     ColorRgba newColor;
     double value = 0.0;
-    double turb;
+    double currentTurbulence;
     Vector3Dd gradTurbulence;
 
-    if ((turb = turbulence) != 0.0) {
+    if ((currentTurbulence = turbulence) != 0.0) {
         proceduralNoise->differentialTurbulence(&gradTurbulence, x, y, z, octaves);
-        x += gradTurbulence.x() * turb;
-        y += gradTurbulence.y() * turb;
-        z += gradTurbulence.z() * turb;
+        x += gradTurbulence.x() * currentTurbulence;
+        y += gradTurbulence.y() * currentTurbulence;
+        z += gradTurbulence.z() * currentTurbulence;
     }
 
     if (colorMap == nullptr) {
@@ -369,22 +369,21 @@ ColorTextureFixture::leopard(
 {
     // The variable noise is not used as noise in this function
     double noise;
-    double turb;
+    double currentTurbulence;
     double temp1;
     double temp2;
     double temp3;
     ColorRgba newColor;
     Vector3Dd leopardTurbulence;
 
-    if ((turb = turbulence) != 0.0) {
+    if ((currentTurbulence = turbulence) != 0.0) {
         proceduralNoise->differentialTurbulence(
             &leopardTurbulence, x, y, z, octaves);
-        x += leopardTurbulence.x() * turb;
-        y += leopardTurbulence.y() * turb;
-        z += leopardTurbulence.z() * turb;
+        x += leopardTurbulence.x() * currentTurbulence;
+        y += leopardTurbulence.y() * currentTurbulence;
+        z += leopardTurbulence.z() * currentTurbulence;
     }
-    // This form didn't work with Zortech 386 compiler:
-    // noise = (((java::Math::sin(x)+java::Math::sin(y)+java::Math::sin(z))/3)*((java::Math::sin(x)+java::Math::sin(y)+java::Math::sin(z))/3));
+
     temp1 = java::Math::sin(x);
     temp2 = java::Math::sin(y);
     temp3 = java::Math::sin(z);
@@ -414,15 +413,15 @@ ColorTextureFixture::onion(
 {
     // The variable noise is not used as noise in this function
     double noise;
-    double turb;
+    double currentTurbulence;
     ColorRgba newColor;
     Vector3Dd onionTurbulence;
 
-    if ((turb = turbulence) != 0.0) {
+    if ((currentTurbulence = turbulence) != 0.0) {
         proceduralNoise->differentialTurbulence(&onionTurbulence, x, y, z, octaves);
-        x += onionTurbulence.x() * turb;
-        y += onionTurbulence.y() * turb;
-        z += onionTurbulence.z() * turb;
+        x += onionTurbulence.x() * currentTurbulence;
+        y += onionTurbulence.y() * currentTurbulence;
+        z += onionTurbulence.z() * currentTurbulence;
     }
 
     // Alternative ramp 0-1,1-0,0-1,1-0...:
