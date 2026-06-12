@@ -90,7 +90,7 @@ to warrant the overhead of using a faster sort technique.
 */
 int
 Blob::determineInfluences(
-    Vector3Dd *p, Vector3Dd *d, Blob *blob, double mindist)
+    const Vector3Dd *p, const Vector3Dd *d, const Blob *blob, double mindist)
 {
     int i;
     int j;
@@ -102,7 +102,7 @@ Blob::determineInfluences(
     double t1;
     double disc;
     Vector3Dd v;
-    BlobInterval *intervals = blob->intervals;
+    BlobInterval * const intervals = blob->intervals;
 
     cnt = 0;
     for (i = 0; i < blob->count; i++) {
@@ -194,14 +194,14 @@ Calculate the field value of a blob - the position vector
 "Pos" must already have been transformed into blob space.
 */
 double
-Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
+Blob::calculateFieldValue(SimpleBody *obj, const Vector3Dd *pos)
 {
     int i;
     double len;
     double density;
     Vector3Dd v;
     BlobElement *ptr;
-    Blob *blob = (Blob *)obj;
+    const Blob *blob = (Blob *)obj;
 
     density = 0.0;
     for (i = 0, ptr = &(blob->list[0]); i < blob->count; i++, ptr++) {
@@ -219,7 +219,7 @@ Blob::calculateFieldValue(SimpleBody *obj, Vector3Dd *pos)
 
 // See if the hit in question really is a hit
 int
-Blob::validateHit(Blob *blob, Vector3Dd *p)
+Blob::validateHit(const Blob *blob, const Vector3Dd *p)
 {
     int i;
     BlobElement *temp;
@@ -306,7 +306,7 @@ int
 Blob::allBlobIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    Blob *blob = (Blob *)object;
+    Blob * const blob = (Blob *)object;
     Intersection localElement;
     double dist;
     double len;
@@ -329,7 +329,7 @@ Blob::allBlobIntersections(
     double c2;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
-    BlobInterval *intervals = blob->intervals;
+    const BlobInterval *intervals = blob->intervals;
     bool intersectionFound = false;
 
     Statistics::global().rayBlobTests++;
@@ -468,7 +468,7 @@ int
 Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
 {
     Vector3Dd newPoint;
-    Blob *blob = (Blob *)object;
+    const Blob *blob = (Blob *)object;
 
     // Transform the point into blob space
     if (blob->transformation != nullptr) {
@@ -493,7 +493,7 @@ Blob::blobNormal(
     int i;
     double dist;
     double val;
-    Blob *blob = (Blob *)object;
+    const Blob *blob = (Blob *)object;
     BlobElement *temp;
 
     // Transform the point into the blobs space
@@ -540,7 +540,7 @@ void *
 Blob::copyBlob(SimpleBody *object)
 {
     Blob *blob;
-    Blob *oldShape = (Blob *)object;
+    const Blob *oldShape = (Blob *)object;
 
     blob = new Blob;
     memcpy(blob, oldShape, sizeof(Blob));
@@ -578,7 +578,7 @@ Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Blob *blob = (Blob *)object;
+    Blob * const blob = (Blob *)object;
     if (blob->transformation == nullptr) {
         blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -599,7 +599,7 @@ Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Blob *blob = (Blob *)object;
+    Blob * const blob = (Blob *)object;
     if (blob->transformation == nullptr) {
         blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -617,7 +617,7 @@ Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Blob *blob = (Blob *)object;
+    Blob * const blob = (Blob *)object;
     if (blob->transformation == nullptr) {
         blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());

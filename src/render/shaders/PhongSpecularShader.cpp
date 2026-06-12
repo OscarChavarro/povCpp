@@ -4,9 +4,9 @@
 #include "render/shaders/PhongSpecularShader.h"
 
 void
-PhongSpecularShader::shade(Material *texture, RayWithSegments *lightSourceRay,
-    Vector3Dd eye, Vector3Dd *surfaceNormal, ColorRgba *color,
-    ColorRgba *lightColor, ColorRgba *surfaceColor)
+PhongSpecularShader::shade(const Material *texture, const RayWithSegments *lightSourceRay,
+    Vector3Dd eye, const Vector3Dd *surfaceNormal, ColorRgba *color,
+    const ColorRgba *lightColor, const ColorRgba *surfaceColor)
 {
     double cosAngleOfIncidence;
     double normalLength;

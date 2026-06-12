@@ -4,7 +4,6 @@ This file was written by Alexander Enzmann.  He wrote the code for
 */
 
 #include "java/lang/Math.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "numericalAnalysis/polynomial/Polynomial.h"
 #include "numericalAnalysis/polynomial/PolynomialSolver.h"
 
@@ -50,15 +49,9 @@ PolynomialSolver::PolynomialSolver::absInline(double x)
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
-inline double
-PolynomialSolver::PolynomialSolver::maxInline(double x, double y)
-{
-    return (x < y) ? y : x;
-}
 static constexpr double TWO_PI_3 = 2.0943951023931954923084;
 static constexpr double TWO_PI_43 = 4.1887902047863909846168;
 static constexpr int MAX_ITERATIONS = 50;
-
 
 /**
 Calculates the modulus of u(x) / v(x) leaving it in r, it
@@ -67,7 +60,7 @@ note: this function assumes the leading coefficient of v
 is 1 or -1
 */
 int
-PolynomialSolver::modp(Polynomial *u, Polynomial *v, Polynomial *r)
+PolynomialSolver::modp(const Polynomial *u, const Polynomial *v, Polynomial *r)
 {
     int i;
     int k;
@@ -102,7 +95,7 @@ PolynomialSolver::modp(Polynomial *u, Polynomial *v, Polynomial *r)
     return (r->ord);
 }
 
-// Build the sturmian sequence for a Polynomial
+// Build the Sturmian sequence for a Polynomial
 int
 PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
 {
@@ -137,11 +130,11 @@ PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
 
 // Find out how many visible intersections there are
 int
-PolynomialSolver::visibleRoots(int np, Polynomial *sseq, int *atzer, int *atpos)
+PolynomialSolver::visibleRoots(int np, const Polynomial *sseq, int *atzer, int *atpos)
 {
     int atposinf;
     int atzero;
-    Polynomial *s;
+    const Polynomial *s;
     double f;
     double lf;
 
@@ -176,12 +169,12 @@ Return the number of sign changes in the Sturm sequence in
 sseq at the value a.
 */
 int
-PolynomialSolver::numchanges(int np, Polynomial *sseq, double a)
+PolynomialSolver::numchanges(int np, const Polynomial *sseq, double a)
 {
     int changes;
     double f;
     double lf;
-    Polynomial *s;
+    const Polynomial *s;
     changes = 0;
     lf = PolynomialSolver::polyeval(a, sseq[0].ord, sseq[0].coef);
     for (s = sseq + 1; s <= sseq + np; s++) {
@@ -205,7 +198,7 @@ within the interval, the root at the endpoint will be returned rather
 than the one inside.
 */
 void
-PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue,
+PolynomialSolver::sbisect(int np, const Polynomial *sseq, double minValue,
     double maxValue, int atmin, int atmax, double *roots)
 {
     double mid;
@@ -271,7 +264,7 @@ PolynomialSolver::sbisect(int np, Polynomial *sseq, double minValue,
 }
 
 double
-PolynomialSolver::polyeval(double x, int n, double *coeffs)
+PolynomialSolver::polyeval(double x, int n, const double *coeffs)
 {
     int i;
     double val;
@@ -285,7 +278,7 @@ PolynomialSolver::polyeval(double x, int n, double *coeffs)
 // Close in on a root by using regula-falsa
 int
 PolynomialSolver::regulaFalsa(
-    int order, double *coef, double a, double b, double *val)
+    int order, const double *coef, double a, double b, double *val)
 {
     int its;
     double fa;
@@ -371,7 +364,7 @@ The value returned by this function is the number of real roots.
 The roots themselves are returned in y[0], y[1].
 */
 int
-PolynomialSolver::solveQuadratic(double *x, double *y)
+PolynomialSolver::solveQuadratic(const double *x, double *y)
 {
     double d;
     double t;
@@ -418,7 +411,7 @@ the square root function.  If an alternative solution is found that does
 not rely on transcendentals this code will be replaced.
 */
 int
-PolynomialSolver::solveCubic(double *x, double *y)
+PolynomialSolver::solveCubic(const double *x, double *y)
 {
     double q;
     double r;
@@ -477,7 +470,7 @@ Test to see if any coeffs are more than 6 orders of magnitude
 larger than the smallest
 */
 int
-PolynomialSolver::difficultCoeffs(int n, double *x)
+PolynomialSolver::difficultCoeffs(int n, const double *x)
 {
     int i;
     double biggest;
@@ -506,7 +499,7 @@ PolynomialSolver::difficultCoeffs(int n, double *x)
 }
 
 int
-PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
+PolynomialSolver::solveQuartic(const double *x, double *results, double minValue)
 {
     double cubic[4];
     double roots[3];
@@ -664,7 +657,7 @@ PolynomialSolver::solveQuartic(double *x, double *results, double minValue)
 // Root solver based on the Sturm sequences for a Polynomial
 int
 PolynomialSolver::polysolve(
-    int order, double *coeffs, double *roots, double minValue)
+    int order, const double *coeffs, double *roots, double minValue)
 {
     Polynomial sseq[PolynomialConstants::MAX_ORDER + 1];
     double maxValue;

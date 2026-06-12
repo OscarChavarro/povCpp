@@ -11,8 +11,8 @@ Methods Camera::methodTable = {nullptr, nullptr, nullptr,
 void *
 Camera::copyCamera(SimpleBody *object)
 {
-    Camera *viewpoint = (Camera *)object;
-    Camera *newViewpoint = new Camera();
+    const Camera *viewpoint = (Camera *)object;
+    Camera * const newViewpoint = new Camera();
     if (newViewpoint == nullptr) {
         return nullptr;
     }
@@ -49,7 +49,7 @@ Camera::rotateCamera(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    Camera *viewpoint = (Camera *)object;
+    Camera * const viewpoint = (Camera *)object;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     viewpoint->Location = transformation.transpose().multiply(viewpoint->Location);
@@ -62,7 +62,7 @@ void
 Camera::scaleCamera(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d transformation;
-    Camera *viewpoint = (Camera *)object;
+    Camera * const viewpoint = (Camera *)object;
 
     transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
     viewpoint->Location = transformation.transpose().multiply(viewpoint->Location);

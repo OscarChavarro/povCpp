@@ -501,7 +501,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
+                            IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
                                 texture->image, ctx.token().Token_String);
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
@@ -513,7 +513,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
+                            IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
                             TextureParser::wireIndexedInToTextureImage(texture->image, idx);
                             exitFlag = true;
@@ -837,7 +837,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
+                            IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
                                 texture->bumpImage, ctx.token().Token_String);
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
@@ -849,7 +849,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
+                            IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->bumpImage, idx);
@@ -966,7 +966,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed *idx = IffFormat::readIffImage(
+                            IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
                                 texture->materialImage, ctx.token().Token_String);
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
@@ -978,7 +978,7 @@ TextureParser::parseTexture(ParserContext &ctx)
 
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed *idx = new IndexedColorImageHDRUncompressed;
+                            IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().Token_String);
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->materialImage, idx);
@@ -1032,7 +1032,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::TEXTURE_TOKEN: {
-                            Material *newMat = TextureParser::parseTexture(ctx);
+                            Material * const newMat = TextureParser::parseTexture(ctx);
                             firstTexture->materials.add(newMat);
                             texture = newMat;
                         } break;

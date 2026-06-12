@@ -4,9 +4,9 @@
 #include "render/shaders/LambertShader.h"
 
 void
-LambertShader::shade(Material *texture, RayWithSegments *lightSourceRay,
-    Vector3Dd *surfaceNormal, ColorRgba *color, ColorRgba *lightColor,
-    ColorRgba *surfaceColor, double attenuation)
+LambertShader::shade(const Material *texture, const RayWithSegments *lightSourceRay,
+    const Vector3Dd *surfaceNormal, ColorRgba *color, const ColorRgba *lightColor,
+    const ColorRgba *surfaceColor, double attenuation)
 {
     double cosAngleOfIncidence;
     double intensity;

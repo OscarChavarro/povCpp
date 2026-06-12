@@ -54,7 +54,7 @@ int
 PolynomialShape::allPolyIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    PolynomialShape *shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = (PolynomialShape *)object;
     double depths[PolynomialConstants::MAX_ORDER];
     double len;
     Vector3Dd intersectionPoint;
@@ -203,7 +203,7 @@ PolynomialShape::unroll(int order, int index, int *x, int *y, int *z, int *w)
 // Intersection of a ray and an arbitrary polynomial function
 int
 PolynomialShape::intersect(
-    RayWithSegments *ray, int order, double *coeffs, double *depths)
+    const RayWithSegments *ray, int order, const double *coeffs, double *depths)
 {
     Matrix4x4d q;
     double *a;
@@ -253,7 +253,7 @@ PolynomialShape::intersect(
 }
 
 double
-PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
+PolynomialShape::inside(const Vector3Dd *point, int order, const double *coeffs)
 {
     double x[PolynomialConstants::MAX_ORDER + 1];
     double y[PolynomialConstants::MAX_ORDER + 1];
@@ -288,15 +288,15 @@ PolynomialShape::inside(Vector3Dd *point, int order, double *coeffs)
 
 // Normal to a polynomial
 void
-PolynomialShape::normalp(
-    Vector3Dd *result, int order, double *coeffs, Vector3Dd *intersectionPoint)
+PolynomialShape::normalp(Vector3Dd *result, int order, const double *coeffs,
+    const Vector3Dd *intersectionPoint)
 {
     int i;
     int xp;
     int yp;
     int zp;
     int wp;
-    double *a;
+    const double *a;
     double x[PolynomialConstants::MAX_ORDER + 1];
     double y[PolynomialConstants::MAX_ORDER + 1];
     double z[PolynomialConstants::MAX_ORDER + 1];
@@ -327,7 +327,7 @@ PolynomialShape::normalp(
             rz += zp * a[i] * x[xp] * y[yp] * z[zp - 1];
         }
     }
-    double vTemp = java::Math::sqrt(rx * rx + ry * ry + rz * rz);
+    const double vTemp = java::Math::sqrt(rx * rx + ry * ry + rz * rz);
     if (vTemp > 0.0) {
         *result = Vector3Dd(rx / vTemp, ry / vTemp, rz / vTemp);
     } else {
@@ -337,7 +337,7 @@ PolynomialShape::normalp(
 
 double
 PolynomialShape::doPartialTerm(
-    Matrix4x4d *q, int row, int pwr, int i, int j, int k, int l)
+    const Matrix4x4d *q, int row, int pwr, int i, int j, int k, int l)
 {
     double result;
     int n;
@@ -471,7 +471,7 @@ PolynomialShape::transform(int order, double *coeffs, Matrix4x4d *q)
 // Intersection of a ray and a quartic
 int
 PolynomialShape::intersectQuartic(
-    RayWithSegments *ray, PolynomialShape *shape, double *depths)
+    const RayWithSegments *ray, const PolynomialShape *shape, double *depths)
 {
     double x;
     double y;
@@ -715,9 +715,9 @@ PolynomialShape::intersectQuartic(
 // Normal to a quartic
 void
 PolynomialShape::quarticNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+    Vector3Dd *result, SimpleBody *object, const Vector3Dd *intersectionPoint)
 {
-    PolynomialShape *shape = (PolynomialShape *)object;
+    const PolynomialShape *shape = (PolynomialShape *)object;
     double *a;
     double x;
     double y;
@@ -762,7 +762,7 @@ PolynomialShape::quarticNormal(
                 y * (3 * a[26] * z2 + 2 * a[27] * z + a[28]) + 4 * a[30] * z3 +
                 3 * a[31] * z2 + 2 * a[32] * z + a[33];
     *result = Vector3Dd(nx, ny, nz);
-    double vTemp = java::Math::sqrt(
+    const double vTemp = java::Math::sqrt(
         result->x() * result->x() + result->y() * result->y() +
         result->z() * result->z());
     if (vTemp > 0.0) {
@@ -777,7 +777,7 @@ int
 PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
 {
     Vector3Dd newPoint;
-    PolynomialShape *shape = (PolynomialShape *)object;
+    const PolynomialShape *shape = (PolynomialShape *)object;
     double result;
 
     // Transform the point into polynomial's space
@@ -799,7 +799,7 @@ void
 PolynomialShape::polyNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    PolynomialShape *shape = (PolynomialShape *)object;
+    const PolynomialShape *shape = (PolynomialShape *)object;
     Vector3Dd newPoint;
 
     // Transform the point into the polynomials space
@@ -828,8 +828,8 @@ PolynomialShape::polyNormal(
 void *
 PolynomialShape::copyPoly(SimpleBody *object)
 {
-    PolynomialShape *shape = (PolynomialShape *)object;
-    PolynomialShape *newShape = new PolynomialShape;
+    const PolynomialShape *shape = (PolynomialShape *)object;
+    PolynomialShape * const newShape = new PolynomialShape;
     int i;
 
     *newShape = *shape;
@@ -862,7 +862,7 @@ PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    PolynomialShape *shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = (PolynomialShape *)object;
     if (shape->transformation == nullptr) {
         shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -883,7 +883,7 @@ PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    PolynomialShape *shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = (PolynomialShape *)object;
     if (shape->transformation == nullptr) {
         shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -901,7 +901,7 @@ PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    PolynomialShape *shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = (PolynomialShape *)object;
     if (shape->transformation == nullptr) {
         shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());

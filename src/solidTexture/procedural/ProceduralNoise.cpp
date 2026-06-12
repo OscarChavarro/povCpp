@@ -179,7 +179,7 @@ ProceduralNoise::setupLattice(double *x, double *y, double *z, long *ix, long *i
 using lattice-based interpolation with pseudorandom gradients.
 */
 double
-ProceduralNoise::noise(double x, double y, double z)
+ProceduralNoise::noise(double x, double y, double z) const
 {
     long ix;
     long iy;
@@ -245,7 +245,7 @@ ProceduralNoise::noise(double x, double y, double z)
 Returns the gradient (directional derivatives) of the noise field.
 */
 void
-ProceduralNoise::differentialNoise(Vector3Dd *result, double x, double y, double z)
+ProceduralNoise::differentialNoise(Vector3Dd *result, double x, double y, double z) const
 {
     long ix;
     long iy;
@@ -338,7 +338,7 @@ ProceduralNoise::differentialNoise(Vector3Dd *result, double x, double y, double
 Creates self-similar fractal patterns by summing scaled noise at different frequencies.
 */
 double
-ProceduralNoise::turbulence(double x, double y, double z, int octaves)
+ProceduralNoise::turbulence(double x, double y, double z, int octaves) const
 {
     int i; // added -dmf
     double t = 0.0;
@@ -358,7 +358,7 @@ Returns gradient of turbulent field by composing DNoise() over octaves.
 */
 void
 ProceduralNoise::differentialTurbulence(
-    Vector3Dd *result, double x, double y, double z, int octaves)
+    Vector3Dd *result, double x, double y, double z, int octaves) const
 {
     int i; // added -dmf
     double scale;

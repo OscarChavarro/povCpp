@@ -145,7 +145,7 @@ TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int 
 }
 
 void
-TargaFormat::writeLine(ColorRgba *lineData, int lineNumber)
+TargaFormat::writeLine(const ColorRgba *lineData, int lineNumber)
 {
     for (int x = 0; x < width; x++) {
         outputStream->write((int)java::Math::floor(lineData[x].getB() * 255.0));

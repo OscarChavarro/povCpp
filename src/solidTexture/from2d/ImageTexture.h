@@ -9,37 +9,37 @@
 class ImageTexture {
   public:
     int map(
-        double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *xCoordinate,
-        double *yCoordinate, double smallTolerance);
+        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *xCoordinate,
+        double *yCoordinate, double smallTolerance) const;
     void imageMap(
-        double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, ColorRgba *color,
-        double smallTolerance);
+        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, ColorRgba *color,
+        double smallTolerance) const;
     int materialMap(
-        Vector3Dd *intersectionPoint, Matrix4x4d *textureTransformationInverse,
-        ControlledRGBAImageHDRUncompressed *materialImage, int numberOfMaterials,
-        double smallTolerance);
+        const Vector3Dd *intersectionPoint, const Matrix4x4d *textureTransformationInverse,
+        const ControlledRGBAImageHDRUncompressed *materialImage, int numberOfMaterials,
+        double smallTolerance) const;
     void bumpMap(
-        double x, double y, double z, ControlledRGBAImageHDRUncompressed *bumpImage,
-        double bumpAmount, Vector3Dd *normal, double smallTolerance);
+        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *bumpImage,
+        double bumpAmount, Vector3Dd *normal, double smallTolerance) const;
 
   private:
     int cylindricalImageMap(
-        double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v);
+        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const;
     int torusImageMap(
-        double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v);
+        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const;
     int sphericalImageMap(
-        double x, double y, double z, RGBAImageHDRUncompressed *image, double *u, double *v);
+        double x, double y, double z, const RGBAImageHDRUncompressed *image, double *u, double *v) const;
     int planarImageMap(
-        double x, double y, double z, ControlledRGBAImageHDRUncompressed *image, double *u, double *v);
-    void noInterpolation(ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate,
-        ColorRgba *color, int *index);
-    double biLinear(double *corners, double x, double y);
-    double normDist(double *corners, double x, double y);
-    void interp(ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate,
-        ColorRgba *color, int *index);
-    void imageColorAt(ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate,
-        ColorRgba *color, int *index);
-    double pythagoreanSq(double a, double b);
+        double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const;
+    void noInterpolation(const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate,
+        ColorRgba *color, int *index) const;
+    double biLinear(const double *corners, double x, double y) const;
+    double normDist(const double *corners, double x, double y) const;
+    void interp(const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate,
+        ColorRgba *color, int *index) const;
+    void imageColorAt(const ControlledRGBAImageHDRUncompressed *image, double xCoordinate, double yCoordinate,
+        ColorRgba *color, int *index) const;
+    double pythagoreanSq(double a, double b) const;
 };
 
 #endif

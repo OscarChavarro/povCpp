@@ -189,7 +189,7 @@ int
 Triangle::allTriangleIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    Triangle *shape = (Triangle *)object;
+    Triangle * const shape = (Triangle *)object;
     double depth;
     Vector3Dd intersectionPoint;
     Intersection localElement;
@@ -384,7 +384,7 @@ void
 Triangle::triangleNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    Triangle *triangle = (Triangle *)object;
+    const Triangle *triangle = (Triangle *)object;
 
     *result = triangle->normalVector;
 }
@@ -409,7 +409,7 @@ Triangle::copyTriangle(SimpleBody *object)
 void
 Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
 {
-    Triangle *triangle = (Triangle *)object;
+    Triangle * const triangle = (Triangle *)object;
     Vector3Dd translation;
 
     translation = triangle->normalVector.multiply(*vector);
@@ -426,7 +426,7 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    Triangle *triangle = (Triangle *)object;
+    Triangle * const triangle = (Triangle *)object;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
@@ -441,7 +441,7 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
 void
 Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
 {
-    Triangle *triangle = (Triangle *)object;
+    Triangle * const triangle = (Triangle *)object;
     double length;
 
     triangle->normalVector = Vector3Dd(
@@ -463,7 +463,7 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
 void
 Triangle::invertTriangle(SimpleBody *object)
 {
-    Triangle *triangle = (Triangle *)object;
+    Triangle * const triangle = (Triangle *)object;
 
     triangle->Inverted ^= true;
 }
@@ -514,7 +514,7 @@ void
 SmoothTriangle::smoothTriangleNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    const SmoothTriangle *triangle = (SmoothTriangle *)object;
     Vector3Dd piMinusP1;
     Vector3Dd nTemp1;
     Vector3Dd nTemp2;
@@ -582,7 +582,7 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    SmoothTriangle * const triangle = (SmoothTriangle *)object;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
@@ -600,7 +600,7 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 void
 SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    SmoothTriangle * const triangle = (SmoothTriangle *)object;
     Vector3Dd translation;
 
     translation = triangle->normalVector.multiply(*vector);
@@ -617,7 +617,7 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 void
 SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    SmoothTriangle * const triangle = (SmoothTriangle *)object;
     double length;
 
     triangle->normalVector = Vector3Dd(
@@ -641,7 +641,7 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
 void
 SmoothTriangle::invertSmoothTriangle(SimpleBody *object)
 {
-    SmoothTriangle *triangle = (SmoothTriangle *)object;
+    SmoothTriangle * const triangle = (SmoothTriangle *)object;
 
     triangle->Inverted ^= true;
 }

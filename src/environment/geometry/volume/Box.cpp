@@ -33,7 +33,7 @@ Box::allBoxIntersections(
     Vector3Dd intersectionPoint;
     Intersection localElement;
     bool intersectionFound;
-    Box *shape = (Box *)object;
+    Box * const shape = (Box *)object;
 
     intersectionFound = false;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
@@ -62,7 +62,7 @@ Box::allBoxIntersections(
 
 int
 Box::intersectBoxx(
-    RayWithSegments *ray, Box *box, double *depth1, double *depth2)
+    const RayWithSegments *ray, const Box *box, double *depth1, double *depth2)
 {
     double t;
     double tmin;
@@ -211,7 +211,7 @@ int
 Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
 {
     Vector3Dd newPoint;
-    Box *box = (Box *)object;
+    const Box *box = (Box *)object;
 
     // Transform the point into the boxes space
     if (box->transformation != nullptr) {
@@ -239,7 +239,7 @@ Box::boxNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
     Vector3Dd newPoint;
-    Box *box = (Box *)object;
+    const Box *box = (Box *)object;
 
     // Transform the point into the boxes space
     if (box->transformation != nullptr) {
@@ -303,7 +303,7 @@ Box::translateBox(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Box *box = (Box *)object;
+    Box * const box = (Box *)object;
     if (box->transformation == nullptr) {
         box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -324,7 +324,7 @@ Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Box *box = (Box *)object;
+    Box * const box = (Box *)object;
     if (box->transformation == nullptr) {
         box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -342,7 +342,7 @@ Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Box *box = (Box *)object;
+    Box * const box = (Box *)object;
     if (box->transformation == nullptr) {
         box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());

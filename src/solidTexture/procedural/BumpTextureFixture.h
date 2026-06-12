@@ -5,8 +5,11 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class BumpTextureFixture {
+  private:
+    const ProceduralNoise * const proceduralNoise;
+
   public:
-    BumpTextureFixture(ProceduralNoise *proceduralNoise);
+    BumpTextureFixture(const ProceduralNoise *proceduralNoise);
 
     void bumps(
         double x, double y, double z, double bumpAmount, Vector3Dd *normal);
@@ -20,9 +23,6 @@ class BumpTextureFixture {
         double phase, int numberOfWaves, Vector3Dd *normal);
     void wrinkles(
         double x, double y, double z, double bumpAmount, Vector3Dd *normal);
-
-  private:
-    ProceduralNoise *proceduralNoise;
 };
 
 #endif

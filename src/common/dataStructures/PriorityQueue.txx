@@ -58,7 +58,7 @@ PriorityQueue<T>::balance(unsigned int entryPos1)
 
 template <class T>
 void
-PriorityQueue<T>::add(T *queueEntry)
+PriorityQueue<T>::add(const T *queueEntry)
 {
     this->currentEntry++;
     if (this->currentEntry >= this->queueSize) {

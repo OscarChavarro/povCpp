@@ -5,9 +5,12 @@
 #include "environment/material/Material.h"
 
 class BumpNormalShader {
-public:
-    static void shade(Vector3Dd *newNormal, Material *texture,
-        Vector3Dd *intersectionPoint, Vector3Dd *surfaceNormal);
+  public:
+    static void shade(
+        Vector3Dd *newNormal,
+        const Material *texture,
+        const Vector3Dd *intersectionPoint,
+        const Vector3Dd *surfaceNormal);
 };
 
 #endif

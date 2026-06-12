@@ -15,8 +15,8 @@ class ParseErrorReporter {
     static void typeError(ParserContext &ctx);
     static void reportUndeclared();
     static void reportUndeclared(ParserContext &ctx);
-    static char *getTokenString(TOKEN tokenId);
-    static char *getTokenString(TOKEN tokenId, ParserContext &ctx);
+    static const char *getTokenString(TOKEN tokenId);
+    static const char *getTokenString(TOKEN tokenId, ParserContext &ctx);
 
   private:
     static void reportLocation(ParserContext &ctx);

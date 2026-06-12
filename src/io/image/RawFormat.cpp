@@ -84,7 +84,7 @@ RawFormat::openRawInputStream(const char *base, const char *ext)
     char fileName[256];
     std::strcpy(fileName, base);
     std::strcat(fileName, ext);
-    java::FileInputStream *s = new java::FileInputStream(fileName);
+    java::FileInputStream * const s = new java::FileInputStream(fileName);
     java::File probe(fileName);
     if (!probe.canRead()) {
         delete s;
@@ -146,7 +146,7 @@ RawFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int /*
 }
 
 void
-RawFormat::writeLine(ColorRgba *lineData, int lineNumber)
+RawFormat::writeLine(const ColorRgba *lineData, int lineNumber)
 {
     for (int x = 0; x < width; x++) {
         redOut->write((int)java::Math::floor(lineData[x].getR() * 255.0));

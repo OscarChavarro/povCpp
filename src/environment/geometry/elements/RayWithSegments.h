@@ -24,7 +24,7 @@ class RayWithSegments : public Ray {
 
     void makeRay();
     void initializeContainers();
-    void copyContainersFrom(RayWithSegments *sourceRay);
+    void copyContainersFrom(const RayWithSegments *sourceRay);
     void enterContainingMedium(Material *texture);
     void exitContainingMedium();
     static inline void mixVectorTerms(

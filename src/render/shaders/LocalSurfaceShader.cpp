@@ -10,10 +10,10 @@
 #include "render/shaders/TraceService.h"
 
 void
-LocalSurfaceShader::shade(RayWithSegments *ray, Material *texture,
+LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
-    ColorRgba *filterColor, ColorRgba *color,
-    const TraceService *traceService, Light *lightSources,
+    const ColorRgba *filterColor, ColorRgba *color,
+    const TraceService *traceService, const Light *lightSources,
     SimpleBody *objects, int &traceLevel)
 {
     Vector3Dd surfaceNormal;

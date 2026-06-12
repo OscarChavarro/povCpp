@@ -128,7 +128,7 @@ RawDumpFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, in
 }
 
 void
-RawDumpFormat::writeLine(ColorRgba *lineData, int lineNumber)
+RawDumpFormat::writeLine(const ColorRgba *lineData, int lineNumber)
 {
     PersistenceElement::writeSignedShortLE(*outputStream, lineNumber);
 
@@ -196,9 +196,9 @@ RawDumpFormat::readRow(RGBAImageHDRUncompressed *image, int *lineNumber)
     }
     *lineNumber = lo + hi * 256;
 
-    unsigned char *rBuf = new unsigned char[width]();
-    unsigned char *gBuf = new unsigned char[width]();
-    unsigned char *bBuf = new unsigned char[width]();
+    unsigned char * const rBuf = new unsigned char[width]();
+    unsigned char * const gBuf = new unsigned char[width]();
+    unsigned char * const bBuf = new unsigned char[width]();
 
     for (int i = 0; i < width; i++) {
         int raw = inputStream->read();

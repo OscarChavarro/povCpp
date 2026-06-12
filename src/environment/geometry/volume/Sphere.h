@@ -19,8 +19,8 @@ class Sphere : public Geometry {
 
     static int allSphereIntersections(SimpleBody *object, RayWithSegments *ray,
         PriorityQueueNode *depthQueue);
-    static int intersectSphere(
-        RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2);
+    static int intersectSphere(const RayWithSegments *ray, Sphere *sphere,
+        double *depth1, double *depth2);
     static int insideSphere(Vector3Dd *point, SimpleBody *object);
     static void sphereNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

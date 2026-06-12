@@ -10,8 +10,8 @@ Calculate the normal to a subpatch (triangle) return the vector
 <1.0 0.0 0.0> if the triangle is degenerate.
 */
 int
-ParametricBiCubicIntersection::subpatchNormal(
-    Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3, Vector3Dd *result, double *d)
+ParametricBiCubicIntersection::subpatchNormal(const Vector3Dd *v1,
+    const Vector3Dd *v2, const Vector3Dd *v3, Vector3Dd *result, double *d)
 {
     Vector3Dd edge1;
     Vector3Dd edge2;
@@ -39,9 +39,10 @@ be set to the distance along Ray at which the intersection occurs.
 */
 int
 ParametricBiCubicIntersection::intersectSubpatch(int patchType,
-    RayWithSegments *ray, Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3,
-    Vector3Dd *n, double d, Vector3Dd *n1, Vector3Dd *n2, Vector3Dd *n3,
-    double *depth, Vector3Dd *ip, Vector3Dd *ipNorm)
+    const RayWithSegments *ray, const Vector3Dd *v1, const Vector3Dd *v2,
+    const Vector3Dd *v3, const Vector3Dd *n, double d, const Vector3Dd *n1,
+    const Vector3Dd *n2, const Vector3Dd *n3, double *depth, Vector3Dd *ip,
+    Vector3Dd *ipNorm)
 {
     Vector3Dd tempV1;
     Vector3Dd tempV2;
@@ -239,7 +240,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
 
 int
 ParametricBiCubicIntersection::sphericalBoundsCheck(
-    RayWithSegments *ray, Vector3Dd *center, double radius)
+    const RayWithSegments *ray, const Vector3Dd *center, double radius)
 {
     double x;
     double y;
@@ -266,7 +267,7 @@ ParametricBiCubicIntersection::sphericalBoundsCheck(
 // Determine the distance from a point to a plane
 double
 ParametricBiCubicIntersection::pointPlaneDistance(
-    Vector3Dd *p, Vector3Dd *n, double *d)
+    const Vector3Dd *p, const Vector3Dd *n, const double *d)
 {
     double temp1;
     double temp2;

@@ -30,17 +30,18 @@ class PolynomialShape : public Geometry {
     static void transform(int order, double *coeffs, Matrix4x4d *q);
     static int roll(int order, int x, int y, int z);
     static void unroll(int order, int index, int *x, int *y, int *z, int *w);
-    static int intersect(
-        RayWithSegments *ray, int order, double *coeffs, double *depths);
-    static int intersectQuartic(
-        RayWithSegments *ray, PolynomialShape *shape, double *depths);
-    static void quarticNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static double inside(Vector3Dd *point, int order, double *coeffs);
-    static void normalp(Vector3Dd *result, int order, double *coeffs,
-        Vector3Dd *intersectionPoint);
+    static int intersect(const RayWithSegments *ray, int order,
+        const double *coeffs, double *depths);
+    static int intersectQuartic(const RayWithSegments *ray,
+        const PolynomialShape *shape, double *depths);
+    static void quarticNormal(Vector3Dd *result, SimpleBody *object,
+        const Vector3Dd *intersectionPoint);
+    static double inside(
+        const Vector3Dd *point, int order, const double *coeffs);
+    static void normalp(Vector3Dd *result, int order, const double *coeffs,
+        const Vector3Dd *intersectionPoint);
     static double doPartialTerm(
-        Matrix4x4d *q, int row, int pwr, int i, int j, int k, int l);
+        const Matrix4x4d *q, int row, int pwr, int i, int j, int k, int l);
 };
 
 #endif

@@ -9,11 +9,11 @@ int ParserContext::sSharedDegenerateTriangles = 0;
 ITokenStream *ParserContext::sForcedTokenStream = nullptr;
 
 ParserContext::ParserContext()
+    : mTokenStream((sForcedTokenStream != nullptr) ? sForcedTokenStream : &sDefaultTokenStream),
+      mParsingFramePtr(&sSharedParsingFramePtr),
+      mSymbols(&sSharedSymbols),
+      mDegenerateTriangles(&sSharedDegenerateTriangles)
 {
-    mTokenStream = (sForcedTokenStream != nullptr) ? sForcedTokenStream : &sDefaultTokenStream;
-    mParsingFramePtr = &sSharedParsingFramePtr;
-    mSymbols = &sSharedSymbols;
-    mDegenerateTriangles = &sSharedDegenerateTriangles;
 }
 
 ReservedWord *

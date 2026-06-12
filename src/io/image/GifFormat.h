@@ -6,9 +6,9 @@
 
 class GifFormat {
   public:
-    static int outLine(unsigned char *pixels, int linelen);
+    static int outLine(const unsigned char *pixels, int linelen);
     static int getByte(void);
-    static void readGifImage(IndexedColorImageHDRUncompressed *image, char *filename);
+    static void readGifImage(IndexedColorImageHDRUncompressed *image, const char *filename);
 
   private:
     static IndexedColorImageHDRUncompressed *currentImage;

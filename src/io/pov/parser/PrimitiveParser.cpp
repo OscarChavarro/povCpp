@@ -120,9 +120,9 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
 
             case Tokenizer::LEFT_ANGLE_TOKEN: {
                 // parseFloat consumes tokens; keep left-to-right order
-                double vx = PrimitiveParser::parseFloat(ctx);
-                double vy = PrimitiveParser::parseFloat(ctx);
-                double vz = PrimitiveParser::parseFloat(ctx);
+                const double vx = PrimitiveParser::parseFloat(ctx);
+                const double vy = PrimitiveParser::parseFloat(ctx);
+                const double vz = PrimitiveParser::parseFloat(ctx);
                 *givenVector = Vector3Dd(vx, vy, vz);
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
                 Exit_Flag = true;

@@ -25,7 +25,7 @@ Study closely this method!
 */
 int
 Sphere::intersectSphere(
-    RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
+    const RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
     Statistics::global().raySphereTests++;
 
@@ -97,7 +97,7 @@ Sphere::allSphereIntersections(
     Vector3Dd intersectionPoint;
     Intersection localElement;
     bool intersectionFound;
-    Sphere *shape = (Sphere *)object;
+    Sphere * const shape = (Sphere *)object;
 
     intersectionFound = false;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
@@ -129,7 +129,7 @@ Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
 {
     Vector3Dd originToCenter;
     double ocSquared;
-    Sphere *sphere = (Sphere *)object;
+    const Sphere *sphere = (Sphere *)object;
 
     originToCenter = sphere->Center.subtract(*testPoint);
     ocSquared = originToCenter.dotProduct(originToCenter);
@@ -144,7 +144,7 @@ void
 Sphere::sphereNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    Sphere *sphere = (Sphere *)object;
+    const Sphere *sphere = (Sphere *)object;
 
     *result = intersectionPoint->subtract(sphere->Center);
     *result = (*result).multiply(sphere->inverseRadius);
@@ -189,7 +189,7 @@ Sphere::rotateSphere(SimpleBody *object, Vector3Dd *vector)
 void
 Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
 {
-    Sphere *sphere = (Sphere *)object;
+    Sphere * const sphere = (Sphere *)object;
 
     if ((vector->x() != vector->y()) || (vector->x() != vector->z())) {
         const double s = (java::Math::abs(vector->x()) + java::Math::abs(vector->y()) + java::Math::abs(vector->z())) / 3.0;

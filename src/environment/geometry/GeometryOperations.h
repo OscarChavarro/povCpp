@@ -38,11 +38,11 @@ class GeometryOperations {
     intersect(SimpleBody *x, RayWithSegments *y)
     {
         Intersection *queueElement;
-        PriorityQueueNode *depthQueue = IntersectionPriorityQueuePool::pqPop(128);
+        PriorityQueueNode * const depthQueue = IntersectionPriorityQueuePool::pqPop(128);
 
         if (allIntersections(x, y, depthQueue) &&
             ((queueElement = depthQueue->getHighest()) != nullptr)) {
-            Intersection *localIntersection = new Intersection;
+            Intersection * const localIntersection = new Intersection;
             if (localIntersection == nullptr) {
                 Logger::reportMessage("GeometryOperations", Logger::FATAL_ERROR, "", "Cannot allocate memory for local intersection\n");
             }

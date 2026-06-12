@@ -8,16 +8,16 @@ class ParametricBiCubicPatch;
 
 class ParametricBiCubicSolver {
   public:
-    static int intersectParametricBiCubicPatch0(
-        RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths);
-    static int intersectParametricBiCubicPatch1(
-        RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths);
-    static int intersectParametricBiCubicPatch2(
-        RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths);
-    static int intersectParametricBiCubicPatch3(
-        RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths);
-    static int intersectParametricBiCubicPatch4(
-        RayWithSegments *ray, ParametricBiCubicPatch *shape, double *depths);
+    static int intersectParametricBiCubicPatch0(const RayWithSegments *ray,
+        ParametricBiCubicPatch *shape, double *depths);
+    static int intersectParametricBiCubicPatch1(const RayWithSegments *ray,
+        ParametricBiCubicPatch *shape, double *depths);
+    static int intersectParametricBiCubicPatch2(const RayWithSegments *ray,
+        ParametricBiCubicPatch *shape, double *depths);
+    static int intersectParametricBiCubicPatch3(const RayWithSegments *ray,
+        ParametricBiCubicPatch *shape, double *depths);
+    static int intersectParametricBiCubicPatch4(const RayWithSegments *ray,
+        ParametricBiCubicPatch *shape, double *depths);
     static int allParametricBiCubicPatchIntersections(SimpleBody *object,
         RayWithSegments *ray, PriorityQueueNode *depthQueue);
 };

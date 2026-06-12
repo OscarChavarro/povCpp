@@ -19,7 +19,7 @@ RGBAPixelHDR *GifFormat::gifColorMap = nullptr;
 int GifFormat::colorMapSize = 0;
 
 int
-GifFormat::outLine(unsigned char *pixels, int linelen)
+GifFormat::outLine(const unsigned char *pixels, int linelen)
 {
     for (int x = 0; x < linelen; x++) {
         if ((int)(*pixels) > currentImage->getColorMapSize()) {
@@ -44,7 +44,7 @@ GifFormat::getByte()
 }
 
 void
-GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, char *filename)
+GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *filename)
 {
     int i;
     int j;

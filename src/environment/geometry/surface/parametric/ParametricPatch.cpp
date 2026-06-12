@@ -75,7 +75,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
     Vector3Dd upperRight[4][4];
     ParametricPatchChild *children;
     ParametricControlPoints *vertices;
-    ParametricPatchNode *node =
+    ParametricPatchNode * const node =
         ParametricBiCubicPatch::createNewParametricPatchNode();
 
     if (depth > maxDepthReached) {
@@ -425,7 +425,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     Vector3Dd v3;
     Vector3Dd n;
     Vector3Dd controlPoints[16];
-    Vector3Dd(*patchPtr)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
+    Vector3Dd(* const patchPtr)[4][4] = (Vector3Dd(*)[4][4])shape->Control_Points;
 
     // Calculate the bounding sphere for the entire patch
     for (i = 0; i < 4; i++) {
@@ -563,12 +563,12 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
 }
 
 void
-ParametricBiCubicPatch::parametricSubpatchIntersect(RayWithSegments *ray,
+ParametricBiCubicPatch::parametricSubpatchIntersect(const RayWithSegments *ray,
     ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], double u0,
     double u1, double v0, int recursionDepth, int *depthCount, double *depths,
     double *uValues, double *vValues)
 {
-    int tcnt = shape->intersectionCount;
+    const int tcnt = shape->intersectionCount;
     Vector3Dd vv0;
     Vector3Dd vv1;
     Vector3Dd vv2;
@@ -780,7 +780,7 @@ ParametricBiCubicPatch::flatEnough(
 }
 
 void
-ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
+ParametricBiCubicPatch::parametricSubdivider(const RayWithSegments *ray,
     ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4], double u0,
     double u1, double v0, double v1, int recursionDepth, int *depthCount,
     double *depths, double *uValues, double *vValues)
@@ -793,7 +793,7 @@ ParametricBiCubicPatch::parametricSubdivider(RayWithSegments *ray,
     double ut;
     double vt;
     double radius;
-    int tcnt = object->intersectionCount;
+    const int tcnt = object->intersectionCount;
 
     // Don't waste time if there are already too many intersections
     if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
@@ -891,7 +891,7 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
 }
 
 void
-ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
+ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
     ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
     int *depthCount, double *depths)
 {
@@ -906,7 +906,7 @@ ParametricBiCubicPatch::parametricTreeWalker(RayWithSegments *ray,
     double d;
     double hitDepth;
     int i;
-    int tcnt = shape->intersectionCount;
+    const int tcnt = shape->intersectionCount;
 
     // Don't waste time if there are already too many intersections
     if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
@@ -985,7 +985,7 @@ void
 ParametricBiCubicPatch::bicubicPatchNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
+    const ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
     int i;
 
     /**
@@ -1031,7 +1031,7 @@ void
 ParametricBiCubicPatch::translateBicubicPatch(
     SimpleBody *object, Vector3Dd *vector)
 {
-    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
+    ParametricBiCubicPatch * const patch = (ParametricBiCubicPatch *)object;
     int i;
     int j;
     for (i = 0; i < 4; i++) {
@@ -1051,7 +1051,7 @@ ParametricBiCubicPatch::rotateBicubicPatch(
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
+    ParametricBiCubicPatch * const patch = (ParametricBiCubicPatch *)object;
     int i;
     int j;
 
@@ -1070,7 +1070,7 @@ ParametricBiCubicPatch::rotateBicubicPatch(
 void
 ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
 {
-    ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
+    ParametricBiCubicPatch * const patch = (ParametricBiCubicPatch *)object;
     int i;
     int j;
     for (i = 0; i < 4; i++) {

@@ -29,7 +29,7 @@ Light::insidePoint(Vector3Dd *testPoint, SimpleBody *object)
 void *
 Light::copyPoint(SimpleBody *object)
 {
-    Light *newShape = new Light();
+    Light * const newShape = new Light();
     if (newShape == nullptr) {
         return nullptr;
     }
@@ -109,7 +109,7 @@ Light::cubicSpline(double low, double high, double pos)
 }
 
 double
-Light::attenuateLight(Light *lightSource, RayWithSegments *lightSourceRay)
+Light::attenuateLight(const Light *lightSource, const RayWithSegments *lightSourceRay)
 {
     double len;
     double costheta;

@@ -13,7 +13,7 @@ class PriorityQueue {
     PriorityQueue<T> *next_pq;
 
     PriorityQueue();
-    void add(T *queueEntry);
+    void add(const T *queueEntry);
     T *getHighest() const;
     void deleteHighest();
     void print() const;

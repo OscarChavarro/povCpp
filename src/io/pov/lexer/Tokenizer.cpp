@@ -168,7 +168,7 @@ Tokenizer::getSymbolTable()
 }
 
 void
-Tokenizer::initializeTokenizer(char *filename)
+Tokenizer::initializeTokenizer(const char *filename)
 {
     Tokenizer::sSymbolTable = nullptr;
     Tokenizer::sGlobalDataFile = nullptr;
@@ -699,7 +699,7 @@ Tokenizer::beginString()
 }
 
 void
-Tokenizer::stuffCharacter(int c, DataFile *dataFile)
+Tokenizer::stuffCharacter(int c, const DataFile *dataFile)
 {
     if (Tokenizer::sStringIndex < Tokenizer::MAX_STRING_INDEX) {
         Tokenizer::sString[Tokenizer::sStringIndex++] = (char)c;
@@ -927,7 +927,7 @@ Tokenizer::findReserved()
                 return (Tokenizer::reservedWords()[i].tokenNumber);
             }
         } else {
-            if (Tokenizer::povStricmp((char *)Tokenizer::reservedWords()[i].Token_Name,
+            if (Tokenizer::povStricmp(Tokenizer::reservedWords()[i].Token_Name,
                     &(Tokenizer::sString[0])) == 0) {
                 return (Tokenizer::reservedWords()[i].tokenNumber);
             }
@@ -965,7 +965,7 @@ Tokenizer::findSymbol()
 
 // Write a token out to the token file
 void
-Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
+Tokenizer::writeToken(TOKEN tokenId, const DataFile *dataFile)
 {
     Tokenizer::token().tokenId = tokenId;
     Tokenizer::token().tokenLineNo = dataFile->lineNumber;
@@ -982,7 +982,7 @@ Tokenizer::writeToken(TOKEN tokenId, DataFile *dataFile)
 
 // Report an error
 void
-Tokenizer::tokenError(DataFile *dataFile, const char *str)
+Tokenizer::tokenError(const DataFile *dataFile, const char *str)
 {
     {
         char _logMsg[1024];

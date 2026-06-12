@@ -19,7 +19,7 @@ int
 Quadric::allQuadricIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
-    Quadric *shape = (Quadric *)object;
+    Quadric * const shape = (Quadric *)object;
     double depth1;
     double depth2;
     Vector3Dd intersectionPoint;
@@ -148,7 +148,7 @@ Quadric::intersectQuadric(
 int
 Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
 {
-    Quadric *shape = (Quadric *)object;
+    const Quadric *shape = (Quadric *)object;
     Vector3Dd newPoint;
     double result;
     double linearTerm;
@@ -174,7 +174,7 @@ void
 Quadric::quadricNormal(
     Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
 {
-    Quadric *intersectionShape = (Quadric *)object;
+    const Quadric *intersectionShape = (Quadric *)object;
     Vector3Dd derivativeLinear;
     double len;
 
@@ -225,7 +225,7 @@ Quadric::copyQuadric(SimpleBody *object)
 }
 
 void
-Quadric::quadricToMatrix(Quadric *quadric, Matrix4x4d *matrix)
+Quadric::quadricToMatrix(const Quadric *quadric, Matrix4x4d *matrix)
 {
     *matrix = Matrix4x4d::identityMatrix().multiply(0.0);
     *matrix = matrix->withVal(0, 0, quadric->object2Terms.x());
@@ -241,7 +241,7 @@ Quadric::quadricToMatrix(Quadric *quadric, Matrix4x4d *matrix)
 }
 
 void
-Quadric::matrixToQuadric(Matrix4x4d *matrix, Quadric *quadric)
+Quadric::matrixToQuadric(const Matrix4x4d *matrix, Quadric *quadric)
 {
     quadric->object2Terms =
         Vector3Dd(matrix->get(0, 0), matrix->get(1, 1), matrix->get(2, 2));
@@ -257,7 +257,7 @@ Quadric::matrixToQuadric(Matrix4x4d *matrix, Quadric *quadric)
 }
 
 void
-Quadric::transformQuadric(Quadric *shape, Matrix4x4d *transformationInverse)
+Quadric::transformQuadric(Quadric *shape, const Matrix4x4d *transformationInverse)
 {
     Matrix4x4d quadricMatrix;
     Matrix4x4d transformTransposed;
@@ -308,7 +308,7 @@ Quadric::scaleQuadric(SimpleBody *object, Vector3Dd *vector)
 void
 Quadric::invertQuadric(SimpleBody *object)
 {
-    Quadric *shape = (Quadric *)object;
+    Quadric * const shape = (Quadric *)object;
 
     shape->object2Terms = shape->object2Terms.multiply(-1.0);
     shape->objectMixedTerms = shape->objectMixedTerms.multiply(-1.0);
