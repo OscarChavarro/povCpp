@@ -8,7 +8,7 @@ MapTextureFixture.cpp respectively.
 */
 
 #include <cstdlib>
-#include <vector>
+#include "java/util/ArrayList.txx"
 #include "common/statistics/SolidTextureStatistics.h"
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -20,10 +20,9 @@ constexpr long kWaveRandomMask = 0x7FFF;
 constexpr float kWaveRandomDivisor = static_cast<float>(kWaveRandomMask);
 }
 
-static std::vector<double> frequencyInstance;
-static std::vector<Vector3Dd> waveSourcesInstance;
-
 TextureUtils* TextureUtils::textureInstance = nullptr;
+java::ArrayList<double> TextureUtils::frequencyInstance;
+java::ArrayList<Vector3Dd> TextureUtils::waveSourcesInstance;
 
 TextureUtils::TextureUtils(SolidTextureStatistics *stats)
     : proceduralNoise(stats)
@@ -89,8 +88,15 @@ TextureUtils::initializeNoise(int numberOfWaves)
 
     proceduralNoise.initialize();
 
-    frequencyInstance.resize(numberOfWaves);
-    waveSourcesInstance.resize(numberOfWaves);
+    frequencyInstance.clear();
+    waveSourcesInstance.clear();
+    frequencyInstance.reserve(numberOfWaves);
+    waveSourcesInstance.reserve(numberOfWaves);
+
+    for (int i = 0; i < numberOfWaves; i++) {
+        frequencyInstance.add(0.0);
+        waveSourcesInstance.add(Vector3Dd());
+    }
 
     for (int i = 0; i < numberOfWaves; i++) {
         proceduralNoise.differentialNoise(&point, (double)i, 0.0, 0.0);
