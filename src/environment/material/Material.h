@@ -5,13 +5,15 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
-#include "solidTexture/TextureUtils.h"
 
 class Material {
   public:
+    static constexpr int DEFAULT_NUMBER_OF_WAVES = 10;
+
     Material();
 
     java::ArrayList<Material*> layers; // Ordered list of additional texture layers
@@ -46,6 +48,7 @@ class Material {
     bool metallicFlag;
     bool onceFlag;
     bool constantFlag;
+    int numberOfWaves;
     int octaves; // dmf, 1/92 for turbulence functions
     double mortar; // rha, 2/92 for brick texture
 };
