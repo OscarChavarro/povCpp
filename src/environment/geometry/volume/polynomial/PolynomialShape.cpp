@@ -14,6 +14,8 @@ This file was written by Alexander Enzmann.  He wrote the code for
 #include "common/statistics/Statistics.h"
 #include "numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "numericalAnalysis/polynomial/PolynomialTermCounts.h"
+#include "numericalAnalysis/polynomial/QuadraticSolver.h"
+#include "numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/material/MaterialUtils.h"
 
@@ -247,7 +249,7 @@ PolynomialShape::intersect(
             ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
     }
     if (j > 0) {
-        return PolynomialSolver::solveQuadratic(&t[i], depths);
+        return QuadraticSolver::solve(&t[i], depths);
     }
     return 0;
 }
@@ -700,7 +702,7 @@ PolynomialShape::intersectQuartic(
     if (shape->sturmFlag) {
         if (t[0] == 0.0) {
             if (t[1] == 0.0) {
-                return PolynomialSolver::solveQuadratic(&t[2], depths);
+                return QuadraticSolver::solve(&t[2], depths);
             }
             return PolynomialSolver::solvePolynomial(3, &t[1], depths,
                 ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
@@ -708,7 +710,7 @@ PolynomialShape::intersectQuartic(
         return PolynomialSolver::solvePolynomial(4, &t[0], depths,
             ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
     }
-    return PolynomialSolver::solveQuartic(&t[0], depths,
+    return QuarticSolver::solve(&t[0], depths,
         ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
 }
 

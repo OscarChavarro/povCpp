@@ -11,6 +11,8 @@ blobs and generously provided us these enhancements.
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "numericalAnalysis/polynomial/QuadraticSolver.h"
+#include "numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/material/MaterialUtils.h"
 
@@ -407,14 +409,13 @@ Blob::allBlobIntersections(
         // Figure out which root solver to use
         if (blob->sturmFlag == 0) {
             // Use Ferrari's method
-            rootCount = PolynomialSolver::solveQuartic(coeffs, &roots[0],
+            rootCount = QuarticSolver::solve(coeffs, &roots[0],
                 ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
         } else
             // Sturm sequences
             if (java::Math::abs(coeffs[0]) < COEFF_LIMIT) {
                 if (java::Math::abs(coeffs[1]) < COEFF_LIMIT) {
-                    rootCount =
-                        PolynomialSolver::solveQuadratic(&coeffs[2], &roots[0]);
+                    rootCount = QuadraticSolver::solve(&coeffs[2], &roots[0]);
                 } else {
                     rootCount =
                         PolynomialSolver::solvePolynomial(3, &coeffs[1], &roots[0],

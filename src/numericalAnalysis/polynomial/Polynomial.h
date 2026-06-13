@@ -1,5 +1,5 @@
-#ifndef __POLYNOMIAL_H__
-#define __POLYNOMIAL_H__
+#ifndef __POLYNOMIAL__
+#define __POLYNOMIAL__
 
 #include "numericalAnalysis/polynomial/PolynomialConstants.h"
 
