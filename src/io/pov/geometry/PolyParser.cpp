@@ -9,7 +9,6 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "numericalAnalysis/polynomial/PolynomialConstants.h"
-#include "numericalAnalysis/polynomial/PolynomialTermCounts.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
@@ -32,7 +31,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 
     if (knownOrder > 0) {
         localShape = ModelBuilder::getPolyShape(
-            knownOrder, PolynomialTermCounts::termCountsByOrder());
+            knownOrder, PolynomialShape::termCountsByOrder());
     } else {
         localShape = nullptr;
     }
@@ -58,7 +57,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                     ParseErrorReporter::reportError("Order of Poly is out of range", ctx);
                 }
                 localShape = ModelBuilder::getPolyShape(
-                    order, PolynomialTermCounts::termCountsByOrder());
+                    order, PolynomialShape::termCountsByOrder());
                 break;
 
             case Tokenizer::LEFT_ANGLE_TOKEN:

@@ -2,12 +2,12 @@
 #define __POLYNOMIAL_SOLVER__
 
 #include "numericalAnalysis/polynomial/Polynomial.h"
-#include "numericalAnalysis/polynomial/PolynomialConstants.h"
 
 class PolynomialSolver {
   private:
     static constexpr double COEFFICIENT_LIMIT = 1.0e-20;
     static constexpr int MAX_ITERATIONS = 50;
+    static constexpr double POLYNOMIAL_MAX_DISTANCE = 1.0e7;
     static int polynomialRemainder(
         const Polynomial *dividend, const Polynomial *divisor, Polynomial *remainder);
     static int solveByRegulaFalsi(

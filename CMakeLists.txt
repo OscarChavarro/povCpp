@@ -15,7 +15,6 @@ add_executable(povray
     src/numericalAnalysis/polynomial/CubicSolver.cpp
     src/numericalAnalysis/polynomial/QuarticSolver.cpp
     src/numericalAnalysis/polynomial/PolynomialSolver.cpp
-    src/numericalAnalysis/polynomial/PolynomialTermCounts.cpp
     src/environment/material/RendererConfiguration.cpp
     src/environment/geometry/elements/Ray.cpp
     src/environment/geometry/elements/RayWithSegments.cpp
