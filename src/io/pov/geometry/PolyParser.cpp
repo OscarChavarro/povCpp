@@ -31,7 +31,8 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     Material *localTexture;
 
     if (knownOrder > 0) {
-        localShape = ModelBuilder::getPolyShape(knownOrder, PolynomialTermCounts::table());
+        localShape = ModelBuilder::getPolyShape(
+            knownOrder, PolynomialTermCounts::termCountsByOrder());
     } else {
         localShape = nullptr;
     }
@@ -56,7 +57,8 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if (order < 2 || order > PolynomialConstants::MAX_ORDER) {
                     ParseErrorReporter::reportError("Order of Poly is out of range", ctx);
                 }
-                localShape = ModelBuilder::getPolyShape(order, PolynomialTermCounts::table());
+                localShape = ModelBuilder::getPolyShape(
+                    order, PolynomialTermCounts::termCountsByOrder());
                 break;
 
             case Tokenizer::LEFT_ANGLE_TOKEN:

@@ -417,11 +417,11 @@ Blob::allBlobIntersections(
                         PolynomialSolver::solveQuadratic(&coeffs[2], &roots[0]);
                 } else {
                     rootCount =
-                        PolynomialSolver::polysolve(3, &coeffs[1], &roots[0],
+                        PolynomialSolver::solvePolynomial(3, &coeffs[1], &roots[0],
                             ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
                 }
             } else {
-                rootCount = PolynomialSolver::polysolve(4, coeffs, &roots[0],
+                rootCount = PolynomialSolver::solvePolynomial(4, coeffs, &roots[0],
                     ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
             }
 
