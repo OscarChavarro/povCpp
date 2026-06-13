@@ -25,6 +25,7 @@ class PolynomialShape : public Geometry {
     static void rotatePoly(SimpleBody *object, Vector3Dd *vector);
     static void scalePoly(SimpleBody *object, Vector3Dd *vector);
     static void invertPoly(SimpleBody *object);
+    static const int *termCountsByOrder();
 
   private:
     static void transform(int order, double *coeffs, Matrix4x4d *q);

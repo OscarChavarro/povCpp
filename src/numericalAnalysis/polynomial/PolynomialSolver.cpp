@@ -360,7 +360,7 @@ PolynomialSolver::solvePolynomial(
     }
 
     // Bracket the roots
-    double maximumValue = PolynomialConstants::POLYNOMIAL_MAX_DISTANCE;
+    double maximumValue = POLYNOMIAL_MAX_DISTANCE;
 
     changesAtMinimum = PolynomialSolver::countSignChanges(
         sequenceLength, sturmSequence, minValue);

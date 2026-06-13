@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "numericalAnalysis/polynomial/PolynomialTermCounts.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -156,7 +156,7 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
-                for (i = 0; i < PolynomialTermCounts::termCountsByOrder()[order]; i++) {
+                for (i = 0; i < PolynomialShape::termCountsByOrder()[order]; i++) {
                     givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);

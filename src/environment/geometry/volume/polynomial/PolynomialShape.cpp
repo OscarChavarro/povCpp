@@ -13,7 +13,6 @@ This file was written by Alexander Enzmann.  He wrote the code for
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "numericalAnalysis/polynomial/PolynomialSolver.h"
-#include "numericalAnalysis/polynomial/PolynomialTermCounts.h"
 #include "numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
@@ -32,6 +31,10 @@ a27*y*z^2+a28*y*z+a29*y+a30*z^4+a31*z^3+a32*z^2+a33*z+a34
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
 
+namespace {
+constexpr int termCountsByOrderTable[] = {1, 4, 10, 20, 35, 56, 84, 120};
+}
+
 int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 4, 6, 4, 1, 0, 0, 0, 0, 0, 0},
@@ -43,13 +46,19 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1}};
 
 int factorials[PolynomialConstants::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
-static const int *termCountsInstance = PolynomialTermCounts::termCountsByOrder();
+static const int *termCountsInstance = PolynomialShape::termCountsByOrder();
 
 Methods PolynomialShape::methodTable = {
     PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
     PolynomialShape::polyNormal, PolynomialShape::copyPoly,
     PolynomialShape::translatePoly, PolynomialShape::rotatePoly,
     PolynomialShape::scalePoly, PolynomialShape::invertPoly};
+
+const int *
+PolynomialShape::termCountsByOrder()
+{
+    return termCountsByOrderTable;
+}
 
 
 int
