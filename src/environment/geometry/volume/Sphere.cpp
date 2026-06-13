@@ -1,35 +1,20 @@
-/**
-spheres.c
-
-This module implements the sphere primitive.
-*/
-
 #include "java/lang/Math.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/material/Material.h"
 #include "environment/material/MaterialUtils.h"
 
-//===========================================================================
-
 Methods Sphere::methodTable = {
     Sphere::allSphereIntersections, Sphere::insideSphere, Sphere::sphereNormal,
     Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
     Sphere::scaleSphere, Sphere::invertSphere};
 
-
-//===========================================================================
-
-/**
-Study closely this method!
-*/
 int
 Sphere::intersectSphere(
     const RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
     Statistics::global().raySphereTests++;
 
-    //--------------------------------------------------------------------------
     Vector3Dd originToCenter;
     double ocSquared;
     double tClosestApproach;
@@ -83,7 +68,6 @@ Sphere::intersectSphere(
         }
     }
 
-    //--------------------------------------------------------------------------
     Statistics::global().raySphereTestsSucceeded++;
     return true;
 }
@@ -107,7 +91,7 @@ Sphere::allSphereIntersections(
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
-        depthQueue->add(&localElement);
+        depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
@@ -117,7 +101,7 @@ Sphere::allSphereIntersections(
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
-            depthQueue->add(&localElement);
+            depthQueue->offer(localElement);
             intersectionFound = true;
         }
     }
@@ -208,7 +192,4 @@ Sphere::invertSphere(SimpleBody *object)
 {
     ((Sphere *)object)->Inverted ^= true;
 }
-
-//===========================================================================
-//= EOF =
-//===========================================================================
+#include "common/dataStructures/PriorityQueue.txx"

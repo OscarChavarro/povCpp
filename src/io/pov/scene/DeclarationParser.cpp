@@ -276,3 +276,4 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
         }
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

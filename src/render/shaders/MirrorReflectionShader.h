@@ -2,11 +2,10 @@
 #define __MIRROR_REFLECTION_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/Material.h"
-
-class RayWithSegments;
-class ColorRgba;
-class TraceService;
+#include "render/shaders/TraceService.h"
 
 class MirrorReflectionShader {
 public:

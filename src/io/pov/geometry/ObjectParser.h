@@ -2,11 +2,10 @@
 #define __OBJECT_PARSER_H__
 
 #include "environment/geometry/elements/GeometryTypes.h"
-
-class Geometry;
-class SimpleBody;
-class CSG;
-class ParserContext;
+#include "environment/geometry/Geometry.h"
+#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/volume/compound/CSG.h"
+#include "io/pov/context/ParserContext.h"
 
 class ObjectParser {
   public:

@@ -227,3 +227,4 @@ PrimitiveParser::parseColor(ColorRgba *givenColor, ParserContext &ctx)
         }
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

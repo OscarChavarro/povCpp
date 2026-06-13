@@ -1,8 +1,7 @@
 #ifndef __RENDERING_CONFIGURATION_H__
 #define __RENDERING_CONFIGURATION_H__
 
-
-class RenderOutput;
+#include "environment/material/RenderOutput.h"
 
 class RenderingConfiguration {
   public:

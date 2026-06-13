@@ -16,3 +16,4 @@ RenderSettingsParser::parseMaxTraceLevel(ParserContext &ctx)
 {
     RenderRuntimeState::maxTraceLevel() = PrimitiveParser::parseFloat(ctx);
 }
+#include "common/dataStructures/PriorityQueue.txx"

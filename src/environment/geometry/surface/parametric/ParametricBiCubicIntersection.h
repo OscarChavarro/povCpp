@@ -4,8 +4,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
-class ParametricBiCubicPatch;
-
 class ParametricBiCubicIntersection {
   public:
     static int intersectSubpatch(int patchType, const RayWithSegments *ray,

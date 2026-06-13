@@ -43,7 +43,7 @@ Box::allBoxIntersections(
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
-        depthQueue->add(&localElement);
+        depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
@@ -53,7 +53,7 @@ Box::allBoxIntersections(
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
-            depthQueue->add(&localElement);
+            depthQueue->offer(localElement);
             intersectionFound = true;
         }
     }
@@ -362,3 +362,4 @@ Box::invertBox(SimpleBody *object)
 {
     ((Box *)object)->Inverted = !((Box *)object)->Inverted;
 }
+#include "common/dataStructures/PriorityQueue.txx"

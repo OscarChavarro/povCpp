@@ -1,3 +1,4 @@
+#include "common/dataStructures/PriorityQueue.txx"
 #include "common/statistics/Statistics.h"
 #include "common/dataStructures/PriorityQueue.h"
 #include "environment/geometry/GeometryConstants.h"
@@ -28,7 +29,7 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
     const Light *lightSource;
     SimpleBody *blockingObject;
     bool intersectionFound;
-    Intersection *localIntersection;
+    Intersection localIntersection;
     Vector3Dd rEye;
     ColorRgba lightColor;
     PriorityQueueNode *localQueue;
@@ -63,18 +64,18 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
                 blockingObject = blockingObject->nextObject) {
 
                 Statistics::global().shadowRayTests++;
-                for (GeometryOperations::allIntersections(
-                         blockingObject, &lightSourceRay, localQueue);
-                    (localIntersection = localQueue->getHighest()) != nullptr;
-                    localQueue->deleteHighest()) {
+                GeometryOperations::allIntersections(
+                    blockingObject, &lightSourceRay, localQueue);
+                while (localQueue->size() > 0) {
+                    localIntersection = localQueue->poll();
 
-                    if ((localIntersection->Depth <
+                    if ((localIntersection.Depth <
                             lightSourceDepth - GeometryConstants::Small_Tolerance) &&
-                        (localIntersection->Depth > SHADOW_TOLERANCE)) {
+                        (localIntersection.Depth > SHADOW_TOLERANCE)) {
 
                         // Does the object not cast a shadow?
-                        if (!localIntersection->Object->noShadowFlag) {
-                            if (ShadowShader::shade(localIntersection, &lightColor,
+                        if (!localIntersection.Object->noShadowFlag) {
+                            if (ShadowShader::shade(&localIntersection, &lightColor,
                                     localQueue, traceService)) {
                                 intersectionFound = true;
                                 break;

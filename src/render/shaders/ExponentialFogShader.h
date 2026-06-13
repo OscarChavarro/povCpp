@@ -1,7 +1,7 @@
 #ifndef __EXPONENTIAL_FOG_SHADER_H__
 #define __EXPONENTIAL_FOG_SHADER_H__
 
-class ColorRgba;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 
 class ExponentialFogShader {
 public:

@@ -1,8 +1,8 @@
 #ifndef __FOG_PARSER_H__
 #define __FOG_PARSER_H__
 
-class RenderFrame;
-class ParserContext;
+#include "environment/scene/SceneFrame.h"
+#include "io/pov/context/ParserContext.h"
 
 class FogParser {
   public:

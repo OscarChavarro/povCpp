@@ -2,22 +2,20 @@
 #define __MODEL_BUILDER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
-class Composite;
-class Sphere;
-class Light;
-class Quadric;
-class PolynomialShape;
-class Box;
-class Blob;
-class HeightField;
-class InfinitePlane;
-class Triangle;
-class SmoothTriangle;
-class CSG;
-class Camera;
-class ColorRgba;
-class ParametricBiCubicPatch;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/camera/Camera.h"
+#include "environment/light/Light.h"
+#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/volume/Blob.h"
+#include "environment/geometry/volume/Box.h"
+#include "environment/geometry/volume/HeightField.h"
+#include "environment/geometry/volume/Quadric.h"
+#include "environment/geometry/volume/Sphere.h"
+#include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/geometry/volume/polynomial/PolynomialShape.h"
+#include "environment/geometry/surface/InfinitePlane.h"
+#include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 
 class ModelBuilder {
   public:

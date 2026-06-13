@@ -3,9 +3,8 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/dataStructures/PriorityQueueNode.h"
-
-class SimpleBody;
-class Geometry;
+#include "environment/geometry/Geometry.h"
+#include "environment/geometry/SimpleBody.h"
 
 class Intersection {
   public:

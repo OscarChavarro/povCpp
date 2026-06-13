@@ -17,14 +17,13 @@ class PriorityQueuePool {
         }
         PriorityQueue<T> * const pq = head;
         if (pq == nullptr) return nullptr;
-        head = pq->next_pq;
-        pq->queueSize = indexSize;
-        pq->currentEntry = 0;
+        head = pq->poolNext();
+        pq->resetForPool(indexSize);
         return pq;
     }
 
     static inline void pqPush(PriorityQueue<T> *queue) {
-        queue->next_pq = head;
+        queue->setPoolNext(head);
         head = queue;
     }
 

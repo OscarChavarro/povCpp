@@ -1,7 +1,7 @@
 #ifndef __SIMPLE_BODY_FACTORY_H__
 #define __SIMPLE_BODY_FACTORY_H__
 
-class SimpleBody;
+#include "environment/geometry/SimpleBody.h"
 
 class SimpleBodyFactory {
   public:

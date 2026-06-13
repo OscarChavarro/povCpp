@@ -144,3 +144,4 @@ Light::attenuateLight(const Light *lightSource, const RayWithSegments *lightSour
     }
     return (attenuation);
 }
+#include "common/dataStructures/PriorityQueue.txx"

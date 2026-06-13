@@ -1,8 +1,8 @@
 #ifndef __DEFAULT_TEXTURE_PARSER_H__
 #define __DEFAULT_TEXTURE_PARSER_H__
 
-class RenderFrame;
-class ParserContext;
+#include "environment/scene/SceneFrame.h"
+#include "io/pov/context/ParserContext.h"
 
 class DefaultTextureParser {
   public:

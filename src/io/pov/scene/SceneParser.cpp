@@ -85,3 +85,4 @@ SceneParser::parseFrame(ParserContext &ctx)
 {
     SceneFrameParser::parseFrame(ctx.parsingFrame(), ctx);
 }
+#include "common/dataStructures/PriorityQueue.txx"

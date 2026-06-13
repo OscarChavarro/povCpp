@@ -205,7 +205,7 @@ Triangle::allTriangleIntersections(
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
-        depthQueue->add(&localElement);
+        depthQueue->offer(localElement);
         return (true);
     }
     return (false);
@@ -645,3 +645,4 @@ SmoothTriangle::invertSmoothTriangle(SimpleBody *object)
 
     triangle->Inverted ^= true;
 }
+#include "common/dataStructures/PriorityQueue.txx"

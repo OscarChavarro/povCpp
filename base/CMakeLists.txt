@@ -30,6 +30,10 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/media/IndexedColorImageHDRUncompressed.cpp
     src/main/vsdk/toolkit/common/numericalAnalysis/lookUpTables/LookUpTableSine.cpp
     src/main/vsdk/toolkit/common/numericalAnalysis/lookUpTables/LookUpTableChecksum16.cpp
+    src/main/vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.cpp
+    src/main/vsdk/toolkit/common/numericalAnalysis/polynomial/CubicSolver.cpp
+    src/main/vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.cpp
+    src/main/vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.cpp
     src/main/vsdk/toolkit/media/solidTexture/TextureUtils.cpp
     src/main/vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.cpp
     src/main/vsdk/toolkit/media/solidTexture/procedural/BumpTextureFixture.cpp

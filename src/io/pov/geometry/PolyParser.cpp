@@ -8,7 +8,7 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "numericalAnalysis/polynomial/PolynomialConstants.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
@@ -53,7 +53,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                         "The order of a polynomial may not be specified twice", ctx);
                 }
                 order = (int)PrimitiveParser::parseFloat(ctx);
-                if (order < 2 || order > PolynomialConstants::MAX_ORDER) {
+                if (order < 2 || order > PolynomialSolver::MAX_ORDER) {
                     ParseErrorReporter::reportError("Order of Poly is out of range", ctx);
                 }
                 localShape = ModelBuilder::getPolyShape(
@@ -153,3 +153,4 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 
     return ((Geometry *)localShape);
 }
+#include "common/dataStructures/PriorityQueue.txx"

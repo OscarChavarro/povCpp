@@ -4,9 +4,9 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/material/Material.h"
 
 class Methods;
-class Material;
 
 class Geometry {
   public:

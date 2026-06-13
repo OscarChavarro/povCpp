@@ -3,8 +3,7 @@
 
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-
-class ParametricBiCubicPatch;
+#include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 
 class ParametricBiCubicSolver {
   public:

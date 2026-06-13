@@ -350,8 +350,9 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         localElement.Object = nullptr;
         localElement.Point = shape->Intersection_Point[tcnt + i];
         localElement.Shape = (Geometry *)shape;
-        depthQueue->add(&localElement);
+        depthQueue->offer(localElement);
         intersectionFound = 1;
     }
     return (intersectionFound);
 }
+#include "common/dataStructures/PriorityQueue.txx"

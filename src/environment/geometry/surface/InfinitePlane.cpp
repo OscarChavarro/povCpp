@@ -32,7 +32,7 @@ InfinitePlane::allPlaneIntersections(
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
-            depthQueue->add(&localElement);
+            depthQueue->offer(localElement);
             return (true);
         }
     }
@@ -177,3 +177,4 @@ InfinitePlane::invertPlane(SimpleBody *object)
     plane->normalVector = plane->normalVector.multiply(-1.0);
     plane->Distance *= -1.0;
 }
+#include "common/dataStructures/PriorityQueue.txx"

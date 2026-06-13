@@ -1,9 +1,9 @@
 #ifndef __TRACE_SERVICE_H__
 #define __TRACE_SERVICE_H__
 
-class RayWithSegments;
-class ColorRgba;
-class Intersection;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/geometry/Intersection.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 
 class TraceService {
 public:

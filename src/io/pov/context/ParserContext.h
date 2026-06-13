@@ -7,8 +7,7 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/SymbolTable.h"
 #include "io/pov/context/TokenizerStream.h"
-
-class RenderFrame;
+#include "environment/scene/SceneFrame.h"
 
 class ParserContext {
   public:

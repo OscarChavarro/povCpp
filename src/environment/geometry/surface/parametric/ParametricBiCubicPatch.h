@@ -3,10 +3,9 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/surface/parametric/ParametricControlPoints.h"
+#include "environment/geometry/surface/parametric/ParametricPatchChild.h"
 #include "environment/geometry/surface/parametric/ParametricPatchNode.h"
-
-class ParametricControlPoints;
-class ParametricPatchChild;
 
 class ParametricBiCubicPatch : public Geometry {
   public:

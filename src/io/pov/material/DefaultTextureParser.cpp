@@ -40,3 +40,4 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
         }
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

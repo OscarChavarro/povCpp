@@ -3,8 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-
-class SmoothTriangle;
+#include "environment/geometry/elements/SmoothTriangle.h"
 
 class Triangle : public Geometry {
   public:
@@ -41,7 +40,5 @@ class Triangle : public Geometry {
     static void findTriangleDominantAxis(Triangle *triangle);
     static void computeSmoothTriangle(SmoothTriangle *triangle);
 };
-
-#include "environment/geometry/elements/SmoothTriangle.h"
 
 #endif

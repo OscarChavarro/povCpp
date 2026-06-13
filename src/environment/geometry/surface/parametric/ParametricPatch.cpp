@@ -8,6 +8,8 @@ bezier bicubic patches and generously provided us these enhancements.
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "common/dataStructures/PriorityQueue.txx"
+
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"

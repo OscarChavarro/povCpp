@@ -12,9 +12,9 @@ This file was written by Alexander Enzmann.  He wrote the code for
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "numericalAnalysis/polynomial/PolynomialSolver.h"
-#include "numericalAnalysis/polynomial/QuadraticSolver.h"
-#include "numericalAnalysis/polynomial/QuarticSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/material/MaterialUtils.h"
 
@@ -45,7 +45,7 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 9, 36, 84, 126, 126, 84, 36, 9, 1, 0},
     {0, 1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1}};
 
-int factorials[PolynomialConstants::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
+int factorials[PolynomialSolver::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 static const int *termCountsInstance = PolynomialShape::termCountsByOrder();
 
 Methods PolynomialShape::methodTable = {
@@ -66,7 +66,7 @@ PolynomialShape::allPolyIntersections(
     SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
 {
     PolynomialShape * const shape = (PolynomialShape *)object;
-    double depths[PolynomialConstants::MAX_ORDER];
+    double depths[PolynomialSolver::MAX_ORDER];
     double len;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
@@ -132,7 +132,7 @@ PolynomialShape::allPolyIntersections(
         localElement.Object = nullptr;
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
-        depthQueue->add(&localElement);
+        depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;
     }
@@ -218,7 +218,7 @@ PolynomialShape::intersect(
 {
     Matrix4x4d q;
     double *a;
-    double t[PolynomialConstants::MAX_ORDER + 1];
+    double t[PolynomialSolver::MAX_ORDER + 1];
     int i;
     int j;
     // Determine the coefficients of t^n, where the line is represented
@@ -254,7 +254,8 @@ PolynomialShape::intersect(
         j -= 1;
     }
     if (j > 2) {
-        return PolynomialSolver::solvePolynomial(j, &t[i], depths,
+        PolynomialSolver polynomialSolver(j, &t[i]);
+        return polynomialSolver.solve(depths,
             ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
             Config::POLYNOMIAL_SOLVER_EPSILON);
     }
@@ -267,9 +268,9 @@ PolynomialShape::intersect(
 double
 PolynomialShape::inside(const Vector3Dd *point, int order, const double *coeffs)
 {
-    double x[PolynomialConstants::MAX_ORDER + 1];
-    double y[PolynomialConstants::MAX_ORDER + 1];
-    double z[PolynomialConstants::MAX_ORDER + 1];
+    double x[PolynomialSolver::MAX_ORDER + 1];
+    double y[PolynomialSolver::MAX_ORDER + 1];
+    double z[PolynomialSolver::MAX_ORDER + 1];
     double result;
     int i;
     int k0;
@@ -282,7 +283,7 @@ PolynomialShape::inside(const Vector3Dd *point, int order, const double *coeffs)
     x[1] = point->x();
     y[1] = point->y();
     z[1] = point->z();
-    for (i = 2; i <= PolynomialConstants::MAX_ORDER; i++) {
+    for (i = 2; i <= PolynomialSolver::MAX_ORDER; i++) {
         x[i] = x[1] * x[i - 1];
         y[i] = y[1] * y[i - 1];
         z[i] = z[1] * z[i - 1];
@@ -309,9 +310,9 @@ PolynomialShape::normalp(Vector3Dd *result, int order, const double *coeffs,
     int zp;
     int wp;
     const double *a;
-    double x[PolynomialConstants::MAX_ORDER + 1];
-    double y[PolynomialConstants::MAX_ORDER + 1];
-    double z[PolynomialConstants::MAX_ORDER + 1];
+    double x[PolynomialSolver::MAX_ORDER + 1];
+    double y[PolynomialSolver::MAX_ORDER + 1];
+    double z[PolynomialSolver::MAX_ORDER + 1];
     x[0] = 1.0;
     y[0] = 1.0;
     z[0] = 1.0;
@@ -714,11 +715,13 @@ PolynomialShape::intersectQuartic(
             if (t[1] == 0.0) {
                 return QuadraticSolver::solve(&t[2], depths);
             }
-            return PolynomialSolver::solvePolynomial(3, &t[1], depths,
+            PolynomialSolver cubicSolver(3, &t[1]);
+            return cubicSolver.solve(depths,
                 ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
                 Config::POLYNOMIAL_SOLVER_EPSILON);
         }
-        return PolynomialSolver::solvePolynomial(4, &t[0], depths,
+        PolynomialSolver quarticSolver(4, &t[0]);
+        return quarticSolver.solve(depths,
             ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
             Config::POLYNOMIAL_SOLVER_EPSILON);
     }
@@ -936,3 +939,4 @@ PolynomialShape::invertPoly(SimpleBody *object)
 {
     ((PolynomialShape *)object)->Inverted = !((PolynomialShape *)object)->Inverted;
 }
+#include "common/dataStructures/PriorityQueue.txx"

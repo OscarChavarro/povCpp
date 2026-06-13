@@ -1,8 +1,8 @@
 #ifndef __HEIGHT_FIELD_PARSER_H__
 #define __HEIGHT_FIELD_PARSER_H__
 
-class Geometry;
-class ParserContext;
+#include "environment/geometry/Geometry.h"
+#include "io/pov/context/ParserContext.h"
 
 class HeightFieldParser {
   public:

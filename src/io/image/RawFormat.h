@@ -5,8 +5,6 @@
 #include "java/io/OutputStream.h"
 #include "io/image/ImageOutput.h"
 
-class ColorRgba;
-
 class RawFormat : public ImageOutput {
   public:
     static constexpr const char *RED_RAW_FILE_EXTENSION = ".red";
