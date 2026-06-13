@@ -120,3 +120,4 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
         }
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

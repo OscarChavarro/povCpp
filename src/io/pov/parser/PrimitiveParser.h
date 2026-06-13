@@ -2,9 +2,8 @@
 #define __PRIMITIVE_PARSER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
-class ColorRgba;
-class ParserContext;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "io/pov/context/ParserContext.h"
 
 class PrimitiveParser {
   public:

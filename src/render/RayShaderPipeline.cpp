@@ -231,3 +231,4 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             RenderEngine::renderFrame().fogDistance, color);
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

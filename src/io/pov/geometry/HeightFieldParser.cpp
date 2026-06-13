@@ -202,3 +202,4 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     }
     return ((Geometry *)localShape);
 }
+#include "common/dataStructures/PriorityQueue.txx"

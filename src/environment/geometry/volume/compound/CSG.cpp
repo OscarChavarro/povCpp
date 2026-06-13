@@ -1,3 +1,5 @@
+#include "common/dataStructures/PriorityQueue.txx"
+
 /**
 csg.c
 
@@ -52,7 +54,7 @@ CSG::allCsgIntersectIntersections(
     Geometry *localShape;
     Geometry *shape2;
     PriorityQueueNode *localDepthQueue;
-    Intersection *localIntersection;
+    Intersection localIntersection;
 
     localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
 
@@ -64,9 +66,8 @@ CSG::allCsgIntersectIntersections(
         GeometryOperations::allIntersections(
             (SimpleBody *)localShape, ray, localDepthQueue);
 
-        for (localIntersection = localDepthQueue->getHighest();
-            localIntersection != nullptr; localDepthQueue->deleteHighest(),
-            localIntersection = localDepthQueue->getHighest()) {
+        while (localDepthQueue->size() > 0) {
+            localIntersection = localDepthQueue->poll();
 
             intersectionFound = true;
 
@@ -75,7 +76,7 @@ CSG::allCsgIntersectIntersections(
 
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
-                            &localIntersection->Point, (SimpleBody *)shape2)) {
+                            &localIntersection.Point, (SimpleBody *)shape2)) {
                         intersectionFound = false;
                         break;
                     }
@@ -83,7 +84,7 @@ CSG::allCsgIntersectIntersections(
             }
 
             if (intersectionFound) {
-                depthQueue->add(localIntersection);
+                depthQueue->offer(localIntersection);
                 anyIntersectionFound = true;
             }
         }

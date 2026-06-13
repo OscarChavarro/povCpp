@@ -1,6 +1,19 @@
 #include "java/lang/Math.h"
-#include "numericalAnalysis/polynomial/Polynomial.h"
-#include "numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
+
+PolynomialSolver::PolynomialSolver() : order(0), coefficients{0.0}
+{
+}
+
+PolynomialSolver::PolynomialSolver(int order, const double *coefficients) : order(order)
+{
+    for (int coefficientIndex = 0; coefficientIndex <= MAX_ORDER; coefficientIndex++) {
+        this->coefficients[coefficientIndex] = 0.0;
+    }
+    for (int coefficientIndex = 0; coefficientIndex <= order; coefficientIndex++) {
+        this->coefficients[order - coefficientIndex] = coefficients[coefficientIndex];
+    }
+}
 
 /**
 Calculates the modulus of u(x) / v(x) leaving it in r, it
@@ -10,50 +23,47 @@ is 1 or -1
 */
 int
 PolynomialSolver::polynomialRemainder(
-    const Polynomial *dividend, const Polynomial *divisor, Polynomial *remainder)
+    const PolynomialSolver &divisor, PolynomialSolver *remainder) const
 {
     int quotientIndex;
     int coefficientIndex;
-    for (int dividendIndex = 0; dividendIndex <= dividend->order; dividendIndex++) {
-        remainder->coefficients[dividendIndex] = dividend->coefficients[dividendIndex];
+    for (int dividendIndex = 0; dividendIndex <= order; dividendIndex++) {
+        remainder->coefficients[dividendIndex] = coefficients[dividendIndex];
     }
-    for (int dividendIndex = dividend->order + 1;
-        dividendIndex <= PolynomialConstants::MAX_ORDER;
-        dividendIndex++) {
+    for (int dividendIndex = order + 1; dividendIndex <= MAX_ORDER; dividendIndex++) {
         remainder->coefficients[dividendIndex] = 0.0;
     }
 
-    if (divisor->coefficients[divisor->order] < 0.0) {
-        for (quotientIndex = dividend->order - divisor->order - 1;
-            quotientIndex >= 0;
+    if (divisor.coefficients[divisor.order] < 0.0) {
+        for (quotientIndex = order - divisor.order - 1; quotientIndex >= 0;
             quotientIndex -= 2) {
             remainder->coefficients[quotientIndex] = -remainder->coefficients[quotientIndex];
         }
-        for (quotientIndex = dividend->order - divisor->order; quotientIndex >= 0;
+        for (quotientIndex = order - divisor.order; quotientIndex >= 0;
             quotientIndex--) {
-            for (coefficientIndex = divisor->order + quotientIndex - 1;
+            for (coefficientIndex = divisor.order + quotientIndex - 1;
                 coefficientIndex >= quotientIndex;
                 coefficientIndex--) {
                 remainder->coefficients[coefficientIndex] =
                     -remainder->coefficients[coefficientIndex] -
-                    remainder->coefficients[divisor->order + quotientIndex] *
-                        divisor->coefficients[coefficientIndex - quotientIndex];
+                    remainder->coefficients[divisor.order + quotientIndex] *
+                        divisor.coefficients[coefficientIndex - quotientIndex];
             }
         }
     } else {
-        for (quotientIndex = dividend->order - divisor->order; quotientIndex >= 0;
+        for (quotientIndex = order - divisor.order; quotientIndex >= 0;
             quotientIndex--) {
-            for (coefficientIndex = divisor->order + quotientIndex - 1;
+            for (coefficientIndex = divisor.order + quotientIndex - 1;
                 coefficientIndex >= quotientIndex;
                 coefficientIndex--) {
                 remainder->coefficients[coefficientIndex] -=
-                    remainder->coefficients[divisor->order + quotientIndex] *
-                    divisor->coefficients[coefficientIndex - quotientIndex];
+                    remainder->coefficients[divisor.order + quotientIndex] *
+                    divisor.coefficients[coefficientIndex - quotientIndex];
             }
         }
     }
 
-    quotientIndex = divisor->order - 1;
+    quotientIndex = divisor.order - 1;
     while (quotientIndex >= 0 &&
         java::Math::abs(remainder->coefficients[quotientIndex]) <
                COEFFICIENT_LIMIT) {
@@ -61,16 +71,18 @@ PolynomialSolver::polynomialRemainder(
         quotientIndex--;
     }
     remainder->order = (quotientIndex < 0) ? 0 : quotientIndex;
-    return (remainder->order);
+    return remainder->order;
 }
 
-// Build the Sturmian sequence for a Polynomial
+/**
+Build the Sturmian sequence for a Polynomial
+*/
 int
-PolynomialSolver::buildSturmSequence(int order, Polynomial *sturmSequence)
+PolynomialSolver::buildSturmSequence(PolynomialSolver *sturmSequence) const
 {
-    Polynomial *sequenceTerm;
+    PolynomialSolver *sequenceTerm;
 
-    sturmSequence[0].order = order;
+    sturmSequence[0] = *this;
     sturmSequence[1].order = order - 1;
 
     // Calculate the derivative and normalize the leading coefficient
@@ -85,7 +97,7 @@ PolynomialSolver::buildSturmSequence(int order, Polynomial *sturmSequence)
 
     // Construct the rest of the Sturm sequence
     for (sequenceTerm = sturmSequence + 2;
-        PolynomialSolver::polynomialRemainder(sequenceTerm - 2, sequenceTerm - 1, sequenceTerm);
+        (sequenceTerm - 2)->polynomialRemainder(*(sequenceTerm - 1), sequenceTerm);
         sequenceTerm++) {
         // Reverse the sign and normalize
         normalizationFactor = -java::Math::abs(sequenceTerm->coefficients[sequenceTerm->order]);
@@ -95,22 +107,24 @@ PolynomialSolver::buildSturmSequence(int order, Polynomial *sturmSequence)
             *normalizedCoefficient /= normalizationFactor;
         }
     }
-    sequenceTerm->coefficients[0] = -sequenceTerm->coefficients[0]; // Reverse the sign
-    return (sequenceTerm - sturmSequence);
+    sequenceTerm->coefficients[0] = -sequenceTerm->coefficients[0];
+    return sequenceTerm - sturmSequence;
 }
 
-// Find out how many visible intersections there are
+/**
+Find out how many visible intersections there are
+*/
 int
 PolynomialSolver::countVisibleRoots(
-    int sequenceLength, const Polynomial *sturmSequence, int *atZero, int *atPositive)
+    int sequenceLength, const PolynomialSolver *sturmSequence, int *atZero,
+    int *atPositive) const
 {
-    const Polynomial *sequenceTerm;
+    const PolynomialSolver *sequenceTerm;
     double currentValue;
     double lastValue;
-
     int changesAtPositiveInfinity = 0;
     int changesAtZero = 0;
-    // Changes at positive infinity
+
     lastValue = sturmSequence[0].coefficients[sturmSequence[0].order];
     for (sequenceTerm = sturmSequence + 1; sequenceTerm <= sturmSequence + sequenceLength;
         sequenceTerm++) {
@@ -121,7 +135,6 @@ PolynomialSolver::countVisibleRoots(
         lastValue = currentValue;
     }
 
-    // Changes at zero
     lastValue = sturmSequence[0].coefficients[0];
     for (sequenceTerm = sturmSequence + 1; sequenceTerm <= sturmSequence + sequenceLength;
         sequenceTerm++) {
@@ -134,7 +147,7 @@ PolynomialSolver::countVisibleRoots(
 
     *atZero = changesAtZero;
     *atPositive = changesAtPositiveInfinity;
-    return (changesAtZero - changesAtPositiveInfinity);
+    return changesAtZero - changesAtPositiveInfinity;
 }
 
 /**
@@ -142,25 +155,23 @@ Return the number of sign changes in the Sturm sequence in
 sseq at the value a.
 */
 int
-PolynomialSolver::countSignChanges(int sequenceLength, const Polynomial *sturmSequence,
-    double value)
+PolynomialSolver::countSignChanges(
+    int sequenceLength, const PolynomialSolver *sturmSequence, double value) const
 {
     double currentValue;
-    const Polynomial *sequenceTerm;
+    const PolynomialSolver *sequenceTerm;
     int signChanges = 0;
-    double lastValue = PolynomialSolver::evaluatePolynomial(
-        value, sturmSequence[0].order, sturmSequence[0].coefficients);
+    double lastValue = sturmSequence[0].evaluatePolynomial(value);
     for (sequenceTerm = sturmSequence + 1;
         sequenceTerm <= sturmSequence + sequenceLength;
         sequenceTerm++) {
-        currentValue = PolynomialSolver::evaluatePolynomial(
-            value, sequenceTerm->order, sequenceTerm->coefficients);
+        currentValue = sequenceTerm->evaluatePolynomial(value);
         if (lastValue == 0.0 || lastValue * currentValue < 0) {
             signChanges++;
         }
         lastValue = currentValue;
     }
-    return (signChanges);
+    return signChanges;
 }
 
 /**
@@ -174,9 +185,10 @@ within the interval, the root at the endpoint will be returned rather
 than the one inside.
 */
 void
-PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequence,
+PolynomialSolver::bisectRoots(
+    int sequenceLength, const PolynomialSolver *sturmSequence,
     double minimumValue, double maximumValue, int changesAtMinimum,
-    int changesAtMaximum, double epsilon, double *roots)
+    int changesAtMaximum, double epsilon, double *roots) const
 {
     double midpoint;
     int rootsInLeftHalf;
@@ -186,16 +198,14 @@ PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequenc
     int rootCountInInterval = changesAtMinimum - changesAtMaximum;
 
     if (rootCountInInterval == 1) {
-        // First try using regula-falsa to find the root
-        if (PolynomialSolver::solveByRegulaFalsi(
-                sturmSequence->order, sturmSequence->coefficients, minimumValue,
-                maximumValue, epsilon, roots)) {
+        if (sturmSequence->solveByRegulaFalsi(minimumValue, maximumValue, epsilon, roots)) {
             return;
-        } // That failed, so now find it by bisection
+        }
+
         for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
             midpoint = (minimumValue + maximumValue) / 2;
             changesAtMidpoint =
-                PolynomialSolver::countSignChanges(sequenceLength, sturmSequence, midpoint);
+                countSignChanges(sequenceLength, sturmSequence, midpoint);
             if (java::Math::abs(midpoint) > epsilon) {
                 if (java::Math::abs((maximumValue - minimumValue) / midpoint) < epsilon) {
                     roots[0] = midpoint;
@@ -210,26 +220,23 @@ PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequenc
                 maximumValue = midpoint;
             }
         }
-        // Bisection took too long - just return what we got
+
         roots[0] = midpoint;
         return;
     }
 
-    // There is more than one root in the interval.
-    // Bisect to find new intervals
     for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
         midpoint = (minimumValue + maximumValue) / 2;
         changesAtMidpoint =
-            PolynomialSolver::countSignChanges(sequenceLength, sturmSequence, midpoint);
+            countSignChanges(sequenceLength, sturmSequence, midpoint);
         rootsInLeftHalf = changesAtMinimum - changesAtMidpoint;
         rootsInRightHalf = changesAtMidpoint - changesAtMaximum;
         if (rootsInLeftHalf != 0 && rootsInRightHalf != 0) {
-            PolynomialSolver::bisectRoots(
-                sequenceLength, sturmSequence, minimumValue, midpoint, changesAtMinimum,
-                changesAtMidpoint, epsilon, roots);
-            PolynomialSolver::bisectRoots(
-                sequenceLength, sturmSequence, midpoint, maximumValue, changesAtMidpoint,
-                changesAtMaximum, epsilon, &roots[rootsInLeftHalf]);
+            bisectRoots(sequenceLength, sturmSequence, minimumValue, midpoint,
+                changesAtMinimum, changesAtMidpoint, epsilon, roots);
+            bisectRoots(sequenceLength, sturmSequence, midpoint, maximumValue,
+                changesAtMidpoint, changesAtMaximum, epsilon,
+                &roots[rootsInLeftHalf]);
             return;
         }
         if (rootsInLeftHalf == 0) {
@@ -239,7 +246,6 @@ PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequenc
         }
     }
 
-    // Took too long to bisect. Just return what we got
     for (rootsInLeftHalf = changesAtMaximum; rootsInLeftHalf < changesAtMinimum;
         rootsInLeftHalf++) {
         roots[rootsInLeftHalf - changesAtMaximum] = midpoint;
@@ -247,24 +253,26 @@ PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequenc
 }
 
 double
-PolynomialSolver::evaluatePolynomial(double x, int order, const double *coeffs)
+PolynomialSolver::evaluatePolynomial(double x) const
 {
-    double value = coeffs[order];
+    double value = coefficients[order];
     for (int coefficientIndex = order - 1; coefficientIndex >= 0; coefficientIndex--) {
-        value = value * x + coeffs[coefficientIndex];
+        value = value * x + coefficients[coefficientIndex];
     }
     return value;
 }
 
-// Close in on a root by using regula-falsa
+/**
+Close in on a root by using regula-falsa
+*/
 int
 PolynomialSolver::solveByRegulaFalsi(
-    int order, const double *coefficients, double a, double b, double epsilon, double *root)
+    double a, double b, double epsilon, double *root) const
 {
     double estimatedRoot;
     double valueAtRoot;
-    double valueAtA = PolynomialSolver::evaluatePolynomial(a, order, coefficients);
-    double valueAtB = PolynomialSolver::evaluatePolynomial(b, order, coefficients);
+    double valueAtA = evaluatePolynomial(a);
+    double valueAtB = evaluatePolynomial(b);
 
     if (valueAtA * valueAtB > 0.0) {
         return 0;
@@ -283,8 +291,7 @@ PolynomialSolver::solveByRegulaFalsi(
     double lastValueAtRoot = valueAtA;
     for (int iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
         estimatedRoot = (valueAtB * a - valueAtA * b) / (valueAtB - valueAtA);
-        valueAtRoot = PolynomialSolver::evaluatePolynomial(
-            estimatedRoot, order, coefficients);
+        valueAtRoot = evaluatePolynomial(estimatedRoot);
 
         if (java::Math::abs(estimatedRoot) > epsilon) {
             if (java::Math::abs(valueAtRoot / estimatedRoot) < epsilon) {
@@ -324,7 +331,6 @@ PolynomialSolver::solveByRegulaFalsi(
             }
         }
         if (java::Math::abs(b - a) < epsilon) {
-            // Check for underflow in the domain
             *root = estimatedRoot;
             return 1;
         }
@@ -333,47 +339,35 @@ PolynomialSolver::solveByRegulaFalsi(
     return 0;
 }
 
-// Root solver based on the Sturm sequences for a Polynomial
+/**
+Root solver based on the Sturm sequences for a Polynomial
+*/
 int
-PolynomialSolver::solvePolynomial(
-    int order, const double *coefficients, double *roots, double minValue, double epsilon)
+PolynomialSolver::solve(double *roots, double minValue, double epsilon) const
 {
-    Polynomial sturmSequence[PolynomialConstants::MAX_ORDER + 1];
+    PolynomialSolver sturmSequence[MAX_ORDER + 1];
     int rootCount;
     int changesAtMinimum;
     int changesAtMaximum;
 
-    // Put the coefficients into the top of the stack
-    for (int coefficientIndex = 0; coefficientIndex <= order; coefficientIndex++) {
-        sturmSequence[0].coefficients[order - coefficientIndex] =
-            coefficients[coefficientIndex];
-    }
+    int sequenceLength = buildSturmSequence(&sturmSequence[0]);
 
-    // Build the Sturm sequence
-    int sequenceLength = PolynomialSolver::buildSturmSequence(order, &sturmSequence[0]);
-
-    // Get the total number of visible roots
-    rootCount = PolynomialSolver::countVisibleRoots(
+    rootCount = countVisibleRoots(
         sequenceLength, sturmSequence, &changesAtMinimum, &changesAtMaximum);
     if (rootCount == 0) {
         return 0;
     }
 
-    // Bracket the roots
     double maximumValue = POLYNOMIAL_MAX_DISTANCE;
 
-    changesAtMinimum = PolynomialSolver::countSignChanges(
-        sequenceLength, sturmSequence, minValue);
-    changesAtMaximum = PolynomialSolver::countSignChanges(
-        sequenceLength, sturmSequence, maximumValue);
+    changesAtMinimum = countSignChanges(sequenceLength, sturmSequence, minValue);
+    changesAtMaximum = countSignChanges(sequenceLength, sturmSequence, maximumValue);
     rootCount = changesAtMinimum - changesAtMaximum;
     if (rootCount == 0) {
         return 0;
     }
 
-    // Perform the bisection
-    PolynomialSolver::bisectRoots(
-        sequenceLength, sturmSequence, minValue, maximumValue, changesAtMinimum,
+    bisectRoots(sequenceLength, sturmSequence, minValue, maximumValue, changesAtMinimum,
         changesAtMaximum, epsilon, roots);
 
     return rootCount;

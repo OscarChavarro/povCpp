@@ -34,7 +34,7 @@ Quadric::allQuadricIntersections(
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.Point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
-        depthQueue->add(&localElement);
+        depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
@@ -44,7 +44,7 @@ Quadric::allQuadricIntersections(
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.Point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
-            depthQueue->add(&localElement);
+            depthQueue->offer(localElement);
             intersectionFound = true;
         }
     }
@@ -315,3 +315,4 @@ Quadric::invertQuadric(SimpleBody *object)
     shape->objectTerms = shape->objectTerms.multiply(-1.0);
     shape->objectConstant *= -1.0;
 }
+#include "common/dataStructures/PriorityQueue.txx"

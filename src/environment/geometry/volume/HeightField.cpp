@@ -184,7 +184,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
-        hfQueue->add(hfIntersection);
+        hfQueue->offer(*hfIntersection);
     } else {
         hfIntersection->Depth = depth1;
         hfIntersection->Object = nullptr;
@@ -192,7 +192,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->Point = t1V1;
         hfIntersection->Shape = (Geometry *)hField;
-        hfQueue->add(hfIntersection);
+        hfQueue->offer(*hfIntersection);
     }
     Statistics::global().rayHtFieldTestsSucceeded++;
     return (true);
@@ -1024,3 +1024,4 @@ void
 HeightField::invertHeightfld(SimpleBody *object)
 {
 }
+#include "common/dataStructures/PriorityQueue.txx"

@@ -1,7 +1,7 @@
 #ifndef __RENDER_SETTINGS_PARSER_H__
 #define __RENDER_SETTINGS_PARSER_H__
 
-class ParserContext;
+#include "io/pov/context/ParserContext.h"
 
 class RenderSettingsParser {
   public:

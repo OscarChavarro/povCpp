@@ -1,6 +1,6 @@
 #include "java/lang/Math.h"
-#include "numericalAnalysis/polynomial/CubicSolver.h"
-#include "numericalAnalysis/polynomial/QuadraticSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/CubicSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
 
 double
 CubicSolver::absoluteValue(double x)

@@ -2,8 +2,7 @@
 #define __PARSE_ERROR_REPORTER_H__
 
 #include "io/pov/lexer/Tokenizer.h"
-
-class ParserContext;
+#include "io/pov/context/ParserContext.h"
 
 class ParseErrorReporter {
   public:

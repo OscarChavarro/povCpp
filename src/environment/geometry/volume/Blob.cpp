@@ -10,9 +10,9 @@ blobs and generously provided us these enhancements.
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "numericalAnalysis/polynomial/PolynomialSolver.h"
-#include "numericalAnalysis/polynomial/QuadraticSolver.h"
-#include "numericalAnalysis/polynomial/QuarticSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/material/MaterialUtils.h"
 
@@ -418,13 +418,14 @@ Blob::allBlobIntersections(
                 if (java::Math::abs(coeffs[1]) < COEFF_LIMIT) {
                     rootCount = QuadraticSolver::solve(&coeffs[2], &roots[0]);
                 } else {
-                    rootCount =
-                        PolynomialSolver::solvePolynomial(3, &coeffs[1], &roots[0],
-                            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
-                            Config::POLYNOMIAL_SOLVER_EPSILON);
+                    PolynomialSolver cubicSolver(3, &coeffs[1]);
+                    rootCount = cubicSolver.solve(&roots[0],
+                        ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+                        Config::POLYNOMIAL_SOLVER_EPSILON);
                 }
             } else {
-                rootCount = PolynomialSolver::solvePolynomial(4, coeffs, &roots[0],
+                PolynomialSolver quarticSolver(4, coeffs);
+                rootCount = quarticSolver.solve(&roots[0],
                     ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
                     Config::POLYNOMIAL_SOLVER_EPSILON);
             }
@@ -452,7 +453,7 @@ Blob::allBlobIntersections(
                     localElement.Object = nullptr;
                     localElement.Point = intersectionPoint;
                     localElement.Shape = (Geometry *)blob;
-                    depthQueue->add(&localElement);
+                    depthQueue->offer(localElement);
                     intersectionFound = true;
                 }
             }
@@ -641,3 +642,4 @@ Blob::invertBlob(SimpleBody *object)
 {
     ((Blob *)object)->Inverted = !((Blob *)object)->Inverted;
 }
+#include "common/dataStructures/PriorityQueue.txx"

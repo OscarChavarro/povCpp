@@ -1,10 +1,10 @@
 #ifndef __POVRAY_APPLICATION_H__
 #define __POVRAY_APPLICATION_H__
 
-class ImageOutput;
-class Statistics;
-class RenderFrame;
-class RenderingConfiguration;
+#include "common/statistics/Statistics.h"
+#include "environment/material/RendererConfiguration.h"
+#include "environment/scene/SceneFrame.h"
+#include "io/image/ImageOutput.h"
 
 class PovrayApplication {
   private:

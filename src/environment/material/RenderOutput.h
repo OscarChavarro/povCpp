@@ -1,7 +1,7 @@
 #ifndef __RENDER_OUTPUT_H__
 #define __RENDER_OUTPUT_H__
 
-class ColorRgba;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 
 class RenderOutput {
   public:

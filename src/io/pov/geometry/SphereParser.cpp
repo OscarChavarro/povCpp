@@ -125,3 +125,4 @@ SphereParser::parseSphere(ParserContext &ctx)
 
     return ((Geometry *)localShape);
 }
+#include "common/dataStructures/PriorityQueue.txx"

@@ -1062,3 +1062,4 @@ TextureParser::parseTexture(ParserContext &ctx)
     logTextureStateLegacy("legacy", texture);
     return (texture);
 }
+#include "common/dataStructures/PriorityQueue.txx"

@@ -3,10 +3,8 @@
 
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/ImageOutput.h"
-
-class ColorRgba;
-class RGBAImageHDRUncompressed;
 
 class RawDumpFormat : public ImageOutput {
   public:

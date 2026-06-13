@@ -1,7 +1,7 @@
 #ifndef __DECLARATION_PARSER_H__
 #define __DECLARATION_PARSER_H__
 
-class ParserContext;
+#include "io/pov/context/ParserContext.h"
 
 class DeclarationParser {
   public:

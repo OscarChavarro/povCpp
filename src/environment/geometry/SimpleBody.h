@@ -2,11 +2,11 @@
 #define __SIMPLE_BODY_H__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/material/Material.h"
 
 class Methods;
-class Geometry;
-class Material;
 
 class SimpleBody {
   public:

@@ -24,7 +24,7 @@ This module implements the main raytracing loop.
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
-#include "render/RenderOutput.h"
+#include "environment/material/RenderOutput.h"
 #include "render/SceneDump.h"
 
 RenderFrame RenderEngine::sRenderFrame;
@@ -622,3 +622,4 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         delete localIntersection;
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

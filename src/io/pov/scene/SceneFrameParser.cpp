@@ -72,3 +72,4 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
         }
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

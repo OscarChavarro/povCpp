@@ -68,3 +68,4 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
             traceService, traceLevel);
     }
 }
+#include "common/dataStructures/PriorityQueue.txx"

@@ -1,7 +1,7 @@
 #ifndef __IMAGE_OUTPUT_ADAPTER_H__
 #define __IMAGE_OUTPUT_ADAPTER_H__
 
-#include "render/RenderOutput.h"
+#include "environment/material/RenderOutput.h"
 #include "io/image/ImageOutput.h"
 
 class ImageOutputAdapter : public RenderOutput {

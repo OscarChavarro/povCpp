@@ -1,8 +1,8 @@
 #ifndef __TEXTURE_PARSER_H__
 #define __TEXTURE_PARSER_H__
 
-class Material;
-class ParserContext;
+#include "environment/material/Material.h"
+#include "io/pov/context/ParserContext.h"
 
 class TextureParser {
   public:

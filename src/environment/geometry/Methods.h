@@ -1,11 +1,10 @@
 #ifndef __METHODS_H__
 #define __METHODS_H__
 
+#include "environment/geometry/Intersection.h"
+#include "environment/geometry/SimpleBody.h"
 #include "common/dataStructures/PriorityQueueNode.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-
-class Intersection;
-class SimpleBody;
 
 typedef int (*ALL_INTERSECTIONS_METHOD)(
     SimpleBody *, RayWithSegments *, PriorityQueueNode *);

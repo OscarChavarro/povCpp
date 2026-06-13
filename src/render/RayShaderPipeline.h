@@ -1,11 +1,11 @@
 #ifndef __RAY_SHADER_PIPELINE_H__
 #define __RAY_SHADER_PIPELINE_H__
 
-class Intersection;
-class ColorRgba;
-class RayWithSegments;
-class TraceService;
-class TextureUtils;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
+#include "environment/geometry/Intersection.h"
+#include "environment/geometry/elements/RayWithSegments.h"
+#include "render/shaders/TraceService.h"
 
 class RayShaderPipeline {
 public:

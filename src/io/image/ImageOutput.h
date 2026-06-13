@@ -1,7 +1,7 @@
 #ifndef __IMAGE_OUTPUT_H__
 #define __IMAGE_OUTPUT_H__
 
-class ColorRgba;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 
 class ImageOutput {
   public:

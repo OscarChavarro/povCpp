@@ -1,10 +1,10 @@
 #ifndef __PARSE_HELPERS_H__
 #define __PARSE_HELPERS_H__
 
-class Light;
-class SimpleBody;
-class Geometry;
-class ParserContext;
+#include "environment/light/Light.h"
+#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/Geometry.h"
+#include "io/pov/context/ParserContext.h"
 
 class ParseHelpers {
   public:

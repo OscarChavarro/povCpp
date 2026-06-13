@@ -11,10 +11,6 @@ add_subdirectory(base)
 add_executable(povray
     src/common/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
-    src/numericalAnalysis/polynomial/QuadraticSolver.cpp
-    src/numericalAnalysis/polynomial/CubicSolver.cpp
-    src/numericalAnalysis/polynomial/QuarticSolver.cpp
-    src/numericalAnalysis/polynomial/PolynomialSolver.cpp
     src/environment/material/RendererConfiguration.cpp
     src/environment/geometry/elements/Ray.cpp
     src/environment/geometry/elements/RayWithSegments.cpp

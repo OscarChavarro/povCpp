@@ -1,8 +1,8 @@
 #ifndef __PLANE_PARSER_H__
 #define __PLANE_PARSER_H__
 
-class Geometry;
-class ParserContext;
+#include "environment/geometry/Geometry.h"
+#include "io/pov/context/ParserContext.h"
 
 class PlaneParser {
   public:

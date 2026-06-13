@@ -36,4 +36,5 @@ LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
     lightColor->setG(lightColor->getG() * attenuation);
     lightColor->setB(lightColor->getB() * attenuation);
 }
+#include "common/dataStructures/PriorityQueue.txx"
 

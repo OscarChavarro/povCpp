@@ -2,10 +2,9 @@
 #define __LIGHT_SAMPLER_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
-class Light;
-class RayWithSegments;
-class ColorRgba;
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/light/Light.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 
 class LightSamplerShader {
 public:

@@ -2,10 +2,10 @@
 #define __HEIGHT_FIELD_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
-class RGBAImageHDRUncompressed;
-class IndexedColorImageHDRUncompressed;
 
 class HeightField : public Geometry {
   public:

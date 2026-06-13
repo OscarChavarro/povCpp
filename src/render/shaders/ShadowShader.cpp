@@ -1,3 +1,4 @@
+#include "common/dataStructures/PriorityQueue.txx"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Intersection.h"
 #include "render/shaders/ShadowShader.h"
@@ -12,10 +13,7 @@ ShadowShader::shade(Intersection *localIntersection,
 
     if ((lightColor->getR() < 0.01) && (lightColor->getG() < 0.01) &&
         (lightColor->getB() < 0.01)) {
-
-        while (localQueue->getHighest()) {
-            localQueue->deleteHighest();
-        }
+        localQueue->clear();
         return true;
     }
     return false;

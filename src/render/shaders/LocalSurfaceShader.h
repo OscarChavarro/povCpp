@@ -1,14 +1,13 @@
 #ifndef __LOCAL_SURFACE_SHADER_H__
 #define __LOCAL_SURFACE_SHADER_H__
 
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/light/Light.h"
+#include "environment/geometry/Intersection.h"
+#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/Material.h"
-
-class RayWithSegments;
-class Intersection;
-class ColorRgba;
-class TraceService;
-class Light;
-class SimpleBody;
+#include "render/shaders/TraceService.h"
 
 class LocalSurfaceShader {
 public:

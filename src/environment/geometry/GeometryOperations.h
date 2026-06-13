@@ -13,11 +13,6 @@
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/geometry/elements/GeometryTypes.h"
 
-class Intersection;
-class Methods;
-class Geometry;
-class SimpleBody;
-
 class GeometryOperations {
   public:
     static inline int
@@ -37,19 +32,18 @@ class GeometryOperations {
     static inline Intersection *
     intersect(SimpleBody *x, RayWithSegments *y)
     {
-        Intersection *queueElement;
         PriorityQueueNode * const depthQueue = IntersectionPriorityQueuePool::pqPop(128);
 
-        if (allIntersections(x, y, depthQueue) &&
-            ((queueElement = depthQueue->getHighest()) != nullptr)) {
+        if (allIntersections(x, y, depthQueue) && depthQueue->size() > 0) {
+            const Intersection queueElement = depthQueue->peek();
             Intersection * const localIntersection = new Intersection;
             if (localIntersection == nullptr) {
                 Logger::reportMessage("GeometryOperations", Logger::FATAL_ERROR, "", "Cannot allocate memory for local intersection\n");
             }
-            localIntersection->Point = queueElement->Point;
-            localIntersection->Shape = queueElement->Shape;
-            localIntersection->Depth = queueElement->Depth;
-            localIntersection->Object = queueElement->Object;
+            localIntersection->Point = queueElement.Point;
+            localIntersection->Shape = queueElement.Shape;
+            localIntersection->Depth = queueElement.Depth;
+            localIntersection->Object = queueElement.Object;
             IntersectionPriorityQueuePool::pqPush(depthQueue);
             return localIntersection;
         }

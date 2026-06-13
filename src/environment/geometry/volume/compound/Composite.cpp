@@ -4,6 +4,7 @@ objects.c
 This module implements the methods for objects and composite objects.
 */
 
+#include "common/dataStructures/PriorityQueue.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/compound/Composite.h"
@@ -58,8 +59,9 @@ Composite::allCompositeIntersections(
     bool intersectionFound;
     bool anyIntersectionFound;
     Geometry *boundingShape;
+    Intersection *boundingIntersection;
     Geometry *clippingShape;
-    Intersection *localIntersection;
+    Intersection localIntersection;
     SimpleBody *localObject;
     PriorityQueueNode *localDepthQueue;
 
@@ -67,9 +69,9 @@ Composite::allCompositeIntersections(
         boundingShape != nullptr; boundingShape = boundingShape->nextObject) {
 
         Statistics::global().boundingRegionTests++;
-        if ((localIntersection = GeometryOperations::intersect(
+        if ((boundingIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
-            delete localIntersection;
+            delete boundingIntersection;
         } else if (!GeometryOperations::inside(
                        &ray->position, (SimpleBody *)boundingShape)) {
             return (false);
@@ -86,9 +88,8 @@ Composite::allCompositeIntersections(
         GeometryOperations::allIntersections(localObject, ray, localDepthQueue);
     }
 
-    for (localIntersection = localDepthQueue->getHighest();
-        localIntersection != nullptr; localDepthQueue->deleteHighest(),
-        localIntersection = localDepthQueue->getHighest()) {
+    while (localDepthQueue->size() > 0) {
+        localIntersection = localDepthQueue->poll();
 
         intersectionFound = true;
 
@@ -96,7 +97,7 @@ Composite::allCompositeIntersections(
             clippingShape = clippingShape->nextObject) {
             Statistics::global().clippingRegionTests++;
             if (!GeometryOperations::inside(
-                    &localIntersection->Point, (SimpleBody *)clippingShape)) {
+                    &localIntersection.Point, (SimpleBody *)clippingShape)) {
                 intersectionFound = false;
                 break;
             }
@@ -104,7 +105,7 @@ Composite::allCompositeIntersections(
         }
 
         if (intersectionFound) {
-            depthQueue->add(localIntersection);
+            depthQueue->offer(localIntersection);
             anyIntersectionFound = true;
         }
     }
@@ -118,7 +119,8 @@ Composite::allObjectIntersections(
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    Intersection *localIntersection;
+    Intersection localIntersection;
+    Intersection *boundingIntersection;
     Geometry *boundingShape;
     Geometry *clippingShape;
     PriorityQueueNode *localDepthQueue;
@@ -127,9 +129,9 @@ Composite::allObjectIntersections(
         boundingShape = boundingShape->nextObject) {
 
         Statistics::global().boundingRegionTests++;
-        if ((localIntersection = GeometryOperations::intersect(
+        if ((boundingIntersection = GeometryOperations::intersect(
                  (SimpleBody *)boundingShape, ray)) != nullptr) {
-            delete localIntersection;
+            delete boundingIntersection;
         } else if (!GeometryOperations::inside(
                        &ray->position, (SimpleBody *)boundingShape)) {
             return (false);
@@ -142,11 +144,10 @@ Composite::allObjectIntersections(
     GeometryOperations::allIntersections(
         (SimpleBody *)object->geometry, ray, localDepthQueue);
 
-    for (localIntersection = localDepthQueue->getHighest();
-        localIntersection != nullptr; localDepthQueue->deleteHighest(),
-        localIntersection = localDepthQueue->getHighest()) {
+    while (localDepthQueue->size() > 0) {
+        localIntersection = localDepthQueue->poll();
 
-        localIntersection->Object = object;
+        localIntersection.Object = object;
         intersectionFound = true;
 
         for (clippingShape = object->clippingShapes; clippingShape != nullptr;
@@ -156,12 +157,12 @@ Composite::allObjectIntersections(
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                 {
                     char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection->Point.x(),                     localIntersection->Point.y(), localIntersection->Point.z());
+                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.Point.x(),                     localIntersection.Point.y(), localIntersection.Point.z());
                     Logger::reportMessage("Composite", Logger::WARNING, "", _logMsg);
                 }
             }
             if (!GeometryOperations::inside(
-                    &localIntersection->Point, (SimpleBody *)clippingShape)) {
+                    &localIntersection.Point, (SimpleBody *)clippingShape)) {
                 if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                     Logger::reportMessage("Composite", Logger::WARNING, "", "not ok\n");
                 }
@@ -175,7 +176,7 @@ Composite::allObjectIntersections(
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                 Logger::reportMessage("Composite", Logger::WARNING, "", "ok\n");
             }
-            depthQueue->add(localIntersection);
+            depthQueue->offer(localIntersection);
             anyIntersectionFound = true;
         }
     }

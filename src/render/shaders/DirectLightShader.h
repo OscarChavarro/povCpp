@@ -2,13 +2,12 @@
 #define __DIRECT_LIGHT_SHADER_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "environment/light/Light.h"
+#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/Material.h"
-
-class RayWithSegments;
-class ColorRgba;
-class TraceService;
-class Light;
-class SimpleBody;
+#include "render/shaders/TraceService.h"
 
 class DirectLightShader {
 public:

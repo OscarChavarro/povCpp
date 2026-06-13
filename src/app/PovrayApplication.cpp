@@ -20,7 +20,7 @@
 #include "io/pov/lexer/Tokenizer.h"
 #include "io/pov/scene/SceneParser.h"
 #include "render/RenderEngine.h"
-#include "render/RenderOutput.h"
+#include "environment/material/RenderOutput.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
@@ -373,3 +373,4 @@ PovrayApplication::printCredits()
                     "------------\n");
     fprintf(stderr, "  Other contributors listed in the documentation.\n");
 }
+#include "common/dataStructures/PriorityQueue.txx"

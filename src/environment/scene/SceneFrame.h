@@ -3,10 +3,9 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/light/Light.h"
 #include "environment/scene/SceneObject.h"
-
-class RayWithSegments;
 
 class RenderFrame {
   public:

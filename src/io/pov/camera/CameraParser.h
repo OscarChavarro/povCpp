@@ -1,8 +1,8 @@
 #ifndef __CAMERA_PARSER_H__
 #define __CAMERA_PARSER_H__
 
-class Camera;
-class ParserContext;
+#include "environment/camera/Camera.h"
+#include "io/pov/context/ParserContext.h"
 
 class CameraParser {
   public:

@@ -1,3 +1,4 @@
+#include "common/dataStructures/PriorityQueue.txx"
 #include "app/PovrayApplication.h"
 
 int
