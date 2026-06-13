@@ -176,7 +176,7 @@ than the one inside.
 void
 PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequence,
     double minimumValue, double maximumValue, int changesAtMinimum,
-    int changesAtMaximum, double *roots)
+    int changesAtMaximum, double epsilon, double *roots)
 {
     double midpoint;
     int rootsInLeftHalf;
@@ -189,19 +189,19 @@ PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequenc
         // First try using regula-falsa to find the root
         if (PolynomialSolver::solveByRegulaFalsi(
                 sturmSequence->order, sturmSequence->coefficients, minimumValue,
-                maximumValue, roots)) {
+                maximumValue, epsilon, roots)) {
             return;
         } // That failed, so now find it by bisection
         for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
             midpoint = (minimumValue + maximumValue) / 2;
             changesAtMidpoint =
                 PolynomialSolver::countSignChanges(sequenceLength, sturmSequence, midpoint);
-            if (java::Math::abs(midpoint) > EPSILON) {
-                if (java::Math::abs((maximumValue - minimumValue) / midpoint) < EPSILON) {
+            if (java::Math::abs(midpoint) > epsilon) {
+                if (java::Math::abs((maximumValue - minimumValue) / midpoint) < epsilon) {
                     roots[0] = midpoint;
                     return;
                 }
-            } else if (java::Math::abs(maximumValue - minimumValue) < EPSILON) {
+            } else if (java::Math::abs(maximumValue - minimumValue) < epsilon) {
                 roots[0] = midpoint;
                 return;
             } else if ((changesAtMinimum - changesAtMidpoint) == 0) {
@@ -226,10 +226,10 @@ PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequenc
         if (rootsInLeftHalf != 0 && rootsInRightHalf != 0) {
             PolynomialSolver::bisectRoots(
                 sequenceLength, sturmSequence, minimumValue, midpoint, changesAtMinimum,
-                changesAtMidpoint, roots);
+                changesAtMidpoint, epsilon, roots);
             PolynomialSolver::bisectRoots(
                 sequenceLength, sturmSequence, midpoint, maximumValue, changesAtMidpoint,
-                changesAtMaximum, &roots[rootsInLeftHalf]);
+                changesAtMaximum, epsilon, &roots[rootsInLeftHalf]);
             return;
         }
         if (rootsInLeftHalf == 0) {
@@ -259,7 +259,7 @@ PolynomialSolver::evaluatePolynomial(double x, int order, const double *coeffs)
 // Close in on a root by using regula-falsa
 int
 PolynomialSolver::solveByRegulaFalsi(
-    int order, const double *coefficients, double a, double b, double *root)
+    int order, const double *coefficients, double a, double b, double epsilon, double *root)
 {
     double estimatedRoot;
     double valueAtRoot;
@@ -286,12 +286,12 @@ PolynomialSolver::solveByRegulaFalsi(
         valueAtRoot = PolynomialSolver::evaluatePolynomial(
             estimatedRoot, order, coefficients);
 
-        if (java::Math::abs(estimatedRoot) > EPSILON) {
-            if (java::Math::abs(valueAtRoot / estimatedRoot) < EPSILON) {
+        if (java::Math::abs(estimatedRoot) > epsilon) {
+            if (java::Math::abs(valueAtRoot / estimatedRoot) < epsilon) {
                 *root = estimatedRoot;
                 return 1;
             }
-        } else if (java::Math::abs(valueAtRoot) < EPSILON) {
+        } else if (java::Math::abs(valueAtRoot) < epsilon) {
             *root = estimatedRoot;
             return 1;
         }
@@ -323,7 +323,7 @@ PolynomialSolver::solveByRegulaFalsi(
                 valueAtB /= 2;
             }
         }
-        if (java::Math::abs(b - a) < EPSILON) {
+        if (java::Math::abs(b - a) < epsilon) {
             // Check for underflow in the domain
             *root = estimatedRoot;
             return 1;
@@ -336,7 +336,7 @@ PolynomialSolver::solveByRegulaFalsi(
 // Root solver based on the Sturm sequences for a Polynomial
 int
 PolynomialSolver::solvePolynomial(
-    int order, const double *coefficients, double *roots, double minValue)
+    int order, const double *coefficients, double *roots, double minValue, double epsilon)
 {
     Polynomial sturmSequence[PolynomialConstants::MAX_ORDER + 1];
     int rootCount;
@@ -374,7 +374,7 @@ PolynomialSolver::solvePolynomial(
     // Perform the bisection
     PolynomialSolver::bisectRoots(
         sequenceLength, sturmSequence, minValue, maximumValue, changesAtMinimum,
-        changesAtMaximum, roots);
+        changesAtMaximum, epsilon, roots);
 
     return rootCount;
 }
