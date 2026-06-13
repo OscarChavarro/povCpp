@@ -10,7 +10,8 @@ class QuarticSolver {
     static int hasDifficultCoefficients(int n, const double *coefficients);
 
   public:
-    static int solve(const double *coefficients, double *roots, double minValue = 0.0);
+    static int solve(
+        const double *coefficients, double *roots, double minValue, double epsilon);
 };
 
 #endif

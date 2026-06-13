@@ -36,7 +36,8 @@ QuarticSolver::hasDifficultCoefficients(int n, const double *coefficients)
 }
 
 int
-QuarticSolver::solve(const double *coefficients, double *roots, double minValue)
+QuarticSolver::solve(
+    const double *coefficients, double *roots, double minValue, double epsilon)
 {
     double cubic[4];
     double cubicRoots[3];
@@ -60,7 +61,8 @@ QuarticSolver::solve(const double *coefficients, double *roots, double minValue)
             }
             return CubicSolver::solve(&coefficients[1], roots);
         }
-        return PolynomialSolver::solvePolynomial(4, coefficients, roots, minValue);
+        return PolynomialSolver::solvePolynomial(
+            4, coefficients, roots, minValue, epsilon);
     }
 
     double normalizedC0 = coefficients[0];

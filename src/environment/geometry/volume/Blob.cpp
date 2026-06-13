@@ -410,7 +410,8 @@ Blob::allBlobIntersections(
         if (blob->sturmFlag == 0) {
             // Use Ferrari's method
             rootCount = QuarticSolver::solve(coeffs, &roots[0],
-                ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
+                ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+                Config::POLYNOMIAL_SOLVER_EPSILON);
         } else
             // Sturm sequences
             if (java::Math::abs(coeffs[0]) < COEFF_LIMIT) {
@@ -419,11 +420,13 @@ Blob::allBlobIntersections(
                 } else {
                     rootCount =
                         PolynomialSolver::solvePolynomial(3, &coeffs[1], &roots[0],
-                            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
+                            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+                            Config::POLYNOMIAL_SOLVER_EPSILON);
                 }
             } else {
                 rootCount = PolynomialSolver::solvePolynomial(4, coeffs, &roots[0],
-                    ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
+                    ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+                    Config::POLYNOMIAL_SOLVER_EPSILON);
             }
 
         // See if any of the roots are valid

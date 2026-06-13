@@ -246,7 +246,8 @@ PolynomialShape::intersect(
     }
     if (j > 2) {
         return PolynomialSolver::solvePolynomial(j, &t[i], depths,
-            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
+            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+            Config::POLYNOMIAL_SOLVER_EPSILON);
     }
     if (j > 0) {
         return QuadraticSolver::solve(&t[i], depths);
@@ -705,13 +706,16 @@ PolynomialShape::intersectQuartic(
                 return QuadraticSolver::solve(&t[2], depths);
             }
             return PolynomialSolver::solvePolynomial(3, &t[1], depths,
-                ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
+                ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+                Config::POLYNOMIAL_SOLVER_EPSILON);
         }
         return PolynomialSolver::solvePolynomial(4, &t[0], depths,
-            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
+            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+            Config::POLYNOMIAL_SOLVER_EPSILON);
     }
     return QuarticSolver::solve(&t[0], depths,
-        ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
+        ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+        Config::POLYNOMIAL_SOLVER_EPSILON);
 }
 
 // Normal to a quartic
