@@ -44,7 +44,7 @@ static constexpr double FUDGE_FACTOR2 = -1.0e-5;
 static constexpr double FUDGE_FACTOR3 = 1.0e-7;
 
 inline double
-PolynomialSolver::PolynomialSolver::absInline(double x)
+PolynomialSolver::absoluteValue(double x)
 {
     return (x < 0.0) ? (0.0 - x) : x;
 }
@@ -60,108 +60,137 @@ note: this function assumes the leading coefficient of v
 is 1 or -1
 */
 int
-PolynomialSolver::modp(const Polynomial *u, const Polynomial *v, Polynomial *r)
+PolynomialSolver::polynomialRemainder(
+    const Polynomial *dividend, const Polynomial *divisor, Polynomial *remainder)
 {
-    int i;
-    int k;
-    int j;
-    for (i = 0; i < u->ord; i++) {
-        r[i] = u[i];
+    int dividendIndex;
+    int quotientIndex;
+    int coefficientIndex;
+    for (dividendIndex = 0; dividendIndex <= dividend->order; dividendIndex++) {
+        remainder->coefficients[dividendIndex] = dividend->coefficients[dividendIndex];
+    }
+    for (dividendIndex = dividend->order + 1;
+        dividendIndex <= PolynomialConstants::MAX_ORDER;
+        dividendIndex++) {
+        remainder->coefficients[dividendIndex] = 0.0;
     }
 
-    if (v->coef[v->ord] < 0.0) {
-        for (k = u->ord - v->ord - 1; k >= 0; k -= 2) {
-            r->coef[k] = -r->coef[k];
+    if (divisor->coefficients[divisor->order] < 0.0) {
+        for (quotientIndex = dividend->order - divisor->order - 1;
+            quotientIndex >= 0;
+            quotientIndex -= 2) {
+            remainder->coefficients[quotientIndex] = -remainder->coefficients[quotientIndex];
         }
-        for (k = u->ord - v->ord; k >= 0; k--) {
-            for (j = v->ord + k - 1; j >= k; j--) {
-                r->coef[j] = -r->coef[j] - r->coef[v->ord + k] * v->coef[j - k];
+        for (quotientIndex = dividend->order - divisor->order; quotientIndex >= 0;
+            quotientIndex--) {
+            for (coefficientIndex = divisor->order + quotientIndex - 1;
+                coefficientIndex >= quotientIndex;
+                coefficientIndex--) {
+                remainder->coefficients[coefficientIndex] =
+                    -remainder->coefficients[coefficientIndex] -
+                    remainder->coefficients[divisor->order + quotientIndex] *
+                        divisor->coefficients[coefficientIndex - quotientIndex];
             }
         }
     } else {
-        for (k = u->ord - v->ord; k >= 0; k--) {
-            for (j = v->ord + k - 1; j >= k; j--) {
-                r->coef[j] -= r->coef[v->ord + k] * v->coef[j - k];
+        for (quotientIndex = dividend->order - divisor->order; quotientIndex >= 0;
+            quotientIndex--) {
+            for (coefficientIndex = divisor->order + quotientIndex - 1;
+                coefficientIndex >= quotientIndex;
+                coefficientIndex--) {
+                remainder->coefficients[coefficientIndex] -=
+                    remainder->coefficients[divisor->order + quotientIndex] *
+                    divisor->coefficients[coefficientIndex - quotientIndex];
             }
         }
     }
 
-    k = v->ord - 1;
-    while (k >= 0 && java::Math::abs(r->coef[k]) < COEFF_LIMIT) {
-        r->coef[k] = 0.0;
-        k--;
+    quotientIndex = divisor->order - 1;
+    while (quotientIndex >= 0 &&
+        java::Math::abs(remainder->coefficients[quotientIndex]) < COEFF_LIMIT) {
+        remainder->coefficients[quotientIndex] = 0.0;
+        quotientIndex--;
     }
-    r->ord = (k < 0) ? 0 : k;
-    return (r->ord);
+    remainder->order = (quotientIndex < 0) ? 0 : quotientIndex;
+    return (remainder->order);
 }
 
 // Build the Sturmian sequence for a Polynomial
 int
-PolynomialSolver::buildsturm(int ord, Polynomial *sseq)
+PolynomialSolver::buildSturmSequence(int order, Polynomial *sturmSequence)
 {
-    int i;
-    double f;
-    double *fp;
-    double *fc;
-    Polynomial *sp;
+    int coefficientIndex;
+    double normalizationFactor;
+    double *normalizedCoefficient;
+    double *sourceCoefficient;
+    Polynomial *sequenceTerm;
 
-    sseq[0].ord = ord;
-    sseq[1].ord = ord - 1;
+    sturmSequence[0].order = order;
+    sturmSequence[1].order = order - 1;
 
     // Calculate the derivative and normalize the leading coefficient
-    f = java::Math::abs(sseq[0].coef[ord] * ord);
-    fp = sseq[1].coef;
-    fc = sseq[0].coef + 1;
-    for (i = 1; i <= ord; i++) {
-        *fp++ = *fc++ * i / f;
+    normalizationFactor =
+        java::Math::abs(sturmSequence[0].coefficients[order] * order);
+    normalizedCoefficient = sturmSequence[1].coefficients;
+    sourceCoefficient = sturmSequence[0].coefficients + 1;
+    for (coefficientIndex = 1; coefficientIndex <= order; coefficientIndex++) {
+        *normalizedCoefficient++ = *sourceCoefficient++ * coefficientIndex /
+            normalizationFactor;
     }
 
     // Construct the rest of the Sturm sequence
-    for (sp = sseq + 2; PolynomialSolver::modp(sp - 2, sp - 1, sp); sp++) {
+    for (sequenceTerm = sturmSequence + 2;
+        PolynomialSolver::polynomialRemainder(sequenceTerm - 2, sequenceTerm - 1, sequenceTerm);
+        sequenceTerm++) {
         // Reverse the sign and normalize
-        f = -java::Math::abs(sp->coef[sp->ord]);
-        for (fp = &sp->coef[sp->ord]; fp >= sp->coef; fp--) {
-            *fp /= f;
+        normalizationFactor = -java::Math::abs(sequenceTerm->coefficients[sequenceTerm->order]);
+        for (normalizedCoefficient = &sequenceTerm->coefficients[sequenceTerm->order];
+            normalizedCoefficient >= sequenceTerm->coefficients;
+            normalizedCoefficient--) {
+            *normalizedCoefficient /= normalizationFactor;
         }
     }
-    sp->coef[0] = -sp->coef[0]; // Reverse the sign
-    return (sp - sseq);
+    sequenceTerm->coefficients[0] = -sequenceTerm->coefficients[0]; // Reverse the sign
+    return (sequenceTerm - sturmSequence);
 }
 
 // Find out how many visible intersections there are
 int
-PolynomialSolver::visibleRoots(int np, const Polynomial *sseq, int *atzer, int *atpos)
+PolynomialSolver::countVisibleRoots(
+    int sequenceLength, const Polynomial *sturmSequence, int *atZero, int *atPositive)
 {
-    int atposinf;
-    int atzero;
-    const Polynomial *s;
-    double f;
-    double lf;
+    int changesAtPositiveInfinity;
+    int changesAtZero;
+    const Polynomial *sequenceTerm;
+    double currentValue;
+    double lastValue;
 
-    atposinf = atzero = 0;
+    changesAtPositiveInfinity = changesAtZero = 0;
     // Changes at positve infinity
-    lf = sseq[0].coef[sseq[0].ord];
-    for (s = sseq + 1; s <= sseq + np; s++) {
-        f = s->coef[s->ord];
-        if (lf == 0.0 || lf * f < 0) {
-            atposinf++;
+    lastValue = sturmSequence[0].coefficients[sturmSequence[0].order];
+    for (sequenceTerm = sturmSequence + 1; sequenceTerm <= sturmSequence + sequenceLength;
+        sequenceTerm++) {
+        currentValue = sequenceTerm->coefficients[sequenceTerm->order];
+        if (lastValue == 0.0 || lastValue * currentValue < 0) {
+            changesAtPositiveInfinity++;
         }
-        lf = f;
+        lastValue = currentValue;
     }
 
     // Changes at zero
-    lf = sseq[0].coef[0];
-    for (s = sseq + 1; s <= sseq + np; s++) {
-        f = s->coef[0];
-        if (lf == 0.0 || lf * f < 0) {
-            atzero++;
+    lastValue = sturmSequence[0].coefficients[0];
+    for (sequenceTerm = sturmSequence + 1; sequenceTerm <= sturmSequence + sequenceLength;
+        sequenceTerm++) {
+        currentValue = sequenceTerm->coefficients[0];
+        if (lastValue == 0.0 || lastValue * currentValue < 0) {
+            changesAtZero++;
         }
-        lf = f;
+        lastValue = currentValue;
     }
 
-    *atzer = atzero;
-    *atpos = atposinf;
-    return (atzero - atposinf);
+    *atZero = changesAtZero;
+    *atPositive = changesAtPositiveInfinity;
+    return (changesAtZero - changesAtPositiveInfinity);
 }
 
 /**
@@ -169,22 +198,27 @@ Return the number of sign changes in the Sturm sequence in
 sseq at the value a.
 */
 int
-PolynomialSolver::numchanges(int np, const Polynomial *sseq, double a)
+PolynomialSolver::countSignChanges(int sequenceLength, const Polynomial *sturmSequence,
+    double value)
 {
-    int changes;
-    double f;
-    double lf;
-    const Polynomial *s;
-    changes = 0;
-    lf = PolynomialSolver::polyeval(a, sseq[0].ord, sseq[0].coef);
-    for (s = sseq + 1; s <= sseq + np; s++) {
-        f = PolynomialSolver::polyeval(a, s->ord, s->coef);
-        if (lf == 0.0 || lf * f < 0) {
-            changes++;
+    int signChanges;
+    double currentValue;
+    double lastValue;
+    const Polynomial *sequenceTerm;
+    signChanges = 0;
+    lastValue = PolynomialSolver::evaluatePolynomial(
+        value, sturmSequence[0].order, sturmSequence[0].coefficients);
+    for (sequenceTerm = sturmSequence + 1;
+        sequenceTerm <= sturmSequence + sequenceLength;
+        sequenceTerm++) {
+        currentValue = PolynomialSolver::evaluatePolynomial(
+            value, sequenceTerm->order, sequenceTerm->coefficients);
+        if (lastValue == 0.0 || lastValue * currentValue < 0) {
+            signChanges++;
         }
-        lf = f;
+        lastValue = currentValue;
     }
-    return (changes);
+    return (signChanges);
 }
 
 /**
@@ -198,160 +232,168 @@ within the interval, the root at the endpoint will be returned rather
 than the one inside.
 */
 void
-PolynomialSolver::sbisect(int np, const Polynomial *sseq, double minValue,
-    double maxValue, int atmin, int atmax, double *roots)
+PolynomialSolver::bisectRoots(int sequenceLength, const Polynomial *sturmSequence,
+    double minimumValue, double maximumValue, int changesAtMinimum,
+    int changesAtMaximum, double *roots)
 {
-    double mid;
-    int n1;
-    int n2;
-    int its;
-    int atmid;
-    int nroot;
+    double midpoint;
+    int rootsInLeftHalf;
+    int rootsInRightHalf;
+    int iteration;
+    int changesAtMidpoint;
+    int rootCountInInterval;
 
-    if ((nroot = atmin - atmax) == 1) {
+    if ((rootCountInInterval = changesAtMinimum - changesAtMaximum) == 1) {
         // First try using regula-falsa to find the root
-        if (PolynomialSolver::regulaFalsa(
-                sseq->ord, sseq->coef, minValue, maxValue, roots)) {
+        if (PolynomialSolver::solveByRegulaFalsi(
+                sturmSequence->order, sturmSequence->coefficients, minimumValue,
+                maximumValue, roots)) {
             return;
         } // That failed, so now find it by bisection
-        for (its = 0; its < MAX_ITERATIONS; its++) {
-            mid = (minValue + maxValue) / 2;
-            atmid = PolynomialSolver::numchanges(np, sseq, mid);
-            if (java::Math::abs(mid) > EPSILON) {
-                if (java::Math::abs((maxValue - minValue) / mid) < EPSILON) {
-                    roots[0] = mid;
+        for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+            midpoint = (minimumValue + maximumValue) / 2;
+            changesAtMidpoint =
+                PolynomialSolver::countSignChanges(sequenceLength, sturmSequence, midpoint);
+            if (java::Math::abs(midpoint) > EPSILON) {
+                if (java::Math::abs((maximumValue - minimumValue) / midpoint) < EPSILON) {
+                    roots[0] = midpoint;
                     return;
                 }
-            } else if (java::Math::abs(maxValue - minValue) < EPSILON) {
-                roots[0] = mid;
+            } else if (java::Math::abs(maximumValue - minimumValue) < EPSILON) {
+                roots[0] = midpoint;
                 return;
-            } else if ((atmin - atmid) == 0) {
-                minValue = mid;
+            } else if ((changesAtMinimum - changesAtMidpoint) == 0) {
+                minimumValue = midpoint;
             } else {
-                maxValue = mid;
+                maximumValue = midpoint;
             }
         }
         // Bisection took too long - just return what we got
-        roots[0] = mid;
+        roots[0] = midpoint;
         return;
     }
 
     // There is more than one root in the interval.
     // Bisect to find new intervals
-    for (its = 0; its < MAX_ITERATIONS; its++) {
-        mid = (minValue + maxValue) / 2;
-        atmid = PolynomialSolver::numchanges(np, sseq, mid);
-        n1 = atmin - atmid;
-        n2 = atmid - atmax;
-        if (n1 != 0 && n2 != 0) {
-            PolynomialSolver::sbisect(
-                np, sseq, minValue, mid, atmin, atmid, roots);
-            PolynomialSolver::sbisect(
-                np, sseq, mid, maxValue, atmid, atmax, &roots[n1]);
+    for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+        midpoint = (minimumValue + maximumValue) / 2;
+        changesAtMidpoint =
+            PolynomialSolver::countSignChanges(sequenceLength, sturmSequence, midpoint);
+        rootsInLeftHalf = changesAtMinimum - changesAtMidpoint;
+        rootsInRightHalf = changesAtMidpoint - changesAtMaximum;
+        if (rootsInLeftHalf != 0 && rootsInRightHalf != 0) {
+            PolynomialSolver::bisectRoots(
+                sequenceLength, sturmSequence, minimumValue, midpoint, changesAtMinimum,
+                changesAtMidpoint, roots);
+            PolynomialSolver::bisectRoots(
+                sequenceLength, sturmSequence, midpoint, maximumValue, changesAtMidpoint,
+                changesAtMaximum, &roots[rootsInLeftHalf]);
             return;
         }
-        if (n1 == 0) {
-            minValue = mid;
+        if (rootsInLeftHalf == 0) {
+            minimumValue = midpoint;
         } else {
-            maxValue = mid;
+            maximumValue = midpoint;
         }
     }
 
     // Took too long to bisect. Just return what we got
-    for (n1 = atmax; n1 < atmin; n1++) {
-        roots[n1 - atmax] = mid;
+    for (rootsInLeftHalf = changesAtMaximum; rootsInLeftHalf < changesAtMinimum;
+        rootsInLeftHalf++) {
+        roots[rootsInLeftHalf - changesAtMaximum] = midpoint;
     }
 }
 
 double
-PolynomialSolver::polyeval(double x, int n, const double *coeffs)
+PolynomialSolver::evaluatePolynomial(double x, int order, const double *coeffs)
 {
-    int i;
-    double val;
-    val = coeffs[n];
-    for (i = n - 1; i >= 0; i--) {
-        val = val * x + coeffs[i];
+    int coefficientIndex;
+    double value;
+    value = coeffs[order];
+    for (coefficientIndex = order - 1; coefficientIndex >= 0; coefficientIndex--) {
+        value = value * x + coeffs[coefficientIndex];
     }
-    return val;
+    return value;
 }
 
 // Close in on a root by using regula-falsa
 int
-PolynomialSolver::regulaFalsa(
-    int order, const double *coef, double a, double b, double *val)
+PolynomialSolver::solveByRegulaFalsi(
+    int order, const double *coefficients, double a, double b, double *root)
 {
-    int its;
-    double fa;
-    double fb;
-    double x;
-    double fx;
-    double lfx;
+    int iteration;
+    double valueAtA;
+    double valueAtB;
+    double estimatedRoot;
+    double valueAtRoot;
+    double lastValueAtRoot;
 
-    fa = PolynomialSolver::polyeval(a, order, coef);
-    fb = PolynomialSolver::polyeval(b, order, coef);
+    valueAtA = PolynomialSolver::evaluatePolynomial(a, order, coefficients);
+    valueAtB = PolynomialSolver::evaluatePolynomial(b, order, coefficients);
 
-    if (fa * fb > 0.0) {
+    if (valueAtA * valueAtB > 0.0) {
         return 0;
     }
 
-    if (java::Math::abs(fa) < COEFF_LIMIT) {
-        *val = a;
+    if (java::Math::abs(valueAtA) < COEFF_LIMIT) {
+        *root = a;
         return 1;
     }
 
-    if (java::Math::abs(fb) < COEFF_LIMIT) {
-        *val = b;
+    if (java::Math::abs(valueAtB) < COEFF_LIMIT) {
+        *root = b;
         return 1;
     }
 
-    lfx = fa;
-    for (its = 0; its < MAX_ITERATIONS; its++) {
-        x = (fb * a - fa * b) / (fb - fa);
-        fx = PolynomialSolver::polyeval(x, order, coef);
+    lastValueAtRoot = valueAtA;
+    for (iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+        estimatedRoot = (valueAtB * a - valueAtA * b) / (valueAtB - valueAtA);
+        valueAtRoot = PolynomialSolver::evaluatePolynomial(
+            estimatedRoot, order, coefficients);
 
-        if (java::Math::abs(x) > EPSILON) {
-            if (java::Math::abs(fx / x) < EPSILON) {
-                *val = x;
+        if (java::Math::abs(estimatedRoot) > EPSILON) {
+            if (java::Math::abs(valueAtRoot / estimatedRoot) < EPSILON) {
+                *root = estimatedRoot;
                 return 1;
             }
-        } else if (java::Math::abs(fx) < EPSILON) {
-            *val = x;
+        } else if (java::Math::abs(valueAtRoot) < EPSILON) {
+            *root = estimatedRoot;
             return 1;
         }
 
-        if (fa < 0) {
-            if (fx < 0) {
-                a = x;
-                fa = fx;
-                if ((lfx * fx) > 0) {
-                    fb /= 2;
+        if (valueAtA < 0) {
+            if (valueAtRoot < 0) {
+                a = estimatedRoot;
+                valueAtA = valueAtRoot;
+                if ((lastValueAtRoot * valueAtRoot) > 0) {
+                    valueAtB /= 2;
                 }
             } else {
-                b = x;
-                fb = fx;
-                if ((lfx * fx) > 0) {
-                    fa /= 2;
+                b = estimatedRoot;
+                valueAtB = valueAtRoot;
+                if ((lastValueAtRoot * valueAtRoot) > 0) {
+                    valueAtA /= 2;
                 }
             }
-        } else if (fx < 0) {
-            b = x;
-            fb = fx;
-            if ((lfx * fx) > 0) {
-                fa /= 2;
+        } else if (valueAtRoot < 0) {
+            b = estimatedRoot;
+            valueAtB = valueAtRoot;
+            if ((lastValueAtRoot * valueAtRoot) > 0) {
+                valueAtA /= 2;
             }
         } else {
-            a = x;
-            fa = fx;
-            if ((lfx * fx) > 0) {
-                fb /= 2;
+            a = estimatedRoot;
+            valueAtA = valueAtRoot;
+            if ((lastValueAtRoot * valueAtRoot) > 0) {
+                valueAtB /= 2;
             }
         }
         if (java::Math::abs(b - a) < EPSILON) {
             // Check for underflow in the domain
-            *val = x;
+            *root = estimatedRoot;
             return 1;
         }
-        lfx = fx;
+        lastValueAtRoot = valueAtRoot;
     }
     return 0;
 }
@@ -366,33 +408,34 @@ The roots themselves are returned in y[0], y[1].
 int
 PolynomialSolver::solveQuadratic(const double *x, double *y)
 {
-    double d;
-    double t;
-    double a;
-    double b;
-    double c;
-    a = x[0];
-    b = -x[1];
-    c = x[2];
-    if (a == 0.0) {
-        if (b == 0.0) {
+    double discriminant;
+    double denominator;
+    double quadraticCoefficient;
+    double linearCoefficient;
+    double constantCoefficient;
+    quadraticCoefficient = x[0];
+    linearCoefficient = -x[1];
+    constantCoefficient = x[2];
+    if (quadraticCoefficient == 0.0) {
+        if (linearCoefficient == 0.0) {
             return 0;
         }
-        y[0] = c / b;
+        y[0] = constantCoefficient / linearCoefficient;
         return 1;
     }
-    d = b * b - 4.0 * a * c;
-    if (d < 0.0) {
+    discriminant = linearCoefficient * linearCoefficient -
+        4.0 * quadraticCoefficient * constantCoefficient;
+    if (discriminant < 0.0) {
         return 0;
     }
-    if (java::Math::abs(d) < COEFF_LIMIT) {
-        y[0] = 0.5 * b / a;
+    if (java::Math::abs(discriminant) < COEFF_LIMIT) {
+        y[0] = 0.5 * linearCoefficient / quadraticCoefficient;
         return 1;
     }
-    d = java::Math::sqrt(d);
-    t = 2.0 * a;
-    y[0] = (b + d) / t;
-    y[1] = (b - d) / t;
+    discriminant = java::Math::sqrt(discriminant);
+    denominator = 2.0 * quadraticCoefficient;
+    y[0] = (linearCoefficient + discriminant) / denominator;
+    y[1] = (linearCoefficient - discriminant) / denominator;
     return 2;
 }
 
@@ -413,54 +456,60 @@ not rely on transcendentals this code will be replaced.
 int
 PolynomialSolver::solveCubic(const double *x, double *y)
 {
-    double q;
-    double r;
-    double q3;
-    double r2;
-    double sQ;
-    double d;
-    double an;
-    double theta;
-    double a0;
-    double a1;
-    double a2;
-    double a3;
-    double a1Squared;
-    a0 = x[0];
-    if (a0 == 0.0) {
+    double quadraticTerm;
+    double cubicTerm;
+    double quadraticTermCubed;
+    double cubicTermSquared;
+    double scaleFactor;
+    double discriminant;
+    double offset;
+    double angle;
+    double leadingCoefficient;
+    double firstNormalizedCoefficient;
+    double secondNormalizedCoefficient;
+    double thirdNormalizedCoefficient;
+    double firstCoefficientSquared;
+    leadingCoefficient = x[0];
+    if (leadingCoefficient == 0.0) {
         return PolynomialSolver::solveQuadratic(&x[1], y);
     }
-    if (a0 != 1.0) {
-        a1 = x[1] / a0;
-        a2 = x[2] / a0;
-        a3 = x[3] / a0;
+    if (leadingCoefficient != 1.0) {
+        firstNormalizedCoefficient = x[1] / leadingCoefficient;
+        secondNormalizedCoefficient = x[2] / leadingCoefficient;
+        thirdNormalizedCoefficient = x[3] / leadingCoefficient;
     } else {
-        a1 = x[1];
-        a2 = x[2];
-        a3 = x[3];
+        firstNormalizedCoefficient = x[1];
+        secondNormalizedCoefficient = x[2];
+        thirdNormalizedCoefficient = x[3];
     }
-    a1Squared = a1 * a1;
-    q = (a1Squared - 3.0 * a2) / 9.0;
-    r = (2.0 * a1Squared * a1 - 9.0 * a1 * a2 + 27.0 * a3) / 54.0;
-    q3 = q * q * q;
-    r2 = r * r;
-    d = q3 - r2;
-    an = a1 / 3.0;
-    if (d >= 0.0) {
+    firstCoefficientSquared = firstNormalizedCoefficient * firstNormalizedCoefficient;
+    quadraticTerm = (firstCoefficientSquared - 3.0 * secondNormalizedCoefficient) / 9.0;
+    cubicTerm = (2.0 * firstCoefficientSquared * firstNormalizedCoefficient -
+        9.0 * firstNormalizedCoefficient * secondNormalizedCoefficient +
+        27.0 * thirdNormalizedCoefficient) /
+        54.0;
+    quadraticTermCubed = quadraticTerm * quadraticTerm * quadraticTerm;
+    cubicTermSquared = cubicTerm * cubicTerm;
+    discriminant = quadraticTermCubed - cubicTermSquared;
+    offset = firstNormalizedCoefficient / 3.0;
+    if (discriminant >= 0.0) {
         // Three real roots
-        d = r / java::Math::sqrt(q3);
-        theta = java::Math::acos(d) / 3.0;
-        sQ = -2.0 * java::Math::sqrt(q);
-        y[0] = sQ * java::Math::cos(theta) - an;
-        y[1] = sQ * java::Math::cos(theta + TWO_PI_3) - an;
-        y[2] = sQ * java::Math::cos(theta + TWO_PI_43) - an;
+        discriminant = cubicTerm / java::Math::sqrt(quadraticTermCubed);
+        angle = java::Math::acos(discriminant) / 3.0;
+        scaleFactor = -2.0 * java::Math::sqrt(quadraticTerm);
+        y[0] = scaleFactor * java::Math::cos(angle) - offset;
+        y[1] = scaleFactor * java::Math::cos(angle + TWO_PI_3) - offset;
+        y[2] = scaleFactor * java::Math::cos(angle + TWO_PI_43) - offset;
         return 3;
     }
-    sQ = java::Math::pow(java::Math::sqrt(r2 - q3) + PolynomialSolver::absInline(r), 1.0 / 3.0);
-    if (r < 0) {
-        y[0] = (sQ + q / sQ) - an;
+    scaleFactor = java::Math::pow(
+        java::Math::sqrt(cubicTermSquared - quadraticTermCubed) +
+            PolynomialSolver::absoluteValue(cubicTerm),
+        1.0 / 3.0);
+    if (cubicTerm < 0) {
+        y[0] = (scaleFactor + quadraticTerm / scaleFactor) - offset;
     } else {
-        y[0] = -(sQ + q / sQ) - an;
+        y[0] = -(scaleFactor + quadraticTerm / scaleFactor) - offset;
     }
     return 1;
 }
@@ -470,26 +519,27 @@ Test to see if any coeffs are more than 6 orders of magnitude
 larger than the smallest
 */
 int
-PolynomialSolver::difficultCoeffs(int n, const double *x)
+PolynomialSolver::hasDifficultCoefficients(int n, const double *coefficients)
 {
-    int i;
-    double biggest;
+    int coefficientIndex;
+    double largestCoefficient;
 
-    biggest = 0.0;
-    for (i = 0; i <= n; i++) {
-        if (java::Math::abs(x[i]) > biggest) {
-            biggest = x[i];
+    largestCoefficient = 0.0;
+    for (coefficientIndex = 0; coefficientIndex <= n; coefficientIndex++) {
+        if (java::Math::abs(coefficients[coefficientIndex]) > largestCoefficient) {
+            largestCoefficient = coefficients[coefficientIndex];
         }
     }
 
     // Everything is zero no sense in doing any more
-    if (biggest == 0.0) {
+    if (largestCoefficient == 0.0) {
         return 0;
     }
 
-    for (i = 0; i <= n; i++) {
-        if (x[i] != 0.0) {
-            if (java::Math::abs(biggest / x[i]) > FUDGE_FACTOR1) {
+    for (coefficientIndex = 0; coefficientIndex <= n; coefficientIndex++) {
+        if (coefficients[coefficientIndex] != 0.0) {
+            if (java::Math::abs(largestCoefficient / coefficients[coefficientIndex]) >
+                FUDGE_FACTOR1) {
                 return 1;
             }
         }
@@ -503,51 +553,50 @@ PolynomialSolver::solveQuartic(const double *x, double *results, double minValue
 {
     double cubic[4];
     double roots[3];
-    double a0;
-    double a1;
-    double y;
-    double d1;
-    double x1;
-    double t1;
-    double t2;
-    double c0;
-    double c1;
-    double c2;
-    double c3;
-    double c4;
-    double d2;
-    double q1;
-    double q2;
-    int i;
+    double leadingCoefficient;
+    double normalizedY;
+    double linearAdjustment;
+    double auxiliaryRoot;
+    double firstThreshold;
+    double secondThreshold;
+    double normalizedC0;
+    double normalizedC1;
+    double normalizedC2;
+    double normalizedC3;
+    double normalizedC4;
+    double discriminant;
+    double quadraticCoefficient;
+    double constantTerm;
+    int rootCount;
 
     // Figure out the size difference between coefficients
-    if (PolynomialSolver::difficultCoeffs(4, x)) {
+    if (PolynomialSolver::hasDifficultCoefficients(4, x)) {
         if (java::Math::abs(x[0]) < COEFF_LIMIT) {
             if (java::Math::abs(x[1]) < COEFF_LIMIT) {
                 return PolynomialSolver::solveQuadratic(&x[2], results);
             }
             return PolynomialSolver::solveCubic(&x[1], results);
         }
-        return PolynomialSolver::polysolve(4, x, results, minValue);
+        return PolynomialSolver::solvePolynomial(4, x, results, minValue);
     }
 
-    c0 = x[0];
-    if (java::Math::abs(c0) < COEFF_LIMIT) {
+    normalizedC0 = x[0];
+    if (java::Math::abs(normalizedC0) < COEFF_LIMIT) {
         return PolynomialSolver::solveCubic(&x[1], results);
     }
     if (java::Math::abs(x[4]) < COEFF_LIMIT) {
         return PolynomialSolver::solveCubic(x, results);
     }
-    if (c0 != 1.0) {
-        c1 = x[1] / c0;
-        c2 = x[2] / c0;
-        c3 = x[3] / c0;
-        c4 = x[4] / c0;
+    if (normalizedC0 != 1.0) {
+        normalizedC1 = x[1] / normalizedC0;
+        normalizedC2 = x[2] / normalizedC0;
+        normalizedC3 = x[3] / normalizedC0;
+        normalizedC4 = x[4] / normalizedC0;
     } else {
-        c1 = x[1];
-        c2 = x[2];
-        c3 = x[3];
-        c4 = x[4];
+        normalizedC1 = x[1];
+        normalizedC2 = x[2];
+        normalizedC3 = x[3];
+        normalizedC4 = x[4];
     }
 
     /**
@@ -575,14 +624,15 @@ PolynomialSolver::solveQuartic(const double *x, double *results, double minValue
     This is called the resolvent of the quartic equation.
     */
 
-    a0 = 4.0 * c4;
+    leadingCoefficient = 4.0 * normalizedC4;
     cubic[0] = 1.0;
-    cubic[1] = -1.0 * c2;
-    cubic[2] = c1 * c3 - a0;
-    cubic[3] = a0 * c2 - c1 * c1 * c4 - c3 * c3;
-    i = PolynomialSolver::solveCubic(&cubic[0], &roots[0]);
-    if (i > 0) {
-        y = roots[0];
+    cubic[1] = -1.0 * normalizedC2;
+    cubic[2] = normalizedC1 * normalizedC3 - leadingCoefficient;
+    cubic[3] = leadingCoefficient * normalizedC2 - normalizedC1 * normalizedC1 * normalizedC4 -
+        normalizedC3 * normalizedC3;
+    rootCount = PolynomialSolver::solveCubic(&cubic[0], &roots[0]);
+    if (rootCount > 0) {
+        normalizedY = roots[0];
     } else {
         return 0;
     }
@@ -602,98 +652,102 @@ PolynomialSolver::solveQuartic(const double *x, double *results, double minValue
         formulas are created.  By solving each of these the four roots of
         the quartic are determined.
     */
-    i = 0;
-    a0 = c1 / 2.0;
-    a1 = y / 2.0;
+    rootCount = 0;
+    leadingCoefficient = normalizedC1 / 2.0;
+    normalizedY = normalizedY / 2.0;
 
-    t1 = a0 * a0 - c2 + y;
-    if (t1 < 0.0) {
-        if (t1 > FUDGE_FACTOR2) {
-            t1 = 0.0;
+    firstThreshold = leadingCoefficient * leadingCoefficient - normalizedC2 + (normalizedY * 2.0);
+    if (firstThreshold < 0.0) {
+        if (firstThreshold > FUDGE_FACTOR2) {
+            firstThreshold = 0.0;
         } else {
             // First Special case, a' < 0 means all roots are complex
             return 0;
         }
     }
-    if (t1 < FUDGE_FACTOR3) {
+    if (firstThreshold < FUDGE_FACTOR3) {
         /**
         Second special case, the "x" term on the right hand side above
             has vanished.  In this case:
                      (x^2 + b*x/2 + y/2) = +java::Math::sqrt(y^2/4 - e), and
                      (x^2 + b*x/2 + y/2) = -java::Math::sqrt(y^2/4 - e).
         */
-        t2 = a1 * a1 - c4;
-        if (t2 < 0.0) {
+        secondThreshold = normalizedY * normalizedY - normalizedC4;
+        if (secondThreshold < 0.0) {
             return 0;
         }
-        x1 = 0.0;
-        d1 = java::Math::sqrt(t2);
+        auxiliaryRoot = 0.0;
+        linearAdjustment = java::Math::sqrt(secondThreshold);
     } else {
-        x1 = java::Math::sqrt(t1);
-        d1 = 0.5 * (a0 * y - c3) / x1;
+        auxiliaryRoot = java::Math::sqrt(firstThreshold);
+        linearAdjustment =
+            0.5 * (leadingCoefficient * (normalizedY * 2.0) - normalizedC3) / auxiliaryRoot;
     }
     // Solve the first quadratic
-    q1 = -a0 - x1;
-    q2 = a1 + d1;
-    d2 = q1 * q1 - 4.0 * q2;
-    if (d2 >= 0.0) {
-        d2 = java::Math::sqrt(d2);
-        results[0] = 0.5 * (q1 + d2);
-        results[1] = 0.5 * (q1 - d2);
-        i = 2;
+    quadraticCoefficient = -leadingCoefficient - auxiliaryRoot;
+    constantTerm = normalizedY + linearAdjustment;
+    discriminant = quadraticCoefficient * quadraticCoefficient - 4.0 * constantTerm;
+    if (discriminant >= 0.0) {
+        discriminant = java::Math::sqrt(discriminant);
+        results[0] = 0.5 * (quadraticCoefficient + discriminant);
+        results[1] = 0.5 * (quadraticCoefficient - discriminant);
+        rootCount = 2;
     }
     // Solve the second quadratic
-    q1 = q1 + x1 + x1;
-    q2 = a1 - d1;
-    d2 = q1 * q1 - 4.0 * q2;
-    if (d2 >= 0.0) {
-        d2 = java::Math::sqrt(d2);
-        results[i++] = 0.5 * (q1 + d2);
-        results[i++] = 0.5 * (q1 - d2);
+    quadraticCoefficient = quadraticCoefficient + auxiliaryRoot + auxiliaryRoot;
+    constantTerm = normalizedY - linearAdjustment;
+    discriminant = quadraticCoefficient * quadraticCoefficient - 4.0 * constantTerm;
+    if (discriminant >= 0.0) {
+        discriminant = java::Math::sqrt(discriminant);
+        results[rootCount++] = 0.5 * (quadraticCoefficient + discriminant);
+        results[rootCount++] = 0.5 * (quadraticCoefficient - discriminant);
     }
-    return i;
+    return rootCount;
 }
 
 // Root solver based on the Sturm sequences for a Polynomial
 int
-PolynomialSolver::polysolve(
+PolynomialSolver::solvePolynomial(
     int order, const double *coeffs, double *roots, double minValue)
 {
-    Polynomial sseq[PolynomialConstants::MAX_ORDER + 1];
-    double maxValue;
-    int i;
-    int nroots;
-    int np;
-    int atmin;
-    int atmax;
+    Polynomial sturmSequence[PolynomialConstants::MAX_ORDER + 1];
+    double maximumValue;
+    int coefficientIndex;
+    int rootCount;
+    int sequenceLength;
+    int changesAtMinimum;
+    int changesAtMaximum;
 
     // Put the coefficients into the top of the stack
-    for (i = 0; i <= order; i++) {
-        sseq[0].coef[order - i] = coeffs[i];
+    for (coefficientIndex = 0; coefficientIndex <= order; coefficientIndex++) {
+        sturmSequence[0].coefficients[order - coefficientIndex] = coeffs[coefficientIndex];
     }
 
     // Build the Sturm sequence
-    np = PolynomialSolver::buildsturm(order, &sseq[0]);
+    sequenceLength = PolynomialSolver::buildSturmSequence(order, &sturmSequence[0]);
 
     // Get the total number of visible roots
-    if ((nroots = PolynomialSolver::visibleRoots(np, sseq, &atmin, &atmax)) ==
-        0) {
+    if ((rootCount = PolynomialSolver::countVisibleRoots(
+             sequenceLength, sturmSequence, &changesAtMinimum, &changesAtMaximum)) == 0) {
         return 0;
     }
 
     // Bracket the roots
-    maxValue = PolynomialConstants::POLYNOMIAL_MAX_DISTANCE;
+    maximumValue = PolynomialConstants::POLYNOMIAL_MAX_DISTANCE;
 
-    atmin = PolynomialSolver::numchanges(np, sseq, minValue);
-    atmax = PolynomialSolver::numchanges(np, sseq, maxValue);
-    nroots = atmin - atmax;
-    if (nroots == 0) {
+    changesAtMinimum = PolynomialSolver::countSignChanges(
+        sequenceLength, sturmSequence, minValue);
+    changesAtMaximum = PolynomialSolver::countSignChanges(
+        sequenceLength, sturmSequence, maximumValue);
+    rootCount = changesAtMinimum - changesAtMaximum;
+    if (rootCount == 0) {
         return 0;
     }
 
     // Perform the bisection
-    PolynomialSolver::sbisect(
-        np, sseq, minValue, maxValue, atmin, atmax, roots);
+    PolynomialSolver::bisectRoots(
+        sequenceLength, sturmSequence, minValue, maximumValue, changesAtMinimum,
+        changesAtMaximum, roots);
 
-    return nroots;
+    return rootCount;
 }

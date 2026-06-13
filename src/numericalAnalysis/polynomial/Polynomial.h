@@ -5,8 +5,8 @@
 
 class Polynomial {
   public:
-    int ord;
-    double coef[PolynomialConstants::MAX_ORDER + 1];
+    int order;
+    double coefficients[PolynomialConstants::MAX_ORDER + 1];
 };
 
 #endif

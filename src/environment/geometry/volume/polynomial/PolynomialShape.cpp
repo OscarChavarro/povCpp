@@ -41,7 +41,7 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1}};
 
 int factorials[PolynomialConstants::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
-static const int *termCountsInstance = PolynomialTermCounts::table();
+static const int *termCountsInstance = PolynomialTermCounts::termCountsByOrder();
 
 Methods PolynomialShape::methodTable = {
     PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
@@ -243,7 +243,7 @@ PolynomialShape::intersect(
         j -= 1;
     }
     if (j > 2) {
-        return PolynomialSolver::polysolve(j, &t[i], depths,
+        return PolynomialSolver::solvePolynomial(j, &t[i], depths,
             ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
     }
     if (j > 0) {
@@ -702,10 +702,10 @@ PolynomialShape::intersectQuartic(
             if (t[1] == 0.0) {
                 return PolynomialSolver::solveQuadratic(&t[2], depths);
             }
-            return PolynomialSolver::polysolve(3, &t[1], depths,
+            return PolynomialSolver::solvePolynomial(3, &t[1], depths,
                 ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
         }
-        return PolynomialSolver::polysolve(4, &t[0], depths,
+        return PolynomialSolver::solvePolynomial(4, &t[0], depths,
             ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0);
     }
     return PolynomialSolver::solveQuartic(&t[0], depths,

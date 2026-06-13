@@ -156,7 +156,7 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
-                for (i = 0; i < PolynomialTermCounts::table()[order]; i++) {
+                for (i = 0; i < PolynomialTermCounts::termCountsByOrder()[order]; i++) {
                     givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);

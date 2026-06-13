@@ -9,9 +9,9 @@ shape implementation (to know how many coefficients to evaluate).
 */
 class PolynomialTermCounts {
   public:
-    static const int termCountsByOrder[];
+    static const int termCountsByOrderTable[];
 
-    static const int *table();
+    static const int *termCountsByOrder();
 };
 
 #endif
