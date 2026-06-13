@@ -1,22 +1,16 @@
-#ifndef __VECT_H__
-#define __VECT_H__
+#ifndef __POLYNOMIAL_SOLVER__
+#define __POLYNOMIAL_SOLVER__
 
 #include "numericalAnalysis/polynomial/Polynomial.h"
 #include "numericalAnalysis/polynomial/PolynomialConstants.h"
 
 class PolynomialSolver {
-  public:
-    static int solveQuadratic(const double *x, double *y);
-    static int solveCubic(const double *x, double *y);
-    static int solveQuartic(const double *x, double *y, double minValue = 0.0);
-    static int solvePolynomial(
-        int order, const double *coeffs, double *roots, double minValue);
-    static inline double absoluteValue(double x);
-
   private:
+    static constexpr double EPSILON = 1.0e-10;
+    static constexpr double COEFFICIENT_LIMIT = 1.0e-20;
+    static constexpr int MAX_ITERATIONS = 50;
     static int polynomialRemainder(
         const Polynomial *dividend, const Polynomial *divisor, Polynomial *remainder);
-    static int hasDifficultCoefficients(int n, const double *coefficients);
     static int solveByRegulaFalsi(
         int order, const double *coefficients, double a, double b, double *root);
     static void bisectRoots(int sequenceLength, const Polynomial *sturmSequence,
@@ -28,6 +22,10 @@ class PolynomialSolver {
     static int buildSturmSequence(int order, Polynomial *sturmSequence);
     static int countVisibleRoots(
         int sequenceLength, const Polynomial *sturmSequence, int *atNegative, int *atPositive);
+
+  public:
+    static int solvePolynomial(
+        int order, const double *coefficients, double *roots, double minValue);
 };
 
 #endif
