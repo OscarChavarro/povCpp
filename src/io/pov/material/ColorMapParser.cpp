@@ -102,4 +102,4 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
 
     return toRGBAColorPalette(raw);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

@@ -74,7 +74,7 @@ Sphere::intersectSphere(
 
 int
 Sphere::allSphereIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     double depth1;
     double depth2;
@@ -192,4 +192,4 @@ Sphere::invertSphere(SimpleBody *object)
 {
     ((Sphere *)object)->Inverted ^= true;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

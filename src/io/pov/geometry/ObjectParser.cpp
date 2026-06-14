@@ -797,4 +797,4 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
     return ((SimpleBody *)localComposite);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

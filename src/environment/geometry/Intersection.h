@@ -2,7 +2,7 @@
 #define __Intersection
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "common/dataStructures/PriorityQueueNode.h"
+#include "java/util/PriorityQueue.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/SimpleBody.h"
 
@@ -12,6 +12,11 @@ class Intersection {
     SimpleBody *Object;
     Vector3Dd Point;
     Geometry *Shape;
+
+    inline bool operator<(const Intersection& other) const
+    {
+        return Depth < other.Depth;
+    }
 };
 
 #endif // __Intersection

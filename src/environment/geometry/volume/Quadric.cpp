@@ -17,7 +17,7 @@ Methods Quadric::methodTable = {
 
 int
 Quadric::allQuadricIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     Quadric * const shape = (Quadric *)object;
     double depth1;
@@ -315,4 +315,4 @@ Quadric::invertQuadric(SimpleBody *object)
     shape->objectTerms = shape->objectTerms.multiply(-1.0);
     shape->objectConstant *= -1.0;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

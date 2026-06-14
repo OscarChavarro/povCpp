@@ -1,4 +1,4 @@
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Intersection.h"
 #include "render/shaders/ShadowShader.h"
@@ -6,7 +6,7 @@
 
 int
 ShadowShader::shade(Intersection *localIntersection,
-    ColorRgba *lightColor, PriorityQueueNode *localQueue,
+    ColorRgba *lightColor, java::PriorityQueue<Intersection> *localQueue,
     const TraceService *traceService)
 {
     traceService->shadeShadow(localIntersection, lightColor);

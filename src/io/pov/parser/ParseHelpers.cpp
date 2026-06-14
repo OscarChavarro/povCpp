@@ -73,4 +73,4 @@ ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
             &(ctx.parsingFrame()->Light_Sources));
     }
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

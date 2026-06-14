@@ -5,6 +5,8 @@ This file was written by Alexander Enzmann.  He wrote the code for
 blobs and generously provided us these enhancements.
 */
 
+#include <cstdio>
+
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
@@ -306,7 +308,7 @@ root solvers that are available.
 */
 int
 Blob::allBlobIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     Blob * const blob = (Blob *)object;
     Intersection localElement;
@@ -642,4 +644,4 @@ Blob::invertBlob(SimpleBody *object)
 {
     ((Blob *)object)->Inverted = !((Blob *)object)->Inverted;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

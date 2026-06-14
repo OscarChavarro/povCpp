@@ -18,7 +18,7 @@ class Sphere : public Geometry {
     bool Inverted;
 
     static int allSphereIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectSphere(const RayWithSegments *ray, Sphere *sphere,
         double *depth1, double *depth2);
     static int insideSphere(Vector3Dd *point, SimpleBody *object);

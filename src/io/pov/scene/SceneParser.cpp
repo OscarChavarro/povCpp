@@ -1,3 +1,5 @@
+#include <cstdio>
+
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"
 #include "io/pov/scene/SceneParser.h"
@@ -85,4 +87,4 @@ SceneParser::parseFrame(ParserContext &ctx)
 {
     SceneFrameParser::parseFrame(ctx.parsingFrame(), ctx);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

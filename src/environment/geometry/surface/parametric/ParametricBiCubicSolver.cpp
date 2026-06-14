@@ -305,7 +305,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
 
 int
 ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     ParametricBiCubicPatch * const shape = (ParametricBiCubicPatch *)object;
     double depths[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
@@ -355,4 +355,4 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     }
     return (intersectionFound);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

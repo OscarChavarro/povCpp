@@ -20,7 +20,7 @@ class Blob : public Geometry {
     int sturmFlag;
 
     static int allBlobIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int insideBlob(Vector3Dd *point, SimpleBody *object);
     static void blobNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

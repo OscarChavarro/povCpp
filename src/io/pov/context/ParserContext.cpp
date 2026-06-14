@@ -95,4 +95,4 @@ ParserContext::clearForcedTokenStream()
 {
     sForcedTokenStream = nullptr;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

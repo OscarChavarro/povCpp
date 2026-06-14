@@ -23,7 +23,7 @@ class Triangle : public Geometry {
 
     static int computeTriangle(Triangle *triangle);
     static int allTriangleIntersections(SimpleBody *object,
-        RayWithSegments *ray, PriorityQueueNode *depthQueue);
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
     static int intersectTriangle(
         RayWithSegments *ray, Triangle *triangle, double *depth);
     static int insideTriangle(Vector3Dd *point, SimpleBody *object);

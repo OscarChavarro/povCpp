@@ -1,4 +1,4 @@
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"
 #include "app/PovrayApplication.h"
 
 int

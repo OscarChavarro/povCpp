@@ -33,4 +33,4 @@ SimpleBodyFactory::getObject()
     newObject->methods = &Composite::basicObjectMethodTable;
     return (newObject);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

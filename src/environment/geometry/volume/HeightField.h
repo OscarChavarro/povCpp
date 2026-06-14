@@ -27,7 +27,7 @@ class HeightField : public Geometry {
     static void findHfMinMax(HeightField *hField,
         const RGBAImageHDRUncompressed *image, int imageType);
     static int allHeightfldIntersections(SimpleBody *object,
-        RayWithSegments *ray, PriorityQueueNode *depthQueue);
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
     static int insideHeightfld(Vector3Dd *testPoint, SimpleBody *object);
     static void heightFldNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
@@ -52,7 +52,7 @@ class HeightField : public Geometry {
     static double mzx;
     static double myz;
     static Intersection *hfIntersection;
-    static PriorityQueueNode *hfQueue;
+    static java::PriorityQueue<Intersection> *hfQueue;
     static RayWithSegments *rRay;
 
     static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,

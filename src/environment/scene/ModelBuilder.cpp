@@ -394,4 +394,4 @@ ModelBuilder::getFloat()
     *newFloat = 0.0;
     return (newFloat);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

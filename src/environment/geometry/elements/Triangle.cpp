@@ -187,7 +187,7 @@ Triangle::computeTriangle(Triangle *triangle)
 
 int
 Triangle::allTriangleIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     Triangle * const shape = (Triangle *)object;
     double depth;
@@ -645,4 +645,4 @@ SmoothTriangle::invertSmoothTriangle(SimpleBody *object)
 
     triangle->Inverted ^= true;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

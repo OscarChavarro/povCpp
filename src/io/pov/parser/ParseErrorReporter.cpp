@@ -156,4 +156,4 @@ ParseErrorReporter::reportError(const char *str, ParserContext &ctx)
     }
     exit(1);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

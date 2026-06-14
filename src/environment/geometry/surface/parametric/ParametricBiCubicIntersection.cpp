@@ -281,4 +281,4 @@ ParametricBiCubicIntersection::pointPlaneDistance(
     temp1 /= temp2;
     return temp1;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

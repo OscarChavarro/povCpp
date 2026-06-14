@@ -11,9 +11,9 @@ class CSG : public Geometry {
     Geometry *Shapes;
 
     static int allCsgUnionIntersections(SimpleBody *object,
-        RayWithSegments *ray, PriorityQueueNode *depthQueue);
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
     static int allCsgIntersectIntersections(SimpleBody *object,
-        RayWithSegments *ray, PriorityQueueNode *depthQueue);
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
     static int insideCsgUnion(Vector3Dd *point, SimpleBody *object);
     static int insideCsgIntersection(Vector3Dd *point, SimpleBody *object);
     static void *copyCsg(SimpleBody *object);

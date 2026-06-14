@@ -1,4 +1,4 @@
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"
 
 /**
 csg.c
@@ -26,7 +26,7 @@ CSG::linkShapeNode(
 
 int
 CSG::allCsgUnionIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     bool intersectionFound;
     const CSG *shape = (CSG *)object;
@@ -46,17 +46,17 @@ CSG::allCsgUnionIntersections(
 
 int
 CSG::allCsgIntersectIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     bool intersectionFound;
     bool anyIntersectionFound;
     const CSG *shape = (CSG *)object;
     Geometry *localShape;
     Geometry *shape2;
-    PriorityQueueNode *localDepthQueue;
+    java::PriorityQueue<Intersection> *localDepthQueue;
     Intersection localIntersection;
 
-    localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
+    localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
 
     anyIntersectionFound = false;
 
@@ -90,7 +90,7 @@ CSG::allCsgIntersectIntersections(
         }
     }
 
-    IntersectionPriorityQueuePool::pqPush(localDepthQueue);
+    PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
 
     return (anyIntersectionFound);
 }

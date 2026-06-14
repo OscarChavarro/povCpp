@@ -15,7 +15,7 @@ Methods Light::methodTable = {
 
 int
 Light::allPointIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     return (false);
 }
@@ -144,4 +144,4 @@ Light::attenuateLight(const Light *lightSource, const RayWithSegments *lightSour
     }
     return (attenuation);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"
