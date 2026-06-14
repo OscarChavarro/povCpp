@@ -1,6 +1,4 @@
 /**
-render.c
-
 This module implements the main raytracing loop.
 
 01/16/92 dfm     Added David Buck's bug fix to add a different offset
@@ -13,18 +11,20 @@ This module implements the main raytracing loop.
 */
 
 #include <cstdio>
+
 #include "java/io/FileOutputStream.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
+#include "common/dataStructures/PriorityQueuePool.txx"
 #include "common/statistics/Statistics.h"
 #include "common/RenderRuntimeState.h"
 #include "environment/material/RendererConfiguration.h"
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
+#include "environment/material/RenderOutput.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
-#include "environment/material/RenderOutput.h"
 #include "render/SceneDump.h"
 
 RenderFrame RenderEngine::sRenderFrame;

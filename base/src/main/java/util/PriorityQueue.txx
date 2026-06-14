@@ -198,4 +198,107 @@ PriorityQueue<T>::clear()
     currentSize = 0;
 }
 
+template <class T>
+typename PriorityQueue<T>::Iterator
+PriorityQueue<T>::iterator() const
+{
+    return Iterator(this, 1);
+}
+
+template <class T>
+const T*
+PriorityQueue<T>::begin() const
+{
+    return data + 1;
+}
+
+template <class T>
+const T*
+PriorityQueue<T>::end() const
+{
+    return data + currentSize + 1;
+}
+
+template <class T>
+template <class Predicate>
+bool
+PriorityQueue<T>::removeIf(Predicate p)
+{
+    bool removed = false;
+    int w = 1;
+    for (int r = 1; r <= currentSize; r++) {
+        if (p(data[r])) {
+            removed = true;
+        } else {
+            data[w++] = data[r];
+        }
+    }
+    if (removed) {
+        currentSize = w - 1;
+        for (int i = currentSize / 2; i >= 1; i--) {
+            siftDown(i);
+        }
+    }
+    return removed;
+}
+
+template <class T>
+template <class Consumer>
+void
+PriorityQueue<T>::forEach(Consumer action) const
+{
+    for (int i = 1; i <= currentSize; i++) {
+        action(data[i]);
+    }
+}
+
+template <class T>
+bool
+PriorityQueue<T>::contains(const T& elem) const
+{
+    for (int i = 1; i <= currentSize; i++) {
+        if (!(data[i] < elem) && !(elem < data[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T>
+bool
+PriorityQueue<T>::remove(const T& elem)
+{
+    for (int i = 1; i <= currentSize; i++) {
+        if (!(data[i] < elem) && !(elem < data[i])) {
+            data[i] = data[currentSize--];
+            if (currentSize >= 1 && i <= currentSize) {
+                siftDown(i);
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T>
+T*
+PriorityQueue<T>::toArray() const
+{
+    T* result = new T[currentSize];
+    for (int i = 0; i < currentSize; i++) {
+        result[i] = data[i + 1];
+    }
+    return result;
+}
+
+template <class T>
+T*
+PriorityQueue<T>::toArray(T* target) const
+{
+    for (int i = 0; i < currentSize; i++) {
+        target[i] = data[i + 1];
+    }
+    return target;
+}
+
 }

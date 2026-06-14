@@ -46,6 +46,5 @@ class PriorityQueuePool {
     static int headIndex;
 };
 
-#include "common/dataStructures/PriorityQueuePool.txx"
 
 #endif

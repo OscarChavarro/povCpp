@@ -9,6 +9,7 @@ This module implements the methods for objects and composite objects.
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"
+#include "common/dataStructures/PriorityQueuePool.txx"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/MaterialUtils.h"
@@ -90,8 +91,8 @@ Composite::allCompositeIntersections(
         GeometryOperations::allIntersections(localObject, ray, localDepthQueue);
     }
 
-    while (localDepthQueue->size() > 0) {
-        localIntersection = localDepthQueue->poll();
+    for (const Intersection& candidate : *localDepthQueue) {
+        localIntersection = candidate;
 
         intersectionFound = true;
 
@@ -111,6 +112,7 @@ Composite::allCompositeIntersections(
             anyIntersectionFound = true;
         }
     }
+    localDepthQueue->clear();
     PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
     return (anyIntersectionFound);
 }
@@ -146,8 +148,8 @@ Composite::allObjectIntersections(
     GeometryOperations::allIntersections(
         (SimpleBody *)object->geometry, ray, localDepthQueue);
 
-    while (localDepthQueue->size() > 0) {
-        localIntersection = localDepthQueue->poll();
+    for (const Intersection& candidate : *localDepthQueue) {
+        localIntersection = candidate;
 
         localIntersection.Object = object;
         intersectionFound = true;
@@ -182,6 +184,7 @@ Composite::allObjectIntersections(
             anyIntersectionFound = true;
         }
     }
+    localDepthQueue->clear();
     PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
     return (anyIntersectionFound);
 }

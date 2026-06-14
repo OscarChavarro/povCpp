@@ -1,5 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "common/statistics/Statistics.h"
+#include "common/dataStructures/PriorityQueuePool.txx"
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
