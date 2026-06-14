@@ -1,4 +1,5 @@
 #include "java/util/PriorityQueue.txx"
+#include "common/dataStructures/PriorityQueuePool.txx"
 
 /**
 csg.c
@@ -66,8 +67,8 @@ CSG::allCsgIntersectIntersections(
         GeometryOperations::allIntersections(
             (SimpleBody *)localShape, ray, localDepthQueue);
 
-        while (localDepthQueue->size() > 0) {
-            localIntersection = localDepthQueue->poll();
+        for (const Intersection& candidate : *localDepthQueue) {
+            localIntersection = candidate;
 
             intersectionFound = true;
 
@@ -88,6 +89,8 @@ CSG::allCsgIntersectIntersections(
                 anyIntersectionFound = true;
             }
         }
+
+        localDepthQueue->clear();
     }
 
     PriorityQueuePool<Intersection>::pqPush(localDepthQueue);

@@ -29,6 +29,27 @@ class PriorityQueue final : public Object {
     friend class PriorityQueueAccess<T>;
 
   public:
+    // Iterator: JDK-style unordered traversal of the internal heap array [1..currentSize]
+    class Iterator {
+      private:
+        const PriorityQueue<T>* owner;
+        int cursor;
+
+        friend class PriorityQueue<T>;
+        Iterator(const PriorityQueue<T>* q, int start) : owner(q), cursor(start) {}
+
+      public:
+        bool hasNext() const
+        {
+            return cursor <= owner->currentSize;
+        }
+
+        T next()
+        {
+            return owner->data[cursor++];
+        }
+    };
+
     PriorityQueue();
     PriorityQueue(int initialCapacity);
     virtual ~PriorityQueue();
@@ -39,6 +60,20 @@ class PriorityQueue final : public Object {
     T poll();
     int size() const;
     void clear();
+
+    Iterator iterator() const;
+
+    template <class Predicate> bool removeIf(Predicate p);
+    template <class Consumer> void forEach(Consumer action) const;
+
+    bool contains(const T& elem) const;
+    bool remove(const T& elem);
+    T* toArray() const;
+    T* toArray(T* target) const;
+
+    // C++ ergonomic helpers for range-for loops (not in JDK API; expose iterator to C++ idioms)
+    const T* begin() const;
+    const T* end() const;
 };
 
 template <class T>

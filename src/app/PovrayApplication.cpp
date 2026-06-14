@@ -6,7 +6,7 @@
 
 #include "common/RenderRuntimeState.h"
 #include "java/util/PriorityQueue.h"
-#include "common/dataStructures/PriorityQueuePool.h"
+#include "common/dataStructures/PriorityQueuePool.txx"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/material/MaterialUtils.h"
