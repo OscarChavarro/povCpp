@@ -16,7 +16,7 @@ class PolynomialShape : public Geometry {
     double *Coeffs;
 
     static int allPolyIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int insidePoly(Vector3Dd *point, SimpleBody *object);
     static void polyNormal(
         Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);

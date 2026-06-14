@@ -31,17 +31,16 @@ PriorityQueue<T>::init(int initialCapacity)
     currentSize = 0;
     data = nullptr;
     maxSize = 0;
-    allocateStorage(initialCapacity);
+    activeLimit = -1;
+    allocateStorage(initialCapacity + 1);
 }
 
 template <class T>
 void
 PriorityQueue<T>::allocateStorage(int capacity)
 {
-    if (capacity <= 0) {
-        data = nullptr;
-        maxSize = 0;
-        return;
+    if (capacity < 2) {
+        capacity = 2;
     }
 
     data = new T[capacity];
@@ -57,6 +56,7 @@ PriorityQueue<T>::releaseStorage()
     }
 
     data = nullptr;
+    currentSize = 0;
     maxSize = 0;
 }
 
@@ -71,18 +71,18 @@ template <class T>
 void
 PriorityQueue<T>::ensureCapacity(int requiredCapacity)
 {
-    if (requiredCapacity <= maxSize) {
+    if (requiredCapacity < maxSize) {
         return;
     }
 
-    int newCapacity = maxSize > 0 ? maxSize : DEFAULT_CAPACITY;
-    while (newCapacity < requiredCapacity) {
+    int newCapacity = maxSize > 0 ? maxSize : DEFAULT_CAPACITY + 1;
+    while (newCapacity <= requiredCapacity) {
         newCapacity = (newCapacity * 2) + 1;
     }
 
     T *oldData = data;
     allocateStorage(newCapacity);
-    for (int i = 0; i < currentSize; i++) {
+    for (int i = 1; i <= currentSize; i++) {
         data[i] = oldData[i];
     }
 
@@ -95,57 +95,58 @@ template <class T>
 void
 PriorityQueue<T>::siftUp(int index)
 {
-    T value = data[index];
-
-    while (index > 0) {
-        const int parent = (index - 1) / 2;
-        if (!lessThan(value, data[parent])) {
-            break;
-        }
-
-        data[index] = data[parent];
-        index = parent;
+    if (index / 2 < 1) {
+        return;
     }
 
-    data[index] = value;
+    const int parentIndex = index / 2;
+    if (lessThan(data[index], data[parentIndex])) {
+        const T tempEntry = data[index];
+        data[index] = data[parentIndex];
+        data[parentIndex] = tempEntry;
+        siftUp(parentIndex);
+    }
 }
 
 template <class T>
 void
 PriorityQueue<T>::siftDown(int index)
 {
-    T value = data[index];
-
-    while (true) {
-        const int left = (index * 2) + 1;
-        if (left >= currentSize) {
-            break;
+    int childIndex = index * 2;
+    if (childIndex <= currentSize) {
+        if (childIndex + 1 <= currentSize &&
+            lessThan(data[childIndex + 1], data[childIndex])) {
+            childIndex++;
         }
 
-        const int right = left + 1;
-        int smallest = left;
-        if (right < currentSize && lessThan(data[right], data[left])) {
-            smallest = right;
+        if (lessThan(data[childIndex], data[index])) {
+            const T tempEntry = data[index];
+            data[index] = data[childIndex];
+            data[childIndex] = tempEntry;
+            siftDown(childIndex);
         }
-        if (!lessThan(data[smallest], value)) {
-            break;
-        }
-
-        data[index] = data[smallest];
-        index = smallest;
     }
-
-    data[index] = value;
 }
 
 template <class T>
 bool
 PriorityQueue<T>::add(const T& elem)
 {
-    ensureCapacity(currentSize + 1);
+    if (activeLimit >= 0) {
+        currentSize++;
+        if (currentSize >= activeLimit) {
+            currentSize--;
+            return false;
+        }
+        data[currentSize] = elem;
+        siftUp(currentSize);
+        return true;
+    }
+
+    currentSize++;
+    ensureCapacity(currentSize);
     data[currentSize] = elem;
     siftUp(currentSize);
-    currentSize++;
     return true;
 }
 
@@ -160,26 +161,24 @@ template <class T>
 T
 PriorityQueue<T>::peek()
 {
-    if (currentSize <= 0) {
+    if (currentSize < 1) {
         return T();
     }
-    return data[0];
+    return data[1];
 }
 
 template <class T>
 T
 PriorityQueue<T>::poll()
 {
-    if (currentSize <= 0) {
+    if (currentSize < 1) {
         return T();
     }
 
-    T top = data[0];
-    currentSize--;
-
-    if (currentSize > 0) {
-        data[0] = data[currentSize];
-        siftDown(0);
+    T top = data[1];
+    data[1] = data[currentSize--];
+    if (currentSize >= 1) {
+        siftDown(1);
     }
 
     return top;

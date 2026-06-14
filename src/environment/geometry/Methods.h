@@ -3,11 +3,11 @@
 
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/SimpleBody.h"
-#include "common/dataStructures/PriorityQueueNode.h"
+#include "java/util/PriorityQueue.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
 typedef int (*ALL_INTERSECTIONS_METHOD)(
-    SimpleBody *, RayWithSegments *, PriorityQueueNode *);
+    SimpleBody *, RayWithSegments *, java::PriorityQueue<Intersection> *);
 typedef int (*INSIDE_METHOD)(Vector3Dd *, SimpleBody *);
 typedef void (*NORMAL_METHOD)(Vector3Dd *, SimpleBody *, Vector3Dd *);
 typedef void *(*COPY_METHOD)(SimpleBody *);

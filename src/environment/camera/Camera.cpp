@@ -70,4 +70,4 @@ Camera::scaleCamera(SimpleBody *object, Vector3Dd *vector)
     viewpoint->Up = transformation.transpose().multiply(viewpoint->Up);
     viewpoint->Right = transformation.transpose().multiply(viewpoint->Right);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

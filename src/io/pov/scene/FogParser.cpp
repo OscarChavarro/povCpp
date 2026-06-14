@@ -43,4 +43,4 @@ FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
         }
     }
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

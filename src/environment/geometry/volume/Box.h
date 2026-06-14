@@ -14,7 +14,7 @@ class Box : public Geometry {
     bool Inverted;
 
     static int allBoxIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectBoxx(const RayWithSegments *ray, const Box *box,
         double *depth1, double *depth2);
     static int insideBox(Vector3Dd *point, SimpleBody *object);

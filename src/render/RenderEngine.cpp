@@ -338,7 +338,7 @@ RenderEngine::readRenderedPart()
 void
 RenderEngine::startTracing()
 {
-    const char *dumpEnv = std::getenv("POVCPP_DUMP_SCENE");
+    const char *dumpEnv = getenv("POVCPP_DUMP_SCENE");
     if (dumpEnv != nullptr && dumpEnv[0] == '1') {
         SceneDumper::dumpSceneStructure(stderr);
     }
@@ -622,4 +622,4 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         delete localIntersection;
     }
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

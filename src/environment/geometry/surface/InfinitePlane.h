@@ -13,7 +13,7 @@ class InfinitePlane : public Geometry {
     bool VPCached;
 
     static int allPlaneIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectPlane(
         RayWithSegments *ray, InfinitePlane *plane, double *depth);
     static int insidePlane(Vector3Dd *point, SimpleBody *object);

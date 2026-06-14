@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include "io/pov/material/TextureParser.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
@@ -34,7 +36,7 @@ TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDR
 bool
 TextureParser::shouldLogTextureState()
 {
-    const char *flag = std::getenv("POVCPP_DIAG_TEXTURE_STATE");
+    const char *flag = getenv("POVCPP_DIAG_TEXTURE_STATE");
     return flag != nullptr && flag[0] != '\0';
 }
 
@@ -1062,4 +1064,4 @@ TextureParser::parseTexture(ParserContext &ctx)
     logTextureStateLegacy("legacy", texture);
     return (texture);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

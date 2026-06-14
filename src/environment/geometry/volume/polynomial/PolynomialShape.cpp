@@ -63,7 +63,7 @@ PolynomialShape::termCountsByOrder()
 
 int
 PolynomialShape::allPolyIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     PolynomialShape * const shape = (PolynomialShape *)object;
     double depths[PolynomialSolver::MAX_ORDER];
@@ -939,4 +939,4 @@ PolynomialShape::invertPoly(SimpleBody *object)
 {
     ((PolynomialShape *)object)->Inverted = !((PolynomialShape *)object)->Inverted;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

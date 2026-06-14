@@ -8,7 +8,7 @@ bezier bicubic patches and generously provided us these enhancements.
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"
 
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/GeometryOperations.h"
@@ -16,6 +16,8 @@ bezier bicubic patches and generously provided us these enhancements.
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/MaterialUtils.h"
+
+#include <cstdio>
 
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;

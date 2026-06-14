@@ -17,7 +17,7 @@ Methods InfinitePlane::methodTable = {
 
 int
 InfinitePlane::allPlaneIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     InfinitePlane * const shape = (InfinitePlane *)object;
     double depth;
@@ -177,4 +177,4 @@ InfinitePlane::invertPlane(SimpleBody *object)
     plane->normalVector = plane->normalVector.multiply(-1.0);
     plane->Distance *= -1.0;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

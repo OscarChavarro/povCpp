@@ -133,4 +133,4 @@ BoxParser::parseBox(ParserContext &ctx)
 
     return ((Geometry *)localShape);
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

@@ -17,7 +17,7 @@ class Quadric : public Geometry {
     bool nonZeroSquareTerm;
 
     static int allQuadricIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectQuadric(
         RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2);
     static int insideQuadric(Vector3Dd *point, SimpleBody *object);

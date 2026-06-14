@@ -18,9 +18,9 @@ class Composite {
     SimpleBody *simpleBodies;
 
     static int allCompositeIntersections(SimpleBody *object,
-        RayWithSegments *ray, PriorityQueueNode *depthQueue);
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
     static int allObjectIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int insideBasicObject(Vector3Dd *point, SimpleBody *object);
     static int insideCompositeObject(Vector3Dd *point, SimpleBody *object);
     static void *copyBasicObject(SimpleBody *object);

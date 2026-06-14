@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"
 #include "environment/material/RendererConfiguration.h"
 #include "render/RenderEngine.h"
 #include "io/binaryIo/FileLocator.h"

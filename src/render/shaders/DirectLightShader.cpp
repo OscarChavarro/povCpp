@@ -1,6 +1,6 @@
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"
 #include "common/statistics/Statistics.h"
-#include "common/dataStructures/PriorityQueue.h"
+#include "java/util/PriorityQueue.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
@@ -32,7 +32,7 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
     Intersection localIntersection;
     Vector3Dd rEye;
     ColorRgba lightColor;
-    PriorityQueueNode *localQueue;
+    java::PriorityQueue<Intersection> *localQueue;
 
     rEye = Vector3Dd(0, 0, 0);
 
@@ -46,7 +46,7 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
             -eye->direction.x(), -eye->direction.y(), -eye->direction.z());
     }
 
-    localQueue = IntersectionPriorityQueuePool::pqPop(128);
+    localQueue = PriorityQueuePool<Intersection>::pqPop(128);
     lightSourceRay.isShadowRay = true;
     lightSourceRay.isPrimaryRay = false;
 
@@ -109,5 +109,5 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
             }
         }
     }
-    IntersectionPriorityQueuePool::pqPush(localQueue);
+    PriorityQueuePool<Intersection>::pqPush(localQueue);
 }

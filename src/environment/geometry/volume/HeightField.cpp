@@ -11,6 +11,8 @@ with lots of advice and support from David Buck
 and Drew Wells.
 */
 
+#include <cstdio>
+
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "java/lang/Math.h"
@@ -56,7 +58,7 @@ double HeightField::mxz;
 double HeightField::mzx;
 double HeightField::myz;
 Intersection *HeightField::hfIntersection;
-PriorityQueueNode *HeightField::hfQueue;
+java::PriorityQueue<Intersection> *HeightField::hfQueue;
 RayWithSegments *HeightField::rRay;
 
 double
@@ -760,7 +762,7 @@ HeightField::findHfMinMax(HeightField *hField,
 
 int
 HeightField::allHeightfldIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
@@ -1024,4 +1026,4 @@ void
 HeightField::invertHeightfld(SimpleBody *object)
 {
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

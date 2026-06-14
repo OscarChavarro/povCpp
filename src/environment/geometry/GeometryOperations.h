@@ -4,7 +4,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "common/dataStructures/PriorityQueue.h"
+#include "java/util/PriorityQueue.h"
+#include "common/dataStructures/PriorityQueuePool.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Intersection.h"
@@ -16,7 +17,7 @@
 class GeometryOperations {
   public:
     static inline int
-    allIntersections(SimpleBody *x, RayWithSegments *y, PriorityQueueNode *z)
+    allIntersections(SimpleBody *x, RayWithSegments *y, java::PriorityQueue<Intersection> *z)
     {
         return ((*((x)->methods->allIntersectionsMethod))(x, y, z));
     }
@@ -32,7 +33,7 @@ class GeometryOperations {
     static inline Intersection *
     intersect(SimpleBody *x, RayWithSegments *y)
     {
-        PriorityQueueNode * const depthQueue = IntersectionPriorityQueuePool::pqPop(128);
+        java::PriorityQueue<Intersection> * const depthQueue = PriorityQueuePool<Intersection>::pqPop(128);
 
         if (allIntersections(x, y, depthQueue) && depthQueue->size() > 0) {
             const Intersection queueElement = depthQueue->peek();
@@ -44,10 +45,10 @@ class GeometryOperations {
             localIntersection->Shape = queueElement.Shape;
             localIntersection->Depth = queueElement.Depth;
             localIntersection->Object = queueElement.Object;
-            IntersectionPriorityQueuePool::pqPush(depthQueue);
+            PriorityQueuePool<Intersection>::pqPush(depthQueue);
             return localIntersection;
         }
-        IntersectionPriorityQueuePool::pqPush(depthQueue);
+        PriorityQueuePool<Intersection>::pqPush(depthQueue);
         return nullptr;
     }
 

@@ -26,7 +26,7 @@ Box::closeTo(double x, double y)
 }
 int
 Box::allBoxIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     double depth1;
     double depth2;
@@ -362,4 +362,4 @@ Box::invertBox(SimpleBody *object)
 {
     ((Box *)object)->Inverted = !((Box *)object)->Inverted;
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

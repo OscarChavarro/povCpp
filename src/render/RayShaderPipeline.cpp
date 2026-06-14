@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
@@ -231,4 +232,4 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             RenderEngine::renderFrame().fogDistance, color);
     }
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

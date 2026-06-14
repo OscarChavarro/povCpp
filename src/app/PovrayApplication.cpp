@@ -5,7 +5,7 @@
 #include <ctime>
 
 #include "common/RenderRuntimeState.h"
-#include "common/dataStructures/PriorityQueue.h"
+#include "java/util/PriorityQueue.h"
 #include "common/dataStructures/PriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/Intersection.h"
@@ -267,7 +267,7 @@ PovrayApplication::prepareRendering()
         RenderEngine::initializeRenderer();
     }
 
-    IntersectionPriorityQueuePool::pqInit();
+    PriorityQueuePool<Intersection>::pqInit();
     TextureUtils::initialize(Statistics::global().getSolidTextureStatistics());
     MaterialUtils::initialize();
     TextureUtils::instance().initializeNoise(Material::DEFAULT_NUMBER_OF_WAVES);
@@ -373,4 +373,4 @@ PovrayApplication::printCredits()
                     "------------\n");
     fprintf(stderr, "  Other contributors listed in the documentation.\n");
 }
-#include "common/dataStructures/PriorityQueue.txx"
+#include "java/util/PriorityQueue.txx"

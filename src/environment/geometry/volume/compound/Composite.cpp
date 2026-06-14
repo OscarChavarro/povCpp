@@ -4,7 +4,9 @@ objects.c
 This module implements the methods for objects and composite objects.
 */
 
-#include "common/dataStructures/PriorityQueue.txx"
+#include <cstdio>
+
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/compound/Composite.h"
@@ -54,7 +56,7 @@ Methods Composite::basicObjectMethodTable = {
 
 int
 Composite::allCompositeIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     bool intersectionFound;
     bool anyIntersectionFound;
@@ -63,7 +65,7 @@ Composite::allCompositeIntersections(
     Geometry *clippingShape;
     Intersection localIntersection;
     SimpleBody *localObject;
-    PriorityQueueNode *localDepthQueue;
+    java::PriorityQueue<Intersection> *localDepthQueue;
 
     for (boundingShape = ((Composite *)object)->boundingShapes;
         boundingShape != nullptr; boundingShape = boundingShape->nextObject) {
@@ -79,7 +81,7 @@ Composite::allCompositeIntersections(
         Statistics::global().boundingRegionTestsSucceeded++;
     }
 
-    localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
+    localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
     anyIntersectionFound = false;
 
     for (localObject = ((Composite *)object)->simpleBodies; localObject != nullptr;
@@ -109,13 +111,13 @@ Composite::allCompositeIntersections(
             anyIntersectionFound = true;
         }
     }
-    IntersectionPriorityQueuePool::pqPush(localDepthQueue);
+    PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
     return (anyIntersectionFound);
 }
 
 int
 Composite::allObjectIntersections(
-    SimpleBody *object, RayWithSegments *ray, PriorityQueueNode *depthQueue)
+    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     bool intersectionFound;
     bool anyIntersectionFound;
@@ -123,7 +125,7 @@ Composite::allObjectIntersections(
     Intersection *boundingIntersection;
     Geometry *boundingShape;
     Geometry *clippingShape;
-    PriorityQueueNode *localDepthQueue;
+    java::PriorityQueue<Intersection> *localDepthQueue;
 
     for (boundingShape = object->boundingShapes; boundingShape != nullptr;
         boundingShape = boundingShape->nextObject) {
@@ -139,7 +141,7 @@ Composite::allObjectIntersections(
         Statistics::global().boundingRegionTestsSucceeded++;
     }
 
-    localDepthQueue = IntersectionPriorityQueuePool::pqPop(128);
+    localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
     anyIntersectionFound = false;
     GeometryOperations::allIntersections(
         (SimpleBody *)object->geometry, ray, localDepthQueue);
@@ -180,7 +182,7 @@ Composite::allObjectIntersections(
             anyIntersectionFound = true;
         }
     }
-    IntersectionPriorityQueuePool::pqPush(localDepthQueue);
+    PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
     return (anyIntersectionFound);
 }
 

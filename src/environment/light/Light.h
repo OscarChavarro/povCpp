@@ -16,7 +16,7 @@ class Light : public Geometry {
     double Falloff;
 
     static int allPointIntersections(SimpleBody *object, RayWithSegments *ray,
-        PriorityQueueNode *depthQueue);
+        java::PriorityQueue<Intersection> *depthQueue);
     static int insidePoint(Vector3Dd *testPoint, SimpleBody *object);
     static void *copyPoint(SimpleBody *object);
     static void translatePoint(SimpleBody *object, Vector3Dd *vector);
