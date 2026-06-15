@@ -129,7 +129,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
-                RenderEngine::renderFrame().Light_Sources,
+                RenderEngine::renderFrame().lightSources,
                 RenderEngine::renderFrame().Objects, RenderEngine::traceLevel());
         }
 

@@ -15,10 +15,10 @@ class HeightField : public Geometry {
 
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
-    Box *bounding_box;
+    Box *boundingBox;
     double blockSize;
     double invBlkSize;
-    HeightFieldBlock **Block;
+    HeightFieldBlock **block;
     float **Map;
 
     static void findHfMinMax(HeightField *hField,

@@ -58,15 +58,15 @@ ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
     Geometry *tempShape;
 
     if (CSG *csg = dynamic_cast<CSG *>(shape)) {
-        java::ArrayList<Geometry*> &shapes = csg->Shapes;
+        java::ArrayList<Geometry*> &shapes = csg->shapes;
         for (long int i = shapes.size() - 1; i >= 0; i--) {
             tempShape = shapes[i];
             ParseHelpers::postProcessShape(tempShape);
         }
     } else if (Light *light = dynamic_cast<Light *>(shape)) {
         ParseHelpers::linkShapes(light,
-            &(light->Next_Light_Source),
-            &(ctx.parsingFrame()->Light_Sources));
+            &(light->nextLightSource),
+            &(ctx.parsingFrame()->lightSources));
     }
 }
 #include "java/util/ArrayList.txx"

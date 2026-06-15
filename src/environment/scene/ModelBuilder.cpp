@@ -37,12 +37,12 @@ ModelBuilder::getSphereShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->Radius = 1.0;
+    *&(newShape->center) = Vector3Dd(0.0, 0.0, 0.0);
+    newShape->radius = 1.0;
     newShape->radiusSquared = 1.0;
     newShape->inverseRadius = 1.0;
     newShape->VPCached = false;
-    newShape->Inverted = false;
+    newShape->inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -109,8 +109,8 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
     newShape->shapeColor = nullptr;
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
-    newShape->Inverted = 0;
-    newShape->Order = order;
+    newShape->inverted = 0;
+    newShape->order = order;
     newShape->sturmFlag = 0;
     newShape->Coeffs = new double[termCounts[order]];
     if (newShape->Coeffs == nullptr) {
@@ -136,7 +136,7 @@ ModelBuilder::getBoxShape()
     *&(newShape->bounds[1]) = Vector3Dd(1.0, 1.0, 1.0);
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
-    newShape->Inverted = false;
+    newShape->inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -154,7 +154,7 @@ ModelBuilder::getBlobShape()
 
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
-    newShape->Inverted = false;
+    newShape->inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -175,10 +175,10 @@ ModelBuilder::getBicubicPatchShape()
     newShape->uSteps = 0;
     newShape->vSteps = 0;
     newShape->intersectionCount = 0;
-    newShape->Interpolated_Grid = (Vector3Dd **)nullptr;
-    newShape->Interpolated_Normals = (Vector3Dd **)nullptr;
-    newShape->Smooth_Normals = (Vector3Dd **)nullptr;
-    newShape->Interpolated_D = (double **)nullptr;
+    newShape->interpolatedGrid = (Vector3Dd **)nullptr;
+    newShape->interpolatedNormals = (Vector3Dd **)nullptr;
+    newShape->smoothNormals = (Vector3Dd **)nullptr;
+    newShape->interpolatedD = (double **)nullptr;
     return (newShape);
 }
 
@@ -191,7 +191,7 @@ ModelBuilder::getHeightFieldShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-    newShape->bounding_box = ModelBuilder::getBoxShape();
+    newShape->boundingBox = ModelBuilder::getBoxShape();
     newShape->Map = nullptr;
     newShape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -229,11 +229,11 @@ ModelBuilder::getTriangleShape()
     }
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->P1) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->P2) = Vector3Dd(1.0, 0.0, 0.0);
-    *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->p1) = Vector3Dd(0.0, 0.0, 0.0);
+    *&(newShape->p2) = Vector3Dd(1.0, 0.0, 0.0);
+    *&(newShape->p3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
-    newShape->Inverted = false;
+    newShape->inverted = false;
     newShape->VPCached = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -252,14 +252,14 @@ ModelBuilder::getSmoothTriangleShape()
     }
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->P1) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->P2) = Vector3Dd(1.0, 0.0, 0.0);
-    *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->N1) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->N2) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->N3) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->p1) = Vector3Dd(0.0, 0.0, 0.0);
+    *&(newShape->p2) = Vector3Dd(1.0, 0.0, 0.0);
+    *&(newShape->p3) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->n1) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->n2) = Vector3Dd(0.0, 1.0, 0.0);
+    *&(newShape->n3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
-    newShape->Inverted = false;
+    newShape->inverted = false;
     newShape->VPCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;

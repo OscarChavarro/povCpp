@@ -28,8 +28,8 @@ CSG::allCsgUnionIntersections(
     Geometry *localShape;
 
     intersectionFound = false;
-    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->Shapes[i];
+    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->shapes[i];
         if (GeometryOperations::allIntersections(
                 localShape, ray, depthQueue)) {
             intersectionFound = true;
@@ -55,8 +55,8 @@ CSG::allCsgIntersectIntersections(
 
     anyIntersectionFound = false;
 
-    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->Shapes[i];
+    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->shapes[i];
 
         GeometryOperations::allIntersections(
             localShape, ray, localDepthQueue);
@@ -66,8 +66,8 @@ CSG::allCsgIntersectIntersections(
 
             intersectionFound = true;
 
-            for (long int j = shape->Shapes.size() - 1; j >= 0; j--) {
-                shape2 = shape->Shapes[j];
+            for (long int j = shape->shapes.size() - 1; j >= 0; j--) {
+                shape2 = shape->shapes[j];
 
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
@@ -98,8 +98,8 @@ CSG::insideCsgUnion(Vector3Dd *testPoint)
     const CSG *shape = this;
     Geometry *localShape;
 
-    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->Shapes[i];
+    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->shapes[i];
 
         if (GeometryOperations::inside(testPoint, localShape)) {
             return (true);
@@ -114,8 +114,8 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint)
     Geometry *localShape;
     const CSG *shape = this;
 
-    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->Shapes[i];
+    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->shapes[i];
 
         if (!GeometryOperations::inside(testPoint, localShape)) {
             return (false);
@@ -136,12 +136,12 @@ CSG::copy()
     newShape = new CSG;
     newShape->geometryType = shape->geometryType;
 
-    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->Shapes[i];
+    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->shapes[i];
 
         copiedShape =
             (Geometry *)GeometryOperations::copy(localShape);
-        newShape->Shapes.add(copiedShape);
+        newShape->shapes.add(copiedShape);
     }
     return ((void *)newShape);
 }
@@ -151,8 +151,8 @@ CSG::translate(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (long int i = this->Shapes.size() - 1; i >= 0; i--) {
-        localShape = this->Shapes[i];
+    for (long int i = this->shapes.size() - 1; i >= 0; i--) {
+        localShape = this->shapes[i];
 
         GeometryOperations::translate(localShape, vector);
     }
@@ -163,8 +163,8 @@ CSG::rotate(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (long int i = this->Shapes.size() - 1; i >= 0; i--) {
-        localShape = this->Shapes[i];
+    for (long int i = this->shapes.size() - 1; i >= 0; i--) {
+        localShape = this->shapes[i];
 
         GeometryOperations::rotate(localShape, vector);
     }
@@ -175,8 +175,8 @@ CSG::scale(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (long int i = this->Shapes.size() - 1; i >= 0; i--) {
-        localShape = this->Shapes[i];
+    for (long int i = this->shapes.size() - 1; i >= 0; i--) {
+        localShape = this->shapes[i];
 
         GeometryOperations::scale(localShape, vector);
     }
@@ -194,8 +194,8 @@ CSG::invert()
         csg->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
     }
 
-    for (long int i = csg->Shapes.size() - 1; i >= 0; i--) {
-        localShape = csg->Shapes[i];
+    for (long int i = csg->shapes.size() - 1; i >= 0; i--) {
+        localShape = csg->shapes[i];
 
         GeometryOperations::invert(localShape);
     }

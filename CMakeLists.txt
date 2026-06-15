@@ -12,7 +12,6 @@ add_executable(povray
     src/common/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
     src/environment/material/RendererConfiguration.cpp
-    src/environment/geometry/elements/Ray.cpp
     src/environment/geometry/elements/RayWithSegments.cpp
     src/environment/geometry/surface/parametric/ParametricPatch.cpp
     src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp

@@ -68,7 +68,7 @@ SceneParser::frameInit(ParserContext &ctx)
 {
     MaterialUtils::instance().setDefaultTexture(MaterialUtils::instance().getTexture());
     ctx.parsingFrame()->viewPoint.initializeDefaults();
-    ctx.parsingFrame()->Light_Sources = nullptr;
+    ctx.parsingFrame()->lightSources = nullptr;
     ctx.parsingFrame()->Objects.clear();
     ctx.parsingFrame()->atmosphereIor = 1.0;
     ctx.parsingFrame()->antialiasThreshold = RenderingConfiguration::global().antialiasThreshold;

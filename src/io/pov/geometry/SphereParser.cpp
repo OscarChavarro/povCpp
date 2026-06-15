@@ -39,11 +39,11 @@ SphereParser::parseSphere(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getSphereShape();
-                PrimitiveParser::parseVector(&(localShape->Center), ctx);
-                localShape->Radius = PrimitiveParser::parseFloat(ctx);
+                PrimitiveParser::parseVector(&(localShape->center), ctx);
+                localShape->radius = PrimitiveParser::parseFloat(ctx);
                 localShape->radiusSquared =
-                    localShape->Radius * localShape->Radius;
-                localShape->inverseRadius = 1.0 / localShape->Radius;
+                    localShape->radius * localShape->radius;
+                localShape->inverseRadius = 1.0 / localShape->radius;
                 Exit_Flag = true;
                 break;
 

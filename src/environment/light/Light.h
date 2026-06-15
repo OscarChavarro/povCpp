@@ -8,13 +8,13 @@
 class Light : public Geometry {
   public:
     GeometryTypes geometryType;
-    Vector3Dd Center;
+    Vector3Dd center;
     Vector3Dd pointsAt;
-    Light *Next_Light_Source;
-    bool Inverted;
-    double Coeff;
-    double Radius;
-    double Falloff;
+    Light *nextLightSource;
+    bool inverted;
+    double coeff;
+    double radius;
+    double falloff;
 
     virtual double attenuate(const RayWithSegments *lightSourceRay) const = 0;
 

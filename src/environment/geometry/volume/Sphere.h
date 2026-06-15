@@ -6,15 +6,15 @@
 
 class Sphere : public Geometry {
   public:
-    Vector3Dd Center;
-    double Radius;
+    Vector3Dd center;
+    double radius;
     double radiusSquared;
     double inverseRadius;
-    Vector3Dd VPOtoC;
+    Vector3Dd vpOtoC;
     double VPOCSquared;
     short VPinside;
     bool VPCached;
-    bool Inverted;
+    bool inverted;
 
     static int intersectSphere(const RayWithSegments *ray, Sphere *sphere,
         double *depth1, double *depth2);

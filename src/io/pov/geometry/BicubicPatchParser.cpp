@@ -53,7 +53,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 for (i = 0; i < 4; i++) {
                     for (j = 0; j < 4; j++) {
                         PrimitiveParser::parseVector(
-                            &(localShape->Control_Points[i][j]), ctx);
+                            &(localShape->controlPoints[i][j]), ctx);
                     }
                 }
                 ParametricBiCubicPatch::precomputePatchValues(

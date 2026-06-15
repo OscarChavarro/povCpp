@@ -93,11 +93,11 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
     intersectionFound = false;
     Statistics::global().rayPolyTests++;
-    if (shape->Order == 4) {
+    if (shape->order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
     } else {
         cnt = PolynomialShape::intersect(
-            &newRay, shape->Order, shape->Coeffs, &depths[0]);
+            &newRay, shape->order, shape->Coeffs, &depths[0]);
     }
 
     if (cnt > 0) {
@@ -798,11 +798,11 @@ PolynomialShape::inside(Vector3Dd *testPoint)
         newPoint = *testPoint;
     }
 
-    result = PolynomialShape::evaluatePolynomial(&newPoint, shape->Order, shape->Coeffs);
+    result = PolynomialShape::evaluatePolynomial(&newPoint, shape->order, shape->Coeffs);
     if (result < GeometryConstants::Small_Tolerance) {
-        return ((int)(1 - shape->Inverted));
+        return ((int)(1 - shape->inverted));
     }
-    return ((int)shape->Inverted);
+    return ((int)shape->inverted);
 }
 
 // Normal to a polynomial
@@ -820,11 +820,11 @@ PolynomialShape::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
             intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
     }
 
-    if (shape->Order == 4) {
+    if (shape->order == 4) {
         PolynomialShape::quarticNormal(result, (SimpleBody *)this, &newPoint);
     } else {
         PolynomialShape::normalp(
-            result, shape->Order, shape->Coeffs, &newPoint);
+            result, shape->order, shape->Coeffs, &newPoint);
     }
 
     // Transform back to world space
@@ -843,7 +843,7 @@ PolynomialShape::copy()
     int i;
 
     *newShape = *shape;
-    newShape->Coeffs = new double[termCountsInstance[newShape->Order]];
+    newShape->Coeffs = new double[termCountsInstance[newShape->order]];
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
 
@@ -853,7 +853,7 @@ PolynomialShape::copy()
         newShape->transformationInverse =
             new Matrix4x4d(*(shape->transformationInverse));
     }
-    for (i = 0; i < termCountsInstance[newShape->Order]; i++) {
+    for (i = 0; i < termCountsInstance[newShape->order]; i++) {
         newShape->Coeffs[i] = shape->Coeffs[i];
     }
 
@@ -928,6 +928,6 @@ PolynomialShape::scale(Vector3Dd *vector)
 void
 PolynomialShape::invert()
 {
-    this->Inverted = !this->Inverted;
+    this->inverted = !this->inverted;
 }
 #include "java/util/PriorityQueue.txx"

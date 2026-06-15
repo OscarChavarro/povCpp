@@ -124,11 +124,11 @@ RenderFrame::createRay(
         (((double)(RenderEngine::renderFrame().screenHeight - 1) - y) - (double)height / 2.0) /
         (double)height;
 
-    tempVect1 = (RenderEngine::renderFrame().viewPoint.Up).multiply(yScalar);
-    tempVect2 = (RenderEngine::renderFrame().viewPoint.Right).multiply(xScalar);
+    tempVect1 = (RenderEngine::renderFrame().viewPoint.up).multiply(yScalar);
+    tempVect2 = (RenderEngine::renderFrame().viewPoint.right).multiply(xScalar);
     ray->direction = tempVect1.add(tempVect2);
     ray->direction =
-        ray->direction.add(RenderEngine::renderFrame().viewPoint.Direction);
+        ray->direction.add(RenderEngine::renderFrame().viewPoint.direction);
     ray->direction = ray->direction.normalizedFast();
     ray->initializeContainers();
     ray->isPrimaryRay = true;
@@ -522,7 +522,7 @@ RenderEngine::initializeRenderer()
         }
     }
 
-    ray.position = RenderEngine::renderFrame().viewPoint.Location;
+    ray.position = RenderEngine::renderFrame().viewPoint.location;
 }
 
 void

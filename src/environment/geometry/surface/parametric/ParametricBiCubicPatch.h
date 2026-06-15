@@ -13,18 +13,18 @@ class ParametricBiCubicPatch : public Geometry {
     int patchType;
     int uSteps;
     int vSteps;
-    Vector3Dd Control_Points[4][4];
+    Vector3Dd controlPoints[4][4];
     Vector3Dd boundingSphereCenter;
     double boundingSphereRadius;
     double flatnessValue;
     int intersectionCount;
     Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd Intersection_Point[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd **Interpolated_Grid;
-    Vector3Dd **Interpolated_Normals;
-    Vector3Dd **Smooth_Normals;
-    double **Interpolated_D;
-    ParametricPatchNode *Node_Tree;
+    Vector3Dd intersectionPoint[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd **interpolatedGrid;
+    Vector3Dd **interpolatedNormals;
+    Vector3Dd **smoothNormals;
+    double **interpolatedD;
+    ParametricPatchNode *nodeTree;
 
     static void precomputePatchValues(ParametricBiCubicPatch *shape);
 

@@ -53,7 +53,7 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
     lightSourceRay.isPrimaryRay = false;
 
     for (lightSource = lightSources; lightSource != nullptr;
-        lightSource = lightSource->Next_Light_Source) {
+        lightSource = lightSource->nextLightSource) {
         intersectionFound = false;
 
         LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,

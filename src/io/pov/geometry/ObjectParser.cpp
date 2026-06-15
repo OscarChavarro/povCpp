@@ -111,7 +111,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::SPHERE_TOKEN:
@@ -120,7 +120,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::PLANE_TOKEN:
@@ -129,7 +129,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::TRIANGLE_TOKEN:
@@ -138,7 +138,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
@@ -147,7 +147,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::QUADRIC_TOKEN:
@@ -156,7 +156,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
@@ -165,7 +165,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::CUBIC_TOKEN:
@@ -174,7 +174,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::QUARTIC_TOKEN:
@@ -183,7 +183,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::POLY_TOKEN:
@@ -192,7 +192,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::BOX_TOKEN:
@@ -201,7 +201,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::BLOB_TOKEN:
@@ -210,7 +210,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
@@ -219,7 +219,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::UNION_TOKEN:
@@ -229,7 +229,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
@@ -239,7 +239,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
@@ -249,7 +249,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                container->Shapes.add(localShape);
+                container->shapes.add(localShape);
                 break;
 
             default:

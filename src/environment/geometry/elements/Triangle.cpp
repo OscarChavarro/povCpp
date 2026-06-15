@@ -28,13 +28,13 @@ Triangle::findTriangleDominantAxis(Triangle *triangle)
     z = java::Math::abs(triangle->normalVector.z());
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
-        triangle->Dominant_Axis = X_AXIS;
+        triangle->dominantAxis = X_AXIS;
         break;
     case 2:
-        triangle->Dominant_Axis = Y_AXIS;
+        triangle->dominantAxis = Y_AXIS;
         break;
     case 3:
-        triangle->Dominant_Axis = Z_AXIS;
+        triangle->dominantAxis = Z_AXIS;
         break;
     }
 }
@@ -51,7 +51,7 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     double uDenominator;
     double proj;
 
-    p3MinusP2 = triangle->P3.subtract(triangle->P2);
+    p3MinusP2 = triangle->p3.subtract(triangle->p2);
     x = java::Math::abs(p3MinusP2.x());
     y = java::Math::abs(p3MinusP2.y());
     z = java::Math::abs(p3MinusP2.z());
@@ -73,16 +73,16 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
         break;
     }
 
-    vTemp1 = triangle->P2.subtract(triangle->P3);
+    vTemp1 = triangle->p2.subtract(triangle->p3);
     vTemp1 = vTemp1.normalizedFast();
-    vTemp2 = triangle->P1.subtract(triangle->P3);
+    vTemp2 = triangle->p1.subtract(triangle->p3);
     proj = vTemp2.dotProduct(vTemp1);
     vTemp1 = vTemp1.multiply(proj);
-    triangle->Perp = vTemp1.subtract(vTemp2);
-    triangle->Perp = triangle->Perp.normalizedFast();
-    uDenominator = vTemp2.dotProduct(triangle->Perp);
+    triangle->perp = vTemp1.subtract(vTemp2);
+    triangle->perp = triangle->perp.normalizedFast();
+    uDenominator = vTemp2.dotProduct(triangle->perp);
     uDenominator = -1.0 / uDenominator;
-    triangle->Perp = triangle->Perp.multiply(uDenominator);
+    triangle->perp = triangle->perp.multiply(uDenominator);
 }
 
 int
@@ -93,8 +93,8 @@ Triangle::computeTriangle(Triangle *triangle)
     Vector3Dd temp;
     double length;
 
-    v1 = triangle->P1.subtract(triangle->P2);
-    v2 = triangle->P3.subtract(triangle->P2);
+    v1 = triangle->p1.subtract(triangle->p2);
+    v2 = triangle->p3.subtract(triangle->p2);
     triangle->normalVector = v1.crossProduct(v2);
     length = triangle->normalVector.length();
     // Set up a flag so we can ignore degenerate triangles
@@ -106,46 +106,46 @@ Triangle::computeTriangle(Triangle *triangle)
     // Normalize the normal vector
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
 
-    triangle->Distance = triangle->normalVector.dotProduct(triangle->P1);
+    triangle->Distance = triangle->normalVector.dotProduct(triangle->p1);
     triangle->Distance *= -1.0;
     Triangle::findTriangleDominantAxis(triangle);
 
-    switch (triangle->Dominant_Axis) {
+    switch (triangle->dominantAxis) {
     case X_AXIS:
-        if ((triangle->P2.y() - triangle->P3.y()) *
-                (triangle->P2.z() - triangle->P1.z()) <
-            (triangle->P2.z() - triangle->P3.z()) *
-                (triangle->P2.y() - triangle->P1.y())) {
+        if ((triangle->p2.y() - triangle->p3.y()) *
+                (triangle->p2.z() - triangle->p1.z()) <
+            (triangle->p2.z() - triangle->p3.z()) *
+                (triangle->p2.y() - triangle->p1.y())) {
 
-            temp = triangle->P2;
-            triangle->P2 = triangle->P1;
-            triangle->P1 = temp;
+            temp = triangle->p2;
+            triangle->p2 = triangle->p1;
+            triangle->p1 = temp;
             triangle->swapVertexNormals();
         }
         break;
 
     case Y_AXIS:
-        if ((triangle->P2.x() - triangle->P3.x()) *
-                (triangle->P2.z() - triangle->P1.z()) <
-            (triangle->P2.z() - triangle->P3.z()) *
-                (triangle->P2.x() - triangle->P1.x())) {
+        if ((triangle->p2.x() - triangle->p3.x()) *
+                (triangle->p2.z() - triangle->p1.z()) <
+            (triangle->p2.z() - triangle->p3.z()) *
+                (triangle->p2.x() - triangle->p1.x())) {
 
-            temp = triangle->P2;
-            triangle->P2 = triangle->P1;
-            triangle->P1 = temp;
+            temp = triangle->p2;
+            triangle->p2 = triangle->p1;
+            triangle->p1 = temp;
             triangle->swapVertexNormals();
         }
         break;
 
     case Z_AXIS:
-        if ((triangle->P2.x() - triangle->P3.x()) *
-                (triangle->P2.y() - triangle->P1.y()) <
-            (triangle->P2.y() - triangle->P3.y()) *
-                (triangle->P2.x() - triangle->P1.x())) {
+        if ((triangle->p2.x() - triangle->p3.x()) *
+                (triangle->p2.y() - triangle->p1.y()) <
+            (triangle->p2.y() - triangle->p3.y()) *
+                (triangle->p2.x() - triangle->p1.x())) {
 
-            temp = triangle->P2;
-            triangle->P2 = triangle->P1;
-            triangle->P1 = temp;
+            temp = triangle->p2;
+            triangle->p2 = triangle->p1;
+            triangle->p1 = temp;
             triangle->swapVertexNormals();
         }
         break;
@@ -228,39 +228,39 @@ Triangle::intersectTriangle(
         return (false);
     }
 
-    switch (triangle->Dominant_Axis) {
+    switch (triangle->dominantAxis) {
     case X_AXIS:
         s = ray->position.y() + *depth * ray->direction.y();
         t = ray->position.z() + *depth * ray->direction.z();
 
-        if (((triangle->P2.y() - s) * (triangle->P2.z() - triangle->P1.z())) <
-            ((triangle->P2.z() - t) * (triangle->P2.y() - triangle->P1.y()))) {
-            if ((int)triangle->Inverted) {
+        if (((triangle->p2.y() - s) * (triangle->p2.z() - triangle->p1.z())) <
+            ((triangle->p2.z() - t) * (triangle->p2.y() - triangle->p1.y()))) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if (((triangle->P3.y() - s) * (triangle->P3.z() - triangle->P2.z())) <
-            ((triangle->P3.z() - t) * (triangle->P3.y() - triangle->P2.y()))) {
-            if ((int)triangle->Inverted) {
+        if (((triangle->p3.y() - s) * (triangle->p3.z() - triangle->p2.z())) <
+            ((triangle->p3.z() - t) * (triangle->p3.y() - triangle->p2.y()))) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if (((triangle->P1.y() - s) * (triangle->P1.z() - triangle->P3.z())) <
-            ((triangle->P1.z() - t) * (triangle->P1.y() - triangle->P3.y()))) {
-            if ((int)triangle->Inverted) {
+        if (((triangle->p1.y() - s) * (triangle->p1.z() - triangle->p3.z())) <
+            ((triangle->p1.z() - t) * (triangle->p1.y() - triangle->p3.y()))) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if (!(int)triangle->Inverted) {
+        if (!(int)triangle->inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
             return (true);
         }
@@ -270,34 +270,34 @@ Triangle::intersectTriangle(
         s = ray->position.x() + *depth * ray->direction.x();
         t = ray->position.z() + *depth * ray->direction.z();
 
-        if ((triangle->P2.x() - s) * (triangle->P2.z() - triangle->P1.z()) <
-            (triangle->P2.z() - t) * (triangle->P2.x() - triangle->P1.x())) {
-            if ((int)triangle->Inverted) {
+        if ((triangle->p2.x() - s) * (triangle->p2.z() - triangle->p1.z()) <
+            (triangle->p2.z() - t) * (triangle->p2.x() - triangle->p1.x())) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if ((triangle->P3.x() - s) * (triangle->P3.z() - triangle->P2.z()) <
-            (triangle->P3.z() - t) * (triangle->P3.x() - triangle->P2.x())) {
-            if ((int)triangle->Inverted) {
+        if ((triangle->p3.x() - s) * (triangle->p3.z() - triangle->p2.z()) <
+            (triangle->p3.z() - t) * (triangle->p3.x() - triangle->p2.x())) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if ((triangle->P1.x() - s) * (triangle->P1.z() - triangle->P3.z()) <
-            (triangle->P1.z() - t) * (triangle->P1.x() - triangle->P3.x())) {
-            if ((int)triangle->Inverted) {
+        if ((triangle->p1.x() - s) * (triangle->p1.z() - triangle->p3.z()) <
+            (triangle->p1.z() - t) * (triangle->p1.x() - triangle->p3.x())) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if (!(int)triangle->Inverted) {
+        if (!(int)triangle->inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
             return (true);
         }
@@ -307,34 +307,34 @@ Triangle::intersectTriangle(
         s = ray->position.x() + *depth * ray->direction.x();
         t = ray->position.y() + *depth * ray->direction.y();
 
-        if ((triangle->P2.x() - s) * (triangle->P2.y() - triangle->P1.y()) <
-            (triangle->P2.y() - t) * (triangle->P2.x() - triangle->P1.x())) {
-            if ((int)triangle->Inverted) {
+        if ((triangle->p2.x() - s) * (triangle->p2.y() - triangle->p1.y()) <
+            (triangle->p2.y() - t) * (triangle->p2.x() - triangle->p1.x())) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if ((triangle->P3.x() - s) * (triangle->P3.y() - triangle->P2.y()) <
-            (triangle->P3.y() - t) * (triangle->P3.x() - triangle->P2.x())) {
-            if ((int)triangle->Inverted) {
+        if ((triangle->p3.x() - s) * (triangle->p3.y() - triangle->p2.y()) <
+            (triangle->p3.y() - t) * (triangle->p3.x() - triangle->p2.x())) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if ((triangle->P1.x() - s) * (triangle->P1.y() - triangle->P3.y()) <
-            (triangle->P1.y() - t) * (triangle->P1.x() - triangle->P3.x())) {
-            if ((int)triangle->Inverted) {
+        if ((triangle->p1.x() - s) * (triangle->p1.y() - triangle->p3.y()) <
+            (triangle->p1.y() - t) * (triangle->p1.x() - triangle->p3.x())) {
+            if ((int)triangle->inverted) {
                 Statistics::global().rayTriangleTestsSucceeded++;
                 return (true);
             }
             return (false);
         }
 
-        if (!(int)triangle->Inverted) {
+        if (!(int)triangle->inverted) {
             Statistics::global().rayTriangleTestsSucceeded++;
             return (true);
         }
@@ -381,9 +381,9 @@ Triangle::translate(Vector3Dd *vector)
 
     translation = triangle->normalVector.multiply(*vector);
     triangle->Distance -= translation.x() + translation.y() + translation.z();
-    triangle->P1 = triangle->P1.add(*vector);
-    triangle->P2 = triangle->P2.add(*vector);
-    triangle->P3 = triangle->P3.add(*vector);
+    triangle->p1 = triangle->p1.add(*vector);
+    triangle->p2 = triangle->p2.add(*vector);
+    triangle->p3 = triangle->p3.add(*vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
@@ -396,9 +396,9 @@ Triangle::rotate(Vector3Dd *vector)
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
-    triangle->P1 = transformation.transpose().multiply(triangle->P1);
-    triangle->P2 = transformation.transpose().multiply(triangle->P2);
-    triangle->P3 = transformation.transpose().multiply(triangle->P3);
+    triangle->p1 = transformation.transpose().multiply(triangle->p1);
+    triangle->p2 = transformation.transpose().multiply(triangle->p2);
+    triangle->p3 = transformation.transpose().multiply(triangle->p3);
     Triangle::computeTriangle(triangle);
 
     MaterialUtils::instance().rotateTexture(&this->material, vector);
@@ -419,9 +419,9 @@ Triangle::scale(Vector3Dd *vector)
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
     triangle->Distance /= length;
 
-    triangle->P1 = triangle->P1.multiply(*vector);
-    triangle->P2 = triangle->P2.multiply(*vector);
-    triangle->P3 = triangle->P3.multiply(*vector);
+    triangle->p1 = triangle->p1.multiply(*vector);
+    triangle->p2 = triangle->p2.multiply(*vector);
+    triangle->p3 = triangle->p3.multiply(*vector);
 
     MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
@@ -429,7 +429,7 @@ Triangle::scale(Vector3Dd *vector)
 void
 Triangle::invert()
 {
-    this->Inverted ^= true;
+    this->inverted ^= true;
 }
 
 /**
@@ -437,37 +437,37 @@ Calculate the Phong-interpolated vector within the triangle
 at the given intersection point. The math for this is a bit
 bizarre:
 
- -            P1
+ -            p1
  |          /|\ \
- |         / |Perp\
+ |         / |perp\
  |        /  V  \    \
  |      /    |     \    \
 u |     /____|_____PI___\
  |    /      |         \     \
- -  P2-----|--------|----P3
+ -  p2-----|--------|----p3
               Pbase     PIntersect
       |-------------------|
                           v
 
-triangle->Perp is a unit vector from P1 to Pbase. We calculate
+triangle->perp is a unit vector from p1 to Pbase. We calculate
 
-u = (PI - P1) DOT Perp / ((P3 - P1) DOT Perp).
+u = (PI - p1) DOT perp / ((p3 - p1) DOT perp).
 
-We then calculate where the line from P1 to PI intersects the line P2 to P3:
-PIntersect = (PI - P1)/u.
+We then calculate where the line from p1 to PI intersects the line p2 to p3:
+PIntersect = (PI - p1)/u.
 
 We really only need one coordinate of PIntersect.  We then calculate v as:
 
-    v = PIntersect.x / (P3.x - P2.x)
-or    v = PIntersect.y / (P3.y - P2.y)
-or    v = PIntersect.z / (P3.z - P2.z)
+    v = PIntersect.x / (p3.x - p2.x)
+or    v = PIntersect.y / (p3.y - p2.y)
+or    v = PIntersect.z / (p3.z - p2.z)
 
 depending on which calculation will give us the best answers.
 
 Once we have u and v, we can perform the normal interpolation as:
 
-  NTemp1 = N1 + u(N2 - N1);
-  NTemp2 = N1 + u(N3 - N1);
+  NTemp1 = n1 + u(n2 - n1);
+  NTemp2 = n1 + u(n3 - n1);
   Result = normalize (NTemp1 + v(NTemp2 - NTemp1))
 
 As always, any values which are constant for the triangle are cached
@@ -484,39 +484,39 @@ SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     double u = 0.0;
     double v = 0.0;
 
-    piMinusP1 = intersectionPoint->subtract(triangle->P1);
-    u = piMinusP1.dotProduct(triangle->Perp);
+    piMinusP1 = intersectionPoint->subtract(triangle->p1);
+    u = piMinusP1.dotProduct(triangle->perp);
     if (u < 1.0e-9) {
-        *result = triangle->N1;
+        *result = triangle->n1;
         return;
     }
 
-    // BaseDelta contains P3.x-P2.x,  P3.y-P2.y, or P3.z-P2.z depending on the
+    // BaseDelta contains p3.x-p2.x,  p3.y-p2.y, or p3.z-p2.z depending on the
     // value of vAxis.
 
     switch (triangle->vAxis) {
     case X_AXIS:
-        v = (piMinusP1.x() / u + triangle->P1.x() - triangle->P2.x()) /
+        v = (piMinusP1.x() / u + triangle->p1.x() - triangle->p2.x()) /
             triangle->BaseDelta;
         break;
 
     case Y_AXIS:
-        v = (piMinusP1.y() / u + triangle->P1.y() - triangle->P2.y()) /
+        v = (piMinusP1.y() / u + triangle->p1.y() - triangle->p2.y()) /
             triangle->BaseDelta;
         break;
 
     case Z_AXIS:
-        v = (piMinusP1.z() / u + triangle->P1.z() - triangle->P2.z()) /
+        v = (piMinusP1.z() / u + triangle->p1.z() - triangle->p2.z()) /
             triangle->BaseDelta;
         break;
     }
 
-    nTemp1 = triangle->N2.subtract(triangle->N1);
+    nTemp1 = triangle->n2.subtract(triangle->n1);
     nTemp1 = nTemp1.multiply(u);
-    nTemp1 = nTemp1.add(triangle->N1);
-    nTemp2 = triangle->N3.subtract(triangle->N1);
+    nTemp1 = nTemp1.add(triangle->n1);
+    nTemp2 = triangle->n3.subtract(triangle->n1);
     nTemp2 = nTemp2.multiply(u);
-    nTemp2 = nTemp2.add(triangle->N1);
+    nTemp2 = nTemp2.add(triangle->n1);
     *result = nTemp2.subtract(nTemp1);
     *result = (*result).multiply(v);
     *result = result->add(nTemp1);
@@ -548,12 +548,12 @@ SmoothTriangle::rotate(Vector3Dd *vector)
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
-    triangle->P1 = transformation.transpose().multiply(triangle->P1);
-    triangle->P2 = transformation.transpose().multiply(triangle->P2);
-    triangle->P3 = transformation.transpose().multiply(triangle->P3);
-    triangle->N1 = transformation.transpose().multiply(triangle->N1);
-    triangle->N2 = transformation.transpose().multiply(triangle->N2);
-    triangle->N3 = transformation.transpose().multiply(triangle->N3);
+    triangle->p1 = transformation.transpose().multiply(triangle->p1);
+    triangle->p2 = transformation.transpose().multiply(triangle->p2);
+    triangle->p3 = transformation.transpose().multiply(triangle->p3);
+    triangle->n1 = transformation.transpose().multiply(triangle->n1);
+    triangle->n2 = transformation.transpose().multiply(triangle->n2);
+    triangle->n3 = transformation.transpose().multiply(triangle->n3);
     Triangle::computeTriangle((Triangle *)triangle);
 
     MaterialUtils::instance().rotateTexture(&this->material, vector);
@@ -567,9 +567,9 @@ SmoothTriangle::translate(Vector3Dd *vector)
 
     translation = triangle->normalVector.multiply(*vector);
     triangle->Distance -= translation.x() + translation.y() + translation.z();
-    triangle->P1 = triangle->P1.add(*vector);
-    triangle->P2 = triangle->P2.add(*vector);
-    triangle->P3 = triangle->P3.add(*vector);
+    triangle->p1 = triangle->p1.add(*vector);
+    triangle->p2 = triangle->p2.add(*vector);
+    triangle->p3 = triangle->p3.add(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
     MaterialUtils::instance().translateTexture(&this->material, vector);
@@ -590,9 +590,9 @@ SmoothTriangle::scale(Vector3Dd *vector)
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
     triangle->Distance /= length;
 
-    triangle->P1 = triangle->P1.multiply(*vector);
-    triangle->P2 = triangle->P2.multiply(*vector);
-    triangle->P3 = triangle->P3.multiply(*vector);
+    triangle->p1 = triangle->p1.multiply(*vector);
+    triangle->p2 = triangle->p2.multiply(*vector);
+    triangle->p3 = triangle->p3.multiply(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
     MaterialUtils::instance().scaleTexture(&this->material, vector);
@@ -601,15 +601,15 @@ SmoothTriangle::scale(Vector3Dd *vector)
 void
 SmoothTriangle::invert()
 {
-    this->Inverted ^= true;
+    this->inverted ^= true;
 }
 
 void
 SmoothTriangle::swapVertexNormals()
 {
-    Vector3Dd temp = this->N2;
-    this->N2 = this->N1;
-    this->N1 = temp;
+    Vector3Dd temp = this->n2;
+    this->n2 = this->n1;
+    this->n1 = temp;
 }
 
 void

@@ -11,7 +11,7 @@ class Blob : public Geometry {
   public:
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
-    bool Inverted;
+    bool inverted;
     int count;
     double threshold;
     BlobElement *list;

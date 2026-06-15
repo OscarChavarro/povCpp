@@ -37,7 +37,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getLightSourceShape();
-                PrimitiveParser::parseVector(&(localShape->Center), ctx);
+                PrimitiveParser::parseVector(&(localShape->center), ctx);
                 localShape->shapeColor = ModelBuilder::getColor();
                 localShape->shapeColor->setR(1.0); localShape->shapeColor->setG(1.0); localShape->shapeColor->setB(1.0); localShape->shapeColor->setA(0.0);
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
@@ -102,11 +102,11 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 break;
 
             case Tokenizer::TIGHTNESS_TOKEN:
-                localShape->Coeff = PrimitiveParser::parseFloat(ctx);
+                localShape->coeff = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::RADIUS_TOKEN:
-                localShape->Radius =
+                localShape->radius =
                     java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
                 break;
 
@@ -115,7 +115,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 break;
 
             case Tokenizer::FALLOFF_TOKEN:
-                localShape->Falloff =
+                localShape->falloff =
                     java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
                 break;
 

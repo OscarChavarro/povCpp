@@ -7,10 +7,10 @@
 
 class SmoothTriangle : public Triangle {
   public:
-    Vector3Dd N1;
-    Vector3Dd N2;
-    Vector3Dd N3;
-    Vector3Dd Perp;
+    Vector3Dd n1;
+    Vector3Dd n2;
+    Vector3Dd n3;
+    Vector3Dd perp;
     double BaseDelta;
 
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;

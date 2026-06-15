@@ -32,7 +32,7 @@ Light::copyStateInto(Light *dst) const
 void
 Light::translate(Vector3Dd *vector)
 {
-    this->Center = this->Center.add(*vector);
+    this->center = this->center.add(*vector);
     this->pointsAt = this->pointsAt.add(*vector);
 }
 
@@ -43,7 +43,7 @@ Light::rotate(Vector3Dd *vector)
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    this->Center = transformation.transpose().multiply(this->Center);
+    this->center = transformation.transpose().multiply(this->center);
     this->pointsAt = transformation.transpose().multiply(this->pointsAt);
 }
 
@@ -53,7 +53,7 @@ Light::scale(Vector3Dd *vector)
     Matrix4x4d transformation;
 
     transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    this->Center = transformation.transpose().multiply(this->Center);
+    this->center = transformation.transpose().multiply(this->center);
     this->pointsAt = transformation.transpose().multiply(this->pointsAt);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
@@ -61,7 +61,7 @@ Light::scale(Vector3Dd *vector)
 void
 Light::invert()
 {
-    this->Inverted ^= true;
+    this->inverted ^= true;
 }
 
 #include "java/util/PriorityQueue.txx"
