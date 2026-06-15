@@ -10,7 +10,6 @@
 class Geometry : public TransformableElement {
   public:
     GeometryTypes geometryType;
-    Geometry *nextObject;
     Material *material;
     ColorRgba *shapeColor;
 };

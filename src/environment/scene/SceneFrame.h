@@ -1,6 +1,7 @@
 #ifndef __SCENE_FRAME_H__
 #define __SCENE_FRAME_H__
 
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/RayWithSegments.h"
@@ -13,7 +14,7 @@ class RenderFrame {
     int screenHeight;
     int screenWidth;
     Light *Light_Sources;
-    SceneObject *Objects;
+    java::ArrayList<SceneObject*> Objects{4};
     double atmosphereIor;
     double antialiasThreshold;
     double fogDistance;

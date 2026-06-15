@@ -7,13 +7,14 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneFrameParser.h"
 #include "environment/material/MaterialUtils.h"
+#include "java/util/ArrayList.txx"
 
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
 {
-    for (SimpleBody *object = ctx.parsingFrame()->Objects; object != nullptr;
-        object = static_cast<SimpleBody *>(object->nextObject)) {
-        ParseHelpers::postProcessObject(object);
+    java::ArrayList<SceneObject*> &objects = ctx.parsingFrame()->Objects;
+    for (long int i = objects.size() - 1; i >= 0; i--) {
+        ParseHelpers::postProcessObject(objects[i]);
     }
 }
 
@@ -68,7 +69,7 @@ SceneParser::frameInit(ParserContext &ctx)
     MaterialUtils::instance().setDefaultTexture(MaterialUtils::instance().getTexture());
     ctx.parsingFrame()->viewPoint.initializeDefaults();
     ctx.parsingFrame()->Light_Sources = nullptr;
-    ctx.parsingFrame()->Objects = nullptr;
+    ctx.parsingFrame()->Objects.clear();
     ctx.parsingFrame()->atmosphereIor = 1.0;
     ctx.parsingFrame()->antialiasThreshold = RenderingConfiguration::global().antialiasThreshold;
     ctx.parsingFrame()->fogDistance = 0.0;

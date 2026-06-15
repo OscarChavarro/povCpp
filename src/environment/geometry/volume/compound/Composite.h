@@ -1,6 +1,7 @@
 #ifndef __COMPOSITE_H__
 #define __COMPOSITE_H__
 
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/GeometryTypes.h"
@@ -8,7 +9,7 @@
 
 class Composite : public SimpleBody {
   public:
-    SimpleBody *simpleBodies;
+    java::ArrayList<SimpleBody*> simpleBodies{4};
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

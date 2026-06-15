@@ -24,11 +24,7 @@ ModelBuilder::getCompositeObject()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object\n");
     }
 
-    newComposite->simpleBodies = nullptr;
     newComposite->geometryType = GeometryTypes::COMPOSITE_TYPE;
-    newComposite->nextObject = nullptr;
-    newComposite->boundingShapes = nullptr;
-    newComposite->clippingShapes = nullptr;
     return (newComposite);
 }
 
@@ -47,7 +43,6 @@ ModelBuilder::getSphereShape()
     newShape->radiusSquared = 1.0;
     newShape->inverseRadius = 1.0;
     newShape->geometryType = GeometryTypes::SPHERE_TYPE;
-    newShape->nextObject = nullptr;
     newShape->VPCached = false;
     newShape->Inverted = false;
     newShape->material = nullptr;
@@ -67,7 +62,6 @@ ModelBuilder::getLightSourceShape()
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->pointsAt) = Vector3Dd(0.0, 0.0, 1.0);
     newShape->geometryType = GeometryTypes::POINT_LIGHT_TYPE;
-    newShape->nextObject = nullptr;
     newShape->Inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -95,7 +89,6 @@ ModelBuilder::getQuadricShape()
     newShape->constantCached = false;
     newShape->nonZeroSquareTerm = false;
     newShape->geometryType = GeometryTypes::QUARTIC_TYPE;
-    newShape->nextObject = nullptr;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -113,7 +106,6 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
     }
 
     newShape->geometryType = GeometryTypes::POLY_TYPE;
-    newShape->nextObject = nullptr;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->transformation = nullptr;
@@ -146,7 +138,6 @@ ModelBuilder::getBoxShape()
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
     newShape->geometryType = GeometryTypes::BOX_TYPE;
-    newShape->nextObject = nullptr;
     newShape->Inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -166,7 +157,6 @@ ModelBuilder::getBlobShape()
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
     newShape->geometryType = GeometryTypes::BLOB_TYPE;
-    newShape->nextObject = nullptr;
     newShape->Inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -184,7 +174,6 @@ ModelBuilder::getBicubicPatchShape()
     }
 
     newShape->geometryType = GeometryTypes::BICUBIC_PATCH_TYPE;
-    newShape->nextObject = nullptr;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->uSteps = 0;
@@ -211,7 +200,6 @@ ModelBuilder::getHeightFieldShape()
     newShape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->geometryType = GeometryTypes::HEIGHT_FIELD_TYPE;
-    newShape->nextObject = nullptr;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -230,7 +218,6 @@ ModelBuilder::getPlaneShape()
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->geometryType = GeometryTypes::PLANE_TYPE;
-    newShape->nextObject = nullptr;
     newShape->VPCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -254,7 +241,6 @@ ModelBuilder::getTriangleShape()
     newShape->Distance = 0.0;
     newShape->Inverted = false;
     newShape->geometryType = GeometryTypes::TRIANGLE_TYPE;
-    newShape->nextObject = nullptr;
     newShape->VPCached = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -282,7 +268,6 @@ ModelBuilder::getSmoothTriangleShape()
     newShape->Distance = 0.0;
     newShape->geometryType = GeometryTypes::SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = false;
-    newShape->nextObject = nullptr;
     newShape->VPCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -300,8 +285,6 @@ ModelBuilder::getCsgShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->nextObject = nullptr;
-    newShape->Shapes = nullptr;
     return (newShape);
 }
 
@@ -380,4 +363,5 @@ ModelBuilder::getFloat()
     *newFloat = 0.0;
     return (newFloat);
 }
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"

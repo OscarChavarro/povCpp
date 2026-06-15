@@ -1,5 +1,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 #include "environment/material/Material.h"
 #include "environment/geometry/SimpleBody.h"
@@ -11,7 +12,9 @@ void SceneDumper::dumpSceneStructure(FILE *f)
     if (f == nullptr) return;
 
     int idx = 0;
-    for (const SimpleBody *obj = RenderEngine::renderFrame().Objects; obj; obj = static_cast<const SimpleBody *>(obj->nextObject)) {
+    java::ArrayList<SceneObject*> &sceneObjects = RenderEngine::renderFrame().Objects;
+    for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
+        const SimpleBody *obj = sceneObjects[i];
         fprintf(f, "OBJ %03d type=%d\n", idx, static_cast<int>(obj->geometryType));
 
         if (obj->objectTexture) {

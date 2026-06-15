@@ -1,12 +1,13 @@
 #ifndef ____
 #define ____
 
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 
 class CSG : public Geometry {
   public:
-    Geometry *Shapes;
+    java::ArrayList<Geometry*> Shapes{4};
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
@@ -23,7 +24,5 @@ class CSG : public Geometry {
         RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
     int insideCsgUnion(Vector3Dd *point);
     int insideCsgIntersection(Vector3Dd *point);
-    static inline void linkShapeNode(
-        Geometry *newObject, Geometry **field, Geometry **oldObjectList);
 };
 #endif

@@ -275,7 +275,6 @@ Box::copy()
 
     newShape = new Box;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     // Copy any associated transformation
     if (newShape->transformation != nullptr) {

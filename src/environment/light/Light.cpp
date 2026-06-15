@@ -28,7 +28,6 @@ Light::copy()
         return nullptr;
     }
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
         newShape->material =

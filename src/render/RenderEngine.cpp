@@ -597,8 +597,9 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     }
 
     // What objects does this ray intersect?
-    for (object = RenderEngine::renderFrame().Objects; object != nullptr;
-        object = static_cast<SimpleBody *>(object->nextObject)) {
+    java::ArrayList<SceneObject*> &sceneObjects = RenderEngine::renderFrame().Objects;
+    for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
+        object = sceneObjects[i];
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
             nullptr) {
             if (intersectionFound) {
@@ -622,4 +623,5 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         delete localIntersection;
     }
 }
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"

@@ -207,7 +207,6 @@ Quadric::copy()
 
     newShape = new Quadric;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
         newShape->material =

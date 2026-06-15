@@ -1006,7 +1006,6 @@ ParametricBiCubicPatch::copy()
 
     newShape = new ParametricBiCubicPatch;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     newShape->Interpolated_Grid = nullptr;
     ParametricBiCubicPatch::precomputePatchValues(newShape);

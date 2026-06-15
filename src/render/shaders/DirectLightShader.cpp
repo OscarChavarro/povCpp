@@ -15,6 +15,7 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
+#include "java/util/ArrayList.txx"
 
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
@@ -23,7 +24,7 @@ void
 DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionPoint,
     const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
-    const Light *lightSources, SimpleBody *objects)
+    const Light *lightSources, java::ArrayList<SimpleBody*> &objects)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
@@ -60,9 +61,8 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
 
         // What objects does this ray intersect?
         if (RenderingConfiguration::global().quality > 3) {
-            for (blockingObject = objects;
-                blockingObject != nullptr;
-                blockingObject = static_cast<SimpleBody *>(blockingObject->nextObject)) {
+            for (long int i = objects.size() - 1; i >= 0; i--) {
+                blockingObject = objects[i];
 
                 Statistics::global().shadowRayTests++;
                 GeometryOperations::allIntersections(
