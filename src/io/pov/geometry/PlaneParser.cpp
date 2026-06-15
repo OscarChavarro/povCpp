@@ -39,8 +39,8 @@ PlaneParser::parsePlane(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getPlaneShape();
                 PrimitiveParser::parseVector(&(localShape->normalVector), ctx);
-                localShape->Distance = PrimitiveParser::parseFloat(ctx);
-                localShape->Distance *= -1.0;
+                localShape->setDistance(PrimitiveParser::parseFloat(ctx));
+                localShape->setDistance(localShape->getDistance() * -1.0);
                 Exit_Flag = true;
                 break;
 
@@ -101,14 +101,14 @@ PlaneParser::parsePlane(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->constantFlag) {
+                if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 TextureParser::prependTextureLayers(localTexture, localShape->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->shapeColor = ModelBuilder::getColor();
+                localShape->setShapeColor(ModelBuilder::getColor());
                 PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 

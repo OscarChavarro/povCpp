@@ -445,9 +445,9 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                     }
                     dv = intersectionPoint.subtract(ray->position);
                     len = dv.length();
-                    localElement.Depth = len;
+                    localElement.depth = len;
                     localElement.Object = nullptr;
-                    localElement.Point = intersectionPoint;
+                    localElement.point = intersectionPoint;
                     localElement.Shape = (Geometry *)blob;
                     depthQueue->offer(localElement);
                     intersectionFound = true;

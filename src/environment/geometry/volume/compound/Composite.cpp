@@ -75,7 +75,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
             clippingShape = this->clippingShapes[i];
             Statistics::global().clippingRegionTests++;
             if (!GeometryOperations::inside(
-                    &localIntersection.Point, clippingShape)) {
+                    &localIntersection.point, clippingShape)) {
                 intersectionFound = false;
                 break;
             }
@@ -135,12 +135,12 @@ SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersect
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                 {
                     char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.Point.x(),                     localIntersection.Point.y(), localIntersection.Point.z());
+                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.point.x(),                     localIntersection.point.y(), localIntersection.point.z());
                     Logger::reportMessage("Composite", Logger::WARNING, "", _logMsg);
                 }
             }
             if (!GeometryOperations::inside(
-                    &localIntersection.Point, clippingShape)) {
+                    &localIntersection.point, clippingShape)) {
                 if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                     Logger::reportMessage("Composite", Logger::WARNING, "", "not ok\n");
                 }

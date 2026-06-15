@@ -51,8 +51,8 @@ BoxParser::parseBox(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBoxShape();
-                PrimitiveParser::parseVector(&(localShape->bounds[0]), ctx);
-                PrimitiveParser::parseVector(&(localShape->bounds[1]), ctx);
+                PrimitiveParser::parseVector(&((localShape)->getBounds()[0]), ctx);
+                PrimitiveParser::parseVector(&((localShape)->getBounds()[1]), ctx);
                 Exit_Flag = true;
                 break;
 
@@ -113,14 +113,14 @@ BoxParser::parseBox(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->constantFlag) {
+                if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 TextureParser::prependTextureLayers(localTexture, localShape->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->shapeColor = ModelBuilder::getColor();
+                localShape->setShapeColor(ModelBuilder::getColor());
                 PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 

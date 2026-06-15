@@ -18,6 +18,11 @@ class Blob : public Geometry {
     BlobInterval *intervals;
     int sturmFlag;
 
+    int getSturmFlag() const { return sturmFlag; }
+    void setSturmFlag(int flag) { sturmFlag = flag; }
+    Matrix4x4d* getTransformation() const { return transformation; }
+    Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
+
     static void makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist,
         int npoints, int sflag);
 

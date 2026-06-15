@@ -11,6 +11,8 @@ class CSG : public Geometry {
     GeometryTypes geometryType;
     java::ArrayList<Geometry*> shapes{4};
 
+    java::ArrayList<Geometry*>& getShapes() { return shapes; }
+
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
     void *copy() override;

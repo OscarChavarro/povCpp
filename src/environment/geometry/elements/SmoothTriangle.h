@@ -11,7 +11,7 @@ class SmoothTriangle : public Triangle {
     Vector3Dd n2;
     Vector3Dd n3;
     Vector3Dd perp;
-    double BaseDelta;
+    double baseDelta;
 
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

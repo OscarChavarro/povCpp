@@ -26,6 +26,16 @@ class ParametricBiCubicPatch : public Geometry {
     double **interpolatedD;
     ParametricPatchNode *nodeTree;
 
+    int getPatchType() const { return patchType; }
+    void setPatchType(int type) { patchType = type; }
+    int getUSteps() const { return uSteps; }
+    void setUSteps(int steps) { uSteps = steps; }
+    int getVSteps() const { return vSteps; }
+    void setVSteps(int steps) { vSteps = steps; }
+    double getFlatnessValue() const { return flatnessValue; }
+    void setFlatnessValue(double value) { flatnessValue = value; }
+    Vector3Dd (*getControlPoints())[4] { return controlPoints; }
+
     static void precomputePatchValues(ParametricBiCubicPatch *shape);
 
     static void parametricValue(Vector3Dd *result, double u, double v,

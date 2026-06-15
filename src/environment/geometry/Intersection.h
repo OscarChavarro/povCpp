@@ -8,14 +8,14 @@
 
 class Intersection {
   public:
-    double Depth;
+    double depth;
     SimpleBody *Object;
-    Vector3Dd Point;
+    Vector3Dd point;
     Geometry *Shape;
 
     inline bool operator<(const Intersection& other) const
     {
-        return Depth < other.Depth;
+        return depth < other.depth;
     }
 };
 

@@ -39,21 +39,21 @@ PovrayApplication::printStatistics(
     const RenderingConfiguration &configuration)
 {
     FILE *statOut = stdout;
-    if (configuration.options & RenderingConfiguration::VERBOSE_FILE) {
-        statOut = fopen(configuration.statFileName, "w+t");
+    if (configuration.getOptions() & RenderingConfiguration::VERBOSE_FILE) {
+        statOut = fopen(configuration.getStatFileName(), "w+t");
     }
 
     const long pixelsInImage =
-        (long)frame.screenWidth * (long)frame.screenHeight;
+        (long)frame.getScreenWidth() * (long)frame.getScreenHeight();
 
-    fprintf(statOut, "\n%s statistics\n", configuration.inputFileName);
+    fprintf(statOut, "\n%s statistics\n", configuration.getInputFileName());
     if (pixelsInImage > stats.numberOfPixels) {
         fprintf(statOut, "  Partial Image Rendered");
     }
 
     fprintf(statOut, "--------------------------------------\n");
-    fprintf(statOut, "Resolution %d x %d\n", frame.screenWidth,
-        frame.screenHeight);
+    fprintf(statOut, "Resolution %d x %d\n", frame.getScreenWidth(),
+        frame.getScreenHeight());
     fprintf(statOut,
         "# Rays:  %10ld     # Pixels:  %10ld  # Pixels supersampled: %10ld\n",
         stats.numberOfRays, stats.numberOfPixels, stats.numberOfPixelsSupersampled);
@@ -117,7 +117,7 @@ PovrayApplication::printStatistics(
             "  Time For Trace:    %2d hours %2d minutes %4.2f seconds\n", hours,
             minutes, seconds);
     }
-    if (configuration.options & RenderingConfiguration::VERBOSE_FILE) {
+    if (configuration.getOptions() & RenderingConfiguration::VERBOSE_FILE) {
         fclose(statOut);
     }
 }

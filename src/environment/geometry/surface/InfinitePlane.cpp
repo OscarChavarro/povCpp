@@ -19,11 +19,11 @@ InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inters
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > GeometryConstants::Small_Tolerance) {
-            localElement.Depth = depth;
+            localElement.depth = depth;
             localElement.Object = nullptr;
             intersectionPoint = ray->direction.multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->position);
-            localElement.Point = intersectionPoint;
+            localElement.point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->offer(localElement);
             return (true);
@@ -42,12 +42,12 @@ InfinitePlane::intersectPlane(
 
     Statistics::global().rayPlaneTests++;
     if (ray->isPrimaryRay) {
-        if (!plane->VPCached) {
-            plane->VPNormDotOrigin =
+        if (!plane->vpCached) {
+            plane->vpNormDotOrigin =
                 plane->normalVector.dotProduct(ray->position);
-            plane->VPNormDotOrigin += plane->Distance;
-            plane->VPNormDotOrigin *= -1.0;
-            plane->VPCached = true;
+            plane->vpNormDotOrigin += plane->distance;
+            plane->vpNormDotOrigin *= -1.0;
+            plane->vpCached = true;
         }
 
         normalDotDirection = plane->normalVector.dotProduct(ray->direction);
@@ -56,7 +56,7 @@ InfinitePlane::intersectPlane(
             return (false);
         }
 
-        *depth = plane->VPNormDotOrigin / normalDotDirection;
+        *depth = plane->vpNormDotOrigin / normalDotDirection;
         if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
             Statistics::global().rayPlaneTestsSucceeded++;
             return (true);
@@ -64,7 +64,7 @@ InfinitePlane::intersectPlane(
         return (false);
     }
     normalDotOrigin = plane->normalVector.dotProduct(ray->position);
-    normalDotOrigin += plane->Distance;
+    normalDotOrigin += plane->distance;
     normalDotOrigin *= -1.0;
 
     normalDotDirection = plane->normalVector.dotProduct(ray->direction);
@@ -88,7 +88,7 @@ InfinitePlane::inside(Vector3Dd *testPoint)
     double temp;
 
     temp = (*testPoint).dotProduct(plane->normalVector);
-    return ((temp + plane->Distance) <= GeometryConstants::Small_Tolerance);
+    return ((temp + plane->distance) <= GeometryConstants::Small_Tolerance);
 }
 
 void
@@ -122,7 +122,7 @@ InfinitePlane::translate(Vector3Dd *vector)
     Vector3Dd translation;
 
     translation = plane->normalVector.multiply(*vector);
-    plane->Distance -= translation.x() + translation.y() + translation.z();
+    plane->distance -= translation.x() + translation.y() + translation.z();
 
     MaterialUtils::instance().translateTexture(&plane->material, vector);
 }
@@ -152,7 +152,7 @@ InfinitePlane::scale(Vector3Dd *vector)
 
     length = plane->normalVector.length();
     plane->normalVector = plane->normalVector.multiply(1.0 / length);
-    plane->Distance /= length;
+    plane->distance /= length;
 
     MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
@@ -163,6 +163,6 @@ InfinitePlane::invert()
     InfinitePlane * const plane = this;
 
     plane->normalVector = plane->normalVector.multiply(-1.0);
-    plane->Distance *= -1.0;
+    plane->distance *= -1.0;
 }
 #include "java/util/PriorityQueue.txx"

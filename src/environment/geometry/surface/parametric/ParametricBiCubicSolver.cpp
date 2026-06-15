@@ -346,9 +346,9 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         if (!ray->isShadowRay) {
             shape->intersectionCount++;
         }
-        localElement.Depth = depths[i];
+        localElement.depth = depths[i];
         localElement.Object = nullptr;
-        localElement.Point = shape->intersectionPoint[tcnt + i];
+        localElement.point = shape->intersectionPoint[tcnt + i];
         localElement.Shape = (Geometry *)shape;
         depthQueue->offer(localElement);
         intersectionFound = 1;

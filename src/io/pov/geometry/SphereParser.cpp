@@ -42,8 +42,8 @@ SphereParser::parseSphere(ParserContext &ctx)
                 PrimitiveParser::parseVector(&(localShape->center), ctx);
                 localShape->radius = PrimitiveParser::parseFloat(ctx);
                 localShape->radiusSquared =
-                    localShape->radius * localShape->radius;
-                localShape->inverseRadius = 1.0 / localShape->radius;
+                    localShape->getRadius() * localShape->getRadius();
+                localShape->setInverseRadius(1.0 / localShape->getRadius());
                 Exit_Flag = true;
                 break;
 
@@ -104,7 +104,7 @@ SphereParser::parseSphere(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->constantFlag) {
+                if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
@@ -112,7 +112,7 @@ SphereParser::parseSphere(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->shapeColor = ModelBuilder::getColor();
+                localShape->setShapeColor(ModelBuilder::getColor());
                 PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 

@@ -40,11 +40,11 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
     }
 
     GeometryOperations::normal(&surfaceNormal,
-        rayIntersection->Shape, &rayIntersection->Point);
+        rayIntersection->Shape, &rayIntersection->point);
 
     if (RenderingConfiguration::global().quality >= 8) {
         BumpNormalShader::shade(
-            &surfaceNormal, texture, &rayIntersection->Point, &surfaceNormal);
+            &surfaceNormal, texture, &rayIntersection->point, &surfaceNormal);
     }
 
     // If the surface normal points away, flip its direction
@@ -56,7 +56,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
     attenuation = filterColor->getA() * (1.0 - surfaceColor->getA());
 
     AmbientLightShader::shade(texture, surfaceColor, &emittedColor, attenuation);
-    DirectLightShader::shade(texture, &rayIntersection->Point, ray, &surfaceNormal,
+    DirectLightShader::shade(texture, &rayIntersection->point, ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources, objects);
     color->setR(color->getR() + emittedColor.getR());
@@ -64,7 +64,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
     color->setB(color->getB() + emittedColor.getB());
     if (RenderingConfiguration::global().quality >= 8) {
         MirrorReflectionShader::shade(
-            texture, &rayIntersection->Point, ray, &surfaceNormal, color,
+            texture, &rayIntersection->point, ray, &surfaceNormal, color,
             traceService, traceLevel);
     }
 }

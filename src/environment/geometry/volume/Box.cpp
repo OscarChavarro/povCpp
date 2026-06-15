@@ -32,21 +32,21 @@ Box::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *d
 
     intersectionFound = false;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
-        localElement.Depth = depth1;
+        localElement.depth = depth1;
         localElement.Object = nullptr;
         intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
-        localElement.Point = intersectionPoint;
+        localElement.point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
-            localElement.Depth = depth2;
+            localElement.depth = depth2;
             localElement.Object = nullptr;
             intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
-            localElement.Point = intersectionPoint;
+            localElement.point = intersectionPoint;
             localElement.Shape = (Geometry *)shape;
             depthQueue->offer(localElement);
             intersectionFound = true;

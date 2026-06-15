@@ -7,9 +7,12 @@
 class InfinitePlane : public Geometry {
   public:
     Vector3Dd normalVector;
-    double Distance;
-    double VPNormDotOrigin;
-    bool VPCached;
+    double distance;
+    double vpNormDotOrigin;
+    bool vpCached;
+
+    double getDistance() const { return distance; }
+    void setDistance(double d) { distance = d; }
 
     static int intersectPlane(
         RayWithSegments *ray, InfinitePlane *plane, double *depth);
