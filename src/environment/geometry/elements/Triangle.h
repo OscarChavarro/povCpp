@@ -3,12 +3,11 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/elements/SmoothTriangle.h"
+
+class SmoothTriangle;
 
 class Triangle : public Geometry {
   public:
-    static Methods methodTable;
-    static Methods smoothMethodTable;
     Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
@@ -22,23 +21,24 @@ class Triangle : public Geometry {
     bool degenerateFlag;
 
     static int computeTriangle(Triangle *triangle);
-    static int allTriangleIntersections(SimpleBody *object,
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
-    static int intersectTriangle(
-        RayWithSegments *ray, Triangle *triangle, double *depth);
-    static int insideTriangle(Vector3Dd *point, SimpleBody *object);
-    static void triangleNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyTriangle(SimpleBody *object);
-    static void translateTriangle(SimpleBody *object, Vector3Dd *vector);
-    static void rotateTriangle(SimpleBody *object, Vector3Dd *vector);
-    static void scaleTriangle(SimpleBody *object, Vector3Dd *vector);
-    static void invertTriangle(SimpleBody *object);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static int max3Axis(double x, double y, double z);
     static void findTriangleDominantAxis(Triangle *triangle);
     static void computeSmoothTriangle(SmoothTriangle *triangle);
+    static int intersectTriangle(
+        RayWithSegments *ray, Triangle *triangle, double *depth);
 };
+
+#include "environment/geometry/elements/SmoothTriangle.h"
 
 #endif

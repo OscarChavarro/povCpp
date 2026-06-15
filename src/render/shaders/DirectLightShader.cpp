@@ -62,7 +62,7 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
         if (RenderingConfiguration::global().quality > 3) {
             for (blockingObject = objects;
                 blockingObject != nullptr;
-                blockingObject = blockingObject->nextObject) {
+                blockingObject = static_cast<SimpleBody *>(blockingObject->nextObject)) {
 
                 Statistics::global().shadowRayTests++;
                 GeometryOperations::allIntersections(

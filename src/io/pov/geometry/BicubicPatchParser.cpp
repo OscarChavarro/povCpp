@@ -67,7 +67,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                         ParseGlobals::BICUBIC_PATCH_CONSTANT) {
                         localShape =
                             (ParametricBiCubicPatch *)GeometryOperations::copy(
-                                (SimpleBody *)ctx.constants()[(int)constantId]
+                                (TransformableElement *)ctx.constants()[(int)constantId]
                                     .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -98,23 +98,23 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    (SimpleBody *)localShape, &localVector);
+                    localShape, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    (SimpleBody *)localShape, &localVector);
+                    localShape, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    (SimpleBody *)localShape, &localVector);
+                    localShape, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert((SimpleBody *)localShape);
+                GeometryOperations::invert(localShape);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:

@@ -40,7 +40,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
     }
 
     GeometryOperations::normal(&surfaceNormal,
-        (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
+        rayIntersection->Shape, &rayIntersection->Point);
 
     if (RenderingConfiguration::global().quality >= 8) {
         BumpNormalShader::shade(

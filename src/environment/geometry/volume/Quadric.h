@@ -7,7 +7,6 @@
 
 class Quadric : public Geometry {
   public:
-    static Methods methodTable;
     Vector3Dd object2Terms;
     Vector3Dd objectMixedTerms;
     Vector3Dd objectTerms;
@@ -16,18 +15,17 @@ class Quadric : public Geometry {
     bool constantCached;
     bool nonZeroSquareTerm;
 
-    static int allQuadricIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectQuadric(
         RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2);
-    static int insideQuadric(Vector3Dd *point, SimpleBody *object);
-    static void quadricNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyQuadric(SimpleBody *object);
-    static void translateQuadric(SimpleBody *object, Vector3Dd *vector);
-    static void rotateQuadric(SimpleBody *object, Vector3Dd *vector);
-    static void scaleQuadric(SimpleBody *object, Vector3Dd *vector);
-    static void invertQuadric(SimpleBody *object);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static void quadricToMatrix(const Quadric *quadric, Matrix4x4d *matrix);

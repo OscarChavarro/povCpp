@@ -10,7 +10,6 @@
 class ParametricBiCubicPatch : public Geometry {
   public:
     static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
-    static Methods methodTable;
     int patchType;
     int uSteps;
     int vSteps;
@@ -28,14 +27,6 @@ class ParametricBiCubicPatch : public Geometry {
     ParametricPatchNode *Node_Tree;
 
     static void precomputePatchValues(ParametricBiCubicPatch *shape);
-    static int insideBicubicPatch(Vector3Dd *point, SimpleBody *object);
-    static void bicubicPatchNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyBicubicPatch(SimpleBody *object);
-    static void translateBicubicPatch(SimpleBody *object, Vector3Dd *vector);
-    static void rotateBicubicPatch(SimpleBody *object, Vector3Dd *vector);
-    static void scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector);
-    static void invertBicubicPatch(SimpleBody *object);
 
     static void parametricValue(Vector3Dd *result, double u, double v,
         Vector3Dd (*controlPoints)[4][4]);
@@ -48,6 +39,15 @@ class ParametricBiCubicPatch : public Geometry {
     static void parametricTreeWalker(const RayWithSegments *ray,
         ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
         int *depthCount, double *depths);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static void parametricPartial(
