@@ -8,36 +8,37 @@ This module implements routines for constructive solid geometry.
 */
 
 #include "environment/geometry/volume/compound/CSG.h"
-Methods CSG::unionMethodTable = {
-    CSG::allCsgUnionIntersections, CSG::insideCsgUnion, nullptr, CSG::copyCsg,
-    CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg, CSG::invertCsg};
-
-Methods CSG::intersectionMethodTable = {
-    CSG::allCsgIntersectIntersections, CSG::insideCsgIntersection, nullptr,
-    CSG::copyCsg, CSG::translateCsg, CSG::rotateCsg, CSG::scaleCsg,
-    CSG::invertCsg};
 
 inline void
 CSG::linkShapeNode(
-    SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList)
+    Geometry *newObject, Geometry **field, Geometry **oldObjectList)
 {
     *field = *oldObjectList;
     *oldObjectList = newObject;
 }
 
 int
+CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+{
+    if (geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
+        return allCsgIntersectIntersections(ray, depthQueue);
+    }
+    return allCsgUnionIntersections(ray, depthQueue);
+}
+
+int
 CSG::allCsgUnionIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+    RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     bool intersectionFound;
-    const CSG *shape = (CSG *)object;
+    const CSG *shape = this;
     Geometry *localShape;
 
     intersectionFound = false;
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
         if (GeometryOperations::allIntersections(
-                (SimpleBody *)localShape, ray, depthQueue)) {
+                localShape, ray, depthQueue)) {
             intersectionFound = true;
         }
     }
@@ -47,11 +48,11 @@ CSG::allCsgUnionIntersections(
 
 int
 CSG::allCsgIntersectIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+    RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    const CSG *shape = (CSG *)object;
+    const CSG *shape = this;
     Geometry *localShape;
     Geometry *shape2;
     java::PriorityQueue<Intersection> *localDepthQueue;
@@ -65,7 +66,7 @@ CSG::allCsgIntersectIntersections(
         localShape = localShape->nextObject) {
 
         GeometryOperations::allIntersections(
-            (SimpleBody *)localShape, ray, localDepthQueue);
+            localShape, ray, localDepthQueue);
 
         for (const Intersection& candidate : *localDepthQueue) {
             localIntersection = candidate;
@@ -77,7 +78,7 @@ CSG::allCsgIntersectIntersections(
 
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
-                            &localIntersection.Point, (SimpleBody *)shape2)) {
+                            &localIntersection.Point, shape2)) {
                         intersectionFound = false;
                         break;
                     }
@@ -99,15 +100,15 @@ CSG::allCsgIntersectIntersections(
 }
 
 int
-CSG::insideCsgUnion(Vector3Dd *testPoint, SimpleBody *object)
+CSG::insideCsgUnion(Vector3Dd *testPoint)
 {
-    const CSG *shape = (CSG *)object;
+    const CSG *shape = this;
     Geometry *localShape;
 
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
 
-        if (GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
+        if (GeometryOperations::inside(testPoint, localShape)) {
             return (true);
         }
     }
@@ -115,15 +116,15 @@ CSG::insideCsgUnion(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 int
-CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
+CSG::insideCsgIntersection(Vector3Dd *testPoint)
 {
     Geometry *localShape;
-    const CSG *shape = (CSG *)object;
+    const CSG *shape = this;
 
     for (localShape = shape->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
 
-        if (!GeometryOperations::inside(testPoint, (SimpleBody *)localShape)) {
+        if (!GeometryOperations::inside(testPoint, localShape)) {
             return (false);
         }
     }
@@ -132,15 +133,14 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void *
-CSG::copyCsg(SimpleBody *object)
+CSG::copy()
 {
-    const CSG *shape = (CSG *)object;
+    const CSG *shape = this;
     CSG *newShape;
     Geometry *localShape;
     Geometry *copiedShape;
 
     newShape = new CSG;
-    newShape->methods = shape->methods;
     newShape->geometryType = shape->geometryType;
     newShape->nextObject = nullptr;
     newShape->Shapes = nullptr;
@@ -149,67 +149,74 @@ CSG::copyCsg(SimpleBody *object)
         localShape = localShape->nextObject) {
 
         copiedShape =
-            (Geometry *)GeometryOperations::copy((SimpleBody *)localShape);
-        CSG::linkShapeNode((SimpleBody *)copiedShape,
-            (SimpleBody **)&(copiedShape->nextObject),
-            (SimpleBody **)&(newShape->Shapes));
+            (Geometry *)GeometryOperations::copy(localShape);
+        CSG::linkShapeNode(copiedShape,
+            &(copiedShape->nextObject),
+            &(newShape->Shapes));
     }
     return ((void *)newShape);
 }
 
 void
-CSG::translateCsg(SimpleBody *object, Vector3Dd *vector)
+CSG::translate(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
+    for (localShape = this->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
 
-        GeometryOperations::translate((SimpleBody *)localShape, vector);
+        GeometryOperations::translate(localShape, vector);
     }
 }
 
 void
-CSG::rotateCsg(SimpleBody *object, Vector3Dd *vector)
+CSG::rotate(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
+    for (localShape = this->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
 
-        GeometryOperations::rotate((SimpleBody *)localShape, vector);
+        GeometryOperations::rotate(localShape, vector);
     }
 }
 
 void
-CSG::scaleCsg(SimpleBody *object, Vector3Dd *vector)
+CSG::scale(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (localShape = ((CSG *)object)->Shapes; localShape != nullptr;
+    for (localShape = this->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
 
-        GeometryOperations::scale((SimpleBody *)localShape, vector);
+        GeometryOperations::scale(localShape, vector);
     }
 }
 
 void
-CSG::invertCsg(SimpleBody *object)
+CSG::invert()
 {
     Geometry *localShape;
-    CSG * const csg = (CSG *)object;
+    CSG * const csg = this;
 
     if (csg->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
         csg->geometryType = GeometryTypes::CSG_UNION_TYPE;
-        csg->methods = &CSG::unionMethodTable;
     } else if (csg->geometryType == GeometryTypes::CSG_UNION_TYPE) {
         csg->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
-        csg->methods = &CSG::intersectionMethodTable;
     }
 
     for (localShape = csg->Shapes; localShape != nullptr;
         localShape = localShape->nextObject) {
 
-        GeometryOperations::invert((SimpleBody *)localShape);
+        GeometryOperations::invert(localShape);
     }
+}
+
+int
+CSG::inside(Vector3Dd *point)
+{
+    if (geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
+        return insideCsgIntersection(point);
+    }
+    return insideCsgUnion(point);
 }

@@ -48,12 +48,6 @@ int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 int factorials[PolynomialSolver::MAX_ORDER + 1] = {1, 1, 2, 6, 24, 120, 720, 5040};
 static const int *termCountsInstance = PolynomialShape::termCountsByOrder();
 
-Methods PolynomialShape::methodTable = {
-    PolynomialShape::allPolyIntersections, PolynomialShape::insidePoly,
-    PolynomialShape::polyNormal, PolynomialShape::copyPoly,
-    PolynomialShape::translatePoly, PolynomialShape::rotatePoly,
-    PolynomialShape::scalePoly, PolynomialShape::invertPoly};
-
 const int *
 PolynomialShape::termCountsByOrder()
 {
@@ -62,10 +56,9 @@ PolynomialShape::termCountsByOrder()
 
 
 int
-PolynomialShape::allPolyIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    PolynomialShape * const shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = this;
     double depths[PolynomialSolver::MAX_ORDER];
     double len;
     Vector3Dd intersectionPoint;
@@ -266,7 +259,7 @@ PolynomialShape::intersect(
 }
 
 double
-PolynomialShape::inside(const Vector3Dd *point, int order, const double *coeffs)
+PolynomialShape::evaluatePolynomial(const Vector3Dd *point, int order, const double *coeffs)
 {
     double x[PolynomialSolver::MAX_ORDER + 1];
     double y[PolynomialSolver::MAX_ORDER + 1];
@@ -792,10 +785,10 @@ PolynomialShape::quarticNormal(
 }
 
 int
-PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
+PolynomialShape::inside(Vector3Dd *testPoint)
 {
     Vector3Dd newPoint;
-    const PolynomialShape *shape = (PolynomialShape *)object;
+    const PolynomialShape *shape = this;
     double result;
 
     // Transform the point into polynomial's space
@@ -805,7 +798,7 @@ PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
         newPoint = *testPoint;
     }
 
-    result = PolynomialShape::inside(&newPoint, shape->Order, shape->Coeffs);
+    result = PolynomialShape::evaluatePolynomial(&newPoint, shape->Order, shape->Coeffs);
     if (result < GeometryConstants::Small_Tolerance) {
         return ((int)(1 - shape->Inverted));
     }
@@ -814,10 +807,9 @@ PolynomialShape::insidePoly(Vector3Dd *testPoint, SimpleBody *object)
 
 // Normal to a polynomial
 void
-PolynomialShape::polyNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+PolynomialShape::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const PolynomialShape *shape = (PolynomialShape *)object;
+    const PolynomialShape *shape = this;
     Vector3Dd newPoint;
 
     // Transform the point into the polynomials space
@@ -829,7 +821,7 @@ PolynomialShape::polyNormal(
     }
 
     if (shape->Order == 4) {
-        PolynomialShape::quarticNormal(result, object, &newPoint);
+        PolynomialShape::quarticNormal(result, (SimpleBody *)this, &newPoint);
     } else {
         PolynomialShape::normalp(
             result, shape->Order, shape->Coeffs, &newPoint);
@@ -844,9 +836,9 @@ PolynomialShape::polyNormal(
 
 // Make a copy of a polynomial object
 void *
-PolynomialShape::copyPoly(SimpleBody *object)
+PolynomialShape::copy()
 {
-    const PolynomialShape *shape = (PolynomialShape *)object;
+    const PolynomialShape *shape = this;
     PolynomialShape * const newShape = new PolynomialShape;
     int i;
 
@@ -876,11 +868,11 @@ PolynomialShape::copyPoly(SimpleBody *object)
 }
 
 void
-PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
+PolynomialShape::translate(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    PolynomialShape * const shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = this;
     if (shape->transformation == nullptr) {
         shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -897,11 +889,11 @@ PolynomialShape::translatePoly(SimpleBody *object, Vector3Dd *vector)
 }
 
 void
-PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
+PolynomialShape::rotate(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    PolynomialShape * const shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = this;
     if (shape->transformation == nullptr) {
         shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -915,11 +907,11 @@ PolynomialShape::rotatePoly(SimpleBody *object, Vector3Dd *vector)
 }
 
 void
-PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
+PolynomialShape::scale(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    PolynomialShape * const shape = (PolynomialShape *)object;
+    PolynomialShape * const shape = this;
     if (shape->transformation == nullptr) {
         shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -935,8 +927,8 @@ PolynomialShape::scalePoly(SimpleBody *object, Vector3Dd *vector)
 }
 
 void
-PolynomialShape::invertPoly(SimpleBody *object)
+PolynomialShape::invert()
 {
-    ((PolynomialShape *)object)->Inverted = !((PolynomialShape *)object)->Inverted;
+    this->Inverted = !this->Inverted;
 }
 #include "java/util/PriorityQueue.txx"

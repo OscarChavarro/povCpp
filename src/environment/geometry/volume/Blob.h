@@ -9,7 +9,6 @@
 
 class Blob : public Geometry {
   public:
-    static Methods methodTable;
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     bool Inverted;
@@ -19,18 +18,17 @@ class Blob : public Geometry {
     BlobInterval *intervals;
     int sturmFlag;
 
-    static int allBlobIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
-    static int insideBlob(Vector3Dd *point, SimpleBody *object);
-    static void blobNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyBlob(SimpleBody *object);
-    static void translateBlob(SimpleBody *object, Vector3Dd *vector);
-    static void rotateBlob(SimpleBody *object, Vector3Dd *vector);
-    static void scaleBlob(SimpleBody *object, Vector3Dd *vector);
-    static void invertBlob(SimpleBody *object);
     static void makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist,
         int npoints, int sflag);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,

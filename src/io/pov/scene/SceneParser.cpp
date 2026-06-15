@@ -12,7 +12,7 @@ void
 SceneParser::postProcessPhase(ParserContext &ctx)
 {
     for (SimpleBody *object = ctx.parsingFrame()->Objects; object != nullptr;
-        object = object->nextObject) {
+        object = static_cast<SimpleBody *>(object->nextObject)) {
         ParseHelpers::postProcessObject(object);
     }
 }

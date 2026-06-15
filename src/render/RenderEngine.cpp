@@ -598,7 +598,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 
     // What objects does this ray intersect?
     for (object = RenderEngine::renderFrame().Objects; object != nullptr;
-        object = object->nextObject) {
+        object = static_cast<SimpleBody *>(object->nextObject)) {
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
             nullptr) {
             if (intersectionFound) {

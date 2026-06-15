@@ -29,8 +29,7 @@ SimpleBodyFactory::getObject()
     newObject->objectTexture = MaterialUtils::instance().defaultTexture();
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
-    newObject->type = GeometryTypes::OBJECT_TYPE;
-    newObject->methods = &Composite::basicObjectMethodTable;
+    newObject->geometryType = GeometryTypes::OBJECT_TYPE;
     return (newObject);
 }
 #include "java/util/PriorityQueue.txx"

@@ -22,17 +22,6 @@ bezier bicubic patches and generously provided us these enhancements.
 #undef EPSILON
 static constexpr double EPSILON = 1.0e-10;
 
-Methods ParametricBiCubicPatch::methodTable = {
-    ParametricBiCubicSolver::allParametricBiCubicPatchIntersections,
-    ParametricBiCubicPatch::insideBicubicPatch,
-    ParametricBiCubicPatch::bicubicPatchNormal,
-    ParametricBiCubicPatch::copyBicubicPatch,
-    ParametricBiCubicPatch::translateBicubicPatch,
-    ParametricBiCubicPatch::rotateBicubicPatch,
-    ParametricBiCubicPatch::scaleBicubicPatch,
-    ParametricBiCubicPatch::invertBicubicPatch};
-
-
 int maxDepthReached;
 
 ParametricPatchNode *
@@ -979,17 +968,15 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
 
 // A patch is not a solid, so an inside test doesn't make sense
 int
-ParametricBiCubicPatch::insideBicubicPatch(
-    Vector3Dd *testPoint, SimpleBody *object)
+ParametricBiCubicPatch::inside(Vector3Dd *point)
 {
     return 0;
 }
 
 void
-ParametricBiCubicPatch::bicubicPatchNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const ParametricBiCubicPatch *patch = (ParametricBiCubicPatch *)object;
+    const ParametricBiCubicPatch *patch = this;
     int i;
 
     /**
@@ -1013,12 +1000,12 @@ ParametricBiCubicPatch::bicubicPatchNormal(
 }
 
 void *
-ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
+ParametricBiCubicPatch::copy()
 {
     ParametricBiCubicPatch *newShape;
 
     newShape = new ParametricBiCubicPatch;
-    *newShape = *((ParametricBiCubicPatch *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     newShape->Interpolated_Grid = nullptr;
@@ -1032,10 +1019,9 @@ ParametricBiCubicPatch::copyBicubicPatch(SimpleBody *object)
 }
 
 void
-ParametricBiCubicPatch::translateBicubicPatch(
-    SimpleBody *object, Vector3Dd *vector)
+ParametricBiCubicPatch::translate(Vector3Dd *vector)
 {
-    ParametricBiCubicPatch * const patch = (ParametricBiCubicPatch *)object;
+    ParametricBiCubicPatch * const patch = this;
     int i;
     int j;
     for (i = 0; i < 4; i++) {
@@ -1045,17 +1031,15 @@ ParametricBiCubicPatch::translateBicubicPatch(
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    MaterialUtils::instance().translateTexture(
-        &((ParametricBiCubicPatch *)object)->material, vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-ParametricBiCubicPatch::rotateBicubicPatch(
-    SimpleBody *object, Vector3Dd *vector)
+ParametricBiCubicPatch::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    ParametricBiCubicPatch * const patch = (ParametricBiCubicPatch *)object;
+    ParametricBiCubicPatch * const patch = this;
     int i;
     int j;
 
@@ -1067,14 +1051,13 @@ ParametricBiCubicPatch::rotateBicubicPatch(
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    MaterialUtils::instance().rotateTexture(
-        &((ParametricBiCubicPatch *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
+ParametricBiCubicPatch::scale(Vector3Dd *vector)
 {
-    ParametricBiCubicPatch * const patch = (ParametricBiCubicPatch *)object;
+    ParametricBiCubicPatch * const patch = this;
     int i;
     int j;
     for (i = 0; i < 4; i++) {
@@ -1084,13 +1067,18 @@ ParametricBiCubicPatch::scaleBicubicPatch(SimpleBody *object, Vector3Dd *vector)
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-    MaterialUtils::instance().scaleTexture(
-        &((ParametricBiCubicPatch *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 // Inversion of a patch really doesn't make sense
 void
-ParametricBiCubicPatch::invertBicubicPatch(SimpleBody *object)
+ParametricBiCubicPatch::invert()
 {
     ;
+}
+
+int
+ParametricBiCubicPatch::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+{
+    return ParametricBiCubicSolver::allParametricBiCubicPatchIntersections((SimpleBody *)this, ray, depthQueue);
 }

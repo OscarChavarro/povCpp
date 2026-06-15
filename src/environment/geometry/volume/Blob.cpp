@@ -18,11 +18,6 @@ blobs and generously provided us these enhancements.
 #include "environment/geometry/volume/Blob.h"
 #include "environment/material/MaterialUtils.h"
 
-Methods Blob::methodTable = {Blob::allBlobIntersections,
-    Blob::insideBlob, Blob::blobNormal, Blob::copyBlob, Blob::translateBlob,
-    Blob::rotateBlob, Blob::scaleBlob, Blob::invertBlob};
-
-
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
 static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
@@ -307,10 +302,9 @@ This formula can now be solved for "t" by any of the quartic
 root solvers that are available.
 */
 int
-Blob::allBlobIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    Blob * const blob = (Blob *)object;
+    Blob * const blob = this;
     Intersection localElement;
     double dist;
     double len;
@@ -472,10 +466,10 @@ Calculate the density at this point, then compare to
 the threshold to see if we are in or out of the blob
 */
 int
-Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
+Blob::inside(Vector3Dd *testPoint)
 {
     Vector3Dd newPoint;
-    const Blob *blob = (Blob *)object;
+    const Blob *blob = this;
 
     // Transform the point into blob space
     if (blob->transformation != nullptr) {
@@ -484,7 +478,7 @@ Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
         newPoint = *testPoint;
     }
 
-    if (Blob::calculateFieldValue(object, &newPoint) >
+    if (Blob::calculateFieldValue((SimpleBody *)this, &newPoint) >
         blob->threshold - INSIDE_TOLERANCE) {
         return ((int)1 - blob->Inverted);
     }
@@ -492,15 +486,14 @@ Blob::insideBlob(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-Blob::blobNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Blob::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     Vector3Dd newPoint;
     Vector3Dd v;
     int i;
     double dist;
     double val;
-    const Blob *blob = (Blob *)object;
+    const Blob *blob = this;
     BlobElement *temp;
 
     // Transform the point into the blobs space
@@ -544,13 +537,13 @@ Blob::blobNormal(
 }
 
 void *
-Blob::copyBlob(SimpleBody *object)
+Blob::copy()
 {
     Blob *blob;
-    const Blob *oldShape = (Blob *)object;
+    const Blob *oldShape = this;
 
     blob = new Blob;
-    memcpy(blob, oldShape, sizeof(Blob));
+    memcpy((void *)blob, (const void *)oldShape, sizeof(Blob));
     blob->nextObject = nullptr;
 
     // Allocate space and copy the blob specific data
@@ -581,11 +574,11 @@ Blob::copyBlob(SimpleBody *object)
 }
 
 void
-Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
+Blob::translate(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Blob * const blob = (Blob *)object;
+    Blob * const blob = this;
     if (blob->transformation == nullptr) {
         blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -598,15 +591,15 @@ Blob::translateBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    MaterialUtils::instance().translateTexture(&((Blob *)object)->material, vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
+Blob::rotate(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Blob * const blob = (Blob *)object;
+    Blob * const blob = this;
     if (blob->transformation == nullptr) {
         blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -616,15 +609,15 @@ Blob::rotateBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    MaterialUtils::instance().rotateTexture(&((Blob *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
+Blob::scale(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Blob * const blob = (Blob *)object;
+    Blob * const blob = this;
     if (blob->transformation == nullptr) {
         blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -636,12 +629,12 @@ Blob::scaleBlob(SimpleBody *object, Vector3Dd *vector)
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
 
-    MaterialUtils::instance().scaleTexture(&((Blob *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-Blob::invertBlob(SimpleBody *object)
+Blob::invert()
 {
-    ((Blob *)object)->Inverted = !((Blob *)object)->Inverted;
+    this->Inverted = !this->Inverted;
 }
 #include "java/util/PriorityQueue.txx"

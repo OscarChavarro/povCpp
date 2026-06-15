@@ -4,11 +4,6 @@
 #include "environment/material/Material.h"
 #include "environment/material/MaterialUtils.h"
 
-Methods Sphere::methodTable = {
-    Sphere::allSphereIntersections, Sphere::insideSphere, Sphere::sphereNormal,
-    Sphere::copySphere, Sphere::translateSphere, Sphere::rotateSphere,
-    Sphere::scaleSphere, Sphere::invertSphere};
-
 int
 Sphere::intersectSphere(
     const RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
@@ -73,15 +68,14 @@ Sphere::intersectSphere(
 }
 
 int
-Sphere::allSphereIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     double depth1;
     double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
     bool intersectionFound;
-    Sphere * const shape = (Sphere *)object;
+    Sphere * const shape = this;
 
     intersectionFound = false;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
@@ -109,11 +103,11 @@ Sphere::allSphereIntersections(
 }
 
 int
-Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
+Sphere::inside(Vector3Dd *testPoint)
 {
     Vector3Dd originToCenter;
     double ocSquared;
-    const Sphere *sphere = (Sphere *)object;
+    const Sphere *sphere = this;
 
     originToCenter = sphere->Center.subtract(*testPoint);
     ocSquared = originToCenter.dotProduct(originToCenter);
@@ -125,22 +119,21 @@ Sphere::insideSphere(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-Sphere::sphereNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Sphere::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const Sphere *sphere = (Sphere *)object;
+    const Sphere *sphere = this;
 
     *result = intersectionPoint->subtract(sphere->Center);
     *result = (*result).multiply(sphere->inverseRadius);
 }
 
 void *
-Sphere::copySphere(SimpleBody *object)
+Sphere::copy()
 {
     Sphere *newShape;
 
     newShape = new Sphere;
-    *newShape = *((Sphere *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
@@ -152,28 +145,27 @@ Sphere::copySphere(SimpleBody *object)
 }
 
 void
-Sphere::translateSphere(SimpleBody *object, Vector3Dd *vector)
+Sphere::translate(Vector3Dd *vector)
 {
-    ((Sphere *)object)->Center = ((Sphere *)object)->Center.add(*vector);
-    MaterialUtils::instance().translateTexture(&((Sphere *)object)->material, vector);
+    this->Center = this->Center.add(*vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Sphere::rotateSphere(SimpleBody *object, Vector3Dd *vector)
+Sphere::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    ((Sphere *)object)->Center =
-        transformation.transpose().multiply(((Sphere *)object)->Center);
-    MaterialUtils::instance().rotateTexture(&((Sphere *)object)->material, vector);
+    this->Center = transformation.transpose().multiply(this->Center);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
+Sphere::scale(Vector3Dd *vector)
 {
-    Sphere * const sphere = (Sphere *)object;
+    Sphere * const sphere = this;
 
     if ((vector->x() != vector->y()) || (vector->x() != vector->z())) {
         const double s = (java::Math::abs(vector->x()) + java::Math::abs(vector->y()) + java::Math::abs(vector->z())) / 3.0;
@@ -184,12 +176,12 @@ Sphere::scaleSphere(SimpleBody *object, Vector3Dd *vector)
     sphere->Radius *= vector->x();
     sphere->radiusSquared = sphere->Radius * sphere->Radius;
     sphere->inverseRadius = 1.0 / sphere->Radius;
-    MaterialUtils::instance().scaleTexture(&((Sphere *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-Sphere::invertSphere(SimpleBody *object)
+Sphere::invert()
 {
-    ((Sphere *)object)->Inverted ^= true;
+    this->Inverted ^= true;
 }
 #include "java/util/PriorityQueue.txx"

@@ -11,8 +11,8 @@ void SceneDumper::dumpSceneStructure(FILE *f)
     if (f == nullptr) return;
 
     int idx = 0;
-    for (const SimpleBody *obj = RenderEngine::renderFrame().Objects; obj; obj = obj->nextObject) {
-        fprintf(f, "OBJ %03d type=%d\n", idx, static_cast<int>(obj->type));
+    for (const SimpleBody *obj = RenderEngine::renderFrame().Objects; obj; obj = static_cast<const SimpleBody *>(obj->nextObject)) {
+        fprintf(f, "OBJ %03d type=%d\n", idx, static_cast<int>(obj->geometryType));
 
         if (obj->objectTexture) {
             const Material * const tex = obj->objectTexture;

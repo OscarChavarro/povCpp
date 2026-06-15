@@ -7,24 +7,22 @@
 
 class Box : public Geometry {
   public:
-    static Methods methodTable;
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     Vector3Dd bounds[2];
     bool Inverted;
 
-    static int allBoxIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectBoxx(const RayWithSegments *ray, const Box *box,
         double *depth1, double *depth2);
-    static int insideBox(Vector3Dd *point, SimpleBody *object);
-    static void boxNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyBox(SimpleBody *object);
-    static void translateBox(SimpleBody *object, Vector3Dd *vector);
-    static void rotateBox(SimpleBody *object, Vector3Dd *vector);
-    static void scaleBox(SimpleBody *object, Vector3Dd *vector);
-    static void invertBox(SimpleBody *object);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static int closeTo(double x, double y);

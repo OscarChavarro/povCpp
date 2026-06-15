@@ -8,19 +8,6 @@ This module implements primitives for triangles and smooth triangles.
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/material/MaterialUtils.h"
 
-Methods Triangle::methodTable = {
-    Triangle::allTriangleIntersections, Triangle::insideTriangle,
-    Triangle::triangleNormal, Triangle::copyTriangle,
-    Triangle::translateTriangle, Triangle::rotateTriangle,
-    Triangle::scaleTriangle, Triangle::invertTriangle};
-
-Methods Triangle::smoothMethodTable = {
-    Triangle::allTriangleIntersections, Triangle::insideTriangle,
-    SmoothTriangle::smoothTriangleNormal, SmoothTriangle::copySmoothTriangle,
-    SmoothTriangle::translateSmoothTriangle,
-    SmoothTriangle::rotateSmoothTriangle, SmoothTriangle::scaleSmoothTriangle,
-    SmoothTriangle::invertSmoothTriangle};
-
 int
 Triangle::max3Axis(double x, double y, double z)
 {
@@ -186,10 +173,9 @@ Triangle::computeTriangle(Triangle *triangle)
 }
 
 int
-Triangle::allTriangleIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    Triangle * const shape = (Triangle *)object;
+    Triangle * const shape = this;
     double depth;
     Vector3Dd intersectionPoint;
     Intersection localElement;
@@ -375,27 +361,26 @@ Triangle::intersectTriangle(
 }
 
 int
-Triangle::insideTriangle(Vector3Dd *testPoint, SimpleBody *object)
+Triangle::inside(Vector3Dd *point)
 {
     return (false);
 }
 
 void
-Triangle::triangleNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Triangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const Triangle *triangle = (Triangle *)object;
+    const Triangle *triangle = this;
 
     *result = triangle->normalVector;
 }
 
 void *
-Triangle::copyTriangle(SimpleBody *object)
+Triangle::copy()
 {
     Triangle *newShape;
 
     newShape = new Triangle;
-    *newShape = *((Triangle *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
@@ -407,9 +392,9 @@ Triangle::copyTriangle(SimpleBody *object)
 }
 
 void
-Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
+Triangle::translate(Vector3Dd *vector)
 {
-    Triangle * const triangle = (Triangle *)object;
+    Triangle * const triangle = this;
     Vector3Dd translation;
 
     translation = triangle->normalVector.multiply(*vector);
@@ -417,16 +402,15 @@ Triangle::translateTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P1 = triangle->P1.add(*vector);
     triangle->P2 = triangle->P2.add(*vector);
     triangle->P3 = triangle->P3.add(*vector);
-    MaterialUtils::instance().translateTexture(
-        &((Triangle *)object)->material, vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
+Triangle::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    Triangle * const triangle = (Triangle *)object;
+    Triangle * const triangle = this;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
@@ -435,13 +419,13 @@ Triangle::rotateTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P3 = transformation.transpose().multiply(triangle->P3);
     Triangle::computeTriangle(triangle);
 
-    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
+Triangle::scale(Vector3Dd *vector)
 {
-    Triangle * const triangle = (Triangle *)object;
+    Triangle * const triangle = this;
     double length;
 
     triangle->normalVector = Vector3Dd(
@@ -457,15 +441,13 @@ Triangle::scaleTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P2 = triangle->P2.multiply(*vector);
     triangle->P3 = triangle->P3.multiply(*vector);
 
-    MaterialUtils::instance().scaleTexture(&((Triangle *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-Triangle::invertTriangle(SimpleBody *object)
+Triangle::invert()
 {
-    Triangle * const triangle = (Triangle *)object;
-
-    triangle->Inverted ^= true;
+    this->Inverted ^= true;
 }
 
 /**
@@ -511,10 +493,9 @@ in the triangle.
 */
 
 void
-SmoothTriangle::smoothTriangleNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const SmoothTriangle *triangle = (SmoothTriangle *)object;
+    const SmoothTriangle *triangle = this;
     Vector3Dd piMinusP1;
     Vector3Dd nTemp1;
     Vector3Dd nTemp2;
@@ -561,12 +542,12 @@ SmoothTriangle::smoothTriangleNormal(
 }
 
 void *
-SmoothTriangle::copySmoothTriangle(SimpleBody *object)
+SmoothTriangle::copy()
 {
     SmoothTriangle *newShape;
 
     newShape = new SmoothTriangle;
-    *newShape = *((SmoothTriangle *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
@@ -578,11 +559,11 @@ SmoothTriangle::copySmoothTriangle(SimpleBody *object)
 }
 
 void
-SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
+SmoothTriangle::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    SmoothTriangle * const triangle = (SmoothTriangle *)object;
+    SmoothTriangle * const triangle = this;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
@@ -594,13 +575,13 @@ SmoothTriangle::rotateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->N3 = transformation.transpose().multiply(triangle->N3);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    MaterialUtils::instance().rotateTexture(&((Triangle *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
+SmoothTriangle::translate(Vector3Dd *vector)
 {
-    SmoothTriangle * const triangle = (SmoothTriangle *)object;
+    SmoothTriangle * const triangle = this;
     Vector3Dd translation;
 
     translation = triangle->normalVector.multiply(*vector);
@@ -610,14 +591,13 @@ SmoothTriangle::translateSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P3 = triangle->P3.add(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    MaterialUtils::instance().translateTexture(
-        &((Triangle *)object)->material, vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
+SmoothTriangle::scale(Vector3Dd *vector)
 {
-    SmoothTriangle * const triangle = (SmoothTriangle *)object;
+    SmoothTriangle * const triangle = this;
     double length;
 
     triangle->normalVector = Vector3Dd(
@@ -634,15 +614,12 @@ SmoothTriangle::scaleSmoothTriangle(SimpleBody *object, Vector3Dd *vector)
     triangle->P3 = triangle->P3.multiply(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 
-    MaterialUtils::instance().scaleTexture(
-        &((SmoothTriangle *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-SmoothTriangle::invertSmoothTriangle(SimpleBody *object)
+SmoothTriangle::invert()
 {
-    SmoothTriangle * const triangle = (SmoothTriangle *)object;
-
-    triangle->Inverted ^= true;
+    this->Inverted ^= true;
 }
 #include "java/util/PriorityQueue.txx"

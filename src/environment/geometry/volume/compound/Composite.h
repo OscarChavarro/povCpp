@@ -6,38 +6,17 @@
 #include "environment/geometry/elements/GeometryTypes.h"
 #include "environment/geometry/volume/compound/CSG.h"
 
-class Composite {
+class Composite : public SimpleBody {
   public:
-    static Methods compositeMethodTable;
-    static Methods basicObjectMethodTable;
-    Methods *methods;
-    GeometryTypes type;
-    SimpleBody *nextObject;
-    Geometry *boundingShapes;
-    Geometry *clippingShapes;
     SimpleBody *simpleBodies;
 
-    static int allCompositeIntersections(SimpleBody *object,
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
-    static int allObjectIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
-    static int insideBasicObject(Vector3Dd *point, SimpleBody *object);
-    static int insideCompositeObject(Vector3Dd *point, SimpleBody *object);
-    static void *copyBasicObject(SimpleBody *object);
-    static void *copyCompositeObject(SimpleBody *object);
-    static void translateBasicObject(SimpleBody *object, Vector3Dd *vector);
-    static void rotateBasicObject(SimpleBody *object, Vector3Dd *vector);
-    static void scaleBasicObject(SimpleBody *object, Vector3Dd *vector);
-    static void translateCompositeObject(SimpleBody *object, Vector3Dd *vector);
-    static void rotateCompositeObject(SimpleBody *object, Vector3Dd *vector);
-    static void scaleCompositeObject(SimpleBody *object, Vector3Dd *vector);
-    static void invertBasicObject(SimpleBody *object);
-    static void invertCompositeObject(SimpleBody *object);
-
-  private:
-    static inline void linkSimpleBody(
-        SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList);
-    static SimpleBody *createBasicObject();
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 };
 
 #endif

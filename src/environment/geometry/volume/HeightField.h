@@ -13,7 +13,6 @@ class HeightField : public Geometry {
     static constexpr int POT = 1;
     static constexpr int TGA = 2;
 
-    static Methods methodTable;
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     Box *bounding_box;
@@ -26,19 +25,18 @@ class HeightField : public Geometry {
         const IndexedColorImageHDRUncompressed *image, int imageType);
     static void findHfMinMax(HeightField *hField,
         const RGBAImageHDRUncompressed *image, int imageType);
-    static int allHeightfldIntersections(SimpleBody *object,
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
-    static int insideHeightfld(Vector3Dd *testPoint, SimpleBody *object);
-    static void heightFldNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyHeightfld(SimpleBody *object);
-    static void translateHeightfld(SimpleBody *object, Vector3Dd *vector);
-    static void rotateHeightfld(SimpleBody *object, Vector3Dd *vector);
-    static void scaleHeightfld(SimpleBody *object, Vector3Dd *vector);
-    static void invertHeightfld(SimpleBody *object);
     static inline int signInline(double x);
     static inline double minValue(double x, double y);
     static inline double maxValue(double x, double y);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static int isdx;

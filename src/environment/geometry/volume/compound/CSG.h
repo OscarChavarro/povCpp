@@ -6,24 +6,24 @@
 
 class CSG : public Geometry {
   public:
-    static Methods unionMethodTable;
-    static Methods intersectionMethodTable;
     Geometry *Shapes;
 
-    static int allCsgUnionIntersections(SimpleBody *object,
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
-    static int allCsgIntersectIntersections(SimpleBody *object,
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
-    static int insideCsgUnion(Vector3Dd *point, SimpleBody *object);
-    static int insideCsgIntersection(Vector3Dd *point, SimpleBody *object);
-    static void *copyCsg(SimpleBody *object);
-    static void translateCsg(SimpleBody *object, Vector3Dd *vector);
-    static void rotateCsg(SimpleBody *object, Vector3Dd *vector);
-    static void scaleCsg(SimpleBody *object, Vector3Dd *vector);
-    static void invertCsg(SimpleBody *object);
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
+    int allCsgUnionIntersections(
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
+    int allCsgIntersectIntersections(
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
+    int insideCsgUnion(Vector3Dd *point);
+    int insideCsgIntersection(Vector3Dd *point);
     static inline void linkShapeNode(
-        SimpleBody *newObject, SimpleBody **field, SimpleBody **oldObjectList);
+        Geometry *newObject, Geometry **field, Geometry **oldObjectList);
 };
 #endif

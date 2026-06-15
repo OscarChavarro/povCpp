@@ -8,32 +8,26 @@ This module implements the point & spot light source primitive.
 #include "environment/light/Light.h"
 #include "environment/material/MaterialUtils.h"
 
-Methods Light::methodTable = {
-    Light::allPointIntersections, Light::insidePoint, nullptr, Light::copyPoint,
-    Light::translatePoint, Light::rotatePoint, Light::scalePoint,
-    Light::invertPoint};
-
 int
-Light::allPointIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Light::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     return (false);
 }
 
 int
-Light::insidePoint(Vector3Dd *testPoint, SimpleBody *object)
+Light::inside(Vector3Dd *point)
 {
     return (false);
 }
 
 void *
-Light::copyPoint(SimpleBody *object)
+Light::copy()
 {
     Light * const newShape = new Light();
     if (newShape == nullptr) {
         return nullptr;
     }
-    *newShape = *((Light *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
@@ -45,42 +39,38 @@ Light::copyPoint(SimpleBody *object)
 }
 
 void
-Light::translatePoint(SimpleBody *object, Vector3Dd *vector)
+Light::translate(Vector3Dd *vector)
 {
-    ((Light *)object)->Center = ((Light *)object)->Center.add(*vector);
-    ((Light *)object)->pointsAt = ((Light *)object)->pointsAt.add(*vector);
+    this->Center = this->Center.add(*vector);
+    this->pointsAt = this->pointsAt.add(*vector);
 }
 
 void
-Light::rotatePoint(SimpleBody *object, Vector3Dd *vector)
+Light::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    ((Light *)object)->Center =
-        transformation.transpose().multiply(((Light *)object)->Center);
-    ((Light *)object)->pointsAt =
-        transformation.transpose().multiply(((Light *)object)->pointsAt);
+    this->Center = transformation.transpose().multiply(this->Center);
+    this->pointsAt = transformation.transpose().multiply(this->pointsAt);
 }
 
 void
-Light::scalePoint(SimpleBody *object, Vector3Dd *vector)
+Light::scale(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
 
     transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    ((Light *)object)->Center =
-        transformation.transpose().multiply(((Light *)object)->Center);
-    ((Light *)object)->pointsAt =
-        transformation.transpose().multiply(((Light *)object)->pointsAt);
-    MaterialUtils::instance().scaleTexture(&((Light *)object)->material, vector);
+    this->Center = transformation.transpose().multiply(this->Center);
+    this->pointsAt = transformation.transpose().multiply(this->pointsAt);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-Light::invertPoint(SimpleBody *object)
+Light::invert()
 {
-    ((Light *)object)->Inverted ^= true;
+    this->Inverted ^= true;
 }
 
 /**

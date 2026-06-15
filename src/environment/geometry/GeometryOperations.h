@@ -6,10 +6,10 @@
 
 #include "java/util/PriorityQueue.h"
 #include "common/dataStructures/PriorityQueuePool.h"
+#include "environment/TransformableElement.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/Methods.h"
 #include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/geometry/elements/GeometryTypes.h"
@@ -17,9 +17,9 @@
 class GeometryOperations {
   public:
     static inline int
-    allIntersections(SimpleBody *x, RayWithSegments *y, java::PriorityQueue<Intersection> *z)
+    allIntersections(TransformableElement *x, RayWithSegments *y, java::PriorityQueue<Intersection> *z)
     {
-        return ((*((x)->methods->allIntersectionsMethod))(x, y, z));
+        return x->allIntersections(y, z);
     }
 
     /**
@@ -31,7 +31,7 @@ class GeometryOperations {
     to depend on Composite just to fill a method-table entry.
     */
     static inline Intersection *
-    intersect(SimpleBody *x, RayWithSegments *y)
+    intersect(TransformableElement *x, RayWithSegments *y)
     {
         java::PriorityQueue<Intersection> * const depthQueue = PriorityQueuePool<Intersection>::pqPop(128);
 
@@ -53,45 +53,45 @@ class GeometryOperations {
     }
 
     static inline int
-    inside(Vector3Dd *x, SimpleBody *y)
+    inside(Vector3Dd *x, TransformableElement *y)
     {
-        return ((*((y)->methods->insideMethod))(x, y));
+        return y->inside(x);
     }
 
     static inline void
-    normal(Vector3Dd *x, SimpleBody *y, Vector3Dd *z)
+    normal(Vector3Dd *x, TransformableElement *y, Vector3Dd *z)
     {
-        ((*((y)->methods->normalMethod))(x, y, z));
+        y->normal(x, z);
     }
 
     static inline void *
-    copy(SimpleBody *x)
+    copy(TransformableElement *x)
     {
-        return ((*((x)->methods->copyMethod))(x));
+        return x->copy();
     }
 
     static inline void
-    translate(SimpleBody *x, Vector3Dd *y)
+    translate(TransformableElement *x, Vector3Dd *y)
     {
-        ((*((x)->methods->translateMethod))(x, y));
+        x->translate(y);
     }
 
     static inline void
-    scale(SimpleBody *x, Vector3Dd *y)
+    scale(TransformableElement *x, Vector3Dd *y)
     {
-        ((*((x)->methods->scaleMethod))(x, y));
+        x->scale(y);
     }
 
     static inline void
-    rotate(SimpleBody *x, Vector3Dd *y)
+    rotate(TransformableElement *x, Vector3Dd *y)
     {
-        ((*((x)->methods->rotateMethod))(x, y));
+        x->rotate(y);
     }
 
     static inline void
-    invert(SimpleBody *x)
+    invert(TransformableElement *x)
     {
-        ((*((x)->methods->invertMethod))(x));
+        x->invert();
     }
 };
 

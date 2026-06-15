@@ -6,7 +6,6 @@
 
 class Sphere : public Geometry {
   public:
-    static Methods methodTable;
     Vector3Dd Center;
     double Radius;
     double radiusSquared;
@@ -17,18 +16,17 @@ class Sphere : public Geometry {
     bool VPCached;
     bool Inverted;
 
-    static int allSphereIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectSphere(const RayWithSegments *ray, Sphere *sphere,
         double *depth1, double *depth2);
-    static int insideSphere(Vector3Dd *point, SimpleBody *object);
-    static void sphereNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copySphere(SimpleBody *object);
-    static void translateSphere(SimpleBody *object, Vector3Dd *vector);
-    static void rotateSphere(SimpleBody *object, Vector3Dd *vector);
-    static void scaleSphere(SimpleBody *object, Vector3Dd *vector);
-    static void invertSphere(SimpleBody *object);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 };
 
 #endif

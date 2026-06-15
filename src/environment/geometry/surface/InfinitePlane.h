@@ -6,24 +6,22 @@
 
 class InfinitePlane : public Geometry {
   public:
-    static Methods methodTable;
     Vector3Dd normalVector;
     double Distance;
     double VPNormDotOrigin;
     bool VPCached;
 
-    static int allPlaneIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
     static int intersectPlane(
         RayWithSegments *ray, InfinitePlane *plane, double *depth);
-    static int insidePlane(Vector3Dd *point, SimpleBody *object);
-    static void planeNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyPlane(SimpleBody *object);
-    static void translatePlane(SimpleBody *object, Vector3Dd *vector);
-    static void rotatePlane(SimpleBody *object, Vector3Dd *vector);
-    static void scalePlane(SimpleBody *object, Vector3Dd *vector);
-    static void invertPlane(SimpleBody *object);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 };
 
 #endif

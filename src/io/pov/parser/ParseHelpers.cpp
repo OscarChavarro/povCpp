@@ -37,9 +37,9 @@ ParseHelpers::postProcessObject(SimpleBody *object)
 {
     SimpleBody *temp;
 
-    if (object->type == GeometryTypes::COMPOSITE_TYPE) {
+    if (object->geometryType == GeometryTypes::COMPOSITE_TYPE) {
         for (temp = ((Composite *)object)->simpleBodies; temp != nullptr;
-            temp = temp->nextObject) {
+            temp = static_cast<SimpleBody *>(temp->nextObject)) {
             ParseHelpers::postProcessObject(temp);
         }
     } else {
