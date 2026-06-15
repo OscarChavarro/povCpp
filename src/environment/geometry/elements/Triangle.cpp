@@ -120,12 +120,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
-                temp = ((SmoothTriangle *)triangle)->N2;
-                ((SmoothTriangle *)triangle)->N2 =
-                    ((SmoothTriangle *)triangle)->N1;
-                ((SmoothTriangle *)triangle)->N1 = temp;
-            }
+            triangle->swapVertexNormals();
         }
         break;
 
@@ -138,12 +133,7 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
-                temp = ((SmoothTriangle *)triangle)->N2;
-                ((SmoothTriangle *)triangle)->N2 =
-                    ((SmoothTriangle *)triangle)->N1;
-                ((SmoothTriangle *)triangle)->N1 = temp;
-            }
+            triangle->swapVertexNormals();
         }
         break;
 
@@ -156,19 +146,12 @@ Triangle::computeTriangle(Triangle *triangle)
             temp = triangle->P2;
             triangle->P2 = triangle->P1;
             triangle->P1 = temp;
-            if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
-                temp = ((SmoothTriangle *)triangle)->N2;
-                ((SmoothTriangle *)triangle)->N2 =
-                    ((SmoothTriangle *)triangle)->N1;
-                ((SmoothTriangle *)triangle)->N1 = temp;
-            }
+            triangle->swapVertexNormals();
         }
         break;
     }
 
-    if (triangle->geometryType == GeometryTypes::SMOOTH_TRIANGLE_TYPE) {
-        Triangle::computeSmoothTriangle((SmoothTriangle *)triangle);
-    }
+    triangle->finalizeComputation();
     return (1);
 }
 
@@ -619,5 +602,19 @@ void
 SmoothTriangle::invert()
 {
     this->Inverted ^= true;
+}
+
+void
+SmoothTriangle::swapVertexNormals()
+{
+    Vector3Dd temp = this->N2;
+    this->N2 = this->N1;
+    this->N1 = temp;
+}
+
+void
+SmoothTriangle::finalizeComputation()
+{
+    Triangle::computeSmoothTriangle(this);
 }
 #include "java/util/PriorityQueue.txx"

@@ -53,22 +53,25 @@ ModelBuilder::getSphereShape()
 Light *
 ModelBuilder::getLightSourceShape()
 {
-    Light *newShape;
-
-    newShape = new Light;
+    PointLight *newShape = new PointLight();
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-    *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->pointsAt) = Vector3Dd(0.0, 0.0, 1.0);
-    newShape->geometryType = GeometryTypes::POINT_LIGHT_TYPE;
-    newShape->Inverted = false;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
-    newShape->Coeff = 10.0;
-    newShape->Radius = 0.35;
-    newShape->Falloff = 0.35;
     return (newShape);
+}
+
+Light *
+ModelBuilder::promoteToSpotLight(Light *old)
+{
+    SpotLight *newLight = new SpotLight();
+    if (newLight == nullptr) {
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
+        return old;
+    }
+    old->copyStateInto(newLight);
+    newLight->geometryType = GeometryTypes::SPOT_LIGHT_TYPE;
+    delete old;
+    return newLight;
 }
 
 Quadric *

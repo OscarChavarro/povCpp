@@ -1,0 +1,40 @@
+/**
+light.c
+
+This module implements the point light source primitive.
+*/
+
+#include "environment/light/PointLight.h"
+#include "environment/material/MaterialUtils.h"
+
+PointLight::PointLight()
+{
+    this->Center = Vector3Dd(0.0, 0.0, 0.0);
+    this->pointsAt = Vector3Dd(0.0, 0.0, 1.0);
+    this->geometryType = GeometryTypes::POINT_LIGHT_TYPE;
+    this->Inverted = false;
+    this->material = nullptr;
+    this->shapeColor = nullptr;
+    this->Coeff = 10.0;
+    this->Radius = 0.35;
+    this->Falloff = 0.35;
+    this->Next_Light_Source = nullptr;
+}
+
+double
+PointLight::attenuate(const RayWithSegments *lightSourceRay) const
+{
+    return 1.0;
+}
+
+void *
+PointLight::copy()
+{
+    PointLight * const newLight = new PointLight();
+    if (newLight == nullptr) {
+        return nullptr;
+    }
+    copyStateInto(newLight);
+    return newLight;
+}
+#include "java/util/PriorityQueue.txx"

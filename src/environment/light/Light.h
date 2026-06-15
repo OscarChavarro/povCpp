@@ -14,19 +14,16 @@ class Light : public Geometry {
     double Radius;
     double Falloff;
 
-    static double attenuateLight(
-        const Light *lightSource, const RayWithSegments *lightSourceRay);
+    virtual double attenuate(const RayWithSegments *lightSourceRay) const = 0;
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
-    void *copy() override;
+    void *copy() override = 0;
     void translate(Vector3Dd *vector) override;
     void rotate(Vector3Dd *vector) override;
     void scale(Vector3Dd *vector) override;
     void invert() override;
-
-  private:
-    static double cubicSpline(double low, double high, double pos);
+    void copyStateInto(Light *dst) const;
 };
 
 #endif

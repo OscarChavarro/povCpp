@@ -29,7 +29,7 @@ LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
     lightSourceRay->direction =
         lightSourceRay->direction.multiply(1.0 / (*lightSourceDepth));
 
-    attenuation = Light::attenuateLight(lightSource, lightSourceRay);
+    attenuation = lightSource->attenuate(lightSourceRay);
 
     // Now scale the color by the attenuation
     lightColor->setR(lightColor->getR() * attenuation);
