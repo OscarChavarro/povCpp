@@ -1018,7 +1018,7 @@ ParametricBiCubicPatch::copy()
 }
 
 void
-ParametricBiCubicPatch::translate(Vector3Dd *vector)
+ParametricBiCubicPatch::translateGeometry(Vector3Dd *vector)
 {
     ParametricBiCubicPatch * const patch = this;
     int i;
@@ -1030,11 +1030,17 @@ ParametricBiCubicPatch::translate(Vector3Dd *vector)
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
+}
+
+void
+ParametricBiCubicPatch::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-ParametricBiCubicPatch::rotate(Vector3Dd *vector)
+ParametricBiCubicPatch::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
@@ -1050,11 +1056,17 @@ ParametricBiCubicPatch::rotate(Vector3Dd *vector)
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
+}
+
+void
+ParametricBiCubicPatch::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-ParametricBiCubicPatch::scale(Vector3Dd *vector)
+ParametricBiCubicPatch::scaleGeometry(Vector3Dd *vector)
 {
     ParametricBiCubicPatch * const patch = this;
     int i;
@@ -1066,14 +1078,25 @@ ParametricBiCubicPatch::scale(Vector3Dd *vector)
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
+}
+
+void
+ParametricBiCubicPatch::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
-// Inversion of a patch really doesn't make sense
+void
+ParametricBiCubicPatch::invertGeometry()
+{
+    ;
+}
+
 void
 ParametricBiCubicPatch::invert()
 {
-    ;
+    invertGeometry();
 }
 
 int

@@ -867,7 +867,7 @@ PolynomialShape::copy()
 }
 
 void
-PolynomialShape::translate(Vector3Dd *vector)
+PolynomialShape::translateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -883,12 +883,17 @@ PolynomialShape::translate(Vector3Dd *vector)
     *shape->transformation = shape->transformation->multiply(deltaTransformation);
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
-
-    MaterialUtils::instance().translateTexture(&shape->material, vector);
 }
 
 void
-PolynomialShape::rotate(Vector3Dd *vector)
+PolynomialShape::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
+}
+
+void
+PolynomialShape::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -901,12 +906,17 @@ PolynomialShape::rotate(Vector3Dd *vector)
     *shape->transformation = shape->transformation->multiply(deltaTransformation);
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
-
-    MaterialUtils::instance().rotateTexture(&shape->material, vector);
 }
 
 void
-PolynomialShape::scale(Vector3Dd *vector)
+PolynomialShape::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
+}
+
+void
+PolynomialShape::scaleGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -921,13 +931,24 @@ PolynomialShape::scale(Vector3Dd *vector)
     *shape->transformation = shape->transformation->multiply(deltaTransformation);
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
+}
 
-    MaterialUtils::instance().scaleTexture(&shape->material, vector);
+void
+PolynomialShape::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
+}
+
+void
+PolynomialShape::invertGeometry()
+{
+    this->inverted = !this->inverted;
 }
 
 void
 PolynomialShape::invert()
 {
-    this->inverted = !this->inverted;
+    invertGeometry();
 }
 #include "java/util/PriorityQueue.txx"

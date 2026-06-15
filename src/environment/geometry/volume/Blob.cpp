@@ -573,7 +573,7 @@ Blob::copy()
 }
 
 void
-Blob::translate(Vector3Dd *vector)
+Blob::translateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -589,12 +589,17 @@ Blob::translate(Vector3Dd *vector)
     *blob->transformation = blob->transformation->multiply(deltaTransformation);
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
+}
 
+void
+Blob::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Blob::rotate(Vector3Dd *vector)
+Blob::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -607,12 +612,17 @@ Blob::rotate(Vector3Dd *vector)
     *blob->transformation = blob->transformation->multiply(deltaTransformation);
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
+}
 
+void
+Blob::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Blob::scale(Vector3Dd *vector)
+Blob::scaleGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -627,13 +637,24 @@ Blob::scale(Vector3Dd *vector)
     *blob->transformation = blob->transformation->multiply(deltaTransformation);
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
+}
 
+void
+Blob::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
+}
+
+void
+Blob::invertGeometry()
+{
+    this->inverted = !this->inverted;
 }
 
 void
 Blob::invert()
 {
-    this->inverted = !this->inverted;
+    invertGeometry();
 }
 #include "java/util/PriorityQueue.txx"

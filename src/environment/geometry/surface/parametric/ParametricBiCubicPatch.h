@@ -58,6 +58,10 @@ class ParametricBiCubicPatch : public Geometry {
     void rotate(Vector3Dd *vector) override;
     void scale(Vector3Dd *vector) override;
     void invert() override;
+    void translateGeometry(Vector3Dd *vector);
+    void rotateGeometry(Vector3Dd *vector);
+    void scaleGeometry(Vector3Dd *vector);
+    void invertGeometry();
 
   private:
     static void parametricPartial(

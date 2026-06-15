@@ -144,25 +144,37 @@ Sphere::copy()
 }
 
 void
-Sphere::translate(Vector3Dd *vector)
+Sphere::translateGeometry(Vector3Dd *vector)
 {
     this->center = this->center.add(*vector);
+}
+
+void
+Sphere::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Sphere::rotate(Vector3Dd *vector)
+Sphere::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     this->center = transformation.transpose().multiply(this->center);
+}
+
+void
+Sphere::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Sphere::scale(Vector3Dd *vector)
+Sphere::scaleGeometry(Vector3Dd *vector)
 {
     Sphere * const sphere = this;
 
@@ -175,12 +187,24 @@ Sphere::scale(Vector3Dd *vector)
     sphere->radius *= vector->x();
     sphere->radiusSquared = sphere->radius * sphere->radius;
     sphere->inverseRadius = 1.0 / sphere->radius;
+}
+
+void
+Sphere::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
+}
+
+void
+Sphere::invertGeometry()
+{
+    this->inverted ^= true;
 }
 
 void
 Sphere::invert()
 {
-    this->inverted ^= true;
+    invertGeometry();
 }
 #include "java/util/PriorityQueue.txx"
