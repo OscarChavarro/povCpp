@@ -6,10 +6,10 @@
 class ParametricPatchNode {
   public:
     int nodeType;
-    Vector3Dd Center;
+    Vector3Dd center;
     double radiusSquared;
-    int Count;
-    void *Data_Ptr;
+    int count;
+    void *dataPtr;
 };
 
 #endif

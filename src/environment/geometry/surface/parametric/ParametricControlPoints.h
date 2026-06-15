@@ -5,7 +5,7 @@
 
 class ParametricControlPoints {
   public:
-    Vector3Dd Vertices[4];
+    Vector3Dd vertices[4];
 };
 
 #endif

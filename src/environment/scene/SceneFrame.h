@@ -13,7 +13,7 @@ class RenderFrame {
     Camera viewPoint;
     int screenHeight;
     int screenWidth;
-    Light *Light_Sources;
+    Light *lightSources;
     java::ArrayList<SceneObject*> Objects{4};
     double atmosphereIor;
     double antialiasThreshold;

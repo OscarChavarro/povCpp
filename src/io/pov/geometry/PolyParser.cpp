@@ -54,7 +54,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 }
                 order = (int)PrimitiveParser::parseFloat(ctx);
                 if (order < 2 || order > PolynomialSolver::MAX_ORDER) {
-                    ParseErrorReporter::reportError("Order of Poly is out of range", ctx);
+                    ParseErrorReporter::reportError("order of Poly is out of range", ctx);
                 }
                 localShape = ModelBuilder::getPolyShape(
                     order, PolynomialShape::termCountsByOrder());
@@ -66,7 +66,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                     Logger::reportMessage("PolyParser", Logger::WARNING, "", "Need the order of the Poly");
                 }
                 PrimitiveParser::parseCoeffs(
-                    localShape->Order, &(localShape->Coeffs[0]));
+                    localShape->order, &(localShape->Coeffs[0]));
                 Exit_Flag = true;
                 break;
 

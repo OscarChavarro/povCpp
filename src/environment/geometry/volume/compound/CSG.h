@@ -9,7 +9,7 @@
 class CSG : public Geometry {
   public:
     GeometryTypes geometryType;
-    java::ArrayList<Geometry*> Shapes{4};
+    java::ArrayList<Geometry*> shapes{4};
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

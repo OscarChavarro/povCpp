@@ -480,9 +480,9 @@ Blob::inside(Vector3Dd *testPoint)
 
     if (Blob::calculateFieldValue((SimpleBody *)this, &newPoint) >
         blob->threshold - INSIDE_TOLERANCE) {
-        return ((int)1 - blob->Inverted);
+        return ((int)1 - blob->inverted);
     }
-    return ((int)blob->Inverted);
+    return ((int)blob->inverted);
 }
 
 void
@@ -634,6 +634,6 @@ Blob::scale(Vector3Dd *vector)
 void
 Blob::invert()
 {
-    this->Inverted = !this->Inverted;
+    this->inverted = !this->inverted;
 }
 #include "java/util/PriorityQueue.txx"

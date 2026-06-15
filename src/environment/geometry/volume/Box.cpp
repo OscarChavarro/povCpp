@@ -217,16 +217,16 @@ Box::inside(Vector3Dd *testPoint)
 
     // Test to see if we are inside the box
     if (newPoint.x() < box->bounds[0].x() || newPoint.x() > box->bounds[1].x()) {
-        return ((int)box->Inverted);
+        return ((int)box->inverted);
     }
     if (newPoint.y() < box->bounds[0].y() || newPoint.y() > box->bounds[1].y()) {
-        return ((int)box->Inverted);
+        return ((int)box->inverted);
     }
     if (newPoint.z() < box->bounds[0].z() || newPoint.z() > box->bounds[1].z()) {
-        return ((int)box->Inverted);
+        return ((int)box->inverted);
     }
     // Inside the box
-    return 1 - box->Inverted;
+    return 1 - box->inverted;
 }
 
 void
@@ -353,6 +353,6 @@ Box::scale(Vector3Dd *vector)
 void
 Box::invert()
 {
-    this->Inverted = !this->Inverted;
+    this->inverted = !this->inverted;
 }
 #include "java/util/PriorityQueue.txx"

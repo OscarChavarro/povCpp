@@ -50,47 +50,47 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 break;
 
             case Tokenizer::LOCATION_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Location), ctx);
+                PrimitiveParser::parseVector(&(givenVp->location), ctx);
                 break;
 
             case Tokenizer::DIRECTION_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Direction), ctx);
+                PrimitiveParser::parseVector(&(givenVp->direction), ctx);
                 break;
 
             case Tokenizer::UP_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Up), ctx);
+                PrimitiveParser::parseVector(&(givenVp->up), ctx);
                 break;
 
             case Tokenizer::RIGHT_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Right), ctx);
+                PrimitiveParser::parseVector(&(givenVp->right), ctx);
                 break;
 
             case Tokenizer::SKY_TOKEN:
-                PrimitiveParser::parseVector(&(givenVp->Sky), ctx);
+                PrimitiveParser::parseVector(&(givenVp->sky), ctx);
                 break;
 
             case Tokenizer::LOOK_AT_TOKEN:
-                directionLength = givenVp->Direction.length();
-                upLength = givenVp->Up.length();
-                rightLength = givenVp->Right.length();
-                tempVector = givenVp->Direction.crossProduct(givenVp->Up);
-                handedness = tempVector.dotProduct(givenVp->Right);
-                PrimitiveParser::parseVector(&givenVp->Direction, ctx);
+                directionLength = givenVp->direction.length();
+                upLength = givenVp->up.length();
+                rightLength = givenVp->right.length();
+                tempVector = givenVp->direction.crossProduct(givenVp->up);
+                handedness = tempVector.dotProduct(givenVp->right);
+                PrimitiveParser::parseVector(&givenVp->direction, ctx);
 
-                givenVp->Direction =
-                    givenVp->Direction.subtract(givenVp->Location);
-                givenVp->Direction = givenVp->Direction.normalizedFast();
-                givenVp->Right = givenVp->Direction.crossProduct(givenVp->Sky);
-                givenVp->Right = givenVp->Right.normalizedFast();
-                givenVp->Up = givenVp->Right.crossProduct(givenVp->Direction);
-                givenVp->Direction = givenVp->Direction.multiply(directionLength);
+                givenVp->direction =
+                    givenVp->direction.subtract(givenVp->location);
+                givenVp->direction = givenVp->direction.normalizedFast();
+                givenVp->right = givenVp->direction.crossProduct(givenVp->sky);
+                givenVp->right = givenVp->right.normalizedFast();
+                givenVp->up = givenVp->right.crossProduct(givenVp->direction);
+                givenVp->direction = givenVp->direction.multiply(directionLength);
                 if (handedness >= 0.0) {
-                    givenVp->Right = givenVp->Right.multiply(rightLength);
+                    givenVp->right = givenVp->right.multiply(rightLength);
                 } else {
-                    givenVp->Right = givenVp->Right.multiply(-rightLength);
+                    givenVp->right = givenVp->right.multiply(-rightLength);
                 }
 
-                givenVp->Up = givenVp->Up.multiply(upLength);
+                givenVp->up = givenVp->up.multiply(upLength);
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

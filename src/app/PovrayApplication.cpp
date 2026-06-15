@@ -60,7 +60,7 @@ PovrayApplication::printStatistics(
 
     fprintf(statOut, "  Ray->Shape Intersection Tests:\n");
     fprintf(statOut,
-        "    Type                 Tests     Succeeded    Percentage\n");
+        "    type                 Tests     Succeeded    Percentage\n");
     fprintf(statOut,
         "  -----------------------------------------------------------\n");
 #define PRINT_INTERSECTION_ROW(label, tests, succeeded)                         \

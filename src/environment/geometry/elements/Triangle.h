@@ -12,12 +12,12 @@ class Triangle : public Geometry {
     double Distance;
     double VPNormDotOrigin;
     unsigned int VPCached : 1;
-    unsigned int Dominant_Axis : 2;
-    unsigned int Inverted : 1;
+    unsigned int dominantAxis : 2;
+    unsigned int inverted : 1;
     unsigned int vAxis : 2;
-    Vector3Dd P1;
-    Vector3Dd P2;
-    Vector3Dd P3;
+    Vector3Dd p1;
+    Vector3Dd p2;
+    Vector3Dd p3;
     bool degenerateFlag;
 
     static int computeTriangle(Triangle *triangle);

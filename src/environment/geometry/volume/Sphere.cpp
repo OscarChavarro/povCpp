@@ -19,19 +19,19 @@ Sphere::intersectSphere(
 
     if (ray->isPrimaryRay) {
         if (!sphere->VPCached) {
-            sphere->VPOtoC = sphere->Center.subtract(ray->position);
-            sphere->VPOCSquared = sphere->VPOtoC.dotProduct(sphere->VPOtoC);
+            sphere->vpOtoC = sphere->center.subtract(ray->position);
+            sphere->VPOCSquared = sphere->vpOtoC.dotProduct(sphere->vpOtoC);
             sphere->VPinside = (sphere->VPOCSquared < sphere->radiusSquared);
             sphere->VPCached = true;
         }
-        tClosestApproach = sphere->VPOtoC.dotProduct(ray->direction);
+        tClosestApproach = sphere->vpOtoC.dotProduct(ray->direction);
         if (!sphere->VPinside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
             return false;
         }
         tHalfChordSquared = sphere->radiusSquared - sphere->VPOCSquared +
                             (tClosestApproach * tClosestApproach);
     } else {
-        originToCenter = sphere->Center.subtract(ray->position);
+        originToCenter = sphere->center.subtract(ray->position);
         ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->radiusSquared);
         tClosestApproach = originToCenter.dotProduct(ray->direction);
@@ -109,10 +109,10 @@ Sphere::inside(Vector3Dd *testPoint)
     double ocSquared;
     const Sphere *sphere = this;
 
-    originToCenter = sphere->Center.subtract(*testPoint);
+    originToCenter = sphere->center.subtract(*testPoint);
     ocSquared = originToCenter.dotProduct(originToCenter);
 
-    if (sphere->Inverted) {
+    if (sphere->inverted) {
         return (ocSquared - sphere->radiusSquared > GeometryConstants::Small_Tolerance);
     }
     return (ocSquared - sphere->radiusSquared < GeometryConstants::Small_Tolerance);
@@ -123,7 +123,7 @@ Sphere::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     const Sphere *sphere = this;
 
-    *result = intersectionPoint->subtract(sphere->Center);
+    *result = intersectionPoint->subtract(sphere->center);
     *result = (*result).multiply(sphere->inverseRadius);
 }
 
@@ -146,7 +146,7 @@ Sphere::copy()
 void
 Sphere::translate(Vector3Dd *vector)
 {
-    this->Center = this->Center.add(*vector);
+    this->center = this->center.add(*vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
@@ -157,7 +157,7 @@ Sphere::rotate(Vector3Dd *vector)
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    this->Center = transformation.transpose().multiply(this->Center);
+    this->center = transformation.transpose().multiply(this->center);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
@@ -171,16 +171,16 @@ Sphere::scale(Vector3Dd *vector)
         *vector = Vector3Dd(s, s, s);
     }
 
-    sphere->Center = sphere->Center.multiply(vector->x());
-    sphere->Radius *= vector->x();
-    sphere->radiusSquared = sphere->Radius * sphere->Radius;
-    sphere->inverseRadius = 1.0 / sphere->Radius;
+    sphere->center = sphere->center.multiply(vector->x());
+    sphere->radius *= vector->x();
+    sphere->radiusSquared = sphere->radius * sphere->radius;
+    sphere->inverseRadius = 1.0 / sphere->radius;
     MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
 Sphere::invert()
 {
-    this->Inverted ^= true;
+    this->inverted ^= true;
 }
 #include "java/util/PriorityQueue.txx"

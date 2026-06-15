@@ -8,12 +8,12 @@
 
 class Camera : public TransformableElement {
   public:
-    GeometryTypes Type;
-    Vector3Dd Location;
-    Vector3Dd Direction;
-    Vector3Dd Up;
-    Vector3Dd Right;
-    Vector3Dd Sky;
+    GeometryTypes type;
+    Vector3Dd location;
+    Vector3Dd direction;
+    Vector3Dd up;
+    Vector3Dd right;
+    Vector3Dd sky;
 
     void initializeDefaults();
 

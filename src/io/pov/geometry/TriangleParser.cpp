@@ -39,9 +39,9 @@ TriangleParser::parseTriangle(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getTriangleShape();
-                PrimitiveParser::parseVector(&localShape->P1, ctx);
-                PrimitiveParser::parseVector(&localShape->P2, ctx);
-                PrimitiveParser::parseVector(&localShape->P3, ctx);
+                PrimitiveParser::parseVector(&localShape->p1, ctx);
+                PrimitiveParser::parseVector(&localShape->p2, ctx);
+                PrimitiveParser::parseVector(&localShape->p3, ctx);
                 if (!Triangle::computeTriangle(localShape)) {
                     {
                         char _logMsg[1024];

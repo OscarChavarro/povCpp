@@ -5,7 +5,7 @@
 
 class ParametricPatchChild {
   public:
-    ParametricPatchNode *Children[4];
+    ParametricPatchNode *children[4];
 };
 
 #endif

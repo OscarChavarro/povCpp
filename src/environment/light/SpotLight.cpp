@@ -10,16 +10,16 @@ This module implements the spot light source primitive.
 
 SpotLight::SpotLight()
 {
-    this->Center = Vector3Dd(0.0, 0.0, 0.0);
+    this->center = Vector3Dd(0.0, 0.0, 0.0);
     this->pointsAt = Vector3Dd(0.0, 0.0, 1.0);
     this->geometryType = GeometryTypes::SPOT_LIGHT_TYPE;
-    this->Inverted = false;
+    this->inverted = false;
     this->material = nullptr;
     this->shapeColor = nullptr;
-    this->Coeff = 10.0;
-    this->Radius = 0.35;
-    this->Falloff = 0.35;
-    this->Next_Light_Source = nullptr;
+    this->coeff = 10.0;
+    this->radius = 0.35;
+    this->falloff = 0.35;
+    this->nextLightSource = nullptr;
 }
 
 double
@@ -47,17 +47,17 @@ SpotLight::attenuate(const RayWithSegments *lightSourceRay) const
     double attenuation = 1.0;
     Vector3Dd spotDirection;
 
-    spotDirection = this->pointsAt.subtract(this->Center);
+    spotDirection = this->pointsAt.subtract(this->center);
     len = spotDirection.length();
     if (len > 0.0) {
         spotDirection = Vector3Dd(spotDirection.x() / len, spotDirection.y() / len, spotDirection.z() / len);
         costheta = lightSourceRay->direction.dotProduct(spotDirection);
         costheta *= -1.0;
         if (costheta > 0.0) {
-            attenuation = java::Math::pow(costheta, this->Coeff);
-            if (this->Radius > 0.0) {
+            attenuation = java::Math::pow(costheta, this->coeff);
+            if (this->radius > 0.0) {
                 attenuation *= SpotLight::cubicSpline(
-                    this->Falloff, this->Radius, costheta);
+                    this->falloff, this->radius, costheta);
             }
         } else {
             attenuation = 0.0;

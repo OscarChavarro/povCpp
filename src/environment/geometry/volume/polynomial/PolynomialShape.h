@@ -9,8 +9,8 @@ class PolynomialShape : public Geometry {
   public:
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
-    bool Inverted;
-    int Order;
+    bool inverted;
+    int order;
     int sturmFlag;
     double *Coeffs;
 

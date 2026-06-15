@@ -9,12 +9,12 @@ This module implements methods for managing the viewpoint.
 void
 Camera::initializeDefaults()
 {
-    this->Type = GeometryTypes::VIEWPOINT_TYPE;
-    *&this->Location = Vector3Dd(0.0, 0.0, 0.0);
-    *&this->Direction = Vector3Dd(0.0, 0.0, 1.0);
-    *&this->Up = Vector3Dd(0.0, 1.0, 0.0);
-    *&this->Right = Vector3Dd(1.33, 0.0, 0.0);
-    *&this->Sky = Vector3Dd(0.0, 1.0, 0.0);
+    this->type = GeometryTypes::VIEWPOINT_TYPE;
+    *&this->location = Vector3Dd(0.0, 0.0, 0.0);
+    *&this->direction = Vector3Dd(0.0, 0.0, 1.0);
+    *&this->up = Vector3Dd(0.0, 1.0, 0.0);
+    *&this->right = Vector3Dd(1.33, 0.0, 0.0);
+    *&this->sky = Vector3Dd(0.0, 1.0, 0.0);
 }
 
 void *
@@ -27,17 +27,17 @@ Camera::copy()
     }
     newViewpoint->initializeDefaults();
 
-    newViewpoint->Location = viewpoint->Location;
-    newViewpoint->Direction = viewpoint->Direction;
-    newViewpoint->Right = viewpoint->Right;
-    newViewpoint->Up = viewpoint->Up;
+    newViewpoint->location = viewpoint->location;
+    newViewpoint->direction = viewpoint->direction;
+    newViewpoint->right = viewpoint->right;
+    newViewpoint->up = viewpoint->up;
     return (newViewpoint);
 }
 
 void
 Camera::translate(Vector3Dd *vector)
 {
-    this->Location = this->Location.add(*vector);
+    this->location = this->location.add(*vector);
 }
 
 void
@@ -48,10 +48,10 @@ Camera::rotate(Vector3Dd *vector)
     Camera * const viewpoint = this;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    viewpoint->Location = transformation.transpose().multiply(viewpoint->Location);
-    viewpoint->Direction = transformation.transpose().multiply(viewpoint->Direction);
-    viewpoint->Up = transformation.transpose().multiply(viewpoint->Up);
-    viewpoint->Right = transformation.transpose().multiply(viewpoint->Right);
+    viewpoint->location = transformation.transpose().multiply(viewpoint->location);
+    viewpoint->direction = transformation.transpose().multiply(viewpoint->direction);
+    viewpoint->up = transformation.transpose().multiply(viewpoint->up);
+    viewpoint->right = transformation.transpose().multiply(viewpoint->right);
 }
 
 void
@@ -61,9 +61,9 @@ Camera::scale(Vector3Dd *vector)
     Camera * const viewpoint = this;
 
     transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    viewpoint->Location = transformation.transpose().multiply(viewpoint->Location);
-    viewpoint->Direction = transformation.transpose().multiply(viewpoint->Direction);
-    viewpoint->Up = transformation.transpose().multiply(viewpoint->Up);
-    viewpoint->Right = transformation.transpose().multiply(viewpoint->Right);
+    viewpoint->location = transformation.transpose().multiply(viewpoint->location);
+    viewpoint->direction = transformation.transpose().multiply(viewpoint->direction);
+    viewpoint->up = transformation.transpose().multiply(viewpoint->up);
+    viewpoint->right = transformation.transpose().multiply(viewpoint->right);
 }
 #include "java/util/PriorityQueue.txx"

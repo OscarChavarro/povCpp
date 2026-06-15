@@ -40,15 +40,15 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape =
                     (SmoothTriangle *)ModelBuilder::getSmoothTriangleShape();
-                PrimitiveParser::parseVector(&localShape->P1, ctx);
-                PrimitiveParser::parseVector(&localShape->N1, ctx);
-                localShape->N1 = localShape->N1.normalizedFast();
-                PrimitiveParser::parseVector(&localShape->P2, ctx);
-                PrimitiveParser::parseVector(&localShape->N2, ctx);
-                localShape->N2 = localShape->N2.normalizedFast();
-                PrimitiveParser::parseVector(&localShape->P3, ctx);
-                PrimitiveParser::parseVector(&localShape->N3, ctx);
-                localShape->N3 = localShape->N3.normalizedFast();
+                PrimitiveParser::parseVector(&localShape->p1, ctx);
+                PrimitiveParser::parseVector(&localShape->n1, ctx);
+                localShape->n1 = localShape->n1.normalizedFast();
+                PrimitiveParser::parseVector(&localShape->p2, ctx);
+                PrimitiveParser::parseVector(&localShape->n2, ctx);
+                localShape->n2 = localShape->n2.normalizedFast();
+                PrimitiveParser::parseVector(&localShape->p3, ctx);
+                PrimitiveParser::parseVector(&localShape->n3, ctx);
+                localShape->n3 = localShape->n3.normalizedFast();
                 if (!Triangle::computeTriangle((Triangle *)localShape)) {
                     {
                         char _logMsg[1024];

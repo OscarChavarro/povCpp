@@ -10,7 +10,7 @@ class Box : public Geometry {
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     Vector3Dd bounds[2];
-    bool Inverted;
+    bool inverted;
 
     static int intersectBoxx(const RayWithSegments *ray, const Box *box,
         double *depth1, double *depth2);
