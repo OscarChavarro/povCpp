@@ -3,9 +3,11 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/elements/GeometryTypes.h"
 
 class Light : public Geometry {
   public:
+    GeometryTypes geometryType;
     Vector3Dd Center;
     Vector3Dd pointsAt;
     Light *Next_Light_Source;

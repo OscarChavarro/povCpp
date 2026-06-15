@@ -28,7 +28,6 @@ SimpleBody::createBasicObject()
     newObject->objectTexture = MaterialUtils::instance().defaultTexture();
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
-    newObject->geometryType = GeometryTypes::OBJECT_TYPE;
     return newObject;
 }
 

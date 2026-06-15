@@ -57,18 +57,15 @@ ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
 {
     Geometry *tempShape;
 
-    if ((shape->geometryType == GeometryTypes::CSG_UNION_TYPE) ||
-        (shape->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) ||
-        (shape->geometryType == GeometryTypes::CSG_DIFFERENCE_TYPE)) {
-        java::ArrayList<Geometry*> &shapes = ((CSG *)shape)->Shapes;
+    if (CSG *csg = dynamic_cast<CSG *>(shape)) {
+        java::ArrayList<Geometry*> &shapes = csg->Shapes;
         for (long int i = shapes.size() - 1; i >= 0; i--) {
             tempShape = shapes[i];
             ParseHelpers::postProcessShape(tempShape);
         }
-    } else if ((shape->geometryType == GeometryTypes::POINT_LIGHT_TYPE) ||
-               (shape->geometryType == GeometryTypes::SPOT_LIGHT_TYPE)) {
-        ParseHelpers::linkShapes((Light *)shape,
-            &(((Light *)shape)->Next_Light_Source),
+    } else if (Light *light = dynamic_cast<Light *>(shape)) {
+        ParseHelpers::linkShapes(light,
+            &(light->Next_Light_Source),
             &(ctx.parsingFrame()->Light_Sources));
     }
 }

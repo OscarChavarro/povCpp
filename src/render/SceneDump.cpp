@@ -15,7 +15,7 @@ void SceneDumper::dumpSceneStructure(FILE *f)
     java::ArrayList<SceneObject*> &sceneObjects = RenderEngine::renderFrame().Objects;
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         const SimpleBody *obj = sceneObjects[i];
-        fprintf(f, "OBJ %03d type=%d\n", idx, static_cast<int>(obj->geometryType));
+        fprintf(f, "OBJ %03d\n", idx);
 
         if (obj->objectTexture) {
             const Material * const tex = obj->objectTexture;
