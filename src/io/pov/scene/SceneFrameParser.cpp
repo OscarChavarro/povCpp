@@ -43,14 +43,12 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
 
             case Tokenizer::OBJECT_TOKEN:
                 localObject = ObjectParser::parseObject(ctx);
-                SimpleBodyFactory::link(localObject, (SimpleBody **)&(localObject->nextObject),
-                    &(framePtr->Objects));
+                framePtr->Objects.add(localObject);
                 break;
 
             case Tokenizer::COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite(ctx);
-                SimpleBodyFactory::link(localObject, (SimpleBody **)&(localObject->nextObject),
-                    &(framePtr->Objects));
+                framePtr->Objects.add(localObject);
                 break;
 
             case Tokenizer::VIEW_POINT_TOKEN:
@@ -72,4 +70,5 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
         }
     }
 }
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"

@@ -106,7 +106,6 @@ InfinitePlane::copy()
 
     newShape = new InfinitePlane;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
         newShape->material =

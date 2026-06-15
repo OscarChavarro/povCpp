@@ -134,7 +134,6 @@ Sphere::copy()
 
     newShape = new Sphere;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
         newShape->material =

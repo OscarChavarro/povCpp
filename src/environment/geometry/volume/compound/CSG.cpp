@@ -8,14 +8,7 @@ This module implements routines for constructive solid geometry.
 */
 
 #include "environment/geometry/volume/compound/CSG.h"
-
-inline void
-CSG::linkShapeNode(
-    Geometry *newObject, Geometry **field, Geometry **oldObjectList)
-{
-    *field = *oldObjectList;
-    *oldObjectList = newObject;
-}
+#include "java/util/ArrayList.txx"
 
 int
 CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
@@ -35,8 +28,8 @@ CSG::allCsgUnionIntersections(
     Geometry *localShape;
 
     intersectionFound = false;
-    for (localShape = shape->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->Shapes[i];
         if (GeometryOperations::allIntersections(
                 localShape, ray, depthQueue)) {
             intersectionFound = true;
@@ -62,8 +55,8 @@ CSG::allCsgIntersectIntersections(
 
     anyIntersectionFound = false;
 
-    for (localShape = shape->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->Shapes[i];
 
         GeometryOperations::allIntersections(
             localShape, ray, localDepthQueue);
@@ -73,8 +66,8 @@ CSG::allCsgIntersectIntersections(
 
             intersectionFound = true;
 
-            for (shape2 = shape->Shapes; shape2 != nullptr;
-                shape2 = shape2->nextObject) {
+            for (long int j = shape->Shapes.size() - 1; j >= 0; j--) {
+                shape2 = shape->Shapes[j];
 
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
@@ -105,8 +98,8 @@ CSG::insideCsgUnion(Vector3Dd *testPoint)
     const CSG *shape = this;
     Geometry *localShape;
 
-    for (localShape = shape->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->Shapes[i];
 
         if (GeometryOperations::inside(testPoint, localShape)) {
             return (true);
@@ -121,8 +114,8 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint)
     Geometry *localShape;
     const CSG *shape = this;
 
-    for (localShape = shape->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->Shapes[i];
 
         if (!GeometryOperations::inside(testPoint, localShape)) {
             return (false);
@@ -142,17 +135,13 @@ CSG::copy()
 
     newShape = new CSG;
     newShape->geometryType = shape->geometryType;
-    newShape->nextObject = nullptr;
-    newShape->Shapes = nullptr;
 
-    for (localShape = shape->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = shape->Shapes.size() - 1; i >= 0; i--) {
+        localShape = shape->Shapes[i];
 
         copiedShape =
             (Geometry *)GeometryOperations::copy(localShape);
-        CSG::linkShapeNode(copiedShape,
-            &(copiedShape->nextObject),
-            &(newShape->Shapes));
+        newShape->Shapes.add(copiedShape);
     }
     return ((void *)newShape);
 }
@@ -162,8 +151,8 @@ CSG::translate(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (localShape = this->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = this->Shapes.size() - 1; i >= 0; i--) {
+        localShape = this->Shapes[i];
 
         GeometryOperations::translate(localShape, vector);
     }
@@ -174,8 +163,8 @@ CSG::rotate(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (localShape = this->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = this->Shapes.size() - 1; i >= 0; i--) {
+        localShape = this->Shapes[i];
 
         GeometryOperations::rotate(localShape, vector);
     }
@@ -186,8 +175,8 @@ CSG::scale(Vector3Dd *vector)
 {
     Geometry *localShape;
 
-    for (localShape = this->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = this->Shapes.size() - 1; i >= 0; i--) {
+        localShape = this->Shapes[i];
 
         GeometryOperations::scale(localShape, vector);
     }
@@ -205,8 +194,8 @@ CSG::invert()
         csg->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
     }
 
-    for (localShape = csg->Shapes; localShape != nullptr;
-        localShape = localShape->nextObject) {
+    for (long int i = csg->Shapes.size() - 1; i >= 0; i--) {
+        localShape = csg->Shapes[i];
 
         GeometryOperations::invert(localShape);
     }

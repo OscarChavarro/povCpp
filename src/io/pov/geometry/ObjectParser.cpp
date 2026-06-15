@@ -111,9 +111,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::SPHERE_TOKEN:
@@ -122,9 +120,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::PLANE_TOKEN:
@@ -133,9 +129,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::TRIANGLE_TOKEN:
@@ -144,9 +138,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
@@ -155,9 +147,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::QUADRIC_TOKEN:
@@ -166,9 +156,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
@@ -177,9 +165,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::CUBIC_TOKEN:
@@ -188,9 +174,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::QUARTIC_TOKEN:
@@ -199,9 +183,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::POLY_TOKEN:
@@ -210,9 +192,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::BOX_TOKEN:
@@ -221,9 +201,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::BLOB_TOKEN:
@@ -232,9 +210,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
@@ -243,9 +219,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::UNION_TOKEN:
@@ -255,9 +229,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
@@ -267,9 +239,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
@@ -279,9 +249,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(container->Shapes));
+                container->Shapes.add(localShape);
                 break;
 
             default:
@@ -500,9 +468,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 }
 
                 localShape = ObjectParser::parseShape(ctx);
-                SimpleBodyFactory::link((SimpleBody *)localShape,
-                    (SimpleBody **)&(localShape->nextObject),
-                    (SimpleBody **)&(object->geometry));
+                object->geometry = localShape;
                 Exit_Flag = true;
                 break;
 
@@ -537,9 +503,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            SimpleBodyFactory::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->nextObject),
-                                (SimpleBody **)&(object->boundingShapes));
+                            object->boundingShapes.add(localShape);
                             break;
                         }
                     }
@@ -563,9 +527,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            SimpleBodyFactory::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->nextObject),
-                                (SimpleBody **)&(object->clippingShapes));
+                            object->clippingShapes.add(localShape);
                             break;
                         }
                     }
@@ -672,9 +634,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 }
 
                 localObject = ObjectParser::parseComposite(ctx);
-                SimpleBodyFactory::link((SimpleBody *)localObject,
-                    (SimpleBody **)&(localObject->nextObject),
-                    (SimpleBody **)&(localComposite->simpleBodies));
+                localComposite->simpleBodies.add(localObject);
                 break;
 
             case Tokenizer::OBJECT_TOKEN:
@@ -682,8 +642,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite = ModelBuilder::getCompositeObject();
                 }
                 localObject = ObjectParser::parseObject(ctx);
-                SimpleBodyFactory::link(localObject, (SimpleBody **)&(localObject->nextObject),
-                    &(localComposite->simpleBodies));
+                localComposite->simpleBodies.add(localObject);
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
@@ -729,10 +688,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            SimpleBodyFactory::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->nextObject),
-                                (SimpleBody **)&(
-                                    localComposite->boundingShapes));
+                            localComposite->boundingShapes.add(localShape);
                             break;
                         }
                     }
@@ -756,10 +712,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            SimpleBodyFactory::link((SimpleBody *)localShape,
-                                (SimpleBody **)&(localShape->nextObject),
-                                (SimpleBody **)&(
-                                    localComposite->clippingShapes));
+                            localComposite->clippingShapes.add(localShape);
                             break;
                         }
                     }
@@ -797,4 +750,5 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
     return ((SimpleBody *)localComposite);
 }
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"

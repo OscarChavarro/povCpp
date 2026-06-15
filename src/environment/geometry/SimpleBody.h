@@ -1,6 +1,7 @@
 #ifndef __SIMPLE_BODY_H__
 #define __SIMPLE_BODY_H__
 
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/elements/GeometryTypes.h"
@@ -8,8 +9,8 @@
 
 class SimpleBody : public Geometry {
   public:
-    Geometry *boundingShapes;
-    Geometry *clippingShapes;
+    java::ArrayList<Geometry*> boundingShapes{4};
+    java::ArrayList<Geometry*> clippingShapes{4};
     Geometry *geometry;
     bool noShadowFlag;
     ColorRgba *objectColor;
@@ -25,10 +26,6 @@ class SimpleBody : public Geometry {
 
   protected:
     static SimpleBody *createBasicObject();
-    static inline void linkSimpleBody(
-        Geometry *newObject, Geometry **field, Geometry **oldObjectList);
-    static inline void linkSimpleBody(
-        SimpleBody *newObject, Geometry **field, SimpleBody **oldObjectList);
 };
 
 #endif

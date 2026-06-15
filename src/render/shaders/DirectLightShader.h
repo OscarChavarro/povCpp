@@ -1,6 +1,7 @@
 #ifndef __DIRECT_LIGHT_SHADER_H__
 #define __DIRECT_LIGHT_SHADER_H__
 
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/light/Light.h"
@@ -15,7 +16,7 @@ public:
         const RayWithSegments *eye, const Vector3Dd *surfaceNormal,
         const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, const Light *lightSources,
-        SimpleBody *objects);
+        java::ArrayList<SimpleBody*> &objects);
 };
 
 #endif

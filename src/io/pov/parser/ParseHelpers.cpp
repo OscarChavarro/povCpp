@@ -38,8 +38,9 @@ ParseHelpers::postProcessObject(SimpleBody *object)
     SimpleBody *temp;
 
     if (object->geometryType == GeometryTypes::COMPOSITE_TYPE) {
-        for (temp = ((Composite *)object)->simpleBodies; temp != nullptr;
-            temp = static_cast<SimpleBody *>(temp->nextObject)) {
+        java::ArrayList<SimpleBody*> &simpleBodies = ((Composite *)object)->simpleBodies;
+        for (long int i = simpleBodies.size() - 1; i >= 0; i--) {
+            temp = simpleBodies[i];
             ParseHelpers::postProcessObject(temp);
         }
     } else {
@@ -62,8 +63,9 @@ ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
     if ((shape->geometryType == GeometryTypes::CSG_UNION_TYPE) ||
         (shape->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) ||
         (shape->geometryType == GeometryTypes::CSG_DIFFERENCE_TYPE)) {
-        for (tempShape = ((CSG *)shape)->Shapes; tempShape != nullptr;
-            tempShape = tempShape->nextObject) {
+        java::ArrayList<Geometry*> &shapes = ((CSG *)shape)->Shapes;
+        for (long int i = shapes.size() - 1; i >= 0; i--) {
+            tempShape = shapes[i];
             ParseHelpers::postProcessShape(tempShape);
         }
     } else if ((shape->geometryType == GeometryTypes::POINT_LIGHT_TYPE) ||
@@ -73,4 +75,5 @@ ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
             &(ctx.parsingFrame()->Light_Sources));
     }
 }
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"

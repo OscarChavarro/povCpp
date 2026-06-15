@@ -939,7 +939,6 @@ HeightField::copy()
 
     newShape = new HeightField;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
         newShape->material =

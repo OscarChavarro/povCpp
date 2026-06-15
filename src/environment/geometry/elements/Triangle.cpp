@@ -381,7 +381,6 @@ Triangle::copy()
 
     newShape = new Triangle;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
         newShape->material =
@@ -548,7 +547,6 @@ SmoothTriangle::copy()
 
     newShape = new SmoothTriangle;
     *newShape = *this;
-    newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
         newShape->material =

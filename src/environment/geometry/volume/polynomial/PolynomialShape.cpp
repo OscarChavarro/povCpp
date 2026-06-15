@@ -843,7 +843,6 @@ PolynomialShape::copy()
     int i;
 
     *newShape = *shape;
-    newShape->nextObject = nullptr;
     newShape->Coeffs = new double[termCountsInstance[newShape->Order]];
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;

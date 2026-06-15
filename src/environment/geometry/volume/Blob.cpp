@@ -544,7 +544,6 @@ Blob::copy()
 
     blob = new Blob;
     memcpy((void *)blob, (const void *)oldShape, sizeof(Blob));
-    blob->nextObject = nullptr;
 
     // Allocate space and copy the blob specific data
     blob->list = new BlobElement[oldShape->count];
