@@ -12,6 +12,10 @@ class Box : public Geometry {
     Vector3Dd bounds[2];
     bool inverted;
 
+    Matrix4x4d* getTransformation() const { return transformation; }
+    Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
+    Vector3Dd* getBounds() { return bounds; }
+
     static int intersectBoxx(const RayWithSegments *ray, const Box *box,
         double *depth1, double *depth2);
 

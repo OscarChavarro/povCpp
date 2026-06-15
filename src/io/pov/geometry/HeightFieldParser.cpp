@@ -176,7 +176,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->constantFlag) {
+                if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
@@ -184,7 +184,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->shapeColor = ModelBuilder::getColor();
+                localShape->setShapeColor(ModelBuilder::getColor());
                 PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 

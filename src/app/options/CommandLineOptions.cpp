@@ -71,8 +71,8 @@ CommandLineOptions::loadDefaults()
     defined in config.h. CDW 2/92
     */
     // Set Diskwrite as default
-    RenderingConfiguration::global().options |= RenderingConfiguration::DISKWRITE;
-    RenderingConfiguration::global().outputFormat = RenderingConfiguration::DEFAULT_OUTPUT_FORMAT;
+    RenderingConfiguration::global().setOptionFlags(RenderingConfiguration::DISKWRITE);
+    RenderingConfiguration::global().setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
         readOptions(Option_String_Ptr);
@@ -219,14 +219,14 @@ CommandLineOptions::parseOption(const char *optionString)
     case 'f':
         optionNumber = RenderingConfiguration::DISKWRITE;
         if (isupper(optionString[1])) {
-            RenderingConfiguration::global().outputFormat = (char)tolower(optionString[1]);
+            RenderingConfiguration::global().setOutputFormat((char)tolower(optionString[1]));
         } else {
-            RenderingConfiguration::global().outputFormat = optionString[1];
+            RenderingConfiguration::global().setOutputFormat(optionString[1]);
         }
 
         // Default the output format to the default in the config file
-        if (RenderingConfiguration::global().outputFormat == '\0') {
-            RenderingConfiguration::global().outputFormat = RenderingConfiguration::DEFAULT_OUTPUT_FORMAT;
+        if (RenderingConfiguration::global().getOutputFormat() == '\0') {
+            RenderingConfiguration::global().setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
         }
         break;
 

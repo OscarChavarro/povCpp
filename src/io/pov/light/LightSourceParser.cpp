@@ -38,7 +38,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getLightSourceShape();
                 PrimitiveParser::parseVector(&(localShape->center), ctx);
-                localShape->shapeColor = ModelBuilder::getColor();
+                localShape->setShapeColor(ModelBuilder::getColor());
                 localShape->shapeColor->setR(1.0); localShape->shapeColor->setG(1.0); localShape->shapeColor->setB(1.0); localShape->shapeColor->setA(0.0);
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColor(localShape->shapeColor, ctx);

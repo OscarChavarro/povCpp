@@ -603,7 +603,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
             nullptr) {
             if (intersectionFound) {
-                if (localIntersection->Depth > newIntersection->Depth) {
+                if (localIntersection->depth > newIntersection->depth) {
                     delete localIntersection;
                     localIntersection = newIntersection;
                 } else {

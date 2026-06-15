@@ -138,7 +138,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 break;
 
             case Tokenizer::STURM_TOKEN:
-                localShape->sturmFlag = 1;
+                localShape->setSturmFlag(1);
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
@@ -165,14 +165,14 @@ BlobParser::parseBlob(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->constantFlag) {
+                if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 TextureParser::prependTextureLayers(localTexture, localShape->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->shapeColor = ModelBuilder::getColor();
+                localShape->setShapeColor(ModelBuilder::getColor());
                 PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 

@@ -41,15 +41,15 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBicubicPatchShape();
-                localShape->patchType = (int)PrimitiveParser::parseFloat(ctx);
+                localShape->setPatchType((int)PrimitiveParser::parseFloat(ctx));
                 if (localShape->patchType == 2 ||
                     localShape->patchType == 3) {
-                    localShape->flatnessValue = PrimitiveParser::parseFloat(ctx);
+                    localShape->setFlatnessValue(PrimitiveParser::parseFloat(ctx));
                 } else {
-                    localShape->flatnessValue = 0.1;
+                    localShape->setFlatnessValue(0.1);
                 }
-                localShape->uSteps = (int)PrimitiveParser::parseFloat(ctx);
-                localShape->vSteps = (int)PrimitiveParser::parseFloat(ctx);
+                localShape->setUSteps((int)PrimitiveParser::parseFloat(ctx));
+                localShape->setVSteps((int)PrimitiveParser::parseFloat(ctx));
                 for (i = 0; i < 4; i++) {
                     for (j = 0; j < 4; j++) {
                         PrimitiveParser::parseVector(
@@ -119,7 +119,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
                 localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->constantFlag) {
+                if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
@@ -127,7 +127,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->shapeColor = ModelBuilder::getColor();
+                localShape->setShapeColor(ModelBuilder::getColor());
                 PrimitiveParser::parseColor(localShape->shapeColor, ctx);
                 break;
 

@@ -196,12 +196,12 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         case Tokenizer::TEXTURE_TOKEN:
                             localTexture = MaterialUtils::instance().defaultTexture();
                             localTexture = TextureParser::parseTexture(ctx);
-                            if (localTexture->constantFlag) {
+                            if (localTexture->isConstant()) {
                                 localTexture =
                                     TextureParser::copyTexture(localTexture);
                             }
 
-                            localTexture->constantFlag = true;
+                            localTexture->setConstant(true);
 
                             {
                                 Material *existingHead = (Material *)constantPtr->constantData;

@@ -11,10 +11,15 @@ class Sphere : public Geometry {
     double radiusSquared;
     double inverseRadius;
     Vector3Dd vpOtoC;
-    double VPOCSquared;
-    short VPinside;
-    bool VPCached;
+    double vpOCSquared;
+    short vpInside;
+    bool vpCached;
     bool inverted;
+
+    double getRadius() const { return radius; }
+    void setRadius(double r) { radius = r; }
+    double getInverseRadius() const { return inverseRadius; }
+    void setInverseRadius(double ir) { inverseRadius = ir; }
 
     static int intersectSphere(const RayWithSegments *ray, Sphere *sphere,
         double *depth1, double *depth2);

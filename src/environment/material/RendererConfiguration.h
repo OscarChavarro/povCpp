@@ -1,6 +1,7 @@
 #ifndef __RENDERING_CONFIGURATION_H__
 #define __RENDERING_CONFIGURATION_H__
 
+#include <cstring>
 #include "environment/material/RenderOutput.h"
 
 class RenderingConfiguration {
@@ -33,6 +34,47 @@ class RenderingConfiguration {
     char verboseFormat;
     char paletteOption;
     char colorBits;
+
+    unsigned int getOptions() const { return options; }
+    void setOptions(unsigned int opts) { options = opts; }
+    void setOptionFlags(unsigned int flags) { options |= flags; }
+    int getQuality() const { return quality; }
+    void setQuality(int q) { quality = q; }
+    const char* getInputFileName() const { return inputFileName; }
+    void setInputFileName(const char* name) {
+        strncpy(inputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
+        inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+    }
+    const char* getOutputFileName() const { return outputFileName; }
+    void setOutputFileName(const char* name) {
+        strncpy(outputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
+        outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+    }
+    const char* getStatFileName() const { return statFileName; }
+    void setStatFileName(const char* name) {
+        strncpy(statFileName, name, RENDER_FILE_NAME_LENGTH - 1);
+        statFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+    }
+    RenderOutput* getOutputFileInputStream() const { return outputFileInputStream; }
+    void setOutputFileInputStream(RenderOutput* out) { outputFileInputStream = out; }
+    int getFileBufferSize() const { return fileBufferSize; }
+    void setFileBufferSize(int size) { fileBufferSize = size; }
+    double getAntialiasThreshold() const { return antialiasThreshold; }
+    void setAntialiasThreshold(double threshold) { antialiasThreshold = threshold; }
+    int getFirstLine() const { return firstLine; }
+    void setFirstLine(int line) { firstLine = line; }
+    int getLastLine() const { return lastLine; }
+    void setLastLine(int line) { lastLine = line; }
+    char getDisplayFormat() const { return displayFormat; }
+    void setDisplayFormat(char format) { displayFormat = format; }
+    char getOutputFormat() const { return outputFormat; }
+    void setOutputFormat(char format) { outputFormat = format; }
+    char getVerboseFormat() const { return verboseFormat; }
+    void setVerboseFormat(char format) { verboseFormat = format; }
+    char getPaletteOption() const { return paletteOption; }
+    void setPaletteOption(char option) { paletteOption = option; }
+    char getColorBits() const { return colorBits; }
+    void setColorBits(char bits) { colorBits = bits; }
 
     static RenderingConfiguration &global();
     void reset();

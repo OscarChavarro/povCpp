@@ -41,7 +41,7 @@ ModelBuilder::getSphereShape()
     newShape->radius = 1.0;
     newShape->radiusSquared = 1.0;
     newShape->inverseRadius = 1.0;
-    newShape->VPCached = false;
+    newShape->vpCached = false;
     newShape->inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -211,8 +211,8 @@ ModelBuilder::getPlaneShape()
     }
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->Distance = 0.0;
-    newShape->VPCached = 0;
+    newShape->distance = 0.0;
+    newShape->vpCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -232,9 +232,9 @@ ModelBuilder::getTriangleShape()
     *&(newShape->p1) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->p2) = Vector3Dd(1.0, 0.0, 0.0);
     *&(newShape->p3) = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->Distance = 0.0;
+    newShape->distance = 0.0;
     newShape->inverted = false;
-    newShape->VPCached = false;
+    newShape->vpCached = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;
@@ -258,9 +258,9 @@ ModelBuilder::getSmoothTriangleShape()
     *&(newShape->n1) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->n2) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->n3) = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->Distance = 0.0;
+    newShape->distance = 0.0;
     newShape->inverted = false;
-    newShape->VPCached = 0;
+    newShape->vpCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;

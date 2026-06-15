@@ -9,9 +9,9 @@ class SmoothTriangle;
 class Triangle : public Geometry {
   public:
     Vector3Dd normalVector;
-    double Distance;
-    double VPNormDotOrigin;
-    unsigned int VPCached : 1;
+    double distance;
+    double vpNormDotOrigin;
+    unsigned int vpCached : 1;
     unsigned int dominantAxis : 2;
     unsigned int inverted : 1;
     unsigned int vAxis : 2;
@@ -19,6 +19,9 @@ class Triangle : public Geometry {
     Vector3Dd p2;
     Vector3Dd p3;
     bool degenerateFlag;
+
+    double getDistance() const { return distance; }
+    void setDistance(double d) { distance = d; }
 
     static int computeTriangle(Triangle *triangle);
 

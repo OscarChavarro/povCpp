@@ -14,6 +14,9 @@ class PolynomialShape : public Geometry {
     int sturmFlag;
     double *Coeffs;
 
+    int getSturmFlag() const { return sturmFlag; }
+    void setSturmFlag(int flag) { sturmFlag = flag; }
+
     static const int *termCountsByOrder();
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;

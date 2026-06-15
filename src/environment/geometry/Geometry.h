@@ -10,6 +10,11 @@ class Geometry : public TransformableElement {
   public:
     Material *material;
     ColorRgba *shapeColor;
+
+    Material* getMaterial() const { return material; }
+    void setMaterial(Material* mat) { material = mat; }
+    ColorRgba* getShapeColor() const { return shapeColor; }
+    void setShapeColor(ColorRgba* color) { shapeColor = color; }
 };
 
 #endif

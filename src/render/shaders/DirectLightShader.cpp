@@ -70,9 +70,9 @@ DirectLightShader::shade(const Material *texture, const Vector3Dd *intersectionP
                 while (localQueue->size() > 0) {
                     localIntersection = localQueue->poll();
 
-                    if ((localIntersection.Depth <
+                    if ((localIntersection.depth <
                             lightSourceDepth - GeometryConstants::Small_Tolerance) &&
-                        (localIntersection.Depth > SHADOW_TOLERANCE)) {
+                        (localIntersection.depth > SHADOW_TOLERANCE)) {
 
                         // Does the object not cast a shadow?
                         if (!localIntersection.Object->noShadowFlag) {

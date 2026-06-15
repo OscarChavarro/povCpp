@@ -71,7 +71,7 @@ CSG::allCsgIntersectIntersections(
 
                 if (shape2 != localShape) {
                     if (!GeometryOperations::inside(
-                            &localIntersection.Point, shape2)) {
+                            &localIntersection.point, shape2)) {
                         intersectionFound = false;
                         break;
                     }

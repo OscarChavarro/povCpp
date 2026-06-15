@@ -73,9 +73,9 @@ void
 TextureParser::prependTextureLayers(Material *newHead, Material *&existingHead)
 {
     if (existingHead != nullptr) {
-        newHead->layers.add(existingHead);
+        newHead->getLayers().add(existingHead);
         for (long int i = 0; i < existingHead->layers.size(); i++) {
-            newHead->layers.add(existingHead->layers[i]);
+            newHead->getLayers().add(existingHead->layers[i]);
         }
         existingHead->layers.clear();
     }
@@ -126,33 +126,33 @@ TextureParser::parseTexture(ParserContext &ctx)
 
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureRandomness = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::ONCE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->onceFlag = true;
                 break;
 
             case Tokenizer::TURBULENCE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->turbulence = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::OCTAVES_TOKEN: // dmf 02/05 for turb
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->octaves = (int)PrimitiveParser::parseFloat(ctx);
                 if (texture->octaves < 1) {
@@ -164,17 +164,17 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::BOZO_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::BOZO_TEXTURE;
                 break;
 
             case Tokenizer::MORTAR_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->mortar = PrimitiveParser::parseFloat(ctx);
                 if (texture->mortar < 0) {
@@ -183,9 +183,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::BRICK_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::BRICK_TEXTURE;
                 {
@@ -212,9 +212,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::CHECKER_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::CHECKER_TEXTURE;
                 {
@@ -241,9 +241,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::CHECKER_TEXTURE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE;
 
@@ -257,7 +257,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         switch (ctx.token().tokenId) {
                         case Tokenizer::TEXTURE_TOKEN:
                             localTexture = TextureParser::parseTexture(ctx);
-                            if (localTexture->constantFlag) {
+                            if (localTexture->isConstant()) {
                                 localTexture =
                                     TextureParser::copyTexture(localTexture);
                             }
@@ -284,7 +284,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         switch (ctx.token().tokenId) {
                         case Tokenizer::TEXTURE_TOKEN:
                             localTexture = TextureParser::parseTexture(ctx);
-                            if (localTexture->constantFlag) {
+                            if (localTexture->isConstant()) {
                                 localTexture =
                                     TextureParser::copyTexture(localTexture);
                             }
@@ -305,74 +305,74 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::MARBLE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::MARBLE_TEXTURE;
                 break;
 
             case Tokenizer::WOOD_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::WOOD_TEXTURE;
                 break;
 
             case Tokenizer::SPOTTED_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::SPOTTED_TEXTURE;
                 break;
 
             case Tokenizer::AGATE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::AGATE_TEXTURE;
                 break;
 
             case Tokenizer::GRANITE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::GRANITE_TEXTURE;
                 break;
 
             case Tokenizer::GRADIENT_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::GRADIENT_TEXTURE;
                 PrimitiveParser::parseVector(&(texture->textureGradient), ctx);
                 break;
 
             case Tokenizer::AMBIENT_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectAmbient) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::BRILLIANCE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectBrilliance) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::ROUGHNESS_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectRoughness) = PrimitiveParser::parseFloat(ctx);
                 // No training wheels
@@ -383,9 +383,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::PHONGSIZE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectPhongSize) = PrimitiveParser::parseFloat(ctx);
                 // No training wheels
@@ -396,74 +396,74 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::DIFFUSE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectDiffuse) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::SPECULAR_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectSpecular) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::PHONG_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectPhong) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::METALLIC_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->metallicFlag = true;
                 break;
 
             case Tokenizer::IOR_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectIndexOfRefraction) =
                     PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::REFRACTION_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectRefraction) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::TRANSMIT_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectTransmit) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::REFLECTION_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 (texture->objectReflection) = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::IMAGEMAP_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::IMAGE_MAP_TEXTURE;
                 texture->image = new ControlledRGBAImageHDRUncompressed;
@@ -629,9 +629,9 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::WAVES_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::WAVES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
@@ -655,88 +655,88 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::FREQUENCY_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->frequency = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::PHASE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->phase = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::RIPPLES_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::RIPPLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::WRINKLES_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::WRINKLES;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::BUMPS_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::BUMPS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::DENTS_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::DENTS;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
                 MaterialUtils::instance().translateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
                 MaterialUtils::instance().rotateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 PrimitiveParser::parseVector(&localVector, ctx);
                 MaterialUtils::instance().scaleTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->color1 = ModelBuilder::getColor();
                 PrimitiveParser::parseColor(texture->color1, ctx);
@@ -744,60 +744,60 @@ TextureParser::parseTexture(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_MAP_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->colorMap = ColorMapParser::parseColorMap(ctx);
                 break;
 
             case Tokenizer::ONION_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::ONION_TEXTURE;
                 break;
 
             case Tokenizer::LEOPARD_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::LEOPARD_TEXTURE;
                 break;
 
             case Tokenizer::BUMPY1_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::BUMPY1;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::BUMPY2_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::BUMPY2;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::BUMPY3_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::BUMPY3;
                 texture->bumpAmount = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::BUMPMAP_TOKEN:
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->bumpNumber = SolidTextureBumpyNames::BUMP_MAP;
                 texture->bumpImage = new ControlledRGBAImageHDRUncompressed;
@@ -924,9 +924,9 @@ TextureParser::parseTexture(ParserContext &ctx)
 
             case Tokenizer::MATERIAL_MAP_TOKEN:
 
-                if (texture->constantFlag) {
+                if (texture->isConstant()) {
                     texture = TextureParser::copyTexture(texture);
-                    texture->constantFlag = false;
+                    texture->setConstant(false);
                 }
                 texture->textureNumber = SolidTextureColorNames::MATERIAL_MAP_TEXTURE;
                 texture->materialImage = new ControlledRGBAImageHDRUncompressed;

@@ -59,17 +59,17 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
         triangle->vAxis = X_AXIS;
-        triangle->BaseDelta = p3MinusP2.x();
+        triangle->baseDelta = p3MinusP2.x();
         break;
 
     case 2:
         triangle->vAxis = Y_AXIS;
-        triangle->BaseDelta = p3MinusP2.y();
+        triangle->baseDelta = p3MinusP2.y();
         break;
 
     case 3:
         triangle->vAxis = Z_AXIS;
-        triangle->BaseDelta = p3MinusP2.z();
+        triangle->baseDelta = p3MinusP2.z();
         break;
     }
 
@@ -106,8 +106,8 @@ Triangle::computeTriangle(Triangle *triangle)
     // Normalize the normal vector
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
 
-    triangle->Distance = triangle->normalVector.dotProduct(triangle->p1);
-    triangle->Distance *= -1.0;
+    triangle->distance = triangle->normalVector.dotProduct(triangle->p1);
+    triangle->distance *= -1.0;
     Triangle::findTriangleDominantAxis(triangle);
 
     switch (triangle->dominantAxis) {
@@ -168,11 +168,11 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
     }
 
     if (intersectTriangle(ray, shape, &depth)) {
-        localElement.Depth = depth;
+        localElement.depth = depth;
         localElement.Object = nullptr;
         intersectionPoint = ray->direction.multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->position);
-        localElement.Point = intersectionPoint;
+        localElement.point = intersectionPoint;
         localElement.Shape = (Geometry *)shape;
         depthQueue->offer(localElement);
         return (true);
@@ -195,12 +195,12 @@ Triangle::intersectTriangle(
     }
 
     if (ray->isPrimaryRay) {
-        if (!triangle->VPCached) {
-            triangle->VPNormDotOrigin =
+        if (!triangle->vpCached) {
+            triangle->vpNormDotOrigin =
                 triangle->normalVector.dotProduct(ray->position);
-            triangle->VPNormDotOrigin += triangle->Distance;
-            triangle->VPNormDotOrigin *= -1.0;
-            triangle->VPCached = true;
+            triangle->vpNormDotOrigin += triangle->distance;
+            triangle->vpNormDotOrigin *= -1.0;
+            triangle->vpCached = true;
         }
 
         normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
@@ -209,10 +209,10 @@ Triangle::intersectTriangle(
             return (false);
         }
 
-        *depth = triangle->VPNormDotOrigin / normalDotDirection;
+        *depth = triangle->vpNormDotOrigin / normalDotDirection;
     } else {
         normalDotOrigin = triangle->normalVector.dotProduct(ray->position);
-        normalDotOrigin += triangle->Distance;
+        normalDotOrigin += triangle->distance;
         normalDotOrigin *= -1.0;
 
         normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
@@ -380,7 +380,7 @@ Triangle::translate(Vector3Dd *vector)
     Vector3Dd translation;
 
     translation = triangle->normalVector.multiply(*vector);
-    triangle->Distance -= translation.x() + translation.y() + translation.z();
+    triangle->distance -= translation.x() + translation.y() + translation.z();
     triangle->p1 = triangle->p1.add(*vector);
     triangle->p2 = triangle->p2.add(*vector);
     triangle->p3 = triangle->p3.add(*vector);
@@ -417,7 +417,7 @@ Triangle::scale(Vector3Dd *vector)
 
     length = triangle->normalVector.length();
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
-    triangle->Distance /= length;
+    triangle->distance /= length;
 
     triangle->p1 = triangle->p1.multiply(*vector);
     triangle->p2 = triangle->p2.multiply(*vector);
@@ -497,17 +497,17 @@ SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     switch (triangle->vAxis) {
     case X_AXIS:
         v = (piMinusP1.x() / u + triangle->p1.x() - triangle->p2.x()) /
-            triangle->BaseDelta;
+            triangle->baseDelta;
         break;
 
     case Y_AXIS:
         v = (piMinusP1.y() / u + triangle->p1.y() - triangle->p2.y()) /
-            triangle->BaseDelta;
+            triangle->baseDelta;
         break;
 
     case Z_AXIS:
         v = (piMinusP1.z() / u + triangle->p1.z() - triangle->p2.z()) /
-            triangle->BaseDelta;
+            triangle->baseDelta;
         break;
     }
 
@@ -566,7 +566,7 @@ SmoothTriangle::translate(Vector3Dd *vector)
     Vector3Dd translation;
 
     translation = triangle->normalVector.multiply(*vector);
-    triangle->Distance -= translation.x() + translation.y() + translation.z();
+    triangle->distance -= translation.x() + translation.y() + translation.z();
     triangle->p1 = triangle->p1.add(*vector);
     triangle->p2 = triangle->p2.add(*vector);
     triangle->p3 = triangle->p3.add(*vector);
@@ -588,7 +588,7 @@ SmoothTriangle::scale(Vector3Dd *vector)
 
     length = triangle->normalVector.length();
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
-    triangle->Distance /= length;
+    triangle->distance /= length;
 
     triangle->p1 = triangle->p1.multiply(*vector);
     triangle->p2 = triangle->p2.multiply(*vector);
