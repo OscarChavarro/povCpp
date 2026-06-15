@@ -5,6 +5,8 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/camera/Camera.h"
 #include "environment/light/Light.h"
+#include "environment/light/PointLight.h"
+#include "environment/light/SpotLight.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
@@ -22,6 +24,7 @@ class ModelBuilder {
     static Composite *getCompositeObject();
     static Sphere *getSphereShape();
     static Light *getLightSourceShape();
+    static Light *promoteToSpotLight(Light *old);
     static Quadric *getQuadricShape();
     static PolynomialShape *getPolyShape(int order, const int *termCounts);
     static Box *getBoxShape();

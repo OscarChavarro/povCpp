@@ -35,13 +35,10 @@ ParseHelpers::linkShapes(Light *newObject, Light **field, Light **oldObjectList)
 void
 ParseHelpers::postProcessObject(SimpleBody *object)
 {
-    SimpleBody *temp;
-
-    if (object->geometryType == GeometryTypes::COMPOSITE_TYPE) {
-        java::ArrayList<SimpleBody*> &simpleBodies = ((Composite *)object)->simpleBodies;
+    if (Composite *composite = dynamic_cast<Composite *>(object)) {
+        java::ArrayList<SimpleBody*> &simpleBodies = composite->simpleBodies;
         for (long int i = simpleBodies.size() - 1; i >= 0; i--) {
-            temp = simpleBodies[i];
-            ParseHelpers::postProcessObject(temp);
+            ParseHelpers::postProcessObject(simpleBodies[i]);
         }
     } else {
         ParseHelpers::postProcessShape(object->geometry);

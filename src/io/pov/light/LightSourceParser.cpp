@@ -120,7 +120,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 break;
 
             case Tokenizer::SPOTLIGHT_TOKEN:
-                localShape->geometryType = GeometryTypes::SPOT_LIGHT_TYPE;
+                localShape = ModelBuilder::promoteToSpotLight(localShape);
                 break;
 
             default:

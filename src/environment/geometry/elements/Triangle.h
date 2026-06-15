@@ -31,10 +31,14 @@ class Triangle : public Geometry {
     void scale(Vector3Dd *vector) override;
     void invert() override;
 
+  protected:
+    virtual void swapVertexNormals() {}
+    virtual void finalizeComputation() {}
+    static void computeSmoothTriangle(SmoothTriangle *triangle);
+
   private:
     static int max3Axis(double x, double y, double z);
     static void findTriangleDominantAxis(Triangle *triangle);
-    static void computeSmoothTriangle(SmoothTriangle *triangle);
     static int intersectTriangle(
         RayWithSegments *ray, Triangle *triangle, double *depth);
 };

@@ -19,6 +19,10 @@ class SmoothTriangle : public Triangle {
     void rotate(Vector3Dd *vector) override;
     void scale(Vector3Dd *vector) override;
     void invert() override;
+
+  protected:
+    void swapVertexNormals() override;
+    void finalizeComputation() override;
 };
 
 #endif
