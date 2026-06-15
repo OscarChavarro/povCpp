@@ -39,13 +39,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (rayIntersection->Shape->shapeColor) {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour %f %f %f ", rayIntersection->Depth, static_cast<int>(rayIntersection->Shape->geometryType),                 rayIntersection->Shape->shapeColor->getR(),                 rayIntersection->Shape->shapeColor->getG(),                 rayIntersection->Shape->shapeColor->getB());
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour %f %f %f ", rayIntersection->Depth, rayIntersection->Shape->shapeColor->getR(),                 rayIntersection->Shape->shapeColor->getG(),                 rayIntersection->Shape->shapeColor->getB());
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         } else {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Object %d Colour NIL ", rayIntersection->Depth,                 static_cast<int>(rayIntersection->Shape->geometryType));
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour NIL ", rayIntersection->Depth);
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         }

@@ -24,7 +24,6 @@ ModelBuilder::getCompositeObject()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object\n");
     }
 
-    newComposite->geometryType = GeometryTypes::COMPOSITE_TYPE;
     return (newComposite);
 }
 
@@ -42,7 +41,6 @@ ModelBuilder::getSphereShape()
     newShape->Radius = 1.0;
     newShape->radiusSquared = 1.0;
     newShape->inverseRadius = 1.0;
-    newShape->geometryType = GeometryTypes::SPHERE_TYPE;
     newShape->VPCached = false;
     newShape->Inverted = false;
     newShape->material = nullptr;
@@ -91,7 +89,6 @@ ModelBuilder::getQuadricShape()
     newShape->objectVpConstant = HUGE_VAL;
     newShape->constantCached = false;
     newShape->nonZeroSquareTerm = false;
-    newShape->geometryType = GeometryTypes::QUARTIC_TYPE;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -108,7 +105,6 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->geometryType = GeometryTypes::POLY_TYPE;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->transformation = nullptr;
@@ -140,7 +136,6 @@ ModelBuilder::getBoxShape()
     *&(newShape->bounds[1]) = Vector3Dd(1.0, 1.0, 1.0);
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
-    newShape->geometryType = GeometryTypes::BOX_TYPE;
     newShape->Inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -159,7 +154,6 @@ ModelBuilder::getBlobShape()
 
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
-    newShape->geometryType = GeometryTypes::BLOB_TYPE;
     newShape->Inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -176,7 +170,6 @@ ModelBuilder::getBicubicPatchShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->geometryType = GeometryTypes::BICUBIC_PATCH_TYPE;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->uSteps = 0;
@@ -202,7 +195,6 @@ ModelBuilder::getHeightFieldShape()
     newShape->Map = nullptr;
     newShape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    newShape->geometryType = GeometryTypes::HEIGHT_FIELD_TYPE;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -220,7 +212,6 @@ ModelBuilder::getPlaneShape()
 
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
-    newShape->geometryType = GeometryTypes::PLANE_TYPE;
     newShape->VPCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -243,7 +234,6 @@ ModelBuilder::getTriangleShape()
     *&(newShape->P3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
     newShape->Inverted = false;
-    newShape->geometryType = GeometryTypes::TRIANGLE_TYPE;
     newShape->VPCached = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -269,7 +259,6 @@ ModelBuilder::getSmoothTriangleShape()
     *&(newShape->N2) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->N3) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->Distance = 0.0;
-    newShape->geometryType = GeometryTypes::SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = false;
     newShape->VPCached = 0;
     newShape->material = nullptr;
