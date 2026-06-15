@@ -374,7 +374,7 @@ Triangle::copy()
 }
 
 void
-Triangle::translate(Vector3Dd *vector)
+Triangle::translateGeometry(Vector3Dd *vector)
 {
     Triangle * const triangle = this;
     Vector3Dd translation;
@@ -384,11 +384,17 @@ Triangle::translate(Vector3Dd *vector)
     triangle->p1 = triangle->p1.add(*vector);
     triangle->p2 = triangle->p2.add(*vector);
     triangle->p3 = triangle->p3.add(*vector);
+}
+
+void
+Triangle::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Triangle::rotate(Vector3Dd *vector)
+Triangle::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
@@ -400,12 +406,17 @@ Triangle::rotate(Vector3Dd *vector)
     triangle->p2 = transformation.transpose().multiply(triangle->p2);
     triangle->p3 = transformation.transpose().multiply(triangle->p3);
     Triangle::computeTriangle(triangle);
+}
 
+void
+Triangle::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Triangle::scale(Vector3Dd *vector)
+Triangle::scaleGeometry(Vector3Dd *vector)
 {
     Triangle * const triangle = this;
     double length;
@@ -422,14 +433,25 @@ Triangle::scale(Vector3Dd *vector)
     triangle->p1 = triangle->p1.multiply(*vector);
     triangle->p2 = triangle->p2.multiply(*vector);
     triangle->p3 = triangle->p3.multiply(*vector);
+}
 
+void
+Triangle::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
+}
+
+void
+Triangle::invertGeometry()
+{
+    this->inverted ^= true;
 }
 
 void
 Triangle::invert()
 {
-    this->inverted ^= true;
+    invertGeometry();
 }
 
 /**
@@ -540,7 +562,7 @@ SmoothTriangle::copy()
 }
 
 void
-SmoothTriangle::rotate(Vector3Dd *vector)
+SmoothTriangle::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
@@ -555,12 +577,17 @@ SmoothTriangle::rotate(Vector3Dd *vector)
     triangle->n2 = transformation.transpose().multiply(triangle->n2);
     triangle->n3 = transformation.transpose().multiply(triangle->n3);
     Triangle::computeTriangle((Triangle *)triangle);
+}
 
+void
+SmoothTriangle::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-SmoothTriangle::translate(Vector3Dd *vector)
+SmoothTriangle::translateGeometry(Vector3Dd *vector)
 {
     SmoothTriangle * const triangle = this;
     Vector3Dd translation;
@@ -571,12 +598,17 @@ SmoothTriangle::translate(Vector3Dd *vector)
     triangle->p2 = triangle->p2.add(*vector);
     triangle->p3 = triangle->p3.add(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
+}
 
+void
+SmoothTriangle::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-SmoothTriangle::scale(Vector3Dd *vector)
+SmoothTriangle::scaleGeometry(Vector3Dd *vector)
 {
     SmoothTriangle * const triangle = this;
     double length;
@@ -594,14 +626,25 @@ SmoothTriangle::scale(Vector3Dd *vector)
     triangle->p2 = triangle->p2.multiply(*vector);
     triangle->p3 = triangle->p3.multiply(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
+}
 
+void
+SmoothTriangle::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
+}
+
+void
+SmoothTriangle::invertGeometry()
+{
+    this->inverted ^= true;
 }
 
 void
 SmoothTriangle::invert()
 {
-    this->inverted ^= true;
+    invertGeometry();
 }
 
 void

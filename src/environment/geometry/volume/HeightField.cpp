@@ -949,7 +949,7 @@ HeightField::copy()
 }
 
 void
-HeightField::translate(Vector3Dd *vector)
+HeightField::translateGeometry(Vector3Dd *vector)
 {
     HeightField * const hField = this;
     Matrix4x4d deltaTransformation;
@@ -966,12 +966,17 @@ HeightField::translate(Vector3Dd *vector)
     *hField->transformation = hField->transformation->multiply(deltaTransformation);
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
+}
 
+void
+HeightField::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-HeightField::rotate(Vector3Dd *vector)
+HeightField::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -985,12 +990,17 @@ HeightField::rotate(Vector3Dd *vector)
     *hField->transformation = hField->transformation->multiply(deltaTransformation);
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
+}
 
+void
+HeightField::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-HeightField::scale(Vector3Dd *vector)
+HeightField::scaleGeometry(Vector3Dd *vector)
 {
     HeightField * const hField = this;
     Matrix4x4d deltaTransformation;
@@ -1006,12 +1016,23 @@ HeightField::scale(Vector3Dd *vector)
     *hField->transformation = hField->transformation->multiply(deltaTransformation);
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
+}
 
+void
+HeightField::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
+}
+
+void
+HeightField::invertGeometry()
+{
 }
 
 void
 HeightField::invert()
 {
+    invertGeometry();
 }
 #include "java/util/PriorityQueue.txx"

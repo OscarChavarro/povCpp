@@ -262,43 +262,58 @@ Quadric::transformQuadric(Quadric *shape, const Matrix4x4d *transformationInvers
 }
 
 void
-Quadric::translate(Vector3Dd *vector)
+Quadric::translateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformationInverse;
 
     transformationInverse = Matrix4x4d().translation(
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
     Quadric::transformQuadric(this, &transformationInverse);
+}
 
+void
+Quadric::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Quadric::rotate(Vector3Dd *vector)
+Quadric::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     Quadric::transformQuadric(this, &transformationInverse);
+}
 
+void
+Quadric::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Quadric::scale(Vector3Dd *vector)
+Quadric::scaleGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformationInverse;
 
     transformationInverse = Matrix4x4d().scale(
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
     Quadric::transformQuadric(this, &transformationInverse);
+}
 
+void
+Quadric::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-Quadric::invert()
+Quadric::invertGeometry()
 {
     Quadric * const shape = this;
 
@@ -306,5 +321,11 @@ Quadric::invert()
     shape->objectMixedTerms = shape->objectMixedTerms.multiply(-1.0);
     shape->objectTerms = shape->objectTerms.multiply(-1.0);
     shape->objectConstant *= -1.0;
+}
+
+void
+Quadric::invert()
+{
+    invertGeometry();
 }
 #include "java/util/PriorityQueue.txx"

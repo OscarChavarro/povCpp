@@ -116,31 +116,41 @@ InfinitePlane::copy()
 }
 
 void
-InfinitePlane::translate(Vector3Dd *vector)
+InfinitePlane::translateGeometry(Vector3Dd *vector)
 {
     InfinitePlane * const plane = this;
     Vector3Dd translation;
 
     translation = plane->normalVector.multiply(*vector);
     plane->distance -= translation.x() + translation.y() + translation.z();
-
-    MaterialUtils::instance().translateTexture(&plane->material, vector);
 }
 
 void
-InfinitePlane::rotate(Vector3Dd *vector)
+InfinitePlane::translate(Vector3Dd *vector)
+{
+    translateGeometry(vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
+}
+
+void
+InfinitePlane::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     this->normalVector = transformation.transpose().multiply(this->normalVector);
+}
 
+void
+InfinitePlane::rotate(Vector3Dd *vector)
+{
+    rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-InfinitePlane::scale(Vector3Dd *vector)
+InfinitePlane::scaleGeometry(Vector3Dd *vector)
 {
     double length;
     InfinitePlane * const plane = this;
@@ -153,16 +163,27 @@ InfinitePlane::scale(Vector3Dd *vector)
     length = plane->normalVector.length();
     plane->normalVector = plane->normalVector.multiply(1.0 / length);
     plane->distance /= length;
+}
 
+void
+InfinitePlane::scale(Vector3Dd *vector)
+{
+    scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-InfinitePlane::invert()
+InfinitePlane::invertGeometry()
 {
     InfinitePlane * const plane = this;
 
     plane->normalVector = plane->normalVector.multiply(-1.0);
     plane->distance *= -1.0;
+}
+
+void
+InfinitePlane::invert()
+{
+    invertGeometry();
 }
 #include "java/util/PriorityQueue.txx"
