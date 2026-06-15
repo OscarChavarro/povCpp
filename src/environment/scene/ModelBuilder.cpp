@@ -25,11 +25,10 @@ ModelBuilder::getCompositeObject()
     }
 
     newComposite->simpleBodies = nullptr;
-    newComposite->type = GeometryTypes::COMPOSITE_TYPE;
+    newComposite->geometryType = GeometryTypes::COMPOSITE_TYPE;
     newComposite->nextObject = nullptr;
     newComposite->boundingShapes = nullptr;
     newComposite->clippingShapes = nullptr;
-    newComposite->methods = &Composite::compositeMethodTable;
     return (newComposite);
 }
 
@@ -49,7 +48,6 @@ ModelBuilder::getSphereShape()
     newShape->inverseRadius = 1.0;
     newShape->geometryType = GeometryTypes::SPHERE_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Sphere::methodTable;
     newShape->VPCached = false;
     newShape->Inverted = false;
     newShape->material = nullptr;
@@ -69,7 +67,6 @@ ModelBuilder::getLightSourceShape()
     *&(newShape->Center) = Vector3Dd(0.0, 0.0, 0.0);
     *&(newShape->pointsAt) = Vector3Dd(0.0, 0.0, 1.0);
     newShape->geometryType = GeometryTypes::POINT_LIGHT_TYPE;
-    newShape->methods = &Light::methodTable;
     newShape->nextObject = nullptr;
     newShape->Inverted = false;
     newShape->material = nullptr;
@@ -99,7 +96,6 @@ ModelBuilder::getQuadricShape()
     newShape->nonZeroSquareTerm = false;
     newShape->geometryType = GeometryTypes::QUARTIC_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Quadric::methodTable;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -118,7 +114,6 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
 
     newShape->geometryType = GeometryTypes::POLY_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &PolynomialShape::methodTable;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->transformation = nullptr;
@@ -152,7 +147,6 @@ ModelBuilder::getBoxShape()
     newShape->transformationInverse = nullptr;
     newShape->geometryType = GeometryTypes::BOX_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Box::methodTable;
     newShape->Inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -173,7 +167,6 @@ ModelBuilder::getBlobShape()
     newShape->transformationInverse = nullptr;
     newShape->geometryType = GeometryTypes::BLOB_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Blob::methodTable;
     newShape->Inverted = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -192,7 +185,6 @@ ModelBuilder::getBicubicPatchShape()
 
     newShape->geometryType = GeometryTypes::BICUBIC_PATCH_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &ParametricBiCubicPatch::methodTable;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     newShape->uSteps = 0;
@@ -220,7 +212,6 @@ ModelBuilder::getHeightFieldShape()
     newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->geometryType = GeometryTypes::HEIGHT_FIELD_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &HeightField::methodTable;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
     return (newShape);
@@ -240,7 +231,6 @@ ModelBuilder::getPlaneShape()
     newShape->Distance = 0.0;
     newShape->geometryType = GeometryTypes::PLANE_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &InfinitePlane::methodTable;
     newShape->VPCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -265,7 +255,6 @@ ModelBuilder::getTriangleShape()
     newShape->Inverted = false;
     newShape->geometryType = GeometryTypes::TRIANGLE_TYPE;
     newShape->nextObject = nullptr;
-    newShape->methods = &Triangle::methodTable;
     newShape->VPCached = false;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -294,7 +283,6 @@ ModelBuilder::getSmoothTriangleShape()
     newShape->geometryType = GeometryTypes::SMOOTH_TRIANGLE_TYPE;
     newShape->Inverted = false;
     newShape->nextObject = nullptr;
-    newShape->methods = &Triangle::smoothMethodTable;
     newShape->VPCached = 0;
     newShape->material = nullptr;
     newShape->shapeColor = nullptr;
@@ -323,7 +311,6 @@ ModelBuilder::getCsgUnion()
     CSG *newShape;
 
     newShape = ModelBuilder::getCsgShape();
-    newShape->methods = &CSG::unionMethodTable;
     newShape->geometryType = GeometryTypes::CSG_UNION_TYPE;
     return (newShape);
 }
@@ -334,7 +321,6 @@ ModelBuilder::getCsgIntersection()
     CSG *newShape;
 
     newShape = ModelBuilder::getCsgShape();
-    newShape->methods = &CSG::intersectionMethodTable;
     newShape->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
     return (newShape);
 }

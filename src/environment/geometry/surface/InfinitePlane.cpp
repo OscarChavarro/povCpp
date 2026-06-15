@@ -9,17 +9,10 @@ This module implements functions that manipulate planes.
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/material/MaterialUtils.h"
 
-Methods InfinitePlane::methodTable = {
-    InfinitePlane::allPlaneIntersections, InfinitePlane::insidePlane,
-    InfinitePlane::planeNormal, InfinitePlane::copyPlane,
-    InfinitePlane::translatePlane, InfinitePlane::rotatePlane,
-    InfinitePlane::scalePlane, InfinitePlane::invertPlane};
-
 int
-InfinitePlane::allPlaneIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    InfinitePlane * const shape = (InfinitePlane *)object;
+    InfinitePlane * const shape = this;
     double depth;
     Vector3Dd intersectionPoint;
     Intersection localElement;
@@ -89,9 +82,9 @@ InfinitePlane::intersectPlane(
 }
 
 int
-InfinitePlane::insidePlane(Vector3Dd *testPoint, SimpleBody *object)
+InfinitePlane::inside(Vector3Dd *testPoint)
 {
-    const InfinitePlane *plane = (InfinitePlane *)object;
+    const InfinitePlane *plane = this;
     double temp;
 
     temp = (*testPoint).dotProduct(plane->normalVector);
@@ -99,21 +92,20 @@ InfinitePlane::insidePlane(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-InfinitePlane::planeNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+InfinitePlane::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const InfinitePlane *plane = (InfinitePlane *)object;
+    const InfinitePlane *plane = this;
 
     *result = plane->normalVector;
 }
 
 void *
-InfinitePlane::copyPlane(SimpleBody *object)
+InfinitePlane::copy()
 {
     InfinitePlane *newShape;
 
     newShape = new InfinitePlane;
-    *newShape = *((InfinitePlane *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
@@ -125,9 +117,9 @@ InfinitePlane::copyPlane(SimpleBody *object)
 }
 
 void
-InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
+InfinitePlane::translate(Vector3Dd *vector)
 {
-    InfinitePlane * const plane = (InfinitePlane *)object;
+    InfinitePlane * const plane = this;
     Vector3Dd translation;
 
     translation = plane->normalVector.multiply(*vector);
@@ -137,24 +129,22 @@ InfinitePlane::translatePlane(SimpleBody *object, Vector3Dd *vector)
 }
 
 void
-InfinitePlane::rotatePlane(SimpleBody *object, Vector3Dd *vector)
+InfinitePlane::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    ((InfinitePlane *)object)->normalVector = transformation.transpose().multiply(
-        ((InfinitePlane *)object)->normalVector);
+    this->normalVector = transformation.transpose().multiply(this->normalVector);
 
-    MaterialUtils::instance().rotateTexture(
-        &((InfinitePlane *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
+InfinitePlane::scale(Vector3Dd *vector)
 {
     double length;
-    InfinitePlane * const plane = (InfinitePlane *)object;
+    InfinitePlane * const plane = this;
 
     plane->normalVector = Vector3Dd(
         plane->normalVector.x() / vector->x(),
@@ -165,14 +155,13 @@ InfinitePlane::scalePlane(SimpleBody *object, Vector3Dd *vector)
     plane->normalVector = plane->normalVector.multiply(1.0 / length);
     plane->Distance /= length;
 
-    MaterialUtils::instance().scaleTexture(
-        &((InfinitePlane *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-InfinitePlane::invertPlane(SimpleBody *object)
+InfinitePlane::invert()
 {
-    InfinitePlane * const plane = (InfinitePlane *)object;
+    InfinitePlane * const plane = this;
 
     plane->normalVector = plane->normalVector.multiply(-1.0);
     plane->Distance *= -1.0;

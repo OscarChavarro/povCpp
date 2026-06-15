@@ -6,7 +6,6 @@
 
 class Light : public Geometry {
   public:
-    static Methods methodTable;
     Vector3Dd Center;
     Vector3Dd pointsAt;
     Light *Next_Light_Source;
@@ -15,16 +14,16 @@ class Light : public Geometry {
     double Radius;
     double Falloff;
 
-    static int allPointIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
-    static int insidePoint(Vector3Dd *testPoint, SimpleBody *object);
-    static void *copyPoint(SimpleBody *object);
-    static void translatePoint(SimpleBody *object, Vector3Dd *vector);
-    static void rotatePoint(SimpleBody *object, Vector3Dd *vector);
-    static void scalePoint(SimpleBody *object, Vector3Dd *vector);
-    static void invertPoint(SimpleBody *object);
     static double attenuateLight(
         const Light *lightSource, const RayWithSegments *lightSourceRay);
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static double cubicSpline(double low, double high, double pos);

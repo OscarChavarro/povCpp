@@ -95,7 +95,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                             ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
                         container = (CSG *)GeometryOperations::copy(
-                            (SimpleBody *)ctx.constants()[(int)constantId]
+                            (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -108,7 +108,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = LightSourceParser::parseLightSource(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -119,7 +119,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -130,7 +130,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -141,7 +141,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -152,7 +152,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -163,7 +163,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -174,7 +174,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -185,7 +185,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -196,7 +196,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -207,7 +207,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -218,7 +218,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::BOX_TOKEN:
                 localShape = BoxParser::parseBox(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -229,7 +229,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::BLOB_TOKEN:
                 localShape = BlobParser::parseBlob(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -240,7 +240,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -252,7 +252,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 localShape =
                     (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -264,7 +264,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 localShape =
                     (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -276,7 +276,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 localShape =
                     (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert((SimpleBody *)localShape);
+                    GeometryOperations::invert(localShape);
                 }
                 firstShapeParsed = true;
                 SimpleBodyFactory::link((SimpleBody *)localShape,
@@ -305,23 +305,23 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    (SimpleBody *)container, &localVector);
+                    container, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    (SimpleBody *)container, &localVector);
+                    container, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    (SimpleBody *)container, &localVector);
+                    container, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert((SimpleBody *)container);
+                GeometryOperations::invert(container);
                 break;
 
             default:
@@ -467,7 +467,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::OBJECT_CONSTANT) {
                         object = (SimpleBody *)GeometryOperations::copy(
-                            (SimpleBody *)ctx.constants()[(int)constantId]
+                            (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -656,7 +656,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
                         localComposite = (Composite *)GeometryOperations::copy(
-                            (SimpleBody *)ctx.constants()[(int)constantId]
+                            (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -682,7 +682,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite = ModelBuilder::getCompositeObject();
                 }
                 localObject = ObjectParser::parseObject(ctx);
-                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
+                SimpleBodyFactory::link(localObject, (SimpleBody **)&(localObject->nextObject),
                     &(localComposite->simpleBodies));
                 break;
 
@@ -769,23 +769,23 @@ ObjectParser::parseComposite(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    (SimpleBody *)localComposite, &localVector);
+                    localComposite, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    (SimpleBody *)localComposite, &localVector);
+                    localComposite, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    (SimpleBody *)localComposite, &localVector);
+                    localComposite, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert((SimpleBody *)localComposite);
+                GeometryOperations::invert(localComposite);
                 break;
 
             default:

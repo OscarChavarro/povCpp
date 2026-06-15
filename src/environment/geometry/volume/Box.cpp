@@ -14,26 +14,21 @@ boxes and generously provided us these enhancements.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/material/MaterialUtils.h"
 
-Methods Box::methodTable = {Box::allBoxIntersections,
-    Box::insideBox, Box::boxNormal, Box::copyBox, Box::translateBox,
-    Box::rotateBox, Box::scaleBox, Box::invertBox};
-
-
 int
 Box::closeTo(double x, double y)
 {
     return java::Math::abs(x - y) < Config::INTERSECTION_EPSILON ? 1 : 0;
 }
+
 int
-Box::allBoxIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Box::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     double depth1;
     double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
     bool intersectionFound;
-    Box * const shape = (Box *)object;
+    Box * const shape = this;
 
     intersectionFound = false;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
@@ -208,10 +203,10 @@ Box::intersectBoxx(
 }
 
 int
-Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
+Box::inside(Vector3Dd *testPoint)
 {
     Vector3Dd newPoint;
-    const Box *box = (Box *)object;
+    const Box *box = this;
 
     // Transform the point into the boxes space
     if (box->transformation != nullptr) {
@@ -235,11 +230,10 @@ Box::insideBox(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-Box::boxNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Box::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     Vector3Dd newPoint;
-    const Box *box = (Box *)object;
+    const Box *box = this;
 
     // Transform the point into the boxes space
     if (box->transformation != nullptr) {
@@ -275,12 +269,12 @@ Box::boxNormal(
 }
 
 void *
-Box::copyBox(SimpleBody *object)
+Box::copy()
 {
     Box *newShape;
 
     newShape = new Box;
-    *newShape = *((Box *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     // Copy any associated transformation
@@ -299,11 +293,11 @@ Box::copyBox(SimpleBody *object)
 }
 
 void
-Box::translateBox(SimpleBody *object, Vector3Dd *vector)
+Box::translate(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Box * const box = (Box *)object;
+    Box * const box = this;
     if (box->transformation == nullptr) {
         box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -316,15 +310,15 @@ Box::translateBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    MaterialUtils::instance().translateTexture(&((Box *)object)->material, vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
+Box::rotate(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Box * const box = (Box *)object;
+    Box * const box = this;
     if (box->transformation == nullptr) {
         box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -334,15 +328,15 @@ Box::rotateBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    MaterialUtils::instance().rotateTexture(&((Box *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
+Box::scale(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    Box * const box = (Box *)object;
+    Box * const box = this;
     if (box->transformation == nullptr) {
         box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
         box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -354,12 +348,12 @@ Box::scaleBox(SimpleBody *object, Vector3Dd *vector)
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
 
-    MaterialUtils::instance().scaleTexture(&((Box *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-Box::invertBox(SimpleBody *object)
+Box::invert()
 {
-    ((Box *)object)->Inverted = !((Box *)object)->Inverted;
+    this->Inverted = !this->Inverted;
 }
 #include "java/util/PriorityQueue.txx"

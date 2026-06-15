@@ -40,13 +40,6 @@ HeightField::maxValue(double x, double y)
     return (x < y) ? y : x;
 }
 
-Methods HeightField::methodTable = {
-    HeightField::allHeightfldIntersections, HeightField::insideHeightfld,
-    HeightField::heightFldNormal, HeightField::copyHeightfld,
-    HeightField::translateHeightfld, HeightField::rotateHeightfld,
-    HeightField::scaleHeightfld, HeightField::invertHeightfld};
-
-
 int HeightField::isdx;
 int HeightField::isdz;
 bool HeightField::xDom;
@@ -761,8 +754,7 @@ HeightField::findHfMinMax(HeightField *hField,
 }
 
 int
-HeightField::allHeightfldIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
@@ -770,7 +762,7 @@ HeightField::allHeightfldIntersections(
     double depth1;
     double depth2;
     bool retVal = false;
-    HeightField * const hField = (HeightField *)object;
+    HeightField * const hField = this;
     Intersection localElement;
 
     Statistics::global().rayHtFieldTests++;
@@ -840,9 +832,9 @@ HeightField::allHeightfldIntersections(
 }
 
 int
-HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
+HeightField::inside(Vector3Dd *testPoint)
 {
-    const HeightField *hField = (HeightField *)object;
+    const HeightField *hField = this;
     int px;
     int pz;
     int dot1;
@@ -899,10 +891,9 @@ HeightField::insideHeightfld(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-HeightField::heightFldNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+HeightField::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const HeightField *hField = (HeightField *)object;
+    const HeightField *hField = this;
     int px;
     int pz;
     double x;
@@ -942,12 +933,12 @@ HeightField::heightFldNormal(
 }
 
 void *
-HeightField::copyHeightfld(SimpleBody *object)
+HeightField::copy()
 {
     HeightField *newShape;
 
     newShape = new HeightField;
-    *newShape = *((HeightField *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
@@ -959,9 +950,9 @@ HeightField::copyHeightfld(SimpleBody *object)
 }
 
 void
-HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
+HeightField::translate(Vector3Dd *vector)
 {
-    HeightField * const hField = (HeightField *)object;
+    HeightField * const hField = this;
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 
@@ -977,16 +968,15 @@ HeightField::translateHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    MaterialUtils::instance().translateTexture(
-        &((HeightField *)object)->material, vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
+HeightField::rotate(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
-    HeightField * const hField = (HeightField *)object;
+    HeightField * const hField = this;
 
     if (!hField->transformation) {
         hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
@@ -997,14 +987,13 @@ HeightField::rotateHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    MaterialUtils::instance().rotateTexture(
-        &((HeightField *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
+HeightField::scale(Vector3Dd *vector)
 {
-    HeightField * const hField = (HeightField *)object;
+    HeightField * const hField = this;
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 
@@ -1019,11 +1008,11 @@ HeightField::scaleHeightfld(SimpleBody *object, Vector3Dd *vector)
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
 
-    MaterialUtils::instance().scaleTexture(&((HeightField *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-HeightField::invertHeightfld(SimpleBody *object)
+HeightField::invert()
 {
 }
 #include "java/util/PriorityQueue.txx"

@@ -50,7 +50,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::LIGHT_SOURCE_CONSTANT) {
                         localShape = (Light *)GeometryOperations::copy(
-                            (SimpleBody *)ctx.constants()[(int)constantId]
+                            (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -81,19 +81,19 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    (SimpleBody *)localShape, &localVector);
+                    localShape, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    (SimpleBody *)localShape, &localVector);
+                    localShape, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    (SimpleBody *)localShape, &localVector);
+                    localShape, &localVector);
                 break;
 
             // Point that the spot is pointed at

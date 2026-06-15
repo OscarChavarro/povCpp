@@ -10,16 +10,10 @@ This module implements the code for the quadric shape primitive.
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/material/MaterialUtils.h"
 
-Methods Quadric::methodTable = {
-    Quadric::allQuadricIntersections, Quadric::insideQuadric,
-    Quadric::quadricNormal, Quadric::copyQuadric, Quadric::translateQuadric,
-    Quadric::rotateQuadric, Quadric::scaleQuadric, Quadric::invertQuadric};
-
 int
-Quadric::allQuadricIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    Quadric * const shape = (Quadric *)object;
+    Quadric * const shape = this;
     double depth1;
     double depth2;
     Vector3Dd intersectionPoint;
@@ -146,9 +140,9 @@ Quadric::intersectQuadric(
 }
 
 int
-Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
+Quadric::inside(Vector3Dd *testPoint)
 {
-    const Quadric *shape = (Quadric *)object;
+    const Quadric *shape = this;
     Vector3Dd newPoint;
     double result;
     double linearTerm;
@@ -171,10 +165,9 @@ Quadric::insideQuadric(Vector3Dd *testPoint, SimpleBody *object)
 }
 
 void
-Quadric::quadricNormal(
-    Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint)
+Quadric::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const Quadric *intersectionShape = (Quadric *)object;
+    const Quadric *intersectionShape = this;
     Vector3Dd derivativeLinear;
     double len;
 
@@ -208,12 +201,12 @@ Quadric::quadricNormal(
 }
 
 void *
-Quadric::copyQuadric(SimpleBody *object)
+Quadric::copy()
 {
     Quadric *newShape;
 
     newShape = new Quadric;
-    *newShape = *((Quadric *)object);
+    *newShape = *this;
     newShape->nextObject = nullptr;
 
     if (newShape->material != nullptr) {
@@ -270,45 +263,45 @@ Quadric::transformQuadric(Quadric *shape, const Matrix4x4d *transformationInvers
 }
 
 void
-Quadric::translateQuadric(SimpleBody *object, Vector3Dd *vector)
+Quadric::translate(Vector3Dd *vector)
 {
     Matrix4x4d transformationInverse;
 
     transformationInverse = Matrix4x4d().translation(
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    Quadric::transformQuadric((Quadric *)object, &transformationInverse);
+    Quadric::transformQuadric(this, &transformationInverse);
 
-    MaterialUtils::instance().translateTexture(&((Quadric *)object)->material, vector);
+    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
-Quadric::rotateQuadric(SimpleBody *object, Vector3Dd *vector)
+Quadric::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    Quadric::transformQuadric((Quadric *)object, &transformationInverse);
+    Quadric::transformQuadric(this, &transformationInverse);
 
-    MaterialUtils::instance().rotateTexture(&((Quadric *)object)->material, vector);
+    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
-Quadric::scaleQuadric(SimpleBody *object, Vector3Dd *vector)
+Quadric::scale(Vector3Dd *vector)
 {
     Matrix4x4d transformationInverse;
 
     transformationInverse = Matrix4x4d().scale(
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    Quadric::transformQuadric((Quadric *)object, &transformationInverse);
+    Quadric::transformQuadric(this, &transformationInverse);
 
-    MaterialUtils::instance().scaleTexture(&((Quadric *)object)->material, vector);
+    MaterialUtils::instance().scaleTexture(&this->material, vector);
 }
 
 void
-Quadric::invertQuadric(SimpleBody *object)
+Quadric::invert()
 {
-    Quadric * const shape = (Quadric *)object;
+    Quadric * const shape = this;
 
     shape->object2Terms = shape->object2Terms.multiply(-1.0);
     shape->objectMixedTerms = shape->objectMixedTerms.multiply(-1.0);

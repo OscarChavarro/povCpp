@@ -7,7 +7,6 @@
 
 class PolynomialShape : public Geometry {
   public:
-    static Methods methodTable;
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     bool Inverted;
@@ -15,17 +14,16 @@ class PolynomialShape : public Geometry {
     int sturmFlag;
     double *Coeffs;
 
-    static int allPolyIntersections(SimpleBody *object, RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue);
-    static int insidePoly(Vector3Dd *point, SimpleBody *object);
-    static void polyNormal(
-        Vector3Dd *result, SimpleBody *object, Vector3Dd *intersectionPoint);
-    static void *copyPoly(SimpleBody *object);
-    static void translatePoly(SimpleBody *object, Vector3Dd *vector);
-    static void rotatePoly(SimpleBody *object, Vector3Dd *vector);
-    static void scalePoly(SimpleBody *object, Vector3Dd *vector);
-    static void invertPoly(SimpleBody *object);
     static const int *termCountsByOrder();
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int inside(Vector3Dd *point) override;
+    void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void *copy() override;
+    void translate(Vector3Dd *vector) override;
+    void rotate(Vector3Dd *vector) override;
+    void scale(Vector3Dd *vector) override;
+    void invert() override;
 
   private:
     static void transform(int order, double *coeffs, Matrix4x4d *q);
@@ -37,7 +35,7 @@ class PolynomialShape : public Geometry {
         const PolynomialShape *shape, double *depths);
     static void quarticNormal(Vector3Dd *result, SimpleBody *object,
         const Vector3Dd *intersectionPoint);
-    static double inside(
+    static double evaluatePolynomial(
         const Vector3Dd *point, int order, const double *coeffs);
     static void normalp(Vector3Dd *result, int order, const double *coeffs,
         const Vector3Dd *intersectionPoint);

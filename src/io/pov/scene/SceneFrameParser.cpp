@@ -43,13 +43,13 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
 
             case Tokenizer::OBJECT_TOKEN:
                 localObject = ObjectParser::parseObject(ctx);
-                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
+                SimpleBodyFactory::link(localObject, (SimpleBody **)&(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 
             case Tokenizer::COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite(ctx);
-                SimpleBodyFactory::link(localObject, &(localObject->nextObject),
+                SimpleBodyFactory::link(localObject, (SimpleBody **)&(localObject->nextObject),
                     &(framePtr->Objects));
                 break;
 

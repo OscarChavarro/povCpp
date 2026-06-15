@@ -186,7 +186,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
         if (texture->objectRefraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
-                (SimpleBody *)rayIntersection->Shape, &rayIntersection->Point);
+                rayIntersection->Shape, &rayIntersection->Point);
 
             if (RenderingConfiguration::global().quality > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->Point,
