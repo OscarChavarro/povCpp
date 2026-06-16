@@ -16,7 +16,7 @@ void SceneDumper::dumpSceneStructure(FILE *f)
     if (f == nullptr) return;
 
     int idx = 0;
-    java::ArrayList<SceneObject*> &sceneObjects = RenderEngine::renderFrame().Objects;
+    java::ArrayList<SimpleBody*> &sceneObjects = RenderEngine::renderFrame().Objects;
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         const SimpleBody *obj = sceneObjects[i];
         fprintf(f, "OBJ %03d\n", idx);

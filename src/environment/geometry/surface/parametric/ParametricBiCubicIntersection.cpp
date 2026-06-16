@@ -1,12 +1,8 @@
 #include "java/lang/Math.h"
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
+#include "common/Config.h"
 #include "environment/geometry/GeometryOperations.h"
-
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
-#undef EPSILON
-static constexpr double EPSILON = 1.0e-10;
 
 /**
 Calculate the normal to a subpatch (triangle) return the vector
@@ -24,7 +20,7 @@ ParametricBiCubicIntersection::subpatchNormal(const Vector3Dd *v1,
     edge2 = v3->subtract(*v2);
     *result = edge1.crossProduct(edge2);
     length = (*result).length();
-    if (length < EPSILON) {
+    if (length < Config::PARAMETRIC_CURVE_EPSILON) {
         *result = Vector3Dd(1.0, 0.0, 0.0);
         *d = -1.0 * v1->x();
         return 0;
@@ -207,7 +203,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
         perp = perp.multiply(mu);
         tempV1 = ip->subtract(*v1);
         s = tempV1.dotProduct(perp);
-        if (s < EPSILON) {
+        if (s < Config::PARAMETRIC_CURVE_EPSILON) {
             *ipNorm = *n1;
             return 1;
         }
@@ -278,7 +274,7 @@ ParametricBiCubicIntersection::pointPlaneDistance(
     temp1 = (*p).dotProduct(*n);
     temp1 += *d;
     temp2 = (*n).length();
-    if (java::Math::abs(temp2) < EPSILON) {
+    if (java::Math::abs(temp2) < Config::PARAMETRIC_CURVE_EPSILON) {
         return 0;
     }
     temp1 /= temp2;

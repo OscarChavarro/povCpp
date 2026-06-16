@@ -2,21 +2,18 @@
 
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-
 #include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"
-
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneFrameParser.h"
 #include "io/pov/scene/SceneParser.h"
 
-
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
 {
-    java::ArrayList<SceneObject*> &objects = ctx.parsingFrame()->Objects;
+    java::ArrayList<SimpleBody*> &objects = ctx.parsingFrame()->Objects;
     for (long int i = objects.size() - 1; i >= 0; i--) {
         ParseHelpers::postProcessObject(objects[i]);
     }

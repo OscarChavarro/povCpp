@@ -4,40 +4,27 @@
 #include <cstring>
 #include <ctime>
 
-#include "java/util/PriorityQueue.h"
-
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-
 #include "common/RenderRuntimeState.h"
 #include "common/dataStructures/PriorityQueuePool.txx"
 #include "common/statistics/Statistics.h"
-
 #include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/RenderOutput.h"
-
 #include "environment/geometry/Intersection.h"
-
 #include "environment/scene/SceneFrame.h"
-
 #include "environment/light/Light.h"
-
 #include "environment/camera/Camera.h"
-
 #include "io/image/ImageOutput.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
-
 #include "io/binaryIo/FileLocator.h"
-
 #include "io/pov/lexer/Tokenizer.h"
-
 #include "io/pov/scene/SceneParser.h"
-
 #include "render/RenderEngine.h"
-
 #include "app/ImageOutputAdapter.h"
 #include "app/PovrayApplication.h"
 #include "app/options/CommandLineOptions.h"

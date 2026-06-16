@@ -15,26 +15,19 @@ This module implements the main raytracing loop.
 #include "java/io/FileOutputStream.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-
 #include "common/statistics/Statistics.h"
-
 #include "common/dataStructures/PriorityQueuePool.txx"
-
 #include "common/RenderRuntimeState.h"
-
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
-
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/SceneDump.h"
 #include "render/shaders/TraceService.h"
-
 
 RenderFrame RenderEngine::sRenderFrame;
 RayWithSegments *RenderEngine::sPrimaryRay = nullptr;
@@ -605,7 +598,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     }
 
     // What objects does this ray intersect?
-    java::ArrayList<SceneObject*> &sceneObjects = RenderEngine::renderFrame().Objects;
+    java::ArrayList<SimpleBody*> &sceneObjects = RenderEngine::renderFrame().Objects;
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
         if (GeometryOperations::intersect(object, ray, newIntersection)) {

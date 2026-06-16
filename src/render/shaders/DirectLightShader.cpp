@@ -1,5 +1,4 @@
 #include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.h"
 #include "java/util/PriorityQueue.txx"
 
 #include "common/statistics/Statistics.h"
