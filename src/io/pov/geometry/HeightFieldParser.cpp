@@ -1,5 +1,6 @@
 #include "io/pov/geometry/HeightFieldParser.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/image/GifFormat.h"
@@ -14,18 +15,19 @@
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
-Geometry *
+TranslatedBody *
 HeightFieldParser::parseHeightField()
 {
     ParserContext ctx;
     return HeightFieldParser::parseHeightField(ctx);
 }
 
-Geometry *
+TranslatedBody *
 HeightFieldParser::parseHeightField(ParserContext &ctx)
 {
     (void)ctx;
     HeightField *localShape;
+    TranslatedBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Material *localTexture;
@@ -48,6 +50,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::GIF_TOKEN:
                 imageType = HeightField::GIF;
                 localShape = ModelBuilder::getHeightFieldShape();
+                body = ModelBuilder::wrap(localShape);
                 indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
@@ -71,6 +74,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::POT_TOKEN:
                 imageType = HeightField::POT;
                 localShape = ModelBuilder::getHeightFieldShape();
+                body = ModelBuilder::wrap(localShape);
                 indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
@@ -94,6 +98,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::TGA_TOKEN:
                 imageType = HeightField::TGA;
                 localShape = ModelBuilder::getHeightFieldShape();
+                body = ModelBuilder::wrap(localShape);
                 directImage = new RGBAImageHDRUncompressed;
                 if (directImage == nullptr) {
                     ParseErrorReporter::reportError("Cannot allocate space for "
@@ -117,9 +122,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::HEIGHT_FIELD_CONSTANT) {
-                        localShape = (HeightField *)GeometryOperations::copy(
+                        body = (TranslatedBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
+                        localShape = (HeightField *)body->geometry;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -155,23 +161,23 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(localShape);
+                GeometryOperations::invert(body);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -180,12 +186,12 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, localShape->material);
+                TextureParser::prependTextureLayers(localTexture, body->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                body->setShapeColor(ModelBuilder::getColor());
+                PrimitiveParser::parseColor(body->shapeColor, ctx);
                 break;
 
             default:
@@ -200,6 +206,6 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     } else if (directImage != nullptr) {
         HeightField::findHfMinMax(localShape, directImage, imageType);
     }
-    return ((Geometry *)localShape);
+    return body;
 }
 #include "java/util/PriorityQueue.txx"

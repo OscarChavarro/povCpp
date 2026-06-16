@@ -13,6 +13,7 @@ This module implements the methods for objects and composite objects.
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/MaterialUtils.h"
+#include "environment/scene/TranslatedBody.h"
 #include "java/util/ArrayList.txx"
 
 SimpleBody *
@@ -36,9 +37,9 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    Geometry *boundingShape;
+    TranslatedBody *boundingShape;
     Intersection *boundingIntersection;
-    Geometry *clippingShape;
+    TranslatedBody *clippingShape;
     Intersection localIntersection;
     SimpleBody *localObject;
     java::PriorityQueue<Intersection> *localDepthQueue;
@@ -99,8 +100,8 @@ SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersect
     bool anyIntersectionFound;
     Intersection localIntersection;
     Intersection *boundingIntersection;
-    Geometry *boundingShape;
-    Geometry *clippingShape;
+    TranslatedBody *boundingShape;
+    TranslatedBody *clippingShape;
     java::PriorityQueue<Intersection> *localDepthQueue;
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
@@ -166,8 +167,8 @@ SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersect
 int
 SimpleBody::inside(Vector3Dd *point)
 {
-    Geometry *boundingShape;
-    Geometry *clippingShape;
+    TranslatedBody *boundingShape;
+    TranslatedBody *clippingShape;
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
         boundingShape = this->boundingShapes[i];
@@ -196,8 +197,8 @@ SimpleBody::inside(Vector3Dd *point)
 int
 Composite::inside(Vector3Dd *point)
 {
-    Geometry *boundingShape;
-    Geometry *clippingShape;
+    TranslatedBody *boundingShape;
+    TranslatedBody *clippingShape;
     SimpleBody *localObject;
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
@@ -232,8 +233,8 @@ Composite::inside(Vector3Dd *point)
 void *
 SimpleBody::copy()
 {
-    Geometry *localShape;
-    Geometry *copiedShape;
+    TranslatedBody *localShape;
+    TranslatedBody *copiedShape;
     SimpleBody *newObject;
 
     newObject = SimpleBody::createBasicObject();
@@ -244,7 +245,7 @@ SimpleBody::copy()
         localShape = this->boundingShapes[i];
 
         copiedShape =
-            (Geometry *)GeometryOperations::copy(localShape);
+            (TranslatedBody *)GeometryOperations::copy(localShape);
         newObject->boundingShapes.add(copiedShape);
     }
 
@@ -252,12 +253,12 @@ SimpleBody::copy()
         localShape = this->clippingShapes[i];
 
         copiedShape =
-            (Geometry *)GeometryOperations::copy(localShape);
+            (TranslatedBody *)GeometryOperations::copy(localShape);
         newObject->clippingShapes.add(copiedShape);
     }
 
     newObject->geometry =
-        (Geometry *)GeometryOperations::copy(this->geometry);
+        (TranslatedBody *)GeometryOperations::copy(this->geometry);
 
     if (newObject->objectTexture != nullptr) {
         newObject->objectTexture =
@@ -271,8 +272,8 @@ void *
 Composite::copy()
 {
     Composite *newObject;
-    Geometry *localShape;
-    Geometry *copiedShape;
+    TranslatedBody *localShape;
+    TranslatedBody *copiedShape;
     SimpleBody *localObject;
     SimpleBody *copiedObject;
 
@@ -291,7 +292,7 @@ Composite::copy()
         localShape = this->boundingShapes[i];
 
         copiedShape =
-            (Geometry *)GeometryOperations::copy(localShape);
+            (TranslatedBody *)GeometryOperations::copy(localShape);
         newObject->boundingShapes.add(copiedShape);
     }
     newObject->clippingShapes.clear();
@@ -299,7 +300,7 @@ Composite::copy()
         localShape = this->clippingShapes[i];
 
         copiedShape =
-            (Geometry *)GeometryOperations::copy(localShape);
+            (TranslatedBody *)GeometryOperations::copy(localShape);
         newObject->clippingShapes.add(copiedShape);
     }
     return ((void *)newObject);
@@ -308,7 +309,7 @@ Composite::copy()
 void
 SimpleBody::translate(Vector3Dd *vector)
 {
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
         localShape = this->boundingShapes[i];
@@ -330,7 +331,7 @@ SimpleBody::translate(Vector3Dd *vector)
 void
 SimpleBody::rotate(Vector3Dd *vector)
 {
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
         localShape = this->boundingShapes[i];
@@ -352,7 +353,7 @@ SimpleBody::rotate(Vector3Dd *vector)
 void
 SimpleBody::scale(Vector3Dd *vector)
 {
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
         localShape = this->boundingShapes[i];
@@ -375,7 +376,7 @@ void
 Composite::translate(Vector3Dd *vector)
 {
     SimpleBody *localObject;
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
         localObject = this->simpleBodies[i];
@@ -400,7 +401,7 @@ void
 Composite::rotate(Vector3Dd *vector)
 {
     SimpleBody *localObject;
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
         localObject = this->simpleBodies[i];
@@ -425,7 +426,7 @@ void
 Composite::scale(Vector3Dd *vector)
 {
     SimpleBody *localObject;
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
         localObject = this->simpleBodies[i];
@@ -449,7 +450,7 @@ Composite::scale(Vector3Dd *vector)
 void
 SimpleBody::invert()
 {
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
         localShape = this->boundingShapes[i];
@@ -467,7 +468,7 @@ void
 Composite::invert()
 {
     SimpleBody *localObject;
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
         localObject = this->simpleBodies[i];

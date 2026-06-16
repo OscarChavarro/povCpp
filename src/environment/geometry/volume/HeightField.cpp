@@ -19,8 +19,6 @@ and Drew Wells.
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/HeightField.h"
-#include "environment/material/Material.h"
-#include "environment/material/MaterialUtils.h"
 
 inline int
 HeightField::signInline(double x)
@@ -178,7 +176,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         t1V1 = rRay->direction.multiply(depth2);
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->point = t1V1;
-        hfIntersection->Shape = (Geometry *)hField;
+        hfIntersection->Shape = reinterpret_cast<TranslatedBody *>(hField);
         hfQueue->offer(*hfIntersection);
     } else {
         hfIntersection->depth = depth1;
@@ -186,7 +184,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         t1V1 = rRay->direction.multiply(depth1);
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->point = t1V1;
-        hfIntersection->Shape = (Geometry *)hField;
+        hfIntersection->Shape = reinterpret_cast<TranslatedBody *>(hField);
         hfQueue->offer(*hfIntersection);
     }
     Statistics::global().rayHtFieldTestsSucceeded++;
@@ -940,11 +938,6 @@ HeightField::copy()
     newShape = new HeightField;
     *newShape = *this;
 
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
-
     return (newShape);
 }
 
@@ -969,13 +962,6 @@ HeightField::translateGeometry(Vector3Dd *vector)
 }
 
 void
-HeightField::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 HeightField::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
@@ -990,13 +976,6 @@ HeightField::rotateGeometry(Vector3Dd *vector)
     *hField->transformation = hField->transformation->multiply(deltaTransformation);
     *hField->transformationInverse =
         deltaTransformationInverse.multiply(*hField->transformationInverse);
-}
-
-void
-HeightField::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -1019,20 +998,8 @@ HeightField::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-HeightField::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 HeightField::invertGeometry()
 {
 }
 
-void
-HeightField::invert()
-{
-    invertGeometry();
-}
 #include "java/util/PriorityQueue.txx"

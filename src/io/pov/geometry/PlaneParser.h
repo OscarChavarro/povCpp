@@ -4,10 +4,12 @@
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"
 
+class TranslatedBody;
+
 class PlaneParser {
   public:
-    static Geometry *parsePlane();
-    static Geometry *parsePlane(ParserContext &ctx);
+    static TranslatedBody *parsePlane();
+    static TranslatedBody *parsePlane(ParserContext &ctx);
 };
 
 #endif

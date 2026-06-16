@@ -1,5 +1,6 @@
 #include "io/pov/geometry/QuadricParser.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -10,18 +11,19 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-Geometry *
+TranslatedBody *
 QuadricParser::parseQuadric()
 {
     ParserContext ctx;
     return QuadricParser::parseQuadric(ctx);
 }
 
-Geometry *
+TranslatedBody *
 QuadricParser::parseQuadric(ParserContext &ctx)
 {
     (void)ctx;
     Quadric *localShape;
+    TranslatedBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
     Material *localTexture;
@@ -39,6 +41,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getQuadricShape();
+                body = ModelBuilder::wrap(localShape);
                 PrimitiveParser::parseVector(&(localShape->object2Terms), ctx);
                 PrimitiveParser::parseVector(&(localShape->objectMixedTerms), ctx);
                 PrimitiveParser::parseVector(&(localShape->objectTerms), ctx);
@@ -57,9 +60,10 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::QUADRIC_CONSTANT) {
-                        localShape = (Quadric *)GeometryOperations::copy(
+                        body = (TranslatedBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
+                        localShape = (Quadric *)body->geometry;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -89,23 +93,23 @@ QuadricParser::parseQuadric(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(localShape);
+                GeometryOperations::invert(body);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -113,12 +117,12 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
-                TextureParser::prependTextureLayers(localTexture, localShape->material);
+                TextureParser::prependTextureLayers(localTexture, body->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                body->setShapeColor(ModelBuilder::getColor());
+                PrimitiveParser::parseColor(body->shapeColor, ctx);
                 break;
 
             default:
@@ -128,6 +132,6 @@ QuadricParser::parseQuadric(ParserContext &ctx)
         }
     }
 
-    return ((Geometry *)localShape);
+    return body;
 }
 #include "java/util/PriorityQueue.txx"

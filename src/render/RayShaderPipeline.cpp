@@ -6,6 +6,7 @@
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
+#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"

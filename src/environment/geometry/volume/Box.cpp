@@ -12,7 +12,7 @@ boxes and generously provided us these enhancements.
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/material/MaterialUtils.h"
+
 
 int
 Box::closeTo(double x, double y)
@@ -37,7 +37,7 @@ Box::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *d
         intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.point = intersectionPoint;
-        localElement.Shape = (Geometry *)shape;
+        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -47,7 +47,7 @@ Box::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *d
             intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.point = intersectionPoint;
-            localElement.Shape = (Geometry *)shape;
+            localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }
@@ -283,11 +283,6 @@ Box::copy()
             new Matrix4x4d(*(newShape->transformationInverse));
     }
 
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
-
     return (newShape);
 }
 
@@ -311,13 +306,6 @@ Box::translateGeometry(Vector3Dd *vector)
 }
 
 void
-Box::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 Box::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
@@ -331,13 +319,6 @@ Box::rotateGeometry(Vector3Dd *vector)
     *box->transformation = box->transformation->multiply(deltaTransformation);
     *box->transformationInverse =
         deltaTransformationInverse.multiply(*box->transformationInverse);
-}
-
-void
-Box::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -359,21 +340,9 @@ Box::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-Box::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 Box::invertGeometry()
 {
     this->inverted = !this->inverted;
 }
 
-void
-Box::invert()
-{
-    invertGeometry();
-}
 #include "java/util/PriorityQueue.txx"

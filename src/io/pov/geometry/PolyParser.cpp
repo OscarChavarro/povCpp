@@ -1,5 +1,6 @@
 #include "io/pov/geometry/PolyParser.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -12,18 +13,19 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-Geometry *
+TranslatedBody *
 PolyParser::parsePoly(int knownOrder)
 {
     ParserContext ctx;
     return PolyParser::parsePoly(knownOrder, ctx);
 }
 
-Geometry *
+TranslatedBody *
 PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 {
     (void)ctx;
     PolynomialShape *localShape;
+    TranslatedBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
     int order;
@@ -32,6 +34,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     if (knownOrder > 0) {
         localShape = ModelBuilder::getPolyShape(
             knownOrder, PolynomialShape::termCountsByOrder());
+        body = ModelBuilder::wrap(localShape);
     } else {
         localShape = nullptr;
     }
@@ -58,6 +61,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 }
                 localShape = ModelBuilder::getPolyShape(
                     order, PolynomialShape::termCountsByOrder());
+                body = ModelBuilder::wrap(localShape);
                 break;
 
             case Tokenizer::LEFT_ANGLE_TOKEN:
@@ -74,10 +78,10 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::POLY_CONSTANT) {
-                        localShape =
-                            (PolynomialShape *)GeometryOperations::copy(
+                        body = (TranslatedBody *)GeometryOperations::copy(
                                 (TransformableElement *)ctx.constants()[(int)constantId]
                                     .constantData);
+                        localShape = (PolynomialShape *)body->geometry;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -111,23 +115,23 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(localShape);
+                GeometryOperations::invert(body);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -136,12 +140,12 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, localShape->material);
+                TextureParser::prependTextureLayers(localTexture, body->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                body->setShapeColor(ModelBuilder::getColor());
+                PrimitiveParser::parseColor(body->shapeColor, ctx);
                 break;
 
             default:
@@ -151,6 +155,6 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
         }
     }
 
-    return ((Geometry *)localShape);
+    return body;
 }
 #include "java/util/PriorityQueue.txx"

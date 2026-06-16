@@ -1,5 +1,6 @@
 #include "io/pov/geometry/TriangleParser.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -10,18 +11,19 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-Geometry *
+TranslatedBody *
 TriangleParser::parseTriangle()
 {
     ParserContext ctx;
     return TriangleParser::parseTriangle(ctx);
 }
 
-Geometry *
+TranslatedBody *
 TriangleParser::parseTriangle(ParserContext &ctx)
 {
     (void)ctx;
     Triangle *localShape;
+    TranslatedBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Material *localTexture;
@@ -39,6 +41,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getTriangleShape();
+                body = ModelBuilder::wrap(localShape);
                 PrimitiveParser::parseVector(&localShape->p1, ctx);
                 PrimitiveParser::parseVector(&localShape->p2, ctx);
                 PrimitiveParser::parseVector(&localShape->p3, ctx);
@@ -57,9 +60,10 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::TRIANGLE_CONSTANT) {
-                        localShape = (Triangle *)GeometryOperations::copy(
+                        body = (TranslatedBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
+                        localShape = (Triangle *)body->geometry;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -89,23 +93,23 @@ TriangleParser::parseTriangle(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(localShape);
+                GeometryOperations::invert(body);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -113,12 +117,12 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
-                TextureParser::prependTextureLayers(localTexture, localShape->material);
+                TextureParser::prependTextureLayers(localTexture, body->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                body->setShapeColor(ModelBuilder::getColor());
+                PrimitiveParser::parseColor(body->shapeColor, ctx);
                 break;
 
             default:
@@ -128,6 +132,6 @@ TriangleParser::parseTriangle(ParserContext &ctx)
         }
     }
 
-    return ((Geometry *)localShape);
+    return body;
 }
 #include "java/util/PriorityQueue.txx"

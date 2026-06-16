@@ -220,6 +220,20 @@ PriorityQueue<T>::end() const
 }
 
 template <class T>
+T*
+PriorityQueue<T>::begin()
+{
+    return data + 1;
+}
+
+template <class T>
+T*
+PriorityQueue<T>::end()
+{
+    return data + currentSize + 1;
+}
+
+template <class T>
 template <class Predicate>
 bool
 PriorityQueue<T>::removeIf(Predicate p)

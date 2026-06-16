@@ -6,12 +6,14 @@
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/SimpleBody.h"
 
+class TranslatedBody;
+
 class Intersection {
   public:
     double depth;
     SimpleBody *Object;
     Vector3Dd point;
-    Geometry *Shape;
+    TranslatedBody *Shape;
 
     inline bool operator<(const Intersection& other) const
     {

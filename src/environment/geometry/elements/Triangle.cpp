@@ -6,7 +6,6 @@ This module implements primitives for triangles and smooth triangles.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/elements/Triangle.h"
-#include "environment/material/MaterialUtils.h"
 
 int
 Triangle::max3Axis(double x, double y, double z)
@@ -173,7 +172,7 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
         intersectionPoint = ray->direction.multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.point = intersectionPoint;
-        localElement.Shape = (Geometry *)shape;
+        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
         depthQueue->offer(localElement);
         return (true);
     }
@@ -365,11 +364,6 @@ Triangle::copy()
     newShape = new Triangle;
     *newShape = *this;
 
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
-
     return (newShape);
 }
 
@@ -387,13 +381,6 @@ Triangle::translateGeometry(Vector3Dd *vector)
 }
 
 void
-Triangle::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 Triangle::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
@@ -406,13 +393,6 @@ Triangle::rotateGeometry(Vector3Dd *vector)
     triangle->p2 = transformation.transpose().multiply(triangle->p2);
     triangle->p3 = transformation.transpose().multiply(triangle->p3);
     Triangle::computeTriangle(triangle);
-}
-
-void
-Triangle::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -436,22 +416,9 @@ Triangle::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-Triangle::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 Triangle::invertGeometry()
 {
     this->inverted ^= true;
-}
-
-void
-Triangle::invert()
-{
-    invertGeometry();
 }
 
 /**
@@ -553,11 +520,6 @@ SmoothTriangle::copy()
     newShape = new SmoothTriangle;
     *newShape = *this;
 
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
-
     return (newShape);
 }
 
@@ -580,13 +542,6 @@ SmoothTriangle::rotateGeometry(Vector3Dd *vector)
 }
 
 void
-SmoothTriangle::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
-}
-
-void
 SmoothTriangle::translateGeometry(Vector3Dd *vector)
 {
     SmoothTriangle * const triangle = this;
@@ -598,13 +553,6 @@ SmoothTriangle::translateGeometry(Vector3Dd *vector)
     triangle->p2 = triangle->p2.add(*vector);
     triangle->p3 = triangle->p3.add(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
-}
-
-void
-SmoothTriangle::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
@@ -629,22 +577,9 @@ SmoothTriangle::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-SmoothTriangle::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 SmoothTriangle::invertGeometry()
 {
     this->inverted ^= true;
-}
-
-void
-SmoothTriangle::invert()
-{
-    invertGeometry();
 }
 
 void

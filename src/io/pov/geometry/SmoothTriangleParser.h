@@ -4,10 +4,12 @@
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"
 
+class TranslatedBody;
+
 class SmoothTriangleParser {
   public:
-    static Geometry *parseSmoothTriangle();
-    static Geometry *parseSmoothTriangle(ParserContext &ctx);
+    static TranslatedBody *parseSmoothTriangle();
+    static TranslatedBody *parseSmoothTriangle(ParserContext &ctx);
 };
 
 #endif

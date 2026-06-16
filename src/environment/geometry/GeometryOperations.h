@@ -7,7 +7,6 @@
 #include "java/util/PriorityQueue.h"
 #include "common/dataStructures/PriorityQueuePool.h"
 #include "environment/TransformableElement.h"
-#include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/SimpleBody.h"

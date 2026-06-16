@@ -1,13 +1,20 @@
 #ifndef __POINT_H__
 #define __POINT_H__
 
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/material/Material.h"
 
+// A Light is reached directly as a Light* (lightSources list / LightSamplerShader)
+// and is never shaded through Intersection::Shape, so unlike other Geometry it
+// keeps owning its own emission colour and material.
 class Light : public Geometry {
   public:
     GeometryTypes geometryType;
+    Material *material = nullptr;
+    ColorRgba *shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
     Light *nextLightSource;
@@ -15,6 +22,11 @@ class Light : public Geometry {
     double coeff;
     double radius;
     double falloff;
+
+    Material* getMaterial() const { return material; }
+    void setMaterial(Material* mat) { material = mat; }
+    ColorRgba* getShapeColor() const { return shapeColor; }
+    void setShapeColor(ColorRgba* color) { shapeColor = color; }
 
     virtual double attenuate(const RayWithSegments *lightSourceRay) const = 0;
 

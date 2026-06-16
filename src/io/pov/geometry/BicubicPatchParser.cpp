@@ -1,5 +1,6 @@
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -10,18 +11,19 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-Geometry *
+TranslatedBody *
 BicubicPatchParser::parseBicubicPatch()
 {
     ParserContext ctx;
     return BicubicPatchParser::parseBicubicPatch(ctx);
 }
 
-Geometry *
+TranslatedBody *
 BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
 {
     (void)ctx;
     ParametricBiCubicPatch *localShape = nullptr;
+    TranslatedBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
     Material *localTexture;
@@ -41,6 +43,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getBicubicPatchShape();
+                body = ModelBuilder::wrap(localShape);
                 localShape->setPatchType((int)PrimitiveParser::parseFloat(ctx));
                 if (localShape->patchType == 2 ||
                     localShape->patchType == 3) {
@@ -65,10 +68,10 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::BICUBIC_PATCH_CONSTANT) {
-                        localShape =
-                            (ParametricBiCubicPatch *)GeometryOperations::copy(
+                        body = (TranslatedBody *)GeometryOperations::copy(
                                 (TransformableElement *)ctx.constants()[(int)constantId]
                                     .constantData);
+                        localShape = (ParametricBiCubicPatch *)body->geometry;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -98,23 +101,23 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(localShape);
+                GeometryOperations::invert(body);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -123,12 +126,12 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, localShape->material);
+                TextureParser::prependTextureLayers(localTexture, body->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                body->setShapeColor(ModelBuilder::getColor());
+                PrimitiveParser::parseColor(body->shapeColor, ctx);
                 break;
 
             default:
@@ -138,6 +141,6 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
         }
     }
 
-    return ((Geometry *)localShape);
+    return body;
 }
 #include "java/util/PriorityQueue.txx"

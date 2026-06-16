@@ -10,9 +10,9 @@
 
 class TranslatedBody : public TransformableElement {
   public:
-    Geometry *geometry;
-    Material *material;
-    ColorRgba *shapeColor;
+    Geometry *geometry = nullptr;
+    Material *material = nullptr;
+    ColorRgba *shapeColor = nullptr;
     Matrix4x4d transform;
     Matrix4x4d transformInverse;
 

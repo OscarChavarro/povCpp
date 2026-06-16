@@ -8,7 +8,6 @@ This module implements the code for the quadric shape primitive.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/Quadric.h"
-#include "environment/material/MaterialUtils.h"
 
 int
 Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
@@ -27,7 +26,7 @@ Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection
         intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.point = intersectionPoint;
-        localElement.Shape = (Geometry *)shape;
+        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -37,7 +36,7 @@ Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection
             intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.point = intersectionPoint;
-            localElement.Shape = (Geometry *)shape;
+            localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }
@@ -208,11 +207,6 @@ Quadric::copy()
     newShape = new Quadric;
     *newShape = *this;
 
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
-
     return (newShape);
 }
 
@@ -272,13 +266,6 @@ Quadric::translateGeometry(Vector3Dd *vector)
 }
 
 void
-Quadric::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 Quadric::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
@@ -286,13 +273,6 @@ Quadric::rotateGeometry(Vector3Dd *vector)
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     Quadric::transformQuadric(this, &transformationInverse);
-}
-
-void
-Quadric::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -306,13 +286,6 @@ Quadric::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-Quadric::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 Quadric::invertGeometry()
 {
     Quadric * const shape = this;
@@ -323,9 +296,4 @@ Quadric::invertGeometry()
     shape->objectConstant *= -1.0;
 }
 
-void
-Quadric::invert()
-{
-    invertGeometry();
-}
 #include "java/util/PriorityQueue.txx"

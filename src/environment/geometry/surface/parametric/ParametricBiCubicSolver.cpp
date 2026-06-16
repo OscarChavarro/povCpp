@@ -349,7 +349,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         localElement.depth = depths[i];
         localElement.Object = nullptr;
         localElement.point = shape->intersectionPoint[tcnt + i];
-        localElement.Shape = (Geometry *)shape;
+        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
         depthQueue->offer(localElement);
         intersectionFound = 1;
     }

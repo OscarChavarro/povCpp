@@ -1,5 +1,6 @@
 #include "io/pov/geometry/SphereParser.h"
 #include "environment/geometry/GeometryOperations.h"
+#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/scene/ModelBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -10,18 +11,19 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-Geometry *
+TranslatedBody *
 SphereParser::parseSphere()
 {
     ParserContext ctx;
     return SphereParser::parseSphere(ctx);
 }
 
-Geometry *
+TranslatedBody *
 SphereParser::parseSphere(ParserContext &ctx)
 {
     (void)ctx;
     Sphere *localShape;
+    TranslatedBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Material *localTexture;
@@ -39,6 +41,7 @@ SphereParser::parseSphere(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getSphereShape();
+                body = ModelBuilder::wrap(localShape);
                 PrimitiveParser::parseVector(&(localShape->center), ctx);
                 localShape->radius = PrimitiveParser::parseFloat(ctx);
                 localShape->radiusSquared =
@@ -51,9 +54,10 @@ SphereParser::parseSphere(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::SPHERE_CONSTANT) {
-                        localShape = (Sphere *)GeometryOperations::copy(
+                        body = (TranslatedBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
+                        localShape = (Sphere *)body->geometry;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -83,23 +87,23 @@ SphereParser::parseSphere(ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::translate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::rotate(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
                 GeometryOperations::scale(
-                    localShape, &localVector);
+                    body, &localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(localShape);
+                GeometryOperations::invert(body);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -108,12 +112,12 @@ SphereParser::parseSphere(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, localShape->material);
+                TextureParser::prependTextureLayers(localTexture, body->material);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                localShape->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                body->setShapeColor(ModelBuilder::getColor());
+                PrimitiveParser::parseColor(body->shapeColor, ctx);
                 break;
 
             default:
@@ -123,6 +127,6 @@ SphereParser::parseSphere(ParserContext &ctx)
         }
     }
 
-    return ((Geometry *)localShape);
+    return body;
 }
 #include "java/util/PriorityQueue.txx"

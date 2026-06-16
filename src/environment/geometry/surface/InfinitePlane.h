@@ -21,10 +21,6 @@ class InfinitePlane : public Geometry {
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
-    void translate(Vector3Dd *vector) override;
-    void rotate(Vector3Dd *vector) override;
-    void scale(Vector3Dd *vector) override;
-    void invert() override;
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;

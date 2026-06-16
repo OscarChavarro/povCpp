@@ -16,7 +16,6 @@ blobs and generously provided us these enhancements.
 #include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/volume/Blob.h"
-#include "environment/material/MaterialUtils.h"
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
@@ -448,7 +447,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                     localElement.depth = len;
                     localElement.Object = nullptr;
                     localElement.point = intersectionPoint;
-                    localElement.Shape = (Geometry *)blob;
+                    localElement.Shape = reinterpret_cast<TranslatedBody *>(blob);
                     depthQueue->offer(localElement);
                     intersectionFound = true;
                 }
@@ -564,11 +563,6 @@ Blob::copy()
         blob->transformationInverse = new Matrix4x4d(*(blob->transformationInverse));
     }
 
-    // Copy any associated texture
-    if (blob->material != nullptr) {
-        blob->material = MaterialUtils::instance().copyTexture(blob->material);
-    }
-
     return (blob);
 }
 
@@ -592,13 +586,6 @@ Blob::translateGeometry(Vector3Dd *vector)
 }
 
 void
-Blob::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 Blob::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
@@ -612,13 +599,6 @@ Blob::rotateGeometry(Vector3Dd *vector)
     *blob->transformation = blob->transformation->multiply(deltaTransformation);
     *blob->transformationInverse =
         deltaTransformationInverse.multiply(*blob->transformationInverse);
-}
-
-void
-Blob::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -640,21 +620,9 @@ Blob::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-Blob::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 Blob::invertGeometry()
 {
     this->inverted = !this->inverted;
 }
 
-void
-Blob::invert()
-{
-    invertGeometry();
-}
 #include "java/util/PriorityQueue.txx"

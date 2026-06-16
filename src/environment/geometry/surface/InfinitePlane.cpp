@@ -7,7 +7,7 @@ This module implements functions that manipulate planes.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/material/MaterialUtils.h"
+
 
 int
 InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
@@ -24,7 +24,7 @@ InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inters
             intersectionPoint = ray->direction.multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.point = intersectionPoint;
-            localElement.Shape = (Geometry *)shape;
+            localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
             depthQueue->offer(localElement);
             return (true);
         }
@@ -107,11 +107,6 @@ InfinitePlane::copy()
     newShape = new InfinitePlane;
     *newShape = *this;
 
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
-
     return (newShape);
 }
 
@@ -126,13 +121,6 @@ InfinitePlane::translateGeometry(Vector3Dd *vector)
 }
 
 void
-InfinitePlane::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 InfinitePlane::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
@@ -140,13 +128,6 @@ InfinitePlane::rotateGeometry(Vector3Dd *vector)
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     this->normalVector = transformation.transpose().multiply(this->normalVector);
-}
-
-void
-InfinitePlane::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -166,13 +147,6 @@ InfinitePlane::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-InfinitePlane::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 InfinitePlane::invertGeometry()
 {
     InfinitePlane * const plane = this;
@@ -181,9 +155,4 @@ InfinitePlane::invertGeometry()
     plane->distance *= -1.0;
 }
 
-void
-InfinitePlane::invert()
-{
-    invertGeometry();
-}
 #include "java/util/PriorityQueue.txx"
