@@ -1,6 +1,8 @@
-#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/Intersection.h"
+
 #include "environment/material/MaterialUtils.h"
+
+#include "environment/scene/TranslatedBody.h"
 
 int
 TranslatedBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)

@@ -7,8 +7,11 @@ Gif-format file reader.
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 #include "vsdk/toolkit/common/logging/Logger.h"
+
 #include "io/binaryIo/FileLocator.h"
+
 #include "io/image/GifDecoder.h"
 #include "io/image/GifFormat.h"
 

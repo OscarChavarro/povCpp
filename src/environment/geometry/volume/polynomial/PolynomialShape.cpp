@@ -8,13 +8,16 @@ This file was written by Alexander Enzmann.  He wrote the code for
 */
 
 #include "java/lang/Math.h"
+
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/Config.h"
-#include "common/statistics/Statistics.h"
 #include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
 #include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.h"
+
+#include "common/Config.h"
+#include "common/statistics/Statistics.h"
+
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 
 /**

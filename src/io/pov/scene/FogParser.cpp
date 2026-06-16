@@ -1,4 +1,7 @@
+#include "java/util/PriorityQueue.txx"
+
 #include "environment/scene/SceneFrame.h"
+
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -43,4 +46,3 @@ FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
         }
     }
 }
-#include "java/util/PriorityQueue.txx"

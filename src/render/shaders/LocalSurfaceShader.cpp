@@ -1,8 +1,13 @@
+#include "java/util/PriorityQueue.txx"
+
+#include "environment/material/RendererConfiguration.h"
+
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/material/RendererConfiguration.h"
+
+#include "environment/scene/TranslatedBody.h"
+
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"
@@ -69,4 +74,3 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
             traceService, traceLevel);
     }
 }
-#include "java/util/PriorityQueue.txx"

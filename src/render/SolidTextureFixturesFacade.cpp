@@ -1,9 +1,11 @@
-#include "render/SolidTextureFixturesFacade.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ColorTextureFixture.h"
-#include "environment/material/SolidTextureColorNames.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
+
+#include "environment/material/SolidTextureColorNames.h"
+
+#include "render/SolidTextureFixturesFacade.h"
 
 SolidTextureFixturesFacade::SolidTextureFixturesFacade(
     const ProceduralNoise *proceduralNoise, const TextureUtils *textureUtils)

@@ -1,5 +1,7 @@
 #include "java/lang/Math.h"
+
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+
 #include "render/shaders/ExponentialFogShader.h"
 
 void

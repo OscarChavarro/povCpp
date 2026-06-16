@@ -1,6 +1,11 @@
+#include "java/util/PriorityQueue.txx"
+
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/geometry/elements/RayWithSegments.h"
+
 #include "environment/light/Light.h"
+
 #include "render/shaders/LightSamplerShader.h"
 
 void
@@ -36,5 +41,4 @@ LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
     lightColor->setG(lightColor->getG() * attenuation);
     lightColor->setB(lightColor->getB() * attenuation);
 }
-#include "java/util/PriorityQueue.txx"
 

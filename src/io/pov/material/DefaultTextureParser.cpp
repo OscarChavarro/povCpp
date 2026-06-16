@@ -1,7 +1,10 @@
-#include "io/pov/material/DefaultTextureParser.h"
+#include "java/util/PriorityQueue.txx"
+
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/SceneFrame.h"
+
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/material/DefaultTextureParser.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -40,4 +43,3 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
         }
     }
 }
-#include "java/util/PriorityQueue.txx"

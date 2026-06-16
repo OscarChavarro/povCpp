@@ -1,16 +1,23 @@
 #include <cstdlib>
 
-#include "io/pov/material/TextureParser.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
-#include "environment/material/SolidTextureBumpyNames.h"
-#include "environment/material/SolidTextureColorNames.h"
+
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/material/MaterialUtils.h"
+#include "environment/material/SolidTextureBumpyNames.h"
+#include "environment/material/SolidTextureColorNames.h"
 #include "environment/scene/ModelBuilder.h"
+
 #include "io/image/GifFormat.h"
 #include "io/image/IffFormat.h"
 #include "io/image/RawDumpFormat.h"
@@ -18,13 +25,11 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/ColorMapParser.h"
+#include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
+
 
 void
 TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDRUncompressed *ti, IndexedColorImageHDRUncompressed *idx)
@@ -1064,4 +1069,3 @@ TextureParser::parseTexture(ParserContext &ctx)
     logTextureStateLegacy("legacy", texture);
     return (texture);
 }
-#include "java/util/PriorityQueue.txx"

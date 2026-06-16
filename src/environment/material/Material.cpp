@@ -1,5 +1,6 @@
-#include "java/util/ArrayList.txx"
 #include "environment/material/Material.h"
+
+#include "java/util/ArrayList.txx"
 
 Material::Material()
 {

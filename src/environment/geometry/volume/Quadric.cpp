@@ -5,8 +5,11 @@ This module implements the code for the quadric shape primitive.
 */
 
 #include "java/lang/Math.h"
+
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "common/statistics/Statistics.h"
+
 #include "environment/geometry/volume/Quadric.h"
 
 int

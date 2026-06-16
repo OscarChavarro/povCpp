@@ -1,5 +1,6 @@
-#include "io/image/GifDecoder.h"
 #include "io/image/GifFormat.h"
+
+#include "io/image/GifDecoder.h"
 
 typedef unsigned short UWORD;
 typedef char TEXT;

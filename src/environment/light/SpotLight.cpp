@@ -5,7 +5,9 @@ This module implements the spot light source primitive.
 */
 
 #include "java/lang/Math.h"
+
 #include "environment/light/SpotLight.h"
+
 #include "environment/material/MaterialUtils.h"
 
 SpotLight::SpotLight()

@@ -1,13 +1,17 @@
 #include <cstdio>
 
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
+
+#include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/SceneFrame.h"
-#include "io/pov/scene/SceneParser.h"
+
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneFrameParser.h"
-#include "environment/material/MaterialUtils.h"
-#include "java/util/ArrayList.txx"
+#include "io/pov/scene/SceneParser.h"
+
 
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
@@ -88,4 +92,3 @@ SceneParser::parseFrame(ParserContext &ctx)
 {
     SceneFrameParser::parseFrame(ctx.parsingFrame(), ctx);
 }
-#include "java/util/PriorityQueue.txx"

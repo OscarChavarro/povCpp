@@ -1,11 +1,14 @@
-#include "io/pov/material/ColorMapParser.h"
+#include "java/util/PriorityQueue.txx"
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
+
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/material/ColorMapParser.h"
 #include "io/pov/material/PovColorMap.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
 
 // Convert a PovColorMap to an RGBAColorPalette with explicit stop positions.
 // Spans are sorted canonically by start value. Each span contributes its
@@ -102,4 +105,3 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
 
     return toRGBAColorPalette(raw);
 }
-#include "java/util/PriorityQueue.txx"

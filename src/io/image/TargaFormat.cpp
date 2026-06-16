@@ -1,11 +1,16 @@
 #include <cstdio>
-#include "java/lang/Math.h"
 #include <cstdlib>
+
+#include "java/lang/Math.h"
+
 #include "java/io/FileOutputStream.h"
+
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
+
 #include "io/binaryIo/FileLocator.h"
+
 #include "io/image/TargaFormat.h"
 
 class AppendableFileOutputStream : public java::OutputStream {

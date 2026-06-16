@@ -1,7 +1,12 @@
 #include <cstdio>
 #include <cstdlib>
+
+#include "java/util/PriorityQueue.txx"
+
 #include "vsdk/toolkit/common/logging/Logger.h"
+
 #include "environment/material/RendererConfiguration.h"
+
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 
@@ -156,4 +161,3 @@ ParseErrorReporter::reportError(const char *str, ParserContext &ctx)
     }
     exit(1);
 }
-#include "java/util/PriorityQueue.txx"

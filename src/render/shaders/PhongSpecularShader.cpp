@@ -1,6 +1,9 @@
 #include "java/lang/Math.h"
+
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/geometry/elements/RayWithSegments.h"
+
 #include "render/shaders/PhongSpecularShader.h"
 
 void

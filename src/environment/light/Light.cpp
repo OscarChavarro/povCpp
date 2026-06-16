@@ -5,7 +5,9 @@ This module implements the point & spot light source primitive.
 */
 
 #include "java/lang/Math.h"
+
 #include "environment/light/Light.h"
+
 #include "environment/material/MaterialUtils.h"
 
 int

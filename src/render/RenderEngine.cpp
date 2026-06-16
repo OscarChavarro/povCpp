@@ -13,19 +13,28 @@ This module implements the main raytracing loop.
 #include <cstdio>
 
 #include "java/io/FileOutputStream.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
+
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-#include "common/dataStructures/PriorityQueuePool.txx"
+
 #include "common/statistics/Statistics.h"
+
+#include "common/dataStructures/PriorityQueuePool.txx"
+
 #include "common/RenderRuntimeState.h"
-#include "environment/material/RendererConfiguration.h"
+
 #include "environment/material/RenderOutput.h"
-#include "render/shaders/TraceService.h"
+#include "environment/material/RendererConfiguration.h"
+
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/SceneDump.h"
+#include "render/shaders/TraceService.h"
+
 
 RenderFrame RenderEngine::sRenderFrame;
 RayWithSegments *RenderEngine::sPrimaryRay = nullptr;
@@ -612,5 +621,3 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
             &localIntersection, color, ray, false, RenderEngine::getTraceService(), &TextureUtils::instance());
     }
 }
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"

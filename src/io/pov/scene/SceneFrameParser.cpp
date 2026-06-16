@@ -1,6 +1,9 @@
-#include "io/pov/scene/SceneFrameParser.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
+
 #include "environment/scene/SceneFrame.h"
 #include "environment/scene/SimpleBodyFactory.h"
+
 #include "io/pov/camera/CameraParser.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/ObjectParser.h"
@@ -9,6 +12,7 @@
 #include "io/pov/scene/DeclarationParser.h"
 #include "io/pov/scene/FogParser.h"
 #include "io/pov/scene/RenderSettingsParser.h"
+#include "io/pov/scene/SceneFrameParser.h"
 
 void
 SceneFrameParser::parseFrame(RenderFrame *framePtr)
@@ -70,5 +74,3 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
         }
     }
 }
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"

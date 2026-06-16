@@ -1,5 +1,7 @@
 #include "java/lang/Math.h"
+
 #include "common/statistics/Statistics.h"
+
 #include "environment/geometry/volume/Sphere.h"
 
 int
