@@ -76,7 +76,10 @@ class RenderingConfiguration {
     char getColorBits() const { return colorBits; }
     void setColorBits(char bits) { colorBits = bits; }
 
-    static RenderingConfiguration &global();
+    static inline RenderingConfiguration &global() {
+        static RenderingConfiguration instance;
+        return instance;
+    }
     void reset();
 };
 

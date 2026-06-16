@@ -51,6 +51,24 @@ class GeometryOperations {
         return nullptr;
     }
 
+    /**
+    Value-semantics overload: fills `out` with the nearest intersection and
+    returns true, or returns false if no intersection exists. No heap
+    allocation. Prefer this over the pointer-returning overload.
+    */
+    static inline bool
+    intersect(TransformableElement *x, RayWithSegments *y, Intersection &out)
+    {
+        java::PriorityQueue<Intersection> * const depthQueue = PriorityQueuePool<Intersection>::pqPop(128);
+        bool hit = false;
+        if (allIntersections(x, y, depthQueue) && depthQueue->size() > 0) {
+            out = depthQueue->peek();
+            hit = true;
+        }
+        PriorityQueuePool<Intersection>::pqPush(depthQueue);
+        return hit;
+    }
+
     static inline int
     inside(Vector3Dd *x, TransformableElement *y)
     {

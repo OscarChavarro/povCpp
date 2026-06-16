@@ -2,14 +2,6 @@
 
 #include "common/statistics/Statistics.h"
 
-static Statistics globalStatisticsInstance;
-
-Statistics &
-Statistics::global()
-{
-    return globalStatisticsInstance;
-}
-
 SolidTextureStatistics*
 Statistics::getSolidTextureStatistics()
 {

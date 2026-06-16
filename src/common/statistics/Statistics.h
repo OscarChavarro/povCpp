@@ -43,7 +43,10 @@ class Statistics {
     time_t stopTime;
     double usedTime;
 
-    static Statistics &global();
+    static inline Statistics &global() {
+        static Statistics instance;
+        return instance;
+    }
     SolidTextureStatistics* getSolidTextureStatistics();
     void reset();
     void startTimer();

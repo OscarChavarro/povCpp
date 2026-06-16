@@ -7,13 +7,11 @@
 #include "environment/geometry/elements/GeometryTypes.h"
 #include "environment/material/Material.h"
 
-class TranslatedBody;
-
 class SimpleBody : public Geometry {
   public:
-    java::ArrayList<TranslatedBody*> boundingShapes{4};
-    java::ArrayList<TranslatedBody*> clippingShapes{4};
-    TranslatedBody *geometry;
+    java::ArrayList<TransformableElement*> boundingShapes{4};
+    java::ArrayList<TransformableElement*> clippingShapes{4};
+    TransformableElement *geometry;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
