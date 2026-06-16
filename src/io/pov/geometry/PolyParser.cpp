@@ -2,7 +2,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"

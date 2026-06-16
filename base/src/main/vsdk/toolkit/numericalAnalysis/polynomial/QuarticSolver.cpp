@@ -4,10 +4,10 @@ This file was written by Alexander Enzmann.  He wrote the code for
 */
 
 #include "java/lang/Math.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/CubicSolver.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/CubicSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 
 int
 QuarticSolver::hasDifficultCoefficients(int n, const double *coefficients)
