@@ -8,7 +8,6 @@ This module implements routines for constructive solid geometry.
 */
 
 #include "environment/geometry/volume/compound/CSG.h"
-#include "environment/scene/TranslatedBody.h"
 #include "java/util/ArrayList.txx"
 
 int
@@ -26,7 +25,7 @@ CSG::allCsgUnionIntersections(
 {
     bool intersectionFound;
     const CSG *shape = this;
-    TranslatedBody *localShape;
+    TransformableElement *localShape;
 
     intersectionFound = false;
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
@@ -47,8 +46,8 @@ CSG::allCsgIntersectIntersections(
     bool intersectionFound;
     bool anyIntersectionFound;
     const CSG *shape = this;
-    TranslatedBody *localShape;
-    TranslatedBody *shape2;
+    TransformableElement *localShape;
+    TransformableElement *shape2;
     java::PriorityQueue<Intersection> *localDepthQueue;
     Intersection localIntersection;
 
@@ -97,7 +96,7 @@ int
 CSG::insideCsgUnion(Vector3Dd *testPoint)
 {
     const CSG *shape = this;
-    TranslatedBody *localShape;
+    TransformableElement *localShape;
 
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
         localShape = shape->shapes[i];
@@ -112,7 +111,7 @@ CSG::insideCsgUnion(Vector3Dd *testPoint)
 int
 CSG::insideCsgIntersection(Vector3Dd *testPoint)
 {
-    TranslatedBody *localShape;
+    TransformableElement *localShape;
     const CSG *shape = this;
 
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
@@ -131,8 +130,8 @@ CSG::copy()
 {
     const CSG *shape = this;
     CSG *newShape;
-    TranslatedBody *localShape;
-    TranslatedBody *copiedShape;
+    TransformableElement *localShape;
+    TransformableElement *copiedShape;
 
     newShape = new CSG;
     newShape->geometryType = shape->geometryType;
@@ -141,7 +140,7 @@ CSG::copy()
         localShape = shape->shapes[i];
 
         copiedShape =
-            (TranslatedBody *)GeometryOperations::copy(localShape);
+            (TransformableElement *)GeometryOperations::copy(localShape);
         newShape->shapes.add(copiedShape);
     }
     return ((void *)newShape);
@@ -156,7 +155,7 @@ CSG::copy()
 void
 CSG::translateGeometry(Vector3Dd *vector)
 {
-    TranslatedBody *localShape;
+    TransformableElement *localShape;
 
     for (long int i = this->shapes.size() - 1; i >= 0; i--) {
         localShape = this->shapes[i];
@@ -174,7 +173,7 @@ CSG::translate(Vector3Dd *vector)
 void
 CSG::rotateGeometry(Vector3Dd *vector)
 {
-    TranslatedBody *localShape;
+    TransformableElement *localShape;
 
     for (long int i = this->shapes.size() - 1; i >= 0; i--) {
         localShape = this->shapes[i];
@@ -192,7 +191,7 @@ CSG::rotate(Vector3Dd *vector)
 void
 CSG::scaleGeometry(Vector3Dd *vector)
 {
-    TranslatedBody *localShape;
+    TransformableElement *localShape;
 
     for (long int i = this->shapes.size() - 1; i >= 0; i--) {
         localShape = this->shapes[i];
@@ -210,7 +209,7 @@ CSG::scale(Vector3Dd *vector)
 void
 CSG::invertGeometry()
 {
-    TranslatedBody *localShape;
+    TransformableElement *localShape;
     CSG * const csg = this;
 
     if (csg->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {

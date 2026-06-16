@@ -568,15 +568,14 @@ void
 RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 {
     SimpleBody *object;
-    Intersection *localIntersection;
-    Intersection *newIntersection;
+    Intersection localIntersection;
+    Intersection newIntersection;
     bool intersectionFound;
 
     Statistics::global().numberOfRays++;
     color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
 
     intersectionFound = false;
-    localIntersection = nullptr;
 
     if (RenderEngine::traceLevel() > (int)RenderEngine::maxTraceLevel()) {
         return;
@@ -600,27 +599,17 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     java::ArrayList<SceneObject*> &sceneObjects = RenderEngine::renderFrame().Objects;
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
-        if ((newIntersection = GeometryOperations::intersect(object, ray)) !=
-            nullptr) {
-            if (intersectionFound) {
-                if (localIntersection->depth > newIntersection->depth) {
-                    delete localIntersection;
-                    localIntersection = newIntersection;
-                } else {
-                    delete newIntersection;
-                }
-            } else {
+        if (GeometryOperations::intersect(object, ray, newIntersection)) {
+            if (!intersectionFound || newIntersection.depth < localIntersection.depth) {
                 localIntersection = newIntersection;
             }
-
             intersectionFound = true;
         }
     }
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            localIntersection, color, ray, false, RenderEngine::getTraceService(), &TextureUtils::instance());
-        delete localIntersection;
+            &localIntersection, color, ray, false, RenderEngine::getTraceService(), &TextureUtils::instance());
     }
 }
 #include "java/util/ArrayList.txx"

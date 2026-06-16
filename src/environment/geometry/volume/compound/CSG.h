@@ -6,14 +6,12 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/GeometryTypes.h"
 
-class TranslatedBody;
-
 class CSG : public Geometry {
   public:
     GeometryTypes geometryType;
-    java::ArrayList<TranslatedBody*> shapes{4};
+    java::ArrayList<TransformableElement*> shapes{4};
 
-    java::ArrayList<TranslatedBody*>& getShapes() { return shapes; }
+    java::ArrayList<TransformableElement*>& getShapes() { return shapes; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

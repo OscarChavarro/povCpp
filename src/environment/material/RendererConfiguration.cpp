@@ -1,14 +1,6 @@
 #include <cstring>
 #include "environment/material/RendererConfiguration.h"
 
-static RenderingConfiguration globalRenderingConfigurationInstance;
-
-RenderingConfiguration &
-RenderingConfiguration::global()
-{
-    return globalRenderingConfigurationInstance;
-}
-
 void
 RenderingConfiguration::reset()
 {

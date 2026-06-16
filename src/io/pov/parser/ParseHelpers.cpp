@@ -42,7 +42,7 @@ ParseHelpers::postProcessObject(SimpleBody *object)
             ParseHelpers::postProcessObject(simpleBodies[i]);
         }
     } else {
-        ParseHelpers::postProcessShape(object->geometry);
+        ParseHelpers::postProcessShape(static_cast<TranslatedBody*>(object->geometry));
     }
 }
 
@@ -59,9 +59,9 @@ ParseHelpers::postProcessShape(TranslatedBody *shape, ParserContext &ctx)
     TranslatedBody *tempShape;
 
     if (CSG *csg = dynamic_cast<CSG *>(shape->geometry)) {
-        java::ArrayList<TranslatedBody*> &shapes = csg->shapes;
+        java::ArrayList<TransformableElement*> &shapes = csg->shapes;
         for (long int i = shapes.size() - 1; i >= 0; i--) {
-            tempShape = shapes[i];
+            tempShape = static_cast<TranslatedBody*>(shapes[i]);
             ParseHelpers::postProcessShape(tempShape);
         }
     } else if (Light *light = dynamic_cast<Light *>(shape->geometry)) {
