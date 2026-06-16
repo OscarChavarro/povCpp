@@ -6,7 +6,6 @@ description files.  This phase changes the input file into tokens.
 */
 
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <cctype>
 
