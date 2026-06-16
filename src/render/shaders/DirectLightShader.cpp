@@ -1,13 +1,20 @@
-#include "java/util/PriorityQueue.txx"
-#include "common/statistics/Statistics.h"
-#include "common/dataStructures/PriorityQueuePool.txx"
+#include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.h"
+#include "java/util/PriorityQueue.txx"
+
+#include "common/statistics/Statistics.h"
+
+#include "common/dataStructures/PriorityQueuePool.txx"
+
+#include "environment/material/RendererConfiguration.h"
+
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/material/RendererConfiguration.h"
+
 #include "environment/light/Light.h"
+
 #include "render/shaders/BlinnPhongSpecularShader.h"
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/LambertShader.h"
@@ -15,7 +22,6 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
-#include "java/util/ArrayList.txx"
 
 
 static constexpr double SHADOW_TOLERANCE = 0.05;

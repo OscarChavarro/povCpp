@@ -5,7 +5,9 @@ This module implements functions that manipulate planes.
 */
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "common/statistics/Statistics.h"
+
 #include "environment/geometry/surface/InfinitePlane.h"
 
 

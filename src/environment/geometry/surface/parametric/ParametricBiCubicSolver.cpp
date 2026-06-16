@@ -1,6 +1,9 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "common/statistics/Statistics.h"
+
 #include "environment/geometry/GeometryOperations.h"
+
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"

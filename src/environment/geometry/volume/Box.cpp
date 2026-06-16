@@ -8,10 +8,13 @@ boxes and generously provided us these enhancements.
 */
 
 #include "java/lang/Math.h"
-#include "environment/geometry/volume/Box.h"
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
+#include "environment/geometry/volume/Box.h"
 
 
 int

@@ -1,15 +1,19 @@
-#include "io/pov/geometry/SphereParser.h"
+#include "java/util/PriorityQueue.txx"
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/scene/ModelBuilder.h"
+#include "environment/scene/TranslatedBody.h"
+
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/geometry/SphereParser.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 TranslatedBody *
 SphereParser::parseSphere()
@@ -129,4 +133,3 @@ SphereParser::parseSphere(ParserContext &ctx)
 
     return body;
 }
-#include "java/util/PriorityQueue.txx"

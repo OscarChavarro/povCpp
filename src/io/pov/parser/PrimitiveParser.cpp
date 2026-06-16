@@ -1,6 +1,10 @@
+#include "java/util/PriorityQueue.txx"
+
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
+
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -227,4 +231,3 @@ PrimitiveParser::parseColor(ColorRgba *givenColor, ParserContext &ctx)
         }
     }
 }
-#include "java/util/PriorityQueue.txx"

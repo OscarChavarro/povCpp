@@ -1,17 +1,21 @@
-#include "io/pov/geometry/PolyParser.h"
+#include "java/util/PriorityQueue.txx"
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
+
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/ModelBuilder.h"
+#include "environment/scene/TranslatedBody.h"
+
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/geometry/PolyParser.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
 
 TranslatedBody *
 PolyParser::parsePoly(int knownOrder)
@@ -157,4 +161,3 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 
     return body;
 }
-#include "java/util/PriorityQueue.txx"

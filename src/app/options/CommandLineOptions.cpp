@@ -2,12 +2,17 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "java/util/PriorityQueue.txx"
+
 #include "environment/material/RendererConfiguration.h"
-#include "render/RenderEngine.h"
+
 #include "io/binaryIo/FileLocator.h"
+
 #include "io/pov/lexer/Tokenizer.h"
+
+#include "render/RenderEngine.h"
+
 #include "app/options/CommandLineOptions.h"
 
 static constexpr int MAX_FILE_NAMES = 1;

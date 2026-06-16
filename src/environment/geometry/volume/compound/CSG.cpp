@@ -1,13 +1,14 @@
-#include "java/util/PriorityQueue.txx"
-#include "common/dataStructures/PriorityQueuePool.txx"
-
 /**
 csg.c
 
 This module implements routines for constructive solid geometry.
 */
 
+#include "common/dataStructures/PriorityQueuePool.txx"
+
 #include "environment/geometry/volume/compound/CSG.h"
+
+#include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
 int

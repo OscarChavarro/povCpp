@@ -1,15 +1,19 @@
 #include "java/lang/Math.h"
+#include "java/util/PriorityQueue.txx"
+
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/light/Light.h"
 #include "environment/scene/ModelBuilder.h"
+#include "environment/scene/TranslatedBody.h"
+
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/light/LightSourceParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "io/pov/light/LightSourceParser.h"
-#include "environment/scene/TranslatedBody.h"
 
 
 TranslatedBody *
@@ -137,4 +141,3 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
     return body;
 }
-#include "java/util/PriorityQueue.txx"

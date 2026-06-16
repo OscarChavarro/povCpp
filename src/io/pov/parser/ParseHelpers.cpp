@@ -1,9 +1,14 @@
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
+
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/scene/SceneFrame.h"
 #include "environment/scene/TranslatedBody.h"
+
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -70,5 +75,3 @@ ParseHelpers::postProcessShape(TranslatedBody *shape, ParserContext &ctx)
             &(ctx.parsingFrame()->lightSources));
     }
 }
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"

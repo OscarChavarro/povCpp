@@ -1,5 +1,5 @@
-#include "io/pov/lexer/Tokenizer.h"
 #include "io/pov/context/TokenizerStream.h"
+#include "io/pov/lexer/Tokenizer.h"
 
 const ReservedWord *
 TokenizerStream::reservedWords()

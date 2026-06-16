@@ -1,9 +1,13 @@
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
+
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
+
 #include "environment/material/Material.h"
+
 #include "environment/geometry/SimpleBody.h"
+
 #include "render/RenderEngine.h"
 #include "render/SceneDump.h"
 

@@ -2,14 +2,16 @@
 Material utilities: global default texture management.
 */
 
-#include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
+
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
-#include "environment/material/MaterialUtils.h"
 #include "environment/material/Material.h"
+#include "environment/material/MaterialUtils.h"
+
+#include "java/util/ArrayList.txx"
 
 static Material *defaultTextureInstance;
 

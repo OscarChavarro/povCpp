@@ -1,4 +1,8 @@
-#include "io/pov/geometry/ObjectParser.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/Triangle.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -13,12 +17,15 @@
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/scene/SimpleBodyFactory.h"
+#include "environment/scene/TranslatedBody.h"
+
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
 #include "io/pov/geometry/BoxParser.h"
 #include "io/pov/geometry/HeightFieldParser.h"
+#include "io/pov/geometry/ObjectParser.h"
 #include "io/pov/geometry/PlaneParser.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "io/pov/geometry/QuadricParser.h"
@@ -30,8 +37,6 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/scene/TranslatedBody.h"
 
 CSG *
 ObjectParser::parseCsg(GeometryTypes type)
@@ -751,5 +756,3 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
     return ((SimpleBody *)localComposite);
 }
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"

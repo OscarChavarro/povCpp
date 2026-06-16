@@ -6,8 +6,11 @@ This file implements a simple IFF format file reader.
 
 #include <cstdio>
 #include <cstdlib>
+
 #include "vsdk/toolkit/common/logging/Logger.h"
+
 #include "io/binaryIo/FileLocator.h"
+
 #include "io/image/IffFormat.h"
 
 RGBAPixelHDR *IffFormat::sIffColorMap = nullptr;

@@ -1,9 +1,16 @@
-#include "environment/scene/SimpleBodyFactory.h"
-#include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/volume/compound/Composite.h"
-#include "environment/material/MaterialUtils.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+
+#include "environment/geometry/GeometryOperations.h"
+
+#include "environment/geometry/volume/compound/Composite.h"
+
+#include "environment/material/MaterialUtils.h"
+
+#include "environment/scene/SimpleBodyFactory.h"
+
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 SimpleBody *
 SimpleBodyFactory::getObject()
@@ -20,5 +27,3 @@ SimpleBodyFactory::getObject()
     newObject->noShadowFlag = false;
     return (newObject);
 }
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"

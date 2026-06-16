@@ -1,4 +1,7 @@
+#include "java/util/PriorityQueue.txx"
+
 #include "common/RenderRuntimeState.h"
+
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/scene/RenderSettingsParser.h"
@@ -16,4 +19,3 @@ RenderSettingsParser::parseMaxTraceLevel(ParserContext &ctx)
 {
     RenderRuntimeState::maxTraceLevel() = PrimitiveParser::parseFloat(ctx);
 }
-#include "java/util/PriorityQueue.txx"

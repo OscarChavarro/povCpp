@@ -1,15 +1,19 @@
-#include "io/pov/geometry/BlobParser.h"
+#include "java/util/PriorityQueue.txx"
+
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/scene/TranslatedBody.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/scene/ModelBuilder.h"
+#include "environment/scene/TranslatedBody.h"
+
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/geometry/BlobParser.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 TranslatedBody *
 BlobParser::parseBlob()
@@ -189,4 +193,3 @@ BlobParser::parseBlob(ParserContext &ctx)
 
     return body;
 }
-#include "java/util/PriorityQueue.txx"
