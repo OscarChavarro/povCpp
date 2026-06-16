@@ -30,6 +30,7 @@ add_executable(povray
     src/environment/geometry/volume/Sphere.cpp
     src/environment/scene/ModelBuilder.cpp
     src/environment/scene/SimpleBodyFactory.cpp
+    src/environment/scene/TranslatedBody.cpp
     src/environment/geometry/elements/Triangle.cpp
     src/environment/camera/Camera.cpp
     src/environment/material/Material.cpp
