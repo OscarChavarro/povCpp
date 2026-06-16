@@ -8,6 +8,7 @@ This module implements routines for constructive solid geometry.
 */
 
 #include "environment/geometry/volume/compound/CSG.h"
+#include "environment/scene/TranslatedBody.h"
 #include "java/util/ArrayList.txx"
 
 int
@@ -25,7 +26,7 @@ CSG::allCsgUnionIntersections(
 {
     bool intersectionFound;
     const CSG *shape = this;
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     intersectionFound = false;
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
@@ -46,8 +47,8 @@ CSG::allCsgIntersectIntersections(
     bool intersectionFound;
     bool anyIntersectionFound;
     const CSG *shape = this;
-    Geometry *localShape;
-    Geometry *shape2;
+    TranslatedBody *localShape;
+    TranslatedBody *shape2;
     java::PriorityQueue<Intersection> *localDepthQueue;
     Intersection localIntersection;
 
@@ -96,7 +97,7 @@ int
 CSG::insideCsgUnion(Vector3Dd *testPoint)
 {
     const CSG *shape = this;
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
         localShape = shape->shapes[i];
@@ -111,7 +112,7 @@ CSG::insideCsgUnion(Vector3Dd *testPoint)
 int
 CSG::insideCsgIntersection(Vector3Dd *testPoint)
 {
-    Geometry *localShape;
+    TranslatedBody *localShape;
     const CSG *shape = this;
 
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
@@ -130,8 +131,8 @@ CSG::copy()
 {
     const CSG *shape = this;
     CSG *newShape;
-    Geometry *localShape;
-    Geometry *copiedShape;
+    TranslatedBody *localShape;
+    TranslatedBody *copiedShape;
 
     newShape = new CSG;
     newShape->geometryType = shape->geometryType;
@@ -140,16 +141,22 @@ CSG::copy()
         localShape = shape->shapes[i];
 
         copiedShape =
-            (Geometry *)GeometryOperations::copy(localShape);
+            (TranslatedBody *)GeometryOperations::copy(localShape);
         newShape->shapes.add(copiedShape);
     }
     return ((void *)newShape);
 }
 
+// A CSG is a container of TranslatedBody children. Transforming it recurses
+// into each child's full transform (geometry + material). The same recursion
+// serves both as the direct entry point (CSG::translate, used while parsing the
+// union's own braces) and as the geometric entry point invoked when the CSG is
+// itself wrapped in a TranslatedBody (TranslatedBody::translate -> translateGeometry).
+
 void
-CSG::translate(Vector3Dd *vector)
+CSG::translateGeometry(Vector3Dd *vector)
 {
-    Geometry *localShape;
+    TranslatedBody *localShape;
 
     for (long int i = this->shapes.size() - 1; i >= 0; i--) {
         localShape = this->shapes[i];
@@ -159,9 +166,15 @@ CSG::translate(Vector3Dd *vector)
 }
 
 void
-CSG::rotate(Vector3Dd *vector)
+CSG::translate(Vector3Dd *vector)
 {
-    Geometry *localShape;
+    translateGeometry(vector);
+}
+
+void
+CSG::rotateGeometry(Vector3Dd *vector)
+{
+    TranslatedBody *localShape;
 
     for (long int i = this->shapes.size() - 1; i >= 0; i--) {
         localShape = this->shapes[i];
@@ -171,9 +184,15 @@ CSG::rotate(Vector3Dd *vector)
 }
 
 void
-CSG::scale(Vector3Dd *vector)
+CSG::rotate(Vector3Dd *vector)
 {
-    Geometry *localShape;
+    rotateGeometry(vector);
+}
+
+void
+CSG::scaleGeometry(Vector3Dd *vector)
+{
+    TranslatedBody *localShape;
 
     for (long int i = this->shapes.size() - 1; i >= 0; i--) {
         localShape = this->shapes[i];
@@ -183,9 +202,15 @@ CSG::scale(Vector3Dd *vector)
 }
 
 void
-CSG::invert()
+CSG::scale(Vector3Dd *vector)
 {
-    Geometry *localShape;
+    scaleGeometry(vector);
+}
+
+void
+CSG::invertGeometry()
+{
+    TranslatedBody *localShape;
     CSG * const csg = this;
 
     if (csg->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
@@ -199,6 +224,12 @@ CSG::invert()
 
         GeometryOperations::invert(localShape);
     }
+}
+
+void
+CSG::invert()
+{
+    invertGeometry();
 }
 
 int

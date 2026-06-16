@@ -1,8 +1,6 @@
 #include "java/lang/Math.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/volume/Sphere.h"
-#include "environment/material/Material.h"
-#include "environment/material/MaterialUtils.h"
 
 int
 Sphere::intersectSphere(
@@ -84,7 +82,7 @@ Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection>
         intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.point = intersectionPoint;
-        localElement.Shape = (Geometry *)shape;
+        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -94,7 +92,7 @@ Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection>
             intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.point = intersectionPoint;
-            localElement.Shape = (Geometry *)shape;
+            localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }
@@ -135,11 +133,6 @@ Sphere::copy()
     newShape = new Sphere;
     *newShape = *this;
 
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
-
     return (newShape);
 }
 
@@ -150,13 +143,6 @@ Sphere::translateGeometry(Vector3Dd *vector)
 }
 
 void
-Sphere::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 Sphere::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
@@ -164,13 +150,6 @@ Sphere::rotateGeometry(Vector3Dd *vector)
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
     this->center = transformation.transpose().multiply(this->center);
-}
-
-void
-Sphere::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -190,21 +169,9 @@ Sphere::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-Sphere::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 Sphere::invertGeometry()
 {
     this->inverted ^= true;
 }
 
-void
-Sphere::invert()
-{
-    invertGeometry();
-}
 #include "java/util/PriorityQueue.txx"

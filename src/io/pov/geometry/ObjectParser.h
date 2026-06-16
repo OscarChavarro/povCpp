@@ -7,10 +7,12 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "io/pov/context/ParserContext.h"
 
+class TranslatedBody;
+
 class ObjectParser {
   public:
-    static Geometry *parseShape();
-    static Geometry *parseShape(ParserContext &ctx);
+    static TranslatedBody *parseShape();
+    static TranslatedBody *parseShape(ParserContext &ctx);
     static SimpleBody *parseObject();
     static SimpleBody *parseObject(ParserContext &ctx);
     static SimpleBody *parseComposite();

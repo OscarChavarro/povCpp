@@ -13,6 +13,22 @@
 #include "environment/camera/Camera.h"
 #include "environment/light/Light.h"
 #include "environment/scene/ModelBuilder.h"
+#include "environment/scene/TranslatedBody.h"
+
+TranslatedBody *
+ModelBuilder::wrap(Geometry *geometry)
+{
+    TranslatedBody *body;
+
+    body = new TranslatedBody;
+    if (body == nullptr) {
+        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate body\n");
+    }
+    body->geometry = geometry;
+    body->material = nullptr;
+    body->shapeColor = nullptr;
+    return (body);
+}
 
 Composite *
 ModelBuilder::getCompositeObject()
@@ -43,8 +59,6 @@ ModelBuilder::getSphereShape()
     newShape->inverseRadius = 1.0;
     newShape->vpCached = false;
     newShape->inverted = false;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -89,8 +103,6 @@ ModelBuilder::getQuadricShape()
     newShape->objectVpConstant = HUGE_VAL;
     newShape->constantCached = false;
     newShape->nonZeroSquareTerm = false;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -105,8 +117,6 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
     newShape->inverted = 0;
@@ -137,8 +147,6 @@ ModelBuilder::getBoxShape()
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
     newShape->inverted = false;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -155,8 +163,6 @@ ModelBuilder::getBlobShape()
     newShape->transformation = nullptr;
     newShape->transformationInverse = nullptr;
     newShape->inverted = false;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -170,8 +176,6 @@ ModelBuilder::getBicubicPatchShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     newShape->uSteps = 0;
     newShape->vSteps = 0;
     newShape->intersectionCount = 0;
@@ -195,8 +199,6 @@ ModelBuilder::getHeightFieldShape()
     newShape->Map = nullptr;
     newShape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
     newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -213,8 +215,6 @@ ModelBuilder::getPlaneShape()
     *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
     newShape->distance = 0.0;
     newShape->vpCached = 0;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     return (newShape);
 }
 
@@ -235,8 +235,6 @@ ModelBuilder::getTriangleShape()
     newShape->distance = 0.0;
     newShape->inverted = false;
     newShape->vpCached = false;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;
     return (newShape);
 }
@@ -261,8 +259,6 @@ ModelBuilder::getSmoothTriangleShape()
     newShape->distance = 0.0;
     newShape->inverted = false;
     newShape->vpCached = 0;
-    newShape->material = nullptr;
-    newShape->shapeColor = nullptr;
     newShape->degenerateFlag = false;
     return (newShape);
 }

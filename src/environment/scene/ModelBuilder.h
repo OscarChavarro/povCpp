@@ -19,8 +19,12 @@
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 
+class Geometry;
+class TranslatedBody;
+
 class ModelBuilder {
   public:
+    static TranslatedBody *wrap(Geometry *geometry);
     static Composite *getCompositeObject();
     static Sphere *getSphereShape();
     static Light *getLightSourceShape();

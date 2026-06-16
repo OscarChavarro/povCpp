@@ -15,7 +15,6 @@ bezier bicubic patches and generously provided us these enhancements.
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/material/MaterialUtils.h"
 
 #include <cstdio>
 
@@ -1009,10 +1008,6 @@ ParametricBiCubicPatch::copy()
 
     newShape->interpolatedGrid = nullptr;
     ParametricBiCubicPatch::precomputePatchValues(newShape);
-    if (newShape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(newShape->material);
-    }
 
     return (void *)(newShape);
 }
@@ -1030,13 +1025,6 @@ ParametricBiCubicPatch::translateGeometry(Vector3Dd *vector)
         }
     }
     ParametricBiCubicPatch::precomputePatchValues(patch);
-}
-
-void
-ParametricBiCubicPatch::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
 }
 
 void
@@ -1059,13 +1047,6 @@ ParametricBiCubicPatch::rotateGeometry(Vector3Dd *vector)
 }
 
 void
-ParametricBiCubicPatch::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
-}
-
-void
 ParametricBiCubicPatch::scaleGeometry(Vector3Dd *vector)
 {
     ParametricBiCubicPatch * const patch = this;
@@ -1081,22 +1062,9 @@ ParametricBiCubicPatch::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-ParametricBiCubicPatch::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 ParametricBiCubicPatch::invertGeometry()
 {
     ;
-}
-
-void
-ParametricBiCubicPatch::invert()
-{
-    invertGeometry();
 }
 
 int

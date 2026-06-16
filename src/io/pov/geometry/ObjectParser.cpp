@@ -31,6 +31,7 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "environment/scene/TranslatedBody.h"
 
 CSG *
 ObjectParser::parseCsg(GeometryTypes type)
@@ -39,7 +40,7 @@ ObjectParser::parseCsg(GeometryTypes type)
     return ObjectParser::parseCsg(type, ctx);
 }
 
-Geometry *
+TranslatedBody *
 ObjectParser::parseShape()
 {
     ParserContext ctx;
@@ -64,7 +65,7 @@ CSG *
 ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
 {
     CSG *container = nullptr;
-    Geometry *localShape;
+    TranslatedBody *localShape;
     Vector3Dd localVector;
     int constantId;
     bool firstShapeParsed = false;
@@ -224,7 +225,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx);
+                    ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert(localShape);
                 }
@@ -234,7 +235,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx);
+                    ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert(localShape);
                 }
@@ -244,7 +245,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx);
+                    ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert(localShape);
                 }
@@ -308,10 +309,10 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
     return ((CSG *)container);
 }
 
-Geometry *
+TranslatedBody *
 ObjectParser::parseShape(ParserContext &ctx)
 {
-    Geometry *localShape = nullptr;
+    TranslatedBody *localShape = nullptr;
 
     {
         bool Exit_Flag;
@@ -386,19 +387,19 @@ ObjectParser::parseShape(ParserContext &ctx)
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx);
+                    ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx));
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx);
+                    ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx));
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    (Geometry *)ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx);
+                    ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx));
                 Exit_Flag = true;
                 break;
 
@@ -415,7 +416,7 @@ SimpleBody *
 ObjectParser::parseObject(ParserContext &ctx)
 {
     SimpleBody *object;
-    Geometry *localShape;
+    TranslatedBody *localShape;
     Vector3Dd localVector;
     int constantId;
     Material *localTexture;
@@ -599,7 +600,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
 {
     Composite *localComposite;
     SimpleBody *localObject;
-    Geometry *localShape;
+    TranslatedBody *localShape;
     int constantId;
     Vector3Dd localVector;
 

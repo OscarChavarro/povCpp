@@ -74,6 +74,8 @@ class PriorityQueue final : public Object {
     // C++ ergonomic helpers for range-for loops (not in JDK API; expose iterator to C++ idioms)
     const T* begin() const;
     const T* end() const;
+    T* begin();
+    T* end();
 };
 
 template <class T>

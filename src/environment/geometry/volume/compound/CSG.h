@@ -6,12 +6,14 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/GeometryTypes.h"
 
+class TranslatedBody;
+
 class CSG : public Geometry {
   public:
     GeometryTypes geometryType;
-    java::ArrayList<Geometry*> shapes{4};
+    java::ArrayList<TranslatedBody*> shapes{4};
 
-    java::ArrayList<Geometry*>& getShapes() { return shapes; }
+    java::ArrayList<TranslatedBody*>& getShapes() { return shapes; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
@@ -20,6 +22,10 @@ class CSG : public Geometry {
     void rotate(Vector3Dd *vector) override;
     void scale(Vector3Dd *vector) override;
     void invert() override;
+    void translateGeometry(Vector3Dd *vector) override;
+    void rotateGeometry(Vector3Dd *vector) override;
+    void scaleGeometry(Vector3Dd *vector) override;
+    void invertGeometry() override;
 
   private:
     int allCsgUnionIntersections(

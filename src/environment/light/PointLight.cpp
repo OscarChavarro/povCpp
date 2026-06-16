@@ -13,8 +13,6 @@ PointLight::PointLight()
     this->pointsAt = Vector3Dd(0.0, 0.0, 1.0);
     this->geometryType = GeometryTypes::POINT_LIGHT_TYPE;
     this->inverted = false;
-    this->material = nullptr;
-    this->shapeColor = nullptr;
     this->coeff = 10.0;
     this->radius = 0.35;
     this->falloff = 0.35;

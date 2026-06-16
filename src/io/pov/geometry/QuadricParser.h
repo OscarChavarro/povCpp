@@ -4,10 +4,12 @@
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"
 
+class TranslatedBody;
+
 class QuadricParser {
   public:
-    static Geometry *parseQuadric();
-    static Geometry *parseQuadric(ParserContext &ctx);
+    static TranslatedBody *parseQuadric();
+    static TranslatedBody *parseQuadric(ParserContext &ctx);
 };
 
 #endif

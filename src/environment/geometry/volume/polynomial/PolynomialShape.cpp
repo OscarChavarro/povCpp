@@ -16,7 +16,6 @@ This file was written by Alexander Enzmann.  He wrote the code for
 #include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
 #include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/material/MaterialUtils.h"
 
 /**
 Basic form of a quartic equation
@@ -124,7 +123,7 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         localElement.depth = len;
         localElement.Object = nullptr;
         localElement.point = intersectionPoint;
-        localElement.Shape = (Geometry *)shape;
+        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;
@@ -857,12 +856,6 @@ PolynomialShape::copy()
         newShape->Coeffs[i] = shape->Coeffs[i];
     }
 
-    // Copy any associated texture
-    if (shape->material != nullptr) {
-        newShape->material =
-            MaterialUtils::instance().copyTexture(shape->material);
-    }
-
     return (void *)(newShape);
 }
 
@@ -886,13 +879,6 @@ PolynomialShape::translateGeometry(Vector3Dd *vector)
 }
 
 void
-PolynomialShape::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&this->material, vector);
-}
-
-void
 PolynomialShape::rotateGeometry(Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
@@ -906,13 +892,6 @@ PolynomialShape::rotateGeometry(Vector3Dd *vector)
     *shape->transformation = shape->transformation->multiply(deltaTransformation);
     *shape->transformationInverse =
         deltaTransformationInverse.multiply(*shape->transformationInverse);
-}
-
-void
-PolynomialShape::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&this->material, vector);
 }
 
 void
@@ -934,21 +913,9 @@ PolynomialShape::scaleGeometry(Vector3Dd *vector)
 }
 
 void
-PolynomialShape::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
-}
-
-void
 PolynomialShape::invertGeometry()
 {
     this->inverted = !this->inverted;
 }
 
-void
-PolynomialShape::invert()
-{
-    invertGeometry();
-}
 #include "java/util/PriorityQueue.txx"

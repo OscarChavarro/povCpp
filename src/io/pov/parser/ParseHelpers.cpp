@@ -3,6 +3,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/scene/SceneFrame.h"
+#include "environment/scene/TranslatedBody.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -46,24 +47,24 @@ ParseHelpers::postProcessObject(SimpleBody *object)
 }
 
 void
-ParseHelpers::postProcessShape(Geometry *shape)
+ParseHelpers::postProcessShape(TranslatedBody *shape)
 {
     ParserContext ctx;
     ParseHelpers::postProcessShape(shape, ctx);
 }
 
 void
-ParseHelpers::postProcessShape(Geometry *shape, ParserContext &ctx)
+ParseHelpers::postProcessShape(TranslatedBody *shape, ParserContext &ctx)
 {
-    Geometry *tempShape;
+    TranslatedBody *tempShape;
 
-    if (CSG *csg = dynamic_cast<CSG *>(shape)) {
-        java::ArrayList<Geometry*> &shapes = csg->shapes;
+    if (CSG *csg = dynamic_cast<CSG *>(shape->geometry)) {
+        java::ArrayList<TranslatedBody*> &shapes = csg->shapes;
         for (long int i = shapes.size() - 1; i >= 0; i--) {
             tempShape = shapes[i];
             ParseHelpers::postProcessShape(tempShape);
         }
-    } else if (Light *light = dynamic_cast<Light *>(shape)) {
+    } else if (Light *light = dynamic_cast<Light *>(shape->geometry)) {
         ParseHelpers::linkShapes(light,
             &(light->nextLightSource),
             &(ctx.parsingFrame()->lightSources));

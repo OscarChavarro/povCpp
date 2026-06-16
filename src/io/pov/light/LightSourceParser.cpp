@@ -9,20 +9,22 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/light/LightSourceParser.h"
+#include "environment/scene/TranslatedBody.h"
 
 
-Geometry *
+TranslatedBody *
 LightSourceParser::parseLightSource()
 {
     ParserContext ctx;
     return LightSourceParser::parseLightSource(ctx);
 }
 
-Geometry *
+TranslatedBody *
 LightSourceParser::parseLightSource(ParserContext &ctx)
 {
     (void)ctx;
     Light *localShape = nullptr;
+    TranslatedBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
 
@@ -37,6 +39,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getLightSourceShape();
+                body = ModelBuilder::wrap(localShape);
                 PrimitiveParser::parseVector(&(localShape->center), ctx);
                 localShape->setShapeColor(ModelBuilder::getColor());
                 localShape->shapeColor->setR(1.0); localShape->shapeColor->setG(1.0); localShape->shapeColor->setB(1.0); localShape->shapeColor->setA(0.0);
@@ -49,9 +52,10 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::LIGHT_SOURCE_CONSTANT) {
-                        localShape = (Light *)GeometryOperations::copy(
+                        body = (TranslatedBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
+                        localShape = (Light *)body->geometry;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -121,6 +125,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             case Tokenizer::SPOTLIGHT_TOKEN:
                 localShape = ModelBuilder::promoteToSpotLight(localShape);
+                body->geometry = localShape;
                 break;
 
             default:
@@ -130,6 +135,6 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
         }
     }
 
-    return ((Geometry *)localShape);
+    return body;
 }
 #include "java/util/PriorityQueue.txx"
