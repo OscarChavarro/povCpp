@@ -3,11 +3,8 @@ This module implements primitives for triangles and smooth triangles.
 */
 
 #include "java/lang/Math.h"
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/elements/Triangle.h"
 
 int

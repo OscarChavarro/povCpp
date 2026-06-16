@@ -1,3 +1,6 @@
+#ifndef __PRIORITY_QUEUE_TXX__
+#define __PRIORITY_QUEUE_TXX__
+
 #include "java/util/PriorityQueue.h"
 
 namespace java {
@@ -316,3 +319,5 @@ PriorityQueue<T>::toArray(T* target) const
 }
 
 }
+
+#endif

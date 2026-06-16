@@ -2,6 +2,7 @@
 #define __STATISTICS_H__
 
 #include <ctime>
+
 #include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
 
 class Statistics {

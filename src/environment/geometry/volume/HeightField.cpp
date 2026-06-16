@@ -14,13 +14,10 @@ and Drew Wells.
 #include <cstdio>
 
 #include "java/lang/Math.h"
-
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/volume/HeightField.h"
 
 inline int

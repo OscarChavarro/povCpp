@@ -4,8 +4,9 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "java/util/PriorityQueue.h"
+#include "java/util/PriorityQueue.txx"
 #include "common/dataStructures/PriorityQueuePool.h"
+#include "common/dataStructures/PriorityQueuePool.txx"
 #include "environment/geometry/elements/TransformableElement.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Intersection.h"

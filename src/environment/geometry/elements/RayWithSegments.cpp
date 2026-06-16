@@ -1,6 +1,4 @@
 /**
-ray.c
-
 This module implements the code pertaining to rays.
 */
 
@@ -8,7 +6,6 @@ This module implements the code pertaining to rays.
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-
 #include "environment/geometry/elements/RayWithSegments.h"
 
 RayWithSegments::RayWithSegments()

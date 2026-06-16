@@ -8,13 +8,11 @@ description files.  This phase changes the input file into tokens.
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cctype>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-
 #include "io/binaryIo/FileLocator.h"
 #include "io/pov/lexer/Tokenizer.h"
-
-#include <cctype>
 
 /**
 This module tokenizes the input file and sends the tokens created

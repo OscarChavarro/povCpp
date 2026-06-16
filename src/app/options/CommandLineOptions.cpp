@@ -4,15 +4,10 @@
 #include <cstring>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-
 #include "environment/material/RendererConfiguration.h"
-
 #include "io/binaryIo/FileLocator.h"
-
 #include "io/pov/lexer/Tokenizer.h"
-
 #include "render/RenderEngine.h"
-
 #include "app/options/CommandLineOptions.h"
 
 static constexpr int MAX_FILE_NAMES = 1;

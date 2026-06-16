@@ -2,6 +2,7 @@
 #define __RENDERING_CONFIGURATION_H__
 
 #include <cstring>
+
 #include "environment/material/RenderOutput.h"
 
 class RenderingConfiguration {

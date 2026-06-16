@@ -1,22 +1,15 @@
 #include <cstdio>
 
 #include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
-
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
-
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureColorNames.h"
-
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-
-#include "environment/scene/SceneFrame.h"
 #include "environment/scene/TranslatedBody.h"
-
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/SolidTextureFixturesFacade.h"

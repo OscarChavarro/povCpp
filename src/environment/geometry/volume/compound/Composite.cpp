@@ -7,15 +7,11 @@ This module implements the methods for objects and composite objects.
 #include <cstdio>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-
 #include "common/statistics/Statistics.h"
 #include "common/dataStructures/PriorityQueuePool.txx"
-
 #include "environment/geometry/volume/compound/Composite.h"
-
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/MaterialUtils.h"
-
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 

@@ -1,9 +1,7 @@
 #include <cstdlib>
 
 #include "java/lang/Math.h"
-
 #include "environment/geometry/elements/RayWithSegments.h"
-
 #include "render/shaders/LambertShader.h"
 
 void

@@ -6,7 +6,7 @@
 #include "environment/camera/Camera.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/light/Light.h"
-#include "environment/scene/SceneObject.h"
+#include "environment/geometry/SimpleBody.h"
 
 class RenderFrame {
   public:
@@ -14,7 +14,7 @@ class RenderFrame {
     int screenHeight;
     int screenWidth;
     Light *lightSources;
-    java::ArrayList<SceneObject*> Objects{4};
+    java::ArrayList<SimpleBody*> Objects{4};
     double atmosphereIor;
     double antialiasThreshold;
     double fogDistance;
@@ -34,7 +34,7 @@ class RenderFrame {
     void setFogDistance(double distance) { fogDistance = distance; }
     ColorRgba& getFogColor() { return fogColor; }
     const ColorRgba& getFogColor() const { return fogColor; }
-    java::ArrayList<SceneObject*>& getObjects() { return Objects; }
+    java::ArrayList<SimpleBody*>& getObjects() { return Objects; }
 
     static void createRay(
         RayWithSegments *ray, int width, int height, double x, double y);

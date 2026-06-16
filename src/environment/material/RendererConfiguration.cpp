@@ -1,4 +1,5 @@
 #include <cstring>
+
 #include "environment/material/RendererConfiguration.h"
 
 void
