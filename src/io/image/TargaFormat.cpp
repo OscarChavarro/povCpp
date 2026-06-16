@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cstdlib>
 
 #include "java/lang/Math.h"
 #include "java/io/FileOutputStream.h"

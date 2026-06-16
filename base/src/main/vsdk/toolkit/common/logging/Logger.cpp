@@ -1,13 +1,9 @@
+#include <cstdlib>
+#include <cstdio>
+
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/lang/String.h"
-
-#include <cstdlib>
-#include "java/lang/String.h"
-#include <cstdio>
-#include "java/lang/String.h"
-
 #include "vsdk/toolkit/common/VSDKFatalException.h"
-#include "java/lang/String.h"
 
 bool Logger::withSystemExit_ = true;
 bool Logger::withFatalExceptions_ = true;

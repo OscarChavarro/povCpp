@@ -5,8 +5,6 @@ This file was written by Alexander Enzmann.  He wrote the code for
 blobs and generously provided us these enhancements.
 */
 
-#include <cstdio>
-
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"

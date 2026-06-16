@@ -1,5 +1,3 @@
-#include <cstdio>
-
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/RenderRuntimeState.h"
 
