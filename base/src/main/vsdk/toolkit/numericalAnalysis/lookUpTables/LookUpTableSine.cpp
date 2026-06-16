@@ -1,5 +1,5 @@
 #include "java/lang/Math.h"
-#include "vsdk/toolkit/common/numericalAnalysis/lookUpTables/LookUpTableSine.h"
+#include "vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableSine.h"
 
 LookUpTableSine::LookUpTableSine()
 {

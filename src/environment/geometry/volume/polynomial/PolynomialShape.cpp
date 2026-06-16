@@ -11,9 +11,9 @@ This file was written by Alexander Enzmann.  He wrote the code for
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/PolynomialSolver.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuadraticSolver.h"
-#include "vsdk/toolkit/common/numericalAnalysis/polynomial/QuarticSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
+#include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"

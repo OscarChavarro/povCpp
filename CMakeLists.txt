@@ -32,6 +32,7 @@ add_executable(povray
     src/environment/scene/SimpleBodyFactory.cpp
     src/environment/scene/TranslatedBody.cpp
     src/environment/geometry/elements/Triangle.cpp
+    src/environment/geometry/elements/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp
     src/environment/material/Material.cpp
     src/environment/material/MaterialUtils.cpp
