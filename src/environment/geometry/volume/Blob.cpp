@@ -28,7 +28,7 @@ adjust the amount of total contribution, giving the formula:
 This varies in strength from coeff at r = 0, to 0 at r = rad.
 */
 void
-Blob::makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist, int npoints,
+Blob::makeBlob(BoundedGeometry *obj, double threshold, BlobList *bloblist, int npoints,
     int sflag)
 {
     Blob *blob = (Blob *)obj;
@@ -190,7 +190,7 @@ Calculate the field value of a blob - the position vector
 "Pos" must already have been transformed into blob space.
 */
 double
-Blob::calculateFieldValue(SimpleBody *obj, const Vector3Dd *pos)
+Blob::calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos)
 {
     int i;
     double len;
@@ -445,7 +445,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                     localElement.depth = len;
                     localElement.Object = nullptr;
                     localElement.point = intersectionPoint;
-                    localElement.Shape = reinterpret_cast<TranslatedBody *>(blob);
+                    localElement.Shape = reinterpret_cast<SimpleBody *>(blob);
                     depthQueue->offer(localElement);
                     intersectionFound = true;
                 }
@@ -475,7 +475,7 @@ Blob::inside(Vector3Dd *testPoint)
         newPoint = *testPoint;
     }
 
-    if (Blob::calculateFieldValue((SimpleBody *)this, &newPoint) >
+    if (Blob::calculateFieldValue((BoundedGeometry *)this, &newPoint) >
         blob->threshold - INSIDE_TOLERANCE) {
         return ((int)1 - blob->inverted);
     }

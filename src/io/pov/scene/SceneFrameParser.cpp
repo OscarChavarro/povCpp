@@ -2,7 +2,7 @@
 #include "java/util/PriorityQueue.txx"
 
 #include "environment/scene/SceneFrame.h"
-#include "environment/scene/SimpleBodyFactory.h"
+#include "environment/scene/BoundedGeometryFactory.h"
 
 #include "io/pov/camera/CameraParser.h"
 #include "io/pov/context/ParserContext.h"
@@ -24,7 +24,7 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr)
 void
 SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
 {
-    SimpleBody *localObject;
+    BoundedGeometry *localObject;
     ctx.parsingFrame() = framePtr;
 
     {

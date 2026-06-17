@@ -6,7 +6,7 @@
 
 #include "environment/material/Material.h"
 
-#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/BoundedGeometry.h"
 
 #include "render/RenderEngine.h"
 #include "render/SceneDump.h"
@@ -16,9 +16,9 @@ void SceneDumper::dumpSceneStructure(FILE *f)
     if (f == nullptr) return;
 
     int idx = 0;
-    java::ArrayList<SimpleBody*> &sceneObjects = RenderEngine::renderFrame().Objects;
+    java::ArrayList<BoundedGeometry*> &sceneObjects = RenderEngine::renderFrame().Objects;
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
-        const SimpleBody *obj = sceneObjects[i];
+        const BoundedGeometry *obj = sceneObjects[i];
         fprintf(f, "OBJ %03d\n", idx);
 
         if (obj->objectTexture) {

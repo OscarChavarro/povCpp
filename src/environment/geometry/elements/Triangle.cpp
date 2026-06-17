@@ -172,7 +172,7 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
         intersectionPoint = ray->direction.multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.point = intersectionPoint;
-        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+        localElement.Shape = reinterpret_cast<SimpleBody *>(shape);
         depthQueue->offer(localElement);
         return (true);
     }

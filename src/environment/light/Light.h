@@ -31,6 +31,10 @@ class Light : public Geometry {
     virtual double attenuate(const RayWithSegments *lightSourceRay) const = 0;
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int allIntersectionsForOwner(
+        RayWithSegments *ray,
+        java::PriorityQueue<Intersection> *depthQueue,
+        SimpleBody *owner) override;
     int inside(Vector3Dd *point) override;
     void *copy() override = 0;
     void translate(Vector3Dd *vector) override;

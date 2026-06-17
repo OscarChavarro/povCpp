@@ -4,12 +4,12 @@
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"
 
-class TranslatedBody;
+class SimpleBody;
 
 class BicubicPatchParser {
   public:
-    static TranslatedBody *parseBicubicPatch();
-    static TranslatedBody *parseBicubicPatch(ParserContext &ctx);
+    static SimpleBody *parseBicubicPatch();
+    static SimpleBody *parseBicubicPatch(ParserContext &ctx);
 };
 
 #endif

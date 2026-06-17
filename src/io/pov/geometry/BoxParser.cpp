@@ -5,7 +5,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -14,19 +14,19 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-TranslatedBody *
+SimpleBody *
 BoxParser::parseBox()
 {
     ParserContext ctx;
     return BoxParser::parseBox(ctx);
 }
 
-TranslatedBody *
+SimpleBody *
 BoxParser::parseBox(ParserContext &ctx)
 {
     (void)ctx;
     Box *localShape;
-    TranslatedBody *body = nullptr;
+    SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Material *localTexture;
@@ -67,7 +67,7 @@ BoxParser::parseBox(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::BOX_CONSTANT) {
-                        body = (TranslatedBody *)GeometryOperations::copy(
+                        body = (SimpleBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                         localShape = (Box *)body->geometry;

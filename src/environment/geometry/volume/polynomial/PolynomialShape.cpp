@@ -126,7 +126,7 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         localElement.depth = len;
         localElement.Object = nullptr;
         localElement.point = intersectionPoint;
-        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+        localElement.Shape = reinterpret_cast<SimpleBody *>(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;
@@ -728,7 +728,7 @@ PolynomialShape::intersectQuartic(
 // Normal to a quartic
 void
 PolynomialShape::quarticNormal(
-    Vector3Dd *result, SimpleBody *object, const Vector3Dd *intersectionPoint)
+    Vector3Dd *result, BoundedGeometry *object, const Vector3Dd *intersectionPoint)
 {
     const PolynomialShape *shape = (PolynomialShape *)object;
     double *a;
@@ -823,7 +823,7 @@ PolynomialShape::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     }
 
     if (shape->order == 4) {
-        PolynomialShape::quarticNormal(result, (SimpleBody *)this, &newPoint);
+        PolynomialShape::quarticNormal(result, (BoundedGeometry *)this, &newPoint);
     } else {
         PolynomialShape::normalp(
             result, shape->order, shape->Coeffs, &newPoint);

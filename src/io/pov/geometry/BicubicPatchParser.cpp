@@ -5,7 +5,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -15,19 +15,19 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-TranslatedBody *
+SimpleBody *
 BicubicPatchParser::parseBicubicPatch()
 {
     ParserContext ctx;
     return BicubicPatchParser::parseBicubicPatch(ctx);
 }
 
-TranslatedBody *
+SimpleBody *
 BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
 {
     (void)ctx;
     ParametricBiCubicPatch *localShape = nullptr;
-    TranslatedBody *body = nullptr;
+    SimpleBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
     Material *localTexture;
@@ -72,7 +72,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::BICUBIC_PATCH_CONSTANT) {
-                        body = (TranslatedBody *)GeometryOperations::copy(
+                        body = (SimpleBody *)GeometryOperations::copy(
                                 (TransformableElement *)ctx.constants()[(int)constantId]
                                     .constantData);
                         localShape = (ParametricBiCubicPatch *)body->geometry;

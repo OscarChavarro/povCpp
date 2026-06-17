@@ -7,18 +7,18 @@
 
 #include "environment/material/MaterialUtils.h"
 
-#include "environment/scene/SimpleBodyFactory.h"
+#include "environment/scene/BoundedGeometryFactory.h"
 
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
-SimpleBody *
-SimpleBodyFactory::getObject()
+BoundedGeometry *
+BoundedGeometryFactory::getObject()
 {
-    SimpleBody *newObject;
+    BoundedGeometry *newObject;
 
-    if ((newObject = new SimpleBody()) == nullptr) {
-        Logger::reportMessage("SimpleBodyFactory", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
+    if ((newObject = new BoundedGeometry()) == nullptr) {
+        Logger::reportMessage("BoundedGeometryFactory", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
     newObject->geometry = nullptr;

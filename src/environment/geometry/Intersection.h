@@ -4,16 +4,16 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/BoundedGeometry.h"
 
-class TranslatedBody;
+class SimpleBody;
 
 class Intersection {
   public:
     double depth;
-    SimpleBody *Object;
+    BoundedGeometry *Object;
     Vector3Dd point;
-    TranslatedBody *Shape;
+    SimpleBody *Shape;
 
     inline bool operator<(const Intersection& other) const
     {

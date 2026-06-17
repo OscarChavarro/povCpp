@@ -13,7 +13,7 @@
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
 {
-    java::ArrayList<SimpleBody*> &objects = ctx.parsingFrame()->Objects;
+    java::ArrayList<BoundedGeometry*> &objects = ctx.parsingFrame()->Objects;
     for (long int i = objects.size() - 1; i >= 0; i--) {
         ParseHelpers::postProcessObject(objects[i]);
     }

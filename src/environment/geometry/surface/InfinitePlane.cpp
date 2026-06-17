@@ -14,6 +14,16 @@ This module implements functions that manipulate planes.
 int
 InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
+    return allIntersectionsForOwner(
+        ray, depthQueue, reinterpret_cast<SimpleBody *>(this));
+}
+
+int
+InfinitePlane::allIntersectionsForOwner(
+    RayWithSegments *ray,
+    java::PriorityQueue<Intersection> *depthQueue,
+    SimpleBody *owner)
+{
     InfinitePlane * const shape = this;
     double depth;
     Vector3Dd intersectionPoint;
@@ -26,7 +36,7 @@ InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inters
             intersectionPoint = ray->direction.multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.point = intersectionPoint;
-            localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+            localElement.Shape = owner;
             depthQueue->offer(localElement);
             return (true);
         }

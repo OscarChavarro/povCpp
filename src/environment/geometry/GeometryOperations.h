@@ -10,7 +10,7 @@
 #include "environment/geometry/elements/TransformableElement.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/geometry/elements/GeometryTypes.h"
 

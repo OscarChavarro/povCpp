@@ -7,9 +7,9 @@
 #include "environment/geometry/elements/GeometryTypes.h"
 #include "environment/geometry/volume/compound/CSG.h"
 
-class Composite : public SimpleBody {
+class Composite : public BoundedGeometry {
   public:
-    java::ArrayList<SimpleBody*> simpleBodies{4};
+    java::ArrayList<BoundedGeometry*> simpleBodies{4};
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

@@ -6,7 +6,7 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
@@ -20,7 +20,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
     const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const Light *lightSources,
-    java::ArrayList<SimpleBody*> &objects, int &traceLevel)
+    java::ArrayList<BoundedGeometry*> &objects, int &traceLevel)
 {
     Vector3Dd surfaceNormal;
     double normalDirection;

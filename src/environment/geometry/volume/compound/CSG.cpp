@@ -7,9 +7,23 @@ This module implements routines for constructive solid geometry.
 #include "common/dataStructures/PriorityQueuePool.txx"
 
 #include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
+
+namespace {
+
+inline int
+insideCsgChild(Vector3Dd *point, TransformableElement *shape)
+{
+    // CSG children are produced by the POV parsers through ModelBuilder::wrap,
+    // so the stored TransformableElement is a SimpleBody. CSG inside tests
+    // only need geometry, not material/colour ownership.
+    return static_cast<SimpleBody *>(shape)->geometry->inside(point);
+}
+
+}
 
 int
 CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
@@ -18,6 +32,16 @@ CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *d
         return allCsgIntersectIntersections(ray, depthQueue);
     }
     return allCsgUnionIntersections(ray, depthQueue);
+}
+
+int
+CSG::allIntersectionsForOwner(
+    RayWithSegments *ray,
+    java::PriorityQueue<Intersection> *depthQueue,
+    SimpleBody *owner)
+{
+    (void)owner;
+    return allIntersections(ray, depthQueue);
 }
 
 int
@@ -71,8 +95,7 @@ CSG::allCsgIntersectIntersections(
                 shape2 = shape->shapes[j];
 
                 if (shape2 != localShape) {
-                    if (!GeometryOperations::inside(
-                            &localIntersection.point, shape2)) {
+                    if (!insideCsgChild(&localIntersection.point, shape2)) {
                         intersectionFound = false;
                         break;
                     }
@@ -102,7 +125,7 @@ CSG::insideCsgUnion(Vector3Dd *testPoint)
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
         localShape = shape->shapes[i];
 
-        if (GeometryOperations::inside(testPoint, localShape)) {
+        if (insideCsgChild(testPoint, localShape)) {
             return (true);
         }
     }
@@ -118,7 +141,7 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint)
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
         localShape = shape->shapes[i];
 
-        if (!GeometryOperations::inside(testPoint, localShape)) {
+        if (!insideCsgChild(testPoint, localShape)) {
             return (false);
         }
     }
@@ -147,11 +170,11 @@ CSG::copy()
     return ((void *)newShape);
 }
 
-// A CSG is a container of TranslatedBody children. Transforming it recurses
+// A CSG is a container of SimpleBody children. Transforming it recurses
 // into each child's full transform (geometry + material). The same recursion
 // serves both as the direct entry point (CSG::translate, used while parsing the
 // union's own braces) and as the geometric entry point invoked when the CSG is
-// itself wrapped in a TranslatedBody (TranslatedBody::translate -> translateGeometry).
+// itself wrapped in a SimpleBody (SimpleBody::translate -> translateGeometry).
 
 void
 CSG::translateGeometry(Vector3Dd *vector)

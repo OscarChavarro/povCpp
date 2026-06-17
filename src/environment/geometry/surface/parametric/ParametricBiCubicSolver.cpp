@@ -308,7 +308,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
 
 int
 ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
-    SimpleBody *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+    BoundedGeometry *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     ParametricBiCubicPatch * const shape = (ParametricBiCubicPatch *)object;
     double depths[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
@@ -352,7 +352,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         localElement.depth = depths[i];
         localElement.Object = nullptr;
         localElement.point = shape->intersectionPoint[tcnt + i];
-        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+        localElement.Shape = reinterpret_cast<SimpleBody *>(shape);
         depthQueue->offer(localElement);
         intersectionFound = 1;
     }

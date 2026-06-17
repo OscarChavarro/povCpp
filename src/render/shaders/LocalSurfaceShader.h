@@ -5,7 +5,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/light/Light.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/Material.h"
 #include "render/shaders/TraceService.h"
@@ -16,7 +16,7 @@ public:
         Intersection *rayIntersection, ColorRgba *surfaceColor,
         const ColorRgba *filterColor, ColorRgba *color,
         const TraceService *traceService, const Light *lightSources,
-        java::ArrayList<SimpleBody*> &objects, int &traceLevel);
+        java::ArrayList<BoundedGeometry*> &objects, int &traceLevel);
 };
 
 #endif

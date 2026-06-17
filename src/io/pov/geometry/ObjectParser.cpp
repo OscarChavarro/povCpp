@@ -16,8 +16,8 @@
 #include "environment/light/Light.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/SimpleBodyFactory.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/scene/BoundedGeometryFactory.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -45,21 +45,21 @@ ObjectParser::parseCsg(GeometryTypes type)
     return ObjectParser::parseCsg(type, ctx);
 }
 
-TranslatedBody *
+SimpleBody *
 ObjectParser::parseShape()
 {
     ParserContext ctx;
     return ObjectParser::parseShape(ctx);
 }
 
-SimpleBody *
+BoundedGeometry *
 ObjectParser::parseObject()
 {
     ParserContext ctx;
     return ObjectParser::parseObject(ctx);
 }
 
-SimpleBody *
+BoundedGeometry *
 ObjectParser::parseComposite()
 {
     ParserContext ctx;
@@ -70,7 +70,7 @@ CSG *
 ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
 {
     CSG *container = nullptr;
-    TranslatedBody *localShape;
+    SimpleBody *localShape;
     Vector3Dd localVector;
     int constantId;
     bool firstShapeParsed = false;
@@ -314,10 +314,10 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
     return ((CSG *)container);
 }
 
-TranslatedBody *
+SimpleBody *
 ObjectParser::parseShape(ParserContext &ctx)
 {
-    TranslatedBody *localShape = nullptr;
+    SimpleBody *localShape = nullptr;
 
     {
         bool Exit_Flag;
@@ -417,11 +417,11 @@ ObjectParser::parseShape(ParserContext &ctx)
     return (localShape);
 }
 
-SimpleBody *
+BoundedGeometry *
 ObjectParser::parseObject(ParserContext &ctx)
 {
-    SimpleBody *object;
-    TranslatedBody *localShape;
+    BoundedGeometry *object;
+    SimpleBody *localShape;
     Vector3Dd localVector;
     int constantId;
     Material *localTexture;
@@ -440,7 +440,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::OBJECT_CONSTANT) {
-                        object = (SimpleBody *)GeometryOperations::copy(
+                        object = (BoundedGeometry *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
@@ -470,7 +470,7 @@ ObjectParser::parseObject(ParserContext &ctx)
             case Tokenizer::BLOB_TOKEN:
                 ctx.tokenStream().ungetToken();
                 if (object == nullptr) {
-                    object = SimpleBodyFactory::getObject();
+                    object = BoundedGeometryFactory::getObject();
                 }
 
                 localShape = ObjectParser::parseShape(ctx);
@@ -600,12 +600,12 @@ ObjectParser::parseObject(ParserContext &ctx)
     return (object);
 }
 
-SimpleBody *
+BoundedGeometry *
 ObjectParser::parseComposite(ParserContext &ctx)
 {
     Composite *localComposite;
-    SimpleBody *localObject;
-    TranslatedBody *localShape;
+    BoundedGeometry *localObject;
+    SimpleBody *localShape;
     int constantId;
     Vector3Dd localVector;
 
@@ -754,5 +754,5 @@ ObjectParser::parseComposite(ParserContext &ctx)
         }
     }
 
-    return ((SimpleBody *)localComposite);
+    return ((BoundedGeometry *)localComposite);
 }

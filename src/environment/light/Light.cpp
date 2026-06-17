@@ -17,6 +17,18 @@ Light::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> 
 }
 
 int
+Light::allIntersectionsForOwner(
+    RayWithSegments *ray,
+    java::PriorityQueue<Intersection> *depthQueue,
+    SimpleBody *owner)
+{
+    (void)ray;
+    (void)depthQueue;
+    (void)owner;
+    return (false);
+}
+
+int
 Light::inside(Vector3Dd *point)
 {
     return (false);
