@@ -33,9 +33,9 @@ ModelBuilder::wrap(Geometry *geometry)
     if (body == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate body\n");
     }
-    body->geometry = geometry;
-    body->material = nullptr;
-    body->shapeColor = nullptr;
+    body->setGeometry(geometry);
+    body->setMaterial(nullptr);
+    body->setShapeColor(nullptr);
     return (body);
 }
 

@@ -64,14 +64,14 @@ ParseHelpers::postProcessShape(SimpleBody *shape, ParserContext &ctx)
     SimpleBody *tempShape;
     (void)ctx;
 
-    if (CSG *csg = dynamic_cast<CSG *>(shape->geometry)) {
+    if (CSG *csg = dynamic_cast<CSG *>(shape->getGeometry())) {
         java::ArrayList<TransformableElement*> &shapes = csg->shapes;
         for (long int i = shapes.size() - 1; i >= 0; i--) {
             tempShape = static_cast<SimpleBody*>(shapes[i]);
             ParseHelpers::postProcessShape(tempShape);
         }
     } else if (LightGeometryAdapter *lightAdapter =
-                   dynamic_cast<LightGeometryAdapter *>(shape->geometry)) {
+                   dynamic_cast<LightGeometryAdapter *>(shape->getGeometry())) {
         Light * const currentHead = ctx.parsingFrame()->getLightSources();
         lightAdapter->light->setNextLightSource(currentHead);
         ctx.parsingFrame()->setLightSources(lightAdapter->light);
