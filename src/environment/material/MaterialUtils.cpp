@@ -49,9 +49,9 @@ MaterialUtils::setDefaultTexture(PovrayMaterial *texture)
 bool
 MaterialUtils::needsTransform(const PovrayMaterial *texture)
 {
-    return ((texture->textureNumber != SolidTextureColorNames::NO_TEXTURE) &&
-               (texture->textureNumber != SolidTextureColorNames::COLOUR_TEXTURE)) ||
-           (texture->bumpNumber != SolidTextureBumpyNames::NO_BUMPS);
+    return ((texture->getTextureNumber() != SolidTextureColorNames::NO_TEXTURE) &&
+               (texture->getTextureNumber() != SolidTextureColorNames::COLOUR_TEXTURE)) ||
+           (texture->getBumpNumber() != SolidTextureBumpyNames::NO_BUMPS);
 }
 void
 MaterialUtils::applyTranslationTransform(PovrayMaterial *texture, const Vector3Dd *vector)
@@ -59,20 +59,20 @@ MaterialUtils::applyTranslationTransform(PovrayMaterial *texture, const Vector3D
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 
-    if (!texture->textureTransformation) {
-        texture->textureTransformation =
-            new Matrix4x4d(Matrix4x4d::identityMatrix());
-        texture->textureTransformationInverse =
-            new Matrix4x4d(Matrix4x4d::identityMatrix());
+    if (!texture->getTextureTransformation()) {
+        texture->setTextureTransformation(
+            new Matrix4x4d(Matrix4x4d::identityMatrix()));
+        texture->setTextureTransformationInverse(
+            new Matrix4x4d(Matrix4x4d::identityMatrix()));
     }
     deltaTransformation = Matrix4x4d().translation(
         vector->x(), vector->y(), vector->z()).transpose();
     deltaTransformationInverse = Matrix4x4d().translation(
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    *texture->textureTransformation =
-        texture->textureTransformation->multiply(deltaTransformation);
-    *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
-        *texture->textureTransformationInverse);
+    *texture->getTextureTransformation() =
+        texture->getTextureTransformation()->multiply(deltaTransformation);
+    *texture->getTextureTransformationInverse() = deltaTransformationInverse.multiply(
+        *texture->getTextureTransformationInverse());
 }
 void
 MaterialUtils::translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
@@ -83,28 +83,28 @@ MaterialUtils::translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
     }
 
     if (needsTransform(texture)) {
-        if (texture->constantFlag) {
+        if (texture->isConstant()) {
             texture = copyTexture(texture);
             *texturePtr = texture;
         }
         applyTranslationTransform(texture, vector);
-        if (texture->textureNumber == (int)CHECKER_TEXTURE_TEXTURE) {
-            translateTexture((PovrayMaterial **)&texture->color1, vector);
-            translateTexture((PovrayMaterial **)&texture->color2, vector);
+        if (texture->getTextureNumber() == (int)CHECKER_TEXTURE_TEXTURE) {
+            translateTexture((PovrayMaterial **)&texture->getColor1(), vector);
+            translateTexture((PovrayMaterial **)&texture->getColor2(), vector);
         }
     }
 
-    for (long int i = 0; i < texture->layers.size(); i++) {
-        PovrayMaterial *layer = texture->layers[i];
+    for (long int i = 0; i < texture->getLayers().size(); i++) {
+        PovrayMaterial *layer = texture->getLayers()[i];
         if (needsTransform(layer)) {
-            if (layer->constantFlag) {
+            if (layer->isConstant()) {
                 layer = copyTexture(layer);
-                texture->layers[i] = layer;
+                texture->getLayers()[i] = layer;
             }
             applyTranslationTransform(layer, vector);
-            if (layer->textureNumber == (int)CHECKER_TEXTURE_TEXTURE) {
-                translateTexture((PovrayMaterial **)&layer->color1, vector);
-                translateTexture((PovrayMaterial **)&layer->color2, vector);
+            if (layer->getTextureNumber() == (int)CHECKER_TEXTURE_TEXTURE) {
+                translateTexture((PovrayMaterial **)&layer->getColor1(), vector);
+                translateTexture((PovrayMaterial **)&layer->getColor2(), vector);
             }
         }
     }
@@ -112,26 +112,26 @@ MaterialUtils::translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
 void
 MaterialUtils::copyTextureNode(PovrayMaterial *dst, const PovrayMaterial *src)
 {
-    if (dst->textureTransformation) {
-        dst->textureTransformation =
-            new Matrix4x4d(*src->textureTransformation);
-        dst->textureTransformationInverse =
-            new Matrix4x4d(*src->textureTransformationInverse);
+    if (dst->getTextureTransformation()) {
+        dst->setTextureTransformation(
+            new Matrix4x4d(*src->getTextureTransformation()));
+        dst->setTextureTransformationInverse(
+            new Matrix4x4d(*src->getTextureTransformationInverse()));
     }
-    if (dst->colorMap != nullptr) {
+    if (dst->getColorMap() != nullptr) {
         RGBAColorPalette * const newMap = new RGBAColorPalette();
-        for (int i = 0; i < src->colorMap->size(); i++) {
-            const ColorRgba *c = src->colorMap->getColorAt(i);
-            if (src->colorMap->hasPositions()) {
-                newMap->addColorAt(src->colorMap->getPositionAt(i), *c);
+        for (int i = 0; i < src->getColorMap()->size(); i++) {
+            const ColorRgba *c = src->getColorMap()->getColorAt(i);
+            if (src->getColorMap()->hasPositions()) {
+                newMap->addColorAt(src->getColorMap()->getPositionAt(i), *c);
             } else {
                 newMap->addColor(*c);
             }
             delete c;
         }
-        dst->colorMap = newMap;
+        dst->setColorMap(newMap);
     }
-    dst->constantFlag = false;
+    dst->setConstant(false);
 }
 PovrayMaterial *
 MaterialUtils::copyTexture(PovrayMaterial *texture)
@@ -140,13 +140,13 @@ MaterialUtils::copyTexture(PovrayMaterial *texture)
     *newHead = *texture;
     copyTextureNode(newHead, texture);
 
-    newHead->layers.clear();
-    for (long int i = 0; i < texture->layers.size(); i++) {
-        const PovrayMaterial *src = texture->layers[i];
+    newHead->getLayers().clear();
+    for (long int i = 0; i < texture->getLayers().size(); i++) {
+        const PovrayMaterial *src = texture->getLayers()[i];
         PovrayMaterial * const copy = getTexture();
         *copy = *src;
         copyTextureNode(copy, src);
-        newHead->layers.add(copy);
+        newHead->getLayers().add(copy);
     }
 
     return newHead;
@@ -161,38 +161,38 @@ MaterialUtils::getTexture()
         Logger::reportMessage("PovrayMaterial", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
-    newTexture->objectReflection = 0.0;
-    newTexture->objectAmbient = 0.1;
-    newTexture->objectDiffuse = 0.6;
-    newTexture->objectBrilliance = 1.0;
-    newTexture->objectSpecular = 0.0;
-    newTexture->objectRoughness = 0.05;
-    newTexture->objectPhong = 0.0;
-    newTexture->objectPhongSize = 40;
+    newTexture->setObjectReflection(0.0);
+    newTexture->setObjectAmbient(0.1);
+    newTexture->setObjectDiffuse(0.6);
+    newTexture->setObjectBrilliance(1.0);
+    newTexture->setObjectSpecular(0.0);
+    newTexture->setObjectRoughness(0.05);
+    newTexture->setObjectPhong(0.0);
+    newTexture->setObjectPhongSize(40);
 
-    newTexture->textureRandomness = 0.0;
-    newTexture->bumpAmount = 0.0;
-    newTexture->phase = 0.0;
-    newTexture->frequency = 1.0;
-    newTexture->textureNumber = SolidTextureColorNames::NO_TEXTURE;
-    newTexture->textureTransformation = nullptr;
-    newTexture->textureTransformationInverse = nullptr;
-    newTexture->bumpNumber = SolidTextureBumpyNames::NO_BUMPS;
-    newTexture->turbulence = 0.0;
-    newTexture->colorMap = nullptr;
-    newTexture->onceFlag = false;
-    newTexture->metallicFlag = false;
-    newTexture->octaves = 6;  // dmf, for turbulence functions
-    newTexture->mortar = 0.2; // rha, for brick texture
+    newTexture->setTextureRandomness(0.0);
+    newTexture->setBumpAmount(0.0);
+    newTexture->setPhase(0.0);
+    newTexture->setFrequency(1.0);
+    newTexture->setTextureNumber(SolidTextureColorNames::NO_TEXTURE);
+    newTexture->setTextureTransformation(nullptr);
+    newTexture->setTextureTransformationInverse(nullptr);
+    newTexture->setBumpNumber(SolidTextureBumpyNames::NO_BUMPS);
+    newTexture->setTurbulence(0.0);
+    newTexture->setColorMap(nullptr);
+    newTexture->setOnceFlag(false);
+    newTexture->setMetallicFlag(false);
+    newTexture->setOctaves(6);  // dmf, for turbulence functions
+    newTexture->setMortar(0.2); // rha, for brick texture
 
-    newTexture->constantFlag = true;
-    newTexture->color1 = nullptr;
-    newTexture->color2 = nullptr;
-    *&newTexture->textureGradient = Vector3Dd(0.0, 0.0, 0.0);
+    newTexture->setConstant(true);
+    newTexture->setColor1(nullptr);
+    newTexture->setColor2(nullptr);
+    newTexture->setTextureGradient(Vector3Dd(0.0, 0.0, 0.0));
 
-    newTexture->objectIndexOfRefraction = 1.0;
-    newTexture->objectTransmit = 0.0;
-    newTexture->objectRefraction = 0.0;
+    newTexture->setObjectIndexOfRefraction(1.0);
+    newTexture->setObjectTransmit(0.0);
+    newTexture->setObjectRefraction(0.0);
     return (newTexture);
 }
 void
@@ -201,17 +201,17 @@ MaterialUtils::applyRotationTransform(PovrayMaterial *texture, Vector3Dd *vector
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 
-    if (!texture->textureTransformation) {
-        texture->textureTransformation =
-            new Matrix4x4d(Matrix4x4d::identityMatrix());
-        texture->textureTransformationInverse =
-            new Matrix4x4d(Matrix4x4d::identityMatrix());
+    if (!texture->getTextureTransformation()) {
+        texture->setTextureTransformation(
+            new Matrix4x4d(Matrix4x4d::identityMatrix()));
+        texture->setTextureTransformationInverse(
+            new Matrix4x4d(Matrix4x4d::identityMatrix()));
     }
     deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
-    *texture->textureTransformation =
-        texture->textureTransformation->multiply(deltaTransformation);
-    *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
-        *texture->textureTransformationInverse);
+    *texture->getTextureTransformation() =
+        texture->getTextureTransformation()->multiply(deltaTransformation);
+    *texture->getTextureTransformationInverse() = deltaTransformationInverse.multiply(
+        *texture->getTextureTransformationInverse());
 }
 void
 MaterialUtils::rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
@@ -222,28 +222,28 @@ MaterialUtils::rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
     }
 
     if (needsTransform(texture)) {
-        if (texture->constantFlag) {
+        if (texture->isConstant()) {
             texture = copyTexture(texture);
             *texturePtr = texture;
         }
         applyRotationTransform(texture, vector);
-        if (texture->textureNumber == (int)CHECKER_TEXTURE_TEXTURE) {
-            rotateTexture((PovrayMaterial **)&texture->color1, vector);
-            rotateTexture((PovrayMaterial **)&texture->color2, vector);
+        if (texture->getTextureNumber() == (int)CHECKER_TEXTURE_TEXTURE) {
+            rotateTexture((PovrayMaterial **)&texture->getColor1(), vector);
+            rotateTexture((PovrayMaterial **)&texture->getColor2(), vector);
         }
     }
 
-    for (long int i = 0; i < texture->layers.size(); i++) {
-        PovrayMaterial *layer = texture->layers[i];
+    for (long int i = 0; i < texture->getLayers().size(); i++) {
+        PovrayMaterial *layer = texture->getLayers()[i];
         if (needsTransform(layer)) {
-            if (layer->constantFlag) {
+            if (layer->isConstant()) {
                 layer = copyTexture(layer);
-                texture->layers[i] = layer;
+                texture->getLayers()[i] = layer;
             }
             applyRotationTransform(layer, vector);
-            if (layer->textureNumber == (int)CHECKER_TEXTURE_TEXTURE) {
-                rotateTexture((PovrayMaterial **)&layer->color1, vector);
-                rotateTexture((PovrayMaterial **)&layer->color2, vector);
+            if (layer->getTextureNumber() == (int)CHECKER_TEXTURE_TEXTURE) {
+                rotateTexture((PovrayMaterial **)&layer->getColor1(), vector);
+                rotateTexture((PovrayMaterial **)&layer->getColor2(), vector);
             }
         }
     }
@@ -254,19 +254,19 @@ MaterialUtils::applyScaleTransform(PovrayMaterial *texture, const Vector3Dd *vec
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
 
-    if (!texture->textureTransformation) {
-        texture->textureTransformation =
-            new Matrix4x4d(Matrix4x4d::identityMatrix());
-        texture->textureTransformationInverse =
-            new Matrix4x4d(Matrix4x4d::identityMatrix());
+    if (!texture->getTextureTransformation()) {
+        texture->setTextureTransformation(
+            new Matrix4x4d(Matrix4x4d::identityMatrix()));
+        texture->setTextureTransformationInverse(
+            new Matrix4x4d(Matrix4x4d::identityMatrix()));
     }
     deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
     deltaTransformationInverse = Matrix4x4d().scale(
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    *texture->textureTransformation =
-        texture->textureTransformation->multiply(deltaTransformation);
-    *texture->textureTransformationInverse = deltaTransformationInverse.multiply(
-        *texture->textureTransformationInverse);
+    *texture->getTextureTransformation() =
+        texture->getTextureTransformation()->multiply(deltaTransformation);
+    *texture->getTextureTransformationInverse() = deltaTransformationInverse.multiply(
+        *texture->getTextureTransformationInverse());
 }
 void
 MaterialUtils::scaleTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
@@ -277,28 +277,28 @@ MaterialUtils::scaleTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
     }
 
     if (needsTransform(texture)) {
-        if (texture->constantFlag) {
+        if (texture->isConstant()) {
             texture = copyTexture(texture);
             *texturePtr = texture;
         }
         applyScaleTransform(texture, vector);
-        if (texture->textureNumber == (int)CHECKER_TEXTURE_TEXTURE) {
-            scaleTexture((PovrayMaterial **)&texture->color1, vector);
-            scaleTexture((PovrayMaterial **)&texture->color2, vector);
+        if (texture->getTextureNumber() == (int)CHECKER_TEXTURE_TEXTURE) {
+            scaleTexture((PovrayMaterial **)&texture->getColor1(), vector);
+            scaleTexture((PovrayMaterial **)&texture->getColor2(), vector);
         }
     }
 
-    for (long int i = 0; i < texture->layers.size(); i++) {
-        PovrayMaterial *layer = texture->layers[i];
+    for (long int i = 0; i < texture->getLayers().size(); i++) {
+        PovrayMaterial *layer = texture->getLayers()[i];
         if (needsTransform(layer)) {
-            if (layer->constantFlag) {
+            if (layer->isConstant()) {
                 layer = copyTexture(layer);
-                texture->layers[i] = layer;
+                texture->getLayers()[i] = layer;
             }
             applyScaleTransform(layer, vector);
-            if (layer->textureNumber == (int)CHECKER_TEXTURE_TEXTURE) {
-                scaleTexture((PovrayMaterial **)&layer->color1, vector);
-                scaleTexture((PovrayMaterial **)&layer->color2, vector);
+            if (layer->getTextureNumber() == (int)CHECKER_TEXTURE_TEXTURE) {
+                scaleTexture((PovrayMaterial **)&layer->getColor1(), vector);
+                scaleTexture((PovrayMaterial **)&layer->getColor2(), vector);
             }
         }
     }

@@ -19,17 +19,17 @@ LambertShader::shade(const PovrayMaterial *texture, const RayWithSegments *light
         cosAngleOfIncidence = -cosAngleOfIncidence;
     }
 
-    if (texture->objectBrilliance != 1.0) {
-        intensity = java::Math::pow(cosAngleOfIncidence, texture->objectBrilliance);
+    if (texture->getObjectBrilliance() != 1.0) {
+        intensity = java::Math::pow(cosAngleOfIncidence, texture->getObjectBrilliance());
     } else {
         intensity = cosAngleOfIncidence;
     }
 
-    intensity *= texture->objectDiffuse * attenuation;
+    intensity *= texture->getObjectDiffuse() * attenuation;
 
     randomNumber = (rand() & 0x7FFF) / (double)0x7FFF;
 
-    intensity -= randomNumber * texture->textureRandomness;
+    intensity -= randomNumber * texture->getTextureRandomness();
 
     color->setR(color->getR() + intensity * (surfaceColor->getR()) * (lightColor->getR()));
     color->setG(color->getG() + intensity * (surfaceColor->getG()) * (lightColor->getG()));

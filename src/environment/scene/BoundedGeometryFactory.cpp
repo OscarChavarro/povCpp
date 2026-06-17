@@ -1,7 +1,6 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "environment/geometry/GeometryOperations.h"
 
 #include "environment/geometry/volume/compound/Composite.h"
 

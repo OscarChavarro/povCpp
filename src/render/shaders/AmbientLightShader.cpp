@@ -4,11 +4,11 @@ void
 AmbientLightShader::shade(const PovrayMaterial *texture, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation)
 {
-    if (texture->objectAmbient == 0.0) {
+    if (texture->getObjectAmbient() == 0.0) {
         return;
     }
 
-    color->setR(color->getR() + surfaceColor->getR() * texture->objectAmbient * attenuation);
-    color->setG(color->getG() + surfaceColor->getG() * texture->objectAmbient * attenuation);
-    color->setB(color->getB() + surfaceColor->getB() * texture->objectAmbient * attenuation);
+    color->setR(color->getR() + surfaceColor->getR() * texture->getObjectAmbient() * attenuation);
+    color->setG(color->getG() + surfaceColor->getG() * texture->getObjectAmbient() * attenuation);
+    color->setB(color->getB() + surfaceColor->getB() * texture->getObjectAmbient() * attenuation);
 }

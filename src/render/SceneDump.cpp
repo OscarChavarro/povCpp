@@ -26,64 +26,64 @@ void SceneDumper::dumpSceneStructure(FILE *f)
                 static_cast<const PovrayMaterial *>(obj->getObjectTexture());
 
             fprintf(f, "  tex.num=%d amb=%.6f dif=%.6f phong=%.6f psize=%.6f bril=%.6f\n",
-                    tex->textureNumber,
-                    tex->objectAmbient,
-                    tex->objectDiffuse,
-                    tex->objectPhong,
-                    tex->objectPhongSize,
-                    tex->objectBrilliance);
+                    tex->getTextureNumber(),
+                    tex->getObjectAmbient(),
+                    tex->getObjectDiffuse(),
+                    tex->getObjectPhong(),
+                    tex->getObjectPhongSize(),
+                    tex->getObjectBrilliance());
 
             fprintf(f, "  tex.spec=%.6f rough=%.6f refl=%.6f refr=%.6f ior=%.6f transmit=%.6f metal=%d\n",
-                    tex->objectSpecular,
-                    tex->objectRoughness,
-                    tex->objectReflection,
-                    tex->objectRefraction,
-                    tex->objectIndexOfRefraction,
-                    tex->objectTransmit,
-                    tex->metallicFlag);
+                    tex->getObjectSpecular(),
+                    tex->getObjectRoughness(),
+                    tex->getObjectReflection(),
+                    tex->getObjectRefraction(),
+                    tex->getObjectIndexOfRefraction(),
+                    tex->getObjectTransmit(),
+                    tex->isMetallic());
 
             fprintf(f, "  tex.turb=%.6f oct=%d freq=%.6f phase=%.6f mortar=%.6f bump=%d/%.6f\n",
-                    tex->turbulence,
-                    tex->octaves,
-                    tex->frequency,
-                    tex->phase,
-                    tex->mortar,
-                    tex->bumpNumber,
-                    tex->bumpAmount);
+                    tex->getTurbulence(),
+                    tex->getOctaves(),
+                    tex->getFrequency(),
+                    tex->getPhase(),
+                    tex->getMortar(),
+                    tex->getBumpNumber(),
+                    tex->getBumpAmount());
 
             fprintf(f, "  tex.grad=%.6f,%.6f,%.6f\n",
-                    tex->textureGradient.x(),
-                    tex->textureGradient.y(),
-                    tex->textureGradient.z());
+                    tex->getTextureGradient().x(),
+                    tex->getTextureGradient().y(),
+                    tex->getTextureGradient().z());
 
-            if (tex->color1) {
+            if (tex->getColor1()) {
                 fprintf(f, "  tex.c1=%.6f,%.6f,%.6f,%.6f",
-                        tex->color1->getR(),
-                        tex->color1->getG(),
-                        tex->color1->getB(),
-                        tex->color1->getA());
+                        tex->getColor1()->getR(),
+                        tex->getColor1()->getG(),
+                        tex->getColor1()->getB(),
+                        tex->getColor1()->getA());
             } else {
                 fprintf(f, "  tex.c1=none");
             }
 
-            if (tex->color2) {
+            if (tex->getColor2()) {
                 fprintf(f, " c2=%.6f,%.6f,%.6f,%.6f",
-                        tex->color2->getR(),
-                        tex->color2->getG(),
-                        tex->color2->getB(),
-                        tex->color2->getA());
+                        tex->getColor2()->getR(),
+                        tex->getColor2()->getG(),
+                        tex->getColor2()->getB(),
+                        tex->getColor2()->getA());
             } else {
                 fprintf(f, " c2=none");
             }
             fprintf(f, "\n");
 
-            if (tex->colorMap) {
-                fprintf(f, "  tex.cmap n=%d", tex->colorMap->size());
-                for (int i = 0; i < tex->colorMap->size(); i++) {
-                    const ColorRgba *c = tex->colorMap->getColorAt(i);
-                    if (tex->colorMap->hasPositions()) {
+            if (tex->getColorMap()) {
+                fprintf(f, "  tex.cmap n=%d", tex->getColorMap()->size());
+                for (int i = 0; i < tex->getColorMap()->size(); i++) {
+                    const ColorRgba *c = tex->getColorMap()->getColorAt(i);
+                    if (tex->getColorMap()->hasPositions()) {
                         fprintf(f, " [%.6f %.3f,%.3f,%.3f,%.3f]",
-                                tex->colorMap->getPositionAt(i),
+                                tex->getColorMap()->getPositionAt(i),
                                 c->getR(), c->getG(), c->getB(), c->getA());
                     } else {
                         fprintf(f, " [%.3f,%.3f,%.3f,%.3f]",
@@ -94,20 +94,20 @@ void SceneDumper::dumpSceneStructure(FILE *f)
                 fprintf(f, "\n");
             }
 
-            if (tex->image) {
+            if (tex->getImage()) {
                 fprintf(f, "  tex.img grad=(%.6f,%.6f,%.6f) map=%d interp=%d once=%d w=%.0f h=%.0f\n",
-                        tex->image->getImageGradient().x(),
-                        tex->image->getImageGradient().y(),
-                        tex->image->getImageGradient().z(),
-                        tex->image->getMapType(),
-                        tex->image->getInterpolationType(),
-                        tex->image->getOnceFlag(),
-                        (double)tex->image->getXSize(),
-                        (double)tex->image->getYSize());
+                        tex->getImage()->getImageGradient().x(),
+                        tex->getImage()->getImageGradient().y(),
+                        tex->getImage()->getImageGradient().z(),
+                        tex->getImage()->getMapType(),
+                        tex->getImage()->getInterpolationType(),
+                        tex->getImage()->getOnceFlag(),
+                        (double)tex->getImage()->getXSize(),
+                        (double)tex->getImage()->getYSize());
             }
 
-            if (tex->textureTransformation) {
-                const Matrix4x4d *xform = tex->textureTransformation;
+            if (tex->getTextureTransformation()) {
+                const Matrix4x4d *xform = tex->getTextureTransformation();
                 fprintf(f, "  tex.xform=");
                 for (int i = 0; i < 4; i++) {
                     for (int j = 0; j < 4; j++) {

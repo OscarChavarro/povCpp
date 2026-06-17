@@ -1,7 +1,7 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 
 /**

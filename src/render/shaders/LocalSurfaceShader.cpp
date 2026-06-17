@@ -1,13 +1,8 @@
 #include "java/util/PriorityQueue.txx"
-
 #include "environment/material/RendererConfiguration.h"
-
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
-
 #include "environment/geometry/SimpleBody.h"
-
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"
@@ -45,8 +40,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
         return;
     }
 
-    GeometryOperations::normal(&surfaceNormal,
-        rayIntersection->getShape(), &rayIntersection->getPoint());
+    rayIntersection->getShape()->normal(&surfaceNormal, &rayIntersection->getPoint());
 
     if (RenderingConfiguration::global().getQuality() >= 8) {
         BumpNormalShader::shade(

@@ -6,6 +6,7 @@ This module implements primitives for triangles and smooth triangles.
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/Triangle.h"
 
 int

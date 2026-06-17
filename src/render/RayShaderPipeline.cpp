@@ -6,7 +6,6 @@
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
@@ -64,13 +63,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture - CdW 7/91
-    if (texture->textureNumber == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
+    if (texture->getTextureNumber() == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
         const int index = mapFixture.materialMap(
-            &rayIntersection->getPoint(), texture->textureTransformationInverse,
-            texture->materialImage, texture->materials.size(),
+            &rayIntersection->getPoint(), texture->getTextureTransformationInverse(),
+            texture->getMaterialImage(), texture->getMaterials().size(),
             GeometryConstants::Small_Tolerance);
         if (index != -1) {
-            texture = texture->materials.get(index);
+            texture = texture->getMaterials().get(index);
         }
     }
 
@@ -103,27 +102,27 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             PovrayMaterial * const texture1 = (PovrayMaterial *)tempTexture->getColor1();
             PovrayMaterial * const texture2 = (PovrayMaterial *)tempTexture->getColor2();
             fixturesFacade.colorAt(
-                &surfaceColor, tempTexture->textureNumber,
-                tempTexture->textureTransformationInverse, tempTexture->image,
-                tempTexture->color1, tempTexture->color2, tempTexture->turbulence,
-                tempTexture->octaves, tempTexture->colorMap,
-                tempTexture->textureGradient, tempTexture->mortar,
+                &surfaceColor, tempTexture->getTextureNumber(),
+                tempTexture->getTextureTransformationInverse(), tempTexture->getImage(),
+                tempTexture->getColor1(), tempTexture->getColor2(), tempTexture->getTurbulence(),
+                tempTexture->getOctaves(), tempTexture->getColorMap(),
+                tempTexture->getTextureGradient(), tempTexture->getMortar(),
                 &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance,
-                texture1->textureNumber, texture1->textureTransformationInverse,
-                texture1->image, texture1->color1, texture1->color2,
-                texture1->turbulence, texture1->octaves, texture1->colorMap,
-                texture1->textureGradient, texture1->mortar,
-                texture2->textureNumber, texture2->textureTransformationInverse,
-                texture2->image, texture2->color1, texture2->color2,
-                texture2->turbulence, texture2->octaves, texture2->colorMap,
-                texture2->textureGradient, texture2->mortar);
+                texture1->getTextureNumber(), texture1->getTextureTransformationInverse(),
+                texture1->getImage(), texture1->getColor1(), texture1->getColor2(),
+                texture1->getTurbulence(), texture1->getOctaves(), texture1->getColorMap(),
+                texture1->getTextureGradient(), texture1->getMortar(),
+                texture2->getTextureNumber(), texture2->getTextureTransformationInverse(),
+                texture2->getImage(), texture2->getColor1(), texture2->getColor2(),
+                texture2->getTurbulence(), texture2->getOctaves(), texture2->getColorMap(),
+                texture2->getTextureGradient(), texture2->getMortar());
         } else {
             fixturesFacade.colorAt(
-                &surfaceColor, tempTexture->textureNumber,
-                tempTexture->textureTransformationInverse, tempTexture->image,
-                tempTexture->color1, tempTexture->color2, tempTexture->turbulence,
-                tempTexture->octaves, tempTexture->colorMap,
-                tempTexture->textureGradient, tempTexture->mortar,
+                &surfaceColor, tempTexture->getTextureNumber(),
+                tempTexture->getTextureTransformationInverse(), tempTexture->getImage(),
+                tempTexture->getColor1(), tempTexture->getColor2(), tempTexture->getTurbulence(),
+                tempTexture->getOctaves(), tempTexture->getColorMap(),
+                tempTexture->getTextureGradient(), tempTexture->getMortar(),
                 &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance);
         }
         // We don't need to compute the lighting characteristics for shadow
@@ -168,12 +167,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             return;
         }
 
-        if (texture->objectRefraction > 0.0) {
-            color->setR(color->getR() * filterColor.getR() * texture->objectRefraction *
+        if (texture->getObjectRefraction() > 0.0) {
+            color->setR(color->getR() * filterColor.getR() * texture->getObjectRefraction() *
                            filterColor.getA());
-            color->setG(color->getG() * filterColor.getG() * texture->objectRefraction *
+            color->setG(color->getG() * filterColor.getG() * texture->getObjectRefraction() *
                              filterColor.getA());
-            color->setB(color->getB() * filterColor.getB() * texture->objectRefraction *
+            color->setB(color->getB() * filterColor.getB() * texture->getObjectRefraction() *
                             filterColor.getA());
         } else {
             color->setR(color->getR() * filterColor.getR() * filterColor.getA());
@@ -186,9 +185,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     if ((filterColor.getA() > 0.01) && (RenderingConfiguration::global().getQuality() > 5)) {
         refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
-        if (texture->objectRefraction > 0.0) {
-            GeometryOperations::normal(&surfaceNormal,
-                rayIntersection->getShape(), &rayIntersection->getPoint());
+        if (texture->getObjectRefraction() > 0.0) {
+            rayIntersection->getShape()->normal(&surfaceNormal, &rayIntersection->getPoint());
 
             if (RenderingConfiguration::global().getQuality() > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getPoint(),
@@ -216,8 +214,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         color->setG(color->getG() + filterColor.getG() * refractedColor.getG() * filterColor.getA());
         color->setB(color->getB() + filterColor.getB() * refractedColor.getB() * filterColor.getA());
 
-        if (texture->objectRefraction > 0.0 &&
-            texture->objectTransmit > 0.0) {
+        if (texture->getObjectRefraction() > 0.0 &&
+            texture->getObjectTransmit() > 0.0) {
             refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
                 &refractedColor, traceService,

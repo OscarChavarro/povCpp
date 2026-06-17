@@ -2,7 +2,7 @@
 #define __PARAMETRIC_BICUBIC_PATCH_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/surface/parametric/ParametricControlPoints.h"
 #include "environment/geometry/surface/parametric/ParametricPatchChild.h"
 #include "environment/geometry/surface/parametric/ParametricPatchNode.h"

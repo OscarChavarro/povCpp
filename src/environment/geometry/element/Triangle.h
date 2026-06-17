@@ -2,7 +2,7 @@
 #define __TRIANGLE_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/Geometry.h"
 
 class SmoothTriangle;
 

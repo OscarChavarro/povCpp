@@ -10,6 +10,7 @@ add_subdirectory(base)
 
 add_executable(povray
     src/environment/geometry/Geometry.cpp
+    src/environment/geometry/element/TransformableElement.cpp
     src/common/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
     src/environment/material/RendererConfiguration.cpp

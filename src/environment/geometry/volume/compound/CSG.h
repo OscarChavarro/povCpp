@@ -3,7 +3,7 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/GeometryTypes.h"
 
 class CSG : public Geometry {

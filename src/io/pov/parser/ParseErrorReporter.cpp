@@ -42,8 +42,8 @@ ParseErrorReporter::getTokenString(TOKEN tokenId, ParserContext &ctx)
     int i;
 
     for (i = 0; i < Tokenizer::LAST_TOKEN; i++) {
-        if (ctx.reservedWords()[i].tokenNumber == tokenId) {
-            return ctx.reservedWords()[i].Token_Name;
+        if (ctx.reservedWords()[i].getTokenNumber() == tokenId) {
+            return ctx.reservedWords()[i].getTokenName();
         }
     }
     return "";

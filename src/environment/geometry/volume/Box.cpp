@@ -14,6 +14,7 @@ boxes and generously provided us these enhancements.
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/Box.h"
 
 

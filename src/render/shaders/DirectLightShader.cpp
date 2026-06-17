@@ -1,19 +1,12 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-
 #include "common/statistics/Statistics.h"
-
 #include "common/dataStructures/PriorityQueuePool.txx"
-
 #include "environment/material/RendererConfiguration.h"
-
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
-
 #include "environment/light/Light.h"
-
 #include "render/shaders/BlinnPhongSpecularShader.h"
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/LambertShader.h"
@@ -21,7 +14,6 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
-
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
@@ -43,12 +35,12 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
 
     rEye = Vector3Dd(0, 0, 0);
 
-    if ((texture->objectDiffuse == 0.0) && (texture->objectSpecular == 0.0) &&
-        (texture->objectPhong == 0.0)) {
+    if ((texture->getObjectDiffuse() == 0.0) && (texture->getObjectSpecular() == 0.0) &&
+        (texture->getObjectPhong() == 0.0)) {
         return;
     }
 
-    if (texture->objectSpecular != 0.0) {
+    if (texture->getObjectSpecular() != 0.0) {
         rEye = Vector3Dd(
             -eye->getDirection().x(), -eye->getDirection().y(), -eye->getDirection().z());
     }
@@ -70,8 +62,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
                 blockingObject = objects[i];
 
                 Statistics::global().incrementShadowRayTests();
-                GeometryOperations::allIntersections(
-                    blockingObject, &lightSourceRay, localQueue);
+                blockingObject->allIntersections(&lightSourceRay, localQueue);
                 while (localQueue->size() > 0) {
                     localIntersection = localQueue->poll();
 
@@ -99,17 +90,17 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
         // calculate it's contribution to the object's overall illumination
 
         if (!intersectionFound) {
-            if (texture->objectPhong > 0.0) { // Phong Hilite
+            if (texture->getObjectPhong() > 0.0) { // Phong Hilite
                 PhongSpecularShader::shade(texture, &lightSourceRay, eye->getDirection(), surfaceNormal,
                     color, &lightColor, surfaceColor);
             }
 
-            if (texture->objectSpecular > 0.0) { // Specular Hilite
+            if (texture->getObjectSpecular() > 0.0) { // Specular Hilite
                 BlinnPhongSpecularShader::shade(texture, &lightSourceRay, rEye, surfaceNormal,
                     color, &lightColor, surfaceColor);
             }
 
-            if (texture->objectDiffuse > 0.0) { // Normal Diffuse Illum.
+            if (texture->getObjectDiffuse() > 0.0) { // Normal Diffuse Illum.
                 LambertShader::shade(texture, &lightSourceRay, surfaceNormal, color,
                     &lightColor, surfaceColor, attenuation);
             }

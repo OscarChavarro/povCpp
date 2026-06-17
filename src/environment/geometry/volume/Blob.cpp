@@ -1,3 +1,5 @@
+#include <cstdio>
+
 /**
 This module contains the code for the blob shape.
 
@@ -13,6 +15,7 @@ blobs and generously provided us these enhancements.
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/Blob.h"
 
 static constexpr double COEFF_LIMIT = 1.0e-20;

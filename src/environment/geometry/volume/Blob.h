@@ -2,7 +2,8 @@
 #define __BLOB_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/BoundedGeometry.h"
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"
 #include "environment/geometry/volume/BlobList.h"

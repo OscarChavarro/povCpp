@@ -10,6 +10,7 @@ This module implements the code for the quadric shape primitive.
 
 #include "common/statistics/Statistics.h"
 
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/Quadric.h"
 
 int

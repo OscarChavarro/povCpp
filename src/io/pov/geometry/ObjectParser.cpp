@@ -101,9 +101,8 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                         (ctx.constants()[(int)constantId].constantType ==
                             ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
-                        container = (CSG *)GeometryOperations::copy(
-                            (TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData);
+                        container = (CSG *)((TransformableElement *)ctx.constants()[(int)constantId]
+                                .constantData)->copy();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -116,7 +115,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 localShape = ModelBuilder::wrap(
                     new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -125,7 +124,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::SPHERE_TOKEN:
                 localShape = SphereParser::parseSphere(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -134,7 +133,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::PLANE_TOKEN:
                 localShape = PlaneParser::parsePlane(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -143,7 +142,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -152,7 +151,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
                 localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -161,7 +160,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -170,7 +169,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::HEIGHT_FIELD_TOKEN:
                 localShape = HeightFieldParser::parseHeightField(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -179,7 +178,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::CUBIC_TOKEN:
                 localShape = PolyParser::parsePoly(3, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -188,7 +187,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::QUARTIC_TOKEN:
                 localShape = PolyParser::parsePoly(4, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -197,7 +196,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::POLY_TOKEN:
                 localShape = PolyParser::parsePoly(0, ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -206,7 +205,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::BOX_TOKEN:
                 localShape = BoxParser::parseBox(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -215,7 +214,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::BLOB_TOKEN:
                 localShape = BlobParser::parseBlob(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -224,7 +223,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             case Tokenizer::BICUBIC_PATCH_TOKEN:
                 localShape = BicubicPatchParser::parseBicubicPatch(ctx);
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -234,7 +233,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 localShape =
                     ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -244,7 +243,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 localShape =
                     ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -254,7 +253,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 localShape =
                     ModelBuilder::wrap(ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
-                    GeometryOperations::invert(localShape);
+                    localShape->invert();
                 }
                 firstShapeParsed = true;
                 container->getShapes().add(localShape);
@@ -280,24 +279,21 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::translate(
-                    container, &localVector);
+                container->translate(&localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::rotate(
-                    container, &localVector);
+                container->rotate(&localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::scale(
-                    container, &localVector);
+                container->scale(&localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(container);
+                container->invert();
                 break;
 
             default:
@@ -443,9 +439,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::OBJECT_CONSTANT) {
-                        object = (BoundedGeometry *)GeometryOperations::copy(
-                            (TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData);
+                        object = (BoundedGeometry *)((TransformableElement *)ctx.constants()[(int)constantId]
+                                .constantData)->copy();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -572,21 +567,21 @@ ObjectParser::parseObject(ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::translate(object, &localVector);
+                object->translate(&localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::rotate(object, &localVector);
+                object->rotate(&localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::scale(object, &localVector);
+                object->scale(&localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(object);
+                object->invert();
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
@@ -626,9 +621,8 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
-                        localComposite = (Composite *)GeometryOperations::copy(
-                            (TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData);
+                        localComposite = (Composite *)((TransformableElement *)ctx.constants()[(int)constantId]
+                                .constantData)->copy();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -730,24 +724,21 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::translate(
-                    localComposite, &localVector);
+                localComposite->translate(&localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::rotate(
-                    localComposite, &localVector);
+                localComposite->rotate(&localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::scale(
-                    localComposite, &localVector);
+                localComposite->scale(&localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(localComposite);
+                localComposite->invert();
                 break;
 
             default:
