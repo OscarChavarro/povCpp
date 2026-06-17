@@ -2,21 +2,21 @@
 #define __PARSE_HELPERS_H__
 
 #include "environment/light/Light.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"
 
-class TranslatedBody;
+class SimpleBody;
 
 class ParseHelpers {
   public:
     static void linkShapes(
         Light *newObject, Light **field, Light **oldObjectList);
-    static void postProcessObject(SimpleBody *object);
-    static void postProcessShape(TranslatedBody *shape);
+    static void postProcessObject(BoundedGeometry *object);
+    static void postProcessShape(SimpleBody *shape);
     static void getExpectedToken(int tokenId);
     static void getExpectedToken(int tokenId, ParserContext &ctx);
-    static void postProcessShape(TranslatedBody *shape, ParserContext &ctx);
+    static void postProcessShape(SimpleBody *shape, ParserContext &ctx);
 };
 
 #endif

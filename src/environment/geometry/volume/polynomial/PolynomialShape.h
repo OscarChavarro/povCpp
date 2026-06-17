@@ -36,7 +36,7 @@ class PolynomialShape : public Geometry {
         const double *coeffs, double *depths);
     static int intersectQuartic(const RayWithSegments *ray,
         const PolynomialShape *shape, double *depths);
-    static void quarticNormal(Vector3Dd *result, SimpleBody *object,
+    static void quarticNormal(Vector3Dd *result, BoundedGeometry *object,
         const Vector3Dd *intersectionPoint);
     static double evaluatePolynomial(
         const Vector3Dd *point, int order, const double *coeffs);

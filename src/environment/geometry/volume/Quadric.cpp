@@ -15,6 +15,16 @@ This module implements the code for the quadric shape primitive.
 int
 Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
+    return allIntersectionsForOwner(
+        ray, depthQueue, reinterpret_cast<SimpleBody *>(this));
+}
+
+int
+Quadric::allIntersectionsForOwner(
+    RayWithSegments *ray,
+    java::PriorityQueue<Intersection> *depthQueue,
+    SimpleBody *owner)
+{
     Quadric * const shape = this;
     double depth1;
     double depth2;
@@ -29,7 +39,7 @@ Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection
         intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.point = intersectionPoint;
-        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+        localElement.Shape = owner;
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -39,7 +49,7 @@ Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection
             intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.point = intersectionPoint;
-            localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+            localElement.Shape = owner;
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

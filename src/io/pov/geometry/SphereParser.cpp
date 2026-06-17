@@ -5,7 +5,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -15,19 +15,19 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-TranslatedBody *
+SimpleBody *
 SphereParser::parseSphere()
 {
     ParserContext ctx;
     return SphereParser::parseSphere(ctx);
 }
 
-TranslatedBody *
+SimpleBody *
 SphereParser::parseSphere(ParserContext &ctx)
 {
     (void)ctx;
     Sphere *localShape;
-    TranslatedBody *body = nullptr;
+    SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Material *localTexture;
@@ -58,7 +58,7 @@ SphereParser::parseSphere(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::SPHERE_CONSTANT) {
-                        body = (TranslatedBody *)GeometryOperations::copy(
+                        body = (SimpleBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                         localShape = (Sphere *)body->geometry;

@@ -70,6 +70,16 @@ Sphere::intersectSphere(
 int
 Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
+    return allIntersectionsForOwner(
+        ray, depthQueue, reinterpret_cast<SimpleBody *>(this));
+}
+
+int
+Sphere::allIntersectionsForOwner(
+    RayWithSegments *ray,
+    java::PriorityQueue<Intersection> *depthQueue,
+    SimpleBody *owner)
+{
     double depth1;
     double depth2;
     Vector3Dd intersectionPoint;
@@ -84,7 +94,7 @@ Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection>
         intersectionPoint = ray->direction.multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->position);
         localElement.point = intersectionPoint;
-        localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+        localElement.Shape = owner;
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -94,7 +104,7 @@ Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection>
             intersectionPoint = ray->direction.multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->position);
             localElement.point = intersectionPoint;
-            localElement.Shape = reinterpret_cast<TranslatedBody *>(shape);
+            localElement.Shape = owner;
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

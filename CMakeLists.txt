@@ -9,6 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 add_subdirectory(base)
 
 add_executable(povray
+    src/environment/geometry/Geometry.cpp
     src/common/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
     src/environment/material/RendererConfiguration.cpp
@@ -29,8 +30,8 @@ add_executable(povray
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
     src/environment/scene/ModelBuilder.cpp
-    src/environment/scene/SimpleBodyFactory.cpp
-    src/environment/scene/TranslatedBody.cpp
+    src/environment/scene/BoundedGeometryFactory.cpp
+    src/environment/geometry/SimpleBody.cpp
     src/environment/geometry/elements/Triangle.cpp
     src/environment/geometry/elements/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp

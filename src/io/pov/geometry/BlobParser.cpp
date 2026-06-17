@@ -5,7 +5,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -15,19 +15,19 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-TranslatedBody *
+SimpleBody *
 BlobParser::parseBlob()
 {
     ParserContext ctx;
     return BlobParser::parseBlob(ctx);
 }
 
-TranslatedBody *
+SimpleBody *
 BlobParser::parseBlob(ParserContext &ctx)
 {
     (void)ctx;
     Blob *localShape;
-    TranslatedBody *body = nullptr;
+    SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Material *localTexture;
@@ -106,7 +106,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 }
 
                 // Finally, process the information
-                Blob::makeBlob((SimpleBody *)localShape, threshold, blobComponents,
+                Blob::makeBlob((BoundedGeometry *)localShape, threshold, blobComponents,
                     npoints, 0);
                 Exit_Flag = true;
                 break;
@@ -115,7 +115,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::BLOB_CONSTANT) {
-                        body = (TranslatedBody *)GeometryOperations::copy(
+                        body = (SimpleBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                         localShape = (Blob *)body->geometry;

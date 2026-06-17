@@ -6,7 +6,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/light/Light.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -16,19 +16,19 @@
 #include "io/pov/parser/PrimitiveParser.h"
 
 
-TranslatedBody *
+SimpleBody *
 LightSourceParser::parseLightSource()
 {
     ParserContext ctx;
     return LightSourceParser::parseLightSource(ctx);
 }
 
-TranslatedBody *
+SimpleBody *
 LightSourceParser::parseLightSource(ParserContext &ctx)
 {
     (void)ctx;
     Light *localShape = nullptr;
-    TranslatedBody *body = nullptr;
+    SimpleBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
 
@@ -56,7 +56,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::LIGHT_SOURCE_CONSTANT) {
-                        body = (TranslatedBody *)GeometryOperations::copy(
+                        body = (SimpleBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
                         localShape = (Light *)body->geometry;

@@ -9,7 +9,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/SolidTextureFixturesFacade.h"

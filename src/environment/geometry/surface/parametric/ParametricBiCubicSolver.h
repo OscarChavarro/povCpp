@@ -17,7 +17,7 @@ class ParametricBiCubicSolver {
         ParametricBiCubicPatch *shape, double *depths);
     static int intersectParametricBiCubicPatch4(const RayWithSegments *ray,
         ParametricBiCubicPatch *shape, double *depths);
-    static int allParametricBiCubicPatchIntersections(SimpleBody *object,
+    static int allParametricBiCubicPatchIntersections(BoundedGeometry *object,
         RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
 };
 

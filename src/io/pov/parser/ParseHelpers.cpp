@@ -7,7 +7,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/scene/SceneFrame.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -39,34 +39,34 @@ ParseHelpers::linkShapes(Light *newObject, Light **field, Light **oldObjectList)
 }
 
 void
-ParseHelpers::postProcessObject(SimpleBody *object)
+ParseHelpers::postProcessObject(BoundedGeometry *object)
 {
     if (Composite *composite = dynamic_cast<Composite *>(object)) {
-        java::ArrayList<SimpleBody*> &simpleBodies = composite->simpleBodies;
+        java::ArrayList<BoundedGeometry*> &simpleBodies = composite->simpleBodies;
         for (long int i = simpleBodies.size() - 1; i >= 0; i--) {
             ParseHelpers::postProcessObject(simpleBodies[i]);
         }
     } else {
-        ParseHelpers::postProcessShape(static_cast<TranslatedBody*>(object->geometry));
+        ParseHelpers::postProcessShape(static_cast<SimpleBody*>(object->geometry));
     }
 }
 
 void
-ParseHelpers::postProcessShape(TranslatedBody *shape)
+ParseHelpers::postProcessShape(SimpleBody *shape)
 {
     ParserContext ctx;
     ParseHelpers::postProcessShape(shape, ctx);
 }
 
 void
-ParseHelpers::postProcessShape(TranslatedBody *shape, ParserContext &ctx)
+ParseHelpers::postProcessShape(SimpleBody *shape, ParserContext &ctx)
 {
-    TranslatedBody *tempShape;
+    SimpleBody *tempShape;
 
     if (CSG *csg = dynamic_cast<CSG *>(shape->geometry)) {
         java::ArrayList<TransformableElement*> &shapes = csg->shapes;
         for (long int i = shapes.size() - 1; i >= 0; i--) {
-            tempShape = static_cast<TranslatedBody*>(shapes[i]);
+            tempShape = static_cast<SimpleBody*>(shapes[i]);
             ParseHelpers::postProcessShape(tempShape);
         }
     } else if (Light *light = dynamic_cast<Light *>(shape->geometry)) {

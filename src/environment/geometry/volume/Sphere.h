@@ -25,6 +25,10 @@ class Sphere : public Geometry {
         double *depth1, double *depth2);
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int allIntersectionsForOwner(
+        RayWithSegments *ray,
+        java::PriorityQueue<Intersection> *depthQueue,
+        SimpleBody *owner) override;
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

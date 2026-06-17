@@ -3,20 +3,20 @@
 
 #include "environment/geometry/elements/GeometryTypes.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "io/pov/context/ParserContext.h"
 
-class TranslatedBody;
+class SimpleBody;
 
 class ObjectParser {
   public:
-    static TranslatedBody *parseShape();
-    static TranslatedBody *parseShape(ParserContext &ctx);
-    static SimpleBody *parseObject();
-    static SimpleBody *parseObject(ParserContext &ctx);
-    static SimpleBody *parseComposite();
-    static SimpleBody *parseComposite(ParserContext &ctx);
+    static SimpleBody *parseShape();
+    static SimpleBody *parseShape(ParserContext &ctx);
+    static BoundedGeometry *parseObject();
+    static BoundedGeometry *parseObject(ParserContext &ctx);
+    static BoundedGeometry *parseComposite();
+    static BoundedGeometry *parseComposite(ParserContext &ctx);
     static CSG *parseCsg(GeometryTypes type);
     static CSG *parseCsg(GeometryTypes type, ParserContext &ctx);
 };

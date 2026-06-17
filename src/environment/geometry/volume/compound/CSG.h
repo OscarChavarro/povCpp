@@ -14,6 +14,10 @@ class CSG : public Geometry {
     java::ArrayList<TransformableElement*>& getShapes() { return shapes; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int allIntersectionsForOwner(
+        RayWithSegments *ray,
+        java::PriorityQueue<Intersection> *depthQueue,
+        SimpleBody *owner) override;
     int inside(Vector3Dd *point) override;
     void *copy() override;
     void translate(Vector3Dd *vector) override;

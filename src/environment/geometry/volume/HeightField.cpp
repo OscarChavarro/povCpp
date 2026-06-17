@@ -176,7 +176,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         t1V1 = rRay->direction.multiply(depth2);
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->point = t1V1;
-        hfIntersection->Shape = reinterpret_cast<TranslatedBody *>(hField);
+        hfIntersection->Shape = reinterpret_cast<SimpleBody *>(hField);
         hfQueue->offer(*hfIntersection);
     } else {
         hfIntersection->depth = depth1;
@@ -184,7 +184,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         t1V1 = rRay->direction.multiply(depth1);
         t1V1 = t1V1.add(rRay->position);
         hfIntersection->point = t1V1;
-        hfIntersection->Shape = reinterpret_cast<TranslatedBody *>(hField);
+        hfIntersection->Shape = reinterpret_cast<SimpleBody *>(hField);
         hfQueue->offer(*hfIntersection);
     }
     Statistics::global().rayHtFieldTestsSucceeded++;

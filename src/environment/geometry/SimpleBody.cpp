@@ -2,55 +2,30 @@
 
 #include "environment/material/MaterialUtils.h"
 
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 int
-TranslatedBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    // The wrapped geometry stamps each intersection it produces with its own
-    // address (a sentinel) as the Shape. Rewrite just those entries to point at
-    // this TranslatedBody, so the shader can reach the material/colour we own.
-    // Sibling entries already wrapped by other bodies carry a different Shape
-    // pointer and are left untouched.
-    //
-    // Optimization: record queue size before and after, then early-exit the
-    // scan once we have updated exactly that many entries. Avoids scanning
-    // sibling entries that can never match this sentinel.
-    const int sizeBefore = depthQueue->size();
-    const int result = geometry->allIntersections(ray, depthQueue);
-    const int newCount = depthQueue->size() - sizeBefore;
-    if (newCount == 0) {
-        return result;
-    }
-    TranslatedBody * const sentinel = reinterpret_cast<TranslatedBody *>(geometry);
-    int updated = 0;
-    for (Intersection &candidate : *depthQueue) {
-        if (candidate.Shape == sentinel) {
-            candidate.Shape = this;
-            if (++updated == newCount) {
-                break;
-            }
-        }
-    }
-    return result;
+    return geometry->allIntersectionsForOwner(ray, depthQueue, this);
 }
 
 int
-TranslatedBody::inside(Vector3Dd *point)
+SimpleBody::inside(Vector3Dd *point)
 {
     return geometry->inside(point);
 }
 
 void
-TranslatedBody::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+SimpleBody::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     geometry->normal(result, intersectionPoint);
 }
 
 void *
-TranslatedBody::copy()
+SimpleBody::copy()
 {
-    TranslatedBody *newBody = new TranslatedBody;
+    SimpleBody *newBody = new SimpleBody;
     *newBody = *this;
     newBody->geometry = (Geometry *)geometry->copy();
     if (newBody->material != nullptr) {
@@ -60,7 +35,7 @@ TranslatedBody::copy()
 }
 
 void
-TranslatedBody::translate(Vector3Dd *vector)
+SimpleBody::translate(Vector3Dd *vector)
 {
     geometry->translateGeometry(vector);
     MaterialUtils::instance().translateTexture(&material, vector);
@@ -73,7 +48,7 @@ TranslatedBody::translate(Vector3Dd *vector)
 }
 
 void
-TranslatedBody::rotate(Vector3Dd *vector)
+SimpleBody::rotate(Vector3Dd *vector)
 {
     geometry->rotateGeometry(vector);
     MaterialUtils::instance().rotateTexture(&material, vector);
@@ -85,7 +60,7 @@ TranslatedBody::rotate(Vector3Dd *vector)
 }
 
 void
-TranslatedBody::scale(Vector3Dd *vector)
+SimpleBody::scale(Vector3Dd *vector)
 {
     geometry->scaleGeometry(vector);
     MaterialUtils::instance().scaleTexture(&material, vector);
@@ -97,7 +72,7 @@ TranslatedBody::scale(Vector3Dd *vector)
 }
 
 void
-TranslatedBody::invert()
+SimpleBody::invert()
 {
     geometry->invertGeometry();
 }

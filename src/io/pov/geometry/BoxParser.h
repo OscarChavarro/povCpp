@@ -4,12 +4,12 @@
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"
 
-class TranslatedBody;
+class SimpleBody;
 
 class BoxParser {
   public:
-    static TranslatedBody *parseBox();
-    static TranslatedBody *parseBox(ParserContext &ctx);
+    static SimpleBody *parseBox();
+    static SimpleBody *parseBox(ParserContext &ctx);
 };
 
 #endif

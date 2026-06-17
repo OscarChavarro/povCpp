@@ -22,14 +22,14 @@
 #include "environment/camera/Camera.h"
 
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
-TranslatedBody *
+SimpleBody *
 ModelBuilder::wrap(Geometry *geometry)
 {
-    TranslatedBody *body;
+    SimpleBody *body;
 
-    body = new TranslatedBody;
+    body = new SimpleBody;
     if (body == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate body\n");
     }

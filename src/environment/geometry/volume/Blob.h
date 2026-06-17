@@ -23,7 +23,7 @@ class Blob : public Geometry {
     Matrix4x4d* getTransformation() const { return transformation; }
     Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
 
-    static void makeBlob(SimpleBody *obj, double threshold, BlobList *bloblist,
+    static void makeBlob(BoundedGeometry *obj, double threshold, BlobList *bloblist,
         int npoints, int sflag);
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
@@ -38,7 +38,7 @@ class Blob : public Geometry {
   private:
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
         const Blob *blob, double mindist);
-    static double calculateFieldValue(SimpleBody *obj, const Vector3Dd *pos);
+    static double calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos);
     static int validateHit(const Blob *blob, const Vector3Dd *p);
 };
 

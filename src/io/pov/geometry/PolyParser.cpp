@@ -7,7 +7,7 @@
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/scene/TranslatedBody.h"
+#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -17,19 +17,19 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-TranslatedBody *
+SimpleBody *
 PolyParser::parsePoly(int knownOrder)
 {
     ParserContext ctx;
     return PolyParser::parsePoly(knownOrder, ctx);
 }
 
-TranslatedBody *
+SimpleBody *
 PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 {
     (void)ctx;
     PolynomialShape *localShape;
-    TranslatedBody *body = nullptr;
+    SimpleBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
     int order;
@@ -82,7 +82,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::POLY_CONSTANT) {
-                        body = (TranslatedBody *)GeometryOperations::copy(
+                        body = (SimpleBody *)GeometryOperations::copy(
                                 (TransformableElement *)ctx.constants()[(int)constantId]
                                     .constantData);
                         localShape = (PolynomialShape *)body->geometry;

@@ -569,7 +569,7 @@ RenderFrame::outputLine(int y)
 void
 RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 {
-    SimpleBody *object;
+    BoundedGeometry *object;
     Intersection localIntersection;
     Intersection newIntersection;
     bool intersectionFound;
@@ -598,7 +598,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     }
 
     // What objects does this ray intersect?
-    java::ArrayList<SimpleBody*> &sceneObjects = RenderEngine::renderFrame().Objects;
+    java::ArrayList<BoundedGeometry*> &sceneObjects = RenderEngine::renderFrame().Objects;
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
         if (GeometryOperations::intersect(object, ray, newIntersection)) {
