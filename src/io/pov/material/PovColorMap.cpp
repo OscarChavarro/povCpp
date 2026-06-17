@@ -19,7 +19,7 @@ void PovColorMap::addSpan(
     double start, double end,
     const ColorRgba& sc, const ColorRgba& ec)
 {
-    Span* s = new Span();
+    span* s = new span();
     s->start = start;
     s->end = end;
     s->startColor = sc;
@@ -38,7 +38,7 @@ bool PovColorMap::transparencyFlag() const {
     return _transparencyFlag;
 }
 
-const PovColorMap::Span* PovColorMap::getSpanAt(int i) const {
+const PovColorMap::span* PovColorMap::getSpanAt(int i) const {
     if (i < 0 || i >= (int)_spans.size()) {
         return nullptr;
     }
@@ -51,7 +51,7 @@ ColorRgba PovColorMap::evalLinear(double t) const {
     if (t < 0.0) t = 0.0;
     if (t > 1.0) t = 1.0;
     for (int i = 0; i < (int)_spans.size(); i++) {
-        const Span* s = _spans.get(i);
+        const span* s = _spans.get(i);
         if (s != nullptr && t >= s->start && t <= s->end) {
             const double frac = (t - s->start) / (s->end - s->start);
             result.setR(s->startColor.getR() + frac * (s->endColor.getR() - s->startColor.getR()));

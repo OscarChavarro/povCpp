@@ -46,8 +46,8 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
     }
 
     localQueue = PriorityQueuePool<Intersection>::pqPop(128);
-    lightSourceRay.isShadowRay = true;
-    lightSourceRay.isPrimaryRay = false;
+    lightSourceRay.setShadowRay(true);
+    lightSourceRay.setPrimaryRay(false);
 
     for (lightSource = lightSources; lightSource != nullptr;
         lightSource = lightSource->getNextLightSource()) {

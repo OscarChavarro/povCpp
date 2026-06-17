@@ -11,7 +11,7 @@ to encapsulate the span semantics specific to POV-ray scene parsing.
 */
 class PovColorMap {
   public:
-    struct Span {
+    struct span {
         double start;
         double end;
         ColorRgba startColor;
@@ -19,7 +19,7 @@ class PovColorMap {
     };
 
   private:
-    java::ArrayList<Span*> _spans;
+    java::ArrayList<span*> _spans;
     bool _transparencyFlag;
 
   public:
@@ -31,7 +31,7 @@ class PovColorMap {
 
     int size() const;
     bool transparencyFlag() const;
-    const Span* getSpanAt(int i) const;
+    const span* getSpanAt(int i) const;
     ColorRgba evalLinear(double t) const;
 };
 

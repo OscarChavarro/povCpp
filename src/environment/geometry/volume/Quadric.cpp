@@ -72,30 +72,30 @@ Quadric::intersectQuadric(
     double bMinus;
 
     Statistics::global().incrementRayQuadricTests();
-    if (!ray->quadricConstantsCached) {
+    if (!ray->areQuadricConstantsCached()) {
         ray->makeRay();
     }
 
     if (shape->nonZeroSquareTerm) {
-        squareTerm = shape->object2Terms.dotProduct(ray->direction2);
+        squareTerm = shape->object2Terms.dotProduct(ray->getDirection2());
         tempTerm =
-            shape->objectMixedTerms.dotProduct(ray->mixedDirectionDirection);
+            shape->objectMixedTerms.dotProduct(ray->getMixedDirectionDirection());
         squareTerm += tempTerm;
     } else {
         squareTerm = 0.0;
     }
 
-    linearTerm = shape->object2Terms.dotProduct(ray->positionDirection);
+    linearTerm = shape->object2Terms.dotProduct(ray->getPositionDirection());
     linearTerm *= 2.0;
     tempTerm = shape->objectTerms.dotProduct(ray->getDirection());
     linearTerm += tempTerm;
     tempTerm =
-        shape->objectMixedTerms.dotProduct(ray->mixedPositionDirection);
+        shape->objectMixedTerms.dotProduct(ray->getMixedPositionDirection());
     linearTerm += tempTerm;
 
-    if (ray->isPrimaryRay) {
+    if (ray->isPrimaryRayEnabled()) {
         if (!shape->constantCached) {
-            constantTerm = shape->object2Terms.dotProduct(ray->position2);
+            constantTerm = shape->object2Terms.dotProduct(ray->getPosition2());
             tempTerm = shape->objectTerms.dotProduct(ray->getOrigin());
             constantTerm += tempTerm + shape->objectConstant;
             shape->objectVpConstant = constantTerm;
@@ -104,12 +104,12 @@ Quadric::intersectQuadric(
             constantTerm = shape->objectVpConstant;
         }
     } else {
-        constantTerm = shape->object2Terms.dotProduct(ray->position2);
+        constantTerm = shape->object2Terms.dotProduct(ray->getPosition2());
         tempTerm = shape->objectTerms.dotProduct(ray->getOrigin());
         constantTerm += tempTerm + shape->objectConstant;
     }
 
-    tempTerm = shape->objectMixedTerms.dotProduct(ray->mixedPositionPosition);
+    tempTerm = shape->objectMixedTerms.dotProduct(ray->getMixedPositionPosition());
     constantTerm += tempTerm;
 
     if (squareTerm != 0.0) {

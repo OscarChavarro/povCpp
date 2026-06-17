@@ -208,13 +208,13 @@ CommandLineOptions::parseOption(const char *optionString)
 
     case 'W':
     case 'w':
-        sscanf(&optionString[1], "%d", &RenderEngine::renderFrame().screenWidth);
+        sscanf(&optionString[1], "%d", &RenderEngine::renderFrame().getScreenWidth());
         optionNumber = 0;
         break;
 
     case 'H':
     case 'h':
-        sscanf(&optionString[1], "%d", &RenderEngine::renderFrame().screenHeight);
+        sscanf(&optionString[1], "%d", &RenderEngine::renderFrame().getScreenHeight());
         optionNumber = 0;
         break;
 

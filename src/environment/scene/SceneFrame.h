@@ -10,16 +10,6 @@
 
 class RenderFrame {
   public:
-    Camera viewPoint;
-    int screenHeight;
-    int screenWidth;
-    Light *lightSources;
-    java::ArrayList<BoundedGeometry*> Objects{4};
-    double atmosphereIor;
-    double antialiasThreshold;
-    double fogDistance;
-    ColorRgba fogColor;
-
     Camera& getViewPoint() { return viewPoint; }
     const Camera& getViewPoint() const { return viewPoint; }
     int& getScreenHeight() { return screenHeight; }
@@ -46,6 +36,17 @@ class RenderFrame {
     static void checkStats(int y);
     static void doAntiAliasing(int x, int y, ColorRgba *color);
     static void outputLine(int y);
+
+  private:
+    Camera viewPoint;
+    int screenHeight;
+    int screenWidth;
+    Light *lightSources;
+    java::ArrayList<BoundedGeometry*> Objects{4};
+    double atmosphereIor;
+    double antialiasThreshold;
+    double fogDistance;
+    ColorRgba fogColor;
 };
 
 #endif

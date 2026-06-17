@@ -10,31 +10,38 @@
 class ParametricBiCubicPatch : public Geometry {
   public:
     static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
-    int patchType;
-    int uSteps;
-    int vSteps;
-    Vector3Dd controlPoints[4][4];
-    Vector3Dd boundingSphereCenter;
-    double boundingSphereRadius;
-    double flatnessValue;
-    int intersectionCount;
-    Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd intersectionPoint[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd **interpolatedGrid;
-    Vector3Dd **interpolatedNormals;
-    Vector3Dd **smoothNormals;
-    double **interpolatedD;
-    ParametricPatchNode *nodeTree;
 
-    int getPatchType() const { return patchType; }
-    void setPatchType(int type) { patchType = type; }
-    int getUSteps() const { return uSteps; }
-    void setUSteps(int steps) { uSteps = steps; }
-    int getVSteps() const { return vSteps; }
-    void setVSteps(int steps) { vSteps = steps; }
-    double getFlatnessValue() const { return flatnessValue; }
-    void setFlatnessValue(double value) { flatnessValue = value; }
-    Vector3Dd (*getControlPoints())[4] { return controlPoints; }
+    int getPatchType() const;
+    void setPatchType(int type);
+    int getUSteps() const;
+    void setUSteps(int steps);
+    int getVSteps() const;
+    void setVSteps(int steps);
+    Vector3Dd (*getControlPoints())[4];
+    const Vector3Dd (*getControlPoints() const)[4];
+    Vector3Dd &getBoundingSphereCenter();
+    const Vector3Dd &getBoundingSphereCenter() const;
+    double getBoundingSphereRadius() const;
+    void setBoundingSphereRadius(double radius);
+    double getFlatnessValue() const;
+    void setFlatnessValue(double value);
+    int getIntersectionCount() const;
+    void setIntersectionCount(int count);
+    void incrementIntersectionCount();
+    Vector3Dd &getNormalVectorAt(int index);
+    const Vector3Dd &getNormalVectorAt(int index) const;
+    Vector3Dd &getIntersectionPointAt(int index);
+    const Vector3Dd &getIntersectionPointAt(int index) const;
+    Vector3Dd **getInterpolatedGrid() const;
+    void setInterpolatedGrid(Vector3Dd **grid);
+    Vector3Dd **getInterpolatedNormals() const;
+    void setInterpolatedNormals(Vector3Dd **normals);
+    Vector3Dd **getSmoothNormals() const;
+    void setSmoothNormals(Vector3Dd **normals);
+    double **getInterpolatedD() const;
+    void setInterpolatedD(double **values);
+    ParametricPatchNode *getNodeTree() const;
+    void setNodeTree(ParametricPatchNode *tree);
 
     static void precomputePatchValues(ParametricBiCubicPatch *shape);
 
@@ -60,6 +67,22 @@ class ParametricBiCubicPatch : public Geometry {
     void invertGeometry() override;
 
   private:
+    int patchType;
+    int uSteps;
+    int vSteps;
+    Vector3Dd controlPoints[4][4];
+    Vector3Dd boundingSphereCenter;
+    double boundingSphereRadius;
+    double flatnessValue;
+    int intersectionCount;
+    Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd intersectionPoint[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd **interpolatedGrid;
+    Vector3Dd **interpolatedNormals;
+    Vector3Dd **smoothNormals;
+    double **interpolatedD;
+    ParametricPatchNode *nodeTree;
+
     static void parametricPartial(
         Vector3Dd *result, double u, double v, ParametricBiCubicPatch *shape);
     static int subpatchNormal(Vector3Dd *v1, Vector3Dd *v2, Vector3Dd *v3,
@@ -90,5 +113,191 @@ class ParametricBiCubicPatch : public Geometry {
     static ParametricControlPoints *createParametricControlPointsBlock();
     static ParametricPatchChild *createParametricPatchChildBlock();
 };
+
+inline int
+ParametricBiCubicPatch::getPatchType() const
+{
+    return patchType;
+}
+
+inline void
+ParametricBiCubicPatch::setPatchType(int type)
+{
+    patchType = type;
+}
+
+inline int
+ParametricBiCubicPatch::getUSteps() const
+{
+    return uSteps;
+}
+
+inline void
+ParametricBiCubicPatch::setUSteps(int steps)
+{
+    uSteps = steps;
+}
+
+inline int
+ParametricBiCubicPatch::getVSteps() const
+{
+    return vSteps;
+}
+
+inline void
+ParametricBiCubicPatch::setVSteps(int steps)
+{
+    vSteps = steps;
+}
+
+inline Vector3Dd (*
+ParametricBiCubicPatch::getControlPoints())[4]
+{
+    return controlPoints;
+}
+
+inline const Vector3Dd (*
+ParametricBiCubicPatch::getControlPoints() const)[4]
+{
+    return controlPoints;
+}
+
+inline Vector3Dd &
+ParametricBiCubicPatch::getBoundingSphereCenter()
+{
+    return boundingSphereCenter;
+}
+
+inline const Vector3Dd &
+ParametricBiCubicPatch::getBoundingSphereCenter() const
+{
+    return boundingSphereCenter;
+}
+
+inline double
+ParametricBiCubicPatch::getBoundingSphereRadius() const
+{
+    return boundingSphereRadius;
+}
+
+inline void
+ParametricBiCubicPatch::setBoundingSphereRadius(double radius)
+{
+    boundingSphereRadius = radius;
+}
+
+inline double
+ParametricBiCubicPatch::getFlatnessValue() const
+{
+    return flatnessValue;
+}
+
+inline void
+ParametricBiCubicPatch::setFlatnessValue(double value)
+{
+    flatnessValue = value;
+}
+
+inline int
+ParametricBiCubicPatch::getIntersectionCount() const
+{
+    return intersectionCount;
+}
+
+inline void
+ParametricBiCubicPatch::setIntersectionCount(int count)
+{
+    intersectionCount = count;
+}
+
+inline void
+ParametricBiCubicPatch::incrementIntersectionCount()
+{
+    intersectionCount++;
+}
+
+inline Vector3Dd &
+ParametricBiCubicPatch::getNormalVectorAt(int index)
+{
+    return normalVector[index];
+}
+
+inline const Vector3Dd &
+ParametricBiCubicPatch::getNormalVectorAt(int index) const
+{
+    return normalVector[index];
+}
+
+inline Vector3Dd &
+ParametricBiCubicPatch::getIntersectionPointAt(int index)
+{
+    return intersectionPoint[index];
+}
+
+inline const Vector3Dd &
+ParametricBiCubicPatch::getIntersectionPointAt(int index) const
+{
+    return intersectionPoint[index];
+}
+
+inline Vector3Dd **
+ParametricBiCubicPatch::getInterpolatedGrid() const
+{
+    return interpolatedGrid;
+}
+
+inline void
+ParametricBiCubicPatch::setInterpolatedGrid(Vector3Dd **grid)
+{
+    interpolatedGrid = grid;
+}
+
+inline Vector3Dd **
+ParametricBiCubicPatch::getInterpolatedNormals() const
+{
+    return interpolatedNormals;
+}
+
+inline void
+ParametricBiCubicPatch::setInterpolatedNormals(Vector3Dd **normals)
+{
+    interpolatedNormals = normals;
+}
+
+inline Vector3Dd **
+ParametricBiCubicPatch::getSmoothNormals() const
+{
+    return smoothNormals;
+}
+
+inline void
+ParametricBiCubicPatch::setSmoothNormals(Vector3Dd **normals)
+{
+    smoothNormals = normals;
+}
+
+inline double **
+ParametricBiCubicPatch::getInterpolatedD() const
+{
+    return interpolatedD;
+}
+
+inline void
+ParametricBiCubicPatch::setInterpolatedD(double **values)
+{
+    interpolatedD = values;
+}
+
+inline ParametricPatchNode *
+ParametricBiCubicPatch::getNodeTree() const
+{
+    return nodeTree;
+}
+
+inline void
+ParametricBiCubicPatch::setNodeTree(ParametricPatchNode *tree)
+{
+    nodeTree = tree;
+}
 
 #endif

@@ -46,9 +46,9 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getTriangleShape();
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&localShape->p1, ctx);
-                PrimitiveParser::parseVector(&localShape->p2, ctx);
-                PrimitiveParser::parseVector(&localShape->p3, ctx);
+                PrimitiveParser::parseVector(&localShape->getP1(), ctx);
+                PrimitiveParser::parseVector(&localShape->getP2(), ctx);
+                PrimitiveParser::parseVector(&localShape->getP3(), ctx);
                 if (!Triangle::computeTriangle(localShape)) {
                     {
                         char _logMsg[1024];

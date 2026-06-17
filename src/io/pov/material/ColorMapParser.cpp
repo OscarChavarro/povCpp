@@ -27,12 +27,12 @@ static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
     }
 
     // Collect and sort spans by start value (canonical order)
-    const PovColorMap::Span* sorted[20];
+    const PovColorMap::span* sorted[20];
     for (int i = 0; i < n; i++) {
         sorted[i] = map->getSpanAt(i);
     }
     for (int i = 1; i < n; i++) {
-        const PovColorMap::Span * const key = sorted[i];
+        const PovColorMap::span * const key = sorted[i];
         int j = i - 1;
         while (j >= 0 && sorted[j]->start > key->start) {
             sorted[j + 1] = sorted[j];

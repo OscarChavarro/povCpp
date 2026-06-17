@@ -81,7 +81,7 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z()),
             Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z()));
     }
-    newRay.isShadowRay = ray->isShadowRay;
+    newRay.setShadowRay(ray->isShadowRayEnabled());
 
     len = java::Math::sqrt(newRay.getDirection().x() * newRay.getDirection().x() +
                newRay.getDirection().y() * newRay.getDirection().y() +
@@ -250,7 +250,7 @@ PolynomialShape::intersect(
     if (j > 2) {
         PolynomialSolver polynomialSolver(j, &t[i]);
         return polynomialSolver.solve(depths,
-            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+            ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
             Config::POLYNOMIAL_SOLVER_EPSILON);
     }
     if (j > 0) {
@@ -711,16 +711,16 @@ PolynomialShape::intersectQuartic(
             }
             PolynomialSolver cubicSolver(3, &t[1]);
             return cubicSolver.solve(depths,
-                ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+                ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
                 Config::POLYNOMIAL_SOLVER_EPSILON);
         }
         PolynomialSolver quarticSolver(4, &t[0]);
         return quarticSolver.solve(depths,
-            ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+            ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
             Config::POLYNOMIAL_SOLVER_EPSILON);
     }
     return QuarticSolver::solve(&t[0], depths,
-        ray->isShadowRay ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
+        ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
         Config::POLYNOMIAL_SOLVER_EPSILON);
 }
 

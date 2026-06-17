@@ -62,12 +62,12 @@ ModelBuilder::getSphereShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    *&(newShape->center) = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->radius = 1.0;
-    newShape->radiusSquared = 1.0;
-    newShape->inverseRadius = 1.0;
-    newShape->vpCached = false;
-    newShape->inverted = false;
+    newShape->getCenter() = Vector3Dd(0.0, 0.0, 0.0);
+    newShape->setRadius(1.0);
+    newShape->setRadiusSquared(1.0);
+    newShape->setInverseRadius(1.0);
+    newShape->setVpCached(false);
+    newShape->setInverted(false);
     return (newShape);
 }
 
@@ -184,13 +184,14 @@ ModelBuilder::getBicubicPatchShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->uSteps = 0;
-    newShape->vSteps = 0;
-    newShape->intersectionCount = 0;
-    newShape->interpolatedGrid = (Vector3Dd **)nullptr;
-    newShape->interpolatedNormals = (Vector3Dd **)nullptr;
-    newShape->smoothNormals = (Vector3Dd **)nullptr;
-    newShape->interpolatedD = (double **)nullptr;
+    newShape->setUSteps(0);
+    newShape->setVSteps(0);
+    newShape->setIntersectionCount(0);
+    newShape->setInterpolatedGrid((Vector3Dd **)nullptr);
+    newShape->setInterpolatedNormals((Vector3Dd **)nullptr);
+    newShape->setSmoothNormals((Vector3Dd **)nullptr);
+    newShape->setInterpolatedD((double **)nullptr);
+    newShape->setNodeTree(nullptr);
     return (newShape);
 }
 
@@ -236,14 +237,14 @@ ModelBuilder::getTriangleShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->p1) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->p2) = Vector3Dd(1.0, 0.0, 0.0);
-    *&(newShape->p3) = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->distance = 0.0;
-    newShape->inverted = false;
-    newShape->vpCached = false;
-    newShape->degenerateFlag = false;
+    newShape->getNormalVector() = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->getP1() = Vector3Dd(0.0, 0.0, 0.0);
+    newShape->getP2() = Vector3Dd(1.0, 0.0, 0.0);
+    newShape->getP3() = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->setDistance(0.0);
+    newShape->setInverted(false);
+    newShape->setVpCached(false);
+    newShape->setDegenerateFlag(false);
     return (newShape);
 }
 
@@ -257,17 +258,17 @@ ModelBuilder::getSmoothTriangleShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->p1) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->p2) = Vector3Dd(1.0, 0.0, 0.0);
-    *&(newShape->p3) = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->getNormalVector() = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->getP1() = Vector3Dd(0.0, 0.0, 0.0);
+    newShape->getP2() = Vector3Dd(1.0, 0.0, 0.0);
+    newShape->getP3() = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->n1) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->n2) = Vector3Dd(0.0, 1.0, 0.0);
     *&(newShape->n3) = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->distance = 0.0;
-    newShape->inverted = false;
-    newShape->vpCached = 0;
-    newShape->degenerateFlag = false;
+    newShape->setDistance(0.0);
+    newShape->setInverted(false);
+    newShape->setVpCached(0);
+    newShape->setDegenerateFlag(false);
     return (newShape);
 }
 
