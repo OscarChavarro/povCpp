@@ -171,7 +171,7 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
         localElement.depth = depth;
         localElement.Object = nullptr;
         intersectionPoint = ray->direction.multiply(depth);
-        intersectionPoint = intersectionPoint.add(ray->position);
+        intersectionPoint = intersectionPoint.add(ray->origin);
         localElement.point = intersectionPoint;
         localElement.Shape = reinterpret_cast<SimpleBody *>(shape);
         depthQueue->offer(localElement);
@@ -197,7 +197,7 @@ Triangle::intersectTriangle(
     if (ray->isPrimaryRay) {
         if (!triangle->vpCached) {
             triangle->vpNormDotOrigin =
-                triangle->normalVector.dotProduct(ray->position);
+                triangle->normalVector.dotProduct(ray->origin);
             triangle->vpNormDotOrigin += triangle->distance;
             triangle->vpNormDotOrigin *= -1.0;
             triangle->vpCached = true;
@@ -211,7 +211,7 @@ Triangle::intersectTriangle(
 
         *depth = triangle->vpNormDotOrigin / normalDotDirection;
     } else {
-        normalDotOrigin = triangle->normalVector.dotProduct(ray->position);
+        normalDotOrigin = triangle->normalVector.dotProduct(ray->origin);
         normalDotOrigin += triangle->distance;
         normalDotOrigin *= -1.0;
 
@@ -230,8 +230,8 @@ Triangle::intersectTriangle(
 
     switch (triangle->dominantAxis) {
     case X_AXIS:
-        s = ray->position.y() + *depth * ray->direction.y();
-        t = ray->position.z() + *depth * ray->direction.z();
+        s = ray->origin.y() + *depth * ray->direction.y();
+        t = ray->origin.z() + *depth * ray->direction.z();
 
         if (((triangle->p2.y() - s) * (triangle->p2.z() - triangle->p1.z())) <
             ((triangle->p2.z() - t) * (triangle->p2.y() - triangle->p1.y()))) {
@@ -267,8 +267,8 @@ Triangle::intersectTriangle(
         return (false);
 
     case Y_AXIS:
-        s = ray->position.x() + *depth * ray->direction.x();
-        t = ray->position.z() + *depth * ray->direction.z();
+        s = ray->origin.x() + *depth * ray->direction.x();
+        t = ray->origin.z() + *depth * ray->direction.z();
 
         if ((triangle->p2.x() - s) * (triangle->p2.z() - triangle->p1.z()) <
             (triangle->p2.z() - t) * (triangle->p2.x() - triangle->p1.x())) {
@@ -304,8 +304,8 @@ Triangle::intersectTriangle(
         return (false);
 
     case Z_AXIS:
-        s = ray->position.x() + *depth * ray->direction.x();
-        t = ray->position.y() + *depth * ray->direction.y();
+        s = ray->origin.x() + *depth * ray->direction.x();
+        t = ray->origin.y() + *depth * ray->direction.y();
 
         if ((triangle->p2.x() - s) * (triangle->p2.y() - triangle->p1.y()) <
             (triangle->p2.y() - t) * (triangle->p2.x() - triangle->p1.x())) {

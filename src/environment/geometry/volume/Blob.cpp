@@ -186,7 +186,7 @@ Blob::determineInfluences(
 }
 
 /**
-Calculate the field value of a blob - the position vector
+Calculate the field value of a blob - the origin vector
 "Pos" must already have been transformed into blob space.
 */
 double
@@ -331,10 +331,10 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
 
     // Transform the ray into the blob space
     if (blob->transformation != nullptr) {
-        p = blob->transformationInverse->transformPoint(ray->position);
+        p = blob->transformationInverse->transformPoint(ray->origin);
         d = blob->transformationInverse->transformDirection(ray->direction);
     } else {
-        p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
+        p = Vector3Dd(ray->origin.x(), ray->origin.y(), ray->origin.z());
         d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
     }
 
@@ -440,7 +440,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                         intersectionPoint = blob->transformation->transformPoint(
                             intersectionPoint);
                     }
-                    dv = intersectionPoint.subtract(ray->position);
+                    dv = intersectionPoint.subtract(ray->origin);
                     len = dv.length();
                     localElement.depth = len;
                     localElement.Object = nullptr;

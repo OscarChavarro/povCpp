@@ -37,7 +37,7 @@ Quadric::allIntersectionsForOwner(
         localElement.depth = depth1;
         localElement.Object = nullptr;
         intersectionPoint = ray->direction.multiply(depth1);
-        intersectionPoint = intersectionPoint.add(ray->position);
+        intersectionPoint = intersectionPoint.add(ray->origin);
         localElement.point = intersectionPoint;
         localElement.Shape = owner;
         depthQueue->offer(localElement);
@@ -47,7 +47,7 @@ Quadric::allIntersectionsForOwner(
             localElement.depth = depth2;
             localElement.Object = nullptr;
             intersectionPoint = ray->direction.multiply(depth2);
-            intersectionPoint = intersectionPoint.add(ray->position);
+            intersectionPoint = intersectionPoint.add(ray->origin);
             localElement.point = intersectionPoint;
             localElement.Shape = owner;
             depthQueue->offer(localElement);
@@ -95,7 +95,7 @@ Quadric::intersectQuadric(
     if (ray->isPrimaryRay) {
         if (!shape->constantCached) {
             constantTerm = shape->object2Terms.dotProduct(ray->position2);
-            tempTerm = shape->objectTerms.dotProduct(ray->position);
+            tempTerm = shape->objectTerms.dotProduct(ray->origin);
             constantTerm += tempTerm + shape->objectConstant;
             shape->objectVpConstant = constantTerm;
             shape->constantCached = true;
@@ -104,7 +104,7 @@ Quadric::intersectQuadric(
         }
     } else {
         constantTerm = shape->object2Terms.dotProduct(ray->position2);
-        tempTerm = shape->objectTerms.dotProduct(ray->position);
+        tempTerm = shape->objectTerms.dotProduct(ray->origin);
         constantTerm += tempTerm + shape->objectConstant;
     }
 

@@ -26,7 +26,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
     double ior;
 
     if (surfaceNormal == nullptr) {
-        newRay.position = *intersectionPoint;
+        newRay.origin = *intersectionPoint;
         newRay.direction = ray->direction;
 
         newRay.copyContainersFrom(ray);
@@ -95,7 +95,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         newRay.direction = localNormal.add(rayDirection);
         newRay.direction = newRay.direction.normalizedFast();
 
-        newRay.position = *intersectionPoint;
+        newRay.origin = *intersectionPoint;
         traceLevel++;
         tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.quadricConstantsCached = false;

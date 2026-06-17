@@ -26,17 +26,17 @@ RayWithSegments::makeRay()
 {
     Vector3Dd tempInitDir;
 
-    this->position2 = this->position.multiply(this->position);
+    this->position2 = this->origin.multiply(this->origin);
     this->direction2 = this->direction.multiply(this->direction);
-    this->positionDirection = this->position.multiply(this->direction);
+    this->positionDirection = this->origin.multiply(this->direction);
     RayWithSegments::mixVectorTerms(
-        this->mixedPositionPosition, this->position, this->position);
+        this->mixedPositionPosition, this->origin, this->origin);
     RayWithSegments::mixVectorTerms(
         this->mixedDirectionDirection, this->direction, this->direction);
     RayWithSegments::mixVectorTerms(
-        tempInitDir, this->position, this->direction);
+        tempInitDir, this->origin, this->direction);
     RayWithSegments::mixVectorTerms(
-        this->mixedPositionDirection, this->direction, this->position);
+        this->mixedPositionDirection, this->direction, this->origin);
     this->mixedPositionDirection =
         this->mixedPositionDirection.add(tempInitDir);
     this->quadricConstantsCached = true;

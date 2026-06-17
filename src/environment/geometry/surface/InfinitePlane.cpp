@@ -35,7 +35,7 @@ InfinitePlane::allIntersectionsForOwner(
             localElement.depth = depth;
             localElement.Object = nullptr;
             intersectionPoint = ray->direction.multiply(depth);
-            intersectionPoint = intersectionPoint.add(ray->position);
+            intersectionPoint = intersectionPoint.add(ray->origin);
             localElement.point = intersectionPoint;
             localElement.Shape = owner;
             depthQueue->offer(localElement);
@@ -57,7 +57,7 @@ InfinitePlane::intersectPlane(
     if (ray->isPrimaryRay) {
         if (!plane->vpCached) {
             plane->vpNormDotOrigin =
-                plane->normalVector.dotProduct(ray->position);
+                plane->normalVector.dotProduct(ray->origin);
             plane->vpNormDotOrigin += plane->distance;
             plane->vpNormDotOrigin *= -1.0;
             plane->vpCached = true;
@@ -76,7 +76,7 @@ InfinitePlane::intersectPlane(
         }
         return (false);
     }
-    normalDotOrigin = plane->normalVector.dotProduct(ray->position);
+    normalDotOrigin = plane->normalVector.dotProduct(ray->origin);
     normalDotOrigin += plane->distance;
     normalDotOrigin *= -1.0;
 

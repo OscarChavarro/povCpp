@@ -522,7 +522,7 @@ RenderEngine::initializeRenderer()
         }
     }
 
-    ray.position = RenderEngine::renderFrame().viewPoint.location;
+    ray.origin = RenderEngine::renderFrame().viewPoint.location;
 }
 
 void
