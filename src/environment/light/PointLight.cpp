@@ -6,8 +6,6 @@ This module implements the point light source primitive.
 
 #include "environment/light/PointLight.h"
 
-#include "environment/material/MaterialUtils.h"
-
 PointLight::PointLight()
 {
     this->center = Vector3Dd(0.0, 0.0, 0.0);

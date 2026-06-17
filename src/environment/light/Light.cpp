@@ -8,8 +8,6 @@ This module implements the point & spot light source primitive.
 
 #include "environment/light/Light.h"
 
-#include "environment/material/MaterialUtils.h"
-
 int
 Light::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
@@ -39,7 +37,7 @@ Light::copyStateInto(Light *dst) const
 {
     *dst = *this;
     if (dst->material != nullptr) {
-        dst->material = MaterialUtils::instance().copyTexture(dst->material);
+        dst->material = dst->material->copy();
     }
 }
 
@@ -87,7 +85,9 @@ void
 Light::scale(Vector3Dd *vector)
 {
     scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&this->material, vector);
+    if (this->material != nullptr) {
+        this->material->scale(vector);
+    }
 }
 
 void

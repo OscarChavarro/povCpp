@@ -2,10 +2,11 @@
 #define __POINT_H__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/GeometryTypes.h"
-#include "environment/material/PovrayMaterial.h"
+#include "environment/material/Material.h"
 
 // A Light is reached directly as a Light* (lightSources list / LightSamplerShader)
 // and is never shaded through Intersection::Shape, so unlike other Geometry it
@@ -13,7 +14,7 @@
 class Light : public Geometry {
   public:
     GeometryTypes geometryType;
-    PovrayMaterial *material = nullptr;
+    Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
@@ -23,8 +24,8 @@ class Light : public Geometry {
     double radius;
     double falloff;
 
-    PovrayMaterial* getMaterial() const { return material; }
-    void setMaterial(PovrayMaterial* mat) { material = mat; }
+    Material* getMaterial() const { return material; }
+    void setMaterial(Material* mat) { material = mat; }
     ColorRgba* getShapeColor() const { return shapeColor; }
     void setShapeColor(ColorRgba* color) { shapeColor = color; }
 
