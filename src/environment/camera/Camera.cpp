@@ -1,9 +1,3 @@
-/**
-viewpnt.c
-
-This module implements methods for managing the viewpoint.
-*/
-
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/camera/Camera.h"
 
@@ -67,4 +61,3 @@ Camera::scale(Vector3Dd *vector)
     viewpoint->up = transformation.transpose().multiply(viewpoint->up);
     viewpoint->right = transformation.transpose().multiply(viewpoint->right);
 }
-#include "java/util/PriorityQueue.txx"

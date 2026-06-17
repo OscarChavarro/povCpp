@@ -8,8 +8,6 @@ This module implements the spot light source primitive.
 
 #include "environment/light/SpotLight.h"
 
-#include "environment/material/MaterialUtils.h"
-
 SpotLight::SpotLight()
 {
     this->center = Vector3Dd(0.0, 0.0, 0.0);

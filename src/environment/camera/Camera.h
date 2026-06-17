@@ -2,9 +2,8 @@
 #define __CAMERA_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/elements/TransformableElement.h"
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/geometry/elements/TransformableElement.h"
 
 class Camera : public TransformableElement {
   public:
