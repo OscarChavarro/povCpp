@@ -187,7 +187,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
         hfQueue->offer(*hfIntersection);
     }
-    Statistics::global().rayHtFieldTestsSucceeded++;
+    Statistics::global().incrementRayHtFieldTestsSucceeded();
     return (true);
 }
 
@@ -763,7 +763,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     HeightField * const hField = this;
     Intersection localElement;
 
-    Statistics::global().rayHtFieldTests++;
+    Statistics::global().incrementRayHtFieldTests();
 
     tempRay.setOriginAndDirection(
         hField->transformationInverse->transformPoint(ray->getOrigin()),

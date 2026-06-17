@@ -47,7 +47,7 @@ PovrayApplication::printStatistics(
         (long)frame.getScreenWidth() * (long)frame.getScreenHeight();
 
     fprintf(statOut, "\n%s statistics\n", configuration.getInputFileName());
-    if (pixelsInImage > stats.numberOfPixels) {
+    if (pixelsInImage > stats.getNumberOfPixels()) {
         fprintf(statOut, "  Partial Image Rendered");
     }
 
@@ -56,7 +56,8 @@ PovrayApplication::printStatistics(
         frame.getScreenHeight());
     fprintf(statOut,
         "# Rays:  %10ld     # Pixels:  %10ld  # Pixels supersampled: %10ld\n",
-        stats.numberOfRays, stats.numberOfPixels, stats.numberOfPixelsSupersampled);
+        stats.getNumberOfRays(), stats.getNumberOfPixels(),
+        stats.getNumberOfPixelsSupersampled());
 
     fprintf(statOut, "  Ray->Shape Intersection Tests:\n");
     fprintf(statOut,
@@ -68,51 +69,52 @@ PovrayApplication::printStatistics(
         fprintf(statOut, label " %10ld  %10ld  %10.2f\n", tests, succeeded,    \
             (((double)succeeded / (double)tests) * 100.0));                     \
     }
-    PRINT_INTERSECTION_ROW("  Sphere        ", stats.raySphereTests, stats.raySphereTestsSucceeded);
-    PRINT_INTERSECTION_ROW("  Plane         ", stats.rayPlaneTests, stats.rayPlaneTestsSucceeded);
+    PRINT_INTERSECTION_ROW("  Sphere        ", stats.getRaySphereTests(), stats.getRaySphereTestsSucceeded());
+    PRINT_INTERSECTION_ROW("  Plane         ", stats.getRayPlaneTests(), stats.getRayPlaneTestsSucceeded());
     PRINT_INTERSECTION_ROW(
-        "  Triangle     ", stats.rayTriangleTests, stats.rayTriangleTestsSucceeded);
-    PRINT_INTERSECTION_ROW("  Quadric       ", stats.rayQuadricTests, stats.rayQuadricTestsSucceeded);
-    PRINT_INTERSECTION_ROW("  Blob          ", stats.rayBlobTests, stats.rayBlobTestsSucceeded);
-    PRINT_INTERSECTION_ROW("  Box           ", stats.rayBoxTests, stats.rayBoxTestsSucceeded);
-    PRINT_INTERSECTION_ROW("  Quartic\\Poly ", stats.rayPolyTests, stats.rayPolyTestsSucceeded);
+        "  Triangle     ", stats.getRayTriangleTests(), stats.getRayTriangleTestsSucceeded());
+    PRINT_INTERSECTION_ROW("  Quadric       ", stats.getRayQuadricTests(), stats.getRayQuadricTestsSucceeded());
+    PRINT_INTERSECTION_ROW("  Blob          ", stats.getRayBlobTests(), stats.getRayBlobTestsSucceeded());
+    PRINT_INTERSECTION_ROW("  Box           ", stats.getRayBoxTests(), stats.getRayBoxTestsSucceeded());
+    PRINT_INTERSECTION_ROW("  Quartic\\Poly ", stats.getRayPolyTests(), stats.getRayPolyTestsSucceeded());
     PRINT_INTERSECTION_ROW(
-        "  Bezier Patch ", stats.rayBicubicTests, stats.rayBicubicTestsSucceeded);
+        "  Bezier Patch ", stats.getRayBicubicTests(), stats.getRayBicubicTestsSucceeded());
     PRINT_INTERSECTION_ROW(
-        "  Height Fld   ", stats.rayHtFieldTests, stats.rayHtFieldTestsSucceeded);
+        "  Height Fld   ", stats.getRayHtFieldTests(), stats.getRayHtFieldTestsSucceeded());
     PRINT_INTERSECTION_ROW(
-        "  Hght Fld Box ", stats.rayHtFieldBoxTests, stats.rayHFieldBoxTestsSucceeded);
+        "  Hght Fld Box ", stats.getRayHtFieldBoxTests(), stats.getRayHFieldBoxTestsSucceeded());
     PRINT_INTERSECTION_ROW(
-        "  Bounds        ", stats.boundingRegionTests, stats.boundingRegionTestsSucceeded);
+        "  Bounds        ", stats.getBoundingRegionTests(), stats.getBoundingRegionTestsSucceeded());
     PRINT_INTERSECTION_ROW(
-        "  Clips         ", stats.clippingRegionTests, stats.clippingRegionTestsSucceeded);
+        "  Clips         ", stats.getClippingRegionTests(), stats.getClippingRegionTestsSucceeded());
 #undef PRINT_INTERSECTION_ROW
 
-    if (stats.solidTextureStatistics.callsToNoise) {
-        fprintf(statOut, "  Calls to Noise:    %10ld\n", stats.solidTextureStatistics.callsToNoise);
+    if (stats.getSolidTextureStatistics()->callsToNoise) {
+        fprintf(statOut, "  Calls to Noise:    %10ld\n", stats.getSolidTextureStatistics()->callsToNoise);
     }
-    if (stats.solidTextureStatistics.callsToDNoise) {
-        fprintf(statOut, "  Calls to DNoise:  %10ld\n", stats.solidTextureStatistics.callsToDNoise);
+    if (stats.getSolidTextureStatistics()->callsToDNoise) {
+        fprintf(statOut, "  Calls to DNoise:  %10ld\n", stats.getSolidTextureStatistics()->callsToDNoise);
     }
-    if (stats.shadowRayTests) {
+    if (stats.getShadowRayTests()) {
         fprintf(statOut,
             "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld\n",
-            stats.shadowRayTests, stats.shadowRaysSucceeded);
+            stats.getShadowRayTests(), stats.getShadowRaysSucceeded());
     }
-    if (stats.reflectedRaysTraced) {
-        fprintf(statOut, "  Reflected Rays:    %10ld\n", stats.reflectedRaysTraced);
+    if (stats.getReflectedRaysTraced()) {
+        fprintf(statOut, "  Reflected Rays:    %10ld\n", stats.getReflectedRaysTraced());
     }
-    if (stats.refractedRaysTraced) {
-        fprintf(statOut, "  Refracted Rays:    %10ld\n", stats.refractedRaysTraced);
+    if (stats.getRefractedRaysTraced()) {
+        fprintf(statOut, "  Refracted Rays:    %10ld\n", stats.getRefractedRaysTraced());
     }
-    if (stats.transmittedRaysTraced) {
-        fprintf(statOut, "  Transmitted Rays: %10ld\n", stats.transmittedRaysTraced);
+    if (stats.getTransmittedRaysTraced()) {
+        fprintf(statOut, "  Transmitted Rays: %10ld\n", stats.getTransmittedRaysTraced());
     }
 
-    if (stats.usedTime != 0.0) {
-        const int hours = (int)stats.usedTime / 3600;
-        const int minutes = (int)(stats.usedTime - hours * 3600) / 60;
-        const double seconds = stats.usedTime - (double)(hours * 3600 + minutes * 60);
+    if (stats.getUsedTime() != 0.0) {
+        const int hours = (int)stats.getUsedTime() / 3600;
+        const int minutes = (int)(stats.getUsedTime() - hours * 3600) / 60;
+        const double seconds =
+            stats.getUsedTime() - (double)(hours * 3600 + minutes * 60);
         fprintf(statOut,
             "  Time For Trace:    %2d hours %2d minutes %4.2f seconds\n", hours,
             minutes, seconds);

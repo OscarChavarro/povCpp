@@ -327,7 +327,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
     const BlobInterval *intervals = blob->intervals;
     bool intersectionFound = false;
 
-    Statistics::global().rayBlobTests++;
+    Statistics::global().incrementRayBlobTests();
 
     // Transform the ray into the blob space
     if (blob->transformation != nullptr) {
@@ -453,7 +453,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
         }
     }
     if (intersectionFound) {
-        Statistics::global().rayBlobTestsSucceeded++;
+        Statistics::global().incrementRayBlobTestsSucceeded();
     }
     return intersectionFound;
 }

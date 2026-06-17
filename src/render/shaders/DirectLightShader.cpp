@@ -69,7 +69,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
             for (long int i = objects.size() - 1; i >= 0; i--) {
                 blockingObject = objects[i];
 
-                Statistics::global().shadowRayTests++;
+                Statistics::global().incrementShadowRayTests();
                 GeometryOperations::allIntersections(
                     blockingObject, &lightSourceRay, localQueue);
                 while (localQueue->size() > 0) {

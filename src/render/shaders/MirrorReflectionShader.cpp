@@ -22,7 +22,7 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
     double normalComponent;
 
     if (texture->objectReflection != 0.0) {
-        Statistics::global().reflectedRaysTraced++;
+        Statistics::global().incrementReflectedRaysTraced();
         normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;
