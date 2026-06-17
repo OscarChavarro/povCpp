@@ -70,8 +70,8 @@ ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
         snprintf(_logMsg, sizeof(_logMsg), "%s expected but %s found instead\n", expected, found);
         Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
     }
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(
             statFile, "%s expected but %s found instead\n", expected, found);
@@ -94,8 +94,8 @@ ParseErrorReporter::typeError(ParserContext &ctx)
     FILE *statFile;
     reportLocation(ctx);
     fprintf(stderr, "Identifier %s is the wrong type\n", ctx.token().Token_String);
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(statFile, "Identifier %s is the wrong type\n", ctx.token().Token_String);
 
@@ -122,8 +122,8 @@ ParseErrorReporter::reportUndeclared(ParserContext &ctx)
         snprintf(_logMsg, sizeof(_logMsg), "Undeclared identifier %s\n", ctx.token().Token_String);
         Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
     }
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(statFile, "Undeclared identifier %s\n", ctx.token().Token_String);
         fclose(statFile);
@@ -150,8 +150,8 @@ ParseErrorReporter::reportError(const char *str, ParserContext &ctx)
         Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(statFile, "%s\n", str);
         fclose(statFile);

@@ -158,10 +158,14 @@ CommandLineOptions::parseOption(const char *optionString)
     switch (*optionString) {
     case 'B':
     case 'b':
-        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().fileBufferSize);
-        RenderingConfiguration::global().fileBufferSize *= 1024;
-        if (RenderingConfiguration::global().fileBufferSize < BUFSIZ) {
-            RenderingConfiguration::global().fileBufferSize = BUFSIZ;
+        {
+            int fileBufferSize;
+            sscanf(&optionString[1], "%d", &fileBufferSize);
+            fileBufferSize *= 1024;
+            if (fileBufferSize < BUFSIZ) {
+                fileBufferSize = BUFSIZ;
+            }
+            RenderingConfiguration::global().setFileBufferSize(fileBufferSize);
         }
         optionNumber = 0;
         break;
@@ -174,32 +178,31 @@ CommandLineOptions::parseOption(const char *optionString)
     case 'D':
     case 'd':
         optionNumber = RenderingConfiguration::DISPLAY;
-        RenderingConfiguration::global().displayFormat = '0';
-        RenderingConfiguration::global().paletteOption = '3';
+        RenderingConfiguration::global().setDisplayFormat('0');
+        RenderingConfiguration::global().setPaletteOption('3');
         if (optionString[1] != '\0') {
-            RenderingConfiguration::global().displayFormat = (char)toupper(optionString[1]);
+            RenderingConfiguration::global().setDisplayFormat((char)toupper(optionString[1]));
         }
 
         if (optionString[1] != '\0' && optionString[2] != '\0') {
-            RenderingConfiguration::global().paletteOption = (char)toupper(optionString[2]);
+            RenderingConfiguration::global().setPaletteOption((char)toupper(optionString[2]));
         }
         break;
 
     case '@':
         optionNumber = RenderingConfiguration::VERBOSE_FILE;
         if (optionString[1] == '\0') {
-            strcpy(RenderingConfiguration::global().statFileName, "POVSTAT.OUT");
+            RenderingConfiguration::global().setStatFileName("POVSTAT.OUT");
         } else {
-            strncpy(RenderingConfiguration::global().statFileName, &optionString[1], RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
-            RenderingConfiguration::global().statFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
+            RenderingConfiguration::global().setStatFileName(&optionString[1]);
         }
         break;
     case 'V':
     case 'v':
         optionNumber = RenderingConfiguration::VERBOSE;
-        RenderingConfiguration::global().verboseFormat = (char)toupper(optionString[1]);
-        if (RenderingConfiguration::global().verboseFormat == '\0') {
-            RenderingConfiguration::global().verboseFormat = '1';
+        RenderingConfiguration::global().setVerboseFormat((char)toupper(optionString[1]));
+        if (RenderingConfiguration::global().getVerboseFormat() == '\0') {
+            RenderingConfiguration::global().setVerboseFormat('1');
         }
         break;
 
@@ -240,8 +243,7 @@ CommandLineOptions::parseOption(const char *optionString)
         if (optionString[1] == '\0') {
             inFlag = true;
         } else {
-            strncpy(RenderingConfiguration::global().inputFileName, &optionString[1], RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
-            RenderingConfiguration::global().inputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
+            RenderingConfiguration::global().setInputFileName(&optionString[1]);
         }
         optionNumber = 0;
         break;
@@ -251,8 +253,7 @@ CommandLineOptions::parseOption(const char *optionString)
         if (optionString[1] == '\0') {
             outFlag = true;
         } else {
-            strncpy(RenderingConfiguration::global().outputFileName, &optionString[1], RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
-            RenderingConfiguration::global().outputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
+            RenderingConfiguration::global().setOutputFileName(&optionString[1]);
         }
         optionNumber = 0;
         break;
@@ -261,7 +262,7 @@ CommandLineOptions::parseOption(const char *optionString)
     case 'a':
         optionNumber = RenderingConfiguration::ANTIALIAS;
         if (sscanf(&optionString[1], "%lf", &threshold) != EOF) {
-            RenderingConfiguration::global().antialiasThreshold = threshold;
+            RenderingConfiguration::global().setAntialiasThreshold(threshold);
         }
         break;
 
@@ -299,13 +300,21 @@ CommandLineOptions::parseOption(const char *optionString)
 
     case 'S':
     case 's':
-        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().firstLine);
+        {
+            int firstLine;
+            sscanf(&optionString[1], "%d", &firstLine);
+            RenderingConfiguration::global().setFirstLine(firstLine);
+        }
         optionNumber = 0;
         break;
 
     case 'E':
     case 'e':
-        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().lastLine);
+        {
+            int lastLine;
+            sscanf(&optionString[1], "%d", &lastLine);
+            RenderingConfiguration::global().setLastLine(lastLine);
+        }
         optionNumber = 0;
         break;
 
@@ -327,7 +336,11 @@ CommandLineOptions::parseOption(const char *optionString)
 
     case 'Q':
     case 'q':
-        sscanf(&optionString[1], "%d", &RenderingConfiguration::global().quality);
+        {
+            int quality;
+            sscanf(&optionString[1], "%d", &quality);
+            RenderingConfiguration::global().setQuality(quality);
+        }
         optionNumber = 0;
         break;
 
@@ -347,11 +360,7 @@ CommandLineOptions::parseOption(const char *optionString)
     }
 
     if (optionNumber != 0) {
-        if (addOption) {
-            RenderingConfiguration::global().options |= optionNumber;
-        } else {
-            RenderingConfiguration::global().options &= ~optionNumber;
-        }
+        RenderingConfiguration::global().setOptionEnabled(optionNumber, addOption);
     }
 }
 
@@ -363,16 +372,14 @@ CommandLineOptions::parseFileName(const char *fileName)
 
     if (inFlag) // File names may now be separated by spaces from cmdline option
     {
-        strncpy(RenderingConfiguration::global().inputFileName, fileName, RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
-        RenderingConfiguration::global().inputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
+        RenderingConfiguration::global().setInputFileName(fileName);
         inFlag = false;
         return;
     }
 
     if (outFlag) // File names may now be separated by spaces from cmdline option
     {
-        strncpy(RenderingConfiguration::global().outputFileName, fileName, RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1);
-        RenderingConfiguration::global().outputFileName[RenderingConfiguration::RENDER_FILE_NAME_LENGTH - 1] = '\0';
+        RenderingConfiguration::global().setOutputFileName(fileName);
         outFlag = false;
         return;
     }

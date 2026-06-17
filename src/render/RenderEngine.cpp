@@ -305,7 +305,8 @@ RenderEngine::supersample(
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
 
-    if ((y != RenderingConfiguration::global().firstLine - 1) && (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY)) {
+    if ((y != RenderingConfiguration::global().getFirstLine() - 1) &&
+        RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
     }
 }
 
@@ -314,19 +315,19 @@ RenderEngine::readRenderedPart()
 {
     int rc;
     int lineNumber;
-    while ((rc = RenderingConfiguration::global().outputFileInputStream->readLine(
+    while ((rc = RenderingConfiguration::global().getOutputFileInputStream()->readLine(
                 previousLine, &lineNumber)) == 1) {
     }
 
-    RenderingConfiguration::global().firstLine = lineNumber + 1;
+    RenderingConfiguration::global().setFirstLine(lineNumber + 1);
 
     if (rc == 0) {
-        RenderingConfiguration::global().outputFileInputStream->close();
-        if (RenderingConfiguration::global().outputFileInputStream->open(
-                RenderingConfiguration::global().outputFileName,
+        RenderingConfiguration::global().getOutputFileInputStream()->close();
+        if (RenderingConfiguration::global().getOutputFileInputStream()->open(
+                RenderingConfiguration::global().getOutputFileNameBuffer(),
                 &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                RenderingConfiguration::global().fileBufferSize, RenderOutput::APPEND_MODE,
-                RenderingConfiguration::global().firstLine) != 1) {
+                RenderingConfiguration::global().getFileBufferSize(), RenderOutput::APPEND_MODE,
+                RenderingConfiguration::global().getFirstLine()) != 1) {
             Logger::reportMessage("RenderEngine", Logger::FATAL_ERROR, "", "Error opening output file\n");
         }
         return;
@@ -346,7 +347,10 @@ RenderEngine::startTracing()
     ColorRgba color;
     int x;
     int y;
-    for (y = (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) ? RenderingConfiguration::global().firstLine - 1 : RenderingConfiguration::global().firstLine; y < RenderingConfiguration::global().lastLine;
+    for (y = RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)
+                ? RenderingConfiguration::global().getFirstLine() - 1
+                : RenderingConfiguration::global().getFirstLine();
+        y < RenderingConfiguration::global().getLastLine();
         y++) {
 
         RenderFrame::checkStats(y);
@@ -354,8 +358,8 @@ RenderEngine::startTracing()
         for (x = 0; x < RenderEngine::renderFrame().screenWidth; x++) {
 
             if (RenderEngine::stopFlag()) {
-                if (RenderingConfiguration::global().outputFileInputStream != nullptr) {
-                    RenderingConfiguration::global().outputFileInputStream->close();
+                if (RenderingConfiguration::global().getOutputFileInputStream() != nullptr) {
+                    RenderingConfiguration::global().getOutputFileInputStream()->close();
                 }
                 // Exit with error if image not completed/user abort
                 exit(2);
@@ -371,12 +375,12 @@ RenderEngine::startTracing()
 
             currentLine[x] = color;
 
-            if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
+            if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
                 RenderFrame::doAntiAliasing(x, y, &color);
             }
 
-            if (y != RenderingConfiguration::global().firstLine - 1) {
-                if (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY) {
+            if (y != RenderingConfiguration::global().getFirstLine() - 1) {
+                if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
                     (void)x;
                     (void)y;
                 }
@@ -385,9 +389,9 @@ RenderEngine::startTracing()
         RenderFrame::outputLine(y);
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
-        RenderingConfiguration::global().outputFileInputStream->writeLine(
-            previousLine, RenderingConfiguration::global().lastLine - 1);
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+        RenderingConfiguration::global().getOutputFileInputStream()->writeLine(
+            previousLine, RenderingConfiguration::global().getLastLine() - 1);
     }
 }
 
@@ -395,16 +399,22 @@ void
 RenderFrame::checkStats(int y)
 {
     // New verbose options CdW
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '0') {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+        RenderingConfiguration::global().getVerboseFormat() == '0') {
         {
             char _logMsg[1024];
-            snprintf(_logMsg, sizeof(_logMsg), "POV-Ray rendering %s to %s", RenderingConfiguration::global().inputFileName, RenderingConfiguration::global().outputFileName);
+            snprintf(_logMsg, sizeof(_logMsg), "POV-Ray rendering %s to %s",
+                RenderingConfiguration::global().getInputFileName(),
+                RenderingConfiguration::global().getOutputFileName());
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
-        if ((RenderingConfiguration::global().firstLine != 0) || (RenderingConfiguration::global().lastLine != RenderEngine::renderFrame().screenHeight)) {
+        if ((RenderingConfiguration::global().getFirstLine() != 0) ||
+            (RenderingConfiguration::global().getLastLine() != RenderEngine::renderFrame().screenHeight)) {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), " from %4d to %4d:\n", RenderingConfiguration::global().firstLine, RenderingConfiguration::global().lastLine);
+                snprintf(_logMsg, sizeof(_logMsg), " from %4d to %4d:\n",
+                    RenderingConfiguration::global().getFirstLine(),
+                    RenderingConfiguration::global().getLastLine());
                 Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
             }
         } else {
@@ -412,15 +422,18 @@ RenderFrame::checkStats(int y)
         }
         {
             char _logMsg[1024];
-            snprintf(_logMsg, sizeof(_logMsg), "Res %4d X %4d. Calc line %4d of %4d", RenderEngine::renderFrame().screenWidth,             RenderEngine::renderFrame().screenHeight, (y - RenderingConfiguration::global().firstLine) + 1,             RenderingConfiguration::global().lastLine - RenderingConfiguration::global().firstLine);
+            snprintf(_logMsg, sizeof(_logMsg), "Res %4d X %4d. Calc line %4d of %4d",
+                RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight,
+                (y - RenderingConfiguration::global().getFirstLine()) + 1,
+                RenderingConfiguration::global().getLastLine() - RenderingConfiguration::global().getFirstLine());
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
-        if (!(RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS)) {
+        if (!RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", ".");
         }
     }
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        java::FileOutputStream statFile(RenderingConfiguration::global().statFileName);
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        java::FileOutputStream statFile(RenderingConfiguration::global().getStatFileName());
         char buf[32];
         snprintf(buf, sizeof(buf), "Line %4d.\n", y);
         for (int i = 0; buf[i] != '\0'; i++) {
@@ -430,23 +443,26 @@ RenderFrame::checkStats(int y)
     }
 
     // Use -vO for Old style verbose
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && (RenderingConfiguration::global().verboseFormat == 'O')) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+        (RenderingConfiguration::global().getVerboseFormat() == 'O')) {
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Line %4d", y);
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
     }
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '1') {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+        RenderingConfiguration::global().getVerboseFormat() == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
             RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight,
-            (y - RenderingConfiguration::global().firstLine) + 1, RenderingConfiguration::global().lastLine - RenderingConfiguration::global().firstLine);
-        if (!(RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS)) {
+            (y - RenderingConfiguration::global().getFirstLine()) + 1,
+            RenderingConfiguration::global().getLastLine() - RenderingConfiguration::global().getFirstLine());
+        if (!RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
             fprintf(stderr, ".");
         }
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
         superSampleCount = 0;
     }
 }
@@ -471,7 +487,7 @@ RenderFrame::doAntiAliasing(int x, int y, ColorRgba *color)
         }
     }
 
-    if (y != RenderingConfiguration::global().firstLine - 1) {
+    if (y != RenderingConfiguration::global().getFirstLine() - 1) {
         if (ColorOperations::colorDistance(&previousLine[x], &currentLine[x]) >=
             RenderEngine::renderFrame().antialiasThreshold) {
             antialiasCenterFlag = 1;
@@ -512,7 +528,7 @@ RenderEngine::initializeRenderer()
         currentLine[i].setB(0.0);
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
         previousLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
         currentLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
 
@@ -531,14 +547,15 @@ RenderFrame::outputLine(int y)
     ColorRgba *tempColorPtr;
     char *tempCharPtr;
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
-        if (y > RenderingConfiguration::global().firstLine) {
-            RenderingConfiguration::global().outputFileInputStream->writeLine(previousLine, y - 1);
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+        if (y > RenderingConfiguration::global().getFirstLine()) {
+            RenderingConfiguration::global().getOutputFileInputStream()->writeLine(previousLine, y - 1);
         }
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) {
-        if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS && RenderingConfiguration::global().verboseFormat != '1') {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE)) {
+        if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
+            RenderingConfiguration::global().getVerboseFormat() != '1') {
             {
                 char _logMsg[1024];
                 snprintf(_logMsg, sizeof(_logMsg), " supersampled %d times.", superSampleCount);
@@ -546,10 +563,11 @@ RenderFrame::outputLine(int y)
             }
         }
 
-        if (RenderingConfiguration::global().options & RenderingConfiguration::ANTIALIAS && RenderingConfiguration::global().verboseFormat == '1') {
+        if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
+            RenderingConfiguration::global().getVerboseFormat() == '1') {
             fprintf(stderr, " supersampled %d times.", superSampleCount);
         }
-        if (RenderingConfiguration::global().verboseFormat == '1') {
+        if (RenderingConfiguration::global().getVerboseFormat() == '1') {
             fprintf(stderr, "\r");
         } else {
             fprintf(stderr, "\n");
@@ -587,7 +605,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         *color = RenderEngine::renderFrame().getFogColor();
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Calculating intersections level %d\n", RenderEngine::traceLevel());
