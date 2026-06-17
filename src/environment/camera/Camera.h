@@ -5,13 +5,14 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 class Camera {
-  public:
+  private:
     Vector3Dd location;
     Vector3Dd direction;
     Vector3Dd up;
     Vector3Dd right;
     Vector3Dd sky;
 
+  public:
     Vector3Dd& getLocation() { return location; }
     const Vector3Dd& getLocation() const { return location; }
     Vector3Dd& getDirection() { return direction; }

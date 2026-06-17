@@ -4,20 +4,20 @@
 void
 Camera::applyLinearTransformation(const Matrix4x4d &transformation)
 {
-    this->location = transformation.transpose().multiply(this->location);
-    this->direction = transformation.transpose().multiply(this->direction);
-    this->up = transformation.transpose().multiply(this->up);
-    this->right = transformation.transpose().multiply(this->right);
+    this->getLocation() = transformation.transpose().multiply(this->getLocation());
+    this->getDirection() = transformation.transpose().multiply(this->getDirection());
+    this->getUp() = transformation.transpose().multiply(this->getUp());
+    this->getRight() = transformation.transpose().multiply(this->getRight());
 }
 
 void
 Camera::initializeDefaults()
 {
-    *&this->location = Vector3Dd(0.0, 0.0, 0.0);
-    *&this->direction = Vector3Dd(0.0, 0.0, 1.0);
-    *&this->up = Vector3Dd(0.0, 1.0, 0.0);
-    *&this->right = Vector3Dd(1.33, 0.0, 0.0);
-    *&this->sky = Vector3Dd(0.0, 1.0, 0.0);
+    this->getLocation() = Vector3Dd(0.0, 0.0, 0.0);
+    this->getDirection() = Vector3Dd(0.0, 0.0, 1.0);
+    this->getUp() = Vector3Dd(0.0, 1.0, 0.0);
+    this->getRight() = Vector3Dd(1.33, 0.0, 0.0);
+    this->getSky() = Vector3Dd(0.0, 1.0, 0.0);
 }
 
 void *
@@ -30,17 +30,18 @@ Camera::copy()
     }
     newViewpoint->initializeDefaults();
 
-    newViewpoint->location = viewpoint->location;
-    newViewpoint->direction = viewpoint->direction;
-    newViewpoint->right = viewpoint->right;
-    newViewpoint->up = viewpoint->up;
+    newViewpoint->getLocation() = viewpoint->getLocation();
+    newViewpoint->getDirection() = viewpoint->getDirection();
+    newViewpoint->getRight() = viewpoint->getRight();
+    newViewpoint->getUp() = viewpoint->getUp();
+    newViewpoint->getSky() = viewpoint->getSky();
     return (newViewpoint);
 }
 
 void
 Camera::translate(Vector3Dd *vector)
 {
-    this->location = this->location.add(*vector);
+    this->getLocation() = this->getLocation().add(*vector);
 }
 
 void
