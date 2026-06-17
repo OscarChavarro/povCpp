@@ -75,7 +75,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                         body = (SimpleBody *)GeometryOperations::copy(
                                 (TransformableElement *)ctx.constants()[(int)constantId]
                                     .constantData);
-                        localShape = (ParametricBiCubicPatch *)body->geometry;
+                        localShape = (ParametricBiCubicPatch *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -130,12 +130,12 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, body->material);
+                TextureParser::prependTextureLayers(localTexture, body->getMaterialRef());
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
                 body->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(body->shapeColor, ctx);
+                PrimitiveParser::parseColor(body->getShapeColor(), ctx);
                 break;
 
             default:

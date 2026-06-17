@@ -18,7 +18,7 @@ CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
     // CSG children are produced by the POV parsers through ModelBuilder::wrap,
     // so the stored TransformableElement is a SimpleBody. CSG inside tests
     // only need geometry, not material/colour ownership.
-    return static_cast<SimpleBody *>(shape)->geometry->inside(point);
+    return static_cast<SimpleBody *>(shape)->getGeometry()->inside(point);
 }
 
 int

@@ -67,7 +67,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                         body = (SimpleBody *)GeometryOperations::copy(
                             (TransformableElement *)ctx.constants()[(int)constantId]
                                 .constantData);
-                        localShape = (Triangle *)body->geometry;
+                        localShape = (Triangle *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -121,12 +121,12 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
-                TextureParser::prependTextureLayers(localTexture, body->material);
+                TextureParser::prependTextureLayers(localTexture, body->getMaterialRef());
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
                 body->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(body->shapeColor, ctx);
+                PrimitiveParser::parseColor(body->getShapeColor(), ctx);
                 break;
 
             default:

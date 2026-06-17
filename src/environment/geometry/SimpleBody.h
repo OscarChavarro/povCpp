@@ -9,19 +9,25 @@
 #include "environment/material/Material.h"
 
 class SimpleBody : public TransformableElement {
-  public:
+  private:
     Geometry *geometry = nullptr;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
     Matrix4x4d transform;
     Matrix4x4d transformInverse;
 
+  public:
+    Geometry* getGeometry() const { return geometry; }
+    void setGeometry(Geometry *value) { geometry = value; }
     Material* getMaterial() const { return material; }
+    Material*& getMaterialRef() { return material; }
     void setMaterial(Material* mat) { material = mat; }
     ColorRgba* getShapeColor() const { return shapeColor; }
     void setShapeColor(ColorRgba* color) { shapeColor = color; }
     Matrix4x4d& getTransform() { return transform; }
+    const Matrix4x4d& getTransform() const { return transform; }
     Matrix4x4d& getTransformInverse() { return transformInverse; }
+    const Matrix4x4d& getTransformInverse() const { return transformInverse; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
