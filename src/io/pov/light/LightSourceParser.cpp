@@ -3,10 +3,8 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/light/Light.h"
 #include "environment/scene/ModelBuilder.h"
-#include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -16,19 +14,18 @@
 #include "io/pov/parser/PrimitiveParser.h"
 
 
-SimpleBody *
+Light *
 LightSourceParser::parseLightSource()
 {
     ParserContext ctx;
     return LightSourceParser::parseLightSource(ctx);
 }
 
-SimpleBody *
+Light *
 LightSourceParser::parseLightSource(ParserContext &ctx)
 {
     (void)ctx;
     Light *localShape = nullptr;
-    SimpleBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
 
@@ -43,7 +40,6 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getLightSourceShape();
-                body = ModelBuilder::wrap(localShape);
                 PrimitiveParser::parseVector(&(localShape->center), ctx);
                 localShape->setShapeColor(ModelBuilder::getColor());
                 localShape->shapeColor->setR(1.0); localShape->shapeColor->setG(1.0); localShape->shapeColor->setB(1.0); localShape->shapeColor->setA(0.0);
@@ -56,10 +52,10 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::LIGHT_SOURCE_CONSTANT) {
-                        body = (SimpleBody *)GeometryOperations::copy(
-                            (TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData);
-                        localShape = (Light *)body->geometry;
+                        localShape = static_cast<Light *>(
+                            static_cast<Light *>(
+                                ctx.constants()[(int)constantId].constantData)
+                                ->copy());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -88,20 +84,17 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::translate(
-                    localShape, &localVector);
+                localShape->translate(&localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::rotate(
-                    localShape, &localVector);
+                localShape->rotate(&localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::scale(
-                    localShape, &localVector);
+                localShape->scale(&localVector);
                 break;
 
             // Point that the spot is pointed at
@@ -129,7 +122,6 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             case Tokenizer::SPOTLIGHT_TOKEN:
                 localShape = ModelBuilder::promoteToSpotLight(localShape);
-                body->geometry = localShape;
                 break;
 
             default:
@@ -139,5 +131,5 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
         }
     }
 
-    return body;
+    return localShape;
 }

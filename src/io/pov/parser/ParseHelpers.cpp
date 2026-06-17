@@ -5,7 +5,7 @@
 
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/light/Light.h"
+#include "io/pov/parser/LightGeometryAdapter.h"
 #include "environment/scene/SceneFrame.h"
 #include "environment/geometry/SimpleBody.h"
 
@@ -62,6 +62,7 @@ void
 ParseHelpers::postProcessShape(SimpleBody *shape, ParserContext &ctx)
 {
     SimpleBody *tempShape;
+    (void)ctx;
 
     if (CSG *csg = dynamic_cast<CSG *>(shape->geometry)) {
         java::ArrayList<TransformableElement*> &shapes = csg->shapes;
@@ -69,9 +70,10 @@ ParseHelpers::postProcessShape(SimpleBody *shape, ParserContext &ctx)
             tempShape = static_cast<SimpleBody*>(shapes[i]);
             ParseHelpers::postProcessShape(tempShape);
         }
-    } else if (Light *light = dynamic_cast<Light *>(shape->geometry)) {
-        ParseHelpers::linkShapes(light,
-            &(light->nextLightSource),
+    } else if (LightGeometryAdapter *lightAdapter =
+                   dynamic_cast<LightGeometryAdapter *>(shape->geometry)) {
+        ParseHelpers::linkShapes(lightAdapter->light,
+            &(lightAdapter->light->nextLightSource),
             &(ctx.parsingFrame()->lightSources));
     }
 }

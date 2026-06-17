@@ -7,7 +7,7 @@ class SpotLight : public Light {
   public:
     SpotLight();
     double attenuate(const RayWithSegments *lightSourceRay) const override;
-    void *copy() override;
+    SpotLight *copy() override;
 
   private:
     static double cubicSpline(double low, double high, double pos);

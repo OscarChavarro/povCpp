@@ -21,6 +21,7 @@ This module implements the main raytracing loop.
 #include "common/statistics/Statistics.h"
 #include "common/dataStructures/PriorityQueuePool.txx"
 #include "common/RenderRuntimeState.h"
+#include "environment/geometry/GeometryOperations.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
 #include "render/ColorOperations.h"

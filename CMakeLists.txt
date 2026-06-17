@@ -22,6 +22,7 @@ add_executable(povray
     src/environment/geometry/volume/compound/CSG.cpp
     src/environment/geometry/volume/HeightField.cpp
     src/environment/light/Light.cpp
+    src/io/pov/parser/LightGeometryAdapter.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
     src/environment/geometry/volume/compound/Composite.cpp

@@ -14,6 +14,7 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
+#include "io/pov/parser/LightGeometryAdapter.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/scene/BoundedGeometryFactory.h"
@@ -112,7 +113,8 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 break;
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
-                localShape = LightSourceParser::parseLightSource(ctx);
+                localShape = ModelBuilder::wrap(
+                    new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
                 if ((type == GeometryTypes::CSG_DIFFERENCE_TYPE) && firstShapeParsed) {
                     GeometryOperations::invert(localShape);
                 }
@@ -326,7 +328,8 @@ ObjectParser::parseShape(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::LIGHT_SOURCE_TOKEN:
-                localShape = LightSourceParser::parseLightSource(ctx);
+                localShape = ModelBuilder::wrap(
+                    new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
                 Exit_Flag = true;
                 break;
 
