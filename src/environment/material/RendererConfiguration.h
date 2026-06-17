@@ -20,38 +20,34 @@ class RenderingConfiguration {
     static constexpr unsigned int VERBOSE_FILE = 512u;
     static constexpr char DEFAULT_OUTPUT_FORMAT = 'd';
 
-    unsigned int options;
-    int quality;
-    char inputFileName[RENDER_FILE_NAME_LENGTH];
-    char outputFileName[RENDER_FILE_NAME_LENGTH];
-    char statFileName[RENDER_FILE_NAME_LENGTH];
-    RenderOutput *outputFileInputStream;
-    int fileBufferSize;
-    double antialiasThreshold;
-    int firstLine;
-    int lastLine;
-    char displayFormat;
-    char outputFormat;
-    char verboseFormat;
-    char paletteOption;
-    char colorBits;
-
     unsigned int getOptions() const { return options; }
     void setOptions(unsigned int opts) { options = opts; }
     void setOptionFlags(unsigned int flags) { options |= flags; }
+    void clearOptionFlags(unsigned int flags) { options &= ~flags; }
+    bool hasOptionFlags(unsigned int flags) const { return (options & flags) != 0; }
+    void setOptionEnabled(unsigned int flags, bool enabled) {
+        if (enabled) {
+            setOptionFlags(flags);
+        } else {
+            clearOptionFlags(flags);
+        }
+    }
     int getQuality() const { return quality; }
     void setQuality(int q) { quality = q; }
     const char* getInputFileName() const { return inputFileName; }
+    char* getInputFileNameBuffer() { return inputFileName; }
     void setInputFileName(const char* name) {
         strncpy(inputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
         inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
     }
     const char* getOutputFileName() const { return outputFileName; }
+    char* getOutputFileNameBuffer() { return outputFileName; }
     void setOutputFileName(const char* name) {
         strncpy(outputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
         outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
     }
     const char* getStatFileName() const { return statFileName; }
+    char* getStatFileNameBuffer() { return statFileName; }
     void setStatFileName(const char* name) {
         strncpy(statFileName, name, RENDER_FILE_NAME_LENGTH - 1);
         statFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
@@ -76,12 +72,30 @@ class RenderingConfiguration {
     void setPaletteOption(char option) { paletteOption = option; }
     char getColorBits() const { return colorBits; }
     void setColorBits(char bits) { colorBits = bits; }
+    bool hasOutputFileName() const { return outputFileName[0] != '\0'; }
 
     static inline RenderingConfiguration &global() {
         static RenderingConfiguration instance;
         return instance;
     }
     void reset();
+
+  private:
+    unsigned int options;
+    int quality;
+    char inputFileName[RENDER_FILE_NAME_LENGTH];
+    char outputFileName[RENDER_FILE_NAME_LENGTH];
+    char statFileName[RENDER_FILE_NAME_LENGTH];
+    RenderOutput *outputFileInputStream;
+    int fileBufferSize;
+    double antialiasThreshold;
+    int firstLine;
+    int lastLine;
+    char displayFormat;
+    char outputFormat;
+    char verboseFormat;
+    char paletteOption;
+    char colorBits;
 };
 
 #endif

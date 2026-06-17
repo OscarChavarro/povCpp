@@ -150,19 +150,20 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
     CommandLineOptions::loadDefaults();
     CommandLineOptions::parseArguments(argc, argv);
 
-    if (RenderingConfiguration::global().lastLine == -1) {
-        RenderingConfiguration::global().lastLine = RenderEngine::renderFrame().screenHeight;
+    if (RenderingConfiguration::global().getLastLine() == -1) {
+        RenderingConfiguration::global().setLastLine(
+            RenderEngine::renderFrame().getScreenHeight());
     }
 }
 
 void
 PovrayApplication::configureOutputTarget()
 {
-    if (!(RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE)) {
+    if (!RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
         return;
     }
 
-    switch (RenderingConfiguration::global().outputFormat) {
+    switch (RenderingConfiguration::global().getOutputFormat()) {
     case '\0':
     case 'd':
     case 'D':
@@ -188,17 +189,17 @@ PovrayApplication::configureOutputTarget()
     default:
         {
             char _logMsg[1024];
-            snprintf(_logMsg, sizeof(_logMsg), "Unrecognized output file format %c\n", RenderingConfiguration::global().outputFormat);
+            snprintf(_logMsg, sizeof(_logMsg), "Unrecognized output file format %c\n", RenderingConfiguration::global().getOutputFormat());
             Logger::reportMessage("PovrayApplication", Logger::FATAL_ERROR, "", _logMsg);
         }
     }
 
-    RenderingConfiguration::global().outputFileInputStream =
-        new ImageOutputAdapter(selectedImageOutput);
+    RenderingConfiguration::global().setOutputFileInputStream(
+        new ImageOutputAdapter(selectedImageOutput));
 
-    if (RenderingConfiguration::global().outputFileName[0] == '\0') {
-        strcpy(RenderingConfiguration::global().outputFileName,
-            RenderingConfiguration::global().outputFileInputStream->defaultFileName());
+    if (!RenderingConfiguration::global().hasOutputFileName()) {
+        RenderingConfiguration::global().setOutputFileName(
+            RenderingConfiguration::global().getOutputFileInputStream()->defaultFileName());
     }
 }
 
@@ -207,10 +208,10 @@ PovrayApplication::parseSceneDescription()
 {
     FILE *statFile;
 
-    Tokenizer::initializeTokenizer(RenderingConfiguration::global().inputFileName);
+    Tokenizer::initializeTokenizer(RenderingConfiguration::global().getInputFileName());
     fprintf(stderr, "Parsing...");
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         fprintf(statFile, "Parsing...\n");
         fclose(statFile);
     }
@@ -222,25 +223,27 @@ PovrayApplication::parseSceneDescription()
 void
 PovrayApplication::prepareRendering()
 {
-    if (RenderingConfiguration::global().options & RenderingConfiguration::DISPLAY) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
         Logger::reportMessage("PovrayApplication", Logger::WARNING, "", "Displaying...\n");
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::DISKWRITE) {
-        if (RenderingConfiguration::global().options & RenderingConfiguration::CONTINUE_TRACE) {
-            if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
-                    &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                    RenderingConfiguration::global().fileBufferSize, RenderOutput::READ_MODE,
-                    RenderingConfiguration::global().firstLine) != 1) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+        if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
+            if (RenderingConfiguration::global().getOutputFileInputStream()->open(
+                    RenderingConfiguration::global().getOutputFileNameBuffer(),
+                    &RenderEngine::renderFrame().getScreenWidth(), &RenderEngine::renderFrame().getScreenHeight(),
+                    RenderingConfiguration::global().getFileBufferSize(), RenderOutput::READ_MODE,
+                    RenderingConfiguration::global().getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening continue trace output file\n");
                 fprintf(
-                    stderr, "Opening new output file %s.\n", RenderingConfiguration::global().outputFileName);
-                RenderingConfiguration::global().options &= ~RenderingConfiguration::CONTINUE_TRACE;
+                    stderr, "Opening new output file %s.\n", RenderingConfiguration::global().getOutputFileName());
+                RenderingConfiguration::global().clearOptionFlags(RenderingConfiguration::CONTINUE_TRACE);
 
-                if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
-                        &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                        RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE,
-                        RenderingConfiguration::global().firstLine) != 1) {
+                if (RenderingConfiguration::global().getOutputFileInputStream()->open(
+                        RenderingConfiguration::global().getOutputFileNameBuffer(),
+                        &RenderEngine::renderFrame().getScreenWidth(), &RenderEngine::renderFrame().getScreenHeight(),
+                        RenderingConfiguration::global().getFileBufferSize(), RenderOutput::WRITE_MODE,
+                        RenderingConfiguration::global().getFirstLine()) != 1) {
                     Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
                     closeAll();
                     exit(1);
@@ -248,14 +251,15 @@ PovrayApplication::prepareRendering()
             }
 
             RenderEngine::initializeRenderer();
-            if (RenderingConfiguration::global().options & RenderingConfiguration::CONTINUE_TRACE) {
+            if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
                 RenderEngine::readRenderedPart();
             }
         } else {
-            if (RenderingConfiguration::global().outputFileInputStream->open(RenderingConfiguration::global().outputFileName,
-                    &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
-                    RenderingConfiguration::global().fileBufferSize, RenderOutput::WRITE_MODE,
-                    RenderingConfiguration::global().firstLine) != 1) {
+            if (RenderingConfiguration::global().getOutputFileInputStream()->open(
+                    RenderingConfiguration::global().getOutputFileNameBuffer(),
+                    &RenderEngine::renderFrame().getScreenWidth(), &RenderEngine::renderFrame().getScreenHeight(),
+                    RenderingConfiguration::global().getFileBufferSize(), RenderOutput::WRITE_MODE,
+                    RenderingConfiguration::global().getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
                 closeAll();
                 exit(1);
@@ -280,22 +284,22 @@ PovrayApplication::runRenderLoop()
 
     Statistics::global().startTimer();
 
-    if ((RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) && (RenderingConfiguration::global().verboseFormat != '1')) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE) && (RenderingConfiguration::global().getVerboseFormat() != '1')) {
         Logger::reportMessage("PovrayApplication", Logger::WARNING, "", "Rendering...\n");
-    } else if ((RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE) && (RenderingConfiguration::global().verboseFormat == '1')) {
-        fprintf(stderr, "POV-Ray rendering %s to %s :\n", RenderingConfiguration::global().inputFileName,
-            RenderingConfiguration::global().outputFileName);
+    } else if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE) && (RenderingConfiguration::global().getVerboseFormat() == '1')) {
+        fprintf(stderr, "POV-Ray rendering %s to %s :\n", RenderingConfiguration::global().getInputFileName(),
+            RenderingConfiguration::global().getOutputFileName());
     }
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        statFile = fopen(RenderingConfiguration::global().statFileName, "w+t");
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n",
-            RenderingConfiguration::global().inputFileName, RenderingConfiguration::global().outputFileName);
+            RenderingConfiguration::global().getInputFileName(), RenderingConfiguration::global().getOutputFileName());
         fclose(statFile);
     }
 
     RenderEngine::startTracing();
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE && RenderingConfiguration::global().verboseFormat == '1') {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE) && RenderingConfiguration::global().getVerboseFormat() == '1') {
         fprintf(stderr, "\n");
     }
 }
@@ -310,8 +314,8 @@ PovrayApplication::finalizeRun()
     closeAll();
     printStatistics(Statistics::global(), RenderEngine::renderFrame(), RenderingConfiguration::global());
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::VERBOSE_FILE) {
-        statFile = fopen(RenderingConfiguration::global().statFileName, "a+t");
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        statFile = fopen(RenderingConfiguration::global().getStatFileName(), "a+t");
         fprintf(statFile, "Done Tracing\n");
         fclose(statFile);
     }
@@ -334,10 +338,10 @@ PovrayApplication::initVars()
 void
 PovrayApplication::closeAll()
 {
-    if (RenderingConfiguration::global().outputFileInputStream) {
-        RenderingConfiguration::global().outputFileInputStream->close();
-        delete RenderingConfiguration::global().outputFileInputStream;
-        RenderingConfiguration::global().outputFileInputStream = nullptr;
+    if (RenderingConfiguration::global().getOutputFileInputStream()) {
+        RenderingConfiguration::global().getOutputFileInputStream()->close();
+        delete RenderingConfiguration::global().getOutputFileInputStream();
+        RenderingConfiguration::global().setOutputFileInputStream(nullptr);
     }
     if (selectedImageOutput) {
         delete selectedImageOutput;

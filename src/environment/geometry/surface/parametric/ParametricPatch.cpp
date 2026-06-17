@@ -991,7 +991,7 @@ ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
             return;
         }
     }
-    if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
         Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }

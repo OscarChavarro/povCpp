@@ -36,7 +36,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     }
 
-    if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
+    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
         if (rayIntersection->getShape()->getShapeColor()) {
             {
                 char _logMsg[1024];
@@ -76,7 +76,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     // If this is just a shadow ray, and we're rendering low quality, then return
 
-    if (shadowRay && (RenderingConfiguration::global().quality <= 5)) {
+    if (shadowRay && (RenderingConfiguration::global().getQuality() <= 5)) {
         return;
     }
 
@@ -85,13 +85,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     // Now, we perform the lighting calculations
     surface = 0;
     for (long int _layerIdx = -1;
-        _layerIdx < texture->layers.size() && filterColor.getA() > 0.01;
+        _layerIdx < texture->getLayers().size() && filterColor.getA() > 0.01;
         _layerIdx++) {
-        tempTexture = (_layerIdx < 0) ? texture : texture->layers[_layerIdx];
+        tempTexture = (_layerIdx < 0) ? texture : texture->getLayers()[_layerIdx];
         surface++;
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
-        if (RenderingConfiguration::global().quality <= 5) {
+        if (RenderingConfiguration::global().getQuality() <= 5) {
             if (rayIntersection->getShape()->getShapeColor() != nullptr) {
                 surfaceColor = *rayIntersection->getShape()->getShapeColor();
             } else if (rayIntersection->getObject()->getObjectColor() != nullptr) {
@@ -99,9 +99,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
-        } else if (tempTexture->textureNumber == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
-            PovrayMaterial * const texture1 = (PovrayMaterial *)tempTexture->color1;
-            PovrayMaterial * const texture2 = (PovrayMaterial *)tempTexture->color2;
+        } else if (tempTexture->getTextureNumber() == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
+            PovrayMaterial * const texture1 = (PovrayMaterial *)tempTexture->getColor1();
+            PovrayMaterial * const texture2 = (PovrayMaterial *)tempTexture->getColor2();
             fixturesFacade.colorAt(
                 &surfaceColor, tempTexture->textureNumber,
                 tempTexture->textureTransformationInverse, tempTexture->image,
@@ -135,7 +135,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 RenderEngine::renderFrame().getObjects(), RenderEngine::traceLevel());
         }
 
-        if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
+        if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
             {
                 char _logMsg[1024];
                 snprintf(_logMsg, sizeof(_logMsg), "Surface %d\n", surface);
@@ -183,14 +183,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         return;
     }
 
-    if ((filterColor.getA() > 0.01) && (RenderingConfiguration::global().quality > 5)) {
+    if ((filterColor.getA() > 0.01) && (RenderingConfiguration::global().getQuality() > 5)) {
         refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->objectRefraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
                 rayIntersection->getShape(), &rayIntersection->getPoint());
 
-            if (RenderingConfiguration::global().quality > 7) {
+            if (RenderingConfiguration::global().getQuality() > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getPoint(),
                     &surfaceNormal);
             }

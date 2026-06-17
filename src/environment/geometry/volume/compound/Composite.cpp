@@ -125,7 +125,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             clippingShape = this->getClippingShapes()[i];
 
             Statistics::global().clippingRegionTests++;
-            if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
+            if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                 {
                     char _logMsg[1024];
                     snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.getPoint().x(),                     localIntersection.getPoint().y(), localIntersection.getPoint().z());
@@ -134,7 +134,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             }
             if (!GeometryOperations::inside(
                     &localIntersection.getPoint(), clippingShape)) {
-                if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
+                if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                     Logger::reportMessage("Composite", Logger::WARNING, "", "not ok\n");
                 }
                 intersectionFound = false;
@@ -144,7 +144,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         }
 
         if (intersectionFound) {
-            if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
+            if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                 Logger::reportMessage("Composite", Logger::WARNING, "", "ok\n");
             }
             depthQueue->offer(localIntersection);

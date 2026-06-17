@@ -65,7 +65,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
             intersectionPoint, &lightColor);
 
         // What objects does this ray intersect?
-        if (RenderingConfiguration::global().quality > 3) {
+        if (RenderingConfiguration::global().getQuality() > 3) {
             for (long int i = objects.size() - 1; i >= 0; i--) {
                 blockingObject = objects[i];
 

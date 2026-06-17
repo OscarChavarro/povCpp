@@ -22,8 +22,10 @@ class RenderFrame {
 
     Camera& getViewPoint() { return viewPoint; }
     const Camera& getViewPoint() const { return viewPoint; }
+    int& getScreenHeight() { return screenHeight; }
     int getScreenHeight() const { return screenHeight; }
     void setScreenHeight(int h) { screenHeight = h; }
+    int& getScreenWidth() { return screenWidth; }
     int getScreenWidth() const { return screenWidth; }
     void setScreenWidth(int w) { screenWidth = w; }
     Light* getLightSources() const { return lightSources; }
