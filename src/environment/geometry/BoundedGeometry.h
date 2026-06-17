@@ -8,7 +8,7 @@
 #include "environment/material/Material.h"
 
 class BoundedGeometry : public Geometry {
-  public:
+  private:
     java::ArrayList<TransformableElement*> boundingShapes{4};
     java::ArrayList<TransformableElement*> clippingShapes{4};
     TransformableElement *geometry;
@@ -16,9 +16,20 @@ class BoundedGeometry : public Geometry {
     ColorRgba *objectColor;
     Material *objectTexture;
 
+  public:
+    java::ArrayList<TransformableElement*>& getBoundingShapes() { return boundingShapes; }
+    const java::ArrayList<TransformableElement*>& getBoundingShapes() const { return boundingShapes; }
+    java::ArrayList<TransformableElement*>& getClippingShapes() { return clippingShapes; }
+    const java::ArrayList<TransformableElement*>& getClippingShapes() const { return clippingShapes; }
+    TransformableElement *getGeometry() const { return geometry; }
+    void setGeometry(TransformableElement *value) { geometry = value; }
     bool getNoShadowFlag() const { return noShadowFlag; }
+    void setNoShadowFlag(bool value) { noShadowFlag = value; }
     ColorRgba *getObjectColor() const { return objectColor; }
+    void setObjectColor(ColorRgba *value) { objectColor = value; }
     Material *getObjectTexture() const { return objectTexture; }
+    Material *&getObjectTextureRef() { return objectTexture; }
+    void setObjectTexture(Material *value) { objectTexture = value; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int allIntersectionsForOwner(
