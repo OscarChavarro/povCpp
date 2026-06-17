@@ -3,8 +3,6 @@
 
 
 #include "java/lang/String.h"
-#include "java/lang/String.h"
-
 class VSDK {
 public:
     static const double EPSILON;

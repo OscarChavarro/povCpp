@@ -1,9 +1,8 @@
 #ifndef __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTE_H__
 #define __VSDK_TOOLKIT_MEDIA_RGBACOLORPALETTE_H__
 
-#include "vsdk/toolkit/media/MediaEntity.h"
 #include "java/util/ArrayList.h"
-
+#include "vsdk/toolkit/media/MediaEntity.h"
 class ColorRgba;
 
 /**

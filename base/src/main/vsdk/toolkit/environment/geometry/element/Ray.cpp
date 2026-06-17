@@ -1,11 +1,9 @@
-#include "vsdk/toolkit/environment/geometry/element/Ray.h"
-#include "java/lang/String.h"
-#include "vsdk/toolkit/common/VSDK.h"
-#include "java/lang/String.h"
 #include <cmath>
 #include <cstring>
-#include "java/lang/String.h"
 
+#include "java/lang/String.h"
+#include "vsdk/toolkit/common/VSDK.h"
+#include "vsdk/toolkit/environment/geometry/element/Ray.h"
 const double Ray::UNIT_DIRECTION_TOLERANCE = 1e-12;
 
 Ray::Ray() : Ray(Vector3Dd(0, 0, 0), Vector3Dd(1, 0, 0), 0.0) {}

@@ -4,7 +4,6 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/SolidTextureCoordinateMapper.h"
-
 bool
 SolidTextureCoordinateMapper::cylindricalImageMap(
     double x, double y, double z, const ControlledRGBAImageHDRUncompressed *image, double *u, double *v) const

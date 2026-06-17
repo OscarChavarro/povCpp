@@ -1,18 +1,17 @@
+#include <cmath>
+#include <cstdio>
+
+#include "java/lang/String.h"
+#include <stdexcept>
+#include "vsdk/toolkit/common/VSDK.h"
+#include "vsdk/toolkit/common/linealAlgebra/Quaterniond.h"
+#include "vsdk/toolkit/common/linealAlgebra/Quaternionf.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector2Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector2Df.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Df.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector4Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector4Df.h"
-#include "vsdk/toolkit/common/linealAlgebra/Quaterniond.h"
-#include "vsdk/toolkit/common/linealAlgebra/Quaternionf.h"
-#include "vsdk/toolkit/common/VSDK.h"
-#include "java/lang/String.h"
-
-#include <cmath>
-#include <cstdio>
-#include <stdexcept>
-
 Vector2Df::Vector2Df(const Vector2Dd& other) : x_((float)other.x), y_((float)other.y) {}
 
 bool Vector3Dd::epsilonEquals(const Vector3Dd& other, double epsilon) const

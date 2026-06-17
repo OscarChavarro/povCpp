@@ -3,7 +3,6 @@
 
 #include "java/io/FileOutputStream.h"
 #include "java/io/PrintStream.h"
-
 namespace java {
 
 class System {

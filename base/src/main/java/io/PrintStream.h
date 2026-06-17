@@ -4,7 +4,6 @@
 #include <cstdarg>
 
 #include "java/io/OutputStream.h"
-
 namespace java {
 
 class PrintStream {

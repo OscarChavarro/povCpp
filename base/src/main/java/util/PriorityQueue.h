@@ -2,7 +2,6 @@
 #define PriorityQueue__
 
 #include "java/lang/Object.h"
-
 namespace java {
 
 template <class T>

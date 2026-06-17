@@ -2,10 +2,9 @@
 #define __PROCEDURAL_NOISE_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
-#include "vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableSine.h"
 #include "vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableChecksum16.h"
-
+#include "vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableSine.h"
+#include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
 /**
 [PERL1985] - Ken Perlin, "An Image Synthesizer", SIGGRAPH '85.
 Noise field for solid texturing: lattice-based pseudorandom noise()

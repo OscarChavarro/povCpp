@@ -4,9 +4,9 @@
 
 #include <cmath>
 #include <cstring>
-#include "vsdk/toolkit/common/VSDK.h"
-#include "java/lang/String.h"
 
+#include "java/lang/String.h"
+#include "vsdk/toolkit/common/VSDK.h"
 class Vector3Dd {
     double x_;
     double y_;

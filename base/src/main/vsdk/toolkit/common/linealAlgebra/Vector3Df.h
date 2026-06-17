@@ -3,7 +3,6 @@
 
 
 #include <cmath>
-
 class Vector3Dd;
 
 class Vector3Df {

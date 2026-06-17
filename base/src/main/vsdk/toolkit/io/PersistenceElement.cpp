@@ -1,13 +1,11 @@
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include <cerrno>
 
 #include "java/lang/System.h"
 #include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/io/PersistenceElement.h"
-
-
+#include "vsdk/toolkit/common/logging/Logger.h"
 const bool PersistenceElement::bigEndianArchitecture = false;
 unsigned char PersistenceElement::byteBuffer1byte[1] = {0};
 unsigned char PersistenceElement::byteBuffer2byte[2] = {0, 0};

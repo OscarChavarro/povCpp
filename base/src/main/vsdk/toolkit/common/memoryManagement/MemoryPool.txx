@@ -1,5 +1,4 @@
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.h"
-
 template <class T>
 MemoryPool<T>::MemoryPool():
     head(nullptr),

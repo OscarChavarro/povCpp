@@ -2,9 +2,8 @@
 #define __VSDK_TOOLKIT_COMMON_VSDKFATALEXCEPTION_H__
 
 
-#include <exception>
 #include "java/lang/String.h"
-
+#include <exception>
 class VSDKFatalException : public std::exception {
 private:
     java::String message_;

@@ -2,7 +2,6 @@
 #define __SOLID_TEXTURE_COORDINATE_MAPPER_H__
 
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-
 class SolidTextureCoordinateMapper {
   private:
     bool cylindricalImageMap(

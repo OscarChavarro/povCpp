@@ -2,7 +2,6 @@
 #define MEMORY_POOL__
 
 #include "java/lang/Object.h"
-
 template <class T>
 class MemoryPool final : public java::Object {
   private:

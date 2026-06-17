@@ -3,10 +3,8 @@
 
 
 #include "java/lang/String.h"
-
 #include "vsdk/toolkit/common/linealAlgebra/Quaterniond.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Df.h"
-
 class Quaternionf {
     Vector3Df direction_;
     float magnitude_;

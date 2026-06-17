@@ -1,14 +1,12 @@
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-
 #include <cmath>
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 
+#include "java/lang/String.h"
+#include "vsdk/toolkit/common/VSDK.h"
 #include "vsdk/toolkit/common/VSDKFatalException.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/common/VSDK.h"
-#include "java/lang/String.h"
-
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 Matrix4x4d::Matrix4x4d()
 {
     for ( int i = 0; i < 4; ++i ) {

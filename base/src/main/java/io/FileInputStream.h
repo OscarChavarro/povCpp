@@ -5,7 +5,6 @@
 
 #include "java/io/File.h"
 #include "java/io/InputStream.h"
-
 namespace java {
 
 class FileInputStream : public InputStream {

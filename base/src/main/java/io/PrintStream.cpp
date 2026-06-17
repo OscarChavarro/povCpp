@@ -3,7 +3,6 @@
 
 #include "java/io/PrintStream.h"
 #include "java/util/Formatter.h"
-
 namespace java {
 
 PrintStream::PrintStream(OutputStream *stream):

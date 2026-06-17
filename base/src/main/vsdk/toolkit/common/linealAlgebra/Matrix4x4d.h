@@ -4,11 +4,10 @@
 
 #include <cmath>
 
+#include "java/lang/String.h"
 #include "vsdk/toolkit/common/linealAlgebra/Quaterniond.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector4Dd.h"
-#include "java/lang/String.h"
-
 class Matrix4x4d {
     double m_[4][4];
 

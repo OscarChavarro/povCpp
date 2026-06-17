@@ -1,10 +1,9 @@
 #include <cstdarg>
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 
 #include "java/lang/String.h"
 #include "java/util/Formatter.h"
-
 namespace java {
 
 void

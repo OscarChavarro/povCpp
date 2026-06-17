@@ -4,8 +4,6 @@
 #include "java/io/File.h"
 #include "java/io/InputStream.h"
 #include "java/io/OutputStream.h"
-
-
 /**
 A `PersistenceElement` in VitralSDK is a software element with
 algorithms and data structures (i.e. a class) with the specific functionality

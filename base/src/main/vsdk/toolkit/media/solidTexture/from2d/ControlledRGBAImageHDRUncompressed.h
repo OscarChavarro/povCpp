@@ -4,9 +4,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
-
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 class ControlledRGBAImageHDRUncompressed : public RGBAImageHDRUncompressed {
   private:
     ImageToSolidTextureProjectionMethods mapType = ImageToSolidTextureProjectionMethods::PLANAR_MAP;

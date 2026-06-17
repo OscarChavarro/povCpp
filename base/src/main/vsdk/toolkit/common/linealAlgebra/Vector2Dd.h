@@ -4,10 +4,10 @@
 
 #include <cmath>
 #include <cstring>
+
+#include "java/lang/String.h"
 #include "vsdk/toolkit/common/VSDKFatalException.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "java/lang/String.h"
-
 class Vector2Dd {
 public:
     double x;

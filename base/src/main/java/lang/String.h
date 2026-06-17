@@ -2,7 +2,6 @@
 #define JAVA_STRING__
 
 #include <cstdarg>
-
 namespace java {
 
 class String {

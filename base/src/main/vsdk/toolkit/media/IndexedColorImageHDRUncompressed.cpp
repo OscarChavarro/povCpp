@@ -1,5 +1,4 @@
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-
 IndexedColorImageHDRUncompressed::IndexedColorImageHDRUncompressed() : xSize(0), ySize(0), data(nullptr), colorMapSize(0), colorTable(nullptr) {
 }
 

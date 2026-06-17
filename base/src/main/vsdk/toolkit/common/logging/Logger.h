@@ -2,11 +2,8 @@
 #define __VSDK_TOOLKIT_COMMON_LOGGING_LOGGER_H__
 
 
+#include "java/lang/String.h"
 #include <exception>
-#include "java/lang/String.h"
-#include "java/lang/String.h"
-#include "java/lang/String.h"
-
 class Logger {
 public:
     static const int WARNING = 1;
