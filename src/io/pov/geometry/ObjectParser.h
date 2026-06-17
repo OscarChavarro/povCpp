@@ -1,7 +1,7 @@
 #ifndef __OBJECT_PARSER_H__
 #define __OBJECT_PARSER_H__
 
-#include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/geometry/element/GeometryTypes.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/volume/compound/CSG.h"

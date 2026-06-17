@@ -2,7 +2,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 #include "render/shaders/PhongSpecularShader.h"
 
@@ -32,8 +32,8 @@ PhongSpecularShader::shade(const PovrayMaterial *texture, const RayWithSegments 
     reflectDirection = eye.add(normalProjection);
 
     cosAngleOfIncidence =
-        reflectDirection.dotProduct(lightSourceRay->direction);
-    normalLength = lightSourceRay->direction.length();
+        reflectDirection.dotProduct(lightSourceRay->getDirection());
+    normalLength = lightSourceRay->getDirection().length();
 
     if (normalLength == 0.0) {
         cosAngleOfIncidence = 0.0;

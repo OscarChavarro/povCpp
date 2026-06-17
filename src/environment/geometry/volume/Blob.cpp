@@ -331,11 +331,11 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
 
     // Transform the ray into the blob space
     if (blob->transformation != nullptr) {
-        p = blob->transformationInverse->transformPoint(ray->origin);
-        d = blob->transformationInverse->transformDirection(ray->direction);
+        p = blob->transformationInverse->transformPoint(ray->getOrigin());
+        d = blob->transformationInverse->transformDirection(ray->getDirection());
     } else {
-        p = Vector3Dd(ray->origin.x(), ray->origin.y(), ray->origin.z());
-        d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
+        p = Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z());
+        d = Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z());
     }
 
     len = java::Math::sqrt(d.x() * d.x() + d.y() * d.y() + d.z() * d.z());
@@ -440,7 +440,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                         intersectionPoint = blob->transformation->transformPoint(
                             intersectionPoint);
                     }
-                    dv = intersectionPoint.subtract(ray->origin);
+                    dv = intersectionPoint.subtract(ray->getOrigin());
                     len = dv.length();
                     localElement.depth = len;
                     localElement.Object = nullptr;

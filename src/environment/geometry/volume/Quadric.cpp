@@ -36,8 +36,8 @@ Quadric::allIntersectionsForOwner(
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.depth = depth1;
         localElement.Object = nullptr;
-        intersectionPoint = ray->direction.multiply(depth1);
-        intersectionPoint = intersectionPoint.add(ray->origin);
+        intersectionPoint = ray->getDirection().multiply(depth1);
+        intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.point = intersectionPoint;
         localElement.Shape = owner;
         depthQueue->offer(localElement);
@@ -46,8 +46,8 @@ Quadric::allIntersectionsForOwner(
         if (depth2 != depth1) {
             localElement.depth = depth2;
             localElement.Object = nullptr;
-            intersectionPoint = ray->direction.multiply(depth2);
-            intersectionPoint = intersectionPoint.add(ray->origin);
+            intersectionPoint = ray->getDirection().multiply(depth2);
+            intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.point = intersectionPoint;
             localElement.Shape = owner;
             depthQueue->offer(localElement);
@@ -86,7 +86,7 @@ Quadric::intersectQuadric(
 
     linearTerm = shape->object2Terms.dotProduct(ray->positionDirection);
     linearTerm *= 2.0;
-    tempTerm = shape->objectTerms.dotProduct(ray->direction);
+    tempTerm = shape->objectTerms.dotProduct(ray->getDirection());
     linearTerm += tempTerm;
     tempTerm =
         shape->objectMixedTerms.dotProduct(ray->mixedPositionDirection);
@@ -95,7 +95,7 @@ Quadric::intersectQuadric(
     if (ray->isPrimaryRay) {
         if (!shape->constantCached) {
             constantTerm = shape->object2Terms.dotProduct(ray->position2);
-            tempTerm = shape->objectTerms.dotProduct(ray->origin);
+            tempTerm = shape->objectTerms.dotProduct(ray->getOrigin());
             constantTerm += tempTerm + shape->objectConstant;
             shape->objectVpConstant = constantTerm;
             shape->constantCached = true;
@@ -104,7 +104,7 @@ Quadric::intersectQuadric(
         }
     } else {
         constantTerm = shape->object2Terms.dotProduct(ray->position2);
-        tempTerm = shape->objectTerms.dotProduct(ray->origin);
+        tempTerm = shape->objectTerms.dotProduct(ray->getOrigin());
         constantTerm += tempTerm + shape->objectConstant;
     }
 

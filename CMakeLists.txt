@@ -13,7 +13,7 @@ add_executable(povray
     src/common/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
     src/environment/material/RendererConfiguration.cpp
-    src/environment/geometry/elements/RayWithSegments.cpp
+    src/environment/geometry/element/RayWithSegments.cpp
     src/environment/geometry/surface/parametric/ParametricPatch.cpp
     src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
     src/environment/geometry/surface/parametric/ParametricBiCubicSolver.cpp
@@ -33,8 +33,8 @@ add_executable(povray
     src/environment/scene/ModelBuilder.cpp
     src/environment/scene/BoundedGeometryFactory.cpp
     src/environment/geometry/SimpleBody.cpp
-    src/environment/geometry/elements/Triangle.cpp
-    src/environment/geometry/elements/SmoothTriangle.cpp
+    src/environment/geometry/element/Triangle.cpp
+    src/environment/geometry/element/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp
     src/environment/material/PovrayMaterial.cpp
     src/environment/material/MaterialUtils.cpp

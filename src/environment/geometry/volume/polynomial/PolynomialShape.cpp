@@ -72,24 +72,24 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
     // Transform the ray into the polynomial's space
     if (shape->transformation != nullptr) {
-        newRay.origin = shape->transformationInverse->transformPoint(ray->origin);
-        newRay.direction = shape->transformationInverse->transformDirection(ray->direction);
+        newRay.setOriginAndDirection(
+            shape->transformationInverse->transformPoint(ray->getOrigin()),
+            shape->transformationInverse->transformDirection(ray->getDirection()));
     } else {
-        newRay.origin = Vector3Dd(
-            ray->origin.x(), ray->origin.y(), ray->origin.z());
-        newRay.direction = Vector3Dd(
-            ray->direction.x(), ray->direction.y(), ray->direction.z());
+        newRay.setOriginAndDirection(
+            Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z()),
+            Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z()));
     }
     newRay.isShadowRay = ray->isShadowRay;
 
-    len = java::Math::sqrt(newRay.direction.x() * newRay.direction.x() +
-               newRay.direction.y() * newRay.direction.y() +
-               newRay.direction.z() * newRay.direction.z());
+    len = java::Math::sqrt(newRay.getDirection().x() * newRay.getDirection().x() +
+               newRay.getDirection().y() * newRay.getDirection().y() +
+               newRay.getDirection().z() * newRay.getDirection().z());
     if (len == 0.0) {
         return 0;
     }
-    newRay.direction = Vector3Dd(newRay.direction.x() / len,
-        newRay.direction.y() / len, newRay.direction.z() / len);
+    newRay.setDirection(Vector3Dd(newRay.getDirection().x() / len,
+        newRay.getDirection().y() / len, newRay.getDirection().z() / len));
 
     intersectionFound = false;
     Statistics::global().rayPolyTests++;
@@ -112,14 +112,14 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
                 goto l0;
             }
         }
-        intersectionPoint = newRay.direction.multiply(depths[j]);
-        intersectionPoint = intersectionPoint.add(newRay.origin);
+        intersectionPoint = newRay.getDirection().multiply(depths[j]);
+        intersectionPoint = intersectionPoint.add(newRay.getOrigin());
         // Transform the point into world space
         if (shape->transformation != nullptr) {
             intersectionPoint = shape->transformation->transformPoint(intersectionPoint);
         }
 
-        dv = intersectionPoint.subtract(ray->origin);
+        dv = intersectionPoint.subtract(ray->getOrigin());
         len = dv.length();
         localElement.depth = len;
         localElement.Object = nullptr;
@@ -224,12 +224,12 @@ PolynomialShape::intersect(
         a[i] = coeffs[i];
     }
     q = Matrix4x4d::identityMatrix().multiply(0.0);
-    q = q.withVal(0, 0, ray->direction.x());
-    q = q.withVal(3, 0, ray->origin.x());
-    q = q.withVal(0, 1, ray->direction.y());
-    q = q.withVal(3, 1, ray->origin.y());
-    q = q.withVal(0, 2, ray->direction.z());
-    q = q.withVal(3, 2, ray->origin.z());
+    q = q.withVal(0, 0, ray->getDirection().x());
+    q = q.withVal(3, 0, ray->getOrigin().x());
+    q = q.withVal(0, 1, ray->getDirection().y());
+    q = q.withVal(3, 1, ray->getOrigin().y());
+    q = q.withVal(0, 2, ray->getDirection().z());
+    q = q.withVal(3, 2, ray->getOrigin().z());
     PolynomialShape::transform(order, a, &q);
     // The equation is now in terms of one variable.  Use numerical
     // techniques to solve the polynomial that represents the intersections.
@@ -519,12 +519,12 @@ PolynomialShape::intersectQuartic(
     double yyZz;
     double temp;
 
-    x = ray->origin.x();
-    y = ray->origin.y();
-    z = ray->origin.z();
-    xx = ray->direction.x();
-    yy = ray->direction.y();
-    zz = ray->direction.z();
+    x = ray->getOrigin().x();
+    y = ray->getOrigin().y();
+    z = ray->getOrigin().z();
+    xx = ray->getDirection().x();
+    yy = ray->getDirection().y();
+    zz = ray->getDirection().z();
     x2 = x * x;
     y2 = y * y;
     z2 = z * z;

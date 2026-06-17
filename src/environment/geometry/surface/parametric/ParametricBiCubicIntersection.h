@@ -2,7 +2,7 @@
 #define __PARAMETRIC_BICUBIC_INTERSECTION_H__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 class ParametricBiCubicIntersection {
   public:

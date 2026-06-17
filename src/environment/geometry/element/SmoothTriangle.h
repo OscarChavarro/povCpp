@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/element/Triangle.h"
 
 class SmoothTriangle : public Triangle {
   public:

@@ -2,7 +2,7 @@
 #define __RAY_WITH_SEGMENTS_H__
 
 #include "environment/material/Material.h"
-#include "environment/geometry/elements/Ray.h"
+#include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
 class RayWithSegments : public Ray {
   public:
@@ -21,6 +21,11 @@ class RayWithSegments : public Ray {
     bool quadricConstantsCached;
     bool isShadowRay;
     bool isPrimaryRay;
+
+    using Ray::setDirection;
+    using Ray::setOrigin;
+    using Ray::setOriginAndDirection;
+    using Ray::setT;
 
     void makeRay();
     void initializeContainers();

@@ -7,7 +7,7 @@
 #include "environment/light/Light.h"
 #include "environment/light/PointLight.h"
 #include "environment/light/SpotLight.h"
-#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/element/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightField.h"

@@ -12,8 +12,9 @@ PointLight::PointLight()
 }
 
 double
-PointLight::attenuate(const RayWithSegments *lightSourceRay) const
+PointLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 {
+    (void)lightSourceRay;
     return 1.0;
 }
 

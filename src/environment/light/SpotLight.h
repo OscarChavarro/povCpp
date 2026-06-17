@@ -6,7 +6,7 @@
 class SpotLight : public Light {
   public:
     SpotLight();
-    double attenuate(const RayWithSegments *lightSourceRay) const override;
+    double evaluateLightResponseFactor(const Ray *lightSourceRay) const override;
     SpotLight *copy() override;
 
   private:

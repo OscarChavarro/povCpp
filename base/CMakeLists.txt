@@ -28,6 +28,7 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/media/RGBAImageHDRUncompressed.cpp
     src/main/vsdk/toolkit/media/RGBAColorPalette.cpp
     src/main/vsdk/toolkit/media/IndexedColorImageHDRUncompressed.cpp
+    src/main/vsdk/toolkit/environment/geometry/element/Ray.cpp
     src/main/vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableSine.cpp
     src/main/vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableChecksum16.cpp
     src/main/vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.cpp

@@ -5,7 +5,7 @@
 #include "common/statistics/Statistics.h"
 
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 #include "render/shaders/TraceService.h"
 #include "render/shaders/TransmissionRefractionShader.h"
@@ -26,8 +26,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
     double ior;
 
     if (surfaceNormal == nullptr) {
-        newRay.origin = *intersectionPoint;
-        newRay.direction = ray->direction;
+        newRay.setOriginAndDirection(*intersectionPoint, ray->getDirection());
 
         newRay.copyContainersFrom(ray);
         traceLevel++;
@@ -41,7 +40,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         color->setB(color->getB() + tempColor.getB());
     } else {
         Statistics::global().refractedRaysTraced++;
-        normalComponent = ray->direction.dotProduct(*surfaceNormal);
+        normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent <= 0.0) {
             localNormal = Vector3Dd(
                 surfaceNormal->x(), surfaceNormal->y(), surfaceNormal->z());
@@ -91,11 +90,11 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
 
         temp = ior * normalComponent - java::Math::sqrt(temp);
         localNormal = localNormal.multiply(temp);
-        rayDirection = ray->direction.multiply(ior);
-        newRay.direction = localNormal.add(rayDirection);
-        newRay.direction = newRay.direction.normalizedFast();
+        rayDirection = ray->getDirection().multiply(ior);
+        newRay.setDirection(localNormal.add(rayDirection));
+        newRay.setDirection(newRay.getDirection().normalizedFast());
 
-        newRay.origin = *intersectionPoint;
+        newRay.setOrigin(*intersectionPoint);
         traceLevel++;
         tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.quadricConstantsCached = false;
