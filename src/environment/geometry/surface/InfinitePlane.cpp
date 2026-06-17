@@ -32,12 +32,12 @@ InfinitePlane::allIntersectionsForOwner(
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > GeometryConstants::Small_Tolerance) {
-            localElement.depth = depth;
-            localElement.Object = nullptr;
+            localElement.setDepth(depth);
+            localElement.setObject(nullptr);
             intersectionPoint = ray->getDirection().multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
-            localElement.point = intersectionPoint;
-            localElement.Shape = owner;
+            localElement.setPoint(intersectionPoint);
+            localElement.setShape(owner);
             depthQueue->offer(localElement);
             return (true);
         }

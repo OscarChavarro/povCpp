@@ -2,13 +2,13 @@
 
 PointLight::PointLight()
 {
-    this->center = Vector3Dd(0.0, 0.0, 0.0);
-    this->pointsAt = Vector3Dd(0.0, 0.0, 1.0);
-    this->inverted = false;
-    this->coefficient = 10.0;
-    this->radius = 0.35;
-    this->falloff = 0.35;
-    this->nextLightSource = nullptr;
+    this->getCenter() = Vector3Dd(0.0, 0.0, 0.0);
+    this->getPointsAt() = Vector3Dd(0.0, 0.0, 1.0);
+    this->setInverted(false);
+    this->setCoefficient(10.0);
+    this->setRadius(0.35);
+    this->setFalloff(0.35);
+    this->setNextLightSource(nullptr);
 }
 
 double

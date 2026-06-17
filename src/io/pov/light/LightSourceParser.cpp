@@ -40,11 +40,11 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getLightSourceShape();
-                PrimitiveParser::parseVector(&(localShape->center), ctx);
-                localShape->shapeColor = ModelBuilder::getColor();
-                localShape->shapeColor->setR(1.0); localShape->shapeColor->setG(1.0); localShape->shapeColor->setB(1.0); localShape->shapeColor->setA(0.0);
+                PrimitiveParser::parseVector(&localShape->getCenter(), ctx);
+                localShape->setShapeColor(ModelBuilder::getColor());
+                localShape->getShapeColor()->setR(1.0); localShape->getShapeColor()->setG(1.0); localShape->getShapeColor()->setB(1.0); localShape->getShapeColor()->setA(0.0);
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                PrimitiveParser::parseColor(localShape->getShapeColor(), ctx);
                 Exit_Flag = true;
                 break;
 
@@ -99,25 +99,25 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             // Point that the spot is pointed at
             case Tokenizer::POINT_AT_TOKEN:
-                PrimitiveParser::parseVector(&(localShape->pointsAt), ctx);
+                PrimitiveParser::parseVector(&localShape->getPointsAt(), ctx);
                 break;
 
             case Tokenizer::TIGHTNESS_TOKEN:
-                localShape->coefficient = PrimitiveParser::parseFloat(ctx);
+                localShape->setCoefficient(PrimitiveParser::parseFloat(ctx));
                 break;
 
             case Tokenizer::RADIUS_TOKEN:
-                localShape->radius =
-                    java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
+                localShape->setRadius(
+                    java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0));
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                PrimitiveParser::parseColor(localShape->shapeColor, ctx);
+                PrimitiveParser::parseColor(localShape->getShapeColor(), ctx);
                 break;
 
             case Tokenizer::FALLOFF_TOKEN:
-                localShape->falloff =
-                    java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
+                localShape->setFalloff(
+                    java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0));
                 break;
 
             case Tokenizer::SPOTLIGHT_TOKEN:

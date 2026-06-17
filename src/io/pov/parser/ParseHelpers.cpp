@@ -72,8 +72,8 @@ ParseHelpers::postProcessShape(SimpleBody *shape, ParserContext &ctx)
         }
     } else if (LightGeometryAdapter *lightAdapter =
                    dynamic_cast<LightGeometryAdapter *>(shape->geometry)) {
-        ParseHelpers::linkShapes(lightAdapter->light,
-            &(lightAdapter->light->nextLightSource),
-            &(ctx.parsingFrame()->lightSources));
+        Light * const currentHead = ctx.parsingFrame()->getLightSources();
+        lightAdapter->light->setNextLightSource(currentHead);
+        ctx.parsingFrame()->setLightSources(lightAdapter->light);
     }
 }

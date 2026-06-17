@@ -90,22 +90,22 @@ Sphere::allIntersectionsForOwner(
 
     intersectionFound = false;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
-        localElement.depth = depth1;
-        localElement.Object = nullptr;
+        localElement.setDepth(depth1);
+        localElement.setObject(nullptr);
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
-        localElement.point = intersectionPoint;
-        localElement.Shape = owner;
+        localElement.setPoint(intersectionPoint);
+        localElement.setShape(owner);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
-            localElement.depth = depth2;
-            localElement.Object = nullptr;
+            localElement.setDepth(depth2);
+            localElement.setObject(nullptr);
             intersectionPoint = ray->getDirection().multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
-            localElement.point = intersectionPoint;
-            localElement.Shape = owner;
+            localElement.setPoint(intersectionPoint);
+            localElement.setShape(owner);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }
