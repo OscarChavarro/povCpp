@@ -78,7 +78,7 @@ Box::intersectBoxx(
     Vector3Dd p;
     Vector3Dd d;
 
-    Statistics::global().rayBoxTests++;
+    Statistics::global().incrementRayBoxTests();
 
     // Transform the point into the boxes space
     if (box->transformation != nullptr) {
@@ -211,7 +211,7 @@ Box::intersectBoxx(
         *depth2 = *depth1;
     }
 
-    Statistics::global().rayBoxTestsSucceeded++;
+    Statistics::global().incrementRayBoxTestsSucceeded();
     return (true);
 }
 

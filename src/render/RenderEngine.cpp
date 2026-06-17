@@ -150,7 +150,7 @@ RenderEngine::supersample(
     dy = (double)y;
     jittOffset = 10;
 
-    Statistics::global().numberOfPixelsSupersampled++;
+    Statistics::global().incrementNumberOfPixelsSupersampled();
 
     result->setR(0.0); result->setG(0.0); result->setB(0.0); result->setA(0);
 
@@ -365,7 +365,7 @@ RenderEngine::startTracing()
                 exit(2);
             }
 
-            Statistics::global().numberOfPixels++;
+            Statistics::global().incrementNumberOfPixels();
 
             RenderFrame::createRay(RenderEngine::primaryRay(), RenderEngine::renderFrame().screenWidth,
                 RenderEngine::renderFrame().screenHeight, (double)x, (double)y);
@@ -590,7 +590,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     Intersection newIntersection;
     bool intersectionFound;
 
-    Statistics::global().numberOfRays++;
+    Statistics::global().incrementNumberOfRays();
     color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
 
     intersectionFound = false;

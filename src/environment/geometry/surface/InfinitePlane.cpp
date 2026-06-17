@@ -53,7 +53,7 @@ InfinitePlane::intersectPlane(
     double normalDotOrigin;
     double normalDotDirection;
 
-    Statistics::global().rayPlaneTests++;
+    Statistics::global().incrementRayPlaneTests();
     if (ray->isPrimaryRay) {
         if (!plane->vpCached) {
             plane->vpNormDotOrigin =
@@ -71,7 +71,7 @@ InfinitePlane::intersectPlane(
 
         *depth = plane->vpNormDotOrigin / normalDotDirection;
         if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
-            Statistics::global().rayPlaneTestsSucceeded++;
+            Statistics::global().incrementRayPlaneTestsSucceeded();
             return (true);
         }
         return (false);
@@ -88,7 +88,7 @@ InfinitePlane::intersectPlane(
 
     *depth = normalDotOrigin / normalDotDirection;
     if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
-        Statistics::global().rayPlaneTestsSucceeded++;
+        Statistics::global().incrementRayPlaneTestsSucceeded();
         return (true);
     }
     return (false);

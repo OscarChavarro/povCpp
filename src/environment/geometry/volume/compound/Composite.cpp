@@ -39,7 +39,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(ray->getOrigin());
 
-        Statistics::global().boundingRegionTests++;
+        Statistics::global().incrementBoundingRegionTests();
         {
             Intersection _boundingHit;
             if (!GeometryOperations::intersect(boundingShape, ray, _boundingHit) &&
@@ -47,7 +47,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
                 return (false);
             }
         }
-        Statistics::global().boundingRegionTestsSucceeded++;
+        Statistics::global().incrementBoundingRegionTestsSucceeded();
     }
 
     localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
@@ -66,13 +66,13 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
-            Statistics::global().clippingRegionTests++;
+            Statistics::global().incrementClippingRegionTests();
             if (!GeometryOperations::inside(
                     &localIntersection.getPoint(), clippingShape)) {
                 intersectionFound = false;
                 break;
             }
-            Statistics::global().clippingRegionTestsSucceeded++;
+            Statistics::global().incrementClippingRegionTestsSucceeded();
         }
 
         if (intersectionFound) {
@@ -99,7 +99,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(ray->getOrigin());
 
-        Statistics::global().boundingRegionTests++;
+        Statistics::global().incrementBoundingRegionTests();
         {
             Intersection _boundingHit;
             if (!GeometryOperations::intersect(boundingShape, ray, _boundingHit) &&
@@ -107,7 +107,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
                 return (false);
             }
         }
-        Statistics::global().boundingRegionTestsSucceeded++;
+        Statistics::global().incrementBoundingRegionTestsSucceeded();
     }
 
     localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
@@ -124,7 +124,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
 
-            Statistics::global().clippingRegionTests++;
+            Statistics::global().incrementClippingRegionTests();
             if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                 {
                     char _logMsg[1024];
@@ -140,7 +140,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
                 intersectionFound = false;
                 break;
             }
-            Statistics::global().clippingRegionTestsSucceeded++;
+            Statistics::global().incrementClippingRegionTestsSucceeded();
         }
 
         if (intersectionFound) {

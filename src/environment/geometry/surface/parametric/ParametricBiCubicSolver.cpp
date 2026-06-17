@@ -319,7 +319,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     int intersectionFound;
 
     intersectionFound = 0;
-    Statistics::global().rayBicubicTests++;
+    Statistics::global().incrementRayBicubicTests();
     if (ray->isPrimaryRay) {
         shape->intersectionCount = 0;
     }
@@ -343,7 +343,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         Logger::reportMessage("ParametricBiCubicSolver", Logger::FATAL_ERROR, "", "Bad patch type\n");
     }
     if (cnt > 0) {
-        Statistics::global().rayBicubicTestsSucceeded++;
+        Statistics::global().incrementRayBicubicTestsSucceeded();
     }
     for (i = 0; i < cnt; i++) {
         if (!ray->isShadowRay) {
