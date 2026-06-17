@@ -195,7 +195,7 @@ Triangle::intersectTriangle(
         return (false);
     }
 
-    if (ray->isPrimaryRay) {
+    if (ray->isPrimaryRayEnabled()) {
         if (!triangle->vpCached) {
             triangle->vpNormDotOrigin =
                 triangle->normalVector.dotProduct(ray->getOrigin());

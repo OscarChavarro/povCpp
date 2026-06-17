@@ -130,8 +130,8 @@ RenderFrame::createRay(
     ray->setDirection(ray->getDirection().add(viewPoint.getDirection()));
     ray->setDirection(ray->getDirection().normalizedFast());
     ray->initializeContainers();
-    ray->isPrimaryRay = true;
-    ray->quadricConstantsCached = false;
+    ray->setPrimaryRay(true);
+    ray->setQuadricConstantsCached(false);
 }
 
 void
@@ -324,7 +324,8 @@ RenderEngine::readRenderedPart()
         RenderingConfiguration::global().getOutputFileInputStream()->close();
         if (RenderingConfiguration::global().getOutputFileInputStream()->open(
                 RenderingConfiguration::global().getOutputFileNameBuffer(),
-                &RenderEngine::renderFrame().screenWidth, &RenderEngine::renderFrame().screenHeight,
+                &RenderEngine::renderFrame().getScreenWidth(),
+                &RenderEngine::renderFrame().getScreenHeight(),
                 RenderingConfiguration::global().getFileBufferSize(), RenderOutput::APPEND_MODE,
                 RenderingConfiguration::global().getFirstLine()) != 1) {
             Logger::reportMessage("RenderEngine", Logger::FATAL_ERROR, "", "Error opening output file\n");
@@ -354,7 +355,7 @@ RenderEngine::startTracing()
 
         RenderFrame::checkStats(y);
 
-        for (x = 0; x < RenderEngine::renderFrame().screenWidth; x++) {
+        for (x = 0; x < RenderEngine::renderFrame().getScreenWidth(); x++) {
 
             if (RenderEngine::stopFlag()) {
                 if (RenderingConfiguration::global().getOutputFileInputStream() != nullptr) {
@@ -366,8 +367,9 @@ RenderEngine::startTracing()
 
             Statistics::global().incrementNumberOfPixels();
 
-            RenderFrame::createRay(RenderEngine::primaryRay(), RenderEngine::renderFrame().screenWidth,
-                RenderEngine::renderFrame().screenHeight, (double)x, (double)y);
+            RenderFrame::createRay(RenderEngine::primaryRay(),
+                RenderEngine::renderFrame().getScreenWidth(),
+                RenderEngine::renderFrame().getScreenHeight(), (double)x, (double)y);
             RenderEngine::traceLevel() = 0;
             RenderEngine::trace(&ray, &color);
             ColorOperations::clipColor(&color, &color);
@@ -408,7 +410,8 @@ RenderFrame::checkStats(int y)
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
         if ((RenderingConfiguration::global().getFirstLine() != 0) ||
-            (RenderingConfiguration::global().getLastLine() != RenderEngine::renderFrame().screenHeight)) {
+            (RenderingConfiguration::global().getLastLine() !=
+                RenderEngine::renderFrame().getScreenHeight())) {
             {
                 char _logMsg[1024];
                 snprintf(_logMsg, sizeof(_logMsg), " from %4d to %4d:\n",
@@ -422,7 +425,8 @@ RenderFrame::checkStats(int y)
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Res %4d X %4d. Calc line %4d of %4d",
-                RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight,
+                RenderEngine::renderFrame().getScreenWidth(),
+                RenderEngine::renderFrame().getScreenHeight(),
                 (y - RenderingConfiguration::global().getFirstLine()) + 1,
                 RenderingConfiguration::global().getLastLine() - RenderingConfiguration::global().getFirstLine());
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
@@ -453,7 +457,8 @@ RenderFrame::checkStats(int y)
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
         RenderingConfiguration::global().getVerboseFormat() == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
-            RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight,
+            RenderEngine::renderFrame().getScreenWidth(),
+            RenderEngine::renderFrame().getScreenHeight(),
             (y - RenderingConfiguration::global().getFirstLine()) + 1,
             RenderingConfiguration::global().getLastLine() - RenderingConfiguration::global().getFirstLine());
         if (!RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
@@ -475,11 +480,12 @@ RenderFrame::doAntiAliasing(int x, int y, ColorRgba *color)
 
     if (x != 0) {
         if (ColorOperations::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
-            RenderEngine::renderFrame().antialiasThreshold) {
+            RenderEngine::renderFrame().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
             if (!(currentLineAntialiasedFlags[x - 1])) {
                 RenderEngine::supersample(&currentLine[x - 1], x - 1, y,
-                    RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight);
+                    RenderEngine::renderFrame().getScreenWidth(),
+                    RenderEngine::renderFrame().getScreenHeight());
                 currentLineAntialiasedFlags[x - 1] = 1;
                 superSampleCount++;
             }
@@ -488,11 +494,12 @@ RenderFrame::doAntiAliasing(int x, int y, ColorRgba *color)
 
     if (y != RenderingConfiguration::global().getFirstLine() - 1) {
         if (ColorOperations::colorDistance(&previousLine[x], &currentLine[x]) >=
-            RenderEngine::renderFrame().antialiasThreshold) {
+            RenderEngine::renderFrame().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
             if (!(previousLineAntialiasedFlags[x])) {
                 RenderEngine::supersample(&previousLine[x], x, y - 1,
-                    RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight);
+                    RenderEngine::renderFrame().getScreenWidth(),
+                    RenderEngine::renderFrame().getScreenHeight());
                 previousLineAntialiasedFlags[x] = 1;
                 superSampleCount++;
             }
@@ -501,7 +508,8 @@ RenderFrame::doAntiAliasing(int x, int y, ColorRgba *color)
 
     if (antialiasCenterFlag) {
         RenderEngine::supersample(&currentLine[x], x, y,
-            RenderEngine::renderFrame().screenWidth, RenderEngine::renderFrame().screenHeight);
+            RenderEngine::renderFrame().getScreenWidth(),
+            RenderEngine::renderFrame().getScreenHeight());
         currentLineAntialiasedFlags[x] = 1;
         *color = currentLine[x];
         superSampleCount++;
@@ -514,10 +522,10 @@ RenderEngine::initializeRenderer()
     int i;
 
     RenderEngine::primaryRay() = &ray;
-    previousLine = new ColorRgba[(RenderEngine::renderFrame().screenWidth + 1)];
-    currentLine = new ColorRgba[(RenderEngine::renderFrame().screenWidth + 1)];
+    previousLine = new ColorRgba[(RenderEngine::renderFrame().getScreenWidth() + 1)];
+    currentLine = new ColorRgba[(RenderEngine::renderFrame().getScreenWidth() + 1)];
 
-    for (i = 0; i <= RenderEngine::renderFrame().screenWidth; i++) {
+    for (i = 0; i <= RenderEngine::renderFrame().getScreenWidth(); i++) {
         previousLine[i].setR(0.0);
         previousLine[i].setG(0.0);
         previousLine[i].setB(0.0);
@@ -528,10 +536,12 @@ RenderEngine::initializeRenderer()
     }
 
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-        previousLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
-        currentLineAntialiasedFlags = new char[(RenderEngine::renderFrame().screenWidth + 1)];
+        previousLineAntialiasedFlags =
+            new char[(RenderEngine::renderFrame().getScreenWidth() + 1)];
+        currentLineAntialiasedFlags =
+            new char[(RenderEngine::renderFrame().getScreenWidth() + 1)];
 
-        for (i = 0; i <= RenderEngine::renderFrame().screenWidth; i++) {
+        for (i = 0; i <= RenderEngine::renderFrame().getScreenWidth(); i++) {
             (previousLineAntialiasedFlags)[i] = 0;
             (currentLineAntialiasedFlags)[i] = 0;
         }
@@ -613,7 +623,8 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     }
 
     // What objects does this ray intersect?
-    java::ArrayList<BoundedGeometry*> &sceneObjects = RenderEngine::renderFrame().Objects;
+    java::ArrayList<BoundedGeometry*> &sceneObjects =
+        RenderEngine::renderFrame().getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
         if (object->intersect(ray, newIntersection)) {

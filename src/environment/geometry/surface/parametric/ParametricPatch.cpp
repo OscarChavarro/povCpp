@@ -105,12 +105,12 @@ ParametricBiCubicPatch::parametricTreeBuilder(
             node->nodeType = ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE;
             children =
                 ParametricBiCubicPatch::createParametricPatchChildBlock();
-            children->children[0] =
+            children->setChild(0,
                 ParametricBiCubicPatch::parametricTreeBuilder(
-                    object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
-            children->children[1] =
+                    object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1));
+            children->setChild(1,
                 ParametricBiCubicPatch::parametricTreeBuilder(
-                    object, (Vector3Dd(*)[4][4])upperLeft, depth + 1);
+                    object, (Vector3Dd(*)[4][4])upperLeft, depth + 1));
             node->count = 2;
             node->dataPtr = (void *)children;
         }
@@ -119,10 +119,10 @@ ParametricBiCubicPatch::parametricTreeBuilder(
             (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
         node->nodeType = ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE;
         children = ParametricBiCubicPatch::createParametricPatchChildBlock();
-        children->children[0] = ParametricBiCubicPatch::parametricTreeBuilder(
-            object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
-        children->children[1] = ParametricBiCubicPatch::parametricTreeBuilder(
-            object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
+        children->setChild(0, ParametricBiCubicPatch::parametricTreeBuilder(
+            object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1));
+        children->setChild(1, ParametricBiCubicPatch::parametricTreeBuilder(
+            object, (Vector3Dd(*)[4][4])lowerRight, depth + 1));
         node->count = 2;
         node->dataPtr = (void *)children;
     } else {
@@ -136,14 +136,14 @@ ParametricBiCubicPatch::parametricTreeBuilder(
             (Vector3Dd(*)[4][4])upperRight);
         node->nodeType = ParametricPatchConstants::PARAMETRIC_INTERIOR_NODE;
         children = ParametricBiCubicPatch::createParametricPatchChildBlock();
-        children->children[0] = ParametricBiCubicPatch::parametricTreeBuilder(
-            object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1);
-        children->children[1] = ParametricBiCubicPatch::parametricTreeBuilder(
-            object, (Vector3Dd(*)[4][4])upperLeft, depth + 1);
-        children->children[2] = ParametricBiCubicPatch::parametricTreeBuilder(
-            object, (Vector3Dd(*)[4][4])lowerRight, depth + 1);
-        children->children[3] = ParametricBiCubicPatch::parametricTreeBuilder(
-            object, (Vector3Dd(*)[4][4])upperRight, depth + 1);
+        children->setChild(0, ParametricBiCubicPatch::parametricTreeBuilder(
+            object, (Vector3Dd(*)[4][4])lowerLeft, depth + 1));
+        children->setChild(1, ParametricBiCubicPatch::parametricTreeBuilder(
+            object, (Vector3Dd(*)[4][4])upperLeft, depth + 1));
+        children->setChild(2, ParametricBiCubicPatch::parametricTreeBuilder(
+            object, (Vector3Dd(*)[4][4])lowerRight, depth + 1));
+        children->setChild(3, ParametricBiCubicPatch::parametricTreeBuilder(
+            object, (Vector3Dd(*)[4][4])upperRight, depth + 1));
         node->count = 4;
         node->dataPtr = (void *)children;
     }
@@ -870,7 +870,7 @@ ParametricBiCubicPatch::parametricTreeDeleter(ParametricPatchNode *node)
         children = (ParametricPatchChild *)node->dataPtr;
         for (i = 0; i < node->count; i++) {
             ParametricBiCubicPatch::parametricTreeDeleter(
-                children->children[i]);
+                children->getChild(i));
         }
         delete (ParametricPatchChild *)children;
     } else if (node->nodeType == ParametricPatchConstants::PARAMETRIC_LEAF_NODE) {
@@ -917,7 +917,7 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
         children = (ParametricPatchChild *)node->dataPtr;
         for (i = 0; i < node->count; i++) {
             ParametricBiCubicPatch::parametricTreeWalker(ray, shape,
-                children->children[i], depth + 1, depthCount, depths);
+                children->getChild(i), depth + 1, depthCount, depths);
         }
     } else if (node->nodeType == ParametricPatchConstants::PARAMETRIC_LEAF_NODE) {
         vertices = (ParametricControlPoints *)node->dataPtr;

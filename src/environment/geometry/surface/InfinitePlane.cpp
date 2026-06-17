@@ -55,7 +55,7 @@ InfinitePlane::intersectPlane(
     double normalDotDirection;
 
     Statistics::global().incrementRayPlaneTests();
-    if (ray->isPrimaryRay) {
+    if (ray->isPrimaryRayEnabled()) {
         if (!plane->vpCached) {
             plane->vpNormDotOrigin =
                 plane->normalVector.dotProduct(ray->getOrigin());

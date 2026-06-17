@@ -63,7 +63,7 @@ SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     double u = 0.0;
     double v = 0.0;
 
-    piMinusP1 = intersectionPoint->subtract(triangle->p1);
+    piMinusP1 = intersectionPoint->subtract(triangle->getP1());
     u = piMinusP1.dotProduct(triangle->perp);
     if (u < 1.0e-9) {
         *result = triangle->n1;
@@ -73,19 +73,19 @@ SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     // BaseDelta contains p3.x-p2.x,  p3.y-p2.y, or p3.z-p2.z depending on the
     // value of vAxis.
 
-    switch (triangle->vAxis) {
+    switch (triangle->getVAxis()) {
     case X_AXIS:
-        v = (piMinusP1.x() / u + triangle->p1.x() - triangle->p2.x()) /
+        v = (piMinusP1.x() / u + triangle->getP1().x() - triangle->getP2().x()) /
             triangle->baseDelta;
         break;
 
     case Y_AXIS:
-        v = (piMinusP1.y() / u + triangle->p1.y() - triangle->p2.y()) /
+        v = (piMinusP1.y() / u + triangle->getP1().y() - triangle->getP2().y()) /
             triangle->baseDelta;
         break;
 
     case Z_AXIS:
-        v = (piMinusP1.z() / u + triangle->p1.z() - triangle->p2.z()) /
+        v = (piMinusP1.z() / u + triangle->getP1().z() - triangle->getP2().z()) /
             triangle->baseDelta;
         break;
     }
@@ -121,10 +121,11 @@ SmoothTriangle::rotateGeometry(Vector3Dd *vector)
     SmoothTriangle * const triangle = this;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
-    triangle->p1 = transformation.transpose().multiply(triangle->p1);
-    triangle->p2 = transformation.transpose().multiply(triangle->p2);
-    triangle->p3 = transformation.transpose().multiply(triangle->p3);
+    triangle->getNormalVector() =
+        transformation.transpose().multiply(triangle->getNormalVector());
+    triangle->getP1() = transformation.transpose().multiply(triangle->getP1());
+    triangle->getP2() = transformation.transpose().multiply(triangle->getP2());
+    triangle->getP3() = transformation.transpose().multiply(triangle->getP3());
     triangle->n1 = transformation.transpose().multiply(triangle->n1);
     triangle->n2 = transformation.transpose().multiply(triangle->n2);
     triangle->n3 = transformation.transpose().multiply(triangle->n3);
@@ -137,11 +138,12 @@ SmoothTriangle::translateGeometry(Vector3Dd *vector)
     SmoothTriangle * const triangle = this;
     Vector3Dd translation;
 
-    translation = triangle->normalVector.multiply(*vector);
-    triangle->distance -= translation.x() + translation.y() + translation.z();
-    triangle->p1 = triangle->p1.add(*vector);
-    triangle->p2 = triangle->p2.add(*vector);
-    triangle->p3 = triangle->p3.add(*vector);
+    translation = triangle->getNormalVector().multiply(*vector);
+    triangle->setDistance(
+        triangle->getDistance() - translation.x() - translation.y() - translation.z());
+    triangle->getP1() = triangle->getP1().add(*vector);
+    triangle->getP2() = triangle->getP2().add(*vector);
+    triangle->getP3() = triangle->getP3().add(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 }
 
@@ -151,25 +153,25 @@ SmoothTriangle::scaleGeometry(Vector3Dd *vector)
     SmoothTriangle * const triangle = this;
     double length;
 
-    triangle->normalVector = Vector3Dd(
-        triangle->normalVector.x() / vector->x(),
-        triangle->normalVector.y() / vector->y(),
-        triangle->normalVector.z() / vector->z());
+    triangle->getNormalVector() = Vector3Dd(
+        triangle->getNormalVector().x() / vector->x(),
+        triangle->getNormalVector().y() / vector->y(),
+        triangle->getNormalVector().z() / vector->z());
 
-    length = triangle->normalVector.length();
-    triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
-    triangle->distance /= length;
+    length = triangle->getNormalVector().length();
+    triangle->getNormalVector() = triangle->getNormalVector().multiply(1.0 / length);
+    triangle->setDistance(triangle->getDistance() / length);
 
-    triangle->p1 = triangle->p1.multiply(*vector);
-    triangle->p2 = triangle->p2.multiply(*vector);
-    triangle->p3 = triangle->p3.multiply(*vector);
+    triangle->getP1() = triangle->getP1().multiply(*vector);
+    triangle->getP2() = triangle->getP2().multiply(*vector);
+    triangle->getP3() = triangle->getP3().multiply(*vector);
     Triangle::computeTriangle((Triangle *)triangle);
 }
 
 void
 SmoothTriangle::invertGeometry()
 {
-    this->inverted ^= true;
+    this->toggleInverted();
 }
 
 void

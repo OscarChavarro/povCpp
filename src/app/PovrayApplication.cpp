@@ -332,8 +332,8 @@ PovrayApplication::initVars()
     Tokenizer::setCaseSensitiveIdentifiers(0);
     CommandLineOptions::reset();
 
-    RenderEngine::renderFrame().screenHeight = 100;
-    RenderEngine::renderFrame().screenWidth = 100;
+    RenderEngine::renderFrame().setScreenHeight(100);
+    RenderEngine::renderFrame().setScreenWidth(100);
 }
 
 // Close all the stuff that has been opened

@@ -27,7 +27,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         traceLevel++;
         Statistics::global().incrementTransmittedRaysTraced();
         tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
-        newRay.quadricConstantsCached = false;
+        newRay.setQuadricConstantsCached(false);
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
         color->setR(color->getR() + tempColor.getR());
@@ -46,30 +46,30 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
 
         newRay.copyContainersFrom(ray);
 
-        if (ray->containingIndex == -1) {
+        if (ray->getContainingIndex() == -1) {
             // The ray is entering from the atmosphere
             newRay.enterContainingMedium(texture);
             ior = atmosphereIor /
                   (texture->getObjectIndexOfRefraction());
         } else {
             // The ray is currently inside an object
-            if (newRay.containingTextures[newRay.containingIndex] == texture)
+            if (newRay.getContainingTextureAt(newRay.getContainingIndex()) == texture)
             // if (inside)
             {
                 // The ray is leaving the current object
                 newRay.exitContainingMedium();
-                if (newRay.containingIndex == -1) {
+                if (newRay.getContainingIndex() == -1) {
                     // The ray is leaving into the atmosphere
                     tempIor = atmosphereIor;
                 } else {
                     // The ray is leaving into another object
-                    tempIor = newRay.containingIORs[newRay.containingIndex];
+                    tempIor = newRay.getContainingIORAt(newRay.getContainingIndex());
                 }
 
                 ior = (texture->getObjectIndexOfRefraction()) / tempIor;
             } else {
                 // The ray is entering a new object
-                tempIor = newRay.containingIORs[newRay.containingIndex];
+                tempIor = newRay.getContainingIORAt(newRay.getContainingIndex());
                 newRay.enterContainingMedium(texture);
 
                 ior = tempIor / (texture->getObjectIndexOfRefraction());
@@ -92,7 +92,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         newRay.setOrigin(*intersectionPoint);
         traceLevel++;
         tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
-        newRay.quadricConstantsCached = false;
+        newRay.setQuadricConstantsCached(false);
 
         traceService->trace(&newRay, &tempColor);
         traceLevel--;

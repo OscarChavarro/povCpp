@@ -47,13 +47,13 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 localShape =
                     (SmoothTriangle *)ModelBuilder::getSmoothTriangleShape();
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&localShape->p1, ctx);
+                PrimitiveParser::parseVector(&localShape->getP1(), ctx);
                 PrimitiveParser::parseVector(&localShape->n1, ctx);
                 localShape->n1 = localShape->n1.normalizedFast();
-                PrimitiveParser::parseVector(&localShape->p2, ctx);
+                PrimitiveParser::parseVector(&localShape->getP2(), ctx);
                 PrimitiveParser::parseVector(&localShape->n2, ctx);
                 localShape->n2 = localShape->n2.normalizedFast();
-                PrimitiveParser::parseVector(&localShape->p3, ctx);
+                PrimitiveParser::parseVector(&localShape->getP3(), ctx);
                 PrimitiveParser::parseVector(&localShape->n3, ctx);
                 localShape->n3 = localShape->n3.normalizedFast();
                 if (!Triangle::computeTriangle((Triangle *)localShape)) {
