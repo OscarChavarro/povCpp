@@ -41,10 +41,10 @@ class GeometryOperations {
             if (localIntersection == nullptr) {
                 Logger::reportMessage("GeometryOperations", Logger::FATAL_ERROR, "", "Cannot allocate memory for local intersection\n");
             }
-            localIntersection->point = queueElement.point;
-            localIntersection->Shape = queueElement.Shape;
-            localIntersection->depth = queueElement.depth;
-            localIntersection->Object = queueElement.Object;
+            localIntersection->setPoint(queueElement.getPoint());
+            localIntersection->setShape(queueElement.getShape());
+            localIntersection->setDepth(queueElement.getDepth());
+            localIntersection->setObject(queueElement.getObject());
             PriorityQueuePool<Intersection>::pqPush(depthQueue);
             return localIntersection;
         }

@@ -9,8 +9,8 @@ This module implements the point & spot light source primitive.
 void
 Light::applyLinearTransformation(const Matrix4x4d &transformation)
 {
-    this->center = transformation.transpose().multiply(this->center);
-    this->pointsAt = transformation.transpose().multiply(this->pointsAt);
+    this->getCenter() = transformation.transpose().multiply(this->getCenter());
+    this->getPointsAt() = transformation.transpose().multiply(this->getPointsAt());
 }
 
 void
@@ -22,8 +22,8 @@ Light::copyStateInto(Light *dst) const
 void
 Light::translate(Vector3Dd *vector)
 {
-    this->center = this->center.add(*vector);
-    this->pointsAt = this->pointsAt.add(*vector);
+    this->getCenter() = this->getCenter().add(*vector);
+    this->getPointsAt() = this->getPointsAt().add(*vector);
 }
 
 void
@@ -48,5 +48,5 @@ Light::scale(Vector3Dd *vector)
 void
 Light::invert()
 {
-    this->inverted ^= true;
+    this->setInverted(!this->isInverted());
 }

@@ -3,13 +3,13 @@
 
 SpotLight::SpotLight()
 {
-    this->center = Vector3Dd(0.0, 0.0, 0.0);
-    this->pointsAt = Vector3Dd(0.0, 0.0, 1.0);
-    this->inverted = false;
-    this->coefficient = 10.0;
-    this->radius = 0.35;
-    this->falloff = 0.35;
-    this->nextLightSource = nullptr;
+    this->getCenter() = Vector3Dd(0.0, 0.0, 0.0);
+    this->getPointsAt() = Vector3Dd(0.0, 0.0, 1.0);
+    this->setInverted(false);
+    this->setCoefficient(10.0);
+    this->setRadius(0.35);
+    this->setFalloff(0.35);
+    this->setNextLightSource(nullptr);
 }
 
 double
@@ -33,7 +33,7 @@ double
 SpotLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 {
     double attenuation;
-    Vector3Dd spotDirection = this->pointsAt.subtract(this->center);
+    Vector3Dd spotDirection = this->getPointsAt().subtract(this->getCenter());
 
     double len = spotDirection.length();
     if (len > 0.0) {
@@ -41,10 +41,10 @@ SpotLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
         double cosTheta = lightSourceRay->getDirection().dotProduct(spotDirection);
         cosTheta *= -1.0;
         if (cosTheta > 0.0) {
-            attenuation = java::Math::pow(cosTheta, this->coefficient);
-            if (this->radius > 0.0) {
+            attenuation = java::Math::pow(cosTheta, this->getCoefficient());
+            if (this->getRadius() > 0.0) {
                 attenuation *= SpotLight::cubicSpline(
-                    this->falloff, this->radius, cosTheta);
+                    this->getFalloff(), this->getRadius(), cosTheta);
             }
         } else {
             attenuation = 0.0;

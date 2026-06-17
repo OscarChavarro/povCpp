@@ -68,7 +68,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
             clippingShape = this->clippingShapes[i];
             Statistics::global().clippingRegionTests++;
             if (!GeometryOperations::inside(
-                    &localIntersection.point, clippingShape)) {
+                    &localIntersection.getPoint(), clippingShape)) {
                 intersectionFound = false;
                 break;
             }
@@ -118,7 +118,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     for (const Intersection& candidate : *localDepthQueue) {
         localIntersection = candidate;
 
-        localIntersection.Object = this;
+        localIntersection.setObject(this);
         intersectionFound = true;
 
         for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
@@ -128,12 +128,12 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                 {
                     char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.point.x(),                     localIntersection.point.y(), localIntersection.point.z());
+                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.getPoint().x(),                     localIntersection.getPoint().y(), localIntersection.getPoint().z());
                     Logger::reportMessage("Composite", Logger::WARNING, "", _logMsg);
                 }
             }
             if (!GeometryOperations::inside(
-                    &localIntersection.point, clippingShape)) {
+                    &localIntersection.getPoint(), clippingShape)) {
                 if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
                     Logger::reportMessage("Composite", Logger::WARNING, "", "not ok\n");
                 }

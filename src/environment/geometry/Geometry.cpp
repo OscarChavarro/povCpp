@@ -18,8 +18,8 @@ Geometry::allIntersectionsForOwner(
     SimpleBody * const sentinel = reinterpret_cast<SimpleBody *>(this);
     int updated = 0;
     for (Intersection &candidate : *depthQueue) {
-        if (candidate.Shape == sentinel) {
-            candidate.Shape = owner;
+        if (candidate.getShape() == sentinel) {
+            candidate.setShape(owner);
             if (++updated == newCount) {
                 break;
             }

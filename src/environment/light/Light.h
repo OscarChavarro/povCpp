@@ -7,7 +7,7 @@
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
 class Light {
-  public:
+  private:
     ColorRgba *shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
@@ -17,10 +17,23 @@ class Light {
     double radius;
     double falloff;
 
+  public:
     ColorRgba *getShapeColor() const;
+    void setShapeColor(ColorRgba *color) { shapeColor = color; }
     Vector3Dd& getCenter() { return center; }
     const Vector3Dd& getCenter() const { return center; }
+    Vector3Dd& getPointsAt() { return pointsAt; }
+    const Vector3Dd& getPointsAt() const { return pointsAt; }
     Light *getNextLightSource() const { return nextLightSource; }
+    void setNextLightSource(Light *light) { nextLightSource = light; }
+    bool isInverted() const { return inverted; }
+    void setInverted(bool value) { inverted = value; }
+    double getCoefficient() const { return coefficient; }
+    void setCoefficient(double value) { coefficient = value; }
+    double getRadius() const { return radius; }
+    void setRadius(double value) { radius = value; }
+    double getFalloff() const { return falloff; }
+    void setFalloff(double value) { falloff = value; }
 
     virtual double evaluateLightResponseFactor(const Ray *lightSourceRay) const = 0;
 

@@ -9,21 +9,26 @@
 class SimpleBody;
 
 class Intersection {
-  public:
+  private:
     double depth;
     BoundedGeometry *Object;
     Vector3Dd point;
     SimpleBody *Shape;
 
+  public:
     double getDepth() const { return depth; }
+    void setDepth(double value) { depth = value; }
     BoundedGeometry *getObject() const { return Object; }
+    void setObject(BoundedGeometry *value) { Object = value; }
     Vector3Dd& getPoint() { return point; }
     const Vector3Dd& getPoint() const { return point; }
+    void setPoint(const Vector3Dd &value) { point = value; }
     SimpleBody *getShape() const { return Shape; }
+    void setShape(SimpleBody *value) { Shape = value; }
 
     inline bool operator<(const Intersection& other) const
     {
-        return depth < other.depth;
+        return getDepth() < other.getDepth();
     }
 };
 

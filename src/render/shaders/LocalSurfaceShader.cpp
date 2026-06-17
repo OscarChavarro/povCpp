@@ -70,7 +70,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     color->setB(color->getB() + emittedColor.getB());
     if (RenderingConfiguration::global().quality >= 8) {
         MirrorReflectionShader::shade(
-            texture, &rayIntersection->point, ray, &surfaceNormal, color,
+            texture, &rayIntersection->getPoint(), ray, &surfaceNormal, color,
             traceService, traceLevel);
     }
 }

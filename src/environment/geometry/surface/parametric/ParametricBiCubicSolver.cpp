@@ -349,10 +349,10 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         if (!ray->isShadowRay) {
             shape->intersectionCount++;
         }
-        localElement.depth = depths[i];
-        localElement.Object = nullptr;
-        localElement.point = shape->intersectionPoint[tcnt + i];
-        localElement.Shape = reinterpret_cast<SimpleBody *>(shape);
+        localElement.setDepth(depths[i]);
+        localElement.setObject(nullptr);
+        localElement.setPoint(shape->intersectionPoint[tcnt + i]);
+        localElement.setShape(reinterpret_cast<SimpleBody *>(shape));
         depthQueue->offer(localElement);
         intersectionFound = 1;
     }
