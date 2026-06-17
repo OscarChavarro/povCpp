@@ -20,7 +20,7 @@ Sphere::intersectSphere(
 
     if (ray->isPrimaryRay) {
         if (!sphere->vpCached) {
-            sphere->vpOtoC = sphere->center.subtract(ray->position);
+            sphere->vpOtoC = sphere->center.subtract(ray->origin);
             sphere->vpOCSquared = sphere->vpOtoC.dotProduct(sphere->vpOtoC);
             sphere->vpInside = (sphere->vpOCSquared < sphere->radiusSquared);
             sphere->vpCached = true;
@@ -32,7 +32,7 @@ Sphere::intersectSphere(
         tHalfChordSquared = sphere->radiusSquared - sphere->vpOCSquared +
                             (tClosestApproach * tClosestApproach);
     } else {
-        originToCenter = sphere->center.subtract(ray->position);
+        originToCenter = sphere->center.subtract(ray->origin);
         ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->radiusSquared);
         tClosestApproach = originToCenter.dotProduct(ray->direction);
@@ -93,7 +93,7 @@ Sphere::allIntersectionsForOwner(
         localElement.depth = depth1;
         localElement.Object = nullptr;
         intersectionPoint = ray->direction.multiply(depth1);
-        intersectionPoint = intersectionPoint.add(ray->position);
+        intersectionPoint = intersectionPoint.add(ray->origin);
         localElement.point = intersectionPoint;
         localElement.Shape = owner;
         depthQueue->offer(localElement);
@@ -103,7 +103,7 @@ Sphere::allIntersectionsForOwner(
             localElement.depth = depth2;
             localElement.Object = nullptr;
             intersectionPoint = ray->direction.multiply(depth2);
-            intersectionPoint = intersectionPoint.add(ray->position);
+            intersectionPoint = intersectionPoint.add(ray->origin);
             localElement.point = intersectionPoint;
             localElement.Shape = owner;
             depthQueue->offer(localElement);

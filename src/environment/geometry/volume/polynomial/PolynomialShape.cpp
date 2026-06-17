@@ -72,11 +72,11 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
     // Transform the ray into the polynomial's space
     if (shape->transformation != nullptr) {
-        newRay.position = shape->transformationInverse->transformPoint(ray->position);
+        newRay.origin = shape->transformationInverse->transformPoint(ray->origin);
         newRay.direction = shape->transformationInverse->transformDirection(ray->direction);
     } else {
-        newRay.position = Vector3Dd(
-            ray->position.x(), ray->position.y(), ray->position.z());
+        newRay.origin = Vector3Dd(
+            ray->origin.x(), ray->origin.y(), ray->origin.z());
         newRay.direction = Vector3Dd(
             ray->direction.x(), ray->direction.y(), ray->direction.z());
     }
@@ -113,13 +113,13 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             }
         }
         intersectionPoint = newRay.direction.multiply(depths[j]);
-        intersectionPoint = intersectionPoint.add(newRay.position);
+        intersectionPoint = intersectionPoint.add(newRay.origin);
         // Transform the point into world space
         if (shape->transformation != nullptr) {
             intersectionPoint = shape->transformation->transformPoint(intersectionPoint);
         }
 
-        dv = intersectionPoint.subtract(ray->position);
+        dv = intersectionPoint.subtract(ray->origin);
         len = dv.length();
         localElement.depth = len;
         localElement.Object = nullptr;
@@ -225,11 +225,11 @@ PolynomialShape::intersect(
     }
     q = Matrix4x4d::identityMatrix().multiply(0.0);
     q = q.withVal(0, 0, ray->direction.x());
-    q = q.withVal(3, 0, ray->position.x());
+    q = q.withVal(3, 0, ray->origin.x());
     q = q.withVal(0, 1, ray->direction.y());
-    q = q.withVal(3, 1, ray->position.y());
+    q = q.withVal(3, 1, ray->origin.y());
     q = q.withVal(0, 2, ray->direction.z());
-    q = q.withVal(3, 2, ray->position.z());
+    q = q.withVal(3, 2, ray->origin.z());
     PolynomialShape::transform(order, a, &q);
     // The equation is now in terms of one variable.  Use numerical
     // techniques to solve the polynomial that represents the intersections.
@@ -519,9 +519,9 @@ PolynomialShape::intersectQuartic(
     double yyZz;
     double temp;
 
-    x = ray->position.x();
-    y = ray->position.y();
-    z = ray->position.z();
+    x = ray->origin.x();
+    y = ray->origin.y();
+    z = ray->origin.z();
     xx = ray->direction.x();
     yy = ray->direction.y();
     zz = ray->direction.z();

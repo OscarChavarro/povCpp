@@ -34,12 +34,12 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
         normalProjection = localNormal.multiply(normalComponent);
         normalProjection = normalProjection.multiply(2.0);
         newRay.direction = ray->direction.add(normalProjection);
-        newRay.position = *intersectionPoint;
+        newRay.origin = *intersectionPoint;
 
         // ARE 08/25/91
 
         surfaceOffset = newRay.direction.multiply(2.0 * GeometryConstants::Small_Tolerance);
-        newRay.position = newRay.position.add(surfaceOffset);
+        newRay.origin = newRay.origin.add(surfaceOffset);
 
         newRay.copyContainersFrom(ray);
         traceLevel++;

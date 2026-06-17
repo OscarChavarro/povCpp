@@ -108,15 +108,15 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         if ((dot > Config::INTERSECTION_EPSILON) || (dot < -Config::INTERSECTION_EPSILON)) {
             pos1 = localNormal.dotProduct(t1V1);
 
-            pos2 = localNormal.dotProduct(ray->position);
+            pos2 = localNormal.dotProduct(ray->origin);
 
             pos1 -= pos2;
 
             depth1 = pos1 / dot;
 
             if ((depth1 > GeometryConstants::Small_Tolerance) && (depth1 < GeometryConstants::Max_Distance)) {
-                s = ray->position.x() + (depth1 * ray->direction.x()) - (double)x;
-                t = ray->position.z() + (depth1 * ray->direction.z()) - (double)z;
+                s = ray->origin.x() + (depth1 * ray->direction.x()) - (double)x;
+                t = ray->origin.z() + (depth1 * ray->direction.z()) - (double)z;
 
                 if ((s < -Config::INTERSECTION_EPSILON) || (t < -Config::INTERSECTION_EPSILON) ||
                     ((s + t) > 1.0 + Config::INTERSECTION_EPSILON)) {
@@ -147,14 +147,14 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         if ((dot > Config::INTERSECTION_EPSILON) || (dot < -Config::INTERSECTION_EPSILON)) {
             pos1 = localNormal.dotProduct(t2V1);
 
-            pos2 = localNormal.dotProduct(ray->position);
+            pos2 = localNormal.dotProduct(ray->origin);
             pos1 -= pos2;
 
             depth2 = pos1 / dot;
 
             if ((depth2 > GeometryConstants::Small_Tolerance) && (depth2 < GeometryConstants::Max_Distance)) {
-                s = ray->position.x() + (depth2 * ray->direction.x()) - (double)x;
-                t = ray->position.z() + (depth2 * ray->direction.z()) - (double)z;
+                s = ray->origin.x() + (depth2 * ray->direction.x()) - (double)x;
+                t = ray->origin.z() + (depth2 * ray->direction.z()) - (double)z;
 
                 if ((s > 1.0 + Config::INTERSECTION_EPSILON) || (t > 1.0 + Config::INTERSECTION_EPSILON) ||
                     ((s + t) < 1.0 - Config::INTERSECTION_EPSILON)) {
@@ -174,7 +174,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         hfIntersection->depth = depth2;
         hfIntersection->Object = nullptr;
         t1V1 = rRay->direction.multiply(depth2);
-        t1V1 = t1V1.add(rRay->position);
+        t1V1 = t1V1.add(rRay->origin);
         hfIntersection->point = t1V1;
         hfIntersection->Shape = reinterpret_cast<SimpleBody *>(hField);
         hfQueue->offer(*hfIntersection);
@@ -182,7 +182,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         hfIntersection->depth = depth1;
         hfIntersection->Object = nullptr;
         t1V1 = rRay->direction.multiply(depth1);
-        t1V1 = t1V1.add(rRay->position);
+        t1V1 = t1V1.add(rRay->origin);
         hfIntersection->point = t1V1;
         hfIntersection->Shape = reinterpret_cast<SimpleBody *>(hField);
         hfQueue->offer(*hfIntersection);
@@ -765,7 +765,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
 
     Statistics::global().rayHtFieldTests++;
 
-    tempRay.position = hField->transformationInverse->transformPoint(ray->position);
+    tempRay.origin = hField->transformationInverse->transformPoint(ray->origin);
     tempRay.direction = hField->transformationInverse->transformDirection(ray->direction);
 
     if (!Box::intersectBoxx(&tempRay, hField->boundingBox, &depth1, &depth2)) {
@@ -778,14 +778,14 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     if (depth1 == depth2) {
         depth1 = 0.0;
         temp1 = tempRay.direction.multiply(depth1);
-        temp1 = temp1.add(tempRay.position);
+        temp1 = temp1.add(tempRay.origin);
         temp2 = tempRay.direction.multiply(depth2);
-        temp2 = temp2.add(tempRay.position);
+        temp2 = temp2.add(tempRay.origin);
     } else {
         temp1 = tempRay.direction.multiply(depth1);
-        temp1 = temp1.add(tempRay.position);
+        temp1 = temp1.add(tempRay.origin);
         temp2 = tempRay.direction.multiply(depth2);
-        temp2 = temp2.add(tempRay.position);
+        temp2 = temp2.add(tempRay.origin);
     }
 
     if (java::Math::abs(tempRay.direction.x()) > Config::INTERSECTION_EPSILON) {

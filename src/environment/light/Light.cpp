@@ -17,9 +17,6 @@ void
 Light::copyStateInto(Light *dst) const
 {
     *dst = *this;
-    if (dst->material != nullptr) {
-        dst->material = dst->material->copy();
-    }
 }
 
 void
@@ -46,9 +43,6 @@ Light::scale(Vector3Dd *vector)
 
     transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
     applyLinearTransformation(transformation);
-    if (this->material != nullptr) {
-        this->material->scale(vector);
-    }
 }
 
 void

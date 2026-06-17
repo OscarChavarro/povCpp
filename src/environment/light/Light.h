@@ -5,24 +5,19 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/material/Material.h"
 
 class Light {
   public:
-    Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
     Light *nextLightSource;
     bool inverted;
-    double coeff;
+    double coefficient;
     double radius;
     double falloff;
 
-    Material* getMaterial() const { return material; }
-    void setMaterial(Material* mat) { material = mat; }
-    ColorRgba* getShapeColor() const { return shapeColor; }
-    void setShapeColor(ColorRgba* color) { shapeColor = color; }
+    ColorRgba *getShapeColor() const;
 
     virtual double attenuate(const RayWithSegments *lightSourceRay) const = 0;
 
@@ -35,5 +30,11 @@ class Light {
     void copyStateInto(Light *dst) const;
     virtual ~Light() = default;
 };
+
+inline ColorRgba *
+Light::getShapeColor() const
+{
+    return shapeColor;
+}
 
 #endif

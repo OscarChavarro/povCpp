@@ -6,7 +6,7 @@ SpotLight::SpotLight()
     this->center = Vector3Dd(0.0, 0.0, 0.0);
     this->pointsAt = Vector3Dd(0.0, 0.0, 1.0);
     this->inverted = false;
-    this->coeff = 10.0;
+    this->coefficient = 10.0;
     this->radius = 0.35;
     this->falloff = 0.35;
     this->nextLightSource = nullptr;
@@ -44,7 +44,7 @@ SpotLight::attenuate(const RayWithSegments *lightSourceRay) const
         costheta = lightSourceRay->direction.dotProduct(spotDirection);
         costheta *= -1.0;
         if (costheta > 0.0) {
-            attenuation = java::Math::pow(costheta, this->coeff);
+            attenuation = java::Math::pow(costheta, this->coefficient);
             if (this->radius > 0.0) {
                 attenuation *= SpotLight::cubicSpline(
                     this->falloff, this->radius, costheta);

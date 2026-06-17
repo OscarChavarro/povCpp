@@ -68,13 +68,13 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     if (s == 0.0) {
         return 0;
     }
-    t = ray->position.dotProduct(*n);
+    t = ray->origin.dotProduct(*n);
     *depth = 0.0 - (d + t) / s;
     if (*depth < GeometryConstants::Small_Tolerance) {
         return 0;
     }
     *ip = ray->direction.multiply(*depth);
-    *ip = ip->add(ray->position);
+    *ip = ip->add(ray->origin);
 
     // Map the intersection point and the triangle onto a plane
     x = java::Math::abs(n->x());
@@ -246,9 +246,9 @@ ParametricBiCubicIntersection::sphericalBoundsCheck(
     double z;
     double dist1;
     double dist2;
-    x = center->x() - ray->position.x();
-    y = center->y() - ray->position.y();
-    z = center->z() - ray->position.z();
+    x = center->x() - ray->origin.x();
+    y = center->y() - ray->origin.y();
+    z = center->z() - ray->origin.z();
     dist1 = x * x + y * y + z * z;
     if (dist1 < radius) {
         // Ray starts inside sphere - assume it intersects

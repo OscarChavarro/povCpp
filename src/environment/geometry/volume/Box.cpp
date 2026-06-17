@@ -48,7 +48,7 @@ Box::allIntersectionsForOwner(
         localElement.depth = depth1;
         localElement.Object = nullptr;
         intersectionPoint = ray->direction.multiply(depth1);
-        intersectionPoint = intersectionPoint.add(ray->position);
+        intersectionPoint = intersectionPoint.add(ray->origin);
         localElement.point = intersectionPoint;
         localElement.Shape = owner;
         depthQueue->offer(localElement);
@@ -58,7 +58,7 @@ Box::allIntersectionsForOwner(
             localElement.depth = depth2;
             localElement.Object = nullptr;
             intersectionPoint = ray->direction.multiply(depth2);
-            intersectionPoint = intersectionPoint.add(ray->position);
+            intersectionPoint = intersectionPoint.add(ray->origin);
             localElement.point = intersectionPoint;
             localElement.Shape = owner;
             depthQueue->offer(localElement);
@@ -82,10 +82,10 @@ Box::intersectBoxx(
 
     // Transform the point into the boxes space
     if (box->transformation != nullptr) {
-        p = box->transformationInverse->transformPoint(ray->position);
+        p = box->transformationInverse->transformPoint(ray->origin);
         d = box->transformationInverse->transformDirection(ray->direction);
     } else {
-        p = Vector3Dd(ray->position.x(), ray->position.y(), ray->position.z());
+        p = Vector3Dd(ray->origin.x(), ray->origin.y(), ray->origin.z());
         d = Vector3Dd(ray->direction.x(), ray->direction.y(), ray->direction.z());
     }
 

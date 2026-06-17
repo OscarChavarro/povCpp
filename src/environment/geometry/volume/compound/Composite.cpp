@@ -42,7 +42,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         {
             Intersection _boundingHit;
             if (!GeometryOperations::intersect(boundingShape, ray, _boundingHit) &&
-                !GeometryOperations::inside(&ray->position, boundingShape)) {
+                !GeometryOperations::inside(&ray->origin, boundingShape)) {
                 return (false);
             }
         }
@@ -101,7 +101,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         {
             Intersection _boundingHit;
             if (!GeometryOperations::intersect(boundingShape, ray, _boundingHit) &&
-                !GeometryOperations::inside(&ray->position, boundingShape)) {
+                !GeometryOperations::inside(&ray->origin, boundingShape)) {
                 return (false);
             }
         }
