@@ -90,7 +90,6 @@ ModelBuilder::promoteToSpotLight(Light *old)
         return old;
     }
     old->copyStateInto(newLight);
-    newLight->geometryType = GeometryTypes::SPOT_LIGHT_TYPE;
     delete old;
     return newLight;
 }

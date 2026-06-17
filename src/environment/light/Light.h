@@ -4,16 +4,11 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/geometry/elements/RayWithSegments.h"
 #include "environment/material/Material.h"
 
-// A Light is reached directly as a Light* (lightSources list / LightSamplerShader)
-// and is never shaded through Intersection::Shape, so unlike other Geometry it
-// keeps owning its own emission colour and material.
-class Light : public Geometry {
+class Light {
   public:
-    GeometryTypes geometryType;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
     Vector3Dd center;
@@ -31,22 +26,14 @@ class Light : public Geometry {
 
     virtual double attenuate(const RayWithSegments *lightSourceRay) const = 0;
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
-    int allIntersectionsForOwner(
-        RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue,
-        SimpleBody *owner) override;
-    int inside(Vector3Dd *point) override;
-    void *copy() override = 0;
-    void translate(Vector3Dd *vector) override;
-    void rotate(Vector3Dd *vector) override;
-    void scale(Vector3Dd *vector) override;
-    void invert() override;
-    void translateGeometry(Vector3Dd *vector) override;
-    void rotateGeometry(Vector3Dd *vector) override;
-    void scaleGeometry(Vector3Dd *vector) override;
-    void invertGeometry() override;
+    virtual Light *copy() = 0;
+    void applyLinearTransformation(const Matrix4x4d &transformation);
+    void translate(Vector3Dd *vector);
+    void rotate(Vector3Dd *vector);
+    void scale(Vector3Dd *vector);
+    void invert();
     void copyStateInto(Light *dst) const;
+    virtual ~Light() = default;
 };
 
 #endif

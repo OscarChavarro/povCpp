@@ -7,7 +7,7 @@ class PointLight : public Light {
   public:
     PointLight();
     double attenuate(const RayWithSegments *lightSourceRay) const override;
-    void *copy() override;
+    PointLight *copy() override;
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include "io/pov/context/ParserContext.h"
 
 class SimpleBody;
+class Light;
 
 class ObjectParser {
   public:

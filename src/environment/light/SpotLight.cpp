@@ -1,18 +1,10 @@
-/**
-light.c
-
-This module implements the spot light source primitive.
-*/
-
 #include "java/lang/Math.h"
-
 #include "environment/light/SpotLight.h"
 
 SpotLight::SpotLight()
 {
     this->center = Vector3Dd(0.0, 0.0, 0.0);
     this->pointsAt = Vector3Dd(0.0, 0.0, 1.0);
-    this->geometryType = GeometryTypes::SPOT_LIGHT_TYPE;
     this->inverted = false;
     this->coeff = 10.0;
     this->radius = 0.35;
@@ -66,7 +58,7 @@ SpotLight::attenuate(const RayWithSegments *lightSourceRay) const
     return (attenuation);
 }
 
-void *
+SpotLight *
 SpotLight::copy()
 {
     SpotLight * const newLight = new SpotLight();
@@ -76,4 +68,3 @@ SpotLight::copy()
     copyStateInto(newLight);
     return newLight;
 }
-#include "java/util/PriorityQueue.txx"
