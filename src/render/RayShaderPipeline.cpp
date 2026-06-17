@@ -37,16 +37,16 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
-        if (rayIntersection->Shape->shapeColor) {
+        if (rayIntersection->getShape()->getShapeColor()) {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour %f %f %f ", rayIntersection->depth, rayIntersection->Shape->shapeColor->getR(),                 rayIntersection->Shape->shapeColor->getG(),                 rayIntersection->Shape->shapeColor->getB());
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour %f %f %f ", rayIntersection->getDepth(), rayIntersection->getShape()->getShapeColor()->getR(),                 rayIntersection->getShape()->getShapeColor()->getG(),                 rayIntersection->getShape()->getShapeColor()->getB());
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         } else {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour NIL ", rayIntersection->depth);
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour NIL ", rayIntersection->getDepth());
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         }
@@ -58,15 +58,15 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
     // Is there a texture in the shape?  If not, use the one in the object
-    texture = static_cast<PovrayMaterial *>(rayIntersection->Shape->material);
+    texture = static_cast<PovrayMaterial *>(rayIntersection->getShape()->getMaterial());
     if (texture == nullptr) {
-        texture = static_cast<PovrayMaterial *>(rayIntersection->Object->objectTexture);
+        texture = static_cast<PovrayMaterial *>(rayIntersection->getObject()->getObjectTexture());
     }
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture - CdW 7/91
     if (texture->textureNumber == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
         const int index = mapFixture.materialMap(
-            &rayIntersection->point, texture->textureTransformationInverse,
+            &rayIntersection->getPoint(), texture->textureTransformationInverse,
             texture->materialImage, texture->materials.size(),
             GeometryConstants::Small_Tolerance);
         if (index != -1) {
@@ -92,10 +92,10 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
         if (RenderingConfiguration::global().quality <= 5) {
-            if (rayIntersection->Shape->shapeColor != nullptr) {
-                surfaceColor = *rayIntersection->Shape->shapeColor;
-            } else if (rayIntersection->Object->objectColor != nullptr) {
-                surfaceColor = *rayIntersection->Object->objectColor;
+            if (rayIntersection->getShape()->getShapeColor() != nullptr) {
+                surfaceColor = *rayIntersection->getShape()->getShapeColor();
+            } else if (rayIntersection->getObject()->getObjectColor() != nullptr) {
+                surfaceColor = *rayIntersection->getObject()->getObjectColor();
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
@@ -108,7 +108,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 tempTexture->color1, tempTexture->color2, tempTexture->turbulence,
                 tempTexture->octaves, tempTexture->colorMap,
                 tempTexture->textureGradient, tempTexture->mortar,
-                &rayIntersection->point, GeometryConstants::Small_Tolerance,
+                &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance,
                 texture1->textureNumber, texture1->textureTransformationInverse,
                 texture1->image, texture1->color1, texture1->color2,
                 texture1->turbulence, texture1->octaves, texture1->colorMap,
@@ -124,15 +124,15 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 tempTexture->color1, tempTexture->color2, tempTexture->turbulence,
                 tempTexture->octaves, tempTexture->colorMap,
                 tempTexture->textureGradient, tempTexture->mortar,
-                &rayIntersection->point, GeometryConstants::Small_Tolerance);
+                &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance);
         }
         // We don't need to compute the lighting characteristics for shadow
         // rays
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
-                RenderEngine::renderFrame().lightSources,
-                RenderEngine::renderFrame().Objects, RenderEngine::traceLevel());
+                RenderEngine::renderFrame().getLightSources(),
+                RenderEngine::renderFrame().getObjects(), RenderEngine::traceLevel());
         }
 
         if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
@@ -188,10 +188,10 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
         if (texture->objectRefraction > 0.0) {
             GeometryOperations::normal(&surfaceNormal,
-                rayIntersection->Shape, &rayIntersection->point);
+                rayIntersection->getShape(), &rayIntersection->getPoint());
 
             if (RenderingConfiguration::global().quality > 7) {
-                BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->point,
+                BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getPoint(),
                     &surfaceNormal);
             }
 
@@ -201,14 +201,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 surfaceNormal = surfaceNormal.multiply(-1.0);
             }
 
-            TransmissionRefractionShader::shade(texture, &rayIntersection->point, ray, &surfaceNormal,
+            TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
                 &refractedColor, traceService,
-                RenderEngine::renderFrame().atmosphereIor,
+                RenderEngine::renderFrame().getAtmosphereIor(),
                 RenderEngine::traceLevel());
         } else {
-            TransmissionRefractionShader::shade(texture, &rayIntersection->point, ray, nullptr,
+            TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
                 &refractedColor, traceService,
-                RenderEngine::renderFrame().atmosphereIor,
+                RenderEngine::renderFrame().getAtmosphereIor(),
                 RenderEngine::traceLevel());
         }
 
@@ -219,9 +219,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (texture->objectRefraction > 0.0 &&
             texture->objectTransmit > 0.0) {
             refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
-            TransmissionRefractionShader::shade(texture, &rayIntersection->point, ray, nullptr,
+            TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
                 &refractedColor, traceService,
-                RenderEngine::renderFrame().atmosphereIor,
+                RenderEngine::renderFrame().getAtmosphereIor(),
                 RenderEngine::traceLevel());
             color->setR(color->getR() + filterColor.getR() * refractedColor.getR() * filterColor.getA());
             color->setG(color->getG() + filterColor.getG() * refractedColor.getG() * filterColor.getA());
@@ -229,8 +229,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
     }
 
-    if (RenderEngine::renderFrame().fogDistance != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->depth, &RenderEngine::renderFrame().fogColor,
-            RenderEngine::renderFrame().fogDistance, color);
+    if (RenderEngine::renderFrame().getFogDistance() != 0.0) {
+        ExponentialFogShader::shade(rayIntersection->getDepth(), &RenderEngine::renderFrame().getFogColor(),
+            RenderEngine::renderFrame().getFogDistance(), color);
     }
 }

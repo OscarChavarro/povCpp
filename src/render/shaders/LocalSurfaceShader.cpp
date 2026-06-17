@@ -33,7 +33,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     emittedColor.setR(0.0); emittedColor.setG(0.0); emittedColor.setB(0.0); emittedColor.setA(0);
 
     if (texture == nullptr) {
-        texture = static_cast<PovrayMaterial *>(rayIntersection->Object->objectTexture);
+        texture = static_cast<PovrayMaterial *>(rayIntersection->getObject()->getObjectTexture());
     }
 
     if (RenderingConfiguration::global().quality <= 1) {
@@ -46,11 +46,11 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     }
 
     GeometryOperations::normal(&surfaceNormal,
-        rayIntersection->Shape, &rayIntersection->point);
+        rayIntersection->getShape(), &rayIntersection->getPoint());
 
     if (RenderingConfiguration::global().quality >= 8) {
         BumpNormalShader::shade(
-            &surfaceNormal, texture, &rayIntersection->point, &surfaceNormal);
+            &surfaceNormal, texture, &rayIntersection->getPoint(), &surfaceNormal);
     }
 
     // If the surface normal points away, flip its direction
@@ -62,7 +62,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     attenuation = filterColor->getA() * (1.0 - surfaceColor->getA());
 
     AmbientLightShader::shade(texture, surfaceColor, &emittedColor, attenuation);
-    DirectLightShader::shade(texture, &rayIntersection->point, ray, &surfaceNormal,
+    DirectLightShader::shade(texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources, objects);
     color->setR(color->getR() + emittedColor.getR());
