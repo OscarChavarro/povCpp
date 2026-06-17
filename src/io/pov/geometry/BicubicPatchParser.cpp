@@ -30,7 +30,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     SimpleBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
-    Material *localTexture;
+    PovrayMaterial *localTexture;
     int i;
     int j;
 

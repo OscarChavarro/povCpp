@@ -5,7 +5,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/elements/GeometryTypes.h"
-#include "environment/material/Material.h"
+#include "environment/material/PovrayMaterial.h"
 
 // A Light is reached directly as a Light* (lightSources list / LightSamplerShader)
 // and is never shaded through Intersection::Shape, so unlike other Geometry it
@@ -13,7 +13,7 @@
 class Light : public Geometry {
   public:
     GeometryTypes geometryType;
-    Material *material = nullptr;
+    PovrayMaterial *material = nullptr;
     ColorRgba *shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
@@ -23,8 +23,8 @@ class Light : public Geometry {
     double radius;
     double falloff;
 
-    Material* getMaterial() const { return material; }
-    void setMaterial(Material* mat) { material = mat; }
+    PovrayMaterial* getMaterial() const { return material; }
+    void setMaterial(PovrayMaterial* mat) { material = mat; }
     ColorRgba* getShapeColor() const { return shapeColor; }
     void setShapeColor(ColorRgba* color) { shapeColor = color; }
 

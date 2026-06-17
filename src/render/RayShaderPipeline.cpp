@@ -26,8 +26,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ColorRgba surfaceColor;
     ColorRgba refractedColor;
     ColorRgba filterColor;
-    Material *tempTexture;
-    Material *texture;
+    PovrayMaterial *tempTexture;
+    PovrayMaterial *texture;
     Vector3Dd surfaceNormal;
     double normalDirection;
     int surface;
@@ -58,8 +58,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
     // Is there a texture in the shape?  If not, use the one in the object
-    if ((texture = rayIntersection->Shape->material) == nullptr) {
-        texture = rayIntersection->Object->objectTexture;
+    texture = static_cast<PovrayMaterial *>(rayIntersection->Shape->material);
+    if (texture == nullptr) {
+        texture = static_cast<PovrayMaterial *>(rayIntersection->Object->objectTexture);
     }
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture - CdW 7/91
@@ -99,8 +100,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
         } else if (tempTexture->textureNumber == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
-            Material * const texture1 = (Material *)tempTexture->color1;
-            Material * const texture2 = (Material *)tempTexture->color2;
+            PovrayMaterial * const texture1 = (PovrayMaterial *)tempTexture->color1;
+            PovrayMaterial * const texture2 = (PovrayMaterial *)tempTexture->color2;
             fixturesFacade.colorAt(
                 &surfaceColor, tempTexture->textureNumber,
                 tempTexture->textureTransformationInverse, tempTexture->image,

@@ -424,7 +424,7 @@ ObjectParser::parseObject(ParserContext &ctx)
     SimpleBody *localShape;
     Vector3Dd localVector;
     int constantId;
-    Material *localTexture;
+    PovrayMaterial *localTexture;
 
     object = nullptr;
 

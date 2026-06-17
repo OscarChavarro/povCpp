@@ -4,6 +4,7 @@ planes.c
 This module implements functions that manipulate planes.
 */
 
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "common/statistics/Statistics.h"

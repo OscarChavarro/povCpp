@@ -1,7 +1,5 @@
 #include "environment/geometry/Intersection.h"
 
-#include "environment/material/MaterialUtils.h"
-
 #include "environment/geometry/SimpleBody.h"
 
 int
@@ -29,7 +27,7 @@ SimpleBody::copy()
     *newBody = *this;
     newBody->geometry = (Geometry *)geometry->copy();
     if (newBody->material != nullptr) {
-        newBody->material = MaterialUtils::instance().copyTexture(newBody->material);
+        newBody->material = newBody->material->copy();
     }
     return (void *)newBody;
 }
@@ -38,7 +36,9 @@ void
 SimpleBody::translate(Vector3Dd *vector)
 {
     geometry->translateGeometry(vector);
-    MaterialUtils::instance().translateTexture(&material, vector);
+    if (material != nullptr) {
+        material->translate(vector);
+    }
     const Matrix4x4d delta = Matrix4x4d().translation(
         vector->x(), vector->y(), vector->z()).transpose();
     const Matrix4x4d deltaInverse = Matrix4x4d().translation(
@@ -51,7 +51,9 @@ void
 SimpleBody::rotate(Vector3Dd *vector)
 {
     geometry->rotateGeometry(vector);
-    MaterialUtils::instance().rotateTexture(&material, vector);
+    if (material != nullptr) {
+        material->rotate(vector);
+    }
     Matrix4x4d delta;
     Matrix4x4d deltaInverse;
     delta.axisRotationRodrigues(&deltaInverse, vector);
@@ -63,7 +65,9 @@ void
 SimpleBody::scale(Vector3Dd *vector)
 {
     geometry->scaleGeometry(vector);
-    MaterialUtils::instance().scaleTexture(&material, vector);
+    if (material != nullptr) {
+        material->scale(vector);
+    }
     const Matrix4x4d delta = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
     const Matrix4x4d deltaInverse = Matrix4x4d().scale(
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());

@@ -12,17 +12,13 @@ This module implements routines for constructive solid geometry.
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
-namespace {
-
-inline int
-insideCsgChild(Vector3Dd *point, TransformableElement *shape)
+int
+CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 {
     // CSG children are produced by the POV parsers through ModelBuilder::wrap,
     // so the stored TransformableElement is a SimpleBody. CSG inside tests
     // only need geometry, not material/colour ownership.
     return static_cast<SimpleBody *>(shape)->geometry->inside(point);
-}
-
 }
 
 int
@@ -95,7 +91,7 @@ CSG::allCsgIntersectIntersections(
                 shape2 = shape->shapes[j];
 
                 if (shape2 != localShape) {
-                    if (!insideCsgChild(&localIntersection.point, shape2)) {
+                    if (!CSG::insideCsgChild(&localIntersection.point, shape2)) {
                         intersectionFound = false;
                         break;
                     }
@@ -125,7 +121,7 @@ CSG::insideCsgUnion(Vector3Dd *testPoint)
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
         localShape = shape->shapes[i];
 
-        if (insideCsgChild(testPoint, localShape)) {
+        if (CSG::insideCsgChild(testPoint, localShape)) {
             return (true);
         }
     }
@@ -141,7 +137,7 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint)
     for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
         localShape = shape->shapes[i];
 
-        if (!insideCsgChild(testPoint, localShape)) {
+        if (!CSG::insideCsgChild(testPoint, localShape)) {
             return (false);
         }
     }

@@ -1,4 +1,5 @@
 #include "java/lang/Math.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
 #include "common/statistics/Statistics.h"
 

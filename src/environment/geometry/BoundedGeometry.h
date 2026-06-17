@@ -29,7 +29,7 @@ class BoundedGeometry : public Geometry {
     void invert() override;
 
   protected:
-    static BoundedGeometry *createBasicObject();
+    static BoundedGeometry *createBasicObject(Material *objectTexture);
 };
 
 #endif

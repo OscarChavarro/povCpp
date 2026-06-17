@@ -1,9 +1,3 @@
-/**
-objects.c
-
-This module implements the methods for objects and composite objects.
-*/
-
 #include <cstdio>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
@@ -11,12 +5,11 @@ This module implements the methods for objects and composite objects.
 #include "common/dataStructures/PriorityQueuePool.txx"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/material/MaterialUtils.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
 BoundedGeometry *
-BoundedGeometry::createBasicObject()
+BoundedGeometry::createBasicObject(Material *objectTexture)
 {
     BoundedGeometry *newObject;
 
@@ -25,7 +18,7 @@ BoundedGeometry::createBasicObject()
     }
 
     newObject->geometry = nullptr;
-    newObject->objectTexture = MaterialUtils::instance().defaultTexture();
+    newObject->objectTexture = objectTexture;
     newObject->objectColor = nullptr;
     newObject->noShadowFlag = false;
     return newObject;
@@ -244,7 +237,7 @@ BoundedGeometry::copy()
     TransformableElement *copiedShape;
     BoundedGeometry *newObject;
 
-    newObject = BoundedGeometry::createBasicObject();
+    newObject = BoundedGeometry::createBasicObject(this->objectTexture);
     *newObject = *this;
     newObject->boundingShapes.clear();
     newObject->clippingShapes.clear();
@@ -268,8 +261,7 @@ BoundedGeometry::copy()
         (TransformableElement *)GeometryOperations::copy(this->geometry);
 
     if (newObject->objectTexture != nullptr) {
-        newObject->objectTexture =
-            MaterialUtils::instance().copyTexture(newObject->objectTexture);
+        newObject->objectTexture = newObject->objectTexture->copy();
     }
 
     return ((void *)newObject);
@@ -332,7 +324,9 @@ BoundedGeometry::translate(Vector3Dd *vector)
 
     GeometryOperations::translate(this->geometry, vector);
 
-    MaterialUtils::instance().translateTexture(&this->objectTexture, vector);
+    if (this->objectTexture != nullptr) {
+        this->objectTexture->translate(vector);
+    }
 }
 
 void
@@ -354,7 +348,9 @@ BoundedGeometry::rotate(Vector3Dd *vector)
 
     GeometryOperations::rotate(this->geometry, vector);
 
-    MaterialUtils::instance().rotateTexture(&this->objectTexture, vector);
+    if (this->objectTexture != nullptr) {
+        this->objectTexture->rotate(vector);
+    }
 }
 
 void
@@ -376,7 +372,9 @@ BoundedGeometry::scale(Vector3Dd *vector)
 
     GeometryOperations::scale(this->geometry, vector);
 
-    MaterialUtils::instance().scaleTexture(&this->objectTexture, vector);
+    if (this->objectTexture != nullptr) {
+        this->objectTexture->scale(vector);
+    }
 }
 
 void

@@ -6,7 +6,7 @@
 
 class SimpleBody;
 
-// Pure geometric element: intersection math only. Material, colour and the
+// Pure geometric element: intersection math only. PovrayMaterial, colour and the
 // transform/material bookkeeping now live on SimpleBody (scene layer).
 //
 // The *Geometry virtuals are the geometry-only half of the transform contract:

@@ -270,7 +270,7 @@ PovrayApplication::prepareRendering()
     PriorityQueuePool<Intersection>::pqInit();
     TextureUtils::initialize(Statistics::global().getSolidTextureStatistics());
     MaterialUtils::initialize();
-    TextureUtils::instance().initializeNoise(Material::DEFAULT_NUMBER_OF_WAVES);
+    TextureUtils::instance().initializeNoise(PovrayMaterial::DEFAULT_NUMBER_OF_WAVES);
 }
 
 void

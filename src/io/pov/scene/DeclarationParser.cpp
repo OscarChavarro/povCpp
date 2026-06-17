@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/material/Material.h"
+#include "environment/material/PovrayMaterial.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
 
@@ -39,7 +39,7 @@ DeclarationParser::parseDeclare()
 void
 DeclarationParser::parseDeclare(ParserContext &ctx)
 {
-    Material *localTexture;
+    PovrayMaterial *localTexture;
 
     ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
     Constant * const constantPtr =
@@ -208,7 +208,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                             localTexture->setConstant(true);
 
                             {
-                                Material *existingHead = (Material *)constantPtr->constantData;
+                                PovrayMaterial *existingHead = (PovrayMaterial *)constantPtr->constantData;
                                 TextureParser::prependTextureLayers(localTexture, existingHead);
                                 constantPtr->constantData = (char *)existingHead;
                             }

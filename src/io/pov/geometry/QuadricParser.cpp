@@ -30,7 +30,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
     SimpleBody *body = nullptr;
     Vector3Dd localVector;
     int constantId;
-    Material *localTexture;
+    PovrayMaterial *localTexture;
 
     localShape = nullptr;
 

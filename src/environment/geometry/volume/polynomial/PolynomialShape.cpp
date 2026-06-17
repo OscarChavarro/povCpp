@@ -33,9 +33,7 @@ a27*y*z^2+a28*y*z+a29*y+a30*z^4+a31*z^3+a32*z^2+a33*z+a34
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
 
-namespace {
-constexpr int termCountsByOrderTable[] = {1, 4, 10, 20, 35, 56, 84, 120};
-}
+static constexpr int termCountsByOrderTable[] = {1, 4, 10, 20, 35, 56, 84, 120};
 
 int binomial[11][12] = {{0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0},
