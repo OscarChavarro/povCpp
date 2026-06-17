@@ -21,9 +21,9 @@ BoundedGeometryFactory::getObject()
         Logger::reportMessage("BoundedGeometryFactory", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
-    newObject->geometry = nullptr;
-    newObject->objectTexture = MaterialUtils::instance().defaultTexture();
-    newObject->objectColor = nullptr;
-    newObject->noShadowFlag = false;
+    newObject->setGeometry(nullptr);
+    newObject->setObjectTexture(MaterialUtils::instance().defaultTexture());
+    newObject->setObjectColor(nullptr);
+    newObject->setNoShadowFlag(false);
     return (newObject);
 }

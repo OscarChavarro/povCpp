@@ -477,7 +477,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 }
 
                 localShape = ObjectParser::parseShape(ctx);
-                object->geometry = localShape;
+                object->setGeometry(localShape);
                 Exit_Flag = true;
                 break;
 
@@ -512,7 +512,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            object->boundingShapes.add(localShape);
+                            object->getBoundingShapes().add(localShape);
                             break;
                         }
                     }
@@ -536,7 +536,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            object->clippingShapes.add(localShape);
+                            object->getClippingShapes().add(localShape);
                             break;
                         }
                     }
@@ -544,8 +544,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                object->objectColor = ModelBuilder::getColor();
-                PrimitiveParser::parseColor(object->objectColor, ctx);
+                object->setObjectColor(ModelBuilder::getColor());
+                PrimitiveParser::parseColor(object->getObjectColor(), ctx);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
@@ -554,15 +554,15 @@ ObjectParser::parseObject(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                if (object->objectTexture == MaterialUtils::instance().defaultTexture()) {
-                    object->objectTexture = localTexture;
+                if (object->getObjectTexture() == MaterialUtils::instance().defaultTexture()) {
+                    object->setObjectTexture(localTexture);
                 } else {
-                    TextureParser::prependTextureLayers(localTexture, object->objectTexture);
+                    TextureParser::prependTextureLayers(localTexture, object->getObjectTextureRef());
                 }
                 break;
 
             case Tokenizer::NO_SHADOW_TOKEN:
-                object->noShadowFlag = true;
+                object->setNoShadowFlag(true);
                 break;
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
@@ -697,7 +697,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            localComposite->boundingShapes.add(localShape);
+                            localComposite->getBoundingShapes().add(localShape);
                             break;
                         }
                     }
@@ -721,7 +721,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            localComposite->clippingShapes.add(localShape);
+                            localComposite->getClippingShapes().add(localShape);
                             break;
                         }
                     }

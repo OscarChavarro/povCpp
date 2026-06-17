@@ -17,10 +17,10 @@ BoundedGeometry::createBasicObject(Material *objectTexture)
         Logger::reportMessage("Composite", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
 
-    newObject->geometry = nullptr;
-    newObject->objectTexture = objectTexture;
-    newObject->objectColor = nullptr;
-    newObject->noShadowFlag = false;
+    newObject->setGeometry(nullptr);
+    newObject->setObjectTexture(objectTexture);
+    newObject->setObjectColor(nullptr);
+    newObject->setNoShadowFlag(false);
     return newObject;
 }
 
@@ -35,8 +35,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
     BoundedGeometry *localObject;
     java::PriorityQueue<Intersection> *localDepthQueue;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        boundingShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(ray->getOrigin());
 
         Statistics::global().boundingRegionTests++;
@@ -64,8 +64,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 
         intersectionFound = true;
 
-        for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-            clippingShape = this->clippingShapes[i];
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            clippingShape = this->getClippingShapes()[i];
             Statistics::global().clippingRegionTests++;
             if (!GeometryOperations::inside(
                     &localIntersection.getPoint(), clippingShape)) {
@@ -95,8 +95,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     TransformableElement *clippingShape;
     java::PriorityQueue<Intersection> *localDepthQueue;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        boundingShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(ray->getOrigin());
 
         Statistics::global().boundingRegionTests++;
@@ -113,7 +113,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
     anyIntersectionFound = false;
     GeometryOperations::allIntersections(
-        this->geometry, ray, localDepthQueue);
+        this->getGeometry(), ray, localDepthQueue);
 
     for (const Intersection& candidate : *localDepthQueue) {
         localIntersection = candidate;
@@ -121,8 +121,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         localIntersection.setObject(this);
         intersectionFound = true;
 
-        for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-            clippingShape = this->clippingShapes[i];
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            clippingShape = this->getClippingShapes()[i];
 
             Statistics::global().clippingRegionTests++;
             if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {
@@ -172,8 +172,8 @@ BoundedGeometry::inside(Vector3Dd *point)
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        boundingShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        boundingShape = this->getBoundingShapes()[i];
 
         if (!GeometryOperations::inside(
                 point, boundingShape)) {
@@ -181,8 +181,8 @@ BoundedGeometry::inside(Vector3Dd *point)
         }
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        clippingShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        clippingShape = this->getClippingShapes()[i];
 
         if (!GeometryOperations::inside(
                 point, clippingShape)) {
@@ -190,7 +190,7 @@ BoundedGeometry::inside(Vector3Dd *point)
         }
     }
 
-    if (GeometryOperations::inside(point, this->geometry)) {
+    if (GeometryOperations::inside(point, this->getGeometry())) {
         return (true);
     }
     return (false);
@@ -203,8 +203,8 @@ Composite::inside(Vector3Dd *point)
     TransformableElement *clippingShape;
     BoundedGeometry *localObject;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        boundingShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        boundingShape = this->getBoundingShapes()[i];
 
         if (!GeometryOperations::inside(
                 point, boundingShape)) {
@@ -212,8 +212,8 @@ Composite::inside(Vector3Dd *point)
         }
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        clippingShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        clippingShape = this->getClippingShapes()[i];
 
         if (!GeometryOperations::inside(
                 point, clippingShape)) {
@@ -239,31 +239,31 @@ BoundedGeometry::copy()
     TransformableElement *copiedShape;
     BoundedGeometry *newObject;
 
-    newObject = BoundedGeometry::createBasicObject(this->objectTexture);
+    newObject = BoundedGeometry::createBasicObject(this->getObjectTexture());
     *newObject = *this;
-    newObject->boundingShapes.clear();
-    newObject->clippingShapes.clear();
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    newObject->getBoundingShapes().clear();
+    newObject->getClippingShapes().clear();
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         copiedShape =
             (TransformableElement *)GeometryOperations::copy(localShape);
-        newObject->boundingShapes.add(copiedShape);
+        newObject->getBoundingShapes().add(copiedShape);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         copiedShape =
             (TransformableElement *)GeometryOperations::copy(localShape);
-        newObject->clippingShapes.add(copiedShape);
+        newObject->getClippingShapes().add(copiedShape);
     }
 
-    newObject->geometry =
-        (TransformableElement *)GeometryOperations::copy(this->geometry);
+    newObject->setGeometry(
+        (TransformableElement *)GeometryOperations::copy(this->getGeometry()));
 
-    if (newObject->objectTexture != nullptr) {
-        newObject->objectTexture = newObject->objectTexture->copy();
+    if (newObject->getObjectTexture() != nullptr) {
+        newObject->setObjectTexture(newObject->getObjectTexture()->copy());
     }
 
     return ((void *)newObject);
@@ -288,21 +288,21 @@ Composite::copy()
         newObject->simpleBodies.add(copiedObject);
     }
 
-    newObject->boundingShapes.clear();
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    newObject->getBoundingShapes().clear();
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         copiedShape =
             (TransformableElement *)GeometryOperations::copy(localShape);
-        newObject->boundingShapes.add(copiedShape);
+        newObject->getBoundingShapes().add(copiedShape);
     }
-    newObject->clippingShapes.clear();
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    newObject->getClippingShapes().clear();
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         copiedShape =
             (TransformableElement *)GeometryOperations::copy(localShape);
-        newObject->clippingShapes.add(copiedShape);
+        newObject->getClippingShapes().add(copiedShape);
     }
     return ((void *)newObject);
 }
@@ -312,22 +312,22 @@ BoundedGeometry::translate(Vector3Dd *vector)
 {
     TransformableElement *localShape;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         GeometryOperations::translate(localShape, vector);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         GeometryOperations::translate(localShape, vector);
     }
 
-    GeometryOperations::translate(this->geometry, vector);
+    GeometryOperations::translate(this->getGeometry(), vector);
 
-    if (this->objectTexture != nullptr) {
-        this->objectTexture->translate(vector);
+    if (this->getObjectTexture() != nullptr) {
+        this->getObjectTexture()->translate(vector);
     }
 }
 
@@ -336,22 +336,22 @@ BoundedGeometry::rotate(Vector3Dd *vector)
 {
     TransformableElement *localShape;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         GeometryOperations::rotate(localShape, vector);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         GeometryOperations::rotate(localShape, vector);
     }
 
-    GeometryOperations::rotate(this->geometry, vector);
+    GeometryOperations::rotate(this->getGeometry(), vector);
 
-    if (this->objectTexture != nullptr) {
-        this->objectTexture->rotate(vector);
+    if (this->getObjectTexture() != nullptr) {
+        this->getObjectTexture()->rotate(vector);
     }
 }
 
@@ -360,22 +360,22 @@ BoundedGeometry::scale(Vector3Dd *vector)
 {
     TransformableElement *localShape;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         GeometryOperations::scale(localShape, vector);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         GeometryOperations::scale(localShape, vector);
     }
 
-    GeometryOperations::scale(this->geometry, vector);
+    GeometryOperations::scale(this->getGeometry(), vector);
 
-    if (this->objectTexture != nullptr) {
-        this->objectTexture->scale(vector);
+    if (this->getObjectTexture() != nullptr) {
+        this->getObjectTexture()->scale(vector);
     }
 }
 
@@ -391,14 +391,14 @@ Composite::translate(Vector3Dd *vector)
         GeometryOperations::translate(localObject, vector);
     }
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         GeometryOperations::translate(localShape, vector);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         GeometryOperations::translate(localShape, vector);
     }
@@ -416,14 +416,14 @@ Composite::rotate(Vector3Dd *vector)
         GeometryOperations::rotate(localObject, vector);
     }
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         GeometryOperations::rotate(localShape, vector);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         GeometryOperations::rotate(localShape, vector);
     }
@@ -441,14 +441,14 @@ Composite::scale(Vector3Dd *vector)
         GeometryOperations::scale(localObject, vector);
     }
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
 
         GeometryOperations::scale(localShape, vector);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
 
         GeometryOperations::scale(localShape, vector);
     }
@@ -459,16 +459,16 @@ BoundedGeometry::invert()
 {
     TransformableElement *localShape;
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
         GeometryOperations::invert(localShape);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
         GeometryOperations::invert(localShape);
     }
-    GeometryOperations::invert(this->geometry);
+    GeometryOperations::invert(this->getGeometry());
 }
 
 void
@@ -482,13 +482,13 @@ Composite::invert()
         GeometryOperations::invert(localObject);
     }
 
-    for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->boundingShapes[i];
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getBoundingShapes()[i];
         GeometryOperations::invert(localShape);
     }
 
-    for (long int i = this->clippingShapes.size() - 1; i >= 0; i--) {
-        localShape = this->clippingShapes[i];
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getClippingShapes()[i];
         GeometryOperations::invert(localShape);
     }
 }

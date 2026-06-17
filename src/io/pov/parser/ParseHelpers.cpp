@@ -47,7 +47,7 @@ ParseHelpers::postProcessObject(BoundedGeometry *object)
             ParseHelpers::postProcessObject(simpleBodies[i]);
         }
     } else {
-        ParseHelpers::postProcessShape(static_cast<SimpleBody*>(object->geometry));
+        ParseHelpers::postProcessShape(static_cast<SimpleBody*>(object->getGeometry()));
     }
 }
 

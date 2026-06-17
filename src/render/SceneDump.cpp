@@ -21,9 +21,9 @@ void SceneDumper::dumpSceneStructure(FILE *f)
         const BoundedGeometry *obj = sceneObjects[i];
         fprintf(f, "OBJ %03d\n", idx);
 
-        if (obj->objectTexture) {
+        if (obj->getObjectTexture()) {
             const PovrayMaterial * const tex =
-                static_cast<const PovrayMaterial *>(obj->objectTexture);
+                static_cast<const PovrayMaterial *>(obj->getObjectTexture());
 
             fprintf(f, "  tex.num=%d amb=%.6f dif=%.6f phong=%.6f psize=%.6f bril=%.6f\n",
                     tex->textureNumber,
