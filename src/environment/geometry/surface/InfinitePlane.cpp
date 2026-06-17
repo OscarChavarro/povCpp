@@ -34,8 +34,8 @@ InfinitePlane::allIntersectionsForOwner(
         if (depth > GeometryConstants::Small_Tolerance) {
             localElement.depth = depth;
             localElement.Object = nullptr;
-            intersectionPoint = ray->direction.multiply(depth);
-            intersectionPoint = intersectionPoint.add(ray->origin);
+            intersectionPoint = ray->getDirection().multiply(depth);
+            intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.point = intersectionPoint;
             localElement.Shape = owner;
             depthQueue->offer(localElement);
@@ -57,13 +57,13 @@ InfinitePlane::intersectPlane(
     if (ray->isPrimaryRay) {
         if (!plane->vpCached) {
             plane->vpNormDotOrigin =
-                plane->normalVector.dotProduct(ray->origin);
+                plane->normalVector.dotProduct(ray->getOrigin());
             plane->vpNormDotOrigin += plane->distance;
             plane->vpNormDotOrigin *= -1.0;
             plane->vpCached = true;
         }
 
-        normalDotDirection = plane->normalVector.dotProduct(ray->direction);
+        normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
         if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
             (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
             return (false);
@@ -76,11 +76,11 @@ InfinitePlane::intersectPlane(
         }
         return (false);
     }
-    normalDotOrigin = plane->normalVector.dotProduct(ray->origin);
+    normalDotOrigin = plane->normalVector.dotProduct(ray->getOrigin());
     normalDotOrigin += plane->distance;
     normalDotOrigin *= -1.0;
 
-    normalDotDirection = plane->normalVector.dotProduct(ray->direction);
+    normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
     if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
         (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
         return (false);

@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 #include "environment/material/PovrayMaterial.h"
 
 class LambertShader {

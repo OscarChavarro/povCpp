@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 class TraceService {
 public:

@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 #include "render/shaders/TraceService.h"
 
 class RayShaderPipeline {

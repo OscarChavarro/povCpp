@@ -4,7 +4,7 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/geometry/element/GeometryTypes.h"
 #include "environment/geometry/volume/compound/CSG.h"
 
 class Composite : public BoundedGeometry {

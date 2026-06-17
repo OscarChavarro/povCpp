@@ -1,7 +1,7 @@
 #include <cstdlib>
 
 #include "java/lang/Math.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 #include "render/shaders/LambertShader.h"
 
 void
@@ -14,7 +14,7 @@ LambertShader::shade(const PovrayMaterial *texture, const RayWithSegments *light
     double randomNumber;
 
     cosAngleOfIncidence =
-        (*surfaceNormal).dotProduct(lightSourceRay->direction);
+        (*surfaceNormal).dotProduct(lightSourceRay->getDirection());
     if (cosAngleOfIncidence < 0.0) {
         cosAngleOfIncidence = -cosAngleOfIncidence;
     }

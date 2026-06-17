@@ -3,7 +3,7 @@
 #include "common/statistics/Statistics.h"
 
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
@@ -23,7 +23,7 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
 
     if (texture->objectReflection != 0.0) {
         Statistics::global().reflectedRaysTraced++;
-        normalComponent = ray->direction.dotProduct(*surfaceNormal);
+        normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;
             normalComponent *= -1.0;
@@ -33,13 +33,13 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
 
         normalProjection = localNormal.multiply(normalComponent);
         normalProjection = normalProjection.multiply(2.0);
-        newRay.direction = ray->direction.add(normalProjection);
-        newRay.origin = *intersectionPoint;
+        newRay.setDirection(ray->getDirection().add(normalProjection));
+        newRay.setOrigin(*intersectionPoint);
 
         // ARE 08/25/91
 
-        surfaceOffset = newRay.direction.multiply(2.0 * GeometryConstants::Small_Tolerance);
-        newRay.origin = newRay.origin.add(surfaceOffset);
+        surfaceOffset = newRay.getDirection().multiply(2.0 * GeometryConstants::Small_Tolerance);
+        newRay.setOrigin(newRay.getOrigin().add(surfaceOffset));
 
         newRay.copyContainersFrom(ray);
         traceLevel++;

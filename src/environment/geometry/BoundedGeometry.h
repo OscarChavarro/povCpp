@@ -4,7 +4,7 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/geometry/element/GeometryTypes.h"
 #include "environment/material/Material.h"
 
 class BoundedGeometry : public Geometry {

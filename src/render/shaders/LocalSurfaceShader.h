@@ -6,7 +6,7 @@
 #include "environment/light/Light.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/BoundedGeometry.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 #include "environment/material/PovrayMaterial.h"
 #include "render/shaders/TraceService.h"
 

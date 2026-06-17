@@ -10,7 +10,7 @@
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 #include "environment/light/Light.h"
 
@@ -50,7 +50,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
 
     if (texture->objectSpecular != 0.0) {
         rEye = Vector3Dd(
-            -eye->direction.x(), -eye->direction.y(), -eye->direction.z());
+            -eye->getDirection().x(), -eye->getDirection().y(), -eye->getDirection().z());
     }
 
     localQueue = PriorityQueuePool<Intersection>::pqPop(128);
@@ -100,7 +100,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
 
         if (!intersectionFound) {
             if (texture->objectPhong > 0.0) { // Phong Hilite
-                PhongSpecularShader::shade(texture, &lightSourceRay, eye->direction, surfaceNormal,
+                PhongSpecularShader::shade(texture, &lightSourceRay, eye->getDirection(), surfaceNormal,
                     color, &lightColor, surfaceColor);
             }
 

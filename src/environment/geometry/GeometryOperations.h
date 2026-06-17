@@ -7,12 +7,12 @@
 #include "java/util/PriorityQueue.txx"
 #include "common/dataStructures/PriorityQueuePool.h"
 #include "common/dataStructures/PriorityQueuePool.txx"
-#include "environment/geometry/elements/TransformableElement.h"
+#include "environment/geometry/element/TransformableElement.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/BoundedGeometry.h"
-#include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/geometry/elements/GeometryTypes.h"
+#include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/GeometryTypes.h"
 
 class GeometryOperations {
   public:

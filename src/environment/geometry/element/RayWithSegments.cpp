@@ -4,7 +4,7 @@ This module implements the code pertaining to rays.
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 RayWithSegments::RayWithSegments()
 {
@@ -25,18 +25,20 @@ void
 RayWithSegments::makeRay()
 {
     Vector3Dd tempInitDir;
+    const Vector3Dd& origin = getOrigin();
+    const Vector3Dd& direction = getDirection();
 
-    this->position2 = this->origin.multiply(this->origin);
-    this->direction2 = this->direction.multiply(this->direction);
-    this->positionDirection = this->origin.multiply(this->direction);
+    this->position2 = origin.multiply(origin);
+    this->direction2 = direction.multiply(direction);
+    this->positionDirection = origin.multiply(direction);
     RayWithSegments::mixVectorTerms(
-        this->mixedPositionPosition, this->origin, this->origin);
+        this->mixedPositionPosition, origin, origin);
     RayWithSegments::mixVectorTerms(
-        this->mixedDirectionDirection, this->direction, this->direction);
+        this->mixedDirectionDirection, direction, direction);
     RayWithSegments::mixVectorTerms(
-        tempInitDir, this->origin, this->direction);
+        tempInitDir, origin, direction);
     RayWithSegments::mixVectorTerms(
-        this->mixedPositionDirection, this->direction, this->origin);
+        this->mixedPositionDirection, direction, origin);
     this->mixedPositionDirection =
         this->mixedPositionDirection.add(tempInitDir);
     this->quadricConstantsCached = true;

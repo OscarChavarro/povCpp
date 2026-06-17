@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/element/Triangle.h"
 
 #include "environment/geometry/surface/InfinitePlane.h"
 

@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
 class Light {
   public:
@@ -19,7 +19,7 @@ class Light {
 
     ColorRgba *getShapeColor() const;
 
-    virtual double attenuate(const RayWithSegments *lightSourceRay) const = 0;
+    virtual double evaluateLightResponseFactor(const Ray *lightSourceRay) const = 0;
 
     virtual Light *copy() = 0;
     void applyLinearTransformation(const Matrix4x4d &transformation);

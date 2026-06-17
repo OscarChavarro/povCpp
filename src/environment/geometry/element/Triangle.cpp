@@ -6,7 +6,7 @@ This module implements primitives for triangles and smooth triangles.
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/element/Triangle.h"
 
 int
 Triangle::max3Axis(double x, double y, double z)
@@ -170,8 +170,8 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
     if (intersectTriangle(ray, shape, &depth)) {
         localElement.depth = depth;
         localElement.Object = nullptr;
-        intersectionPoint = ray->direction.multiply(depth);
-        intersectionPoint = intersectionPoint.add(ray->origin);
+        intersectionPoint = ray->getDirection().multiply(depth);
+        intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.point = intersectionPoint;
         localElement.Shape = reinterpret_cast<SimpleBody *>(shape);
         depthQueue->offer(localElement);
@@ -197,13 +197,13 @@ Triangle::intersectTriangle(
     if (ray->isPrimaryRay) {
         if (!triangle->vpCached) {
             triangle->vpNormDotOrigin =
-                triangle->normalVector.dotProduct(ray->origin);
+                triangle->normalVector.dotProduct(ray->getOrigin());
             triangle->vpNormDotOrigin += triangle->distance;
             triangle->vpNormDotOrigin *= -1.0;
             triangle->vpCached = true;
         }
 
-        normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
+        normalDotDirection = triangle->normalVector.dotProduct(ray->getDirection());
         if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
             (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
             return (false);
@@ -211,11 +211,11 @@ Triangle::intersectTriangle(
 
         *depth = triangle->vpNormDotOrigin / normalDotDirection;
     } else {
-        normalDotOrigin = triangle->normalVector.dotProduct(ray->origin);
+        normalDotOrigin = triangle->normalVector.dotProduct(ray->getOrigin());
         normalDotOrigin += triangle->distance;
         normalDotOrigin *= -1.0;
 
-        normalDotDirection = triangle->normalVector.dotProduct(ray->direction);
+        normalDotDirection = triangle->normalVector.dotProduct(ray->getDirection());
         if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
             (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
             return (false);
@@ -230,8 +230,8 @@ Triangle::intersectTriangle(
 
     switch (triangle->dominantAxis) {
     case X_AXIS:
-        s = ray->origin.y() + *depth * ray->direction.y();
-        t = ray->origin.z() + *depth * ray->direction.z();
+        s = ray->getOrigin().y() + *depth * ray->getDirection().y();
+        t = ray->getOrigin().z() + *depth * ray->getDirection().z();
 
         if (((triangle->p2.y() - s) * (triangle->p2.z() - triangle->p1.z())) <
             ((triangle->p2.z() - t) * (triangle->p2.y() - triangle->p1.y()))) {
@@ -267,8 +267,8 @@ Triangle::intersectTriangle(
         return (false);
 
     case Y_AXIS:
-        s = ray->origin.x() + *depth * ray->direction.x();
-        t = ray->origin.z() + *depth * ray->direction.z();
+        s = ray->getOrigin().x() + *depth * ray->getDirection().x();
+        t = ray->getOrigin().z() + *depth * ray->getDirection().z();
 
         if ((triangle->p2.x() - s) * (triangle->p2.z() - triangle->p1.z()) <
             (triangle->p2.z() - t) * (triangle->p2.x() - triangle->p1.x())) {
@@ -304,8 +304,8 @@ Triangle::intersectTriangle(
         return (false);
 
     case Z_AXIS:
-        s = ray->origin.x() + *depth * ray->direction.x();
-        t = ray->origin.y() + *depth * ray->direction.y();
+        s = ray->getOrigin().x() + *depth * ray->getDirection().x();
+        t = ray->getOrigin().y() + *depth * ray->getDirection().y();
 
         if ((triangle->p2.x() - s) * (triangle->p2.y() - triangle->p1.y()) <
             (triangle->p2.y() - t) * (triangle->p2.x() - triangle->p1.x())) {

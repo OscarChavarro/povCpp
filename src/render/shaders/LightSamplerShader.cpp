@@ -1,5 +1,5 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
 #include "render/shaders/LightSamplerShader.h"
 
@@ -18,18 +18,18 @@ LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
         *lightColor = *lightSource->getShapeColor();
     }
 
-    lightSourceRay->origin = *intersectionPoint;
+    lightSourceRay->setOrigin(*intersectionPoint);
     lightSourceRay->quadricConstantsCached = false;
 
-    lightSourceRay->direction =
-        lightSource->center.subtract(*intersectionPoint);
+    lightSourceRay->setDirection(
+        lightSource->center.subtract(*intersectionPoint));
 
-    *lightSourceDepth = lightSourceRay->direction.length();
+    *lightSourceDepth = lightSourceRay->getDirection().length();
 
-    lightSourceRay->direction =
-        lightSourceRay->direction.multiply(1.0 / (*lightSourceDepth));
+    lightSourceRay->setDirection(
+        lightSourceRay->getDirection().multiply(1.0 / (*lightSourceDepth)));
 
-    attenuation = lightSource->attenuate(lightSourceRay);
+    attenuation = lightSource->evaluateLightResponseFactor(lightSourceRay);
 
     // Now scale the color by the attenuation
     lightColor->setR(lightColor->getR() * attenuation);

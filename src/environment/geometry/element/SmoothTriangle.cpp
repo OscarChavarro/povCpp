@@ -5,7 +5,7 @@ This module implements smooth triangles.
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/elements/Triangle.h"
+#include "environment/geometry/element/Triangle.h"
 
 /**
 Calculate the Phong-interpolated vector within the triangle

@@ -37,12 +37,13 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
         boundingShape = this->boundingShapes[i];
+        Vector3Dd rayOrigin(ray->getOrigin());
 
         Statistics::global().boundingRegionTests++;
         {
             Intersection _boundingHit;
             if (!GeometryOperations::intersect(boundingShape, ray, _boundingHit) &&
-                !GeometryOperations::inside(&ray->origin, boundingShape)) {
+                !GeometryOperations::inside(&rayOrigin, boundingShape)) {
                 return (false);
             }
         }
@@ -96,12 +97,13 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
     for (long int i = this->boundingShapes.size() - 1; i >= 0; i--) {
         boundingShape = this->boundingShapes[i];
+        Vector3Dd rayOrigin(ray->getOrigin());
 
         Statistics::global().boundingRegionTests++;
         {
             Intersection _boundingHit;
             if (!GeometryOperations::intersect(boundingShape, ray, _boundingHit) &&
-                !GeometryOperations::inside(&ray->origin, boundingShape)) {
+                !GeometryOperations::inside(&rayOrigin, boundingShape)) {
                 return (false);
             }
         }

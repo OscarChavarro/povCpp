@@ -2,7 +2,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 #include "render/shaders/BlinnPhongSpecularShader.h"
 
@@ -18,7 +18,7 @@ BlinnPhongSpecularShader::shade(const PovrayMaterial *texture, const RayWithSegm
     double roughness;
     Vector3Dd halfway;
 
-    halfway = rEye.midpoint(lightSourceRay->direction);
+    halfway = rEye.midpoint(lightSourceRay->getDirection());
     normalLength = (*surfaceNormal).length();
     halfwayLength = halfway.length();
     cosAngleOfIncidence = halfway.dotProduct(*surfaceNormal);

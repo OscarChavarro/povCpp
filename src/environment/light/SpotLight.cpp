@@ -30,24 +30,21 @@ SpotLight::cubicSpline(double low, double high, double pos)
 }
 
 double
-SpotLight::attenuate(const RayWithSegments *lightSourceRay) const
+SpotLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 {
-    double len;
-    double costheta;
-    double attenuation = 1.0;
-    Vector3Dd spotDirection;
+    double attenuation;
+    Vector3Dd spotDirection = this->pointsAt.subtract(this->center);
 
-    spotDirection = this->pointsAt.subtract(this->center);
-    len = spotDirection.length();
+    double len = spotDirection.length();
     if (len > 0.0) {
         spotDirection = Vector3Dd(spotDirection.x() / len, spotDirection.y() / len, spotDirection.z() / len);
-        costheta = lightSourceRay->direction.dotProduct(spotDirection);
-        costheta *= -1.0;
-        if (costheta > 0.0) {
-            attenuation = java::Math::pow(costheta, this->coefficient);
+        double cosTheta = lightSourceRay->getDirection().dotProduct(spotDirection);
+        cosTheta *= -1.0;
+        if (cosTheta > 0.0) {
+            attenuation = java::Math::pow(cosTheta, this->coefficient);
             if (this->radius > 0.0) {
                 attenuation *= SpotLight::cubicSpline(
-                    this->falloff, this->radius, costheta);
+                    this->falloff, this->radius, cosTheta);
             }
         } else {
             attenuation = 0.0;
@@ -55,7 +52,7 @@ SpotLight::attenuate(const RayWithSegments *lightSourceRay) const
     } else {
         attenuation = 0.0;
     }
-    return (attenuation);
+    return attenuation;
 }
 
 SpotLight *

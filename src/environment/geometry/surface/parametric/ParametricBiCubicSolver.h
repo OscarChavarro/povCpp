@@ -2,7 +2,7 @@
 #define __PARAMETRIC_BICUBIC_SOLVER_H__
 
 #include "environment/geometry/GeometryOperations.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 
 class ParametricBiCubicSolver {

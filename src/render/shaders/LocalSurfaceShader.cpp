@@ -4,7 +4,7 @@
 
 #include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/elements/RayWithSegments.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 #include "environment/geometry/SimpleBody.h"
 
@@ -54,7 +54,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     }
 
     // If the surface normal points away, flip its direction
-    normalDirection = surfaceNormal.dotProduct(ray->direction);
+    normalDirection = surfaceNormal.dotProduct(ray->getDirection());
     if (normalDirection > 0.0) {
         surfaceNormal = surfaceNormal.multiply(-1.0);
     }

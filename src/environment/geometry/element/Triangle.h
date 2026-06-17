@@ -46,6 +46,6 @@ class Triangle : public Geometry {
         RayWithSegments *ray, Triangle *triangle, double *depth);
 };
 
-#include "environment/geometry/elements/SmoothTriangle.h"
+#include "environment/geometry/element/SmoothTriangle.h"
 
 #endif

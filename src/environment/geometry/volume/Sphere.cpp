@@ -20,22 +20,22 @@ Sphere::intersectSphere(
 
     if (ray->isPrimaryRay) {
         if (!sphere->vpCached) {
-            sphere->vpOtoC = sphere->center.subtract(ray->origin);
+            sphere->vpOtoC = sphere->center.subtract(ray->getOrigin());
             sphere->vpOCSquared = sphere->vpOtoC.dotProduct(sphere->vpOtoC);
             sphere->vpInside = (sphere->vpOCSquared < sphere->radiusSquared);
             sphere->vpCached = true;
         }
-        tClosestApproach = sphere->vpOtoC.dotProduct(ray->direction);
+        tClosestApproach = sphere->vpOtoC.dotProduct(ray->getDirection());
         if (!sphere->vpInside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
             return false;
         }
         tHalfChordSquared = sphere->radiusSquared - sphere->vpOCSquared +
                             (tClosestApproach * tClosestApproach);
     } else {
-        originToCenter = sphere->center.subtract(ray->origin);
+        originToCenter = sphere->center.subtract(ray->getOrigin());
         ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->radiusSquared);
-        tClosestApproach = originToCenter.dotProduct(ray->direction);
+        tClosestApproach = originToCenter.dotProduct(ray->getDirection());
         if (!inside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
             return false;
         }
@@ -92,8 +92,8 @@ Sphere::allIntersectionsForOwner(
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.depth = depth1;
         localElement.Object = nullptr;
-        intersectionPoint = ray->direction.multiply(depth1);
-        intersectionPoint = intersectionPoint.add(ray->origin);
+        intersectionPoint = ray->getDirection().multiply(depth1);
+        intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.point = intersectionPoint;
         localElement.Shape = owner;
         depthQueue->offer(localElement);
@@ -102,8 +102,8 @@ Sphere::allIntersectionsForOwner(
         if (depth2 != depth1) {
             localElement.depth = depth2;
             localElement.Object = nullptr;
-            intersectionPoint = ray->direction.multiply(depth2);
-            intersectionPoint = intersectionPoint.add(ray->origin);
+            intersectionPoint = ray->getDirection().multiply(depth2);
+            intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.point = intersectionPoint;
             localElement.Shape = owner;
             depthQueue->offer(localElement);

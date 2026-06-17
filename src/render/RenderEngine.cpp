@@ -126,10 +126,10 @@ RenderFrame::createRay(
 
     tempVect1 = (RenderEngine::renderFrame().viewPoint.up).multiply(yScalar);
     tempVect2 = (RenderEngine::renderFrame().viewPoint.right).multiply(xScalar);
-    ray->direction = tempVect1.add(tempVect2);
-    ray->direction =
-        ray->direction.add(RenderEngine::renderFrame().viewPoint.direction);
-    ray->direction = ray->direction.normalizedFast();
+    ray->setDirection(tempVect1.add(tempVect2));
+    ray->setDirection(
+        ray->getDirection().add(RenderEngine::renderFrame().viewPoint.direction));
+    ray->setDirection(ray->getDirection().normalizedFast());
     ray->initializeContainers();
     ray->isPrimaryRay = true;
     ray->quadricConstantsCached = false;
@@ -522,7 +522,7 @@ RenderEngine::initializeRenderer()
         }
     }
 
-    ray.origin = RenderEngine::renderFrame().viewPoint.location;
+    ray.setOrigin(RenderEngine::renderFrame().viewPoint.location);
 }
 
 void
