@@ -7,12 +7,12 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/material/Material.h"
+#include "environment/material/PovrayMaterial.h"
 #include "render/shaders/TraceService.h"
 
 class LocalSurfaceShader {
 public:
-    static void shade(const RayWithSegments *ray, Material *texture,
+    static void shade(const RayWithSegments *ray, PovrayMaterial *texture,
         Intersection *rayIntersection, ColorRgba *surfaceColor,
         const ColorRgba *filterColor, ColorRgba *color,
         const TraceService *traceService, const Light *lightSources,

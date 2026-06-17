@@ -42,7 +42,7 @@ TextureParser::shouldLogTextureState()
 }
 
 void
-TextureParser::logTextureStateLegacy(const char *prefix, const Material *texture)
+TextureParser::logTextureStateLegacy(const char *prefix, const PovrayMaterial *texture)
 {
     if (!shouldLogTextureState() || texture == nullptr) {
         return;
@@ -64,14 +64,22 @@ TextureParser::logTextureStateLegacy(const char *prefix, const Material *texture
 
 
 
-Material *
-TextureParser::copyTexture(Material *texture)
+PovrayMaterial *
+TextureParser::copyTexture(PovrayMaterial *texture)
 {
     return MaterialUtils::instance().copyTexture(texture);
 }
 
 void
-TextureParser::prependTextureLayers(Material *newHead, Material *&existingHead)
+TextureParser::prependTextureLayers(PovrayMaterial *newHead, Material *&existingHead)
+{
+    PovrayMaterial *existingPovrayHead = static_cast<PovrayMaterial *>(existingHead);
+    prependTextureLayers(newHead, existingPovrayHead);
+    existingHead = existingPovrayHead;
+}
+
+void
+TextureParser::prependTextureLayers(PovrayMaterial *newHead, PovrayMaterial *&existingHead)
 {
     if (existingHead != nullptr) {
         newHead->getLayers().add(existingHead);
@@ -83,22 +91,22 @@ TextureParser::prependTextureLayers(Material *newHead, Material *&existingHead)
     existingHead = newHead;
 }
 
-Material *
+PovrayMaterial *
 TextureParser::parseTexture()
 {
     ParserContext ctx;
     return TextureParser::parseTexture(ctx);
 }
 
-Material *
+PovrayMaterial *
 TextureParser::parseTexture(ParserContext &ctx)
 {
     (void)ctx;
     Vector3Dd localVector;
     int constantId;
-    Material *texture;
-    Material *localTexture;
-    Material *firstTexture;
+    PovrayMaterial *texture;
+    PovrayMaterial *localTexture;
+    PovrayMaterial *firstTexture;
     int reg;
 
     texture = MaterialUtils::instance().defaultTexture();
@@ -115,7 +123,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::TEXTURE_CONSTANT) {
-                        texture = ((Material *)ctx.constants()[(int)constantId]
+                        texture = ((PovrayMaterial *)ctx.constants()[(int)constantId]
                                 .constantData);
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -263,7 +271,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
                             {
-                                Material *color1Head = (Material *)texture->color1;
+                                PovrayMaterial *color1Head = (PovrayMaterial *)texture->color1;
                                 TextureParser::prependTextureLayers(localTexture, color1Head);
                                 texture->color1 = (ColorRgba *)color1Head;
                             }
@@ -290,7 +298,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
                             {
-                                Material *color2Head = (Material *)texture->color2;
+                                PovrayMaterial *color2Head = (PovrayMaterial *)texture->color2;
                                 TextureParser::prependTextureLayers(localTexture, color2Head);
                                 texture->color2 = (ColorRgba *)color2Head;
                             }
@@ -1034,7 +1042,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                             break;
 
                         case Tokenizer::TEXTURE_TOKEN: {
-                            Material * const newMat = TextureParser::parseTexture(ctx);
+                            PovrayMaterial * const newMat = TextureParser::parseTexture(ctx);
                             firstTexture->materials.add(newMat);
                             texture = newMat;
                         } break;

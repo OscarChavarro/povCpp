@@ -9,6 +9,8 @@ class RenderEngine {
     static RenderFrame sRenderFrame;
     static RayWithSegments *sPrimaryRay;
     static int sTraceLevel;
+    static void traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color);
+    static void traceServiceShadeShadow(void *context, Intersection *intersection, ColorRgba *color);
 
   public:
     static RenderFrame &renderFrame();

@@ -30,7 +30,7 @@ BlobParser::parseBlob(ParserContext &ctx)
     SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
-    Material *localTexture;
+    PovrayMaterial *localTexture;
     double threshold;
     int npoints;
     BlobList *blobComponents;

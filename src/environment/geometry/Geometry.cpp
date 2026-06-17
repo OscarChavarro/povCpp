@@ -1,8 +1,5 @@
 #include "environment/geometry/Geometry.h"
-
 #include "environment/geometry/Intersection.h"
-#include "environment/geometry/SimpleBody.h"
-
 #include "java/util/PriorityQueue.txx"
 
 int

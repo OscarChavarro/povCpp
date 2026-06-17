@@ -30,6 +30,7 @@ class CSG : public Geometry {
     void invertGeometry() override;
 
   private:
+    static int insideCsgChild(Vector3Dd *point, TransformableElement *shape);
     int allCsgUnionIntersections(
         RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
     int allCsgIntersectIntersections(

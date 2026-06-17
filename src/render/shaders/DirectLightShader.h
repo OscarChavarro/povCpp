@@ -7,12 +7,12 @@
 #include "environment/light/Light.h"
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/elements/RayWithSegments.h"
-#include "environment/material/Material.h"
+#include "environment/material/PovrayMaterial.h"
 #include "render/shaders/TraceService.h"
 
 class DirectLightShader {
 public:
-    static void shade(const Material *texture, const Vector3Dd *intersectionPoint,
+    static void shade(const PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
         const RayWithSegments *eye, const Vector3Dd *surfaceNormal,
         const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, const Light *lightSources,

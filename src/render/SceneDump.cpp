@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 
-#include "environment/material/Material.h"
+#include "environment/material/PovrayMaterial.h"
 
 #include "environment/geometry/BoundedGeometry.h"
 
@@ -22,7 +22,8 @@ void SceneDumper::dumpSceneStructure(FILE *f)
         fprintf(f, "OBJ %03d\n", idx);
 
         if (obj->objectTexture) {
-            const Material * const tex = obj->objectTexture;
+            const PovrayMaterial * const tex =
+                static_cast<const PovrayMaterial *>(obj->objectTexture);
 
             fprintf(f, "  tex.num=%d amb=%.6f dif=%.6f phong=%.6f psize=%.6f bril=%.6f\n",
                     tex->textureNumber,

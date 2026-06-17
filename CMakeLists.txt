@@ -35,7 +35,7 @@ add_executable(povray
     src/environment/geometry/elements/Triangle.cpp
     src/environment/geometry/elements/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp
-    src/environment/material/Material.cpp
+    src/environment/material/PovrayMaterial.cpp
     src/environment/material/MaterialUtils.cpp
     src/render/ColorOperations.cpp
     src/render/shaders/LightSamplerShader.cpp

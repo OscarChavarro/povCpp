@@ -33,7 +33,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     Vector3Dd localVector;
     int constantId;
     int order;
-    Material *localTexture;
+    PovrayMaterial *localTexture;
 
     if (knownOrder > 0) {
         localShape = ModelBuilder::getPolyShape(

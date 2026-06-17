@@ -16,7 +16,7 @@
 #include "render/shaders/TraceService.h"
 
 void
-LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
+LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
     const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const Light *lightSources,
@@ -33,7 +33,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, Material *texture,
     emittedColor.setR(0.0); emittedColor.setG(0.0); emittedColor.setB(0.0); emittedColor.setA(0);
 
     if (texture == nullptr) {
-        texture = rayIntersection->Object->objectTexture;
+        texture = static_cast<PovrayMaterial *>(rayIntersection->Object->objectTexture);
     }
 
     if (RenderingConfiguration::global().quality <= 1) {

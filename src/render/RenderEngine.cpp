@@ -79,33 +79,30 @@ RenderEngine::stopFlag()
     return RenderRuntimeState::stopFlag();
 }
 
-namespace {
-    static void
-    traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color)
-    {
-        (void)context;
-        RenderEngine::trace(ray, color);
-    }
+void
+RenderEngine::traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color)
+{
+    (void)context;
+    RenderEngine::trace(ray, color);
+}
 
-    static void
-    traceServiceShadeShadow(
-        void *context, Intersection *intersection, ColorRgba *color)
-    {
-        (void)context;
-        RayShaderPipeline::shadeSurface(
-            intersection, color, nullptr, true, RenderEngine::getTraceService(), &TextureUtils::instance());
-    }
-
-    static const TraceService traceService = {
-        traceServiceTrace,
-        traceServiceShadeShadow,
-        nullptr
-    };
+void
+RenderEngine::traceServiceShadeShadow(
+    void *context, Intersection *intersection, ColorRgba *color)
+{
+    (void)context;
+    RayShaderPipeline::shadeSurface(
+        intersection, color, nullptr, true, RenderEngine::getTraceService(), &TextureUtils::instance());
 }
 
 const TraceService *
 RenderEngine::getTraceService()
 {
+    static const TraceService traceService = {
+        RenderEngine::traceServiceTrace,
+        RenderEngine::traceServiceShadeShadow,
+        nullptr
+    };
     return &traceService;
 }
 
