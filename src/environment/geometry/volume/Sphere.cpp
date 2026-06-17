@@ -3,6 +3,7 @@
 
 #include "common/statistics/Statistics.h"
 
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/Sphere.h"
 
 int

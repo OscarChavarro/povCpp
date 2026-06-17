@@ -1,9 +1,6 @@
 #include "java/lang/Math.h"
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "environment/geometry/element/RayWithSegments.h"
-
 #include "render/shaders/PhongSpecularShader.h"
 
 void
@@ -45,15 +42,15 @@ PhongSpecularShader::shade(const PovrayMaterial *texture, const RayWithSegments 
         cosAngleOfIncidence = 0;
     }
 
-    if (texture->objectPhongSize != 1.0) {
-        intensity = java::Math::pow(cosAngleOfIncidence, texture->objectPhongSize);
+    if (texture->getObjectPhongSize() != 1.0) {
+        intensity = java::Math::pow(cosAngleOfIncidence, texture->getObjectPhongSize());
     } else {
         intensity = cosAngleOfIncidence;
     }
 
-    intensity *= texture->objectPhong;
+    intensity *= texture->getObjectPhong();
 
-    if (texture->metallicFlag) {
+    if (texture->isMetallic()) {
         color->setR(color->getR() + intensity * (surfaceColor->getR()));
         color->setG(color->getG() + intensity * (surfaceColor->getG()));
         color->setB(color->getB() + intensity * (surfaceColor->getB()));

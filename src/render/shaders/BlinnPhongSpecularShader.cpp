@@ -1,9 +1,6 @@
 #include "java/lang/Math.h"
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "environment/geometry/element/RayWithSegments.h"
-
 #include "render/shaders/BlinnPhongSpecularShader.h"
 
 void
@@ -33,15 +30,15 @@ BlinnPhongSpecularShader::shade(const PovrayMaterial *texture, const RayWithSegm
         cosAngleOfIncidence = 0.0;
     }
 
-    roughness = 1.0 / texture->objectRoughness;
+    roughness = 1.0 / texture->getObjectRoughness();
 
     if (roughness != 1.0) {
         intensity = java::Math::pow(cosAngleOfIncidence, roughness);
     } else {
         intensity = cosAngleOfIncidence;
     }
-    intensity *= texture->objectSpecular;
-    if (texture->metallicFlag) {
+    intensity *= texture->getObjectSpecular();
+    if (texture->isMetallic()) {
         color->setR(color->getR() + intensity * (surfaceColor->getR()));
         color->setG(color->getG() + intensity * (surfaceColor->getG()));
         color->setB(color->getB() + intensity * (surfaceColor->getB()));

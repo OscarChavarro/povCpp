@@ -2,7 +2,6 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/geometry/SimpleBody.h"
@@ -115,9 +114,8 @@ BlobParser::parseBlob(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].constantType ==
                         ParseGlobals::BLOB_CONSTANT) {
-                        body = (SimpleBody *)GeometryOperations::copy(
-                            (TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData);
+                        body = (SimpleBody *)((TransformableElement *)ctx.constants()[(int)constantId]
+                                .constantData)->copy();
                         localShape = (Blob *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -151,24 +149,21 @@ BlobParser::parseBlob(ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::translate(
-                    body, &localVector);
+                body->translate(&localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::rotate(
-                    body, &localVector);
+                body->rotate(&localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::scale(
-                    body, &localVector);
+                body->scale(&localVector);
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
-                GeometryOperations::invert(body);
+                body->invert();
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:

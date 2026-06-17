@@ -3,7 +3,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/material/PovrayMaterial.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"

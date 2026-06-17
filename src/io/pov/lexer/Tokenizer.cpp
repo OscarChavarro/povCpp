@@ -923,13 +923,13 @@ Tokenizer::findReserved()
 
     for (i = 0; i < Tokenizer::LAST_TOKEN; i++) {
         if (Tokenizer::sCaseSensitiveFlag == 0) {
-            if (strcmp(Tokenizer::reservedWords()[i].Token_Name, &(Tokenizer::sString[0])) == 0) {
-                return (Tokenizer::reservedWords()[i].tokenNumber);
+            if (strcmp(Tokenizer::reservedWords()[i].getTokenName(), &(Tokenizer::sString[0])) == 0) {
+                return (Tokenizer::reservedWords()[i].getTokenNumber());
             }
         } else {
-            if (Tokenizer::povStricmp(Tokenizer::reservedWords()[i].Token_Name,
+            if (Tokenizer::povStricmp(Tokenizer::reservedWords()[i].getTokenName(),
                     &(Tokenizer::sString[0])) == 0) {
-                return (Tokenizer::reservedWords()[i].tokenNumber);
+                return (Tokenizer::reservedWords()[i].getTokenNumber());
             }
         }
     }

@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/GeometryOperations.h"
+#include "environment/geometry/Geometry.h"
 
 class Box : public Geometry {
   public:

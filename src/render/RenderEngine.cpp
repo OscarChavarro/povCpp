@@ -21,7 +21,6 @@ This module implements the main raytracing loop.
 #include "common/statistics/Statistics.h"
 #include "common/dataStructures/PriorityQueuePool.txx"
 #include "common/RenderRuntimeState.h"
-#include "environment/geometry/GeometryOperations.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
 #include "render/ColorOperations.h"
@@ -617,7 +616,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     java::ArrayList<BoundedGeometry*> &sceneObjects = RenderEngine::renderFrame().Objects;
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
-        if (GeometryOperations::intersect(object, ray, newIntersection)) {
+        if (object->intersect(ray, newIntersection)) {
             if (!intersectionFound || newIntersection.getDepth() < localIntersection.getDepth()) {
                 localIntersection = newIntersection;
             }

@@ -1,13 +1,9 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/element/RayWithSegments.h"
-
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
-
 
 void
 MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
@@ -21,7 +17,7 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
     Vector3Dd surfaceOffset;
     double normalComponent;
 
-    if (texture->objectReflection != 0.0) {
+    if (texture->getObjectReflection() != 0.0) {
         Statistics::global().incrementReflectedRaysTraced();
         normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
@@ -48,8 +44,8 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        color->setR(color->getR() + tempColor.getR() * texture->objectReflection);
-        color->setG(color->getG() + tempColor.getG() * texture->objectReflection);
-        color->setB(color->getB() + tempColor.getB() * texture->objectReflection);
+        color->setR(color->getR() + tempColor.getR() * texture->getObjectReflection());
+        color->setG(color->getG() + tempColor.getG() * texture->getObjectReflection());
+        color->setB(color->getB() + tempColor.getB() * texture->getObjectReflection());
     }
 }

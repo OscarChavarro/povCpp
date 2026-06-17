@@ -5,7 +5,7 @@
 
 PovrayMaterial::PovrayMaterial()
 {
-    numberOfWaves = DEFAULT_NUMBER_OF_WAVES;
+    setNumberOfWaves(DEFAULT_NUMBER_OF_WAVES);
 }
 
 PovrayMaterial *

@@ -9,6 +9,7 @@ This module implements functions that manipulate planes.
 
 #include "common/statistics/Statistics.h"
 
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 
 

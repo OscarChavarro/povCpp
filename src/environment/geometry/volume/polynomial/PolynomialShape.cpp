@@ -18,6 +18,7 @@ This file was written by Alexander Enzmann.  He wrote the code for
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 
+#include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 
 /**

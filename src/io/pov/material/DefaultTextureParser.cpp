@@ -28,9 +28,9 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::TEXTURE_TOKEN:
-                MaterialUtils::instance().defaultTexture()->constantFlag = false;
+                MaterialUtils::instance().defaultTexture()->setConstant(false);
                 MaterialUtils::instance().setDefaultTexture(TextureParser::parseTexture(ctx));
-                MaterialUtils::instance().defaultTexture()->constantFlag = true;
+                MaterialUtils::instance().defaultTexture()->setConstant(true);
                 break;
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;

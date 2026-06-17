@@ -10,6 +10,7 @@ class Intersection;
 class TransformableElement {
   public:
     virtual int   allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) { return 0; }
+    bool intersect(RayWithSegments *ray, Intersection &out);
     virtual int   inside(Vector3Dd *point) { return 0; }
     virtual void  normal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
     virtual void *copy() { return nullptr; }

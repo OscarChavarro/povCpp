@@ -1,15 +1,10 @@
 #include "java/lang/Math.h"
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/element/RayWithSegments.h"
-
 #include "render/shaders/TraceService.h"
 #include "render/shaders/TransmissionRefractionShader.h"
-
 
 void
 TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
@@ -55,7 +50,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
             // The ray is entering from the atmosphere
             newRay.enterContainingMedium(texture);
             ior = atmosphereIor /
-                  (texture->objectIndexOfRefraction);
+                  (texture->getObjectIndexOfRefraction());
         } else {
             // The ray is currently inside an object
             if (newRay.containingTextures[newRay.containingIndex] == texture)
@@ -71,13 +66,13 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
                     tempIor = newRay.containingIORs[newRay.containingIndex];
                 }
 
-                ior = (texture->objectIndexOfRefraction) / tempIor;
+                ior = (texture->getObjectIndexOfRefraction()) / tempIor;
             } else {
                 // The ray is entering a new object
                 tempIor = newRay.containingIORs[newRay.containingIndex];
                 newRay.enterContainingMedium(texture);
 
-                ior = tempIor / (texture->objectIndexOfRefraction);
+                ior = tempIor / (texture->getObjectIndexOfRefraction());
             }
         }
 
@@ -102,8 +97,8 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         traceService->trace(&newRay, &tempColor);
         traceLevel--;
 
-        color->setR(color->getR() + tempColor.getR() * texture->objectRefraction);
-        color->setG(color->getG() + tempColor.getG() * texture->objectRefraction);
-        color->setB(color->getB() + tempColor.getB() * texture->objectRefraction);
+        color->setR(color->getR() + tempColor.getR() * texture->getObjectRefraction());
+        color->setG(color->getG() + tempColor.getG() * texture->getObjectRefraction());
+        color->setB(color->getB() + tempColor.getB() * texture->getObjectRefraction());
     }
 }
