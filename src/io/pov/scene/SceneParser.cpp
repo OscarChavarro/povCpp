@@ -13,7 +13,7 @@
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
 {
-    java::ArrayList<BoundedGeometry*> &objects = ctx.parsingFrame()->Objects;
+    java::ArrayList<BoundedGeometry*> &objects = ctx.parsingFrame()->getObjects();
     for (long int i = objects.size() - 1; i >= 0; i--) {
         ParseHelpers::postProcessObject(objects[i]);
     }
@@ -68,13 +68,17 @@ void
 SceneParser::frameInit(ParserContext &ctx)
 {
     MaterialUtils::instance().setDefaultTexture(MaterialUtils::instance().getTexture());
-    ctx.parsingFrame()->viewPoint.initializeDefaults();
-    ctx.parsingFrame()->lightSources = nullptr;
-    ctx.parsingFrame()->Objects.clear();
-    ctx.parsingFrame()->atmosphereIor = 1.0;
-    ctx.parsingFrame()->antialiasThreshold = RenderingConfiguration::global().antialiasThreshold;
-    ctx.parsingFrame()->fogDistance = 0.0;
-    ctx.parsingFrame()->fogColor.setR(0.0); ctx.parsingFrame()->fogColor.setG(0.0); ctx.parsingFrame()->fogColor.setB(0.0); ctx.parsingFrame()->fogColor.setA(0);
+    ctx.parsingFrame()->getViewPoint().initializeDefaults();
+    ctx.parsingFrame()->setLightSources(nullptr);
+    ctx.parsingFrame()->getObjects().clear();
+    ctx.parsingFrame()->setAtmosphereIor(1.0);
+    ctx.parsingFrame()->setAntialiasThreshold(
+        RenderingConfiguration::global().getAntialiasThreshold());
+    ctx.parsingFrame()->setFogDistance(0.0);
+    ctx.parsingFrame()->getFogColor().setR(0.0);
+    ctx.parsingFrame()->getFogColor().setG(0.0);
+    ctx.parsingFrame()->getFogColor().setB(0.0);
+    ctx.parsingFrame()->getFogColor().setA(0);
 }
 
 void

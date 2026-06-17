@@ -16,8 +16,12 @@ class Sphere : public Geometry {
     bool vpCached;
     bool inverted;
 
+    Vector3Dd& getCenter() { return center; }
+    const Vector3Dd& getCenter() const { return center; }
     double getRadius() const { return radius; }
     void setRadius(double r) { radius = r; }
+    double getRadiusSquared() const { return radiusSquared; }
+    void setRadiusSquared(double value) { radiusSquared = value; }
     double getInverseRadius() const { return inverseRadius; }
     void setInverseRadius(double ir) { inverseRadius = ir; }
 

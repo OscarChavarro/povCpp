@@ -21,6 +21,10 @@ class HeightField : public Geometry {
     HeightFieldBlock **block;
     float **Map;
 
+    Matrix4x4d *getTransformation() const { return transformation; }
+    Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
+    Box *getBoundingBox() const { return boundingBox; }
+
     static void findHfMinMax(HeightField *hField,
         const IndexedColorImageHDRUncompressed *image, int imageType);
     static void findHfMinMax(HeightField *hField,

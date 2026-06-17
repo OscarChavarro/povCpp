@@ -28,11 +28,11 @@ FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().tokenId) {
             case Tokenizer::COLOUR_TOKEN:
-                PrimitiveParser::parseColor(&framePtr->fogColor, ctx);
+                PrimitiveParser::parseColor(&framePtr->getFogColor(), ctx);
                 break;
 
             case Tokenizer::FLOAT_TOKEN:
-                framePtr->fogDistance = ctx.token().tokenFloat;
+                framePtr->setFogDistance(ctx.token().tokenFloat);
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:

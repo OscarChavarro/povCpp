@@ -48,17 +48,17 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
             case Tokenizer::OBJECT_TOKEN:
                 localObject = ObjectParser::parseObject(ctx);
                 if (localObject != nullptr) {
-                    framePtr->Objects.add(localObject);
+                    framePtr->getObjects().add(localObject);
                 }
                 break;
 
             case Tokenizer::COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite(ctx);
-                framePtr->Objects.add(localObject);
+                framePtr->getObjects().add(localObject);
                 break;
 
             case Tokenizer::VIEW_POINT_TOKEN:
-                CameraParser::parseCamera(&(framePtr->viewPoint), ctx);
+                CameraParser::parseCamera(&framePtr->getViewPoint(), ctx);
                 break;
 
             case Tokenizer::DECLARE_TOKEN:
