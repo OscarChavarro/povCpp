@@ -1,13 +1,11 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/elements/GeometryTypes.h"
-#include "environment/geometry/elements/TransformableElement.h"
 
-class Camera : public TransformableElement {
+class Camera {
   public:
-    GeometryTypes type;
     Vector3Dd location;
     Vector3Dd direction;
     Vector3Dd up;
@@ -15,11 +13,12 @@ class Camera : public TransformableElement {
     Vector3Dd sky;
 
     void initializeDefaults();
+    void applyLinearTransformation(const Matrix4x4d &transformation);
 
-    void *copy() override;
-    void translate(Vector3Dd *vector) override;
-    void rotate(Vector3Dd *vector) override;
-    void scale(Vector3Dd *vector) override;
+    void *copy();
+    void translate(Vector3Dd *vector);
+    void rotate(Vector3Dd *vector);
+    void scale(Vector3Dd *vector);
 };
 
 #endif

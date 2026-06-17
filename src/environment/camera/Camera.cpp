@@ -2,9 +2,17 @@
 #include "environment/camera/Camera.h"
 
 void
+Camera::applyLinearTransformation(const Matrix4x4d &transformation)
+{
+    this->location = transformation.transpose().multiply(this->location);
+    this->direction = transformation.transpose().multiply(this->direction);
+    this->up = transformation.transpose().multiply(this->up);
+    this->right = transformation.transpose().multiply(this->right);
+}
+
+void
 Camera::initializeDefaults()
 {
-    this->type = GeometryTypes::VIEWPOINT_TYPE;
     *&this->location = Vector3Dd(0.0, 0.0, 0.0);
     *&this->direction = Vector3Dd(0.0, 0.0, 1.0);
     *&this->up = Vector3Dd(0.0, 1.0, 0.0);
@@ -40,24 +48,16 @@ Camera::rotate(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
     Matrix4x4d transformationInverse;
-    Camera * const viewpoint = this;
 
     transformation.axisRotationRodrigues(&transformationInverse, vector);
-    viewpoint->location = transformation.transpose().multiply(viewpoint->location);
-    viewpoint->direction = transformation.transpose().multiply(viewpoint->direction);
-    viewpoint->up = transformation.transpose().multiply(viewpoint->up);
-    viewpoint->right = transformation.transpose().multiply(viewpoint->right);
+    applyLinearTransformation(transformation);
 }
 
 void
 Camera::scale(Vector3Dd *vector)
 {
     Matrix4x4d transformation;
-    Camera * const viewpoint = this;
 
     transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    viewpoint->location = transformation.transpose().multiply(viewpoint->location);
-    viewpoint->direction = transformation.transpose().multiply(viewpoint->direction);
-    viewpoint->up = transformation.transpose().multiply(viewpoint->up);
-    viewpoint->right = transformation.transpose().multiply(viewpoint->right);
+    applyLinearTransformation(transformation);
 }

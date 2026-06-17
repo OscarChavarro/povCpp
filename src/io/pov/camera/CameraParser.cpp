@@ -99,18 +99,17 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::translate(
-                    givenVp, &localVector);
+                givenVp->translate(&localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::rotate(givenVp, &localVector);
+                givenVp->rotate(&localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                GeometryOperations::scale(givenVp, &localVector);
+                givenVp->scale(&localVector);
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
