@@ -22,7 +22,7 @@ LightSamplerShader::sample(const Light *lightSource, double *lightSourceDepth,
     lightSourceRay->quadricConstantsCached = false;
 
     lightSourceRay->setDirection(
-        lightSource->center.subtract(*intersectionPoint));
+        lightSource->getCenter().subtract(*intersectionPoint));
 
     *lightSourceDepth = lightSourceRay->getDirection().length();
 

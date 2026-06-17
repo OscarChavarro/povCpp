@@ -121,14 +121,14 @@ RenderFrame::createRay(
 
     // Convert the Y Coordinate to be a double from 0.0 to 1.0
     yScalar =
-        (((double)(RenderEngine::renderFrame().screenHeight - 1) - y) - (double)height / 2.0) /
+        (((double)(RenderEngine::renderFrame().getScreenHeight() - 1) - y) - (double)height / 2.0) /
         (double)height;
 
-    tempVect1 = (RenderEngine::renderFrame().viewPoint.up).multiply(yScalar);
-    tempVect2 = (RenderEngine::renderFrame().viewPoint.right).multiply(xScalar);
+    const Camera &viewPoint = RenderEngine::renderFrame().getViewPoint();
+    tempVect1 = viewPoint.getUp().multiply(yScalar);
+    tempVect2 = viewPoint.getRight().multiply(xScalar);
     ray->setDirection(tempVect1.add(tempVect2));
-    ray->setDirection(
-        ray->getDirection().add(RenderEngine::renderFrame().viewPoint.direction));
+    ray->setDirection(ray->getDirection().add(viewPoint.getDirection()));
     ray->setDirection(ray->getDirection().normalizedFast());
     ray->initializeContainers();
     ray->isPrimaryRay = true;
@@ -160,8 +160,8 @@ RenderEngine::supersample(
     jitterY = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
                   32768.0 * 0.33333333 -
               0.16666666;
-    RenderFrame::createRay(RenderEngine::primaryRay(), RenderEngine::renderFrame().screenWidth,
-        RenderEngine::renderFrame().screenHeight, dx + jitterX, dy + jitterY);
+    RenderFrame::createRay(RenderEngine::primaryRay(), RenderEngine::renderFrame().getScreenWidth(),
+        RenderEngine::renderFrame().getScreenHeight(), dx + jitterX, dy + jitterY);
 
     RenderEngine::traceLevel() = 0;
     RenderEngine::trace(RenderEngine::primaryRay(), &color);
@@ -522,7 +522,7 @@ RenderEngine::initializeRenderer()
         }
     }
 
-    ray.setOrigin(RenderEngine::renderFrame().viewPoint.location);
+    ray.setOrigin(RenderEngine::renderFrame().getViewPoint().getLocation());
 }
 
 void
@@ -581,10 +581,10 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         return;
     }
 
-    if (RenderEngine::renderFrame().fogDistance == 0.0) {
+    if (RenderEngine::renderFrame().getFogDistance() == 0.0) {
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     } else {
-        *color = RenderEngine::renderFrame().fogColor;
+        *color = RenderEngine::renderFrame().getFogColor();
     }
 
     if (RenderingConfiguration::global().options & RenderingConfiguration::DEBUGGING) {

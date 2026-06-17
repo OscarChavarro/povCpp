@@ -18,6 +18,9 @@ class Light {
     double falloff;
 
     ColorRgba *getShapeColor() const;
+    Vector3Dd& getCenter() { return center; }
+    const Vector3Dd& getCenter() const { return center; }
+    Light *getNextLightSource() const { return nextLightSource; }
 
     virtual double evaluateLightResponseFactor(const Ray *lightSourceRay) const = 0;
 

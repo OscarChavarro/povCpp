@@ -16,6 +16,10 @@ class BoundedGeometry : public Geometry {
     ColorRgba *objectColor;
     Material *objectTexture;
 
+    bool getNoShadowFlag() const { return noShadowFlag; }
+    ColorRgba *getObjectColor() const { return objectColor; }
+    Material *getObjectTexture() const { return objectTexture; }
+
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int allIntersectionsForOwner(
         RayWithSegments *ray,

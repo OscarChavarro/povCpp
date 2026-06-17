@@ -58,7 +58,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
     lightSourceRay.isPrimaryRay = false;
 
     for (lightSource = lightSources; lightSource != nullptr;
-        lightSource = lightSource->nextLightSource) {
+        lightSource = lightSource->getNextLightSource()) {
         intersectionFound = false;
 
         LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,
@@ -75,12 +75,12 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
                 while (localQueue->size() > 0) {
                     localIntersection = localQueue->poll();
 
-                    if ((localIntersection.depth <
+                    if ((localIntersection.getDepth() <
                             lightSourceDepth - GeometryConstants::Small_Tolerance) &&
-                        (localIntersection.depth > SHADOW_TOLERANCE)) {
+                        (localIntersection.getDepth() > SHADOW_TOLERANCE)) {
 
                         // Does the object not cast a shadow?
-                        if (!localIntersection.Object->noShadowFlag) {
+                        if (!localIntersection.getObject()->getNoShadowFlag()) {
                             if (ShadowShader::shade(&localIntersection, &lightColor,
                                     localQueue, traceService)) {
                                 intersectionFound = true;

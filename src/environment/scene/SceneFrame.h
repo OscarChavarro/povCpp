@@ -20,6 +20,8 @@ class RenderFrame {
     double fogDistance;
     ColorRgba fogColor;
 
+    Camera& getViewPoint() { return viewPoint; }
+    const Camera& getViewPoint() const { return viewPoint; }
     int getScreenHeight() const { return screenHeight; }
     void setScreenHeight(int h) { screenHeight = h; }
     int getScreenWidth() const { return screenWidth; }
@@ -35,6 +37,7 @@ class RenderFrame {
     ColorRgba& getFogColor() { return fogColor; }
     const ColorRgba& getFogColor() const { return fogColor; }
     java::ArrayList<BoundedGeometry*>& getObjects() { return Objects; }
+    const java::ArrayList<BoundedGeometry*>& getObjects() const { return Objects; }
 
     static void createRay(
         RayWithSegments *ray, int width, int height, double x, double y);
