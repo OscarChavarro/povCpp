@@ -5,7 +5,6 @@
 
 #include "java/io/OutputStream.h"
 #include "java/lang/String.h"
-
 namespace java {
 class Formatter {
   public:

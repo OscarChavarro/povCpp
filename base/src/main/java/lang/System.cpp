@@ -1,8 +1,7 @@
-#include <cstdlib>
 #include <chrono>
+#include <cstdlib>
 
 #include "java/lang/System.h"
-
 namespace java {
 
 java::FileOutputStream System::standardOutput("/dev/stdout");

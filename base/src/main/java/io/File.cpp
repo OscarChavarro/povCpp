@@ -1,10 +1,9 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <sys/stat.h>
 
 #include "java/io/File.h"
-
+#include <sys/stat.h>
 namespace java {
 
 bool

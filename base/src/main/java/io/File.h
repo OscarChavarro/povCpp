@@ -2,7 +2,6 @@
 #define JAVA_IO_FILE__
 
 #include "java/lang/String.h"
-
 namespace java {
 
 class File {

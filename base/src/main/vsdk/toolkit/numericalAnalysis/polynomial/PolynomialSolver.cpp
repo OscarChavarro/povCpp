@@ -1,6 +1,5 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
-
 PolynomialSolver::PolynomialSolver() : order(0), coefficients{0.0}
 {
 }

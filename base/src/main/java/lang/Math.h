@@ -2,7 +2,6 @@
 #define JAVA_MATH__
 
 #include <cmath>
-
 namespace java {
 class Math {
   public:

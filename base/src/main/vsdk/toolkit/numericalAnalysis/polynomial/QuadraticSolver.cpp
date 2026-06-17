@@ -1,6 +1,5 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.h"
-
 int
 QuadraticSolver::solve(const double *coefficients, double *roots)
 {

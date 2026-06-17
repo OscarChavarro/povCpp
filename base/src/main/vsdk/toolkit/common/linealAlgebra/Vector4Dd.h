@@ -4,8 +4,8 @@
 
 #include <cmath>
 #include <cstring>
-#include "java/lang/String.h"
 
+#include "java/lang/String.h"
 class Vector3Dd;
 
 class Vector4Dd {

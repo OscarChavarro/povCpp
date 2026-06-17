@@ -2,12 +2,11 @@
 #define __TEXTURE_UTILS_H__
 
 #include "java/util/ArrayList.h"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
-
 class TextureUtils {
   private:
     ProceduralNoise proceduralNoise;

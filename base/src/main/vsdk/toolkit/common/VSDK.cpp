@@ -1,9 +1,7 @@
-#include "vsdk/toolkit/common/VSDK.h"
-#include "java/lang/String.h"
-
 #include <cstdio>
-#include "java/lang/String.h"
 
+#include "java/lang/String.h"
+#include "vsdk/toolkit/common/VSDK.h"
 const double VSDK::EPSILON = 1e-6;
 
 java::String VSDK::formatDouble(double a)

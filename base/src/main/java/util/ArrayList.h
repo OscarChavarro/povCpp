@@ -2,7 +2,6 @@
 #define ArrayList__
 
 #include "java/lang/Object.h"
-
 namespace java {
     template<class T>
     class ArrayList final : public Object {

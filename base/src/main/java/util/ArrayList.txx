@@ -1,5 +1,4 @@
 #include "java/util/ArrayList.h"
-
 namespace java {
 
 template <class T>

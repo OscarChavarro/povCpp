@@ -3,9 +3,7 @@
 
 
 #include "java/lang/String.h"
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 class Quaterniond {
     Vector3Dd direction_;
     double magnitude_;

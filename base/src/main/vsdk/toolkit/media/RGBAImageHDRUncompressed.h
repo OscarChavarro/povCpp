@@ -2,7 +2,6 @@
 #define __RGBA_IMAGE_HDR_UNCOMPRESSED_H__
 
 #include "vsdk/toolkit/media/RGBAPixelHDR.h"
-
 class RGBAImageHDRUncompressed {
   private:
     int xSize;

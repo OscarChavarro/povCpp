@@ -3,9 +3,9 @@
 
 
 #include <cmath>
+
 #include "vsdk/toolkit/common/VSDKFatalException.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-
 class Vector2Dd;
 
 class Vector2Df {

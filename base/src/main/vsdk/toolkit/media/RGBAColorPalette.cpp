@@ -1,7 +1,6 @@
-#include "vsdk/toolkit/media/RGBAColorPalette.h"
-#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "java/util/ArrayList.txx"
-
+#include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/media/RGBAColorPalette.h"
 RGBAColorPalette::RGBAColorPalette() {
     init(0);
 }
