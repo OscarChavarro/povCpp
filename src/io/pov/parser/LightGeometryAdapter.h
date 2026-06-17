@@ -10,6 +10,9 @@ class LightGeometryAdapter : public Geometry {
 
     Light *light;
 
+    Light *getLight() const { return light; }
+    void setLight(Light *lightSource) { light = lightSource; }
+
     int allIntersections(
         RayWithSegments *ray,
         java::PriorityQueue<Intersection> *depthQueue) override;

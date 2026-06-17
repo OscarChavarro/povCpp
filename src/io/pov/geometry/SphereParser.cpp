@@ -46,10 +46,10 @@ SphereParser::parseSphere(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getSphereShape();
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&(localShape->center), ctx);
-                localShape->radius = PrimitiveParser::parseFloat(ctx);
-                localShape->radiusSquared =
-                    localShape->getRadius() * localShape->getRadius();
+                PrimitiveParser::parseVector(&localShape->getCenter(), ctx);
+                localShape->setRadius(PrimitiveParser::parseFloat(ctx));
+                localShape->setRadiusSquared(
+                    localShape->getRadius() * localShape->getRadius());
                 localShape->setInverseRadius(1.0 / localShape->getRadius());
                 Exit_Flag = true;
                 break;

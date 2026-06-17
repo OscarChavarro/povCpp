@@ -49,8 +49,8 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 localShape = ModelBuilder::getBicubicPatchShape();
                 body = ModelBuilder::wrap(localShape);
                 localShape->setPatchType((int)PrimitiveParser::parseFloat(ctx));
-                if (localShape->patchType == 2 ||
-                    localShape->patchType == 3) {
+                if (localShape->getPatchType() == 2 ||
+                    localShape->getPatchType() == 3) {
                     localShape->setFlatnessValue(PrimitiveParser::parseFloat(ctx));
                 } else {
                     localShape->setFlatnessValue(0.1);
@@ -60,7 +60,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 for (i = 0; i < 4; i++) {
                     for (j = 0; j < 4; j++) {
                         PrimitiveParser::parseVector(
-                            &(localShape->controlPoints[i][j]), ctx);
+                            &(localShape->getControlPoints()[i][j]), ctx);
                     }
                 }
                 ParametricBiCubicPatch::precomputePatchValues(
