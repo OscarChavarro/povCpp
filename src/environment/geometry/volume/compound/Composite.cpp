@@ -12,16 +12,11 @@
 BoundedGeometry *
 BoundedGeometry::createBasicObject(Material *objectTexture)
 {
-    BoundedGeometry *newObject;
-
-    if ((newObject = new BoundedGeometry()) == nullptr) {
+    BoundedGeometry *newObject = new BoundedGeometry(
+        nullptr, objectTexture, nullptr, false);
+    if (newObject == nullptr) {
         Logger::reportMessage("Composite", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
-
-    newObject->setGeometry(nullptr);
-    newObject->setObjectTexture(objectTexture);
-    newObject->setObjectColor(nullptr);
-    newObject->setNoShadowFlag(false);
     return newObject;
 }
 
