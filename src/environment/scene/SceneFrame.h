@@ -3,6 +3,7 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/camera/Camera.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
@@ -10,6 +11,8 @@
 
 class RenderFrame {
   public:
+    RenderFrame();
+
     Camera& getViewPoint() { return viewPoint; }
     const Camera& getViewPoint() const { return viewPoint; }
     int& getScreenHeight() { return screenHeight; }
@@ -26,10 +29,16 @@ class RenderFrame {
     void setAntialiasThreshold(double threshold) { antialiasThreshold = threshold; }
     double getFogDistance() const { return fogDistance; }
     void setFogDistance(double distance) { fogDistance = distance; }
+    void setFog(const ColorRgba& color, double distance)
+    {
+        fogColor = color;
+        fogDistance = distance;
+    }
     ColorRgba& getFogColor() { return fogColor; }
     const ColorRgba& getFogColor() const { return fogColor; }
     java::ArrayList<BoundedGeometry*>& getObjects() { return Objects; }
     const java::ArrayList<BoundedGeometry*>& getObjects() const { return Objects; }
+    void resetForSceneParse();
 
     static void createRay(
         RayWithSegments *ray, int width, int height, double x, double y);

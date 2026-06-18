@@ -160,39 +160,6 @@ MaterialUtils::getTexture()
     if (newTexture == nullptr) {
         Logger::reportMessage("PovrayMaterial", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
-
-    newTexture->setObjectReflection(0.0);
-    newTexture->setObjectAmbient(0.1);
-    newTexture->setObjectDiffuse(0.6);
-    newTexture->setObjectBrilliance(1.0);
-    newTexture->setObjectSpecular(0.0);
-    newTexture->setObjectRoughness(0.05);
-    newTexture->setObjectPhong(0.0);
-    newTexture->setObjectPhongSize(40);
-
-    newTexture->setTextureRandomness(0.0);
-    newTexture->setBumpAmount(0.0);
-    newTexture->setPhase(0.0);
-    newTexture->setFrequency(1.0);
-    newTexture->setTextureNumber(SolidTextureColorNames::NO_TEXTURE);
-    newTexture->setTextureTransformation(nullptr);
-    newTexture->setTextureTransformationInverse(nullptr);
-    newTexture->setBumpNumber(SolidTextureBumpyNames::NO_BUMPS);
-    newTexture->setTurbulence(0.0);
-    newTexture->setColorMap(nullptr);
-    newTexture->setOnceFlag(false);
-    newTexture->setMetallicFlag(false);
-    newTexture->setOctaves(6);  // dmf, for turbulence functions
-    newTexture->setMortar(0.2); // rha, for brick texture
-
-    newTexture->setConstant(true);
-    newTexture->setColor1(nullptr);
-    newTexture->setColor2(nullptr);
-    newTexture->setTextureGradient(Vector3Dd(0.0, 0.0, 0.0));
-
-    newTexture->setObjectIndexOfRefraction(1.0);
-    newTexture->setObjectTransmit(0.0);
-    newTexture->setObjectRefraction(0.0);
     return (newTexture);
 }
 void

@@ -14,9 +14,11 @@ void
 SceneParser::postProcessPhase(ParserContext &ctx)
 {
     java::ArrayList<BoundedGeometry*> &objects = ctx.parsingFrame()->getObjects();
+    Light *lightHead = nullptr;
     for (long int i = objects.size() - 1; i >= 0; i--) {
-        ParseHelpers::postProcessObject(objects[i]);
+        ParseHelpers::postProcessObject(objects[i], lightHead);
     }
+    ctx.parsingFrame()->setLightSources(lightHead);
 }
 
 
@@ -71,17 +73,7 @@ void
 SceneParser::frameInit(ParserContext &ctx)
 {
     MaterialUtils::instance().setDefaultTexture(MaterialUtils::instance().getTexture());
-    ctx.parsingFrame()->getViewPoint() = Camera();
-    ctx.parsingFrame()->setLightSources(nullptr);
-    ctx.parsingFrame()->getObjects().clear();
-    ctx.parsingFrame()->setAtmosphereIor(1.0);
-    ctx.parsingFrame()->setAntialiasThreshold(
-        RenderingConfiguration::global().getAntialiasThreshold());
-    ctx.parsingFrame()->setFogDistance(0.0);
-    ctx.parsingFrame()->getFogColor().setR(0.0);
-    ctx.parsingFrame()->getFogColor().setG(0.0);
-    ctx.parsingFrame()->getFogColor().setB(0.0);
-    ctx.parsingFrame()->getFogColor().setA(0);
+    ctx.parsingFrame()->resetForSceneParse();
 }
 
 void
