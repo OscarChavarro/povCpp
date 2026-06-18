@@ -1,5 +1,5 @@
-#ifndef __TRIANGLE_H__
-#define __TRIANGLE_H__
+#ifndef __TRIANGLE__
+#define __TRIANGLE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"

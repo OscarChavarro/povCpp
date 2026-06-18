@@ -1,5 +1,5 @@
-#ifndef __FIXTURES_FACADE_H__
-#define __FIXTURES_FACADE_H__
+#ifndef __SOLID_TEXTURE_FIXTURES_FACADE__
+#define __SOLID_TEXTURE_FIXTURES_FACADE__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"

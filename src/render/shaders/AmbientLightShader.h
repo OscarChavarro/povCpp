@@ -1,5 +1,5 @@
-#ifndef __AMBIENT_LIGHT_SHADER_H__
-#define __AMBIENT_LIGHT_SHADER_H__
+#ifndef __AMBIENT_LIGHT_SHADER__
+#define __AMBIENT_LIGHT_SHADER__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/material/PovrayMaterial.h"

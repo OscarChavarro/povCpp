@@ -1,5 +1,5 @@
-#ifndef __EXPONENTIAL_FOG_SHADER_H__
-#define __EXPONENTIAL_FOG_SHADER_H__
+#ifndef __EXPONENTIAL_FOG_SHADER__
+#define __EXPONENTIAL_FOG_SHADER__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 

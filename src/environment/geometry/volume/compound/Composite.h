@@ -1,5 +1,5 @@
-#ifndef __COMPOSITE_H__
-#define __COMPOSITE_H__
+#ifndef __COMPOSITE__
+#define __COMPOSITE__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

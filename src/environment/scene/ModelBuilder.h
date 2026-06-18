@@ -1,5 +1,5 @@
-#ifndef __MODEL_BUILDER_H__
-#define __MODEL_BUILDER_H__
+#ifndef __MODEL_BUILDER__
+#define __MODEL_BUILDER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

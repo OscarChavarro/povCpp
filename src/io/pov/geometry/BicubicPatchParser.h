@@ -1,5 +1,5 @@
-#ifndef __BICUBIC_PATCH_PARSER_H__
-#define __BICUBIC_PATCH_PARSER_H__
+#ifndef __BICUBIC_PATCH_PARSER__
+#define __BICUBIC_PATCH_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

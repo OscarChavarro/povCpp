@@ -1,5 +1,5 @@
-#ifndef __PARAMETRIC_CONTROL_POINTS_H__
-#define __PARAMETRIC_CONTROL_POINTS_H__
+#ifndef __PARAMETRIC_CONTROL_POINTS__
+#define __PARAMETRIC_CONTROL_POINTS__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

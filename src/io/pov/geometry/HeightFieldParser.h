@@ -1,5 +1,5 @@
-#ifndef __HEIGHT_FIELD_PARSER_H__
-#define __HEIGHT_FIELD_PARSER_H__
+#ifndef __HEIGHT_FIELD_PARSER__
+#define __HEIGHT_FIELD_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

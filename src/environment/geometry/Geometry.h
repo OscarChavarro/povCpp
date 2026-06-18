@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_H__
-#define __GEOMETRY_H__
+#ifndef __GEOMETRY__
+#define __GEOMETRY__
 
 #include "environment/geometry/element/TransformableElement.h"
 #include "environment/geometry/GeometryConstants.h"

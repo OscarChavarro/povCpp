@@ -1,5 +1,5 @@
-#ifndef __BOX_PARSER_H__
-#define __BOX_PARSER_H__
+#ifndef __BOX_PARSER__
+#define __BOX_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

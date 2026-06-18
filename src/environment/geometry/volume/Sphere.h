@@ -1,5 +1,5 @@
-#ifndef __SPHERE_H__
-#define __SPHERE_H__
+#ifndef __SPHERE__
+#define __SPHERE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"

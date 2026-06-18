@@ -1,5 +1,5 @@
-#ifndef __TRANSFORMABLE_ELEMENT_H__
-#define __TRANSFORMABLE_ELEMENT_H__
+#ifndef __TRANSFORMABLE_ELEMENT__
+#define __TRANSFORMABLE_ELEMENT__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"

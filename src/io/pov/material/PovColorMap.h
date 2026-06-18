@@ -1,5 +1,5 @@
-#ifndef __POV_COLOR_MAP_H__
-#define __POV_COLOR_MAP_H__
+#ifndef __POV_COLOR_MAP__
+#define __POV_COLOR_MAP__
 
 #include "java/util/ArrayList.h"
 #include "io/pov/material/PovColorMapSpan.h"
@@ -27,4 +27,4 @@ class PovColorMap {
     ColorRgba evalLinear(double t) const;
 };
 
-#endif // __POV_COLOR_MAP_H__
+#endif

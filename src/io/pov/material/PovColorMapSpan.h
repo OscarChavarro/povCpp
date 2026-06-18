@@ -1,5 +1,5 @@
-#ifndef __POV_COLOR_MAP_SPAN_H__
-#define __POV_COLOR_MAP_SPAN_H__
+#ifndef __POV_COLOR_MAP_SPAN__
+#define __POV_COLOR_MAP_SPAN__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 

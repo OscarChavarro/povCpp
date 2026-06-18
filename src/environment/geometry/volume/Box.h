@@ -1,5 +1,5 @@
-#ifndef __BOX_H__
-#define __BOX_H__
+#ifndef __BOX__
+#define __BOX__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

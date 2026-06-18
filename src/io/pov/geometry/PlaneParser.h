@@ -1,5 +1,5 @@
-#ifndef __PLANE_PARSER_H__
-#define __PLANE_PARSER_H__
+#ifndef __PLANE_PARSER__
+#define __PLANE_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

@@ -1,5 +1,5 @@
-#ifndef __MATERIAL_INTERFACE_H__
-#define __MATERIAL_INTERFACE_H__
+#ifndef __MATERIAL__
+#define __MATERIAL__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

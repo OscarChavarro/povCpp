@@ -1,5 +1,5 @@
-#ifndef __TRANSMISSION_REFRACTION_SHADER_H__
-#define __TRANSMISSION_REFRACTION_SHADER_H__
+#ifndef __TRANSMISSION_REFRACTION_SHADER__
+#define __TRANSMISSION_REFRACTION_SHADER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

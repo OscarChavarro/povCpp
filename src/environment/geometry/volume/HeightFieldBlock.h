@@ -1,5 +1,5 @@
-#ifndef __HEIGHT_FIELD_BLOCK_H__
-#define __HEIGHT_FIELD_BLOCK_H__
+#ifndef __HEIGHT_FIELD_BLOCK__
+#define __HEIGHT_FIELD_BLOCK__
 
 
 class HeightFieldBlock {

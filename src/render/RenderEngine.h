@@ -1,5 +1,5 @@
-#ifndef __RENDER_ENGINE_H__
-#define __RENDER_ENGINE_H__
+#ifndef __RENDER_ENGINE__
+#define __RENDER_ENGINE__
 
 #include "environment/scene/SceneFrame.h"
 #include "render/shaders/TraceService.h"

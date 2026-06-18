@@ -1,5 +1,5 @@
-#ifndef __TEXTURE_PARSER_H__
-#define __TEXTURE_PARSER_H__
+#ifndef __TEXTURE_PARSER__
+#define __TEXTURE_PARSER__
 
 #include "environment/material/Material.h"
 #include "environment/material/PovrayMaterial.h"

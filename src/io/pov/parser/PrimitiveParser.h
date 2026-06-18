@@ -1,5 +1,5 @@
-#ifndef __PRIMITIVE_PARSER_H__
-#define __PRIMITIVE_PARSER_H__
+#ifndef __PRIMITIVE_PARSER__
+#define __PRIMITIVE_PARSER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

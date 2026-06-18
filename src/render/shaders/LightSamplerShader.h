@@ -1,5 +1,5 @@
-#ifndef __LIGHT_SAMPLER_SHADER_H__
-#define __LIGHT_SAMPLER_SHADER_H__
+#ifndef __LIGHT_SAMPLER_SHADER__
+#define __LIGHT_SAMPLER_SHADER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

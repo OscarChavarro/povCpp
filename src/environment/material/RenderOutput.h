@@ -1,5 +1,5 @@
-#ifndef __RENDER_OUTPUT_H__
-#define __RENDER_OUTPUT_H__
+#ifndef __RENDER_OUTPUT__
+#define __RENDER_OUTPUT__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 

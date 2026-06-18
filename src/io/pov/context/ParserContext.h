@@ -1,5 +1,5 @@
-#ifndef __PARSER_CONTEXT_H__
-#define __PARSER_CONTEXT_H__
+#ifndef __PARSER_CONTEXT__
+#define __PARSER_CONTEXT__
 
 #include "io/pov/lexer/ITokenStream.h"
 #include "io/pov/lexer/PovToken.h"

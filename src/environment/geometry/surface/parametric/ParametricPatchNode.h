@@ -1,5 +1,5 @@
-#ifndef __PARAMETRIC_PATCH_NODE_H__
-#define __PARAMETRIC_PATCH_NODE_H__
+#ifndef __PARAMETRIC_PATCH_NODE__
+#define __PARAMETRIC_PATCH_NODE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

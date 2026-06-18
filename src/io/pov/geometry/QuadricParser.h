@@ -1,5 +1,5 @@
-#ifndef __QUADRIC_PARSER_H__
-#define __QUADRIC_PARSER_H__
+#ifndef __QUADRIC_PARSER__
+#define __QUADRIC_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

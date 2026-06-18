@@ -1,5 +1,5 @@
-#ifndef __PARAMETRIC_PATCH_H__
-#define __PARAMETRIC_PATCH_H__
+#ifndef __PARAMETRIC_PATCH_CONSTANTS__
+#define __PARAMETRIC_PATCH_CONSTANTS__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

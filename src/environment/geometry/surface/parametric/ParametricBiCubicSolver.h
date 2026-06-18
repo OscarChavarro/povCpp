@@ -1,5 +1,5 @@
-#ifndef __PARAMETRIC_BICUBIC_SOLVER_H__
-#define __PARAMETRIC_BICUBIC_SOLVER_H__
+#ifndef __PARAMETRIC_BI_CUBIC_SOLVER__
+#define __PARAMETRIC_BI_CUBIC_SOLVER__
 
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/element/RayWithSegments.h"

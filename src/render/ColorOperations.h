@@ -1,5 +1,5 @@
-#ifndef __COLOUR_H__
-#define __COLOUR_H__
+#ifndef __COLOR_OPERATIONS__
+#define __COLOR_OPERATIONS__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 

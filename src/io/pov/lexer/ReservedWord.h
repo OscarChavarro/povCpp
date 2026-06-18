@@ -1,5 +1,5 @@
-#ifndef __RESERVED_WORD_H__
-#define __RESERVED_WORD_H__
+#ifndef __RESERVED_WORD__
+#define __RESERVED_WORD__
 
 class ReservedWord {
   public:

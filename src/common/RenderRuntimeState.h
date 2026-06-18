@@ -1,5 +1,5 @@
-#ifndef __RENDER_RUNTIME_STATE_H__
-#define __RENDER_RUNTIME_STATE_H__
+#ifndef __RENDER_RUNTIME_STATE__
+#define __RENDER_RUNTIME_STATE__
 
 class RenderRuntimeState {
   public:

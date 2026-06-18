@@ -1,5 +1,5 @@
-#ifndef __BLOB_ELEMENT_H__
-#define __BLOB_ELEMENT_H__
+#ifndef __BLOB_ELEMENT__
+#define __BLOB_ELEMENT__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

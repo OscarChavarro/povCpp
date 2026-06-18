@@ -1,5 +1,5 @@
-#ifndef __MATERIAL_H__
-#define __MATERIAL_H__
+#ifndef __POVRAY_MATERIAL__
+#define __POVRAY_MATERIAL__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

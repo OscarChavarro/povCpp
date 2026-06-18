@@ -1,5 +1,5 @@
-#ifndef __TARGA_FORMAT_H__
-#define __TARGA_FORMAT_H__
+#ifndef __TARGA_FORMAT__
+#define __TARGA_FORMAT__
 
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"

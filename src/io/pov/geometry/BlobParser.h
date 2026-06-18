@@ -1,5 +1,5 @@
-#ifndef __BLOB_PARSER_H__
-#define __BLOB_PARSER_H__
+#ifndef __BLOB_PARSER__
+#define __BLOB_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

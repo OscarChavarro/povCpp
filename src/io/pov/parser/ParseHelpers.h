@@ -1,5 +1,5 @@
-#ifndef __PARSE_HELPERS_H__
-#define __PARSE_HELPERS_H__
+#ifndef __PARSE_HELPERS__
+#define __PARSE_HELPERS__
 
 #include "environment/light/Light.h"
 #include "environment/geometry/BoundedGeometry.h"

@@ -1,5 +1,5 @@
-#ifndef __FILE_LOCATOR_H__
-#define __FILE_LOCATOR_H__
+#ifndef __FILE_LOCATOR__
+#define __FILE_LOCATOR__
 
 #include <cstdio>
 

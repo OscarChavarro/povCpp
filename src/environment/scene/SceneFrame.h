@@ -1,5 +1,5 @@
-#ifndef __SCENE_FRAME_H__
-#define __SCENE_FRAME_H__
+#ifndef __RENDER_FRAME__
+#define __RENDER_FRAME__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

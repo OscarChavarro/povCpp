@@ -1,5 +1,5 @@
-#ifndef __POVRAY_APPLICATION_H__
-#define __POVRAY_APPLICATION_H__
+#ifndef __POVRAY_APPLICATION__
+#define __POVRAY_APPLICATION__
 
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"

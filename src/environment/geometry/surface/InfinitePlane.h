@@ -1,5 +1,5 @@
-#ifndef __INFINITE_PLANE_H__
-#define __INFINITE_PLANE_H__
+#ifndef __INFINITE_PLANE__
+#define __INFINITE_PLANE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"

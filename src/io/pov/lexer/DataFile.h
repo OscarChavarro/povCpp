@@ -1,5 +1,5 @@
-#ifndef __DATA_FILE_H__
-#define __DATA_FILE_H__
+#ifndef __DATA_FILE__
+#define __DATA_FILE__
 
 #include <cstdio>
 

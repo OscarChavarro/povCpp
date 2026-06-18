@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_TYPES_H__
-#define __GEOMETRY_TYPES_H__
+#ifndef __GEOMETRY_TYPES__
+#define __GEOMETRY_TYPES__
 
 enum class GeometryTypes {
   SPHERE_TYPE = 0,

@@ -1,5 +1,5 @@
-#ifndef __IMAGE_OUTPUT_H__
-#define __IMAGE_OUTPUT_H__
+#ifndef __IMAGE_OUTPUT__
+#define __IMAGE_OUTPUT__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 

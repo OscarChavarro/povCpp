@@ -1,5 +1,5 @@
-#ifndef __SCENE_DUMP_H__
-#define __SCENE_DUMP_H__
+#ifndef __SCENE_DUMPER__
+#define __SCENE_DUMPER__
 
 #include <cstdio>
 
