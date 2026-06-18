@@ -1,19 +1,19 @@
 #ifndef __RENDER_ENGINE__
 #define __RENDER_ENGINE__
 
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 #include "render/shaders/TraceService.h"
 
 class RenderEngine {
   private:
-    static RenderFrame sRenderFrame;
+    static Scene sScene;
     static RayWithSegments *sPrimaryRay;
     static int sTraceLevel;
     static void traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color);
     static void traceServiceShadeShadow(void *context, Intersection *intersection, ColorRgba *color);
 
   public:
-    static RenderFrame &renderFrame();
+    static Scene &scene();
     static RayWithSegments *&primaryRay();
     static int &traceLevel();
     static double &maxTraceLevel();

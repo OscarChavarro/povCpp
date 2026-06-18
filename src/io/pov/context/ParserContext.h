@@ -7,7 +7,7 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/SymbolTable.h"
 #include "io/pov/context/TokenizerStream.h"
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 
 class ParserContext {
   public:
@@ -15,7 +15,7 @@ class ParserContext {
 
     const ReservedWord *reservedWords();
     PovToken &token();
-    RenderFrame *&parsingFrame();
+    Scene *&parsingFrame();
     Constant *constants();
     int &numberOfConstants();
     SymbolTable &symbols();
@@ -29,13 +29,13 @@ class ParserContext {
 
   private:
     static TokenizerStream sDefaultTokenStream;
-    static RenderFrame *sSharedParsingFramePtr;
+    static Scene *sSharedParsingFramePtr;
     static SymbolTable sSharedSymbols;
     static int sSharedDegenerateTriangles;
     static ITokenStream *sForcedTokenStream;
 
     ITokenStream *mTokenStream;
-    RenderFrame ** const mParsingFramePtr;
+    Scene ** const mParsingFramePtr;
     SymbolTable * const mSymbols;
     int * const mDegenerateTriangles;
 };

@@ -1,7 +1,7 @@
 #include "java/util/PriorityQueue.txx"
 
 #include "environment/material/MaterialUtils.h"
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/DefaultTextureParser.h"
@@ -10,14 +10,14 @@
 #include "io/pov/parser/ParseHelpers.h"
 
 void
-DefaultTextureParser::parseDefault(RenderFrame *framePtr)
+DefaultTextureParser::parseDefault(Scene *framePtr)
 {
     ParserContext ctx;
     DefaultTextureParser::parseDefault(framePtr, ctx);
 }
 
 void
-DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
+DefaultTextureParser::parseDefault(Scene *framePtr, ParserContext &ctx)
 {
     (void)framePtr;
     PovrayMaterial *parsedDefaultTexture = MaterialUtils::instance().defaultTexture();

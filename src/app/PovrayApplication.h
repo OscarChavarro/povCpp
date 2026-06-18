@@ -3,7 +3,7 @@
 
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 #include "io/image/ImageOutput.h"
 
 class PovrayApplication {
@@ -12,7 +12,7 @@ class PovrayApplication {
 
     static void printStatistics(
         const Statistics &stats,
-        const RenderFrame &frame,
+        const Scene &frame,
         const RenderingConfiguration &configuration);
 
     static void initializeFromCommandLine(int argc, char *argv[]);

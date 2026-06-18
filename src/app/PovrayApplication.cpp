@@ -13,7 +13,7 @@
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/geometry/Intersection.h"
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 #include "environment/light/Light.h"
 #include "environment/camera/Camera.h"
 #include "io/image/ImageOutput.h"
@@ -35,7 +35,7 @@ ImageOutput *PovrayApplication::selectedImageOutput = nullptr;
 void
 PovrayApplication::printStatistics(
     const Statistics &stats,
-    const RenderFrame &frame,
+    const Scene &frame,
     const RenderingConfiguration &configuration)
 {
     FILE *statOut = stdout;
@@ -154,7 +154,7 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
 
     if (RenderingConfiguration::global().getLastLine() == -1) {
         RenderingConfiguration::global().setLastLine(
-            RenderEngine::renderFrame().getScreenHeight());
+            RenderEngine::scene().getScreenHeight());
     }
 }
 
@@ -218,7 +218,7 @@ PovrayApplication::parseSceneDescription()
         fclose(statFile);
     }
 
-    SceneParser::parse(&RenderEngine::renderFrame());
+    SceneParser::parse(&RenderEngine::scene());
     Tokenizer::terminateTokenizer();
 }
 
@@ -233,7 +233,7 @@ PovrayApplication::prepareRendering()
         if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
             if (RenderingConfiguration::global().getOutputFileInputStream()->open(
                     RenderingConfiguration::global().getOutputFileNameBuffer(),
-                    &RenderEngine::renderFrame().getScreenWidth(), &RenderEngine::renderFrame().getScreenHeight(),
+                    &RenderEngine::scene().getScreenWidth(), &RenderEngine::scene().getScreenHeight(),
                     RenderingConfiguration::global().getFileBufferSize(), RenderOutput::READ_MODE,
                     RenderingConfiguration::global().getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening continue trace output file\n");
@@ -243,7 +243,7 @@ PovrayApplication::prepareRendering()
 
                 if (RenderingConfiguration::global().getOutputFileInputStream()->open(
                         RenderingConfiguration::global().getOutputFileNameBuffer(),
-                        &RenderEngine::renderFrame().getScreenWidth(), &RenderEngine::renderFrame().getScreenHeight(),
+                        &RenderEngine::scene().getScreenWidth(), &RenderEngine::scene().getScreenHeight(),
                         RenderingConfiguration::global().getFileBufferSize(), RenderOutput::WRITE_MODE,
                         RenderingConfiguration::global().getFirstLine()) != 1) {
                     Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
@@ -259,7 +259,7 @@ PovrayApplication::prepareRendering()
         } else {
             if (RenderingConfiguration::global().getOutputFileInputStream()->open(
                     RenderingConfiguration::global().getOutputFileNameBuffer(),
-                    &RenderEngine::renderFrame().getScreenWidth(), &RenderEngine::renderFrame().getScreenHeight(),
+                    &RenderEngine::scene().getScreenWidth(), &RenderEngine::scene().getScreenHeight(),
                     RenderingConfiguration::global().getFileBufferSize(), RenderOutput::WRITE_MODE,
                     RenderingConfiguration::global().getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
@@ -314,7 +314,7 @@ PovrayApplication::finalizeRun()
     Statistics::global().stopTimer();
 
     closeAll();
-    printStatistics(Statistics::global(), RenderEngine::renderFrame(), RenderingConfiguration::global());
+    printStatistics(Statistics::global(), RenderEngine::scene(), RenderingConfiguration::global());
 
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
         statFile = fopen(RenderingConfiguration::global().getStatFileName(), "a+t");
@@ -332,8 +332,8 @@ PovrayApplication::initVars()
     Tokenizer::setCaseSensitiveIdentifiers(0);
     CommandLineOptions::reset();
 
-    RenderEngine::renderFrame().setScreenHeight(100);
-    RenderEngine::renderFrame().setScreenWidth(100);
+    RenderEngine::scene().setScreenHeight(100);
+    RenderEngine::scene().setScreenWidth(100);
 }
 
 // Close all the stuff that has been opened

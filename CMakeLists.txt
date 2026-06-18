@@ -32,7 +32,7 @@ add_executable(povray
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
     src/environment/scene/ModelBuilder.cpp
-    src/environment/scene/SceneFrame.cpp
+    src/environment/scene/Scene.cpp
     src/environment/scene/BoundedGeometryFactory.cpp
     src/environment/geometry/SimpleBody.cpp
     src/environment/geometry/element/Triangle.cpp
@@ -89,7 +89,7 @@ add_executable(povray
     src/io/pov/scene/RenderSettingsParser.cpp
     src/io/pov/camera/CameraParser.cpp
     src/io/pov/scene/DeclarationParser.cpp
-    src/io/pov/scene/SceneFrameParser.cpp
+    src/io/pov/scene/SceneBodyParser.cpp
     src/io/image/RawFormat.cpp
     src/io/image/TargaFormat.cpp
     src/io/binaryIo/FileLocator.cpp

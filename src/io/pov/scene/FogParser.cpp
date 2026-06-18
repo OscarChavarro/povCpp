@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -10,14 +10,14 @@
 
 
 void
-FogParser::parseFog(RenderFrame *framePtr)
+FogParser::parseFog(Scene *framePtr)
 {
     ParserContext ctx;
     FogParser::parseFog(framePtr, ctx);
 }
 
 void
-FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
+FogParser::parseFog(Scene *framePtr, ParserContext &ctx)
 {
     ColorRgba fogColor = framePtr->getFogColor();
     double fogDistance = framePtr->getFogDistance();
