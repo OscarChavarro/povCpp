@@ -8,6 +8,10 @@ class SmoothTriangle;
 
 class Triangle : public Geometry {
   public:
+    Triangle();
+    Triangle(const Vector3Dd &p1, const Vector3Dd &p2, const Vector3Dd &p3,
+        bool inverted = false);
+
     Vector3Dd &getNormalVector() { return normalVector; }
     const Vector3Dd &getNormalVector() const { return normalVector; }
     double getDistance() const { return distance; }

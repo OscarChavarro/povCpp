@@ -6,6 +6,9 @@
 
 class Sphere : public Geometry {
   public:
+    Sphere();
+    Sphere(const Vector3Dd &center, double radius, bool inverted = false);
+
     Vector3Dd& getCenter() { return center; }
     const Vector3Dd& getCenter() const { return center; }
     double getRadius() const { return radius; }
@@ -43,6 +46,8 @@ class Sphere : public Geometry {
     void invertGeometry() override;
 
   private:
+    void updateRadiusState(double radius);
+
     Vector3Dd center;
     double radius;
     double radiusSquared;

@@ -25,11 +25,13 @@ TriangleParser::parseTriangle()
 SimpleBody *
 TriangleParser::parseTriangle(ParserContext &ctx)
 {
-    (void)ctx;
     Triangle *localShape;
     SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
+    Vector3Dd p1;
+    Vector3Dd p2;
+    Vector3Dd p3;
     PovrayMaterial *localTexture;
 
     localShape = nullptr;
@@ -44,12 +46,12 @@ TriangleParser::parseTriangle(ParserContext &ctx)
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape = ModelBuilder::getTriangleShape();
+                PrimitiveParser::parseVector(&p1, ctx);
+                PrimitiveParser::parseVector(&p2, ctx);
+                PrimitiveParser::parseVector(&p3, ctx);
+                localShape = new Triangle(p1, p2, p3);
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&localShape->getP1(), ctx);
-                PrimitiveParser::parseVector(&localShape->getP2(), ctx);
-                PrimitiveParser::parseVector(&localShape->getP3(), ctx);
-                if (!Triangle::computeTriangle(localShape)) {
+                if (localShape->isDegenerate()) {
                     {
                         char _logMsg[1024];
                         snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().getTokenLineNumber());

@@ -1,6 +1,23 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/camera/Camera.h"
 
+Camera::Camera() :
+    Camera(Vector3Dd(0.0, 0.0, 0.0), Vector3Dd(0.0, 0.0, 1.0),
+        Vector3Dd(0.0, 1.0, 0.0), Vector3Dd(1.33, 0.0, 0.0),
+        Vector3Dd(0.0, 1.0, 0.0))
+{
+}
+
+Camera::Camera(const Vector3Dd &location, const Vector3Dd &direction,
+    const Vector3Dd &up, const Vector3Dd &right, const Vector3Dd &sky) :
+    location(location),
+    direction(direction),
+    up(up),
+    right(right),
+    sky(sky)
+{
+}
+
 void
 Camera::applyLinearTransformation(const Matrix4x4d &transformation)
 {
@@ -13,28 +30,19 @@ Camera::applyLinearTransformation(const Matrix4x4d &transformation)
 void
 Camera::initializeDefaults()
 {
-    this->getLocation() = Vector3Dd(0.0, 0.0, 0.0);
-    this->getDirection() = Vector3Dd(0.0, 0.0, 1.0);
-    this->getUp() = Vector3Dd(0.0, 1.0, 0.0);
-    this->getRight() = Vector3Dd(1.33, 0.0, 0.0);
-    this->getSky() = Vector3Dd(0.0, 1.0, 0.0);
+    *this = Camera();
 }
 
 void *
 Camera::copy()
 {
     const Camera *viewpoint = this;
-    Camera * const newViewpoint = new Camera();
+    Camera * const newViewpoint = new Camera(
+        viewpoint->getLocation(), viewpoint->getDirection(), viewpoint->getUp(),
+        viewpoint->getRight(), viewpoint->getSky());
     if (newViewpoint == nullptr) {
         return nullptr;
     }
-    newViewpoint->initializeDefaults();
-
-    newViewpoint->getLocation() = viewpoint->getLocation();
-    newViewpoint->getDirection() = viewpoint->getDirection();
-    newViewpoint->getRight() = viewpoint->getRight();
-    newViewpoint->getUp() = viewpoint->getUp();
-    newViewpoint->getSky() = viewpoint->getSky();
     return (newViewpoint);
 }
 

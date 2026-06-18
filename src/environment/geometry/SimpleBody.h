@@ -17,6 +17,9 @@ class SimpleBody : public TransformableElement {
     Matrix4x4d transformInverse;
 
   public:
+    SimpleBody() = default;
+    SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor);
+
     Geometry* getGeometry() const { return geometry; }
     void setGeometry(Geometry *value) { geometry = value; }
     Material* getMaterial() const { return material; }

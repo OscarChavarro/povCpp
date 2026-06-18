@@ -28,6 +28,8 @@ PlaneParser::parsePlane(ParserContext &ctx)
     SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
+    Vector3Dd localNormal;
+    double localDistance;
     PovrayMaterial *localTexture;
 
     localShape = nullptr;
@@ -42,11 +44,10 @@ PlaneParser::parsePlane(ParserContext &ctx)
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape = ModelBuilder::getPlaneShape();
+                PrimitiveParser::parseVector(&localNormal, ctx);
+                localDistance = PrimitiveParser::parseFloat(ctx);
+                localShape = new InfinitePlane(localNormal, localDistance * -1.0);
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&(localShape->getNormalVector()), ctx);
-                localShape->setDistance(PrimitiveParser::parseFloat(ctx));
-                localShape->setDistance(localShape->getDistance() * -1.0);
                 Exit_Flag = true;
                 break;
 

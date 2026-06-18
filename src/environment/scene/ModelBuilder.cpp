@@ -28,14 +28,10 @@ SimpleBody *
 ModelBuilder::wrap(Geometry *geometry)
 {
     SimpleBody *body;
-
-    body = new SimpleBody;
+    body = new SimpleBody(geometry, nullptr, nullptr);
     if (body == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate body\n");
     }
-    body->setGeometry(geometry);
-    body->setMaterial(nullptr);
-    body->setShapeColor(nullptr);
     return (body);
 }
 
@@ -61,13 +57,6 @@ ModelBuilder::getSphereShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-
-    newShape->getCenter() = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->setRadius(1.0);
-    newShape->setRadiusSquared(1.0);
-    newShape->setInverseRadius(1.0);
-    newShape->setVpCached(false);
-    newShape->setInverted(false);
     return (newShape);
 }
 
@@ -103,14 +92,6 @@ ModelBuilder::getQuadricShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-
-    newShape->getObject2Terms() = Vector3Dd(1.0, 1.0, 1.0);
-    newShape->getObjectMixedTerms() = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->getObjectTerms() = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->setObjectConstant(1.0);
-    newShape->setObjectVpConstant(HUGE_VAL);
-    newShape->setConstantCached(false);
-    newShape->setNonZeroSquareTerm(false);
     return (newShape);
 }
 
@@ -149,12 +130,6 @@ ModelBuilder::getBoxShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-
-    *&(newShape->getBounds()[0]) = Vector3Dd(-1.0, -1.0, -1.0);
-    *&(newShape->getBounds()[1]) = Vector3Dd(1.0, 1.0, 1.0);
-    newShape->setTransformation(nullptr);
-    newShape->setTransformationInverse(nullptr);
-    newShape->setInverted(false);
     return (newShape);
 }
 
@@ -221,10 +196,6 @@ ModelBuilder::getPlaneShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-
-    newShape->getNormalVector() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->setDistance(0.0);
-    newShape->setVpCached(0);
     return (newShape);
 }
 
@@ -237,15 +208,6 @@ ModelBuilder::getTriangleShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-
-    newShape->getNormalVector() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->getP1() = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->getP2() = Vector3Dd(1.0, 0.0, 0.0);
-    newShape->getP3() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->setDistance(0.0);
-    newShape->setInverted(false);
-    newShape->setVpCached(false);
-    newShape->setDegenerateFlag(false);
     return (newShape);
 }
 
@@ -258,18 +220,6 @@ ModelBuilder::getSmoothTriangleShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-
-    newShape->getNormalVector() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->getP1() = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->getP2() = Vector3Dd(1.0, 0.0, 0.0);
-    newShape->getP3() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->getN1() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->getN2() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->getN3() = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->setDistance(0.0);
-    newShape->setInverted(false);
-    newShape->setVpCached(0);
-    newShape->setDegenerateFlag(false);
     return (newShape);
 }
 
@@ -311,12 +261,10 @@ ModelBuilder::getCamera()
 {
     Camera *newViewpoint;
 
-    newViewpoint = new Camera;
+    newViewpoint = new Camera();
     if (newViewpoint == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate viewpoint\n");
     }
-
-    newViewpoint->initializeDefaults();
     return (newViewpoint);
 }
 

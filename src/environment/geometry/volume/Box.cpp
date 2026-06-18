@@ -17,6 +17,19 @@ boxes and generously provided us these enhancements.
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/Box.h"
 
+Box::Box() :
+    Box(Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0), false)
+{
+}
+
+Box::Box(const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) :
+    transformation(nullptr),
+    transformationInverse(nullptr),
+    bounds{minBounds, maxBounds},
+    inverted(inverted)
+{
+}
+
 
 int
 Box::closeTo(double x, double y)

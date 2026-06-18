@@ -6,6 +6,30 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/Sphere.h"
 
+Sphere::Sphere() :
+    Sphere(Vector3Dd(0.0, 0.0, 0.0), 1.0, false)
+{
+}
+
+Sphere::Sphere(const Vector3Dd &center, double radius, bool inverted) :
+    center(center),
+    vpOtoC(),
+    vpOCSquared(0.0),
+    vpInside(false),
+    vpCached(false),
+    inverted(inverted)
+{
+    updateRadiusState(radius);
+}
+
+void
+Sphere::updateRadiusState(double radius)
+{
+    this->radius = radius;
+    radiusSquared = radius * radius;
+    inverseRadius = 1.0 / radius;
+}
+
 int
 Sphere::intersectSphere(
     const RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
@@ -178,9 +202,7 @@ Sphere::scaleGeometry(Vector3Dd *vector)
     }
 
     sphere->getCenter() = sphere->getCenter().multiply(vector->x());
-    sphere->setRadius(sphere->getRadius() * vector->x());
-    sphere->setRadiusSquared(sphere->getRadius() * sphere->getRadius());
-    sphere->setInverseRadius(1.0 / sphere->getRadius());
+    sphere->updateRadiusState(sphere->getRadius() * vector->x());
 }
 
 void

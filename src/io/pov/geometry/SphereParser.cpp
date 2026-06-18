@@ -24,11 +24,12 @@ SphereParser::parseSphere()
 SimpleBody *
 SphereParser::parseSphere(ParserContext &ctx)
 {
-    (void)ctx;
     Sphere *localShape;
     SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
+    Vector3Dd localCenter;
+    double localRadius;
     PovrayMaterial *localTexture;
 
     localShape = nullptr;
@@ -43,13 +44,10 @@ SphereParser::parseSphere(ParserContext &ctx)
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape = ModelBuilder::getSphereShape();
+                PrimitiveParser::parseVector(&localCenter, ctx);
+                localRadius = PrimitiveParser::parseFloat(ctx);
+                localShape = new Sphere(localCenter, localRadius);
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&localShape->getCenter(), ctx);
-                localShape->setRadius(PrimitiveParser::parseFloat(ctx));
-                localShape->setRadiusSquared(
-                    localShape->getRadius() * localShape->getRadius());
-                localShape->setInverseRadius(1.0 / localShape->getRadius());
                 Exit_Flag = true;
                 break;
 

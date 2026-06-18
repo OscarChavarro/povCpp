@@ -13,6 +13,10 @@ class Camera {
     Vector3Dd sky;
 
   public:
+    Camera();
+    Camera(const Vector3Dd &location, const Vector3Dd &direction,
+        const Vector3Dd &up, const Vector3Dd &right, const Vector3Dd &sky);
+
     Vector3Dd& getLocation() { return location; }
     const Vector3Dd& getLocation() const { return location; }
     Vector3Dd& getDirection() { return direction; }

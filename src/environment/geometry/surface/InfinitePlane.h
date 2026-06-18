@@ -6,6 +6,9 @@
 
 class InfinitePlane : public Geometry {
   public:
+    InfinitePlane();
+    InfinitePlane(const Vector3Dd &normalVector, double distance);
+
     Vector3Dd &getNormalVector() { return normalVector; }
     const Vector3Dd &getNormalVector() const { return normalVector; }
     double getDistance() const { return distance; }

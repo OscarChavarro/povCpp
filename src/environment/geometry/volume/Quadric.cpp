@@ -13,6 +13,38 @@ This module implements the code for the quadric shape primitive.
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/Quadric.h"
 
+Quadric::Quadric() :
+    Quadric(Vector3Dd(1.0, 1.0, 1.0), Vector3Dd(0.0, 0.0, 0.0),
+        Vector3Dd(0.0, 0.0, 0.0), 1.0)
+{
+}
+
+Quadric::Quadric(const Vector3Dd &object2Terms,
+    const Vector3Dd &objectMixedTerms,
+    const Vector3Dd &objectTerms, double objectConstant) :
+    object2Terms(object2Terms),
+    objectMixedTerms(objectMixedTerms),
+    objectTerms(objectTerms),
+    objectConstant(objectConstant),
+    objectVpConstant(HUGE_VAL),
+    constantCached(false),
+    nonZeroSquareTerm(false)
+{
+    updateSquareTermFlag();
+}
+
+void
+Quadric::updateSquareTermFlag()
+{
+    nonZeroSquareTerm =
+        !((object2Terms.x() == 0.0) &&
+            (object2Terms.y() == 0.0) &&
+            (object2Terms.z() == 0.0) &&
+            (objectMixedTerms.x() == 0.0) &&
+            (objectMixedTerms.y() == 0.0) &&
+            (objectMixedTerms.z() == 0.0));
+}
+
 int
 Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
@@ -254,6 +286,7 @@ Quadric::matrixToQuadric(const Matrix4x4d *matrix, Quadric *quadric)
         matrix->get(1, 3) + matrix->get(3, 1),
         matrix->get(2, 3) + matrix->get(3, 2));
     quadric->objectConstant = matrix->get(3, 3);
+    quadric->updateSquareTermFlag();
 }
 
 void

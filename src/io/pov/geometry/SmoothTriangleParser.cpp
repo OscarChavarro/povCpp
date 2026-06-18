@@ -25,11 +25,16 @@ SmoothTriangleParser::parseSmoothTriangle()
 SimpleBody *
 SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
 {
-    (void)ctx;
     SmoothTriangle *localShape;
     SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
+    Vector3Dd p1;
+    Vector3Dd p2;
+    Vector3Dd p3;
+    Vector3Dd n1;
+    Vector3Dd n2;
+    Vector3Dd n3;
     PovrayMaterial *localTexture;
 
     localShape = nullptr;
@@ -44,19 +49,15 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape =
-                    (SmoothTriangle *)ModelBuilder::getSmoothTriangleShape();
+                PrimitiveParser::parseVector(&p1, ctx);
+                PrimitiveParser::parseVector(&n1, ctx);
+                PrimitiveParser::parseVector(&p2, ctx);
+                PrimitiveParser::parseVector(&n2, ctx);
+                PrimitiveParser::parseVector(&p3, ctx);
+                PrimitiveParser::parseVector(&n3, ctx);
+                localShape = new SmoothTriangle(p1, n1, p2, n2, p3, n3);
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&localShape->getP1(), ctx);
-                PrimitiveParser::parseVector(&localShape->getN1(), ctx);
-                localShape->getN1() = localShape->getN1().normalizedFast();
-                PrimitiveParser::parseVector(&localShape->getP2(), ctx);
-                PrimitiveParser::parseVector(&localShape->getN2(), ctx);
-                localShape->getN2() = localShape->getN2().normalizedFast();
-                PrimitiveParser::parseVector(&localShape->getP3(), ctx);
-                PrimitiveParser::parseVector(&localShape->getN3(), ctx);
-                localShape->getN3() = localShape->getN3().normalizedFast();
-                if (!Triangle::computeTriangle((Triangle *)localShape)) {
+                if (localShape->isDegenerate()) {
                     {
                         char _logMsg[1024];
                         snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().getTokenLineNumber());

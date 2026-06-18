@@ -1,14 +1,13 @@
 #include "environment/light/PointLight.h"
 
-PointLight::PointLight()
+PointLight::PointLight() : Light()
 {
-    this->getCenter() = Vector3Dd(0.0, 0.0, 0.0);
-    this->getPointsAt() = Vector3Dd(0.0, 0.0, 1.0);
-    this->setInverted(false);
-    this->setCoefficient(10.0);
-    this->setRadius(0.35);
-    this->setFalloff(0.35);
-    this->setNextLightSource(nullptr);
+}
+
+PointLight::PointLight(const Vector3Dd &center, const Vector3Dd &pointsAt,
+    bool inverted, double coefficient, double radius, double falloff) :
+    Light(center, pointsAt, inverted, coefficient, radius, falloff)
+{
 }
 
 double
