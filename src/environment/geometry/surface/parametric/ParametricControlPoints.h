@@ -5,7 +5,23 @@
 
 class ParametricControlPoints {
   public:
+    Vector3Dd *getVertices();
+    const Vector3Dd *getVertices() const;
+
+  private:
     Vector3Dd vertices[4];
 };
+
+inline Vector3Dd *
+ParametricControlPoints::getVertices()
+{
+    return vertices;
+}
+
+inline const Vector3Dd *
+ParametricControlPoints::getVertices() const
+{
+    return vertices;
+}
 
 #endif

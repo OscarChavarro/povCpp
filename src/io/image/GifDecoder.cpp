@@ -177,7 +177,7 @@ GifDecoder::decoder(int iLinewidth)
     // (This shouldn't happen, but we'll try and decode it anyway...)
     oc = fc = 0;
 
-    buf = GifDecoder::decoderline;
+    buf = GifDecoder::getDecoderLine();
 
     badCodeCount = 0;
 

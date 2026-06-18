@@ -637,7 +637,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 }
 
                 localObject = ObjectParser::parseComposite(ctx);
-                localComposite->simpleBodies.add(localObject);
+                localComposite->getSimpleBodies().add(localObject);
                 break;
 
             case Tokenizer::OBJECT_TOKEN:
@@ -645,7 +645,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite = ModelBuilder::getCompositeObject();
                 }
                 localObject = ObjectParser::parseObject(ctx);
-                localComposite->simpleBodies.add(localObject);
+                localComposite->getSimpleBodies().add(localObject);
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:

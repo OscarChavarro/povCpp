@@ -9,7 +9,8 @@
 
 class Composite : public BoundedGeometry {
   public:
-    java::ArrayList<BoundedGeometry*> simpleBodies{4};
+    java::ArrayList<BoundedGeometry*> &getSimpleBodies();
+    const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
@@ -18,6 +19,21 @@ class Composite : public BoundedGeometry {
     void rotate(Vector3Dd *vector) override;
     void scale(Vector3Dd *vector) override;
     void invert() override;
+
+  private:
+    java::ArrayList<BoundedGeometry*> simpleBodies{4};
 };
+
+inline java::ArrayList<BoundedGeometry*> &
+Composite::getSimpleBodies()
+{
+    return simpleBodies;
+}
+
+inline const java::ArrayList<BoundedGeometry*> &
+Composite::getSimpleBodies() const
+{
+    return simpleBodies;
+}
 
 #endif

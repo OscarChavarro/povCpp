@@ -83,10 +83,10 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         // The patch is now flat enough to simply store the corners
         node->setNodeType(ParametricPatchConstants::PARAMETRIC_LEAF_NODE);
         vertices = ParametricBiCubicPatch::createParametricControlPointsBlock();
-        vertices->vertices[0] = (*patch)[0][0];
-        vertices->vertices[1] = (*patch)[0][3];
-        vertices->vertices[2] = (*patch)[3][3];
-        vertices->vertices[3] = (*patch)[3][0];
+        vertices->getVertices()[0] = (*patch)[0][0];
+        vertices->getVertices()[1] = (*patch)[0][3];
+        vertices->getVertices()[2] = (*patch)[3][3];
+        vertices->getVertices()[3] = (*patch)[3][0];
         node->setDataPtr((void *)vertices);
     } else if (depth >= object->uSteps) {
         if (depth >= object->vSteps) {
@@ -94,10 +94,10 @@ ParametricBiCubicPatch::parametricTreeBuilder(
             node->setNodeType(ParametricPatchConstants::PARAMETRIC_LEAF_NODE);
             vertices =
                 ParametricBiCubicPatch::createParametricControlPointsBlock();
-            vertices->vertices[0] = (*patch)[0][0];
-            vertices->vertices[1] = (*patch)[0][3];
-            vertices->vertices[2] = (*patch)[3][3];
-            vertices->vertices[3] = (*patch)[3][0];
+            vertices->getVertices()[0] = (*patch)[0][0];
+            vertices->getVertices()[1] = (*patch)[0][3];
+            vertices->getVertices()[2] = (*patch)[3][3];
+            vertices->getVertices()[3] = (*patch)[3][0];
             node->setDataPtr((void *)vertices);
         } else {
             ParametricBiCubicPatch::parametricSplitUpDown(patch,
@@ -921,10 +921,10 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
         }
     } else if (node->getNodeType() == ParametricPatchConstants::PARAMETRIC_LEAF_NODE) {
         vertices = (ParametricControlPoints *)node->getDataPtr();
-        vv0 = vertices->vertices[0];
-        vv1 = vertices->vertices[1];
-        vv2 = vertices->vertices[2];
-        vv3 = vertices->vertices[3];
+        vv0 = vertices->getVertices()[0];
+        vv1 = vertices->getVertices()[1];
+        vv2 = vertices->getVertices()[2];
+        vv3 = vertices->getVertices()[3];
 
         // Triangulate this subpatch, then check for intersections in
         // the triangles
