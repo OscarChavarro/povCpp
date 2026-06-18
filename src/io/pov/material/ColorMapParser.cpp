@@ -27,14 +27,14 @@ static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
     }
 
     // Collect and sort spans by start value (canonical order)
-    const PovColorMap::span* sorted[20];
+    const PovColorMapSpan *sorted[20];
     for (int i = 0; i < n; i++) {
         sorted[i] = map->getSpanAt(i);
     }
     for (int i = 1; i < n; i++) {
-        const PovColorMap::span * const key = sorted[i];
+        const PovColorMapSpan * const key = sorted[i];
         int j = i - 1;
-        while (j >= 0 && sorted[j]->start > key->start) {
+        while (j >= 0 && sorted[j]->getStart() > key->getStart()) {
             sorted[j + 1] = sorted[j];
             j--;
         }
@@ -47,8 +47,8 @@ static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
     // position — this creates a zero-width pair that evalLinear skips, but
     // preserves the correct colour on each side of any discontinuity.
     for (int i = 0; i < n; i++) {
-        palette->addColorAt(sorted[i]->start, sorted[i]->startColor);
-        palette->addColorAt(sorted[i]->end,   sorted[i]->endColor);
+        palette->addColorAt(sorted[i]->getStart(), sorted[i]->getStartColor());
+        palette->addColorAt(sorted[i]->getEnd(),   sorted[i]->getEndColor());
     }
 
     delete map;

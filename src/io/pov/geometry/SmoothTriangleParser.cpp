@@ -69,10 +69,10 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
 
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::SMOOTH_TRIANGLE_CONSTANT) {
                         body = (SimpleBody *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData)->copy();
+                                .getConstantData())->copy();
                         localShape = (SmoothTriangle *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);

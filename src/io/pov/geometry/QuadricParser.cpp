@@ -62,10 +62,10 @@ QuadricParser::parseQuadric(ParserContext &ctx)
 
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::QUADRIC_CONSTANT) {
                         body = (SimpleBody *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData)->copy();
+                                .getConstantData())->copy();
                         localShape = (Quadric *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);

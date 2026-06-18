@@ -37,10 +37,10 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::VIEW_POINT_CONSTANT) {
                         *givenVp = *((Camera *)ctx.constants()[(int)constantId]
-                                .constantData);
+                                .getConstantData());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

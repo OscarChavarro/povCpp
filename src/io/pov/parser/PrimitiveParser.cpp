@@ -40,10 +40,10 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::FLOAT_CONSTANT) {
                         localFloat = *(
-                            (double *)ctx.constants()[(int)constantId].constantData);
+                            (double *)ctx.constants()[(int)constantId].getConstantData());
                         if (negative) {
                             localFloat *= -1.0;
                         }
@@ -109,10 +109,10 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::VECTOR_CONSTANT) {
                         *givenVector = *((Vector3Dd *)ctx.constants()[(int)constantId]
-                                .constantData);
+                                .getConstantData());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -195,10 +195,10 @@ PrimitiveParser::parseColor(ColorRgba *givenColor, ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::COLOUR_CONSTANT) {
                         *givenColor = *((ColorRgba *)ctx.constants()[(int)constantId]
-                                .constantData);
+                                .getConstantData());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

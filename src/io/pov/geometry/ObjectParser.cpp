@@ -94,15 +94,15 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if ((ctx.constants()[(int)constantId].constantType ==
+                    if ((ctx.constants()[(int)constantId].getConstantType() ==
                             ParseGlobals::CSG_INTERSECTION_CONSTANT) ||
-                        (ctx.constants()[(int)constantId].constantType ==
+                        (ctx.constants()[(int)constantId].getConstantType() ==
                             ParseGlobals::CSG_UNION_CONSTANT) ||
-                        (ctx.constants()[(int)constantId].constantType ==
+                        (ctx.constants()[(int)constantId].getConstantType() ==
                             ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
                         container = (CSG *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData)->copy();
+                                .getConstantData())->copy();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -437,10 +437,10 @@ ObjectParser::parseObject(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::OBJECT_CONSTANT) {
                         object = (BoundedGeometry *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData)->copy();
+                                .getConstantData())->copy();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -619,10 +619,10 @@ ObjectParser::parseComposite(ParserContext &ctx)
             switch (ctx.token().tokenId) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
-                    if (ctx.constants()[(int)constantId].constantType ==
+                    if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
                         localComposite = (Composite *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .constantData)->copy();
+                                .getConstantData())->copy();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
