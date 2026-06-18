@@ -10,19 +10,22 @@
 
 class Blob : public Geometry {
   public:
-    Matrix4x4d *transformation;
-    Matrix4x4d *transformationInverse;
-    bool inverted;
-    int count;
-    double threshold;
-    BlobElement *list;
-    BlobInterval *intervals;
-    int sturmFlag;
-
     int getSturmFlag() const { return sturmFlag; }
     void setSturmFlag(int flag) { sturmFlag = flag; }
     Matrix4x4d* getTransformation() const { return transformation; }
+    void setTransformation(Matrix4x4d *value) { transformation = value; }
     Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
+    void setTransformationInverse(Matrix4x4d *value) { transformationInverse = value; }
+    bool isInverted() const { return inverted; }
+    void setInverted(bool value) { inverted = value; }
+    int getCount() const { return count; }
+    void setCount(int value) { count = value; }
+    double getThreshold() const { return threshold; }
+    void setThreshold(double value) { threshold = value; }
+    BlobElement *getList() const { return list; }
+    void setList(BlobElement *value) { list = value; }
+    BlobInterval *getIntervals() const { return intervals; }
+    void setIntervals(BlobInterval *value) { intervals = value; }
 
     static void makeBlob(BoundedGeometry *obj, double threshold, BlobList *bloblist,
         int npoints, int sflag);
@@ -37,6 +40,15 @@ class Blob : public Geometry {
     void invertGeometry() override;
 
   private:
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
+    bool inverted;
+    int count;
+    double threshold;
+    BlobElement *list;
+    BlobInterval *intervals;
+    int sturmFlag;
+
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
         const Blob *blob, double mindist);
     static double calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos);

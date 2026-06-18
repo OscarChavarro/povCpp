@@ -73,7 +73,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                     Logger::reportMessage("PolyParser", Logger::WARNING, "", "Need the order of the Poly");
                 }
                 PrimitiveParser::parseCoeffs(
-                    localShape->order, &(localShape->Coeffs[0]));
+                    localShape->getOrder(), &(localShape->getCoeffs()[0]));
                 Exit_Flag = true;
                 break;
 

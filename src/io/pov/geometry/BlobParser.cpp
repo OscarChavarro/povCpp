@@ -85,13 +85,13 @@ BlobParser::parseBlob(ParserContext &ctx)
                                     "Out of Memory! Cannot allocate blob "
                                     "component", ctx);
                             }
-                            blobComponent->elem.coeffs[2] =
+                            blobComponent->getElem().getCoeffs()[2] =
                                 PrimitiveParser::parseFloat(ctx);
-                            blobComponent->elem.radius2 =
-                                PrimitiveParser::parseFloat(ctx);
+                            blobComponent->getElem().setRadius2(
+                                PrimitiveParser::parseFloat(ctx));
                             PrimitiveParser::parseVector(
-                                &blobComponent->elem.pos);
-                            blobComponent->next = blobComponents;
+                                &blobComponent->getElem().getPos());
+                            blobComponent->setNext(blobComponents);
                             blobComponents = blobComponent;
                             npoints++;
                             break;

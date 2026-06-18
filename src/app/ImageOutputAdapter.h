@@ -5,6 +5,9 @@
 #include "io/image/ImageOutput.h"
 
 class ImageOutputAdapter : public RenderOutput {
+  private:
+    ImageOutput * const delegate;
+
   public:
     explicit ImageOutputAdapter(ImageOutput *delegate);
 
@@ -14,9 +17,6 @@ class ImageOutputAdapter : public RenderOutput {
     void writeLine(ColorRgba *lineData, int lineNumber) override;
     int readLine(ColorRgba *lineData, int *lineNumber) const override;
     void close() override;
-
-  private:
-    ImageOutput * const delegate;
 };
 
 #endif

@@ -45,17 +45,18 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getQuadricShape();
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&(localShape->object2Terms), ctx);
-                PrimitiveParser::parseVector(&(localShape->objectMixedTerms), ctx);
-                PrimitiveParser::parseVector(&(localShape->objectTerms), ctx);
-                (localShape->objectConstant) = PrimitiveParser::parseFloat(ctx);
-                localShape->nonZeroSquareTerm =
-                    !((localShape->object2Terms.x() == 0.0) &&
-                        (localShape->object2Terms.y() == 0.0) &&
-                        (localShape->object2Terms.z() == 0.0) &&
-                        (localShape->objectMixedTerms.x() == 0.0) &&
-                        (localShape->objectMixedTerms.y() == 0.0) &&
-                        (localShape->objectMixedTerms.z() == 0.0));
+                PrimitiveParser::parseVector(&(localShape->getObject2Terms()), ctx);
+                PrimitiveParser::parseVector(
+                    &(localShape->getObjectMixedTerms()), ctx);
+                PrimitiveParser::parseVector(&(localShape->getObjectTerms()), ctx);
+                localShape->setObjectConstant(PrimitiveParser::parseFloat(ctx));
+                localShape->setNonZeroSquareTerm(
+                    !((localShape->getObject2Terms().x() == 0.0) &&
+                        (localShape->getObject2Terms().y() == 0.0) &&
+                        (localShape->getObject2Terms().z() == 0.0) &&
+                        (localShape->getObjectMixedTerms().x() == 0.0) &&
+                        (localShape->getObjectMixedTerms().y() == 0.0) &&
+                        (localShape->getObjectMixedTerms().z() == 0.0)));
                 Exit_Flag = true;
                 break;
 
