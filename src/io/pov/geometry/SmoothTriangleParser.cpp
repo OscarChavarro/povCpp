@@ -41,7 +41,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape =
@@ -59,7 +59,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 if (!Triangle::computeTriangle((Triangle *)localShape)) {
                     {
                         char _logMsg[1024];
-                        snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().tokenLineNo);
+                        snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().getTokenLineNo());
                         Logger::reportMessage("SmoothTriangleParser", Logger::ERROR, "", _logMsg);
                     }
                     ctx.degenerateTriangles() = true;
@@ -95,7 +95,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;

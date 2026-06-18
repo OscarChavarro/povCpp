@@ -37,7 +37,7 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
@@ -106,7 +106,7 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
@@ -158,7 +158,7 @@ PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 for (i = 0; i < PolynomialShape::termCountsByOrder()[order]; i++) {
                     givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
@@ -192,7 +192,7 @@ PrimitiveParser::parseColor(ColorRgba *givenColor, ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==

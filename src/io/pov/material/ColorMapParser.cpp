@@ -75,7 +75,7 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
         bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_SQUARE_TOKEN: {
                 const double spanStart = PrimitiveParser::parseFloat(ctx);
                 const double spanEnd   = PrimitiveParser::parseFloat(ctx);

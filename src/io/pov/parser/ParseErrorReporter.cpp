@@ -10,8 +10,8 @@
 void
 ParseErrorReporter::reportLocation(ParserContext &ctx)
 {
-    const char *file = (ctx.token().Filename != nullptr) ? ctx.token().Filename : "<unknown>";
-    const int line = ctx.token().tokenLineNo + 1;
+    const char *file = (ctx.token().fileName != nullptr) ? ctx.token().fileName : "<unknown>";
+    const int line = ctx.token().getTokenLineNo() + 1;
     const int column = (ctx.token().tokenColumnNo > 0) ? ctx.token().tokenColumnNo : 1;
     {
         char _logMsg[1024];
@@ -23,8 +23,8 @@ ParseErrorReporter::reportLocation(ParserContext &ctx)
 void
 ParseErrorReporter::writeVerboseStatLine(FILE *statFile, ParserContext &ctx)
 {
-    const char *file = (ctx.token().Filename != nullptr) ? ctx.token().Filename : "<unknown>";
-    const int line = ctx.token().tokenLineNo + 1;
+    const char *file = (ctx.token().fileName != nullptr) ? ctx.token().fileName : "<unknown>";
+    const int line = ctx.token().getTokenLineNo() + 1;
     const int column = (ctx.token().tokenColumnNo > 0) ? ctx.token().tokenColumnNo : 1;
     fprintf(statFile, "Error at %s:%d:%d\n", file, line, column);
 }
@@ -64,7 +64,7 @@ ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
     FILE *statFile;
     reportLocation(ctx);
     expected = ParseErrorReporter::getTokenString(tokenId, ctx);
-    found = ParseErrorReporter::getTokenString(ctx.token().tokenId, ctx);
+    found = ParseErrorReporter::getTokenString(ctx.token().getTokenId(), ctx);
     {
         char _logMsg[1024];
         snprintf(_logMsg, sizeof(_logMsg), "%s expected but %s found instead\n", expected, found);
@@ -93,11 +93,11 @@ ParseErrorReporter::typeError(ParserContext &ctx)
 {
     FILE *statFile;
     reportLocation(ctx);
-    fprintf(stderr, "Identifier %s is the wrong type\n", ctx.token().Token_String);
+    fprintf(stderr, "Identifier %s is the wrong type\n", ctx.token().tokenString);
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
         statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         writeVerboseStatLine(statFile, ctx);
-        fprintf(statFile, "Identifier %s is the wrong type\n", ctx.token().Token_String);
+        fprintf(statFile, "Identifier %s is the wrong type\n", ctx.token().tokenString);
 
         fclose(statFile);
     }
@@ -119,13 +119,13 @@ ParseErrorReporter::reportUndeclared(ParserContext &ctx)
     reportLocation(ctx);
     {
         char _logMsg[1024];
-        snprintf(_logMsg, sizeof(_logMsg), "Undeclared identifier %s\n", ctx.token().Token_String);
+        snprintf(_logMsg, sizeof(_logMsg), "Undeclared identifier %s\n", ctx.token().tokenString);
         Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
     }
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
         statFile = fopen(RenderingConfiguration::global().getStatFileName(), "w+t");
         writeVerboseStatLine(statFile, ctx);
-        fprintf(statFile, "Undeclared identifier %s\n", ctx.token().Token_String);
+        fprintf(statFile, "Undeclared identifier %s\n", ctx.token().tokenString);
         fclose(statFile);
     }
 

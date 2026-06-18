@@ -41,7 +41,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getTriangleShape();
@@ -52,7 +52,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 if (!Triangle::computeTriangle(localShape)) {
                     {
                         char _logMsg[1024];
-                        snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().tokenLineNo);
+                        snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().getTokenLineNo());
                         Logger::reportMessage("TriangleParser", Logger::ERROR, "", _logMsg);
                     }
                     ctx.degenerateTriangles() = true;
@@ -88,7 +88,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;

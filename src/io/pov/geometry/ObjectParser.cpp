@@ -91,7 +91,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
                     if ((ctx.constants()[(int)constantId].getConstantType() ==
@@ -272,7 +272,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;
@@ -322,7 +322,7 @@ ObjectParser::parseShape(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = ModelBuilder::wrap(
                     new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
@@ -434,7 +434,7 @@ ObjectParser::parseObject(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
@@ -489,7 +489,7 @@ ObjectParser::parseObject(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::BOUNDED_TOKEN:
 
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -499,7 +499,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                     Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
-                        switch (ctx.token().tokenId) {
+                        switch (ctx.token().getTokenId()) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
                             Exit_Flag = true;
                             break;
@@ -523,7 +523,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                     Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
-                        switch (ctx.token().tokenId) {
+                        switch (ctx.token().getTokenId()) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
                             Exit_Flag = true;
                             break;
@@ -616,7 +616,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
@@ -669,7 +669,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;
@@ -683,7 +683,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
-                        switch (ctx.token().tokenId) {
+                        switch (ctx.token().getTokenId()) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
                             Exit_Flag = true;
                             break;
@@ -707,7 +707,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
-                        switch (ctx.token().tokenId) {
+                        switch (ctx.token().getTokenId()) {
                         case Tokenizer::RIGHT_CURLY_TOKEN:
                             Exit_Flag = true;
                             break;

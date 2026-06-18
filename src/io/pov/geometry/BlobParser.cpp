@@ -41,7 +41,7 @@ BlobParser::parseBlob(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;
@@ -57,7 +57,7 @@ BlobParser::parseBlob(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::THRESHOLD_TOKEN:
             case Tokenizer::COMPONENT_TOKEN:
                 ctx.tokenStream().ungetToken();
@@ -73,7 +73,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                     Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
-                        switch (ctx.token().tokenId) {
+                        switch (ctx.token().getTokenId()) {
                         case Tokenizer::THRESHOLD_TOKEN:
                             threshold = PrimitiveParser::parseFloat(ctx);
                             break;
@@ -138,7 +138,7 @@ BlobParser::parseBlob(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;

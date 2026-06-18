@@ -48,7 +48,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (
-                ctx.token().tokenId) { // This should be modified to include
+                ctx.token().getTokenId()) { // This should be modified to include
                                         // other image types - CdW
             case Tokenizer::GIF_TOKEN:
                 imageType = HeightField::GIF;
@@ -61,7 +61,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                GifFormat::readGifImage(indexedImage, ctx.token().Token_String);
+                GifFormat::readGifImage(indexedImage, ctx.token().tokenString);
                 localShape->getBoundingBox()->getBounds()[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->getBoundingBox()->getBounds()[1] =
                     Vector3Dd(indexedImage->getXSize() - 2.0, 256.0, indexedImage->getYSize() - 2.0);
@@ -85,7 +85,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                GifFormat::readGifImage(indexedImage, ctx.token().Token_String);
+                GifFormat::readGifImage(indexedImage, ctx.token().tokenString);
                 localShape->getBoundingBox()->getBounds()[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->getBoundingBox()->getBounds()[1] = Vector3Dd(
                     indexedImage->getXSize() / 2.0 - 2.0, 256.0, indexedImage->getYSize() - 2.0);
@@ -108,7 +108,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "Height Field (1st message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                TargaFormat::readTargaImage(directImage, ctx.token().Token_String);
+                TargaFormat::readTargaImage(directImage, ctx.token().tokenString);
                 localShape->getBoundingBox()->getBounds()[0] = Vector3Dd(1.0, 0.0, 1.0);
                 localShape->getBoundingBox()->getBounds()[1] =
                     Vector3Dd(directImage->getXSize() - 2.0, 256.0, directImage->getYSize() - 2.0);
@@ -149,7 +149,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;
