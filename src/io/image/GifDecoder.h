@@ -5,13 +5,15 @@ typedef short WORD;
 
 class GifDecoder {
   public:
-    static unsigned char *decoderline;
+    static unsigned char *getDecoderLine();
+    static void setDecoderLine(unsigned char *value);
     static void cleanupGifDecoder(void);
     static WORD initExp(int iSize);
     static WORD getNextCode(void);
     static WORD decoder(int iLinewidth);
 
   private:
+    static unsigned char *decoderline;
     static long codeMask[13];
     static int badCodeCount;
     static WORD currSize;
@@ -29,5 +31,17 @@ class GifDecoder {
     static unsigned char *suffix;
     static unsigned short *prefix;
 };
+
+inline unsigned char *
+GifDecoder::getDecoderLine()
+{
+    return decoderline;
+}
+
+inline void
+GifDecoder::setDecoderLine(unsigned char *value)
+{
+    decoderline = value;
+}
 
 #endif

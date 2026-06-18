@@ -42,7 +42,7 @@ void
 ParseHelpers::postProcessObject(BoundedGeometry *object)
 {
     if (Composite *composite = dynamic_cast<Composite *>(object)) {
-        java::ArrayList<BoundedGeometry*> &simpleBodies = composite->simpleBodies;
+        java::ArrayList<BoundedGeometry*> &simpleBodies = composite->getSimpleBodies();
         for (long int i = simpleBodies.size() - 1; i >= 0; i--) {
             ParseHelpers::postProcessObject(simpleBodies[i]);
         }

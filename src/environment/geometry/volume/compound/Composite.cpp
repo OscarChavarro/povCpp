@@ -54,8 +54,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
     localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
     anyIntersectionFound = false;
 
-    for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
-        localObject = this->simpleBodies[i];
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
 
         localObject->allIntersections(ray, localDepthQueue);
     }
@@ -215,8 +215,8 @@ Composite::inside(Vector3Dd *point)
         }
     }
 
-    for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
-        localObject = this->simpleBodies[i];
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
 
         if (localObject->inside(point)) {
             return (true);
@@ -274,12 +274,12 @@ Composite::copy()
 
     newObject = new Composite;
     *newObject = *this;
-    newObject->simpleBodies.clear();
-    for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
-        localObject = this->simpleBodies[i];
+    newObject->getSimpleBodies().clear();
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
 
         copiedObject = (BoundedGeometry *)localObject->copy();
-        newObject->simpleBodies.add(copiedObject);
+        newObject->getSimpleBodies().add(copiedObject);
     }
 
     newObject->getBoundingShapes().clear();
@@ -379,8 +379,8 @@ Composite::translate(Vector3Dd *vector)
     BoundedGeometry *localObject;
     TransformableElement *localShape;
 
-    for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
-        localObject = this->simpleBodies[i];
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
 
         localObject->translate(vector);
     }
@@ -404,8 +404,8 @@ Composite::rotate(Vector3Dd *vector)
     BoundedGeometry *localObject;
     TransformableElement *localShape;
 
-    for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
-        localObject = this->simpleBodies[i];
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
 
         localObject->rotate(vector);
     }
@@ -429,8 +429,8 @@ Composite::scale(Vector3Dd *vector)
     BoundedGeometry *localObject;
     TransformableElement *localShape;
 
-    for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
-        localObject = this->simpleBodies[i];
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
 
         localObject->scale(vector);
     }
@@ -471,8 +471,8 @@ Composite::invert()
     BoundedGeometry *localObject;
     TransformableElement *localShape;
 
-    for (long int i = this->simpleBodies.size() - 1; i >= 0; i--) {
-        localObject = this->simpleBodies[i];
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
         localObject->invert();
     }
 

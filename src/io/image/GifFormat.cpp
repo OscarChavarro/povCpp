@@ -65,8 +65,8 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
         }
     }
 
-    GifDecoder::decoderline = new unsigned char[2049];
-    if (GifDecoder::decoderline == nullptr) {
+    GifDecoder::setDecoderLine(new unsigned char[2049]);
+    if (GifDecoder::getDecoderLine() == nullptr) {
         Logger::reportMessage("GifFormat", Logger::ERROR, "", "Cannot allocate space for GIF decoder line\n");
         bitStream->close();
         delete bitStream;
@@ -74,7 +74,7 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
     }
 
     for (i = 0; i < 2049; i++) {
-        GifDecoder::decoderline[i] = (unsigned char)0;
+        GifDecoder::getDecoderLine()[i] = (unsigned char)0;
     }
 
     for (i = 0; i < 13; i++) {
@@ -176,8 +176,8 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
         }
     }
 
-    delete GifDecoder::decoderline;
-    GifDecoder::decoderline = nullptr;
+    delete[] GifDecoder::getDecoderLine();
+    GifDecoder::setDecoderLine(nullptr);
     bitStream->close();
     delete bitStream;
     bitStream = nullptr;
