@@ -2,8 +2,8 @@
 #define __TOKENIZER_H__
 
 #include "io/pov/lexer/DataFile.h"
+#include "io/pov/lexer/PovToken.h"
 #include "io/pov/lexer/ReservedWord.h"
-#include "io/pov/lexer/TokenStruct.h"
 
 typedef int TOKEN;
 
@@ -174,7 +174,7 @@ class Tokenizer {
     static constexpr int LAST_TOKEN = 154;
 
     static const ReservedWord *reservedWords();
-    static TokenStruct &token();
+    static PovToken &token();
     static void setCaseSensitiveIdentifiers(int mode);
     static void initializeTokenizer(const char *inputFileName);
     static void terminateTokenizer(void);
@@ -197,7 +197,7 @@ class Tokenizer {
     static constexpr int MAX_STRING_INDEX = 41;
     static constexpr int MAX_INCLUDE_FILES = 10;
     static ReservedWord sReservedWords[LAST_TOKEN];
-    static TokenStruct sToken;
+    static PovToken sToken;
     static int maxSymbols;
     static char sString[MAX_STRING_INDEX];
     static int sStringIndex;

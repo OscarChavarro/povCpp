@@ -42,7 +42,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
     ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
     Constant * const constantPtr =
-        ctx.symbols().upsertByIdentifierNumber(ctx.token().identifierNumber);
+        ctx.symbols().upsertByIdentifierNumber(ctx.token().getIdentifierNumber());
     if (constantPtr == nullptr) {
         ParseErrorReporter::reportError("Too many constants \"declared\"", ctx);
     }
@@ -55,7 +55,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::OBJECT_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)ObjectParser::parseObject(ctx));
                 constantPtr->setConstantType(ParseGlobals::OBJECT_CONSTANT);
@@ -63,7 +63,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::SPHERE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)SphereParser::parseSphere(ctx));
                 constantPtr->setConstantType(ParseGlobals::SPHERE_CONSTANT);
@@ -71,14 +71,14 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::PLANE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)PlaneParser::parsePlane(ctx));
                 constantPtr->setConstantType(ParseGlobals::PLANE_CONSTANT);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::TRIANGLE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)TriangleParser::parseTriangle(ctx));
                 constantPtr->setConstantType(ParseGlobals::TRIANGLE_CONSTANT);
@@ -86,7 +86,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)SmoothTriangleParser::parseSmoothTriangle(ctx));
                 constantPtr->setConstantType(ParseGlobals::SMOOTH_TRIANGLE_CONSTANT);
@@ -94,7 +94,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::QUADRIC_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)QuadricParser::parseQuadric(ctx));
                 constantPtr->setConstantType(ParseGlobals::QUADRIC_CONSTANT);
@@ -102,21 +102,21 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::CUBIC_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)PolyParser::parsePoly(3, ctx));
                 constantPtr->setConstantType(ParseGlobals::POLY_CONSTANT);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::QUARTIC_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)PolyParser::parsePoly(4, ctx));
                 constantPtr->setConstantType(ParseGlobals::POLY_CONSTANT);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)HeightFieldParser::parseHeightField(ctx));
                 constantPtr->setConstantType(ParseGlobals::HEIGHT_FIELD_CONSTANT);
@@ -124,28 +124,28 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::POLY_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)PolyParser::parsePoly(0, ctx));
                 constantPtr->setConstantType(ParseGlobals::POLY_CONSTANT);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::BOX_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)BoxParser::parseBox(ctx));
                 constantPtr->setConstantType(ParseGlobals::BOX_CONSTANT);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::BLOB_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)BlobParser::parseBlob(ctx));
                 constantPtr->setConstantType(ParseGlobals::BLOB_CONSTANT);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)BicubicPatchParser::parseBicubicPatch(ctx));
                 constantPtr->setConstantType(ParseGlobals::BICUBIC_PATCH_CONSTANT);
@@ -153,7 +153,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_INTERSECTION_CONSTANT);
@@ -161,7 +161,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::UNION_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_UNION_CONSTANT);
@@ -169,7 +169,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_DIFFERENCE_CONSTANT);
@@ -177,7 +177,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::COMPOSITE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)ObjectParser::parseComposite(ctx));
                 constantPtr->setConstantType(ParseGlobals::COMPOSITE_CONSTANT);
@@ -185,7 +185,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 localTexture = nullptr;
                 constantPtr->setConstantData((char *)localTexture);
                 constantPtr->setConstantType(ParseGlobals::TEXTURE_CONSTANT);
@@ -225,7 +225,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::VIEW_POINT_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)ModelBuilder::getCamera());
                 constantPtr->setConstantType(ParseGlobals::VIEW_POINT_CONSTANT);
                 CameraParser::parseCamera(
@@ -234,7 +234,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)ModelBuilder::getColor());
                 constantPtr->setConstantType(ParseGlobals::COLOUR_CONSTANT);
                 PrimitiveParser::parseColor(
@@ -243,7 +243,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
                     (char *)LightSourceParser::parseLightSource(ctx));
                 constantPtr->setConstantType(ParseGlobals::LIGHT_SOURCE_CONSTANT);
@@ -252,7 +252,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)ModelBuilder::getVector());
                 constantPtr->setConstantType(ParseGlobals::VECTOR_CONSTANT);
                 PrimitiveParser::parseVector(
@@ -264,7 +264,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::PLUS_TOKEN:
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
-                constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
+                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)ModelBuilder::getFloat());
                 constantPtr->setConstantType(ParseGlobals::FLOAT_CONSTANT);
                 *((double *)constantPtr->getConstantData()) =

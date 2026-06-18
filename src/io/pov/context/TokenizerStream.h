@@ -6,7 +6,7 @@
 class TokenizerStream : public ITokenStream {
   public:
     const ReservedWord *reservedWords() override;
-    TokenStruct &token() override;
+    PovToken &token() override;
     void getToken() override;
     void ungetToken() override;
 };

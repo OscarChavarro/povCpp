@@ -111,7 +111,7 @@ DataFile Tokenizer::sGlobalIncludeFiles[Tokenizer::MAX_INCLUDE_FILES];
 DataFile *Tokenizer::sGlobalDataFile = nullptr;
 int Tokenizer::sGlobalIncludeFileIndex = 0;
 
-TokenStruct Tokenizer::sToken;
+PovToken Tokenizer::sToken;
 
 const ReservedWord *
 Tokenizer::reservedWords()
@@ -119,7 +119,7 @@ Tokenizer::reservedWords()
     return sReservedWords;
 }
 
-TokenStruct &
+PovToken &
 Tokenizer::token()
 {
     return sToken;
@@ -189,7 +189,7 @@ Tokenizer::initializeTokenizer(const char *filename)
         Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "Out of Memory. Cannot allocate space for symbol table\n");
     }
 
-    Tokenizer::token().endOfFile = false;
+    Tokenizer::token().setEndOfFile(false);
     Tokenizer::sNumberOfSymbols = 0;
 }
 
@@ -231,12 +231,12 @@ Tokenizer::getToken()
 {
     int c;
     int c2;
-    if (Tokenizer::token().ungetToken) {
-        Tokenizer::token().ungetToken = false;
+    if (Tokenizer::token().isUnGetToken()) {
+        Tokenizer::token().setUnGetToken(false);
         return;
     }
 
-    if (Tokenizer::token().endOfFile) {
+    if (Tokenizer::token().isEndOfFile()) {
         return;
     }
 
@@ -250,7 +250,7 @@ Tokenizer::getToken()
         if (c == EOF) {
             if (Tokenizer::sGlobalIncludeFileIndex == 0) {
                 Tokenizer::token().setTokenId(Tokenizer::END_OF_FILE_TOKEN);
-                Tokenizer::token().endOfFile = true;
+                Tokenizer::token().setEndOfFile(true);
                 // putchar ('\n');
                 fprintf(stderr, "\n");
                 return;
@@ -527,23 +527,23 @@ Tokenizer::getToken()
             Tokenizer::sGlobalDataFile->setLineNumber(0);
 
             Tokenizer::sGlobalDataFile->setFilename(
-                new char[strlen(Tokenizer::token().tokenString) + 1]);
+                new char[strlen(Tokenizer::token().getTokenString()) + 1]);
             if (Tokenizer::sGlobalDataFile->getFilename() == nullptr) {
                 {
                     char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Out of memory opening include file: %s\n", Tokenizer::token().tokenString);
+                    snprintf(_logMsg, sizeof(_logMsg), "Out of memory opening include file: %s\n", Tokenizer::token().getTokenString());
                     Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
                 }
             }
 
-            strcpy(Tokenizer::sGlobalDataFile->getFilename(), Tokenizer::token().tokenString);
+            strcpy(Tokenizer::sGlobalDataFile->getFilename(), Tokenizer::token().getTokenString());
 
             Tokenizer::sGlobalDataFile->setFile(FileLocator::locate(
-                Tokenizer::token().tokenString, "r"));
+                Tokenizer::token().getTokenString(), "r"));
             if (Tokenizer::sGlobalDataFile->getFile() == nullptr) {
                 {
                     char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Cannot open include file: %s\n", Tokenizer::token().tokenString);
+                    snprintf(_logMsg, sizeof(_logMsg), "Cannot open include file: %s\n", Tokenizer::token().getTokenString());
                     Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
                 }
             }
@@ -573,7 +573,7 @@ new one from the file.
 void
 Tokenizer::ungetToken()
 {
-    Tokenizer::token().ungetToken = true;
+    Tokenizer::token().setUnGetToken(true);
 }
 
 // Skip over spaces in the input file
@@ -805,9 +805,11 @@ DataFile::readFloat()
     this->endString();
 
     Tokenizer::writeToken(Tokenizer::FLOAT_TOKEN, Tokenizer::getGlobalDataFile());
-    if (sscanf(Tokenizer::getString(), "%lf", &Tokenizer::token().tokenFloat) == 0) {
+    double tokenFloat = 0.0;
+    if (sscanf(Tokenizer::getString(), "%lf", &tokenFloat) == 0) {
         return (false);
     }
+    Tokenizer::token().setTokenFloat(tokenFloat);
 
     return (true);
 }
@@ -834,7 +836,7 @@ DataFile::parseString()
     this->endString();
 
     Tokenizer::writeToken(Tokenizer::STRING_TOKEN, Tokenizer::getGlobalDataFile());
-    Tokenizer::token().tokenString = Tokenizer::getString();
+    Tokenizer::token().setTokenString(Tokenizer::getString());
 }
 
 /**
@@ -969,14 +971,14 @@ void
 Tokenizer::writeToken(TOKEN tokenId, const DataFile *dataFile)
 {
     Tokenizer::token().setTokenId(tokenId);
-    Tokenizer::token().setTokenLineNo(dataFile->getLineNumber());
-    Tokenizer::token().tokenColumnNo = 1;
-    Tokenizer::token().fileName = dataFile->getFilename();
-    Tokenizer::token().tokenString = Tokenizer::sString;
+    Tokenizer::token().setTokenLineNumber(dataFile->getLineNumber());
+    Tokenizer::token().setTokenColumnNumber(1);
+    Tokenizer::token().setFileName(dataFile->getFilename());
+    Tokenizer::token().setTokenString(Tokenizer::sString);
 
     if (Tokenizer::token().getTokenId() > Tokenizer::LAST_TOKEN) {
-        Tokenizer::token().identifierNumber =
-            (int)Tokenizer::token().getTokenId() - (int)Tokenizer::LAST_TOKEN;
+        Tokenizer::token().setIdentifierNumber(
+            (int)Tokenizer::token().getTokenId() - (int)Tokenizer::LAST_TOKEN);
         Tokenizer::token().setTokenId(Tokenizer::IDENTIFIER_TOKEN);
     }
 }

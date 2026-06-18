@@ -32,7 +32,7 @@ FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
                 break;
 
             case Tokenizer::FLOAT_TOKEN:
-                framePtr->setFogDistance(ctx.token().tokenFloat);
+                framePtr->setFogDistance(ctx.token().getTokenFloat());
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:

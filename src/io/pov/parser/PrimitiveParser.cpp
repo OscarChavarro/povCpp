@@ -72,7 +72,7 @@ PrimitiveParser::parseFloat(ParserContext &ctx)
                 break;
 
             case Tokenizer::FLOAT_TOKEN:
-                localFloat = ctx.token().tokenFloat;
+                localFloat = ctx.token().getTokenFloat();
                 if (negative) {
                     localFloat *= -1.0;
                 }
