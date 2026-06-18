@@ -104,13 +104,13 @@ ModelBuilder::getQuadricShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    *&(newShape->object2Terms) = Vector3Dd(1.0, 1.0, 1.0);
-    *&(newShape->objectMixedTerms) = Vector3Dd(0.0, 0.0, 0.0);
-    *&(newShape->objectTerms) = Vector3Dd(0.0, 0.0, 0.0);
-    newShape->objectConstant = 1.0;
-    newShape->objectVpConstant = HUGE_VAL;
-    newShape->constantCached = false;
-    newShape->nonZeroSquareTerm = false;
+    newShape->getObject2Terms() = Vector3Dd(1.0, 1.0, 1.0);
+    newShape->getObjectMixedTerms() = Vector3Dd(0.0, 0.0, 0.0);
+    newShape->getObjectTerms() = Vector3Dd(0.0, 0.0, 0.0);
+    newShape->setObjectConstant(1.0);
+    newShape->setObjectVpConstant(HUGE_VAL);
+    newShape->setConstantCached(false);
+    newShape->setNonZeroSquareTerm(false);
     return (newShape);
 }
 
@@ -125,17 +125,17 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->transformation = nullptr;
-    newShape->transformationInverse = nullptr;
-    newShape->inverted = 0;
-    newShape->order = order;
-    newShape->sturmFlag = 0;
-    newShape->Coeffs = new double[termCounts[order]];
-    if (newShape->Coeffs == nullptr) {
+    newShape->setTransformation(nullptr);
+    newShape->setTransformationInverse(nullptr);
+    newShape->setInverted(0);
+    newShape->setOrder(order);
+    newShape->setSturmFlag(0);
+    newShape->setCoeffs(new double[termCounts[order]]);
+    if (newShape->getCoeffs() == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate coefficients for POLY\n");
     }
     for (i = 0; i < termCounts[order]; i++) {
-        newShape->Coeffs[i] = 0.0;
+        newShape->getCoeffs()[i] = 0.0;
     }
     return (newShape);
 }
@@ -150,11 +150,11 @@ ModelBuilder::getBoxShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    *&(newShape->bounds[0]) = Vector3Dd(-1.0, -1.0, -1.0);
-    *&(newShape->bounds[1]) = Vector3Dd(1.0, 1.0, 1.0);
-    newShape->transformation = nullptr;
-    newShape->transformationInverse = nullptr;
-    newShape->inverted = false;
+    *&(newShape->getBounds()[0]) = Vector3Dd(-1.0, -1.0, -1.0);
+    *&(newShape->getBounds()[1]) = Vector3Dd(1.0, 1.0, 1.0);
+    newShape->setTransformation(nullptr);
+    newShape->setTransformationInverse(nullptr);
+    newShape->setInverted(false);
     return (newShape);
 }
 
@@ -168,9 +168,9 @@ ModelBuilder::getBlobShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    newShape->transformation = nullptr;
-    newShape->transformationInverse = nullptr;
-    newShape->inverted = false;
+    newShape->setTransformation(nullptr);
+    newShape->setTransformationInverse(nullptr);
+    newShape->setInverted(false);
     return (newShape);
 }
 
@@ -204,10 +204,11 @@ ModelBuilder::getHeightFieldShape()
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-    newShape->boundingBox = ModelBuilder::getBoxShape();
-    newShape->Map = nullptr;
-    newShape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    newShape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
+    newShape->setBoundingBox(ModelBuilder::getBoxShape());
+    newShape->setMap(nullptr);
+    newShape->setTransformation(new Matrix4x4d(Matrix4x4d::identityMatrix()));
+    newShape->setTransformationInverse(
+        new Matrix4x4d(Matrix4x4d::identityMatrix()));
     return (newShape);
 }
 
@@ -221,9 +222,9 @@ ModelBuilder::getPlaneShape()
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
 
-    *&(newShape->normalVector) = Vector3Dd(0.0, 1.0, 0.0);
-    newShape->distance = 0.0;
-    newShape->vpCached = 0;
+    newShape->getNormalVector() = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->setDistance(0.0);
+    newShape->setVpCached(0);
     return (newShape);
 }
 
@@ -262,9 +263,9 @@ ModelBuilder::getSmoothTriangleShape()
     newShape->getP1() = Vector3Dd(0.0, 0.0, 0.0);
     newShape->getP2() = Vector3Dd(1.0, 0.0, 0.0);
     newShape->getP3() = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->n1) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->n2) = Vector3Dd(0.0, 1.0, 0.0);
-    *&(newShape->n3) = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->getN1() = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->getN2() = Vector3Dd(0.0, 1.0, 0.0);
+    newShape->getN3() = Vector3Dd(0.0, 1.0, 0.0);
     newShape->setDistance(0.0);
     newShape->setInverted(false);
     newShape->setVpCached(0);
@@ -291,7 +292,7 @@ ModelBuilder::getCsgUnion()
     CSG *newShape;
 
     newShape = ModelBuilder::getCsgShape();
-    newShape->geometryType = GeometryTypes::CSG_UNION_TYPE;
+    newShape->setGeometryType(GeometryTypes::CSG_UNION_TYPE);
     return (newShape);
 }
 
@@ -301,7 +302,7 @@ ModelBuilder::getCsgIntersection()
     CSG *newShape;
 
     newShape = ModelBuilder::getCsgShape();
-    newShape->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
+    newShape->setGeometryType(GeometryTypes::CSG_INTERSECTION_TYPE);
     return (newShape);
 }
 

@@ -60,8 +60,8 @@ IffFormat::readLong(java::FileInputStream &is)
 void
 IffFormat::readChunkHeader(java::FileInputStream &is, ChunkHeader *dest)
 {
-    dest->name = IffFormat::readLong(is);
-    dest->size = IffFormat::readLong(is);
+    dest->setName(IffFormat::readLong(is));
+    dest->setSize(IffFormat::readLong(is));
 }
 
 IndexedColorImageHDRUncompressed *
@@ -106,7 +106,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
 
     while (true) {
         IffFormat::readChunkHeader(is, &sGlobalChunkHeader);
-        switch (static_cast<int>(sGlobalChunkHeader.name)) {
+        switch (static_cast<int>(sGlobalChunkHeader.getName())) {
         case FORM:
             if (IffFormat::readLong(is) != ILBM) {
                 IffFormat::iffError();
@@ -138,7 +138,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
             break;
 
         case CMAP:
-            sColorMapSize = (int)sGlobalChunkHeader.size / 3;
+            sColorMapSize = (int)sGlobalChunkHeader.getSize() / 3;
             sIffColorMap = new RGBAPixelHDR[sColorMapSize];
             if (sIffColorMap == nullptr) {
                 Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for IFF color map\n");
@@ -154,7 +154,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
             previousRed   = sIffColorMap[0].r;
             previousGreen = sIffColorMap[0].g;
             previousBlue  = sIffColorMap[0].b;
-            for (i = sColorMapSize * 3; (long)i < sGlobalChunkHeader.size; i++) {
+            for (i = sColorMapSize * 3; (long)i < sGlobalChunkHeader.getSize(); i++) {
                 IffFormat::readByte(is);
             }
             break;
@@ -342,7 +342,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
         }
 
         default:
-            for (i = 0; (long)i < sGlobalChunkHeader.size; i++) {
+            for (i = 0; (long)i < sGlobalChunkHeader.getSize(); i++) {
                 if (is.read() == -1) {
                     IffFormat::iffError();
                 }

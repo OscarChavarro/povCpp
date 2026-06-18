@@ -8,10 +8,10 @@
 
 class CSG : public Geometry {
   public:
-    GeometryTypes geometryType;
-    java::ArrayList<TransformableElement*> shapes{4};
-
-    java::ArrayList<TransformableElement*>& getShapes() { return shapes; }
+    GeometryTypes getGeometryType() const;
+    void setGeometryType(GeometryTypes value);
+    java::ArrayList<TransformableElement*> &getShapes();
+    const java::ArrayList<TransformableElement*> &getShapes() const;
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int allIntersectionsForOwner(
@@ -30,6 +30,9 @@ class CSG : public Geometry {
     void invertGeometry() override;
 
   private:
+    GeometryTypes geometryType;
+    java::ArrayList<TransformableElement*> shapes{4};
+
     static int insideCsgChild(Vector3Dd *point, TransformableElement *shape);
     int allCsgUnionIntersections(
         RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
@@ -38,4 +41,28 @@ class CSG : public Geometry {
     int insideCsgUnion(Vector3Dd *point);
     int insideCsgIntersection(Vector3Dd *point);
 };
+
+inline GeometryTypes
+CSG::getGeometryType() const
+{
+    return geometryType;
+}
+
+inline void
+CSG::setGeometryType(GeometryTypes value)
+{
+    geometryType = value;
+}
+
+inline java::ArrayList<TransformableElement*> &
+CSG::getShapes()
+{
+    return shapes;
+}
+
+inline const java::ArrayList<TransformableElement*> &
+CSG::getShapes() const
+{
+    return shapes;
+}
 #endif

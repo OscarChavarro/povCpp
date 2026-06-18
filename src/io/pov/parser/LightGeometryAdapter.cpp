@@ -31,37 +31,37 @@ LightGeometryAdapter::inside(Vector3Dd *point)
 void *
 LightGeometryAdapter::copy()
 {
-    return new LightGeometryAdapter(light != nullptr ? light->copy() : nullptr);
+    return new LightGeometryAdapter(getLight() != nullptr ? getLight()->copy() : nullptr);
 }
 
 void
 LightGeometryAdapter::translateGeometry(Vector3Dd *vector)
 {
-    if (light != nullptr) {
-        light->translate(vector);
+    if (getLight() != nullptr) {
+        getLight()->translate(vector);
     }
 }
 
 void
 LightGeometryAdapter::rotateGeometry(Vector3Dd *vector)
 {
-    if (light != nullptr) {
-        light->rotate(vector);
+    if (getLight() != nullptr) {
+        getLight()->rotate(vector);
     }
 }
 
 void
 LightGeometryAdapter::scaleGeometry(Vector3Dd *vector)
 {
-    if (light != nullptr) {
-        light->scale(vector);
+    if (getLight() != nullptr) {
+        getLight()->scale(vector);
     }
 }
 
 void
 LightGeometryAdapter::invertGeometry()
 {
-    if (light != nullptr) {
-        light->invert();
+    if (getLight() != nullptr) {
+        getLight()->invert();
     }
 }

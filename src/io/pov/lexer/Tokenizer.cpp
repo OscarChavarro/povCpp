@@ -176,14 +176,14 @@ Tokenizer::initializeTokenizer(const char *filename)
     Tokenizer::sGlobalIncludeFileIndex = 0;
     Tokenizer::sGlobalDataFile = &Tokenizer::sGlobalIncludeFiles[0];
 
-    Tokenizer::sGlobalDataFile->File = FileLocator::locate(filename, "r");
-    if (Tokenizer::sGlobalDataFile->File == nullptr) {
+    Tokenizer::sGlobalDataFile->setFile(FileLocator::locate(filename, "r"));
+    if (Tokenizer::sGlobalDataFile->getFile() == nullptr) {
         Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "Cannot open input file\n");
     }
 
-    Tokenizer::sGlobalDataFile->Filename = new char[strlen(filename) + 1];
-    strcpy(Tokenizer::sGlobalDataFile->Filename, filename);
-    Tokenizer::sGlobalDataFile->lineNumber = 0;
+    Tokenizer::sGlobalDataFile->setFilename(new char[strlen(filename) + 1]);
+    strcpy(Tokenizer::sGlobalDataFile->getFilename(), filename);
+    Tokenizer::sGlobalDataFile->setLineNumber(0);
 
     if ((Tokenizer::sSymbolTable = new char *[maxSymbols]) == nullptr) {
         Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "Out of Memory. Cannot allocate space for symbol table\n");
@@ -207,8 +207,8 @@ Tokenizer::terminateTokenizer()
     }
 
     if (Tokenizer::sGlobalDataFile != nullptr) {
-        fclose(Tokenizer::sGlobalDataFile->File);
-        delete[] Tokenizer::sGlobalDataFile->Filename;
+        fclose(Tokenizer::sGlobalDataFile->getFile());
+        delete[] Tokenizer::sGlobalDataFile->getFilename();
     }
 }
 
@@ -246,7 +246,7 @@ Tokenizer::getToken()
 
         Tokenizer::sGlobalDataFile->skipSpaces();
 
-        c = getc(Tokenizer::sGlobalDataFile->File);
+        c = getc(Tokenizer::sGlobalDataFile->getFile());
         if (c == EOF) {
             if (Tokenizer::sGlobalIncludeFileIndex == 0) {
                 Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
@@ -256,9 +256,9 @@ Tokenizer::getToken()
                 return;
             }
 
-            fclose(Tokenizer::sGlobalDataFile->File);
-            delete[] Tokenizer::sGlobalDataFile->Filename;
-            Tokenizer::sGlobalDataFile->Filename = nullptr;
+            fclose(Tokenizer::sGlobalDataFile->getFile());
+            delete[] Tokenizer::sGlobalDataFile->getFilename();
+            Tokenizer::sGlobalDataFile->setFilename(nullptr);
 
             Tokenizer::sGlobalDataFile = &Tokenizer::sGlobalIncludeFiles[--Tokenizer::sGlobalIncludeFileIndex];
             continue;
@@ -269,7 +269,7 @@ Tokenizer::getToken()
 
         switch (c) {
         case '\n':
-            Tokenizer::sGlobalDataFile->lineNumber++;
+            Tokenizer::sGlobalDataFile->incrementLineNumber();
             break;
 
         case '{':
@@ -379,9 +379,9 @@ Tokenizer::getToken()
 
             // Enable C++ style commenting
         case '/':
-            c2 = getc(Tokenizer::sGlobalDataFile->File);
+            c2 = getc(Tokenizer::sGlobalDataFile->getFile());
             if (c2 != (int)'/' && c2 != (int)'*') {
-                ungetc(c2, Tokenizer::sGlobalDataFile->File);
+                ungetc(c2, Tokenizer::sGlobalDataFile->getFile());
                 Tokenizer::writeToken(Tokenizer::SLASH_TOKEN, Tokenizer::sGlobalDataFile);
                 break;
             }
@@ -390,13 +390,13 @@ Tokenizer::getToken()
                 break;
             }
             while (c2 != (int)'\n') {
-                c2 = getc(Tokenizer::sGlobalDataFile->File);
+                c2 = getc(Tokenizer::sGlobalDataFile->getFile());
                 if (c2 == EOF) {
-                    ungetc(c2, Tokenizer::sGlobalDataFile->File);
+                    ungetc(c2, Tokenizer::sGlobalDataFile->getFile());
                     break;
                 }
             }
-            Tokenizer::sGlobalDataFile->lineNumber++;
+            Tokenizer::sGlobalDataFile->incrementLineNumber();
             break;
 
         case '*':
@@ -422,7 +422,7 @@ Tokenizer::getToken()
         case '8':
         case '9':
         case '.':
-            ungetc(c, Tokenizer::sGlobalDataFile->File);
+            ungetc(c, Tokenizer::sGlobalDataFile->getFile());
             if (Tokenizer::sGlobalDataFile->readFloat() != true) {
                 return;
             }
@@ -481,7 +481,7 @@ Tokenizer::getToken()
         case 'Y':
         case 'Z':
         case '_':
-            ungetc(c, Tokenizer::sGlobalDataFile->File);
+            ungetc(c, Tokenizer::sGlobalDataFile->getFile());
             if (Tokenizer::sGlobalDataFile->readSymbol() != true) {
                 return;
             }
@@ -495,7 +495,7 @@ Tokenizer::getToken()
         default:
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Error in %s line %d\n", Tokenizer::sGlobalDataFile->Filename,                 Tokenizer::sGlobalDataFile->lineNumber + 1);
+                snprintf(_logMsg, sizeof(_logMsg), "Error in %s line %d\n", Tokenizer::sGlobalDataFile->getFilename(),                 Tokenizer::sGlobalDataFile->getLineNumber() + 1);
                 Logger::reportMessage("Tokenizer", Logger::ERROR, "", _logMsg);
             }
             {
@@ -511,7 +511,7 @@ Tokenizer::getToken()
                     Tokenizer::sGlobalDataFile, "Expecting a Tokenizer::sString after INCLUDE\n");
             }
 
-            if ((c = getc(Tokenizer::sGlobalDataFile->File)) != '"') {
+            if ((c = getc(Tokenizer::sGlobalDataFile->getFile())) != '"') {
                 Tokenizer::tokenError(
                     Tokenizer::sGlobalDataFile, "Expecting a Tokenizer::sString after INCLUDE\n");
             }
@@ -524,11 +524,11 @@ Tokenizer::getToken()
             }
 
             Tokenizer::sGlobalDataFile = &Tokenizer::sGlobalIncludeFiles[Tokenizer::sGlobalIncludeFileIndex];
-            Tokenizer::sGlobalDataFile->lineNumber = 0;
+            Tokenizer::sGlobalDataFile->setLineNumber(0);
 
-            Tokenizer::sGlobalDataFile->Filename =
-                new char[strlen(Tokenizer::token().Token_String) + 1];
-            if (Tokenizer::sGlobalDataFile->Filename == nullptr) {
+            Tokenizer::sGlobalDataFile->setFilename(
+                new char[strlen(Tokenizer::token().Token_String) + 1]);
+            if (Tokenizer::sGlobalDataFile->getFilename() == nullptr) {
                 {
                     char _logMsg[1024];
                     snprintf(_logMsg, sizeof(_logMsg), "Out of memory opening include file: %s\n", Tokenizer::token().Token_String);
@@ -536,10 +536,11 @@ Tokenizer::getToken()
                 }
             }
 
-            strcpy(Tokenizer::sGlobalDataFile->Filename, Tokenizer::token().Token_String);
+            strcpy(Tokenizer::sGlobalDataFile->getFilename(), Tokenizer::token().Token_String);
 
-            if ((Tokenizer::sGlobalDataFile->File = FileLocator::locate(
-                     Tokenizer::token().Token_String, "r")) == nullptr) {
+            Tokenizer::sGlobalDataFile->setFile(FileLocator::locate(
+                Tokenizer::token().Token_String, "r"));
+            if (Tokenizer::sGlobalDataFile->getFile() == nullptr) {
                 {
                     char _logMsg[1024];
                     snprintf(_logMsg, sizeof(_logMsg), "Cannot open include file: %s\n", Tokenizer::token().Token_String);
@@ -583,7 +584,7 @@ DataFile::skipSpaces()
     int c;
 
     while (true) {
-        c = getc(this->File);
+        c = getc(this->getFile());
         if (c == EOF) {
             return (false);
         }
@@ -593,11 +594,11 @@ DataFile::skipSpaces()
         }
 
         if (c == '\n') {
-            this->lineNumber++;
+            this->incrementLineNumber();
         }
     }
 
-    ungetc(c, this->File);
+    ungetc(c, this->getFile());
     return (true);
 }
 
@@ -619,14 +620,14 @@ DataFile::parseComments()
 
     endOfComment = false;
     while (!endOfComment) {
-        c = getc(this->File);
+        c = getc(this->getFile());
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "No closing comment found");
             return (false);
         }
 
         if (c == (int)'\n') {
-            this->lineNumber++;
+            this->incrementLineNumber();
         }
 
         if (c == (int)'{') {
@@ -652,7 +653,7 @@ DataFile::parseCComments()
 
     endOfComment = false;
     while (!endOfComment) {
-        c = getc(this->File);
+        c = getc(this->getFile());
         if (c == EOF) {
             Tokenizer::tokenError(
                 Tokenizer::getGlobalDataFile(), "No */ closing comment found");
@@ -660,22 +661,22 @@ DataFile::parseCComments()
         }
 
         if (c == (int)'\n') {
-            this->lineNumber++;
+            this->incrementLineNumber();
         }
 
         if (c == (int)'*') {
-            c2 = getc(this->File);
+            c2 = getc(this->getFile());
             if (c2 != (int)'/') {
-                ungetc(c2, this->File);
+                ungetc(c2, this->getFile());
             } else {
                 endOfComment = true;
             }
         }
         // Check for and handle nested comments
         if (c == (int)'/') {
-            c2 = getc(this->File);
+            c2 = getc(this->getFile());
             if (c2 != (int)'*') {
-                ungetc(c2, this->File);
+                ungetc(c2, this->getFile());
             } else {
                 this->parseCComments();
             }
@@ -736,7 +737,7 @@ DataFile::readFloat()
 
     Tokenizer::beginString();
     while (!finished) {
-        c = getc(this->File);
+        c = getc(this->getFile());
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "Unexpected end of file");
             return (false);
@@ -748,7 +749,7 @@ DataFile::readFloat()
                 Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
             } else if (c == '.') {
                 Tokenizer::stuffCharacter('0', Tokenizer::getGlobalDataFile());
-                ungetc(c, this->File);
+                ungetc(c, this->getFile());
             } else {
                 Tokenizer::tokenError(
                     Tokenizer::getGlobalDataFile(), "Error in decimal number");
@@ -800,7 +801,7 @@ DataFile::readFloat()
         }
     }
 
-    ungetc(c, this->File);
+    ungetc(c, this->getFile());
     this->endString();
 
     Tokenizer::writeToken(Tokenizer::FLOAT_TOKEN, Tokenizer::getGlobalDataFile());
@@ -819,7 +820,7 @@ DataFile::parseString()
 
     Tokenizer::beginString();
     while (true) {
-        c = getc(this->File);
+        c = getc(this->getFile());
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "No end quote for Tokenizer::sString");
         }
@@ -852,7 +853,7 @@ DataFile::readSymbol()
 
     Tokenizer::beginString();
     while (true) {
-        c = getc(this->File);
+        c = getc(this->getFile());
         if (c == EOF) {
             Tokenizer::tokenError(Tokenizer::getGlobalDataFile(), "Unexpected end of file");
             return (false);
@@ -861,7 +862,7 @@ DataFile::readSymbol()
         if (isalpha(c) || isdigit(c) || c == (int)'_') {
             Tokenizer::stuffCharacter(c, Tokenizer::getGlobalDataFile());
         } else {
-            ungetc(c, this->File);
+            ungetc(c, this->getFile());
             break;
         }
     }
@@ -968,9 +969,9 @@ void
 Tokenizer::writeToken(TOKEN tokenId, const DataFile *dataFile)
 {
     Tokenizer::token().tokenId = tokenId;
-    Tokenizer::token().tokenLineNo = dataFile->lineNumber;
+    Tokenizer::token().tokenLineNo = dataFile->getLineNumber();
     Tokenizer::token().tokenColumnNo = 1;
-    Tokenizer::token().Filename = dataFile->Filename;
+    Tokenizer::token().Filename = dataFile->getFilename();
     Tokenizer::token().Token_String = Tokenizer::sString;
 
     if (Tokenizer::token().tokenId > Tokenizer::LAST_TOKEN) {
@@ -986,7 +987,7 @@ Tokenizer::tokenError(const DataFile *dataFile, const char *str)
 {
     {
         char _logMsg[1024];
-        snprintf(_logMsg, sizeof(_logMsg), "Error in %s line %d\n", dataFile->Filename,         dataFile->lineNumber);
+        snprintf(_logMsg, sizeof(_logMsg), "Error in %s line %d\n", dataFile->getFilename(),         dataFile->getLineNumber());
         Logger::reportMessage("Tokenizer", Logger::ERROR, "", _logMsg);
     }
     {

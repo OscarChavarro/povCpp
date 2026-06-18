@@ -211,11 +211,11 @@ HeightField::intersectSubBlock(const HeightFieldBlock *block,
     int length;
     int i;
 
-    if (HeightField::minValue(start->y(), end->y()) > block->maxY) {
+    if (HeightField::minValue(start->y(), end->y()) > block->getMaxY()) {
         return (false);
     }
 
-    if (HeightField::maxValue(start->y(), end->y()) < block->minY) {
+    if (HeightField::maxValue(start->y(), end->y()) < block->getMinY()) {
         return (false);
     }
 
@@ -624,8 +624,8 @@ HeightField::allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
             Logger::reportMessage("HeightField", Logger::ERROR, "", "Cannot allocate memory for height field buffer line\n");
         }
         for (int j = 0; j < h; j++) {
-            hField->block[i][j].minY = 65536.0;
-            hField->block[i][j].maxY = 0.0;
+            hField->block[i][j].setMinY(65536.0);
+            hField->block[i][j].setMaxY(0.0);
         }
     }
 
@@ -672,7 +672,7 @@ HeightField::findHfMinMax(HeightField *hField,
                         } else {
                             tempY = (double)temp1;
                         }
-                        if (tempY <= hField->boundingBox->bounds[0].y()) {
+                        if (tempY <= hField->getBoundingBox()->getBounds()[0].y()) {
                             hField->Map[z][x] = -10000.0;
                         } else {
                             hField->Map[z][x] = (float)tempY;
@@ -682,14 +682,14 @@ HeightField::findHfMinMax(HeightField *hField,
                         hField->Map[z][x] = (float)tempY;
                     }
 
-                    if (tempY < hField->boundingBox->bounds[0].y()) {
-                        tempY = hField->boundingBox->bounds[0].y();
+                    if (tempY < hField->getBoundingBox()->getBounds()[0].y()) {
+                        tempY = hField->getBoundingBox()->getBounds()[0].y();
                     }
-                    if (tempY < hField->block[i][j].minY) {
-                        hField->block[i][j].minY = tempY;
+                    if (tempY < hField->block[i][j].getMinY()) {
+                        hField->block[i][j].setMinY(tempY);
                     }
-                    if (tempY > hField->block[i][j].maxY) {
-                        hField->block[i][j].maxY = tempY;
+                    if (tempY > hField->block[i][j].getMaxY()) {
+                        hField->block[i][j].setMaxY(tempY);
                     }
                 }
             }
@@ -728,7 +728,7 @@ HeightField::findHfMinMax(HeightField *hField,
                         RGBAPixelHDR pixel;
                         image->getPixel(x, maxZ - z - 1, &pixel);
                         tempY = (double)pixel.r + (double)pixel.g / 256.0;
-                        if (tempY <= hField->boundingBox->bounds[0].y()) {
+                        if (tempY <= hField->getBoundingBox()->getBounds()[0].y()) {
                             hField->Map[z][x] = -10000.0;
                         } else {
                             hField->Map[z][x] = (float)tempY;
@@ -738,14 +738,14 @@ HeightField::findHfMinMax(HeightField *hField,
                         hField->Map[z][x] = (float)tempY;
                     }
 
-                    if (tempY < hField->boundingBox->bounds[0].y()) {
-                        tempY = hField->boundingBox->bounds[0].y();
+                    if (tempY < hField->getBoundingBox()->getBounds()[0].y()) {
+                        tempY = hField->getBoundingBox()->getBounds()[0].y();
                     }
-                    if (tempY < hField->block[i][j].minY) {
-                        hField->block[i][j].minY = tempY;
+                    if (tempY < hField->block[i][j].getMinY()) {
+                        hField->block[i][j].setMinY(tempY);
                     }
-                    if (tempY > hField->block[i][j].maxY) {
-                        hField->block[i][j].maxY = tempY;
+                    if (tempY > hField->block[i][j].getMaxY()) {
+                        hField->block[i][j].setMaxY(tempY);
                     }
                 }
             }
@@ -885,7 +885,8 @@ HeightField::inside(Vector3Dd *testPoint)
     dot2Value = localOrigin.dotProduct(localNormal);
     dot1 = (int)dot1Value;
     dot2 = (int)dot2Value;
-    if ((dot1 < dot2) && (test.y() > (hField->boundingBox->bounds[0].y()) + 1.0)) {
+    if ((dot1 < dot2) &&
+        (test.y() > (hField->getBoundingBox()->getBounds()[0].y()) + 1.0)) {
         return (true);
     }
     return (false);

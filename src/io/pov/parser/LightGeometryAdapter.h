@@ -8,8 +8,6 @@ class LightGeometryAdapter : public Geometry {
   public:
     explicit LightGeometryAdapter(Light *lightSource) : light(lightSource) {}
 
-    Light *light;
-
     Light *getLight() const { return light; }
     void setLight(Light *lightSource) { light = lightSource; }
 
@@ -26,6 +24,9 @@ class LightGeometryAdapter : public Geometry {
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
+
+  private:
+    Light *light;
 };
 
 #endif

@@ -7,11 +7,16 @@
 
 class SmoothTriangle : public Triangle {
   public:
-    Vector3Dd n1;
-    Vector3Dd n2;
-    Vector3Dd n3;
-    Vector3Dd perp;
-    double baseDelta;
+    Vector3Dd &getN1() { return n1; }
+    const Vector3Dd &getN1() const { return n1; }
+    Vector3Dd &getN2() { return n2; }
+    const Vector3Dd &getN2() const { return n2; }
+    Vector3Dd &getN3() { return n3; }
+    const Vector3Dd &getN3() const { return n3; }
+    Vector3Dd &getPerp() { return perp; }
+    const Vector3Dd &getPerp() const { return perp; }
+    double getBaseDelta() const { return baseDelta; }
+    void setBaseDelta(double value) { baseDelta = value; }
 
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
@@ -23,6 +28,13 @@ class SmoothTriangle : public Triangle {
   protected:
     void swapVertexNormals() override;
     void finalizeComputation() override;
+
+  private:
+    Vector3Dd n1;
+    Vector3Dd n2;
+    Vector3Dd n3;
+    Vector3Dd perp;
+    double baseDelta;
 };
 
 #endif

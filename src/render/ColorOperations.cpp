@@ -1,9 +1,3 @@
-/**
-color.c
-
-This module implements routines to manipulate colours.
-*/
-
 #include "render/ColorOperations.h"
 
 inline double

@@ -6,6 +6,44 @@
 #include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
 
 class Statistics {
+  private:
+    long numberOfPixels;
+    long numberOfRays;
+    long numberOfPixelsSupersampled;
+    long raySphereTests;
+    long raySphereTestsSucceeded;
+    long rayBoxTests;
+    long rayBoxTestsSucceeded;
+    long rayBlobTests;
+    long rayBlobTestsSucceeded;
+    long rayPlaneTests;
+    long rayPlaneTestsSucceeded;
+    long rayTriangleTests;
+    long rayTriangleTestsSucceeded;
+    long rayQuadricTests;
+    long rayQuadricTestsSucceeded;
+    long rayPolyTests;
+    long rayPolyTestsSucceeded;
+    long rayBicubicTests;
+    long rayBicubicTestsSucceeded;
+    long rayHtFieldTests;
+    long rayHtFieldTestsSucceeded;
+    long rayHtFieldBoxTests;
+    long rayHFieldBoxTestsSucceeded;
+    long boundingRegionTests;
+    long boundingRegionTestsSucceeded;
+    long clippingRegionTests;
+    long clippingRegionTestsSucceeded;
+    SolidTextureStatistics solidTextureStatistics;
+    long shadowRayTests;
+    long shadowRaysSucceeded;
+    long reflectedRaysTraced;
+    long refractedRaysTraced;
+    long transmittedRaysTraced;
+    time_t startTime;
+    time_t stopTime;
+    double usedTime;
+
   public:
     static inline Statistics &global() {
         static Statistics instance;
@@ -118,44 +156,6 @@ class Statistics {
     void reset();
     void startTimer();
     void stopTimer();
-
-  private:
-    long numberOfPixels;
-    long numberOfRays;
-    long numberOfPixelsSupersampled;
-    long raySphereTests;
-    long raySphereTestsSucceeded;
-    long rayBoxTests;
-    long rayBoxTestsSucceeded;
-    long rayBlobTests;
-    long rayBlobTestsSucceeded;
-    long rayPlaneTests;
-    long rayPlaneTestsSucceeded;
-    long rayTriangleTests;
-    long rayTriangleTestsSucceeded;
-    long rayQuadricTests;
-    long rayQuadricTestsSucceeded;
-    long rayPolyTests;
-    long rayPolyTestsSucceeded;
-    long rayBicubicTests;
-    long rayBicubicTestsSucceeded;
-    long rayHtFieldTests;
-    long rayHtFieldTestsSucceeded;
-    long rayHtFieldBoxTests;
-    long rayHFieldBoxTestsSucceeded;
-    long boundingRegionTests;
-    long boundingRegionTestsSucceeded;
-    long clippingRegionTests;
-    long clippingRegionTestsSucceeded;
-    SolidTextureStatistics solidTextureStatistics;
-    long shadowRayTests;
-    long shadowRaysSucceeded;
-    long reflectedRaysTraced;
-    long refractedRaysTraced;
-    long transmittedRaysTraced;
-    time_t startTime;
-    time_t stopTime;
-    double usedTime;
 };
 
 inline long Statistics::getNumberOfPixels() const { return numberOfPixels; }

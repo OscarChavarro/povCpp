@@ -8,15 +8,21 @@
 
 class PolynomialShape : public Geometry {
   public:
-    Matrix4x4d *transformation;
-    Matrix4x4d *transformationInverse;
-    bool inverted;
-    int order;
-    int sturmFlag;
-    double *Coeffs;
-
+    Matrix4x4d *getTransformation() const { return transformation; }
+    void setTransformation(Matrix4x4d *value) { transformation = value; }
+    Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
+    void setTransformationInverse(Matrix4x4d *value)
+    {
+        transformationInverse = value;
+    }
+    bool isInverted() const { return inverted; }
+    void setInverted(bool value) { inverted = value; }
+    int getOrder() const { return order; }
+    void setOrder(int value) { order = value; }
     int getSturmFlag() const { return sturmFlag; }
     void setSturmFlag(int flag) { sturmFlag = flag; }
+    double *getCoeffs() const { return Coeffs; }
+    void setCoeffs(double *value) { Coeffs = value; }
 
     static const int *termCountsByOrder();
 
@@ -30,6 +36,13 @@ class PolynomialShape : public Geometry {
     void invertGeometry() override;
 
   private:
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
+    bool inverted;
+    int order;
+    int sturmFlag;
+    double *Coeffs;
+
     static void transform(int order, double *coeffs, Matrix4x4d *q);
     static int roll(int order, int x, int y, int z);
     static void unroll(int order, int index, int *x, int *y, int *z, int *w);

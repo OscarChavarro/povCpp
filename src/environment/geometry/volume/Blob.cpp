@@ -54,22 +54,23 @@ Blob::makeBlob(BoundedGeometry *obj, double threshold, BlobList *bloblist, int n
     // Initialize the blob data
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
-        if (java::Math::abs(temp->elem.coeffs[2]) < Config::INTERSECTION_EPSILON ||
-            temp->elem.radius2 < Config::INTERSECTION_EPSILON) {
+        if (java::Math::abs(temp->getElem().getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
+            temp->getElem().getRadius2() < Config::INTERSECTION_EPSILON) {
             perror("Degenerate blob element\n");
         }
         // Store blob specific information
-        rad = temp->elem.radius2;
+        rad = temp->getElem().getRadius2();
         rad *= rad;
-        coeff = temp->elem.coeffs[2];
-        blob->list[i].radius2 = rad;
-        blob->list[i].coeffs[2] = coeff;
-        blob->list[i].coeffs[1] = -(2.0 * coeff) / rad;
-        blob->list[i].coeffs[0] = coeff / (rad * rad);
-        blob->list[i].pos = Vector3Dd(
-            temp->elem.pos.x(), temp->elem.pos.y(), temp->elem.pos.z());
+        coeff = temp->getElem().getCoeffs()[2];
+        blob->list[i].setRadius2(rad);
+        blob->list[i].getCoeffs()[2] = coeff;
+        blob->list[i].getCoeffs()[1] = -(2.0 * coeff) / rad;
+        blob->list[i].getCoeffs()[0] = coeff / (rad * rad);
+        blob->list[i].getPos() = Vector3Dd(
+            temp->getElem().getPos().x(), temp->getElem().getPos().y(),
+            temp->getElem().getPos().z());
 
-        bloblist = bloblist->next;
+        bloblist = bloblist->getNext();
         delete temp;
     }
 
@@ -108,10 +109,10 @@ Blob::determineInfluences(
         // Use standard sphere intersection routine
         // to determine where the ray hits the volume
         // of influence of each component of the blob
-        v = blob->list[i].pos.subtract(*p);
+        v = blob->list[i].getPos().subtract(*p);
         b = v.dotProduct(*d);
         t = v.dotProduct(v);
-        disc = b * b - t + blob->list[i].radius2;
+        disc = b * b - t + blob->list[i].getRadius2();
         if (disc < Config::INTERSECTION_EPSILON) {
             continue;
         }
@@ -141,7 +142,7 @@ Blob::determineInfluences(
         and the point along the ray that the
         hit occured at.
         */
-        for (k = 0; k < cnt && t0 > intervals[k].bound; k++) {
+        for (k = 0; k < cnt && t0 > intervals[k].getBound(); k++) {
             ;
         }
         if (k < cnt) {
@@ -151,11 +152,11 @@ Blob::determineInfluences(
             for (j = cnt; j > k; j--) {
                 memcpy(&intervals[j], &intervals[j - 1], sizeof(BlobInterval));
             }
-            intervals[k].type = 0;
-            intervals[k].index = i;
-            intervals[k].bound = t0;
+            intervals[k].setType(0);
+            intervals[k].setIndex(i);
+            intervals[k].setBound(t0);
             cnt++;
-            for (k = k + 1; k < cnt && t1 > intervals[k].bound; k++) {
+            for (k = k + 1; k < cnt && t1 > intervals[k].getBound(); k++) {
                 ;
             }
             if (k < cnt) {
@@ -163,25 +164,25 @@ Blob::determineInfluences(
                     memcpy(
                         &intervals[j], &intervals[j - 1], sizeof(BlobInterval));
                 }
-                intervals[k].type = 1;
-                intervals[k].index = i;
-                intervals[k].bound = t1;
+                intervals[k].setType(1);
+                intervals[k].setIndex(i);
+                intervals[k].setBound(t1);
             } else {
-                intervals[cnt].type = 1;
-                intervals[cnt].index = i;
-                intervals[cnt].bound = t1;
+                intervals[cnt].setType(1);
+                intervals[cnt].setIndex(i);
+                intervals[cnt].setBound(t1);
             }
             cnt++;
         } else {
             // Just plop the start and end points at
             // the end of the list
-            intervals[cnt].type = 0;
-            intervals[cnt].index = i;
-            intervals[cnt].bound = t0;
+            intervals[cnt].setType(0);
+            intervals[cnt].setIndex(i);
+            intervals[cnt].setBound(t0);
             cnt++;
-            intervals[cnt].type = 1;
-            intervals[cnt].index = i;
-            intervals[cnt].bound = t1;
+            intervals[cnt].setType(1);
+            intervals[cnt].setIndex(i);
+            intervals[cnt].setBound(t1);
             cnt++;
         }
     }
@@ -204,13 +205,14 @@ Blob::calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos)
 
     density = 0.0;
     for (i = 0, ptr = &(blob->list[0]); i < blob->count; i++, ptr++) {
-        v = ptr->pos.subtract(*pos);
+        v = ptr->getPos().subtract(*pos);
         len = v.dotProduct(v);
-        if (len < ptr->radius2) {
+        if (len < ptr->getRadius2()) {
             // Inside the radius of influence of this
             // component, add it's contribution
             density +=
-                len * (len * ptr->coeffs[0] + ptr->coeffs[1]) + ptr->coeffs[2];
+                len * (len * ptr->getCoeffs()[0] + ptr->getCoeffs()[1]) +
+                ptr->getCoeffs()[2];
         }
     }
     return density;
@@ -230,10 +232,11 @@ Blob::validateHit(const Blob *blob, const Vector3Dd *p)
     n = Vector3Dd(0.0, 0.0, 0.0);
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
-        v = p->subtract(temp->pos);
+        v = p->subtract(temp->getPos());
         dist = v.dotProduct(v);
-        if (dist <= temp->radius2) {
-            val = -2.0 * (2.0 * temp->coeffs[0] * dist + temp->coeffs[1]);
+        if (dist <= temp->getRadius2()) {
+            val = -2.0 * (2.0 * temp->getCoeffs()[0] * dist +
+                temp->getCoeffs()[1]);
             n = Vector3Dd(n.x() + val * v.x(), n.y() + val * v.y(),
                 n.z() + val * v.z());
         }
@@ -364,20 +367,20 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
     // Step through the list of influence points, adding the
     // influence of each blob component as it appears
     for (i = 0, inFlag = 0; i < cnt; i++) {
-        if (intervals[i].type == 0) {
+        if (intervals[i].getType() == 0) {
             // Something is just starting to influence the ray,
             // so calculate its coefficients and add them
             // into the pot.
             inFlag++;
-            element = blob->list + intervals[i].index;
+            element = blob->list + intervals[i].getIndex();
 
-            v = p.subtract(element->pos);
-            c0 = element->coeffs[0];
-            c1 = element->coeffs[1];
-            c2 = element->coeffs[2];
+            v = p.subtract(element->getPos());
+            c0 = element->getCoeffs()[0];
+            c1 = element->getCoeffs()[1];
+            c2 = element->getCoeffs()[2];
             t0 = v.dotProduct(v);
             t1 = v.dotProduct(d);
-            tcoeffs = &(element->tcoeffs[0]);
+            tcoeffs = &(element->getTCoeffs()[0]);
 
             tcoeffs[0] = c0;
             tcoeffs[1] = 4.0 * c0 * t1;
@@ -391,7 +394,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
         } else {
             // We are losing the influence of a component, so
             // subtract off its coefficients
-            tcoeffs = &(blob->list[intervals[i].index].tcoeffs[0]);
+            tcoeffs = &(blob->list[intervals[i].getIndex()].getTCoeffs()[0]);
             for (j = 0; j < 5; j++) {
                 coeffs[j] -= tcoeffs[j];
             }
@@ -431,8 +434,8 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
             dist = roots[j];
             // First see if the root is in the interval of influence of
             // the currently active components of the blob
-            if ((dist >= intervals[i].bound) &&
-                (dist <= intervals[i + 1].bound)) {
+            if ((dist >= intervals[i].getBound()) &&
+                (dist <= intervals[i + 1].getBound())) {
                 intersectionPoint = d.multiply(dist);
                 intersectionPoint = intersectionPoint.add(p);
                 if (true || Blob::validateHit(blob, &intersectionPoint)) {
@@ -510,12 +513,13 @@ Blob::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     // its bit to the normal
     temp = &(blob->list[0]);
     for (i = 0; i < blob->count; i++, temp++) {
-        v = Vector3Dd(newPoint.x() - temp->pos.x(),
-            newPoint.y() - temp->pos.y(), newPoint.z() - temp->pos.z());
+        v = Vector3Dd(newPoint.x() - temp->getPos().x(),
+            newPoint.y() - temp->getPos().y(), newPoint.z() - temp->getPos().z());
         dist = (v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
 
-        if (dist <= temp->radius2) {
-            val = -2.0 * (2.0 * temp->coeffs[0] * dist + temp->coeffs[1]);
+        if (dist <= temp->getRadius2()) {
+            val = -2.0 * (2.0 * temp->getCoeffs()[0] * dist +
+                temp->getCoeffs()[1]);
             *result = Vector3Dd(result->x() + val * v.x(),
                 result->y() + val * v.y(), result->z() + val * v.z());
         }

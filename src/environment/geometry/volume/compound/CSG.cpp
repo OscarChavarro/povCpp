@@ -25,7 +25,7 @@ CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 int
 CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    if (geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
+    if (getGeometryType() == GeometryTypes::CSG_INTERSECTION_TYPE) {
         return allCsgIntersectIntersections(ray, depthQueue);
     }
     return allCsgUnionIntersections(ray, depthQueue);
@@ -50,8 +50,8 @@ CSG::allCsgUnionIntersections(
     TransformableElement *localShape;
 
     intersectionFound = false;
-    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->shapes[i];
+    for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
+        localShape = shape->getShapes()[i];
         if (localShape->allIntersections(ray, depthQueue)) {
             intersectionFound = true;
         }
@@ -76,8 +76,8 @@ CSG::allCsgIntersectIntersections(
 
     anyIntersectionFound = false;
 
-    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->shapes[i];
+    for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
+        localShape = shape->getShapes()[i];
 
         localShape->allIntersections(ray, localDepthQueue);
 
@@ -86,8 +86,8 @@ CSG::allCsgIntersectIntersections(
 
             intersectionFound = true;
 
-            for (long int j = shape->shapes.size() - 1; j >= 0; j--) {
-                shape2 = shape->shapes[j];
+            for (long int j = shape->getShapes().size() - 1; j >= 0; j--) {
+                shape2 = shape->getShapes()[j];
 
                 if (shape2 != localShape) {
                     if (!CSG::insideCsgChild(&localIntersection.getPoint(), shape2)) {
@@ -117,8 +117,8 @@ CSG::insideCsgUnion(Vector3Dd *testPoint)
     const CSG *shape = this;
     TransformableElement *localShape;
 
-    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->shapes[i];
+    for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
+        localShape = shape->getShapes()[i];
 
         if (CSG::insideCsgChild(testPoint, localShape)) {
             return (true);
@@ -133,8 +133,8 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint)
     TransformableElement *localShape;
     const CSG *shape = this;
 
-    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->shapes[i];
+    for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
+        localShape = shape->getShapes()[i];
 
         if (!CSG::insideCsgChild(testPoint, localShape)) {
             return (false);
@@ -153,14 +153,14 @@ CSG::copy()
     TransformableElement *copiedShape;
 
     newShape = new CSG;
-    newShape->geometryType = shape->geometryType;
+    newShape->setGeometryType(shape->getGeometryType());
 
-    for (long int i = shape->shapes.size() - 1; i >= 0; i--) {
-        localShape = shape->shapes[i];
+    for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
+        localShape = shape->getShapes()[i];
 
         copiedShape =
             (TransformableElement *)localShape->copy();
-        newShape->shapes.add(copiedShape);
+        newShape->getShapes().add(copiedShape);
     }
     return ((void *)newShape);
 }
@@ -176,8 +176,8 @@ CSG::translateGeometry(Vector3Dd *vector)
 {
     TransformableElement *localShape;
 
-    for (long int i = this->shapes.size() - 1; i >= 0; i--) {
-        localShape = this->shapes[i];
+    for (long int i = this->getShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getShapes()[i];
 
         localShape->translate(vector);
     }
@@ -194,8 +194,8 @@ CSG::rotateGeometry(Vector3Dd *vector)
 {
     TransformableElement *localShape;
 
-    for (long int i = this->shapes.size() - 1; i >= 0; i--) {
-        localShape = this->shapes[i];
+    for (long int i = this->getShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getShapes()[i];
 
         localShape->rotate(vector);
     }
@@ -212,8 +212,8 @@ CSG::scaleGeometry(Vector3Dd *vector)
 {
     TransformableElement *localShape;
 
-    for (long int i = this->shapes.size() - 1; i >= 0; i--) {
-        localShape = this->shapes[i];
+    for (long int i = this->getShapes().size() - 1; i >= 0; i--) {
+        localShape = this->getShapes()[i];
 
         localShape->scale(vector);
     }
@@ -231,14 +231,14 @@ CSG::invertGeometry()
     TransformableElement *localShape;
     CSG * const csg = this;
 
-    if (csg->geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
-        csg->geometryType = GeometryTypes::CSG_UNION_TYPE;
-    } else if (csg->geometryType == GeometryTypes::CSG_UNION_TYPE) {
-        csg->geometryType = GeometryTypes::CSG_INTERSECTION_TYPE;
+    if (csg->getGeometryType() == GeometryTypes::CSG_INTERSECTION_TYPE) {
+        csg->setGeometryType(GeometryTypes::CSG_UNION_TYPE);
+    } else if (csg->getGeometryType() == GeometryTypes::CSG_UNION_TYPE) {
+        csg->setGeometryType(GeometryTypes::CSG_INTERSECTION_TYPE);
     }
 
-    for (long int i = csg->shapes.size() - 1; i >= 0; i--) {
-        localShape = csg->shapes[i];
+    for (long int i = csg->getShapes().size() - 1; i >= 0; i--) {
+        localShape = csg->getShapes()[i];
 
         localShape->invert();
     }
@@ -253,7 +253,7 @@ CSG::invert()
 int
 CSG::inside(Vector3Dd *point)
 {
-    if (geometryType == GeometryTypes::CSG_INTERSECTION_TYPE) {
+    if (getGeometryType() == GeometryTypes::CSG_INTERSECTION_TYPE) {
         return insideCsgIntersection(point);
     }
     return insideCsgUnion(point);

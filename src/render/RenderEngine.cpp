@@ -98,11 +98,10 @@ RenderEngine::traceServiceShadeShadow(
 const TraceService *
 RenderEngine::getTraceService()
 {
-    static const TraceService traceService = {
+    static const TraceService traceService(
         RenderEngine::traceServiceTrace,
         RenderEngine::traceServiceShadeShadow,
-        nullptr
-    };
+        nullptr);
     return &traceService;
 }
 

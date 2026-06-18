@@ -64,9 +64,9 @@ SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     double v = 0.0;
 
     piMinusP1 = intersectionPoint->subtract(triangle->getP1());
-    u = piMinusP1.dotProduct(triangle->perp);
+    u = piMinusP1.dotProduct(triangle->getPerp());
     if (u < 1.0e-9) {
-        *result = triangle->n1;
+        *result = triangle->getN1();
         return;
     }
 
@@ -76,26 +76,26 @@ SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     switch (triangle->getVAxis()) {
     case X_AXIS:
         v = (piMinusP1.x() / u + triangle->getP1().x() - triangle->getP2().x()) /
-            triangle->baseDelta;
+            triangle->getBaseDelta();
         break;
 
     case Y_AXIS:
         v = (piMinusP1.y() / u + triangle->getP1().y() - triangle->getP2().y()) /
-            triangle->baseDelta;
+            triangle->getBaseDelta();
         break;
 
     case Z_AXIS:
         v = (piMinusP1.z() / u + triangle->getP1().z() - triangle->getP2().z()) /
-            triangle->baseDelta;
+            triangle->getBaseDelta();
         break;
     }
 
-    nTemp1 = triangle->n2.subtract(triangle->n1);
+    nTemp1 = triangle->getN2().subtract(triangle->getN1());
     nTemp1 = nTemp1.multiply(u);
-    nTemp1 = nTemp1.add(triangle->n1);
-    nTemp2 = triangle->n3.subtract(triangle->n1);
+    nTemp1 = nTemp1.add(triangle->getN1());
+    nTemp2 = triangle->getN3().subtract(triangle->getN1());
     nTemp2 = nTemp2.multiply(u);
-    nTemp2 = nTemp2.add(triangle->n1);
+    nTemp2 = nTemp2.add(triangle->getN1());
     *result = nTemp2.subtract(nTemp1);
     *result = (*result).multiply(v);
     *result = result->add(nTemp1);
@@ -126,9 +126,9 @@ SmoothTriangle::rotateGeometry(Vector3Dd *vector)
     triangle->getP1() = transformation.transpose().multiply(triangle->getP1());
     triangle->getP2() = transformation.transpose().multiply(triangle->getP2());
     triangle->getP3() = transformation.transpose().multiply(triangle->getP3());
-    triangle->n1 = transformation.transpose().multiply(triangle->n1);
-    triangle->n2 = transformation.transpose().multiply(triangle->n2);
-    triangle->n3 = transformation.transpose().multiply(triangle->n3);
+    triangle->getN1() = transformation.transpose().multiply(triangle->getN1());
+    triangle->getN2() = transformation.transpose().multiply(triangle->getN2());
+    triangle->getN3() = transformation.transpose().multiply(triangle->getN3());
     Triangle::computeTriangle((Triangle *)triangle);
 }
 
@@ -177,9 +177,9 @@ SmoothTriangle::invertGeometry()
 void
 SmoothTriangle::swapVertexNormals()
 {
-    Vector3Dd temp = this->n2;
-    this->n2 = this->n1;
-    this->n1 = temp;
+    Vector3Dd temp = this->getN2();
+    this->getN2() = this->getN1();
+    this->getN1() = temp;
 }
 
 void

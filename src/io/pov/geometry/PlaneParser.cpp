@@ -44,7 +44,7 @@ PlaneParser::parsePlane(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ModelBuilder::getPlaneShape();
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&(localShape->normalVector), ctx);
+                PrimitiveParser::parseVector(&(localShape->getNormalVector()), ctx);
                 localShape->setDistance(PrimitiveParser::parseFloat(ctx));
                 localShape->setDistance(localShape->getDistance() * -1.0);
                 Exit_Flag = true;

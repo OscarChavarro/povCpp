@@ -6,13 +6,14 @@
 
 class InfinitePlane : public Geometry {
   public:
-    Vector3Dd normalVector;
-    double distance;
-    double vpNormDotOrigin;
-    bool vpCached;
-
+    Vector3Dd &getNormalVector() { return normalVector; }
+    const Vector3Dd &getNormalVector() const { return normalVector; }
     double getDistance() const { return distance; }
     void setDistance(double d) { distance = d; }
+    double getVpNormDotOrigin() const { return vpNormDotOrigin; }
+    void setVpNormDotOrigin(double value) { vpNormDotOrigin = value; }
+    bool isVpCached() const { return vpCached; }
+    void setVpCached(bool value) { vpCached = value; }
 
     static int intersectPlane(
         RayWithSegments *ray, InfinitePlane *plane, double *depth);
@@ -29,6 +30,12 @@ class InfinitePlane : public Geometry {
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
+
+  private:
+    Vector3Dd normalVector;
+    double distance;
+    double vpNormDotOrigin;
+    bool vpCached;
 };
 
 #endif

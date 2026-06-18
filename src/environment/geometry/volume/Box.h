@@ -7,14 +7,17 @@
 
 class Box : public Geometry {
   public:
-    Matrix4x4d *transformation;
-    Matrix4x4d *transformationInverse;
-    Vector3Dd bounds[2];
-    bool inverted;
-
     Matrix4x4d* getTransformation() const { return transformation; }
+    void setTransformation(Matrix4x4d *value) { transformation = value; }
     Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
+    void setTransformationInverse(Matrix4x4d *value)
+    {
+        transformationInverse = value;
+    }
     Vector3Dd* getBounds() { return bounds; }
+    const Vector3Dd* getBounds() const { return bounds; }
+    bool isInverted() const { return inverted; }
+    void setInverted(bool value) { inverted = value; }
 
     static int intersectBoxx(const RayWithSegments *ray, const Box *box,
         double *depth1, double *depth2);
@@ -33,6 +36,11 @@ class Box : public Geometry {
     void invertGeometry() override;
 
   private:
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
+    Vector3Dd bounds[2];
+    bool inverted;
+
     static int closeTo(double x, double y);
 };
 
