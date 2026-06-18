@@ -12,11 +12,10 @@ class ParseHelpers {
   public:
     static void linkShapes(
         Light *newObject, Light **field, Light **oldObjectList);
-    static void postProcessObject(BoundedGeometry *object);
-    static void postProcessShape(SimpleBody *shape);
+    static void postProcessObject(BoundedGeometry *object, Light *&lightHead);
+    static void postProcessShape(SimpleBody *shape, Light *&lightHead);
     static void getExpectedToken(int tokenId);
     static void getExpectedToken(int tokenId, ParserContext &ctx);
-    static void postProcessShape(SimpleBody *shape, ParserContext &ctx);
 };
 
 #endif

@@ -20,6 +20,7 @@ void
 DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
 {
     (void)framePtr;
+    PovrayMaterial *parsedDefaultTexture = MaterialUtils::instance().defaultTexture();
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
         bool Exit_Flag;
@@ -28,9 +29,8 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::TEXTURE_TOKEN:
-                MaterialUtils::instance().defaultTexture()->setConstant(false);
-                MaterialUtils::instance().setDefaultTexture(TextureParser::parseTexture(ctx));
-                MaterialUtils::instance().defaultTexture()->setConstant(true);
+                parsedDefaultTexture = TextureParser::parseTexture(
+                    MaterialUtils::instance().defaultTexture(), ctx);
                 break;
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
@@ -42,4 +42,6 @@ DefaultTextureParser::parseDefault(RenderFrame *framePtr, ParserContext &ctx)
             }
         }
     }
+    parsedDefaultTexture->setConstant(true);
+    MaterialUtils::instance().setDefaultTexture(parsedDefaultTexture);
 }

@@ -197,8 +197,8 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::TEXTURE_TOKEN:
-                            localTexture = MaterialUtils::instance().defaultTexture();
-                            localTexture = TextureParser::parseTexture(ctx);
+                            localTexture = TextureParser::parseTexture(
+                                MaterialUtils::instance().defaultTexture(), ctx);
                             if (localTexture->isConstant()) {
                                 localTexture =
                                     TextureParser::copyTexture(localTexture);

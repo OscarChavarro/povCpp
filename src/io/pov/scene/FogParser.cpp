@@ -19,6 +19,15 @@ FogParser::parseFog(RenderFrame *framePtr)
 void
 FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
 {
+    ColorRgba fogColor = framePtr->getFogColor();
+    double fogDistance = framePtr->getFogDistance();
+    FogParser::parseFog(fogColor, fogDistance, ctx);
+    framePtr->setFog(fogColor, fogDistance);
+}
+
+void
+FogParser::parseFog(ColorRgba &fogColor, double &fogDistance, ParserContext &ctx)
+{
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
@@ -28,11 +37,11 @@ FogParser::parseFog(RenderFrame *framePtr, ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::COLOUR_TOKEN:
-                PrimitiveParser::parseColor(&framePtr->getFogColor(), ctx);
+                PrimitiveParser::parseColor(&fogColor, ctx);
                 break;
 
             case Tokenizer::FLOAT_TOKEN:
-                framePtr->setFogDistance(ctx.token().getTokenFloat());
+                fogDistance = ctx.token().getTokenFloat();
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:

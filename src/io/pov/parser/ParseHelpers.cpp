@@ -39,41 +39,33 @@ ParseHelpers::linkShapes(Light *newObject, Light **field, Light **oldObjectList)
 }
 
 void
-ParseHelpers::postProcessObject(BoundedGeometry *object)
+ParseHelpers::postProcessObject(BoundedGeometry *object, Light *&lightHead)
 {
     if (Composite *composite = dynamic_cast<Composite *>(object)) {
         java::ArrayList<BoundedGeometry*> &simpleBodies = composite->getSimpleBodies();
         for (long int i = simpleBodies.size() - 1; i >= 0; i--) {
-            ParseHelpers::postProcessObject(simpleBodies[i]);
+            ParseHelpers::postProcessObject(simpleBodies[i], lightHead);
         }
     } else {
-        ParseHelpers::postProcessShape(static_cast<SimpleBody*>(object->getGeometry()));
+        ParseHelpers::postProcessShape(
+            static_cast<SimpleBody*>(object->getGeometry()), lightHead);
     }
 }
 
 void
-ParseHelpers::postProcessShape(SimpleBody *shape)
-{
-    ParserContext ctx;
-    ParseHelpers::postProcessShape(shape, ctx);
-}
-
-void
-ParseHelpers::postProcessShape(SimpleBody *shape, ParserContext &ctx)
+ParseHelpers::postProcessShape(SimpleBody *shape, Light *&lightHead)
 {
     SimpleBody *tempShape;
-    (void)ctx;
 
     if (CSG *csg = dynamic_cast<CSG *>(shape->getGeometry())) {
         java::ArrayList<TransformableElement*> &shapes = csg->getShapes();
         for (long int i = shapes.size() - 1; i >= 0; i--) {
             tempShape = static_cast<SimpleBody*>(shapes[i]);
-            ParseHelpers::postProcessShape(tempShape);
+            ParseHelpers::postProcessShape(tempShape, lightHead);
         }
     } else if (LightGeometryAdapter *lightAdapter =
                    dynamic_cast<LightGeometryAdapter *>(shape->getGeometry())) {
-        Light * const currentHead = ctx.parsingFrame()->getLightSources();
-        lightAdapter->getLight()->setNextLightSource(currentHead);
-        ctx.parsingFrame()->setLightSources(lightAdapter->getLight());
+        lightAdapter->getLight()->setNextLightSource(lightHead);
+        lightHead = lightAdapter->getLight();
     }
 }
