@@ -7,11 +7,26 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/camera/CameraParser.h"
 
+Camera
+CameraParser::parseCamera()
+{
+    ParserContext ctx;
+    return CameraParser::parseCamera(ctx);
+}
+
+Camera
+CameraParser::parseCamera(ParserContext &ctx)
+{
+    Camera parsedCamera;
+    CameraParser::parseCamera(&parsedCamera, ctx);
+    return parsedCamera;
+}
+
 void
 CameraParser::parseCamera(Camera *givenVp)
 {
     ParserContext ctx;
-    CameraParser::parseCamera(givenVp, ctx);
+    *givenVp = CameraParser::parseCamera(ctx);
 }
 
 void
@@ -24,8 +39,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
     double upLength;
     double rightLength;
     double handedness;
-
-    givenVp->initializeDefaults();
+    Camera parsedCamera;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -39,7 +53,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::VIEW_POINT_CONSTANT) {
-                        *givenVp = *((Camera *)ctx.constants()[(int)constantId]
+                        parsedCamera = *((Camera *)ctx.constants()[(int)constantId]
                                 .getConstantData());
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -50,62 +64,65 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 break;
 
             case Tokenizer::LOCATION_TOKEN:
-                PrimitiveParser::parseVector(&givenVp->getLocation(), ctx);
+                PrimitiveParser::parseVector(&parsedCamera.getLocation(), ctx);
                 break;
 
             case Tokenizer::DIRECTION_TOKEN:
-                PrimitiveParser::parseVector(&givenVp->getDirection(), ctx);
+                PrimitiveParser::parseVector(&parsedCamera.getDirection(), ctx);
                 break;
 
             case Tokenizer::UP_TOKEN:
-                PrimitiveParser::parseVector(&givenVp->getUp(), ctx);
+                PrimitiveParser::parseVector(&parsedCamera.getUp(), ctx);
                 break;
 
             case Tokenizer::RIGHT_TOKEN:
-                PrimitiveParser::parseVector(&givenVp->getRight(), ctx);
+                PrimitiveParser::parseVector(&parsedCamera.getRight(), ctx);
                 break;
 
             case Tokenizer::SKY_TOKEN:
-                PrimitiveParser::parseVector(&givenVp->getSky(), ctx);
+                PrimitiveParser::parseVector(&parsedCamera.getSky(), ctx);
                 break;
 
             case Tokenizer::LOOK_AT_TOKEN:
-                directionLength = givenVp->getDirection().length();
-                upLength = givenVp->getUp().length();
-                rightLength = givenVp->getRight().length();
-                tempVector = givenVp->getDirection().crossProduct(givenVp->getUp());
-                handedness = tempVector.dotProduct(givenVp->getRight());
-                PrimitiveParser::parseVector(&givenVp->getDirection(), ctx);
+                directionLength = parsedCamera.getDirection().length();
+                upLength = parsedCamera.getUp().length();
+                rightLength = parsedCamera.getRight().length();
+                tempVector = parsedCamera.getDirection().crossProduct(parsedCamera.getUp());
+                handedness = tempVector.dotProduct(parsedCamera.getRight());
+                PrimitiveParser::parseVector(&parsedCamera.getDirection(), ctx);
 
-                givenVp->getDirection() =
-                    givenVp->getDirection().subtract(givenVp->getLocation());
-                givenVp->getDirection() = givenVp->getDirection().normalizedFast();
-                givenVp->getRight() = givenVp->getDirection().crossProduct(givenVp->getSky());
-                givenVp->getRight() = givenVp->getRight().normalizedFast();
-                givenVp->getUp() = givenVp->getRight().crossProduct(givenVp->getDirection());
-                givenVp->getDirection() = givenVp->getDirection().multiply(directionLength);
+                parsedCamera.getDirection() =
+                    parsedCamera.getDirection().subtract(parsedCamera.getLocation());
+                parsedCamera.getDirection() = parsedCamera.getDirection().normalizedFast();
+                parsedCamera.getRight() =
+                    parsedCamera.getDirection().crossProduct(parsedCamera.getSky());
+                parsedCamera.getRight() = parsedCamera.getRight().normalizedFast();
+                parsedCamera.getUp() =
+                    parsedCamera.getRight().crossProduct(parsedCamera.getDirection());
+                parsedCamera.getDirection() =
+                    parsedCamera.getDirection().multiply(directionLength);
                 if (handedness >= 0.0) {
-                    givenVp->getRight() = givenVp->getRight().multiply(rightLength);
+                    parsedCamera.getRight() = parsedCamera.getRight().multiply(rightLength);
                 } else {
-                    givenVp->getRight() = givenVp->getRight().multiply(-rightLength);
+                    parsedCamera.getRight() = parsedCamera.getRight().multiply(-rightLength);
                 }
 
-                givenVp->getUp() = givenVp->getUp().multiply(upLength);
+                parsedCamera.getUp() = parsedCamera.getUp().multiply(upLength);
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                givenVp->translate(&localVector);
+                parsedCamera.translate(&localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                givenVp->rotate(&localVector);
+                parsedCamera.rotate(&localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                givenVp->scale(&localVector);
+                parsedCamera.scale(&localVector);
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
@@ -118,5 +135,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
             }
         }
     }
+
+    *givenVp = parsedCamera;
 }
 #include "java/util/PriorityQueue.txx"

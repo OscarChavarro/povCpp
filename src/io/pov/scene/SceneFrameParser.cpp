@@ -25,6 +25,7 @@ void
 SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
 {
     BoundedGeometry *localObject;
+    java::ArrayList<BoundedGeometry*> localObjects(4);
     ctx.parsingFrame() = framePtr;
 
     {
@@ -48,17 +49,17 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
             case Tokenizer::OBJECT_TOKEN:
                 localObject = ObjectParser::parseObject(ctx);
                 if (localObject != nullptr) {
-                    framePtr->getObjects().add(localObject);
+                    localObjects.add(localObject);
                 }
                 break;
 
             case Tokenizer::COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite(ctx);
-                framePtr->getObjects().add(localObject);
+                localObjects.add(localObject);
                 break;
 
             case Tokenizer::VIEW_POINT_TOKEN:
-                CameraParser::parseCamera(&framePtr->getViewPoint(), ctx);
+                framePtr->getViewPoint() = CameraParser::parseCamera(ctx);
                 break;
 
             case Tokenizer::DECLARE_TOKEN:
@@ -75,4 +76,6 @@ SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
             }
         }
     }
+
+    framePtr->getObjects() = localObjects;
 }

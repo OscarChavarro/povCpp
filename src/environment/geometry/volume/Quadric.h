@@ -7,6 +7,10 @@
 
 class Quadric : public Geometry {
   public:
+    Quadric();
+    Quadric(const Vector3Dd &object2Terms, const Vector3Dd &objectMixedTerms,
+        const Vector3Dd &objectTerms, double objectConstant);
+
     Vector3Dd &getObject2Terms() { return object2Terms; }
     const Vector3Dd &getObject2Terms() const { return object2Terms; }
     Vector3Dd &getObjectMixedTerms() { return objectMixedTerms; }
@@ -39,6 +43,8 @@ class Quadric : public Geometry {
     void invertGeometry() override;
 
   private:
+    void updateSquareTermFlag();
+
     Vector3Dd object2Terms;
     Vector3Dd objectMixedTerms;
     Vector3Dd objectTerms;

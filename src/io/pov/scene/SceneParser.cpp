@@ -31,12 +31,15 @@ SceneParser::parse(RenderFrame *framePtr)
 void
 SceneParser::parse(RenderFrame *framePtr, ParserContext &ctx)
 {
-    ctx.parsingFrame() = framePtr;
+    RenderFrame parsedFrame = *framePtr;
+    ctx.parsingFrame() = &parsedFrame;
     ctx.degenerateTriangles() = false;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(ctx);
     SceneParser::parseFrame(ctx);
     postProcessPhase(ctx);
+    *framePtr = parsedFrame;
+    ctx.parsingFrame() = framePtr;
     if (ctx.degenerateTriangles()) {
         fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
     }
@@ -68,7 +71,7 @@ void
 SceneParser::frameInit(ParserContext &ctx)
 {
     MaterialUtils::instance().setDefaultTexture(MaterialUtils::instance().getTexture());
-    ctx.parsingFrame()->getViewPoint().initializeDefaults();
+    ctx.parsingFrame()->getViewPoint() = Camera();
     ctx.parsingFrame()->setLightSources(nullptr);
     ctx.parsingFrame()->getObjects().clear();
     ctx.parsingFrame()->setAtmosphereIor(1.0);

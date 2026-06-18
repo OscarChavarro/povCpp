@@ -12,6 +12,19 @@ This module implements functions that manipulate planes.
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 
+InfinitePlane::InfinitePlane() :
+    InfinitePlane(Vector3Dd(0.0, 1.0, 0.0), 0.0)
+{
+}
+
+InfinitePlane::InfinitePlane(const Vector3Dd &normalVector, double distance) :
+    normalVector(normalVector),
+    distance(distance),
+    vpNormDotOrigin(0.0),
+    vpCached(false)
+{
+}
+
 
 int
 InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)

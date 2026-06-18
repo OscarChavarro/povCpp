@@ -23,11 +23,12 @@ BoxParser::parseBox()
 SimpleBody *
 BoxParser::parseBox(ParserContext &ctx)
 {
-    (void)ctx;
     Box *localShape;
     SimpleBody *body = nullptr;
     int constantId;
     Vector3Dd localVector;
+    Vector3Dd minBounds;
+    Vector3Dd maxBounds;
     PovrayMaterial *localTexture;
 
     localShape = nullptr;
@@ -55,10 +56,10 @@ BoxParser::parseBox(ParserContext &ctx)
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape = ModelBuilder::getBoxShape();
+                PrimitiveParser::parseVector(&minBounds, ctx);
+                PrimitiveParser::parseVector(&maxBounds, ctx);
+                localShape = new Box(minBounds, maxBounds);
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&((localShape)->getBounds()[0]), ctx);
-                PrimitiveParser::parseVector(&((localShape)->getBounds()[1]), ctx);
                 Exit_Flag = true;
                 break;
 

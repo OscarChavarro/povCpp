@@ -24,10 +24,13 @@ QuadricParser::parseQuadric()
 SimpleBody *
 QuadricParser::parseQuadric(ParserContext &ctx)
 {
-    (void)ctx;
     Quadric *localShape;
     SimpleBody *body = nullptr;
     Vector3Dd localVector;
+    Vector3Dd object2Terms;
+    Vector3Dd objectMixedTerms;
+    Vector3Dd objectTerms;
+    double objectConstant;
     int constantId;
     PovrayMaterial *localTexture;
 
@@ -43,20 +46,13 @@ QuadricParser::parseQuadric(ParserContext &ctx)
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape = ModelBuilder::getQuadricShape();
+                PrimitiveParser::parseVector(&object2Terms, ctx);
+                PrimitiveParser::parseVector(&objectMixedTerms, ctx);
+                PrimitiveParser::parseVector(&objectTerms, ctx);
+                objectConstant = PrimitiveParser::parseFloat(ctx);
+                localShape = new Quadric(
+                    object2Terms, objectMixedTerms, objectTerms, objectConstant);
                 body = ModelBuilder::wrap(localShape);
-                PrimitiveParser::parseVector(&(localShape->getObject2Terms()), ctx);
-                PrimitiveParser::parseVector(
-                    &(localShape->getObjectMixedTerms()), ctx);
-                PrimitiveParser::parseVector(&(localShape->getObjectTerms()), ctx);
-                localShape->setObjectConstant(PrimitiveParser::parseFloat(ctx));
-                localShape->setNonZeroSquareTerm(
-                    !((localShape->getObject2Terms().x() == 0.0) &&
-                        (localShape->getObject2Terms().y() == 0.0) &&
-                        (localShape->getObject2Terms().z() == 0.0) &&
-                        (localShape->getObjectMixedTerms().x() == 0.0) &&
-                        (localShape->getObjectMixedTerms().y() == 0.0) &&
-                        (localShape->getObjectMixedTerms().z() == 0.0)));
                 Exit_Flag = true;
                 break;
 

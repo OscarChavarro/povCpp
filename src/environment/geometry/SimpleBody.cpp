@@ -2,6 +2,13 @@
 
 #include "environment/geometry/SimpleBody.h"
 
+SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor) :
+    geometry(geometry),
+    material(material),
+    shapeColor(shapeColor)
+{
+}
+
 int
 SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
@@ -23,12 +30,14 @@ SimpleBody::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 SimpleBody::copy()
 {
-    SimpleBody *newBody = new SimpleBody;
-    *newBody = *this;
-    newBody->setGeometry((Geometry *)getGeometry()->copy());
-    if (newBody->getMaterial() != nullptr) {
-        newBody->setMaterial(newBody->getMaterial()->copy());
+    Material *copiedMaterial = nullptr;
+    if (getMaterial() != nullptr) {
+        copiedMaterial = getMaterial()->copy();
     }
+    SimpleBody *newBody = new SimpleBody(
+        (Geometry *)getGeometry()->copy(), copiedMaterial, getShapeColor());
+    newBody->getTransform() = getTransform();
+    newBody->getTransformInverse() = getTransformInverse();
     return (void *)newBody;
 }
 

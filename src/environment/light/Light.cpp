@@ -6,6 +6,24 @@ This module implements the point & spot light source primitive.
 
 #include "environment/light/Light.h"
 
+Light::Light() :
+    Light(Vector3Dd(0.0, 0.0, 0.0), Vector3Dd(0.0, 0.0, 1.0), false,
+        10.0, 0.35, 0.35)
+{
+}
+
+Light::Light(const Vector3Dd &center, const Vector3Dd &pointsAt, bool inverted,
+    double coefficient, double radius, double falloff) :
+    center(center),
+    pointsAt(pointsAt),
+    nextLightSource(nullptr),
+    inverted(inverted),
+    coefficient(coefficient),
+    radius(radius),
+    falloff(falloff)
+{
+}
+
 void
 Light::applyLinearTransformation(const Matrix4x4d &transformation)
 {

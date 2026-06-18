@@ -6,6 +6,8 @@
 
 class CameraParser {
   public:
+    static Camera parseCamera();
+    static Camera parseCamera(ParserContext &ctx);
     static void parseCamera(Camera *givenVp);
     static void parseCamera(Camera *givenVp, ParserContext &ctx);
 };

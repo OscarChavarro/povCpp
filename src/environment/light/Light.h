@@ -18,6 +18,10 @@ class Light {
     double falloff;
 
   public:
+    Light();
+    Light(const Vector3Dd &center, const Vector3Dd &pointsAt, bool inverted,
+        double coefficient, double radius, double falloff);
+
     ColorRgba *getShapeColor() const;
     void setShapeColor(ColorRgba *color) { shapeColor = color; }
     Vector3Dd& getCenter() { return center; }

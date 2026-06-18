@@ -9,6 +9,38 @@ This module implements primitives for triangles and smooth triangles.
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/Triangle.h"
 
+Triangle::Triangle() :
+    normalVector(0.0, 1.0, 0.0),
+    distance(0.0),
+    vpNormDotOrigin(0.0),
+    vpCached(false),
+    dominantAxis(0),
+    inverted(false),
+    vAxis(0),
+    p1(0.0, 0.0, 0.0),
+    p2(1.0, 0.0, 0.0),
+    p3(0.0, 1.0, 0.0),
+    degenerateFlag(false)
+{
+}
+
+Triangle::Triangle(const Vector3Dd &p1, const Vector3Dd &p2, const Vector3Dd &p3,
+    bool inverted) :
+    normalVector(0.0, 1.0, 0.0),
+    distance(0.0),
+    vpNormDotOrigin(0.0),
+    vpCached(false),
+    dominantAxis(0),
+    inverted(inverted),
+    vAxis(0),
+    p1(p1),
+    p2(p2),
+    p3(p3),
+    degenerateFlag(false)
+{
+    Triangle::computeTriangle(this);
+}
+
 int
 Triangle::max3Axis(double x, double y, double z)
 {

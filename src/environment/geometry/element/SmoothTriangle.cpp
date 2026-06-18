@@ -7,6 +7,34 @@ This module implements smooth triangles.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/Triangle.h"
 
+SmoothTriangle::SmoothTriangle() :
+    Triangle(),
+    n1(0.0, 1.0, 0.0),
+    n2(0.0, 1.0, 0.0),
+    n3(0.0, 1.0, 0.0),
+    perp(),
+    baseDelta(0.0)
+{
+}
+
+SmoothTriangle::SmoothTriangle(const Vector3Dd &p1, const Vector3Dd &n1,
+    const Vector3Dd &p2, const Vector3Dd &n2,
+    const Vector3Dd &p3, const Vector3Dd &n3,
+    bool inverted) :
+    Triangle(),
+    n1(n1.normalizedFast()),
+    n2(n2.normalizedFast()),
+    n3(n3.normalizedFast()),
+    perp(),
+    baseDelta(0.0)
+{
+    getP1() = p1;
+    getP2() = p2;
+    getP3() = p3;
+    setInverted(inverted);
+    Triangle::computeTriangle(this);
+}
+
 /**
 Calculate the Phong-interpolated vector within the triangle
 at the given intersection point. The math for this is a bit
