@@ -60,7 +60,7 @@ int
 SymbolTable::findByIdentifierNumber(int identifierNumber) const
 {
     for (int i = 1; i <= mSize; ++i) {
-        if (mData[i].identifierNumber == identifierNumber) {
+        if (mData[i].getIdentifierNumber() == identifierNumber) {
             return i;
         }
     }
@@ -80,6 +80,6 @@ SymbolTable::upsertByIdentifierNumber(int identifierNumber)
     }
 
     std::memset(&mData[mSize], 0, sizeof(Constant));
-    mData[mSize].identifierNumber = identifierNumber;
+    mData[mSize].setIdentifierNumber(identifierNumber);
     return &mData[mSize];
 }

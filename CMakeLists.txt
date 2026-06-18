@@ -67,6 +67,7 @@ add_executable(povray
     src/io/pov/parser/ParseHelpers.cpp
     src/io/pov/parser/PrimitiveParser.cpp
     src/io/pov/material/PovColorMap.cpp
+    src/io/pov/material/PovColorMapSpan.cpp
     src/io/pov/material/TextureParser.cpp
     src/io/pov/material/ColorMapParser.cpp
     src/io/pov/material/DefaultTextureParser.cpp

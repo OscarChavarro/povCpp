@@ -19,11 +19,11 @@ void PovColorMap::addSpan(
     double start, double end,
     const ColorRgba& sc, const ColorRgba& ec)
 {
-    span* s = new span();
-    s->start = start;
-    s->end = end;
-    s->startColor = sc;
-    s->endColor = ec;
+    PovColorMapSpan *s = new PovColorMapSpan();
+    s->setStart(start);
+    s->setEnd(end);
+    s->setStartColor(sc);
+    s->setEndColor(ec);
     if (sc.getA() != 0.0 || ec.getA() != 0.0) {
         _transparencyFlag = true;
     }
@@ -38,7 +38,7 @@ bool PovColorMap::transparencyFlag() const {
     return _transparencyFlag;
 }
 
-const PovColorMap::span* PovColorMap::getSpanAt(int i) const {
+const PovColorMapSpan *PovColorMap::getSpanAt(int i) const {
     if (i < 0 || i >= (int)_spans.size()) {
         return nullptr;
     }
@@ -51,13 +51,13 @@ ColorRgba PovColorMap::evalLinear(double t) const {
     if (t < 0.0) t = 0.0;
     if (t > 1.0) t = 1.0;
     for (int i = 0; i < (int)_spans.size(); i++) {
-        const span* s = _spans.get(i);
-        if (s != nullptr && t >= s->start && t <= s->end) {
-            const double frac = (t - s->start) / (s->end - s->start);
-            result.setR(s->startColor.getR() + frac * (s->endColor.getR() - s->startColor.getR()));
-            result.setG(s->startColor.getG() + frac * (s->endColor.getG() - s->startColor.getG()));
-            result.setB(s->startColor.getB() + frac * (s->endColor.getB() - s->startColor.getB()));
-            result.setA(s->startColor.getA() + frac * (s->endColor.getA() - s->startColor.getA()));
+        const PovColorMapSpan *s = _spans.get(i);
+        if (s != nullptr && t >= s->getStart() && t <= s->getEnd()) {
+            const double frac = (t - s->getStart()) / (s->getEnd() - s->getStart());
+            result.setR(s->getStartColor().getR() + frac * (s->getEndColor().getR() - s->getStartColor().getR()));
+            result.setG(s->getStartColor().getG() + frac * (s->getEndColor().getG() - s->getStartColor().getG()));
+            result.setB(s->getStartColor().getB() + frac * (s->getEndColor().getB() - s->getStartColor().getB()));
+            result.setA(s->getStartColor().getA() + frac * (s->getEndColor().getA() - s->getStartColor().getA()));
             return result;
         }
     }

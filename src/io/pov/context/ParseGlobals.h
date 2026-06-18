@@ -27,10 +27,55 @@ class ParseGlobals {
     static constexpr int LIGHT_SOURCE_CONSTANT = 20;
 };
 
-struct Constant {
+class Constant {
+  public:
+    int getIdentifierNumber() const;
+    void setIdentifierNumber(int value);
+    int getConstantType() const;
+    void setConstantType(int value);
+    void *getConstantData() const;
+    void setConstantData(void *value);
+
+  private:
     int identifierNumber;
     int constantType;
     void *constantData;
 };
+
+inline int
+Constant::getIdentifierNumber() const
+{
+    return identifierNumber;
+}
+
+inline void
+Constant::setIdentifierNumber(int value)
+{
+    identifierNumber = value;
+}
+
+inline int
+Constant::getConstantType() const
+{
+    return constantType;
+}
+
+inline void
+Constant::setConstantType(int value)
+{
+    constantType = value;
+}
+
+inline void *
+Constant::getConstantData() const
+{
+    return constantData;
+}
+
+inline void
+Constant::setConstantData(void *value)
+{
+    constantData = value;
+}
 
 #endif
