@@ -14,15 +14,13 @@
 BoundedGeometry *
 BoundedGeometryFactory::getObject()
 {
-    BoundedGeometry *newObject;
-
-    if ((newObject = new BoundedGeometry()) == nullptr) {
+    BoundedGeometry *newObject = new BoundedGeometry(
+        nullptr,
+        MaterialUtils::instance().defaultTexture(),
+        nullptr,
+        false);
+    if (newObject == nullptr) {
         Logger::reportMessage("BoundedGeometryFactory", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
-
-    newObject->setGeometry(nullptr);
-    newObject->setObjectTexture(MaterialUtils::instance().defaultTexture());
-    newObject->setObjectColor(nullptr);
-    newObject->setNoShadowFlag(false);
     return (newObject);
 }

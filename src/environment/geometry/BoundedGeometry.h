@@ -17,6 +17,18 @@ class BoundedGeometry : public Geometry {
     Material *objectTexture;
 
   public:
+    BoundedGeometry(
+        TransformableElement *geometry = nullptr,
+        Material *objectTexture = nullptr,
+        ColorRgba *objectColor = nullptr,
+        bool noShadowFlag = false) :
+        geometry(geometry),
+        noShadowFlag(noShadowFlag),
+        objectColor(objectColor),
+        objectTexture(objectTexture)
+    {
+    }
+
     java::ArrayList<TransformableElement*>& getBoundingShapes() { return boundingShapes; }
     const java::ArrayList<TransformableElement*>& getBoundingShapes() const { return boundingShapes; }
     void setBoundingShapes(const java::ArrayList<TransformableElement*> &value)

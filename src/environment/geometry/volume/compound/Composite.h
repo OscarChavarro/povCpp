@@ -9,6 +9,15 @@
 
 class Composite : public BoundedGeometry {
   public:
+    Composite(
+        TransformableElement *geometry = nullptr,
+        Material *objectTexture = nullptr,
+        ColorRgba *objectColor = nullptr,
+        bool noShadowFlag = false) :
+        BoundedGeometry(geometry, objectTexture, objectColor, noShadowFlag)
+    {
+    }
+
     java::ArrayList<BoundedGeometry*> &getSimpleBodies();
     const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;
     void setSimpleBodies(const java::ArrayList<BoundedGeometry*> &value)
