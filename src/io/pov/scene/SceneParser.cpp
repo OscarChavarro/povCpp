@@ -4,10 +4,10 @@
 #include "java/util/PriorityQueue.txx"
 #include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseHelpers.h"
-#include "io/pov/scene/SceneFrameParser.h"
+#include "io/pov/scene/SceneBodyParser.h"
 #include "io/pov/scene/SceneParser.h"
 
 void
@@ -24,16 +24,16 @@ SceneParser::postProcessPhase(ParserContext &ctx)
 
 
 void
-SceneParser::parse(RenderFrame *framePtr)
+SceneParser::parse(Scene *framePtr)
 {
     ParserContext ctx;
     SceneParser::parse(framePtr, ctx);
 }
 
 void
-SceneParser::parse(RenderFrame *framePtr, ParserContext &ctx)
+SceneParser::parse(Scene *framePtr, ParserContext &ctx)
 {
-    RenderFrame parsedFrame = *framePtr;
+    Scene parsedFrame = *framePtr;
     ctx.parsingFrame() = &parsedFrame;
     ctx.degenerateTriangles() = false;
     SceneParser::tokenInit(ctx);
@@ -86,5 +86,5 @@ SceneParser::parseFrame()
 void
 SceneParser::parseFrame(ParserContext &ctx)
 {
-    SceneFrameParser::parseFrame(ctx.parsingFrame(), ctx);
+    SceneBodyParser::parseFrame(ctx.parsingFrame(), ctx);
 }

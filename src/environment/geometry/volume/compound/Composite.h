@@ -11,6 +11,10 @@ class Composite : public BoundedGeometry {
   public:
     java::ArrayList<BoundedGeometry*> &getSimpleBodies();
     const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;
+    void setSimpleBodies(const java::ArrayList<BoundedGeometry*> &value)
+    {
+        simpleBodies = value;
+    }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

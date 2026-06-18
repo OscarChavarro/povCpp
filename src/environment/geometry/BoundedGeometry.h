@@ -19,8 +19,16 @@ class BoundedGeometry : public Geometry {
   public:
     java::ArrayList<TransformableElement*>& getBoundingShapes() { return boundingShapes; }
     const java::ArrayList<TransformableElement*>& getBoundingShapes() const { return boundingShapes; }
+    void setBoundingShapes(const java::ArrayList<TransformableElement*> &value)
+    {
+        boundingShapes = value;
+    }
     java::ArrayList<TransformableElement*>& getClippingShapes() { return clippingShapes; }
     const java::ArrayList<TransformableElement*>& getClippingShapes() const { return clippingShapes; }
+    void setClippingShapes(const java::ArrayList<TransformableElement*> &value)
+    {
+        clippingShapes = value;
+    }
     TransformableElement *getGeometry() const { return geometry; }
     void setGeometry(TransformableElement *value) { geometry = value; }
     bool getNoShadowFlag() const { return noShadowFlag; }

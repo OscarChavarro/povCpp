@@ -421,6 +421,8 @@ ObjectParser::parseObject(ParserContext &ctx)
 {
     BoundedGeometry *object;
     SimpleBody *localShape;
+    java::ArrayList<TransformableElement*> localBoundingShapes(4);
+    java::ArrayList<TransformableElement*> localClippingShapes(4);
     Vector3Dd localVector;
     int constantId;
     PovrayMaterial *localTexture;
@@ -484,6 +486,9 @@ ObjectParser::parseObject(ParserContext &ctx)
         }
     }
 
+    localBoundingShapes = object->getBoundingShapes();
+    localClippingShapes = object->getClippingShapes();
+
     {
         bool Exit_Flag;
         Exit_Flag = false;
@@ -507,7 +512,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            object->getBoundingShapes().add(localShape);
+                            localBoundingShapes.add(localShape);
                             break;
                         }
                     }
@@ -531,7 +536,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            object->getClippingShapes().add(localShape);
+                            localClippingShapes.add(localShape);
                             break;
                         }
                     }
@@ -566,22 +571,38 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
+                object->setBoundingShapes(localBoundingShapes);
+                object->setClippingShapes(localClippingShapes);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 object->translate(&localVector);
+                localBoundingShapes = object->getBoundingShapes();
+                localClippingShapes = object->getClippingShapes();
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
+                object->setBoundingShapes(localBoundingShapes);
+                object->setClippingShapes(localClippingShapes);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 object->rotate(&localVector);
+                localBoundingShapes = object->getBoundingShapes();
+                localClippingShapes = object->getClippingShapes();
                 break;
 
             case Tokenizer::SCALE_TOKEN:
+                object->setBoundingShapes(localBoundingShapes);
+                object->setClippingShapes(localClippingShapes);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 object->scale(&localVector);
+                localBoundingShapes = object->getBoundingShapes();
+                localClippingShapes = object->getClippingShapes();
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
+                object->setBoundingShapes(localBoundingShapes);
+                object->setClippingShapes(localClippingShapes);
                 object->invert();
+                localBoundingShapes = object->getBoundingShapes();
+                localClippingShapes = object->getClippingShapes();
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
@@ -595,6 +616,9 @@ ObjectParser::parseObject(ParserContext &ctx)
         }
     }
 
+    object->setBoundingShapes(localBoundingShapes);
+    object->setClippingShapes(localClippingShapes);
+
     return (object);
 }
 
@@ -604,6 +628,9 @@ ObjectParser::parseComposite(ParserContext &ctx)
     Composite *localComposite;
     BoundedGeometry *localObject;
     SimpleBody *localShape;
+    java::ArrayList<BoundedGeometry*> localSimpleBodies(4);
+    java::ArrayList<TransformableElement*> localBoundingShapes(4);
+    java::ArrayList<TransformableElement*> localClippingShapes(4);
     int constantId;
     Vector3Dd localVector;
 
@@ -623,6 +650,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         ParseGlobals::COMPOSITE_CONSTANT) {
                         localComposite = (Composite *)((TransformableElement *)ctx.constants()[(int)constantId]
                                 .getConstantData())->copy();
+                        localSimpleBodies = localComposite->getSimpleBodies();
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -634,24 +662,27 @@ ObjectParser::parseComposite(ParserContext &ctx)
             case Tokenizer::COMPOSITE_TOKEN:
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
+                    localSimpleBodies = localComposite->getSimpleBodies();
                 }
 
                 localObject = ObjectParser::parseComposite(ctx);
-                localComposite->getSimpleBodies().add(localObject);
+                localSimpleBodies.add(localObject);
                 break;
 
             case Tokenizer::OBJECT_TOKEN:
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
+                    localSimpleBodies = localComposite->getSimpleBodies();
                 }
                 localObject = ObjectParser::parseObject(ctx);
-                localComposite->getSimpleBodies().add(localObject);
+                localSimpleBodies.add(localObject);
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 ctx.tokenStream().ungetToken();
                 if (localComposite == nullptr) {
                     localComposite = ModelBuilder::getCompositeObject();
+                    localSimpleBodies = localComposite->getSimpleBodies();
                 }
                 Exit_Flag = true;
                 break;
@@ -663,6 +694,9 @@ ObjectParser::parseComposite(ParserContext &ctx)
             }
         }
     }
+
+    localBoundingShapes = localComposite->getBoundingShapes();
+    localClippingShapes = localComposite->getClippingShapes();
 
     {
         bool Exit_Flag;
@@ -691,7 +725,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            localComposite->getBoundingShapes().add(localShape);
+                            localBoundingShapes.add(localShape);
                             break;
                         }
                     }
@@ -715,7 +749,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         default:
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
-                            localComposite->getClippingShapes().add(localShape);
+                            localClippingShapes.add(localShape);
                             break;
                         }
                     }
@@ -723,22 +757,46 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
+                localComposite->setSimpleBodies(localSimpleBodies);
+                localComposite->setBoundingShapes(localBoundingShapes);
+                localComposite->setClippingShapes(localClippingShapes);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 localComposite->translate(&localVector);
+                localSimpleBodies = localComposite->getSimpleBodies();
+                localBoundingShapes = localComposite->getBoundingShapes();
+                localClippingShapes = localComposite->getClippingShapes();
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
+                localComposite->setSimpleBodies(localSimpleBodies);
+                localComposite->setBoundingShapes(localBoundingShapes);
+                localComposite->setClippingShapes(localClippingShapes);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 localComposite->rotate(&localVector);
+                localSimpleBodies = localComposite->getSimpleBodies();
+                localBoundingShapes = localComposite->getBoundingShapes();
+                localClippingShapes = localComposite->getClippingShapes();
                 break;
 
             case Tokenizer::SCALE_TOKEN:
+                localComposite->setSimpleBodies(localSimpleBodies);
+                localComposite->setBoundingShapes(localBoundingShapes);
+                localComposite->setClippingShapes(localClippingShapes);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 localComposite->scale(&localVector);
+                localSimpleBodies = localComposite->getSimpleBodies();
+                localBoundingShapes = localComposite->getBoundingShapes();
+                localClippingShapes = localComposite->getClippingShapes();
                 break;
 
             case Tokenizer::INVERSE_TOKEN:
+                localComposite->setSimpleBodies(localSimpleBodies);
+                localComposite->setBoundingShapes(localBoundingShapes);
+                localComposite->setClippingShapes(localClippingShapes);
                 localComposite->invert();
+                localSimpleBodies = localComposite->getSimpleBodies();
+                localBoundingShapes = localComposite->getBoundingShapes();
+                localClippingShapes = localComposite->getClippingShapes();
                 break;
 
             default:
@@ -747,6 +805,10 @@ ObjectParser::parseComposite(ParserContext &ctx)
             }
         }
     }
+
+    localComposite->setSimpleBodies(localSimpleBodies);
+    localComposite->setBoundingShapes(localBoundingShapes);
+    localComposite->setClippingShapes(localClippingShapes);
 
     return ((BoundedGeometry *)localComposite);
 }

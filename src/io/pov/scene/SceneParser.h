@@ -1,13 +1,13 @@
 #ifndef __SCENE_PARSER__
 #define __SCENE_PARSER__
 
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 #include "io/pov/context/ParserContext.h"
 
 class SceneParser {
   public:
-    static void parse(RenderFrame *framePtr);
-    static void parse(RenderFrame *framePtr, ParserContext &ctx);
+    static void parse(Scene *framePtr);
+    static void parse(Scene *framePtr, ParserContext &ctx);
     static void tokenInit();
     static void tokenInit(ParserContext &ctx);
     static void frameInit();

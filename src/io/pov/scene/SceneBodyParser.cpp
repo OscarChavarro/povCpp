@@ -1,7 +1,7 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 #include "environment/scene/BoundedGeometryFactory.h"
 
 #include "io/pov/camera/CameraParser.h"
@@ -12,17 +12,17 @@
 #include "io/pov/scene/DeclarationParser.h"
 #include "io/pov/scene/FogParser.h"
 #include "io/pov/scene/RenderSettingsParser.h"
-#include "io/pov/scene/SceneFrameParser.h"
+#include "io/pov/scene/SceneBodyParser.h"
 
 void
-SceneFrameParser::parseFrame(RenderFrame *framePtr)
+SceneBodyParser::parseFrame(Scene *framePtr)
 {
     ParserContext ctx;
-    SceneFrameParser::parseFrame(framePtr, ctx);
+    SceneBodyParser::parseFrame(framePtr, ctx);
 }
 
 void
-SceneFrameParser::parseFrame(RenderFrame *framePtr, ParserContext &ctx)
+SceneBodyParser::parseFrame(Scene *framePtr, ParserContext &ctx)
 {
     BoundedGeometry *localObject;
     java::ArrayList<BoundedGeometry*> localObjects(4);

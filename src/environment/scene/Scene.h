@@ -1,5 +1,5 @@
-#ifndef __RENDER_FRAME__
-#define __RENDER_FRAME__
+#ifndef __SCENE__
+#define __SCENE__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
@@ -9,9 +9,9 @@
 #include "environment/light/Light.h"
 #include "environment/geometry/BoundedGeometry.h"
 
-class RenderFrame {
+class Scene {
   public:
-    RenderFrame();
+    Scene();
 
     Camera& getViewPoint() { return viewPoint; }
     const Camera& getViewPoint() const { return viewPoint; }

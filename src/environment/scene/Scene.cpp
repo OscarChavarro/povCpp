@@ -1,7 +1,7 @@
 #include "java/util/ArrayList.txx"
 
 #include "environment/material/RendererConfiguration.h"
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 
 namespace {
 ColorRgba
@@ -16,7 +16,7 @@ blackFogColor()
 }
 }
 
-RenderFrame::RenderFrame() :
+Scene::Scene() :
     screenHeight(0),
     screenWidth(0),
     lightSources(nullptr),
@@ -28,7 +28,7 @@ RenderFrame::RenderFrame() :
 }
 
 void
-RenderFrame::resetForSceneParse()
+Scene::resetForSceneParse()
 {
     viewPoint = Camera();
     lightSources = nullptr;

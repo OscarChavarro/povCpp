@@ -6,7 +6,7 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "io/pov/parser/LightGeometryAdapter.h"
-#include "environment/scene/SceneFrame.h"
+#include "environment/scene/Scene.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParserContext.h"

@@ -17,7 +17,7 @@ void SceneDumper::dumpSceneStructure(FILE *f)
 
     int idx = 0;
     java::ArrayList<BoundedGeometry*> &sceneObjects =
-        RenderEngine::renderFrame().getObjects();
+        RenderEngine::scene().getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         const BoundedGeometry *obj = sceneObjects[i];
         fprintf(f, "OBJ %03d\n", idx);

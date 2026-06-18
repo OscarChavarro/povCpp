@@ -130,8 +130,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
-                RenderEngine::renderFrame().getLightSources(),
-                RenderEngine::renderFrame().getObjects(), RenderEngine::traceLevel());
+                RenderEngine::scene().getLightSources(),
+                RenderEngine::scene().getObjects(), RenderEngine::traceLevel());
         }
 
         if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
@@ -201,12 +201,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
                 &refractedColor, traceService,
-                RenderEngine::renderFrame().getAtmosphereIor(),
+                RenderEngine::scene().getAtmosphereIor(),
                 RenderEngine::traceLevel());
         } else {
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
                 &refractedColor, traceService,
-                RenderEngine::renderFrame().getAtmosphereIor(),
+                RenderEngine::scene().getAtmosphereIor(),
                 RenderEngine::traceLevel());
         }
 
@@ -219,7 +219,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
                 &refractedColor, traceService,
-                RenderEngine::renderFrame().getAtmosphereIor(),
+                RenderEngine::scene().getAtmosphereIor(),
                 RenderEngine::traceLevel());
             color->setR(color->getR() + filterColor.getR() * refractedColor.getR() * filterColor.getA());
             color->setG(color->getG() + filterColor.getG() * refractedColor.getG() * filterColor.getA());
@@ -227,8 +227,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         }
     }
 
-    if (RenderEngine::renderFrame().getFogDistance() != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->getDepth(), &RenderEngine::renderFrame().getFogColor(),
-            RenderEngine::renderFrame().getFogDistance(), color);
+    if (RenderEngine::scene().getFogDistance() != 0.0) {
+        ExponentialFogShader::shade(rayIntersection->getDepth(), &RenderEngine::scene().getFogColor(),
+            RenderEngine::scene().getFogDistance(), color);
     }
 }
