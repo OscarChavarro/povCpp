@@ -513,7 +513,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getImage(), ctx.token().tokenString);
+                                texture->getImage(), ctx.token().getTokenString());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getImage(), idx);
@@ -525,7 +525,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().tokenString);
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString());
                             TextureParser::wireIndexedInToTextureImage(texture->getImage(), idx);
                             exitFlag = true;
                             break;
@@ -534,14 +534,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
-                                texture->getImage(), ctx.token().tokenString);
+                                texture->getImage(), ctx.token().getTokenString());
                             exitFlag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(
-                                texture->getImage(), ctx.token().tokenString);
+                                texture->getImage(), ctx.token().getTokenString());
                             exitFlag = true;
                             break;
 
@@ -587,7 +587,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                                 ctx.tokenStream().getToken();
                                 switch (ctx.token().getTokenId()) {
                                 case Tokenizer::FLOAT_TOKEN:
-                                    reg = (int)(ctx.token().tokenFloat + 0.01);
+                                    reg = (int)(ctx.token().getTokenFloat() + 0.01);
                                     if (texture->getImage()->getIndexedData() == nullptr) {
                                         ParseErrorReporter::reportError(
                                             "Can't apply ALPHA to a non "
@@ -848,7 +848,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getBumpImage(), ctx.token().tokenString);
+                                texture->getBumpImage(), ctx.token().getTokenString());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getBumpImage(), idx);
@@ -860,7 +860,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().tokenString);
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getBumpImage(), idx);
                             Exit_Flag = true;
@@ -870,14 +870,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
-                                texture->getBumpImage(), ctx.token().tokenString);
+                                texture->getBumpImage(), ctx.token().getTokenString());
                             Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(
-                                texture->getBumpImage(), ctx.token().tokenString);
+                                texture->getBumpImage(), ctx.token().getTokenString());
                             Exit_Flag = true;
                             break;
 
@@ -977,7 +977,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getMaterialImage(), ctx.token().tokenString);
+                                texture->getMaterialImage(), ctx.token().getTokenString());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getMaterialImage(), idx);
@@ -989,7 +989,7 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().tokenString);
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getMaterialImage(), idx);
                             Exit_Flag = true;
@@ -999,14 +999,14 @@ TextureParser::parseTexture(ParserContext &ctx)
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(texture->getMaterialImage(),
-                                ctx.token().tokenString);
+                                ctx.token().getTokenString());
                             Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(texture->getMaterialImage(),
-                                ctx.token().tokenString);
+                                ctx.token().getTokenString());
                             Exit_Flag = true;
                             break;
 

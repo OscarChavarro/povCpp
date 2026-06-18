@@ -24,7 +24,7 @@ ParserContext::reservedWords()
     return mTokenStream->reservedWords();
 }
 
-TokenStruct &
+PovToken &
 ParserContext::token()
 {
     return mTokenStream->token();
@@ -57,7 +57,7 @@ ParserContext::symbols()
 int
 ParserContext::findConstant()
 {
-    return symbols().findByIdentifierNumber(token().identifierNumber);
+    return symbols().findByIdentifierNumber(token().getIdentifierNumber());
 }
 
 int &

@@ -59,7 +59,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 if (!Triangle::computeTriangle((Triangle *)localShape)) {
                     {
                         char _logMsg[1024];
-                        snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().getTokenLineNo());
+                        snprintf(_logMsg, sizeof(_logMsg), "Degenerate triangle on line %d.  Please remove.\n", ctx.token().getTokenLineNumber());
                         Logger::reportMessage("SmoothTriangleParser", Logger::ERROR, "", _logMsg);
                     }
                     ctx.degenerateTriangles() = true;

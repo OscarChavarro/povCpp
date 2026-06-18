@@ -2,13 +2,13 @@
 #define __I_TOKEN_STREAM_H__
 
 #include "io/pov/lexer/ReservedWord.h"
-#include "io/pov/lexer/TokenStruct.h"
+#include "io/pov/lexer/PovToken.h"
 
 class ITokenStream {
   public:
     virtual ~ITokenStream() {}
     virtual const ReservedWord *reservedWords() = 0;
-    virtual TokenStruct &token() = 0;
+    virtual PovToken &token() = 0;
     virtual void getToken() = 0;
     virtual void ungetToken() = 0;
     virtual bool canRewind() const { return false; }

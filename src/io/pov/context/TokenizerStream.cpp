@@ -7,7 +7,7 @@ TokenizerStream::reservedWords()
     return Tokenizer::reservedWords();
 }
 
-TokenStruct &
+PovToken &
 TokenizerStream::token()
 {
     return Tokenizer::token();
