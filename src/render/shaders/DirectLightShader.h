@@ -1,5 +1,5 @@
-#ifndef __DIRECT_LIGHT_SHADER_H__
-#define __DIRECT_LIGHT_SHADER_H__
+#ifndef __DIRECT_LIGHT_SHADER__
+#define __DIRECT_LIGHT_SHADER__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

@@ -1,5 +1,5 @@
-#ifndef __POV_SYMBOL_TABLE_H__
-#define __POV_SYMBOL_TABLE_H__
+#ifndef __SYMBOL_TABLE__
+#define __SYMBOL_TABLE__
 
 #include "io/pov/context/ParseGlobals.h"
 

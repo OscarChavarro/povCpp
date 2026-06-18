@@ -1,5 +1,5 @@
-#ifndef __MIRROR_REFLECTION_SHADER_H__
-#define __MIRROR_REFLECTION_SHADER_H__
+#ifndef __MIRROR_REFLECTION_SHADER__
+#define __MIRROR_REFLECTION_SHADER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

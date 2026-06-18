@@ -1,5 +1,5 @@
-#ifndef __LIGHT_GEOMETRY_ADAPTER_H__
-#define __LIGHT_GEOMETRY_ADAPTER_H__
+#ifndef __LIGHT_GEOMETRY_ADAPTER__
+#define __LIGHT_GEOMETRY_ADAPTER__
 
 #include "environment/geometry/Geometry.h"
 #include "environment/light/Light.h"

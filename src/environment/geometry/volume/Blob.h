@@ -1,5 +1,5 @@
-#ifndef __BLOB_H__
-#define __BLOB_H__
+#ifndef __BLOB__
+#define __BLOB__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/BoundedGeometry.h"

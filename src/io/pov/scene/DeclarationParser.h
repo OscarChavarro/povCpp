@@ -1,5 +1,5 @@
-#ifndef __DECLARATION_PARSER_H__
-#define __DECLARATION_PARSER_H__
+#ifndef __DECLARATION_PARSER__
+#define __DECLARATION_PARSER__
 
 #include "io/pov/context/ParserContext.h"
 

@@ -1,5 +1,5 @@
-#ifndef __GIF_FORMAT_H__
-#define __GIF_FORMAT_H__
+#ifndef __GIF_FORMAT__
+#define __GIF_FORMAT__
 
 #include "java/io/FileInputStream.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"

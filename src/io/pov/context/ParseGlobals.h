@@ -1,5 +1,5 @@
-#ifndef __PARSE_GLOBALS_H__
-#define __PARSE_GLOBALS_H__
+#ifndef __PARSE_GLOBALS__
+#define __PARSE_GLOBALS__
 
 // Types of constants allowed in DECLARE statement
 class ParseGlobals {

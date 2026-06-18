@@ -1,5 +1,5 @@
-#ifndef __COLOR_MAP_PARSER_H__
-#define __COLOR_MAP_PARSER_H__
+#ifndef __COLOR_MAP_PARSER__
+#define __COLOR_MAP_PARSER__
 
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "io/pov/context/ParserContext.h"

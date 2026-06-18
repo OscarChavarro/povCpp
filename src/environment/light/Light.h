@@ -1,5 +1,5 @@
-#ifndef __POINT_H__
-#define __POINT_H__
+#ifndef __LIGHT__
+#define __LIGHT__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"

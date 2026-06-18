@@ -1,5 +1,5 @@
-#ifndef __CAMERA_PARSER_H__
-#define __CAMERA_PARSER_H__
+#ifndef __CAMERA_PARSER__
+#define __CAMERA_PARSER__
 
 #include "environment/camera/Camera.h"
 #include "io/pov/context/ParserContext.h"

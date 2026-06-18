@@ -1,5 +1,5 @@
-#ifndef __SMOOTH_TRIANGLE_H__
-#define __SMOOTH_TRIANGLE_H__
+#ifndef __SMOOTH_TRIANGLE__
+#define __SMOOTH_TRIANGLE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/Triangle.h"

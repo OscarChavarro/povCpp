@@ -1,5 +1,5 @@
-#ifndef __TOKENIZER_H__
-#define __TOKENIZER_H__
+#ifndef __TOKENIZER__
+#define __TOKENIZER__
 
 #include "io/pov/lexer/DataFile.h"
 #include "io/pov/lexer/PovToken.h"

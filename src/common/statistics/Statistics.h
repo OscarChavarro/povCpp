@@ -1,5 +1,5 @@
-#ifndef __STATISTICS_H__
-#define __STATISTICS_H__
+#ifndef __STATISTICS__
+#define __STATISTICS__
 
 #include <ctime>
 

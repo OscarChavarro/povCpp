@@ -1,5 +1,5 @@
-#ifndef __QUADRIC_H__
-#define __QUADRIC_H__
+#ifndef __QUADRIC__
+#define __QUADRIC__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

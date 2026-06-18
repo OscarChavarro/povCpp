@@ -1,5 +1,5 @@
-#ifndef __GIFDECOD_H__
-#define __GIFDECOD_H__
+#ifndef __GIF_DECODER__
+#define __GIF_DECODER__
 
 typedef short WORD;
 

@@ -1,5 +1,5 @@
-#ifndef __IFF_FORMAT_H__
-#define __IFF_FORMAT_H__
+#ifndef __IFF_FORMAT__
+#define __IFF_FORMAT__
 
 #include "java/io/FileInputStream.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"

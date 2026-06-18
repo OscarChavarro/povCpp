@@ -1,5 +1,5 @@
-#ifndef __POV_TOKEN_H__
-#define __POV_TOKEN_H__
+#ifndef __POV_TOKEN__
+#define __POV_TOKEN__
 
 class PovToken {
   private:

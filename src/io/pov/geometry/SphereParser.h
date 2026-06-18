@@ -1,5 +1,5 @@
-#ifndef __SPHERE_PARSER_H__
-#define __SPHERE_PARSER_H__
+#ifndef __SPHERE_PARSER__
+#define __SPHERE_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

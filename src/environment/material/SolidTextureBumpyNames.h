@@ -1,5 +1,5 @@
-#ifndef __SOLID_TEXTURE_BUMPY_NAMES_H__
-#define __SOLID_TEXTURE_BUMPY_NAMES_H__
+#ifndef __SOLID_TEXTURE_BUMPY_NAMES__
+#define __SOLID_TEXTURE_BUMPY_NAMES__
 
 enum SolidTextureBumpyNames {
     NO_BUMPS = 0,

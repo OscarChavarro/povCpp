@@ -1,5 +1,5 @@
-#ifndef __SCENE_FRAME_PARSER_H__
-#define __SCENE_FRAME_PARSER_H__
+#ifndef __SCENE_FRAME_PARSER__
+#define __SCENE_FRAME_PARSER__
 
 #include "environment/scene/SceneFrame.h"
 #include "io/pov/context/ParserContext.h"

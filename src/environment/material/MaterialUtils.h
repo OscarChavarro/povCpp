@@ -6,8 +6,8 @@ sources/frequencies used by ripple/wave bump textures, and texture-space transfo
 (translate/rotate/scale/copy) for POV-Ray material descriptors.
 */
 
-#ifndef __MATERIAL_UTILS_H__
-#define __MATERIAL_UTILS_H__
+#ifndef __MATERIAL_UTILS__
+#define __MATERIAL_UTILS__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/material/PovrayMaterial.h"

@@ -1,5 +1,5 @@
-#ifndef __HEIGHT_FIELD_H__
-#define __HEIGHT_FIELD_H__
+#ifndef __HEIGHT_FIELD__
+#define __HEIGHT_FIELD__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"

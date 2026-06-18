@@ -1,5 +1,5 @@
-#ifndef __SIMPLE_BODY_H__
-#define __SIMPLE_BODY_H__
+#ifndef __SIMPLE_BODY__
+#define __SIMPLE_BODY__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"

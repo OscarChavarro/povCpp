@@ -1,5 +1,5 @@
-#ifndef __SHADOW_SHADER_H__
-#define __SHADOW_SHADER_H__
+#ifndef __SHADOW_SHADER__
+#define __SHADOW_SHADER__
 
 #include "java/util/PriorityQueue.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

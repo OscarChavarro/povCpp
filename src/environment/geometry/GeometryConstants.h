@@ -1,5 +1,5 @@
-#ifndef __GEOMETRY_CONSTANTS_H__
-#define __GEOMETRY_CONSTANTS_H__
+#ifndef __GEOMETRY_CONSTANTS__
+#define __GEOMETRY_CONSTANTS__
 
 class GeometryConstants {
   public:

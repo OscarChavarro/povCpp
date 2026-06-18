@@ -1,5 +1,5 @@
-#ifndef __BLOB_INTERVAL_H__
-#define __BLOB_INTERVAL_H__
+#ifndef __BLOB_INTERVAL__
+#define __BLOB_INTERVAL__
 
 
 class BlobInterval {

@@ -1,5 +1,5 @@
-#ifndef __TOKENIZER_TOKEN_STREAM_H__
-#define __TOKENIZER_TOKEN_STREAM_H__
+#ifndef __TOKENIZER_STREAM__
+#define __TOKENIZER_STREAM__
 
 #include "io/pov/lexer/ITokenStream.h"
 

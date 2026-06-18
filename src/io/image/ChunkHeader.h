@@ -1,5 +1,5 @@
-#ifndef __CHUNK_HEADER_H__
-#define __CHUNK_HEADER_H__
+#ifndef __CHUNK_HEADER__
+#define __CHUNK_HEADER__
 
 class ChunkHeader {
   public:

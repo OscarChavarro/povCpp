@@ -1,5 +1,5 @@
-#ifndef __LAMBERT_SHADER_H__
-#define __LAMBERT_SHADER_H__
+#ifndef __LAMBERT_SHADER__
+#define __LAMBERT_SHADER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

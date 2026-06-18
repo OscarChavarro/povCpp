@@ -1,5 +1,5 @@
-#ifndef __RENDER_SETTINGS_PARSER_H__
-#define __RENDER_SETTINGS_PARSER_H__
+#ifndef __RENDER_SETTINGS_PARSER__
+#define __RENDER_SETTINGS_PARSER__
 
 #include "io/pov/context/ParserContext.h"
 

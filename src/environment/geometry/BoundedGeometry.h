@@ -1,5 +1,5 @@
-#ifndef __BOUNDED_GEOMETRY_H__
-#define __BOUNDED_GEOMETRY_H__
+#ifndef __BOUNDED_GEOMETRY__
+#define __BOUNDED_GEOMETRY__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

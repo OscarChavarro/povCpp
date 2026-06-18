@@ -1,5 +1,5 @@
-#ifndef __PARAMETRIC_PATCH_CHILD_H__
-#define __PARAMETRIC_PATCH_CHILD_H__
+#ifndef __PARAMETRIC_PATCH_CHILD__
+#define __PARAMETRIC_PATCH_CHILD__
 
 #include "environment/geometry/surface/parametric/ParametricPatchNode.h"
 

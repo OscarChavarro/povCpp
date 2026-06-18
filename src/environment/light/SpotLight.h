@@ -1,5 +1,5 @@
-#ifndef __SPOT_LIGHT_H__
-#define __SPOT_LIGHT_H__
+#ifndef __SPOT_LIGHT__
+#define __SPOT_LIGHT__
 
 #include "environment/light/Light.h"
 

@@ -1,5 +1,5 @@
-#ifndef __PARSE_ERROR_REPORTER_H__
-#define __PARSE_ERROR_REPORTER_H__
+#ifndef __PARSE_ERROR_REPORTER__
+#define __PARSE_ERROR_REPORTER__
 
 #include "io/pov/lexer/Tokenizer.h"
 #include "io/pov/context/ParserContext.h"

@@ -1,5 +1,5 @@
-#ifndef __RENDERING_CONFIGURATION_H__
-#define __RENDERING_CONFIGURATION_H__
+#ifndef __RENDERING_CONFIGURATION__
+#define __RENDERING_CONFIGURATION__
 
 #include <cstring>
 

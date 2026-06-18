@@ -1,5 +1,5 @@
-#ifndef __RAW_DUMP_FORMAT_H__
-#define __RAW_DUMP_FORMAT_H__
+#ifndef __RAW_DUMP_FORMAT__
+#define __RAW_DUMP_FORMAT__
 
 #include "java/io/FileInputStream.h"
 #include "java/io/OutputStream.h"

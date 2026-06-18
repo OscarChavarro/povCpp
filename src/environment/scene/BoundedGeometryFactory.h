@@ -1,5 +1,5 @@
-#ifndef __BOUNDED_GEOMETRY_FACTORY_H__
-#define __BOUNDED_GEOMETRY_FACTORY_H__
+#ifndef __BOUNDED_GEOMETRY_FACTORY__
+#define __BOUNDED_GEOMETRY_FACTORY__
 
 #include "environment/geometry/BoundedGeometry.h"
 

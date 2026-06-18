@@ -1,5 +1,5 @@
-#ifndef ____
-#define ____
+#ifndef __CSG__
+#define __CSG__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

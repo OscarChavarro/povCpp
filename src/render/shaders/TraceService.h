@@ -1,5 +1,5 @@
-#ifndef __TRACE_SERVICE_H__
-#define __TRACE_SERVICE_H__
+#ifndef __TRACE_SERVICE__
+#define __TRACE_SERVICE__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Intersection.h"

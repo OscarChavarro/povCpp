@@ -1,5 +1,5 @@
-#ifndef __PARAMETRIC_BICUBIC_INTERSECTION_H__
-#define __PARAMETRIC_BICUBIC_INTERSECTION_H__
+#ifndef __PARAMETRIC_BI_CUBIC_INTERSECTION__
+#define __PARAMETRIC_BI_CUBIC_INTERSECTION__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/RayWithSegments.h"

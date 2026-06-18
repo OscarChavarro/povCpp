@@ -1,5 +1,5 @@
-#ifndef __RAY_WITH_SEGMENTS_H__
-#define __RAY_WITH_SEGMENTS_H__
+#ifndef __RAY_WITH_SEGMENTS__
+#define __RAY_WITH_SEGMENTS__
 
 #include "environment/material/Material.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"

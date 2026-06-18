@@ -1,5 +1,5 @@
-#ifndef __PHONG_SPECULAR_SHADER_H__
-#define __PHONG_SPECULAR_SHADER_H__
+#ifndef __PHONG_SPECULAR_SHADER__
+#define __PHONG_SPECULAR_SHADER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

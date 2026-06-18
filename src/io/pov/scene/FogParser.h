@@ -1,5 +1,5 @@
-#ifndef __FOG_PARSER_H__
-#define __FOG_PARSER_H__
+#ifndef __FOG_PARSER__
+#define __FOG_PARSER__
 
 #include "environment/scene/SceneFrame.h"
 #include "io/pov/context/ParserContext.h"

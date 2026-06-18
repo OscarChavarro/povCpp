@@ -1,5 +1,5 @@
-#ifndef __TRIANGLE_PARSER_H__
-#define __TRIANGLE_PARSER_H__
+#ifndef __TRIANGLE_PARSER__
+#define __TRIANGLE_PARSER__
 
 #include "environment/geometry/Geometry.h"
 #include "io/pov/context/ParserContext.h"

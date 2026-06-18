@@ -1,5 +1,5 @@
-#ifndef __BLOB_LIST_H__
-#define __BLOB_LIST_H__
+#ifndef __BLOB_LIST__
+#define __BLOB_LIST__
 
 #include "environment/geometry/volume/BlobElement.h"
 

@@ -1,5 +1,5 @@
-#ifndef __SOLID_TEXTURE_COLOR_NAMES_H__
-#define __SOLID_TEXTURE_COLOR_NAMES_H__
+#ifndef __SOLID_TEXTURE_COLOR_NAMES__
+#define __SOLID_TEXTURE_COLOR_NAMES__
 
 enum SolidTextureColorNames {
     NO_TEXTURE = 0,

@@ -1,5 +1,5 @@
-#ifndef __PRIORITY_QUEUE_POOL_H__
-#define __PRIORITY_QUEUE_POOL_H__
+#ifndef __PRIORITY_QUEUE_POOL__
+#define __PRIORITY_QUEUE_POOL__
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/util/PriorityQueue.h"

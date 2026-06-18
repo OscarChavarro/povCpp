@@ -1,5 +1,5 @@
-#ifndef __Intersection
-#define __Intersection
+#ifndef __INTERSECTION__
+#define __INTERSECTION__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"
@@ -32,4 +32,4 @@ class Intersection {
     }
 };
 
-#endif // __Intersection
+#endif

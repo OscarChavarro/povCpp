@@ -1,5 +1,5 @@
-#ifndef __LOCAL_SURFACE_SHADER_H__
-#define __LOCAL_SURFACE_SHADER_H__
+#ifndef __LOCAL_SURFACE_SHADER__
+#define __LOCAL_SURFACE_SHADER__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

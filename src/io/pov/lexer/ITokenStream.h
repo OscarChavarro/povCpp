@@ -1,5 +1,5 @@
-#ifndef __I_TOKEN_STREAM_H__
-#define __I_TOKEN_STREAM_H__
+#ifndef __I_TOKEN_STREAM__
+#define __I_TOKEN_STREAM__
 
 #include "io/pov/lexer/ReservedWord.h"
 #include "io/pov/lexer/PovToken.h"

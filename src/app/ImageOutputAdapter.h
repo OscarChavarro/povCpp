@@ -1,5 +1,5 @@
-#ifndef __IMAGE_OUTPUT_ADAPTER_H__
-#define __IMAGE_OUTPUT_ADAPTER_H__
+#ifndef __IMAGE_OUTPUT_ADAPTER__
+#define __IMAGE_OUTPUT_ADAPTER__
 
 #include "environment/material/RenderOutput.h"
 #include "io/image/ImageOutput.h"

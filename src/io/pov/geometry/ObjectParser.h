@@ -1,5 +1,5 @@
-#ifndef __OBJECT_PARSER_H__
-#define __OBJECT_PARSER_H__
+#ifndef __OBJECT_PARSER__
+#define __OBJECT_PARSER__
 
 #include "environment/geometry/element/GeometryTypes.h"
 #include "environment/geometry/Geometry.h"

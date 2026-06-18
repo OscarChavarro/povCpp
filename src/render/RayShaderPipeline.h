@@ -1,5 +1,5 @@
-#ifndef __RAY_SHADER_PIPELINE_H__
-#define __RAY_SHADER_PIPELINE_H__
+#ifndef __RAY_SHADER_PIPELINE__
+#define __RAY_SHADER_PIPELINE__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
