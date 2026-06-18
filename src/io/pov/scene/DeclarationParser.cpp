@@ -53,7 +53,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::OBJECT_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().identifierNumber);
                 constantPtr->setConstantData(
@@ -195,7 +195,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                     Exit_Flag = false;
                     while (!Exit_Flag) {
                         ctx.tokenStream().getToken();
-                        switch (ctx.token().tokenId) {
+                        switch (ctx.token().getTokenId()) {
                         case Tokenizer::TEXTURE_TOKEN:
                             localTexture = MaterialUtils::instance().defaultTexture();
                             localTexture = TextureParser::parseTexture(ctx);

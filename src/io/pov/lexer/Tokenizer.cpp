@@ -240,16 +240,16 @@ Tokenizer::getToken()
         return;
     }
 
-    Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
+    Tokenizer::token().setTokenId(Tokenizer::END_OF_FILE_TOKEN);
 
-    while (Tokenizer::token().tokenId == Tokenizer::END_OF_FILE_TOKEN) {
+    while (Tokenizer::token().getTokenId() == Tokenizer::END_OF_FILE_TOKEN) {
 
         Tokenizer::sGlobalDataFile->skipSpaces();
 
         c = getc(Tokenizer::sGlobalDataFile->getFile());
         if (c == EOF) {
             if (Tokenizer::sGlobalIncludeFileIndex == 0) {
-                Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
+                Tokenizer::token().setTokenId(Tokenizer::END_OF_FILE_TOKEN);
                 Tokenizer::token().endOfFile = true;
                 // putchar ('\n');
                 fprintf(stderr, "\n");
@@ -505,7 +505,7 @@ Tokenizer::getToken()
             }
             break;
         }
-        if (Tokenizer::token().tokenId == Tokenizer::INCLUDE_TOKEN) {
+        if (Tokenizer::token().getTokenId() == Tokenizer::INCLUDE_TOKEN) {
             if (Tokenizer::sGlobalDataFile->skipSpaces() != true) {
                 Tokenizer::tokenError(
                     Tokenizer::sGlobalDataFile, "Expecting a Tokenizer::sString after INCLUDE\n");
@@ -527,27 +527,27 @@ Tokenizer::getToken()
             Tokenizer::sGlobalDataFile->setLineNumber(0);
 
             Tokenizer::sGlobalDataFile->setFilename(
-                new char[strlen(Tokenizer::token().Token_String) + 1]);
+                new char[strlen(Tokenizer::token().tokenString) + 1]);
             if (Tokenizer::sGlobalDataFile->getFilename() == nullptr) {
                 {
                     char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Out of memory opening include file: %s\n", Tokenizer::token().Token_String);
+                    snprintf(_logMsg, sizeof(_logMsg), "Out of memory opening include file: %s\n", Tokenizer::token().tokenString);
                     Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
                 }
             }
 
-            strcpy(Tokenizer::sGlobalDataFile->getFilename(), Tokenizer::token().Token_String);
+            strcpy(Tokenizer::sGlobalDataFile->getFilename(), Tokenizer::token().tokenString);
 
             Tokenizer::sGlobalDataFile->setFile(FileLocator::locate(
-                Tokenizer::token().Token_String, "r"));
+                Tokenizer::token().tokenString, "r"));
             if (Tokenizer::sGlobalDataFile->getFile() == nullptr) {
                 {
                     char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Cannot open include file: %s\n", Tokenizer::token().Token_String);
+                    snprintf(_logMsg, sizeof(_logMsg), "Cannot open include file: %s\n", Tokenizer::token().tokenString);
                     Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", _logMsg);
                 }
             }
-            Tokenizer::token().tokenId = Tokenizer::END_OF_FILE_TOKEN;
+            Tokenizer::token().setTokenId(Tokenizer::END_OF_FILE_TOKEN);
         }
     }
 
@@ -834,7 +834,7 @@ DataFile::parseString()
     this->endString();
 
     Tokenizer::writeToken(Tokenizer::STRING_TOKEN, Tokenizer::getGlobalDataFile());
-    Tokenizer::token().Token_String = Tokenizer::getString();
+    Tokenizer::token().tokenString = Tokenizer::getString();
 }
 
 /**
@@ -968,16 +968,16 @@ Tokenizer::findSymbol()
 void
 Tokenizer::writeToken(TOKEN tokenId, const DataFile *dataFile)
 {
-    Tokenizer::token().tokenId = tokenId;
-    Tokenizer::token().tokenLineNo = dataFile->getLineNumber();
+    Tokenizer::token().setTokenId(tokenId);
+    Tokenizer::token().setTokenLineNo(dataFile->getLineNumber());
     Tokenizer::token().tokenColumnNo = 1;
-    Tokenizer::token().Filename = dataFile->getFilename();
-    Tokenizer::token().Token_String = Tokenizer::sString;
+    Tokenizer::token().fileName = dataFile->getFilename();
+    Tokenizer::token().tokenString = Tokenizer::sString;
 
-    if (Tokenizer::token().tokenId > Tokenizer::LAST_TOKEN) {
+    if (Tokenizer::token().getTokenId() > Tokenizer::LAST_TOKEN) {
         Tokenizer::token().identifierNumber =
-            (int)Tokenizer::token().tokenId - (int)Tokenizer::LAST_TOKEN;
-        Tokenizer::token().tokenId = Tokenizer::IDENTIFIER_TOKEN;
+            (int)Tokenizer::token().getTokenId() - (int)Tokenizer::LAST_TOKEN;
+        Tokenizer::token().setTokenId(Tokenizer::IDENTIFIER_TOKEN);
     }
 }
 

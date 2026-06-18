@@ -49,7 +49,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::DASH_TOKEN:
             case Tokenizer::PLUS_TOKEN:
             case Tokenizer::FLOAT_TOKEN:
@@ -105,7 +105,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
         Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
-            switch (ctx.token().tokenId) {
+            switch (ctx.token().getTokenId()) {
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
                 break;
