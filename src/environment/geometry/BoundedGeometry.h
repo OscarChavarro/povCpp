@@ -11,7 +11,7 @@ class BoundedGeometry : public Geometry {
   private:
     java::ArrayList<TransformableElement*> boundingShapes{4};
     java::ArrayList<TransformableElement*> clippingShapes{4};
-    TransformableElement *geometry;
+    TransformableElement *const geometry;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;

@@ -21,11 +21,9 @@ class PolynomialShape : public Geometry {
     bool isInverted() const { return inverted; }
     void setInverted(bool value) { inverted = value; }
     int getOrder() const { return order; }
-    void setOrder(int value) { order = value; }
     int getSturmFlag() const { return sturmFlag; }
     void setSturmFlag(int flag) { sturmFlag = flag; }
     double *getCoeffs() const { return Coeffs; }
-    void setCoeffs(double *value) { Coeffs = value; }
 
     static const int *termCountsByOrder();
 
@@ -42,9 +40,9 @@ class PolynomialShape : public Geometry {
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     bool inverted;
-    int order;
+    const int order;
     int sturmFlag;
-    double *Coeffs;
+    double *const Coeffs;
 
     static void transform(int order, double *coeffs, Matrix4x4d *q);
     static int roll(int order, int x, int y, int z);

@@ -67,13 +67,13 @@ class ParametricBiCubicPatch : public Geometry {
     void invertGeometry() override;
 
   private:
-    int patchType;
-    int uSteps;
-    int vSteps;
+    const int patchType;
+    const int uSteps;
+    const int vSteps;
     Vector3Dd controlPoints[4][4];
     Vector3Dd boundingSphereCenter;
     double boundingSphereRadius;
-    double flatnessValue;
+    const double flatnessValue;
     int intersectionCount;
     Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
     Vector3Dd intersectionPoint[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];

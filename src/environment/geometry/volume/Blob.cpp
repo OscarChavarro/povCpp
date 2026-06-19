@@ -22,32 +22,49 @@ static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
 static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
 
+static BlobElement *
+allocateBlobElements(int count)
+{
+    if (count < 1) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Need at least one component in a blob\n");
+    }
+
+    BlobElement *elements = new BlobElement[count];
+    if (elements == nullptr) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
+    }
+    return elements;
+}
+
+static BlobInterval *
+allocateBlobIntervals(int count)
+{
+    if (count < 1) {
+        return nullptr;
+    }
+
+    BlobInterval *allocatedIntervals = new BlobInterval[2 * count];
+    if (allocatedIntervals == nullptr) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
+    }
+    return allocatedIntervals;
+}
+
 Blob::Blob(double thresholdValue, BlobList *bloblist, int npoints,
     int sturmFlagValue) :
     transformation(nullptr),
     transformationInverse(nullptr),
     inverted(false),
-    count(0),
-    threshold(0.0),
-    list(nullptr),
-    intervals(nullptr),
-    sturmFlag(0)
+    count(npoints),
+    threshold(thresholdValue),
+    list(allocateBlobElements(npoints)),
+    intervals(allocateBlobIntervals(npoints)),
+    sturmFlag(sturmFlagValue)
 {
     int i;
     double rad;
     double coeff;
     BlobList *temp;
-
-    if (npoints < 1) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Need at least one component in a blob\n");
-    }
-    threshold = thresholdValue;
-    list = new BlobElement[npoints];
-    if (list == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
-    count = npoints;
-    sturmFlag = sturmFlagValue;
 
     for (i = 0; i < npoints; i++) {
         temp = bloblist;
@@ -69,11 +86,6 @@ Blob::Blob(double thresholdValue, BlobList *bloblist, int npoints,
         bloblist = bloblist->getNext();
         delete temp;
     }
-
-    intervals = new BlobInterval[2 * npoints];
-    if (intervals == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
 }
 
 Blob::Blob(const Matrix4x4d *transformationValue,
@@ -85,8 +97,8 @@ Blob::Blob(const Matrix4x4d *transformationValue,
     inverted(invertedValue),
     count(countValue),
     threshold(thresholdValue),
-    list(nullptr),
-    intervals(nullptr),
+    list(countValue > 0 ? allocateBlobElements(countValue) : nullptr),
+    intervals(allocateBlobIntervals(countValue)),
     sturmFlag(sturmFlagValue)
 {
     if (transformationValue != nullptr) {
@@ -98,18 +110,8 @@ Blob::Blob(const Matrix4x4d *transformationValue,
     if (count <= 0) {
         return;
     }
-
-    list = new BlobElement[count];
-    if (list == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
     for (int i = 0; i < count; i++) {
         list[i] = listValue[i];
-    }
-
-    intervals = new BlobInterval[2 * count];
-    if (intervals == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
     }
 }
 /**
