@@ -9,14 +9,14 @@
 
 class FileLocator {
   private:
-    static java::ArrayList<java::String> sLibraryPaths;
+    java::ArrayList<java::String> mLibraryPaths;
 
   public:
-    static void clearSearchPaths();
-    static void addSearchPath(const char *path);
-    static const java::ArrayList<java::String> &searchPaths();
-    static FILE *locate(const char *filename, const char *mode);
-    static java::FileInputStream *locateAsStream(const char *filename);
+    void clearSearchPaths();
+    void addSearchPath(const char *path);
+    const java::ArrayList<java::String> &searchPaths() const;
+    FILE *locate(const char *filename, const char *mode) const;
+    java::FileInputStream *locateAsStream(const char *filename) const;
 };
 
 #endif

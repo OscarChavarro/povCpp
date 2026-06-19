@@ -2,20 +2,22 @@
 #define __COMMAND_LINE_OPTIONS__
 
 class RenderingConfiguration;
+class Scene;
 
 class CommandLineOptions {
   private:
     static void readOptions(const char *optionLine, RenderingConfiguration &config,
-        bool &inFlag, bool &outFlag);
+        Scene &scene, bool &inFlag, bool &outFlag);
     static void parseOption(const char *optionString, RenderingConfiguration &config,
-        bool &inFlag, bool &outFlag);
+        Scene &scene, bool &inFlag, bool &outFlag);
     static void parseFileName(const char *fileName, RenderingConfiguration &config,
-        int &numberOfFiles, bool &inFlag, bool &outFlag);
+        Scene &scene, int &numberOfFiles, bool &inFlag, bool &outFlag);
 
   public:
     static void usage();
-    static void loadDefaults(RenderingConfiguration &config);
-    static void parseArguments(int argc, char *argv[], RenderingConfiguration &config);
+    static void loadDefaults(RenderingConfiguration &config, Scene &scene);
+    static void parseArguments(int argc, char *argv[], RenderingConfiguration &config,
+        Scene &scene);
 };
 
 #endif

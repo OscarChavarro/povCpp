@@ -5,9 +5,9 @@
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/material/RendererConfiguration.h"
+#include "environment/scene/Scene.h"
 #include "io/binaryIo/FileLocator.h"
 #include "io/pov/lexer/Tokenizer.h"
-#include "render/RenderEngine.h"
 #include "app/options/CommandLineOptions.h"
 
 static constexpr int MAX_FILE_NAMES = 1;
@@ -45,7 +45,7 @@ CommandLineOptions::usage()
 
 // Read the default parameters from povray.def
 void
-CommandLineOptions::loadDefaults(RenderingConfiguration &config)
+CommandLineOptions::loadDefaults(RenderingConfiguration &config, Scene &scene)
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -65,36 +65,37 @@ CommandLineOptions::loadDefaults(RenderingConfiguration &config)
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
         bool inFlag = false;
         bool outFlag = false;
-        readOptions(Option_String_Ptr, config, inFlag, outFlag);
+        readOptions(Option_String_Ptr, config, scene, inFlag, outFlag);
     }
-    if ((defaultsFile = FileLocator::locate("povray.def", "r")) != nullptr) {
+    if ((defaultsFile = config.getFileLocator().locate("povray.def", "r")) != nullptr) {
         bool inFlag = false;
         bool outFlag = false;
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString, config, inFlag, outFlag);
+            readOptions(optionString, config, scene, inFlag, outFlag);
         }
         fclose(defaultsFile);
     }
 }
 
 void
-CommandLineOptions::parseArguments(int argc, char *argv[], RenderingConfiguration &config)
+CommandLineOptions::parseArguments(int argc, char *argv[], RenderingConfiguration &config,
+    Scene &scene)
 {
     int numberOfFiles = 0;
     bool inFlag = false;
     bool outFlag = false;
     for (int i = 1; i < argc; i++) {
         if ((*argv[i] == '+') || (*argv[i] == '-')) {
-            parseOption(argv[i], config, inFlag, outFlag);
+            parseOption(argv[i], config, scene, inFlag, outFlag);
         } else {
-            parseFileName(argv[i], config, numberOfFiles, inFlag, outFlag);
+            parseFileName(argv[i], config, scene, numberOfFiles, inFlag, outFlag);
         }
     }
 }
 
 void
 CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &config,
-    bool &inFlag, bool &outFlag)
+    Scene &scene, bool &inFlag, bool &outFlag)
 {
     int c;
     int stringIndex;
@@ -108,7 +109,7 @@ CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &
         if (optionStarted) {
             if (isspace(c)) {
                 optionString[stringIndex] = '\0';
-                parseOption(optionString, config, inFlag, outFlag);
+                parseOption(optionString, config, scene, inFlag, outFlag);
                 optionStarted = false;
                 stringIndex = 0;
             } else {
@@ -131,14 +132,14 @@ CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &
 
     if (optionStarted) {
         optionString[stringIndex] = '\0';
-        parseOption(optionString, config, inFlag, outFlag);
+        parseOption(optionString, config, scene, inFlag, outFlag);
     }
 }
 
 // Parse the command line parameters
 void
 CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration &config,
-    bool &inFlag, bool &outFlag)
+    Scene &scene, bool &inFlag, bool &outFlag)
 {
     bool addOption;
     unsigned int optionNumber = 0;
@@ -205,13 +206,13 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'W':
     case 'w':
-        sscanf(&optionString[1], "%d", &RenderEngine::scene().getScreenWidth());
+        sscanf(&optionString[1], "%d", &scene.getScreenWidth());
         optionNumber = 0;
         break;
 
     case 'H':
     case 'h':
-        sscanf(&optionString[1], "%d", &RenderEngine::scene().getScreenHeight());
+        sscanf(&optionString[1], "%d", &scene.getScreenHeight());
         optionNumber = 0;
         break;
 
@@ -270,10 +271,10 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'L':
     case 'l':
-        if (FileLocator::searchPaths().size() >= 10) {
+        if (config.getFileLocator().searchPaths().size() >= 10) {
             Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "Too many library directories specified\n");
         }
-        FileLocator::addSearchPath(&optionString[1]);
+        config.getFileLocator().addSearchPath(&optionString[1]);
         optionNumber = 0;
         break;
     case 'T':
@@ -363,7 +364,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
 void
 CommandLineOptions::parseFileName(const char *fileName, RenderingConfiguration &config,
-    int &numberOfFiles, bool &inFlag, bool &outFlag)
+    Scene &scene, int &numberOfFiles, bool &inFlag, bool &outFlag)
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -390,9 +391,9 @@ CommandLineOptions::parseFileName(const char *fileName, RenderingConfiguration &
         }
     }
 
-    if ((defaultsFile = FileLocator::locate(fileName, "r")) != nullptr) {
+    if ((defaultsFile = config.getFileLocator().locate(fileName, "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString, config, inFlag, outFlag);
+            readOptions(optionString, config, scene, inFlag, outFlag);
         }
         fclose(defaultsFile);
     } else {

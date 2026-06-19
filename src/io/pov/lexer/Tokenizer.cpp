@@ -32,7 +32,8 @@ Tokenizer::Tokenizer()
       sNumberOfSymbols(0),
       sGlobalIncludeFiles(),
       sGlobalDataFile(nullptr),
-      sGlobalIncludeFileIndex(0)
+      sGlobalIncludeFileIndex(0),
+      mFileLocator(nullptr)
 {
     for (int i = 0; i < MAX_INCLUDE_FILES; i++) {
         sGlobalIncludeFiles[i].setFile(nullptr);
@@ -183,7 +184,7 @@ Tokenizer::initializeTokenizer(const char *filename)
     sGlobalIncludeFileIndex = 0;
     sGlobalDataFile = &sGlobalIncludeFiles[0];
 
-    sGlobalDataFile->setFile(FileLocator::locate(filename, "r"));
+    sGlobalDataFile->setFile(mFileLocator->locate(filename, "r"));
     if (sGlobalDataFile->getFile() == nullptr) {
         Logger::reportMessage("Tokenizer", Logger::FATAL_ERROR, "", "Cannot open input file\n");
     }
@@ -545,7 +546,7 @@ Tokenizer::getToken()
 
             strcpy(sGlobalDataFile->getFilename(), token().getTokenString());
 
-            sGlobalDataFile->setFile(FileLocator::locate(
+            sGlobalDataFile->setFile(mFileLocator->locate(
                 token().getTokenString(), "r"));
             if (sGlobalDataFile->getFile() == nullptr) {
                 {

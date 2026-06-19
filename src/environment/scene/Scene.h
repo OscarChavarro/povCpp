@@ -5,7 +5,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/camera/Camera.h"
-#include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
 #include "environment/geometry/BoundedGeometry.h"
 
@@ -43,12 +42,6 @@ class Scene {
         Objects = objects;
     }
     void resetForSceneParse(const RenderingConfiguration *config = nullptr);
-
-    static void createRay(
-        RayWithSegments *ray, int width, int height, double x, double y);
-    static void checkStats(int y);
-    static void doAntiAliasing(int x, int y, ColorRgba *color);
-    static void outputLine(int y);
 
   private:
     Camera viewPoint;

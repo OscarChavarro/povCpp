@@ -6,6 +6,8 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/ImageOutput.h"
 
+class FileLocator;
+
 class TargaFormat : public ImageOutput {
   public:
     TargaFormat();
@@ -16,7 +18,8 @@ class TargaFormat : public ImageOutput {
     void writeLine(const ColorRgba *lineData, int lineNumber) override;
     int readLine(ColorRgba *lineData, int *lineNumber) override;
     void close() override;
-    static void readTargaImage(RGBAImageHDRUncompressed *image, char *name);
+    static void readTargaImage(RGBAImageHDRUncompressed *image, char *name,
+        const FileLocator &locator);
 
   private:
     int readRow(RGBAImageHDRUncompressed *image, int row);

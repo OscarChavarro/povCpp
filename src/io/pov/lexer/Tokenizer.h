@@ -1,6 +1,7 @@
 #ifndef __TOKENIZER__
 #define __TOKENIZER__
 
+#include "io/binaryIo/FileLocator.h"
 #include "io/pov/lexer/DataFile.h"
 #include "io/pov/lexer/PovToken.h"
 #include "io/pov/lexer/ReservedWord.h"
@@ -177,6 +178,7 @@ class Tokenizer {
     const ReservedWord *reservedWords() const;
     PovToken &token();
     void setCaseSensitiveIdentifiers(int mode);
+    void setFileLocator(const FileLocator *locator) { mFileLocator = locator; }
     void initializeTokenizer(const char *inputFileName);
     void terminateTokenizer(void);
     void ungetToken(void);
@@ -210,6 +212,7 @@ class Tokenizer {
     DataFile sGlobalIncludeFiles[MAX_INCLUDE_FILES];
     DataFile *sGlobalDataFile;
     int sGlobalIncludeFileIndex;
+    const FileLocator *mFileLocator;
 
     int povStricmp(const char *s1, const char *s2) const;
 };

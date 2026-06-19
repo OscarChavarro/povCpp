@@ -6,6 +6,8 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "io/image/ImageOutput.h"
 
+class FileLocator;
+
 class RawDumpFormat : public ImageOutput {
   public:
     RawDumpFormat();
@@ -16,7 +18,8 @@ class RawDumpFormat : public ImageOutput {
     void writeLine(const ColorRgba *lineData, int lineNumber) override;
     int readLine(ColorRgba *lineData, int *lineNumber) override;
     void close() override;
-    static void readDumpImage(RGBAImageHDRUncompressed *image, char *name);
+    static void readDumpImage(RGBAImageHDRUncompressed *image, char *name,
+        const FileLocator &locator);
 
   private:
     int readRow(RGBAImageHDRUncompressed *image, int *lineNumber);

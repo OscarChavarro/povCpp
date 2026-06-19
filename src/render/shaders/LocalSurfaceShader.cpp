@@ -3,7 +3,6 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
-#include "render/RenderEngine.h"
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"
@@ -16,7 +15,8 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
     const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const Light *lightSources,
-    const java::ArrayList<BoundedGeometry*> &objects, int &traceLevel)
+    const java::ArrayList<BoundedGeometry*> &objects, int &traceLevel,
+    TextureUtils *textureUtils)
 {
     Vector3Dd surfaceNormal;
     double normalDirection;
@@ -32,7 +32,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
         texture = static_cast<PovrayMaterial *>(rayIntersection->getObject()->getObjectTexture());
     }
 
-    if (RenderEngine::getActiveConfig().getQuality() <= 1) {
+    if (ray->getConfig()->getQuality() <= 1) {
         surfaceColor->setA(0.0);
 
         color->setR(color->getR() + surfaceColor->getR() * filterColor->getA());
@@ -44,10 +44,10 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     rayIntersection->getShape()->normal(
         &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
-    if (RenderEngine::getActiveConfig().getQuality() >= 8) {
+    if (ray->getConfig()->getQuality() >= 8) {
         BumpNormalShader::shade(
             &surfaceNormal, texture, &rayIntersection->getPoint(), &surfaceNormal,
-            &RenderEngine::getActiveTextureUtils());
+            textureUtils);
     }
 
     // If the surface normal points away, flip its direction
@@ -65,7 +65,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     color->setR(color->getR() + emittedColor.getR());
     color->setG(color->getG() + emittedColor.getG());
     color->setB(color->getB() + emittedColor.getB());
-    if (RenderEngine::getActiveConfig().getQuality() >= 8) {
+    if (ray->getConfig()->getQuality() >= 8) {
         MirrorReflectionShader::shade(
             texture, &rayIntersection->getPoint(), ray, &surfaceNormal, color,
             traceService, traceLevel);

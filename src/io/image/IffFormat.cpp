@@ -61,7 +61,8 @@ IffFormat::readChunkHeader(java::FileInputStream &is, ChunkHeader *dest)
 }
 
 IndexedColorImageHDRUncompressed *
-IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filename)
+IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filename,
+    const FileLocator &locator)
 {
     unsigned char **rowBytes;
     int c;
@@ -88,7 +89,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
     int iwidth = 0;
     int iheight = 0;
 
-    java::FileInputStream * const fileStream = FileLocator::locateAsStream(filename);
+    java::FileInputStream * const fileStream = locator.locateAsStream(filename);
     if (fileStream == nullptr) {
         {
             char _logMsg[1024];

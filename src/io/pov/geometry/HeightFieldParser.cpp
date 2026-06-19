@@ -5,6 +5,7 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
 #include "environment/geometry/volume/HeightField.h"
+#include "environment/material/RendererConfiguration.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
@@ -63,7 +64,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                GifFormat::readGifImage(indexedImage, ctx.token().getTokenString());
+                GifFormat::readGifImage(indexedImage, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                 minBounds = Vector3Dd(1.0, 0.0, 1.0);
                 maxBounds = Vector3Dd(
                     indexedImage->getXSize() - 2.0, 256.0,
@@ -89,7 +90,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                GifFormat::readGifImage(indexedImage, ctx.token().getTokenString());
+                GifFormat::readGifImage(indexedImage, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                 minBounds = Vector3Dd(1.0, 0.0, 1.0);
                 maxBounds = Vector3Dd(
                     indexedImage->getXSize() / 2.0 - 2.0, 256.0, indexedImage->getYSize() - 2.0);
@@ -113,7 +114,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                               "Height Field (1st message, ctx).");
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                TargaFormat::readTargaImage(directImage, ctx.token().getTokenString());
+                TargaFormat::readTargaImage(directImage, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                 minBounds = Vector3Dd(1.0, 0.0, 1.0);
                 maxBounds = Vector3Dd(
                     directImage->getXSize() - 2.0, 256.0,

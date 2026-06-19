@@ -53,7 +53,8 @@ getByte(void *context)
 }
 
 void
-GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *filename)
+GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *filename,
+    const FileLocator &locator)
 {
     int i;
     int j;
@@ -67,7 +68,7 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
         0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         {0}, nullptr, nullptr, nullptr, nullptr};
 
-    gif.bitStream = FileLocator::locateAsStream(filename);
+    gif.bitStream = locator.locateAsStream(filename);
     if (gif.bitStream == nullptr) {
         {
             char _logMsg[1024];

@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "environment/material/RenderOutput.h"
+#include "io/binaryIo/FileLocator.h"
 
 class RenderingConfiguration {
   public:
@@ -77,6 +78,8 @@ class RenderingConfiguration {
     int getTokenizerMaxSymbols() const { return tokenizerMaxSymbols; }
     void setTokenizerMaxSymbols(int maxSymbols) { tokenizerMaxSymbols = maxSymbols; }
     bool hasOutputFileName() const { return outputFileName[0] != '\0'; }
+    FileLocator &getFileLocator() { return fileLocator; }
+    const FileLocator &getFileLocator() const { return fileLocator; }
 
     RenderingConfiguration() { reset(); }
     void reset();
@@ -99,6 +102,7 @@ class RenderingConfiguration {
     char colorBits;
     int tokenizerCaseSensitiveMode;
     int tokenizerMaxSymbols;
+    FileLocator fileLocator;
 };
 
 #endif

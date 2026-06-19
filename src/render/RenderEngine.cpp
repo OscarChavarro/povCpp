@@ -29,8 +29,6 @@ This module implements the main raytracing loop.
 #include "render/SceneDump.h"
 #include "render/shaders/TraceService.h"
 
-RenderEngine *RenderEngine::sActive = nullptr;
-
 RenderEngine::~RenderEngine()
 {
     delete[] mPreviousLine;
@@ -39,40 +37,16 @@ RenderEngine::~RenderEngine()
     delete[] mCurrentLineAntialiasedFlags;
 }
 
-const RenderingConfiguration &
-RenderEngine::getActiveConfig()
-{
-    return sActive->mContext->getConfig();
-}
-
 RenderingConfiguration &
-RenderEngine::getActiveMutableConfig()
+RenderEngine::getMutableConfig()
 {
-    return const_cast<RenderingConfiguration &>(getActiveConfig());
-}
-
-Statistics &
-RenderEngine::getActiveStatistics()
-{
-    return sActive->mContext->getStatistics();
-}
-
-TextureUtils &
-RenderEngine::getActiveTextureUtils()
-{
-    return sActive->mContext->getTextureUtils();
-}
-
-IntersectionPriorityQueuePool &
-RenderEngine::getActiveIntersectionQueuePool()
-{
-    return sActive->mIntersectionQueuePool;
+    return const_cast<RenderingConfiguration &>(mContext->getConfig());
 }
 
 inline unsigned short
 RenderEngine::rand3dInline(int a, int b)
 {
-    ProceduralNoise &noise = RenderEngine::getActiveTextureUtils().getProceduralNoise();
+    ProceduralNoise &noise = this->getTextureUtils().getProceduralNoise();
     return noise.checksumTable().eval((int)(noise.hashTable()[(int)(noise.hashTable()[(int)(a & 0xfff)] ^ b) &
                                   0xfff]));
 }
@@ -90,41 +64,11 @@ allocateColorBuffer(int count)
 }
 }
 
-Scene &
-RenderEngine::scene()
-{
-    return *sActive->mScene;
-}
-
-RayWithSegments *&
-RenderEngine::primaryRay()
-{
-    return sActive->mPrimaryRay;
-}
-
-int &
-RenderEngine::traceLevel()
-{
-    return sActive->mTraceLevel;
-}
-
-double &
-RenderEngine::maxTraceLevel()
-{
-    return sActive->mContext->getRuntime().getMaxTraceLevel();
-}
-
-volatile int &
-RenderEngine::stopFlag()
-{
-    return sActive->mContext->getRuntime().getStopFlag();
-}
-
 void
 RenderEngine::traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color)
 {
-    (void)context;
-    RenderEngine::trace(ray, color);
+    RenderEngine *engine = static_cast<RenderEngine *>(context);
+    engine->trace(ray, color);
 }
 
 void
@@ -134,17 +78,11 @@ RenderEngine::traceServiceShadeShadow(
     RenderEngine *engine = static_cast<RenderEngine *>(context);
     RayShaderPipeline::shadeSurface(
         intersection, color, nullptr, true, &engine->mTraceService,
-        &engine->mContext->getTextureUtils());
-}
-
-const TraceService *
-RenderEngine::getTraceService()
-{
-    return &sActive->mTraceService;
+        &engine->mContext->getTextureUtils(), *engine->mContext, engine->mTraceLevel);
 }
 
 void
-Scene::createRay(
+RenderEngine::createRay(
     RayWithSegments *ray, int width, int height, double x, double y)
 {
     double xScalar;
@@ -157,10 +95,10 @@ Scene::createRay(
 
     // Convert the Y Coordinate to be a double from 0.0 to 1.0
     yScalar =
-        (((double)(RenderEngine::scene().getScreenHeight() - 1) - y) - (double)height / 2.0) /
+        (((double)(this->scene().getScreenHeight() - 1) - y) - (double)height / 2.0) /
         (double)height;
 
-    const Camera &viewPoint = RenderEngine::scene().getViewPoint();
+    const Camera &viewPoint = this->scene().getViewPoint();
     tempVect1 = viewPoint.getUp().multiply(yScalar);
     tempVect2 = viewPoint.getRight().multiply(xScalar);
     ray->setDirection(tempVect1.add(tempVect2));
@@ -169,11 +107,10 @@ Scene::createRay(
     ray->initializeContainers();
     ray->setPrimaryRay(true);
     ray->setQuadricConstantsCached(false);
-    RenderContext *ctx = RenderEngine::getActiveContext();
-    if (ctx) {
-        ray->setStatistics(&ctx->getStatistics());
-        ray->setConfig(&ctx->getConfig());
-        ray->setIntersectionQueuePool(&RenderEngine::getActiveIntersectionQueuePool());
+    if (mContext) {
+        ray->setStatistics(&mContext->getStatistics());
+        ray->setConfig(&mContext->getConfig());
+        ray->setIntersectionQueuePool(&mIntersectionQueuePool);
     }
 }
 
@@ -192,163 +129,163 @@ RenderEngine::supersample(
     dy = (double)y;
     jittOffset = 10;
 
-    RenderEngine::getActiveStatistics().incrementNumberOfPixelsSupersampled();
+    this->getStatistics().incrementNumberOfPixelsSupersampled();
 
     result->setR(0.0); result->setG(0.0); result->setB(0.0); result->setA(0);
 
-    jitterX = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
+    jitterX = (this->rand3dInline(x + jittOffset, y) & 0x7FFF) /
                   32768.0 * 0.33333333 -
               0.16666666;
-    jitterY = (RenderEngine::rand3dInline(x + jittOffset, y) & 0x7FFF) /
+    jitterY = (this->rand3dInline(x + jittOffset, y) & 0x7FFF) /
                   32768.0 * 0.33333333 -
               0.16666666;
-    Scene::createRay(RenderEngine::primaryRay(), RenderEngine::scene().getScreenWidth(),
-        RenderEngine::scene().getScreenHeight(), dx + jitterX, dy + jitterY);
+    this->createRay(this->primaryRay(), this->scene().getScreenWidth(),
+        this->scene().getScreenHeight(), dx + jitterX, dy + jitterY);
 
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX - 0.3333333,
+    this->createRay(this->primaryRay(), width, height, dx + jitterX - 0.3333333,
         dy + jitterY - 0.3333333);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(
-        RenderEngine::primaryRay(), width, height, dx + jitterX - 0.3333333, dy + jitterY);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->createRay(
+        this->primaryRay(), width, height, dx + jitterX - 0.3333333, dy + jitterY);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX - 0.3333333,
+    this->createRay(this->primaryRay(), width, height, dx + jitterX - 0.3333333,
         dy + jitterY + 0.3333333);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(
-        RenderEngine::primaryRay(), width, height, dx + jitterX, dy + jitterY - 0.3333333);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->createRay(
+        this->primaryRay(), width, height, dx + jitterX, dy + jitterY - 0.3333333);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(
-        RenderEngine::primaryRay(), width, height, dx + jitterX, dy + jitterY + 0.3333333);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->createRay(
+        this->primaryRay(), width, height, dx + jitterX, dy + jitterY + 0.3333333);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX + 0.3333333,
+    this->createRay(this->primaryRay(), width, height, dx + jitterX + 0.3333333,
         dy + jitterY - 0.3333333);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(
-        RenderEngine::primaryRay(), width, height, dx + jitterX + 0.3333333, dy + jitterY);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->createRay(
+        this->primaryRay(), width, height, dx + jitterX + 0.3333333, dy + jitterY);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
     jittOffset += 10;
 
     jitterX =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
     jitterY =
-        (RenderEngine::rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
+        (this->rand3dInline(x + jittOffset, y + jittOffset) & 0x7FFF) /
             32768.0 * 0.33333333 -
         0.16666666;
-    Scene::createRay(RenderEngine::primaryRay(), width, height, dx + jitterX + 0.3333333,
+    this->createRay(this->primaryRay(), width, height, dx + jitterX + 0.3333333,
         dy + jitterY + 0.3333333);
-    RenderEngine::traceLevel() = 0;
-    RenderEngine::trace(RenderEngine::primaryRay(), &color);
+    this->traceLevel() = 0;
+    this->trace(this->primaryRay(), &color);
     ColorOperations::clipColor(&color, &color);
     ColorOperations::scaleColor(&color, &color, 0.11111111);
     ColorOperations::addColor(result, result, &color);
 
-    if ((y != RenderEngine::getActiveConfig().getFirstLine() - 1) &&
-        RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
+    if ((y != this->getConfig().getFirstLine() - 1) &&
+        this->getConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
     }
 }
 
@@ -357,20 +294,20 @@ RenderEngine::readRenderedPart()
 {
     int rc;
     int lineNumber;
-    while ((rc = RenderEngine::getActiveConfig().getOutputFileInputStream()->readLine(
-                RenderEngine::sActive->mPreviousLine, &lineNumber)) == 1) {
+    while ((rc = this->getConfig().getOutputFileInputStream()->readLine(
+                mPreviousLine, &lineNumber)) == 1) {
     }
 
-    RenderEngine::getActiveMutableConfig().setFirstLine(lineNumber + 1);
+    this->getMutableConfig().setFirstLine(lineNumber + 1);
 
     if (rc == 0) {
-        RenderEngine::getActiveConfig().getOutputFileInputStream()->close();
-        if (RenderEngine::getActiveConfig().getOutputFileInputStream()->open(
-                RenderEngine::getActiveMutableConfig().getOutputFileNameBuffer(),
-                &RenderEngine::scene().getScreenWidth(),
-                &RenderEngine::scene().getScreenHeight(),
-                RenderEngine::getActiveConfig().getFileBufferSize(), RenderOutput::APPEND_MODE,
-                RenderEngine::getActiveConfig().getFirstLine()) != 1) {
+        this->getConfig().getOutputFileInputStream()->close();
+        if (this->getConfig().getOutputFileInputStream()->open(
+                this->getMutableConfig().getOutputFileNameBuffer(),
+                &this->scene().getScreenWidth(),
+                &this->scene().getScreenHeight(),
+                this->getConfig().getFileBufferSize(), RenderOutput::APPEND_MODE,
+                this->getConfig().getFirstLine()) != 1) {
             Logger::reportMessage("RenderEngine", Logger::FATAL_ERROR, "", "Error opening output file\n");
         }
         return;
@@ -384,82 +321,82 @@ RenderEngine::startTracing()
 {
     const char *dumpEnv = getenv("POVCPP_DUMP_SCENE");
     if (dumpEnv != nullptr && dumpEnv[0] == '1') {
-        SceneDumper::dumpSceneStructure(stderr);
+        SceneDumper::dumpSceneStructure(stderr, this->scene());
     }
 
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
     int x;
     int y;
-    for (y = RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)
-                ? RenderEngine::getActiveConfig().getFirstLine() - 1
-                : RenderEngine::getActiveConfig().getFirstLine();
-        y < RenderEngine::getActiveConfig().getLastLine();
+    for (y = this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)
+                ? this->getConfig().getFirstLine() - 1
+                : this->getConfig().getFirstLine();
+        y < this->getConfig().getLastLine();
         y++) {
 
-        Scene::checkStats(y);
+        this->checkStats(y);
 
-        for (x = 0; x < RenderEngine::scene().getScreenWidth(); x++) {
+        for (x = 0; x < this->scene().getScreenWidth(); x++) {
 
-            if (RenderEngine::stopFlag()) {
-                if (RenderEngine::getActiveConfig().getOutputFileInputStream() != nullptr) {
-                    RenderEngine::getActiveConfig().getOutputFileInputStream()->close();
+            if (this->stopFlag()) {
+                if (this->getConfig().getOutputFileInputStream() != nullptr) {
+                    this->getConfig().getOutputFileInputStream()->close();
                 }
                 // Exit with error if image not completed/user abort
                 exit(2);
             }
 
-            RenderEngine::getActiveStatistics().incrementNumberOfPixels();
+            this->getStatistics().incrementNumberOfPixels();
 
-            Scene::createRay(RenderEngine::primaryRay(),
-                RenderEngine::scene().getScreenWidth(),
-                RenderEngine::scene().getScreenHeight(), (double)x, (double)y);
-            RenderEngine::traceLevel() = 0;
-            RenderEngine::trace(&RenderEngine::sActive->mRay, &color);
+            this->createRay(this->primaryRay(),
+                this->scene().getScreenWidth(),
+                this->scene().getScreenHeight(), (double)x, (double)y);
+            this->traceLevel() = 0;
+            this->trace(&mRay, &color);
             ColorOperations::clipColor(&color, &color);
 
-            RenderEngine::sActive->mCurrentLine[x] = color;
+            mCurrentLine[x] = color;
 
-            if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-                Scene::doAntiAliasing(x, y, &color);
+            if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+                this->doAntiAliasing(x, y, &color);
             }
 
-            if (y != RenderEngine::getActiveConfig().getFirstLine() - 1) {
-                if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
+            if (y != this->getConfig().getFirstLine() - 1) {
+                if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
                     (void)x;
                     (void)y;
                 }
             }
         }
-        Scene::outputLine(y);
+        this->outputLine(y);
     }
 
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
-        RenderEngine::getActiveConfig().getOutputFileInputStream()->writeLine(
-            RenderEngine::sActive->mPreviousLine, RenderEngine::getActiveConfig().getLastLine() - 1);
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+        this->getConfig().getOutputFileInputStream()->writeLine(
+            mPreviousLine, this->getConfig().getLastLine() - 1);
     }
 }
 
 void
-Scene::checkStats(int y)
+RenderEngine::checkStats(int y)
 {
     // New verbose options CdW
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
-        RenderEngine::getActiveConfig().getVerboseFormat() == '0') {
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+        this->getConfig().getVerboseFormat() == '0') {
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "POV-Ray rendering %s to %s",
-                RenderEngine::getActiveConfig().getInputFileName(),
-                RenderEngine::getActiveConfig().getOutputFileName());
+                this->getConfig().getInputFileName(),
+                this->getConfig().getOutputFileName());
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
-        if ((RenderEngine::getActiveConfig().getFirstLine() != 0) ||
-            (RenderEngine::getActiveConfig().getLastLine() !=
-                RenderEngine::scene().getScreenHeight())) {
+        if ((this->getConfig().getFirstLine() != 0) ||
+            (this->getConfig().getLastLine() !=
+                this->scene().getScreenHeight())) {
             {
                 char _logMsg[1024];
                 snprintf(_logMsg, sizeof(_logMsg), " from %4d to %4d:\n",
-                    RenderEngine::getActiveConfig().getFirstLine(),
-                    RenderEngine::getActiveConfig().getLastLine());
+                    this->getConfig().getFirstLine(),
+                    this->getConfig().getLastLine());
                 Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
             }
         } else {
@@ -468,18 +405,18 @@ Scene::checkStats(int y)
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Res %4d X %4d. Calc line %4d of %4d",
-                RenderEngine::scene().getScreenWidth(),
-                RenderEngine::scene().getScreenHeight(),
-                (y - RenderEngine::getActiveConfig().getFirstLine()) + 1,
-                RenderEngine::getActiveConfig().getLastLine() - RenderEngine::getActiveConfig().getFirstLine());
+                this->scene().getScreenWidth(),
+                this->scene().getScreenHeight(),
+                (y - this->getConfig().getFirstLine()) + 1,
+                this->getConfig().getLastLine() - this->getConfig().getFirstLine());
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
-        if (!RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+        if (!this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", ".");
         }
     }
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
-        java::FileOutputStream statFile(RenderEngine::getActiveConfig().getStatFileName());
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+        java::FileOutputStream statFile(this->getConfig().getStatFileName());
         char buf[32];
         snprintf(buf, sizeof(buf), "Line %4d.\n", y);
         for (int i = 0; buf[i] != '\0'; i++) {
@@ -489,73 +426,73 @@ Scene::checkStats(int y)
     }
 
     // Use -vO for Old style verbose
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
-        (RenderEngine::getActiveConfig().getVerboseFormat() == 'O')) {
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+        (this->getConfig().getVerboseFormat() == 'O')) {
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Line %4d", y);
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
     }
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
-        RenderEngine::getActiveConfig().getVerboseFormat() == '1') {
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+        this->getConfig().getVerboseFormat() == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
-            RenderEngine::scene().getScreenWidth(),
-            RenderEngine::scene().getScreenHeight(),
-            (y - RenderEngine::getActiveConfig().getFirstLine()) + 1,
-            RenderEngine::getActiveConfig().getLastLine() - RenderEngine::getActiveConfig().getFirstLine());
-        if (!RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+            this->scene().getScreenWidth(),
+            this->scene().getScreenHeight(),
+            (y - this->getConfig().getFirstLine()) + 1,
+            this->getConfig().getLastLine() - this->getConfig().getFirstLine());
+        if (!this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
             fprintf(stderr, ".");
         }
     }
 
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-        RenderEngine::sActive->mSuperSampleCount = 0;
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+        mSuperSampleCount = 0;
     }
 }
 
 void
-Scene::doAntiAliasing(int x, int y, ColorRgba *color)
+RenderEngine::doAntiAliasing(int x, int y, ColorRgba *color)
 {
     char antialiasCenterFlag = 0;
 
-    RenderEngine::sActive->mCurrentLineAntialiasedFlags[x] = 0;
+    mCurrentLineAntialiasedFlags[x] = 0;
 
     if (x != 0) {
-        if (ColorOperations::colorDistance(&RenderEngine::sActive->mCurrentLine[x - 1], &RenderEngine::sActive->mCurrentLine[x]) >=
-            RenderEngine::scene().getAntialiasThreshold()) {
+        if (ColorOperations::colorDistance(&mCurrentLine[x - 1], &mCurrentLine[x]) >=
+            this->scene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
-            if (!(RenderEngine::sActive->mCurrentLineAntialiasedFlags[x - 1])) {
-                RenderEngine::supersample(&RenderEngine::sActive->mCurrentLine[x - 1], x - 1, y,
-                    RenderEngine::scene().getScreenWidth(),
-                    RenderEngine::scene().getScreenHeight());
-                RenderEngine::sActive->mCurrentLineAntialiasedFlags[x - 1] = 1;
-                RenderEngine::sActive->mSuperSampleCount++;
+            if (!(mCurrentLineAntialiasedFlags[x - 1])) {
+                this->supersample(&mCurrentLine[x - 1], x - 1, y,
+                    this->scene().getScreenWidth(),
+                    this->scene().getScreenHeight());
+                mCurrentLineAntialiasedFlags[x - 1] = 1;
+                mSuperSampleCount++;
             }
         }
     }
 
-    if (y != RenderEngine::getActiveConfig().getFirstLine() - 1) {
-        if (ColorOperations::colorDistance(&RenderEngine::sActive->mPreviousLine[x], &RenderEngine::sActive->mCurrentLine[x]) >=
-            RenderEngine::scene().getAntialiasThreshold()) {
+    if (y != this->getConfig().getFirstLine() - 1) {
+        if (ColorOperations::colorDistance(&mPreviousLine[x], &mCurrentLine[x]) >=
+            this->scene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
-            if (!(RenderEngine::sActive->mPreviousLineAntialiasedFlags[x])) {
-                RenderEngine::supersample(&RenderEngine::sActive->mPreviousLine[x], x, y - 1,
-                    RenderEngine::scene().getScreenWidth(),
-                    RenderEngine::scene().getScreenHeight());
-                RenderEngine::sActive->mPreviousLineAntialiasedFlags[x] = 1;
-                RenderEngine::sActive->mSuperSampleCount++;
+            if (!(mPreviousLineAntialiasedFlags[x])) {
+                this->supersample(&mPreviousLine[x], x, y - 1,
+                    this->scene().getScreenWidth(),
+                    this->scene().getScreenHeight());
+                mPreviousLineAntialiasedFlags[x] = 1;
+                mSuperSampleCount++;
             }
         }
     }
 
     if (antialiasCenterFlag) {
-        RenderEngine::supersample(&RenderEngine::sActive->mCurrentLine[x], x, y,
-            RenderEngine::scene().getScreenWidth(),
-            RenderEngine::scene().getScreenHeight());
-        RenderEngine::sActive->mCurrentLineAntialiasedFlags[x] = 1;
-        *color = RenderEngine::sActive->mCurrentLine[x];
-        RenderEngine::sActive->mSuperSampleCount++;
+        this->supersample(&mCurrentLine[x], x, y,
+            this->scene().getScreenWidth(),
+            this->scene().getScreenHeight());
+        mCurrentLineAntialiasedFlags[x] = 1;
+        *color = mCurrentLine[x];
+        mSuperSampleCount++;
     }
 }
 
@@ -564,74 +501,74 @@ RenderEngine::initializeRenderer()
 {
     int i;
 
-    RenderEngine::primaryRay() = &sActive->mRay;
-    sActive->mPreviousLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
-    sActive->mCurrentLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
+    this->primaryRay() = &mRay;
+    mPreviousLine = allocateColorBuffer(this->scene().getScreenWidth() + 1);
+    mCurrentLine = allocateColorBuffer(this->scene().getScreenWidth() + 1);
 
-    for (i = 0; i <= RenderEngine::scene().getScreenWidth(); i++) {
-        sActive->mPreviousLine[i].setR(0.0);
-        sActive->mPreviousLine[i].setG(0.0);
-        sActive->mPreviousLine[i].setB(0.0);
+    for (i = 0; i <= this->scene().getScreenWidth(); i++) {
+        mPreviousLine[i].setR(0.0);
+        mPreviousLine[i].setG(0.0);
+        mPreviousLine[i].setB(0.0);
 
-        sActive->mCurrentLine[i].setR(0.0);
-        sActive->mCurrentLine[i].setG(0.0);
-        sActive->mCurrentLine[i].setB(0.0);
+        mCurrentLine[i].setR(0.0);
+        mCurrentLine[i].setG(0.0);
+        mCurrentLine[i].setB(0.0);
     }
 
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-        sActive->mPreviousLineAntialiasedFlags =
-            new char[(RenderEngine::scene().getScreenWidth() + 1)];
-        sActive->mCurrentLineAntialiasedFlags =
-            new char[(RenderEngine::scene().getScreenWidth() + 1)];
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+        mPreviousLineAntialiasedFlags =
+            new char[(this->scene().getScreenWidth() + 1)];
+        mCurrentLineAntialiasedFlags =
+            new char[(this->scene().getScreenWidth() + 1)];
 
-        for (i = 0; i <= RenderEngine::scene().getScreenWidth(); i++) {
-            (sActive->mPreviousLineAntialiasedFlags)[i] = 0;
-            (sActive->mCurrentLineAntialiasedFlags)[i] = 0;
+        for (i = 0; i <= this->scene().getScreenWidth(); i++) {
+            (mPreviousLineAntialiasedFlags)[i] = 0;
+            (mCurrentLineAntialiasedFlags)[i] = 0;
         }
     }
 
-    sActive->mRay.setOrigin(RenderEngine::scene().getViewPoint().getLocation());
+    mRay.setOrigin(this->scene().getViewPoint().getLocation());
 }
 
 void
-Scene::outputLine(int y)
+RenderEngine::outputLine(int y)
 {
     ColorRgba *tempColorPtr;
     char *tempCharPtr;
 
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
-        if (y > RenderEngine::getActiveConfig().getFirstLine()) {
-            RenderEngine::getActiveConfig().getOutputFileInputStream()->writeLine(RenderEngine::sActive->mPreviousLine, y - 1);
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+        if (y > this->getConfig().getFirstLine()) {
+            this->getConfig().getOutputFileInputStream()->writeLine(mPreviousLine, y - 1);
         }
     }
 
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::VERBOSE)) {
-        if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
-            RenderEngine::getActiveConfig().getVerboseFormat() != '1') {
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE)) {
+        if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
+            this->getConfig().getVerboseFormat() != '1') {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), " supersampled %d times.", RenderEngine::sActive->mSuperSampleCount);
+                snprintf(_logMsg, sizeof(_logMsg), " supersampled %d times.", mSuperSampleCount);
                 Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
             }
         }
 
-        if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
-            RenderEngine::getActiveConfig().getVerboseFormat() == '1') {
-            fprintf(stderr, " supersampled %d times.", RenderEngine::sActive->mSuperSampleCount);
+        if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
+            this->getConfig().getVerboseFormat() == '1') {
+            fprintf(stderr, " supersampled %d times.", mSuperSampleCount);
         }
-        if (RenderEngine::getActiveConfig().getVerboseFormat() == '1') {
+        if (this->getConfig().getVerboseFormat() == '1') {
             fprintf(stderr, "\r");
         } else {
             fprintf(stderr, "\n");
         }
     }
-    tempColorPtr = RenderEngine::sActive->mPreviousLine;
-    RenderEngine::sActive->mPreviousLine = RenderEngine::sActive->mCurrentLine;
-    RenderEngine::sActive->mCurrentLine = tempColorPtr;
+    tempColorPtr = mPreviousLine;
+    mPreviousLine = mCurrentLine;
+    mCurrentLine = tempColorPtr;
 
-    tempCharPtr = RenderEngine::sActive->mPreviousLineAntialiasedFlags;
-    RenderEngine::sActive->mPreviousLineAntialiasedFlags = RenderEngine::sActive->mCurrentLineAntialiasedFlags;
-    RenderEngine::sActive->mCurrentLineAntialiasedFlags = tempCharPtr;
+    tempCharPtr = mPreviousLineAntialiasedFlags;
+    mPreviousLineAntialiasedFlags = mCurrentLineAntialiasedFlags;
+    mCurrentLineAntialiasedFlags = tempCharPtr;
 }
 
 void
@@ -642,32 +579,32 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     Intersection newIntersection;
     bool intersectionFound;
 
-    RenderEngine::getActiveStatistics().incrementNumberOfRays();
+    this->getStatistics().incrementNumberOfRays();
     color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
 
     intersectionFound = false;
 
-    if (RenderEngine::traceLevel() > (int)RenderEngine::maxTraceLevel()) {
+    if (this->traceLevel() > (int)this->maxTraceLevel()) {
         return;
     }
 
-    if (RenderEngine::scene().getFogDistance() == 0.0) {
+    if (this->scene().getFogDistance() == 0.0) {
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     } else {
-        *color = RenderEngine::scene().getFogColor();
+        *color = this->scene().getFogColor();
     }
 
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
         {
             char _logMsg[1024];
-            snprintf(_logMsg, sizeof(_logMsg), "Calculating intersections level %d\n", RenderEngine::traceLevel());
+            snprintf(_logMsg, sizeof(_logMsg), "Calculating intersections level %d\n", this->traceLevel());
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
     }
 
     // What objects does this ray intersect?
     const java::ArrayList<BoundedGeometry*> &sceneObjects =
-        RenderEngine::scene().getObjects();
+        this->scene().getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
         if (object->intersect(ray, newIntersection)) {
@@ -680,7 +617,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            &localIntersection, color, ray, false, RenderEngine::getTraceService(),
-            &RenderEngine::getActiveTextureUtils());
+            &localIntersection, color, ray, false, this->getTraceService(),
+            &this->getTextureUtils(), *mContext, mTraceLevel);
     }
 }

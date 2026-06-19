@@ -145,14 +145,14 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
     }
 
     initVars();
-    FileLocator::clearSearchPaths();
+    configuration.getFileLocator().clearSearchPaths();
 
-    CommandLineOptions::loadDefaults(configuration);
-    CommandLineOptions::parseArguments(argc, argv, configuration);
+    CommandLineOptions::loadDefaults(configuration, scene);
+    CommandLineOptions::parseArguments(argc, argv, configuration, scene);
 
     if (configuration.getLastLine() == -1) {
         configuration.setLastLine(
-            RenderEngine::scene().getScreenHeight());
+            engine.scene().getScreenHeight());
     }
 }
 
@@ -194,6 +194,7 @@ PovrayApplication::configureOutputTarget()
         }
     }
 
+    selectedImageOutput->setFileLocator(&configuration.getFileLocator());
     configuration.setOutputFileInputStream(
         new ImageOutputAdapter(selectedImageOutput));
 
@@ -211,6 +212,7 @@ PovrayApplication::parseSceneDescription()
     ParserContext ctx;
     ctx.tokenizer().setCaseSensitiveIdentifiers(configuration.getTokenizerCaseSensitiveMode());
     ctx.tokenizer().setMaxSymbols(configuration.getTokenizerMaxSymbols());
+    ctx.tokenizer().setFileLocator(&configuration.getFileLocator());
     ctx.tokenizer().initializeTokenizer(configuration.getInputFileName());
     fprintf(stderr, "Parsing...");
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
@@ -221,7 +223,7 @@ PovrayApplication::parseSceneDescription()
 
     ctx.setReportingConfig(&configuration);
     ctx.setRuntimeState(&runtimeState);
-    SceneParser::parse(&RenderEngine::scene(), ctx);
+    SceneParser::parse(&engine.scene(), ctx);
     ctx.tokenizer().terminateTokenizer();
 }
 
@@ -236,7 +238,7 @@ PovrayApplication::prepareRendering()
         if (configuration.hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
             if (configuration.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
-                    &RenderEngine::scene().getScreenWidth(), &RenderEngine::scene().getScreenHeight(),
+                    &engine.scene().getScreenWidth(), &engine.scene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::READ_MODE,
                     configuration.getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening continue trace output file\n");
@@ -246,7 +248,7 @@ PovrayApplication::prepareRendering()
 
                 if (configuration.getOutputFileInputStream()->open(
                         configuration.getOutputFileNameBuffer(),
-                        &RenderEngine::scene().getScreenWidth(), &RenderEngine::scene().getScreenHeight(),
+                        &engine.scene().getScreenWidth(), &engine.scene().getScreenHeight(),
                         configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
                         configuration.getFirstLine()) != 1) {
                     Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
@@ -255,14 +257,14 @@ PovrayApplication::prepareRendering()
                 }
             }
 
-            RenderEngine::initializeRenderer();
+            engine.initializeRenderer();
             if (configuration.hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
-                RenderEngine::readRenderedPart();
+                engine.readRenderedPart();
             }
         } else {
             if (configuration.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
-                    &RenderEngine::scene().getScreenWidth(), &RenderEngine::scene().getScreenHeight(),
+                    &engine.scene().getScreenWidth(), &engine.scene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
                     configuration.getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
@@ -270,13 +272,13 @@ PovrayApplication::prepareRendering()
                 exit(1);
             }
 
-            RenderEngine::initializeRenderer();
+            engine.initializeRenderer();
         }
     } else {
-        RenderEngine::initializeRenderer();
+        engine.initializeRenderer();
     }
 
-    RenderEngine::getActiveIntersectionQueuePool().init();
+    engine.getIntersectionQueuePool().init();
     textureUtils.initialize(statistics.getSolidTextureStatistics());
     textureUtils.initializeNoise(PovrayMaterial::DEFAULT_NUMBER_OF_WAVES);
 }
@@ -301,7 +303,7 @@ PovrayApplication::runRenderLoop()
         fclose(statFile);
     }
 
-    RenderEngine::startTracing();
+    engine.startTracing();
 
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && configuration.getVerboseFormat() == '1') {
         fprintf(stderr, "\n");
@@ -316,7 +318,7 @@ PovrayApplication::finalizeRun()
     statistics.stopTimer();
 
     closeAll();
-    printStatistics(statistics, RenderEngine::scene(), configuration);
+    printStatistics(statistics, engine.scene(), configuration);
 
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
         statFile = fopen(configuration.getStatFileName(), "a+t");
@@ -332,8 +334,8 @@ PovrayApplication::initVars()
     runtimeState.reset();
     statistics.reset();
 
-    RenderEngine::scene().setScreenHeight(100);
-    RenderEngine::scene().setScreenWidth(100);
+    engine.scene().setScreenHeight(100);
+    engine.scene().setScreenWidth(100);
 }
 
 // Close all the stuff that has been opened

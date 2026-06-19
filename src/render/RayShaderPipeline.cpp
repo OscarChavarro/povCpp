@@ -9,8 +9,8 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
+#include "environment/scene/Scene.h"
 #include "render/RayShaderPipeline.h"
-#include "render/RenderEngine.h"
 #include "render/SolidTextureFixturesFacade.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
@@ -20,7 +20,8 @@
 void
 RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ColorRgba *color, const RayWithSegments *ray, int shadowRay,
-    const TraceService *traceService, TextureUtils *textureUtils)
+    const TraceService *traceService, TextureUtils *textureUtils,
+    const RenderContext &context, int &traceLevel)
 {
     ColorRgba surfaceColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba refractedColor(0.0, 0.0, 0.0, 0.0);
@@ -35,7 +36,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     }
 
-    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+    if (context.getConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
         if (rayIntersection->getShape()->getShapeColor()) {
             {
                 char _logMsg[1024];
@@ -75,7 +76,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     // If this is just a shadow ray, and we're rendering low quality, then return
 
-    if (shadowRay && (RenderEngine::getActiveConfig().getQuality() <= 5)) {
+    if (shadowRay && (context.getConfig().getQuality() <= 5)) {
         return;
     }
 
@@ -90,7 +91,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         surface++;
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
-        if (RenderEngine::getActiveConfig().getQuality() <= 5) {
+        if (context.getConfig().getQuality() <= 5) {
             if (rayIntersection->getShape()->getShapeColor() != nullptr) {
                 surfaceColor = *rayIntersection->getShape()->getShapeColor();
             } else if (rayIntersection->getObject()->getObjectColor() != nullptr) {
@@ -130,11 +131,11 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
                 &surfaceColor, &filterColor, color, traceService,
-                RenderEngine::scene().getLightSources(),
-                RenderEngine::scene().getObjects(), RenderEngine::traceLevel());
+                context.getScene().getLightSources(),
+                context.getScene().getObjects(), traceLevel, textureUtils);
         }
 
-        if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+        if (context.getConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
             {
                 char _logMsg[1024];
                 snprintf(_logMsg, sizeof(_logMsg), "Surface %d\n", surface);
@@ -182,14 +183,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         return;
     }
 
-    if ((filterColor.getA() > 0.01) && (RenderEngine::getActiveConfig().getQuality() > 5)) {
+    if ((filterColor.getA() > 0.01) && (context.getConfig().getQuality() > 5)) {
         refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
             rayIntersection->getShape()->normal(
                 &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
-            if (RenderEngine::getActiveConfig().getQuality() > 7) {
+            if (context.getConfig().getQuality() > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getPoint(),
                     &surfaceNormal, textureUtils);
             }
@@ -202,13 +203,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
                 &refractedColor, traceService,
-                RenderEngine::scene().getAtmosphereIor(),
-                RenderEngine::traceLevel());
+                context.getScene().getAtmosphereIor(),
+                traceLevel);
         } else {
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
                 &refractedColor, traceService,
-                RenderEngine::scene().getAtmosphereIor(),
-                RenderEngine::traceLevel());
+                context.getScene().getAtmosphereIor(),
+                traceLevel);
         }
 
         color->setR(color->getR() + filterColor.getR() * refractedColor.getR() * filterColor.getA());
@@ -220,16 +221,16 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
                 &refractedColor, traceService,
-                RenderEngine::scene().getAtmosphereIor(),
-                RenderEngine::traceLevel());
+                context.getScene().getAtmosphereIor(),
+                traceLevel);
             color->setR(color->getR() + filterColor.getR() * refractedColor.getR() * filterColor.getA());
             color->setG(color->getG() + filterColor.getG() * refractedColor.getG() * filterColor.getA());
             color->setB(color->getB() + filterColor.getB() * refractedColor.getB() * filterColor.getA());
         }
     }
 
-    if (RenderEngine::scene().getFogDistance() != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->getDepth(), &RenderEngine::scene().getFogColor(),
-            RenderEngine::scene().getFogDistance(), color);
+    if (context.getScene().getFogDistance() != 0.0) {
+        ExponentialFogShader::shade(rayIntersection->getDepth(), &context.getScene().getFogColor(),
+            context.getScene().getFogDistance(), color);
     }
 }
