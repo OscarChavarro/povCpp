@@ -11,6 +11,7 @@ add_subdirectory(base)
 add_executable(povray
     src/environment/geometry/Geometry.cpp
     src/environment/geometry/element/TransformableElement.cpp
+    src/common/dataStructures/IntersectionPriorityQueuePool.cpp
     src/common/RenderRuntimeState.cpp
     src/common/ParseReportingConfiguration.cpp
     src/common/statistics/Statistics.cpp

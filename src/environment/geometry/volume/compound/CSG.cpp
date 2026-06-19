@@ -4,8 +4,7 @@ csg.c
 This module implements routines for constructive solid geometry.
 */
 
-#include "common/dataStructures/PriorityQueuePool.txx"
-
+#include "common/dataStructures/IntersectionPriorityQueuePool.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/SimpleBody.h"
@@ -77,7 +76,7 @@ CSG::allCsgIntersectIntersections(
     java::PriorityQueue<Intersection> *localDepthQueue;
     Intersection localIntersection;
 
-    localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
+    localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
 
     anyIntersectionFound = false;
 
@@ -111,7 +110,7 @@ CSG::allCsgIntersectIntersections(
         localDepthQueue->clear();
     }
 
-    PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
+    ray->getIntersectionQueuePool()->push(localDepthQueue);
 
     return (anyIntersectionFound);
 }

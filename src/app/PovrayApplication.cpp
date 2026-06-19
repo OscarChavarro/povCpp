@@ -275,7 +275,7 @@ PovrayApplication::prepareRendering()
         RenderEngine::initializeRenderer();
     }
 
-    PriorityQueuePool<Intersection>::pqInit();
+    RenderEngine::getActiveIntersectionQueuePool().init();
     textureUtils.initialize(statistics.getSolidTextureStatistics());
     textureUtils.initializeNoise(PovrayMaterial::DEFAULT_NUMBER_OF_WAVES);
 }

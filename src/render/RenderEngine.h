@@ -1,6 +1,7 @@
 #ifndef __RENDER_ENGINE__
 #define __RENDER_ENGINE__
 
+#include "common/dataStructures/IntersectionPriorityQueuePool.h"
 #include "environment/scene/Scene.h"
 #include "render/shaders/TraceService.h"
 #include "render/RenderContext.h"
@@ -19,6 +20,8 @@ class RenderEngine {
     char *mPreviousLineAntialiasedFlags;
     char *mCurrentLineAntialiasedFlags;
     RayWithSegments mRay;
+    TraceService mTraceService;
+    IntersectionPriorityQueuePool mIntersectionQueuePool;
 
     static void traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color);
     static void traceServiceShadeShadow(void *context, Intersection *intersection, ColorRgba *color);
@@ -27,7 +30,8 @@ class RenderEngine {
     RenderEngine()
         : mContext(nullptr), mScene(nullptr), mPrimaryRay(nullptr), mTraceLevel(0), mSuperSampleCount(0),
           mPreviousLine(nullptr), mCurrentLine(nullptr),
-          mPreviousLineAntialiasedFlags(nullptr), mCurrentLineAntialiasedFlags(nullptr) {}
+          mPreviousLineAntialiasedFlags(nullptr), mCurrentLineAntialiasedFlags(nullptr),
+          mTraceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceShadeShadow, this) {}
     ~RenderEngine();
 
     static void installActive(RenderEngine *engine) { sActive = engine; }
@@ -37,6 +41,7 @@ class RenderEngine {
     static RenderingConfiguration &getActiveMutableConfig();
     static Statistics &getActiveStatistics();
     static TextureUtils &getActiveTextureUtils();
+    static IntersectionPriorityQueuePool &getActiveIntersectionQueuePool();
     void setContext(RenderContext *ctx) { mContext = ctx; }
     RenderContext *getContext() { return mContext; }
     static RenderEngine *active() { return sActive; }

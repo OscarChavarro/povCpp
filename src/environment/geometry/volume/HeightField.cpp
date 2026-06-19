@@ -811,6 +811,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
         hField->transformationInverse->transformDirection(ray->getDirection()));
     tempRay.setStatistics(ray->getStatistics());
     tempRay.setConfig(ray->getConfig());
+    tempRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
 
     if (!Box::intersectBoxx(&tempRay, hField->boundingBox, &depth1, &depth2)) {
         return (false);
