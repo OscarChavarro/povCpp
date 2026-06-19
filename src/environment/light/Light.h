@@ -6,8 +6,12 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
+class ParseHelpers;
+
 class Light {
   private:
+    friend class ParseHelpers;
+
     ColorRgba *shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
@@ -31,7 +35,6 @@ class Light {
     Vector3Dd& getPointsAt() { return pointsAt; }
     const Vector3Dd& getPointsAt() const { return pointsAt; }
     Light *getNextLightSource() const { return nextLightSource; }
-    void setNextLightSource(Light *light) { nextLightSource = light; }
     bool isInverted() const { return inverted; }
     double getCoefficient() const { return coefficient; }
     double getRadius() const { return radius; }

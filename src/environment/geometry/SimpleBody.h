@@ -8,8 +8,12 @@
 #include "environment/geometry/Geometry.h"
 #include "environment/material/Material.h"
 
+class TextureParser;
+
 class SimpleBody : public TransformableElement {
   private:
+    friend class TextureParser;
+
     Geometry *geometry = nullptr;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
@@ -22,7 +26,6 @@ class SimpleBody : public TransformableElement {
 
     Geometry* getGeometry() const { return geometry; }
     Material* getMaterial() const { return material; }
-    Material*& getMaterialRef() { return material; }
     ColorRgba* getShapeColor() const { return shapeColor; }
     ColorRgba* ensureShapeColor();
     Matrix4x4d& getTransform() { return transform; }

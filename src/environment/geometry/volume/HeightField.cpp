@@ -33,6 +33,19 @@ HeightField::HeightField() :
 {
 }
 
+HeightField::HeightField(const Matrix4x4d &transformation,
+    const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
+    const Vector3Dd &maxBounds) :
+    transformation(new Matrix4x4d(transformation)),
+    transformationInverse(new Matrix4x4d(transformationInverse)),
+    boundingBox(new Box(minBounds, maxBounds)),
+    blockSize(0.0),
+    invBlkSize(0.0),
+    block(nullptr),
+    Map(nullptr)
+{
+}
+
 HeightField::HeightField(Matrix4x4d *transformation,
     Matrix4x4d *transformationInverse, Box *boundingBox, double blockSize,
     double invBlkSize, HeightFieldBlock **block, float **map) :

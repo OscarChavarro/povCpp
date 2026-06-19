@@ -37,6 +37,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     IndexedColorImageHDRUncompressed *indexedImage = nullptr;
     RGBAImageHDRUncompressed *directImage = nullptr;
     int imageType = 0;
+    Matrix4x4d localTransformation;
+    Matrix4x4d localTransformationInverse;
+    Vector3Dd minBounds;
+    Vector3Dd maxBounds;
 
     localShape = nullptr;
 
@@ -52,8 +56,6 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                                         // other image types - CdW
             case Tokenizer::GIF_TOKEN:
                 imageType = HeightField::GIF;
-                localShape = ModelBuilder::getHeightFieldShape();
-                body = ModelBuilder::wrap(localShape);
                 indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
@@ -62,22 +64,24 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 GifFormat::readGifImage(indexedImage, ctx.token().getTokenString());
-                localShape->getBoundingBox()->getBounds()[0] = Vector3Dd(1.0, 0.0, 1.0);
-                localShape->getBoundingBox()->getBounds()[1] =
-                    Vector3Dd(indexedImage->getXSize() - 2.0, 256.0, indexedImage->getYSize() - 2.0);
+                minBounds = Vector3Dd(1.0, 0.0, 1.0);
+                maxBounds = Vector3Dd(
+                    indexedImage->getXSize() - 2.0, 256.0,
+                    indexedImage->getYSize() - 2.0);
                 localVector = Vector3Dd(1.0 / indexedImage->getXSize(),
                     1.0 / 256.0, 1.0 / indexedImage->getYSize());
-                *localShape->getTransformation() = Matrix4x4d().scale(
+                localTransformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
-                *localShape->getTransformationInverse() = Matrix4x4d().scale(
+                localTransformationInverse = Matrix4x4d().scale(
                     1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
+                localShape = new HeightField(localTransformation,
+                    localTransformationInverse, minBounds, maxBounds);
+                body = ModelBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::POT_TOKEN:
                 imageType = HeightField::POT;
-                localShape = ModelBuilder::getHeightFieldShape();
-                body = ModelBuilder::wrap(localShape);
                 indexedImage = new IndexedColorImageHDRUncompressed;
                 if (indexedImage == nullptr) {
                     ParseErrorReporter::reportError("Out of memory. Cannot allocate "
@@ -86,22 +90,23 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 GifFormat::readGifImage(indexedImage, ctx.token().getTokenString());
-                localShape->getBoundingBox()->getBounds()[0] = Vector3Dd(1.0, 0.0, 1.0);
-                localShape->getBoundingBox()->getBounds()[1] = Vector3Dd(
+                minBounds = Vector3Dd(1.0, 0.0, 1.0);
+                maxBounds = Vector3Dd(
                     indexedImage->getXSize() / 2.0 - 2.0, 256.0, indexedImage->getYSize() - 2.0);
                 localVector = Vector3Dd(2.0 / indexedImage->getXSize(),
                     1.0 / 256.0, 1.0 / indexedImage->getYSize());
-                *localShape->getTransformation() = Matrix4x4d().scale(
+                localTransformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
-                *localShape->getTransformationInverse() = Matrix4x4d().scale(
+                localTransformationInverse = Matrix4x4d().scale(
                     1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
+                localShape = new HeightField(localTransformation,
+                    localTransformationInverse, minBounds, maxBounds);
+                body = ModelBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::TGA_TOKEN:
                 imageType = HeightField::TGA;
-                localShape = ModelBuilder::getHeightFieldShape();
-                body = ModelBuilder::wrap(localShape);
                 directImage = new RGBAImageHDRUncompressed;
                 if (directImage == nullptr) {
                     ParseErrorReporter::reportError("Cannot allocate space for "
@@ -109,15 +114,19 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 }
                 ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                 TargaFormat::readTargaImage(directImage, ctx.token().getTokenString());
-                localShape->getBoundingBox()->getBounds()[0] = Vector3Dd(1.0, 0.0, 1.0);
-                localShape->getBoundingBox()->getBounds()[1] =
-                    Vector3Dd(directImage->getXSize() - 2.0, 256.0, directImage->getYSize() - 2.0);
+                minBounds = Vector3Dd(1.0, 0.0, 1.0);
+                maxBounds = Vector3Dd(
+                    directImage->getXSize() - 2.0, 256.0,
+                    directImage->getYSize() - 2.0);
                 localVector = Vector3Dd(1.0 / directImage->getXSize(),
                     1.0 / 256.0, 1.0 / directImage->getYSize());
-                *localShape->getTransformation() = Matrix4x4d().scale(
+                localTransformation = Matrix4x4d().scale(
                     localVector.x(), localVector.y(), localVector.z());
-                *localShape->getTransformationInverse() = Matrix4x4d().scale(
+                localTransformationInverse = Matrix4x4d().scale(
                     1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
+                localShape = new HeightField(localTransformation,
+                    localTransformationInverse, minBounds, maxBounds);
+                body = ModelBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
 
@@ -185,7 +194,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, body->getMaterialRef());
+                TextureParser::prependTextureLayers(localTexture, body);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:

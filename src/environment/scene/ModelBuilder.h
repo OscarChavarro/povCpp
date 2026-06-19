@@ -31,8 +31,6 @@ class ModelBuilder {
     static Quadric *getQuadricShape();
     static PolynomialShape *getPolyShape(int order, const int *termCounts);
     static Box *getBoxShape();
-    static Blob *getBlobShape();
-    static HeightField *getHeightFieldShape();
     static InfinitePlane *getPlaneShape();
     static Triangle *getTriangleShape();
     static SmoothTriangle *getSmoothTriangleShape();
