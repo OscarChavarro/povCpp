@@ -66,11 +66,16 @@ PolynomialShape::PolynomialShape() :
 }
 
 PolynomialShape::PolynomialShape(int initialOrder) :
+    PolynomialShape(initialOrder, 0)
+{
+}
+
+PolynomialShape::PolynomialShape(int initialOrder, int sturmFlagValue) :
     transformation(nullptr),
     transformationInverse(nullptr),
     inverted(false),
     order(initialOrder),
-    sturmFlag(0),
+    sturmFlag(sturmFlagValue),
     Coeffs(new double[termCountsInstance[initialOrder]]())
 {
 }
@@ -859,12 +864,17 @@ PolynomialShape::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 PolynomialShape::copy()
 {
+    return copyWithSturmFlag(sturmFlag);
+}
+
+PolynomialShape *
+PolynomialShape::copyWithSturmFlag(int flag) const
+{
     const PolynomialShape *shape = this;
-    PolynomialShape * const newShape = new PolynomialShape(shape->order);
+    PolynomialShape * const newShape = new PolynomialShape(shape->order, flag);
     int i;
 
     newShape->inverted = shape->inverted;
-    newShape->sturmFlag = shape->sturmFlag;
 
     // Copy any associated transformation
     if (shape->transformation != nullptr) {
@@ -876,7 +886,7 @@ PolynomialShape::copy()
         newShape->Coeffs[i] = shape->Coeffs[i];
     }
 
-    return (void *)(newShape);
+    return newShape;
 }
 
 void

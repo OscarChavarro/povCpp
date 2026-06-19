@@ -29,13 +29,9 @@ class Blob : public Geometry {
         int sturmFlagValue);
 
     int getSturmFlag() const { return sturmFlag; }
-    void setSturmFlag(int flag) { sturmFlag = flag; }
     Matrix4x4d* getTransformation() const { return transformation; }
-    void setTransformation(Matrix4x4d *value) { transformation = value; }
     Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
-    void setTransformationInverse(Matrix4x4d *value) { transformationInverse = value; }
     bool isInverted() const { return inverted; }
-    void setInverted(bool value) { inverted = value; }
     int getCount() const { return count; }
     double getThreshold() const { return threshold; }
     BlobElement *getList() const { return list; }
@@ -45,6 +41,7 @@ class Blob : public Geometry {
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
+    Blob *copyWithSturmFlag(int flag) const;
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
@@ -58,7 +55,7 @@ class Blob : public Geometry {
     const double threshold;
     BlobElement *const list;
     BlobInterval *const intervals;
-    int sturmFlag;
+    const int sturmFlag;
 
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
         const Blob *blob, double mindist);

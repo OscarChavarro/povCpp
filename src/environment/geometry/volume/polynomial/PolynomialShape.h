@@ -10,19 +10,13 @@ class PolynomialShape : public Geometry {
   public:
     PolynomialShape();
     explicit PolynomialShape(int initialOrder);
+    PolynomialShape(int initialOrder, int sturmFlagValue);
 
     Matrix4x4d *getTransformation() const { return transformation; }
-    void setTransformation(Matrix4x4d *value) { transformation = value; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
-    void setTransformationInverse(Matrix4x4d *value)
-    {
-        transformationInverse = value;
-    }
     bool isInverted() const { return inverted; }
-    void setInverted(bool value) { inverted = value; }
     int getOrder() const { return order; }
     int getSturmFlag() const { return sturmFlag; }
-    void setSturmFlag(int flag) { sturmFlag = flag; }
     double *getCoeffs() const { return Coeffs; }
 
     static const int *termCountsByOrder();
@@ -31,6 +25,7 @@ class PolynomialShape : public Geometry {
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
+    PolynomialShape *copyWithSturmFlag(int flag) const;
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
@@ -41,7 +36,7 @@ class PolynomialShape : public Geometry {
     Matrix4x4d *transformationInverse;
     bool inverted;
     const int order;
-    int sturmFlag;
+    const int sturmFlag;
     double *const Coeffs;
 
     static void transform(int order, double *coeffs, Matrix4x4d *q);

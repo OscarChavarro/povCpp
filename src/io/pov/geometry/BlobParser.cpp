@@ -14,6 +14,22 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
+namespace {
+
+SimpleBody *
+rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
+{
+    SimpleBody *newBody = new SimpleBody(
+        geometry, body->getMaterial(), body->getShapeColor());
+    newBody->getTransform() = body->getTransform();
+    newBody->getTransformInverse() = body->getTransformInverse();
+    delete body->getGeometry();
+    delete body;
+    return newBody;
+}
+
+}
+
 SimpleBody *
 BlobParser::parseBlob()
 {
@@ -141,7 +157,11 @@ BlobParser::parseBlob(ParserContext &ctx)
                 break;
 
             case Tokenizer::STURM_TOKEN:
-                localShape->setSturmFlag(1);
+                if (localShape->getSturmFlag() == 0) {
+                    body = rebuildBodyWithGeometry(
+                        body, localShape->copyWithSturmFlag(1));
+                    localShape = (Blob *)body->getGeometry();
+                }
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:

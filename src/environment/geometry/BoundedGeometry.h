@@ -28,27 +28,30 @@ class BoundedGeometry : public Geometry {
         objectTexture(objectTexture)
     {
     }
+    BoundedGeometry(
+        TransformableElement *geometry,
+        Material *objectTexture,
+        ColorRgba *objectColor,
+        bool noShadowFlag,
+        const java::ArrayList<TransformableElement*> &boundingShapes,
+        const java::ArrayList<TransformableElement*> &clippingShapes) :
+        boundingShapes(boundingShapes),
+        clippingShapes(clippingShapes),
+        geometry(geometry),
+        noShadowFlag(noShadowFlag),
+        objectColor(objectColor),
+        objectTexture(objectTexture)
+    {
+    }
 
     java::ArrayList<TransformableElement*>& getBoundingShapes() { return boundingShapes; }
     const java::ArrayList<TransformableElement*>& getBoundingShapes() const { return boundingShapes; }
-    void setBoundingShapes(const java::ArrayList<TransformableElement*> &value)
-    {
-        boundingShapes = value;
-    }
     java::ArrayList<TransformableElement*>& getClippingShapes() { return clippingShapes; }
     const java::ArrayList<TransformableElement*>& getClippingShapes() const { return clippingShapes; }
-    void setClippingShapes(const java::ArrayList<TransformableElement*> &value)
-    {
-        clippingShapes = value;
-    }
     TransformableElement *getGeometry() const { return geometry; }
     bool getNoShadowFlag() const { return noShadowFlag; }
-    void setNoShadowFlag(bool value) { noShadowFlag = value; }
     ColorRgba *getObjectColor() const { return objectColor; }
-    void setObjectColor(ColorRgba *value) { objectColor = value; }
     Material *getObjectTexture() const { return objectTexture; }
-    Material *&getObjectTextureRef() { return objectTexture; }
-    void setObjectTexture(Material *value) { objectTexture = value; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int allIntersectionsForOwner(

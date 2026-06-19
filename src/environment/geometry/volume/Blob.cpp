@@ -584,10 +584,14 @@ Blob::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Blob::copy()
 {
-    const Blob *oldShape = this;
-    return new Blob(oldShape->transformation, oldShape->transformationInverse,
-        oldShape->inverted, oldShape->count, oldShape->threshold,
-        oldShape->list, oldShape->sturmFlag);
+    return copyWithSturmFlag(sturmFlag);
+}
+
+Blob *
+Blob::copyWithSturmFlag(int flag) const
+{
+    return new Blob(transformation, transformationInverse, inverted, count,
+        threshold, list, flag);
 }
 
 void

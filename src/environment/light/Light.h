@@ -12,14 +12,14 @@ class Light {
   private:
     friend class ParseHelpers;
 
-    ColorRgba *shapeColor = nullptr;
+    ColorRgba *const shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
     Light *nextLightSource;
     bool inverted;
-    double coefficient;
-    double radius;
-    double falloff;
+    const double coefficient;
+    const double radius;
+    const double falloff;
 
   public:
     Light();
