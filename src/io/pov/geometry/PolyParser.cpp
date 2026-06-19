@@ -30,6 +30,33 @@ rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
     return newBody;
 }
 
+void
+parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
+{
+    int i;
+
+    {
+        bool Exit_Flag;
+        Exit_Flag = false;
+        while (!Exit_Flag) {
+            ctx.tokenStream().getToken();
+            switch (ctx.token().getTokenId()) {
+            case Tokenizer::LEFT_ANGLE_TOKEN:
+                for (i = 0; i < PolynomialShape::termCountsByOrder()[order]; i++) {
+                    givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
+                }
+                ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
+                Exit_Flag = true;
+                break;
+
+            default:
+                ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
+                break;
+            }
+        }
+    }
+}
+
 }
 
 SimpleBody *
@@ -88,8 +115,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if (localShape == nullptr) {
                     Logger::reportMessage("PolyParser", Logger::WARNING, "", "Need the order of the Poly");
                 }
-                PrimitiveParser::parseCoeffs(
-                    localShape->getOrder(), &(localShape->getCoeffs()[0]));
+                parseCoeffs(localShape->getOrder(), &(localShape->getCoeffs()[0]), ctx);
                 Exit_Flag = true;
                 break;
 

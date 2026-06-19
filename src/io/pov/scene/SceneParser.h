@@ -11,12 +11,12 @@ class SceneParser {
     static void tokenInit();
     static void tokenInit(ParserContext &ctx);
     static void frameInit();
-    static void frameInit(ParserContext &ctx);
+    static void frameInit(Scene *framePtr, ParserContext &ctx);
     static void parseFrame();
-    static void parseFrame(ParserContext &ctx);
+    static void parseFrame(Scene *framePtr, ParserContext &ctx);
 
   private:
-    static void postProcessPhase(ParserContext &ctx);
+    static void postProcessPhase(Scene *framePtr);
 };
 
 #endif

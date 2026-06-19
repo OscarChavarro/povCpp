@@ -8,6 +8,7 @@ class FogParser {
   public:
     static void parseFog(Scene *framePtr);
     static void parseFog(Scene *framePtr, ParserContext &ctx);
+    static void parseFog(Scene &frame, ParserContext &ctx);
     static void parseFog(ColorRgba &fogColor, double &fogDistance, ParserContext &ctx);
 };
 

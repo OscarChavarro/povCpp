@@ -6,20 +6,20 @@
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/pov/context/ParserContext.h"
-#include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/scene/SceneBodyParser.h"
+#include "io/pov/scene/ScenePostProcessor.h"
 #include "io/pov/scene/SceneParser.h"
 
 void
-SceneParser::postProcessPhase(ParserContext &ctx)
+SceneParser::postProcessPhase(Scene *framePtr)
 {
     const java::ArrayList<BoundedGeometry*> &objects =
-        ctx.parsingFrame()->getObjects();
+        framePtr->getObjects();
     Light *lightHead = nullptr;
     for (long int i = objects.size() - 1; i >= 0; i--) {
-        ParseHelpers::postProcessObject(objects[i], lightHead);
+        ScenePostProcessor::linkLights(objects[i], lightHead);
     }
-    ctx.parsingFrame()->setLightSources(lightHead);
+    framePtr->setLightSources(lightHead);
 }
 
 
@@ -35,14 +35,12 @@ void
 SceneParser::parse(Scene *framePtr, ParserContext &ctx)
 {
     Scene parsedFrame = *framePtr;
-    ctx.parsingFrame() = &parsedFrame;
     ctx.degenerateTriangles() = false;
     SceneParser::tokenInit(ctx);
-    SceneParser::frameInit(ctx);
-    SceneParser::parseFrame(ctx);
-    postProcessPhase(ctx);
+    SceneParser::frameInit(&parsedFrame, ctx);
+    SceneParser::parseFrame(&parsedFrame, ctx);
+    postProcessPhase(&parsedFrame);
     *framePtr = parsedFrame;
-    ctx.parsingFrame() = framePtr;
     if (ctx.degenerateTriangles()) {
         fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
     }
@@ -67,25 +65,28 @@ void
 SceneParser::frameInit()
 {
     ParserContext ctx;
-    SceneParser::frameInit(ctx);
+    Scene frame;
+    SceneParser::frameInit(&frame, ctx);
 }
 
 void
-SceneParser::frameInit(ParserContext &ctx)
+SceneParser::frameInit(Scene *framePtr, ParserContext &ctx)
 {
+    (void)ctx;
     MaterialUtils::instance().setDefaultTexture(MaterialUtils::instance().getTexture());
-    ctx.parsingFrame()->resetForSceneParse();
+    framePtr->resetForSceneParse();
 }
 
 void
 SceneParser::parseFrame()
 {
     ParserContext ctx;
-    SceneParser::parseFrame(ctx);
+    Scene frame;
+    SceneParser::parseFrame(&frame, ctx);
 }
 
 void
-SceneParser::parseFrame(ParserContext &ctx)
+SceneParser::parseFrame(Scene *framePtr, ParserContext &ctx)
 {
-    SceneBodyParser::parseFrame(ctx.parsingFrame(), ctx);
+    SceneBodyParser::parseFrame(framePtr, ctx);
 }

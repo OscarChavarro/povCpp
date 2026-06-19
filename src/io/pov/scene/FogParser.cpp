@@ -13,16 +13,22 @@ void
 FogParser::parseFog(Scene *framePtr)
 {
     ParserContext ctx;
-    FogParser::parseFog(framePtr, ctx);
+    FogParser::parseFog(*framePtr, ctx);
 }
 
 void
 FogParser::parseFog(Scene *framePtr, ParserContext &ctx)
 {
-    ColorRgba fogColor = framePtr->getFogColor();
-    double fogDistance = framePtr->getFogDistance();
+    FogParser::parseFog(*framePtr, ctx);
+}
+
+void
+FogParser::parseFog(Scene &frame, ParserContext &ctx)
+{
+    ColorRgba fogColor = frame.getFogColor();
+    double fogDistance = frame.getFogDistance();
     FogParser::parseFog(fogColor, fogDistance, ctx);
-    framePtr->setFog(fogColor, fogDistance);
+    frame.setFog(fogColor, fogDistance);
 }
 
 void
