@@ -179,6 +179,7 @@ class Tokenizer {
     PovToken &token();
     void setCaseSensitiveIdentifiers(int mode);
     void setFileLocator(const FileLocator *locator) { mFileLocator = locator; }
+    const FileLocator *getFileLocator() const { return mFileLocator; }
     void initializeTokenizer(const char *inputFileName);
     void terminateTokenizer(void);
     void ungetToken(void);

@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/util/PriorityQueue.txx"
 #include "environment/geometry/Intersection.h"
-#include "common/dataStructures/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 
 IntersectionPriorityQueuePool::IntersectionPriorityQueuePool()
     : queues(nullptr), nextFreeIndex{}, headIndex(-1)

@@ -11,9 +11,8 @@ add_subdirectory(base)
 add_executable(povray
     src/environment/geometry/Geometry.cpp
     src/environment/geometry/element/TransformableElement.cpp
-    src/common/dataStructures/IntersectionPriorityQueuePool.cpp
+    src/environment/geometry/element/IntersectionPriorityQueuePool.cpp
     src/common/RenderRuntimeState.cpp
-    src/common/ParseReportingConfiguration.cpp
     src/common/statistics/Statistics.cpp
     src/environment/material/RendererConfiguration.cpp
     src/environment/geometry/element/RayWithSegments.cpp
@@ -41,7 +40,7 @@ add_executable(povray
     src/environment/geometry/element/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp
     src/environment/material/PovrayMaterial.cpp
-    src/environment/material/MaterialUtils.cpp
+    src/environment/material/PovrayMaterialUtils.cpp
     src/render/ColorOperations.cpp
     src/render/shaders/LightSamplerShader.cpp
     src/render/shaders/ShadowShader.cpp

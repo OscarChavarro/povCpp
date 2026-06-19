@@ -67,17 +67,18 @@ The diagram below was generated directly from the source code using
 
 ![Architecture diagram](doc/architectureDiagram.png)
 
-| Layer | Package | Responsibility |
-|---|---|---|
-| **Application** | `src/app` | Entry point, CLI option parsing, output adapter |
-| **IO — Scene parser** | `src/io/pov` | Lexer (`Tokenizer`), recursive-descent parser, AST lowering into the scene model |
-| **IO — Image formats** | `src/io/image` | Reading and writing TGA, GIF, IFF, raw dump |
-| **Environment** | `src/environment` | Scene graph (`SceneFrame`), geometry primitives, camera, lights, CSG tree |
-| **Solid textures** | `src/solidTexture` | Solid texture evaluation, indexed palette images, image-map sampling |
-| **Render** | `src/render` | `RenderEngine` drives scanline rendering; `RayShaderPipeline` chains per-intersection shaders |
-| **Shaders** | `src/render/shaders` | One class per shading effect (ambient, Lambert, Phong, shadow, reflection, refraction, fog, bump) |
-| **Processing** | `src/processing` | Sturm-sequence polynomial root solver used by quartics and polys |
-| **Base library** | `base/` | Vitral toolkit: linear algebra (`Vector3Dd`, `Matrix4x4d`), image buffers, I/O primitives |
+| Meta-layer | Layer | Package | Responsibility |
+|---|---|---|---|
+| <span style="background-color:#f28682">app</span> | **Application** | `src/app` | Entry point, CLI option parsing, output adapter |
+| <span style="background-color:#ffff8f">io</span> | **IO — Scene parser** | `src/io/pov` | Lexer (`Tokenizer`), recursive-descent parser, AST lowering into the scene model |
+| <span style="background-color:#ffff8f">io</span> | **IO — Image formats** | `src/io/image` | Reading and writing TGA, GIF, IFF, raw dump |
+| <span style="background-color:#9bfc8c">environment</span> | **Environment** | `src/environment` | Scene graph (`SceneFrame`), geometry primitives, camera, lights, CSG tree |
+| <span style="background-color:#7d7ef8">render</span> | **Render** | `src/render` | `RenderEngine` drives scanline rendering; `RayShaderPipeline` chains per-intersection shaders |
+| <span style="background-color:#7d7ef8">render</span> | **Shaders** | `src/render/shaders` | One class per shading effect (ambient, Lambert, Phong, shadow, reflection, refraction, fog, bump) |
+| <span style="background-color:#99fcfe">base</span> | **Common** | `src/common` | Cross-cutting utilities and statistics shared across layers |
+| <span style="background-color:#99fcfe">base</span> | **Base library** | `base/src/main/vsdk/toolkit` | Vitral toolkit: linear algebra (`Vector3Dd`, `Matrix4x4d`), image buffers, I/O primitives |
+| <span style="background-color:#99fcfe">base</span> | **Solid textures** | `base/src/main/vsdk/toolkit/media/solidTexture` | Solid texture evaluation (procedural noise, image-to-solid-texture projection), indexed palette images, image-map sampling |
+| <span style="background-color:#99fcfe">base</span> | **Processing** | `base/src/main/vsdk/toolkit/numericalAnalysis/polynomial` | Sturm-sequence polynomial root solver used by quartics and polys |
 
 The shader chain is assembled at startup by `RayShaderPipeline`. Recursive calls
 (reflection, refraction, shadow) are dispatched through a `TraceService` function-pointer

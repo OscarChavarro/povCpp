@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 
-#include "environment/material/MaterialUtils.h"
+#include "environment/material/PovrayMaterialUtils.h"
 
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/DefaultTextureParser.h"

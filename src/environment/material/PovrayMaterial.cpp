@@ -1,7 +1,7 @@
 #include "environment/material/PovrayMaterial.h"
 
 #include "java/util/ArrayList.txx"
-#include "environment/material/MaterialUtils.h"
+#include "environment/material/PovrayMaterialUtils.h"
 
 PovrayMaterial::PovrayMaterial() :
     objectReflection(0.0),
@@ -43,26 +43,26 @@ PovrayMaterial::PovrayMaterial() :
 PovrayMaterial *
 PovrayMaterial::copy()
 {
-    return MaterialUtils::copyTexture(this);
+    return PovrayMaterialUtils::copyTexture(this);
 }
 
 void
 PovrayMaterial::translate(Vector3Dd *vector)
 {
     PovrayMaterial *self = this;
-    MaterialUtils::translateTexture(&self, vector);
+    PovrayMaterialUtils::translateTexture(&self, vector);
 }
 
 void
 PovrayMaterial::rotate(Vector3Dd *vector)
 {
     PovrayMaterial *self = this;
-    MaterialUtils::rotateTexture(&self, vector);
+    PovrayMaterialUtils::rotateTexture(&self, vector);
 }
 
 void
 PovrayMaterial::scale(Vector3Dd *vector)
 {
     PovrayMaterial *self = this;
-    MaterialUtils::scaleTexture(&self, vector);
+    PovrayMaterialUtils::scaleTexture(&self, vector);
 }

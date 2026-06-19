@@ -8,7 +8,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/RenderRuntimeState.h"
 #include "common/statistics/Statistics.h"
-#include "environment/material/MaterialUtils.h"
+#include "environment/material/PovrayMaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/geometry/Intersection.h"
@@ -145,10 +145,10 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
     }
 
     initVars();
-    configuration.getFileLocator().clearSearchPaths();
+    fileLocator.clearSearchPaths();
 
-    CommandLineOptions::loadDefaults(configuration, scene);
-    CommandLineOptions::parseArguments(argc, argv, configuration, scene);
+    CommandLineOptions::loadDefaults(configuration, fileLocator, scene);
+    CommandLineOptions::parseArguments(argc, argv, configuration, fileLocator, scene);
 
     if (configuration.getLastLine() == -1) {
         configuration.setLastLine(
@@ -194,7 +194,7 @@ PovrayApplication::configureOutputTarget()
         }
     }
 
-    selectedImageOutput->setFileLocator(&configuration.getFileLocator());
+    selectedImageOutput->setFileLocator(&fileLocator);
     configuration.setOutputFileInputStream(
         new ImageOutputAdapter(selectedImageOutput));
 
@@ -212,7 +212,7 @@ PovrayApplication::parseSceneDescription()
     ParserContext ctx;
     ctx.tokenizer().setCaseSensitiveIdentifiers(configuration.getTokenizerCaseSensitiveMode());
     ctx.tokenizer().setMaxSymbols(configuration.getTokenizerMaxSymbols());
-    ctx.tokenizer().setFileLocator(&configuration.getFileLocator());
+    ctx.tokenizer().setFileLocator(&fileLocator);
     ctx.tokenizer().initializeTokenizer(configuration.getInputFileName());
     fprintf(stderr, "Parsing...");
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {

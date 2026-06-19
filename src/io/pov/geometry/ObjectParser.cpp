@@ -15,7 +15,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "io/pov/light/LightGeometryAdapter.h"
-#include "environment/material/MaterialUtils.h"
+#include "environment/material/PovrayMaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/scene/BoundedGeometryFactory.h"
 #include "environment/geometry/SimpleBody.h"
