@@ -16,14 +16,8 @@ SolidTextureFixturesFacade::SolidTextureFixturesFacade(
 void
 SolidTextureFixturesFacade::checkerTexture(
     double x, double y, double z, ColorRgba *color,
-    int textureNumber1, const Matrix4x4d *textureTransformationInverse1,
-    const ControlledRGBAImageHDRUncompressed *image1, const ColorRgba *color1_1, const ColorRgba *color2_1,
-    double turbulence1, int octaves1, const RGBAColorPalette *colorMap1,
-    Vector3Dd textureGradient1, double mortar1,
-    int textureNumber2, const Matrix4x4d *textureTransformationInverse2,
-    const ControlledRGBAImageHDRUncompressed *image2, const ColorRgba *color1_2, const ColorRgba *color2_2,
-    double turbulence2, int octaves2, const RGBAColorPalette *colorMap2,
-    Vector3Dd textureGradient2, double mortar2,
+    const SolidTextureFixturesCheckerParameterSet &parametersSet1,
+    const SolidTextureFixturesCheckerParameterSet &parametersSet2,
     double smallTolerance
     ) const
 {
@@ -41,17 +35,17 @@ SolidTextureFixturesFacade::checkerTexture(
 
     if (index & 1) {
         fixturesFacade.colorAt(
-            color, textureNumber1, textureTransformationInverse1,
-            image1, color1_1, color2_1,
-            turbulence1, octaves1, colorMap1,
-            textureGradient1, mortar1,
+            color, parametersSet1.getTextureNumber(), parametersSet1.getTextureTransformationInverse(),
+            parametersSet1.getImage(), parametersSet1.getColor1(), parametersSet1.getColor2(),
+            parametersSet1.getTurbulence(), parametersSet1.getOctaves(), parametersSet1.getColorMap(),
+            parametersSet1.getTextureGradient(), parametersSet1.getMortar(),
             &point, smallTolerance);
     } else {
         fixturesFacade.colorAt(
-            color, textureNumber2, textureTransformationInverse2,
-            image2, color1_2, color2_2,
-            turbulence2, octaves2, colorMap2,
-            textureGradient2, mortar2,
+            color, parametersSet2.getTextureNumber(), parametersSet2.getTextureTransformationInverse(),
+            parametersSet2.getImage(), parametersSet2.getColor1(), parametersSet2.getColor2(),
+            parametersSet2.getTurbulence(), parametersSet2.getOctaves(), parametersSet2.getColorMap(),
+            parametersSet2.getTextureGradient(), parametersSet2.getMortar(),
             &point, smallTolerance);
     }
 }
@@ -71,26 +65,8 @@ SolidTextureFixturesFacade::colorAt(
     double mortar,
     const Vector3Dd *intersectionPoint,
     double smallTolerance,
-    int textureNumber1,
-    const Matrix4x4d *textureTransformationInverse1,
-    const ControlledRGBAImageHDRUncompressed *image1,
-    const ColorRgba *color1_1,
-    const ColorRgba *color2_1,
-    double turbulence1,
-    int octaves1,
-    const RGBAColorPalette *colorMap1,
-    Vector3Dd textureGradient1,
-    double mortar1,
-    int textureNumber2,
-    const Matrix4x4d *textureTransformationInverse2,
-    const ControlledRGBAImageHDRUncompressed *image2,
-    const ColorRgba *color1_2,
-    const ColorRgba *color2_2,
-    double turbulence2,
-    int octaves2,
-    const RGBAColorPalette *colorMap2,
-    Vector3Dd textureGradient2,
-    double mortar2) const
+    const SolidTextureFixturesColorAtParameterSet &parametersSet1,
+    const SolidTextureFixturesColorAtParameterSet &parametersSet2) const
 {
     double x;
     double y;
@@ -155,14 +131,16 @@ SolidTextureFixturesFacade::colorAt(
     case SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE:
         checkerTexture(
             x, y, z, color,
-            textureNumber1, textureTransformationInverse1,
-            image1, color1_1, color2_1,
-            turbulence1, octaves1, colorMap1,
-            textureGradient1, mortar1,
-            textureNumber2, textureTransformationInverse2,
-            image2, color1_2, color2_2,
-            turbulence2, octaves2, colorMap2,
-            textureGradient2, mortar2,
+            SolidTextureFixturesCheckerParameterSet(
+                parametersSet1.getTextureNumber(), parametersSet1.getTextureTransformationInverse(),
+                parametersSet1.getImage(), parametersSet1.getColor1(), parametersSet1.getColor2(),
+                parametersSet1.getTurbulence(), parametersSet1.getOctaves(), parametersSet1.getColorMap(),
+                parametersSet1.getTextureGradient(), parametersSet1.getMortar()),
+            SolidTextureFixturesCheckerParameterSet(
+                parametersSet2.getTextureNumber(), parametersSet2.getTextureTransformationInverse(),
+                parametersSet2.getImage(), parametersSet2.getColor1(), parametersSet2.getColor2(),
+                parametersSet2.getTurbulence(), parametersSet2.getOctaves(), parametersSet2.getColorMap(),
+                parametersSet2.getTextureGradient(), parametersSet2.getMortar()),
             smallTolerance);
         break;
 

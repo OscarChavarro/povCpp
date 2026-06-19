@@ -109,14 +109,16 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 tempTexture->getOctaves(), tempTexture->getColorMap(),
                 tempTexture->getTextureGradient(), tempTexture->getMortar(),
                 &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance,
-                texture1->getTextureNumber(), texture1->getTextureTransformationInverse(),
-                texture1->getImage(), texture1->getColor1(), texture1->getColor2(),
-                texture1->getTurbulence(), texture1->getOctaves(), texture1->getColorMap(),
-                texture1->getTextureGradient(), texture1->getMortar(),
-                texture2->getTextureNumber(), texture2->getTextureTransformationInverse(),
-                texture2->getImage(), texture2->getColor1(), texture2->getColor2(),
-                texture2->getTurbulence(), texture2->getOctaves(), texture2->getColorMap(),
-                texture2->getTextureGradient(), texture2->getMortar());
+                SolidTextureFixturesColorAtParameterSet(
+                    texture1->getTextureNumber(), texture1->getTextureTransformationInverse(),
+                    texture1->getImage(), texture1->getColor1(), texture1->getColor2(),
+                    texture1->getTurbulence(), texture1->getOctaves(), texture1->getColorMap(),
+                    texture1->getTextureGradient(), texture1->getMortar()),
+                SolidTextureFixturesColorAtParameterSet(
+                    texture2->getTextureNumber(), texture2->getTextureTransformationInverse(),
+                    texture2->getImage(), texture2->getColor1(), texture2->getColor2(),
+                    texture2->getTurbulence(), texture2->getOctaves(), texture2->getColorMap(),
+                    texture2->getTextureGradient(), texture2->getMortar()));
         } else {
             fixturesFacade.colorAt(
                 &surfaceColor, tempTexture->getTextureNumber(),
