@@ -259,14 +259,16 @@ BoundedGeometry::copy()
 void *
 Composite::copy()
 {
-    Composite *newObject;
+    Composite *newObject = new Composite(
+        this->getGeometry() != nullptr ?
+            (TransformableElement *)this->getGeometry()->copy() : nullptr,
+        this->getObjectTexture(),
+        this->getObjectColor(),
+        this->getNoShadowFlag());
     TransformableElement *localShape;
     TransformableElement *copiedShape;
     BoundedGeometry *localObject;
     BoundedGeometry *copiedObject;
-
-    newObject = new Composite;
-    *newObject = *this;
     newObject->getSimpleBodies().clear();
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -290,6 +292,9 @@ Composite::copy()
         copiedShape =
             (TransformableElement *)localShape->copy();
         newObject->getClippingShapes().add(copiedShape);
+    }
+    if (newObject->getObjectTexture() != nullptr) {
+        newObject->setObjectTexture(newObject->getObjectTexture()->copy());
     }
     return ((void *)newObject);
 }

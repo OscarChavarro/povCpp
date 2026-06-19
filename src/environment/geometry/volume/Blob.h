@@ -37,13 +37,9 @@ class Blob : public Geometry {
     bool isInverted() const { return inverted; }
     void setInverted(bool value) { inverted = value; }
     int getCount() const { return count; }
-    void setCount(int value) { count = value; }
     double getThreshold() const { return threshold; }
-    void setThreshold(double value) { threshold = value; }
     BlobElement *getList() const { return list; }
-    void setList(BlobElement *value) { list = value; }
     BlobInterval *getIntervals() const { return intervals; }
-    void setIntervals(BlobInterval *value) { intervals = value; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
@@ -58,10 +54,10 @@ class Blob : public Geometry {
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     bool inverted;
-    int count;
-    double threshold;
-    BlobElement *list;
-    BlobInterval *intervals;
+    const int count;
+    const double threshold;
+    BlobElement *const list;
+    BlobInterval *const intervals;
     int sturmFlag;
 
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,

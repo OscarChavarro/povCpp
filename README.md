@@ -89,7 +89,7 @@ pair so shaders remain decoupled from the top-level trace loop.
 
 | Tool | Minimum version | Notes |
 |---|---|---|
-| C++ compiler | GCC 11 or Clang 14 | C++17 required |
+| C++ compiler | GCC 11 or Clang 14 | C++11 required |
 | CMake | 3.16 | |
 | ImageMagick | 6 or 7 | Required for `testAgainstGoldenImages.sh` and `viewImages.sh` |
 | clang-tidy + clang-format | any recent | Optional, required for `lint.sh` |

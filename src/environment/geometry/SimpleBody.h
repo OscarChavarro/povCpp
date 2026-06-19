@@ -14,7 +14,7 @@ class SimpleBody : public TransformableElement {
   private:
     friend class TextureParser;
 
-    Geometry *geometry = nullptr;
+    Geometry *const geometry = nullptr;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
     Matrix4x4d transform;
