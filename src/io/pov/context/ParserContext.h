@@ -19,15 +19,11 @@ class ParserContext {
     const ReservedWord *reservedWords();
     PovToken &token();
     Constant *constants();
-    int &numberOfConstants();
     SymbolTable &symbols();
     int findConstant();
     int &degenerateTriangles();
     ITokenStream &tokenStream();
-    void setTokenStream(ITokenStream *tokenStream);
     void resetTokenStreamHistory();
-    void forceTokenStream(ITokenStream *tokenStream);
-    void clearForcedTokenStream();
     Tokenizer &tokenizer() { return mTokenizer; }
 
     PovrayMaterial *getDefaultTexture() const { return mDefaultTexture; }

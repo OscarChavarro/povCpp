@@ -22,7 +22,6 @@ class PovColorMap {
                  const ColorRgba& startColor, const ColorRgba& endColor);
 
     int size() const;
-    bool transparencyFlag() const;
     const PovColorMapSpan *getSpanAt(int i) const;
     ColorRgba evalLinear(double t) const;
 };

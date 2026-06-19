@@ -41,24 +41,6 @@ Triangle::Triangle(const Vector3Dd &p1, const Vector3Dd &p2, const Vector3Dd &p3
     Triangle::computeTriangle(this);
 }
 
-Triangle::Triangle(const Vector3Dd &normalVector, double distance,
-    double vpNormDotOrigin, bool vpCached, unsigned int dominantAxis,
-    bool inverted, unsigned int vAxis, const Vector3Dd &p1,
-    const Vector3Dd &p2, const Vector3Dd &p3, bool degenerateFlag) :
-    normalVector(normalVector),
-    distance(distance),
-    vpNormDotOrigin(vpNormDotOrigin),
-    vpCached(vpCached),
-    dominantAxis(dominantAxis),
-    inverted(inverted),
-    vAxis(vAxis),
-    p1(p1),
-    p2(p2),
-    p3(p3),
-    degenerateFlag(degenerateFlag)
-{
-}
-
 int
 Triangle::max3Axis(double x, double y, double z)
 {
@@ -412,8 +394,7 @@ Triangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Triangle::copy()
 {
-    return new Triangle(normalVector, distance, vpNormDotOrigin, vpCached,
-        dominantAxis, inverted, vAxis, p1, p2, p3, degenerateFlag);
+    return new Triangle(*this);
 }
 
 void

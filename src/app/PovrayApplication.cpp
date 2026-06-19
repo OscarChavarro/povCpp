@@ -353,33 +353,4 @@ PovrayApplication::closeAll()
     }
 }
 
-void
-PovrayApplication::printCredits()
-{
-    fprintf(stderr, "\n");
-    fprintf(
-        stderr, "  Persistence of Vision Raytracer Ver 1.0%s\n", COMPILER_VER);
-    fprintf(stderr, "  Copyright 1992 POV-Team\n");
-    fprintf(stderr, "  "
-                    "----------------------------------------------------------"
-                    "------------\n");
-    fprintf(stderr, "  POV-Ray is based on DKBTrace 2.12 by David K. Buck & "
-                    "Aaron A. Collins.\n");
-    fprintf(stderr, "  \n");
-    fprintf(stderr, "  Contributing Authors: (Alphabetically)\n");
-    fprintf(stderr, "  \n");
-    fprintf(stderr,
-        "  Steve A. Bennett    David K. Buck        Aaron A. Collins\n");
-    fprintf(
-        stderr, "  Alexander Enzmann  Dan Farmer            Girish T. Hagan\n");
-    fprintf(
-        stderr, "  Douglas Muir         Bill Pulver          Robert Skinner\n");
-    fprintf(
-        stderr, "  Scott Taylor         Drew Wells            Chris Young\n");
-    fprintf(stderr, "  "
-                    "----------------------------------------------------------"
-                    "------------\n");
-    fprintf(stderr, "  Other contributors listed in the documentation.\n");
-}
-
 #include "java/util/PriorityQueue.txx"

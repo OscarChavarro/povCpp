@@ -25,16 +25,7 @@ class SimpleBody;
 class ModelBuilder {
   public:
     static SimpleBody *wrap(Geometry *geometry);
-    static Composite *getCompositeObject();
-    static Sphere *getSphereShape();
-    static Light *getLightSourceShape();
-    static Quadric *getQuadricShape();
     static PolynomialShape *getPolyShape(int order, const int *termCounts);
-    static Box *getBoxShape();
-    static InfinitePlane *getPlaneShape();
-    static Triangle *getTriangleShape();
-    static SmoothTriangle *getSmoothTriangleShape();
-    static CSG *getCsgShape();
     static CSG *getCsgUnion();
     static CSG *getCsgIntersection();
     static Camera *getCamera();

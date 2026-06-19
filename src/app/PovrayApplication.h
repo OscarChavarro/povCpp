@@ -36,7 +36,6 @@ class PovrayApplication {
     void finalizeRun();
     void initVars();
     void closeAll();
-    void printCredits();
 
   public:
     PovrayApplication()

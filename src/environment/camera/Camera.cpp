@@ -27,12 +27,6 @@ Camera::applyLinearTransformation(const Matrix4x4d &transformation)
     this->getRight() = transformation.transpose().multiply(this->getRight());
 }
 
-void
-Camera::initializeDefaults()
-{
-    *this = Camera();
-}
-
 void *
 Camera::copy()
 {
