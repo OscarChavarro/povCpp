@@ -1,5 +1,5 @@
 #include "java/util/PriorityQueue.txx"
-#include "common/dataStructures/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/TransformableElement.h"
 

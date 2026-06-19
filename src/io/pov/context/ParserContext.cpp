@@ -1,5 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 
+#include "environment/material/RendererConfiguration.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/context/TokenizerStream.h"
 #include "io/pov/lexer/ITokenStream.h"
@@ -93,4 +94,17 @@ ParserContext::clearForcedTokenStream()
 {
     mForcedTokenStream = nullptr;
     mTokenStream = &mDefaultTokenStream;
+}
+
+bool
+ParserContext::writesVerboseErrors() const
+{
+    return mReportingConfig != nullptr &&
+        mReportingConfig->hasOptionFlags(RenderingConfiguration::VERBOSE_FILE);
+}
+
+const char *
+ParserContext::statFileName() const
+{
+    return mReportingConfig->getStatFileName();
 }

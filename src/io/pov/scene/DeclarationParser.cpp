@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 #include "environment/material/PovrayMaterial.h"
-#include "environment/material/MaterialUtils.h"
+#include "environment/material/PovrayMaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
 
 #include "io/pov/camera/CameraParser.h"

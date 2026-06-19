@@ -1,6 +1,6 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
-#include "common/dataStructures/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/GeometryConstants.h"

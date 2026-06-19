@@ -1,7 +1,7 @@
 #include <cstdio>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/dataStructures/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/compound/Composite.h"

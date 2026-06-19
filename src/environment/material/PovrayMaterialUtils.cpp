@@ -9,20 +9,20 @@ PovrayMaterial utilities: global default texture management.
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/material/PovrayMaterial.h"
-#include "environment/material/MaterialUtils.h"
+#include "environment/material/PovrayMaterialUtils.h"
 
 #include "java/util/ArrayList.txx"
 
 
 bool
-MaterialUtils::needsTransform(const PovrayMaterial *texture)
+PovrayMaterialUtils::needsTransform(const PovrayMaterial *texture)
 {
     return ((texture->getTextureNumber() != SolidTextureColorNames::NO_TEXTURE) &&
                (texture->getTextureNumber() != SolidTextureColorNames::COLOUR_TEXTURE)) ||
            (texture->getBumpNumber() != SolidTextureBumpyNames::NO_BUMPS);
 }
 void
-MaterialUtils::applyTranslationTransform(PovrayMaterial *texture, const Vector3Dd *vector)
+PovrayMaterialUtils::applyTranslationTransform(PovrayMaterial *texture, const Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -43,7 +43,7 @@ MaterialUtils::applyTranslationTransform(PovrayMaterial *texture, const Vector3D
         *texture->getTextureTransformationInverse());
 }
 void
-MaterialUtils::translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
+PovrayMaterialUtils::translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
 {
     PovrayMaterial *texture = *texturePtr;
     if (texture == nullptr) {
@@ -78,7 +78,7 @@ MaterialUtils::translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
     }
 }
 void
-MaterialUtils::copyTextureNode(PovrayMaterial *dst, const PovrayMaterial *src)
+PovrayMaterialUtils::copyTextureNode(PovrayMaterial *dst, const PovrayMaterial *src)
 {
     if (dst->getTextureTransformation()) {
         dst->setTextureTransformation(
@@ -102,7 +102,7 @@ MaterialUtils::copyTextureNode(PovrayMaterial *dst, const PovrayMaterial *src)
     dst->setConstant(false);
 }
 PovrayMaterial *
-MaterialUtils::copyTexture(PovrayMaterial *texture)
+PovrayMaterialUtils::copyTexture(PovrayMaterial *texture)
 {
     PovrayMaterial * const newHead = getTexture();
     *newHead = *texture;
@@ -120,7 +120,7 @@ MaterialUtils::copyTexture(PovrayMaterial *texture)
     return newHead;
 }
 PovrayMaterial *
-MaterialUtils::getTexture()
+PovrayMaterialUtils::getTexture()
 {
     PovrayMaterial *newTexture;
 
@@ -131,7 +131,7 @@ MaterialUtils::getTexture()
     return (newTexture);
 }
 void
-MaterialUtils::applyRotationTransform(PovrayMaterial *texture, Vector3Dd *vector)
+PovrayMaterialUtils::applyRotationTransform(PovrayMaterial *texture, Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -149,7 +149,7 @@ MaterialUtils::applyRotationTransform(PovrayMaterial *texture, Vector3Dd *vector
         *texture->getTextureTransformationInverse());
 }
 void
-MaterialUtils::rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
+PovrayMaterialUtils::rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
 {
     PovrayMaterial *texture = *texturePtr;
     if (texture == nullptr) {
@@ -184,7 +184,7 @@ MaterialUtils::rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
     }
 }
 void
-MaterialUtils::applyScaleTransform(PovrayMaterial *texture, const Vector3Dd *vector)
+PovrayMaterialUtils::applyScaleTransform(PovrayMaterial *texture, const Vector3Dd *vector)
 {
     Matrix4x4d deltaTransformation;
     Matrix4x4d deltaTransformationInverse;
@@ -204,7 +204,7 @@ MaterialUtils::applyScaleTransform(PovrayMaterial *texture, const Vector3Dd *vec
         *texture->getTextureTransformationInverse());
 }
 void
-MaterialUtils::scaleTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
+PovrayMaterialUtils::scaleTexture(PovrayMaterial **texturePtr, Vector3Dd *vector)
 {
     PovrayMaterial *texture = *texturePtr;
     if (texture == nullptr) {

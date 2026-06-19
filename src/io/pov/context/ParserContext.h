@@ -35,6 +35,8 @@ class ParserContext {
 
     const RenderingConfiguration *getReportingConfig() const { return mReportingConfig; }
     void setReportingConfig(const RenderingConfiguration *config) { mReportingConfig = config; }
+    bool writesVerboseErrors() const;
+    const char *statFileName() const;
     RenderRuntimeState *getRuntimeState() const { return mRuntimeState; }
     void setRuntimeState(RenderRuntimeState *runtimeState) { mRuntimeState = runtimeState; }
 

@@ -5,6 +5,7 @@
 #include "common/RenderRuntimeState.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
+#include "io/binaryIo/FileLocator.h"
 #include "io/image/ImageOutput.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "render/RenderEngine.h"
@@ -13,6 +14,7 @@
 class PovrayApplication {
   private:
     RenderingConfiguration configuration;
+    FileLocator fileLocator;
     Statistics statistics;
     RenderRuntimeState runtimeState;
     TextureUtils textureUtils;

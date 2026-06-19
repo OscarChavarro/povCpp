@@ -1,7 +1,7 @@
 #ifndef __RENDER_ENGINE__
 #define __RENDER_ENGINE__
 
-#include "common/dataStructures/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/scene/Scene.h"
 #include "render/shaders/TraceService.h"
 #include "render/RenderContext.h"

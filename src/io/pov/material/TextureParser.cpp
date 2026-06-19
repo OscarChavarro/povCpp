@@ -12,7 +12,7 @@
 #include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/element/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
-#include "environment/material/MaterialUtils.h"
+#include "environment/material/PovrayMaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
@@ -69,7 +69,7 @@ TextureParser::logTextureStateLegacy(const char *prefix, const PovrayMaterial *t
 PovrayMaterial *
 TextureParser::copyTexture(PovrayMaterial *texture)
 {
-    return MaterialUtils::copyTexture(texture);
+    return PovrayMaterialUtils::copyTexture(texture);
 }
 
 PovrayMaterial *
@@ -449,7 +449,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
                                 texture->getImage(), ctx.token().getTokenString(),
-                                ctx.getReportingConfig()->getFileLocator());
+                                *ctx.tokenizer().getFileLocator());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getImage(), idx);
@@ -461,7 +461,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(texture->getImage(), idx);
                             exitFlag = true;
                             break;
@@ -471,7 +471,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
                                 texture->getImage(), ctx.token().getTokenString(),
-                                ctx.getReportingConfig()->getFileLocator());
+                                *ctx.tokenizer().getFileLocator());
                             exitFlag = true;
                             break;
 
@@ -479,7 +479,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(
                                 texture->getImage(), ctx.token().getTokenString(),
-                                ctx.getReportingConfig()->getFileLocator());
+                                *ctx.tokenizer().getFileLocator());
                             exitFlag = true;
                             break;
 
@@ -635,19 +635,19 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                MaterialUtils::translateTexture(&texture, &localVector);
+                PovrayMaterialUtils::translateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                MaterialUtils::rotateTexture(&texture, &localVector);
+                PovrayMaterialUtils::rotateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                MaterialUtils::scaleTexture(&texture, &localVector);
+                PovrayMaterialUtils::scaleTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
@@ -733,7 +733,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
                                 texture->getBumpImage(), ctx.token().getTokenString(),
-                                ctx.getReportingConfig()->getFileLocator());
+                                *ctx.tokenizer().getFileLocator());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getBumpImage(), idx);
@@ -745,7 +745,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getBumpImage(), idx);
                             Exit_Flag = true;
@@ -756,7 +756,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
                                 texture->getBumpImage(), ctx.token().getTokenString(),
-                                ctx.getReportingConfig()->getFileLocator());
+                                *ctx.tokenizer().getFileLocator());
                             Exit_Flag = true;
                             break;
 
@@ -764,7 +764,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(
                                 texture->getBumpImage(), ctx.token().getTokenString(),
-                                ctx.getReportingConfig()->getFileLocator());
+                                *ctx.tokenizer().getFileLocator());
                             Exit_Flag = true;
                             break;
 
@@ -861,7 +861,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
                                 texture->getMaterialImage(), ctx.token().getTokenString(),
-                                ctx.getReportingConfig()->getFileLocator());
+                                *ctx.tokenizer().getFileLocator());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getMaterialImage(), idx);
@@ -873,7 +873,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getMaterialImage(), idx);
                             Exit_Flag = true;
@@ -883,14 +883,14 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(texture->getMaterialImage(),
-                                ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
+                                ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(texture->getMaterialImage(),
-                                ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
+                                ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             Exit_Flag = true;
                             break;
 
