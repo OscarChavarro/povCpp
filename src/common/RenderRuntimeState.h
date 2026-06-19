@@ -4,13 +4,13 @@
 class RenderRuntimeState {
   private:
     double maxTraceLevelValue;
-    volatile int stopFlagValue;
+    bool stopFlagValue;
 
   public:
     RenderRuntimeState() { reset(); }
 
     double &getMaxTraceLevel() { return maxTraceLevelValue; }
-    volatile int &getStopFlag() { return stopFlagValue; }
+    bool &getStopFlag() { return stopFlagValue; }
     void reset();
 };
 
