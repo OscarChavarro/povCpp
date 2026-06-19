@@ -20,7 +20,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
     double temp;
     double ior;
 
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     if (surfaceNormal == nullptr) {
         newRay.setOriginAndDirection(*intersectionPoint, ray->getDirection());

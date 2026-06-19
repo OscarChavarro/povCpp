@@ -72,7 +72,7 @@ InfinitePlane::intersectPlane(
 {
     double normalDotOrigin;
     double normalDotDirection;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     stats.incrementRayPlaneTests();
     if (ray->isPrimaryRayEnabled()) {

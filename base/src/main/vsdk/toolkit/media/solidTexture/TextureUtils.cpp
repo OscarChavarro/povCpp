@@ -20,8 +20,6 @@ constexpr long kWaveRandomMask = 0x7FFF;
 constexpr float kWaveRandomDivisor = static_cast<float>(kWaveRandomMask);
 }
 
-TextureUtils* TextureUtils::sActive = nullptr;
-
 TextureUtils::TextureUtils(SolidTextureStatistics *stats)
     : proceduralNoise(new ProceduralNoise(stats))
 {
@@ -30,10 +28,8 @@ TextureUtils::TextureUtils(SolidTextureStatistics *stats)
 void
 TextureUtils::initialize(SolidTextureStatistics *stats)
 {
-    if (sActive) {
-        delete sActive->proceduralNoise;
-        sActive->proceduralNoise = new ProceduralNoise(stats);
-    }
+    delete proceduralNoise;
+    proceduralNoise = new ProceduralNoise(stats);
 }
 
 ProceduralNoise&
@@ -85,7 +81,7 @@ TextureUtils::initializeNoise(int numberOfWaves)
 
     for (int i = 0; i < numberOfWaves; i++) {
         proceduralNoise->differentialNoise(&point, (double)i, 0.0, 0.0);
-        waveSources()[i] = point.normalizedFast();
-        waveFrequency()[i] = (rand() & kWaveRandomMask) / kWaveRandomDivisor + 0.01;
+        this->waveSources()[i] = point.normalizedFast();
+        this->waveFrequency()[i] = (rand() & kWaveRandomMask) / kWaveRandomDivisor + 0.01;
     }
 }

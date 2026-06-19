@@ -75,16 +75,6 @@ class RenderingConfiguration {
     bool hasOutputFileName() const { return outputFileName[0] != '\0'; }
 
     RenderingConfiguration() { reset(); }
-
-    static RenderingConfiguration *sActive;
-    static void installActive(RenderingConfiguration *p) { sActive = p; }
-    static inline RenderingConfiguration &global() {
-        if (!sActive) {
-            static RenderingConfiguration defaultInstance;
-            sActive = &defaultInstance;
-        }
-        return *sActive;
-    }
     void reset();
 
   private:

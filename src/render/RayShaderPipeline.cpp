@@ -186,11 +186,12 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
-            rayIntersection->getShape()->normal(&surfaceNormal, &rayIntersection->getPoint());
+            rayIntersection->getShape()->normal(
+                &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
             if (RenderEngine::getActiveConfig().getQuality() > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getPoint(),
-                    &surfaceNormal);
+                    &surfaceNormal, textureUtils);
             }
 
             // If the surface normal points away, flip its direction

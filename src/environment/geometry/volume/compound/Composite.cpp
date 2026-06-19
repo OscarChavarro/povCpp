@@ -30,7 +30,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
     Intersection localIntersection;
     BoundedGeometry *localObject;
     java::PriorityQueue<Intersection> *localDepthQueue;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
@@ -90,7 +90,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
     java::PriorityQueue<Intersection> *localDepthQueue;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
@@ -121,7 +121,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             clippingShape = this->getClippingShapes()[i];
 
             stats.incrementClippingRegionTests();
-            if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+            if (ray->getConfig()->hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                 {
                     char _logMsg[1024];
                     snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.getPoint().x(),                     localIntersection.getPoint().y(), localIntersection.getPoint().z());
@@ -129,7 +129,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
                 }
             }
             if (!clippingShape->inside(&localIntersection.getPoint())) {
-                if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+                if (ray->getConfig()->hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                     Logger::reportMessage("Composite", Logger::WARNING, "", "not ok\n");
                 }
                 intersectionFound = false;
@@ -139,7 +139,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         }
 
         if (intersectionFound) {
-            if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+            if (ray->getConfig()->hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                 Logger::reportMessage("Composite", Logger::WARNING, "", "ok\n");
             }
             depthQueue->offer(localIntersection);

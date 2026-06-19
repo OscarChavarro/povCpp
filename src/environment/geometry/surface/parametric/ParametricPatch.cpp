@@ -1013,6 +1013,15 @@ ParametricBiCubicPatch::inside(Vector3Dd *point)
 void
 ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
+    normal(result, intersectionPoint, nullptr);
+}
+
+void
+ParametricBiCubicPatch::normal(
+    Vector3Dd *result,
+    Vector3Dd *intersectionPoint,
+    const RenderingConfiguration *config)
+{
     const ParametricBiCubicPatch *patch = this;
     int i;
 
@@ -1029,7 +1038,8 @@ ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
             return;
         }
     }
-    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+    if (config != nullptr &&
+        config->hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
         Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Bicubic patch normal for unknown intersection point\n");
         fflush(stdout);
     }

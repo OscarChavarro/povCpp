@@ -3,15 +3,13 @@
 #include "environment/material/RendererConfiguration.h"
 
 bool
-ParseReportingConfiguration::writesVerboseErrors(const RenderingConfiguration *config)
+ParseReportingConfiguration::writesVerboseErrors(const RenderingConfiguration &config)
 {
-    const RenderingConfiguration &cfg = config ? *config : RenderingConfiguration::global();
-    return cfg.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE);
+    return config.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE);
 }
 
 const char *
-ParseReportingConfiguration::statFileName(const RenderingConfiguration *config)
+ParseReportingConfiguration::statFileName(const RenderingConfiguration &config)
 {
-    const RenderingConfiguration &cfg = config ? *config : RenderingConfiguration::global();
-    return cfg.getStatFileName();
+    return config.getStatFileName();
 }

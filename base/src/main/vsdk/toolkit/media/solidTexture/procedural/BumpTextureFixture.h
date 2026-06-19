@@ -3,12 +3,14 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
+class TextureUtils;
 class BumpTextureFixture {
   private:
     const ProceduralNoise * const proceduralNoise;
+    TextureUtils * const textureUtils;
 
   public:
-    BumpTextureFixture(const ProceduralNoise *proceduralNoise);
+    BumpTextureFixture(const ProceduralNoise *proceduralNoise, TextureUtils *textureUtils);
 
     void bumps(
         double x, double y, double z, double bumpAmount, Vector3Dd *normal) const;

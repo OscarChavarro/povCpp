@@ -2,6 +2,7 @@
 #define __BUMP_NORMAL_SHADER__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "environment/material/PovrayMaterial.h"
 
 class BumpNormalShader {
@@ -10,7 +11,8 @@ class BumpNormalShader {
         Vector3Dd *newNormal,
         const PovrayMaterial *texture,
         const Vector3Dd *intersectionPoint,
-        const Vector3Dd *surfaceNormal);
+        const Vector3Dd *surfaceNormal,
+        TextureUtils *textureUtils);
 };
 
 #endif

@@ -331,7 +331,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
     int intersectionFound;
 
     intersectionFound = 0;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
     stats.incrementRayBicubicTests();
     if (ray->isPrimaryRayEnabled()) {
         shape->setIntersectionCount(0);

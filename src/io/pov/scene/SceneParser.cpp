@@ -73,7 +73,7 @@ void
 SceneParser::frameInit(Scene *framePtr, ParserContext &ctx)
 {
     ctx.setDefaultTexture(MaterialUtils::getTexture());
-    framePtr->resetForSceneParse();
+    framePtr->resetForSceneParse(ctx.getReportingConfig());
 }
 
 void

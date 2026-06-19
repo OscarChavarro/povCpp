@@ -49,6 +49,8 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
     localQueue = PriorityQueuePool<Intersection>::pqPop(128);
     lightSourceRay.setShadowRay(true);
     lightSourceRay.setPrimaryRay(false);
+    lightSourceRay.setStatistics(eye->getStatistics());
+    lightSourceRay.setConfig(eye->getConfig());
 
     for (lightSource = lightSources; lightSource != nullptr;
         lightSource = lightSource->getNextLightSource()) {
@@ -59,7 +61,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
 
         // What objects does this ray intersect?
         if (RenderEngine::getActiveConfig().getQuality() > 3) {
-            Statistics &stats = eye->getStatistics() ? *eye->getStatistics() : Statistics::global();
+            Statistics &stats = *eye->getStatistics();
             for (long int i = objects.size() - 1; i >= 0; i--) {
                 blockingObject = objects[i];
 

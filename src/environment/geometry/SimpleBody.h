@@ -36,6 +36,10 @@ class SimpleBody : public TransformableElement {
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void normal(
+        Vector3Dd *result,
+        Vector3Dd *intersectionPoint,
+        const RenderingConfiguration *config) override;
     void *copy() override;
     void translate(Vector3Dd *vector) override;
     void rotate(Vector3Dd *vector) override;

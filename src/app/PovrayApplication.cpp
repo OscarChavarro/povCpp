@@ -219,6 +219,7 @@ PovrayApplication::parseSceneDescription()
 
     ParserContext ctx;
     ctx.setReportingConfig(&configuration);
+    ctx.setRuntimeState(&runtimeState);
     SceneParser::parse(&RenderEngine::scene(), ctx);
     Tokenizer::terminateTokenizer();
 }
@@ -275,8 +276,8 @@ PovrayApplication::prepareRendering()
     }
 
     PriorityQueuePool<Intersection>::pqInit();
-    TextureUtils::initialize(statistics.getSolidTextureStatistics());
-    TextureUtils::instance().initializeNoise(PovrayMaterial::DEFAULT_NUMBER_OF_WAVES);
+    textureUtils.initialize(statistics.getSolidTextureStatistics());
+    textureUtils.initializeNoise(PovrayMaterial::DEFAULT_NUMBER_OF_WAVES);
 }
 
 void

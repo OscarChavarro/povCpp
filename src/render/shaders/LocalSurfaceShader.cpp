@@ -41,11 +41,13 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
         return;
     }
 
-    rayIntersection->getShape()->normal(&surfaceNormal, &rayIntersection->getPoint());
+    rayIntersection->getShape()->normal(
+        &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
     if (RenderEngine::getActiveConfig().getQuality() >= 8) {
         BumpNormalShader::shade(
-            &surfaceNormal, texture, &rayIntersection->getPoint(), &surfaceNormal);
+            &surfaceNormal, texture, &rayIntersection->getPoint(), &surfaceNormal,
+            &RenderEngine::getActiveTextureUtils());
     }
 
     // If the surface normal points away, flip its direction

@@ -12,8 +12,10 @@ References:
 #include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
-BumpTextureFixture::BumpTextureFixture(const ProceduralNoise *proceduralNoise)
-    : proceduralNoise(proceduralNoise)
+BumpTextureFixture::BumpTextureFixture(
+    const ProceduralNoise *proceduralNoise,
+    TextureUtils *textureUtils)
+    : proceduralNoise(proceduralNoise), textureUtils(textureUtils)
 {
 }
 
@@ -34,7 +36,7 @@ BumpTextureFixture::ripples(
 
     for (i = 0; i < numberOfWaves; i++) {
         point = Vector3Dd(x, y, z);
-        point = point.subtract(TextureUtils::instance().waveSources()[i]);
+        point = point.subtract(textureUtils->waveSources()[i]);
         length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
@@ -68,17 +70,17 @@ BumpTextureFixture::waves(
 
     for (i = 0; i < numberOfWaves; i++) {
         point = Vector3Dd(x, y, z);
-        point = point.subtract(TextureUtils::instance().waveSources()[i]);
+        point = point.subtract(textureUtils->waveSources()[i]);
         length = point.dotProduct(point);
         if (length == 0.0) {
             length = 1.0;
         }
 
         length = java::Math::sqrt(length);
-        index = (length * frequency * TextureUtils::instance().waveFrequency()[i]) + phase;
+        index = (length * frequency * textureUtils->waveFrequency()[i]) + phase;
         sinValue = proceduralNoise->cycloidal(index);
 
-        scalar = sinValue * bumpAmount / TextureUtils::instance().waveFrequency()[i];
+        scalar = sinValue * bumpAmount / textureUtils->waveFrequency()[i];
         point = point.multiply(scalar / length / (double)numberOfWaves);
         *normal = normal->add(point);
     }
@@ -156,9 +158,9 @@ BumpTextureFixture::wrinkles(
 
     for (i = 0; i < 10; scale *= 2.0, i++) {
         proceduralNoise->differentialNoise(&value, x * scale, y * scale, z * scale); // scale
-        rx += TextureUtils::instance().fabsInline(value.x() / scale);
-        ry += TextureUtils::instance().fabsInline(value.y() / scale);
-        rz += TextureUtils::instance().fabsInline(value.z() / scale);
+        rx += TextureUtils::fabsInline(value.x() / scale);
+        ry += TextureUtils::fabsInline(value.y() / scale);
+        rz += TextureUtils::fabsInline(value.z() / scale);
     }
     result = Vector3Dd(rx, ry, rz);
 

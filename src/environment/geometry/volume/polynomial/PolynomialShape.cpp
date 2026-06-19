@@ -118,7 +118,7 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         newRay.getDirection().y() / len, newRay.getDirection().z() / len));
 
     intersectionFound = false;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
     stats.incrementRayPolyTests();
     if (shape->order == 4) {
         cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);

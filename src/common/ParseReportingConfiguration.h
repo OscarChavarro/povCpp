@@ -5,8 +5,8 @@ class RenderingConfiguration;
 
 class ParseReportingConfiguration {
   public:
-    static bool writesVerboseErrors(const RenderingConfiguration *config);
-    static const char *statFileName(const RenderingConfiguration *config);
+    static bool writesVerboseErrors(const RenderingConfiguration &config);
+    static const char *statFileName(const RenderingConfiguration &config);
 };
 
 #endif

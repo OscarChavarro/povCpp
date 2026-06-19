@@ -60,6 +60,10 @@ class ParametricBiCubicPatch : public Geometry {
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
+    void normal(
+        Vector3Dd *result,
+        Vector3Dd *intersectionPoint,
+        const RenderingConfiguration *config) override;
     void *copy() override;
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;

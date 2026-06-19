@@ -6,6 +6,7 @@
 #include "environment/geometry/element/RayWithSegments.h"
 
 class Intersection;
+class RenderingConfiguration;
 
 class TransformableElement {
   public:
@@ -13,6 +14,14 @@ class TransformableElement {
     bool intersect(RayWithSegments *ray, Intersection &out);
     virtual int   inside(Vector3Dd *point) { return 0; }
     virtual void  normal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
+    virtual void  normal(
+        Vector3Dd *result,
+        Vector3Dd *intersectionPoint,
+        const RenderingConfiguration *config)
+    {
+        (void)config;
+        normal(result, intersectionPoint);
+    }
     virtual void *copy() { return nullptr; }
     virtual void  translate(Vector3Dd *vector) {}
     virtual void  rotate(Vector3Dd *vector) {}
