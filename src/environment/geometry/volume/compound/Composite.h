@@ -17,13 +17,23 @@ class Composite : public BoundedGeometry {
         BoundedGeometry(geometry, objectTexture, objectColor, noShadowFlag)
     {
     }
+    Composite(
+        TransformableElement *geometry,
+        Material *objectTexture,
+        ColorRgba *objectColor,
+        bool noShadowFlag,
+        const java::ArrayList<TransformableElement*> &boundingShapes,
+        const java::ArrayList<TransformableElement*> &clippingShapes,
+        const java::ArrayList<BoundedGeometry*> &simpleBodies) :
+        BoundedGeometry(
+            geometry, objectTexture, objectColor, noShadowFlag, boundingShapes,
+            clippingShapes),
+        simpleBodies(simpleBodies)
+    {
+    }
 
     java::ArrayList<BoundedGeometry*> &getSimpleBodies();
     const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;
-    void setSimpleBodies(const java::ArrayList<BoundedGeometry*> &value)
-    {
-        simpleBodies = value;
-    }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

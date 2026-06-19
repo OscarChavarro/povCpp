@@ -226,19 +226,16 @@ BoundedGeometry::copy()
 {
     TransformableElement *localShape;
     TransformableElement *copiedShape;
-    BoundedGeometry *newObject = new BoundedGeometry(
-        (TransformableElement *)this->getGeometry()->copy(),
-        this->getObjectTexture(),
-        this->getObjectColor(),
-        this->getNoShadowFlag());
-    newObject->getBoundingShapes().clear();
-    newObject->getClippingShapes().clear();
+    Material *copiedTexture =
+        this->getObjectTexture() != nullptr ? this->getObjectTexture()->copy() : nullptr;
+    java::ArrayList<TransformableElement*> copiedBoundingShapes(4);
+    java::ArrayList<TransformableElement*> copiedClippingShapes(4);
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
         copiedShape =
             (TransformableElement *)localShape->copy();
-        newObject->getBoundingShapes().add(copiedShape);
+        copiedBoundingShapes.add(copiedShape);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
@@ -246,12 +243,15 @@ BoundedGeometry::copy()
 
         copiedShape =
             (TransformableElement *)localShape->copy();
-        newObject->getClippingShapes().add(copiedShape);
+        copiedClippingShapes.add(copiedShape);
     }
-
-    if (newObject->getObjectTexture() != nullptr) {
-        newObject->setObjectTexture(newObject->getObjectTexture()->copy());
-    }
+    BoundedGeometry *newObject = new BoundedGeometry(
+        (TransformableElement *)this->getGeometry()->copy(),
+        copiedTexture,
+        this->getObjectColor(),
+        this->getNoShadowFlag(),
+        copiedBoundingShapes,
+        copiedClippingShapes);
 
     return ((void *)newObject);
 }
@@ -259,43 +259,45 @@ BoundedGeometry::copy()
 void *
 Composite::copy()
 {
-    Composite *newObject = new Composite(
-        this->getGeometry() != nullptr ?
-            (TransformableElement *)this->getGeometry()->copy() : nullptr,
-        this->getObjectTexture(),
-        this->getObjectColor(),
-        this->getNoShadowFlag());
     TransformableElement *localShape;
     TransformableElement *copiedShape;
     BoundedGeometry *localObject;
     BoundedGeometry *copiedObject;
-    newObject->getSimpleBodies().clear();
+    Material *copiedTexture =
+        this->getObjectTexture() != nullptr ? this->getObjectTexture()->copy() : nullptr;
+    java::ArrayList<BoundedGeometry*> copiedSimpleBodies(4);
+    java::ArrayList<TransformableElement*> copiedBoundingShapes(4);
+    java::ArrayList<TransformableElement*> copiedClippingShapes(4);
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
 
         copiedObject = (BoundedGeometry *)localObject->copy();
-        newObject->getSimpleBodies().add(copiedObject);
+        copiedSimpleBodies.add(copiedObject);
     }
 
-    newObject->getBoundingShapes().clear();
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
         copiedShape =
             (TransformableElement *)localShape->copy();
-        newObject->getBoundingShapes().add(copiedShape);
+        copiedBoundingShapes.add(copiedShape);
     }
-    newObject->getClippingShapes().clear();
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
         copiedShape =
             (TransformableElement *)localShape->copy();
-        newObject->getClippingShapes().add(copiedShape);
+        copiedClippingShapes.add(copiedShape);
     }
-    if (newObject->getObjectTexture() != nullptr) {
-        newObject->setObjectTexture(newObject->getObjectTexture()->copy());
-    }
+    Composite *newObject = new Composite(
+        this->getGeometry() != nullptr ?
+            (TransformableElement *)this->getGeometry()->copy() : nullptr,
+        copiedTexture,
+        this->getObjectColor(),
+        this->getNoShadowFlag(),
+        copiedBoundingShapes,
+        copiedClippingShapes,
+        copiedSimpleBodies);
     return ((void *)newObject);
 }
 
