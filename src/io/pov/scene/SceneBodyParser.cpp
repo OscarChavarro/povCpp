@@ -59,7 +59,7 @@ SceneBodyParser::parseFrame(Scene *framePtr, ParserContext &ctx)
                 break;
 
             case Tokenizer::VIEW_POINT_TOKEN:
-                framePtr->getViewPoint() = CameraParser::parseCamera(ctx);
+                framePtr->setViewPoint(CameraParser::parseCamera(ctx));
                 break;
 
             case Tokenizer::DECLARE_TOKEN:
@@ -77,5 +77,5 @@ SceneBodyParser::parseFrame(Scene *framePtr, ParserContext &ctx)
         }
     }
 
-    framePtr->getObjects() = localObjects;
+    framePtr->setObjects(localObjects);
 }

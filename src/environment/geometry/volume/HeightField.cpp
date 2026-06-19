@@ -33,6 +33,19 @@ HeightField::HeightField() :
 {
 }
 
+HeightField::HeightField(Matrix4x4d *transformation,
+    Matrix4x4d *transformationInverse, Box *boundingBox, double blockSize,
+    double invBlkSize, HeightFieldBlock **block, float **map) :
+    transformation(transformation),
+    transformationInverse(transformationInverse),
+    boundingBox(boundingBox),
+    blockSize(blockSize),
+    invBlkSize(invBlkSize),
+    block(block),
+    Map(map)
+{
+}
+
 inline int
 HeightField::signInline(double x)
 {
@@ -948,12 +961,8 @@ HeightField::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 HeightField::copy()
 {
-    HeightField *newShape;
-
-    newShape = new HeightField;
-    *newShape = *this;
-
-    return (newShape);
+    return new HeightField(transformation, transformationInverse, boundingBox,
+        blockSize, invBlkSize, block, Map);
 }
 
 void

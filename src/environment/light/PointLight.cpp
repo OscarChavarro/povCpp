@@ -4,6 +4,13 @@ PointLight::PointLight() : Light()
 {
 }
 
+PointLight::PointLight(const ColorRgba *shapeColor, const Vector3Dd &center,
+    const Vector3Dd &pointsAt, bool inverted, double coefficient,
+    double radius, double falloff) :
+    Light(shapeColor, center, pointsAt, inverted, coefficient, radius, falloff)
+{
+}
+
 PointLight::PointLight(const Vector3Dd &center, const Vector3Dd &pointsAt,
     bool inverted, double coefficient, double radius, double falloff) :
     Light(center, pointsAt, inverted, coefficient, radius, falloff)
@@ -20,10 +27,6 @@ PointLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 PointLight *
 PointLight::copy()
 {
-    PointLight * const newLight = new PointLight();
-    if (newLight == nullptr) {
-        return nullptr;
-    }
-    copyStateInto(newLight);
-    return newLight;
+    return new PointLight(getShapeColor(), getCenter(), getPointsAt(),
+        isInverted(), getCoefficient(), getRadius(), getFalloff());
 }

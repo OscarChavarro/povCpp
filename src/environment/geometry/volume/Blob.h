@@ -22,6 +22,12 @@ class Blob : public Geometry {
     {
     }
 
+    Blob(double thresholdValue, BlobList *bloblist, int npoints, int sturmFlagValue);
+    Blob(const Matrix4x4d *transformationValue,
+        const Matrix4x4d *transformationInverseValue, bool invertedValue,
+        int countValue, double thresholdValue, const BlobElement *listValue,
+        int sturmFlagValue);
+
     int getSturmFlag() const { return sturmFlag; }
     void setSturmFlag(int flag) { sturmFlag = flag; }
     Matrix4x4d* getTransformation() const { return transformation; }
@@ -38,9 +44,6 @@ class Blob : public Geometry {
     void setList(BlobElement *value) { list = value; }
     BlobInterval *getIntervals() const { return intervals; }
     void setIntervals(BlobInterval *value) { intervals = value; }
-
-    static void makeBlob(BoundedGeometry *obj, double threshold, BlobList *bloblist,
-        int npoints, int sflag);
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

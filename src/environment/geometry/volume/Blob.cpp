@@ -21,6 +21,97 @@ blobs and generously provided us these enhancements.
 static constexpr double COEFF_LIMIT = 1.0e-20;
 static constexpr double INSIDE_TOLERANCE = 1.0e-6;
 static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
+
+Blob::Blob(double thresholdValue, BlobList *bloblist, int npoints,
+    int sturmFlagValue) :
+    transformation(nullptr),
+    transformationInverse(nullptr),
+    inverted(false),
+    count(0),
+    threshold(0.0),
+    list(nullptr),
+    intervals(nullptr),
+    sturmFlag(0)
+{
+    int i;
+    double rad;
+    double coeff;
+    BlobList *temp;
+
+    if (npoints < 1) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Need at least one component in a blob\n");
+    }
+    threshold = thresholdValue;
+    list = new BlobElement[npoints];
+    if (list == nullptr) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
+    }
+    count = npoints;
+    sturmFlag = sturmFlagValue;
+
+    for (i = 0; i < npoints; i++) {
+        temp = bloblist;
+        if (java::Math::abs(temp->getElem().getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
+            temp->getElem().getRadius2() < Config::INTERSECTION_EPSILON) {
+            perror("Degenerate blob element\n");
+        }
+        rad = temp->getElem().getRadius2();
+        rad *= rad;
+        coeff = temp->getElem().getCoeffs()[2];
+        list[i].setRadius2(rad);
+        list[i].getCoeffs()[2] = coeff;
+        list[i].getCoeffs()[1] = -(2.0 * coeff) / rad;
+        list[i].getCoeffs()[0] = coeff / (rad * rad);
+        list[i].getPos() = Vector3Dd(
+            temp->getElem().getPos().x(), temp->getElem().getPos().y(),
+            temp->getElem().getPos().z());
+
+        bloblist = bloblist->getNext();
+        delete temp;
+    }
+
+    intervals = new BlobInterval[2 * npoints];
+    if (intervals == nullptr) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
+    }
+}
+
+Blob::Blob(const Matrix4x4d *transformationValue,
+    const Matrix4x4d *transformationInverseValue, bool invertedValue,
+    int countValue, double thresholdValue, const BlobElement *listValue,
+    int sturmFlagValue) :
+    transformation(nullptr),
+    transformationInverse(nullptr),
+    inverted(invertedValue),
+    count(countValue),
+    threshold(thresholdValue),
+    list(nullptr),
+    intervals(nullptr),
+    sturmFlag(sturmFlagValue)
+{
+    if (transformationValue != nullptr) {
+        transformation = new Matrix4x4d(*transformationValue);
+        transformationInverse = transformationInverseValue != nullptr ?
+            new Matrix4x4d(*transformationInverseValue) : nullptr;
+    }
+
+    if (count <= 0) {
+        return;
+    }
+
+    list = new BlobElement[count];
+    if (list == nullptr) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
+    }
+    for (int i = 0; i < count; i++) {
+        list[i] = listValue[i];
+    }
+
+    intervals = new BlobInterval[2 * count];
+    if (intervals == nullptr) {
+        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
+    }
+}
 /**
 Starting with the density function: (1-r^2)^2, we have a field
 that varies in strength from 1 at r = 0 to 0 at r = 1.  By
@@ -30,58 +121,6 @@ adjust the amount of total contribution, giving the formula:
     coeff * (1 - (r/rad)^2)^2
 This varies in strength from coeff at r = 0, to 0 at r = rad.
 */
-void
-Blob::makeBlob(BoundedGeometry *obj, double threshold, BlobList *bloblist, int npoints,
-    int sflag)
-{
-    Blob *blob = (Blob *)obj;
-    int i;
-    double rad;
-    double coeff;
-    BlobList *temp;
-
-    if (npoints < 1) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Need at least one component in a blob\n");
-    }
-    blob->threshold = threshold;
-    blob->list = new BlobElement[npoints];
-    if (blob->list == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
-    blob->count = npoints;
-    blob->sturmFlag = sflag;
-
-    // Initialize the blob data
-    for (i = 0; i < npoints; i++) {
-        temp = bloblist;
-        if (java::Math::abs(temp->getElem().getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
-            temp->getElem().getRadius2() < Config::INTERSECTION_EPSILON) {
-            perror("Degenerate blob element\n");
-        }
-        // Store blob specific information
-        rad = temp->getElem().getRadius2();
-        rad *= rad;
-        coeff = temp->getElem().getCoeffs()[2];
-        blob->list[i].setRadius2(rad);
-        blob->list[i].getCoeffs()[2] = coeff;
-        blob->list[i].getCoeffs()[1] = -(2.0 * coeff) / rad;
-        blob->list[i].getCoeffs()[0] = coeff / (rad * rad);
-        blob->list[i].getPos() = Vector3Dd(
-            temp->getElem().getPos().x(), temp->getElem().getPos().y(),
-            temp->getElem().getPos().z());
-
-        bloblist = bloblist->getNext();
-        delete temp;
-    }
-
-    // Allocate memory for intersection intervals
-    npoints *= 2;
-    blob->intervals = new BlobInterval[npoints];
-    if (blob->intervals == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
-}
-
 /**
 Make a sorted list of points along the ray that the various blob
 components start and stop adding their influence.  It would take
@@ -543,32 +582,10 @@ Blob::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Blob::copy()
 {
-    Blob *blob;
     const Blob *oldShape = this;
-
-    blob = new Blob;
-    memcpy((void *)blob, (const void *)oldShape, sizeof(Blob));
-
-    // Allocate space and copy the blob specific data
-    blob->list = new BlobElement[oldShape->count];
-    if (blob->list == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
-    for (int i = 0; i < oldShape->count; i++) {
-        blob->list[i] = oldShape->list[i];
-    }
-    blob->intervals = new BlobInterval[2 * blob->count];
-    if (blob->intervals == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
-
-    // Copy any associated transformation
-    if (blob->transformation != nullptr) {
-        blob->transformation = new Matrix4x4d(*(blob->transformation));
-        blob->transformationInverse = new Matrix4x4d(*(blob->transformationInverse));
-    }
-
-    return (blob);
+    return new Blob(oldShape->transformation, oldShape->transformationInverse,
+        oldShape->inverted, oldShape->count, oldShape->threshold,
+        oldShape->list, oldShape->sturmFlag);
 }
 
 void

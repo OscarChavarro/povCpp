@@ -28,10 +28,15 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     ParametricBiCubicPatch *localShape = nullptr;
     SimpleBody *body = nullptr;
     Vector3Dd localVector;
+    Vector3Dd controlPoints[4][4];
     int constantId;
     PovrayMaterial *localTexture;
     int i;
     int j;
+    int patchType;
+    int uSteps;
+    int vSteps;
+    double flatnessValue;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -45,23 +50,22 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
             case Tokenizer::PLUS_TOKEN:
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape = ModelBuilder::getBicubicPatchShape();
-                body = ModelBuilder::wrap(localShape);
-                localShape->setPatchType((int)PrimitiveParser::parseFloat(ctx));
-                if (localShape->getPatchType() == 2 ||
-                    localShape->getPatchType() == 3) {
-                    localShape->setFlatnessValue(PrimitiveParser::parseFloat(ctx));
+                patchType = (int)PrimitiveParser::parseFloat(ctx);
+                if (patchType == 2 || patchType == 3) {
+                    flatnessValue = PrimitiveParser::parseFloat(ctx);
                 } else {
-                    localShape->setFlatnessValue(0.1);
+                    flatnessValue = 0.1;
                 }
-                localShape->setUSteps((int)PrimitiveParser::parseFloat(ctx));
-                localShape->setVSteps((int)PrimitiveParser::parseFloat(ctx));
+                uSteps = (int)PrimitiveParser::parseFloat(ctx);
+                vSteps = (int)PrimitiveParser::parseFloat(ctx);
                 for (i = 0; i < 4; i++) {
                     for (j = 0; j < 4; j++) {
-                        PrimitiveParser::parseVector(
-                            &(localShape->getControlPoints()[i][j]), ctx);
+                        PrimitiveParser::parseVector(&controlPoints[i][j], ctx);
                     }
                 }
+                localShape = new ParametricBiCubicPatch(
+                    patchType, uSteps, vSteps, flatnessValue, controlPoints);
+                body = ModelBuilder::wrap(localShape);
                 ParametricBiCubicPatch::precomputePatchValues(
                     localShape); // interpolated mesh coords
                 Exit_Flag = true;
@@ -129,8 +133,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                body->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(body->getShapeColor(), ctx);
+                PrimitiveParser::parseColor(body->ensureShapeColor(), ctx);
                 break;
 
             default:

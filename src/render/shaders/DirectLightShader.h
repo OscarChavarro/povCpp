@@ -16,7 +16,7 @@ public:
         const RayWithSegments *eye, const Vector3Dd *surfaceNormal,
         const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, const Light *lightSources,
-        java::ArrayList<BoundedGeometry*> &objects);
+        const java::ArrayList<BoundedGeometry*> &objects);
 };
 
 #endif

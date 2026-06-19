@@ -119,18 +119,6 @@ ModelBuilder::getBlobShape()
     return (newShape);
 }
 
-ParametricBiCubicPatch *
-ModelBuilder::getBicubicPatchShape()
-{
-    ParametricBiCubicPatch *newShape;
-
-    newShape = new ParametricBiCubicPatch;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
 HeightField *
 ModelBuilder::getHeightFieldShape()
 {

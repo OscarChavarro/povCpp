@@ -16,11 +16,8 @@ class ParametricBiCubicPatch : public Geometry {
         double flatnessValue, const Vector3Dd (&controlPoints)[4][4]);
 
     int getPatchType() const;
-    void setPatchType(int type);
     int getUSteps() const;
-    void setUSteps(int steps);
     int getVSteps() const;
-    void setVSteps(int steps);
     Vector3Dd (*getControlPoints())[4];
     const Vector3Dd (*getControlPoints() const)[4];
     Vector3Dd &getBoundingSphereCenter();
@@ -28,7 +25,6 @@ class ParametricBiCubicPatch : public Geometry {
     double getBoundingSphereRadius() const;
     void setBoundingSphereRadius(double radius);
     double getFlatnessValue() const;
-    void setFlatnessValue(double value);
     int getIntersectionCount() const;
     void setIntersectionCount(int count);
     void incrementIntersectionCount();
@@ -124,34 +120,16 @@ ParametricBiCubicPatch::getPatchType() const
     return patchType;
 }
 
-inline void
-ParametricBiCubicPatch::setPatchType(int type)
-{
-    patchType = type;
-}
-
 inline int
 ParametricBiCubicPatch::getUSteps() const
 {
     return uSteps;
 }
 
-inline void
-ParametricBiCubicPatch::setUSteps(int steps)
-{
-    uSteps = steps;
-}
-
 inline int
 ParametricBiCubicPatch::getVSteps() const
 {
     return vSteps;
-}
-
-inline void
-ParametricBiCubicPatch::setVSteps(int steps)
-{
-    vSteps = steps;
 }
 
 inline Vector3Dd (*
@@ -194,12 +172,6 @@ inline double
 ParametricBiCubicPatch::getFlatnessValue() const
 {
     return flatnessValue;
-}
-
-inline void
-ParametricBiCubicPatch::setFlatnessValue(double value)
-{
-    flatnessValue = value;
 }
 
 inline int

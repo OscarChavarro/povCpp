@@ -13,7 +13,8 @@
 void
 SceneParser::postProcessPhase(ParserContext &ctx)
 {
-    java::ArrayList<BoundedGeometry*> &objects = ctx.parsingFrame()->getObjects();
+    const java::ArrayList<BoundedGeometry*> &objects =
+        ctx.parsingFrame()->getObjects();
     Light *lightHead = nullptr;
     for (long int i = objects.size() - 1; i >= 0; i--) {
         ParseHelpers::postProcessObject(objects[i], lightHead);

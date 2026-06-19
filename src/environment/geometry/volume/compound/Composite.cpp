@@ -226,10 +226,11 @@ BoundedGeometry::copy()
 {
     TransformableElement *localShape;
     TransformableElement *copiedShape;
-    BoundedGeometry *newObject;
-
-    newObject = BoundedGeometry::createBasicObject(this->getObjectTexture());
-    *newObject = *this;
+    BoundedGeometry *newObject = new BoundedGeometry(
+        (TransformableElement *)this->getGeometry()->copy(),
+        this->getObjectTexture(),
+        this->getObjectColor(),
+        this->getNoShadowFlag());
     newObject->getBoundingShapes().clear();
     newObject->getClippingShapes().clear();
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -247,9 +248,6 @@ BoundedGeometry::copy()
             (TransformableElement *)localShape->copy();
         newObject->getClippingShapes().add(copiedShape);
     }
-
-    newObject->setGeometry(
-        (TransformableElement *)this->getGeometry()->copy());
 
     if (newObject->getObjectTexture() != nullptr) {
         newObject->setObjectTexture(newObject->getObjectTexture()->copy());

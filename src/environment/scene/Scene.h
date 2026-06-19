@@ -13,8 +13,8 @@ class Scene {
   public:
     Scene();
 
-    Camera& getViewPoint() { return viewPoint; }
     const Camera& getViewPoint() const { return viewPoint; }
+    void setViewPoint(const Camera &camera) { viewPoint = camera; }
     int& getScreenHeight() { return screenHeight; }
     int getScreenHeight() const { return screenHeight; }
     void setScreenHeight(int h) { screenHeight = h; }
@@ -34,10 +34,12 @@ class Scene {
         fogColor = color;
         fogDistance = distance;
     }
-    ColorRgba& getFogColor() { return fogColor; }
     const ColorRgba& getFogColor() const { return fogColor; }
-    java::ArrayList<BoundedGeometry*>& getObjects() { return Objects; }
     const java::ArrayList<BoundedGeometry*>& getObjects() const { return Objects; }
+    void setObjects(const java::ArrayList<BoundedGeometry*> &objects)
+    {
+        Objects = objects;
+    }
     void resetForSceneParse();
 
     static void createRay(
