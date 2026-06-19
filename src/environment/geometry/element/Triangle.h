@@ -48,6 +48,10 @@ class Triangle : public Geometry {
     void invertGeometry() override;
 
   protected:
+    Triangle(const Vector3Dd &normalVector, double distance,
+        double vpNormDotOrigin, bool vpCached, unsigned int dominantAxis,
+        bool inverted, unsigned int vAxis, const Vector3Dd &p1,
+        const Vector3Dd &p2, const Vector3Dd &p3, bool degenerateFlag);
     virtual void swapVertexNormals() {}
     virtual void finalizeComputation() {}
     static void computeSmoothTriangle(SmoothTriangle *triangle);

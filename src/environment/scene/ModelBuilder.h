@@ -28,7 +28,6 @@ class ModelBuilder {
     static Composite *getCompositeObject();
     static Sphere *getSphereShape();
     static Light *getLightSourceShape();
-    static Light *promoteToSpotLight(Light *old);
     static Quadric *getQuadricShape();
     static PolynomialShape *getPolyShape(int order, const int *termCounts);
     static Box *getBoxShape();

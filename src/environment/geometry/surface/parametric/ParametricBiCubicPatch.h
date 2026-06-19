@@ -12,6 +12,8 @@ class ParametricBiCubicPatch : public Geometry {
     static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 
     ParametricBiCubicPatch();
+    ParametricBiCubicPatch(int patchType, int uSteps, int vSteps,
+        double flatnessValue, const Vector3Dd (&controlPoints)[4][4]);
 
     int getPatchType() const;
     void setPatchType(int type);

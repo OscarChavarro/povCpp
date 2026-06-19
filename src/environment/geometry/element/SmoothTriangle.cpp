@@ -35,6 +35,22 @@ SmoothTriangle::SmoothTriangle(const Vector3Dd &p1, const Vector3Dd &n1,
     Triangle::computeTriangle(this);
 }
 
+SmoothTriangle::SmoothTriangle(const Vector3Dd &normalVector, double distance,
+    double vpNormDotOrigin, bool vpCached, unsigned int dominantAxis,
+    bool inverted, unsigned int vAxis, const Vector3Dd &p1,
+    const Vector3Dd &p2, const Vector3Dd &p3, bool degenerateFlag,
+    const Vector3Dd &n1, const Vector3Dd &n2, const Vector3Dd &n3,
+    const Vector3Dd &perp, double baseDelta) :
+    Triangle(normalVector, distance, vpNormDotOrigin, vpCached, dominantAxis,
+        inverted, vAxis, p1, p2, p3, degenerateFlag),
+    n1(n1),
+    n2(n2),
+    n3(n3),
+    perp(perp),
+    baseDelta(baseDelta)
+{
+}
+
 /**
 Calculate the Phong-interpolated vector within the triangle
 at the given intersection point. The math for this is a bit
@@ -133,12 +149,10 @@ SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 SmoothTriangle::copy()
 {
-    SmoothTriangle *newShape;
-
-    newShape = new SmoothTriangle;
-    *newShape = *this;
-
-    return (newShape);
+    return new SmoothTriangle(getNormalVector(), getDistance(),
+        getVpNormDotOrigin(), isVpCached(), getDominantAxis(), isInverted(),
+        getVAxis(), getP1(), getP2(), getP3(), isDegenerate(), n1, n2, n3,
+        perp, baseDelta);
 }
 
 void
