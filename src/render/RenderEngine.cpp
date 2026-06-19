@@ -30,7 +30,7 @@ This module implements the main raytracing loop.
 #include "render/SceneDump.h"
 #include "render/shaders/TraceService.h"
 
-Scene RenderEngine::sScene;
+Scene *RenderEngine::sScene = nullptr;
 RayWithSegments *RenderEngine::sPrimaryRay = nullptr;
 int RenderEngine::sTraceLevel = 0;
 
@@ -66,7 +66,7 @@ allocateColorBuffer(int count)
 Scene &
 RenderEngine::scene()
 {
-    return sScene;
+    return *sScene;
 }
 
 RayWithSegments *&
