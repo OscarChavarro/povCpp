@@ -34,7 +34,15 @@ Light::applyLinearTransformation(const Matrix4x4d &transformation)
 void
 Light::copyStateInto(Light *dst) const
 {
-    *dst = *this;
+    dst->shapeColor = shapeColor != nullptr ?
+        new ColorRgba(*shapeColor) : nullptr;
+    dst->center = center;
+    dst->pointsAt = pointsAt;
+    dst->nextLightSource = nullptr;
+    dst->inverted = inverted;
+    dst->coefficient = coefficient;
+    dst->radius = radius;
+    dst->falloff = falloff;
 }
 
 void

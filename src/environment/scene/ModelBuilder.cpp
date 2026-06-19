@@ -70,19 +70,6 @@ ModelBuilder::getLightSourceShape()
     return (newShape);
 }
 
-Light *
-ModelBuilder::promoteToSpotLight(Light *old)
-{
-    SpotLight *newLight = new SpotLight();
-    if (newLight == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-        return old;
-    }
-    old->copyStateInto(newLight);
-    delete old;
-    return newLight;
-}
-
 Quadric *
 ModelBuilder::getQuadricShape()
 {

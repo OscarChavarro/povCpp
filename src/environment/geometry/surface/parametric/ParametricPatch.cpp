@@ -38,6 +38,29 @@ ParametricBiCubicPatch::ParametricBiCubicPatch() :
 {
 }
 
+ParametricBiCubicPatch::ParametricBiCubicPatch(int patchType, int uSteps,
+    int vSteps, double flatnessValue,
+    const Vector3Dd (&controlPoints)[4][4]) :
+    patchType(patchType),
+    uSteps(uSteps),
+    vSteps(vSteps),
+    boundingSphereCenter(),
+    boundingSphereRadius(0.0),
+    flatnessValue(flatnessValue),
+    intersectionCount(0),
+    interpolatedGrid(nullptr),
+    interpolatedNormals(nullptr),
+    smoothNormals(nullptr),
+    interpolatedD(nullptr),
+    nodeTree(nullptr)
+{
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            this->controlPoints[i][j] = controlPoints[i][j];
+        }
+    }
+}
+
 ParametricPatchNode *
 ParametricBiCubicPatch::createNewParametricPatchNode()
 {
@@ -1016,12 +1039,13 @@ ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 ParametricBiCubicPatch::copy()
 {
-    ParametricBiCubicPatch *newShape;
-
-    newShape = new ParametricBiCubicPatch;
-    *newShape = *this;
-
-    newShape->interpolatedGrid = nullptr;
+    ParametricBiCubicPatch *newShape = new ParametricBiCubicPatch(
+        patchType, uSteps, vSteps, flatnessValue, controlPoints);
+    newShape->intersectionCount = intersectionCount;
+    for (int i = 0; i < intersectionCount; i++) {
+        newShape->normalVector[i] = normalVector[i];
+        newShape->intersectionPoint[i] = intersectionPoint[i];
+    }
     ParametricBiCubicPatch::precomputePatchValues(newShape);
 
     return (void *)(newShape);

@@ -4,6 +4,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/light/Light.h"
+#include "environment/light/PointLight.h"
+#include "environment/light/SpotLight.h"
 #include "environment/scene/ModelBuilder.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -24,15 +26,14 @@ LightSourceParser::parseLightSource()
 Light *
 LightSourceParser::parseLightSource(ParserContext &ctx)
 {
-    Light *localShape = nullptr;
     Vector3Dd localVector;
-    Vector3Dd center;
-    Vector3Dd pointsAt;
-    bool inverted;
-    double coefficient;
-    double radius;
-    double falloff;
-    bool spotlight;
+    Vector3Dd center(0.0, 0.0, 0.0);
+    Vector3Dd pointsAt(0.0, 0.0, 1.0);
+    bool inverted = false;
+    double coefficient = 10.0;
+    double radius = 0.35;
+    double falloff = 0.35;
+    bool spotlight = false;
     ColorRgba *localColor = nullptr;
     int constantId;
 
@@ -65,10 +66,16 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::LIGHT_SOURCE_CONSTANT) {
-                        localShape = static_cast<Light *>(
-                            static_cast<Light *>(
-                                ctx.constants()[(int)constantId].getConstantData())
-                                ->copy());
+                        Light * const constantLight = static_cast<Light *>(
+                            ctx.constants()[(int)constantId].getConstantData());
+                        center = constantLight->getCenter();
+                        pointsAt = constantLight->getPointsAt();
+                        inverted = constantLight->isInverted();
+                        coefficient = constantLight->getCoefficient();
+                        radius = constantLight->getRadius();
+                        falloff = constantLight->getFalloff();
+                        localColor = constantLight->getShapeColor();
+                        spotlight = dynamic_cast<SpotLight *>(constantLight) != nullptr;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -97,19 +104,13 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                if (localShape != nullptr) {
-                    localShape->translate(&localVector);
-                } else {
-                    center = center.add(localVector);
-                    pointsAt = pointsAt.add(localVector);
-                }
+                center = center.add(localVector);
+                pointsAt = pointsAt.add(localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                if (localShape != nullptr) {
-                    localShape->rotate(&localVector);
-                } else {
+                {
                     Matrix4x4d transformation;
                     Matrix4x4d transformationInverse;
                     transformation.axisRotationRodrigues(&transformationInverse, &localVector);
@@ -120,9 +121,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             case Tokenizer::SCALE_TOKEN:
                 PrimitiveParser::parseVector(&localVector, ctx);
-                if (localShape != nullptr) {
-                    localShape->scale(&localVector);
-                } else {
+                {
                     Matrix4x4d transformation;
                     transformation = Matrix4x4d().scale(
                         localVector.x(), localVector.y(), localVector.z());
@@ -133,55 +132,29 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
 
             // Point that the spot is pointed at
             case Tokenizer::POINT_AT_TOKEN:
-                if (localShape != nullptr) {
-                    PrimitiveParser::parseVector(&localShape->getPointsAt(), ctx);
-                } else {
-                    PrimitiveParser::parseVector(&pointsAt, ctx);
-                }
+                PrimitiveParser::parseVector(&pointsAt, ctx);
                 break;
 
             case Tokenizer::TIGHTNESS_TOKEN:
-                if (localShape != nullptr) {
-                    localShape->setCoefficient(PrimitiveParser::parseFloat(ctx));
-                } else {
-                    coefficient = PrimitiveParser::parseFloat(ctx);
-                }
+                coefficient = PrimitiveParser::parseFloat(ctx);
                 break;
 
             case Tokenizer::RADIUS_TOKEN:
-                if (localShape != nullptr) {
-                    localShape->setRadius(
-                        java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0));
-                } else {
-                    radius = java::Math::cos(
-                        PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
-                }
+                radius = java::Math::cos(
+                    PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                if (localShape != nullptr) {
-                    PrimitiveParser::parseColor(localShape->getShapeColor(), ctx);
-                } else {
-                    PrimitiveParser::parseColor(localColor, ctx);
-                }
+                PrimitiveParser::parseColor(localColor, ctx);
                 break;
 
             case Tokenizer::FALLOFF_TOKEN:
-                if (localShape != nullptr) {
-                    localShape->setFalloff(
-                        java::Math::cos(PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0));
-                } else {
-                    falloff = java::Math::cos(
-                        PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
-                }
+                falloff = java::Math::cos(
+                    PrimitiveParser::parseFloat(ctx) * java::Math::PI / 180.0);
                 break;
 
             case Tokenizer::SPOTLIGHT_TOKEN:
-                if (localShape != nullptr) {
-                    localShape = ModelBuilder::promoteToSpotLight(localShape);
-                } else {
-                    spotlight = true;
-                }
+                spotlight = true;
                 break;
 
             default:
@@ -191,17 +164,13 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
         }
     }
 
-    if (localShape == nullptr) {
-        if (spotlight) {
-            localShape = new SpotLight(
-                center, pointsAt, inverted, coefficient, radius, falloff);
-        } else {
-            localShape = new PointLight(
-                center, pointsAt, inverted, coefficient, radius, falloff);
-        }
-        if (localShape != nullptr) {
-            localShape->setShapeColor(localColor);
-        }
+    Light *localShape = spotlight ?
+        static_cast<Light *>(new SpotLight(
+            center, pointsAt, inverted, coefficient, radius, falloff)) :
+        static_cast<Light *>(new PointLight(
+            center, pointsAt, inverted, coefficient, radius, falloff));
+    if (localShape != nullptr) {
+        localShape->setShapeColor(localColor);
     }
 
     return localShape;
