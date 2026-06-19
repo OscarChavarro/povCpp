@@ -10,8 +10,6 @@ class SimpleBody;
 
 class ParseHelpers {
   public:
-    static void linkShapes(
-        Light *newObject, Light **field, Light **oldObjectList);
     static void postProcessObject(BoundedGeometry *object, Light *&lightHead);
     static void postProcessShape(SimpleBody *shape, Light *&lightHead);
     static void getExpectedToken(int tokenId);

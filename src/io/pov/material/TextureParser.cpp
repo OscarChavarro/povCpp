@@ -9,6 +9,7 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "environment/camera/Camera.h"
+#include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/element/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/material/MaterialUtils.h"
@@ -78,6 +79,12 @@ TextureParser::ensureWritableTexture(PovrayMaterial *texture)
         texture->setConstant(false);
     }
     return texture;
+}
+
+void
+TextureParser::prependTextureLayers(PovrayMaterial *newHead, SimpleBody *body)
+{
+    prependTextureLayers(newHead, body->material);
 }
 
 void

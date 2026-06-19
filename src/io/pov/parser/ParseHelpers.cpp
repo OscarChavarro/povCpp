@@ -32,13 +32,6 @@ ParseHelpers::getExpectedToken(int tokenId, ParserContext &ctx)
 }
 
 void
-ParseHelpers::linkShapes(Light *newObject, Light **field, Light **oldObjectList)
-{
-    *field = *oldObjectList;
-    *oldObjectList = newObject;
-}
-
-void
 ParseHelpers::postProcessObject(BoundedGeometry *object, Light *&lightHead)
 {
     if (Composite *composite = dynamic_cast<Composite *>(object)) {
@@ -65,7 +58,8 @@ ParseHelpers::postProcessShape(SimpleBody *shape, Light *&lightHead)
         }
     } else if (LightGeometryAdapter *lightAdapter =
                    dynamic_cast<LightGeometryAdapter *>(shape->getGeometry())) {
-        lightAdapter->getLight()->setNextLightSource(lightHead);
-        lightHead = lightAdapter->getLight();
+        Light *light = lightAdapter->getLight();
+        light->nextLightSource = lightHead;
+        lightHead = light;
     }
 }

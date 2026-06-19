@@ -14,24 +14,20 @@ class HeightField : public Geometry {
     static constexpr int TGA = 2;
 
     HeightField();
+    HeightField(const Matrix4x4d &transformation,
+        const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
+        const Vector3Dd &maxBounds);
     HeightField(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
         Box *boundingBox, double blockSize, double invBlkSize,
         HeightFieldBlock **block, float **map);
 
     Matrix4x4d *getTransformation() const { return transformation; }
-    void setTransformation(Matrix4x4d *value) { transformation = value; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
-    void setTransformationInverse(Matrix4x4d *value) { transformationInverse = value; }
     Box *getBoundingBox() const { return boundingBox; }
-    void setBoundingBox(Box *value) { boundingBox = value; }
     double getBlockSize() const { return blockSize; }
-    void setBlockSize(double value) { blockSize = value; }
     double getInvBlkSize() const { return invBlkSize; }
-    void setInvBlkSize(double value) { invBlkSize = value; }
     HeightFieldBlock **getBlock() const { return block; }
-    void setBlock(HeightFieldBlock **value) { block = value; }
     float **getMap() const { return Map; }
-    void setMap(float **value) { Map = value; }
 
     static void findHfMinMax(HeightField *hField,
         const IndexedColorImageHDRUncompressed *image, int imageType);

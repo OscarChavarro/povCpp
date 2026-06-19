@@ -107,30 +107,6 @@ ModelBuilder::getBoxShape()
     return (newShape);
 }
 
-Blob *
-ModelBuilder::getBlobShape()
-{
-    Blob *newShape;
-
-    newShape = new Blob;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
-HeightField *
-ModelBuilder::getHeightFieldShape()
-{
-    HeightField *newShape;
-
-    newShape = new HeightField;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
 InfinitePlane *
 ModelBuilder::getPlaneShape()
 {

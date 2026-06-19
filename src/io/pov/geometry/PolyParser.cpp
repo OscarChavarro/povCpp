@@ -139,7 +139,7 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, body->getMaterialRef());
+                TextureParser::prependTextureLayers(localTexture, body);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
