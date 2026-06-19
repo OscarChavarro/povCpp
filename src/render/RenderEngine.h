@@ -6,13 +6,14 @@
 
 class RenderEngine {
   private:
-    static Scene sScene;
+    static Scene *sScene;
     static RayWithSegments *sPrimaryRay;
     static int sTraceLevel;
     static void traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color);
     static void traceServiceShadeShadow(void *context, Intersection *intersection, ColorRgba *color);
 
   public:
+    static void setScene(Scene *scene) { sScene = scene; }
     static Scene &scene();
     static RayWithSegments *&primaryRay();
     static int &traceLevel();
