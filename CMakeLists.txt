@@ -55,6 +55,8 @@ add_executable(povray
     src/render/shaders/TransmissionRefractionShader.cpp
     src/render/shaders/LocalSurfaceShader.cpp
     src/render/SolidTextureFixturesFacade.cpp
+    src/render/SolidTextureFixturesColorAtParameterSet.cpp
+    src/render/SolidTextureFixturesCheckerParameterSet.cpp
     src/render/RayShaderPipeline.cpp
     src/render/RenderEngine.cpp
     src/render/SceneDump.cpp

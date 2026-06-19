@@ -32,12 +32,6 @@ class SmoothTriangle : public Triangle {
     void invertGeometry() override;
 
   protected:
-    SmoothTriangle(const Vector3Dd &normalVector, double distance,
-        double vpNormDotOrigin, bool vpCached, unsigned int dominantAxis,
-        bool inverted, unsigned int vAxis, const Vector3Dd &p1,
-        const Vector3Dd &p2, const Vector3Dd &p3, bool degenerateFlag,
-        const Vector3Dd &n1, const Vector3Dd &n2, const Vector3Dd &n3,
-        const Vector3Dd &perp, double baseDelta);
     void swapVertexNormals() override;
     void finalizeComputation() override;
 
@@ -48,5 +42,11 @@ class SmoothTriangle : public Triangle {
     Vector3Dd perp;
     double baseDelta;
 };
+
+inline void *
+SmoothTriangle::copy()
+{
+    return new SmoothTriangle(*this);
+}
 
 #endif
