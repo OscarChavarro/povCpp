@@ -31,6 +31,7 @@ class Composite : public BoundedGeometry {
         simpleBodies(simpleBodies)
     {
     }
+    Composite(const Composite &other);
 
     java::ArrayList<BoundedGeometry*> &getSimpleBodies();
     const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;

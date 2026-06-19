@@ -22,6 +22,9 @@ class HeightField : public Geometry {
     HeightField(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
         Box *boundingBox, double blockSize, double invBlkSize,
         HeightFieldBlock **block, float **map);
+    // Intentionally shallow: copies share transformation/boundingBox/block/Map
+    // pointers with the original, matching the pre-existing copy() semantics.
+    HeightField(const HeightField &other) = default;
 
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }

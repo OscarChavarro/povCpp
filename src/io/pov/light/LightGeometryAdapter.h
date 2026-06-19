@@ -7,6 +7,10 @@
 class LightGeometryAdapter : public Geometry {
   public:
     explicit LightGeometryAdapter(Light *lightSource) : light(lightSource) {}
+    LightGeometryAdapter(const LightGeometryAdapter &other) :
+        light(other.light != nullptr ? other.light->copy() : nullptr)
+    {
+    }
 
     Light *getLight() const { return light; }
     void setLight(Light *lightSource) { light = lightSource; }

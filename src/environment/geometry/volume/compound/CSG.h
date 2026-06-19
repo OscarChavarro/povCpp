@@ -9,6 +9,7 @@
 class CSG : public Geometry {
   public:
     explicit CSG(GeometryTypes initialGeometryType = GeometryTypes::CSG_UNION_TYPE);
+    CSG(const CSG &other);
 
     GeometryTypes getGeometryType() const;
     void setGeometryType(GeometryTypes value);

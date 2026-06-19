@@ -22,7 +22,7 @@ class TransformableElement {
         (void)config;
         normal(result, intersectionPoint);
     }
-    virtual void *copy() { return nullptr; }
+    virtual void *copy() = 0;
     virtual void  translate(Vector3Dd *vector) {}
     virtual void  rotate(Vector3Dd *vector) {}
     virtual void  scale(Vector3Dd *vector) {}

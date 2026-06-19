@@ -178,8 +178,7 @@ Sphere::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Sphere::copy()
 {
-    return new Sphere(center, radius, radiusSquared, inverseRadius, vpOtoC,
-        vpOCSquared, vpInside, vpCached, inverted);
+    return new Sphere(*this);
 }
 
 void

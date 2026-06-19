@@ -80,6 +80,19 @@ PolynomialShape::PolynomialShape(int initialOrder, int sturmFlagValue) :
 {
 }
 
+PolynomialShape::PolynomialShape(const PolynomialShape &other) :
+    PolynomialShape(other.order, other.sturmFlag)
+{
+    inverted = other.inverted;
+    if (other.transformation != nullptr) {
+        transformation = new Matrix4x4d(*other.transformation);
+        transformationInverse = new Matrix4x4d(*other.transformationInverse);
+    }
+    for (int i = 0; i < termCountsInstance[order]; i++) {
+        Coeffs[i] = other.Coeffs[i];
+    }
+}
+
 
 int
 PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
@@ -868,7 +881,7 @@ PolynomialShape::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 PolynomialShape::copy()
 {
-    return copyWithSturmFlag(sturmFlag);
+    return new PolynomialShape(*this);
 }
 
 PolynomialShape *

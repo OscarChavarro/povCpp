@@ -136,8 +136,7 @@ InfinitePlane::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 InfinitePlane::copy()
 {
-    return new InfinitePlane(
-        normalVector, distance, vpNormDotOrigin, vpCached);
+    return new InfinitePlane(*this);
 }
 
 void

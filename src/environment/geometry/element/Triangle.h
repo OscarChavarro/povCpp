@@ -11,6 +11,7 @@ class Triangle : public Geometry {
     Triangle();
     Triangle(const Vector3Dd &p1, const Vector3Dd &p2, const Vector3Dd &p3,
         bool inverted = false);
+    Triangle(const Triangle &other) = default;
 
     Vector3Dd &getNormalVector() { return normalVector; }
     double getDistance() const { return distance; }

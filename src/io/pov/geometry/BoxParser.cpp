@@ -67,8 +67,9 @@ BoxParser::parseBox(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::BOX_CONSTANT) {
-                        body = (SimpleBody *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .getConstantData())->copy();
+                        body = new SimpleBody(
+                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                                    .getConstantData());
                         localShape = (Box *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);

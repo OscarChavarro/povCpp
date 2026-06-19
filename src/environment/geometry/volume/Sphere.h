@@ -11,6 +11,7 @@ class Sphere : public Geometry {
     Sphere(const Vector3Dd &center, double radius, double radiusSquared,
         double inverseRadius, const Vector3Dd &vpOtoC, double vpOCSquared,
         short vpInside, bool vpCached, bool inverted);
+    Sphere(const Sphere &other) = default;
 
     Vector3Dd& getCenter() { return center; }
     const Vector3Dd& getCenter() const { return center; }

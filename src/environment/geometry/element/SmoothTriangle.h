@@ -12,6 +12,7 @@ class SmoothTriangle : public Triangle {
         const Vector3Dd &p2, const Vector3Dd &n2,
         const Vector3Dd &p3, const Vector3Dd &n3,
         bool inverted = false);
+    SmoothTriangle(const SmoothTriangle &other) = default;
 
     Vector3Dd &getN1() { return n1; }
     const Vector3Dd &getN1() const { return n1; }

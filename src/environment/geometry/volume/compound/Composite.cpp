@@ -212,84 +212,43 @@ Composite::inside(Vector3Dd *point)
     return (false);
 }
 
+BoundedGeometry::BoundedGeometry(const BoundedGeometry &other) :
+    geometry(other.getGeometry() != nullptr ?
+        (TransformableElement *)other.getGeometry()->copy() : nullptr),
+    noShadowFlag(other.getNoShadowFlag()),
+    objectColor(other.getObjectColor()),
+    objectTexture(other.getObjectTexture() != nullptr ?
+        other.getObjectTexture()->copy() : nullptr)
+{
+    for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
+        boundingShapes.add(
+            (TransformableElement *)other.getBoundingShapes()[i]->copy());
+    }
+    for (long int i = other.getClippingShapes().size() - 1; i >= 0; i--) {
+        clippingShapes.add(
+            (TransformableElement *)other.getClippingShapes()[i]->copy());
+    }
+}
+
 void *
 BoundedGeometry::copy()
 {
-    TransformableElement *localShape;
-    TransformableElement *copiedShape;
-    Material *copiedTexture =
-        this->getObjectTexture() != nullptr ? this->getObjectTexture()->copy() : nullptr;
-    java::ArrayList<TransformableElement*> copiedBoundingShapes(4);
-    java::ArrayList<TransformableElement*> copiedClippingShapes(4);
-    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getBoundingShapes()[i];
+    return new BoundedGeometry(*this);
+}
 
-        copiedShape =
-            (TransformableElement *)localShape->copy();
-        copiedBoundingShapes.add(copiedShape);
+Composite::Composite(const Composite &other) :
+    BoundedGeometry(other)
+{
+    for (long int i = other.getSimpleBodies().size() - 1; i >= 0; i--) {
+        simpleBodies.add(
+            (BoundedGeometry *)other.getSimpleBodies()[i]->copy());
     }
-
-    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getClippingShapes()[i];
-
-        copiedShape =
-            (TransformableElement *)localShape->copy();
-        copiedClippingShapes.add(copiedShape);
-    }
-    BoundedGeometry *newObject = new BoundedGeometry(
-        (TransformableElement *)this->getGeometry()->copy(),
-        copiedTexture,
-        this->getObjectColor(),
-        this->getNoShadowFlag(),
-        copiedBoundingShapes,
-        copiedClippingShapes);
-
-    return ((void *)newObject);
 }
 
 void *
 Composite::copy()
 {
-    TransformableElement *localShape;
-    TransformableElement *copiedShape;
-    BoundedGeometry *localObject;
-    BoundedGeometry *copiedObject;
-    Material *copiedTexture =
-        this->getObjectTexture() != nullptr ? this->getObjectTexture()->copy() : nullptr;
-    java::ArrayList<BoundedGeometry*> copiedSimpleBodies(4);
-    java::ArrayList<TransformableElement*> copiedBoundingShapes(4);
-    java::ArrayList<TransformableElement*> copiedClippingShapes(4);
-    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
-        localObject = this->getSimpleBodies()[i];
-
-        copiedObject = (BoundedGeometry *)localObject->copy();
-        copiedSimpleBodies.add(copiedObject);
-    }
-
-    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getBoundingShapes()[i];
-
-        copiedShape =
-            (TransformableElement *)localShape->copy();
-        copiedBoundingShapes.add(copiedShape);
-    }
-    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getClippingShapes()[i];
-
-        copiedShape =
-            (TransformableElement *)localShape->copy();
-        copiedClippingShapes.add(copiedShape);
-    }
-    Composite *newObject = new Composite(
-        this->getGeometry() != nullptr ?
-            (TransformableElement *)this->getGeometry()->copy() : nullptr,
-        copiedTexture,
-        this->getObjectColor(),
-        this->getNoShadowFlag(),
-        copiedBoundingShapes,
-        copiedClippingShapes,
-        copiedSimpleBodies);
-    return ((void *)newObject);
+    return new Composite(*this);
 }
 
 void

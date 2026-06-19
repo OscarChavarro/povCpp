@@ -45,18 +45,20 @@ SimpleBody::normal(
     getGeometry()->normal(result, intersectionPoint, config);
 }
 
+SimpleBody::SimpleBody(const SimpleBody &other) :
+    geometry(other.geometry != nullptr ?
+        (Geometry *)other.geometry->copy() : nullptr),
+    material(other.material != nullptr ? other.material->copy() : nullptr),
+    shapeColor(other.shapeColor),
+    transform(other.transform),
+    transformInverse(other.transformInverse)
+{
+}
+
 void *
 SimpleBody::copy()
 {
-    Material *copiedMaterial = nullptr;
-    if (getMaterial() != nullptr) {
-        copiedMaterial = getMaterial()->copy();
-    }
-    SimpleBody *newBody = new SimpleBody(
-        (Geometry *)getGeometry()->copy(), copiedMaterial, getShapeColor());
-    newBody->getTransform() = getTransform();
-    newBody->getTransformInverse() = getTransformInverse();
-    return (void *)newBody;
+    return new SimpleBody(*this);
 }
 
 void

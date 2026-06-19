@@ -985,8 +985,7 @@ HeightField::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 HeightField::copy()
 {
-    return new HeightField(transformation, transformationInverse, boundingBox,
-        blockSize, invBlkSize, block, Map);
+    return new HeightField(*this);
 }
 
 void
