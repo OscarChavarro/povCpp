@@ -5,16 +5,14 @@ class RenderingConfiguration;
 
 class CommandLineOptions {
   private:
-    static int numberOfFiles;
-    static bool inFlag;
-    static bool outFlag;
-
-    static void readOptions(const char *optionLine, RenderingConfiguration &config);
-    static void parseOption(const char *optionString, RenderingConfiguration &config);
-    static void parseFileName(const char *fileName, RenderingConfiguration &config);
+    static void readOptions(const char *optionLine, RenderingConfiguration &config,
+        bool &inFlag, bool &outFlag);
+    static void parseOption(const char *optionString, RenderingConfiguration &config,
+        bool &inFlag, bool &outFlag);
+    static void parseFileName(const char *fileName, RenderingConfiguration &config,
+        int &numberOfFiles, bool &inFlag, bool &outFlag);
 
   public:
-    static void reset();
     static void usage();
     static void loadDefaults(RenderingConfiguration &config);
     static void parseArguments(int argc, char *argv[], RenderingConfiguration &config);

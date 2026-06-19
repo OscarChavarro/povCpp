@@ -72,6 +72,10 @@ class RenderingConfiguration {
     void setPaletteOption(char option) { paletteOption = option; }
     char getColorBits() const { return colorBits; }
     void setColorBits(char bits) { colorBits = bits; }
+    int getTokenizerCaseSensitiveMode() const { return tokenizerCaseSensitiveMode; }
+    void setTokenizerCaseSensitiveMode(int mode) { tokenizerCaseSensitiveMode = mode; }
+    int getTokenizerMaxSymbols() const { return tokenizerMaxSymbols; }
+    void setTokenizerMaxSymbols(int maxSymbols) { tokenizerMaxSymbols = maxSymbols; }
     bool hasOutputFileName() const { return outputFileName[0] != '\0'; }
 
     RenderingConfiguration() { reset(); }
@@ -93,6 +97,8 @@ class RenderingConfiguration {
     char verboseFormat;
     char paletteOption;
     char colorBits;
+    int tokenizerCaseSensitiveMode;
+    int tokenizerMaxSymbols;
 };
 
 #endif

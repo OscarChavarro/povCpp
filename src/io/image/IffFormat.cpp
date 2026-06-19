@@ -10,10 +10,6 @@ This file implements a simple IFF format file reader.
 #include "io/binaryIo/FileLocator.h"
 #include "io/image/IffFormat.h"
 
-RGBAPixelHDR *IffFormat::sIffColorMap = nullptr;
-int IffFormat::sColorMapSize = 0;
-ChunkHeader IffFormat::sGlobalChunkHeader;
-
 static constexpr long FORM = 0x464f524dL;
 static constexpr long ILBM = 0x494c424dL;
 static constexpr long BMHD = 0x424d4844L;
@@ -83,6 +79,9 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
     int previousGreen;
     int previousBlue;
     unsigned long creg;
+    RGBAPixelHDR *iffColorMap = nullptr;
+    int colorMapSize = 0;
+    ChunkHeader chunkHeader;
 
     // Dimensions are written to directOut in all cases so callers can read
     // width/height regardless of which branch is taken.
@@ -102,11 +101,11 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
 
     previousRed = previousGreen = previousBlue = 0;
     viewmodes = 0;
-    sIffColorMap = nullptr;
+    iffColorMap = nullptr;
 
     while (true) {
-        IffFormat::readChunkHeader(is, &sGlobalChunkHeader);
-        switch (static_cast<int>(sGlobalChunkHeader.getName())) {
+        IffFormat::readChunkHeader(is, &chunkHeader);
+        switch (static_cast<int>(chunkHeader.getName())) {
         case FORM:
             if (IffFormat::readLong(is) != ILBM) {
                 IffFormat::iffError();
@@ -120,7 +119,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
             IffFormat::readWord(is);
             IffFormat::readWord(is);
             nPlanes = IffFormat::readByte(is);
-            sColorMapSize = 1 << nPlanes;
+            colorMapSize = 1 << nPlanes;
             IffFormat::readByte(is);
             compression = IffFormat::readByte(is);
             IffFormat::readByte(is);
@@ -133,34 +132,34 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
         case CAMG:
             viewmodes = (int)IffFormat::readLong(is);
             if (viewmodes & HAM) {
-                sColorMapSize = 16;
+                colorMapSize = 16;
             }
             break;
 
         case CMAP:
-            sColorMapSize = (int)sGlobalChunkHeader.getSize() / 3;
-            sIffColorMap = new RGBAPixelHDR[sColorMapSize];
-            if (sIffColorMap == nullptr) {
+            colorMapSize = (int)chunkHeader.getSize() / 3;
+            iffColorMap = new RGBAPixelHDR[colorMapSize];
+            if (iffColorMap == nullptr) {
                 Logger::reportMessage("IffFormat", Logger::FATAL_ERROR, "", "Cannot allocate memory for IFF color map\n");
             }
 
-            for (i = 0; i < sColorMapSize; i++) {
-                sIffColorMap[i].r   = IffFormat::readByte(is);
-                sIffColorMap[i].g = IffFormat::readByte(is);
-                sIffColorMap[i].b  = IffFormat::readByte(is);
-                sIffColorMap[i].a = 0;
+            for (i = 0; i < colorMapSize; i++) {
+                iffColorMap[i].r = IffFormat::readByte(is);
+                iffColorMap[i].g = IffFormat::readByte(is);
+                iffColorMap[i].b = IffFormat::readByte(is);
+                iffColorMap[i].a = 0;
             }
 
-            previousRed   = sIffColorMap[0].r;
-            previousGreen = sIffColorMap[0].g;
-            previousBlue  = sIffColorMap[0].b;
-            for (i = sColorMapSize * 3; (long)i < sGlobalChunkHeader.getSize(); i++) {
+            previousRed = iffColorMap[0].r;
+            previousGreen = iffColorMap[0].g;
+            previousBlue = iffColorMap[0].b;
+            for (i = colorMapSize * 3; (long)i < chunkHeader.getSize(); i++) {
                 IffFormat::readByte(is);
             }
             break;
 
         case BODY: {
-            const bool isIndexed = (sIffColorMap != nullptr) && !(viewmodes & HAM);
+            const bool isIndexed = (iffColorMap != nullptr) && !(viewmodes & HAM);
 
             rowBytes = new unsigned char *[nPlanes];
             if (rowBytes == nullptr) {
@@ -176,8 +175,8 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
             if (isIndexed) {
                 // --- Indexed (paletted) path ---
                 IndexedColorImageHDRUncompressed * const indexed = new IndexedColorImageHDRUncompressed;
-                indexed->setColorMapSize(sColorMapSize);
-                indexed->setColorTable(sIffColorMap);
+                indexed->setColorMapSize(colorMapSize);
+                indexed->setColorTable(iffColorMap);
 
                 indexed->allocate(iwidth, iheight);
 
@@ -289,9 +288,9 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
                         if (viewmodes & HAM) {
                             switch (creg >> 4) {
                             case 0:
-                                pixel.r = (unsigned short)sIffColorMap[creg].r;
-                                pixel.g = (unsigned short)sIffColorMap[creg].g;
-                                pixel.b = (unsigned short)sIffColorMap[creg].b;
+                                pixel.r = (unsigned short)iffColorMap[creg].r;
+                                pixel.g = (unsigned short)iffColorMap[creg].g;
+                                pixel.b = (unsigned short)iffColorMap[creg].b;
                                 previousRed   = pixel.r;
                                 previousGreen = pixel.g;
                                 previousBlue  = pixel.b;
@@ -342,7 +341,7 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
         }
 
         default:
-            for (i = 0; (long)i < sGlobalChunkHeader.getSize(); i++) {
+            for (i = 0; (long)i < chunkHeader.getSize(); i++) {
                 if (is.read() == -1) {
                     IffFormat::iffError();
                 }

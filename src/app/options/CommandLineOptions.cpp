@@ -12,18 +12,6 @@
 
 static constexpr int MAX_FILE_NAMES = 1;
 
-int CommandLineOptions::numberOfFiles;
-bool CommandLineOptions::inFlag;
-bool CommandLineOptions::outFlag;
-
-void
-CommandLineOptions::reset()
-{
-    numberOfFiles = 0;
-    inFlag = false;
-    outFlag = false;
-}
-
 // Print out usage error message
 void
 CommandLineOptions::usage()
@@ -75,11 +63,15 @@ CommandLineOptions::loadDefaults(RenderingConfiguration &config)
     config.setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
-        readOptions(Option_String_Ptr, config);
+        bool inFlag = false;
+        bool outFlag = false;
+        readOptions(Option_String_Ptr, config, inFlag, outFlag);
     }
     if ((defaultsFile = FileLocator::locate("povray.def", "r")) != nullptr) {
+        bool inFlag = false;
+        bool outFlag = false;
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString, config);
+            readOptions(optionString, config, inFlag, outFlag);
         }
         fclose(defaultsFile);
     }
@@ -88,17 +80,21 @@ CommandLineOptions::loadDefaults(RenderingConfiguration &config)
 void
 CommandLineOptions::parseArguments(int argc, char *argv[], RenderingConfiguration &config)
 {
+    int numberOfFiles = 0;
+    bool inFlag = false;
+    bool outFlag = false;
     for (int i = 1; i < argc; i++) {
         if ((*argv[i] == '+') || (*argv[i] == '-')) {
-            parseOption(argv[i], config);
+            parseOption(argv[i], config, inFlag, outFlag);
         } else {
-            parseFileName(argv[i], config);
+            parseFileName(argv[i], config, numberOfFiles, inFlag, outFlag);
         }
     }
 }
 
 void
-CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &config)
+CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &config,
+    bool &inFlag, bool &outFlag)
 {
     int c;
     int stringIndex;
@@ -112,7 +108,7 @@ CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &
         if (optionStarted) {
             if (isspace(c)) {
                 optionString[stringIndex] = '\0';
-                parseOption(optionString, config);
+                parseOption(optionString, config, inFlag, outFlag);
                 optionStarted = false;
                 stringIndex = 0;
             } else {
@@ -135,20 +131,21 @@ CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &
 
     if (optionStarted) {
         optionString[stringIndex] = '\0';
-        parseOption(optionString, config);
+        parseOption(optionString, config, inFlag, outFlag);
     }
 }
 
 // Parse the command line parameters
 void
-CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration &config)
+CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration &config,
+    bool &inFlag, bool &outFlag)
 {
     bool addOption;
     unsigned int optionNumber = 0;
     double threshold;
 
     inFlag = outFlag = false; // If these flags aren't immediately used, reset
-                               // them on next -/+ option!
+                              // them on next -/+ option!
     if (*(optionString++) == '-') {
         addOption = false;
     } else {
@@ -283,16 +280,16 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
     case 't':
         switch (toupper(optionString[1])) {
         case 'Y':
-            Tokenizer::setCaseSensitiveIdentifiers(0);
+            config.setTokenizerCaseSensitiveMode(0);
             break;
         case 'N':
-            Tokenizer::setCaseSensitiveIdentifiers(1);
+            config.setTokenizerCaseSensitiveMode(1);
             break;
         case 'O':
-            Tokenizer::setCaseSensitiveIdentifiers(2);
+            config.setTokenizerCaseSensitiveMode(2);
             break;
         default:
-            Tokenizer::setCaseSensitiveIdentifiers(2);
+            config.setTokenizerCaseSensitiveMode(2);
             break;
         }
         optionNumber = 0;
@@ -323,9 +320,9 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
         switch (optionString[1]) {
         case 's': // Max Symbols
         case 'S': {
-            int maxSymbols = Tokenizer::getMaxSymbols();
+            int maxSymbols = config.getTokenizerMaxSymbols();
             sscanf(&optionString[2], "%d", &maxSymbols);
-            Tokenizer::setMaxSymbols(maxSymbols);
+            config.setTokenizerMaxSymbols(maxSymbols);
             optionNumber = 0;
             break;
         }
@@ -365,7 +362,8 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 }
 
 void
-CommandLineOptions::parseFileName(const char *fileName, RenderingConfiguration &config)
+CommandLineOptions::parseFileName(const char *fileName, RenderingConfiguration &config,
+    int &numberOfFiles, bool &inFlag, bool &outFlag)
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -394,7 +392,7 @@ CommandLineOptions::parseFileName(const char *fileName, RenderingConfiguration &
 
     if ((defaultsFile = FileLocator::locate(fileName, "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString, config);
+            readOptions(optionString, config, inFlag, outFlag);
         }
         fclose(defaultsFile);
     } else {

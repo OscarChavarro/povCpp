@@ -104,7 +104,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                             blobComponent->getElem().setRadius2(
                                 PrimitiveParser::parseFloat(ctx));
                             PrimitiveParser::parseVector(
-                                &blobComponent->getElem().getPos());
+                                &blobComponent->getElem().getPos(), ctx);
                             blobComponent->setNext(blobComponents);
                             blobComponents = blobComponent;
                             npoints++;

@@ -22,6 +22,22 @@ and Drew Wells.
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/HeightField.h"
 
+struct HeightFieldTraversalState {
+    int isdx;
+    int isdz;
+    bool xDom;
+    double gdx;
+    double gdy;
+    double gdz;
+    double myx;
+    double mxz;
+    double mzx;
+    double myz;
+    Intersection *hfIntersection;
+    java::PriorityQueue<Intersection> *hfQueue;
+    RayWithSegments *rRay;
+};
+
 HeightField::HeightField() :
     transformation(new Matrix4x4d(Matrix4x4d::identityMatrix())),
     transformationInverse(new Matrix4x4d(Matrix4x4d::identityMatrix())),
@@ -77,20 +93,6 @@ HeightField::maxValue(double x, double y)
     return (x < y) ? y : x;
 }
 
-int HeightField::isdx;
-int HeightField::isdz;
-bool HeightField::xDom;
-double HeightField::gdx;
-double HeightField::gdy;
-double HeightField::gdz;
-double HeightField::myx;
-double HeightField::mxz;
-double HeightField::mzx;
-double HeightField::myz;
-Intersection *HeightField::hfIntersection;
-java::PriorityQueue<Intersection> *HeightField::hfQueue;
-RayWithSegments *HeightField::rRay;
-
 double
 HeightField::getHeightAt(int x, int z, const HeightField *hField)
 {
@@ -98,6 +100,7 @@ HeightField::getHeightAt(int x, int z, const HeightField *hField)
 }
 int
 HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
+    HeightFieldTraversalState &state,
     HeightField *hField, double height1, double height2)
 {
     Vector3Dd t1V1;
@@ -211,21 +214,21 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     }
 
     if (depth2 < depth1) {
-        hfIntersection->setDepth(depth2);
-        hfIntersection->setObject(nullptr);
-        t1V1 = rRay->getDirection().multiply(depth2);
-        t1V1 = t1V1.add(rRay->getOrigin());
-        hfIntersection->setPoint(t1V1);
-        hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
-        hfQueue->offer(*hfIntersection);
+        state.hfIntersection->setDepth(depth2);
+        state.hfIntersection->setObject(nullptr);
+        t1V1 = state.rRay->getDirection().multiply(depth2);
+        t1V1 = t1V1.add(state.rRay->getOrigin());
+        state.hfIntersection->setPoint(t1V1);
+        state.hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
+        state.hfQueue->offer(*state.hfIntersection);
     } else {
-        hfIntersection->setDepth(depth1);
-        hfIntersection->setObject(nullptr);
-        t1V1 = rRay->getDirection().multiply(depth1);
-        t1V1 = t1V1.add(rRay->getOrigin());
-        hfIntersection->setPoint(t1V1);
-        hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
-        hfQueue->offer(*hfIntersection);
+        state.hfIntersection->setDepth(depth1);
+        state.hfIntersection->setObject(nullptr);
+        t1V1 = state.rRay->getDirection().multiply(depth1);
+        t1V1 = t1V1.add(state.rRay->getOrigin());
+        state.hfIntersection->setPoint(t1V1);
+        state.hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
+        state.hfQueue->offer(*state.hfIntersection);
     }
     stats.incrementRayHtFieldTestsSucceeded();
     return (true);
@@ -233,7 +236,8 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
 
 int
 HeightField::intersectSubBlock(const HeightFieldBlock *block,
-    const RayWithSegments *ray, HeightField *hField, const Vector3Dd *start,
+    const RayWithSegments *ray, HeightFieldTraversalState &state,
+    HeightField *hField, const Vector3Dd *start,
     const Vector3Dd *end)
 {
     double y1;
@@ -263,26 +267,26 @@ HeightField::intersectSubBlock(const HeightFieldBlock *block,
     ex = end->x();
     ez = end->z();
 
-    if (xDom) {
-        if (isdx >= 0) {
+    if (state.xDom) {
+        if (state.isdx >= 0) {
             f = java::Math::floor(sx) - sx;
             sx = java::Math::floor(sx);
-            sy += myx * f;
-            sz += mzx * f;
+            sy += state.myx * f;
+            sz += state.mzx * f;
             ex = java::Math::floor(ex);
             ix = (int)sx;
         } else {
             f = java::Math::ceil(sx) - sx;
             sx = java::Math::ceil(sx);
-            sy += myx * f;
-            sz += mzx * f;
+            sy += state.myx * f;
+            sz += state.mzx * f;
             ex = java::Math::ceil(ex);
             ix = (int)sx - 1;
         }
 
         length = 0.5 + java::Math::abs(ex - sx);
 
-        if (isdz >= 0) {
+        if (state.isdz >= 0) {
             f = sz - java::Math::ceil(sz);
             iz = (int)java::Math::floor(sz);
         } else {
@@ -290,51 +294,51 @@ HeightField::intersectSubBlock(const HeightFieldBlock *block,
             iz = (int)java::Math::ceil(sz) - 1;
         }
 
-        if (gdy >= 0.0) {
+        if (state.gdy >= 0.0) {
             y1 = sy;
-            y2 = sy + gdy;
+            y2 = sy + state.gdy;
         } else {
-            y1 = sy + gdy;
+            y1 = sy + state.gdy;
             y2 = sy;
         }
 
         for (i = 0; i <= length; i++) {
-            if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
+            if (HeightField::intersectPixel(ix, iz, ray, state, hField, y1, y2)) {
                 return (true);
             }
-            f += gdz;
+            f += state.gdz;
             if (f >= 0.0) {
-                iz += isdz;
-                if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
+                iz += state.isdz;
+                if (HeightField::intersectPixel(ix, iz, ray, state, hField, y1, y2)) {
                     return (true);
                 }
                 f -= 1.0;
             }
-            ix += isdx;
-            y1 += gdy;
-            y2 += gdy;
+            ix += state.isdx;
+            y1 += state.gdy;
+            y2 += state.gdy;
         }
     } else {
 
-        if (isdz >= 0) {
+        if (state.isdz >= 0) {
             f = java::Math::floor(sz) - sz;
             sz = java::Math::floor(sz);
-            sy += myz * f;
-            sx += mxz * f;
+            sy += state.myz * f;
+            sx += state.mxz * f;
             ez = java::Math::floor(ez);
             iz = (int)sz;
         } else {
             f = java::Math::ceil(sz) - sz;
             sz = java::Math::ceil(sz);
-            sy += myz * f;
-            sx += mxz * f;
+            sy += state.myz * f;
+            sx += state.mxz * f;
             ez = java::Math::ceil(ez);
             iz = (int)sz - 1;
         }
 
         length = 0.5 + java::Math::abs(ez - sz);
 
-        if (isdx >= 0) {
+        if (state.isdx >= 0) {
             f = sx - java::Math::ceil(sx);
             ix = (int)java::Math::floor(sx);
         } else {
@@ -342,36 +346,37 @@ HeightField::intersectSubBlock(const HeightFieldBlock *block,
             ix = (int)java::Math::ceil(sx) - 1;
         }
 
-        if (gdy >= 0.0) {
+        if (state.gdy >= 0.0) {
             y1 = sy;
-            y2 = sy + gdy;
+            y2 = sy + state.gdy;
         } else {
-            y1 = sy + gdy;
+            y1 = sy + state.gdy;
             y2 = sy;
         }
 
         for (i = 0; i <= length; i++) {
-            if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
+            if (HeightField::intersectPixel(ix, iz, ray, state, hField, y1, y2)) {
                 return (true);
             }
-            f += gdx;
+            f += state.gdx;
             if (f >= 0.0) {
-                ix += isdx;
-                if (HeightField::intersectPixel(ix, iz, ray, hField, y1, y2)) {
+                ix += state.isdx;
+                if (HeightField::intersectPixel(ix, iz, ray, state, hField, y1, y2)) {
                     return (true);
                 }
                 f -= 1.0;
             }
-            iz += isdz;
-            y1 += gdy;
-            y2 += gdy;
+            iz += state.isdz;
+            y1 += state.gdy;
+            y2 += state.gdy;
         }
     }
     return (false);
 }
 
 int
-HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
+HeightField::intersectHfNode(const RayWithSegments *ray,
+    HeightFieldTraversalState &state, HeightField *hField,
     const Vector3Dd *start, const Vector3Dd *end)
 {
     Vector3Dd *curr;
@@ -419,27 +424,27 @@ HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
     *curr = Vector3Dd(x, y, z);
     t = 0.0;
 
-    if (xDom) {
-        if (isdx >= 0) {
+    if (state.xDom) {
+        if (state.isdx >= 0) {
             ix = (int)java::Math::floor(sx * invBlkSize);
             tnear = blockSize * (ix + 1) - sx;
 
-            if (isdz >= 0) {
+            if (state.isdz >= 0) {
                 iz = (int)java::Math::floor(sz * invBlkSize);
-                tfar = gdx * (blockSize * (iz + 1) - sz);
+                tfar = state.gdx * (blockSize * (iz + 1) - sz);
             } else {
                 iz = (int)java::Math::ceil(sz * invBlkSize) - 1;
-                tfar = gdx * (sz - blockSize * (iz));
+                tfar = state.gdx * (sz - blockSize * (iz));
             }
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     x = sx + t;
-                    y = sy + myx * t;
-                    z = sz + mzx * t;
+                    y = sy + state.myx * t;
+                    z = sz + state.mzx * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
@@ -450,21 +455,21 @@ HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
                 } else {
                     t = tfar;
                     x = sx + t;
-                    y = sy + myx * t;
-                    z = sz + mzx * t;
+                    y = sy + state.myx * t;
+                    z = sz + state.mzx * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
-                    iz += isdz;
-                    if (isdz >= 0) {
-                        tfar = gdx * (blockSize * (iz + 1) - sz);
+                    iz += state.isdz;
+                    if (state.isdz >= 0) {
+                        tfar = state.gdx * (blockSize * (iz + 1) - sz);
                     } else {
-                        tfar = gdx * (sz - blockSize * (iz));
+                        tfar = state.gdx * (sz - blockSize * (iz));
                     }
                 }
             }
@@ -472,23 +477,23 @@ HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
             ix = (int)java::Math::ceil(sx * invBlkSize) - 1;
             tnear = sx - blockSize * (ix);
 
-            if (isdz >= 0) {
+            if (state.isdz >= 0) {
                 iz = (int)java::Math::floor(sz * invBlkSize);
-                tfar = gdx * (blockSize * (iz + 1) - sz);
+                tfar = state.gdx * (blockSize * (iz + 1) - sz);
             } else {
                 iz = (int)java::Math::ceil(sz * invBlkSize) - 1;
-                tfar = gdx * (sz - blockSize * (iz));
+                tfar = state.gdx * (sz - blockSize * (iz));
             }
 
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     x = sx - t;
-                    y = sy - myx * t;
-                    z = sz - mzx * t;
+                    y = sy - state.myx * t;
+                    z = sz - state.mzx * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
@@ -499,46 +504,46 @@ HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
                 } else {
                     t = tfar;
                     x = sx - t;
-                    y = sy - myx * t;
-                    z = sz - mzx * t;
+                    y = sy - state.myx * t;
+                    z = sz - state.mzx * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
-                    iz += isdz;
-                    if (isdz >= 0) {
-                        tfar = gdx * (blockSize * (iz + 1) - sz);
+                    iz += state.isdz;
+                    if (state.isdz >= 0) {
+                        tfar = state.gdx * (blockSize * (iz + 1) - sz);
                     } else {
-                        tfar = gdx * (sz - blockSize * (iz));
+                        tfar = state.gdx * (sz - blockSize * (iz));
                     }
                 }
             }
         }
     } else {
-        if (isdz >= 0) {
+        if (state.isdz >= 0) {
             iz = (int)java::Math::floor(sz * invBlkSize);
             tnear = blockSize * (iz + 1) - sz;
 
-            if (isdx >= 0) {
+            if (state.isdx >= 0) {
                 ix = (int)java::Math::floor(sx * invBlkSize);
-                tfar = gdz * (blockSize * (ix + 1) - sx);
+                tfar = state.gdz * (blockSize * (ix + 1) - sx);
             } else {
                 ix = (int)java::Math::ceil(sx * invBlkSize) - 1;
-                tfar = gdz * (sx - blockSize * (ix));
+                tfar = state.gdz * (sx - blockSize * (ix));
             }
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     z = sz + t;
-                    y = sy + myz * t;
-                    x = sx + mxz * t;
+                    y = sy + state.myz * t;
+                    x = sx + state.mxz * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
@@ -549,21 +554,21 @@ HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
                 } else {
                     t = tfar;
                     z = sz + t;
-                    y = sy + myz * t;
-                    x = sx + mxz * t;
+                    y = sy + state.myz * t;
+                    x = sx + state.mxz * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
-                    ix += isdx;
-                    if (isdx >= 0) {
-                        tfar = gdz * (blockSize * (ix + 1) - sx);
+                    ix += state.isdx;
+                    if (state.isdx >= 0) {
+                        tfar = state.gdz * (blockSize * (ix + 1) - sx);
                     } else {
-                        tfar = gdz * (sx - blockSize * (ix));
+                        tfar = state.gdz * (sx - blockSize * (ix));
                     }
                 }
             }
@@ -571,22 +576,22 @@ HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
             iz = (int)java::Math::ceil(sz * invBlkSize) - 1;
             tnear = sz - blockSize * (iz);
 
-            if (isdx >= 0) {
+            if (state.isdx >= 0) {
                 ix = (int)java::Math::floor(sx * invBlkSize);
-                tfar = gdz * (blockSize * (ix + 1) - sx);
+                tfar = state.gdz * (blockSize * (ix + 1) - sx);
             } else {
                 ix = (int)java::Math::ceil(sx * invBlkSize) - 1;
-                tfar = gdz * (sx - blockSize * (ix));
+                tfar = state.gdz * (sx - blockSize * (ix));
             }
             for (i = 0; i < length; i++) {
                 if (tnear < tfar) {
                     t = tnear;
                     z = sz - t;
-                    y = sy - myz * t;
-                    x = sx - mxz * t;
+                    y = sy - state.myz * t;
+                    x = sx - state.mxz * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
@@ -597,39 +602,39 @@ HeightField::intersectHfNode(const RayWithSegments *ray, HeightField *hField,
                 } else {
                     t = tfar;
                     z = sz - t;
-                    y = sy - myz * t;
-                    x = sx - mxz * t;
+                    y = sy - state.myz * t;
+                    x = sx - state.mxz * t;
                     *next = Vector3Dd(x, y, z);
                     if (HeightField::intersectSubBlock(&(hField->block[ix][iz]),
-                            ray, hField, curr, next)) {
+                            ray, state, hField, curr, next)) {
                         return (true);
                     }
                     temp = curr;
                     curr = next;
                     next = temp;
-                    ix += isdx;
-                    if (isdx >= 0) {
-                        tfar = gdz * (blockSize * (ix + 1) - sx);
+                    ix += state.isdx;
+                    if (state.isdx >= 0) {
+                        tfar = state.gdz * (blockSize * (ix + 1) - sx);
                     } else {
-                        tfar = gdz * (sx - blockSize * (ix));
+                        tfar = state.gdz * (sx - blockSize * (ix));
                     }
                 }
             }
         }
     }
     *next = Vector3Dd(ex, ey, ez);
-    if (isdx >= 0) {
+    if (state.isdx >= 0) {
         ix = (int)java::Math::floor(ex * invBlkSize);
     } else {
         ix = (int)java::Math::ceil(ex * invBlkSize) - 1;
     }
-    if (isdz >= 0) {
+    if (state.isdz >= 0) {
         iz = (int)java::Math::floor(ez * invBlkSize);
     } else {
         iz = (int)java::Math::ceil(ez * invBlkSize) - 1;
     }
     if (HeightField::intersectSubBlock(
-            &(hField->block[ix][iz]), ray, hField, curr, next)) {
+            &(hField->block[ix][iz]), ray, state, hField, curr, next)) {
         return (true);
     }
     return (false);
@@ -802,6 +807,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     bool retVal = false;
     HeightField * const hField = this;
     Intersection localElement;
+    HeightFieldTraversalState state{};
 
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayHtFieldTests();
@@ -834,41 +840,41 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     }
 
     if (java::Math::abs(tempRay.getDirection().x()) > Config::INTERSECTION_EPSILON) {
-        mzx = tempRay.getDirection().z() / tempRay.getDirection().x();
-        myx = tempRay.getDirection().y() / tempRay.getDirection().x();
+        state.mzx = tempRay.getDirection().z() / tempRay.getDirection().x();
+        state.myx = tempRay.getDirection().y() / tempRay.getDirection().x();
     } else {
-        mzx = tempRay.getDirection().z() / Config::INTERSECTION_EPSILON;
-        myx = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
+        state.mzx = tempRay.getDirection().z() / Config::INTERSECTION_EPSILON;
+        state.myx = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
     }
     if (java::Math::abs(tempRay.getDirection().z()) > Config::INTERSECTION_EPSILON) {
-        mxz = tempRay.getDirection().x() / tempRay.getDirection().z();
-        myz = tempRay.getDirection().y() / tempRay.getDirection().z();
+        state.mxz = tempRay.getDirection().x() / tempRay.getDirection().z();
+        state.myz = tempRay.getDirection().y() / tempRay.getDirection().z();
     } else {
-        mxz = tempRay.getDirection().x() / Config::INTERSECTION_EPSILON;
-        myz = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
+        state.mxz = tempRay.getDirection().x() / Config::INTERSECTION_EPSILON;
+        state.myz = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
     }
 
-    hfQueue = depthQueue;
-    hfIntersection = &localElement;
-    rRay = ray;
+    state.hfQueue = depthQueue;
+    state.hfIntersection = &localElement;
+    state.rRay = ray;
 
-    isdx = HeightField::signInline(tempRay.getDirection().x());
-    isdz = HeightField::signInline(tempRay.getDirection().z());
+    state.isdx = HeightField::signInline(tempRay.getDirection().x());
+    state.isdz = HeightField::signInline(tempRay.getDirection().z());
 
-    xDom = false;
+    state.xDom = false;
     if (java::Math::abs(tempRay.getDirection().x()) >= java::Math::abs(tempRay.getDirection().z())) {
-        xDom = true;
+        state.xDom = true;
     }
 
-    gdx = java::Math::abs(mxz);
-    gdz = java::Math::abs(mzx);
-    if (xDom) {
-        gdy = myx * (double)isdx;
+    state.gdx = java::Math::abs(state.mxz);
+    state.gdz = java::Math::abs(state.mzx);
+    if (state.xDom) {
+        state.gdy = state.myx * (double)state.isdx;
     } else {
-        gdy = myz * (double)isdz;
+        state.gdy = state.myz * (double)state.isdz;
     }
 
-    if (HeightField::intersectHfNode(&tempRay, hField, &temp1, &temp2)) {
+    if (HeightField::intersectHfNode(&tempRay, state, hField, &temp1, &temp2)) {
         retVal = true;
     }
     return (retVal);

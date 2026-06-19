@@ -9,27 +9,22 @@ typedef long LONG;
 typedef unsigned long ULONG;
 typedef int INT;
 
-unsigned char *GifDecoder::decoderline = nullptr;
-
 static constexpr int BAD_CODE_SIZE = -20;
 
 static constexpr int MAX_CODES = 4095;
 
-long GifDecoder::codeMask[13] = {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
-    0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF};
-
 // This function initializes the decoder for reading a new image.
 WORD
-GifDecoder::initExp(int iSize)
+GifDecoder::initExp(int iSize, GifDecoderState &state)
 {
     WORD size;
     size = (WORD)iSize;
-    currSize = size + 1;
-    topSlot = 1 << currSize;
-    clear = 1 << size;
-    ending = clear + 1;
-    slot = newcodes = ending + 1;
-    navailBytes = nbitsLeft = 0;
+    state.currSize = size + 1;
+    state.topSlot = 1 << state.currSize;
+    state.clear = 1 << size;
+    state.ending = state.clear + 1;
+    state.slot = state.newcodes = state.ending + 1;
+    state.navailBytes = state.nbitsLeft = 0;
     return (0);
 }
 
@@ -37,59 +32,59 @@ GifDecoder::initExp(int iSize)
 // - gets the next code from the GIF file.  Returns the code, or else
 // a negative number in case of file errors...
 WORD
-GifDecoder::getNextCode()
+GifDecoder::getNextCode(GifInputContext &input, GifDecoderState &state)
 {
     WORD i;
     WORD x;
     ULONG ret;
 
-    if (nbitsLeft == 0) {
-        if (navailBytes <= 0) {
+    if (state.nbitsLeft == 0) {
+        if (state.navailBytes <= 0) {
 
             // Out of bytes in current block, so read next block
-            pbytes = byteBuff;
-            if ((navailBytes = GifFormat::getByte()) < 0) {
-                return (navailBytes);
+            state.pbytes = state.byteBuff;
+            if ((state.navailBytes = input.getByte(input.context)) < 0) {
+                return (state.navailBytes);
             }
-            if (navailBytes) {
-                for (i = 0; i < navailBytes; ++i) {
-                    if ((x = GifFormat::getByte()) < 0) {
+            if (state.navailBytes) {
+                for (i = 0; i < state.navailBytes; ++i) {
+                    if ((x = input.getByte(input.context)) < 0) {
                         return (x);
                     }
-                    byteBuff[i] = (UTINY)x;
+                    state.byteBuff[i] = (UTINY)x;
                 }
             }
         }
-        b1 = *pbytes++;
-        nbitsLeft = 8;
-        --navailBytes;
+        state.b1 = *state.pbytes++;
+        state.nbitsLeft = 8;
+        --state.navailBytes;
     }
 
-    ret = b1 >> (8 - nbitsLeft);
-    while (currSize > nbitsLeft) {
-        if (navailBytes <= 0) {
+    ret = state.b1 >> (8 - state.nbitsLeft);
+    while (state.currSize > state.nbitsLeft) {
+        if (state.navailBytes <= 0) {
 
             // Out of bytes in current block, so read next block
-            pbytes = byteBuff;
-            if ((navailBytes = GifFormat::getByte()) < 0) {
-                return (navailBytes);
+            state.pbytes = state.byteBuff;
+            if ((state.navailBytes = input.getByte(input.context)) < 0) {
+                return (state.navailBytes);
             }
-            if (navailBytes) {
-                for (i = 0; i < navailBytes; ++i) {
-                    if ((x = GifFormat::getByte()) < 0) {
+            if (state.navailBytes) {
+                for (i = 0; i < state.navailBytes; ++i) {
+                    if ((x = input.getByte(input.context)) < 0) {
                         return (x);
                     }
-                    byteBuff[i] = (UTINY)x;
+                    state.byteBuff[i] = (UTINY)x;
                 }
             }
         }
-        b1 = *pbytes++;
-        ret |= b1 << nbitsLeft;
-        nbitsLeft += 8;
-        --navailBytes;
+        state.b1 = *state.pbytes++;
+        ret |= state.b1 << state.nbitsLeft;
+        state.nbitsLeft += 8;
+        --state.navailBytes;
     }
-    nbitsLeft -= currSize;
-    ret &= GifDecoder::codeMask[currSize];
+    state.nbitsLeft -= state.currSize;
+    ret &= state.codeMask[state.currSize];
     return ((WORD)(ret));
 }
 
@@ -101,22 +96,6 @@ GifDecoder::getNextCode()
 // published by Plum-Hall Associates...)
 //
 // Decoder work buffers are held as class static members.
-
-int GifDecoder::badCodeCount = 0;
-WORD GifDecoder::currSize = 0;
-WORD GifDecoder::clear = 0;
-WORD GifDecoder::ending = 0;
-WORD GifDecoder::newcodes = 0;
-WORD GifDecoder::topSlot = 0;
-WORD GifDecoder::slot = 0;
-WORD GifDecoder::navailBytes = 0;
-WORD GifDecoder::nbitsLeft = 0;
-UTINY GifDecoder::b1 = 0;
-UTINY GifDecoder::byteBuff[257] = {0};
-UTINY *GifDecoder::pbytes = nullptr;
-UTINY *GifDecoder::dstack = nullptr;
-UTINY *GifDecoder::suffix = nullptr;
-UWORD *GifDecoder::prefix = nullptr;
 
 // WORD decoder(linewidth)
 //     WORD linewidth;                    * Pixels per line of image *
@@ -136,15 +115,15 @@ UWORD *GifDecoder::prefix = nullptr;
 // Returns: 0 if successful, else negative.  (See ERRS.H)
 
 void
-GifDecoder::cleanupGifDecoder()
+GifDecoder::cleanupGifDecoder(GifDecoderState &state)
 {
-    delete dstack;
-    delete suffix;
-    delete prefix;
+    delete state.dstack;
+    delete state.suffix;
+    delete state.prefix;
 }
 
 WORD
-GifDecoder::decoder(int iLinewidth)
+GifDecoder::decoder(int iLinewidth, GifInputContext &input, GifDecoderState &state)
 {
     WORD linewidth;
     UTINY *sp;
@@ -161,28 +140,28 @@ GifDecoder::decoder(int iLinewidth)
     linewidth = (WORD)iLinewidth;
 
     // Initialize for decoding a new image...
-    if ((size = GifFormat::getByte()) < 0) {
+    if ((size = input.getByte(input.context)) < 0) {
         return (size);
     }
     if (size < 2 || 9 < size) {
         return (BAD_CODE_SIZE);
     }
-    GifDecoder::initExp((int)size); // changed param to int
+    GifDecoder::initExp((int)size, state); // changed param to int
 
-    dstack = new UTINY[MAX_CODES + 1];
-    suffix = new UTINY[MAX_CODES + 1];
-    prefix = new UWORD[MAX_CODES + 1];
+    state.dstack = new UTINY[MAX_CODES + 1];
+    state.suffix = new UTINY[MAX_CODES + 1];
+    state.prefix = new UWORD[MAX_CODES + 1];
 
     // Initialize in case they forgot to put in a clear code.
     // (This shouldn't happen, but we'll try and decode it anyway...)
     oc = fc = 0;
 
-    buf = GifDecoder::getDecoderLine();
+    buf = state.decoderline;
 
-    badCodeCount = 0;
+    state.badCodeCount = 0;
 
     // Set up the stack pointer and decode buffer pointer
-    sp = dstack;
+    sp = state.dstack;
     bufptr = buf;
     bufcnt = linewidth;
 
@@ -193,29 +172,29 @@ GifDecoder::decoder(int iLinewidth)
     // character for output in the correct order.  Special handling is
     // included for the clear code, and the whole thing ends when we get
     // an ending code.
-    while ((c = GifDecoder::getNextCode()) != ending) {
+    while ((c = GifDecoder::getNextCode(input, state)) != state.ending) {
 
         // If we had a file error, return without completing the decode
         if (c < 0) {
-            GifDecoder::cleanupGifDecoder();
+            GifDecoder::cleanupGifDecoder(state);
             return (0);
         }
 
         // If the code is a clear code, reinitialize all necessary items.
-        if (c == clear) {
-            currSize = size + 1;
-            slot = newcodes;
-            topSlot = 1 << currSize;
+        if (c == state.clear) {
+            state.currSize = size + 1;
+            state.slot = state.newcodes;
+            state.topSlot = 1 << state.currSize;
 
             // Continue reading codes until we get a non-clear code
             // (Another unlikely, but possible case...)
-            while ((c = GifDecoder::getNextCode()) == clear) {
+            while ((c = GifDecoder::getNextCode(input, state)) == state.clear) {
                 ;
             }
 
             // If we get an ending code immediately after a clear code
             // (Yet another unlikely case), then break out of the loop.
-            if (c == ending) {
+            if (c == state.ending) {
                 break;
             }
 
@@ -223,7 +202,7 @@ GifDecoder::decoder(int iLinewidth)
             // (This one had better NOT happen...  I have no idea what will
             // result from this, but I doubt it will look good...) then set it
             // to color zero.
-            if (c >= slot) {
+            if (c >= state.slot) {
                 c = 0;
             }
 
@@ -235,8 +214,8 @@ GifDecoder::decoder(int iLinewidth)
             // GifFormat::outLine() routine...
             *bufptr++ = (UTINY)c;
             if (--bufcnt == 0) {
-                if ((ret = GifFormat::outLine(buf, linewidth)) < 0) {
-                    GifDecoder::cleanupGifDecoder();
+                if ((ret = input.outLine(input.context, buf, linewidth)) < 0) {
+                    GifDecoder::cleanupGifDecoder(state);
                     return (ret);
                 }
 
@@ -255,9 +234,9 @@ GifDecoder::decoder(int iLinewidth)
             // set up (Another thing which had better NOT happen...) we trick
             // the decoder into thinking it actually got the last code read.
             // (Hmmn... I'm not sure why this works...  But it does...)
-            if (code >= slot) {
-                if (code > slot) {
-                    ++badCodeCount;
+            if (code >= state.slot) {
+                if (code > state.slot) {
+                    ++state.badCodeCount;
                 }
                 code = oc;
                 *sp++ = (UTINY)fc;
@@ -265,9 +244,9 @@ GifDecoder::decoder(int iLinewidth)
 
             // Here we scan back along the linked list of prefixes, pushing
             // helpless characters (ie. suffixes) onto the stack as we do so.
-            while (code >= newcodes) {
-                *sp++ = suffix[code];
-                code = prefix[code];
+            while (code >= state.newcodes) {
+                *sp++ = state.suffix[code];
+                code = state.prefix[code];
             }
 
             // Push the last character on the stack, and set up the new
@@ -277,16 +256,16 @@ GifDecoder::decoder(int iLinewidth)
             // suffix and prefix...  I'm not certain if this is correct...
             // it might be more proper to overwrite the last code...
             *sp++ = (UTINY)code;
-            if (slot < topSlot) {
+            if (state.slot < state.topSlot) {
                 fc = code;
-                suffix[slot] = (UTINY)fc;
-                prefix[slot++] = oc;
+                state.suffix[state.slot] = (UTINY)fc;
+                state.prefix[state.slot++] = oc;
                 oc = c;
             }
-            if (slot >= topSlot) {
-                if (currSize < 12) {
-                    topSlot <<= 1;
-                    ++currSize;
+            if (state.slot >= state.topSlot) {
+                if (state.currSize < 12) {
+                    state.topSlot <<= 1;
+                    ++state.currSize;
                 }
             }
 
@@ -294,11 +273,11 @@ GifDecoder::decoder(int iLinewidth)
             // onto the stack, lets pop it off and put it into our decode
             // buffer...  And when the decode buffer is full, write another
             // line...
-            while (sp > dstack) {
+            while (sp > state.dstack) {
                 *bufptr++ = *(--sp);
                 if (--bufcnt == 0) {
-                    if ((ret = GifFormat::outLine(buf, linewidth)) < 0) {
-                        GifDecoder::cleanupGifDecoder();
+                    if ((ret = input.outLine(input.context, buf, linewidth)) < 0) {
+                        GifDecoder::cleanupGifDecoder(state);
                         return (ret);
                     }
                     bufptr = buf;
@@ -309,9 +288,9 @@ GifDecoder::decoder(int iLinewidth)
     }
     ret = 0;
     if (bufcnt != linewidth) {
-        ret = GifFormat::outLine(buf, (linewidth - bufcnt));
+        ret = input.outLine(input.context, buf, (linewidth - bufcnt));
     }
 
-    GifDecoder::cleanupGifDecoder();
+    GifDecoder::cleanupGifDecoder(state);
     return (ret);
 }

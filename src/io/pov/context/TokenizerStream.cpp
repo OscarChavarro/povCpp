@@ -1,26 +1,30 @@
 #include "io/pov/context/TokenizerStream.h"
-#include "io/pov/lexer/Tokenizer.h"
+
+TokenizerStream::TokenizerStream(Tokenizer *tokenizer)
+    : mTokenizer(tokenizer)
+{
+}
 
 const ReservedWord *
 TokenizerStream::reservedWords()
 {
-    return Tokenizer::reservedWords();
+    return mTokenizer->reservedWords();
 }
 
 PovToken &
 TokenizerStream::token()
 {
-    return Tokenizer::token();
+    return mTokenizer->token();
 }
 
 void
 TokenizerStream::getToken()
 {
-    Tokenizer::getToken();
+    mTokenizer->getToken();
 }
 
 void
 TokenizerStream::ungetToken()
 {
-    Tokenizer::ungetToken();
+    mTokenizer->ungetToken();
 }

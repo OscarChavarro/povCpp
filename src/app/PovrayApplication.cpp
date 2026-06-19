@@ -7,7 +7,6 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/RenderRuntimeState.h"
-#include "common/dataStructures/PriorityQueuePool.txx"
 #include "common/statistics/Statistics.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
@@ -209,7 +208,10 @@ PovrayApplication::parseSceneDescription()
 {
     FILE *statFile;
 
-    Tokenizer::initializeTokenizer(configuration.getInputFileName());
+    ParserContext ctx;
+    ctx.tokenizer().setCaseSensitiveIdentifiers(configuration.getTokenizerCaseSensitiveMode());
+    ctx.tokenizer().setMaxSymbols(configuration.getTokenizerMaxSymbols());
+    ctx.tokenizer().initializeTokenizer(configuration.getInputFileName());
     fprintf(stderr, "Parsing...");
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
         statFile = fopen(configuration.getStatFileName(), "w+t");
@@ -217,11 +219,10 @@ PovrayApplication::parseSceneDescription()
         fclose(statFile);
     }
 
-    ParserContext ctx;
     ctx.setReportingConfig(&configuration);
     ctx.setRuntimeState(&runtimeState);
     SceneParser::parse(&RenderEngine::scene(), ctx);
-    Tokenizer::terminateTokenizer();
+    ctx.tokenizer().terminateTokenizer();
 }
 
 void
@@ -330,8 +331,6 @@ PovrayApplication::initVars()
     configuration.reset();
     runtimeState.reset();
     statistics.reset();
-    Tokenizer::setCaseSensitiveIdentifiers(0);
-    CommandLineOptions::reset();
 
     RenderEngine::scene().setScreenHeight(100);
     RenderEngine::scene().setScreenWidth(100);

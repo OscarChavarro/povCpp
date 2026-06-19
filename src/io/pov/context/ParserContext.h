@@ -26,8 +26,9 @@ class ParserContext {
     ITokenStream &tokenStream();
     void setTokenStream(ITokenStream *tokenStream);
     void resetTokenStreamHistory();
-    static void forceTokenStream(ITokenStream *tokenStream);
-    static void clearForcedTokenStream();
+    void forceTokenStream(ITokenStream *tokenStream);
+    void clearForcedTokenStream();
+    Tokenizer &tokenizer() { return mTokenizer; }
 
     PovrayMaterial *getDefaultTexture() const { return mDefaultTexture; }
     void setDefaultTexture(PovrayMaterial *texture) { mDefaultTexture = texture; }
@@ -38,10 +39,11 @@ class ParserContext {
     void setRuntimeState(RenderRuntimeState *runtimeState) { mRuntimeState = runtimeState; }
 
   private:
-    static TokenizerStream sDefaultTokenStream;
-    static SymbolTable sSharedSymbols;
-    static int sSharedDegenerateTriangles;
-    static ITokenStream *sForcedTokenStream;
+    Tokenizer mTokenizer;
+    TokenizerStream mDefaultTokenStream;
+    SymbolTable mSharedSymbols;
+    int mSharedDegenerateTriangles;
+    ITokenStream *mForcedTokenStream;
 
     ITokenStream *mTokenStream;
     SymbolTable * const mSymbols;
