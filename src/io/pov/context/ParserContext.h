@@ -8,6 +8,8 @@
 #include "io/pov/context/SymbolTable.h"
 #include "io/pov/context/TokenizerStream.h"
 
+class PovrayMaterial;
+
 class ParserContext {
   public:
     ParserContext();
@@ -25,6 +27,9 @@ class ParserContext {
     static void forceTokenStream(ITokenStream *tokenStream);
     static void clearForcedTokenStream();
 
+    PovrayMaterial *getDefaultTexture() const { return mDefaultTexture; }
+    void setDefaultTexture(PovrayMaterial *texture) { mDefaultTexture = texture; }
+
   private:
     static TokenizerStream sDefaultTokenStream;
     static SymbolTable sSharedSymbols;
@@ -34,6 +39,7 @@ class ParserContext {
     ITokenStream *mTokenStream;
     SymbolTable * const mSymbols;
     int * const mDegenerateTriangles;
+    PovrayMaterial *mDefaultTexture;
 };
 
 #endif

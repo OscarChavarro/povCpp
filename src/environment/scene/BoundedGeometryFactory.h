@@ -3,10 +3,12 @@
 
 #include "environment/geometry/BoundedGeometry.h"
 
+class PovrayMaterial;
+
 class BoundedGeometryFactory {
   public:
-    static BoundedGeometry *getObject(void);
-    static BoundedGeometry *getObject(TransformableElement *geometry);
+    static BoundedGeometry *getObject(PovrayMaterial *defaultTexture);
+    static BoundedGeometry *getObject(TransformableElement *geometry, PovrayMaterial *defaultTexture);
 };
 
 #endif

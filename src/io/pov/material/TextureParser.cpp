@@ -68,7 +68,7 @@ TextureParser::logTextureStateLegacy(const char *prefix, const PovrayMaterial *t
 PovrayMaterial *
 TextureParser::copyTexture(PovrayMaterial *texture)
 {
-    return MaterialUtils::instance().copyTexture(texture);
+    return MaterialUtils::copyTexture(texture);
 }
 
 PovrayMaterial *
@@ -119,7 +119,7 @@ PovrayMaterial *
 TextureParser::parseTexture(ParserContext &ctx)
 {
     return TextureParser::parseTexture(
-        MaterialUtils::instance().defaultTexture(), ctx);
+        ctx.getDefaultTexture(), ctx);
 }
 
 PovrayMaterial *
@@ -631,19 +631,19 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
             case Tokenizer::TRANSLATE_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                MaterialUtils::instance().translateTexture(&texture, &localVector);
+                MaterialUtils::translateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                MaterialUtils::instance().rotateTexture(&texture, &localVector);
+                MaterialUtils::rotateTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::SCALE_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                MaterialUtils::instance().scaleTexture(&texture, &localVector);
+                MaterialUtils::scaleTexture(&texture, &localVector);
                 break;
 
             case Tokenizer::COLOUR_TOKEN:

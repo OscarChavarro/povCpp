@@ -2,31 +2,44 @@
 #define __POVRAY_APPLICATION__
 
 #include "common/statistics/Statistics.h"
+#include "common/RenderRuntimeState.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/image/ImageOutput.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 class PovrayApplication {
   private:
-    static ImageOutput *selectedImageOutput;
+    RenderingConfiguration configuration;
+    Statistics statistics;
+    RenderRuntimeState runtimeState;
+    TextureUtils textureUtils;
+    ImageOutput *selectedImageOutput;
 
-    static void printStatistics(
+    void printStatistics(
         const Statistics &stats,
         const Scene &frame,
         const RenderingConfiguration &configuration);
 
-    static void initializeFromCommandLine(int argc, char *argv[]);
-    static void configureOutputTarget();
-    static void parseSceneDescription();
-    static void prepareRendering();
-    static void runRenderLoop();
-    static void finalizeRun();
-    static void initVars();
-    static void closeAll();
-    static void printCredits();
+    void initializeFromCommandLine(int argc, char *argv[]);
+    void configureOutputTarget();
+    void parseSceneDescription();
+    void prepareRendering();
+    void runRenderLoop();
+    void finalizeRun();
+    void initVars();
+    void closeAll();
+    void printCredits();
 
   public:
-    static void run(int argc, char *argv[]);
+    PovrayApplication() {
+        RenderingConfiguration::installActive(&configuration);
+        Statistics::installActive(&statistics);
+        RenderRuntimeState::installActive(&runtimeState);
+        TextureUtils::installActive(&textureUtils);
+    }
+
+    void run(int argc, char *argv[]);
 };
 
 #endif

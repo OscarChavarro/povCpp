@@ -3,7 +3,8 @@
 int
 main(int argc, char *argv[])
 {
-    PovrayApplication::run(argc, argv);
+    PovrayApplication app;
+    app.run(argc, argv);
 
     return 0;
 }

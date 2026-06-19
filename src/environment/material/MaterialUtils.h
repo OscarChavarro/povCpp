@@ -14,9 +14,6 @@ sources/frequencies used by ripple/wave bump textures, and texture-space transfo
 
 class MaterialUtils {
   private:
-    static MaterialUtils* materialInstance;
-    MaterialUtils();
-
     static bool needsTransform(const PovrayMaterial *texture);
     static void applyTranslationTransform(PovrayMaterial *texture, const Vector3Dd *vector);
     static void applyRotationTransform(PovrayMaterial *texture, Vector3Dd *vector);
@@ -24,11 +21,6 @@ class MaterialUtils {
     static void copyTextureNode(PovrayMaterial *dst, const PovrayMaterial *src);
 
   public:
-    static void initialize();
-    static MaterialUtils& instance();
-
-    static PovrayMaterial *defaultTexture();
-    static void setDefaultTexture(PovrayMaterial *texture);
     static void translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector);
     static void rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector);
     static void scaleTexture(PovrayMaterial **texturePtr, Vector3Dd *vector);

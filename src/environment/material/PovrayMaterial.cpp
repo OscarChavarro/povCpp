@@ -43,26 +43,26 @@ PovrayMaterial::PovrayMaterial() :
 PovrayMaterial *
 PovrayMaterial::copy()
 {
-    return MaterialUtils::instance().copyTexture(this);
+    return MaterialUtils::copyTexture(this);
 }
 
 void
 PovrayMaterial::translate(Vector3Dd *vector)
 {
     PovrayMaterial *self = this;
-    MaterialUtils::instance().translateTexture(&self, vector);
+    MaterialUtils::translateTexture(&self, vector);
 }
 
 void
 PovrayMaterial::rotate(Vector3Dd *vector)
 {
     PovrayMaterial *self = this;
-    MaterialUtils::instance().rotateTexture(&self, vector);
+    MaterialUtils::rotateTexture(&self, vector);
 }
 
 void
 PovrayMaterial::scale(Vector3Dd *vector)
 {
     PovrayMaterial *self = this;
-    MaterialUtils::instance().scaleTexture(&self, vector);
+    MaterialUtils::scaleTexture(&self, vector);
 }
