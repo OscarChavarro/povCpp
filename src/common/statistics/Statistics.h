@@ -45,9 +45,16 @@ class Statistics {
     double usedTime;
 
   public:
+    Statistics() { reset(); }
+
+    static Statistics *sActive;
+    static void installActive(Statistics *p) { sActive = p; }
     static inline Statistics &global() {
-        static Statistics instance;
-        return instance;
+        if (!sActive) {
+            static Statistics defaultInstance;
+            sActive = &defaultInstance;
+        }
+        return *sActive;
     }
     long getNumberOfPixels() const;
     void setNumberOfPixels(long value);

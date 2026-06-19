@@ -13,38 +13,6 @@ PovrayMaterial utilities: global default texture management.
 
 #include "java/util/ArrayList.txx"
 
-static PovrayMaterial *defaultTextureInstance;
-
-MaterialUtils* MaterialUtils::materialInstance = nullptr;
-
-MaterialUtils::MaterialUtils()
-{
-}
-
-void
-MaterialUtils::initialize()
-{
-    static MaterialUtils inst;
-    materialInstance = &inst;
-}
-
-MaterialUtils&
-MaterialUtils::instance()
-{
-    return *materialInstance;
-}
-
-PovrayMaterial *
-MaterialUtils::defaultTexture()
-{
-    return defaultTextureInstance;
-}
-
-void
-MaterialUtils::setDefaultTexture(PovrayMaterial *texture)
-{
-    defaultTextureInstance = texture;
-}
 
 bool
 MaterialUtils::needsTransform(const PovrayMaterial *texture)

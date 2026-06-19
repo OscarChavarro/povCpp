@@ -2,6 +2,8 @@
 
 #include "common/statistics/Statistics.h"
 
+Statistics *Statistics::sActive = nullptr;
+
 SolidTextureStatistics*
 Statistics::getSolidTextureStatistics()
 {

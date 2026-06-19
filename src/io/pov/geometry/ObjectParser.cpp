@@ -501,7 +501,7 @@ ObjectParser::parseObject(ParserContext &ctx)
 
     object = nullptr;
     geometry = nullptr;
-    objectTexture = MaterialUtils::instance().defaultTexture();
+    objectTexture = ctx.getDefaultTexture();
     objectColor = nullptr;
     noShadowFlag = false;
 
@@ -629,7 +629,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                if (objectTexture == MaterialUtils::instance().defaultTexture()) {
+                if (objectTexture == ctx.getDefaultTexture()) {
                     objectTexture = localTexture;
                 } else {
                     TextureParser::prependTextureLayers(localTexture, objectTexture);
@@ -730,7 +730,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
     localComposite = nullptr;
     geometry = nullptr;
-    objectTexture = MaterialUtils::instance().defaultTexture();
+    objectTexture = ctx.getDefaultTexture();
     objectColor = nullptr;
     noShadowFlag = false;
 

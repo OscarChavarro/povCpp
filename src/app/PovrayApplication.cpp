@@ -30,8 +30,6 @@
 
 static constexpr const char *COMPILER_VER = ".u";
 
-ImageOutput *PovrayApplication::selectedImageOutput = nullptr;
-
 void
 PovrayApplication::printStatistics(
     const Statistics &stats,
@@ -275,7 +273,6 @@ PovrayApplication::prepareRendering()
 
     PriorityQueuePool<Intersection>::pqInit();
     TextureUtils::initialize(Statistics::global().getSolidTextureStatistics());
-    MaterialUtils::initialize();
     TextureUtils::instance().initializeNoise(PovrayMaterial::DEFAULT_NUMBER_OF_WAVES);
 }
 
@@ -327,7 +324,7 @@ void
 PovrayApplication::initVars()
 {
     RenderingConfiguration::global().reset();
-    RenderRuntimeState::reset();
+    RenderRuntimeState::global().reset();
     Statistics::global().reset();
     Tokenizer::setCaseSensitiveIdentifiers(0);
     CommandLineOptions::reset();

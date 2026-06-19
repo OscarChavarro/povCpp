@@ -1,28 +1,24 @@
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-
 #include "environment/geometry/volume/compound/Composite.h"
-
-#include "environment/material/MaterialUtils.h"
-
+#include "environment/material/PovrayMaterial.h"
 #include "environment/scene/BoundedGeometryFactory.h"
 
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
 BoundedGeometry *
-BoundedGeometryFactory::getObject()
+BoundedGeometryFactory::getObject(PovrayMaterial *defaultTexture)
 {
-    return getObject(nullptr);
+    return getObject(nullptr, defaultTexture);
 }
 
 BoundedGeometry *
-BoundedGeometryFactory::getObject(TransformableElement *geometry)
+BoundedGeometryFactory::getObject(TransformableElement *geometry, PovrayMaterial *defaultTexture)
 {
     BoundedGeometry *newObject = new BoundedGeometry(
         geometry,
-        MaterialUtils::instance().defaultTexture(),
+        defaultTexture,
         nullptr,
         false);
     if (newObject == nullptr) {
