@@ -28,7 +28,6 @@ class Camera {
     Vector3Dd& getSky() { return sky; }
     const Vector3Dd& getSky() const { return sky; }
 
-    void initializeDefaults();
     void applyLinearTransformation(const Matrix4x4d &transformation);
 
     void *copy();

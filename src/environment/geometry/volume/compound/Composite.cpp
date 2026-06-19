@@ -9,17 +9,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
-BoundedGeometry *
-BoundedGeometry::createBasicObject(Material *objectTexture)
-{
-    BoundedGeometry *newObject = new BoundedGeometry(
-        nullptr, objectTexture, nullptr, false);
-    if (newObject == nullptr) {
-        Logger::reportMessage("Composite", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
-    }
-    return newObject;
-}
-
 int
 Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {

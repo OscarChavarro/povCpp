@@ -38,12 +38,6 @@ ParserContext::constants()
     return mSymbols->data();
 }
 
-int &
-ParserContext::numberOfConstants()
-{
-    return mSymbols->size();
-}
-
 SymbolTable &
 ParserContext::symbols()
 {
@@ -69,31 +63,9 @@ ParserContext::tokenStream()
 }
 
 void
-ParserContext::setTokenStream(ITokenStream *tokenStream)
-{
-    if (tokenStream != nullptr) {
-        mTokenStream = tokenStream;
-    }
-}
-
-void
 ParserContext::resetTokenStreamHistory()
 {
     // No-op: rewind/capture compatibility token stream removed from active pipeline.
-}
-
-void
-ParserContext::forceTokenStream(ITokenStream *tokenStream)
-{
-    mForcedTokenStream = tokenStream;
-    mTokenStream = (mForcedTokenStream != nullptr) ? mForcedTokenStream : &mDefaultTokenStream;
-}
-
-void
-ParserContext::clearForcedTokenStream()
-{
-    mForcedTokenStream = nullptr;
-    mTokenStream = &mDefaultTokenStream;
 }
 
 bool

@@ -35,53 +35,6 @@ ModelBuilder::wrap(Geometry *geometry)
     return (body);
 }
 
-Composite *
-ModelBuilder::getCompositeObject()
-{
-    Composite *newComposite;
-
-    newComposite = new Composite;
-    if (newComposite == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object\n");
-    }
-
-    return (newComposite);
-}
-
-Sphere *
-ModelBuilder::getSphereShape()
-{
-    Sphere *newShape;
-
-    newShape = new Sphere();
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
-Light *
-ModelBuilder::getLightSourceShape()
-{
-    PointLight *newShape = new PointLight();
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
-Quadric *
-ModelBuilder::getQuadricShape()
-{
-    Quadric *newShape;
-
-    newShape = new Quadric;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
 PolynomialShape *
 ModelBuilder::getPolyShape(int order, const int *termCounts)
 {
@@ -92,67 +45,6 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
-    return (newShape);
-}
-
-Box *
-ModelBuilder::getBoxShape()
-{
-    Box *newShape;
-
-    newShape = new Box;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
-InfinitePlane *
-ModelBuilder::getPlaneShape()
-{
-    InfinitePlane *newShape;
-
-    newShape = new InfinitePlane;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
-Triangle *
-ModelBuilder::getTriangleShape()
-{
-    Triangle *newShape;
-
-    newShape = new Triangle;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
-SmoothTriangle *
-ModelBuilder::getSmoothTriangleShape()
-{
-    SmoothTriangle *newShape;
-
-    newShape = new SmoothTriangle;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-    return (newShape);
-}
-
-CSG *
-ModelBuilder::getCsgShape()
-{
-    CSG *newShape;
-
-    newShape = new CSG;
-    if (newShape == nullptr) {
-        Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
-    }
-
     return (newShape);
 }
 

@@ -64,9 +64,6 @@ class BoundedGeometry : public Geometry {
     void rotate(Vector3Dd *vector) override;
     void scale(Vector3Dd *vector) override;
     void invert() override;
-
-  protected:
-    static BoundedGeometry *createBasicObject(Material *objectTexture);
 };
 
 #endif

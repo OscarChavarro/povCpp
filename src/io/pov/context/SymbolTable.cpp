@@ -25,30 +25,6 @@ SymbolTable::size()
     return mSize;
 }
 
-bool
-SymbolTable::isValidConstantId(int constantId) const
-{
-    return constantId >= 1 && constantId <= mSize;
-}
-
-Constant *
-SymbolTable::byConstantId(int constantId)
-{
-    if (!isValidConstantId(constantId)) {
-        return nullptr;
-    }
-    return &mData[constantId];
-}
-
-const Constant *
-SymbolTable::byConstantId(int constantId) const
-{
-    if (!isValidConstantId(constantId)) {
-        return nullptr;
-    }
-    return &mData[constantId];
-}
-
 void
 SymbolTable::clear()
 {

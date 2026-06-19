@@ -13,16 +13,8 @@ class Triangle : public Geometry {
         bool inverted = false);
 
     Vector3Dd &getNormalVector() { return normalVector; }
-    const Vector3Dd &getNormalVector() const { return normalVector; }
     double getDistance() const { return distance; }
     void setDistance(double d) { distance = d; }
-    double getVpNormDotOrigin() const { return vpNormDotOrigin; }
-    void setVpNormDotOrigin(double value) { vpNormDotOrigin = value; }
-    bool isVpCached() const { return vpCached; }
-    void setVpCached(bool value) { vpCached = value; }
-    unsigned int getDominantAxis() const { return dominantAxis; }
-    void setDominantAxis(unsigned int value) { dominantAxis = value; }
-    bool isInverted() const { return inverted; }
     void setInverted(bool value) { inverted = value; }
     void toggleInverted() { inverted ^= true; }
     unsigned int getVAxis() const { return vAxis; }
@@ -34,7 +26,6 @@ class Triangle : public Geometry {
     Vector3Dd &getP3() { return p3; }
     const Vector3Dd &getP3() const { return p3; }
     bool isDegenerate() const { return degenerateFlag; }
-    void setDegenerateFlag(bool value) { degenerateFlag = value; }
 
     static int computeTriangle(Triangle *triangle);
 
@@ -48,10 +39,6 @@ class Triangle : public Geometry {
     void invertGeometry() override;
 
   protected:
-    Triangle(const Vector3Dd &normalVector, double distance,
-        double vpNormDotOrigin, bool vpCached, unsigned int dominantAxis,
-        bool inverted, unsigned int vAxis, const Vector3Dd &p1,
-        const Vector3Dd &p2, const Vector3Dd &p3, bool degenerateFlag);
     virtual void swapVertexNormals() {}
     virtual void finalizeComputation() {}
     static void computeSmoothTriangle(SmoothTriangle *triangle);

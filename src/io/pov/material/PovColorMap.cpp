@@ -34,10 +34,6 @@ int PovColorMap::size() const {
     return (int)_spans.size();
 }
 
-bool PovColorMap::transparencyFlag() const {
-    return _transparencyFlag;
-}
-
 const PovColorMapSpan *PovColorMap::getSpanAt(int i) const {
     if (i < 0 || i >= (int)_spans.size()) {
         return nullptr;
