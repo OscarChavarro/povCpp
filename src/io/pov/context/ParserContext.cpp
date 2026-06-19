@@ -5,14 +5,12 @@
 #include "io/pov/lexer/ITokenStream.h"
 
 TokenizerStream ParserContext::sDefaultTokenStream;
-Scene *ParserContext::sSharedParsingFramePtr = nullptr;
 SymbolTable ParserContext::sSharedSymbols;
 int ParserContext::sSharedDegenerateTriangles = 0;
 ITokenStream *ParserContext::sForcedTokenStream = nullptr;
 
 ParserContext::ParserContext()
     : mTokenStream((sForcedTokenStream != nullptr) ? sForcedTokenStream : &sDefaultTokenStream),
-      mParsingFramePtr(&sSharedParsingFramePtr),
       mSymbols(&sSharedSymbols),
       mDegenerateTriangles(&sSharedDegenerateTriangles)
 {
@@ -28,12 +26,6 @@ PovToken &
 ParserContext::token()
 {
     return mTokenStream->token();
-}
-
-Scene *&
-ParserContext::parsingFrame()
-{
-    return *mParsingFramePtr;
 }
 
 Constant *

@@ -1,4 +1,4 @@
-#include "io/pov/parser/LightGeometryAdapter.h"
+#include "io/pov/light/LightGeometryAdapter.h"
 
 int
 LightGeometryAdapter::allIntersections(

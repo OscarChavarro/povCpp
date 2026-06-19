@@ -26,7 +26,6 @@ SceneBodyParser::parseFrame(Scene *framePtr, ParserContext &ctx)
 {
     BoundedGeometry *localObject;
     java::ArrayList<BoundedGeometry*> localObjects(4);
-    ctx.parsingFrame() = framePtr;
 
     {
         bool Exit_Flag;
@@ -39,7 +38,7 @@ SceneBodyParser::parseFrame(Scene *framePtr, ParserContext &ctx)
                 break;
 
             case Tokenizer::DEFAULT_TOKEN:
-                DefaultTextureParser::parseDefault(framePtr, ctx);
+                DefaultTextureParser::parseDefault(ctx);
                 break;
 
             case Tokenizer::MAX_TRACE_LEVEL_TOKEN:

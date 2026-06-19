@@ -12,6 +12,7 @@ add_executable(povray
     src/environment/geometry/Geometry.cpp
     src/environment/geometry/element/TransformableElement.cpp
     src/common/RenderRuntimeState.cpp
+    src/common/ParseReportingConfiguration.cpp
     src/common/statistics/Statistics.cpp
     src/environment/material/RendererConfiguration.cpp
     src/environment/geometry/element/RayWithSegments.cpp
@@ -23,7 +24,7 @@ add_executable(povray
     src/environment/geometry/volume/compound/CSG.cpp
     src/environment/geometry/volume/HeightField.cpp
     src/environment/light/Light.cpp
-    src/io/pov/parser/LightGeometryAdapter.cpp
+    src/io/pov/light/LightGeometryAdapter.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
     src/environment/geometry/volume/compound/Composite.cpp
@@ -85,6 +86,7 @@ add_executable(povray
     src/io/pov/geometry/HeightFieldParser.cpp
     src/io/pov/geometry/ObjectParser.cpp
     src/io/pov/scene/SceneParser.cpp
+    src/io/pov/scene/ScenePostProcessor.cpp
     src/io/pov/scene/FogParser.cpp
     src/io/pov/scene/RenderSettingsParser.cpp
     src/io/pov/camera/CameraParser.cpp

@@ -14,7 +14,7 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
-#include "io/pov/parser/LightGeometryAdapter.h"
+#include "io/pov/light/LightGeometryAdapter.h"
 #include "environment/material/MaterialUtils.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/scene/BoundedGeometryFactory.h"

@@ -3,8 +3,6 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "environment/geometry/volume/polynomial/PolynomialShape.h"
-
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -132,40 +130,6 @@ PrimitiveParser::parseVector(Vector3Dd *givenVector, ParserContext &ctx)
                 Exit_Flag = true;
                 break;
             }
-
-            default:
-                ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
-                break;
-            }
-        }
-    }
-}
-
-void
-PrimitiveParser::parseCoeffs(int order, double *givenCoeffs)
-{
-    ParserContext ctx;
-    PrimitiveParser::parseCoeffs(order, givenCoeffs, ctx);
-}
-
-void
-PrimitiveParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
-{
-    int i;
-
-    {
-        bool Exit_Flag;
-        Exit_Flag = false;
-        while (!Exit_Flag) {
-            ctx.tokenStream().getToken();
-            switch (ctx.token().getTokenId()) {
-            case Tokenizer::LEFT_ANGLE_TOKEN:
-                for (i = 0; i < PolynomialShape::termCountsByOrder()[order]; i++) {
-                    givenCoeffs[i] = PrimitiveParser::parseFloat(ctx);
-                }
-                ParseHelpers::getExpectedToken(Tokenizer::RIGHT_ANGLE_TOKEN, ctx);
-                Exit_Flag = true;
-                break;
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
