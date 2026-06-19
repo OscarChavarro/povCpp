@@ -18,7 +18,8 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
     double normalComponent;
 
     if (texture->getObjectReflection() != 0.0) {
-        Statistics::global().incrementReflectedRaysTraced();
+        Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+        stats.incrementReflectedRaysTraced();
         normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent < 0.0) {
             localNormal = *surfaceNormal;
@@ -38,6 +39,8 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
         newRay.setOrigin(newRay.getOrigin().add(surfaceOffset));
 
         newRay.copyContainersFrom(ray);
+        newRay.setStatistics(ray->getStatistics());
+        newRay.setConfig(ray->getConfig());
         traceLevel++;
         tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.setQuadricConstantsCached(false);

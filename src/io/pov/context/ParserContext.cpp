@@ -13,7 +13,8 @@ ParserContext::ParserContext()
     : mTokenStream((sForcedTokenStream != nullptr) ? sForcedTokenStream : &sDefaultTokenStream),
       mSymbols(&sSharedSymbols),
       mDegenerateTriangles(&sSharedDegenerateTriangles),
-      mDefaultTexture(nullptr)
+      mDefaultTexture(nullptr),
+      mReportingConfig(nullptr)
 {
 }
 

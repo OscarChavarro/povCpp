@@ -20,12 +20,16 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
     double temp;
     double ior;
 
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+
     if (surfaceNormal == nullptr) {
         newRay.setOriginAndDirection(*intersectionPoint, ray->getDirection());
 
         newRay.copyContainersFrom(ray);
+        newRay.setStatistics(ray->getStatistics());
+        newRay.setConfig(ray->getConfig());
         traceLevel++;
-        Statistics::global().incrementTransmittedRaysTraced();
+        stats.incrementTransmittedRaysTraced();
         tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.setQuadricConstantsCached(false);
         traceService->trace(&newRay, &tempColor);
@@ -34,7 +38,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         color->setG(color->getG() + tempColor.getG());
         color->setB(color->getB() + tempColor.getB());
     } else {
-        Statistics::global().incrementRefractedRaysTraced();
+        stats.incrementRefractedRaysTraced();
         normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
         if (normalComponent <= 0.0) {
             localNormal = Vector3Dd(
@@ -45,6 +49,8 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         }
 
         newRay.copyContainersFrom(ray);
+        newRay.setStatistics(ray->getStatistics());
+        newRay.setConfig(ray->getConfig());
 
         if (ray->getContainingIndex() == -1) {
             // The ray is entering from the atmosphere

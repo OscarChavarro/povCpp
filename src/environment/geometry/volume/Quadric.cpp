@@ -111,8 +111,9 @@ Quadric::intersectQuadric(
     double determinant2;
     double a2;
     double bMinus;
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
 
-    Statistics::global().incrementRayQuadricTests();
+    stats.incrementRayQuadricTests();
     if (!ray->areQuadricConstantsCached()) {
         ray->makeRay();
     }
@@ -189,7 +190,7 @@ Quadric::intersectQuadric(
         *depth2 = *depth1;
     }
 
-    Statistics::global().incrementRayQuadricTestsSucceeded();
+    stats.incrementRayQuadricTestsSucceeded();
     return (true);
 }
 

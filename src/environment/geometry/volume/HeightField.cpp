@@ -120,6 +120,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     double y4;
     double maxHeight;
     double minHeight;
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
 
     depth1 = HUGE_VAL;
     depth2 = HUGE_VAL;
@@ -226,7 +227,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
         hfQueue->offer(*hfIntersection);
     }
-    Statistics::global().incrementRayHtFieldTestsSucceeded();
+    stats.incrementRayHtFieldTestsSucceeded();
     return (true);
 }
 
@@ -802,11 +803,14 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     HeightField * const hField = this;
     Intersection localElement;
 
-    Statistics::global().incrementRayHtFieldTests();
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    stats.incrementRayHtFieldTests();
 
     tempRay.setOriginAndDirection(
         hField->transformationInverse->transformPoint(ray->getOrigin()),
         hField->transformationInverse->transformDirection(ray->getDirection()));
+    tempRay.setStatistics(ray->getStatistics());
+    tempRay.setConfig(ray->getConfig());
 
     if (!Box::intersectBoxx(&tempRay, hField->boundingBox, &depth1, &depth2)) {
         return (false);

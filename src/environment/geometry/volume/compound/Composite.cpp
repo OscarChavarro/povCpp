@@ -30,12 +30,13 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
     Intersection localIntersection;
     BoundedGeometry *localObject;
     java::PriorityQueue<Intersection> *localDepthQueue;
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(ray->getOrigin());
 
-        Statistics::global().incrementBoundingRegionTests();
+        stats.incrementBoundingRegionTests();
         {
             Intersection _boundingHit;
             if (!boundingShape->intersect(ray, _boundingHit) &&
@@ -43,7 +44,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
                 return (false);
             }
         }
-        Statistics::global().incrementBoundingRegionTestsSucceeded();
+        stats.incrementBoundingRegionTestsSucceeded();
     }
 
     localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
@@ -62,12 +63,12 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
-            Statistics::global().incrementClippingRegionTests();
+            stats.incrementClippingRegionTests();
             if (!clippingShape->inside(&localIntersection.getPoint())) {
                 intersectionFound = false;
                 break;
             }
-            Statistics::global().incrementClippingRegionTestsSucceeded();
+            stats.incrementClippingRegionTestsSucceeded();
         }
 
         if (intersectionFound) {
@@ -89,12 +90,13 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
     java::PriorityQueue<Intersection> *localDepthQueue;
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(ray->getOrigin());
 
-        Statistics::global().incrementBoundingRegionTests();
+        stats.incrementBoundingRegionTests();
         {
             Intersection _boundingHit;
             if (!boundingShape->intersect(ray, _boundingHit) &&
@@ -102,7 +104,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
                 return (false);
             }
         }
-        Statistics::global().incrementBoundingRegionTestsSucceeded();
+        stats.incrementBoundingRegionTestsSucceeded();
     }
 
     localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
@@ -118,7 +120,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
 
-            Statistics::global().incrementClippingRegionTests();
+            stats.incrementClippingRegionTests();
             if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
                 {
                     char _logMsg[1024];
@@ -133,7 +135,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
                 intersectionFound = false;
                 break;
             }
-            Statistics::global().incrementClippingRegionTestsSucceeded();
+            stats.incrementClippingRegionTestsSucceeded();
         }
 
         if (intersectionFound) {

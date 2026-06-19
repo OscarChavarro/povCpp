@@ -4,6 +4,9 @@
 #include "environment/material/Material.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
+class Statistics;
+class RenderingConfiguration;
+
 class RayWithSegments : public Ray {
   public:
     static constexpr int MAX_CONTAINING_OBJECTS = 10;
@@ -36,6 +39,10 @@ class RayWithSegments : public Ray {
     void setPrimaryRay(bool value) { isPrimaryRay = value; }
     Material *getContainingTextureAt(int index) const { return containingTextures[index]; }
     double getContainingIORAt(int index) const { return containingIORs[index]; }
+    Statistics *getStatistics() const { return statistics; }
+    void setStatistics(Statistics *stats) { statistics = stats; }
+    const RenderingConfiguration *getConfig() const { return config; }
+    void setConfig(const RenderingConfiguration *cfg) { config = cfg; }
 
     void makeRay();
     void initializeContainers();
@@ -58,6 +65,8 @@ class RayWithSegments : public Ray {
     bool quadricConstantsCached;
     bool isShadowRay;
     bool isPrimaryRay;
+    Statistics *statistics;
+    const RenderingConfiguration *config;
 };
 
 #endif

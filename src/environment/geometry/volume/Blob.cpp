@@ -373,8 +373,9 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
     Vector3Dd dv;
     const BlobInterval *intervals = blob->intervals;
     bool intersectionFound = false;
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
 
-    Statistics::global().incrementRayBlobTests();
+    stats.incrementRayBlobTests();
 
     // Transform the ray into the blob space
     if (blob->transformation != nullptr) {
@@ -500,7 +501,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
         }
     }
     if (intersectionFound) {
-        Statistics::global().incrementRayBlobTestsSucceeded();
+        stats.incrementRayBlobTestsSucceeded();
     }
     return intersectionFound;
 }

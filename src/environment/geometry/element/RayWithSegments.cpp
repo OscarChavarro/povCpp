@@ -12,6 +12,8 @@ RayWithSegments::RayWithSegments()
     quadricConstantsCached = false;
     isShadowRay = false;
     isPrimaryRay = false;
+    statistics = nullptr;
+    config = nullptr;
 }
 
 inline void

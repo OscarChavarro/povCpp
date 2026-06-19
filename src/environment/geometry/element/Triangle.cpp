@@ -239,8 +239,9 @@ Triangle::intersectTriangle(
     double normalDotDirection;
     double s;
     double t;
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
 
-    Statistics::global().incrementRayTriangleTests();
+    stats.incrementRayTriangleTests();
     if (triangle->degenerateFlag) {
         return (false);
     }
@@ -287,7 +288,7 @@ Triangle::intersectTriangle(
         if (((triangle->p2.y() - s) * (triangle->p2.z() - triangle->p1.z())) <
             ((triangle->p2.z() - t) * (triangle->p2.y() - triangle->p1.y()))) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
@@ -296,7 +297,7 @@ Triangle::intersectTriangle(
         if (((triangle->p3.y() - s) * (triangle->p3.z() - triangle->p2.z())) <
             ((triangle->p3.z() - t) * (triangle->p3.y() - triangle->p2.y()))) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
@@ -305,14 +306,14 @@ Triangle::intersectTriangle(
         if (((triangle->p1.y() - s) * (triangle->p1.z() - triangle->p3.z())) <
             ((triangle->p1.z() - t) * (triangle->p1.y() - triangle->p3.y()))) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
         }
 
         if (!(int)triangle->inverted) {
-            Statistics::global().incrementRayTriangleTestsSucceeded();
+            stats.incrementRayTriangleTestsSucceeded();
             return (true);
         }
         return (false);
@@ -324,7 +325,7 @@ Triangle::intersectTriangle(
         if ((triangle->p2.x() - s) * (triangle->p2.z() - triangle->p1.z()) <
             (triangle->p2.z() - t) * (triangle->p2.x() - triangle->p1.x())) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
@@ -333,7 +334,7 @@ Triangle::intersectTriangle(
         if ((triangle->p3.x() - s) * (triangle->p3.z() - triangle->p2.z()) <
             (triangle->p3.z() - t) * (triangle->p3.x() - triangle->p2.x())) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
@@ -342,14 +343,14 @@ Triangle::intersectTriangle(
         if ((triangle->p1.x() - s) * (triangle->p1.z() - triangle->p3.z()) <
             (triangle->p1.z() - t) * (triangle->p1.x() - triangle->p3.x())) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
         }
 
         if (!(int)triangle->inverted) {
-            Statistics::global().incrementRayTriangleTestsSucceeded();
+            stats.incrementRayTriangleTestsSucceeded();
             return (true);
         }
         return (false);
@@ -361,7 +362,7 @@ Triangle::intersectTriangle(
         if ((triangle->p2.x() - s) * (triangle->p2.y() - triangle->p1.y()) <
             (triangle->p2.y() - t) * (triangle->p2.x() - triangle->p1.x())) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
@@ -370,7 +371,7 @@ Triangle::intersectTriangle(
         if ((triangle->p3.x() - s) * (triangle->p3.y() - triangle->p2.y()) <
             (triangle->p3.y() - t) * (triangle->p3.x() - triangle->p2.x())) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
@@ -379,14 +380,14 @@ Triangle::intersectTriangle(
         if ((triangle->p1.x() - s) * (triangle->p1.y() - triangle->p3.y()) <
             (triangle->p1.y() - t) * (triangle->p1.x() - triangle->p3.x())) {
             if ((int)triangle->inverted) {
-                Statistics::global().incrementRayTriangleTestsSucceeded();
+                stats.incrementRayTriangleTestsSucceeded();
                 return (true);
             }
             return (false);
         }
 
         if (!(int)triangle->inverted) {
-            Statistics::global().incrementRayTriangleTestsSucceeded();
+            stats.incrementRayTriangleTestsSucceeded();
             return (true);
         }
         return (false);
