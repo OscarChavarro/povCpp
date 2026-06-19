@@ -7,6 +7,8 @@
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
 
+struct HeightFieldTraversalState;
+
 class HeightField : public Geometry {
   public:
     static constexpr int GIF = 0;
@@ -55,29 +57,18 @@ class HeightField : public Geometry {
     HeightFieldBlock **block;
     float **Map;
 
-    static int isdx;
-    static int isdz;
-    static bool xDom;
-    static double gdx;
-    static double gdy;
-    static double gdz;
-    static double myx;
-    static double mxz;
-    static double mzx;
-    static double myz;
-    static Intersection *hfIntersection;
-    static java::PriorityQueue<Intersection> *hfQueue;
-    static RayWithSegments *rRay;
-
     static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
         double width, double height);
     static double getHeightAt(int x, int z, const HeightField *hField);
     static int intersectPixel(int x, int z, const RayWithSegments *ray,
+        struct HeightFieldTraversalState &state,
         HeightField *hField, double height1, double height2);
     static int intersectSubBlock(const HeightFieldBlock *block,
-        const RayWithSegments *ray, HeightField *hField,
+        const RayWithSegments *ray, struct HeightFieldTraversalState &state,
+        HeightField *hField,
         const Vector3Dd *start, const Vector3Dd *end);
-    static int intersectHfNode(const RayWithSegments *ray, HeightField *hField,
+    static int intersectHfNode(const RayWithSegments *ray,
+        struct HeightFieldTraversalState &state, HeightField *hField,
         const Vector3Dd *start, const Vector3Dd *end);
 };
 

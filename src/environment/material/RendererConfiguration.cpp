@@ -20,5 +20,7 @@ RenderingConfiguration::reset()
     verboseFormat = '\0';
     paletteOption = '\0';
     colorBits = 8;
+    tokenizerCaseSensitiveMode = 0;
+    tokenizerMaxSymbols = 500;
     std::strcpy(inputFileName, "object.dat");
 }

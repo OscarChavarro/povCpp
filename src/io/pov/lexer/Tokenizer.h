@@ -12,6 +12,7 @@ Here's where you dump the information on the current token
 */
 class Tokenizer {
   public:
+    Tokenizer();
 
     // Token Definitions for Parser
     // This list must have the same number of tokens as list in tokenize.c
@@ -173,44 +174,44 @@ class Tokenizer {
     static constexpr int LOST_TOKEN = 153;
     static constexpr int LAST_TOKEN = 154;
 
-    static const ReservedWord *reservedWords();
-    static PovToken &token();
-    static void setCaseSensitiveIdentifiers(int mode);
-    static void initializeTokenizer(const char *inputFileName);
-    static void terminateTokenizer(void);
-    static void ungetToken(void);
-    static void beginString(void);
-    static void stuffCharacter(int c, const DataFile *dataFile);
-    static int findReserved(void);
-    static int findSymbol(void);
-    static void writeToken(TOKEN tokenId, const DataFile *dataFile);
-    static void tokenError(const DataFile *dataFile, const char *str);
-    static void getToken(void);
-    static void setMaxSymbols(int value);
-    static int getMaxSymbols();
-    static DataFile *getGlobalDataFile();
-    static char *getString();
-    static int &getNumberOfSymbols();
-    static char **getSymbolTable();
+    const ReservedWord *reservedWords() const;
+    PovToken &token();
+    void setCaseSensitiveIdentifiers(int mode);
+    void initializeTokenizer(const char *inputFileName);
+    void terminateTokenizer(void);
+    void ungetToken(void);
+    void beginString(void);
+    void stuffCharacter(int c, const DataFile *dataFile);
+    int findReserved(void);
+    int findSymbol(void);
+    void writeToken(TOKEN tokenId, const DataFile *dataFile);
+    void tokenError(const DataFile *dataFile, const char *str);
+    void getToken(void);
+    void setMaxSymbols(int value);
+    int getMaxSymbols() const;
+    DataFile *getGlobalDataFile();
+    char *getString();
+    int &getNumberOfSymbols();
+    char **getSymbolTable();
 
   private:
     static constexpr int MAX_STRING_INDEX = 41;
     static constexpr int MAX_INCLUDE_FILES = 10;
-    static ReservedWord sReservedWords[LAST_TOKEN];
-    static PovToken sToken;
-    static int maxSymbols;
-    static char sString[MAX_STRING_INDEX];
-    static int sStringIndex;
-    static int sCaseSensitiveFlag;
-    static int sTokenCount;
-    static int sLineCount;
-    static char **sSymbolTable;
-    static int sNumberOfSymbols;
-    static DataFile sGlobalIncludeFiles[MAX_INCLUDE_FILES];
-    static DataFile *sGlobalDataFile;
-    static int sGlobalIncludeFileIndex;
+    static const ReservedWord sReservedWords[LAST_TOKEN];
+    PovToken sToken;
+    int maxSymbols;
+    char sString[MAX_STRING_INDEX];
+    int sStringIndex;
+    int sCaseSensitiveFlag;
+    int sTokenCount;
+    int sLineCount;
+    char **sSymbolTable;
+    int sNumberOfSymbols;
+    DataFile sGlobalIncludeFiles[MAX_INCLUDE_FILES];
+    DataFile *sGlobalDataFile;
+    int sGlobalIncludeFileIndex;
 
-    static int povStricmp(const char *s1, const char *s2);
+    int povStricmp(const char *s1, const char *s2) const;
 };
 
 #endif

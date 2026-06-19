@@ -13,35 +13,43 @@ Gif-format file reader.
 #include "io/image/GifDecoder.h"
 #include "io/image/GifFormat.h"
 
-IndexedColorImageHDRUncompressed *GifFormat::currentImage = nullptr;
-int GifFormat::bitmapLine = 0;
-java::FileInputStream *GifFormat::bitStream = nullptr;
-RGBAPixelHDR *GifFormat::gifColorMap = nullptr;
-int GifFormat::colorMapSize = 0;
+namespace {
+
+struct GifReadContext {
+    IndexedColorImageHDRUncompressed *currentImage;
+    int bitmapLine;
+    java::FileInputStream *bitStream;
+    RGBAPixelHDR *gifColorMap;
+    int colorMapSize;
+};
 
 int
-GifFormat::outLine(const unsigned char *pixels, int linelen)
+outLine(void *context, const unsigned char *pixels, int linelen)
 {
+    GifReadContext &gif = *static_cast<GifReadContext *>(context);
     for (int x = 0; x < linelen; x++) {
-        if ((int)(*pixels) > currentImage->getColorMapSize()) {
+        if ((int)(*pixels) > gif.currentImage->getColorMapSize()) {
             Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Error - GIF Image Map Colour out of range\n");
         }
-        currentImage->setPixel(x, bitmapLine, *pixels);
+        gif.currentImage->setPixel(x, gif.bitmapLine, *pixels);
         pixels++;
     }
-    bitmapLine++;
+    gif.bitmapLine++;
     return 0;
 }
 
 int
-GifFormat::getByte()
+getByte(void *context)
 {
-    const int byte = bitStream->read();
+    GifReadContext &gif = *static_cast<GifReadContext *>(context);
+    const int byte = gif.bitStream->read();
     if (byte != -1) {
         return byte;
     }
     Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Premature End Of File reading GIF image\n");
     return 0;
+}
+
 }
 
 void
@@ -53,11 +61,14 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
     unsigned finished;
     unsigned planes;
     unsigned char buffer[16];
+    GifReadContext gif{image, 0, nullptr, nullptr, 0};
+    GifInputContext input{getByte, outLine, &gif};
+    GifDecoderState decoderState{{0}, {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
+        0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {0}, nullptr, nullptr, nullptr, nullptr};
 
-    currentImage = image;
-
-    bitStream = FileLocator::locateAsStream(filename);
-    if (bitStream == nullptr) {
+    gif.bitStream = FileLocator::locateAsStream(filename);
+    if (gif.bitStream == nullptr) {
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Cannot open GIF file %s\n", filename);
@@ -65,20 +76,20 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
         }
     }
 
-    GifDecoder::setDecoderLine(new unsigned char[2049]);
-    if (GifDecoder::getDecoderLine() == nullptr) {
+    decoderState.decoderline = new unsigned char[2049];
+    if (decoderState.decoderline == nullptr) {
         Logger::reportMessage("GifFormat", Logger::ERROR, "", "Cannot allocate space for GIF decoder line\n");
-        bitStream->close();
-        delete bitStream;
+        gif.bitStream->close();
+        delete gif.bitStream;
         exit(1);
     }
 
     for (i = 0; i < 2049; i++) {
-        GifDecoder::getDecoderLine()[i] = (unsigned char)0;
+        decoderState.decoderline[i] = (unsigned char)0;
     }
 
     for (i = 0; i < 13; i++) {
-        buffer[i] = (unsigned char)GifFormat::getByte();
+        buffer[i] = (unsigned char)getByte(&gif);
     }
 
     if (strncmp((char *)buffer, "GIF", 3) ||
@@ -90,19 +101,19 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
             snprintf(_logMsg, sizeof(_logMsg), "Invalid GIF file format: %s\n", filename);
             Logger::reportMessage("GifFormat", Logger::ERROR, "", _logMsg);
         }
-        bitStream->close();
-        delete bitStream;
+        gif.bitStream->close();
+        delete gif.bitStream;
         exit(1);
     }
 
     planes = ((unsigned)buffer[10] & 0x0F) + 1;
-    colorMapSize = (int)(1 << planes);
+    gif.colorMapSize = (int)(1 << planes);
 
-    gifColorMap = new RGBAPixelHDR[colorMapSize];
-    if (gifColorMap == nullptr) {
+    gif.gifColorMap = new RGBAPixelHDR[gif.colorMapSize];
+    if (gif.gifColorMap == nullptr) {
         Logger::reportMessage("GifFormat", Logger::ERROR, "", "Cannot allocate GIF Colour Map\n");
-        bitStream->close();
-        delete bitStream;
+        gif.bitStream->close();
+        delete gif.bitStream;
         exit(1);
     }
 
@@ -112,38 +123,38 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
             snprintf(_logMsg, sizeof(_logMsg), "Invalid GIF file format: %s\n", filename);
             Logger::reportMessage("GifFormat", Logger::ERROR, "", _logMsg);
         }
-        bitStream->close();
-        delete bitStream;
+        gif.bitStream->close();
+        delete gif.bitStream;
         exit(1);
     }
 
-    for (i = 0; i < colorMapSize; i++) {
-        gifColorMap[i].r   = (unsigned char)GifFormat::getByte();
-        gifColorMap[i].g = (unsigned char)GifFormat::getByte();
-        gifColorMap[i].b  = (unsigned char)GifFormat::getByte();
-        gifColorMap[i].a = 0;
+    for (i = 0; i < gif.colorMapSize; i++) {
+        gif.gifColorMap[i].r = (unsigned char)getByte(&gif);
+        gif.gifColorMap[i].g = (unsigned char)getByte(&gif);
+        gif.gifColorMap[i].b = (unsigned char)getByte(&gif);
+        gif.gifColorMap[i].a = 0;
     }
 
     finished = false;
     while (!finished) {
-        switch (GifFormat::getByte()) {
+        switch (getByte(&gif)) {
         case ';':
             finished = true;
             status = 0;
             break;
 
         case '!':
-            GifFormat::getByte();
-            while ((i = GifFormat::getByte()) > 0) {
+            getByte(&gif);
+            while ((i = getByte(&gif)) > 0) {
                 for (j = 0; j < i; j++) {
-                    GifFormat::getByte();
+                    getByte(&gif);
                 }
             }
             break;
 
         case ',':
             for (i = 0; i < 9; i++) {
-                if ((j = GifFormat::getByte()) < 0) {
+                if ((j = getByte(&gif)) < 0) {
                     status = -1;
                     break;
                 }
@@ -159,12 +170,12 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
                 const int gifW = buffer[4] | (buffer[5] << 8);
                 const int gifH = buffer[6] | (buffer[7] << 8);
 
-                bitmapLine = 0;
-                image->setColorMapSize(colorMapSize);
-                image->setColorTable(gifColorMap);
+                gif.bitmapLine = 0;
+                image->setColorMapSize(gif.colorMapSize);
+                image->setColorTable(gif.gifColorMap);
                 image->allocate(gifW, gifH);
 
-                status = GifDecoder::decoder(image->getXSize());
+                status = GifDecoder::decoder(image->getXSize(), input, decoderState);
             }
             finished = true;
             break;
@@ -176,9 +187,9 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
         }
     }
 
-    delete[] GifDecoder::getDecoderLine();
-    GifDecoder::setDecoderLine(nullptr);
-    bitStream->close();
-    delete bitStream;
-    bitStream = nullptr;
+    delete[] decoderState.decoderline;
+    decoderState.decoderline = nullptr;
+    gif.bitStream->close();
+    delete gif.bitStream;
+    gif.bitStream = nullptr;
 }

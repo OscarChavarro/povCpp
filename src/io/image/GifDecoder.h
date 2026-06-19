@@ -3,45 +3,38 @@
 
 typedef short WORD;
 
-class GifDecoder {
-  public:
-    static unsigned char *getDecoderLine();
-    static void setDecoderLine(unsigned char *value);
-    static void cleanupGifDecoder(void);
-    static WORD initExp(int iSize);
-    static WORD getNextCode(void);
-    static WORD decoder(int iLinewidth);
-
-  private:
-    static unsigned char *decoderline;
-    static long codeMask[13];
-    static int badCodeCount;
-    static WORD currSize;
-    static WORD clear;
-    static WORD ending;
-    static WORD newcodes;
-    static WORD topSlot;
-    static WORD slot;
-    static WORD navailBytes;
-    static WORD nbitsLeft;
-    static unsigned char b1;
-    static unsigned char byteBuff[257];
-    static unsigned char *pbytes;
-    static unsigned char *dstack;
-    static unsigned char *suffix;
-    static unsigned short *prefix;
+struct GifInputContext {
+    int (*getByte)(void *context);
+    int (*outLine)(void *context, const unsigned char *pixels, int linelen);
+    void *context;
 };
 
-inline unsigned char *
-GifDecoder::getDecoderLine()
-{
-    return decoderline;
-}
+struct GifDecoderState {
+    unsigned char *decoderline;
+    long codeMask[13];
+    int badCodeCount;
+    WORD currSize;
+    WORD clear;
+    WORD ending;
+    WORD newcodes;
+    WORD topSlot;
+    WORD slot;
+    WORD navailBytes;
+    WORD nbitsLeft;
+    unsigned char b1;
+    unsigned char byteBuff[257];
+    unsigned char *pbytes;
+    unsigned char *dstack;
+    unsigned char *suffix;
+    unsigned short *prefix;
+};
 
-inline void
-GifDecoder::setDecoderLine(unsigned char *value)
-{
-    decoderline = value;
-}
+class GifDecoder {
+  public:
+    static void cleanupGifDecoder(GifDecoderState &state);
+    static WORD initExp(int iSize, GifDecoderState &state);
+    static WORD getNextCode(GifInputContext &input, GifDecoderState &state);
+    static WORD decoder(int iLinewidth, GifInputContext &input, GifDecoderState &state);
+};
 
 #endif

@@ -20,7 +20,6 @@ This module implements the main raytracing loop.
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "common/statistics/Statistics.h"
-#include "common/dataStructures/PriorityQueuePool.txx"
 #include "common/RenderRuntimeState.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"

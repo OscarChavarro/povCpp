@@ -4,15 +4,15 @@
 #include "io/pov/context/TokenizerStream.h"
 #include "io/pov/lexer/ITokenStream.h"
 
-TokenizerStream ParserContext::sDefaultTokenStream;
-SymbolTable ParserContext::sSharedSymbols;
-int ParserContext::sSharedDegenerateTriangles = 0;
-ITokenStream *ParserContext::sForcedTokenStream = nullptr;
-
 ParserContext::ParserContext()
-    : mTokenStream((sForcedTokenStream != nullptr) ? sForcedTokenStream : &sDefaultTokenStream),
-      mSymbols(&sSharedSymbols),
-      mDegenerateTriangles(&sSharedDegenerateTriangles),
+    : mTokenizer(),
+      mDefaultTokenStream(&mTokenizer),
+      mSharedSymbols(),
+      mSharedDegenerateTriangles(0),
+      mForcedTokenStream(nullptr),
+      mTokenStream(&mDefaultTokenStream),
+      mSymbols(&mSharedSymbols),
+      mDegenerateTriangles(&mSharedDegenerateTriangles),
       mDefaultTexture(nullptr),
       mReportingConfig(nullptr),
       mRuntimeState(nullptr)
@@ -84,11 +84,13 @@ ParserContext::resetTokenStreamHistory()
 void
 ParserContext::forceTokenStream(ITokenStream *tokenStream)
 {
-    sForcedTokenStream = tokenStream;
+    mForcedTokenStream = tokenStream;
+    mTokenStream = (mForcedTokenStream != nullptr) ? mForcedTokenStream : &mDefaultTokenStream;
 }
 
 void
 ParserContext::clearForcedTokenStream()
 {
-    sForcedTokenStream = nullptr;
+    mForcedTokenStream = nullptr;
+    mTokenStream = &mDefaultTokenStream;
 }
