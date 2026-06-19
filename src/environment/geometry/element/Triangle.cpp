@@ -239,7 +239,7 @@ Triangle::intersectTriangle(
     double normalDotDirection;
     double s;
     double t;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     stats.incrementRayTriangleTests();
     if (triangle->degenerateFlag) {

@@ -43,8 +43,7 @@ RenderEngine::~RenderEngine()
 const RenderingConfiguration &
 RenderEngine::getActiveConfig()
 {
-    RenderContext *ctx = getActiveContext();
-    return ctx ? ctx->getConfig() : RenderingConfiguration::global();
+    return sActive->mContext->getConfig();
 }
 
 RenderingConfiguration &
@@ -56,14 +55,19 @@ RenderEngine::getActiveMutableConfig()
 Statistics &
 RenderEngine::getActiveStatistics()
 {
-    RenderContext *ctx = getActiveContext();
-    return ctx ? ctx->getStatistics() : Statistics::global();
+    return sActive->mContext->getStatistics();
+}
+
+TextureUtils &
+RenderEngine::getActiveTextureUtils()
+{
+    return sActive->mContext->getTextureUtils();
 }
 
 inline unsigned short
 RenderEngine::rand3dInline(int a, int b)
 {
-    ProceduralNoise &noise = TextureUtils::instance().getProceduralNoise();
+    ProceduralNoise &noise = RenderEngine::getActiveTextureUtils().getProceduralNoise();
     return noise.checksumTable().eval((int)(noise.hashTable()[(int)(noise.hashTable()[(int)(a & 0xfff)] ^ b) &
                                   0xfff]));
 }
@@ -102,13 +106,13 @@ RenderEngine::traceLevel()
 double &
 RenderEngine::maxTraceLevel()
 {
-    return RenderRuntimeState::maxTraceLevel();
+    return sActive->mContext->getRuntime().getMaxTraceLevel();
 }
 
 volatile int &
 RenderEngine::stopFlag()
 {
-    return RenderRuntimeState::stopFlag();
+    return sActive->mContext->getRuntime().getStopFlag();
 }
 
 void
@@ -124,7 +128,8 @@ RenderEngine::traceServiceShadeShadow(
 {
     (void)context;
     RayShaderPipeline::shadeSurface(
-        intersection, color, nullptr, true, RenderEngine::getTraceService(), &TextureUtils::instance());
+        intersection, color, nullptr, true, RenderEngine::getTraceService(),
+        &RenderEngine::getActiveTextureUtils());
 }
 
 const TraceService *
@@ -673,6 +678,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            &localIntersection, color, ray, false, RenderEngine::getTraceService(), &TextureUtils::instance());
+            &localIntersection, color, ray, false, RenderEngine::getTraceService(),
+            &RenderEngine::getActiveTextureUtils());
     }
 }

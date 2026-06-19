@@ -7,7 +7,8 @@
 
 void
 BumpNormalShader::shade(Vector3Dd *newNormal, const PovrayMaterial *texture,
-    const Vector3Dd *intersectionPoint, const Vector3Dd *surfaceNormal)
+    const Vector3Dd *intersectionPoint, const Vector3Dd *surfaceNormal,
+    TextureUtils *textureUtils)
 {
     Vector3Dd transformedPoint;
 
@@ -27,7 +28,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, const PovrayMaterial *texture,
     double y = transformedPoint.y();
     double z = transformedPoint.z();
 
-    BumpTextureFixture bumpFixture(&TextureUtils::instance().getProceduralNoise());
+    BumpTextureFixture bumpFixture(&textureUtils->getProceduralNoise(), textureUtils);
     ImageTexture mapFixture;
 
     switch (texture->getBumpNumber()) {

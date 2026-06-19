@@ -14,7 +14,8 @@ ParserContext::ParserContext()
       mSymbols(&sSharedSymbols),
       mDegenerateTriangles(&sSharedDegenerateTriangles),
       mDefaultTexture(nullptr),
-      mReportingConfig(nullptr)
+      mReportingConfig(nullptr),
+      mRuntimeState(nullptr)
 {
 }
 

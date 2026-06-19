@@ -101,7 +101,7 @@ Box::intersectBoxx(
     double tmax;
     Vector3Dd p;
     Vector3Dd d;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     stats.incrementRayBoxTests();
 

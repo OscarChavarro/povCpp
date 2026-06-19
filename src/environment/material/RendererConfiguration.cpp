@@ -2,8 +2,6 @@
 
 #include "environment/material/RendererConfiguration.h"
 
-RenderingConfiguration *RenderingConfiguration::sActive = nullptr;
-
 void
 RenderingConfiguration::reset()
 {

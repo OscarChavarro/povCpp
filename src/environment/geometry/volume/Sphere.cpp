@@ -44,7 +44,7 @@ int
 Sphere::intersectSphere(
     const RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
     stats.incrementRaySphereTests();
 
     Vector3Dd originToCenter;

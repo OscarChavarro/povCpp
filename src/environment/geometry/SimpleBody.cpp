@@ -36,6 +36,15 @@ SimpleBody::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     getGeometry()->normal(result, intersectionPoint);
 }
 
+void
+SimpleBody::normal(
+    Vector3Dd *result,
+    Vector3Dd *intersectionPoint,
+    const RenderingConfiguration *config)
+{
+    getGeometry()->normal(result, intersectionPoint, config);
+}
+
 void *
 SimpleBody::copy()
 {

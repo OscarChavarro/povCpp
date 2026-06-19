@@ -373,7 +373,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
     Vector3Dd dv;
     const BlobInterval *intervals = blob->intervals;
     bool intersectionFound = false;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     stats.incrementRayBlobTests();
 

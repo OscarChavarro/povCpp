@@ -111,7 +111,7 @@ Quadric::intersectQuadric(
     double determinant2;
     double a2;
     double bMinus;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     stats.incrementRayQuadricTests();
     if (!ray->areQuadricConstantsCached()) {

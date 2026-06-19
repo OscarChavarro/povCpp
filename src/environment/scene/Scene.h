@@ -11,6 +11,8 @@
 
 class Scene {
   public:
+    static constexpr double DEFAULT_ANTIALIAS_THRESHOLD = 0.3;
+
     Scene();
 
     const Camera& getViewPoint() const { return viewPoint; }
@@ -40,7 +42,7 @@ class Scene {
     {
         Objects = objects;
     }
-    void resetForSceneParse();
+    void resetForSceneParse(const RenderingConfiguration *config = nullptr);
 
     static void createRay(
         RayWithSegments *ray, int width, int height, double x, double y);

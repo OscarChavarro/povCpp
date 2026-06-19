@@ -5,7 +5,6 @@
 
 class RenderSettingsParser {
   public:
-    static void parseMaxTraceLevel();
     static void parseMaxTraceLevel(ParserContext &ctx);
 };
 

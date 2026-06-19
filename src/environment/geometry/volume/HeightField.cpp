@@ -120,7 +120,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     double y4;
     double maxHeight;
     double minHeight;
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
 
     depth1 = HUGE_VAL;
     depth2 = HUGE_VAL;
@@ -803,7 +803,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     HeightField * const hField = this;
     Intersection localElement;
 
-    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    Statistics &stats = *ray->getStatistics();
     stats.incrementRayHtFieldTests();
 
     tempRay.setOriginAndDirection(

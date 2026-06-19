@@ -46,16 +46,6 @@ class Statistics {
 
   public:
     Statistics() { reset(); }
-
-    static Statistics *sActive;
-    static void installActive(Statistics *p) { sActive = p; }
-    static inline Statistics &global() {
-        if (!sActive) {
-            static Statistics defaultInstance;
-            sActive = &defaultInstance;
-        }
-        return *sActive;
-    }
     long getNumberOfPixels() const;
     void setNumberOfPixels(long value);
     void incrementNumberOfPixels();

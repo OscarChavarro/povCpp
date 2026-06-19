@@ -70,8 +70,9 @@ ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
         snprintf(_logMsg, sizeof(_logMsg), "%s expected but %s found instead\n", expected, found);
         Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
     }
-    if (ParseReportingConfiguration::writesVerboseErrors(ctx.getReportingConfig())) {
-        statFile = fopen(ParseReportingConfiguration::statFileName(ctx.getReportingConfig()), "w+t");
+    if (ctx.getReportingConfig() != nullptr &&
+        ParseReportingConfiguration::writesVerboseErrors(*ctx.getReportingConfig())) {
+        statFile = fopen(ParseReportingConfiguration::statFileName(*ctx.getReportingConfig()), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(
             statFile, "%s expected but %s found instead\n", expected, found);
@@ -94,8 +95,9 @@ ParseErrorReporter::typeError(ParserContext &ctx)
     FILE *statFile;
     reportLocation(ctx);
     fprintf(stderr, "Identifier %s is the wrong type\n", ctx.token().getTokenString());
-    if (ParseReportingConfiguration::writesVerboseErrors(ctx.getReportingConfig())) {
-        statFile = fopen(ParseReportingConfiguration::statFileName(ctx.getReportingConfig()), "w+t");
+    if (ctx.getReportingConfig() != nullptr &&
+        ParseReportingConfiguration::writesVerboseErrors(*ctx.getReportingConfig())) {
+        statFile = fopen(ParseReportingConfiguration::statFileName(*ctx.getReportingConfig()), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(statFile, "Identifier %s is the wrong type\n", ctx.token().getTokenString());
 
@@ -122,8 +124,9 @@ ParseErrorReporter::reportUndeclared(ParserContext &ctx)
         snprintf(_logMsg, sizeof(_logMsg), "Undeclared identifier %s\n", ctx.token().getTokenString());
         Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
     }
-    if (ParseReportingConfiguration::writesVerboseErrors(ctx.getReportingConfig())) {
-        statFile = fopen(ParseReportingConfiguration::statFileName(ctx.getReportingConfig()), "w+t");
+    if (ctx.getReportingConfig() != nullptr &&
+        ParseReportingConfiguration::writesVerboseErrors(*ctx.getReportingConfig())) {
+        statFile = fopen(ParseReportingConfiguration::statFileName(*ctx.getReportingConfig()), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(statFile, "Undeclared identifier %s\n", ctx.token().getTokenString());
         fclose(statFile);
@@ -150,8 +153,9 @@ ParseErrorReporter::reportError(const char *str, ParserContext &ctx)
         Logger::reportMessage("ParseErrorReporter", Logger::ERROR, "", _logMsg);
     }
 
-    if (ParseReportingConfiguration::writesVerboseErrors(ctx.getReportingConfig())) {
-        statFile = fopen(ParseReportingConfiguration::statFileName(ctx.getReportingConfig()), "w+t");
+    if (ctx.getReportingConfig() != nullptr &&
+        ParseReportingConfiguration::writesVerboseErrors(*ctx.getReportingConfig())) {
+        statFile = fopen(ParseReportingConfiguration::statFileName(*ctx.getReportingConfig()), "w+t");
         writeVerboseStatLine(statFile, ctx);
         fprintf(statFile, "%s\n", str);
         fclose(statFile);

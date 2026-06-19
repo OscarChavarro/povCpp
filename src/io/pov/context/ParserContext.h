@@ -10,6 +10,7 @@
 
 class PovrayMaterial;
 class RenderingConfiguration;
+class RenderRuntimeState;
 
 class ParserContext {
   public:
@@ -33,6 +34,8 @@ class ParserContext {
 
     const RenderingConfiguration *getReportingConfig() const { return mReportingConfig; }
     void setReportingConfig(const RenderingConfiguration *config) { mReportingConfig = config; }
+    RenderRuntimeState *getRuntimeState() const { return mRuntimeState; }
+    void setRuntimeState(RenderRuntimeState *runtimeState) { mRuntimeState = runtimeState; }
 
   private:
     static TokenizerStream sDefaultTokenStream;
@@ -45,6 +48,7 @@ class ParserContext {
     int * const mDegenerateTriangles;
     PovrayMaterial *mDefaultTexture;
     const RenderingConfiguration *mReportingConfig;
+    RenderRuntimeState *mRuntimeState;
 };
 
 #endif

@@ -36,6 +36,7 @@ class RenderEngine {
     static const RenderingConfiguration &getActiveConfig();
     static RenderingConfiguration &getActiveMutableConfig();
     static Statistics &getActiveStatistics();
+    static TextureUtils &getActiveTextureUtils();
     void setContext(RenderContext *ctx) { mContext = ctx; }
     RenderContext *getContext() { return mContext; }
     static RenderEngine *active() { return sActive; }
