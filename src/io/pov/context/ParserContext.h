@@ -9,6 +9,7 @@
 #include "io/pov/context/TokenizerStream.h"
 
 class PovrayMaterial;
+class RenderingConfiguration;
 
 class ParserContext {
   public:
@@ -30,6 +31,9 @@ class ParserContext {
     PovrayMaterial *getDefaultTexture() const { return mDefaultTexture; }
     void setDefaultTexture(PovrayMaterial *texture) { mDefaultTexture = texture; }
 
+    const RenderingConfiguration *getReportingConfig() const { return mReportingConfig; }
+    void setReportingConfig(const RenderingConfiguration *config) { mReportingConfig = config; }
+
   private:
     static TokenizerStream sDefaultTokenStream;
     static SymbolTable sSharedSymbols;
@@ -40,6 +44,7 @@ class ParserContext {
     SymbolTable * const mSymbols;
     int * const mDegenerateTriangles;
     PovrayMaterial *mDefaultTexture;
+    const RenderingConfiguration *mReportingConfig;
 };
 
 #endif

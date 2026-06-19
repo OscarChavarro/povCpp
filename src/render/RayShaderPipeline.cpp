@@ -35,7 +35,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     }
 
-    if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+    if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
         if (rayIntersection->getShape()->getShapeColor()) {
             {
                 char _logMsg[1024];
@@ -75,7 +75,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     // If this is just a shadow ray, and we're rendering low quality, then return
 
-    if (shadowRay && (RenderingConfiguration::global().getQuality() <= 5)) {
+    if (shadowRay && (RenderEngine::getActiveConfig().getQuality() <= 5)) {
         return;
     }
 
@@ -90,7 +90,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         surface++;
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
-        if (RenderingConfiguration::global().getQuality() <= 5) {
+        if (RenderEngine::getActiveConfig().getQuality() <= 5) {
             if (rayIntersection->getShape()->getShapeColor() != nullptr) {
                 surfaceColor = *rayIntersection->getShape()->getShapeColor();
             } else if (rayIntersection->getObject()->getObjectColor() != nullptr) {
@@ -134,7 +134,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 RenderEngine::scene().getObjects(), RenderEngine::traceLevel());
         }
 
-        if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
+        if (RenderEngine::getActiveConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
             {
                 char _logMsg[1024];
                 snprintf(_logMsg, sizeof(_logMsg), "Surface %d\n", surface);
@@ -182,13 +182,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         return;
     }
 
-    if ((filterColor.getA() > 0.01) && (RenderingConfiguration::global().getQuality() > 5)) {
+    if ((filterColor.getA() > 0.01) && (RenderEngine::getActiveConfig().getQuality() > 5)) {
         refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
             rayIntersection->getShape()->normal(&surfaceNormal, &rayIntersection->getPoint());
 
-            if (RenderingConfiguration::global().getQuality() > 7) {
+            if (RenderEngine::getActiveConfig().getQuality() > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getPoint(),
                     &surfaceNormal);
             }

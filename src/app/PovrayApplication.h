@@ -8,6 +8,7 @@
 #include "io/image/ImageOutput.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "render/RenderEngine.h"
+#include "render/RenderContext.h"
 
 class PovrayApplication {
   private:
@@ -17,6 +18,7 @@ class PovrayApplication {
     TextureUtils textureUtils;
     Scene scene;
     RenderEngine engine;
+    RenderContext context;
     ImageOutput *selectedImageOutput;
 
     void printStatistics(
@@ -35,13 +37,15 @@ class PovrayApplication {
     void printCredits();
 
   public:
-    PovrayApplication() {
+    PovrayApplication()
+        : context(configuration, statistics, scene, runtimeState, textureUtils) {
         RenderingConfiguration::installActive(&configuration);
         Statistics::installActive(&statistics);
         RenderRuntimeState::installActive(&runtimeState);
         TextureUtils::installActive(&textureUtils);
         RenderEngine::installActive(&engine);
         RenderEngine::setScene(&scene);
+        RenderEngine::setActiveContext(&context);
     }
 
     void run(int argc, char *argv[]);

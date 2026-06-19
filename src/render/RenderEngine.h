@@ -3,10 +3,12 @@
 
 #include "environment/scene/Scene.h"
 #include "render/shaders/TraceService.h"
+#include "render/RenderContext.h"
 
 class RenderEngine {
   private:
     static RenderEngine *sActive;
+    RenderContext *mContext;
 
     Scene *mScene;
     RayWithSegments *mPrimaryRay;
@@ -23,12 +25,19 @@ class RenderEngine {
 
   public:
     RenderEngine()
-        : mScene(nullptr), mPrimaryRay(nullptr), mTraceLevel(0), mSuperSampleCount(0),
+        : mContext(nullptr), mScene(nullptr), mPrimaryRay(nullptr), mTraceLevel(0), mSuperSampleCount(0),
           mPreviousLine(nullptr), mCurrentLine(nullptr),
           mPreviousLineAntialiasedFlags(nullptr), mCurrentLineAntialiasedFlags(nullptr) {}
     ~RenderEngine();
 
     static void installActive(RenderEngine *engine) { sActive = engine; }
+    static void setActiveContext(RenderContext *ctx) { if (sActive) sActive->mContext = ctx; }
+    static RenderContext *getActiveContext() { return sActive ? sActive->mContext : nullptr; }
+    static const RenderingConfiguration &getActiveConfig();
+    static RenderingConfiguration &getActiveMutableConfig();
+    static Statistics &getActiveStatistics();
+    void setContext(RenderContext *ctx) { mContext = ctx; }
+    RenderContext *getContext() { return mContext; }
     static RenderEngine *active() { return sActive; }
     friend class Scene;
 

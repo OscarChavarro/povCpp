@@ -44,7 +44,8 @@ int
 Sphere::intersectSphere(
     const RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
 {
-    Statistics::global().incrementRaySphereTests();
+    Statistics &stats = ray->getStatistics() ? *ray->getStatistics() : Statistics::global();
+    stats.incrementRaySphereTests();
 
     Vector3Dd originToCenter;
     double ocSquared;
@@ -100,7 +101,7 @@ Sphere::intersectSphere(
         }
     }
 
-    Statistics::global().incrementRaySphereTestsSucceeded();
+    stats.incrementRaySphereTestsSucceeded();
     return true;
 }
 

@@ -7,6 +7,7 @@
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
+#include "render/RenderEngine.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/LambertShader.h"
@@ -57,11 +58,12 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
             intersectionPoint, &lightColor);
 
         // What objects does this ray intersect?
-        if (RenderingConfiguration::global().getQuality() > 3) {
+        if (RenderEngine::getActiveConfig().getQuality() > 3) {
+            Statistics &stats = eye->getStatistics() ? *eye->getStatistics() : Statistics::global();
             for (long int i = objects.size() - 1; i >= 0; i--) {
                 blockingObject = objects[i];
 
-                Statistics::global().incrementShadowRayTests();
+                stats.incrementShadowRayTests();
                 blockingObject->allIntersections(&lightSourceRay, localQueue);
                 while (localQueue->size() > 0) {
                     localIntersection = localQueue->poll();

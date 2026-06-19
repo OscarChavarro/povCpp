@@ -57,7 +57,7 @@ CommandLineOptions::usage()
 
 // Read the default parameters from povray.def
 void
-CommandLineOptions::loadDefaults()
+CommandLineOptions::loadDefaults(RenderingConfiguration &config)
 {
     FILE *defaultsFile;
     char optionString[256];
@@ -71,34 +71,34 @@ CommandLineOptions::loadDefaults()
     defined in config.h. CDW 2/92
     */
     // Set Diskwrite as default
-    RenderingConfiguration::global().setOptionFlags(RenderingConfiguration::DISKWRITE);
-    RenderingConfiguration::global().setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
+    config.setOptionFlags(RenderingConfiguration::DISKWRITE);
+    config.setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
-        readOptions(Option_String_Ptr);
+        readOptions(Option_String_Ptr, config);
     }
     if ((defaultsFile = FileLocator::locate("povray.def", "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString);
+            readOptions(optionString, config);
         }
         fclose(defaultsFile);
     }
 }
 
 void
-CommandLineOptions::parseArguments(int argc, char *argv[])
+CommandLineOptions::parseArguments(int argc, char *argv[], RenderingConfiguration &config)
 {
     for (int i = 1; i < argc; i++) {
         if ((*argv[i] == '+') || (*argv[i] == '-')) {
-            parseOption(argv[i]);
+            parseOption(argv[i], config);
         } else {
-            parseFileName(argv[i]);
+            parseFileName(argv[i], config);
         }
     }
 }
 
 void
-CommandLineOptions::readOptions(const char *optionLine)
+CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &config)
 {
     int c;
     int stringIndex;
@@ -112,7 +112,7 @@ CommandLineOptions::readOptions(const char *optionLine)
         if (optionStarted) {
             if (isspace(c)) {
                 optionString[stringIndex] = '\0';
-                parseOption(optionString);
+                parseOption(optionString, config);
                 optionStarted = false;
                 stringIndex = 0;
             } else {
@@ -135,13 +135,13 @@ CommandLineOptions::readOptions(const char *optionLine)
 
     if (optionStarted) {
         optionString[stringIndex] = '\0';
-        parseOption(optionString);
+        parseOption(optionString, config);
     }
 }
 
 // Parse the command line parameters
 void
-CommandLineOptions::parseOption(const char *optionString)
+CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration &config)
 {
     bool addOption;
     unsigned int optionNumber = 0;
@@ -165,7 +165,7 @@ CommandLineOptions::parseOption(const char *optionString)
             if (fileBufferSize < BUFSIZ) {
                 fileBufferSize = BUFSIZ;
             }
-            RenderingConfiguration::global().setFileBufferSize(fileBufferSize);
+            config.setFileBufferSize(fileBufferSize);
         }
         optionNumber = 0;
         break;
@@ -178,31 +178,31 @@ CommandLineOptions::parseOption(const char *optionString)
     case 'D':
     case 'd':
         optionNumber = RenderingConfiguration::DISPLAY;
-        RenderingConfiguration::global().setDisplayFormat('0');
-        RenderingConfiguration::global().setPaletteOption('3');
+        config.setDisplayFormat('0');
+        config.setPaletteOption('3');
         if (optionString[1] != '\0') {
-            RenderingConfiguration::global().setDisplayFormat((char)toupper(optionString[1]));
+            config.setDisplayFormat((char)toupper(optionString[1]));
         }
 
         if (optionString[1] != '\0' && optionString[2] != '\0') {
-            RenderingConfiguration::global().setPaletteOption((char)toupper(optionString[2]));
+            config.setPaletteOption((char)toupper(optionString[2]));
         }
         break;
 
     case '@':
         optionNumber = RenderingConfiguration::VERBOSE_FILE;
         if (optionString[1] == '\0') {
-            RenderingConfiguration::global().setStatFileName("POVSTAT.OUT");
+            config.setStatFileName("POVSTAT.OUT");
         } else {
-            RenderingConfiguration::global().setStatFileName(&optionString[1]);
+            config.setStatFileName(&optionString[1]);
         }
         break;
     case 'V':
     case 'v':
         optionNumber = RenderingConfiguration::VERBOSE;
-        RenderingConfiguration::global().setVerboseFormat((char)toupper(optionString[1]));
-        if (RenderingConfiguration::global().getVerboseFormat() == '\0') {
-            RenderingConfiguration::global().setVerboseFormat('1');
+        config.setVerboseFormat((char)toupper(optionString[1]));
+        if (config.getVerboseFormat() == '\0') {
+            config.setVerboseFormat('1');
         }
         break;
 
@@ -222,14 +222,14 @@ CommandLineOptions::parseOption(const char *optionString)
     case 'f':
         optionNumber = RenderingConfiguration::DISKWRITE;
         if (isupper(optionString[1])) {
-            RenderingConfiguration::global().setOutputFormat((char)tolower(optionString[1]));
+            config.setOutputFormat((char)tolower(optionString[1]));
         } else {
-            RenderingConfiguration::global().setOutputFormat(optionString[1]);
+            config.setOutputFormat(optionString[1]);
         }
 
         // Default the output format to the default in the config file
-        if (RenderingConfiguration::global().getOutputFormat() == '\0') {
-            RenderingConfiguration::global().setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
+        if (config.getOutputFormat() == '\0') {
+            config.setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
         }
         break;
 
@@ -243,7 +243,7 @@ CommandLineOptions::parseOption(const char *optionString)
         if (optionString[1] == '\0') {
             inFlag = true;
         } else {
-            RenderingConfiguration::global().setInputFileName(&optionString[1]);
+            config.setInputFileName(&optionString[1]);
         }
         optionNumber = 0;
         break;
@@ -253,7 +253,7 @@ CommandLineOptions::parseOption(const char *optionString)
         if (optionString[1] == '\0') {
             outFlag = true;
         } else {
-            RenderingConfiguration::global().setOutputFileName(&optionString[1]);
+            config.setOutputFileName(&optionString[1]);
         }
         optionNumber = 0;
         break;
@@ -262,7 +262,7 @@ CommandLineOptions::parseOption(const char *optionString)
     case 'a':
         optionNumber = RenderingConfiguration::ANTIALIAS;
         if (sscanf(&optionString[1], "%lf", &threshold) != EOF) {
-            RenderingConfiguration::global().setAntialiasThreshold(threshold);
+            config.setAntialiasThreshold(threshold);
         }
         break;
 
@@ -303,7 +303,7 @@ CommandLineOptions::parseOption(const char *optionString)
         {
             int firstLine;
             sscanf(&optionString[1], "%d", &firstLine);
-            RenderingConfiguration::global().setFirstLine(firstLine);
+            config.setFirstLine(firstLine);
         }
         optionNumber = 0;
         break;
@@ -313,7 +313,7 @@ CommandLineOptions::parseOption(const char *optionString)
         {
             int lastLine;
             sscanf(&optionString[1], "%d", &lastLine);
-            RenderingConfiguration::global().setLastLine(lastLine);
+            config.setLastLine(lastLine);
         }
         optionNumber = 0;
         break;
@@ -339,7 +339,7 @@ CommandLineOptions::parseOption(const char *optionString)
         {
             int quality;
             sscanf(&optionString[1], "%d", &quality);
-            RenderingConfiguration::global().setQuality(quality);
+            config.setQuality(quality);
         }
         optionNumber = 0;
         break;
@@ -360,26 +360,26 @@ CommandLineOptions::parseOption(const char *optionString)
     }
 
     if (optionNumber != 0) {
-        RenderingConfiguration::global().setOptionEnabled(optionNumber, addOption);
+        config.setOptionEnabled(optionNumber, addOption);
     }
 }
 
 void
-CommandLineOptions::parseFileName(const char *fileName)
+CommandLineOptions::parseFileName(const char *fileName, RenderingConfiguration &config)
 {
     FILE *defaultsFile;
     char optionString[256];
 
     if (inFlag) // File names may now be separated by spaces from cmdline option
     {
-        RenderingConfiguration::global().setInputFileName(fileName);
+        config.setInputFileName(fileName);
         inFlag = false;
         return;
     }
 
     if (outFlag) // File names may now be separated by spaces from cmdline option
     {
-        RenderingConfiguration::global().setOutputFileName(fileName);
+        config.setOutputFileName(fileName);
         outFlag = false;
         return;
     }
@@ -394,7 +394,7 @@ CommandLineOptions::parseFileName(const char *fileName)
 
     if ((defaultsFile = FileLocator::locate(fileName, "r")) != nullptr) {
         while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString);
+            readOptions(optionString, config);
         }
         fclose(defaultsFile);
     } else {
