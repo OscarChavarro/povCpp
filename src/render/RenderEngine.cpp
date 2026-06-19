@@ -30,9 +30,15 @@ This module implements the main raytracing loop.
 #include "render/SceneDump.h"
 #include "render/shaders/TraceService.h"
 
-Scene *RenderEngine::sScene = nullptr;
-RayWithSegments *RenderEngine::sPrimaryRay = nullptr;
-int RenderEngine::sTraceLevel = 0;
+RenderEngine *RenderEngine::sActive = nullptr;
+
+RenderEngine::~RenderEngine()
+{
+    delete[] mPreviousLine;
+    delete[] mCurrentLine;
+    delete[] mPreviousLineAntialiasedFlags;
+    delete[] mCurrentLineAntialiasedFlags;
+}
 
 inline unsigned short
 RenderEngine::rand3dInline(int a, int b)
@@ -41,14 +47,6 @@ RenderEngine::rand3dInline(int a, int b)
     return noise.checksumTable().eval((int)(noise.hashTable()[(int)(noise.hashTable()[(int)(a & 0xfff)] ^ b) &
                                   0xfff]));
 }
-
-int superSampleCount;
-
-ColorRgba *previousLine;
-ColorRgba *currentLine;
-char *previousLineAntialiasedFlags;
-char *currentLineAntialiasedFlags;
-RayWithSegments ray;
 
 namespace {
 ColorRgba *
@@ -66,19 +64,19 @@ allocateColorBuffer(int count)
 Scene &
 RenderEngine::scene()
 {
-    return *sScene;
+    return *sActive->mScene;
 }
 
 RayWithSegments *&
 RenderEngine::primaryRay()
 {
-    return sPrimaryRay;
+    return sActive->mPrimaryRay;
 }
 
 int &
 RenderEngine::traceLevel()
 {
-    return sTraceLevel;
+    return sActive->mTraceLevel;
 }
 
 double &
@@ -328,7 +326,7 @@ RenderEngine::readRenderedPart()
     int rc;
     int lineNumber;
     while ((rc = RenderingConfiguration::global().getOutputFileInputStream()->readLine(
-                previousLine, &lineNumber)) == 1) {
+                RenderEngine::sActive->mPreviousLine, &lineNumber)) == 1) {
     }
 
     RenderingConfiguration::global().setFirstLine(lineNumber + 1);
@@ -384,10 +382,10 @@ RenderEngine::startTracing()
                 RenderEngine::scene().getScreenWidth(),
                 RenderEngine::scene().getScreenHeight(), (double)x, (double)y);
             RenderEngine::traceLevel() = 0;
-            RenderEngine::trace(&ray, &color);
+            RenderEngine::trace(&RenderEngine::sActive->mRay, &color);
             ColorOperations::clipColor(&color, &color);
 
-            currentLine[x] = color;
+            RenderEngine::sActive->mCurrentLine[x] = color;
 
             if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
                 Scene::doAntiAliasing(x, y, &color);
@@ -405,7 +403,7 @@ RenderEngine::startTracing()
 
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
         RenderingConfiguration::global().getOutputFileInputStream()->writeLine(
-            previousLine, RenderingConfiguration::global().getLastLine() - 1);
+            RenderEngine::sActive->mPreviousLine, RenderingConfiguration::global().getLastLine() - 1);
     }
 }
 
@@ -480,7 +478,7 @@ Scene::checkStats(int y)
     }
 
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-        superSampleCount = 0;
+        RenderEngine::sActive->mSuperSampleCount = 0;
     }
 }
 
@@ -489,43 +487,43 @@ Scene::doAntiAliasing(int x, int y, ColorRgba *color)
 {
     char antialiasCenterFlag = 0;
 
-    currentLineAntialiasedFlags[x] = 0;
+    RenderEngine::sActive->mCurrentLineAntialiasedFlags[x] = 0;
 
     if (x != 0) {
-        if (ColorOperations::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
+        if (ColorOperations::colorDistance(&RenderEngine::sActive->mCurrentLine[x - 1], &RenderEngine::sActive->mCurrentLine[x]) >=
             RenderEngine::scene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
-            if (!(currentLineAntialiasedFlags[x - 1])) {
-                RenderEngine::supersample(&currentLine[x - 1], x - 1, y,
+            if (!(RenderEngine::sActive->mCurrentLineAntialiasedFlags[x - 1])) {
+                RenderEngine::supersample(&RenderEngine::sActive->mCurrentLine[x - 1], x - 1, y,
                     RenderEngine::scene().getScreenWidth(),
                     RenderEngine::scene().getScreenHeight());
-                currentLineAntialiasedFlags[x - 1] = 1;
-                superSampleCount++;
+                RenderEngine::sActive->mCurrentLineAntialiasedFlags[x - 1] = 1;
+                RenderEngine::sActive->mSuperSampleCount++;
             }
         }
     }
 
     if (y != RenderingConfiguration::global().getFirstLine() - 1) {
-        if (ColorOperations::colorDistance(&previousLine[x], &currentLine[x]) >=
+        if (ColorOperations::colorDistance(&RenderEngine::sActive->mPreviousLine[x], &RenderEngine::sActive->mCurrentLine[x]) >=
             RenderEngine::scene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
-            if (!(previousLineAntialiasedFlags[x])) {
-                RenderEngine::supersample(&previousLine[x], x, y - 1,
+            if (!(RenderEngine::sActive->mPreviousLineAntialiasedFlags[x])) {
+                RenderEngine::supersample(&RenderEngine::sActive->mPreviousLine[x], x, y - 1,
                     RenderEngine::scene().getScreenWidth(),
                     RenderEngine::scene().getScreenHeight());
-                previousLineAntialiasedFlags[x] = 1;
-                superSampleCount++;
+                RenderEngine::sActive->mPreviousLineAntialiasedFlags[x] = 1;
+                RenderEngine::sActive->mSuperSampleCount++;
             }
         }
     }
 
     if (antialiasCenterFlag) {
-        RenderEngine::supersample(&currentLine[x], x, y,
+        RenderEngine::supersample(&RenderEngine::sActive->mCurrentLine[x], x, y,
             RenderEngine::scene().getScreenWidth(),
             RenderEngine::scene().getScreenHeight());
-        currentLineAntialiasedFlags[x] = 1;
-        *color = currentLine[x];
-        superSampleCount++;
+        RenderEngine::sActive->mCurrentLineAntialiasedFlags[x] = 1;
+        *color = RenderEngine::sActive->mCurrentLine[x];
+        RenderEngine::sActive->mSuperSampleCount++;
     }
 }
 
@@ -534,33 +532,33 @@ RenderEngine::initializeRenderer()
 {
     int i;
 
-    RenderEngine::primaryRay() = &ray;
-    previousLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
-    currentLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
+    RenderEngine::primaryRay() = &sActive->mRay;
+    sActive->mPreviousLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
+    sActive->mCurrentLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
 
     for (i = 0; i <= RenderEngine::scene().getScreenWidth(); i++) {
-        previousLine[i].setR(0.0);
-        previousLine[i].setG(0.0);
-        previousLine[i].setB(0.0);
+        sActive->mPreviousLine[i].setR(0.0);
+        sActive->mPreviousLine[i].setG(0.0);
+        sActive->mPreviousLine[i].setB(0.0);
 
-        currentLine[i].setR(0.0);
-        currentLine[i].setG(0.0);
-        currentLine[i].setB(0.0);
+        sActive->mCurrentLine[i].setR(0.0);
+        sActive->mCurrentLine[i].setG(0.0);
+        sActive->mCurrentLine[i].setB(0.0);
     }
 
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-        previousLineAntialiasedFlags =
+        sActive->mPreviousLineAntialiasedFlags =
             new char[(RenderEngine::scene().getScreenWidth() + 1)];
-        currentLineAntialiasedFlags =
+        sActive->mCurrentLineAntialiasedFlags =
             new char[(RenderEngine::scene().getScreenWidth() + 1)];
 
         for (i = 0; i <= RenderEngine::scene().getScreenWidth(); i++) {
-            (previousLineAntialiasedFlags)[i] = 0;
-            (currentLineAntialiasedFlags)[i] = 0;
+            (sActive->mPreviousLineAntialiasedFlags)[i] = 0;
+            (sActive->mCurrentLineAntialiasedFlags)[i] = 0;
         }
     }
 
-    ray.setOrigin(RenderEngine::scene().getViewPoint().getLocation());
+    sActive->mRay.setOrigin(RenderEngine::scene().getViewPoint().getLocation());
 }
 
 void
@@ -571,7 +569,7 @@ Scene::outputLine(int y)
 
     if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
         if (y > RenderingConfiguration::global().getFirstLine()) {
-            RenderingConfiguration::global().getOutputFileInputStream()->writeLine(previousLine, y - 1);
+            RenderingConfiguration::global().getOutputFileInputStream()->writeLine(RenderEngine::sActive->mPreviousLine, y - 1);
         }
     }
 
@@ -580,14 +578,14 @@ Scene::outputLine(int y)
             RenderingConfiguration::global().getVerboseFormat() != '1') {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), " supersampled %d times.", superSampleCount);
+                snprintf(_logMsg, sizeof(_logMsg), " supersampled %d times.", RenderEngine::sActive->mSuperSampleCount);
                 Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
             }
         }
 
         if (RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
             RenderingConfiguration::global().getVerboseFormat() == '1') {
-            fprintf(stderr, " supersampled %d times.", superSampleCount);
+            fprintf(stderr, " supersampled %d times.", RenderEngine::sActive->mSuperSampleCount);
         }
         if (RenderingConfiguration::global().getVerboseFormat() == '1') {
             fprintf(stderr, "\r");
@@ -595,13 +593,13 @@ Scene::outputLine(int y)
             fprintf(stderr, "\n");
         }
     }
-    tempColorPtr = previousLine;
-    previousLine = currentLine;
-    currentLine = tempColorPtr;
+    tempColorPtr = RenderEngine::sActive->mPreviousLine;
+    RenderEngine::sActive->mPreviousLine = RenderEngine::sActive->mCurrentLine;
+    RenderEngine::sActive->mCurrentLine = tempColorPtr;
 
-    tempCharPtr = previousLineAntialiasedFlags;
-    previousLineAntialiasedFlags = currentLineAntialiasedFlags;
-    currentLineAntialiasedFlags = tempCharPtr;
+    tempCharPtr = RenderEngine::sActive->mPreviousLineAntialiasedFlags;
+    RenderEngine::sActive->mPreviousLineAntialiasedFlags = RenderEngine::sActive->mCurrentLineAntialiasedFlags;
+    RenderEngine::sActive->mCurrentLineAntialiasedFlags = tempCharPtr;
 }
 
 void

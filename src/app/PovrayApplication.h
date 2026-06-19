@@ -16,6 +16,7 @@ class PovrayApplication {
     RenderRuntimeState runtimeState;
     TextureUtils textureUtils;
     Scene scene;
+    RenderEngine engine;
     ImageOutput *selectedImageOutput;
 
     void printStatistics(
@@ -39,6 +40,7 @@ class PovrayApplication {
         Statistics::installActive(&statistics);
         RenderRuntimeState::installActive(&runtimeState);
         TextureUtils::installActive(&textureUtils);
+        RenderEngine::installActive(&engine);
         RenderEngine::setScene(&scene);
     }
 
