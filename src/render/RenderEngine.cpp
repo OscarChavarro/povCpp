@@ -64,6 +64,12 @@ RenderEngine::getActiveTextureUtils()
     return sActive->mContext->getTextureUtils();
 }
 
+IntersectionPriorityQueuePool &
+RenderEngine::getActiveIntersectionQueuePool()
+{
+    return sActive->mIntersectionQueuePool;
+}
+
 inline unsigned short
 RenderEngine::rand3dInline(int a, int b)
 {
@@ -126,20 +132,16 @@ void
 RenderEngine::traceServiceShadeShadow(
     void *context, Intersection *intersection, ColorRgba *color)
 {
-    (void)context;
+    RenderEngine *engine = static_cast<RenderEngine *>(context);
     RayShaderPipeline::shadeSurface(
-        intersection, color, nullptr, true, RenderEngine::getTraceService(),
-        &RenderEngine::getActiveTextureUtils());
+        intersection, color, nullptr, true, &engine->mTraceService,
+        &engine->mContext->getTextureUtils());
 }
 
 const TraceService *
 RenderEngine::getTraceService()
 {
-    static const TraceService traceService(
-        RenderEngine::traceServiceTrace,
-        RenderEngine::traceServiceShadeShadow,
-        nullptr);
-    return &traceService;
+    return &sActive->mTraceService;
 }
 
 void
@@ -172,6 +174,7 @@ Scene::createRay(
     if (ctx) {
         ray->setStatistics(&ctx->getStatistics());
         ray->setConfig(&ctx->getConfig());
+        ray->setIntersectionQueuePool(&RenderEngine::getActiveIntersectionQueuePool());
     }
 }
 

@@ -107,6 +107,9 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z()));
     }
     newRay.setShadowRay(ray->isShadowRayEnabled());
+    newRay.setStatistics(ray->getStatistics());
+    newRay.setConfig(ray->getConfig());
+    newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
 
     len = java::Math::sqrt(newRay.getDirection().x() * newRay.getDirection().x() +
                newRay.getDirection().y() * newRay.getDirection().y() +

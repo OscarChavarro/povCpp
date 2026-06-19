@@ -6,6 +6,7 @@
 
 class Statistics;
 class RenderingConfiguration;
+class IntersectionPriorityQueuePool;
 
 class RayWithSegments : public Ray {
   public:
@@ -43,6 +44,8 @@ class RayWithSegments : public Ray {
     void setStatistics(Statistics *stats) { statistics = stats; }
     const RenderingConfiguration *getConfig() const { return config; }
     void setConfig(const RenderingConfiguration *cfg) { config = cfg; }
+    IntersectionPriorityQueuePool *getIntersectionQueuePool() const { return intersectionQueuePool; }
+    void setIntersectionQueuePool(IntersectionPriorityQueuePool *pool) { intersectionQueuePool = pool; }
 
     void makeRay();
     void initializeContainers();
@@ -67,6 +70,7 @@ class RayWithSegments : public Ray {
     bool isPrimaryRay;
     Statistics *statistics;
     const RenderingConfiguration *config;
+    IntersectionPriorityQueuePool *intersectionQueuePool;
 };
 
 #endif

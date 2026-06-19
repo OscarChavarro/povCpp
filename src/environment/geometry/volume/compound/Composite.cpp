@@ -1,8 +1,8 @@
 #include <cstdio>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "common/dataStructures/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
-#include "common/dataStructures/PriorityQueuePool.txx"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/RendererConfiguration.h"
@@ -47,7 +47,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         stats.incrementBoundingRegionTestsSucceeded();
     }
 
-    localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
+    localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
     anyIntersectionFound = false;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
@@ -77,7 +77,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         }
     }
     localDepthQueue->clear();
-    PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
+    ray->getIntersectionQueuePool()->push(localDepthQueue);
     return (anyIntersectionFound);
 }
 
@@ -107,7 +107,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         stats.incrementBoundingRegionTestsSucceeded();
     }
 
-    localDepthQueue = PriorityQueuePool<Intersection>::pqPop(128);
+    localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
     anyIntersectionFound = false;
     this->getGeometry()->allIntersections(ray, localDepthQueue);
 
@@ -147,7 +147,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         }
     }
     localDepthQueue->clear();
-    PriorityQueuePool<Intersection>::pqPush(localDepthQueue);
+    ray->getIntersectionQueuePool()->push(localDepthQueue);
     return (anyIntersectionFound);
 }
 

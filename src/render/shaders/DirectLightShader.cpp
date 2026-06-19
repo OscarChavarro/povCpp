@@ -1,7 +1,6 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 #include "common/statistics/Statistics.h"
-#include "common/dataStructures/PriorityQueuePool.txx"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/Intersection.h"
@@ -46,11 +45,12 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
             -eye->getDirection().x(), -eye->getDirection().y(), -eye->getDirection().z());
     }
 
-    localQueue = PriorityQueuePool<Intersection>::pqPop(128);
+    localQueue = eye->getIntersectionQueuePool()->pop(128);
     lightSourceRay.setShadowRay(true);
     lightSourceRay.setPrimaryRay(false);
     lightSourceRay.setStatistics(eye->getStatistics());
     lightSourceRay.setConfig(eye->getConfig());
+    lightSourceRay.setIntersectionQueuePool(eye->getIntersectionQueuePool());
 
     for (lightSource = lightSources; lightSource != nullptr;
         lightSource = lightSource->getNextLightSource()) {
@@ -110,5 +110,5 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
             }
         }
     }
-    PriorityQueuePool<Intersection>::pqPush(localQueue);
+    eye->getIntersectionQueuePool()->push(localQueue);
 }

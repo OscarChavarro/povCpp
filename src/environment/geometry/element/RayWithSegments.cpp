@@ -14,6 +14,7 @@ RayWithSegments::RayWithSegments()
     isPrimaryRay = false;
     statistics = nullptr;
     config = nullptr;
+    intersectionQueuePool = nullptr;
 }
 
 inline void
