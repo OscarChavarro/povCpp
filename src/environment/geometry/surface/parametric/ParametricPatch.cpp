@@ -22,6 +22,22 @@ static constexpr double EPSILON = 1.0e-10;
 
 int maxDepthReached;
 
+ParametricBiCubicPatch::ParametricBiCubicPatch() :
+    patchType(0),
+    uSteps(0),
+    vSteps(0),
+    boundingSphereCenter(),
+    boundingSphereRadius(0.0),
+    flatnessValue(0.0),
+    intersectionCount(0),
+    interpolatedGrid(nullptr),
+    interpolatedNormals(nullptr),
+    smoothNormals(nullptr),
+    interpolatedD(nullptr),
+    nodeTree(nullptr)
+{
+}
+
 ParametricPatchNode *
 ParametricBiCubicPatch::createNewParametricPatchNode()
 {

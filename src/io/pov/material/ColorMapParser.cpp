@@ -80,7 +80,8 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                 const double spanStart = PrimitiveParser::parseFloat(ctx);
                 const double spanEnd   = PrimitiveParser::parseFloat(ctx);
 
-                ColorRgba sc, ec;
+                ColorRgba sc(0.0, 0.0, 0.0, 0.0);
+                ColorRgba ec(0.0, 0.0, 0.0, 0.0);
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                 PrimitiveParser::parseColor(&sc, ctx);
 

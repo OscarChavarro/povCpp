@@ -1,7 +1,8 @@
 #include "io/pov/material/PovColorMapSpan.h"
 
 PovColorMapSpan::PovColorMapSpan()
-    : start(0.0), end(0.0), startColor(), endColor()
+    : start(0.0), end(0.0), startColor(0.0, 0.0, 0.0, 0.0),
+      endColor(0.0, 0.0, 0.0, 0.0)
 {
 }
 

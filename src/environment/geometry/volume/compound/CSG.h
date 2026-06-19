@@ -8,6 +8,8 @@
 
 class CSG : public Geometry {
   public:
+    explicit CSG(GeometryTypes initialGeometryType = GeometryTypes::CSG_UNION_TYPE);
+
     GeometryTypes getGeometryType() const;
     void setGeometryType(GeometryTypes value);
     java::ArrayList<TransformableElement*> &getShapes();

@@ -10,6 +10,8 @@ class Box : public Geometry {
     Box();
     Box(const Vector3Dd &minBounds, const Vector3Dd &maxBounds,
         bool inverted = false);
+    Box(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
+        const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted);
 
     Matrix4x4d* getTransformation() const { return transformation; }
     void setTransformation(Matrix4x4d *value) { transformation = value; }

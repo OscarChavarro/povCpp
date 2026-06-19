@@ -10,6 +10,18 @@
 
 class Blob : public Geometry {
   public:
+    Blob() :
+        transformation(nullptr),
+        transformationInverse(nullptr),
+        inverted(false),
+        count(0),
+        threshold(0.0),
+        list(nullptr),
+        intervals(nullptr),
+        sturmFlag(0)
+    {
+    }
+
     int getSturmFlag() const { return sturmFlag; }
     void setSturmFlag(int flag) { sturmFlag = flag; }
     Matrix4x4d* getTransformation() const { return transformation; }

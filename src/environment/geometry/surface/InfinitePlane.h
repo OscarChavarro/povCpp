@@ -8,6 +8,8 @@ class InfinitePlane : public Geometry {
   public:
     InfinitePlane();
     InfinitePlane(const Vector3Dd &normalVector, double distance);
+    InfinitePlane(const Vector3Dd &normalVector, double distance,
+        double vpNormDotOrigin, bool vpCached);
 
     Vector3Dd &getNormalVector() { return normalVector; }
     const Vector3Dd &getNormalVector() const { return normalVector; }

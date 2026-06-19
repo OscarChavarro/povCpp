@@ -8,6 +8,9 @@
 
 class PolynomialShape : public Geometry {
   public:
+    PolynomialShape();
+    explicit PolynomialShape(int initialOrder);
+
     Matrix4x4d *getTransformation() const { return transformation; }
     void setTransformation(Matrix4x4d *value) { transformation = value; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }

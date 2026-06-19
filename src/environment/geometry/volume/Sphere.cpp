@@ -12,14 +12,24 @@ Sphere::Sphere() :
 }
 
 Sphere::Sphere(const Vector3Dd &center, double radius, bool inverted) :
+    Sphere(center, radius, radius * radius, 1.0 / radius, Vector3Dd(),
+        0.0, false, false, inverted)
+{
+}
+
+Sphere::Sphere(const Vector3Dd &center, double radius, double radiusSquared,
+    double inverseRadius, const Vector3Dd &vpOtoC, double vpOCSquared,
+    short vpInside, bool vpCached, bool inverted) :
     center(center),
-    vpOtoC(),
-    vpOCSquared(0.0),
-    vpInside(false),
-    vpCached(false),
+    radius(radius),
+    radiusSquared(radiusSquared),
+    inverseRadius(inverseRadius),
+    vpOtoC(vpOtoC),
+    vpOCSquared(vpOCSquared),
+    vpInside(vpInside),
+    vpCached(vpCached),
     inverted(inverted)
 {
-    updateRadiusState(radius);
 }
 
 void
@@ -167,12 +177,8 @@ Sphere::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Sphere::copy()
 {
-    Sphere *newShape;
-
-    newShape = new Sphere;
-    *newShape = *this;
-
-    return (newShape);
+    return new Sphere(center, radius, radiusSquared, inverseRadius, vpOtoC,
+        vpOCSquared, vpInside, vpCached, inverted);
 }
 
 void

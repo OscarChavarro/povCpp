@@ -11,6 +11,7 @@ This module implements the main raytracing loop.
 */
 
 #include <cstdio>
+#include <new>
 
 #include "java/io/FileOutputStream.h"
 #include "java/util/ArrayList.txx"
@@ -48,6 +49,19 @@ ColorRgba *currentLine;
 char *previousLineAntialiasedFlags;
 char *currentLineAntialiasedFlags;
 RayWithSegments ray;
+
+namespace {
+ColorRgba *
+allocateColorBuffer(int count)
+{
+    ColorRgba *buffer = static_cast<ColorRgba *>(
+        ::operator new[](sizeof(ColorRgba) * count));
+    for (int i = 0; i < count; i++) {
+        new (&buffer[i]) ColorRgba(0.0, 0.0, 0.0, 0.0);
+    }
+    return buffer;
+}
+}
 
 Scene &
 RenderEngine::scene()
@@ -137,7 +151,7 @@ void
 RenderEngine::supersample(
     ColorRgba *result, int x, int y, int width, int height)
 {
-    ColorRgba color;
+    ColorRgba color(0.0, 0.0, 0.0, 0.0);
     double dx;
     double dy;
     double jitterX;
@@ -343,7 +357,7 @@ RenderEngine::startTracing()
         SceneDumper::dumpSceneStructure(stderr);
     }
 
-    ColorRgba color;
+    ColorRgba color(0.0, 0.0, 0.0, 0.0);
     int x;
     int y;
     for (y = RenderingConfiguration::global().hasOptionFlags(RenderingConfiguration::ANTIALIAS)
@@ -521,8 +535,8 @@ RenderEngine::initializeRenderer()
     int i;
 
     RenderEngine::primaryRay() = &ray;
-    previousLine = new ColorRgba[(RenderEngine::scene().getScreenWidth() + 1)];
-    currentLine = new ColorRgba[(RenderEngine::scene().getScreenWidth() + 1)];
+    previousLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
+    currentLine = allocateColorBuffer(RenderEngine::scene().getScreenWidth() + 1);
 
     for (i = 0; i <= RenderEngine::scene().getScreenWidth(); i++) {
         previousLine[i].setR(0.0);

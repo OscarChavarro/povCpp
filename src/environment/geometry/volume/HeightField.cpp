@@ -22,6 +22,17 @@ and Drew Wells.
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/volume/HeightField.h"
 
+HeightField::HeightField() :
+    transformation(new Matrix4x4d(Matrix4x4d::identityMatrix())),
+    transformationInverse(new Matrix4x4d(Matrix4x4d::identityMatrix())),
+    boundingBox(new Box),
+    blockSize(0.0),
+    invBlkSize(0.0),
+    block(nullptr),
+    Map(nullptr)
+{
+}
+
 inline int
 HeightField::signInline(double x)
 {

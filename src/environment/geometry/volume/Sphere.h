@@ -8,6 +8,9 @@ class Sphere : public Geometry {
   public:
     Sphere();
     Sphere(const Vector3Dd &center, double radius, bool inverted = false);
+    Sphere(const Vector3Dd &center, double radius, double radiusSquared,
+        double inverseRadius, const Vector3Dd &vpOtoC, double vpOCSquared,
+        short vpInside, bool vpCached, bool inverted);
 
     Vector3Dd& getCenter() { return center; }
     const Vector3Dd& getCenter() const { return center; }

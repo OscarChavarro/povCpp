@@ -11,6 +11,8 @@ class ParametricBiCubicPatch : public Geometry {
   public:
     static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 
+    ParametricBiCubicPatch();
+
     int getPatchType() const;
     void setPatchType(int type);
     int getUSteps() const;

@@ -46,8 +46,7 @@ const PovColorMapSpan *PovColorMap::getSpanAt(int i) const {
 }
 
 ColorRgba PovColorMap::evalLinear(double t) const {
-    ColorRgba result;
-    result.setR(0.0); result.setG(0.0); result.setB(0.0); result.setA(0.0);
+    ColorRgba result(0.0, 0.0, 0.0, 0.0);
     if (t < 0.0) t = 0.0;
     if (t > 1.0) t = 1.0;
     for (int i = 0; i < (int)_spans.size(); i++) {

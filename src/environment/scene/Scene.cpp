@@ -7,12 +7,7 @@ namespace {
 ColorRgba
 blackFogColor()
 {
-    ColorRgba color;
-    color.setR(0.0);
-    color.setG(0.0);
-    color.setB(0.0);
-    color.setA(0.0);
-    return color;
+    return ColorRgba(0.0, 0.0, 0.0, 0.0);
 }
 }
 
@@ -22,9 +17,9 @@ Scene::Scene() :
     lightSources(nullptr),
     atmosphereIor(1.0),
     antialiasThreshold(RenderingConfiguration::global().getAntialiasThreshold()),
-    fogDistance(0.0)
+    fogDistance(0.0),
+    fogColor(0.0, 0.0, 0.0, 0.0)
 {
-    fogColor = blackFogColor();
 }
 
 void
