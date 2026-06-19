@@ -61,8 +61,6 @@ BlobParser::parseBlob(ParserContext &ctx)
             case Tokenizer::THRESHOLD_TOKEN:
             case Tokenizer::COMPONENT_TOKEN:
                 ctx.tokenStream().ungetToken();
-                localShape = ModelBuilder::getBlobShape();
-                body = ModelBuilder::wrap(localShape);
                 blobComponents = nullptr;
                 npoints = 0;
                 threshold = 1.0;
@@ -104,9 +102,8 @@ BlobParser::parseBlob(ParserContext &ctx)
                     }
                 }
 
-                // Finally, process the information
-                Blob::makeBlob((BoundedGeometry *)localShape, threshold, blobComponents,
-                    npoints, 0);
+                localShape = new Blob(threshold, blobComponents, npoints, 0);
+                body = ModelBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
 
@@ -175,8 +172,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                body->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(body->getShapeColor(), ctx);
+                PrimitiveParser::parseColor(body->ensureShapeColor(), ctx);
                 break;
 
             default:

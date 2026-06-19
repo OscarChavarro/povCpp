@@ -130,8 +130,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                body->setShapeColor(ModelBuilder::getColor());
-                PrimitiveParser::parseColor(body->getShapeColor(), ctx);
+                PrimitiveParser::parseColor(body->ensureShapeColor(), ctx);
                 break;
 
             default:

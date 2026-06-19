@@ -164,14 +164,11 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
         }
     }
 
-    Light *localShape = spotlight ?
+    return spotlight ?
         static_cast<Light *>(new SpotLight(
-            center, pointsAt, inverted, coefficient, radius, falloff)) :
+            localColor, center, pointsAt, inverted, coefficient, radius,
+            falloff)) :
         static_cast<Light *>(new PointLight(
-            center, pointsAt, inverted, coefficient, radius, falloff));
-    if (localShape != nullptr) {
-        localShape->setShapeColor(localColor);
-    }
-
-    return localShape;
+            localColor, center, pointsAt, inverted, coefficient, radius,
+            falloff));
 }

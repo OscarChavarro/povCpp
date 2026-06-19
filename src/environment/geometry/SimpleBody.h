@@ -21,12 +21,10 @@ class SimpleBody : public TransformableElement {
     SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor);
 
     Geometry* getGeometry() const { return geometry; }
-    void setGeometry(Geometry *value) { geometry = value; }
     Material* getMaterial() const { return material; }
     Material*& getMaterialRef() { return material; }
-    void setMaterial(Material* mat) { material = mat; }
     ColorRgba* getShapeColor() const { return shapeColor; }
-    void setShapeColor(ColorRgba* color) { shapeColor = color; }
+    ColorRgba* ensureShapeColor();
     Matrix4x4d& getTransform() { return transform; }
     const Matrix4x4d& getTransform() const { return transform; }
     Matrix4x4d& getTransformInverse() { return transformInverse; }

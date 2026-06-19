@@ -636,7 +636,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     }
 
     // What objects does this ray intersect?
-    java::ArrayList<BoundedGeometry*> &sceneObjects =
+    const java::ArrayList<BoundedGeometry*> &sceneObjects =
         RenderEngine::scene().getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];

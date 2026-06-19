@@ -19,11 +19,13 @@ class Light {
 
   public:
     Light();
+    Light(const ColorRgba *shapeColor, const Vector3Dd &center,
+        const Vector3Dd &pointsAt, bool inverted, double coefficient,
+        double radius, double falloff);
     Light(const Vector3Dd &center, const Vector3Dd &pointsAt, bool inverted,
         double coefficient, double radius, double falloff);
 
     ColorRgba *getShapeColor() const;
-    void setShapeColor(ColorRgba *color) { shapeColor = color; }
     Vector3Dd& getCenter() { return center; }
     const Vector3Dd& getCenter() const { return center; }
     Vector3Dd& getPointsAt() { return pointsAt; }
@@ -31,13 +33,9 @@ class Light {
     Light *getNextLightSource() const { return nextLightSource; }
     void setNextLightSource(Light *light) { nextLightSource = light; }
     bool isInverted() const { return inverted; }
-    void setInverted(bool value) { inverted = value; }
     double getCoefficient() const { return coefficient; }
-    void setCoefficient(double value) { coefficient = value; }
     double getRadius() const { return radius; }
-    void setRadius(double value) { radius = value; }
     double getFalloff() const { return falloff; }
-    void setFalloff(double value) { falloff = value; }
 
     virtual double evaluateLightResponseFactor(const Ray *lightSourceRay) const = 0;
 
@@ -47,7 +45,6 @@ class Light {
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
     void invert();
-    void copyStateInto(Light *dst) const;
     virtual ~Light() = default;
 };
 

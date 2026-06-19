@@ -43,7 +43,6 @@ class ModelBuilder {
     static ColorRgba *getColor();
     static Vector3Dd *getVector();
     static double *getFloat();
-    static ParametricBiCubicPatch *getBicubicPatchShape();
 };
 
 #endif

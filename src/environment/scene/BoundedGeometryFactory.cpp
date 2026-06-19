@@ -14,8 +14,14 @@
 BoundedGeometry *
 BoundedGeometryFactory::getObject()
 {
+    return getObject(nullptr);
+}
+
+BoundedGeometry *
+BoundedGeometryFactory::getObject(TransformableElement *geometry)
+{
     BoundedGeometry *newObject = new BoundedGeometry(
-        nullptr,
+        geometry,
         MaterialUtils::instance().defaultTexture(),
         nullptr,
         false);

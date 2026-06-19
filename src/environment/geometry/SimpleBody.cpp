@@ -9,6 +9,15 @@ SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeC
 {
 }
 
+ColorRgba *
+SimpleBody::ensureShapeColor()
+{
+    if (shapeColor == nullptr) {
+        shapeColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
+    }
+    return shapeColor;
+}
+
 int
 SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {

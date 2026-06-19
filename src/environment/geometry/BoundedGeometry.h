@@ -42,7 +42,6 @@ class BoundedGeometry : public Geometry {
         clippingShapes = value;
     }
     TransformableElement *getGeometry() const { return geometry; }
-    void setGeometry(TransformableElement *value) { geometry = value; }
     bool getNoShadowFlag() const { return noShadowFlag; }
     void setNoShadowFlag(bool value) { noShadowFlag = value; }
     ColorRgba *getObjectColor() const { return objectColor; }

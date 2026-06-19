@@ -469,12 +469,10 @@ ObjectParser::parseObject(ParserContext &ctx)
             case Tokenizer::BOX_TOKEN:
             case Tokenizer::BLOB_TOKEN:
                 ctx.tokenStream().ungetToken();
-                if (object == nullptr) {
-                    object = BoundedGeometryFactory::getObject();
-                }
-
                 localShape = ObjectParser::parseShape(ctx);
-                object->setGeometry(localShape);
+                if (object == nullptr) {
+                    object = BoundedGeometryFactory::getObject(localShape);
+                }
                 Exit_Flag = true;
                 break;
 

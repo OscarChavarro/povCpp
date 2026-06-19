@@ -6,6 +6,7 @@
 class BoundedGeometryFactory {
   public:
     static BoundedGeometry *getObject(void);
+    static BoundedGeometry *getObject(TransformableElement *geometry);
 };
 
 #endif

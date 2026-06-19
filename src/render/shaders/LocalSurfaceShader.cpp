@@ -15,7 +15,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
     const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const Light *lightSources,
-    java::ArrayList<BoundedGeometry*> &objects, int &traceLevel)
+    const java::ArrayList<BoundedGeometry*> &objects, int &traceLevel)
 {
     Vector3Dd surfaceNormal;
     double normalDirection;

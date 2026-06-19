@@ -7,13 +7,21 @@ This module implements the point & spot light source primitive.
 #include "environment/light/Light.h"
 
 Light::Light() :
-    Light(Vector3Dd(0.0, 0.0, 0.0), Vector3Dd(0.0, 0.0, 1.0), false,
+    Light(nullptr, Vector3Dd(0.0, 0.0, 0.0), Vector3Dd(0.0, 0.0, 1.0), false,
         10.0, 0.35, 0.35)
 {
 }
 
 Light::Light(const Vector3Dd &center, const Vector3Dd &pointsAt, bool inverted,
     double coefficient, double radius, double falloff) :
+    Light(nullptr, center, pointsAt, inverted, coefficient, radius, falloff)
+{
+}
+
+Light::Light(const ColorRgba *shapeColor, const Vector3Dd &center,
+    const Vector3Dd &pointsAt, bool inverted, double coefficient,
+    double radius, double falloff) :
+    shapeColor(shapeColor != nullptr ? new ColorRgba(*shapeColor) : nullptr),
     center(center),
     pointsAt(pointsAt),
     nextLightSource(nullptr),
@@ -29,20 +37,6 @@ Light::applyLinearTransformation(const Matrix4x4d &transformation)
 {
     this->getCenter() = transformation.transpose().multiply(this->getCenter());
     this->getPointsAt() = transformation.transpose().multiply(this->getPointsAt());
-}
-
-void
-Light::copyStateInto(Light *dst) const
-{
-    dst->shapeColor = shapeColor != nullptr ?
-        new ColorRgba(*shapeColor) : nullptr;
-    dst->center = center;
-    dst->pointsAt = pointsAt;
-    dst->nextLightSource = nullptr;
-    dst->inverted = inverted;
-    dst->coefficient = coefficient;
-    dst->radius = radius;
-    dst->falloff = falloff;
 }
 
 void
@@ -74,5 +68,5 @@ Light::scale(Vector3Dd *vector)
 void
 Light::invert()
 {
-    this->setInverted(!this->isInverted());
+    inverted = !inverted;
 }

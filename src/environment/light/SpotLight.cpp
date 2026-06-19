@@ -5,6 +5,13 @@ SpotLight::SpotLight() : Light()
 {
 }
 
+SpotLight::SpotLight(const ColorRgba *shapeColor, const Vector3Dd &center,
+    const Vector3Dd &pointsAt, bool inverted, double coefficient,
+    double radius, double falloff) :
+    Light(shapeColor, center, pointsAt, inverted, coefficient, radius, falloff)
+{
+}
+
 SpotLight::SpotLight(const Vector3Dd &center, const Vector3Dd &pointsAt,
     bool inverted, double coefficient, double radius, double falloff) :
     Light(center, pointsAt, inverted, coefficient, radius, falloff)
@@ -57,10 +64,6 @@ SpotLight::evaluateLightResponseFactor(const Ray *lightSourceRay) const
 SpotLight *
 SpotLight::copy()
 {
-    SpotLight * const newLight = new SpotLight();
-    if (newLight == nullptr) {
-        return nullptr;
-    }
-    copyStateInto(newLight);
-    return newLight;
+    return new SpotLight(getShapeColor(), getCenter(), getPointsAt(),
+        isInverted(), getCoefficient(), getRadius(), getFalloff());
 }
