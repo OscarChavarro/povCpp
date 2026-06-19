@@ -258,9 +258,7 @@ Quadric::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Quadric::copy()
 {
-    return new Quadric(
-        object2Terms, objectMixedTerms, objectTerms, objectConstant,
-        objectVpConstant, constantCached, nonZeroSquareTerm);
+    return new Quadric(*this);
 }
 
 void

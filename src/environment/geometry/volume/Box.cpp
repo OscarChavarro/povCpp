@@ -40,6 +40,12 @@ Box::Box(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
     }
 }
 
+Box::Box(const Box &other) :
+    Box(other.transformation, other.transformationInverse, other.bounds[0],
+        other.bounds[1], other.inverted)
+{
+}
+
 
 int
 Box::closeTo(double x, double y)
@@ -309,8 +315,7 @@ Box::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Box::copy()
 {
-    return new Box(
-        transformation, transformationInverse, bounds[0], bounds[1], inverted);
+    return new Box(*this);
 }
 
 void

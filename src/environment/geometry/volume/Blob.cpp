@@ -582,10 +582,16 @@ Blob::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     *result = (*result).normalizedFast();
 }
 
+Blob::Blob(const Blob &other) :
+    Blob(other.transformation, other.transformationInverse, other.inverted,
+        other.count, other.threshold, other.list, other.sturmFlag)
+{
+}
+
 void *
 Blob::copy()
 {
-    return copyWithSturmFlag(sturmFlag);
+    return new Blob(*this);
 }
 
 Blob *

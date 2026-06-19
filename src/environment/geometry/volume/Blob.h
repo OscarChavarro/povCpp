@@ -27,6 +27,7 @@ class Blob : public Geometry {
         const Matrix4x4d *transformationInverseValue, bool invertedValue,
         int countValue, double thresholdValue, const BlobElement *listValue,
         int sturmFlagValue);
+    Blob(const Blob &other);
 
     int getSturmFlag() const { return sturmFlag; }
     Matrix4x4d* getTransformation() const { return transformation; }

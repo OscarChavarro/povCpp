@@ -169,8 +169,9 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                         (ctx.constants()[(int)constantId].getConstantType() ==
                             ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
-                        container = (CSG *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .getConstantData())->copy();
+                        container = new CSG(
+                            *(CSG *)ctx.constants()[(int)constantId]
+                                .getConstantData());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -517,8 +518,9 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::OBJECT_CONSTANT) {
-                        object = (BoundedGeometry *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .getConstantData())->copy();
+                        object = new BoundedGeometry(
+                            *(BoundedGeometry *)ctx.constants()[(int)constantId]
+                                .getConstantData());
                         extractObjectState(
                             object, geometry, objectTexture, objectColor,
                             noShadowFlag, localBoundingShapes,
@@ -746,8 +748,9 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
-                        localComposite = (Composite *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .getConstantData())->copy();
+                        localComposite = new Composite(
+                            *(Composite *)ctx.constants()[(int)constantId]
+                                .getConstantData());
                         extractCompositeState(
                             localComposite, geometry, objectTexture,
                             objectColor, noShadowFlag, localBoundingShapes,

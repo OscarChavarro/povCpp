@@ -43,6 +43,7 @@ class BoundedGeometry : public Geometry {
         objectTexture(objectTexture)
     {
     }
+    BoundedGeometry(const BoundedGeometry &other);
 
     java::ArrayList<TransformableElement*>& getBoundingShapes() { return boundingShapes; }
     const java::ArrayList<TransformableElement*>& getBoundingShapes() const { return boundingShapes; }

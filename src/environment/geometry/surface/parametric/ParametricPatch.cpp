@@ -1046,19 +1046,22 @@ ParametricBiCubicPatch::normal(
     *result = Vector3Dd(1.0, 0.0, 0.0);
 }
 
+ParametricBiCubicPatch::ParametricBiCubicPatch(const ParametricBiCubicPatch &other) :
+    ParametricBiCubicPatch(other.patchType, other.uSteps, other.vSteps,
+        other.flatnessValue, other.controlPoints)
+{
+    intersectionCount = other.intersectionCount;
+    for (int i = 0; i < intersectionCount; i++) {
+        normalVector[i] = other.normalVector[i];
+        intersectionPoint[i] = other.intersectionPoint[i];
+    }
+    ParametricBiCubicPatch::precomputePatchValues(this);
+}
+
 void *
 ParametricBiCubicPatch::copy()
 {
-    ParametricBiCubicPatch *newShape = new ParametricBiCubicPatch(
-        patchType, uSteps, vSteps, flatnessValue, controlPoints);
-    newShape->intersectionCount = intersectionCount;
-    for (int i = 0; i < intersectionCount; i++) {
-        newShape->normalVector[i] = normalVector[i];
-        newShape->intersectionPoint[i] = intersectionPoint[i];
-    }
-    ParametricBiCubicPatch::precomputePatchValues(newShape);
-
-    return (void *)(newShape);
+    return new ParametricBiCubicPatch(*this);
 }
 
 void

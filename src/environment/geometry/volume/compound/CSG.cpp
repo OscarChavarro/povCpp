@@ -148,24 +148,18 @@ CSG::insideCsgIntersection(Vector3Dd *testPoint)
     return (true);
 }
 
+CSG::CSG(const CSG &other) :
+    geometryType(other.geometryType)
+{
+    for (long int i = other.getShapes().size() - 1; i >= 0; i--) {
+        shapes.add((TransformableElement *)other.getShapes()[i]->copy());
+    }
+}
+
 void *
 CSG::copy()
 {
-    const CSG *shape = this;
-    CSG *newShape;
-    TransformableElement *localShape;
-    TransformableElement *copiedShape;
-
-    newShape = new CSG(shape->getGeometryType());
-
-    for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
-        localShape = shape->getShapes()[i];
-
-        copiedShape =
-            (TransformableElement *)localShape->copy();
-        newShape->getShapes().add(copiedShape);
-    }
-    return ((void *)newShape);
+    return new CSG(*this);
 }
 
 // A CSG is a container of SimpleBody children. Transforming it recurses

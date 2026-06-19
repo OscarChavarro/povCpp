@@ -60,8 +60,9 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::QUADRIC_CONSTANT) {
-                        body = (SimpleBody *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .getConstantData())->copy();
+                        body = new SimpleBody(
+                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                                    .getConstantData());
                         localShape = (Quadric *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);

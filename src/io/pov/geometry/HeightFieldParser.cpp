@@ -135,8 +135,9 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::HEIGHT_FIELD_CONSTANT) {
-                        body = (SimpleBody *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .getConstantData())->copy();
+                        body = new SimpleBody(
+                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                                    .getConstantData());
                         localShape = (HeightField *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);

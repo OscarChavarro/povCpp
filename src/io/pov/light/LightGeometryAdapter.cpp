@@ -31,7 +31,7 @@ LightGeometryAdapter::inside(Vector3Dd *point)
 void *
 LightGeometryAdapter::copy()
 {
-    return new LightGeometryAdapter(getLight() != nullptr ? getLight()->copy() : nullptr);
+    return new LightGeometryAdapter(*this);
 }
 
 void

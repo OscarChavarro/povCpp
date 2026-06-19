@@ -55,8 +55,9 @@ SphereParser::parseSphere(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::SPHERE_CONSTANT) {
-                        body = (SimpleBody *)((TransformableElement *)ctx.constants()[(int)constantId]
-                                .getConstantData())->copy();
+                        body = new SimpleBody(
+                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                                    .getConstantData());
                         localShape = (Sphere *)body->getGeometry();
                     } else {
                         ParseErrorReporter::typeError(ctx);
