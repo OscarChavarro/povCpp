@@ -3,9 +3,11 @@
 
 #include <cstdio>
 
+class Scene;
+
 class SceneDumper {
   public:
-    static void dumpSceneStructure(FILE *f);
+    static void dumpSceneStructure(FILE *f, const Scene &scene);
 };
 
 #endif

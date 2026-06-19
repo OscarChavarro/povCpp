@@ -8,7 +8,6 @@
 
 class RenderEngine {
   private:
-    static RenderEngine *sActive;
     RenderContext *mContext;
 
     Scene *mScene;
@@ -34,40 +33,35 @@ class RenderEngine {
           mTraceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceShadeShadow, this) {}
     ~RenderEngine();
 
-    static void installActive(RenderEngine *engine) { sActive = engine; }
-    static void setActiveContext(RenderContext *ctx) { if (sActive) sActive->mContext = ctx; }
-    static RenderContext *getActiveContext() { return sActive ? sActive->mContext : nullptr; }
-    static const RenderingConfiguration &getActiveConfig();
-    static RenderingConfiguration &getActiveMutableConfig();
-    static Statistics &getActiveStatistics();
-    static TextureUtils &getActiveTextureUtils();
-    static IntersectionPriorityQueuePool &getActiveIntersectionQueuePool();
     void setContext(RenderContext *ctx) { mContext = ctx; }
     RenderContext *getContext() { return mContext; }
-    static RenderEngine *active() { return sActive; }
-    friend class Scene;
+    const RenderingConfiguration &getConfig() const { return mContext->getConfig(); }
+    RenderingConfiguration &getMutableConfig();
+    Statistics &getStatistics() { return mContext->getStatistics(); }
+    TextureUtils &getTextureUtils() { return mContext->getTextureUtils(); }
+    IntersectionPriorityQueuePool &getIntersectionQueuePool() { return mIntersectionQueuePool; }
 
-    static void setScene(Scene *scene) { if (sActive) sActive->mScene = scene; }
-    static Scene &scene();
-    static RayWithSegments *&primaryRay();
-    static int &traceLevel();
-    static double &maxTraceLevel();
-    static volatile int &stopFlag();
+    void setScene(Scene *scene) { mScene = scene; }
+    Scene &scene() { return *mScene; }
+    RayWithSegments *&primaryRay() { return mPrimaryRay; }
+    int &traceLevel() { return mTraceLevel; }
+    double &maxTraceLevel() { return mContext->getRuntime().getMaxTraceLevel(); }
+    volatile int &stopFlag() { return mContext->getRuntime().getStopFlag(); }
 
-    static void readRenderedPart(void);
-    static void supersample(
+    void readRenderedPart(void);
+    void supersample(
         ColorRgba *result, int x, int y, int width, int height);
-    static void startTracing(void);
-    static void trace(RayWithSegments *ray, ColorRgba *color);
-    static void initializeRenderer(void);
-    static inline unsigned short rand3dInline(int a, int b);
-    static const TraceService *getTraceService();
+    void startTracing(void);
+    void trace(RayWithSegments *ray, ColorRgba *color);
+    void initializeRenderer(void);
+    inline unsigned short rand3dInline(int a, int b);
+    const TraceService *getTraceService() { return &mTraceService; }
 
-    static void createRay(
+    void createRay(
         RayWithSegments *ray, int width, int height, double x, double y);
-    static void checkStats(int x, int y);
-    static void doAntiAliasing(int x, int y, ColorRgba *color);
-    static void outputLine(int y);
+    void checkStats(int y);
+    void doAntiAliasing(int x, int y, ColorRgba *color);
+    void outputLine(int y);
 };
 
 #endif

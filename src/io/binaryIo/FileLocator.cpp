@@ -1,36 +1,34 @@
 #include "io/binaryIo/FileLocator.h"
 
-java::ArrayList<java::String> FileLocator::sLibraryPaths;
-
 void
 FileLocator::clearSearchPaths()
 {
-    sLibraryPaths.clear();
+    mLibraryPaths.clear();
 }
 
 void
 FileLocator::addSearchPath(const char *path)
 {
-    sLibraryPaths.add(java::String(path));
+    mLibraryPaths.add(java::String(path));
 }
 
 const java::ArrayList<java::String> &
-FileLocator::searchPaths()
+FileLocator::searchPaths() const
 {
-    return sLibraryPaths;
+    return mLibraryPaths;
 }
 
 FILE *
-FileLocator::locate(const char *filename, const char *mode)
+FileLocator::locate(const char *filename, const char *mode) const
 {
     FILE *file = fopen(filename, mode);
     if (file != nullptr) {
         return file;
     }
 
-    for (long int i = 0; i < sLibraryPaths.size(); i++) {
+    for (long int i = 0; i < mLibraryPaths.size(); i++) {
         char pathname[512];
-        snprintf(pathname, sizeof(pathname), "%s/%s", sLibraryPaths.get(i).toCString(), filename);
+        snprintf(pathname, sizeof(pathname), "%s/%s", mLibraryPaths.get(i).toCString(), filename);
         file = fopen(pathname, mode);
         if (file != nullptr) {
             return file;
@@ -40,16 +38,16 @@ FileLocator::locate(const char *filename, const char *mode)
 }
 
 java::FileInputStream *
-FileLocator::locateAsStream(const char *filename)
+FileLocator::locateAsStream(const char *filename) const
 {
     const java::File file(filename);
     if (file.canRead()) {
         return new java::FileInputStream(filename);
     }
 
-    for (long int i = 0; i < sLibraryPaths.size(); i++) {
+    for (long int i = 0; i < mLibraryPaths.size(); i++) {
         char pathname[512];
-        snprintf(pathname, sizeof(pathname), "%s/%s", sLibraryPaths.get(i).toCString(), filename);
+        snprintf(pathname, sizeof(pathname), "%s/%s", mLibraryPaths.get(i).toCString(), filename);
         const java::File candidate(pathname);
         if (candidate.canRead()) {
             return new java::FileInputStream(pathname);

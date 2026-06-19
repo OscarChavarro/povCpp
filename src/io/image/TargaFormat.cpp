@@ -83,7 +83,7 @@ TargaFormat::open(char *name, int *w, int *h, int bufferSize, int openMode, int 
 
     switch (mode) {
     case READ_MODE:
-        inputStream = FileLocator::locateAsStream(name);
+        inputStream = fileLocator->locateAsStream(name);
         if (inputStream == nullptr) {
             return 0;
         }
@@ -218,9 +218,11 @@ TargaFormat::close()
 }
 
 void
-TargaFormat::readTargaImage(RGBAImageHDRUncompressed *image, char *name)
+TargaFormat::readTargaImage(RGBAImageHDRUncompressed *image, char *name,
+    const FileLocator &locator)
 {
     TargaFormat fmt;
+    fmt.setFileLocator(&locator);
     int w = 0, h = 0;
     if (!fmt.open(name, &w, &h, 0, READ_MODE, 0)) {
         {

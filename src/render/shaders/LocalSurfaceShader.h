@@ -9,6 +9,7 @@
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/material/PovrayMaterial.h"
 #include "render/shaders/TraceService.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 class LocalSurfaceShader {
 public:
@@ -16,7 +17,8 @@ public:
         Intersection *rayIntersection, ColorRgba *surfaceColor,
         const ColorRgba *filterColor, ColorRgba *color,
         const TraceService *traceService, const Light *lightSources,
-        const java::ArrayList<BoundedGeometry*> &objects, int &traceLevel);
+        const java::ArrayList<BoundedGeometry*> &objects, int &traceLevel,
+        TextureUtils *textureUtils);
 };
 
 #endif

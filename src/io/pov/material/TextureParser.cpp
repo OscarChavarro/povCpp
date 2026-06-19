@@ -13,6 +13,7 @@
 #include "environment/geometry/element/Triangle.h"
 #include "environment/geometry/volume/Blob.h"
 #include "environment/material/MaterialUtils.h"
+#include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/scene/ModelBuilder.h"
@@ -447,7 +448,8 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getImage(), ctx.token().getTokenString());
+                                texture->getImage(), ctx.token().getTokenString(),
+                                ctx.getReportingConfig()->getFileLocator());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getImage(), idx);
@@ -459,7 +461,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString());
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(texture->getImage(), idx);
                             exitFlag = true;
                             break;
@@ -468,14 +470,16 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
-                                texture->getImage(), ctx.token().getTokenString());
+                                texture->getImage(), ctx.token().getTokenString(),
+                                ctx.getReportingConfig()->getFileLocator());
                             exitFlag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(
-                                texture->getImage(), ctx.token().getTokenString());
+                                texture->getImage(), ctx.token().getTokenString(),
+                                ctx.getReportingConfig()->getFileLocator());
                             exitFlag = true;
                             break;
 
@@ -728,7 +732,8 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getBumpImage(), ctx.token().getTokenString());
+                                texture->getBumpImage(), ctx.token().getTokenString(),
+                                ctx.getReportingConfig()->getFileLocator());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getBumpImage(), idx);
@@ -740,7 +745,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString());
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getBumpImage(), idx);
                             Exit_Flag = true;
@@ -750,14 +755,16 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(
-                                texture->getBumpImage(), ctx.token().getTokenString());
+                                texture->getBumpImage(), ctx.token().getTokenString(),
+                                ctx.getReportingConfig()->getFileLocator());
                             Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(
-                                texture->getBumpImage(), ctx.token().getTokenString());
+                                texture->getBumpImage(), ctx.token().getTokenString(),
+                                ctx.getReportingConfig()->getFileLocator());
                             Exit_Flag = true;
                             break;
 
@@ -853,7 +860,8 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::IFF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getMaterialImage(), ctx.token().getTokenString());
+                                texture->getMaterialImage(), ctx.token().getTokenString(),
+                                ctx.getReportingConfig()->getFileLocator());
                             if (idx != nullptr) {
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getMaterialImage(), idx);
@@ -865,7 +873,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::GIF_TOKEN: {
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString());
+                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getMaterialImage(), idx);
                             Exit_Flag = true;
@@ -875,14 +883,14 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         case Tokenizer::TGA_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(texture->getMaterialImage(),
-                                ctx.token().getTokenString());
+                                ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                             Exit_Flag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(texture->getMaterialImage(),
-                                ctx.token().getTokenString());
+                                ctx.token().getTokenString(), ctx.getReportingConfig()->getFileLocator());
                             Exit_Flag = true;
                             break;
 

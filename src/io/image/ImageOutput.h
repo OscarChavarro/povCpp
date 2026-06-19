@@ -3,13 +3,19 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 
+class FileLocator;
+
 class ImageOutput {
+  protected:
+    const FileLocator *fileLocator = nullptr;
+
   public:
     static constexpr int READ_MODE = 0;
     static constexpr int WRITE_MODE = 1;
     static constexpr int APPEND_MODE = 2;
 
     virtual ~ImageOutput() {}
+    void setFileLocator(const FileLocator *locator) { fileLocator = locator; }
     virtual const char *defaultFileName() const = 0;
     virtual int open(char *name, int *width, int *height, int bufferSize, int mode,
                      int firstLine) = 0;

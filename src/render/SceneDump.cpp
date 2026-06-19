@@ -8,16 +8,16 @@
 
 #include "environment/geometry/BoundedGeometry.h"
 
-#include "render/RenderEngine.h"
+#include "environment/scene/Scene.h"
 #include "render/SceneDump.h"
 
-void SceneDumper::dumpSceneStructure(FILE *f)
+void SceneDumper::dumpSceneStructure(FILE *f, const Scene &scene)
 {
     if (f == nullptr) return;
 
     int idx = 0;
     const java::ArrayList<BoundedGeometry*> &sceneObjects =
-        RenderEngine::scene().getObjects();
+        scene.getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         const BoundedGeometry *obj = sceneObjects[i];
         fprintf(f, "OBJ %03d\n", idx);

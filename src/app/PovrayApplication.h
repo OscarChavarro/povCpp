@@ -39,9 +39,8 @@ class PovrayApplication {
   public:
     PovrayApplication()
         : context(configuration, statistics, scene, runtimeState, textureUtils) {
-        RenderEngine::installActive(&engine);
-        RenderEngine::setScene(&scene);
-        RenderEngine::setActiveContext(&context);
+        engine.setScene(&scene);
+        engine.setContext(&context);
     }
 
     void run(int argc, char *argv[]);

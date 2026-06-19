@@ -4,9 +4,12 @@
 #include "java/io/FileInputStream.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 
+class FileLocator;
+
 class GifFormat {
   public:
-    static void readGifImage(IndexedColorImageHDRUncompressed *image, const char *filename);
+    static void readGifImage(IndexedColorImageHDRUncompressed *image, const char *filename,
+        const FileLocator &locator);
 };
 
 #endif

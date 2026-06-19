@@ -1,12 +1,12 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
+#include "common/dataStructures/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
-#include "render/RenderEngine.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
 #include "render/shaders/DirectLightShader.h"
 #include "render/shaders/LambertShader.h"
@@ -60,7 +60,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
             intersectionPoint, &lightColor);
 
         // What objects does this ray intersect?
-        if (RenderEngine::getActiveConfig().getQuality() > 3) {
+        if (eye->getConfig()->getQuality() > 3) {
             Statistics &stats = *eye->getStatistics();
             for (long int i = objects.size() - 1; i >= 0; i--) {
                 blockingObject = objects[i];
