@@ -55,6 +55,26 @@ PolynomialShape::termCountsByOrder()
     return termCountsByOrderTable;
 }
 
+PolynomialShape::PolynomialShape() :
+    transformation(nullptr),
+    transformationInverse(nullptr),
+    inverted(false),
+    order(0),
+    sturmFlag(0),
+    Coeffs(nullptr)
+{
+}
+
+PolynomialShape::PolynomialShape(int initialOrder) :
+    transformation(nullptr),
+    transformationInverse(nullptr),
+    inverted(false),
+    order(initialOrder),
+    sturmFlag(0),
+    Coeffs(new double[termCountsInstance[initialOrder]]())
+{
+}
+
 
 int
 PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
@@ -840,13 +860,11 @@ void *
 PolynomialShape::copy()
 {
     const PolynomialShape *shape = this;
-    PolynomialShape * const newShape = new PolynomialShape;
+    PolynomialShape * const newShape = new PolynomialShape(shape->order);
     int i;
 
-    *newShape = *shape;
-    newShape->Coeffs = new double[termCountsInstance[newShape->order]];
-    newShape->transformation = nullptr;
-    newShape->transformationInverse = nullptr;
+    newShape->inverted = shape->inverted;
+    newShape->sturmFlag = shape->sturmFlag;
 
     // Copy any associated transformation
     if (shape->transformation != nullptr) {

@@ -12,7 +12,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
     const TraceService *traceService, double atmosphereIor, int &traceLevel)
 {
     RayWithSegments newRay;
-    ColorRgba tempColor;
+    ColorRgba tempColor(0.0, 0.0, 0.0, 0.0);
     Vector3Dd localNormal;
     Vector3Dd rayDirection;
     double normalComponent;

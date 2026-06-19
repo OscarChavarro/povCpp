@@ -27,7 +27,7 @@ void RGBAColorPalette::init(int size) {
     positions.clear();
 
     for (int i = 0; i < size; i++) {
-        colors.add(new ColorRgba());
+        colors.add(new ColorRgba(0.0, 0.0, 0.0, 0.0));
     }
 }
 
@@ -73,8 +73,7 @@ void RGBAColorPalette::setColorAt(int i, double r, double g, double b, double a)
     if (colors[i] != nullptr) {
         delete colors[i];
     }
-    ColorRgba* nc = new ColorRgba();
-    nc->setR(r); nc->setG(g); nc->setB(b); nc->setA(a);
+    ColorRgba* nc = new ColorRgba(r, g, b, a);
     colors[i] = nc;
 }
 
@@ -83,8 +82,7 @@ void RGBAColorPalette::addColor(const ColorRgba& c) {
 }
 
 void RGBAColorPalette::addColor(double r, double g, double b, double a) {
-    ColorRgba* nc = new ColorRgba();
-    nc->setR(r); nc->setG(g); nc->setB(b); nc->setA(a);
+    ColorRgba* nc = new ColorRgba(r, g, b, a);
     colors.add(nc);
 }
 
@@ -106,8 +104,7 @@ ColorRgba* RGBAColorPalette::evalNearest(double t) const {
     if (colors.get(i) != nullptr) {
         return new ColorRgba(*colors.get(i));
     }
-    ColorRgba* zero = new ColorRgba();
-    zero->setR(0.0); zero->setG(0.0); zero->setB(0.0); zero->setA(0.0);
+    ColorRgba* zero = new ColorRgba(0.0, 0.0, 0.0, 0.0);
     return zero;
 }
 
@@ -128,16 +125,15 @@ ColorRgba* RGBAColorPalette::evalLinear(double t) const {
                 double frac = (t - a) / (b - a);
                 ColorRgba* ca = colors.get(i);
                 ColorRgba* cb = colors.get(i + 1);
-                ColorRgba* result = new ColorRgba();
-                result->setR(ca->getR() + frac * (cb->getR() - ca->getR()));
-                result->setG(ca->getG() + frac * (cb->getG() - ca->getG()));
-                result->setB(ca->getB() + frac * (cb->getB() - ca->getB()));
-                result->setA(ca->getA() + frac * (cb->getA() - ca->getA()));
+                ColorRgba* result = new ColorRgba(
+                    ca->getR() + frac * (cb->getR() - ca->getR()),
+                    ca->getG() + frac * (cb->getG() - ca->getG()),
+                    ca->getB() + frac * (cb->getB() - ca->getB()),
+                    ca->getA() + frac * (cb->getA() - ca->getA()));
                 return result;
             }
         }
-        ColorRgba* zero = new ColorRgba();
-        zero->setR(0.0); zero->setG(0.0); zero->setB(0.0); zero->setA(0.0);
+        ColorRgba* zero = new ColorRgba(0.0, 0.0, 0.0, 0.0);
         return zero;
     }
 
@@ -158,10 +154,10 @@ ColorRgba* RGBAColorPalette::evalLinear(double t) const {
     ColorRgba* a = colors.get(inf);
     ColorRgba* b = colors.get(sup);
 
-    ColorRgba* result = new ColorRgba();
-    result->setR(a->getR() + (b->getR() - a->getR()) * p);
-    result->setG(a->getG() + (b->getG() - a->getG()) * p);
-    result->setB(a->getB() + (b->getB() - a->getB()) * p);
-    result->setA(a->getA() + (b->getA() - a->getA()) * p);
+    ColorRgba* result = new ColorRgba(
+        a->getR() + (b->getR() - a->getR()) * p,
+        a->getG() + (b->getG() - a->getG()) * p,
+        a->getB() + (b->getB() - a->getB()) * p,
+        a->getA() + (b->getA() - a->getA()) * p);
     return result;
 }

@@ -57,8 +57,7 @@ ImageTexture::materialMap(
     double xCoordinate = 0.0;
     double yCoordinate = 0.0;
     int regNumber = 0;
-    ColorRgba color;
-    color.setR(0.0); color.setG(0.0); color.setB(0.0); color.setA(0.0);
+    ColorRgba color(0.0, 0.0, 0.0, 0.0);
 
     if (textureTransformationInverse) {
         transformedPoint = textureTransformationInverse->transpose().multiply(
@@ -106,9 +105,9 @@ ImageTexture::bumpMap(
     int index;
     int index2;
     int index3;
-    ColorRgba color;
-    ColorRgba color2;
-    ColorRgba color3;
+    ColorRgba color(0.0, 0.0, 0.0, 0.0);
+    ColorRgba color2(0.0, 0.0, 0.0, 0.0);
+    ColorRgba color3(0.0, 0.0, 0.0, 0.0);
     Vector3Dd p1;
     Vector3Dd p2;
     Vector3Dd p3;
@@ -118,9 +117,6 @@ ImageTexture::bumpMap(
     Vector3Dd zPrime;
     Vector3Dd temp;
     double length;
-    color.setR(0.0); color.setG(0.0); color.setB(0.0); color.setA(0.0);
-    color2.setR(0.0); color2.setG(0.0); color2.setB(0.0); color2.setA(0.0);
-    color3.setR(0.0); color3.setG(0.0); color3.setB(0.0); color3.setA(0.0);
 
     // going to have to change this
     // need to know if bump point is off of image for all 3 points
@@ -270,7 +266,11 @@ ImageTexture::interp(
 {
     int cornersIndex[4];
     double indexCrn[4];
-    ColorRgba cornerColor[4];
+    ColorRgba cornerColor[4] = {
+        ColorRgba(0.0, 0.0, 0.0, 0.0),
+        ColorRgba(0.0, 0.0, 0.0, 0.0),
+        ColorRgba(0.0, 0.0, 0.0, 0.0),
+        ColorRgba(0.0, 0.0, 0.0, 0.0)};
     double redCrn[4];
     double greenCrn[4];
     double blueCrn[4];
@@ -283,10 +283,6 @@ ImageTexture::interp(
     int y = (int)yCoordinate;
 
     int i;
-
-    for (i = 0; i < 4; i++) {
-        cornerColor[i].setR(0.0); cornerColor[i].setG(0.0); cornerColor[i].setB(0.0); cornerColor[i].setA(0.0);
-    }
 
     // Sample the four surrounding pixels
     if (image->getInterpolationType() == ImageToSolidTextureInterpolationTypes::BI_LINEAR) {

@@ -11,7 +11,7 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
     const TraceService *traceService, int &traceLevel)
 {
     RayWithSegments newRay;
-    ColorRgba tempColor;
+    ColorRgba tempColor(0.0, 0.0, 0.0, 0.0);
     Vector3Dd localNormal;
     Vector3Dd normalProjection;
     Vector3Dd surfaceOffset;

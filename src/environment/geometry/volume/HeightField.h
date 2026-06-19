@@ -13,6 +13,8 @@ class HeightField : public Geometry {
     static constexpr int POT = 1;
     static constexpr int TGA = 2;
 
+    HeightField();
+
     Matrix4x4d *getTransformation() const { return transformation; }
     void setTransformation(Matrix4x4d *value) { transformation = value; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }

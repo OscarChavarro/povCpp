@@ -22,15 +22,24 @@ Quadric::Quadric() :
 Quadric::Quadric(const Vector3Dd &object2Terms,
     const Vector3Dd &objectMixedTerms,
     const Vector3Dd &objectTerms, double objectConstant) :
+    Quadric(object2Terms, objectMixedTerms, objectTerms, objectConstant,
+        HUGE_VAL, false, false)
+{
+    updateSquareTermFlag();
+}
+
+Quadric::Quadric(const Vector3Dd &object2Terms,
+    const Vector3Dd &objectMixedTerms,
+    const Vector3Dd &objectTerms, double objectConstant,
+    double objectVpConstant, bool constantCached, bool nonZeroSquareTerm) :
     object2Terms(object2Terms),
     objectMixedTerms(objectMixedTerms),
     objectTerms(objectTerms),
     objectConstant(objectConstant),
-    objectVpConstant(HUGE_VAL),
-    constantCached(false),
-    nonZeroSquareTerm(false)
+    objectVpConstant(objectVpConstant),
+    constantCached(constantCached),
+    nonZeroSquareTerm(nonZeroSquareTerm)
 {
-    updateSquareTermFlag();
 }
 
 void
@@ -248,12 +257,9 @@ Quadric::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Quadric::copy()
 {
-    Quadric *newShape;
-
-    newShape = new Quadric;
-    *newShape = *this;
-
-    return (newShape);
+    return new Quadric(
+        object2Terms, objectMixedTerms, objectTerms, objectConstant,
+        objectVpConstant, constantCached, nonZeroSquareTerm);
 }
 
 void

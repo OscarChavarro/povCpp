@@ -22,9 +22,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ColorRgba *color, const RayWithSegments *ray, int shadowRay,
     const TraceService *traceService, TextureUtils *textureUtils)
 {
-    ColorRgba surfaceColor;
-    ColorRgba refractedColor;
-    ColorRgba filterColor;
+    ColorRgba surfaceColor(0.0, 0.0, 0.0, 0.0);
+    ColorRgba refractedColor(0.0, 0.0, 0.0, 0.0);
+    ColorRgba filterColor(0.0, 0.0, 0.0, 0.0);
     PovrayMaterial *tempTexture;
     PovrayMaterial *texture;
     Vector3Dd surfaceNormal;

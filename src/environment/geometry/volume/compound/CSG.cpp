@@ -13,6 +13,11 @@ This module implements routines for constructive solid geometry.
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
+CSG::CSG(GeometryTypes initialGeometryType) :
+    geometryType(initialGeometryType)
+{
+}
+
 int
 CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 {
@@ -152,8 +157,7 @@ CSG::copy()
     TransformableElement *localShape;
     TransformableElement *copiedShape;
 
-    newShape = new CSG;
-    newShape->setGeometryType(shape->getGeometryType());
+    newShape = new CSG(shape->getGeometryType());
 
     for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
         localShape = shape->getShapes()[i];

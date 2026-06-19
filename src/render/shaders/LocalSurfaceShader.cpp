@@ -20,7 +20,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     Vector3Dd surfaceNormal;
     double normalDirection;
     double attenuation;
-    ColorRgba emittedColor;
+    ColorRgba emittedColor(0.0, 0.0, 0.0, 0.0);
 
     // This variable keeps track of how much color comes from the surface
     // of the object and how much is transmited through

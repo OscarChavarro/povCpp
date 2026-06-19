@@ -18,10 +18,16 @@ InfinitePlane::InfinitePlane() :
 }
 
 InfinitePlane::InfinitePlane(const Vector3Dd &normalVector, double distance) :
+    InfinitePlane(normalVector, distance, 0.0, false)
+{
+}
+
+InfinitePlane::InfinitePlane(const Vector3Dd &normalVector, double distance,
+    double vpNormDotOrigin, bool vpCached) :
     normalVector(normalVector),
     distance(distance),
-    vpNormDotOrigin(0.0),
-    vpCached(false)
+    vpNormDotOrigin(vpNormDotOrigin),
+    vpCached(vpCached)
 {
 }
 
@@ -129,12 +135,8 @@ InfinitePlane::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 InfinitePlane::copy()
 {
-    InfinitePlane *newShape;
-
-    newShape = new InfinitePlane;
-    *newShape = *this;
-
-    return (newShape);
+    return new InfinitePlane(
+        normalVector, distance, vpNormDotOrigin, vpCached);
 }
 
 void

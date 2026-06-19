@@ -28,7 +28,7 @@ ColorTextureFixture::agate(double x, double y, double z, int octaves, const RGBA
 {
     double noise;
     double hue;
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
 
     noise = proceduralNoise->cycloidal(
                 1.3 * proceduralNoise->turbulence(x, y, z, octaves) +
@@ -74,7 +74,7 @@ ColorTextureFixture::bozo(
 {
     double noise;
     double currentTurbulence;
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
     Vector3Dd bozoTurbulence;
 
     if ((currentTurbulence = turbulence) != 0.0) {
@@ -181,7 +181,7 @@ ColorTextureFixture::gradient(
     const RGBAColorPalette *colorMap, Vector3Dd textureGradient, int octaves,
     ColorRgba *color) const
 {
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
     double value = 0.0;
     double currentTurbulence;
     Vector3Dd gradTurbulence;
@@ -231,7 +231,7 @@ ColorTextureFixture::granite(
     double temp;
     double noise = 0.0;
     double freq = 1.0;
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
 
     for (i = 0; i < 6; freq *= 2.0, i++) {
         temp =
@@ -265,7 +265,7 @@ ColorTextureFixture::marble(
 {
     double noise;
     double hue;
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
 
     noise = proceduralNoise->triangleWave(
         x + proceduralNoise->turbulence(x, y, z, octaves) * turbulence);
@@ -301,7 +301,7 @@ ColorTextureFixture::spotted(
     double x, double y, double z, const RGBAColorPalette *colorMap, ColorRgba *color) const
 {
     double noise = proceduralNoise->noise(x, y, z);
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
 
     if (colorMap != nullptr) {
         textureUtils->computeColor(&newColor, colorMap, noise);
@@ -330,7 +330,7 @@ ColorTextureFixture::wood(
     double length;
     Vector3Dd woodTurbulence;
     Vector3Dd point;
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
 
     proceduralNoise->differentialTurbulence(&woodTurbulence, x, y, z, octaves);
 
@@ -373,7 +373,7 @@ ColorTextureFixture::leopard(
     double temp1;
     double temp2;
     double temp3;
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
     Vector3Dd leopardTurbulence;
 
     if ((currentTurbulence = turbulence) != 0.0) {
@@ -414,7 +414,7 @@ ColorTextureFixture::onion(
     // The variable noise is not used as noise in this function
     double noise;
     double currentTurbulence;
-    ColorRgba newColor;
+    ColorRgba newColor(0.0, 0.0, 0.0, 0.0);
     Vector3Dd onionTurbulence;
 
     if ((currentTurbulence = turbulence) != 0.0) {

@@ -23,11 +23,21 @@ Box::Box() :
 }
 
 Box::Box(const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) :
+    Box(nullptr, nullptr, minBounds, maxBounds, inverted)
+{
+}
+
+Box::Box(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
+    const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) :
     transformation(nullptr),
     transformationInverse(nullptr),
     bounds{minBounds, maxBounds},
     inverted(inverted)
 {
+    if (transformation != nullptr) {
+        this->transformation = new Matrix4x4d(*transformation);
+        this->transformationInverse = new Matrix4x4d(*transformationInverse);
+    }
 }
 
 
@@ -298,19 +308,8 @@ Box::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 void *
 Box::copy()
 {
-    Box *newShape;
-
-    newShape = new Box;
-    *newShape = *this;
-
-    // Copy any associated transformation
-    if (newShape->transformation != nullptr) {
-        newShape->transformation = new Matrix4x4d(*(newShape->transformation));
-        newShape->transformationInverse =
-            new Matrix4x4d(*(newShape->transformationInverse));
-    }
-
-    return (newShape);
+    return new Box(
+        transformation, transformationInverse, bounds[0], bounds[1], inverted);
 }
 
 void

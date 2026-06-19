@@ -30,7 +30,7 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
     bool intersectionFound;
     Intersection localIntersection;
     Vector3Dd rEye;
-    ColorRgba lightColor;
+    ColorRgba lightColor(0.0, 0.0, 0.0, 0.0);
     java::PriorityQueue<Intersection> *localQueue;
 
     rEye = Vector3Dd(0, 0, 0);
