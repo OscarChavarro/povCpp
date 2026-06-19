@@ -152,7 +152,7 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
 
     if (configuration.getLastLine() == -1) {
         configuration.setLastLine(
-            engine.scene().getScreenHeight());
+            engine.getScene().getScreenHeight());
     }
 }
 
@@ -223,7 +223,7 @@ PovrayApplication::parseSceneDescription()
 
     ctx.setReportingConfig(&configuration);
     ctx.setRuntimeState(&runtimeState);
-    SceneParser::parse(&engine.scene(), ctx);
+    SceneParser::parse(&engine.getScene(), ctx);
     ctx.tokenizer().terminateTokenizer();
 }
 
@@ -238,7 +238,7 @@ PovrayApplication::prepareRendering()
         if (configuration.hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
             if (configuration.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
-                    &engine.scene().getScreenWidth(), &engine.scene().getScreenHeight(),
+                    &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::READ_MODE,
                     configuration.getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening continue trace output file\n");
@@ -248,7 +248,7 @@ PovrayApplication::prepareRendering()
 
                 if (configuration.getOutputFileInputStream()->open(
                         configuration.getOutputFileNameBuffer(),
-                        &engine.scene().getScreenWidth(), &engine.scene().getScreenHeight(),
+                        &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                         configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
                         configuration.getFirstLine()) != 1) {
                     Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
@@ -264,7 +264,7 @@ PovrayApplication::prepareRendering()
         } else {
             if (configuration.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
-                    &engine.scene().getScreenWidth(), &engine.scene().getScreenHeight(),
+                    &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
                     configuration.getFirstLine()) != 1) {
                 Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
@@ -318,7 +318,7 @@ PovrayApplication::finalizeRun()
     statistics.stopTimer();
 
     closeAll();
-    printStatistics(statistics, engine.scene(), configuration);
+    printStatistics(statistics, engine.getScene(), configuration);
 
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
         statFile = fopen(configuration.getStatFileName(), "a+t");
@@ -334,8 +334,8 @@ PovrayApplication::initVars()
     runtimeState.reset();
     statistics.reset();
 
-    engine.scene().setScreenHeight(100);
-    engine.scene().setScreenWidth(100);
+    engine.getScene().setScreenHeight(100);
+    engine.getScene().setScreenWidth(100);
 }
 
 // Close all the stuff that has been opened

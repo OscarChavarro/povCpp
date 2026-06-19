@@ -5,5 +5,5 @@ void
 RenderRuntimeState::reset()
 {
     maxTraceLevelValue = 5.0;
-    stopFlagValue = 0;
+    stopFlagValue = false;
 }
