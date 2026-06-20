@@ -47,19 +47,19 @@ allocateBlobIntervals(int count)
     return allocatedIntervals;
 }
 
-Blob::Blob(double thresholdValue, BlobList *bloblist, int npoints,
+Blob::Blob(double thresholdValue, BlobList *blobList, int numberOfPoints,
     int sturmFlagValue) :
     transformation(nullptr),
     transformationInverse(nullptr),
     inverted(false),
-    count(npoints),
+    count(numberOfPoints),
     threshold(thresholdValue),
-    list(allocateBlobElements(npoints)),
-    intervals(allocateBlobIntervals(npoints)),
+    list(allocateBlobElements(numberOfPoints)),
+    intervals(allocateBlobIntervals(numberOfPoints)),
     sturmFlag(sturmFlagValue)
 {
-    for (int i = 0; i < npoints; i++) {
-        BlobList *temp = bloblist;
+    for (int i = 0; i < numberOfPoints; i++) {
+        BlobList *temp = blobList;
         if (java::Math::abs(temp->getElem().getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
             temp->getElem().getRadius2() < Config::INTERSECTION_EPSILON) {
             perror("Degenerate blob element\n");
@@ -75,7 +75,7 @@ Blob::Blob(double thresholdValue, BlobList *bloblist, int npoints,
             temp->getElem().getPos().x(), temp->getElem().getPos().y(),
             temp->getElem().getPos().z());
 
-        bloblist = bloblist->getNext();
+        blobList = blobList->getNext();
         delete temp;
     }
 }
@@ -123,7 +123,7 @@ to warrant the overhead of using a faster sort technique.
 */
 int
 Blob::determineInfluences(
-    const Vector3Dd *p, const Vector3Dd *d, const Blob *blob, double mindist)
+    const Vector3Dd *p, const Vector3Dd *d, const Blob *blob, double minimumDistance)
 {
     int i;
     int j;
@@ -149,11 +149,11 @@ Blob::determineInfluences(
         }
         disc = java::Math::sqrt(disc);
         t1 = b + disc;
-        if (t1 < mindist) {
+        if (t1 < minimumDistance) {
             t1 = 0.0;
         }
         t0 = b - disc;
-        if (t0 < mindist) {
+        if (t0 < minimumDistance) {
             t0 = 0.0;
         }
         if (t1 == t0) {
