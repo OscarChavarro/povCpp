@@ -7,11 +7,11 @@
 
 void
 MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
-    const RayWithSegments *ray, const Vector3Dd *surfaceNormal, ColorRgba *color,
-    const TraceService *traceService, int &traceLevel)
+    const RayWithSegments *ray, const Vector3Dd *surfaceNormal,
+    const TraceService *traceService)
 {
     RayWithSegments newRay;
-    ColorRgba tempColor(0.0, 0.0, 0.0, 0.0);
+    ColorRgba multiplier(0.0, 0.0, 0.0, 0.0);
     Vector3Dd localNormal;
     Vector3Dd normalProjection;
     Vector3Dd surfaceOffset;
@@ -40,14 +40,10 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
         newRay.setStatistics(ray->getStatistics());
         newRay.setConfig(ray->getConfig());
         newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
-        traceLevel++;
-        tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.setQuadricConstantsCached(false);
-        traceService->trace(&newRay, &tempColor);
-        traceLevel--;
-
-        color->setR(color->getR() + tempColor.getR() * texture->getObjectReflection());
-        color->setG(color->getG() + tempColor.getG() * texture->getObjectReflection());
-        color->setB(color->getB() + tempColor.getB() * texture->getObjectReflection());
+        multiplier.setR(texture->getObjectReflection());
+        multiplier.setG(texture->getObjectReflection());
+        multiplier.setB(texture->getObjectReflection());
+        traceService->trace(&newRay, &multiplier);
     }
 }

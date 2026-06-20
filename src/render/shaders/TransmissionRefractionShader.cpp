@@ -8,11 +8,12 @@
 
 void
 TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
-    const RayWithSegments *ray, const Vector3Dd *surfaceNormal, ColorRgba *color,
-    const TraceService *traceService, double atmosphereIor, int &traceLevel)
+    const RayWithSegments *ray, const Vector3Dd *surfaceNormal,
+    const ColorRgba *multiplier,
+    const TraceService *traceService, double atmosphereIor)
 {
     RayWithSegments newRay;
-    ColorRgba tempColor(0.0, 0.0, 0.0, 0.0);
+    ColorRgba childMultiplier = *multiplier;
     Vector3Dd localNormal;
     Vector3Dd rayDirection;
     double normalComponent;
@@ -29,15 +30,9 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         newRay.setStatistics(ray->getStatistics());
         newRay.setConfig(ray->getConfig());
         newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
-        traceLevel++;
         stats.incrementTransmittedRaysTraced();
-        tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.setQuadricConstantsCached(false);
-        traceService->trace(&newRay, &tempColor);
-        traceLevel--;
-        color->setR(color->getR() + tempColor.getR());
-        color->setG(color->getG() + tempColor.getG());
-        color->setB(color->getB() + tempColor.getB());
+        traceService->trace(&newRay, &childMultiplier);
     } else {
         stats.incrementRefractedRaysTraced();
         normalComponent = ray->getDirection().dotProduct(*surfaceNormal);
@@ -87,7 +82,7 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         temp = 1.0 + ior * ior * (normalComponent * normalComponent - 1.0);
         if (temp < 0.0) {
             // Total internal reflection - not yet implemented.
-            // reflect (texture, intersectionPoint, ray, surfaceNormal, color);
+            // Total internal reflection remains a separate material feature.
             return;
         }
 
@@ -98,15 +93,10 @@ TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *in
         newRay.setDirection(newRay.getDirection().normalizedFast());
 
         newRay.setOrigin(*intersectionPoint);
-        traceLevel++;
-        tempColor.setR(0.0); tempColor.setG(0.0); tempColor.setB(0.0); tempColor.setA(0);
         newRay.setQuadricConstantsCached(false);
-
-        traceService->trace(&newRay, &tempColor);
-        traceLevel--;
-
-        color->setR(color->getR() + tempColor.getR() * texture->getObjectRefraction());
-        color->setG(color->getG() + tempColor.getG() * texture->getObjectRefraction());
-        color->setB(color->getB() + tempColor.getB() * texture->getObjectRefraction());
+        childMultiplier.setR(childMultiplier.getR() * texture->getObjectRefraction());
+        childMultiplier.setG(childMultiplier.getG() * texture->getObjectRefraction());
+        childMultiplier.setB(childMultiplier.getB() * texture->getObjectRefraction());
+        traceService->trace(&newRay, &childMultiplier);
     }
 }

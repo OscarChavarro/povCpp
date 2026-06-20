@@ -13,9 +13,9 @@
 void
 LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
-    const ColorRgba *filterColor, ColorRgba *color,
+    const ColorRgba *filterColor,
     const TraceService *traceService, const Light *lightSources,
-    const java::ArrayList<BoundedGeometry*> &objects, int &traceLevel,
+    const java::ArrayList<BoundedGeometry*> &objects,
     TextureUtils *textureUtils)
 {
     Vector3Dd surfaceNormal;
@@ -34,10 +34,10 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
 
     if (ray->getConfig()->getQuality() <= 1) {
         surfaceColor->setA(0.0);
-
-        color->setR(color->getR() + surfaceColor->getR() * filterColor->getA());
-        color->setG(color->getG() + surfaceColor->getG() * filterColor->getA());
-        color->setB(color->getB() + surfaceColor->getB() * filterColor->getA());
+        emittedColor.setR(surfaceColor->getR() * filterColor->getA());
+        emittedColor.setG(surfaceColor->getG() * filterColor->getA());
+        emittedColor.setB(surfaceColor->getB() * filterColor->getA());
+        traceService->addColor(&emittedColor);
         return;
     }
 
@@ -62,12 +62,10 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     DirectLightShader::shade(texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources, objects);
-    color->setR(color->getR() + emittedColor.getR());
-    color->setG(color->getG() + emittedColor.getG());
-    color->setB(color->getB() + emittedColor.getB());
+    traceService->addColor(&emittedColor);
     if (ray->getConfig()->getQuality() >= 8) {
         MirrorReflectionShader::shade(
-            texture, &rayIntersection->getPoint(), ray, &surfaceNormal, color,
-            traceService, traceLevel);
+            texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
+            traceService);
     }
 }

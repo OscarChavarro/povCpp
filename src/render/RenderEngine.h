@@ -1,6 +1,7 @@
 #ifndef __RENDER_ENGINE__
 #define __RENDER_ENGINE__
 
+#include <vector>
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/scene/Scene.h"
 #include "render/AdaptiveAntiAliasing.h"
@@ -9,6 +10,12 @@
 
 class RenderEngine {
   private:
+    struct TraceEvent {
+        bool childRay;
+        RayWithSegments ray;
+        ColorRgba color;
+        TraceEvent() : childRay(false), color(0.0, 0.0, 0.0, 0.0) {}
+    };
     RenderContext *context;
     Scene *scene;
     RayWithSegments *primaryRay;
@@ -27,9 +34,12 @@ class RenderEngine {
     // reentrant across threads, but non-blocking: rendering keeps going with a
     // default (black) colour instead of terminating the whole process.
     bool fatalErrorFound;
+    std::vector<TraceEvent> *activeTraceEvents;
 
     static ColorRgba *allocateColorBuffer(int count);
-    static void traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color);
+    static void traceServiceTrace(void *context, const RayWithSegments *ray,
+        const ColorRgba *multiplier);
+    static void traceServiceAddColor(void *context, const ColorRgba *color);
     static void traceServiceShadeShadow(void *context, Intersection *intersection, ColorRgba *color);
 
   public:
@@ -37,9 +47,10 @@ class RenderEngine {
         : context(nullptr), scene(nullptr), primaryRay(nullptr), traceLevel(0), superSampleCount(0),
           previousLine(nullptr), currentLine(nullptr),
           previousLineAntiAliasedFlags(nullptr), currentLineAntiAliasedFlags(nullptr),
-          traceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceShadeShadow, this),
+          traceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceAddColor,
+              RenderEngine::traceServiceShadeShadow, this),
           adaptiveAntiAliasing(this),
-          fatalErrorFound(false) {}
+          fatalErrorFound(false), activeTraceEvents(nullptr) {}
     ~RenderEngine();
 
     void setContext(RenderContext *ctx) { context = ctx; }
