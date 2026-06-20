@@ -31,6 +31,11 @@ class RenderEngine {
     RayWithSegments ray;
     TraceService traceService;
     IntersectionPriorityQueuePool intersectionQueuePool;
+    // Set the first time a fatal abort is detected on the thread driving this
+    // engine, so the error is reported only once instead of per pixel. Not
+    // reentrant across threads, but non-blocking: rendering keeps going with a
+    // default (black) colour instead of terminating the whole process.
+    bool fatalErrorFound;
 
     static ColorRgba *allocateColorBuffer(int count);
     static void traceServiceTrace(void *context, RayWithSegments *ray, ColorRgba *color);
@@ -41,7 +46,8 @@ class RenderEngine {
         : context(nullptr), scene(nullptr), primaryRay(nullptr), traceLevel(0), superSampleCount(0),
           previousLine(nullptr), currentLine(nullptr),
           previousLineAntiAliasedFlags(nullptr), currentLineAntiAliasedFlags(nullptr),
-          traceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceShadeShadow, this) {}
+          traceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceShadeShadow, this),
+          fatalErrorFound(false) {}
     ~RenderEngine();
 
     void setContext(RenderContext *ctx) { context = ctx; }
