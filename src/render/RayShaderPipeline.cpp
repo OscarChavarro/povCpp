@@ -1,14 +1,14 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
+#include "vsdk/toolkit/media/solidTexture/procedural/ColorTextureFixture.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/material/SolidTextureColorNames.h"
+#include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
 #include "environment/scene/Scene.h"
 #include "render/RayShaderPipeline.h"
-#include "render/SolidTextureFixturesFacade.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
 #include "render/shaders/LocalSurfaceShader.h"
@@ -35,7 +35,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
 
     ImageTexture mapFixture;
-    SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
+    ColorTextureFixture colorFixture(&textureUtils->getProceduralNoise(), textureUtils);
 
     // Is there a texture in the shape?  If not, use the one in the object
     texture = static_cast<PovRayMaterial *>(rayIntersection->getOwnerSimpleBody()->getMaterial());
@@ -44,7 +44,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture
-    if (texture->getColorPatternType() == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
+    if (texture->getMaterialMapVariants().size() > 0) {
         const int index = mapFixture.materialMap(
             &rayIntersection->getPoint(), texture->getTextureTransformationInverse(),
             texture->getMaterialMapImage(),
@@ -78,41 +78,11 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
-        } else if (tempTexture->getColorPatternType() == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
-            PovRayMaterial * const texture1 = tempTexture->getCheckerTexture1();
-            PovRayMaterial * const texture2 = tempTexture->getCheckerTexture2();
-            fixturesFacade.colorAt(
-                &surfaceColor,
-                tempTexture->getColorPatternType(),
-                tempTexture->getTextureTransformationInverse(),
-                tempTexture->getColorImage(),
-                tempTexture->getCheckerColor1(), tempTexture->getCheckerColor2(), tempTexture->getTurbulence(),
-                tempTexture->getOctaves(), tempTexture->getColorMap(),
-                tempTexture->getTextureGradient(),
-                tempTexture->getBrickMortar(),
-                &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance,
-                SolidTextureFixturesColorAtParameterSet(
-                    texture1->getColorPatternType(), texture1->getTextureTransformationInverse(),
-                    texture1->getColorImage(), texture1->getCheckerColor1(), texture1->getCheckerColor2(),
-                    texture1->getTurbulence(), texture1->getOctaves(), texture1->getColorMap(),
-                    texture1->getTextureGradient(), texture1->getBrickMortar()),
-                SolidTextureFixturesColorAtParameterSet(
-                    texture2->getColorPatternType(), texture2->getTextureTransformationInverse(),
-                    texture2->getColorImage(), texture2->getCheckerColor1(), texture2->getCheckerColor2(),
-                    texture2->getTurbulence(), texture2->getOctaves(), texture2->getColorMap(),
-                    texture2->getTextureGradient(),
-                    texture2->getBrickMortar()));
-        } else {
-            fixturesFacade.colorAt(
-                &surfaceColor,
-                tempTexture->getColorPatternType(),
-                tempTexture->getTextureTransformationInverse(),
-                tempTexture->getColorImage(),
-                tempTexture->getCheckerColor1(), tempTexture->getCheckerColor2(), tempTexture->getTurbulence(),
-                tempTexture->getOctaves(), tempTexture->getColorMap(),
-                tempTexture->getTextureGradient(),
-                tempTexture->getBrickMortar(),
-                &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance);
+        } else if (tempTexture->getPigment() != nullptr) {
+            const Vector3Dd transformedPoint = SolidTexturePigment::transformToObjectSpace(
+                &rayIntersection->getPoint(), tempTexture->getTextureTransformationInverse());
+            tempTexture->getPigment()->colorAt(&transformedPoint, &surfaceColor,
+                GeometryConstants::Small_Tolerance, colorFixture, mapFixture);
         }
         // We don't need to compute the lighting characteristics for shadow
         // rays

@@ -11,6 +11,9 @@
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
 
+class SolidTexturePigment;
+class SolidTextureNormal;
+
 class PovRayMaterialBuilder {
   public:
     PovRayMaterialBuilder();
@@ -60,8 +63,8 @@ class PovRayMaterialBuilder {
     PovRayMaterialBuilder &translate(const Vector3Dd &v);
 
   private:
-    static PovRayMaterial *copyTextureNode(const PovRayMaterial *src);
-    static RGBAColorPalette *deepCopyColorMap(const RGBAColorPalette *source);
+    SolidTexturePigment *buildPigment() const;
+    SolidTextureNormal *buildNormal() const;
 
     double bumpAmount;
     ControlledRGBAImageHDRUncompressed *bumpImage;
