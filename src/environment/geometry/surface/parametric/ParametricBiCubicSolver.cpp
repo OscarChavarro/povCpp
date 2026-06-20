@@ -184,7 +184,7 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch2(
     Vector3Dd(* const patch)[4][4] =
         (Vector3Dd(*)[4][4])shape->getControlPoints();
 
-    ParametricBiCubicPatch::parametricSubdivider(ray, shape, patch, 0.0, 1.0,
+    ParametricBiCubicPatch::parametricSubDivider(ray, shape, patch, 0.0, 1.0,
         0.0, 1.0, 0, &cnt, depths, &uValues[0], &vValues[0]);
     return cnt;
 }

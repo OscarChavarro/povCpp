@@ -1,5 +1,4 @@
 #include "environment/geometry/element/Intersection.h"
-
 #include "environment/geometry/SimpleBody.h"
 
 SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor) :
@@ -117,5 +116,3 @@ SimpleBody::invert()
 {
     getGeometry()->invertGeometry();
 }
-
-#include "java/util/PriorityQueue.txx"
