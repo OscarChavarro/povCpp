@@ -12,7 +12,7 @@
 #include "render/RenderEngine.h"
 #include "render/RenderContext.h"
 
-class PovrayApplication {
+class PovRayApplication {
   private:
     RenderingConfiguration configuration;
     FileLocator fileLocator;
@@ -27,7 +27,7 @@ class PovrayApplication {
     void printStatistics(
         const Statistics &stats,
         const Scene &frame,
-        const RenderingConfiguration &configuration);
+        const RenderingConfiguration &inputConfiguration);
 
     void initializeFromCommandLine(int argc, char *argv[]);
     void configureOutputTarget();
@@ -39,7 +39,7 @@ class PovrayApplication {
     void closeAll();
 
   public:
-    PovrayApplication()
+    PovRayApplication()
         : context(configuration, statistics, scene, runtimeState, textureUtils) {
         engine.setScene(&scene);
         engine.setContext(&context);
