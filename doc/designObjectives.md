@@ -56,16 +56,13 @@ objectives.
 | M5 | **Virtual dispatch + AoS of pointers in geometry** (`virtual allIntersections`, `PriorityQueue<Intersection>`) | `Geometry.h`, primitive headers | **#5** | GPU/SPIR-V has no virtuals or recursion; it will need a tagged-union/SoA. Plan a flat POD scene representation early |
 | M6 | **`double` throughout the pipeline** | `Vector3Dd`, `Matrix4x4d`, shaders | **#5** | FP64 is slow/scarce on the GPU. Since the GPU goal is AE-metric similarity (not bit-exact), decide the precision strategy and the acceptable AE tolerance early |
 | M7 | **True recursion for reflection/refraction** via function pointers | `TraceService`, `MirrorReflectionShader`, `TransmissionRefractionShader` | **#5** | The GPU kernel must be iterative with an explicit stack; worth prototyping now in CPU as a verifiable alternate mode |
-| M8 | **`getenv("POVCPP_DUMP_SCENE")` and `getenv` in the hot path** | `startTracing` start | #1 | Move to config/CLI; hidden side effects reduce academic clarity |
-| M9 | **`RenderEngine.cpp` ~17.6 KB / mixed responsibilities** (loop, AA, line I/O, jitter, stats) | size and function grep | #1, #4 | Separate the *sampling driver* from *image writing*; eases swapping the driver for a parallel or GPU one |
-| M10 | **C-era comment headers from 1992 persist** (dates/initials `dfm`) | `RenderEngine.cpp:1-11` | #1 | Historically useful but mixed with new code; move to `doc/` or mark as provenance notes |
-| M11 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
+| M8 | **`RenderEngine.cpp` ~17 KB / mixed responsibilities** (loop, AA, line I/O, jitter, stats) | size and function grep | #1, #4 | Separate the *sampling driver* from *image writing*; eases swapping the driver for a parallel or GPU one |
+| M9 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
 
 ## Reading by objective
 
-- **#1 Academic base** — Well on track (P1–P4, P7). What most reduces clarity: M9
-  (monolithic class), M8/M10 (hidden side effects and legacy comments), and M11
-  (no unit tests documenting contracts).
+- **#1 Academic base** — Well on track (P1–P4, P7). What most reduces clarity: M8
+  (monolithic class) and M9 (no unit tests documenting contracts).
 - **#2 C++11 migratable** — Solid (P6, P10). The only real pending item: M4 (manual
   memory management; optional `unique_ptr` use is still C++11 and reduces risk
   without breaking the version discipline).

@@ -57,7 +57,7 @@ CommandLineOptions::loadDefaults(RenderingConfiguration &config, FileLocator &fi
     This allows some machines to read environment variable before
     reading povray.def and others to do it after depending on the
     operating system. IBM-PC is before. Default is after if not
-    defined in config.h. CDW 2/92
+    defined in config.h.
     */
     // Set Diskwrite as default
     config.setOptionFlags(RenderingConfiguration::DISK_WRITE);

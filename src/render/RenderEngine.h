@@ -3,22 +3,12 @@
 
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/scene/Scene.h"
-#include "render/shaders/TraceService.h"
+#include "render/AdaptiveAntiAliasing.h"
 #include "render/RenderContext.h"
+#include "render/shaders/TraceService.h"
 
 class RenderEngine {
   private:
-    static constexpr int SUPER_SAMPLE_GRID_SIZE = 3;
-    static constexpr int SUPER_SAMPLE_COUNT = SUPER_SAMPLE_GRID_SIZE * SUPER_SAMPLE_GRID_SIZE;
-    static constexpr int JITTER_SEED_INITIAL_OFFSET = 10;
-    static constexpr int JITTER_SEED_INCREMENT = 10;
-    static constexpr int JITTER_RANDOM_MASK = 0x7FFF;
-    static constexpr double JITTER_RANDOM_NORMALIZER = 32768.0;
-    static constexpr double SUPER_SAMPLE_CELL_SIZE = 1.0 / 3.0;
-    static constexpr double SUPER_SAMPLE_JITTER_RANGE = SUPER_SAMPLE_CELL_SIZE;
-    static constexpr double SUPER_SAMPLE_JITTER_BIAS = SUPER_SAMPLE_JITTER_RANGE / 2.0;
-    static constexpr double SUPER_SAMPLE_WEIGHT = 1.0 / SUPER_SAMPLE_COUNT;
-
     RenderContext *context;
     Scene *scene;
     RayWithSegments *primaryRay;
@@ -31,6 +21,7 @@ class RenderEngine {
     RayWithSegments ray;
     TraceService traceService;
     IntersectionPriorityQueuePool intersectionQueuePool;
+    AdaptiveAntiAliasing adaptiveAntiAliasing;
     // Set the first time a fatal abort is detected on the thread driving this
     // engine, so the error is reported only once instead of per pixel. Not
     // reentrant across threads, but non-blocking: rendering keeps going with a
@@ -47,6 +38,7 @@ class RenderEngine {
           previousLine(nullptr), currentLine(nullptr),
           previousLineAntiAliasedFlags(nullptr), currentLineAntiAliasedFlags(nullptr),
           traceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceShadeShadow, this),
+          adaptiveAntiAliasing(this),
           fatalErrorFound(false) {}
     ~RenderEngine();
 
@@ -56,22 +48,35 @@ class RenderEngine {
     Statistics &getStatistics() { return context->getStatistics(); }
     TextureUtils &getTextureUtils() { return context->getTextureUtils(); }
     IntersectionPriorityQueuePool &getIntersectionQueuePool() { return intersectionQueuePool; }
+    RayWithSegments *getPrimaryRay() { return primaryRay; }
+    void setTraceLevel(int level) { traceLevel = level; }
+    ColorRgba *getPreviousLinePixel(int x) { return &previousLine[x]; }
+    ColorRgba *getCurrentLinePixel(int x) { return &currentLine[x]; }
+    bool getPreviousLineAntiAliasedFlag(int x) const {
+        return previousLineAntiAliasedFlags[x] != 0;
+    }
+    void setPreviousLineAntiAliasedFlag(int x, bool value) {
+        previousLineAntiAliasedFlags[x] = value ? 1 : 0;
+    }
+    bool getCurrentLineAntiAliasedFlag(int x) const {
+        return currentLineAntiAliasedFlags[x] != 0;
+    }
+    void setCurrentLineAntiAliasedFlag(int x, bool value) {
+        currentLineAntiAliasedFlags[x] = value ? 1 : 0;
+    }
+    void incrementSuperSampleCount() { superSampleCount++; }
     void setScene(Scene *s) { scene = s; }
     Scene &getScene() { return *scene; }
     double &getMaxTraceLevel() { return context->getRuntime().getMaxTraceLevel(); }
     bool &getStopFlag() { return context->getRuntime().getStopFlag(); }
     void readRenderedPart(void);
-    void superSample(
-        ColorRgba *result, int x, int y, int width, int height);
     void startTracing(void);
-    void trace(RayWithSegments *ray, ColorRgba *color);
+    void trace(RayWithSegments *localRay, ColorRgba *color);
     void initializeRenderer(void);
-    inline unsigned short rand3dInline(int a, int b);
     const TraceService *getTraceService() { return &traceService; }
     void createRay(
-        RayWithSegments *ray, int width, int height, double x, double y);
+        RayWithSegments *localRay, int width, int height, double x, double y);
     void checkStats(int y);
-    void doAntiAliasing(int x, int y, ColorRgba *color);
     void outputLine(int y);
 };
 

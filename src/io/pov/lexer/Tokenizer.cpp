@@ -108,7 +108,7 @@ const ReservedWord Tokenizer::sReservedWords[Tokenizer::LAST_TOKEN] = {{Tokenize
     {Tokenizer::STURM_TOKEN, "sturm"}, {Tokenizer::TEXTURE_TOKEN, "texture"}, {Tokenizer::TGA_TOKEN, "tga"},
     {Tokenizer::TIGHTNESS_TOKEN, "tightness"}, {Tokenizer::TILDE_TOKEN, "~"}, {Tokenizer::TILE2_TOKEN, "tile2"},
     {Tokenizer::THRESHOLD_TOKEN, "threshold"}, {Tokenizer::TRANSLATE_TOKEN, "translate"},
-    {Tokenizer::TRANSMIT_TOKEN, "* disabled *"}, // Transmit disabled 2/92
+    {Tokenizer::TRANSMIT_TOKEN, "* disabled *"}, // Transmit disabled
     {Tokenizer::TRIANGLE_TOKEN, "triangle"}, {Tokenizer::TURBULENCE_TOKEN, "turbulence"},
     {Tokenizer::UNION_TOKEN, "union"}, {Tokenizer::UP_TOKEN, "up"}, {Tokenizer::USE_COLOUR_TOKEN, "use_color"},
     {Tokenizer::USE_COLOUR_TOKEN, "use_colour"}, {Tokenizer::USE_INDEX_TOKEN, "use_index"},
@@ -650,7 +650,7 @@ DataFile::parseComments()
     return (true);
 }
 
-// C style comments with asterik and slash - CdW 8/91
+// C style comments with asterik and slash
 
 int
 DataFile::parseCComments()
@@ -730,7 +730,7 @@ Read a float from the input file and tokenize it as one token. The phase
 variable is 0 for the first character, 1 for all subsequent characters
 up to the decimal point, 2 for all characters after the decimal
 point, 3 for the E+/- and 4 for the exponent.  This helps to insure
-that the number is formatted properly. E format added 9/91 CEY
+that the number is formatted properly.
 */
 
 int

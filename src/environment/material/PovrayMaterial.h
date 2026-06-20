@@ -129,8 +129,8 @@ class PovrayMaterial : public Material {
     bool onceFlag;
     bool constantFlag;
     int numberOfWaves;
-    int octaves; // dmf, 1/92 for turbulence functions
-    double mortar; // rha, 2/92 for brick texture
+    int octaves;
+    double mortar;
 };
 
 inline java::ArrayList<PovrayMaterial*>& PovrayMaterial::getLayers() { return layers; }
