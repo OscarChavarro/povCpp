@@ -9,6 +9,21 @@
 #include "environment/geometry/volume/BlobList.h"
 
 class Blob : public Geometry {
+  private:
+    Matrix4x4d *transformation;
+    Matrix4x4d *transformationInverse;
+    bool inverted;
+    const int count;
+    const double threshold;
+    BlobElement *const list;
+    BlobInterval *const intervals;
+    const int sturmFlag;
+
+    static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
+        const Blob *blob, double minimumDistance);
+    static double calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos);
+    static int validateHit(const Blob *blob, const Vector3Dd *p);
+
   public:
     Blob() :
         transformation(nullptr),
@@ -22,7 +37,7 @@ class Blob : public Geometry {
     {
     }
 
-    Blob(double thresholdValue, BlobList *bloblist, int npoints, int sturmFlagValue);
+    Blob(double thresholdValue, BlobList *blobList, int numberOfPoints, int sturmFlagValue);
     Blob(const Matrix4x4d *transformationValue,
         const Matrix4x4d *transformationInverseValue, bool invertedValue,
         int countValue, double thresholdValue, const BlobElement *listValue,
@@ -47,21 +62,6 @@ class Blob : public Geometry {
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
-
-  private:
-    Matrix4x4d *transformation;
-    Matrix4x4d *transformationInverse;
-    bool inverted;
-    const int count;
-    const double threshold;
-    BlobElement *const list;
-    BlobInterval *const intervals;
-    const int sturmFlag;
-
-    static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
-        const Blob *blob, double mindist);
-    static double calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos);
-    static int validateHit(const Blob *blob, const Vector3Dd *p);
 };
 
 #endif
