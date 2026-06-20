@@ -8,14 +8,6 @@
 class RenderEngine;
 
 class RenderWorker {
-  public:
-    struct TraceEvent {
-        bool childRay;
-        RayWithSegments ray;
-        ColorRgba color;
-        TraceEvent() : childRay(false), color(0.0, 0.0, 0.0, 0.0) {}
-    };
-
   private:
     RenderEngine *engine;
     RayWithSegments ray;
@@ -26,12 +18,10 @@ class RenderWorker {
     char *previousLineAntiAliasedFlags;
     char *currentLineAntiAliasedFlags;
     TraceService traceService;
-    java::ArrayList<TraceEvent*> *activeTraceEvents;
 
     static ColorRgba *allocateColorBuffer(int count);
     static void traceServiceTrace(void *context, const RayWithSegments *ray,
-        const ColorRgba *multiplier);
-    static void traceServiceAddColor(void *context, const ColorRgba *color);
+        ColorRgba *color);
     static void traceServiceShadeShadow(
         void *context, Intersection *intersection, ColorRgba *color);
 
@@ -44,6 +34,7 @@ class RenderWorker {
 
     RayWithSegments *getPrimaryRay() { return primaryRay; }
     RayWithSegments &getRay() { return ray; }
+    int &getTraceLevel() { return traceLevel; }
     int getTraceLevel() const { return traceLevel; }
     void setTraceLevel(int level) { traceLevel = level; }
     ColorRgba *getPreviousLine() { return previousLine; }
@@ -63,10 +54,6 @@ class RenderWorker {
         currentLineAntiAliasedFlags[x] = value ? 1 : 0;
     }
     TraceService *getTraceService() { return &traceService; }
-    java::ArrayList<TraceEvent*> *getActiveTraceEvents() { return activeTraceEvents; }
-    void setActiveTraceEvents(java::ArrayList<TraceEvent*> *events) {
-        activeTraceEvents = events;
-    }
 };
 
 #endif

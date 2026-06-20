@@ -11,8 +11,8 @@ class TransmissionRefractionShader {
 public:
     static void shade(PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
         const RayWithSegments *ray, const Vector3Dd *surfaceNormal,
-        const ColorRgba *multiplier,
-        const TraceService *traceService, double atmosphereIor);
+        ColorRgba *color, const TraceService *traceService, double atmosphereIor,
+        int &traceLevel);
 };
 
 #endif

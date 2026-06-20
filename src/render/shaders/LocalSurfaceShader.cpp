@@ -13,10 +13,10 @@
 void
 LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     Intersection *rayIntersection, ColorRgba *surfaceColor,
-    const ColorRgba *filterColor,
+    const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const Light *lightSources,
     const java::ArrayList<BoundedGeometry*> &objects,
-    TextureUtils *textureUtils)
+    int &traceLevel, TextureUtils *textureUtils)
 {
     Vector3Dd surfaceNormal;
     double normalDirection;
@@ -34,10 +34,9 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
 
     if (ray->getConfig()->getQuality() <= 1) {
         surfaceColor->setA(0.0);
-        emittedColor.setR(surfaceColor->getR() * filterColor->getA());
-        emittedColor.setG(surfaceColor->getG() * filterColor->getA());
-        emittedColor.setB(surfaceColor->getB() * filterColor->getA());
-        traceService->addColor(&emittedColor);
+        color->setR(color->getR() + surfaceColor->getR() * filterColor->getA());
+        color->setG(color->getG() + surfaceColor->getG() * filterColor->getA());
+        color->setB(color->getB() + surfaceColor->getB() * filterColor->getA());
         return;
     }
 
@@ -62,10 +61,12 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     DirectLightShader::shade(texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources, objects);
-    traceService->addColor(&emittedColor);
+    color->setR(color->getR() + emittedColor.getR());
+    color->setG(color->getG() + emittedColor.getG());
+    color->setB(color->getB() + emittedColor.getB());
     if (ray->getConfig()->getQuality() >= 8) {
         MirrorReflectionShader::shade(
-            texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
-            traceService);
+            texture, &rayIntersection->getPoint(), ray, &surfaceNormal, color,
+            traceService, traceLevel);
     }
 }

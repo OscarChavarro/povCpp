@@ -8,40 +8,29 @@
 class TraceService {
   private:
     typedef void (*TraceFn)(void *context, const RayWithSegments *ray,
-        const ColorRgba *multiplier);
-    typedef void (*AddColorFn)(void *context, const ColorRgba *color);
+        ColorRgba *color);
     typedef void (*ShadowShadeFn)(void *context, Intersection *intersection, ColorRgba *color);
     TraceFn traceFn;
-    AddColorFn addColorFn;
     ShadowShadeFn shadowShadeFn;
     void *context;
 
   public:
-    TraceService(TraceFn traceFn, AddColorFn addColorFn,
-        ShadowShadeFn shadowShadeFn, void *context);
-    inline void trace(const RayWithSegments *ray, const ColorRgba *multiplier) const;
-    inline void addColor(const ColorRgba *color) const;
+    TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn, void *context);
+    inline void trace(const RayWithSegments *ray, ColorRgba *color) const;
     inline void shadeShadow(Intersection *intersection, ColorRgba *color) const;
 };
 
 inline
-TraceService::TraceService(TraceFn traceFn, AddColorFn addColorFn,
-    ShadowShadeFn shadowShadeFn, void *context)
-    : traceFn(traceFn), addColorFn(addColorFn),
-      shadowShadeFn(shadowShadeFn), context(context)
+TraceService::TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn,
+    void *context)
+    : traceFn(traceFn), shadowShadeFn(shadowShadeFn), context(context)
 {
 }
 
 inline void
-TraceService::trace(const RayWithSegments *ray, const ColorRgba *multiplier) const
+TraceService::trace(const RayWithSegments *ray, ColorRgba *color) const
 {
-    traceFn(context, ray, multiplier);
-}
-
-inline void
-TraceService::addColor(const ColorRgba *color) const
-{
-    addColorFn(context, color);
+    traceFn(context, ray, color);
 }
 
 inline void

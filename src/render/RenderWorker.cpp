@@ -1,6 +1,5 @@
 #include <new>
 
-#include "java/util/ArrayList.txx"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/RenderWorker.h"
@@ -13,9 +12,8 @@ RenderWorker::RenderWorker(RenderEngine *owner)
       currentLine(nullptr),
       previousLineAntiAliasedFlags(nullptr),
       currentLineAntiAliasedFlags(nullptr),
-      traceService(RenderWorker::traceServiceTrace, RenderWorker::traceServiceAddColor,
-          RenderWorker::traceServiceShadeShadow, this),
-      activeTraceEvents(nullptr)
+      traceService(RenderWorker::traceServiceTrace,
+          RenderWorker::traceServiceShadeShadow, this)
 {
 }
 
@@ -88,24 +86,11 @@ RenderWorker::swapLines()
 
 void
 RenderWorker::traceServiceTrace(void *context, const RayWithSegments *ray,
-    const ColorRgba *multiplier)
+    ColorRgba *color)
 {
     RenderWorker *worker = static_cast<RenderWorker *>(context);
-    TraceEvent *event = new TraceEvent();
-    event->childRay = true;
-    event->ray = *ray;
-    event->color = *multiplier;
-    worker->activeTraceEvents->add(event);
-}
-
-void
-RenderWorker::traceServiceAddColor(void *context, const ColorRgba *color)
-{
-    RenderWorker *worker = static_cast<RenderWorker *>(context);
-    TraceEvent *event = new TraceEvent();
-    event->childRay = false;
-    event->color = *color;
-    worker->activeTraceEvents->add(event);
+    RayWithSegments localRay = *ray;
+    worker->engine->trace(*worker, &localRay, color);
 }
 
 void
