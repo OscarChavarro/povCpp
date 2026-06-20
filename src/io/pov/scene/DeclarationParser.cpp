@@ -13,6 +13,7 @@
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
 #include "io/pov/geometry/BoxParser.h"
+#include "io/pov/geometry/CsgParser.h"
 #include "io/pov/geometry/HeightFieldParser.h"
 #include "io/pov/geometry/ObjectParser.h"
 #include "io/pov/geometry/PlaneParser.h"
@@ -155,7 +156,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::INTERSECTION_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)ObjectParser::parseCsg(BooleanSetOperations::INTERSECTION, ctx));
+                    (char *)CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_INTERSECTION_CONSTANT);
                 Exit_Flag = true;
                 break;
@@ -163,7 +164,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::UNION_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)ObjectParser::parseCsg(BooleanSetOperations::UNION, ctx));
+                    (char *)CsgParser::parse(BooleanSetOperations::UNION, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_UNION_CONSTANT);
                 Exit_Flag = true;
                 break;
@@ -171,7 +172,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::DIFFERENCE_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)ObjectParser::parseCsg(BooleanSetOperations::DIFFERENCE, ctx));
+                    (char *)CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_DIFFERENCE_CONSTANT);
                 Exit_Flag = true;
                 break;
