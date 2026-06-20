@@ -1,6 +1,7 @@
 #ifndef __STATISTICS__
 #define __STATISTICS__
 
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/statistics/SolidTextureStatistics.h"
 
 class Statistics {
@@ -39,6 +40,7 @@ class Statistics {
 
   public:
     Statistics() { reset(); }
+    Statistics(java::ArrayList<Statistics*> *partsPerThread);
     long getNumberOfPixels() const;
     void incrementNumberOfPixels();
     long getNumberOfRays() const;

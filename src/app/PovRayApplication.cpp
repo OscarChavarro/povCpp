@@ -1,5 +1,3 @@
-#include <cstdlib>
-
 #include "app/ImageOutputAdapter.h"
 #include "app/PovRayApplication.h"
 #include "app/options/CommandLineOptions.h"

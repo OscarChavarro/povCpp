@@ -64,6 +64,39 @@ objectives.
 | M5 | **`double` throughout the pipeline** | `Vector3Dd`, `Matrix4x4d`, shaders | **#5** | FP64 is slow/scarce on the GPU. Since the GPU goal is AE-metric similarity (not bit-exact), decide the precision strategy and the acceptable AE tolerance early |
 | M6 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
 
+## Tile-based parallelism (`-parallel`) — readiness assessment
+
+Target: a `-parallel` flag that detects `nproc`, spins up `nproc` threads via
+`java::Executors::newFixedThreadPool` (the pthread-backed wrapper in
+`base/.../util/concurrent`), and renders the frame as independent **tiles**.
+The render layer is already *closer* than the rest of the codebase thanks to P12
+(per-ray scratch lives in `RenderWorker`, and `trace`/AA/shading are parameterized
+over a worker) and P8/P9 (no globals, per-engine pooling). What remains are the
+following design-blocking items, in priority order.
+
+| # | Blocker | Evidence | Why it blocks tiling | Direction |
+|---|---------|----------|----------------------|-----------|
+| B1 | **One `RenderEngine` owns exactly one `RenderWorker`, one `IntersectionPriorityQueuePool` and one `AdaptiveAntiAliasing`** | `RenderEngine.h:16-18`; `getWorker()` returns the single member | All threads would share one worker (ray scratch, line buffers) and one intersection pool → data races. Need **one worker + one pool per thread** | Make the per-thread state a `RenderTask`/context object (worker + pool), created `nproc` times; keep `RenderEngine` as the shared, read-only sampling logic |
+| B2 | **`createRay` injects the engine-owned pool into every ray** | `RenderEngine.cpp:53` `localRay->setIntersectionQueuePool(&intersectionQueuePool)` | Couples ray scratch to the single shared pool even though `trace` already takes a `RenderWorker&` | Pass the pool (or the owning worker) as a parameter to `createRay`/`trace`; move the pool into the per-thread context (B1) |
+| B3 | **Tile/scanline window is carried in the shared `RenderingConfiguration`** | `startTracing` reads `getFirstLine()/getLastLine()`; `RenderImageWriter::readRenderedPart` calls `config.setFirstLine()` | Tiles must each render a different sub-window; mutating a shared config per tile is a race and breaks the resume logic | Pass tile bounds (`y0,y1[,x0,x1]`) as explicit parameters to a new per-tile entry point; keep `config` immutable during tracing |
+| B4 | **AA reads the adjacent scanline (M1)** | `AdaptiveAntiAliasing::doAntiAliasing`, `RenderWorker::swapLines` | Horizontal tile/band seams need the neighbor row that another thread owns | Per-band: render a one-scanline **halo** overlap; or resolve AA in a **second pass** over a full-frame buffer once all base samples exist |
+| B5 | **`Statistics` mutated per pixel/ray without synchronization (M2)** | `incrementNumberOfPixels/Rays` in `startTracing`/`trace`; primitive test counters | Concurrent `long++` is a race; counters undercount | **Per-thread `Statistics`**, reduced (summed) once at join. Cleaner than atomics and maps to the Java port |
+| B6 | **`SolidTextureStatistics::callsToNoise/DNoise` incremented inside `noise()`** | `ProceduralNoise.cpp:200,269` (`solidTextureStatistics->callsToNoise++`) | Same race as B5 but hidden in the shared `TextureUtils` reached via `RenderContext` | Give each thread its own `SolidTextureStatistics` sink (per-thread noise stats), reduce at join. Noise **tables** are `const`-read — safe to share |
+| B7 | **Output is streamed one scanline at a time, in order** | `RenderImageWriter::outputLine/writeScanline`; `RenderOutput::writeLine(line, lineNumber)` | Tiles finish out of order; the current writer assumes monotonically increasing lines and writes the *previous* line to avoid partial AA | Render into a **full-frame in-memory buffer**, then persist sequentially after join; or add a completion-ordered writer that buffers until the next expected line is ready |
+| B8 | **Single `fatalErrorFound` / `stopFlag` shared, non-atomic** | `RenderEngine.h:27`; `RenderRuntimeState::getStopFlag()` | Abort signalling across threads is racy (benign today, undefined under threads) | Make the abort flag atomic (`java::util::concurrent::atomic`) and report-once via a guarded flag |
+| B9 | **No CPU-count detection and no `-parallel` option plumbing** | `CommandLineOptions.*`, `RenderingConfiguration` (no thread flag) | Nothing reads `nproc` or selects the parallel driver | Add `Runtime.availableProcessors()`-style helper (`sysconf(_SC_NPROCESSORS_ONLN)`), a `PARALLEL` flag + thread count in `RenderingConfiguration`, parsed in `CommandLineOptions` |
+
+**Assets already in place** (reduce the work): `trace(RenderWorker&, …)` is
+worker-parameterized (P12); `RenderContext` is read-mostly (`config` and `scene`
+are `const` references) so it is safe to share across threads once B3/B5/B6 remove
+the writes; the `Executors`/`ExecutorService`/`Future`/`Callable` wrapper already
+exists and is pthread-backed; no global state to untangle (P8).
+
+**Recommended tiling shape:** start with **horizontal bands** (full-width strips of
+`height / nproc` rows). They keep `createRay`'s `x` math untouched, make B7 a simple
+contiguous-range write, and reduce B4 to a single shared boundary row per seam
+(solved by a 1-row halo). Rectangular tiles can come later for better load balance.
+
 ## Reading by objective
 
 - **#1 Academic base** — Well on track (P1–P4, P7, P13); the sampling driver is now
@@ -76,9 +109,14 @@ objectives.
   and pointer aliasing do not map cleanly to GC; the more value semantics, the more
   mechanical the Java port.
 - **#4 pthreads parallelism** — The largest pending work. P12 already moved per-ray
-  scratch out of `RenderEngine` into `RenderWorker`; M1 (AA scanline coupling) and
-  M2 (unsynchronized stats) are the remaining design-blocking items. The good news:
-  P8 and P9 already removed the global obstacles.
+  scratch out of `RenderEngine` into `RenderWorker`. The concrete `-parallel`
+  (tile-based) blockers are now enumerated in **Tile-based parallelism — readiness
+  assessment** (B1–B9): per-thread worker+pool (B1/B2), tile bounds out of the shared
+  config (B3), AA seam handling (B4, the old M1), per-thread stats reduction (B5/B6,
+  the old M2 plus the hidden noise counters), out-of-order tile output (B7), atomic
+  abort (B8) and CPU-count/option plumbing (B9). The good news: `trace` is already
+  worker-parameterized (P12), `RenderContext` is read-mostly, the pthread `Executors`
+  wrapper exists, and P8/P9 already removed the global obstacles.
 - **#5 Vulkan 1.3** — The goal here is an AE-metric *close-to-similarity* match with
   the CPU reference, not a bit-exact one — that relaxation is what makes the GPU port
   tractable. The architecture helps (P2, P3, P5 as oracle), but M4 (virtuals/AoS),
