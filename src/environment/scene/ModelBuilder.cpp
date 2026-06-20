@@ -27,8 +27,7 @@
 SimpleBody *
 ModelBuilder::wrap(Geometry *geometry)
 {
-    SimpleBody *body;
-    body = new SimpleBody(geometry, nullptr, nullptr);
+    SimpleBody *body = new SimpleBody(geometry, nullptr, nullptr);
     if (body == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate body\n");
     }
@@ -38,10 +37,9 @@ ModelBuilder::wrap(Geometry *geometry)
 PolynomialShape *
 ModelBuilder::getPolyShape(int order, const int *termCounts)
 {
-    PolynomialShape *newShape;
     (void)termCounts;
 
-    newShape = new PolynomialShape(order);
+    PolynomialShape *newShape = new PolynomialShape(order);
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
@@ -51,9 +49,7 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
 CSG *
 ModelBuilder::getCsgUnion()
 {
-    CSG *newShape;
-
-    newShape = new CSG(GeometryTypes::CSG_UNION_TYPE);
+    CSG *newShape = new CSG(GeometryTypes::CSG_UNION_TYPE);
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
@@ -63,9 +59,7 @@ ModelBuilder::getCsgUnion()
 CSG *
 ModelBuilder::getCsgIntersection()
 {
-    CSG *newShape;
-
-    newShape = new CSG(GeometryTypes::CSG_INTERSECTION_TYPE);
+    CSG *newShape = new CSG(GeometryTypes::CSG_INTERSECTION_TYPE);
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
@@ -75,9 +69,7 @@ ModelBuilder::getCsgIntersection()
 Camera *
 ModelBuilder::getCamera()
 {
-    Camera *newViewpoint;
-
-    newViewpoint = new Camera();
+    Camera *newViewpoint = new Camera();
     if (newViewpoint == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate viewpoint\n");
     }
@@ -87,9 +79,7 @@ ModelBuilder::getCamera()
 ColorRgba *
 ModelBuilder::getColor()
 {
-    ColorRgba *newColor;
-
-    newColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
+    ColorRgba *newColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
     if (newColor == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate color\n");
     }
@@ -99,9 +89,7 @@ ModelBuilder::getColor()
 Vector3Dd *
 ModelBuilder::getVector()
 {
-    Vector3Dd *newVector;
-
-    newVector = new Vector3Dd;
+    Vector3Dd *newVector = new Vector3Dd;
     if (newVector == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate vector\n");
     }
@@ -111,9 +99,7 @@ ModelBuilder::getVector()
 double *
 ModelBuilder::getFloat()
 {
-    double *newFloat;
-
-    newFloat = new double(0.0);
+    double *newFloat = new double(0.0);
     if (newFloat == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate float\n");
     }

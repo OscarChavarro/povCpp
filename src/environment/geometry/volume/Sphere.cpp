@@ -50,7 +50,6 @@ Sphere::intersectSphere(
     Vector3Dd originToCenter;
     double ocSquared;
     double tClosestApproach;
-    double halfChord;
     double tHalfChordSquared;
     short inside;
 
@@ -85,7 +84,7 @@ Sphere::intersectSphere(
         return false;
     }
 
-    halfChord = java::Math::sqrt(tHalfChordSquared);
+    const double halfChord = java::Math::sqrt(tHalfChordSquared);
     *depth1 = tClosestApproach + halfChord;
     *depth2 = tClosestApproach - halfChord;
 
@@ -122,10 +121,9 @@ Sphere::allIntersectionsForOwner(
     double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    bool intersectionFound;
     Sphere * const shape = this;
 
-    intersectionFound = false;
+    bool intersectionFound = false;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
         localElement.setDepth(depth1);
         localElement.setObject(nullptr);
@@ -153,12 +151,9 @@ Sphere::allIntersectionsForOwner(
 int
 Sphere::inside(Vector3Dd *testPoint)
 {
-    Vector3Dd originToCenter;
-    double ocSquared;
     const Sphere *sphere = this;
-
-    originToCenter = sphere->getCenter().subtract(*testPoint);
-    ocSquared = originToCenter.dotProduct(originToCenter);
+    const Vector3Dd originToCenter = sphere->getCenter().subtract(*testPoint);
+    const double ocSquared = originToCenter.dotProduct(originToCenter);
 
     if (sphere->isInverted()) {
         return (ocSquared - sphere->getRadiusSquared() > GeometryConstants::Small_Tolerance);

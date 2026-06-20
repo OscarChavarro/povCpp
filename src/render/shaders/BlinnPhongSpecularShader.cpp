@@ -8,17 +8,13 @@ BlinnPhongSpecularShader::shade(const PovrayMaterial *texture, const RayWithSegm
     Vector3Dd rEye, const Vector3Dd *surfaceNormal, ColorRgba *color,
     const ColorRgba *lightColor, const ColorRgba *surfaceColor)
 {
-    double cosAngleOfIncidence;
-    double normalLength;
     double intensity;
-    double halfwayLength;
     double roughness;
-    Vector3Dd halfway;
 
-    halfway = rEye.midpoint(lightSourceRay->getDirection());
-    normalLength = (*surfaceNormal).length();
-    halfwayLength = halfway.length();
-    cosAngleOfIncidence = halfway.dotProduct(*surfaceNormal);
+    Vector3Dd halfway = rEye.midpoint(lightSourceRay->getDirection());
+    double normalLength = (*surfaceNormal).length();
+    double halfwayLength = halfway.length();
+    double cosAngleOfIncidence = halfway.dotProduct(*surfaceNormal);
 
     if (normalLength == 0.0 || halfwayLength == 0.0) {
         cosAngleOfIncidence = 0.0;

@@ -99,13 +99,11 @@ CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &
     FileLocator &fileLocator, Scene &scene, bool &inFlag, bool &outFlag)
 {
     int c;
-    int stringIndex;
-    bool optionStarted;
     short optionLineIndex = 0;
     char optionString[80];
 
-    stringIndex = 0;
-    optionStarted = false;
+    int stringIndex = 0;
+    bool optionStarted = false;
     while ((c = optionLine[optionLineIndex++]) != '\0') {
         if (optionStarted) {
             if (isspace(c)) {

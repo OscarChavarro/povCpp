@@ -29,26 +29,23 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     SimpleBody *body = nullptr;
     Vector3Dd localVector;
     Vector3Dd controlPoints[4][4];
-    int constantId;
-    PovrayMaterial *localTexture;
-    int i;
-    int j;
-    int patchType;
-    int uSteps;
-    int vSteps;
-    double flatnessValue;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::DASH_TOKEN:
             case Tokenizer::PLUS_TOKEN:
-            case Tokenizer::FLOAT_TOKEN:
+            case Tokenizer::FLOAT_TOKEN: {
+                int patchType;
+                int uSteps;
+                int vSteps;
+                double flatnessValue;
+                int i;
+                int j;
                 ctx.tokenStream().ungetToken();
                 patchType = (int)PrimitiveParser::parseFloat(ctx);
                 if (patchType == 2 || patchType == 3) {
@@ -70,8 +67,10 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                     localShape); // interpolated mesh coords
                 Exit_Flag = true;
                 break;
+            }
 
-            case Tokenizer::IDENTIFIER_TOKEN:
+            case Tokenizer::IDENTIFIER_TOKEN: {
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::BICUBIC_PATCH_CONSTANT) {
@@ -87,6 +86,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 }
                 Exit_Flag = true;
                 break;
+            }
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
@@ -96,8 +96,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -124,14 +123,15 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 body->invert();
                 break;
 
-            case Tokenizer::TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture(ctx);
+            case Tokenizer::TEXTURE_TOKEN: {
+                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
                 TextureParser::prependTextureLayers(localTexture, body);
                 break;
+            }
 
             case Tokenizer::COLOUR_TOKEN:
                 PrimitiveParser::parseColor(body->ensureShapeColor(), ctx);

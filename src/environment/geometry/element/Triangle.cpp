@@ -52,13 +52,9 @@ static constexpr int Z_AXIS = 2;
 void
 Triangle::findTriangleDominantAxis(Triangle *triangle)
 {
-    double x;
-    double y;
-    double z;
-
-    x = java::Math::abs(triangle->normalVector.x());
-    y = java::Math::abs(triangle->normalVector.y());
-    z = java::Math::abs(triangle->normalVector.z());
+    double x = java::Math::abs(triangle->normalVector.x());
+    double y = java::Math::abs(triangle->normalVector.y());
+    double z = java::Math::abs(triangle->normalVector.z());
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
         triangle->dominantAxis = X_AXIS;
@@ -78,16 +74,13 @@ Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
     Vector3Dd p3MinusP2;
     Vector3Dd vTemp1;
     Vector3Dd vTemp2;
-    double x;
-    double y;
-    double z;
     double uDenominator;
     double proj;
 
     p3MinusP2 = triangle->getP3().subtract(triangle->getP2());
-    x = java::Math::abs(p3MinusP2.x());
-    y = java::Math::abs(p3MinusP2.y());
-    z = java::Math::abs(p3MinusP2.z());
+    double x = java::Math::abs(p3MinusP2.x());
+    double y = java::Math::abs(p3MinusP2.y());
+    double z = java::Math::abs(p3MinusP2.z());
 
     switch (Triangle::max3Axis(x, y, z)) {
     case 1:
@@ -124,12 +117,11 @@ Triangle::computeTriangle(Triangle *triangle)
     Vector3Dd v1;
     Vector3Dd v2;
     Vector3Dd temp;
-    double length;
 
     v1 = triangle->p1.subtract(triangle->p2);
     v2 = triangle->p3.subtract(triangle->p2);
     triangle->normalVector = v1.crossProduct(v2);
-    length = triangle->normalVector.length();
+    const double length = triangle->normalVector.length();
     // Set up a flag so we can ignore degenerate triangles
     if (length < 1.0e-9) {
         triangle->degenerateFlag = true;
@@ -401,9 +393,8 @@ void
 Triangle::translateGeometry(Vector3Dd *vector)
 {
     Triangle * const triangle = this;
-    Vector3Dd translation;
 
-    translation = triangle->normalVector.multiply(*vector);
+    Vector3Dd translation = triangle->normalVector.multiply(*vector);
     triangle->distance -= translation.x() + translation.y() + translation.z();
     triangle->p1 = triangle->p1.add(*vector);
     triangle->p2 = triangle->p2.add(*vector);
@@ -429,14 +420,13 @@ void
 Triangle::scaleGeometry(Vector3Dd *vector)
 {
     Triangle * const triangle = this;
-    double length;
 
     triangle->normalVector = Vector3Dd(
         triangle->normalVector.x() / vector->x(),
         triangle->normalVector.y() / vector->y(),
         triangle->normalVector.z() / vector->z());
 
-    length = triangle->normalVector.length();
+    const double length = triangle->normalVector.length();
     triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
     triangle->distance /= length;
 

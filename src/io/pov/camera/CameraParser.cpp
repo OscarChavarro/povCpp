@@ -32,24 +32,20 @@ CameraParser::parseCamera(Camera *givenVp)
 void
 CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 {
-    int constantId;
     Vector3Dd localVector;
     Vector3Dd tempVector;
-    double directionLength;
-    double upLength;
-    double rightLength;
-    double handedness;
     Camera parsedCamera;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
+            {
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::VIEW_POINT_CONSTANT) {
@@ -62,6 +58,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                     ParseErrorReporter::reportUndeclared(ctx);
                 }
                 break;
+            }
 
             case Tokenizer::LOCATION_TOKEN:
                 PrimitiveParser::parseVector(&parsedCamera.getLocation(), ctx);
@@ -84,11 +81,13 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 break;
 
             case Tokenizer::LOOK_AT_TOKEN:
-                directionLength = parsedCamera.getDirection().length();
-                upLength = parsedCamera.getUp().length();
-                rightLength = parsedCamera.getRight().length();
-                tempVector = parsedCamera.getDirection().crossProduct(parsedCamera.getUp());
-                handedness = tempVector.dotProduct(parsedCamera.getRight());
+            {
+                double directionLength = parsedCamera.getDirection().length();
+                double upLength = parsedCamera.getUp().length();
+                double rightLength = parsedCamera.getRight().length();
+                Vector3Dd tempVector =
+                    parsedCamera.getDirection().crossProduct(parsedCamera.getUp());
+                double handedness = tempVector.dotProduct(parsedCamera.getRight());
                 PrimitiveParser::parseVector(&parsedCamera.getDirection(), ctx);
 
                 parsedCamera.getDirection() =
@@ -109,21 +108,31 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
 
                 parsedCamera.getUp() = parsedCamera.getUp().multiply(upLength);
                 break;
+            }
 
             case Tokenizer::TRANSLATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 parsedCamera.translate(&localVector);
                 break;
+            }
 
             case Tokenizer::ROTATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 parsedCamera.rotate(&localVector);
                 break;
+            }
 
             case Tokenizer::SCALE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 parsedCamera.scale(&localVector);
                 break;
+            }
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;

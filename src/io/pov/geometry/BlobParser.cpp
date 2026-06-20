@@ -41,20 +41,10 @@ SimpleBody *
 BlobParser::parseBlob(ParserContext &ctx)
 {
     (void)ctx;
-    Blob *localShape;
+    Blob *localShape = nullptr;
     SimpleBody *body = nullptr;
-    int constantId;
-    Vector3Dd localVector;
-    PovrayMaterial *localTexture;
-    double threshold;
-    int npoints;
-    BlobList *blobComponents;
-    BlobList *blobComponent;
-
-    localShape = nullptr;
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -69,17 +59,17 @@ BlobParser::parseBlob(ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::THRESHOLD_TOKEN:
             case Tokenizer::COMPONENT_TOKEN:
+            {
+                double threshold = 1.0;
+                int npoints = 0;
+                BlobList *blobComponents = nullptr;
                 ctx.tokenStream().ungetToken();
-                blobComponents = nullptr;
-                npoints = 0;
-                threshold = 1.0;
 
                 // Here is where we get the blob coefficients
                 {
@@ -93,7 +83,8 @@ BlobParser::parseBlob(ParserContext &ctx)
                             break;
 
                         case Tokenizer::COMPONENT_TOKEN:
-                            blobComponent = new BlobList;
+                        {
+                            BlobList *blobComponent = new BlobList;
                             if (blobComponent == nullptr) {
                                 ParseErrorReporter::reportError(
                                     "Out of Memory! Cannot allocate blob "
@@ -109,6 +100,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                             blobComponents = blobComponent;
                             npoints++;
                             break;
+                        }
 
                         default:
                             ctx.tokenStream().ungetToken();
@@ -122,8 +114,10 @@ BlobParser::parseBlob(ParserContext &ctx)
                 body = ModelBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
+            }
 
             case Tokenizer::IDENTIFIER_TOKEN:
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::BLOB_CONSTANT) {
@@ -148,8 +142,7 @@ BlobParser::parseBlob(ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -158,43 +151,60 @@ BlobParser::parseBlob(ParserContext &ctx)
                 break;
 
             case Tokenizer::STURM_TOKEN:
+            {
                 if (localShape->getSturmFlag() == 0) {
                     body = rebuildBodyWithGeometry(
                         body, localShape->copyWithSturmFlag(1));
                     localShape = (Blob *)body->getGeometry();
                 }
                 break;
+            }
 
             case Tokenizer::TRANSLATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->translate(&localVector);
                 break;
+            }
 
             case Tokenizer::ROTATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->rotate(&localVector);
                 break;
+            }
 
             case Tokenizer::SCALE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->scale(&localVector);
                 break;
+            }
 
             case Tokenizer::INVERSE_TOKEN:
+            {
                 body->invert();
                 break;
+            }
 
             case Tokenizer::TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture(ctx);
+            {
+                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 TextureParser::prependTextureLayers(localTexture, body);
                 break;
+            }
 
             case Tokenizer::COLOUR_TOKEN:
+            {
                 PrimitiveParser::parseColor(body->ensureShapeColor(), ctx);
                 break;
+            }
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);

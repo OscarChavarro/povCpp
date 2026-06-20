@@ -12,12 +12,10 @@ int
 ParametricBiCubicIntersection::subpatchNormal(const Vector3Dd *v1,
     const Vector3Dd *v2, const Vector3Dd *v3, Vector3Dd *result, double *d)
 {
-    Vector3Dd edge1;
-    Vector3Dd edge2;
     double length;
 
-    edge1 = v1->subtract(*v2);
-    edge2 = v3->subtract(*v2);
+    Vector3Dd edge1 = v1->subtract(*v2);
+    Vector3Dd edge2 = v3->subtract(*v2);
     *result = edge1.crossProduct(edge2);
     length = (*result).length();
     if (length < Config::PARAMETRIC_CURVE_EPSILON) {
@@ -46,8 +44,6 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     Vector3Dd tempV1;
     Vector3Dd tempV2;
     Vector3Dd perp;
-    double s;
-    double t;
     double proj;
     double mu;
     double x1;
@@ -56,19 +52,15 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     double y2;
     double x3;
     double y3;
-    double x;
-    double y;
-    double z;
     int signHolder;
     int nextSign;
-    int crossings;
 
     // Calculate the point of intersection and the depth
-    s = ray->getDirection().dotProduct(*n);
+    double s = ray->getDirection().dotProduct(*n);
     if (s == 0.0) {
         return 0;
     }
-    t = ray->getOrigin().dotProduct(*n);
+    double t = ray->getOrigin().dotProduct(*n);
     *depth = 0.0 - (d + t) / s;
     if (*depth < GeometryConstants::Small_Tolerance) {
         return 0;
@@ -77,9 +69,9 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     *ip = ip->add(ray->getOrigin());
 
     // Map the intersection point and the triangle onto a plane
-    x = java::Math::abs(n->x());
-    y = java::Math::abs(n->y());
-    z = java::Math::abs(n->z());
+    double x = java::Math::abs(n->x());
+    double y = java::Math::abs(n->y());
+    double z = java::Math::abs(n->z());
     if (x > y) {
         if (x > z) {
             x1 = v1->y() - ip->y();
@@ -113,7 +105,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     }
 
     // Determine crossing count
-    crossings = 0;
+    int crossings = 0;
     if (y1 < 0) {
         signHolder = -1;
     } else {
@@ -241,20 +233,15 @@ int
 ParametricBiCubicIntersection::sphericalBoundsCheck(
     const RayWithSegments *ray, const Vector3Dd *center, double radius)
 {
-    double x;
-    double y;
-    double z;
-    double dist1;
-    double dist2;
-    x = center->x() - ray->getOrigin().x();
-    y = center->y() - ray->getOrigin().y();
-    z = center->z() - ray->getOrigin().z();
-    dist1 = x * x + y * y + z * z;
+    double x = center->x() - ray->getOrigin().x();
+    double y = center->y() - ray->getOrigin().y();
+    double z = center->z() - ray->getOrigin().z();
+    double dist1 = x * x + y * y + z * z;
     if (dist1 < radius) {
         // Ray starts inside sphere - assume it intersects
         return 1;
     }
-    dist2 = x * ray->getDirection().x() + y * ray->getDirection().y() + z * ray->getDirection().z();
+    double dist2 = x * ray->getDirection().x() + y * ray->getDirection().y() + z * ray->getDirection().z();
     dist2 = dist2 * dist2;
     if (dist2 > 0 && (dist1 - dist2 < radius)) {
         return 1;
@@ -268,12 +255,9 @@ double
 ParametricBiCubicIntersection::pointPlaneDistance(
     const Vector3Dd *p, const Vector3Dd *n, const double *d)
 {
-    double temp1;
-    double temp2;
-
-    temp1 = (*p).dotProduct(*n);
+    double temp1 = (*p).dotProduct(*n);
     temp1 += *d;
-    temp2 = (*n).length();
+    double temp2 = (*n).length();
     if (java::Math::abs(temp2) < Config::PARAMETRIC_CURVE_EPSILON) {
         return 0;
     }

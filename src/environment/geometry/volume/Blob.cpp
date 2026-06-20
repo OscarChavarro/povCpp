@@ -61,20 +61,15 @@ Blob::Blob(double thresholdValue, BlobList *bloblist, int npoints,
     intervals(allocateBlobIntervals(npoints)),
     sturmFlag(sturmFlagValue)
 {
-    int i;
-    double rad;
-    double coeff;
-    BlobList *temp;
-
-    for (i = 0; i < npoints; i++) {
-        temp = bloblist;
+    for (int i = 0; i < npoints; i++) {
+        BlobList *temp = bloblist;
         if (java::Math::abs(temp->getElem().getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
             temp->getElem().getRadius2() < Config::INTERSECTION_EPSILON) {
             perror("Degenerate blob element\n");
         }
-        rad = temp->getElem().getRadius2();
+        double rad = temp->getElem().getRadius2();
         rad *= rad;
-        coeff = temp->getElem().getCoeffs()[2];
+        double coeff = temp->getElem().getCoeffs()[2];
         list[i].setRadius2(rad);
         list[i].getCoeffs()[2] = coeff;
         list[i].getCoeffs()[1] = -(2.0 * coeff) / rad;
@@ -136,7 +131,7 @@ Blob::determineInfluences(
     int i;
     int j;
     int k;
-    int cnt;
+    int cnt = 0;
     double b;
     double t;
     double t0;
@@ -144,8 +139,6 @@ Blob::determineInfluences(
     double disc;
     Vector3Dd v;
     BlobInterval * const intervals = blob->intervals;
-
-    cnt = 0;
     for (i = 0; i < blob->count; i++) {
         // Use standard sphere intersection routine
         // to determine where the ray hits the volume
@@ -237,17 +230,14 @@ Calculate the field value of a blob - the origin vector
 double
 Blob::calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos)
 {
-    int i;
-    double len;
-    double density;
+    double density = 0.0;
     Vector3Dd v;
     BlobElement *ptr;
     const Blob *blob = (Blob *)obj;
-
-    density = 0.0;
-    for (i = 0, ptr = &(blob->list[0]); i < blob->count; i++, ptr++) {
+    ptr = &(blob->list[0]);
+    for (int i = 0; i < blob->count; i++, ptr++) {
         v = ptr->getPos().subtract(*pos);
-        len = v.dotProduct(v);
+        double len = v.dotProduct(v);
         if (len < ptr->getRadius2()) {
             // Inside the radius of influence of this
             // component, add it's contribution
@@ -264,14 +254,11 @@ int
 Blob::validateHit(const Blob *blob, const Vector3Dd *p)
 {
     int i;
-    BlobElement *temp;
+    BlobElement *temp = &(blob->list[0]);
     double val;
     double dist;
     Vector3Dd v;
-    Vector3Dd n;
-
-    n = Vector3Dd(0.0, 0.0, 0.0);
-    temp = &(blob->list[0]);
+    Vector3Dd n = Vector3Dd(0.0, 0.0, 0.0);
     for (i = 0; i < blob->count; i++, temp++) {
         v = p->subtract(temp->getPos());
         dist = v.dotProduct(v);

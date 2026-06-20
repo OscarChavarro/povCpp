@@ -85,13 +85,12 @@ void
 SmoothTriangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     const SmoothTriangle *triangle = this;
-    Vector3Dd piMinusP1;
     Vector3Dd nTemp1;
     Vector3Dd nTemp2;
     double u = 0.0;
     double v = 0.0;
 
-    piMinusP1 = intersectionPoint->subtract(triangle->getP1());
+    Vector3Dd piMinusP1 = intersectionPoint->subtract(triangle->getP1());
     u = piMinusP1.dotProduct(triangle->getPerp());
     if (u < 1.0e-9) {
         *result = triangle->getN1();
@@ -153,9 +152,8 @@ void
 SmoothTriangle::translateGeometry(Vector3Dd *vector)
 {
     SmoothTriangle * const triangle = this;
-    Vector3Dd translation;
 
-    translation = triangle->getNormalVector().multiply(*vector);
+    Vector3Dd translation = triangle->getNormalVector().multiply(*vector);
     triangle->setDistance(
         triangle->getDistance() - translation.x() - translation.y() - translation.z());
     triangle->getP1() = triangle->getP1().add(*vector);
@@ -168,14 +166,13 @@ void
 SmoothTriangle::scaleGeometry(Vector3Dd *vector)
 {
     SmoothTriangle * const triangle = this;
-    double length;
 
     triangle->getNormalVector() = Vector3Dd(
         triangle->getNormalVector().x() / vector->x(),
         triangle->getNormalVector().y() / vector->y(),
         triangle->getNormalVector().z() / vector->z());
 
-    length = triangle->getNormalVector().length();
+    const double length = triangle->getNormalVector().length();
     triangle->getNormalVector() = triangle->getNormalVector().multiply(1.0 / length);
     triangle->setDistance(triangle->getDistance() / length);
 
