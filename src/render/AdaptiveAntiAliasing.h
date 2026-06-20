@@ -4,6 +4,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 
 class RenderEngine;
+class RenderWorker;
 
 class AdaptiveAntiAliasing {
   private:
@@ -22,13 +23,13 @@ class AdaptiveAntiAliasing {
 
     inline unsigned short rand3dInline(int a, int b);
     void superSample(
-        ColorRgba *result, int x, int y, int width, int height);
+        RenderWorker &worker, ColorRgba *result, int x, int y, int width, int height);
 
   public:
     explicit AdaptiveAntiAliasing(RenderEngine *engine)
         : renderEngine(engine) {}
 
-    void doAntiAliasing(int x, int y, ColorRgba *color);
+    void doAntiAliasing(RenderWorker &worker, int x, int y, ColorRgba *color);
 };
 
 #endif

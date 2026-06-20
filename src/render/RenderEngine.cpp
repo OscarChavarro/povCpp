@@ -1,9 +1,4 @@
-/**
-This module implements the main raytracing loop.
-*/
-
 #include <cstdio>
-#include <new>
 
 #include "java/io/FileOutputStream.h"
 #include "java/util/ArrayList.txx"
@@ -21,59 +16,12 @@ This module implements the main raytracing loop.
 
 RenderEngine::~RenderEngine()
 {
-    delete[] previousLine;
-    delete[] currentLine;
-    delete[] previousLineAntiAliasedFlags;
-    delete[] currentLineAntiAliasedFlags;
 }
 
 RenderingConfiguration &
 RenderEngine::getMutableConfig()
 {
     return const_cast<RenderingConfiguration &>(context->getConfig());
-}
-
-ColorRgba *
-RenderEngine::allocateColorBuffer(int count)
-{
-    ColorRgba *buffer = static_cast<ColorRgba *>(
-        ::operator new[](sizeof(ColorRgba) * count));
-    for (int i = 0; i < count; i++) {
-        new (&buffer[i]) ColorRgba(0.0, 0.0, 0.0, 0.0);
-    }
-    return buffer;
-}
-
-void
-RenderEngine::traceServiceTrace(void *context, const RayWithSegments *ray,
-    const ColorRgba *multiplier)
-{
-    RenderEngine *engine = static_cast<RenderEngine *>(context);
-    TraceEvent event;
-    event.childRay = true;
-    event.ray = *ray;
-    event.color = *multiplier;
-    engine->activeTraceEvents->push_back(event);
-}
-
-void
-RenderEngine::traceServiceAddColor(void *context, const ColorRgba *color)
-{
-    RenderEngine *engine = static_cast<RenderEngine *>(context);
-    TraceEvent event;
-    event.childRay = false;
-    event.color = *color;
-    engine->activeTraceEvents->push_back(event);
-}
-
-void
-RenderEngine::traceServiceShadeShadow(
-    void *context, Intersection *intersection, ColorRgba *color)
-{
-    RenderEngine *engine = static_cast<RenderEngine *>(context);
-    RayShaderPipeline::shadeSurface(
-        intersection, color, nullptr, true, &engine->traceService,
-        &engine->context->getTextureUtils(), *engine->context, engine->traceLevel);
 }
 
 void
@@ -108,6 +56,7 @@ RenderEngine::createRay(
         localRay->setConfig(&context->getConfig());
         localRay->setIntersectionQueuePool(&intersectionQueuePool);
     }
+    localRay->setOrigin(this->getScene().getViewPoint().getLocation());
 }
 
 void
@@ -116,7 +65,7 @@ RenderEngine::readRenderedPart()
     int rc;
     int lineNumber;
     while ((rc = this->getConfig().getOutputFileInputStream()->readLine(
-                previousLine, &lineNumber)) == 1) {
+                worker.getPreviousLine(), &lineNumber)) == 1) {
     }
 
     this->getMutableConfig().setFirstLine(lineNumber + 1);
@@ -141,6 +90,7 @@ void
 RenderEngine::startTracing()
 {
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
+    RenderWorker &localWorker = this->getWorker();
     int x;
     int y;
     for (y = this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)
@@ -166,23 +116,23 @@ RenderEngine::startTracing()
                         "remaining pixels filled with default colour\n");
                 }
                 color.setR(0.0); color.setG(0.0); color.setB(0.0); color.setA(0);
-                currentLine[x] = color;
+                localWorker.getCurrentLine()[x] = color;
                 continue;
             }
 
             this->getStatistics().incrementNumberOfPixels();
 
-            this->createRay(this->primaryRay,
+            this->createRay(localWorker.getPrimaryRay(),
                 this->getScene().getScreenWidth(),
                 this->getScene().getScreenHeight(), (double)x, (double)y);
-            this->traceLevel = 0;
-            this->trace(&this->ray, &color);
+            localWorker.setTraceLevel(0);
+            this->trace(localWorker, &localWorker.getRay(), &color);
             ColorOperations::clipColor(&color, &color);
 
-            currentLine[x] = color;
+            localWorker.getCurrentLine()[x] = color;
 
             if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-                adaptiveAntiAliasing.doAntiAliasing(x, y, &color);
+                adaptiveAntiAliasing.doAntiAliasing(localWorker, x, y, &color);
             }
 
             if (y != this->getConfig().getFirstLine() - 1) {
@@ -192,12 +142,12 @@ RenderEngine::startTracing()
                 }
             }
         }
-        this->outputLine(y);
+        this->outputLine(localWorker, y);
     }
 
     if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
         this->getConfig().getOutputFileInputStream()->writeLine(
-            previousLine, this->getConfig().getLastLine() - 1);
+            localWorker.getPreviousLine(), this->getConfig().getLastLine() - 1);
     }
 }
 
@@ -278,46 +228,18 @@ RenderEngine::checkStats(int y)
 void
 RenderEngine::initializeRenderer()
 {
-    int i;
-
-    this->primaryRay = &this->ray;
-    previousLine = RenderEngine::allocateColorBuffer(this->getScene().getScreenWidth() + 1);
-    currentLine = RenderEngine::allocateColorBuffer(this->getScene().getScreenWidth() + 1);
-
-    for (i = 0; i <= this->getScene().getScreenWidth(); i++) {
-        previousLine[i].setR(0.0);
-        previousLine[i].setG(0.0);
-        previousLine[i].setB(0.0);
-
-        currentLine[i].setR(0.0);
-        currentLine[i].setG(0.0);
-        currentLine[i].setB(0.0);
-    }
-
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-        previousLineAntiAliasedFlags =
-            new char[(this->getScene().getScreenWidth() + 1)];
-        currentLineAntiAliasedFlags =
-            new char[(this->getScene().getScreenWidth() + 1)];
-
-        for (i = 0; i <= this->getScene().getScreenWidth(); i++) {
-            (previousLineAntiAliasedFlags)[i] = 0;
-            (currentLineAntiAliasedFlags)[i] = 0;
-        }
-    }
-
-    this->ray.setOrigin(this->getScene().getViewPoint().getLocation());
+    worker.initializeLineBuffers(
+        this->getScene().getScreenWidth(),
+        this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS));
+    worker.getRay().setOrigin(this->getScene().getViewPoint().getLocation());
 }
 
 void
-RenderEngine::outputLine(int y)
+RenderEngine::outputLine(RenderWorker &localWorker, int y)
 {
-    ColorRgba *tempColorPtr;
-    char *tempCharPtr;
-
     if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
         if (y > this->getConfig().getFirstLine()) {
-            this->getConfig().getOutputFileInputStream()->writeLine(previousLine, y - 1);
+            this->getConfig().getOutputFileInputStream()->writeLine(localWorker.getPreviousLine(), y - 1);
         }
     }
 
@@ -341,23 +263,17 @@ RenderEngine::outputLine(int y)
             fprintf(stderr, "\n");
         }
     }
-    tempColorPtr = previousLine;
-    previousLine = currentLine;
-    currentLine = tempColorPtr;
-
-    tempCharPtr = previousLineAntiAliasedFlags;
-    previousLineAntiAliasedFlags = currentLineAntiAliasedFlags;
-    currentLineAntiAliasedFlags = tempCharPtr;
+    localWorker.swapLines();
 }
 
 void
-RenderEngine::trace(RayWithSegments *localRay, ColorRgba *color)
+RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color)
 {
     struct TraceFrame {
         RayWithSegments ray;
         ColorRgba result;
         ColorRgba multiplier;
-        std::vector<TraceEvent> events;
+        java::ArrayList<RenderWorker::TraceEvent*> events;
         std::size_t nextEvent;
         int level;
         bool intersectionFound;
@@ -368,9 +284,9 @@ RenderEngine::trace(RayWithSegments *localRay, ColorRgba *color)
               intersectionFound(false), intersectionDistance(0.0) {}
     };
 
-    std::vector<TraceFrame> stack;
+    java::ArrayList<TraceFrame*> stack;
 
-    const auto initializeFrame = [this](TraceFrame &frame) {
+    const auto initializeFrame = [this, &localWorker](TraceFrame &frame) {
         BoundedGeometry *object;
         Intersection localIntersection;
         Intersection newIntersection;
@@ -407,40 +323,42 @@ RenderEngine::trace(RayWithSegments *localRay, ColorRgba *color)
         }
 
         frame.intersectionDistance = localIntersection.getT();
-        this->traceLevel = frame.level;
-        this->activeTraceEvents = &frame.events;
+        localWorker.setTraceLevel(frame.level);
+        localWorker.setActiveTraceEvents(&frame.events);
         RayShaderPipeline::shadeSurface(
             &localIntersection, &frame.result, &frame.ray, false,
-            this->getTraceService(), &this->getTextureUtils(), *context,
-            this->traceLevel);
-        this->activeTraceEvents = nullptr;
+            localWorker.getTraceService(), &this->getTextureUtils(), *context,
+            frame.level);
+        localWorker.setActiveTraceEvents(nullptr);
     };
 
     TraceFrame root;
     root.ray = *localRay;
-    root.level = this->traceLevel;
+    root.level = localWorker.getTraceLevel();
     root.multiplier.setR(1.0); root.multiplier.setG(1.0);
     root.multiplier.setB(1.0); root.multiplier.setA(0.0);
     initializeFrame(root);
-    stack.push_back(root);
+    stack.add(new TraceFrame(root));
 
-    while (!stack.empty()) {
-        TraceFrame &frame = stack.back();
-        if (frame.nextEvent < frame.events.size()) {
-            const TraceEvent event = frame.events[frame.nextEvent++];
-            if (!event.childRay) {
-                frame.result.setR(frame.result.getR() + event.color.getR());
-                frame.result.setG(frame.result.getG() + event.color.getG());
-                frame.result.setB(frame.result.getB() + event.color.getB());
+    while (stack.size() > 0) {
+        TraceFrame &frame = *stack[stack.size() - 1];
+        if ((long int)frame.nextEvent < frame.events.size()) {
+            RenderWorker::TraceEvent *event = frame.events[frame.nextEvent++];
+            if (!event->childRay) {
+                frame.result.setR(frame.result.getR() + event->color.getR());
+                frame.result.setG(frame.result.getG() + event->color.getG());
+                frame.result.setB(frame.result.getB() + event->color.getB());
+                delete event;
                 continue;
             }
 
             TraceFrame child;
-            child.ray = event.ray;
+            child.ray = event->ray;
             child.level = frame.level + 1;
-            child.multiplier = event.color;
+            child.multiplier = event->color;
+            delete event;
             initializeFrame(child);
-            stack.push_back(child);
+            stack.add(new TraceFrame(child));
             continue;
         }
 
@@ -453,11 +371,13 @@ RenderEngine::trace(RayWithSegments *localRay, ColorRgba *color)
 
         const ColorRgba completed = frame.result;
         const ColorRgba multiplier = frame.multiplier;
-        stack.pop_back();
-        if (stack.empty()) {
+        const long int completedIndex = stack.size() - 1;
+        TraceFrame *completedFrame = stack[completedIndex];
+        stack.remove(completedIndex);
+        if (stack.size() == 0) {
             *color = completed;
         } else {
-            TraceFrame &parent = stack.back();
+            TraceFrame &parent = *stack[stack.size() - 1];
             parent.result.setR(parent.result.getR() +
                 completed.getR() * multiplier.getR());
             parent.result.setG(parent.result.getG() +
@@ -465,5 +385,9 @@ RenderEngine::trace(RayWithSegments *localRay, ColorRgba *color)
             parent.result.setB(parent.result.getB() +
                 completed.getB() * multiplier.getB());
         }
+        for (long int i = completedFrame->nextEvent; i < completedFrame->events.size(); i++) {
+            delete completedFrame->events[i];
+        }
+        delete completedFrame;
     }
 }
