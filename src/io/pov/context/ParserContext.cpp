@@ -1,6 +1,5 @@
 #include "java/util/PriorityQueue.txx"
 
-#include "environment/material/RendererConfiguration.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/context/TokenizerStream.h"
 #include "io/pov/lexer/ITokenStream.h"
@@ -14,7 +13,9 @@ ParserContext::ParserContext()
       mSymbols(&mSharedSymbols),
       mDegenerateTriangles(&mSharedDegenerateTriangles),
       mDefaultTexture(nullptr),
-      mReportingConfig(nullptr),
+      mVerboseErrors(false),
+      mStatFileName(nullptr),
+      mAntialiasThreshold(0.3), // mirrors Scene::DEFAULT_ANTIALIAS_THRESHOLD
       mRuntimeState(nullptr)
 {
 }
@@ -65,17 +66,4 @@ void
 ParserContext::resetTokenStreamHistory()
 {
     // No-op: rewind/capture compatibility token stream removed from active pipeline.
-}
-
-bool
-ParserContext::writesVerboseErrors() const
-{
-    return mReportingConfig != nullptr &&
-        mReportingConfig->hasOptionFlags(RenderingConfiguration::VERBOSE_FILE);
-}
-
-const char *
-ParserContext::statFileName() const
-{
-    return mReportingConfig->getStatFileName();
 }

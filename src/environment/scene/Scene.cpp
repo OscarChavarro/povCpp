@@ -1,6 +1,5 @@
 #include "java/util/ArrayList.txx"
 
-#include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
 
 namespace {
@@ -23,12 +22,12 @@ Scene::Scene() :
 }
 
 void
-Scene::resetForSceneParse(const RenderingConfiguration *config)
+Scene::resetForSceneParse(double antialiasThreshold)
 {
     viewPoint = Camera();
     lightSources = nullptr;
     Objects.clear();
     atmosphereIor = 1.0;
-    antialiasThreshold = config ? config->getAntialiasThreshold() : Scene::DEFAULT_ANTIALIAS_THRESHOLD;
+    this->antialiasThreshold = antialiasThreshold;
     setFog(blackFogColor(), 0.0);
 }

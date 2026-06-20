@@ -3,7 +3,6 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 #include "environment/material/PovrayMaterialUtils.h"
-#include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/scene/SceneBodyParser.h"
@@ -73,7 +72,7 @@ void
 SceneParser::frameInit(Scene *framePtr, ParserContext &ctx)
 {
     ctx.setDefaultTexture(PovrayMaterialUtils::getTexture());
-    framePtr->resetForSceneParse(ctx.getReportingConfig());
+    framePtr->resetForSceneParse(ctx.getAntialiasThreshold());
 }
 
 void

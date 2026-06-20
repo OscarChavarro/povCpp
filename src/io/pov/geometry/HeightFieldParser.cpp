@@ -5,7 +5,6 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
 #include "environment/geometry/volume/HeightField.h"
-#include "environment/material/RendererConfiguration.h"
 #include "environment/scene/ModelBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 

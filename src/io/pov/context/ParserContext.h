@@ -9,7 +9,6 @@
 #include "io/pov/context/TokenizerStream.h"
 
 class PovrayMaterial;
-class RenderingConfiguration;
 class RenderRuntimeState;
 
 class ParserContext {
@@ -29,10 +28,18 @@ class ParserContext {
     PovrayMaterial *getDefaultTexture() const { return mDefaultTexture; }
     void setDefaultTexture(PovrayMaterial *texture) { mDefaultTexture = texture; }
 
-    const RenderingConfiguration *getReportingConfig() const { return mReportingConfig; }
-    void setReportingConfig(const RenderingConfiguration *config) { mReportingConfig = config; }
-    bool writesVerboseErrors() const;
-    const char *statFileName() const;
+    // Diagnostics needed by the error reporter, decoupled from the render-time
+    // RenderingConfiguration so io/pov/context does not depend on environment.
+    void setDiagnostics(bool verboseErrors, const char *statFileName) {
+        mVerboseErrors = verboseErrors;
+        mStatFileName = statFileName;
+    }
+    bool writesVerboseErrors() const { return mVerboseErrors; }
+    const char *statFileName() const { return mStatFileName; }
+
+    double getAntialiasThreshold() const { return mAntialiasThreshold; }
+    void setAntialiasThreshold(double threshold) { mAntialiasThreshold = threshold; }
+
     RenderRuntimeState *getRuntimeState() const { return mRuntimeState; }
     void setRuntimeState(RenderRuntimeState *runtimeState) { mRuntimeState = runtimeState; }
 
@@ -45,7 +52,9 @@ class ParserContext {
     SymbolTable * const mSymbols;
     int * const mDegenerateTriangles;
     PovrayMaterial *mDefaultTexture;
-    const RenderingConfiguration *mReportingConfig;
+    bool mVerboseErrors;
+    const char *mStatFileName;
+    double mAntialiasThreshold;
     RenderRuntimeState *mRuntimeState;
 };
 
