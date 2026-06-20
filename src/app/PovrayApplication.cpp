@@ -126,10 +126,6 @@ PovrayApplication::run(int argc, char *argv[])
     initializeFromCommandLine(argc, argv);
     configureOutputTarget();
     parseSceneDescription();
-    const char *parseOnly = std::getenv("POVCPP_PARSE_ONLY");
-    if (parseOnly != nullptr && parseOnly[0] == '1') {
-        return;
-    }
     prepareRendering();
     runRenderLoop();
     finalizeRun();

@@ -19,8 +19,6 @@ class TextureParser {
 
   private:
     static PovrayMaterial *ensureWritableTexture(PovrayMaterial *texture);
-    static bool shouldLogTextureState();
-    static void logTextureStateLegacy(const char *prefix, const PovrayMaterial *texture);
     static void wireIndexedInToTextureImage(class ControlledRGBAImageHDRUncompressed *ti, class IndexedColorImageHDRUncompressed *idx);
 };
 

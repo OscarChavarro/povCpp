@@ -26,7 +26,6 @@ This module implements the main raytracing loop.
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
-#include "render/SceneDump.h"
 #include "render/shaders/TraceService.h"
 
 RenderEngine::~RenderEngine()
@@ -194,11 +193,6 @@ RenderEngine::readRenderedPart()
 void
 RenderEngine::startTracing()
 {
-    const char *dumpEnv = getenv("POVCPP_DUMP_SCENE");
-    if (dumpEnv != nullptr && dumpEnv[0] == '1') {
-        SceneDumper::dumpSceneStructure(stderr, this->getScene());
-    }
-
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
     int x;
     int y;
@@ -213,11 +207,20 @@ RenderEngine::startTracing()
         for (x = 0; x < this->getScene().getScreenWidth(); x++) {
 
             if (this->getStopFlag()) {
-                if (this->getConfig().getOutputFileInputStream() != nullptr) {
-                    this->getConfig().getOutputFileInputStream()->close();
+                // Image not completed / user abort. Previously this terminated
+                // the whole process with exit(2); under a multi-threaded driver
+                // that is hostile, so instead report once and fall back to a
+                // default (black) colour for the remaining pixels.
+                if (!this->fatalErrorFound) {
+                    this->fatalErrorFound = true;
+                    Logger::reportMessage("RenderEngine", Logger::ERROR,
+                        "startTracing",
+                        "Rendering aborted before completion; "
+                        "remaining pixels filled with default colour\n");
                 }
-                // Exit with error if image not completed/user abort
-                exit(2);
+                color.setR(0.0); color.setG(0.0); color.setB(0.0); color.setA(0);
+                currentLine[x] = color;
+                continue;
             }
 
             this->getStatistics().incrementNumberOfPixels();
