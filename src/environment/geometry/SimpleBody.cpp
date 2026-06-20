@@ -1,6 +1,7 @@
 #include "environment/geometry/element/Intersection.h"
 
 #include "environment/geometry/SimpleBody.h"
+#include "environment/material/PovrayMaterialUtils.h"
 
 SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor) :
     geometry(geometry),
@@ -16,6 +17,12 @@ SimpleBody::ensureShapeColor()
         shapeColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
     }
     return shapeColor;
+}
+
+void
+SimpleBody::prependMaterialLayers(PovrayMaterial *newHead)
+{
+    PovrayMaterialUtils::prependTextureLayers(newHead, material);
 }
 
 int

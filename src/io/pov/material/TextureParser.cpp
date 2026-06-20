@@ -1,15 +1,11 @@
 #include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
-#include "environment/camera/Camera.h"
-#include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/element/Triangle.h"
-#include "environment/geometry/volume/Blob.h"
 #include "environment/material/PovrayMaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureBumpyNames.h"
@@ -50,33 +46,6 @@ TextureParser::ensureWritableTexture(PovrayMaterial *texture)
     return texture;
 }
 
-void
-TextureParser::prependTextureLayers(PovrayMaterial *newHead, SimpleBody *body)
-{
-    prependTextureLayers(newHead, body->material);
-}
-
-void
-TextureParser::prependTextureLayers(PovrayMaterial *newHead, Material *&existingHead)
-{
-    PovrayMaterial *existingPovrayHead = static_cast<PovrayMaterial *>(existingHead);
-    prependTextureLayers(newHead, existingPovrayHead);
-    existingHead = existingPovrayHead;
-}
-
-void
-TextureParser::prependTextureLayers(PovrayMaterial *newHead, PovrayMaterial *&existingHead)
-{
-    if (existingHead != nullptr) {
-        newHead->getLayers().add(existingHead);
-        for (long int i = 0; i < existingHead->getLayers().size(); i++) {
-            newHead->getLayers().add(existingHead->getLayers()[i]);
-        }
-        existingHead->getLayers().clear();
-    }
-    existingHead = newHead;
-}
-
 PovrayMaterial *
 TextureParser::parseTexture()
 {
@@ -107,9 +76,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
-        while (!Exit_Flag) {
+        bool localExitFlag;
+        localExitFlag = false;
+        while (!localExitFlag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -170,9 +139,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 texture = TextureParser::ensureWritableTexture(texture);
                 texture->setTextureNumber(SolidTextureColorNames::BRICK_TEXTURE);
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::COLOUR_TOKEN:
@@ -185,7 +154,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
                     }
@@ -196,9 +165,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 texture = TextureParser::ensureWritableTexture(texture);
                 texture->setTextureNumber(SolidTextureColorNames::CHECKER_TEXTURE);
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::COLOUR_TOKEN:
@@ -211,7 +180,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
                     }
@@ -225,9 +194,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::TEXTURE_TOKEN:
@@ -235,13 +204,13 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             localTexture = TextureParser::ensureWritableTexture(localTexture);
                             {
                                 PovrayMaterial *color1Head = (PovrayMaterial *)texture->getColor1();
-                                TextureParser::prependTextureLayers(localTexture, color1Head);
+                                PovrayMaterialUtils::prependTextureLayers(localTexture, color1Head);
                                 texture->setColor1((ColorRgba *)color1Head);
                             }
                             break;
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
                     }
@@ -249,9 +218,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
 
                 ParseHelpers::getExpectedToken(Tokenizer::TILE2_TOKEN, ctx);
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::TEXTURE_TOKEN:
@@ -259,13 +228,13 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             localTexture = TextureParser::ensureWritableTexture(localTexture);
                             {
                                 PovrayMaterial *color2Head = (PovrayMaterial *)texture->getColor2();
-                                TextureParser::prependTextureLayers(localTexture, color2Head);
+                                PovrayMaterialUtils::prependTextureLayers(localTexture, color2Head);
                                 texture->setColor2((ColorRgba *)color2Head);
                             }
                             break;
                         default:
                             ctx.tokenStream().ungetToken();
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
                     }
@@ -392,9 +361,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    bool exitFlag;
-                    exitFlag = false;
-                    while (!exitFlag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::DASH_TOKEN:
@@ -422,7 +391,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getImage(), idx);
                             }
-                            exitFlag = true;
+                            localExitFlag = true;
                             break;
                         }
 
@@ -431,7 +400,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
                             GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(texture->getImage(), idx);
-                            exitFlag = true;
+                            localExitFlag = true;
                             break;
                         }
 
@@ -440,7 +409,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             TargaFormat::readTargaImage(
                                 texture->getImage(), ctx.token().getTokenString(),
                                 *ctx.tokenizer().getFileLocator());
-                            exitFlag = true;
+                            localExitFlag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
@@ -448,7 +417,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             RawDumpFormat::readDumpImage(
                                 texture->getImage(), ctx.token().getTokenString(),
                                 *ctx.tokenizer().getFileLocator());
-                            exitFlag = true;
+                            localExitFlag = true;
                             break;
 
                         default:
@@ -459,9 +428,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 }
 
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::ONCE_TOKEN:
@@ -487,9 +456,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             break;
 
                         case Tokenizer::ALPHA_TOKEN: {
-                            bool Exit_Flag;
-                            Exit_Flag = false;
-                            while (!Exit_Flag) {
+                            bool localExitFlag;
+                            localExitFlag = false;
+                            while (!localExitFlag) {
                                 ctx.tokenStream().getToken();
                                 switch (ctx.token().getTokenId()) {
                                 case Tokenizer::FLOAT_TOKEN:
@@ -512,7 +481,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
-                                    Exit_Flag = true;
+                                    localExitFlag = true;
                                     break;
 
                                 case Tokenizer::ALL_TOKEN: {
@@ -523,7 +492,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                                         reg++) {
                                         texture->getImage()->getIndexedData()->getColorTable()[reg].a = (unsigned short)(alpha * 255.0);
                                     }
-                                    Exit_Flag = true;
+                                    localExitFlag = true;
                                 }
 
                                 break;
@@ -532,7 +501,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         } break;
 
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
 
                         default:
@@ -548,18 +517,18 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 texture->setBumpNumber(SolidTextureBumpyNames::WAVES);
                 texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
                 {
-                    bool exitFlag = false;
-                    while (!exitFlag) {
+                    bool localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::PHASE_TOKEN:
                             texture->setPhase(PrimitiveParser::parseFloat(ctx));
-                            exitFlag = true;
+                            localExitFlag = true;
                             break;
 
                         default:
                             ctx.tokenStream().ungetToken();
-                            exitFlag = true;
+                            localExitFlag = true;
                             break;
                         }
                     }
@@ -675,9 +644,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::DASH_TOKEN:
@@ -706,7 +675,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getBumpImage(), idx);
                             }
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
 
@@ -716,7 +685,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getBumpImage(), idx);
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
 
@@ -725,7 +694,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             TargaFormat::readTargaImage(
                                 texture->getBumpImage(), ctx.token().getTokenString(),
                                 *ctx.tokenizer().getFileLocator());
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
@@ -733,7 +702,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             RawDumpFormat::readDumpImage(
                                 texture->getBumpImage(), ctx.token().getTokenString(),
                                 *ctx.tokenizer().getFileLocator());
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
 
                         default:
@@ -744,9 +713,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 }
 
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::ONCE_TOKEN:
@@ -776,7 +745,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             break;
 
                         case Tokenizer::RIGHT_CURLY_TOKEN:
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         default:
                             ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
@@ -803,9 +772,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::DASH_TOKEN:
@@ -834,7 +803,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                                 TextureParser::wireIndexedInToTextureImage(
                                     texture->getMaterialImage(), idx);
                             }
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
 
@@ -844,7 +813,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                             TextureParser::wireIndexedInToTextureImage(
                                 texture->getMaterialImage(), idx);
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
                         }
 
@@ -852,14 +821,14 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             TargaFormat::readTargaImage(texture->getMaterialImage(),
                                 ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
 
                         case Tokenizer::DUMP_TOKEN:
                             ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
                             RawDumpFormat::readDumpImage(texture->getMaterialImage(),
                                 ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
-                            Exit_Flag = true;
+                            localExitFlag = true;
                             break;
 
                         default:
@@ -873,9 +842,9 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 firstTexture = texture;
 
                 {
-                    bool Exit_Flag;
-                    Exit_Flag = false;
-                    while (!Exit_Flag) {
+                    bool localExitFlag;
+                    localExitFlag = false;
+                    while (!localExitFlag) {
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
 
@@ -901,7 +870,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
 
                         case Tokenizer::RIGHT_CURLY_TOKEN: {
                             texture = firstTexture;
-                            Exit_Flag = true;
+                            localExitFlag = true;
                         } break;
 
                         default:
@@ -913,7 +882,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = true;
+                localExitFlag = true;
                 break;
 
             default:

@@ -130,7 +130,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
-                TextureParser::prependTextureLayers(localTexture, body);
+                body->prependMaterialLayers(localTexture);
                 break;
             }
 

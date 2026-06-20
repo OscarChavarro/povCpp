@@ -210,7 +210,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                             {
                                 PovrayMaterial *existingHead =
                                     (PovrayMaterial *)constantPtr->getConstantData();
-                                TextureParser::prependTextureLayers(localTexture, existingHead);
+                                PovrayMaterialUtils::prependTextureLayers(localTexture, existingHead);
                                 constantPtr->setConstantData((char *)existingHead);
                             }
                             break;
