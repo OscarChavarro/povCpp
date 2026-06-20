@@ -6,8 +6,7 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
-
-struct HeightFieldTraversalState;
+#include "environment/geometry/volume/HeightFieldTraversalState.h"
 
 class HeightField : public Geometry {
   public:
@@ -19,20 +18,11 @@ class HeightField : public Geometry {
     HeightField(const Matrix4x4d &transformation,
         const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
         const Vector3Dd &maxBounds);
-    HeightField(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
-        Box *boundingBox, double blockSize, double invBlkSize,
-        HeightFieldBlock **block, float **map);
     // Intentionally shallow: copies share transformation/boundingBox/block/Map
     // pointers with the original, matching the pre-existing copy() semantics.
     HeightField(const HeightField &other) = default;
 
-    Matrix4x4d *getTransformation() const { return transformation; }
-    Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
     Box *getBoundingBox() const { return boundingBox; }
-    double getBlockSize() const { return blockSize; }
-    double getInvBlkSize() const { return invBlkSize; }
-    HeightFieldBlock **getBlock() const { return block; }
-    float **getMap() const { return Map; }
 
     static void findHfMinMax(HeightField *hField,
         const IndexedColorImageHDRUncompressed *image, int imageType);
@@ -64,14 +54,14 @@ class HeightField : public Geometry {
         double width, double height);
     static double getHeightAt(int x, int z, const HeightField *hField);
     static int intersectPixel(int x, int z, const RayWithSegments *ray,
-        struct HeightFieldTraversalState &state,
+        HeightFieldTraversalState &state,
         HeightField *hField, double height1, double height2);
     static int intersectSubBlock(const HeightFieldBlock *block,
-        const RayWithSegments *ray, struct HeightFieldTraversalState &state,
+        const RayWithSegments *ray, HeightFieldTraversalState &state,
         HeightField *hField,
         const Vector3Dd *start, const Vector3Dd *end);
     static int intersectHfNode(const RayWithSegments *ray,
-        struct HeightFieldTraversalState &state, HeightField *hField,
+        HeightFieldTraversalState &state, HeightField *hField,
         const Vector3Dd *start, const Vector3Dd *end);
 };
 

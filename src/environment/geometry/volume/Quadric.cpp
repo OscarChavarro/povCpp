@@ -1,15 +1,7 @@
-/**
-quadrics.c
-
-This module implements the code for the quadric shape primitive.
-*/
-
 #include "java/lang/Math.h"
-
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Quadric.h"
 
@@ -339,5 +331,3 @@ Quadric::invertGeometry()
     shape->objectTerms = shape->objectTerms.multiply(-1.0);
     shape->objectConstant *= -1.0;
 }
-
-#include "java/util/PriorityQueue.txx"

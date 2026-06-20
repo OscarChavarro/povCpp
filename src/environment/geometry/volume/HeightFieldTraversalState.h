@@ -1,0 +1,67 @@
+#ifndef __HEIGHT_FIELD_TRAVERSAL_STATE__
+#define __HEIGHT_FIELD_TRAVERSAL_STATE__
+
+class HeightField;
+class Intersection;
+class RayWithSegments;
+
+namespace java {
+template <class T>
+class PriorityQueue;
+}
+
+class HeightFieldTraversalState {
+  private:
+    int isdx;
+    int isdz;
+    bool xDom;
+    double gdx;
+    double gdy;
+    double gdz;
+    double myx;
+    double mxz;
+    double mzx;
+    double myz;
+    Intersection *hfIntersection;
+    java::PriorityQueue<Intersection> *hfQueue;
+    RayWithSegments *rRay;
+
+    friend class HeightField;
+
+  public:
+    HeightFieldTraversalState(int isdx, int isdz, bool xDom, double gdx,
+        double gdy, double gdz, double myx, double mxz, double mzx,
+        double myz, Intersection *hfIntersection,
+        java::PriorityQueue<Intersection> *hfQueue, RayWithSegments *rRay) :
+        isdx(isdx),
+        isdz(isdz),
+        xDom(xDom),
+        gdx(gdx),
+        gdy(gdy),
+        gdz(gdz),
+        myx(myx),
+        mxz(mxz),
+        mzx(mzx),
+        myz(myz),
+        hfIntersection(hfIntersection),
+        hfQueue(hfQueue),
+        rRay(rRay)
+    {
+    }
+
+    void setIsdx(int value) { isdx = value; }
+    void setIsdz(int value) { isdz = value; }
+    void setXDom(bool value) { xDom = value; }
+    void setGdx(double value) { gdx = value; }
+    void setGdy(double value) { gdy = value; }
+    void setGdz(double value) { gdz = value; }
+    void setMyx(double value) { myx = value; }
+    void setMxz(double value) { mxz = value; }
+    void setMzx(double value) { mzx = value; }
+    void setMyz(double value) { myz = value; }
+    void setHfIntersection(Intersection *value) { hfIntersection = value; }
+    void setHfQueue(java::PriorityQueue<Intersection> *value) { hfQueue = value; }
+    void setRRay(RayWithSegments *value) { rRay = value; }
+};
+
+#endif

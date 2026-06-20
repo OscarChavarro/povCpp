@@ -8,9 +8,8 @@ the two triangles which form the pixel for an intersection with the ray at
 each step.
 */
 
-#include <cstdio>
-
 #include "java/lang/Math.h"
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
@@ -18,22 +17,6 @@ each step.
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/HeightField.h"
-
-struct HeightFieldTraversalState {
-    int isdx;
-    int isdz;
-    bool xDom;
-    double gdx;
-    double gdy;
-    double gdz;
-    double myx;
-    double mxz;
-    double mzx;
-    double myz;
-    Intersection *hfIntersection;
-    java::PriorityQueue<Intersection> *hfQueue;
-    RayWithSegments *rRay;
-};
 
 HeightField::HeightField() :
     transformation(new Matrix4x4d(Matrix4x4d::identityMatrix())),
@@ -56,19 +39,6 @@ HeightField::HeightField(const Matrix4x4d &transformation,
     invBlkSize(0.0),
     block(nullptr),
     Map(nullptr)
-{
-}
-
-HeightField::HeightField(Matrix4x4d *transformation,
-    Matrix4x4d *transformationInverse, Box *boundingBox, double blockSize,
-    double invBlkSize, HeightFieldBlock **block, float **map) :
-    transformation(transformation),
-    transformationInverse(transformationInverse),
-    boundingBox(boundingBox),
-    blockSize(blockSize),
-    invBlkSize(invBlkSize),
-    block(block),
-    Map(map)
 {
 }
 
@@ -389,7 +359,6 @@ HeightField::intersectHfNode(const RayWithSegments *ray,
     double z;
     double tnear;
     double tfar;
-    double t;
     double blockSize;
     double invBlkSize;
     int ix;
@@ -416,7 +385,7 @@ HeightField::intersectHfNode(const RayWithSegments *ray,
     curr = &temp1;
     next = &temp2;
     *curr = Vector3Dd(x, y, z);
-    t = 0.0;
+    double t;
 
     if (state.xDom) {
         if (state.isdx >= 0) {
@@ -694,13 +663,14 @@ HeightField::findHfMinMax(HeightField *hField,
             if (j2 != 0) {
                 hField->Map[z] = (float *)calloc(maxX + 1, sizeof(float));
                 if (hField->Map[z] == nullptr) {
-                    fprintf(stderr, "Cannot allocate memory for height field\n");
+                    Logger::reportMessage("HeightField", Logger::ERROR, "",
+                        "Cannot allocate memory for height field\n");
                 }
             }
             for (int i = 0; i < w; i++) {
                 for (int i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
                     const int x = i * n + i2;
-                    double tempY = 0;
+                    double tempY;
                     if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
                         const int temp1 = image->getPixel(x, maxZ - z - 1);
                         if (imageType == HeightField::POT) {
@@ -754,13 +724,14 @@ HeightField::findHfMinMax(HeightField *hField,
             if (j2 != 0) {
                 hField->Map[z] = (float *)calloc(maxX + 1, sizeof(float));
                 if (hField->Map[z] == nullptr) {
-                    fprintf(stderr, "Cannot allocate memory for height field\n");
+                    Logger::reportMessage("HeightField", Logger::ERROR, "",
+                        "Cannot allocate memory for height field\n");
                 }
             }
             for (int i = 0; i < w; i++) {
                 for (int i2 = 0; (i2 <= n) && (i * n + i2 <= maxX); i2++) {
                     const int x = i * n + i2;
-                    double tempY = 0;
+                    double tempY;
                     if ((x > 1) && (x < maxX - 1) && (z > 1) && (z < maxZ - 1)) {
                         RGBAPixelHDR pixel;
                         image->getPixel(x, maxZ - z - 1, &pixel);
@@ -801,7 +772,6 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     bool retVal = false;
     HeightField * const hField = this;
     Intersection localElement;
-    HeightFieldTraversalState state{};
 
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayHtFieldTests();
@@ -833,40 +803,34 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
         temp2 = temp2.add(tempRay.getOrigin());
     }
 
+    double mzx;
+    double myx;
     if (java::Math::abs(tempRay.getDirection().x()) > Config::INTERSECTION_EPSILON) {
-        state.mzx = tempRay.getDirection().z() / tempRay.getDirection().x();
-        state.myx = tempRay.getDirection().y() / tempRay.getDirection().x();
+        mzx = tempRay.getDirection().z() / tempRay.getDirection().x();
+        myx = tempRay.getDirection().y() / tempRay.getDirection().x();
     } else {
-        state.mzx = tempRay.getDirection().z() / Config::INTERSECTION_EPSILON;
-        state.myx = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
+        mzx = tempRay.getDirection().z() / Config::INTERSECTION_EPSILON;
+        myx = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
     }
+    double mxz;
+    double myz;
     if (java::Math::abs(tempRay.getDirection().z()) > Config::INTERSECTION_EPSILON) {
-        state.mxz = tempRay.getDirection().x() / tempRay.getDirection().z();
-        state.myz = tempRay.getDirection().y() / tempRay.getDirection().z();
+        mxz = tempRay.getDirection().x() / tempRay.getDirection().z();
+        myz = tempRay.getDirection().y() / tempRay.getDirection().z();
     } else {
-        state.mxz = tempRay.getDirection().x() / Config::INTERSECTION_EPSILON;
-        state.myz = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
+        mxz = tempRay.getDirection().x() / Config::INTERSECTION_EPSILON;
+        myz = tempRay.getDirection().y() / Config::INTERSECTION_EPSILON;
     }
 
-    state.hfQueue = depthQueue;
-    state.hfIntersection = &localElement;
-    state.rRay = ray;
-
-    state.isdx = HeightField::signInline(tempRay.getDirection().x());
-    state.isdz = HeightField::signInline(tempRay.getDirection().z());
-
-    state.xDom = false;
-    if (java::Math::abs(tempRay.getDirection().x()) >= java::Math::abs(tempRay.getDirection().z())) {
-        state.xDom = true;
-    }
-
-    state.gdx = java::Math::abs(state.mxz);
-    state.gdz = java::Math::abs(state.mzx);
-    if (state.xDom) {
-        state.gdy = state.myx * (double)state.isdx;
-    } else {
-        state.gdy = state.myz * (double)state.isdz;
-    }
+    const int isdx = HeightField::signInline(tempRay.getDirection().x());
+    const int isdz = HeightField::signInline(tempRay.getDirection().z());
+    const bool xDom = java::Math::abs(tempRay.getDirection().x()) >=
+        java::Math::abs(tempRay.getDirection().z());
+    const double gdx = java::Math::abs(mxz);
+    const double gdz = java::Math::abs(mzx);
+    const double gdy = xDom ? myx * (double)isdx : myz * (double)isdz;
+    HeightFieldTraversalState state(isdx, isdz, xDom, gdx, gdy, gdz, myx,
+        mxz, mzx, myz, &localElement, depthQueue, ray);
 
     if (HeightField::intersectHfNode(&tempRay, state, hField, &temp1, &temp2)) {
         retVal = true;
@@ -1042,5 +1006,3 @@ void
 HeightField::invertGeometry()
 {
 }
-
-#include "java/util/PriorityQueue.txx"

@@ -62,6 +62,8 @@ class ParametricBiCubicPatch : public Geometry {
     void invertGeometry() override;
 
   private:
+    static int maxDepthReached;
+
     const int patchType;
     const int uSteps;
     const int vSteps;

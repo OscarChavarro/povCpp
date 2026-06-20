@@ -1,7 +1,5 @@
-#include <new>
-
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/util/PriorityQueue.txx"
+#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 

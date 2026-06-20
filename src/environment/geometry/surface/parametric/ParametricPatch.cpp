@@ -14,7 +14,7 @@ This module implements the code for Bezier bicubic patch shapes
 
 static constexpr double EPSILON_PARAMETRIC_PATCH = 1.0e-10;
 
-int maxDepthReached;
+int ParametricBiCubicPatch::maxDepthReached = 0;
 
 ParametricBiCubicPatch::ParametricBiCubicPatch() :
     patchType(0),

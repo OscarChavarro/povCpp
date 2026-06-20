@@ -1,14 +1,7 @@
-/**
-planes.c
-
-This module implements functions that manipulate planes.
-*/
-
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 
@@ -30,7 +23,6 @@ InfinitePlane::InfinitePlane(const Vector3Dd &normalVector, double distance,
     vpCached(vpCached)
 {
 }
-
 
 int
 InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
@@ -127,9 +119,7 @@ InfinitePlane::inside(Vector3Dd *testPoint)
 void
 InfinitePlane::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const InfinitePlane *plane = this;
-
-    *result = plane->normalVector;
+    *result = normalVector;
 }
 
 void *
@@ -180,5 +170,3 @@ InfinitePlane::invertGeometry()
     plane->normalVector = plane->normalVector.multiply(-1.0);
     plane->distance *= -1.0;
 }
-
-#include "java/util/PriorityQueue.txx"
