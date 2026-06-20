@@ -24,18 +24,15 @@ PovrayMaterialUtils::needsTransform(const PovrayMaterial *texture)
 void
 PovrayMaterialUtils::applyTranslationTransform(PovrayMaterial *texture, const Vector3Dd *vector)
 {
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-
     if (!texture->getTextureTransformation()) {
         texture->setTextureTransformation(
             new Matrix4x4d(Matrix4x4d::identityMatrix()));
         texture->setTextureTransformationInverse(
             new Matrix4x4d(Matrix4x4d::identityMatrix()));
     }
-    deltaTransformation = Matrix4x4d().translation(
+    Matrix4x4d deltaTransformation = Matrix4x4d().translation(
         vector->x(), vector->y(), vector->z()).transpose();
-    deltaTransformationInverse = Matrix4x4d().translation(
+    Matrix4x4d deltaTransformationInverse = Matrix4x4d().translation(
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
     *texture->getTextureTransformation() =
         texture->getTextureTransformation()->multiply(deltaTransformation);
@@ -122,9 +119,7 @@ PovrayMaterialUtils::copyTexture(PovrayMaterial *texture)
 PovrayMaterial *
 PovrayMaterialUtils::getTexture()
 {
-    PovrayMaterial *newTexture;
-
-    newTexture = new PovrayMaterial;
+    PovrayMaterial * const newTexture = new PovrayMaterial;
     if (newTexture == nullptr) {
         Logger::reportMessage("PovrayMaterial", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
     }
@@ -133,15 +128,14 @@ PovrayMaterialUtils::getTexture()
 void
 PovrayMaterialUtils::applyRotationTransform(PovrayMaterial *texture, Vector3Dd *vector)
 {
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-
     if (!texture->getTextureTransformation()) {
         texture->setTextureTransformation(
             new Matrix4x4d(Matrix4x4d::identityMatrix()));
         texture->setTextureTransformationInverse(
             new Matrix4x4d(Matrix4x4d::identityMatrix()));
     }
+    Matrix4x4d deltaTransformation;
+    Matrix4x4d deltaTransformationInverse;
     deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
     *texture->getTextureTransformation() =
         texture->getTextureTransformation()->multiply(deltaTransformation);
@@ -186,17 +180,15 @@ PovrayMaterialUtils::rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vecto
 void
 PovrayMaterialUtils::applyScaleTransform(PovrayMaterial *texture, const Vector3Dd *vector)
 {
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-
     if (!texture->getTextureTransformation()) {
         texture->setTextureTransformation(
             new Matrix4x4d(Matrix4x4d::identityMatrix()));
         texture->setTextureTransformationInverse(
             new Matrix4x4d(Matrix4x4d::identityMatrix()));
     }
-    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    deltaTransformationInverse = Matrix4x4d().scale(
+    Matrix4x4d deltaTransformation = Matrix4x4d().scale(
+        vector->x(), vector->y(), vector->z());
+    Matrix4x4d deltaTransformationInverse = Matrix4x4d().scale(
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
     *texture->getTextureTransformation() =
         texture->getTextureTransformation()->multiply(deltaTransformation);

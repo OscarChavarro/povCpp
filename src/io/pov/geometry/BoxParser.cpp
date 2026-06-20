@@ -23,18 +23,13 @@ BoxParser::parseBox()
 SimpleBody *
 BoxParser::parseBox(ParserContext &ctx)
 {
-    Box *localShape;
+    Box *localShape = nullptr;
     SimpleBody *body = nullptr;
-    int constantId;
     Vector3Dd localVector;
     Vector3Dd minBounds;
     Vector3Dd maxBounds;
-    PovrayMaterial *localTexture;
-
-    localShape = nullptr;
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -49,12 +44,12 @@ BoxParser::parseBox(ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
+            {
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&minBounds, ctx);
                 PrimitiveParser::parseVector(&maxBounds, ctx);
@@ -62,8 +57,11 @@ BoxParser::parseBox(ParserContext &ctx)
                 body = ModelBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
+            }
 
             case Tokenizer::IDENTIFIER_TOKEN:
+            {
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::BOX_CONSTANT) {
@@ -79,6 +77,7 @@ BoxParser::parseBox(ParserContext &ctx)
                 }
                 Exit_Flag = true;
                 break;
+            }
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
@@ -88,8 +87,7 @@ BoxParser::parseBox(ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -98,35 +96,50 @@ BoxParser::parseBox(ParserContext &ctx)
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->translate(&localVector);
                 break;
+            }
 
             case Tokenizer::ROTATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->rotate(&localVector);
                 break;
+            }
 
             case Tokenizer::SCALE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->scale(&localVector);
                 break;
+            }
 
             case Tokenizer::INVERSE_TOKEN:
+            {
                 body->invert();
                 break;
+            }
 
             case Tokenizer::TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture(ctx);
+            {
+                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
                 TextureParser::prependTextureLayers(localTexture, body);
                 break;
+            }
 
             case Tokenizer::COLOUR_TOKEN:
+            {
                 PrimitiveParser::parseColor(body->ensureShapeColor(), ctx);
                 break;
+            }
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);

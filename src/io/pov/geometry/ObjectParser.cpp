@@ -141,7 +141,6 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
     CSG *container = nullptr;
     SimpleBody *localShape;
     Vector3Dd localVector;
-    int constantId;
     bool firstShapeParsed = false;
 
     if (type == GeometryTypes::CSG_UNION_TYPE) {
@@ -155,12 +154,13 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
+            {
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if ((ctx.constants()[(int)constantId].getConstantType() ==
                             ParseGlobals::CSG_INTERSECTION_CONSTANT) ||
@@ -179,6 +179,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                     ParseErrorReporter::reportUndeclared(ctx);
                 }
                 break;
+            }
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
                 localShape = ModelBuilder::wrap(
@@ -337,8 +338,7 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -347,19 +347,28 @@ ObjectParser::parseCsg(GeometryTypes type, ParserContext &ctx)
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 container->translate(&localVector);
                 break;
+            }
 
             case Tokenizer::ROTATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 container->rotate(&localVector);
                 break;
+            }
 
             case Tokenizer::SCALE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 container->scale(&localVector);
                 break;
+            }
 
             case Tokenizer::INVERSE_TOKEN:
                 container->invert();
@@ -387,8 +396,7 @@ ObjectParser::parseShape(ParserContext &ctx)
     SimpleBody *localShape = nullptr;
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -488,33 +496,27 @@ ObjectParser::parseShape(ParserContext &ctx)
 BoundedGeometry *
 ObjectParser::parseObject(ParserContext &ctx)
 {
-    BoundedGeometry *object;
+    BoundedGeometry *object = nullptr;
     SimpleBody *localShape;
     TransformableElement *geometry;
     java::ArrayList<TransformableElement*> localBoundingShapes(4);
     java::ArrayList<TransformableElement*> localClippingShapes(4);
     Vector3Dd localVector;
-    int constantId;
-    ColorRgba *objectColor;
-    bool noShadowFlag;
-    PovrayMaterial *localTexture;
-    Material *objectTexture;
+    ColorRgba *objectColor = nullptr;
+    bool noShadowFlag = false;
+    Material *objectTexture = ctx.getDefaultTexture();
 
-    object = nullptr;
     geometry = nullptr;
-    objectTexture = ctx.getDefaultTexture();
-    objectColor = nullptr;
-    noShadowFlag = false;
-
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
+            {
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::OBJECT_CONSTANT) {
@@ -533,6 +535,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 }
                 Exit_Flag = true;
                 break;
+            }
 
             case Tokenizer::SPHERE_TOKEN:
             case Tokenizer::QUADRIC_TOKEN:
@@ -567,8 +570,7 @@ ObjectParser::parseObject(ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -626,7 +628,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture(ctx);
+            {
+                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
@@ -637,6 +640,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                     TextureParser::prependTextureLayers(localTexture, objectTexture);
                 }
                 break;
+            }
 
             case Tokenizer::NO_SHADOW_TOKEN:
                 noShadowFlag = true;
@@ -648,6 +652,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
+            {
                 object = buildObject(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes);
@@ -659,8 +664,10 @@ ObjectParser::parseObject(ParserContext &ctx)
                 delete object;
                 object = nullptr;
                 break;
+            }
 
             case Tokenizer::ROTATE_TOKEN:
+            {
                 object = buildObject(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes);
@@ -672,8 +679,10 @@ ObjectParser::parseObject(ParserContext &ctx)
                 delete object;
                 object = nullptr;
                 break;
+            }
 
             case Tokenizer::SCALE_TOKEN:
+            {
                 object = buildObject(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes);
@@ -685,8 +694,10 @@ ObjectParser::parseObject(ParserContext &ctx)
                 delete object;
                 object = nullptr;
                 break;
+            }
 
             case Tokenizer::INVERSE_TOKEN:
+            {
                 object = buildObject(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes);
@@ -697,6 +708,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 delete object;
                 object = nullptr;
                 break;
+            }
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
                 Exit_Flag = true;
@@ -717,34 +729,29 @@ ObjectParser::parseObject(ParserContext &ctx)
 BoundedGeometry *
 ObjectParser::parseComposite(ParserContext &ctx)
 {
-    Composite *localComposite;
+    Composite *localComposite = nullptr;
     BoundedGeometry *localObject;
     SimpleBody *localShape;
     TransformableElement *geometry;
     java::ArrayList<BoundedGeometry*> localSimpleBodies(4);
     java::ArrayList<TransformableElement*> localBoundingShapes(4);
     java::ArrayList<TransformableElement*> localClippingShapes(4);
-    int constantId;
     Vector3Dd localVector;
-    Material *objectTexture;
-    ColorRgba *objectColor;
-    bool noShadowFlag;
+    Material *objectTexture = ctx.getDefaultTexture();
+    ColorRgba *objectColor = nullptr;
+    bool noShadowFlag = false;
 
-    localComposite = nullptr;
     geometry = nullptr;
-    objectTexture = ctx.getDefaultTexture();
-    objectColor = nullptr;
-    noShadowFlag = false;
-
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
+            {
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::COMPOSITE_CONSTANT) {
@@ -762,6 +769,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     ParseErrorReporter::reportUndeclared(ctx);
                 }
                 break;
+            }
 
             case Tokenizer::COMPOSITE_TOKEN:
                 localObject = ObjectParser::parseComposite(ctx);
@@ -787,8 +795,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
     }
 
     {
-        bool Exit_Flag;
-        Exit_Flag = false;
+        bool Exit_Flag = false;
         while (!Exit_Flag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
@@ -845,6 +852,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
+            {
                 localComposite = buildComposite(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
@@ -858,8 +866,10 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 delete localComposite;
                 localComposite = nullptr;
                 break;
+            }
 
             case Tokenizer::ROTATE_TOKEN:
+            {
                 localComposite = buildComposite(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
@@ -873,8 +883,10 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 delete localComposite;
                 localComposite = nullptr;
                 break;
+            }
 
             case Tokenizer::SCALE_TOKEN:
+            {
                 localComposite = buildComposite(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
@@ -888,8 +900,10 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 delete localComposite;
                 localComposite = nullptr;
                 break;
+            }
 
             case Tokenizer::INVERSE_TOKEN:
+            {
                 localComposite = buildComposite(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
@@ -902,6 +916,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 delete localComposite;
                 localComposite = nullptr;
                 break;
+            }
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);

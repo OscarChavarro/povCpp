@@ -70,10 +70,8 @@ Box::allIntersectionsForOwner(
     double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    bool intersectionFound;
+    bool intersectionFound = false;
     Box * const shape = this;
-
-    intersectionFound = false;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.setDepth(depth1);
         localElement.setObject(nullptr);

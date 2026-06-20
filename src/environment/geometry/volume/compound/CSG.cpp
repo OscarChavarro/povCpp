@@ -49,11 +49,10 @@ int
 CSG::allCsgUnionIntersections(
     RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    bool intersectionFound;
     const CSG *shape = this;
     TransformableElement *localShape;
 
-    intersectionFound = false;
+    bool intersectionFound = false;
     for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
         localShape = shape->getShapes()[i];
         if (localShape->allIntersections(ray, depthQueue)) {
@@ -69,7 +68,6 @@ CSG::allCsgIntersectIntersections(
     RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
     bool intersectionFound;
-    bool anyIntersectionFound;
     const CSG *shape = this;
     TransformableElement *localShape;
     TransformableElement *shape2;
@@ -78,7 +76,7 @@ CSG::allCsgIntersectIntersections(
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
 
-    anyIntersectionFound = false;
+    bool anyIntersectionFound = false;
 
     for (long int i = shape->getShapes().size() - 1; i >= 0; i--) {
         localShape = shape->getShapes()[i];

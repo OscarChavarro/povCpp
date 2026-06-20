@@ -113,8 +113,8 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     double pos1;
     double pos2;
     double dot;
-    double depth1;
-    double depth2;
+    double depth1 = HUGE_VAL;
+    double depth2 = HUGE_VAL;
     double s;
     double t;
     double y1;
@@ -124,9 +124,6 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     double maxHeight;
     double minHeight;
     Statistics &stats = *ray->getStatistics();
-
-    depth1 = HUGE_VAL;
-    depth2 = HUGE_VAL;
 
     y1 = HeightField::getHeightAt(x, z, hField);
     y2 = HeightField::getHeightAt(x + 1, z, hField);

@@ -119,9 +119,8 @@ int
 InfinitePlane::inside(Vector3Dd *testPoint)
 {
     const InfinitePlane *plane = this;
-    double temp;
 
-    temp = (*testPoint).dotProduct(plane->normalVector);
+    double temp = (*testPoint).dotProduct(plane->normalVector);
     return ((temp + plane->distance) <= GeometryConstants::Small_Tolerance);
 }
 
@@ -143,9 +142,8 @@ void
 InfinitePlane::translateGeometry(Vector3Dd *vector)
 {
     InfinitePlane * const plane = this;
-    Vector3Dd translation;
 
-    translation = plane->normalVector.multiply(*vector);
+    Vector3Dd translation = plane->normalVector.multiply(*vector);
     plane->distance -= translation.x() + translation.y() + translation.z();
 }
 
@@ -162,7 +160,6 @@ InfinitePlane::rotateGeometry(Vector3Dd *vector)
 void
 InfinitePlane::scaleGeometry(Vector3Dd *vector)
 {
-    double length;
     InfinitePlane * const plane = this;
 
     plane->normalVector = Vector3Dd(
@@ -170,7 +167,7 @@ InfinitePlane::scaleGeometry(Vector3Dd *vector)
         plane->normalVector.y() / vector->y(),
         plane->normalVector.z() / vector->z());
 
-    length = plane->normalVector.length();
+    const double length = plane->normalVector.length();
     plane->normalVector = plane->normalVector.multiply(1.0 / length);
     plane->distance /= length;
 }

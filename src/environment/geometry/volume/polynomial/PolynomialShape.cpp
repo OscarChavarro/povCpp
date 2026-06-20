@@ -179,14 +179,11 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 int
 PolynomialShape::roll(int order, int x, int y, int z)
 {
-    int xstart;
-    int ystart;
-    int zstart;
-    xstart = binomial[order - x + 2][order - x];
+    int xstart = binomial[order - x + 2][order - x];
     order = order - x;
-    ystart = binomial[order - y + 1][order - y];
+    int ystart = binomial[order - y + 1][order - y];
     order = order - y;
-    zstart = binomial[order - z][order - z];
+    int zstart = binomial[order - z][order - z];
     return xstart + ystart + zstart;
 }
 
@@ -522,89 +519,51 @@ int
 PolynomialShape::intersectQuartic(
     const RayWithSegments *ray, const PolynomialShape *shape, double *depths)
 {
-    double x;
-    double y;
-    double z;
-    double x2;
-    double y2;
-    double z2;
-    double x3;
-    double y3;
-    double z3;
-    double x4;
-    double y4;
-    double z4;
-    double xx;
-    double yy;
-    double zz;
-    double xx2;
-    double yy2;
-    double zz2;
-    double xx3;
-    double yy3;
-    double zz3;
-    double xx4;
-    double yy4;
-    double zz4;
-    double *a;
     double t[5];
-    double xZ;
-    double xZz;
-    double xxZ;
-    double xxZz;
-    double xY;
-    double xYy;
-    double xxY;
-    double xxYy;
-    double yZ;
-    double yZz;
-    double yyZ;
-    double yyZz;
-    double temp;
 
-    x = ray->getOrigin().x();
-    y = ray->getOrigin().y();
-    z = ray->getOrigin().z();
-    xx = ray->getDirection().x();
-    yy = ray->getDirection().y();
-    zz = ray->getDirection().z();
-    x2 = x * x;
-    y2 = y * y;
-    z2 = z * z;
-    x3 = x * x2;
-    y3 = y * y2;
-    z3 = z * z2;
-    x4 = x * x3;
-    y4 = y * y3;
-    z4 = z * z3;
-    xx2 = xx * xx;
-    yy2 = yy * yy;
-    zz2 = zz * zz;
-    xx3 = xx * xx2;
-    yy3 = yy * yy2;
-    zz3 = zz * zz2;
-    xx4 = xx * xx3;
-    yy4 = yy * yy3;
-    zz4 = zz * zz3;
-    a = shape->Coeffs;
-    xZ = x * z;
-    xZz = x * zz;
-    xxZ = xx * z;
-    xxZz = xx * zz;
-    xY = x * y;
-    xYy = x * yy;
-    xxY = xx * y;
-    xxYy = xx * yy;
-    yZ = y * z;
-    yZz = y * zz;
-    yyZ = yy * z;
-    yyZz = yy * zz;
+    double x = ray->getOrigin().x();
+    double y = ray->getOrigin().y();
+    double z = ray->getOrigin().z();
+    double xx = ray->getDirection().x();
+    double yy = ray->getDirection().y();
+    double zz = ray->getDirection().z();
+    double x2 = x * x;
+    double y2 = y * y;
+    double z2 = z * z;
+    double x3 = x * x2;
+    double y3 = y * y2;
+    double z3 = z * z2;
+    double x4 = x * x3;
+    double y4 = y * y3;
+    double z4 = z * z3;
+    double xx2 = xx * xx;
+    double yy2 = yy * yy;
+    double zz2 = zz * zz;
+    double xx3 = xx * xx2;
+    double yy3 = yy * yy2;
+    double zz3 = zz * zz2;
+    double xx4 = xx * xx3;
+    double yy4 = yy * yy3;
+    double zz4 = zz * zz3;
+    double *a = shape->Coeffs;
+    double xZ = x * z;
+    double xZz = x * zz;
+    double xxZ = xx * z;
+    double xxZz = xx * zz;
+    double xY = x * y;
+    double xYy = x * yy;
+    double xxY = xx * y;
+    double xxYy = xx * yy;
+    double yZ = y * z;
+    double yZz = y * zz;
+    double yyZ = yy * z;
+    double yyZz = yy * zz;
 
     /**
     Determine the coefficients of t^n, where the line is represented
     as (x,y,z) + (xx,yy,zz)*t.
     */
-    temp = a[0] * xx4;
+    double temp = a[0] * xx4;
     temp += a[1] * xx3 * yy;
     temp += a[2] * xx3 * zz;
     temp += a[4] * xx2 * yy2;

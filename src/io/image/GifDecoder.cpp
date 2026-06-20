@@ -17,8 +17,7 @@ static constexpr int MAX_CODES = 4095;
 WORD
 GifDecoder::initExp(int iSize, GifDecoderState &state)
 {
-    WORD size;
-    size = (WORD)iSize;
+    WORD size = (WORD)iSize;
     state.currSize = size + 1;
     state.topSlot = 1 << state.currSize;
     state.clear = 1 << size;

@@ -72,9 +72,8 @@ Quadric::allIntersectionsForOwner(
     double depth2;
     Vector3Dd intersectionPoint;
     Intersection localElement;
-    bool intersectionFound;
 
-    intersectionFound = false;
+    bool intersectionFound = false;
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
         localElement.setDepth(depth1);
         localElement.setObject(nullptr);
@@ -198,15 +197,10 @@ int
 Quadric::inside(Vector3Dd *testPoint)
 {
     const Quadric *shape = this;
-    Vector3Dd newPoint;
-    double result;
-    double linearTerm;
-    double squareTerm;
-
-    linearTerm = (*testPoint).dotProduct(shape->objectTerms);
-    result = linearTerm + shape->objectConstant;
-    newPoint = (*testPoint).multiply(*testPoint);
-    squareTerm = newPoint.dotProduct(shape->object2Terms);
+    const double linearTerm = (*testPoint).dotProduct(shape->objectTerms);
+    double result = linearTerm + shape->objectConstant;
+    const Vector3Dd newPoint = (*testPoint).multiply(*testPoint);
+    const double squareTerm = newPoint.dotProduct(shape->object2Terms);
     result += squareTerm;
     result += shape->objectMixedTerms.x() * (testPoint->x()) * (testPoint->y()) +
               shape->objectMixedTerms.y() * (testPoint->x()) * (testPoint->z()) +
@@ -224,7 +218,6 @@ Quadric::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
     const Quadric *intersectionShape = this;
     Vector3Dd derivativeLinear;
-    double len;
 
     derivativeLinear = intersectionShape->object2Terms.multiply(2.0);
     *result = derivativeLinear.multiply(*intersectionPoint);
@@ -241,9 +234,8 @@ Quadric::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
         intersectionShape->objectMixedTerms.z() * intersectionPoint->y();
     *result = Vector3Dd(nx, ny, nz);
 
-    len = result->x() * result->x() + result->y() * result->y() +
-          result->z() * result->z();
-    len = java::Math::sqrt(len);
+    const double len = java::Math::sqrt(result->x() * result->x() +
+        result->y() * result->y() + result->z() * result->z());
     if (len == 0.0) {
         // The normal is not defined at this point of the surface.  Set it
         // to any arbitrary direction

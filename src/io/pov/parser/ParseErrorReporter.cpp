@@ -58,12 +58,10 @@ ParseErrorReporter::parseError(TOKEN tokenId)
 void
 ParseErrorReporter::parseError(TOKEN tokenId, ParserContext &ctx)
 {
-    const char *expected;
-    const char *found;
     FILE *statFile;
     reportLocation(ctx);
-    expected = ParseErrorReporter::getTokenString(tokenId, ctx);
-    found = ParseErrorReporter::getTokenString(ctx.token().getTokenId(), ctx);
+    const char *expected = ParseErrorReporter::getTokenString(tokenId, ctx);
+    const char *found = ParseErrorReporter::getTokenString(ctx.token().getTokenId(), ctx);
     {
         char _logMsg[1024];
         snprintf(_logMsg, sizeof(_logMsg), "%s expected but %s found instead\n", expected, found);

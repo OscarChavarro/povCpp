@@ -59,8 +59,6 @@ Camera::rotate(Vector3Dd *vector)
 void
 Camera::scale(Vector3Dd *vector)
 {
-    Matrix4x4d transformation;
-
-    transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    Matrix4x4d transformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
     applyLinearTransformation(transformation);
 }

@@ -25,19 +25,8 @@ SmoothTriangleParser::parseSmoothTriangle()
 SimpleBody *
 SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
 {
-    SmoothTriangle *localShape;
     SimpleBody *body = nullptr;
-    int constantId;
-    Vector3Dd localVector;
-    Vector3Dd p1;
-    Vector3Dd p2;
-    Vector3Dd p3;
-    Vector3Dd n1;
-    Vector3Dd n2;
-    Vector3Dd n3;
-    PovrayMaterial *localTexture;
-
-    localShape = nullptr;
+    SmoothTriangle *localShape = nullptr;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -48,6 +37,13 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_ANGLE_TOKEN:
+            {
+                Vector3Dd p1;
+                Vector3Dd p2;
+                Vector3Dd p3;
+                Vector3Dd n1;
+                Vector3Dd n2;
+                Vector3Dd n3;
                 ctx.tokenStream().ungetToken();
                 PrimitiveParser::parseVector(&p1, ctx);
                 PrimitiveParser::parseVector(&n1, ctx);
@@ -67,8 +63,11 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 }
                 Exit_Flag = true;
                 break;
+            }
 
             case Tokenizer::IDENTIFIER_TOKEN:
+            {
+                int constantId;
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::SMOOTH_TRIANGLE_CONSTANT) {
@@ -84,6 +83,7 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 }
                 Exit_Flag = true;
                 break;
+            }
 
             default:
                 ParseErrorReporter::parseError(Tokenizer::LEFT_ANGLE_TOKEN, ctx);
@@ -103,32 +103,43 @@ SmoothTriangleParser::parseSmoothTriangle(ParserContext &ctx)
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->translate(&localVector);
                 break;
+            }
 
             case Tokenizer::ROTATE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->rotate(&localVector);
                 break;
+            }
 
             case Tokenizer::SCALE_TOKEN:
+            {
+                Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
                 body->scale(&localVector);
                 break;
+            }
 
             case Tokenizer::INVERSE_TOKEN:
                 body->invert();
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
-                localTexture = TextureParser::parseTexture(ctx);
+            {
+                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
                 TextureParser::prependTextureLayers(localTexture, body);
                 break;
+            }
 
             case Tokenizer::COLOUR_TOKEN:
                 PrimitiveParser::parseColor(body->ensureShapeColor(), ctx);
