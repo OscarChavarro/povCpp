@@ -85,6 +85,7 @@ add_executable(povray
     src/io/pov/geometry/BicubicPatchParser.cpp
     src/io/pov/geometry/BoxParser.cpp
     src/io/pov/geometry/BlobParser.cpp
+    src/io/pov/geometry/CsgParser.cpp
     src/io/pov/geometry/HeightFieldParser.cpp
     src/io/pov/geometry/ObjectParser.cpp
     src/io/pov/scene/SceneParser.cpp

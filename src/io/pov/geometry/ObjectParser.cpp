@@ -25,6 +25,7 @@
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
 #include "io/pov/geometry/BoxParser.h"
+#include "io/pov/geometry/CsgParser.h"
 #include "io/pov/geometry/HeightFieldParser.h"
 #include "io/pov/geometry/ObjectParser.h"
 #include "io/pov/geometry/PlaneParser.h"
@@ -107,13 +108,6 @@ extractCompositeState(
 
 }
 
-CSG *
-ObjectParser::parseCsg(BooleanSetOperations type)
-{
-    ParserContext ctx;
-    return ObjectParser::parseCsg(type, ctx);
-}
-
 SimpleBody *
 ObjectParser::parseShape()
 {
@@ -133,261 +127,6 @@ ObjectParser::parseComposite()
 {
     ParserContext ctx;
     return ObjectParser::parseComposite(ctx);
-}
-
-CSG *
-ObjectParser::parseCsg(BooleanSetOperations type, ParserContext &ctx)
-{
-    CSG *container = nullptr;
-    SimpleBody *localShape;
-    Vector3Dd localVector;
-    bool firstShapeParsed = false;
-
-    if (type == BooleanSetOperations::UNION) {
-        container = ModelBuilder::getCsgUnion();
-
-    } else if ((type == BooleanSetOperations::INTERSECTION) ||
-               (type == BooleanSetOperations::DIFFERENCE)) {
-        container = ModelBuilder::getCsgIntersection();
-    }
-
-    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
-
-    {
-        bool Exit_Flag = false;
-        while (!Exit_Flag) {
-            ctx.tokenStream().getToken();
-            switch (ctx.token().getTokenId()) {
-            case Tokenizer::IDENTIFIER_TOKEN:
-            {
-                int constantId;
-                if ((constantId = ctx.findConstant()) != -1) {
-                    if ((ctx.constants()[(int)constantId].getConstantType() ==
-                            ParseGlobals::CSG_INTERSECTION_CONSTANT) ||
-                        (ctx.constants()[(int)constantId].getConstantType() ==
-                            ParseGlobals::CSG_UNION_CONSTANT) ||
-                        (ctx.constants()[(int)constantId].getConstantType() ==
-                            ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
-                        delete container;
-                        container = new CSG(
-                            *(CSG *)ctx.constants()[(int)constantId]
-                                .getConstantData());
-                    } else {
-                        ParseErrorReporter::typeError(ctx);
-                    }
-                } else {
-                    ParseErrorReporter::reportUndeclared(ctx);
-                }
-                break;
-            }
-
-            case Tokenizer::LIGHT_SOURCE_TOKEN:
-                localShape = ModelBuilder::wrap(
-                    new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::SPHERE_TOKEN:
-                localShape = SphereParser::parseSphere(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::PLANE_TOKEN:
-                localShape = PlaneParser::parsePlane(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::TRIANGLE_TOKEN:
-                localShape = TriangleParser::parseTriangle(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
-                localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::QUADRIC_TOKEN:
-                localShape = QuadricParser::parseQuadric(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::HEIGHT_FIELD_TOKEN:
-                localShape = HeightFieldParser::parseHeightField(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::CUBIC_TOKEN:
-                localShape = PolyParser::parsePoly(3, ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::QUARTIC_TOKEN:
-                localShape = PolyParser::parsePoly(4, ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::POLY_TOKEN:
-                localShape = PolyParser::parsePoly(0, ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::BOX_TOKEN:
-                localShape = BoxParser::parseBox(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::BLOB_TOKEN:
-                localShape = BlobParser::parseBlob(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::BICUBIC_PATCH_TOKEN:
-                localShape = BicubicPatchParser::parseBicubicPatch(ctx);
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::UNION_TOKEN:
-                localShape =
-                    ModelBuilder::wrap(ObjectParser::parseCsg(BooleanSetOperations::UNION, ctx));
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::INTERSECTION_TOKEN:
-                localShape =
-                    ModelBuilder::wrap(ObjectParser::parseCsg(BooleanSetOperations::INTERSECTION, ctx));
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            case Tokenizer::DIFFERENCE_TOKEN:
-                localShape =
-                    ModelBuilder::wrap(ObjectParser::parseCsg(BooleanSetOperations::DIFFERENCE, ctx));
-                if ((type == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
-
-            default:
-                ctx.tokenStream().ungetToken();
-                Exit_Flag = true;
-                break;
-            }
-        }
-    }
-
-    {
-        bool Exit_Flag = false;
-        while (!Exit_Flag) {
-            ctx.tokenStream().getToken();
-            switch (ctx.token().getTokenId()) {
-            case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = true;
-                break;
-
-            case Tokenizer::TRANSLATE_TOKEN:
-            {
-                Vector3Dd localVector;
-                PrimitiveParser::parseVector(&localVector, ctx);
-                container->translate(&localVector);
-                break;
-            }
-
-            case Tokenizer::ROTATE_TOKEN:
-            {
-                Vector3Dd localVector;
-                PrimitiveParser::parseVector(&localVector, ctx);
-                container->rotate(&localVector);
-                break;
-            }
-
-            case Tokenizer::SCALE_TOKEN:
-            {
-                Vector3Dd localVector;
-                PrimitiveParser::parseVector(&localVector, ctx);
-                container->scale(&localVector);
-                break;
-            }
-
-            case Tokenizer::INVERSE_TOKEN:
-                container->invert();
-                break;
-
-            default:
-                if (type == BooleanSetOperations::UNION) {
-                    ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                } else if (type == BooleanSetOperations::INTERSECTION) {
-                    ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                } else {
-                    ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                }
-                break;
-            }
-        }
-    }
-
-    return ((CSG *)container);
 }
 
 SimpleBody *
@@ -468,19 +207,19 @@ ObjectParser::parseShape(ParserContext &ctx)
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(ObjectParser::parseCsg(BooleanSetOperations::UNION, ctx));
+                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::UNION, ctx));
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(ObjectParser::parseCsg(BooleanSetOperations::INTERSECTION, ctx));
+                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx));
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(ObjectParser::parseCsg(BooleanSetOperations::DIFFERENCE, ctx));
+                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx));
                 Exit_Flag = true;
                 break;
 
