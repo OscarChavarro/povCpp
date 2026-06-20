@@ -1,9 +1,10 @@
 #include "java/util/PriorityQueue.txx"
 
-#include "environment/material/PovrayMaterialUtils.h"
+#include "environment/material/PovRayMaterialUtils.h"
 
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/DefaultTextureParser.h"
+#include "io/pov/material/PovRayMaterialBuilder.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -40,6 +41,6 @@ DefaultTextureParser::parseDefault(ParserContext &ctx)
             }
         }
     }
-    parsedDefaultTexture->setConstant(true);
+    parsedDefaultTexture = PovRayMaterialBuilder(parsedDefaultTexture).setConstant(true).build();
     ctx.setDefaultTexture(parsedDefaultTexture);
 }

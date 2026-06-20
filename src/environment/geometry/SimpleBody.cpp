@@ -1,7 +1,6 @@
 #include "environment/geometry/element/Intersection.h"
 
 #include "environment/geometry/SimpleBody.h"
-#include "environment/material/PovrayMaterialUtils.h"
 
 SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor) :
     geometry(geometry),
@@ -20,9 +19,11 @@ SimpleBody::ensureShapeColor()
 }
 
 void
-SimpleBody::prependMaterialLayers(PovRayMaterial *newHead)
+SimpleBody::prependMaterialLayers(Material *newHead)
 {
-    PovrayMaterialUtils::prependTextureLayers(newHead, material);
+    if (newHead != nullptr) {
+        material = newHead->prependMaterialLayers(material);
+    }
 }
 
 int
@@ -73,7 +74,7 @@ SimpleBody::translate(Vector3Dd *vector)
 {
     getGeometry()->translateGeometry(vector);
     if (getMaterial() != nullptr) {
-        getMaterial()->translate(vector);
+        material = getMaterial()->translate(vector);
     }
     const Matrix4x4d delta = Matrix4x4d().translation(
         vector->x(), vector->y(), vector->z()).transpose();
@@ -88,7 +89,7 @@ SimpleBody::rotate(Vector3Dd *vector)
 {
     getGeometry()->rotateGeometry(vector);
     if (getMaterial() != nullptr) {
-        getMaterial()->rotate(vector);
+        material = getMaterial()->rotate(vector);
     }
     Matrix4x4d delta;
     Matrix4x4d deltaInverse;
@@ -102,7 +103,7 @@ SimpleBody::scale(Vector3Dd *vector)
 {
     getGeometry()->scaleGeometry(vector);
     if (getMaterial() != nullptr) {
-        getMaterial()->scale(vector);
+        material = getMaterial()->scale(vector);
     }
     const Matrix4x4d delta = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
     const Matrix4x4d deltaInverse = Matrix4x4d().scale(

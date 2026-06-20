@@ -4,6 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/camera/Camera.h"
+#include "environment/geometry/SimpleBody.h"
 #include "environment/geometry/element/Triangle.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/volume/Blob.h"
@@ -14,12 +15,11 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
-#include "io/pov/light/LightGeometryAdapter.h"
-#include "environment/material/PovrayMaterialUtils.h"
-#include "environment/scene/SceneBuilder.h"
+#include "environment/material/PovRayMaterialUtils.h"
 #include "environment/material/ValuesBuilder.h"
 #include "environment/scene/BoundedGeometryFactory.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SceneBuilder.h"
+#include "io/pov/light/LightGeometryAdapter.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -377,7 +377,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if (objectTexture == ctx.getDefaultTexture()) {
                     objectTexture = localTexture;
                 } else {
-                    PovrayMaterialUtils::prependTextureLayers(localTexture, objectTexture);
+                    PovRayMaterialUtils::prependTextureLayers(localTexture, objectTexture);
                 }
                 break;
             }

@@ -3,12 +3,13 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
-#include "environment/material/PovRayMaterial.h"
-#include "environment/material/PovrayMaterialUtils.h"
 #include "environment/camera/CameraBuilder.h"
+#include "environment/material/PovRayMaterial.h"
+#include "environment/material/PovRayMaterialUtils.h"
 #include "environment/material/ValuesBuilder.h"
 
 #include "io/pov/camera/CameraParser.h"
+#include "io/pov/material/PovRayMaterialBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -206,12 +207,12 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                                     TextureParser::copyTexture(localTexture);
                             }
 
-                            localTexture->setConstant(true);
+                            localTexture = PovRayMaterialBuilder(localTexture).setConstant(true).build();
 
                             {
                                 PovRayMaterial *existingHead =
                                     (PovRayMaterial *)constantPtr->getConstantData();
-                                PovrayMaterialUtils::prependTextureLayers(localTexture, existingHead);
+                                PovRayMaterialUtils::prependTextureLayers(localTexture, existingHead);
                                 constantPtr->setConstantData((char *)existingHead);
                             }
                             break;
