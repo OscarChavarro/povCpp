@@ -6,6 +6,7 @@
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/ColorOperations.h"
 #include "render/RenderEngine.h"
+#include "render/RenderWorker.h"
 
 inline unsigned short
 AdaptiveAntiAliasing::rand3dInline(int a, int b)
@@ -17,7 +18,7 @@ AdaptiveAntiAliasing::rand3dInline(int a, int b)
 
 void
 AdaptiveAntiAliasing::superSample(
-    ColorRgba *result, int x, int y, int width, int height)
+    RenderWorker &worker, ColorRgba *result, int x, int y, int width, int height)
 {
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
     static const double superSampleOffsets[SUPER_SAMPLE_COUNT][2] = {
@@ -50,11 +51,11 @@ AdaptiveAntiAliasing::superSample(
                 JITTER_RANDOM_NORMALIZER * SUPER_SAMPLE_JITTER_RANGE -
             SUPER_SAMPLE_JITTER_BIAS;
 
-        renderEngine->createRay(renderEngine->getPrimaryRay(), width, height,
+        renderEngine->createRay(worker.getPrimaryRay(), width, height,
             dx + jitterX + superSampleOffsets[sampleIndex][0],
             dy + jitterY + superSampleOffsets[sampleIndex][1]);
-        renderEngine->setTraceLevel(0);
-        renderEngine->trace(renderEngine->getPrimaryRay(), &color);
+        worker.setTraceLevel(0);
+        renderEngine->trace(worker, worker.getPrimaryRay(), &color);
         ColorOperations::clipColor(&color, &color);
         ColorOperations::scaleColor(&color, &color, SUPER_SAMPLE_WEIGHT);
         ColorOperations::addColor(result, result, &color);
@@ -68,23 +69,23 @@ AdaptiveAntiAliasing::superSample(
 }
 
 void
-AdaptiveAntiAliasing::doAntiAliasing(int x, int y, ColorRgba *color)
+AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y, ColorRgba *color)
 {
     char antialiasCenterFlag = 0;
 
-    renderEngine->setCurrentLineAntiAliasedFlag(x, false);
+    worker.setCurrentLineAntiAliasedFlag(x, false);
 
     if (x != 0) {
         if (ColorOperations::colorDistance(
-                renderEngine->getCurrentLinePixel(x - 1),
-                renderEngine->getCurrentLinePixel(x)) >=
+                worker.getCurrentLinePixel(x - 1),
+                worker.getCurrentLinePixel(x)) >=
             renderEngine->getScene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
-            if (!renderEngine->getCurrentLineAntiAliasedFlag(x - 1)) {
-                superSample(renderEngine->getCurrentLinePixel(x - 1), x - 1, y,
+            if (!worker.getCurrentLineAntiAliasedFlag(x - 1)) {
+                superSample(worker, worker.getCurrentLinePixel(x - 1), x - 1, y,
                     renderEngine->getScene().getScreenWidth(),
                     renderEngine->getScene().getScreenHeight());
-                renderEngine->setCurrentLineAntiAliasedFlag(x - 1, true);
+                worker.setCurrentLineAntiAliasedFlag(x - 1, true);
                 renderEngine->incrementSuperSampleCount();
             }
         }
@@ -92,26 +93,26 @@ AdaptiveAntiAliasing::doAntiAliasing(int x, int y, ColorRgba *color)
 
     if (y != renderEngine->getConfig().getFirstLine() - 1) {
         if (ColorOperations::colorDistance(
-                renderEngine->getPreviousLinePixel(x),
-                renderEngine->getCurrentLinePixel(x)) >=
+                worker.getPreviousLinePixel(x),
+                worker.getCurrentLinePixel(x)) >=
             renderEngine->getScene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
-            if (!renderEngine->getPreviousLineAntiAliasedFlag(x)) {
-                superSample(renderEngine->getPreviousLinePixel(x), x, y - 1,
+            if (!worker.getPreviousLineAntiAliasedFlag(x)) {
+                superSample(worker, worker.getPreviousLinePixel(x), x, y - 1,
                     renderEngine->getScene().getScreenWidth(),
                     renderEngine->getScene().getScreenHeight());
-                renderEngine->setPreviousLineAntiAliasedFlag(x, true);
+                worker.setPreviousLineAntiAliasedFlag(x, true);
                 renderEngine->incrementSuperSampleCount();
             }
         }
     }
 
     if (antialiasCenterFlag) {
-        superSample(renderEngine->getCurrentLinePixel(x), x, y,
+        superSample(worker, worker.getCurrentLinePixel(x), x, y,
             renderEngine->getScene().getScreenWidth(),
             renderEngine->getScene().getScreenHeight());
-        renderEngine->setCurrentLineAntiAliasedFlag(x, true);
-        *color = *renderEngine->getCurrentLinePixel(x);
+        worker.setCurrentLineAntiAliasedFlag(x, true);
+        *color = *worker.getCurrentLinePixel(x);
         renderEngine->incrementSuperSampleCount();
     }
 }

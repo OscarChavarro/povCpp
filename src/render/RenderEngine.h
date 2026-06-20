@@ -1,32 +1,19 @@
 #ifndef __RENDER_ENGINE__
 #define __RENDER_ENGINE__
 
-#include <vector>
+#include "common/RenderRuntimeState.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/scene/Scene.h"
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/RenderContext.h"
-#include "render/shaders/TraceService.h"
+#include "render/RenderWorker.h"
 
 class RenderEngine {
   private:
-    struct TraceEvent {
-        bool childRay;
-        RayWithSegments ray;
-        ColorRgba color;
-        TraceEvent() : childRay(false), color(0.0, 0.0, 0.0, 0.0) {}
-    };
     RenderContext *context;
     Scene *scene;
-    RayWithSegments *primaryRay;
-    int traceLevel;
     int superSampleCount;
-    ColorRgba *previousLine;
-    ColorRgba *currentLine;
-    char *previousLineAntiAliasedFlags;
-    char *currentLineAntiAliasedFlags;
-    RayWithSegments ray;
-    TraceService traceService;
+    RenderWorker worker;
     IntersectionPriorityQueuePool intersectionQueuePool;
     AdaptiveAntiAliasing adaptiveAntiAliasing;
     // Set the first time a fatal abort is detected on the thread driving this
@@ -34,61 +21,112 @@ class RenderEngine {
     // reentrant across threads, but non-blocking: rendering keeps going with a
     // default (black) colour instead of terminating the whole process.
     bool fatalErrorFound;
-    std::vector<TraceEvent> *activeTraceEvents;
-
-    static ColorRgba *allocateColorBuffer(int count);
-    static void traceServiceTrace(void *context, const RayWithSegments *ray,
-        const ColorRgba *multiplier);
-    static void traceServiceAddColor(void *context, const ColorRgba *color);
-    static void traceServiceShadeShadow(void *context, Intersection *intersection, ColorRgba *color);
 
   public:
-    RenderEngine()
-        : context(nullptr), scene(nullptr), primaryRay(nullptr), traceLevel(0), superSampleCount(0),
-          previousLine(nullptr), currentLine(nullptr),
-          previousLineAntiAliasedFlags(nullptr), currentLineAntiAliasedFlags(nullptr),
-          traceService(RenderEngine::traceServiceTrace, RenderEngine::traceServiceAddColor,
-              RenderEngine::traceServiceShadeShadow, this),
-          adaptiveAntiAliasing(this),
-          fatalErrorFound(false), activeTraceEvents(nullptr) {}
+    RenderEngine();
     ~RenderEngine();
 
-    void setContext(RenderContext *ctx) { context = ctx; }
-    const RenderingConfiguration &getConfig() const { return context->getConfig(); }
+    void setContext(RenderContext *ctx);
+    const RenderingConfiguration &getConfig() const;
     RenderingConfiguration &getMutableConfig();
-    Statistics &getStatistics() { return context->getStatistics(); }
-    TextureUtils &getTextureUtils() { return context->getTextureUtils(); }
-    IntersectionPriorityQueuePool &getIntersectionQueuePool() { return intersectionQueuePool; }
-    RayWithSegments *getPrimaryRay() { return primaryRay; }
-    void setTraceLevel(int level) { traceLevel = level; }
-    ColorRgba *getPreviousLinePixel(int x) { return &previousLine[x]; }
-    ColorRgba *getCurrentLinePixel(int x) { return &currentLine[x]; }
-    bool getPreviousLineAntiAliasedFlag(int x) const {
-        return previousLineAntiAliasedFlags[x] != 0;
-    }
-    void setPreviousLineAntiAliasedFlag(int x, bool value) {
-        previousLineAntiAliasedFlags[x] = value ? 1 : 0;
-    }
-    bool getCurrentLineAntiAliasedFlag(int x) const {
-        return currentLineAntiAliasedFlags[x] != 0;
-    }
-    void setCurrentLineAntiAliasedFlag(int x, bool value) {
-        currentLineAntiAliasedFlags[x] = value ? 1 : 0;
-    }
-    void incrementSuperSampleCount() { superSampleCount++; }
-    void setScene(Scene *s) { scene = s; }
-    Scene &getScene() { return *scene; }
-    double &getMaxTraceLevel() { return context->getRuntime().getMaxTraceLevel(); }
-    bool &getStopFlag() { return context->getRuntime().getStopFlag(); }
+    const RenderContext &getRenderContext() const;
+    Statistics &getStatistics();
+    TextureUtils &getTextureUtils();
+    IntersectionPriorityQueuePool &getIntersectionQueuePool();
+    RenderWorker &getWorker();
+    void incrementSuperSampleCount();
+    void setScene(Scene *s);
+    Scene &getScene();
+    double &getMaxTraceLevel();
+    bool &getStopFlag();
     void readRenderedPart(void);
     void startTracing(void);
-    void trace(RayWithSegments *localRay, ColorRgba *color);
+    void trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color);
     void initializeRenderer(void);
-    const TraceService *getTraceService() { return &traceService; }
     void createRay(
         RayWithSegments *localRay, int width, int height, double x, double y);
     void checkStats(int y);
-    void outputLine(int y);
+    void outputLine(RenderWorker &localWorker, int y);
 };
+
+inline
+RenderEngine::RenderEngine()
+    : context(nullptr), scene(nullptr), superSampleCount(0), worker(this),
+      adaptiveAntiAliasing(this),
+      fatalErrorFound(false)
+{
+}
+
+inline void
+RenderEngine::setContext(RenderContext *ctx)
+{
+    context = ctx;
+}
+
+inline const RenderingConfiguration &
+RenderEngine::getConfig() const
+{
+    return context->getConfig();
+}
+
+inline const RenderContext &
+RenderEngine::getRenderContext() const
+{
+    return *context;
+}
+
+inline Statistics &
+RenderEngine::getStatistics()
+{
+    return context->getStatistics();
+}
+
+inline TextureUtils &
+RenderEngine::getTextureUtils()
+{
+    return context->getTextureUtils();
+}
+
+inline IntersectionPriorityQueuePool &
+RenderEngine::getIntersectionQueuePool()
+{
+    return intersectionQueuePool;
+}
+
+inline RenderWorker &
+RenderEngine::getWorker()
+{
+    return worker;
+}
+
+inline void
+RenderEngine::incrementSuperSampleCount()
+{
+    superSampleCount++;
+}
+
+inline void
+RenderEngine::setScene(Scene *s)
+{
+    scene = s;
+}
+
+inline Scene &
+RenderEngine::getScene()
+{
+    return *scene;
+}
+
+inline double &
+RenderEngine::getMaxTraceLevel()
+{
+    return context->getRuntime().getMaxTraceLevel();
+}
+
+inline bool &
+RenderEngine::getStopFlag()
+{
+    return context->getRuntime().getStopFlag();
+}
 
 #endif
