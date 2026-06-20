@@ -1,12 +1,12 @@
 #ifndef __BLOB__
 #define __BLOB__
 
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"
-#include "environment/geometry/volume/BlobList.h"
 
 class Blob : public Geometry {
   private:
@@ -37,7 +37,9 @@ class Blob : public Geometry {
     {
     }
 
-    Blob(double thresholdValue, BlobList *blobList, int numberOfPoints, int sturmFlagValue);
+    Blob(double thresholdValue,
+        java::ArrayList<BlobElement *> *blobElements, int numberOfPoints,
+        int sturmFlagValue);
     Blob(const Matrix4x4d *transformationValue,
         const Matrix4x4d *transformationInverseValue, bool invertedValue,
         int countValue, double thresholdValue, const BlobElement *listValue,

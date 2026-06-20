@@ -1,4 +1,5 @@
 #include "java/util/PriorityQueue.txx"
+#include "java/util/ArrayList.txx"
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
@@ -69,7 +70,7 @@ BlobParser::parseBlob(ParserContext &ctx)
             {
                 double threshold = 1.0;
                 int npoints = 0;
-                BlobList *blobComponents = nullptr;
+                java::ArrayList<BlobElement *> blobComponents;
                 ctx.tokenStream().ungetToken();
 
                 // Here is where we get the blob coefficients
@@ -85,20 +86,19 @@ BlobParser::parseBlob(ParserContext &ctx)
 
                         case Tokenizer::COMPONENT_TOKEN:
                         {
-                            BlobList *blobComponent = new BlobList;
+                            BlobElement *blobComponent = new BlobElement;
                             if (blobComponent == nullptr) {
                                 ParseErrorReporter::reportError(
                                     "Out of Memory! Cannot allocate blob "
                                     "component", ctx);
                             }
-                            blobComponent->getElem().getCoeffs()[2] =
+                            blobComponent->getCoeffs()[2] =
                                 PrimitiveParser::parseFloat(ctx);
-                            blobComponent->getElem().setRadius2(
+                            blobComponent->setRadius2(
                                 PrimitiveParser::parseFloat(ctx));
                             PrimitiveParser::parseVector(
-                                &blobComponent->getElem().getPos(), ctx);
-                            blobComponent->setNext(blobComponents);
-                            blobComponents = blobComponent;
+                                &blobComponent->getPos(), ctx);
+                            blobComponents.add(blobComponent);
                             npoints++;
                             break;
                         }
@@ -111,7 +111,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                     }
                 }
 
-                localShape = new Blob(threshold, blobComponents, npoints, 0);
+                localShape = new Blob(threshold, &blobComponents, npoints, 0);
                 body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;

@@ -5,6 +5,7 @@ This module contains the code for the blob shape.
 */
 
 #include "java/lang/Math.h"
+#include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
@@ -47,7 +48,8 @@ allocateBlobIntervals(int count)
     return allocatedIntervals;
 }
 
-Blob::Blob(double thresholdValue, BlobList *blobList, int numberOfPoints,
+Blob::Blob(double thresholdValue,
+    java::ArrayList<BlobElement *> *blobElements, int numberOfPoints,
     int sturmFlagValue) :
     transformation(nullptr),
     transformationInverse(nullptr),
@@ -59,24 +61,23 @@ Blob::Blob(double thresholdValue, BlobList *blobList, int numberOfPoints,
     sturmFlag(sturmFlagValue)
 {
     for (int i = 0; i < numberOfPoints; i++) {
-        BlobList *temp = blobList;
-        if (java::Math::abs(temp->getElem().getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
-            temp->getElem().getRadius2() < Config::INTERSECTION_EPSILON) {
+        BlobElement *element = blobElements->get(i);
+        if (java::Math::abs(element->getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
+            element->getRadius2() < Config::INTERSECTION_EPSILON) {
             perror("Degenerate blob element\n");
         }
-        double rad = temp->getElem().getRadius2();
+        double rad = element->getRadius2();
         rad *= rad;
-        double coeff = temp->getElem().getCoeffs()[2];
+        double coeff = element->getCoeffs()[2];
         list[i].setRadius2(rad);
         list[i].getCoeffs()[2] = coeff;
         list[i].getCoeffs()[1] = -(2.0 * coeff) / rad;
         list[i].getCoeffs()[0] = coeff / (rad * rad);
         list[i].getPos() = Vector3Dd(
-            temp->getElem().getPos().x(), temp->getElem().getPos().y(),
-            temp->getElem().getPos().z());
+            element->getPos().x(), element->getPos().y(),
+            element->getPos().z());
 
-        blobList = blobList->getNext();
-        delete temp;
+        delete element;
     }
 }
 
