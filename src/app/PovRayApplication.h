@@ -24,6 +24,7 @@ class PovRayApplication {
     RenderContext context;
     ImageOutput *selectedImageOutput;
 
+    void printProgress(const char *message);
     void printStatistics(
         const Statistics &stats,
         const Scene &frame,

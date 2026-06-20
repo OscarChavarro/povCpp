@@ -15,15 +15,11 @@
 #include "io/pov/scene/SceneParser.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-namespace {
-
 void
-printProgress(const char *message)
+PovRayApplication::printProgress(const char *message)
 {
-    fprintf(stdout, "%s\n", message);
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", message);
 }
-
-} // namespace
 
 void
 PovRayApplication::printStatistics(
@@ -37,32 +33,32 @@ PovRayApplication::printStatistics(
 
     snprintf(buffer, sizeof(buffer), "\n%s statistics",
         inputConfiguration.getInputFileName());
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+    printProgress(buffer);
 
     if (pixelsInImage > stats.getNumberOfPixels()) {
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "  Partial Image Rendered");
+        printProgress("  Partial Image Rendered");
     }
 
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "--------------------------------------");
+    printProgress("--------------------------------------");
     snprintf(buffer, sizeof(buffer), "Resolution %d x %d", frame.getScreenWidth(),
         frame.getScreenHeight());
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+    printProgress(buffer);
 
     snprintf(buffer, sizeof(buffer),
         "# Rays:  %10ld     # Pixels:  %10ld  # Pixels super-sampled: %10ld",
         stats.getNumberOfRays(), stats.getNumberOfPixels(),
         stats.getNumberOfPixelsSuperSampled());
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+    printProgress(buffer);
 
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "  Ray->Shape Intersection Tests:");
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "    type                 Tests     Succeeded    Percentage");
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "  -----------------------------------------------------------");
+    printProgress("  Ray->Shape Intersection Tests:");
+    printProgress("    type                 Tests     Succeeded    Percentage");
+    printProgress("  -----------------------------------------------------------");
 
-    auto logIntersectionRow = [&buffer](const char *label, long tests, long succeeded) {
+    auto logIntersectionRow = [this, &buffer](const char *label, long tests, long succeeded) {
         if (tests) {
             snprintf(buffer, sizeof(buffer), "%s %10ld  %10ld  %10.2f", label, tests, succeeded,
                 (((double)succeeded / (double)tests) * 100.0));
-            Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+            printProgress(buffer);
         }
     };
 
@@ -80,29 +76,29 @@ PovRayApplication::printStatistics(
 
     if (stats.getSolidTextureStatistics()->callsToNoise) {
         snprintf(buffer, sizeof(buffer), "  Calls to Noise:    %10ld", stats.getSolidTextureStatistics()->callsToNoise);
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
     if (stats.getSolidTextureStatistics()->callsToDNoise) {
         snprintf(buffer, sizeof(buffer), "  Calls to DNoise:  %10ld", stats.getSolidTextureStatistics()->callsToDNoise);
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
     if (stats.getShadowRayTests()) {
         snprintf(buffer, sizeof(buffer),
             "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld",
             stats.getShadowRayTests(), 0L);
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
     if (stats.getReflectedRaysTraced()) {
         snprintf(buffer, sizeof(buffer), "  Reflected Rays:    %10ld", stats.getReflectedRaysTraced());
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
     if (stats.getRefractedRaysTraced()) {
         snprintf(buffer, sizeof(buffer), "  Refracted Rays:    %10ld", stats.getRefractedRaysTraced());
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
     if (stats.getTransmittedRaysTraced()) {
         snprintf(buffer, sizeof(buffer), "  Transmitted Rays: %10ld", stats.getTransmittedRaysTraced());
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
 
     if (stats.getUsedTime() != 0.0) {
@@ -113,7 +109,7 @@ PovRayApplication::printStatistics(
         snprintf(buffer, sizeof(buffer),
             "  Time For Trace:    %2d hours %2d minutes %4.2f seconds", hours,
             minutes, seconds);
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
 }
 
@@ -203,7 +199,7 @@ PovRayApplication::parseSceneDescription()
     ctx.tokenizer().setMaxSymbols(configuration.getTokenizerMaxSymbols());
     ctx.tokenizer().setFileLocator(&fileLocator);
     ctx.tokenizer().initializeTokenizer(configuration.getInputFileName());
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Parsing...");
+    printProgress("Parsing...");
 
     ctx.setDiagnostics(
         configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE),
@@ -218,7 +214,7 @@ void
 PovRayApplication::prepareRendering()
 {
     if (configuration.hasOptionFlags(RenderingConfiguration::DISPLAY)) {
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Displaying...\n");
+        printProgress("Displaying...\n");
     }
 
     if (configuration.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
@@ -231,7 +227,7 @@ PovRayApplication::prepareRendering()
                 Logger::reportMessage("PovRayApplication", Logger::ERROR, "", "Error opening continue trace output file");
                 char buffer[512];
                 snprintf(buffer, sizeof(buffer), "Opening new output file %s.", configuration.getOutputFileName());
-                Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+                printProgress(buffer);
                 configuration.clearOptionFlags(RenderingConfiguration::CONTINUE_TRACE);
 
                 if (configuration.getOutputFileInputStream()->open(
@@ -275,12 +271,12 @@ void
 PovRayApplication::runRenderLoop()
 {
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() != '1')) {
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Rendering...");
+        printProgress("Rendering...");
     } else if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() == '1')) {
         char buffer[512];
         snprintf(buffer, sizeof(buffer), "POV-Ray rendering %s to %s :",
             configuration.getInputFileName(), configuration.getOutputFileName());
-        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        printProgress(buffer);
     }
 
     engine.startTracing();
@@ -292,7 +288,7 @@ PovRayApplication::finalizeRun()
     closeAll();
     printStatistics(statistics, engine.getScene(), configuration);
 
-    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Done Tracing");
+    printProgress("Done Tracing");
 }
 
 void
