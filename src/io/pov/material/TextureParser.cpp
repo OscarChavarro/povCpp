@@ -151,11 +151,11 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                             ctx.tokenStream().getToken();
                             switch (ctx.token().getTokenId()) {
                             case Tokenizer::COLOUR_TOKEN:
-                                b.setColor1(new ColorRgba(0.0, 0.0, 0.0, 0.0));
-                                b.setColor2(new ColorRgba(0.0, 0.0, 0.0, 0.0));
-                                PrimitiveParser::parseColor(b.getColor1(), ctx);
+                                b.setCheckerColor1(new ColorRgba(0.0, 0.0, 0.0, 0.0));
+                                b.setCheckerColor2(new ColorRgba(0.0, 0.0, 0.0, 0.0));
+                                PrimitiveParser::parseColor(b.getCheckerColor1(), ctx);
                                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                                PrimitiveParser::parseColor(b.getColor2(), ctx);
+                                PrimitiveParser::parseColor(b.getCheckerColor2(), ctx);
                                 break;
 
                             default:
@@ -180,11 +180,11 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                             ctx.tokenStream().getToken();
                             switch (ctx.token().getTokenId()) {
                             case Tokenizer::COLOUR_TOKEN:
-                                b.setColor1(new ColorRgba(0.0, 0.0, 0.0, 0.0));
-                                b.setColor2(new ColorRgba(0.0, 0.0, 0.0, 0.0));
-                                PrimitiveParser::parseColor(b.getColor1(), ctx);
+                                b.setCheckerColor1(new ColorRgba(0.0, 0.0, 0.0, 0.0));
+                                b.setCheckerColor2(new ColorRgba(0.0, 0.0, 0.0, 0.0));
+                                PrimitiveParser::parseColor(b.getCheckerColor1(), ctx);
                                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                                PrimitiveParser::parseColor(b.getColor2(), ctx);
+                                PrimitiveParser::parseColor(b.getCheckerColor2(), ctx);
                                 break;
 
                             default:
@@ -216,9 +216,9 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                                 {
                                     PovRayMaterialBuilder lb = TextureParser::editorFor(localTexture);
                                     localTexture = lb.build();
-                                    PovRayMaterial *color1Head = (PovRayMaterial *)b.getColor1();
-                                    PovRayMaterialUtils::prependTextureLayers(localTexture, color1Head);
-                                    b.setColor1((ColorRgba *)color1Head);
+                                    PovRayMaterial *checkerTexture1Head = b.getCheckerTexture1();
+                                    PovRayMaterialUtils::prependTextureLayers(localTexture, checkerTexture1Head);
+                                    b.setCheckerTexture1(checkerTexture1Head);
                                 }
                                 break;
                             default:
@@ -241,9 +241,9 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                                 {
                                     PovRayMaterialBuilder lb = TextureParser::editorFor(localTexture);
                                     localTexture = lb.build();
-                                    PovRayMaterial *color2Head = (PovRayMaterial *)b.getColor2();
-                                    PovRayMaterialUtils::prependTextureLayers(localTexture, color2Head);
-                                    b.setColor2((ColorRgba *)color2Head);
+                                    PovRayMaterial *checkerTexture2Head = b.getCheckerTexture2();
+                                    PovRayMaterialUtils::prependTextureLayers(localTexture, checkerTexture2Head);
+                                    b.setCheckerTexture2(checkerTexture2Head);
                                 }
                                 break;
                             default:
@@ -698,7 +698,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     ColorRgba *c = new ColorRgba(0.0, 0.0, 0.0, 0.0);
                     PrimitiveParser::parseColor(c, ctx);
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
-                    b.setColor1(c);
+                    b.setCheckerColor1(c);
                     b.setTextureNumber(SolidTextureColorNames::COLOUR_TEXTURE);
                     texture = b.build();
                 }

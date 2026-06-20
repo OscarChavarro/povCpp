@@ -79,26 +79,26 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
         } else if (tempTexture->getColorPatternType() == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
-            PovRayMaterial * const texture1 = (PovRayMaterial *)tempTexture->getColor1();
-            PovRayMaterial * const texture2 = (PovRayMaterial *)tempTexture->getColor2();
+            PovRayMaterial * const texture1 = tempTexture->getCheckerTexture1();
+            PovRayMaterial * const texture2 = tempTexture->getCheckerTexture2();
             fixturesFacade.colorAt(
                 &surfaceColor,
                 tempTexture->getColorPatternType(),
                 tempTexture->getTextureTransformationInverse(),
                 tempTexture->getColorImage(),
-                tempTexture->getColor1(), tempTexture->getColor2(), tempTexture->getTurbulence(),
+                tempTexture->getCheckerColor1(), tempTexture->getCheckerColor2(), tempTexture->getTurbulence(),
                 tempTexture->getOctaves(), tempTexture->getColorMap(),
                 tempTexture->getTextureGradient(),
                 tempTexture->getBrickMortar(),
                 &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance,
                 SolidTextureFixturesColorAtParameterSet(
                     texture1->getColorPatternType(), texture1->getTextureTransformationInverse(),
-                    texture1->getColorImage(), texture1->getColor1(), texture1->getColor2(),
+                    texture1->getColorImage(), texture1->getCheckerColor1(), texture1->getCheckerColor2(),
                     texture1->getTurbulence(), texture1->getOctaves(), texture1->getColorMap(),
                     texture1->getTextureGradient(), texture1->getBrickMortar()),
                 SolidTextureFixturesColorAtParameterSet(
                     texture2->getColorPatternType(), texture2->getTextureTransformationInverse(),
-                    texture2->getColorImage(), texture2->getColor1(), texture2->getColor2(),
+                    texture2->getColorImage(), texture2->getCheckerColor1(), texture2->getCheckerColor2(),
                     texture2->getTurbulence(), texture2->getOctaves(), texture2->getColorMap(),
                     texture2->getTextureGradient(),
                     texture2->getBrickMortar()));
@@ -108,7 +108,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 tempTexture->getColorPatternType(),
                 tempTexture->getTextureTransformationInverse(),
                 tempTexture->getColorImage(),
-                tempTexture->getColor1(), tempTexture->getColor2(), tempTexture->getTurbulence(),
+                tempTexture->getCheckerColor1(), tempTexture->getCheckerColor2(), tempTexture->getTurbulence(),
                 tempTexture->getOctaves(), tempTexture->getColorMap(),
                 tempTexture->getTextureGradient(),
                 tempTexture->getBrickMortar(),

@@ -17,8 +17,10 @@ class PovRayMaterialBuilder {
     explicit PovRayMaterialBuilder(const PovRayMaterial *base);
 
     PovRayMaterial *build() const;
-    ColorRgba *getColor1() const;
-    ColorRgba *getColor2() const;
+    ColorRgba *getCheckerColor1() const;
+    ColorRgba *getCheckerColor2() const;
+    PovRayMaterial *getCheckerTexture1() const;
+    PovRayMaterial *getCheckerTexture2() const;
     ControlledRGBAImageHDRUncompressed *getMaterialImage() const;
     java::ArrayList<PovRayMaterial *> &getMaterials();
     double getMortar() const;
@@ -28,8 +30,10 @@ class PovRayMaterialBuilder {
     PovRayMaterialBuilder &setBumpAmount(double v);
     PovRayMaterialBuilder &setBumpImage(ControlledRGBAImageHDRUncompressed *v);
     PovRayMaterialBuilder &setBumpNumber(SolidTextureBumpyNames v);
-    PovRayMaterialBuilder &setColor1(ColorRgba *v);
-    PovRayMaterialBuilder &setColor2(ColorRgba *v);
+    PovRayMaterialBuilder &setCheckerColor1(ColorRgba *v);
+    PovRayMaterialBuilder &setCheckerColor2(ColorRgba *v);
+    PovRayMaterialBuilder &setCheckerTexture1(PovRayMaterial *v);
+    PovRayMaterialBuilder &setCheckerTexture2(PovRayMaterial *v);
     PovRayMaterialBuilder &setColorMap(RGBAColorPalette *v);
     PovRayMaterialBuilder &setFrequency(double v);
     PovRayMaterialBuilder &setImage(ControlledRGBAImageHDRUncompressed *v);
@@ -62,8 +66,10 @@ class PovRayMaterialBuilder {
     double bumpAmount;
     ControlledRGBAImageHDRUncompressed *bumpImage;
     SolidTextureBumpyNames bumpNumber;
-    ColorRgba *color1;
-    ColorRgba *color2;
+    ColorRgba *checkerColor1;
+    ColorRgba *checkerColor2;
+    PovRayMaterial *checkerTexture1;
+    PovRayMaterial *checkerTexture2;
     RGBAColorPalette *colorMap;
     double frequency;
     ControlledRGBAImageHDRUncompressed *image;

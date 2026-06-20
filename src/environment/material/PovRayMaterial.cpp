@@ -13,7 +13,8 @@ PovRayMaterial::PovRayMaterial(
     double texRandomness, double freq, double ph,
     SolidTextureColorNames texNum, SolidTextureBumpyNames bumpNum,
     Matrix4x4d *texTransform, Matrix4x4d *texTransformInv,
-    ColorRgba *col1, ColorRgba *col2, double turb,
+    ColorRgba *checkColor1, ColorRgba *checkColor2,
+    PovRayMaterial *checkTex1, PovRayMaterial *checkTex2, double turb,
     const Vector3Dd &texGrad, RGBAColorPalette *colorPal,
     ControlledRGBAImageHDRUncompressed *img,
     ControlledRGBAImageHDRUncompressed *bumpImg,
@@ -28,8 +29,10 @@ PovRayMaterial::PovRayMaterial(
     bumpNumberOfWaves(numWaves),
     bumpPatternType(bumpNum),
     bumpPhase(ph),
-    color1(col1),
-    color2(col2),
+    checkerColor1(checkColor1),
+    checkerColor2(checkColor2),
+    checkerTexture1(checkTex1),
+    checkerTexture2(checkTex2),
     colorImage(img),
     colorMap(colorPal),
     colorPatternType(texNum),
@@ -158,7 +161,7 @@ PovRayMaterial::copyTextureNode(const PovRayMaterial *src)
         src->objectPhong, src->objectPhongSize, src->bumpAmount,
         src->textureRandomness, src->bumpFrequency, src->bumpPhase,
         src->colorPatternType, src->bumpPatternType, transformation, transformationInverse,
-        src->color1, src->color2, src->turbulence,
+        src->checkerColor1, src->checkerColor2, src->checkerTexture1, src->checkerTexture2, src->turbulence,
         src->textureGradient, newColorMap, src->colorImage, src->bumpImage, src->materialMapImage,
         src->metallicFlag, src->bumpNumberOfWaves, src->octaves, src->brickMortar,
         src->layers, src->materialMapVariants);
@@ -224,8 +227,8 @@ PovRayMaterial::rotateTexture(PovRayMaterial **texturePtr, Vector3Dd *vector)
     if (needsTransform(texture)) {
         applyRotationTransform(texture, vector);
         if (texture->colorPatternType == (int)CHECKER_TEXTURE_TEXTURE) {
-            rotateTexture((PovRayMaterial **)&texture->color1, vector);
-            rotateTexture((PovRayMaterial **)&texture->color2, vector);
+            rotateTexture(&texture->checkerTexture1, vector);
+            rotateTexture(&texture->checkerTexture2, vector);
         }
     }
 
@@ -234,8 +237,8 @@ PovRayMaterial::rotateTexture(PovRayMaterial **texturePtr, Vector3Dd *vector)
         if (needsTransform(layer)) {
             applyRotationTransform(layer, vector);
             if (layer->colorPatternType == (int)CHECKER_TEXTURE_TEXTURE) {
-                rotateTexture((PovRayMaterial **)&layer->color1, vector);
-                rotateTexture((PovRayMaterial **)&layer->color2, vector);
+                rotateTexture(&layer->checkerTexture1, vector);
+                rotateTexture(&layer->checkerTexture2, vector);
             }
         }
     }
@@ -260,8 +263,8 @@ PovRayMaterial::scaleTexture(PovRayMaterial **texturePtr, Vector3Dd *vector)
     if (needsTransform(texture)) {
         applyScaleTransform(texture, vector);
         if (texture->colorPatternType == (int)CHECKER_TEXTURE_TEXTURE) {
-            scaleTexture((PovRayMaterial **)&texture->color1, vector);
-            scaleTexture((PovRayMaterial **)&texture->color2, vector);
+            scaleTexture(&texture->checkerTexture1, vector);
+            scaleTexture(&texture->checkerTexture2, vector);
         }
     }
 
@@ -270,8 +273,8 @@ PovRayMaterial::scaleTexture(PovRayMaterial **texturePtr, Vector3Dd *vector)
         if (needsTransform(layer)) {
             applyScaleTransform(layer, vector);
             if (layer->colorPatternType == (int)CHECKER_TEXTURE_TEXTURE) {
-                scaleTexture((PovRayMaterial **)&layer->color1, vector);
-                scaleTexture((PovRayMaterial **)&layer->color2, vector);
+                scaleTexture(&layer->checkerTexture1, vector);
+                scaleTexture(&layer->checkerTexture2, vector);
             }
         }
     }
@@ -299,8 +302,8 @@ PovRayMaterial::translateTexture(PovRayMaterial **texturePtr, Vector3Dd *vector)
     if (needsTransform(texture)) {
         applyTranslationTransform(texture, vector);
         if (texture->colorPatternType == (int)CHECKER_TEXTURE_TEXTURE) {
-            translateTexture((PovRayMaterial **)&texture->color1, vector);
-            translateTexture((PovRayMaterial **)&texture->color2, vector);
+            translateTexture(&texture->checkerTexture1, vector);
+            translateTexture(&texture->checkerTexture2, vector);
         }
     }
 
@@ -309,8 +312,8 @@ PovRayMaterial::translateTexture(PovRayMaterial **texturePtr, Vector3Dd *vector)
         if (needsTransform(layer)) {
             applyTranslationTransform(layer, vector);
             if (layer->colorPatternType == (int)CHECKER_TEXTURE_TEXTURE) {
-                translateTexture((PovRayMaterial **)&layer->color1, vector);
-                translateTexture((PovRayMaterial **)&layer->color2, vector);
+                translateTexture(&layer->checkerTexture1, vector);
+                translateTexture(&layer->checkerTexture2, vector);
             }
         }
     }
