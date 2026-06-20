@@ -13,17 +13,10 @@ sources/frequencies used by ripple/wave bump textures, and texture-space transfo
 #include "environment/material/PovRayMaterial.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-class PovrayMaterialUtils {
-  private:
-    static bool needsTransform(const PovRayMaterial *texture);
-    static void applyTranslationTransform(
-        PovRayMaterial *texture, const Vector3Dd *vector);
-    static void applyRotationTransform(
-        PovRayMaterial *texture, Vector3Dd *vector);
-    static void applyScaleTransform(
-        PovRayMaterial *texture, const Vector3Dd *vector);
-    static void copyTextureNode(PovRayMaterial *dst, const PovRayMaterial *src);
-
+// Thin facade over PovRayMaterial's own copy/transform engine. The actual writes to the
+// (now immutable-by-default) PovRayMaterial state live in PovRayMaterial member functions,
+// so this class holds no privileged access and contains no setters.
+class PovRayMaterialUtils {
   public:
     static void translateTexture(
         PovRayMaterial **texturePtr, Vector3Dd *vector);

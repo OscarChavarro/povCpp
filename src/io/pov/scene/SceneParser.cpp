@@ -1,13 +1,13 @@
 #include <cstdio>
 
-#include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
-#include "environment/material/PovrayMaterialUtils.h"
+#include "environment/material/PovRayMaterialUtils.h"
 #include "environment/scene/Scene.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/scene/SceneBodyParser.h"
-#include "io/pov/scene/ScenePostProcessor.h"
 #include "io/pov/scene/SceneParser.h"
+#include "io/pov/scene/ScenePostProcessor.h"
+#include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 
 void
 SceneParser::postProcessPhase(Scene *framePtr)
@@ -71,7 +71,7 @@ SceneParser::frameInit()
 void
 SceneParser::frameInit(Scene *framePtr, ParserContext &ctx)
 {
-    ctx.setDefaultTexture(PovrayMaterialUtils::getTexture());
+    ctx.setDefaultTexture(PovRayMaterialUtils::getTexture());
     framePtr->resetForSceneParse(ctx.getAntialiasThreshold());
 }
 

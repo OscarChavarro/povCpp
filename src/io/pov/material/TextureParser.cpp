@@ -1,11 +1,6 @@
-#include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
-#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
-#include "environment/material/PovrayMaterialUtils.h"
+#include "io/pov/material/TextureParser.h"
+#include "io/pov/material/PovRayMaterialBuilder.h"
+#include "environment/material/PovRayMaterialUtils.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/material/ValuesBuilder.h"
@@ -16,10 +11,16 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/ColorMapParser.h"
-#include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
+#include "java/util/ArrayList.txx"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
+#include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 
 void
 TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDRUncompressed *ti, IndexedColorImageHDRUncompressed *idx)
@@ -31,17 +32,13 @@ TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDR
 PovRayMaterial *
 TextureParser::copyTexture(PovRayMaterial *texture)
 {
-    return PovrayMaterialUtils::copyTexture(texture);
+    return PovRayMaterialUtils::copyTexture(texture);
 }
 
-PovRayMaterial *
-TextureParser::ensureWritableTexture(PovRayMaterial *texture)
+PovRayMaterialBuilder
+TextureParser::editorFor(PovRayMaterial *texture)
 {
-    if (texture->isConstant()) {
-        texture = TextureParser::copyTexture(texture);
-        texture->setConstant(false);
-    }
-    return texture;
+    return PovRayMaterialBuilder(texture).setConstant(false);
 }
 
 PovRayMaterial *
@@ -66,7 +63,6 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
     int constantId;
     PovRayMaterial *texture;
     PovRayMaterial *localTexture;
-    PovRayMaterial *firstTexture;
     int reg;
 
     texture = baseTexture;
@@ -94,786 +90,937 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
 
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureRandomness(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureRandomness(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::ONCE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setOnceFlag(true);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setOnceFlag(true);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::TURBULENCE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTurbulence(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTurbulence(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::OCTAVES_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setOctaves((int)PrimitiveParser::parseFloat(ctx));
-                if (texture->getOctaves() < 1) {
-                    texture->setOctaves(6);
-                }
-                if (texture->getOctaves() > 10) { // Avoid DOMAIN errors
-                    texture->setOctaves(10);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setOctaves((int)PrimitiveParser::parseFloat(ctx));
+                    if (b.getOctaves() < 1) {
+                        b.setOctaves(6);
+                    }
+                    if (b.getOctaves() > 10) { // Avoid DOMAIN errors
+                        b.setOctaves(10);
+                    }
+                    texture = b.build();
                 }
                 break;
 
             case Tokenizer::BOZO_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::BOZO_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::BOZO_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::MORTAR_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setMortar(PrimitiveParser::parseFloat(ctx));
-                if (texture->getMortar() < 0) {
-                    texture->setMortar(0.2);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setMortar(PrimitiveParser::parseFloat(ctx));
+                    if (b.getMortar() < 0) {
+                        b.setMortar(0.2);
+                    }
+                    texture = b.build();
                 }
                 break;
 
             case Tokenizer::BRICK_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::BRICK_TEXTURE);
                 {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::COLOUR_TOKEN:
-                            texture->setColor1(ValuesBuilder::getColor());
-                            texture->setColor2(ValuesBuilder::getColor());
-                            PrimitiveParser::parseColor(texture->getColor1(), ctx);
-                            ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                            PrimitiveParser::parseColor(texture->getColor2(), ctx);
-                            break;
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::BRICK_TEXTURE);
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::COLOUR_TOKEN:
+                                b.setColor1(ValuesBuilder::getColor());
+                                b.setColor2(ValuesBuilder::getColor());
+                                PrimitiveParser::parseColor(b.getColor1(), ctx);
+                                ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
+                                PrimitiveParser::parseColor(b.getColor2(), ctx);
+                                break;
 
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localExitFlag = true;
-                            break;
+                            default:
+                                ctx.tokenStream().ungetToken();
+                                localExitFlag = true;
+                                break;
+                            }
                         }
                     }
+                    texture = b.build();
                 }
                 break;
 
             case Tokenizer::CHECKER_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::CHECKER_TEXTURE);
                 {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::COLOUR_TOKEN:
-                            texture->setColor1(ValuesBuilder::getColor());
-                            texture->setColor2(ValuesBuilder::getColor());
-                            PrimitiveParser::parseColor(texture->getColor1(), ctx);
-                            ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
-                            PrimitiveParser::parseColor(texture->getColor2(), ctx);
-                            break;
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::CHECKER_TEXTURE);
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::COLOUR_TOKEN:
+                                b.setColor1(ValuesBuilder::getColor());
+                                b.setColor2(ValuesBuilder::getColor());
+                                PrimitiveParser::parseColor(b.getColor1(), ctx);
+                                ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
+                                PrimitiveParser::parseColor(b.getColor2(), ctx);
+                                break;
 
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localExitFlag = true;
-                            break;
+                            default:
+                                ctx.tokenStream().ungetToken();
+                                localExitFlag = true;
+                                break;
+                            }
                         }
                     }
+                    texture = b.build();
                 }
                 break;
 
             case Tokenizer::CHECKER_TEXTURE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE);
-
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
-
                 {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::TEXTURE_TOKEN:
-                            localTexture = TextureParser::parseTexture(ctx);
-                            localTexture = TextureParser::ensureWritableTexture(localTexture);
-                            {
-                                PovRayMaterial *color1Head = (PovRayMaterial *)texture->getColor1();
-                                PovrayMaterialUtils::prependTextureLayers(localTexture, color1Head);
-                                texture->setColor1((ColorRgba *)color1Head);
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE);
+
+                    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::TEXTURE_TOKEN:
+                                localTexture = TextureParser::parseTexture(ctx);
+                                {
+                                    PovRayMaterialBuilder lb = TextureParser::editorFor(localTexture);
+                                    localTexture = lb.build();
+                                    PovRayMaterial *color1Head = (PovRayMaterial *)b.getColor1();
+                                    PovRayMaterialUtils::prependTextureLayers(localTexture, color1Head);
+                                    b.setColor1((ColorRgba *)color1Head);
+                                }
+                                break;
+                            default:
+                                ctx.tokenStream().ungetToken();
+                                localExitFlag = true;
+                                break;
                             }
-                            break;
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localExitFlag = true;
-                            break;
                         }
                     }
-                }
 
-                ParseHelpers::getExpectedToken(Tokenizer::TILE2_TOKEN, ctx);
-                {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::TEXTURE_TOKEN:
-                            localTexture = TextureParser::parseTexture(ctx);
-                            localTexture = TextureParser::ensureWritableTexture(localTexture);
-                            {
-                                PovRayMaterial *color2Head = (PovRayMaterial *)texture->getColor2();
-                                PovrayMaterialUtils::prependTextureLayers(localTexture, color2Head);
-                                texture->setColor2((ColorRgba *)color2Head);
+                    ParseHelpers::getExpectedToken(Tokenizer::TILE2_TOKEN, ctx);
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::TEXTURE_TOKEN:
+                                localTexture = TextureParser::parseTexture(ctx);
+                                {
+                                    PovRayMaterialBuilder lb = TextureParser::editorFor(localTexture);
+                                    localTexture = lb.build();
+                                    PovRayMaterial *color2Head = (PovRayMaterial *)b.getColor2();
+                                    PovRayMaterialUtils::prependTextureLayers(localTexture, color2Head);
+                                    b.setColor2((ColorRgba *)color2Head);
+                                }
+                                break;
+                            default:
+                                ctx.tokenStream().ungetToken();
+                                localExitFlag = true;
+                                break;
                             }
-                            break;
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localExitFlag = true;
-                            break;
                         }
                     }
+                    ParseHelpers::getExpectedToken(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                    texture = b.build();
                 }
-                ParseHelpers::getExpectedToken(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
                 break;
 
             case Tokenizer::MARBLE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::MARBLE_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::MARBLE_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::WOOD_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::WOOD_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::WOOD_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::SPOTTED_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::SPOTTED_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::SPOTTED_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::AGATE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::AGATE_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::AGATE_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::GRANITE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::GRANITE_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::GRANITE_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::GRADIENT_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::GRADIENT_TEXTURE);
-                PrimitiveParser::parseVector(&texture->getTextureGradient(), ctx);
+                {
+                    Vector3Dd gradientVec;
+                    PrimitiveParser::parseVector(&gradientVec, ctx);
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::GRADIENT_TEXTURE);
+                    b.setTextureGradient(gradientVec);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::AMBIENT_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectAmbient(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectAmbient(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::BRILLIANCE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectBrilliance(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectBrilliance(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::ROUGHNESS_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectRoughness(PrimitiveParser::parseFloat(ctx));
-                // No training wheels
-                // if (texture -> objectRoughness > 1.0)
-                //     texture -> objectRoughness = 1.0;
-                // if (texture -> objectRoughness < 0.001)
-                //     texture -> objectRoughness = 0.001;
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectRoughness(PrimitiveParser::parseFloat(ctx));
+                    // No training wheels
+                    // if (texture -> objectRoughness > 1.0)
+                    //     texture -> objectRoughness = 1.0;
+                    // if (texture -> objectRoughness < 0.001)
+                    //     texture -> objectRoughness = 0.001;
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::PHONGSIZE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectPhongSize(PrimitiveParser::parseFloat(ctx));
-                // No training wheels
-                // if (texture -> objectPhongSize < 1.0)
-                //     texture -> objectPhongSize = 1.0;
-                // if (texture -> objectPhongSize > 100)
-                //     texture -> objectPhongSize = 100;
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectPhongSize(PrimitiveParser::parseFloat(ctx));
+                    // No training wheels
+                    // if (texture -> objectPhongSize < 1.0)
+                    //     texture -> objectPhongSize = 1.0;
+                    // if (texture -> objectPhongSize > 100)
+                    //     texture -> objectPhongSize = 100;
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::DIFFUSE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectDiffuse(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectDiffuse(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::SPECULAR_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectSpecular(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectSpecular(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::PHONG_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectPhong(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectPhong(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::METALLIC_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setMetallicFlag(true);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setMetallicFlag(true);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::IOR_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectIndexOfRefraction(
-                    PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectIndexOfRefraction(
+                        PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::REFRACTION_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectRefraction(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectRefraction(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::TRANSMIT_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectTransmit(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectTransmit(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::REFLECTION_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setObjectReflection(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setObjectReflection(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::IMAGEMAP_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::IMAGE_MAP_TEXTURE);
-                texture->setImage(new ControlledRGBAImageHDRUncompressed);
-                if (texture->getImage() == nullptr) {
-                    ParseErrorReporter::reportError(
-                        "Out of memory. Cannot allocate image map texture", ctx);
-                }
-                texture->getImage()->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
-                texture->getImage()->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
-                texture->getImage()->setInterpolationType(ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
-                texture->getImage()->setOnceFlag(false);
-                texture->getImage()->setUseColorFlag(true);
-
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
-
                 {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::DASH_TOKEN:
-                        case Tokenizer::PLUS_TOKEN:
-                        case Tokenizer::FLOAT_TOKEN:
-                            ctx.tokenStream().ungetToken();
-                            texture->getImage()->setMapType(PrimitiveParser::parseFloat(ctx));
-                            break;
-
-                        case Tokenizer::LEFT_ANGLE_TOKEN:
-                            ctx.tokenStream().ungetToken();
-                            {
-                                Vector3Dd _g;
-                                PrimitiveParser::parseVector(&_g, ctx);
-                                texture->getImage()->setImageGradient(_g);
-                            }
-                            break;
-
-                        case Tokenizer::IFF_TOKEN: {
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getImage(), ctx.token().getTokenString(),
-                                *ctx.tokenizer().getFileLocator());
-                            if (idx != nullptr) {
-                                TextureParser::wireIndexedInToTextureImage(
-                                    texture->getImage(), idx);
-                            }
-                            localExitFlag = true;
-                            break;
-                        }
-
-                        case Tokenizer::GIF_TOKEN: {
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
-                            TextureParser::wireIndexedInToTextureImage(texture->getImage(), idx);
-                            localExitFlag = true;
-                            break;
-                        }
-
-                        case Tokenizer::TGA_TOKEN:
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            TargaFormat::readTargaImage(
-                                texture->getImage(), ctx.token().getTokenString(),
-                                *ctx.tokenizer().getFileLocator());
-                            localExitFlag = true;
-                            break;
-
-                        case Tokenizer::DUMP_TOKEN:
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            RawDumpFormat::readDumpImage(
-                                texture->getImage(), ctx.token().getTokenString(),
-                                *ctx.tokenizer().getFileLocator());
-                            localExitFlag = true;
-                            break;
-
-                        default:
-                            ParseErrorReporter::parseError(Tokenizer::GIF_TOKEN, ctx);
-                            break;
-                        }
+                    ControlledRGBAImageHDRUncompressed *image = new ControlledRGBAImageHDRUncompressed;
+                    if (image == nullptr) {
+                        ParseErrorReporter::reportError(
+                            "Out of memory. Cannot allocate image map texture", ctx);
                     }
-                }
+                    image->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
+                    image->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
+                    image->setInterpolationType(ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
+                    image->setOnceFlag(false);
+                    image->setUseColorFlag(true);
 
-                {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::ONCE_TOKEN:
-                            texture->getImage()->setOnceFlag(true);
-                            break;
+                    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
-                        case Tokenizer::INTERPOLATE_TOKEN:
-                            texture->getImage()->setInterpolationType(
-                                PrimitiveParser::parseFloat(ctx));
-                            break;
-
-                        case Tokenizer::MAPTYPE_TOKEN:
-                            texture->getImage()->setMapType(
-                                (int)PrimitiveParser::parseFloat(ctx));
-                            break;
-
-                        case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->getImage()->setUseColorFlag(true);
-                            break;
-
-                        case Tokenizer::USE_INDEX_TOKEN:
-                            texture->getImage()->setUseColorFlag(false);
-                            break;
-
-                        case Tokenizer::ALPHA_TOKEN: {
-                            bool alphaInnerExitFlag = false;
-                            while (!alphaInnerExitFlag) {
-                                ctx.tokenStream().getToken();
-                                switch (ctx.token().getTokenId()) {
-                                case Tokenizer::FLOAT_TOKEN:
-                                    reg = (int)(ctx.token().getTokenFloat() + 0.01);
-                                    if (texture->getImage()->getIndexedData() == nullptr) {
-                                        ParseErrorReporter::reportError(
-                                            "Can't apply ALPHA to a non "
-                                            "color-mapped image\n", ctx);
-                                    }
-
-                                    if ((reg < 0) ||
-                                        (reg >=
-                                            texture->getImage()->getIndexedData()->getColorMapSize())) {
-                                        ParseErrorReporter::reportError(
-                                            "ALPHA color register value out "
-                                            "of range.\n", ctx);
-                                    }
-
-                                    texture->getImage()->getIndexedData()->getColorTable()[reg].a =
-                                        (unsigned short)(255.0 *
-                                                         PrimitiveParser::
-                                                             parseFloat(ctx));
-                                    alphaInnerExitFlag = true;
-                                    break;
-
-                                case Tokenizer::ALL_TOKEN: {
-                                    const double alpha = PrimitiveParser::parseFloat(ctx);
-
-                                    for (reg = 0;
-                                        reg < texture->getImage()->getIndexedData()->getColorMapSize();
-                                        reg++) {
-                                        texture->getImage()->getIndexedData()->getColorTable()[reg].a = (unsigned short)(alpha * 255.0);
-                                    }
-                                    alphaInnerExitFlag = true;
-                                }
-
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::DASH_TOKEN:
+                            case Tokenizer::PLUS_TOKEN:
+                            case Tokenizer::FLOAT_TOKEN:
+                                ctx.tokenStream().ungetToken();
+                                image->setMapType(PrimitiveParser::parseFloat(ctx));
                                 break;
+
+                            case Tokenizer::LEFT_ANGLE_TOKEN:
+                                ctx.tokenStream().ungetToken();
+                                {
+                                    Vector3Dd _g;
+                                    PrimitiveParser::parseVector(&_g, ctx);
+                                    image->setImageGradient(_g);
                                 }
+                                break;
+
+                            case Tokenizer::IFF_TOKEN: {
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
+                                    image, ctx.token().getTokenString(),
+                                    *ctx.tokenizer().getFileLocator());
+                                if (idx != nullptr) {
+                                    TextureParser::wireIndexedInToTextureImage(
+                                        image, idx);
+                                }
+                                localExitFlag = true;
+                                break;
                             }
-                        } break;
 
-                        case Tokenizer::RIGHT_CURLY_TOKEN:
-                            localExitFlag = true;
-                            break;
+                            case Tokenizer::GIF_TOKEN: {
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
+                                GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
+                                TextureParser::wireIndexedInToTextureImage(image, idx);
+                                localExitFlag = true;
+                                break;
+                            }
 
-                        default:
-                            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                            break;
+                            case Tokenizer::TGA_TOKEN:
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                TargaFormat::readTargaImage(
+                                    image, ctx.token().getTokenString(),
+                                    *ctx.tokenizer().getFileLocator());
+                                localExitFlag = true;
+                                break;
+
+                            case Tokenizer::DUMP_TOKEN:
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                RawDumpFormat::readDumpImage(
+                                    image, ctx.token().getTokenString(),
+                                    *ctx.tokenizer().getFileLocator());
+                                localExitFlag = true;
+                                break;
+
+                            default:
+                                ParseErrorReporter::parseError(Tokenizer::GIF_TOKEN, ctx);
+                                break;
+                            }
                         }
                     }
+
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::ONCE_TOKEN:
+                                image->setOnceFlag(true);
+                                break;
+
+                            case Tokenizer::INTERPOLATE_TOKEN:
+                                image->setInterpolationType(
+                                    PrimitiveParser::parseFloat(ctx));
+                                break;
+
+                            case Tokenizer::MAPTYPE_TOKEN:
+                                image->setMapType(
+                                    (int)PrimitiveParser::parseFloat(ctx));
+                                break;
+
+                            case Tokenizer::USE_COLOUR_TOKEN:
+                                image->setUseColorFlag(true);
+                                break;
+
+                            case Tokenizer::USE_INDEX_TOKEN:
+                                image->setUseColorFlag(false);
+                                break;
+
+                            case Tokenizer::ALPHA_TOKEN: {
+                                bool alphaInnerExitFlag = false;
+                                while (!alphaInnerExitFlag) {
+                                    ctx.tokenStream().getToken();
+                                    switch (ctx.token().getTokenId()) {
+                                    case Tokenizer::FLOAT_TOKEN:
+                                        reg = (int)(ctx.token().getTokenFloat() + 0.01);
+                                        if (image->getIndexedData() == nullptr) {
+                                            ParseErrorReporter::reportError(
+                                                "Can't apply ALPHA to a non "
+                                                "color-mapped image\n", ctx);
+                                        }
+
+                                        if ((reg < 0) ||
+                                            (reg >=
+                                                image->getIndexedData()->getColorMapSize())) {
+                                            ParseErrorReporter::reportError(
+                                                "ALPHA color register value out "
+                                                "of range.\n", ctx);
+                                        }
+
+                                        image->getIndexedData()->getColorTable()[reg].a =
+                                            (unsigned short)(255.0 *
+                                                             PrimitiveParser::
+                                                                 parseFloat(ctx));
+                                        alphaInnerExitFlag = true;
+                                        break;
+
+                                    case Tokenizer::ALL_TOKEN: {
+                                        const double alpha = PrimitiveParser::parseFloat(ctx);
+
+                                        for (reg = 0;
+                                            reg < image->getIndexedData()->getColorMapSize();
+                                            reg++) {
+                                            image->getIndexedData()->getColorTable()[reg].a = (unsigned short)(alpha * 255.0);
+                                        }
+                                        alphaInnerExitFlag = true;
+                                    }
+
+                                    break;
+                                    }
+                                }
+                            } break;
+
+                            case Tokenizer::RIGHT_CURLY_TOKEN:
+                                localExitFlag = true;
+                                break;
+
+                            default:
+                                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                                break;
+                            }
+                        }
+                    }
+
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::IMAGE_MAP_TEXTURE);
+                    b.setImage(image);
+                    texture = b.build();
                 }
                 break;
 
             case Tokenizer::WAVES_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::WAVES);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
                 {
-                    bool localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::PHASE_TOKEN:
-                            texture->setPhase(PrimitiveParser::parseFloat(ctx));
-                            localExitFlag = true;
-                            break;
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::WAVES);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    {
+                        bool localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::PHASE_TOKEN:
+                                b.setPhase(PrimitiveParser::parseFloat(ctx));
+                                localExitFlag = true;
+                                break;
 
-                        default:
-                            ctx.tokenStream().ungetToken();
-                            localExitFlag = true;
-                            break;
+                            default:
+                                ctx.tokenStream().ungetToken();
+                                localExitFlag = true;
+                                break;
+                            }
                         }
                     }
+                    texture = b.build();
                 }
                 break;
 
             case Tokenizer::FREQUENCY_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setFrequency(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setFrequency(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::PHASE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setPhase(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setPhase(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::RIPPLES_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::RIPPLES);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::RIPPLES);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::WRINKLES_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::WRINKLES);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::WRINKLES);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::BUMPS_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::BUMPS);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::BUMPS);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::DENTS_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::DENTS);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::DENTS);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                PovrayMaterialUtils::translateTexture(&texture, &localVector);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    texture = b.build();
+                    PrimitiveParser::parseVector(&localVector, ctx);
+                    PovRayMaterialUtils::translateTexture(&texture, &localVector);
+                }
                 break;
 
             case Tokenizer::ROTATE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                PovrayMaterialUtils::rotateTexture(&texture, &localVector);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    texture = b.build();
+                    PrimitiveParser::parseVector(&localVector, ctx);
+                    PovRayMaterialUtils::rotateTexture(&texture, &localVector);
+                }
                 break;
 
             case Tokenizer::SCALE_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                PrimitiveParser::parseVector(&localVector, ctx);
-                PovrayMaterialUtils::scaleTexture(&texture, &localVector);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    texture = b.build();
+                    PrimitiveParser::parseVector(&localVector, ctx);
+                    PovRayMaterialUtils::scaleTexture(&texture, &localVector);
+                }
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setColor1(ValuesBuilder::getColor());
-                PrimitiveParser::parseColor(texture->getColor1(), ctx);
-                texture->setTextureNumber(SolidTextureColorNames::COLOUR_TEXTURE);
+                {
+                    ColorRgba *c = ValuesBuilder::getColor();
+                    PrimitiveParser::parseColor(c, ctx);
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setColor1(c);
+                    b.setTextureNumber(SolidTextureColorNames::COLOUR_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::COLOUR_MAP_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setColorMap(ColorMapParser::parseColorMap(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setColorMap(ColorMapParser::parseColorMap(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::ONION_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::ONION_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::ONION_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::LEOPARD_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::LEOPARD_TEXTURE);
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::LEOPARD_TEXTURE);
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::BUMPY1_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::BUMPY1);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::BUMPY1);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::BUMPY2_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::BUMPY2);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::BUMPY2);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::BUMPY3_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::BUMPY3);
-                texture->setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                {
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::BUMPY3);
+                    b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
+                    texture = b.build();
+                }
                 break;
 
             case Tokenizer::BUMPMAP_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setBumpNumber(SolidTextureBumpyNames::BUMP_MAP);
-                texture->setBumpImage(new ControlledRGBAImageHDRUncompressed);
-                if (texture->getBumpImage() == nullptr) {
-                    ParseErrorReporter::reportError(
-                        "Out of memory. Cannot allocate bump map texture", ctx);
-                }
-                texture->getBumpImage()->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
-                texture->getBumpImage()->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
-                texture->getBumpImage()->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
-                texture->getBumpImage()->setOnceFlag(false);
-                texture->getBumpImage()->setUseColorFlag(true);
-
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
-
                 {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::DASH_TOKEN:
-                        case Tokenizer::PLUS_TOKEN:
-                        case Tokenizer::FLOAT_TOKEN:
-                            ctx.tokenStream().ungetToken();
-                            texture->getBumpImage()->setMapType(
-                                (int)PrimitiveParser::parseFloat(ctx));
-                            break;
+                    ControlledRGBAImageHDRUncompressed *bumpImage = new ControlledRGBAImageHDRUncompressed;
+                    if (bumpImage == nullptr) {
+                        ParseErrorReporter::reportError(
+                            "Out of memory. Cannot allocate bump map texture", ctx);
+                    }
+                    bumpImage->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
+                    bumpImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
+                    bumpImage->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
+                    bumpImage->setOnceFlag(false);
+                    bumpImage->setUseColorFlag(true);
 
-                        case Tokenizer::LEFT_ANGLE_TOKEN:
-                            ctx.tokenStream().ungetToken();
-                            {
-                                Vector3Dd _g;
-                                PrimitiveParser::parseVector(&_g, ctx);
-                                texture->getBumpImage()->setImageGradient(_g);
+                    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::DASH_TOKEN:
+                            case Tokenizer::PLUS_TOKEN:
+                            case Tokenizer::FLOAT_TOKEN:
+                                ctx.tokenStream().ungetToken();
+                                bumpImage->setMapType(
+                                    (int)PrimitiveParser::parseFloat(ctx));
+                                break;
+
+                            case Tokenizer::LEFT_ANGLE_TOKEN:
+                                ctx.tokenStream().ungetToken();
+                                {
+                                    Vector3Dd _g;
+                                    PrimitiveParser::parseVector(&_g, ctx);
+                                    bumpImage->setImageGradient(_g);
+                                }
+                                break;
+
+                            case Tokenizer::IFF_TOKEN: {
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
+                                    bumpImage, ctx.token().getTokenString(),
+                                    *ctx.tokenizer().getFileLocator());
+                                if (idx != nullptr) {
+                                    TextureParser::wireIndexedInToTextureImage(
+                                        bumpImage, idx);
+                                }
+                                localExitFlag = true;
+                                break;
                             }
-                            break;
 
-                        case Tokenizer::IFF_TOKEN: {
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getBumpImage(), ctx.token().getTokenString(),
-                                *ctx.tokenizer().getFileLocator());
-                            if (idx != nullptr) {
+                            case Tokenizer::GIF_TOKEN: {
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
+                                GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                                 TextureParser::wireIndexedInToTextureImage(
-                                    texture->getBumpImage(), idx);
+                                    bumpImage, idx);
+                                localExitFlag = true;
+                                break;
                             }
-                            localExitFlag = true;
-                            break;
-                        }
 
-                        case Tokenizer::GIF_TOKEN: {
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
-                            TextureParser::wireIndexedInToTextureImage(
-                                texture->getBumpImage(), idx);
-                            localExitFlag = true;
-                            break;
-                        }
+                            case Tokenizer::TGA_TOKEN:
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                TargaFormat::readTargaImage(
+                                    bumpImage, ctx.token().getTokenString(),
+                                    *ctx.tokenizer().getFileLocator());
+                                localExitFlag = true;
+                                break;
 
-                        case Tokenizer::TGA_TOKEN:
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            TargaFormat::readTargaImage(
-                                texture->getBumpImage(), ctx.token().getTokenString(),
-                                *ctx.tokenizer().getFileLocator());
-                            localExitFlag = true;
-                            break;
+                            case Tokenizer::DUMP_TOKEN:
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                RawDumpFormat::readDumpImage(
+                                    bumpImage, ctx.token().getTokenString(),
+                                    *ctx.tokenizer().getFileLocator());
+                                localExitFlag = true;
+                                break;
 
-                        case Tokenizer::DUMP_TOKEN:
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            RawDumpFormat::readDumpImage(
-                                texture->getBumpImage(), ctx.token().getTokenString(),
-                                *ctx.tokenizer().getFileLocator());
-                            localExitFlag = true;
-                            break;
-
-                        default:
-                            ParseErrorReporter::parseError(Tokenizer::GIF_TOKEN, ctx);
-                            break;
+                            default:
+                                ParseErrorReporter::parseError(Tokenizer::GIF_TOKEN, ctx);
+                                break;
+                            }
                         }
                     }
-                }
 
-                {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::ONCE_TOKEN:
-                            texture->getBumpImage()->setOnceFlag(true);
-                            break;
+                    double bumpAmount = 0.0;
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::ONCE_TOKEN:
+                                bumpImage->setOnceFlag(true);
+                                break;
 
-                        case Tokenizer::MAPTYPE_TOKEN:
-                            texture->getBumpImage()->setMapType(
-                                (int)PrimitiveParser::parseFloat(ctx));
-                            break;
+                            case Tokenizer::MAPTYPE_TOKEN:
+                                bumpImage->setMapType(
+                                    (int)PrimitiveParser::parseFloat(ctx));
+                                break;
 
-                        case Tokenizer::INTERPOLATE_TOKEN:
-                            texture->getBumpImage()->setInterpolationType(
-                                (int)PrimitiveParser::parseFloat(ctx));
-                            break;
+                            case Tokenizer::INTERPOLATE_TOKEN:
+                                bumpImage->setInterpolationType(
+                                    (int)PrimitiveParser::parseFloat(ctx));
+                                break;
 
-                        case Tokenizer::BUMPSIZE_TOKEN:
-                            texture->setBumpAmount(
-                                PrimitiveParser::parseFloat(ctx));
-                            break;
+                            case Tokenizer::BUMPSIZE_TOKEN:
+                                bumpAmount =
+                                    PrimitiveParser::parseFloat(ctx);
+                                break;
 
-                        case Tokenizer::USE_COLOUR_TOKEN:
-                            texture->getBumpImage()->setUseColorFlag(true);
-                            break;
-                        case Tokenizer::USE_INDEX_TOKEN:
-                            texture->getBumpImage()->setUseColorFlag(false);
-                            break;
+                            case Tokenizer::USE_COLOUR_TOKEN:
+                                bumpImage->setUseColorFlag(true);
+                                break;
+                            case Tokenizer::USE_INDEX_TOKEN:
+                                bumpImage->setUseColorFlag(false);
+                                break;
 
-                        case Tokenizer::RIGHT_CURLY_TOKEN:
-                            localExitFlag = true;
-                            break;
-                        default:
-                            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                            break;
+                            case Tokenizer::RIGHT_CURLY_TOKEN:
+                                localExitFlag = true;
+                                break;
+                            default:
+                                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                                break;
+                            }
                         }
                     }
+
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setBumpNumber(SolidTextureBumpyNames::BUMP_MAP);
+                    b.setBumpImage(bumpImage);
+                    b.setBumpAmount(bumpAmount);
+                    texture = b.build();
                 }
                 break;
 
             case Tokenizer::MATERIAL_MAP_TOKEN:
-                texture = TextureParser::ensureWritableTexture(texture);
-                texture->setTextureNumber(SolidTextureColorNames::MATERIAL_MAP_TEXTURE);
-                texture->setMaterialImage(new ControlledRGBAImageHDRUncompressed);
-                if (texture->getMaterialImage() == nullptr) {
-                    ParseErrorReporter::reportError(
-                        "Out of memory. Cannot allocate material map texture", ctx);
-                }
-                texture->getTextureGradient() = Vector3Dd(1.0, -1.0, 0.0);
-                texture->getMaterialImage()->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
-                texture->getMaterialImage()->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
-                texture->getMaterialImage()->setOnceFlag(false);
-                texture->getMaterialImage()->setUseColorFlag(false);
-
-                ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
-
                 {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
-                        case Tokenizer::DASH_TOKEN:
-                        case Tokenizer::PLUS_TOKEN:
-                        case Tokenizer::FLOAT_TOKEN:
-                            ctx.tokenStream().ungetToken();
-                            texture->getMaterialImage()->setMapType(
-                                (int)PrimitiveParser::parseFloat(ctx));
-                            break;
+                    ControlledRGBAImageHDRUncompressed *materialImage = new ControlledRGBAImageHDRUncompressed;
+                    if (materialImage == nullptr) {
+                        ParseErrorReporter::reportError(
+                            "Out of memory. Cannot allocate material map texture", ctx);
+                    }
+                    materialImage->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
+                    materialImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
+                    materialImage->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
+                    materialImage->setOnceFlag(false);
+                    materialImage->setUseColorFlag(false);
 
-                        case Tokenizer::LEFT_ANGLE_TOKEN:
-                            ctx.tokenStream().ungetToken();
-                            {
-                                Vector3Dd _g;
-                                PrimitiveParser::parseVector(&_g, ctx);
-                                texture->getMaterialImage()->setImageGradient(_g);
+                    ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
+
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
+                            case Tokenizer::DASH_TOKEN:
+                            case Tokenizer::PLUS_TOKEN:
+                            case Tokenizer::FLOAT_TOKEN:
+                                ctx.tokenStream().ungetToken();
+                                materialImage->setMapType(
+                                    (int)PrimitiveParser::parseFloat(ctx));
+                                break;
+
+                            case Tokenizer::LEFT_ANGLE_TOKEN:
+                                ctx.tokenStream().ungetToken();
+                                {
+                                    Vector3Dd _g;
+                                    PrimitiveParser::parseVector(&_g, ctx);
+                                    materialImage->setImageGradient(_g);
+                                }
+                                break;
+
+                            case Tokenizer::IFF_TOKEN: {
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
+                                    materialImage, ctx.token().getTokenString(),
+                                    *ctx.tokenizer().getFileLocator());
+                                if (idx != nullptr) {
+                                    TextureParser::wireIndexedInToTextureImage(
+                                        materialImage, idx);
+                                }
+                                localExitFlag = true;
+                                break;
                             }
-                            break;
 
-                        case Tokenizer::IFF_TOKEN: {
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed * const idx = IffFormat::readIffImage(
-                                texture->getMaterialImage(), ctx.token().getTokenString(),
-                                *ctx.tokenizer().getFileLocator());
-                            if (idx != nullptr) {
+                            case Tokenizer::GIF_TOKEN: {
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
+                                GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
                                 TextureParser::wireIndexedInToTextureImage(
-                                    texture->getMaterialImage(), idx);
+                                    materialImage, idx);
+                                localExitFlag = true;
+                                break;
                             }
-                            localExitFlag = true;
-                            break;
-                        }
 
-                        case Tokenizer::GIF_TOKEN: {
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            IndexedColorImageHDRUncompressed * const idx = new IndexedColorImageHDRUncompressed;
-                            GifFormat::readGifImage(idx, ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
-                            TextureParser::wireIndexedInToTextureImage(
-                                texture->getMaterialImage(), idx);
-                            localExitFlag = true;
-                            break;
-                        }
+                            case Tokenizer::TGA_TOKEN:
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                TargaFormat::readTargaImage(materialImage,
+                                    ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
+                                localExitFlag = true;
+                                break;
 
-                        case Tokenizer::TGA_TOKEN:
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            TargaFormat::readTargaImage(texture->getMaterialImage(),
-                                ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
-                            localExitFlag = true;
-                            break;
+                            case Tokenizer::DUMP_TOKEN:
+                                ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
+                                RawDumpFormat::readDumpImage(materialImage,
+                                    ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
+                                localExitFlag = true;
+                                break;
 
-                        case Tokenizer::DUMP_TOKEN:
-                            ParseHelpers::getExpectedToken(Tokenizer::STRING_TOKEN, ctx);
-                            RawDumpFormat::readDumpImage(texture->getMaterialImage(),
-                                ctx.token().getTokenString(), *ctx.tokenizer().getFileLocator());
-                            localExitFlag = true;
-                            break;
-
-                        default:
-                            ParseErrorReporter::parseError(Tokenizer::GIF_TOKEN, ctx);
-                            break;
+                            default:
+                                ParseErrorReporter::parseError(Tokenizer::GIF_TOKEN, ctx);
+                                break;
+                            }
                         }
                     }
-                }
 
-                // Remember where the First_Texture is
-                firstTexture = texture;
+                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
+                    b.setTextureNumber(SolidTextureColorNames::MATERIAL_MAP_TEXTURE);
+                    b.setMaterialImage(materialImage);
+                    b.setTextureGradient(Vector3Dd(1.0, -1.0, 0.0));
 
-                {
-                    bool localExitFlag;
-                    localExitFlag = false;
-                    while (!localExitFlag) {
-                        ctx.tokenStream().getToken();
-                        switch (ctx.token().getTokenId()) {
+                    {
+                        bool localExitFlag;
+                        localExitFlag = false;
+                        while (!localExitFlag) {
+                            ctx.tokenStream().getToken();
+                            switch (ctx.token().getTokenId()) {
 
-                        case Tokenizer::MAPTYPE_TOKEN:
-                            texture->getMaterialImage()->setMapType(
-                                (int)PrimitiveParser::parseFloat(ctx));
-                            break;
+                            case Tokenizer::MAPTYPE_TOKEN:
+                                b.getMaterialImage()->setMapType(
+                                    (int)PrimitiveParser::parseFloat(ctx));
+                                break;
 
-                        case Tokenizer::INTERPOLATE_TOKEN:
-                            texture->getMaterialImage()->setInterpolationType(
-                                (int)PrimitiveParser::parseFloat(ctx));
-                            break;
+                            case Tokenizer::INTERPOLATE_TOKEN:
+                                b.getMaterialImage()->setInterpolationType(
+                                    (int)PrimitiveParser::parseFloat(ctx));
+                                break;
 
-                        case Tokenizer::ONCE_TOKEN:
-                            texture->getMaterialImage()->setOnceFlag(true);
-                            break;
+                            case Tokenizer::ONCE_TOKEN:
+                                b.getMaterialImage()->setOnceFlag(true);
+                                break;
 
-                        case Tokenizer::TEXTURE_TOKEN: {
-                            PovRayMaterial * const newMat = TextureParser::parseTexture(ctx);
-                            firstTexture->getMaterials().add(newMat);
-                            texture = newMat;
-                        } break;
+                            case Tokenizer::TEXTURE_TOKEN: {
+                                PovRayMaterial * const newMat = TextureParser::parseTexture(ctx);
+                                b.materials().add(newMat);
+                            } break;
 
-                        case Tokenizer::RIGHT_CURLY_TOKEN: {
-                            texture = firstTexture;
-                            localExitFlag = true;
-                        } break;
+                            case Tokenizer::RIGHT_CURLY_TOKEN: {
+                                localExitFlag = true;
+                            } break;
 
-                        default:
-                            ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                            break;
+                            default:
+                                ParseErrorReporter::parseError(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
+                                break;
+                            }
                         }
                     }
+
+                    texture = b.build();
                 }
                 break;
 

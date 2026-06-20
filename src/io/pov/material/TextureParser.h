@@ -4,6 +4,8 @@
 #include "environment/material/PovRayMaterial.h"
 #include "io/pov/context/ParserContext.h"
 
+class PovRayMaterialBuilder;
+
 class TextureParser {
   public:
     static PovRayMaterial *parseTexture();
@@ -13,7 +15,7 @@ class TextureParser {
     static PovRayMaterial *copyTexture(PovRayMaterial *texture);
 
   private:
-    static PovRayMaterial *ensureWritableTexture(PovRayMaterial *texture);
+    static PovRayMaterialBuilder editorFor(PovRayMaterial *texture);
     static void wireIndexedInToTextureImage(class ControlledRGBAImageHDRUncompressed *ti, class IndexedColorImageHDRUncompressed *idx);
 };
 
