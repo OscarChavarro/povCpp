@@ -61,6 +61,7 @@ add_executable(povray
     src/render/SolidTextureFixturesCheckerParameterSet.cpp
     src/render/RayShaderPipeline.cpp
     src/render/RenderEngine.cpp
+    src/render/RenderImageWriter.cpp
     src/io/image/RawDumpFormat.cpp
     src/io/image/GifFormat.cpp
     src/io/image/GifDecoder.cpp
