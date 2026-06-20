@@ -20,7 +20,7 @@ class PovRayMaterial : public Material {
     static PovRayMaterial *copyTextureNode(const PovRayMaterial *src);
 
     java::ArrayList<PovRayMaterial *> layers; // Ordered list of additional texture layers
-    java::ArrayList<PovRayMaterial *> materials; // PovrayMaterial map variants
+    java::ArrayList<PovRayMaterial *> materials; // PovRayMaterial map variants
     double objectReflection;
     double objectAmbient;
     double objectDiffuse;
@@ -58,12 +58,11 @@ class PovRayMaterial : public Material {
   public:
     static constexpr int DEFAULT_NUMBER_OF_WAVES = 10;
 
-    PovRayMaterial();
     PovRayMaterial(double objectReflection, double objectAmbient, double objectDiffuse,
                    double objectBrilliance, double objectIndexOfRefraction, double objectRefraction,
                    double objectTransmit, double objectSpecular, double objectRoughness,
                    double objectPhong, double objectPhongSize, double bumpAmount,
-                   double textureRandomness, double frequency, double phase,
+                   double texRandomness, double frequency, double phase,
                    SolidTextureColorNames textureNumber, SolidTextureBumpyNames bumpNumber,
                    Matrix4x4d *textureTransformation, Matrix4x4d *textureTransformationInverse,
                    ColorRgba *color1, ColorRgba *color2, double turbulence,

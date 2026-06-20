@@ -15,6 +15,16 @@
 #include "io/pov/scene/SceneParser.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
+namespace {
+
+void
+printProgress(const char *message)
+{
+    fprintf(stdout, "%s\n", message);
+}
+
+} // namespace
+
 void
 PovRayApplication::printStatistics(
     const Statistics &stats,
