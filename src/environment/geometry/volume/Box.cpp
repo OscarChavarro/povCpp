@@ -2,9 +2,6 @@
 boxes.c
 
 This module implements the box primitive.
-
-This file was written by Alexander Enzmann.  He wrote the code for
-boxes and generously provided us these enhancements.
 */
 
 #include "java/lang/Math.h"

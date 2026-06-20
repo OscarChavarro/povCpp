@@ -33,8 +33,6 @@ MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *in
         newRay.setDirection(ray->getDirection().add(normalProjection));
         newRay.setOrigin(*intersectionPoint);
 
-        // ARE 08/25/91
-
         surfaceOffset = newRay.getDirection().multiply(2.0 * GeometryConstants::Small_Tolerance);
         newRay.setOrigin(newRay.getOrigin().add(surfaceOffset));
 

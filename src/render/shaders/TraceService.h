@@ -6,32 +6,17 @@
 #include "environment/geometry/element/RayWithSegments.h"
 
 class TraceService {
-  public:
+  private:
     typedef void (*TraceFn)(void *context, RayWithSegments *ray, ColorRgba *color);
     typedef void (*ShadowShadeFn)(void *context, Intersection *intersection, ColorRgba *color);
-
-    TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn, void *context);
-    TraceFn getTraceFn() const;
-    void setTraceFn(TraceFn value);
-    ShadowShadeFn getShadowShadeFn() const;
-    void setShadowShadeFn(ShadowShadeFn value);
-    void *getContext() const;
-    void setContext(void *value);
-
-    inline void trace(RayWithSegments *ray, ColorRgba *color) const
-    {
-        traceFn(context, ray, color);
-    }
-
-    inline void shadeShadow(Intersection *intersection, ColorRgba *color) const
-    {
-        shadowShadeFn(context, intersection, color);
-    }
-
-  private:
     TraceFn traceFn;
     ShadowShadeFn shadowShadeFn;
     void *context;
+
+  public:
+    TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn, void *context);
+    inline void trace(RayWithSegments *ray, ColorRgba *color) const;
+    inline void shadeShadow(Intersection *intersection, ColorRgba *color) const;
 };
 
 inline
@@ -40,40 +25,16 @@ TraceService::TraceService(TraceFn traceFn, ShadowShadeFn shadowShadeFn, void *c
 {
 }
 
-inline TraceService::TraceFn
-TraceService::getTraceFn() const
+inline void
+TraceService::trace(RayWithSegments *ray, ColorRgba *color) const
 {
-    return traceFn;
+    traceFn(context, ray, color);
 }
 
 inline void
-TraceService::setTraceFn(TraceFn value)
+TraceService::shadeShadow(Intersection *intersection, ColorRgba *color) const
 {
-    traceFn = value;
-}
-
-inline TraceService::ShadowShadeFn
-TraceService::getShadowShadeFn() const
-{
-    return shadowShadeFn;
-}
-
-inline void
-TraceService::setShadowShadeFn(ShadowShadeFn value)
-{
-    shadowShadeFn = value;
-}
-
-inline void *
-TraceService::getContext() const
-{
-    return context;
-}
-
-inline void
-TraceService::setContext(void *value)
-{
-    context = value;
+    shadowShadeFn(context, intersection, color);
 }
 
 #endif

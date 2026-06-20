@@ -155,23 +155,23 @@ class Tokenizer {
     static constexpr int MAPTYPE_TOKEN = 134;
     static constexpr int RIGHT_CURLY_TOKEN = 135;
     static constexpr int LEFT_PAREN_TOKEN = 136;
-    static constexpr int TGA_TOKEN = 137;       // ARE 11/91 for tga mapp/heights
-    static constexpr int CENTER_TOKEN = 138;    // ARE 11/91 for spotlight
-    static constexpr int FALLOFF_TOKEN = 139;   // ARE 11/91 for spotlight
-    static constexpr int TIGHTNESS_TOKEN = 140; // ARE 11/91 for spotlight
-    static constexpr int RADIUS_TOKEN = 141;    // ARE 11/91 for spotlight
+    static constexpr int TGA_TOKEN = 137;
+    static constexpr int CENTER_TOKEN = 138;
+    static constexpr int FALLOFF_TOKEN = 139;
+    static constexpr int TIGHTNESS_TOKEN = 140;
+    static constexpr int RADIUS_TOKEN = 141;
     static constexpr int NO_SHADOW_TOKEN =
-        142; // CEY 12/91 for shadowless objects
+        142;
     static constexpr int END_OF_FILE_TOKEN = 143;
     static constexpr int MAX_TRACE_LEVEL_TOKEN = 144;
     static constexpr int DEFAULT_TOKEN = 145;
-    static constexpr int BOX_TOKEN = 146;       // ARE 1/92 for boxes
-    static constexpr int BLOB_TOKEN = 147;      // ARE 1/92 for blobs
-    static constexpr int THRESHOLD_TOKEN = 148; // ARE 1/92 for blobs
-    static constexpr int COMPONENT_TOKEN = 149; // ARE 1/92 for blobs
-    static constexpr int OCTAVES_TOKEN = 150;   // DMF 2/92 for turb
-    static constexpr int BRICK_TOKEN = 151;     // RHA 2/92 for brick
-    static constexpr int MORTAR_TOKEN = 152;    // RHA 2/92 for brick
+    static constexpr int BOX_TOKEN = 146;
+    static constexpr int BLOB_TOKEN = 147;
+    static constexpr int THRESHOLD_TOKEN = 148;
+    static constexpr int COMPONENT_TOKEN = 149;
+    static constexpr int OCTAVES_TOKEN = 150;
+    static constexpr int BRICK_TOKEN = 151;
+    static constexpr int MORTAR_TOKEN = 152;
     static constexpr int LOST_TOKEN = 153;
     static constexpr int LAST_TOKEN = 154;
 

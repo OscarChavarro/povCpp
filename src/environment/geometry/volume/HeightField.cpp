@@ -6,9 +6,6 @@ intersection with the box marking the limits of the shape, then
 follows the line from one intersection point to the other, testing
 the two triangles which form the pixel for an intersection with the ray at
 each step.
-height field added by Doug Muir
-with lots of advice and support from David Buck
-and Drew Wells.
 */
 
 #include <cstdio>

@@ -45,7 +45,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (
                 ctx.token().getTokenId()) { // This should be modified to include
-                                        // other image types - CdW
+                                        // other image types
             case Tokenizer::GIF_TOKEN:
             {
                 imageType = HeightField::GIF;

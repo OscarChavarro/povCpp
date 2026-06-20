@@ -142,7 +142,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 texture->setTurbulence(PrimitiveParser::parseFloat(ctx));
                 break;
 
-            case Tokenizer::OCTAVES_TOKEN: // dmf 02/05 for turb
+            case Tokenizer::OCTAVES_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
                 texture->setOctaves((int)PrimitiveParser::parseFloat(ctx));
                 if (texture->getOctaves() < 1) {

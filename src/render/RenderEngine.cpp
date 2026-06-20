@@ -1,13 +1,5 @@
 /**
 This module implements the main raytracing loop.
-
-01/16/92 dfm     Added David Buck's bug fix to add a different offset
-                     to x and y coordinates for each call to Rand3D() in the
-                     subsampling routine.  Said to smooth the anti-aliasing.
-                     Previously, each call returned the same random number,
-                     hence, no true jittering.
-                     I consider this an interim fix until we get a better
-                     algorithm for anti-aliasing.
 */
 
 #include <cstdio>
@@ -15,10 +7,8 @@ This module implements the main raytracing loop.
 
 #include "java/io/FileOutputStream.h"
 #include "java/util/ArrayList.txx"
-#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "common/statistics/Statistics.h"
 #include "common/RenderRuntimeState.h"
 #include "environment/material/RenderOutput.h"
@@ -40,14 +30,6 @@ RenderingConfiguration &
 RenderEngine::getMutableConfig()
 {
     return const_cast<RenderingConfiguration &>(context->getConfig());
-}
-
-inline unsigned short
-RenderEngine::rand3dInline(int a, int b)
-{
-    ProceduralNoise &noise = this->getTextureUtils().getProceduralNoise();
-    return noise.checksumTable().eval((int)(noise.hashTable()[(int)(noise.hashTable()[(int)(a & 0xfff)] ^ b) &
-                                  0xfff]));
 }
 
 ColorRgba *
@@ -80,12 +62,12 @@ RenderEngine::traceServiceShadeShadow(
 
 void
 RenderEngine::createRay(
-    RayWithSegments *ray, int width, int height, double x, double y)
+    RayWithSegments *localRay, int width, int height, double x, double y)
 {
     double xScalar;
     double yScalar;
-    Vector3Dd tempVect1;
-    Vector3Dd tempVect2;
+    Vector3Dd temporaryVector1;
+    Vector3Dd temporaryVector2;
 
     // Convert the X Coordinate to be a double from 0.0 to 1.0
     xScalar = (x - (double)width / 2.0) / (double)width;
@@ -96,70 +78,19 @@ RenderEngine::createRay(
         (double)height;
 
     const Camera &viewPoint = this->getScene().getViewPoint();
-    tempVect1 = viewPoint.getUp().multiply(yScalar);
-    tempVect2 = viewPoint.getRight().multiply(xScalar);
-    ray->setDirection(tempVect1.add(tempVect2));
-    ray->setDirection(ray->getDirection().add(viewPoint.getDirection()));
-    ray->setDirection(ray->getDirection().normalizedFast());
-    ray->initializeContainers();
-    ray->setPrimaryRay(true);
-    ray->setQuadricConstantsCached(false);
+    temporaryVector1 = viewPoint.getUp().multiply(yScalar);
+    temporaryVector2 = viewPoint.getRight().multiply(xScalar);
+    localRay->setDirection(temporaryVector1.add(temporaryVector2));
+    localRay->setDirection(
+        localRay->getDirection().add(viewPoint.getDirection()));
+    localRay->setDirection(localRay->getDirection().normalizedFast());
+    localRay->initializeContainers();
+    localRay->setPrimaryRay(true);
+    localRay->setQuadricConstantsCached(false);
     if (context) {
-        ray->setStatistics(&context->getStatistics());
-        ray->setConfig(&context->getConfig());
-        ray->setIntersectionQueuePool(&intersectionQueuePool);
-    }
-}
-
-void
-RenderEngine::superSample(
-    ColorRgba *result, int x, int y, int width, int height)
-{
-    ColorRgba color(0.0, 0.0, 0.0, 0.0);
-    static const double superSampleOffsets[SUPER_SAMPLE_COUNT][2] = {
-        {0.0, 0.0},
-        {-SUPER_SAMPLE_CELL_SIZE, -SUPER_SAMPLE_CELL_SIZE},
-        {-SUPER_SAMPLE_CELL_SIZE, 0.0},
-        {-SUPER_SAMPLE_CELL_SIZE, SUPER_SAMPLE_CELL_SIZE},
-        {0.0, -SUPER_SAMPLE_CELL_SIZE},
-        {0.0, SUPER_SAMPLE_CELL_SIZE},
-        {SUPER_SAMPLE_CELL_SIZE, -SUPER_SAMPLE_CELL_SIZE},
-        {SUPER_SAMPLE_CELL_SIZE, 0.0},
-        {SUPER_SAMPLE_CELL_SIZE, SUPER_SAMPLE_CELL_SIZE}
-    };
-    const double dx = (double)x;
-    const double dy = (double)y;
-    int jitterSeedOffset = JITTER_SEED_INITIAL_OFFSET;
-
-    this->getStatistics().incrementNumberOfPixelsSupersampled();
-
-    result->setR(0.0); result->setG(0.0); result->setB(0.0); result->setA(0);
-
-    for (int sampleIndex = 0; sampleIndex < SUPER_SAMPLE_COUNT; sampleIndex++) {
-        const int jitterSeedY = sampleIndex == 0 ? y : y + jitterSeedOffset;
-        const double jitterX =
-            (this->rand3dInline(x + jitterSeedOffset, jitterSeedY) & JITTER_RANDOM_MASK) /
-                JITTER_RANDOM_NORMALIZER * SUPER_SAMPLE_JITTER_RANGE -
-            SUPER_SAMPLE_JITTER_BIAS;
-        const double jitterY =
-            (this->rand3dInline(x + jitterSeedOffset, jitterSeedY) & JITTER_RANDOM_MASK) /
-                JITTER_RANDOM_NORMALIZER * SUPER_SAMPLE_JITTER_RANGE -
-            SUPER_SAMPLE_JITTER_BIAS;
-
-        this->createRay(this->primaryRay, width, height,
-            dx + jitterX + superSampleOffsets[sampleIndex][0],
-            dy + jitterY + superSampleOffsets[sampleIndex][1]);
-        this->traceLevel = 0;
-        this->trace(this->primaryRay, &color);
-        ColorOperations::clipColor(&color, &color);
-        ColorOperations::scaleColor(&color, &color, SUPER_SAMPLE_WEIGHT);
-        ColorOperations::addColor(result, result, &color);
-
-        jitterSeedOffset += JITTER_SEED_INCREMENT;
-    }
-
-    if ((y != this->getConfig().getFirstLine() - 1) &&
-        this->getConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
+        localRay->setStatistics(&context->getStatistics());
+        localRay->setConfig(&context->getConfig());
+        localRay->setIntersectionQueuePool(&intersectionQueuePool);
     }
 }
 
@@ -208,7 +139,7 @@ RenderEngine::startTracing()
 
             if (this->getStopFlag()) {
                 // Image not completed / user abort. Previously this terminated
-                // the whole process with exit(2); under a multi-threaded driver
+                // the whole process with exit(2); under a multi-thread driver
                 // that is hostile, so instead report once and fall back to a
                 // default (black) colour for the remaining pixels.
                 if (!this->fatalErrorFound) {
@@ -235,7 +166,7 @@ RenderEngine::startTracing()
             currentLine[x] = color;
 
             if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-                this->doAntiAliasing(x, y, &color);
+                adaptiveAntiAliasing.doAntiAliasing(x, y, &color);
             }
 
             if (y != this->getConfig().getFirstLine() - 1) {
@@ -257,7 +188,6 @@ RenderEngine::startTracing()
 void
 RenderEngine::checkStats(int y)
 {
-    // New verbose options CdW
     if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
         this->getConfig().getVerboseFormat() == '0') {
         {
@@ -330,51 +260,6 @@ RenderEngine::checkStats(int y)
 }
 
 void
-RenderEngine::doAntiAliasing(int x, int y, ColorRgba *color)
-{
-    char antialiasCenterFlag = 0;
-
-    currentLineAntiAliasedFlags[x] = 0;
-
-    if (x != 0) {
-        if (ColorOperations::colorDistance(&currentLine[x - 1], &currentLine[x]) >=
-            this->getScene().getAntialiasThreshold()) {
-            antialiasCenterFlag = 1;
-            if (!(currentLineAntiAliasedFlags[x - 1])) {
-                this->superSample(&currentLine[x - 1], x - 1, y,
-                    this->getScene().getScreenWidth(),
-                    this->getScene().getScreenHeight());
-                currentLineAntiAliasedFlags[x - 1] = 1;
-                superSampleCount++;
-            }
-        }
-    }
-
-    if (y != this->getConfig().getFirstLine() - 1) {
-        if (ColorOperations::colorDistance(&previousLine[x], &currentLine[x]) >=
-            this->getScene().getAntialiasThreshold()) {
-            antialiasCenterFlag = 1;
-            if (!(previousLineAntiAliasedFlags[x])) {
-                this->superSample(&previousLine[x], x, y - 1,
-                    this->getScene().getScreenWidth(),
-                    this->getScene().getScreenHeight());
-                previousLineAntiAliasedFlags[x] = 1;
-                superSampleCount++;
-            }
-        }
-    }
-
-    if (antialiasCenterFlag) {
-        this->superSample(&currentLine[x], x, y,
-            this->getScene().getScreenWidth(),
-            this->getScene().getScreenHeight());
-        currentLineAntiAliasedFlags[x] = 1;
-        *color = currentLine[x];
-        superSampleCount++;
-    }
-}
-
-void
 RenderEngine::initializeRenderer()
 {
     int i;
@@ -425,14 +310,14 @@ RenderEngine::outputLine(int y)
             this->getConfig().getVerboseFormat() != '1') {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), " supersampled %d times.", superSampleCount);
+                snprintf(_logMsg, sizeof(_logMsg), " super-sampled %d times.", superSampleCount);
                 Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
             }
         }
 
         if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
             this->getConfig().getVerboseFormat() == '1') {
-            fprintf(stderr, " supersampled %d times.", superSampleCount);
+            fprintf(stderr, " super-sampled %d times.", superSampleCount);
         }
         if (this->getConfig().getVerboseFormat() == '1') {
             fprintf(stderr, "\r");
@@ -450,7 +335,7 @@ RenderEngine::outputLine(int y)
 }
 
 void
-RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
+RenderEngine::trace(RayWithSegments *localRay, ColorRgba *color)
 {
     BoundedGeometry *object;
     Intersection localIntersection;
@@ -477,7 +362,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         this->getScene().getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
-        if (object->intersect(ray, newIntersection)) {
+        if (object->intersect(localRay, newIntersection)) {
             if (!intersectionFound || newIntersection.getT() < localIntersection.getT()) {
                 localIntersection = newIntersection;
             }
@@ -487,7 +372,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
 
     if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            &localIntersection, color, ray, false, this->getTraceService(),
+            &localIntersection, color, localRay, false, this->getTraceService(),
             &this->getTextureUtils(), *context, traceLevel);
     }
 }

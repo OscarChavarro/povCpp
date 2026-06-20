@@ -41,6 +41,7 @@ add_executable(povray
     src/environment/camera/Camera.cpp
     src/environment/material/PovrayMaterial.cpp
     src/environment/material/PovrayMaterialUtils.cpp
+        src/render/AdaptiveAntiAliasing.cpp
     src/render/ColorOperations.cpp
     src/render/shaders/LightSamplerShader.cpp
     src/render/shaders/ShadowShader.cpp

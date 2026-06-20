@@ -2,9 +2,6 @@
 poly.c
 
 This module implements the code for general 3 variable polynomial shapes
-
-This file was written by Alexander Enzmann.  He wrote the code for
-4th - 6th order shapes and generously provided us these enhancements.
 */
 
 #include "java/lang/Math.h"

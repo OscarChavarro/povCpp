@@ -1,8 +1,5 @@
 /**
 This module implements the code for Bezier bicubic patch shapes
-
-This file was written by Alexander Enzmann.  He wrote the code for
-bezier bicubic patches and generously provided us these enhancements.
 */
 
 #include <cstdio>

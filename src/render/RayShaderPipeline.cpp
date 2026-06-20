@@ -43,7 +43,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         texture = static_cast<PovrayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }
     // Check to see if this object/shape has a material_map texture, if so
-    // then change the texture pointer to point to the mapped texture - CdW 7/91
+    // then change the texture pointer to point to the mapped texture
     if (texture->getTextureNumber() == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
         const int index = mapFixture.materialMap(
             &rayIntersection->getPoint(), texture->getTextureTransformationInverse(),

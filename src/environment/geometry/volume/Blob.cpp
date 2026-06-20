@@ -2,9 +2,6 @@
 
 /**
 This module contains the code for the blob shape.
-
-This file was written by Alexander Enzmann.  He wrote the code for
-blobs and generously provided us these enhancements.
 */
 
 #include "java/lang/Math.h"

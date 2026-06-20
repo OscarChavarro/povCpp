@@ -240,6 +240,9 @@ A passing run prints `Test passed.` with zero failures across all 108 scenes.
 
 ## Project objectives
 
+The [design objectives assessment](doc/designObjectives.md) tracks the current strengths,
+risks, and planned architectural improvements against these goals.
+
 - **Education.** The primary goal is to serve as a learning resource for computer graphics
   courses. The codebase is intentionally structured so that each algorithm — BVH traversal,
   CSG evaluation, texture projection, the Phong shading model, Snell's law refraction — can
@@ -264,4 +267,6 @@ A passing run prints `Test passed.` with zero failures across all 108 scenes.
 - **Tribute.** This project is dedicated to the original POV-Ray Team — David Buck,
   Aaron Collins, and all contributors who, in 1992, shipped a free, portable, cross-platform
   ray tracer of remarkable quality and made it available to the world. Their work has inspired
-  countless developers and remains a landmark in the history of computer graphics.
+  countless developers and remains a landmark in the history of computer graphics. The
+  [original POV-Ray 1 author list and contribution notes](doc/references/originalPovray1Authors.md)
+  preserve the credits recovered from the original source comments.
