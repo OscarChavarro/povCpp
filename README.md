@@ -67,18 +67,78 @@ The diagram below was generated directly from the source code using
 
 ![Architecture diagram](doc/architectureDiagram.png)
 
-| Meta-layer | Layer | Package | Responsibility |
-|---|---|---|---|
-| <span style="background-color:#f28682">app</span> | **Application** | `src/app` | Entry point, CLI option parsing, output adapter |
-| <span style="background-color:#ffff8f">io</span> | **IO — Scene parser** | `src/io/pov` | Lexer (`Tokenizer`), recursive-descent parser, AST lowering into the scene model |
-| <span style="background-color:#ffff8f">io</span> | **IO — Image formats** | `src/io/image` | Reading and writing TGA, GIF, IFF, raw dump |
-| <span style="background-color:#9bfc8c">environment</span> | **Environment** | `src/environment` | Scene graph (`SceneFrame`), geometry primitives, camera, lights, CSG tree |
-| <span style="background-color:#7d7ef8">render</span> | **Render** | `src/render` | `RenderEngine` drives scanline rendering; `RayShaderPipeline` chains per-intersection shaders |
-| <span style="background-color:#7d7ef8">render</span> | **Shaders** | `src/render/shaders` | One class per shading effect (ambient, Lambert, Phong, shadow, reflection, refraction, fog, bump) |
-| <span style="background-color:#99fcfe">base</span> | **Common** | `src/common` | Cross-cutting utilities and statistics shared across layers |
-| <span style="background-color:#99fcfe">base</span> | **Base library** | `base/src/main/vsdk/toolkit` | Vitral toolkit: linear algebra (`Vector3Dd`, `Matrix4x4d`), image buffers, I/O primitives |
-| <span style="background-color:#99fcfe">base</span> | **Solid textures** | `base/src/main/vsdk/toolkit/media/solidTexture` | Solid texture evaluation (procedural noise, image-to-solid-texture projection), indexed palette images, image-map sampling |
-| <span style="background-color:#99fcfe">base</span> | **Processing** | `base/src/main/vsdk/toolkit/numericalAnalysis/polynomial` | Sturm-sequence polynomial root solver used by quartics and polys |
+<table>
+  <thead>
+    <tr>
+      <th>Meta-layer</th>
+      <th>Layer</th>
+      <th>Package</th>
+      <th>Responsibility</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="background-color:#f28682;color:#000;padding:8px">app</td>
+      <td><strong>Application</strong></td>
+      <td><code>src/app</code></td>
+      <td>Entry point, CLI option parsing, output adapter</td>
+    </tr>
+    <tr>
+      <td style="background-color:#ffff8f;color:#000;padding:8px">io</td>
+      <td><strong>IO — Scene parser</strong></td>
+      <td><code>src/io/pov</code></td>
+      <td>Lexer (<code>Tokenizer</code>), recursive-descent parser, AST lowering into the scene model</td>
+    </tr>
+    <tr>
+      <td style="background-color:#ffff8f;color:#000;padding:8px">io</td>
+      <td><strong>IO — Image formats</strong></td>
+      <td><code>src/io/image</code></td>
+      <td>Reading and writing TGA, GIF, IFF, raw dump</td>
+    </tr>
+    <tr>
+      <td style="background-color:#9bfc8c;color:#000;padding:8px">environment</td>
+      <td><strong>Environment</strong></td>
+      <td><code>src/environment</code></td>
+      <td>Scene graph (<code>SceneFrame</code>), geometry primitives, camera, lights, CSG tree</td>
+    </tr>
+    <tr>
+      <td style="background-color:#7d7ef8;color:#000;padding:8px">render</td>
+      <td><strong>Render</strong></td>
+      <td><code>src/render</code></td>
+      <td><code>RenderEngine</code> drives scanline rendering; <code>RayShaderPipeline</code> chains per-intersection shaders</td>
+    </tr>
+    <tr>
+      <td style="background-color:#7d7ef8;color:#000;padding:8px">render</td>
+      <td><strong>Shaders</strong></td>
+      <td><code>src/render/shaders</code></td>
+      <td>One class per shading effect (ambient, Lambert, Phong, shadow, reflection, refraction, fog, bump)</td>
+    </tr>
+    <tr>
+      <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
+      <td><strong>Common</strong></td>
+      <td><code>src/common</code></td>
+      <td>Cross-cutting utilities and statistics shared across layers</td>
+    </tr>
+    <tr>
+      <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
+      <td><strong>Base library</strong></td>
+      <td><code>base/src/main/vsdk/toolkit</code></td>
+      <td>Vitral toolkit: linear algebra (<code>Vector3Dd</code>, <code>Matrix4x4d</code>), image buffers, I/O primitives</td>
+    </tr>
+    <tr>
+      <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
+      <td><strong>Solid textures</strong></td>
+      <td><code>base/src/main/vsdk/toolkit/media/solidTexture</code></td>
+      <td>Solid texture evaluation (procedural noise, image-to-solid-texture projection), indexed palette images, image-map sampling</td>
+    </tr>
+    <tr>
+      <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
+      <td><strong>Processing</strong></td>
+      <td><code>base/src/main/vsdk/toolkit/numericalAnalysis/polynomial</code></td>
+      <td>Sturm-sequence polynomial root solver used by quartics and polys</td>
+    </tr>
+  </tbody>
+</table>
 
 The shader chain is assembled at startup by `RayShaderPipeline`. Reflection and
 refraction submit weighted child-ray events through `TraceService`; `RenderEngine`

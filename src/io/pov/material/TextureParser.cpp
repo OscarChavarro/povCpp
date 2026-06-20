@@ -5,7 +5,6 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
-#include "environment/geometry/element/Triangle.h"
 #include "environment/material/PovrayMaterialUtils.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
@@ -75,9 +74,8 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool localExitFlag;
-        localExitFlag = false;
-        while (!localExitFlag) {
+        bool innerExitFlag = false;
+        while (!innerExitFlag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -349,7 +347,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 texture->setImage(new ControlledRGBAImageHDRUncompressed);
                 if (texture->getImage() == nullptr) {
                     ParseErrorReporter::reportError(
-                        "Out of memory. Cannot allocate imagemap texture", ctx);
+                        "Out of memory. Cannot allocate image map texture", ctx);
                 }
                 texture->getImage()->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                 texture->getImage()->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
@@ -455,9 +453,8 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             break;
 
                         case Tokenizer::ALPHA_TOKEN: {
-                            bool localExitFlag;
-                            localExitFlag = false;
-                            while (!localExitFlag) {
+                            bool alphaInnerExitFlag = false;
+                            while (!alphaInnerExitFlag) {
                                 ctx.tokenStream().getToken();
                                 switch (ctx.token().getTokenId()) {
                                 case Tokenizer::FLOAT_TOKEN:
@@ -480,7 +477,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                                         (unsigned short)(255.0 *
                                                          PrimitiveParser::
                                                              parseFloat(ctx));
-                                    localExitFlag = true;
+                                    alphaInnerExitFlag = true;
                                     break;
 
                                 case Tokenizer::ALL_TOKEN: {
@@ -491,7 +488,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                                         reg++) {
                                         texture->getImage()->getIndexedData()->getColorTable()[reg].a = (unsigned short)(alpha * 255.0);
                                     }
-                                    localExitFlag = true;
+                                    alphaInnerExitFlag = true;
                                 }
 
                                 break;
@@ -632,7 +629,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 texture->setBumpImage(new ControlledRGBAImageHDRUncompressed);
                 if (texture->getBumpImage() == nullptr) {
                     ParseErrorReporter::reportError(
-                        "Out of memory. Cannot allocate bumpmap texture", ctx);
+                        "Out of memory. Cannot allocate bump map texture", ctx);
                 }
                 texture->getBumpImage()->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                 texture->getBumpImage()->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
@@ -881,7 +878,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 break;
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                localExitFlag = true;
+                innerExitFlag = true;
                 break;
 
             default:
@@ -890,5 +887,5 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
             }
         }
     }
-    return (texture);
+    return texture;
 }
