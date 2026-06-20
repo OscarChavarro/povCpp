@@ -1,17 +1,13 @@
-#include <cstdio>
-
 #include "java/io/FileOutputStream.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"
-#include "common/RenderRuntimeState.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
-#include "render/shaders/ExponentialFogShader.h"
 #include "render/shaders/TraceService.h"
 
 RenderEngine::~RenderEngine()
