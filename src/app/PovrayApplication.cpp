@@ -215,7 +215,10 @@ PovrayApplication::parseSceneDescription()
         fclose(statFile);
     }
 
-    ctx.setReportingConfig(&configuration);
+    ctx.setDiagnostics(
+        configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE),
+        configuration.getStatFileName());
+    ctx.setAntialiasThreshold(configuration.getAntialiasThreshold());
     ctx.setRuntimeState(&runtimeState);
     SceneParser::parse(&engine.getScene(), ctx);
     ctx.tokenizer().terminateTokenizer();

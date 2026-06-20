@@ -41,7 +41,7 @@ class Scene {
     {
         Objects = objects;
     }
-    void resetForSceneParse(const RenderingConfiguration *config = nullptr);
+    void resetForSceneParse(double antialiasThreshold = DEFAULT_ANTIALIAS_THRESHOLD);
 
   private:
     Camera viewPoint;

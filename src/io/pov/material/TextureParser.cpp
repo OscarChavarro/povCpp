@@ -7,7 +7,6 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
 #include "environment/geometry/element/Triangle.h"
 #include "environment/material/PovrayMaterialUtils.h"
-#include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/scene/ModelBuilder.h"
