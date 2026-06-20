@@ -10,6 +10,13 @@
 
 class Blob : public Geometry {
   private:
+    static constexpr double COEFFICIENT_LIMIT = 1.0e-20;
+    static constexpr double INSIDE_TOLERANCE = 1.0e-6;
+    static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
+
+    static BlobElement *allocateBlobElements(int count);
+    static BlobInterval *allocateBlobIntervals(int count);
+
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
     bool inverted;
@@ -22,21 +29,10 @@ class Blob : public Geometry {
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
         const Blob *blob, double minimumDistance);
     static double calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos);
-    static int validateHit(const Blob *blob, const Vector3Dd *p);
+    static bool validateHit(const Blob *blob, const Vector3Dd *p);
 
   public:
-    Blob() :
-        transformation(nullptr),
-        transformationInverse(nullptr),
-        inverted(false),
-        count(0),
-        threshold(0.0),
-        list(nullptr),
-        intervals(nullptr),
-        sturmFlag(0)
-    {
-    }
-
+    Blob();
     Blob(double thresholdValue,
         java::ArrayList<BlobElement *> *blobElements, int numberOfPoints,
         int sturmFlagValue);
@@ -47,23 +43,29 @@ class Blob : public Geometry {
     Blob(const Blob &other);
 
     int getSturmFlag() const { return sturmFlag; }
-    Matrix4x4d* getTransformation() const { return transformation; }
-    Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
-    bool isInverted() const { return inverted; }
-    int getCount() const { return count; }
-    double getThreshold() const { return threshold; }
-    BlobElement *getList() const { return list; }
-    BlobInterval *getIntervals() const { return intervals; }
+    Blob *copyWithSturmFlag(int flag) const;
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
-    Blob *copyWithSturmFlag(int flag) const;
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
 };
+
+inline
+Blob::Blob() :
+    transformation(nullptr),
+    transformationInverse(nullptr),
+    inverted(false),
+    count(0),
+    threshold(0.0),
+    list(nullptr),
+    intervals(nullptr),
+    sturmFlag(0)
+{
+}
 
 #endif

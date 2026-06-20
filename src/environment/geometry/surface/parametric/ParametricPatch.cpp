@@ -11,11 +11,8 @@ This module implements the code for Bezier bicubic patch shapes
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "environment/material/RendererConfiguration.h"
-#include "java/util/PriorityQueue.txx"
 
-#undef EPSILON
-static constexpr double EPSILON = 1.0e-10;
+static constexpr double EPSILON_PARAMETRIC_PATCH = 1.0e-10;
 
 int maxDepthReached;
 
@@ -62,10 +59,6 @@ ParametricPatchNode *
 ParametricBiCubicPatch::createNewParametricPatchNode()
 {
     ParametricPatchNode *node = new ParametricPatchNode();
-    if (node == nullptr) {
-        Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Failed to allocate Bezier node\n");
-        exit(0);
-    }
     node->setDataPtr(nullptr);
     return node;
 }
@@ -73,23 +66,13 @@ ParametricBiCubicPatch::createNewParametricPatchNode()
 ParametricControlPoints *
 ParametricBiCubicPatch::createParametricControlPointsBlock()
 {
-    ParametricControlPoints *vertices = new ParametricControlPoints();
-    if (vertices == nullptr) {
-        Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Failed to allocate Bezier vertices\n");
-        exit(0);
-    }
-    return vertices;
+    return new ParametricControlPoints();
 }
 
 ParametricPatchChild *
 ParametricBiCubicPatch::createParametricPatchChildBlock()
 {
-    ParametricPatchChild *children = new ParametricPatchChild();
-    if (children == nullptr) {
-        Logger::reportMessage("ParametricPatch", Logger::WARNING, "", "Failed to allocate Bezier children\n");
-        exit(0);
-    }
-    return children;
+    return new ParametricPatchChild();
 }
 
 ParametricPatchNode *
@@ -109,7 +92,7 @@ ParametricBiCubicPatch::parametricTreeBuilder(
         maxDepthReached = depth;
     }
 
-    // Build the bounding sphere for this subpatch
+    // Build the bounding sphere for this sub-patch
     ParametricBiCubicPatch::parametricBoundingSphere(
         patch, &(node->getCenter()), &(node->getRadiusSquaredRef()));
 
@@ -305,7 +288,7 @@ ParametricBiCubicPatch::parametricPartial(
         }
     }
     temp = ux * ux + uy * uy + uz * uz;
-    if (temp < EPSILON) {
+    if (temp < EPSILON_PARAMETRIC_PATCH) {
         // Partial with respect to u is undefined
         *result = Vector3Dd(1.0, 0.0, 0.0);
         // *Result = *n;
@@ -343,7 +326,7 @@ ParametricBiCubicPatch::parametricPartial(
         }
     }
     temp = vx * vx + vy * vy + vz * vz;
-    if (temp < EPSILON) {
+    if (temp < EPSILON_PARAMETRIC_PATCH) {
         // Partial with respect to u is undefined
         *result = Vector3Dd(1.0, 0.0, 0.0);
         return;
@@ -354,7 +337,9 @@ ParametricBiCubicPatch::parametricPartial(
     *result = uVec.crossProduct(vVec);
 }
 
-// Find a sphere that contains all of the points in the list "vectors"
+/**
+Find a sphere that contains all of the points in "vectors"
+*/
 void
 ParametricBiCubicPatch::findAverage(
     int vectorCount, Vector3Dd *vectors, Vector3Dd *center, double *radius)
@@ -577,7 +562,7 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
     }
 
     if (shape->patchType == 4) {
-        // Calculate normals at the corners of the subpatches
+        // Calculate normals at the corners of the sub-patches
         for (i = 0; i <= shape->uSteps; i++) {
             u = (double)i / (double)shape->uSteps;
             for (j = 0; j <= shape->vSteps; j++) {
@@ -590,12 +575,11 @@ ParametricBiCubicPatch::precomputePatchValues(ParametricBiCubicPatch *shape)
 }
 
 void
-ParametricBiCubicPatch::parametricSubpatchIntersect(const RayWithSegments *ray,
-    ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], double u0,
-    double u1, double v0, int recursionDepth, int *depthCount, double *depths,
-    double *uValues, double *vValues)
+ParametricBiCubicPatch::parametricSubPatchIntersect(const RayWithSegments *ray,
+    ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], int *depthCount,
+    double *depths)
 {
-    const int tcnt = shape->intersectionCount;
+    const int intersectionCount = shape->intersectionCount;
     Vector3Dd vv0;
     Vector3Dd vv1;
     Vector3Dd vv2;
@@ -605,7 +589,7 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(const RayWithSegments *ray,
     double d;
     double depth;
 
-    if (tcnt + *depthCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
+    if (intersectionCount + *depthCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -614,21 +598,21 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(const RayWithSegments *ray,
     vv2 = (*patch)[3][3];
     vv3 = (*patch)[3][0];
 
-    // Triangulate this subpatch, then check for intersections in
+    // Triangulate this sub-patch, then check for intersections in
     // the triangles
     if (ParametricBiCubicIntersection::subpatchNormal(
             &vv0, &vv1, &vv2, &n, &d)) {
         if (ParametricBiCubicIntersection::intersectSubpatch(shape->patchType,
                 ray, &vv0, &vv1, &vv2, &n, d, nullptr, nullptr, nullptr, &depth,
                 &ip, &n)) {
-            shape->intersectionPoint[tcnt + *depthCount] = ip;
-            shape->normalVector[tcnt + *depthCount] = n;
+            shape->intersectionPoint[intersectionCount + *depthCount] = ip;
+            shape->normalVector[intersectionCount + *depthCount] = n;
             depths[*depthCount] = depth;
             *depthCount += 1;
         }
     }
 
-    if (*depthCount + tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
+    if (*depthCount + intersectionCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -637,8 +621,8 @@ ParametricBiCubicPatch::parametricSubpatchIntersect(const RayWithSegments *ray,
         if (ParametricBiCubicIntersection::intersectSubpatch(shape->patchType,
                 ray, &vv0, &vv2, &vv3, &n, d, nullptr, nullptr, nullptr, &depth,
                 &ip, &n)) {
-            shape->intersectionPoint[tcnt + *depthCount] = ip;
-            shape->normalVector[tcnt + *depthCount] = n;
+            shape->intersectionPoint[intersectionCount + *depthCount] = ip;
+            shape->normalVector[intersectionCount + *depthCount] = n;
             depths[*depthCount] = depth;
             *depthCount += 1;
         }
@@ -700,12 +684,12 @@ ParametricBiCubicPatch::parametricSplitUpDown(Vector3Dd (*patch)[4][4],
 }
 
 /**
-See how close to a plane a subpatch is, the patch must have at least
+See how close to a plane a sub-patch is, the patch must have at least
 three distinct vertices. A negative result from this function indicates
 that a degenerate value of some sort was encountered.
 */
 double
-ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
+ParametricBiCubicPatch::determineSubPatchFlatness(Vector3Dd (*patch)[4][4])
 {
     Vector3Dd vertices[4];
     Vector3Dd n;
@@ -720,50 +704,50 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
     vertices[1] = (*patch)[0][3];
     tempV = vertices[0].subtract(vertices[1]);
     temp1 = tempV.length();
-    if (java::Math::abs(temp1) < EPSILON) {
+    if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
         /**
         Degenerate in the V direction for U = 0. This is ok if the other
             two corners are distinct from the lower left corner - I'm sure there
             are cases where the corners coincide and the middle has good values,
-            but that is somewhat pathalogical and won't be considered.
+            but that is somewhat pathological and won't be considered.
         */
         vertices[1] = (*patch)[3][3];
         tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
-        if (java::Math::abs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
             return -1.0;
         }
         vertices[2] = (*patch)[3][0];
         tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
-        if (java::Math::abs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
             return -1.0;
         }
         tempV = vertices[1].subtract(vertices[2]);
         temp1 = tempV.length();
-        if (java::Math::abs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
             return -1.0;
         }
     } else {
         vertices[2] = (*patch)[3][0];
         tempV = vertices[0].subtract(vertices[1]);
         temp1 = tempV.length();
-        if (java::Math::abs(temp1) < EPSILON) {
+        if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
             vertices[2] = (*patch)[3][3];
             tempV = vertices[0].subtract(vertices[2]);
             temp1 = tempV.length();
-            if (java::Math::abs(temp1) < EPSILON) {
+            if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
                 return -1.0;
             }
             tempV = vertices[1].subtract(vertices[2]);
             temp1 = tempV.length();
-            if (java::Math::abs(temp1) < EPSILON) {
+            if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
                 return -1.0;
             }
         } else {
             tempV = vertices[1].subtract(vertices[2]);
             temp1 = tempV.length();
-            if (java::Math::abs(temp1) < EPSILON) {
+            if (java::Math::abs(temp1) < EPSILON_PARAMETRIC_PATCH) {
                 return -1.0;
             }
         }
@@ -786,7 +770,6 @@ ParametricBiCubicPatch::determineSubpatchFlatness(Vector3Dd (*patch)[4][4])
         }
         return dist;
     }
-    // Logger::info("Subpatch normal failed in determine_subpatch_flatness\n");
     return -1.0;
 }
 
@@ -796,7 +779,7 @@ ParametricBiCubicPatch::flatEnough(
 {
     double dist;
 
-    dist = ParametricBiCubicPatch::determineSubpatchFlatness(patch);
+    dist = ParametricBiCubicPatch::determineSubPatchFlatness(patch);
     if (dist < 0.0) {
         return 0;
     }
@@ -807,7 +790,7 @@ ParametricBiCubicPatch::flatEnough(
 }
 
 void
-ParametricBiCubicPatch::parametricSubdivider(const RayWithSegments *ray,
+ParametricBiCubicPatch::parametricSubDivider(const RayWithSegments *ray,
     ParametricBiCubicPatch *object, Vector3Dd (*patch)[4][4], double u0,
     double u1, double v0, double v1, int recursionDepth, int *depthCount,
     double *depths, double *uValues, double *vValues)
@@ -820,10 +803,10 @@ ParametricBiCubicPatch::parametricSubdivider(const RayWithSegments *ray,
     double ut;
     double vt;
     double radius;
-    const int tcnt = object->intersectionCount;
+    const int intersectionCount = object->intersectionCount;
 
     // Don't waste time if there are already too many intersections
-    if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
+    if (intersectionCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -838,24 +821,22 @@ ParametricBiCubicPatch::parametricSubdivider(const RayWithSegments *ray,
     // If the patch is close to being flat, then just perform a ray-plane
     // intersection test
     if (ParametricBiCubicPatch::flatEnough(object, patch)) {
-        ParametricBiCubicPatch::parametricSubpatchIntersect(ray, object, patch,
-            u0, u1, v0, recursionDepth + 1, depthCount, depths, uValues,
-            vValues);
+        ParametricBiCubicPatch::parametricSubPatchIntersect(ray, object, patch,
+            depthCount, depths);
     }
 
     if (recursionDepth >= object->uSteps) {
         if (recursionDepth >= object->vSteps) {
-            ParametricBiCubicPatch::parametricSubpatchIntersect(ray, object,
-                patch, u0, u1, v0, recursionDepth + 1, depthCount, depths,
-                uValues, vValues);
+            ParametricBiCubicPatch::parametricSubPatchIntersect(ray, object,
+                patch, depthCount, depths);
         } else {
             ParametricBiCubicPatch::parametricSplitUpDown(patch,
                 (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])upperLeft);
             vt = (v1 - v0) / 2.0;
-            ParametricBiCubicPatch::parametricSubdivider(ray, object,
+            ParametricBiCubicPatch::parametricSubDivider(ray, object,
                 (Vector3Dd(*)[4][4])lowerLeft, u0, u1, v0, vt,
                 recursionDepth + 1, depthCount, depths, uValues, vValues);
-            ParametricBiCubicPatch::parametricSubdivider(ray, object,
+            ParametricBiCubicPatch::parametricSubDivider(ray, object,
                 (Vector3Dd(*)[4][4])upperLeft, u0, u1, vt, v1,
                 recursionDepth + 1, depthCount, depths, uValues, vValues);
         }
@@ -863,10 +844,10 @@ ParametricBiCubicPatch::parametricSubdivider(const RayWithSegments *ray,
         ParametricBiCubicPatch::parametricSplitLeftRight(patch,
             (Vector3Dd(*)[4][4])lowerLeft, (Vector3Dd(*)[4][4])lowerRight);
         ut = (u1 - u0) / 2.0;
-        ParametricBiCubicPatch::parametricSubdivider(ray, object,
+        ParametricBiCubicPatch::parametricSubDivider(ray, object,
             (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0, v1, recursionDepth + 1,
             depthCount, depths, uValues, vValues);
-        ParametricBiCubicPatch::parametricSubdivider(ray, object,
+        ParametricBiCubicPatch::parametricSubDivider(ray, object,
             (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0, v1, recursionDepth + 1,
             depthCount, depths, uValues, vValues);
     } else {
@@ -880,16 +861,16 @@ ParametricBiCubicPatch::parametricSubdivider(const RayWithSegments *ray,
         ParametricBiCubicPatch::parametricSplitUpDown(
             (Vector3Dd(*)[4][4])lowerRight, (Vector3Dd(*)[4][4])lowerRight,
             (Vector3Dd(*)[4][4])upperRight);
-        ParametricBiCubicPatch::parametricSubdivider(ray, object,
+        ParametricBiCubicPatch::parametricSubDivider(ray, object,
             (Vector3Dd(*)[4][4])lowerLeft, u0, ut, v0, vt, recursionDepth + 1,
             depthCount, depths, uValues, vValues);
-        ParametricBiCubicPatch::parametricSubdivider(ray, object,
+        ParametricBiCubicPatch::parametricSubDivider(ray, object,
             (Vector3Dd(*)[4][4])upperLeft, u0, ut, vt, v1, recursionDepth + 1,
             depthCount, depths, uValues, vValues);
-        ParametricBiCubicPatch::parametricSubdivider(ray, object,
+        ParametricBiCubicPatch::parametricSubDivider(ray, object,
             (Vector3Dd(*)[4][4])lowerRight, ut, u1, v0, vt, recursionDepth + 1,
             depthCount, depths, uValues, vValues);
-        ParametricBiCubicPatch::parametricSubdivider(ray, object,
+        ParametricBiCubicPatch::parametricSubDivider(ray, object,
             (Vector3Dd(*)[4][4])upperRight, ut, u1, vt, v1, recursionDepth + 1,
             depthCount, depths, uValues, vValues);
     }
@@ -933,10 +914,10 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
     double d;
     double hitDepth;
     int i;
-    const int tcnt = shape->intersectionCount;
+    const int intersectionCount = shape->intersectionCount;
 
     // Don't waste time if there are already too many intersections
-    if (tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
+    if (intersectionCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
         return;
     }
 
@@ -962,21 +943,21 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
         vv2 = vertices->getVertices()[2];
         vv3 = vertices->getVertices()[3];
 
-        // Triangulate this subpatch, then check for intersections in
+        // Triangulate this sub-patch, then check for intersections in
         // the triangles
         if (ParametricBiCubicIntersection::subpatchNormal(
                 &vv0, &vv1, &vv2, &n, &d)) {
             if (ParametricBiCubicIntersection::intersectSubpatch(
                     shape->patchType, ray, &vv0, &vv1, &vv2, &n, d, nullptr,
                     nullptr, nullptr, &hitDepth, &ip, &n)) {
-                shape->intersectionPoint[tcnt + *depthCount] = ip;
-                shape->normalVector[tcnt + *depthCount] = n;
+                shape->intersectionPoint[intersectionCount + *depthCount] = ip;
+                shape->normalVector[intersectionCount + *depthCount] = n;
                 depths[*depthCount] = hitDepth;
                 *depthCount += 1;
             }
         }
 
-        if (*depthCount + tcnt >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
+        if (*depthCount + intersectionCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
             return;
         }
 
@@ -985,8 +966,8 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
             if (ParametricBiCubicIntersection::intersectSubpatch(
                     shape->patchType, ray, &vv0, &vv2, &vv3, &n, d, nullptr,
                     nullptr, nullptr, &hitDepth, &ip, &n)) {
-                shape->intersectionPoint[tcnt + *depthCount] = ip;
-                shape->normalVector[tcnt + *depthCount] = n;
+                shape->intersectionPoint[intersectionCount + *depthCount] = ip;
+                shape->normalVector[intersectionCount + *depthCount] = n;
                 depths[*depthCount] = hitDepth;
                 *depthCount += 1;
             }
@@ -1008,34 +989,32 @@ ParametricBiCubicPatch::inside(Vector3Dd *point)
 }
 
 void
-ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
+ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint)
 {
-    normal(result, intersectionPoint, nullptr);
+    normal(result, localIntersectionPoint, nullptr);
 }
 
 void
 ParametricBiCubicPatch::normal(
     Vector3Dd *result,
-    Vector3Dd *intersectionPoint,
-    const RenderingConfiguration *config)
+    Vector3Dd *localIntersectionPoint,
+    const RenderingConfiguration * /*config*/)
 {
     const ParametricBiCubicPatch *patch = this;
-    int i;
 
     /**
     If all is going well, the normal was computed at the time the
-       intersection was computed.  Look on the list of associated intersection
-       points and normals
+    intersection was computed.  Look on the list of associated intersection
+    points and normals
     */
-    for (i = 0; i < patch->intersectionCount; i++) {
-        if (intersectionPoint->x() == patch->intersectionPoint[i].x() &&
-            intersectionPoint->y() == patch->intersectionPoint[i].y() &&
-            intersectionPoint->z() == patch->intersectionPoint[i].z()) {
+    for (int i = 0; i < patch->intersectionCount; i++) {
+        if (localIntersectionPoint->x() == patch->intersectionPoint[i].x() &&
+            localIntersectionPoint->y() == patch->intersectionPoint[i].y() &&
+            localIntersectionPoint->z() == patch->intersectionPoint[i].z()) {
             *result = patch->normalVector[i];
             return;
         }
     }
-    (void)config;
     *result = Vector3Dd(1.0, 0.0, 0.0);
 }
 
@@ -1109,7 +1088,6 @@ ParametricBiCubicPatch::scaleGeometry(Vector3Dd *vector)
 void
 ParametricBiCubicPatch::invertGeometry()
 {
-    ;
 }
 
 int

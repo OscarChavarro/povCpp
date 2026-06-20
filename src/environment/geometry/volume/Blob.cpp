@@ -1,11 +1,6 @@
-#include <cstdio>
-
-/**
-This module contains the code for the blob shape.
-*/
-
 #include "java/lang/Math.h"
 #include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
@@ -16,36 +11,28 @@ This module contains the code for the blob shape.
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Blob.h"
 
-static constexpr double COEFF_LIMIT = 1.0e-20;
-static constexpr double INSIDE_TOLERANCE = 1.0e-6;
-static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
+constexpr double Blob::COEFFICIENT_LIMIT;
+constexpr double Blob::INSIDE_TOLERANCE;
+constexpr double Blob::SHADOW_ROOT_MIN_DISTANCE;
 
-static BlobElement *
-allocateBlobElements(int count)
+BlobElement *
+Blob::allocateBlobElements(int count)
 {
     if (count < 1) {
         Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Need at least one component in a blob\n");
     }
 
-    BlobElement *elements = new BlobElement[count];
-    if (elements == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
-    return elements;
+    return new BlobElement[count];
 }
 
-static BlobInterval *
-allocateBlobIntervals(int count)
+BlobInterval *
+Blob::allocateBlobIntervals(int count)
 {
     if (count < 1) {
         return nullptr;
     }
 
-    BlobInterval *allocatedIntervals = new BlobInterval[2 * count];
-    if (allocatedIntervals == nullptr) {
-        Logger::reportMessage("Blob", Logger::FATAL_ERROR, "", "Failed to allocate blob data\n");
-    }
-    return allocatedIntervals;
+    return new BlobInterval[2 * count];
 }
 
 Blob::Blob(double thresholdValue,
@@ -64,15 +51,16 @@ Blob::Blob(double thresholdValue,
         BlobElement *element = blobElements->get(i);
         if (java::Math::abs(element->getCoeffs()[2]) < Config::INTERSECTION_EPSILON ||
             element->getRadius2() < Config::INTERSECTION_EPSILON) {
-            perror("Degenerate blob element\n");
+            Logger::reportMessage(
+                "Blob", Logger::ERROR, "", "Degenerate blob element\n");
         }
         double rad = element->getRadius2();
         rad *= rad;
-        double coeff = element->getCoeffs()[2];
+        double coefficient = element->getCoeffs()[2];
         list[i].setRadius2(rad);
-        list[i].getCoeffs()[2] = coeff;
-        list[i].getCoeffs()[1] = -(2.0 * coeff) / rad;
-        list[i].getCoeffs()[0] = coeff / (rad * rad);
+        list[i].getCoeffs()[2] = coefficient;
+        list[i].getCoeffs()[1] = -(2.0 * coefficient) / rad;
+        list[i].getCoeffs()[0] = coefficient / (rad * rad);
         list[i].getPos() = Vector3Dd(
             element->getPos().x(), element->getPos().y(),
             element->getPos().z());
@@ -111,12 +99,11 @@ Blob::Blob(const Matrix4x4d *transformationValue,
 Starting with the density function: (1-r^2)^2, we have a field
 that varies in strength from 1 at r = 0 to 0 at r = 1.  By
 substituting r/rad for r, we can adjust the range of influence
-of a particular component.  By multiplication by coeff, we can
+of a particular component.  By multiplication by coefficient, we can
 adjust the amount of total contribution, giving the formula:
-    coeff * (1 - (r/rad)^2)^2
-This varies in strength from coeff at r = 0, to 0 at r = rad.
-*/
-/**
+    coefficient * (1 - (r/rad)^2)^2
+This varies in strength from coefficient at r = 0, to 0 at r = rad.
+
 Make a sorted list of points along the ray that the various blob
 components start and stop adding their influence.  It would take
 a very complex blob (with many components along the current ray)
@@ -172,11 +159,9 @@ Blob::determineInfluences(
         this is the start or end point of the hit,
         which component was pierced by the ray,
         and the point along the ray that the
-        hit occured at.
+        hit occurred at.
         */
-        for (k = 0; k < cnt && t0 > intervals[k].getBound(); k++) {
-            ;
-        }
+        for (k = 0; k < cnt && t0 > intervals[k].getBound(); k++);
         if (k < cnt) {
             // This hit point is smaller than one that
             // already exists - bump the rest and insert
@@ -188,9 +173,7 @@ Blob::determineInfluences(
             intervals[k].setIndex(i);
             intervals[k].setBound(t0);
             cnt++;
-            for (k = k + 1; k < cnt && t1 > intervals[k].getBound(); k++) {
-                ;
-            }
+            for (k = k + 1; k < cnt && t1 > intervals[k].getBound(); k++);
             if (k < cnt) {
                 for (j = cnt; j > k; j--) {
                     memcpy(
@@ -238,7 +221,7 @@ Blob::calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos)
         double len = v.dotProduct(v);
         if (len < ptr->getRadius2()) {
             // Inside the radius of influence of this
-            // component, add it's contribution
+            // component, add its contribution
             density +=
                 len * (len * ptr->getCoeffs()[0] + ptr->getCoeffs()[1]) +
                 ptr->getCoeffs()[2];
@@ -248,7 +231,7 @@ Blob::calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos)
 }
 
 // See if the hit in question really is a hit
-int
+bool
 Blob::validateHit(const Blob *blob, const Vector3Dd *p)
 {
     int i;
@@ -269,9 +252,9 @@ Blob::validateHit(const Blob *blob, const Vector3Dd *p)
     }
     val = n.dotProduct(n);
     if (val < Config::INTERSECTION_EPSILON) {
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 /**
@@ -337,8 +320,8 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
     Intersection localElement;
     double dist;
     double len;
-    double *tcoeffs;
-    double coeffs[5];
+    double *tCoefficients;
+    double coefficients[5];
     double roots[4];
     int i;
     int j;
@@ -356,7 +339,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
     double c2;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
-    const BlobInterval *intervals = blob->intervals;
+    const BlobInterval *internalIntervals = blob->intervals;
     bool intersectionFound = false;
     Statistics &stats = *ray->getStatistics();
 
@@ -380,26 +363,26 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
     // Figure out the intervals along the ray where each
     // component of the blob has an effect.
     if ((cnt = Blob::determineInfluences(&p, &d, blob, 0.01)) == 0) {
-        // Ray doesn't hit the sphere of influence of any of
+        // Ray doesn't hit the sphere of influence or any of
         // its component elements
         return 0;
     }
 
     // Clear out the coefficients
     for (i = 0; i < 4; i++) {
-        coeffs[i] = 0.0;
+        coefficients[i] = 0.0;
     }
-    coeffs[4] = -blob->threshold;
+    coefficients[4] = -blob->threshold;
 
     // Step through the list of influence points, adding the
     // influence of each blob component as it appears
     for (i = 0, inFlag = 0; i < cnt; i++) {
-        if (intervals[i].getType() == 0) {
+        if (internalIntervals[i].getType() == 0) {
             // Something is just starting to influence the ray,
             // so calculate its coefficients and add them
             // into the pot.
             inFlag++;
-            element = blob->list + intervals[i].getIndex();
+            element = blob->list + internalIntervals[i].getIndex();
 
             v = p.subtract(element->getPos());
             c0 = element->getCoeffs()[0];
@@ -407,23 +390,23 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
             c2 = element->getCoeffs()[2];
             t0 = v.dotProduct(v);
             t1 = v.dotProduct(d);
-            tcoeffs = &(element->getTCoeffs()[0]);
+            tCoefficients = &(element->getTCoeffs()[0]);
 
-            tcoeffs[0] = c0;
-            tcoeffs[1] = 4.0 * c0 * t1;
-            tcoeffs[2] = 2.0 * c0 * (2.0 * t1 * t1 + t0) + c1;
-            tcoeffs[3] = 2.0 * t1 * (2.0 * c0 * t0 + c1);
-            tcoeffs[4] = c0 * t0 * t0 + c1 * t0 + c2;
+            tCoefficients[0] = c0;
+            tCoefficients[1] = 4.0 * c0 * t1;
+            tCoefficients[2] = 2.0 * c0 * (2.0 * t1 * t1 + t0) + c1;
+            tCoefficients[3] = 2.0 * t1 * (2.0 * c0 * t0 + c1);
+            tCoefficients[4] = c0 * t0 * t0 + c1 * t0 + c2;
 
             for (j = 0; j < 5; j++) {
-                coeffs[j] += tcoeffs[j];
+                coefficients[j] += tCoefficients[j];
             }
         } else {
             // We are losing the influence of a component, so
             // subtract off its coefficients
-            tcoeffs = &(blob->list[intervals[i].getIndex()].getTCoeffs()[0]);
+            tCoefficients = &(blob->list[internalIntervals[i].getIndex()].getTCoeffs()[0]);
             for (j = 0; j < 5; j++) {
-                coeffs[j] -= tcoeffs[j];
+                coefficients[j] -= tCoefficients[j];
             }
             if (--inFlag == 0) {
                 // None of the components are currently affecting
@@ -435,22 +418,22 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
         // Figure out which root solver to use
         if (blob->sturmFlag == 0) {
             // Use Ferrari's method
-            rootCount = QuarticSolver::solve(coeffs, &roots[0],
+            rootCount = QuarticSolver::solve(coefficients, &roots[0],
                 ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
                 Config::POLYNOMIAL_SOLVER_EPSILON);
         } else
             // Sturm sequences
-            if (java::Math::abs(coeffs[0]) < COEFF_LIMIT) {
-                if (java::Math::abs(coeffs[1]) < COEFF_LIMIT) {
-                    rootCount = QuadraticSolver::solve(&coeffs[2], &roots[0]);
+            if (java::Math::abs(coefficients[0]) < COEFFICIENT_LIMIT) {
+                if (java::Math::abs(coefficients[1]) < COEFFICIENT_LIMIT) {
+                    rootCount = QuadraticSolver::solve(&coefficients[2], &roots[0]);
                 } else {
-                    PolynomialSolver cubicSolver(3, &coeffs[1]);
+                    PolynomialSolver cubicSolver(3, &coefficients[1]);
                     rootCount = cubicSolver.solve(&roots[0],
                         ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
                         Config::POLYNOMIAL_SOLVER_EPSILON);
                 }
             } else {
-                PolynomialSolver quarticSolver(4, coeffs);
+                PolynomialSolver quarticSolver(4, coefficients);
                 rootCount = quarticSolver.solve(&roots[0],
                     ray->isShadowRayEnabled() ? SHADOW_ROOT_MIN_DISTANCE : 0.0,
                     Config::POLYNOMIAL_SOLVER_EPSILON);
@@ -461,11 +444,11 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
             dist = roots[j];
             // First see if the root is in the interval of influence of
             // the currently active components of the blob
-            if ((dist >= intervals[i].getBound()) &&
-                (dist <= intervals[i + 1].getBound())) {
+            if ((dist >= internalIntervals[i].getBound()) &&
+                (dist <= internalIntervals[i + 1].getBound())) {
                 intersectionPoint = d.multiply(dist);
                 intersectionPoint = intersectionPoint.add(p);
-                if (true || Blob::validateHit(blob, &intersectionPoint)) {
+                if (Blob::validateHit(blob, &intersectionPoint)) {
                     // Only add this hit if it really is near the surface, we
                     // can get fooled by numerical inaccuracies
                     // Transform the point into world space
@@ -644,5 +627,3 @@ Blob::invertGeometry()
 {
     this->inverted = !this->inverted;
 }
-
-#include "java/util/PriorityQueue.txx"
