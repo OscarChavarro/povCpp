@@ -16,6 +16,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/material/PovRayMaterialUtils.h"
+#include "environment/material/pigment/SolidTexturePigment.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/scene/BoundedGeometryFactory.h"
 #include "environment/scene/SceneBuilder.h"
@@ -57,9 +58,8 @@ ensurePrivateTexture(Material *objectTexture)
 {
     PovRayMaterial *texture = static_cast<PovRayMaterial *>(objectTexture);
     bool needsTransform =
-        (texture->getColorPatternType() != SolidTextureColorNames::NO_TEXTURE &&
-         texture->getColorPatternType() != SolidTextureColorNames::COLOUR_TEXTURE) ||
-        texture->getBumpPatternType() != SolidTextureBumpyNames::NO_BUMPS;
+        (texture->getPigment() != nullptr && texture->getPigment()->needsTransform()) ||
+        (texture->getNormal() != nullptr);
     if (needsTransform && PovRayMaterialConstancy::isConstant(texture)) {
         return texture->copy();
     }

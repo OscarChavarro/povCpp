@@ -43,6 +43,29 @@ add_executable(povray
     src/environment/camera/Camera.cpp
         src/environment/material/PovRayMaterial.cpp
         src/environment/material/PovRayMaterialUtils.cpp
+        src/environment/material/normal/BumpMapNormal.cpp
+        src/environment/material/normal/BumpsNormal.cpp
+        src/environment/material/normal/DentsNormal.cpp
+        src/environment/material/normal/RipplesNormal.cpp
+        src/environment/material/normal/UnsupportedBumpNormal.cpp
+        src/environment/material/normal/WavesNormal.cpp
+        src/environment/material/normal/WrinklesNormal.cpp
+        src/environment/material/pigment/AgatePigment.cpp
+        src/environment/material/pigment/BozoPigment.cpp
+        src/environment/material/pigment/BrickPigment.cpp
+        src/environment/material/pigment/CheckerColorPigment.cpp
+        src/environment/material/pigment/CheckerTexturePigment.cpp
+        src/environment/material/pigment/ColourPigment.cpp
+        src/environment/material/pigment/GradientPigment.cpp
+        src/environment/material/pigment/GranitePigment.cpp
+        src/environment/material/pigment/ImageMapPigment.cpp
+        src/environment/material/pigment/LeopardPigment.cpp
+        src/environment/material/pigment/MarblePigment.cpp
+        src/environment/material/pigment/MaterialMapPigment.cpp
+        src/environment/material/pigment/OnionPigment.cpp
+        src/environment/material/pigment/SolidTexturePigment.cpp
+        src/environment/material/pigment/SpottedPigment.cpp
+        src/environment/material/pigment/WoodPigment.cpp
     src/render/AdaptiveAntiAliasing.cpp
     src/render/ColorOperations.cpp
     src/render/RenderWorker.cpp
@@ -58,9 +81,6 @@ add_executable(povray
     src/render/shaders/MirrorReflectionShader.cpp
     src/render/shaders/TransmissionRefractionShader.cpp
     src/render/shaders/LocalSurfaceShader.cpp
-    src/render/SolidTextureFixturesFacade.cpp
-    src/render/SolidTextureFixturesColorAtParameterSet.cpp
-    src/render/SolidTextureFixturesCheckerParameterSet.cpp
     src/render/RayShaderPipeline.cpp
     src/render/RenderEngine.cpp
     src/render/RenderImageWriter.cpp

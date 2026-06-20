@@ -1,6 +1,28 @@
 #include "io/pov/material/PovRayMaterialBuilder.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/material/SolidTextureBumpyNames.h"
+#include "environment/material/normal/BumpMapNormal.h"
+#include "environment/material/normal/BumpsNormal.h"
+#include "environment/material/normal/DentsNormal.h"
+#include "environment/material/normal/RipplesNormal.h"
+#include "environment/material/normal/UnsupportedBumpNormal.h"
+#include "environment/material/normal/WavesNormal.h"
+#include "environment/material/normal/WrinklesNormal.h"
+#include "environment/material/pigment/AgatePigment.h"
+#include "environment/material/pigment/BozoPigment.h"
+#include "environment/material/pigment/BrickPigment.h"
+#include "environment/material/pigment/CheckerColorPigment.h"
+#include "environment/material/pigment/CheckerTexturePigment.h"
+#include "environment/material/pigment/ColourPigment.h"
+#include "environment/material/pigment/GradientPigment.h"
+#include "environment/material/pigment/GranitePigment.h"
+#include "environment/material/pigment/ImageMapPigment.h"
+#include "environment/material/pigment/LeopardPigment.h"
+#include "environment/material/pigment/MarblePigment.h"
+#include "environment/material/pigment/MaterialMapPigment.h"
+#include "environment/material/pigment/OnionPigment.h"
+#include "environment/material/pigment/SpottedPigment.h"
+#include "environment/material/pigment/WoodPigment.h"
 #include "java/util/ArrayList.txx"
 
 PovRayMaterialBuilder::PovRayMaterialBuilder() :
@@ -41,20 +63,20 @@ PovRayMaterialBuilder::PovRayMaterialBuilder() :
 }
 
 PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
-    bumpAmount(base->getBumpAmount()),
-    bumpImage(base->getBumpImage()),
-    bumpNumber(base->getBumpPatternType()),
-    checkerColor1(base->getCheckerColor1()),
-    checkerColor2(base->getCheckerColor2()),
-    checkerTexture1(base->getCheckerTexture1()),
-    checkerTexture2(base->getCheckerTexture2()),
-    colorMap(deepCopyColorMap(base->getColorMap())),
-    frequency(base->getBumpFrequency()),
-    image(base->getColorImage()),
+    bumpAmount(base->getPendingBumpAmount()),
+    bumpImage(base->getPendingBumpImage()),
+    bumpNumber(SolidTextureBumpyNames::NO_BUMPS),
+    checkerColor1(nullptr),
+    checkerColor2(nullptr),
+    checkerTexture1(nullptr),
+    checkerTexture2(nullptr),
+    colorMap(SolidTexturePigment::cloneColorMap(base->getPendingColorMap())),
+    frequency(base->getPendingFrequency()),
+    image(nullptr),
     materialImage(base->getMaterialMapImage()),
     metallicFlag(base->isMetallic()),
-    mortar(base->getBrickMortar()),
-    numberOfWaves(base->getBumpNumberOfWaves()),
+    mortar(base->getPendingMortar()),
+    numberOfWaves(base->getPendingNumberOfWaves()),
     objectAmbient(base->getObjectAmbient()),
     objectBrilliance(base->getObjectBrilliance()),
     objectDiffuse(base->getObjectDiffuse()),
@@ -66,27 +88,164 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
     objectRoughness(base->getObjectRoughness()),
     objectSpecular(base->getObjectSpecular()),
     objectTransmit(base->getObjectTransmit()),
-    octaves(base->getOctaves()),
-    phase(base->getBumpPhase()),
-    textureGradient(base->getTextureGradient()),
-    textureNumber(base->getColorPatternType()),
+    octaves(base->getPendingOctaves()),
+    phase(base->getPendingPhase()),
+    textureGradient(0.0, 0.0, 0.0),
+    textureNumber(SolidTextureColorNames::NO_TEXTURE),
     textureRandomness(base->getTextureRandomness()),
     textureTransformation(nullptr),
     textureTransformationInverse(nullptr),
-    turbulence(base->getTurbulence())
+    turbulence(base->getPendingTurbulence())
 {
     if (base->getTextureTransformation() != nullptr) {
         textureTransformation = new Matrix4x4d(*base->getTextureTransformation());
-    }
-    if (base->getTextureTransformationInverse() != nullptr) {
         textureTransformationInverse = new Matrix4x4d(*base->getTextureTransformationInverse());
     }
 
+    // Reconstructs the pattern-defining fields from the concrete pigment/normal so that
+    // TextureParser's incremental single-attribute edits (rebuild via build()) keep working.
+    // turbulence/octaves/colorMap/mortar/bumpAmount/frequency/phase/numberOfWaves/bumpImage
+    // come from PovRayMaterial's pending* fields above instead, since those attributes can be
+    // set by TextureParser *before* the pattern/bump keyword that actually creates a pigment/
+    // normal object (e.g. "turbulence 0.8 bozo"), and would otherwise be lost on that build()
+    // round trip while pigment/normal is still nullptr.
+    SolidTexturePigment * const pigment = base->getPigment();
+    if (const ColourPigment *p = dynamic_cast<const ColourPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::COLOUR_TEXTURE;
+        checkerColor1 = p->getColor1();
+    } else if (dynamic_cast<const BozoPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::BOZO_TEXTURE;
+    } else if (dynamic_cast<const MarblePigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::MARBLE_TEXTURE;
+    } else if (dynamic_cast<const WoodPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::WOOD_TEXTURE;
+    } else if (const CheckerColorPigment *p = dynamic_cast<const CheckerColorPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::CHECKER_TEXTURE;
+        checkerColor1 = p->getColor1();
+        checkerColor2 = p->getColor2();
+    } else if (const CheckerTexturePigment *p = dynamic_cast<const CheckerTexturePigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE;
+        checkerTexture1 = p->getTexture1();
+        checkerTexture2 = p->getTexture2();
+    } else if (dynamic_cast<const SpottedPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::SPOTTED_TEXTURE;
+    } else if (dynamic_cast<const AgatePigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::AGATE_TEXTURE;
+    } else if (dynamic_cast<const GranitePigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::GRANITE_TEXTURE;
+    } else if (const GradientPigment *p = dynamic_cast<const GradientPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::GRADIENT_TEXTURE;
+        textureGradient = p->getTextureGradient();
+    } else if (const ImageMapPigment *p = dynamic_cast<const ImageMapPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::IMAGE_MAP_TEXTURE;
+        image = const_cast<ControlledRGBAImageHDRUncompressed *>(p->getImage());
+    } else if (dynamic_cast<const OnionPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::ONION_TEXTURE;
+    } else if (dynamic_cast<const LeopardPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::LEOPARD_TEXTURE;
+    } else if (const BrickPigment *p = dynamic_cast<const BrickPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::BRICK_TEXTURE;
+        checkerColor1 = p->getColor1();
+        checkerColor2 = p->getColor2();
+    } else if (dynamic_cast<const MaterialMapPigment *>(pigment)) {
+        textureNumber = SolidTextureColorNames::MATERIAL_MAP_TEXTURE;
+    } else {
+        textureNumber = SolidTextureColorNames::NO_TEXTURE;
+    }
+
+    SolidTextureNormal * const normal = base->getNormal();
+    if (dynamic_cast<const WavesNormal *>(normal)) {
+        bumpNumber = SolidTextureBumpyNames::WAVES;
+    } else if (dynamic_cast<const RipplesNormal *>(normal)) {
+        bumpNumber = SolidTextureBumpyNames::RIPPLES;
+    } else if (dynamic_cast<const WrinklesNormal *>(normal)) {
+        bumpNumber = SolidTextureBumpyNames::WRINKLES;
+    } else if (dynamic_cast<const BumpsNormal *>(normal)) {
+        bumpNumber = SolidTextureBumpyNames::BUMPS;
+    } else if (dynamic_cast<const DentsNormal *>(normal)) {
+        bumpNumber = SolidTextureBumpyNames::DENTS;
+    } else if (dynamic_cast<const BumpMapNormal *>(normal)) {
+        bumpNumber = SolidTextureBumpyNames::BUMP_MAP;
+    } else if (dynamic_cast<const UnsupportedBumpNormal *>(normal)) {
+        // BUMPY1/2/3 are indistinguishable from each other once built (none of them carry
+        // any state and none has any visual effect - see UnsupportedBumpNormal); BUMPY1 is
+        // an arbitrary, behaviorally-equivalent pick to satisfy the needsTransform() gate.
+        bumpNumber = SolidTextureBumpyNames::BUMPY1;
+    } else {
+        bumpNumber = SolidTextureBumpyNames::NO_BUMPS;
+    }
+
     for (long int i = 0; i < base->getLayers().size(); i++) {
-        layers.add(copyTextureNode(base->getLayers()[i]));
+        layers.add(PovRayMaterial::copyTexture(base->getLayers()[i]));
     }
     for (long int i = 0; i < base->getMaterialMapVariants().size(); i++) {
         materials.add(base->getMaterialMapVariants()[i]);
+    }
+}
+
+SolidTexturePigment *
+PovRayMaterialBuilder::buildPigment() const
+{
+    switch (textureNumber) {
+    case SolidTextureColorNames::COLOUR_TEXTURE:
+        return new ColourPigment(checkerColor1);
+    case SolidTextureColorNames::BOZO_TEXTURE:
+        return new BozoPigment(turbulence, octaves, colorMap);
+    case SolidTextureColorNames::MARBLE_TEXTURE:
+        return new MarblePigment(turbulence, octaves, colorMap);
+    case SolidTextureColorNames::WOOD_TEXTURE:
+        return new WoodPigment(turbulence, octaves, colorMap);
+    case SolidTextureColorNames::CHECKER_TEXTURE:
+        return new CheckerColorPigment(checkerColor1, checkerColor2);
+    case SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE:
+        return new CheckerTexturePigment(checkerTexture1, checkerTexture2);
+    case SolidTextureColorNames::SPOTTED_TEXTURE:
+        return new SpottedPigment(colorMap);
+    case SolidTextureColorNames::AGATE_TEXTURE:
+        return new AgatePigment(octaves, colorMap);
+    case SolidTextureColorNames::GRANITE_TEXTURE:
+        return new GranitePigment(colorMap);
+    case SolidTextureColorNames::GRADIENT_TEXTURE:
+        return new GradientPigment(turbulence, octaves, colorMap, textureGradient);
+    case SolidTextureColorNames::IMAGE_MAP_TEXTURE:
+        return new ImageMapPigment(image);
+    case SolidTextureColorNames::ONION_TEXTURE:
+        return new OnionPigment(turbulence, octaves, colorMap);
+    case SolidTextureColorNames::LEOPARD_TEXTURE:
+        return new LeopardPigment(turbulence, octaves, colorMap);
+    case SolidTextureColorNames::BRICK_TEXTURE:
+        return new BrickPigment(checkerColor1, checkerColor2, mortar);
+    case SolidTextureColorNames::MATERIAL_MAP_TEXTURE:
+        return new MaterialMapPigment();
+    case SolidTextureColorNames::NO_TEXTURE:
+    default:
+        return nullptr;
+    }
+}
+
+SolidTextureNormal *
+PovRayMaterialBuilder::buildNormal() const
+{
+    switch (bumpNumber) {
+    case SolidTextureBumpyNames::WAVES:
+        return new WavesNormal(bumpAmount, frequency, phase, numberOfWaves);
+    case SolidTextureBumpyNames::RIPPLES:
+        return new RipplesNormal(bumpAmount, frequency, phase, numberOfWaves);
+    case SolidTextureBumpyNames::WRINKLES:
+        return new WrinklesNormal(bumpAmount);
+    case SolidTextureBumpyNames::BUMPS:
+        return new BumpsNormal(bumpAmount);
+    case SolidTextureBumpyNames::DENTS:
+        return new DentsNormal(bumpAmount);
+    case SolidTextureBumpyNames::BUMPY1:
+    case SolidTextureBumpyNames::BUMPY2:
+    case SolidTextureBumpyNames::BUMPY3:
+        return new UnsupportedBumpNormal();
+    case SolidTextureBumpyNames::BUMP_MAP:
+        return new BumpMapNormal(bumpAmount, bumpImage);
+    case SolidTextureBumpyNames::NO_BUMPS:
+    default:
+        return nullptr;
     }
 }
 
@@ -96,58 +255,12 @@ PovRayMaterialBuilder::build() const
     return new PovRayMaterial(objectReflection, objectAmbient, objectDiffuse,
         objectBrilliance, objectIndexOfRefraction, objectRefraction,
         objectTransmit, objectSpecular, objectRoughness, objectPhong,
-        objectPhongSize, bumpAmount, textureRandomness, frequency, phase,
-        textureNumber, bumpNumber, textureTransformation,
-        textureTransformationInverse, checkerColor1, checkerColor2,
-        checkerTexture1, checkerTexture2, turbulence,
-        textureGradient, colorMap, image, bumpImage, materialImage,
-        metallicFlag, numberOfWaves, octaves, mortar, layers, materials);
-}
-
-PovRayMaterial *
-PovRayMaterialBuilder::copyTextureNode(const PovRayMaterial *src)
-{
-    Matrix4x4d *transformation = nullptr;
-    Matrix4x4d *transformationInverse = nullptr;
-    if (src->getTextureTransformation() != nullptr) {
-        transformation = new Matrix4x4d(*src->getTextureTransformation());
-        transformationInverse = new Matrix4x4d(*src->getTextureTransformationInverse());
-    }
-    return new PovRayMaterial(
-        src->getObjectReflection(), src->getObjectAmbient(), src->getObjectDiffuse(),
-        src->getObjectBrilliance(), src->getObjectIndexOfRefraction(), src->getObjectRefraction(),
-        src->getObjectTransmit(), src->getObjectSpecular(), src->getObjectRoughness(),
-        src->getObjectPhong(), src->getObjectPhongSize(), src->getBumpAmount(),
-        src->getTextureRandomness(), src->getBumpFrequency(),
-        src->getBumpPhase(), src->getColorPatternType(),
-        src->getBumpPatternType(),
-        transformation, transformationInverse,
-        src->getCheckerColor1(), src->getCheckerColor2(),
-        src->getCheckerTexture1(), src->getCheckerTexture2(), src->getTurbulence(),
-        src->getTextureGradient(), deepCopyColorMap(src->getColorMap()),
-        src->getColorImage(), src->getBumpImage(), src->getMaterialMapImage(), src->isMetallic(),
-        src->getBumpNumberOfWaves(), src->getOctaves(), src->getBrickMortar(),
-        src->getLayers(), src->getMaterialMapVariants());
-}
-
-// Deep-copies a color map by reading each stored color and adding it to a new palette.
-RGBAColorPalette *
-PovRayMaterialBuilder::deepCopyColorMap(const RGBAColorPalette *source)
-{
-    if (source == nullptr) {
-        return nullptr;
-    }
-    RGBAColorPalette * const newMap = new RGBAColorPalette();
-    for (int i = 0; i < source->size(); i++) {
-        const ColorRgba *c = source->getColorAt(i);
-        if (source->hasPositions()) {
-            newMap->addColorAt(source->getPositionAt(i), *c);
-        } else {
-            newMap->addColor(*c);
-        }
-        delete c;
-    }
-    return newMap;
+        objectPhongSize, textureRandomness,
+        textureTransformation, textureTransformationInverse,
+        buildPigment(), buildNormal(),
+        materialImage, metallicFlag, layers, materials,
+        turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap),
+        mortar, bumpAmount, frequency, phase, numberOfWaves, bumpImage);
 }
 
 ColorRgba *
