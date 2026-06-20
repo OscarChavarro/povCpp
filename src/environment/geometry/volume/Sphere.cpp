@@ -1,6 +1,7 @@
 #include "java/lang/Math.h"
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Sphere.h"
@@ -56,7 +57,7 @@ Sphere::intersectSphere(
         }
         tClosestApproach = sphere->getVpOtoC().dotProduct(ray->getDirection());
         if (!sphere->getVpInside() &&
-            (tClosestApproach < GeometryConstants::Small_Tolerance)) {
+            (tClosestApproach < Config::SMALL_TOLERANCE)) {
             return false;
         }
         tHalfChordSquared = sphere->getRadiusSquared() - sphere->getVpOCSquared() +
@@ -66,7 +67,7 @@ Sphere::intersectSphere(
         ocSquared = originToCenter.dotProduct(originToCenter);
         inside = (ocSquared < sphere->getRadiusSquared());
         tClosestApproach = originToCenter.dotProduct(ray->getDirection());
-        if (!inside && (tClosestApproach < GeometryConstants::Small_Tolerance)) {
+        if (!inside && (tClosestApproach < Config::SMALL_TOLERANCE)) {
             return false;
         }
 
@@ -74,7 +75,7 @@ Sphere::intersectSphere(
                             (tClosestApproach * tClosestApproach);
     }
 
-    if (tHalfChordSquared < GeometryConstants::Small_Tolerance) {
+    if (tHalfChordSquared < Config::SMALL_TOLERANCE) {
         return false;
     }
 
@@ -82,14 +83,14 @@ Sphere::intersectSphere(
     *depth1 = tClosestApproach + halfChord;
     *depth2 = tClosestApproach - halfChord;
 
-    if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
-        if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
+    if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
+        if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
             return false;
         }
         *depth1 = *depth2;
 
     } else {
-        if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
+        if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
             *depth2 = *depth1;
         }
     }
@@ -150,9 +151,9 @@ Sphere::inside(Vector3Dd *testPoint)
     const double ocSquared = originToCenter.dotProduct(originToCenter);
 
     if (sphere->isInverted()) {
-        return (ocSquared - sphere->getRadiusSquared() > GeometryConstants::Small_Tolerance);
+        return (ocSquared - sphere->getRadiusSquared() > Config::SMALL_TOLERANCE);
     }
-    return (ocSquared - sphere->getRadiusSquared() < GeometryConstants::Small_Tolerance);
+    return (ocSquared - sphere->getRadiusSquared() < Config::SMALL_TOLERANCE);
 }
 
 void

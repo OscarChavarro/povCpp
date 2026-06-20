@@ -1,9 +1,9 @@
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ColorTextureFixture.h"
+#include "common/Config.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
-#include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
@@ -49,7 +49,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             &rayIntersection->getPoint(), texture->getTextureTransformationInverse(),
             texture->getMaterialMapImage(),
             texture->getMaterialMapVariants().size(),
-            GeometryConstants::Small_Tolerance);
+            Config::SMALL_TOLERANCE);
         if (index != -1) {
             texture = texture->getMaterialMapVariants().get(index);
         }
@@ -82,7 +82,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             const Vector3Dd transformedPoint = SolidTexturePigment::transformToObjectSpace(
                 &rayIntersection->getPoint(), tempTexture->getTextureTransformationInverse());
             tempTexture->getPigment()->colorAt(&transformedPoint, &surfaceColor,
-                GeometryConstants::Small_Tolerance, colorFixture, mapFixture);
+                Config::SMALL_TOLERANCE, colorFixture, mapFixture);
         }
         // We don't need to compute the lighting characteristics for shadow
         // rays

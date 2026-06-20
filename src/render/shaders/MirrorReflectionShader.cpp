@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
@@ -33,7 +33,7 @@ MirrorReflectionShader::shade(const PovRayMaterial *texture, const Vector3Dd *in
         newRay.setDirection(ray->getDirection().add(normalProjection));
         newRay.setOrigin(*intersectionPoint);
 
-        surfaceOffset = newRay.getDirection().multiply(2.0 * GeometryConstants::Small_Tolerance);
+        surfaceOffset = newRay.getDirection().multiply(2.0 * Config::SMALL_TOLERANCE);
         newRay.setOrigin(newRay.getOrigin().add(surfaceOffset));
 
         newRay.copyContainersFrom(ray);

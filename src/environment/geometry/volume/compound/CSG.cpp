@@ -1,16 +1,9 @@
-/**
-csg.c
-
-This module implements routines for constructive solid geometry.
-*/
-
+#include "java/util/PriorityQueue.txx"
+#include "java/util/ArrayList.txx"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/SimpleBody.h"
-
-#include "java/util/PriorityQueue.txx"
-#include "java/util/ArrayList.txx"
 
 CSG::CSG(BooleanSetOperations initialGeometryType) :
     geometryType(initialGeometryType)
@@ -41,7 +34,6 @@ CSG::allIntersectionsForOwner(
     java::PriorityQueue<Intersection> *depthQueue,
     SimpleBody *owner)
 {
-    (void)owner;
     return allIntersections(ray, depthQueue);
 }
 

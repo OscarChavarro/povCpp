@@ -121,7 +121,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
 
             depth1 = pos1 / dot;
 
-            if ((depth1 > GeometryConstants::Small_Tolerance) && (depth1 < GeometryConstants::Max_Distance)) {
+            if ((depth1 > Config::SMALL_TOLERANCE) && (depth1 < Config::MAX_DISTANCE)) {
                 s = ray->getOrigin().x() + (depth1 * ray->getDirection().x()) - (double)x;
                 t = ray->getOrigin().z() + (depth1 * ray->getDirection().z()) - (double)z;
 
@@ -159,7 +159,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
 
             depth2 = pos1 / dot;
 
-            if ((depth2 > GeometryConstants::Small_Tolerance) && (depth2 < GeometryConstants::Max_Distance)) {
+            if ((depth2 > Config::SMALL_TOLERANCE) && (depth2 < Config::MAX_DISTANCE)) {
                 s = ray->getOrigin().x() + (depth2 * ray->getDirection().x()) - (double)x;
                 t = ray->getOrigin().z() + (depth2 * ray->getDirection().z()) - (double)z;
 
@@ -173,7 +173,7 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         }
     }
 
-    if ((depth1 >= GeometryConstants::Max_Distance) && (depth2 >= GeometryConstants::Max_Distance)) {
+    if ((depth1 >= Config::MAX_DISTANCE) && (depth2 >= Config::MAX_DISTANCE)) {
         return (false);
     }
 
@@ -787,7 +787,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
         return (false);
     }
 
-    // if(      java::Math::abs(depth1 - depth2) < GeometryConstants::Small_Tolerance) { Try Config::INTERSECTION_EPSILON if
+    // if(      java::Math::abs(depth1 - depth2) < Config::SMALL_TOLERANCE) { Try Config::INTERSECTION_EPSILON if
     // next line doesn't work
 
     if (depth1 == depth2) {

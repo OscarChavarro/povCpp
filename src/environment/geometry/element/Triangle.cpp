@@ -2,6 +2,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/Triangle.h"
@@ -227,8 +228,8 @@ Triangle::intersectTriangle(
         }
 
         normalDotDirection = triangle->normalVector.dotProduct(ray->getDirection());
-        if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
-            (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+        if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
+            (normalDotDirection > -Config::SMALL_TOLERANCE)) {
             return (false);
         }
 
@@ -239,15 +240,15 @@ Triangle::intersectTriangle(
         normalDotOrigin *= -1.0;
 
         normalDotDirection = triangle->normalVector.dotProduct(ray->getDirection());
-        if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
-            (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+        if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
+            (normalDotDirection > -Config::SMALL_TOLERANCE)) {
             return (false);
         }
 
         *depth = normalDotOrigin / normalDotDirection;
     }
 
-    if ((*depth < GeometryConstants::Small_Tolerance) || (*depth > GeometryConstants::Max_Distance)) {
+    if ((*depth < Config::SMALL_TOLERANCE) || (*depth > Config::MAX_DISTANCE)) {
         return (false);
     }
 

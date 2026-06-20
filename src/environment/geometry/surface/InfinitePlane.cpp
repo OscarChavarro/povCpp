@@ -1,6 +1,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/surface/InfinitePlane.h"
@@ -43,7 +44,7 @@ InfinitePlane::allIntersectionsForOwner(
     Intersection localElement;
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
-        if (depth > GeometryConstants::Small_Tolerance) {
+        if (depth > Config::SMALL_TOLERANCE) {
             localElement.setT(depth);
             localElement.setBoundedGeometry(nullptr);
             intersectionPoint = ray->getDirection().multiply(depth);
@@ -77,13 +78,13 @@ InfinitePlane::intersectPlane(
         }
 
         normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
-        if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
-            (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+        if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
+            (normalDotDirection > -Config::SMALL_TOLERANCE)) {
             return (false);
         }
 
         *depth = plane->vpNormDotOrigin / normalDotDirection;
-        if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
+        if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
             stats.incrementRayPlaneTestsSucceeded();
             return (true);
         }
@@ -94,13 +95,13 @@ InfinitePlane::intersectPlane(
     normalDotOrigin *= -1.0;
 
     normalDotDirection = plane->normalVector.dotProduct(ray->getDirection());
-    if ((normalDotDirection < GeometryConstants::Small_Tolerance) &&
-        (normalDotDirection > -GeometryConstants::Small_Tolerance)) {
+    if ((normalDotDirection < Config::SMALL_TOLERANCE) &&
+        (normalDotDirection > -Config::SMALL_TOLERANCE)) {
         return (false);
     }
 
     *depth = normalDotOrigin / normalDotDirection;
-    if ((*depth >= GeometryConstants::Small_Tolerance) && (*depth <= GeometryConstants::Max_Distance)) {
+    if ((*depth >= Config::SMALL_TOLERANCE) && (*depth <= Config::MAX_DISTANCE)) {
         stats.incrementRayPlaneTestsSucceeded();
         return (true);
     }
@@ -113,7 +114,7 @@ InfinitePlane::inside(Vector3Dd *testPoint)
     const InfinitePlane *plane = this;
 
     double temp = (*testPoint).dotProduct(plane->normalVector);
-    return ((temp + plane->distance) <= GeometryConstants::Small_Tolerance);
+    return ((temp + plane->distance) <= Config::SMALL_TOLERANCE);
 }
 
 void
