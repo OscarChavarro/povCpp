@@ -15,7 +15,7 @@ class Intersection {
     Vector3Dd *normal = nullptr;
 
     BoundedGeometry *boundedGeometry;
-    SimpleBody *simpleBody;
+    SimpleBody *ownerSimpleBody;
 
   public:
     double getT() const;
@@ -28,8 +28,8 @@ class Intersection {
     BoundedGeometry *getBoundedGeometry() const;
     void setBoundedGeometry(BoundedGeometry *value);
     Vector3Dd& getPoint();
-    SimpleBody *getSimpleBody() const;
-    void setSimpleBody(SimpleBody *value);
+    SimpleBody *getOwnerSimpleBody() const;
+    void setOwnerSimpleBody(SimpleBody *value);
 };
 
 inline double
@@ -87,15 +87,15 @@ Intersection::getPoint()
 }
 
 inline SimpleBody *
-Intersection::getSimpleBody() const
+Intersection::getOwnerSimpleBody() const
 {
-    return simpleBody;
+    return ownerSimpleBody;
 }
 
 inline void
-Intersection::setSimpleBody(SimpleBody *value)
+Intersection::setOwnerSimpleBody(SimpleBody *value)
 {
-    simpleBody = value;
+    ownerSimpleBody = value;
 }
 
 namespace java {

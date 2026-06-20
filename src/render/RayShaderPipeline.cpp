@@ -1,7 +1,4 @@
-#include <cstdio>
-
 #include "java/util/ArrayList.txx"
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageTexture.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureColorNames.h"
@@ -36,29 +33,13 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     }
 
-    if (context.getConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
-        if (rayIntersection->getSimpleBody()->getShapeColor()) {
-            {
-                char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour %f %f %f ", rayIntersection->getT(), rayIntersection->getSimpleBody()->getShapeColor()->getR(),                 rayIntersection->getSimpleBody()->getShapeColor()->getG(),                 rayIntersection->getSimpleBody()->getShapeColor()->getB());
-                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
-            }
-        } else {
-            {
-                char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour NIL ", rayIntersection->getT());
-                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
-            }
-        }
-    }
-
     surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
 
     ImageTexture mapFixture;
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
     // Is there a texture in the shape?  If not, use the one in the object
-    texture = static_cast<PovrayMaterial *>(rayIntersection->getSimpleBody()->getMaterial());
+    texture = static_cast<PovrayMaterial *>(rayIntersection->getOwnerSimpleBody()->getMaterial());
     if (texture == nullptr) {
         texture = static_cast<PovrayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }
@@ -92,8 +73,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
         if (context.getConfig().getQuality() <= 5) {
-            if (rayIntersection->getSimpleBody()->getShapeColor() != nullptr) {
-                surfaceColor = *rayIntersection->getSimpleBody()->getShapeColor();
+            if (rayIntersection->getOwnerSimpleBody()->getShapeColor() != nullptr) {
+                surfaceColor = *rayIntersection->getOwnerSimpleBody()->getShapeColor();
             } else if (rayIntersection->getBoundedGeometry()->getObjectColor() != nullptr) {
                 surfaceColor = *rayIntersection->getBoundedGeometry()->getObjectColor();
             } else {
@@ -137,24 +118,6 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 context.getScene().getObjects(), traceLevel, textureUtils);
         }
 
-        if (context.getConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
-            {
-                char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Surface %d\n", surface);
-                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
-            }
-            {
-                char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "    Surf: %6.4f %6.4f %6.4f %6.4f\n", surfaceColor.getR(),                 surfaceColor.getG(), surfaceColor.getB(), surfaceColor.getA());
-                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
-            }
-            {
-                char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "    Filter_Colour:    %6.4f %6.4f %6.4f %6.4f  Final "                    "Colour: %6.4f %6.4f %6.4f %6.4f  \n", filterColor.getR(), filterColor.getG(), filterColor.getB(),                 filterColor.getA(), color->getR(), color->getG(), color->getB(),                 color->getA());
-                Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
-            }
-        }
-
         filterColor.setR(filterColor.getR() * surfaceColor.getR());
         filterColor.setG(filterColor.getG() * surfaceColor.getG());
         filterColor.setB(filterColor.getB() * surfaceColor.getB());
@@ -189,7 +152,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
-            rayIntersection->getSimpleBody()->normal(
+            rayIntersection->getOwnerSimpleBody()->normal(
                 &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
             if (context.getConfig().getQuality() > 7) {
