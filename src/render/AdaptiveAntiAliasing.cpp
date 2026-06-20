@@ -86,7 +86,6 @@ AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y, ColorRg
                     renderEngine->getScene().getScreenWidth(),
                     renderEngine->getScene().getScreenHeight());
                 worker.setCurrentLineAntiAliasedFlag(x - 1, true);
-                renderEngine->incrementSuperSampleCount();
             }
         }
     }
@@ -102,7 +101,6 @@ AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y, ColorRg
                     renderEngine->getScene().getScreenWidth(),
                     renderEngine->getScene().getScreenHeight());
                 worker.setPreviousLineAntiAliasedFlag(x, true);
-                renderEngine->incrementSuperSampleCount();
             }
         }
     }
@@ -113,6 +111,5 @@ AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y, ColorRg
             renderEngine->getScene().getScreenHeight());
         worker.setCurrentLineAntiAliasedFlag(x, true);
         *color = *worker.getCurrentLinePixel(x);
-        renderEngine->incrementSuperSampleCount();
     }
 }

@@ -62,28 +62,7 @@ RenderEngine::createRay(
 void
 RenderEngine::readRenderedPart()
 {
-    int rc;
-    int lineNumber;
-    while ((rc = this->getConfig().getOutputFileInputStream()->readLine(
-                worker.getPreviousLine(), &lineNumber)) == 1) {
-    }
-
-    this->getMutableConfig().setFirstLine(lineNumber + 1);
-
-    if (rc == 0) {
-        this->getConfig().getOutputFileInputStream()->close();
-        if (this->getConfig().getOutputFileInputStream()->open(
-                this->getMutableConfig().getOutputFileNameBuffer(),
-                &this->getScene().getScreenWidth(),
-                &this->getScene().getScreenHeight(),
-                this->getConfig().getFileBufferSize(), RenderOutput::APPEND_MODE,
-                this->getConfig().getFirstLine()) != 1) {
-            Logger::reportMessage("RenderEngine", Logger::FATAL_ERROR, "", "Error opening output file\n");
-        }
-        return;
-    }
-
-    Logger::reportMessage("RenderEngine", Logger::ERROR, "", "Error reading aborted data file\n");
+    imageWriter.readRenderedPart(worker.getPreviousLine());
 }
 
 void
@@ -142,13 +121,11 @@ RenderEngine::startTracing()
                 }
             }
         }
-        this->outputLine(localWorker, y);
+        imageWriter.outputLine(localWorker, y);
     }
 
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
-        this->getConfig().getOutputFileInputStream()->writeLine(
-            localWorker.getPreviousLine(), this->getConfig().getLastLine() - 1);
-    }
+    imageWriter.writeScanline(
+        localWorker.getPreviousLine(), this->getConfig().getLastLine() - 1);
 }
 
 void
@@ -219,10 +196,6 @@ RenderEngine::checkStats(int y)
             fprintf(stderr, ".");
         }
     }
-
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-        superSampleCount = 0;
-    }
 }
 
 void
@@ -232,38 +205,6 @@ RenderEngine::initializeRenderer()
         this->getScene().getScreenWidth(),
         this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS));
     worker.getRay().setOrigin(this->getScene().getViewPoint().getLocation());
-}
-
-void
-RenderEngine::outputLine(RenderWorker &localWorker, int y)
-{
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
-        if (y > this->getConfig().getFirstLine()) {
-            this->getConfig().getOutputFileInputStream()->writeLine(localWorker.getPreviousLine(), y - 1);
-        }
-    }
-
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE)) {
-        if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
-            this->getConfig().getVerboseFormat() != '1') {
-            {
-                char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), " super-sampled %d times.", superSampleCount);
-                Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
-            }
-        }
-
-        if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS) &&
-            this->getConfig().getVerboseFormat() == '1') {
-            fprintf(stderr, " super-sampled %d times.", superSampleCount);
-        }
-        if (this->getConfig().getVerboseFormat() == '1') {
-            fprintf(stderr, "\r");
-        } else {
-            fprintf(stderr, "\n");
-        }
-    }
-    localWorker.swapLines();
 }
 
 void

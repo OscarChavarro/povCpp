@@ -6,16 +6,20 @@
 #include "environment/scene/Scene.h"
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/RenderContext.h"
+#include "render/RenderImageWriter.h"
 #include "render/RenderWorker.h"
 
 class RenderEngine {
   private:
     RenderContext *context;
     Scene *scene;
-    int superSampleCount;
     RenderWorker worker;
     IntersectionPriorityQueuePool intersectionQueuePool;
     AdaptiveAntiAliasing adaptiveAntiAliasing;
+    // Owns the file-I/O half of the render (persist / resume scanlines), kept
+    // apart from the sampling driver below so the driver can be swapped without
+    // dragging output formatting along.
+    RenderImageWriter imageWriter;
     // Set the first time a fatal abort is detected on the thread driving this
     // engine, so the error is reported only once instead of per pixel. Not
     // reentrant across threads, but non-blocking: rendering keeps going with a
@@ -34,7 +38,6 @@ class RenderEngine {
     TextureUtils &getTextureUtils();
     IntersectionPriorityQueuePool &getIntersectionQueuePool();
     RenderWorker &getWorker();
-    void incrementSuperSampleCount();
     void setScene(Scene *s);
     Scene &getScene();
     double &getMaxTraceLevel();
@@ -46,13 +49,13 @@ class RenderEngine {
     void createRay(
         RayWithSegments *localRay, int width, int height, double x, double y);
     void checkStats(int y);
-    void outputLine(RenderWorker &localWorker, int y);
 };
 
 inline
 RenderEngine::RenderEngine()
-    : context(nullptr), scene(nullptr), superSampleCount(0), worker(this),
+    : context(nullptr), scene(nullptr), worker(this),
       adaptiveAntiAliasing(this),
+      imageWriter(this),
       fatalErrorFound(false)
 {
 }
@@ -97,12 +100,6 @@ inline RenderWorker &
 RenderEngine::getWorker()
 {
     return worker;
-}
-
-inline void
-RenderEngine::incrementSuperSampleCount()
-{
-    superSampleCount++;
 }
 
 inline void
