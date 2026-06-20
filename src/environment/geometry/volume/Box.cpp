@@ -78,7 +78,7 @@ Box::allIntersectionsForOwner(
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
-        localElement.setSimpleBody(owner);
+        localElement.setOwnerSimpleBody(owner);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -88,7 +88,7 @@ Box::allIntersectionsForOwner(
             intersectionPoint = ray->getDirection().multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
-            localElement.setSimpleBody(owner);
+            localElement.setOwnerSimpleBody(owner);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

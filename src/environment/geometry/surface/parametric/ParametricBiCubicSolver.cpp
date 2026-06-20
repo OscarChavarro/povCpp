@@ -363,7 +363,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         localElement.setT(depths[i]);
         localElement.setBoundedGeometry(nullptr);
         localElement.setPoint(shape->getIntersectionPointAt(tcnt + i));
-        localElement.setSimpleBody(reinterpret_cast<SimpleBody *>(shape));
+        localElement.setOwnerSimpleBody(reinterpret_cast<SimpleBody *>(shape));
         depthQueue->offer(localElement);
         intersectionFound = 1;
     }

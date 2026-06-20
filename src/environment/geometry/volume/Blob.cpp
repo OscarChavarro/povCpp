@@ -480,7 +480,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                     localElement.setT(len);
                     localElement.setBoundedGeometry(nullptr);
                     localElement.setPoint(intersectionPoint);
-                    localElement.setSimpleBody(reinterpret_cast<SimpleBody *>(blob));
+                    localElement.setOwnerSimpleBody(reinterpret_cast<SimpleBody *>(blob));
                     depthQueue->offer(localElement);
                     intersectionFound = true;
                 }

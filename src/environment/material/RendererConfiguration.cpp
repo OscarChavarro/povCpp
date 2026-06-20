@@ -3,6 +3,27 @@
 #include "environment/material/RendererConfiguration.h"
 
 void
+RenderingConfiguration::setInputFileName(const char* name)
+{
+    strncpy(inputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
+    inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+}
+
+void
+RenderingConfiguration::setOutputFileName(const char* name)
+{
+    strncpy(outputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
+    outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+}
+
+void
+RenderingConfiguration::setStatFileName(const char* name)
+{
+    strncpy(statFileName, name, RENDER_FILE_NAME_LENGTH - 1);
+    statFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
+}
+
+void
 RenderingConfiguration::reset()
 {
     options = 0;
@@ -15,11 +36,8 @@ RenderingConfiguration::reset()
     antialiasThreshold = 0.3;
     firstLine = 0;
     lastLine = -1;
-    displayFormat = '\0';
     outputFormat = '\0';
     verboseFormat = '\0';
-    paletteOption = '\0';
-    colorBits = 8;
     tokenizerCaseSensitiveMode = 0;
     tokenizerMaxSymbols = 500;
     std::strcpy(inputFileName, "object.dat");

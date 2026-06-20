@@ -1,11 +1,7 @@
-#include <cstdio>
-
-#include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/material/RendererConfiguration.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
@@ -110,17 +106,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             clippingShape = this->getClippingShapes()[i];
 
             stats.incrementClippingRegionTests();
-            if (ray->getConfig()->hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
-                {
-                    char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "Test (%.4f, %.4f, %.4f)\n", localIntersection.getPoint().x(),                     localIntersection.getPoint().y(), localIntersection.getPoint().z());
-                    Logger::reportMessage("Composite", Logger::WARNING, "", _logMsg);
-                }
-            }
             if (!clippingShape->inside(&localIntersection.getPoint())) {
-                if (ray->getConfig()->hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
-                    Logger::reportMessage("Composite", Logger::WARNING, "", "not ok\n");
-                }
                 intersectionFound = false;
                 break;
             }
@@ -128,9 +114,6 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         }
 
         if (intersectionFound) {
-            if (ray->getConfig()->hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
-                Logger::reportMessage("Composite", Logger::WARNING, "", "ok\n");
-            }
             depthQueue->offer(localIntersection);
             anyIntersectionFound = true;
         }

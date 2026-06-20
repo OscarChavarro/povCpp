@@ -245,7 +245,7 @@ RenderEngine::startTracing()
         this->outputLine(y);
     }
 
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
         this->getConfig().getOutputFileInputStream()->writeLine(
             previousLine, this->getConfig().getLastLine() - 1);
     }
@@ -411,7 +411,7 @@ RenderEngine::outputLine(int y)
     ColorRgba *tempColorPtr;
     char *tempCharPtr;
 
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
         if (y > this->getConfig().getFirstLine()) {
             this->getConfig().getOutputFileInputStream()->writeLine(previousLine, y - 1);
         }
@@ -467,14 +467,6 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
     } else {
         *color = this->getScene().getFogColor();
-    }
-
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
-        {
-            char _logMsg[1024];
-            snprintf(_logMsg, sizeof(_logMsg), "Calculating intersections level %d\n", this->traceLevel);
-            Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
-        }
     }
 
     // What objects does this ray intersect?

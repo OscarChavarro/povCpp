@@ -41,7 +41,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
         return;
     }
 
-    rayIntersection->getSimpleBody()->normal(
+    rayIntersection->getOwnerSimpleBody()->normal(
         &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
     if (ray->getConfig()->getQuality() >= 8) {

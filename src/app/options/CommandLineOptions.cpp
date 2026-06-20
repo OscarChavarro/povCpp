@@ -60,7 +60,7 @@ CommandLineOptions::loadDefaults(RenderingConfiguration &config, FileLocator &fi
     defined in config.h. CDW 2/92
     */
     // Set Diskwrite as default
-    config.setOptionFlags(RenderingConfiguration::DISKWRITE);
+    config.setOptionFlags(RenderingConfiguration::DISK_WRITE);
     config.setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
@@ -175,15 +175,6 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
     case 'D':
     case 'd':
         optionNumber = RenderingConfiguration::DISPLAY;
-        config.setDisplayFormat('0');
-        config.setPaletteOption('3');
-        if (optionString[1] != '\0') {
-            config.setDisplayFormat((char)toupper(optionString[1]));
-        }
-
-        if (optionString[1] != '\0' && optionString[2] != '\0') {
-            config.setPaletteOption((char)toupper(optionString[2]));
-        }
         break;
 
     case '@':
@@ -217,7 +208,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'F':
     case 'f':
-        optionNumber = RenderingConfiguration::DISKWRITE;
+        optionNumber = RenderingConfiguration::DISK_WRITE;
         if (isupper(optionString[1])) {
             config.setOutputFormat((char)tolower(optionString[1]));
         } else {
@@ -232,7 +223,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'P':
     case 'p':
-        optionNumber = RenderingConfiguration::PROMPTEXIT;
+        optionNumber = RenderingConfiguration::PROMPT_EXIT;
         break;
 
     case 'I':
@@ -265,7 +256,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'X':
     case 'x':
-        optionNumber = RenderingConfiguration::EXITENABLE;
+        optionNumber = RenderingConfiguration::EXIT_ENABLE;
         break;
 
     case 'L':
@@ -339,12 +330,6 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
             config.setQuality(quality);
         }
         optionNumber = 0;
-        break;
-
-        // Turn on debugging print statements
-    case 'Z':
-    case 'z':
-        optionNumber = RenderingConfiguration::DEBUGGING;
         break;
 
     default:

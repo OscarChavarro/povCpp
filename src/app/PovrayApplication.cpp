@@ -159,7 +159,7 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
 void
 PovrayApplication::configureOutputTarget()
 {
-    if (!configuration.hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+    if (!configuration.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
         return;
     }
 
@@ -234,7 +234,7 @@ PovrayApplication::prepareRendering()
         Logger::reportMessage("PovrayApplication", Logger::WARNING, "", "Displaying...\n");
     }
 
-    if (configuration.hasOptionFlags(RenderingConfiguration::DISKWRITE)) {
+    if (configuration.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
         if (configuration.hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
             if (configuration.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
