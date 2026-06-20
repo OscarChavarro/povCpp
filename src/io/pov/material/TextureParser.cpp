@@ -1000,7 +1000,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
 
                             case Tokenizer::TEXTURE_TOKEN: {
                                 PovRayMaterial * const newMat = TextureParser::parseTexture(ctx);
-                                b.materials().add(newMat);
+                                b.getMaterials().add(newMat);
                             } break;
 
                             case Tokenizer::RIGHT_CURLY_TOKEN: {

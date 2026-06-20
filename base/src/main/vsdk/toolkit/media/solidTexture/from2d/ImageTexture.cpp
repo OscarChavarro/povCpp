@@ -39,7 +39,7 @@ ImageTexture::imageMap(
 
 /**
 Takes an intersection point and a texture; returns a new texture based on
-the index/color of that point in an image/materials map.
+the index/color of that point in an image/getMaterials map.
 */
 int
 ImageTexture::materialMap(
