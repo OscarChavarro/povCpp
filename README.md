@@ -60,7 +60,7 @@ lighting model, same numerical output.
 
 ## Architecture
 
-The codebase is organised in self-contained layers. Each layer depends only on those below it.
+The codebase is organised in self-contained getLayers. Each layer depends only on those below it.
 
 The diagram below was generated directly from the source code using
 [dependencyGraphAnalyzer](https://github.com/OscarChavarro/dependencyGraphAnalyzer).
@@ -117,7 +117,7 @@ The diagram below was generated directly from the source code using
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
       <td><strong>Common</strong></td>
       <td><code>src/common</code></td>
-      <td>Cross-cutting utilities and statistics shared across layers</td>
+      <td>Cross-cutting utilities and statistics shared across getLayers</td>
     </tr>
     <tr>
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
@@ -307,7 +307,7 @@ risks, and planned architectural improvements against these goals.
 - **Education.** The primary goal is to serve as a learning resource for computer graphics
   courses. The codebase is intentionally structured so that each algorithm — BVH traversal,
   CSG evaluation, texture projection, the Phong shading model, Snell's law refraction — can
-  be studied in isolation. A curated set of reference materials is included in `doc/references/`,
+  be studied in isolation. A curated set of reference getMaterials is included in `doc/references/`,
   and specific sections of the source code are annotated with citations that link directly to
   the relevant pages of those texts.
 

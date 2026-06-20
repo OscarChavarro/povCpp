@@ -21,7 +21,7 @@ objectives.
 
 ## Observed structure
 
-- **`src/`** (~23.5k LOC): the ray tracer proper, in strict layers
+- **`src/`** (~23.5k LOC): the ray tracer proper, in strict getLayers
   `app → io → environment → render → base`.
 - **`base/`** (~8.8k LOC): a foundational `vsdk` toolkit plus a **C++ mirror of the
   JDK** (`java::String`, `java::Math`, `java::PriorityQueue`, `java::ArrayList`,
