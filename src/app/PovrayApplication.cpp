@@ -28,8 +28,6 @@
 #include "app/PovrayApplication.h"
 #include "app/options/CommandLineOptions.h"
 
-static constexpr const char *COMPILER_VER = ".u";
-
 void
 PovrayApplication::printStatistics(
     const Statistics &stats,

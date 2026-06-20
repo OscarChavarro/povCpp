@@ -10,7 +10,6 @@ ParserContext::ParserContext()
       mDefaultTokenStream(&mTokenizer),
       mSharedSymbols(),
       mSharedDegenerateTriangles(0),
-      mForcedTokenStream(nullptr),
       mTokenStream(&mDefaultTokenStream),
       mSymbols(&mSharedSymbols),
       mDegenerateTriangles(&mSharedDegenerateTriangles),

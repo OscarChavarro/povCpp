@@ -4,15 +4,15 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/GeometryTypes.h"
+#include "environment/geometry/volume/compound/BooleanSetOperations.h"
 
 class CSG : public Geometry {
   public:
-    explicit CSG(GeometryTypes initialGeometryType = GeometryTypes::CSG_UNION_TYPE);
+    explicit CSG(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     CSG(const CSG &other);
 
-    GeometryTypes getGeometryType() const;
-    void setGeometryType(GeometryTypes value);
+    BooleanSetOperations getGeometryType() const;
+    void setGeometryType(BooleanSetOperations value);
     java::ArrayList<TransformableElement*> &getShapes();
     const java::ArrayList<TransformableElement*> &getShapes() const;
 
@@ -33,7 +33,7 @@ class CSG : public Geometry {
     void invertGeometry() override;
 
   private:
-    GeometryTypes geometryType;
+    BooleanSetOperations geometryType;
     java::ArrayList<TransformableElement*> shapes{4};
 
     static int insideCsgChild(Vector3Dd *point, TransformableElement *shape);
@@ -45,14 +45,14 @@ class CSG : public Geometry {
     int insideCsgIntersection(Vector3Dd *point);
 };
 
-inline GeometryTypes
+inline BooleanSetOperations
 CSG::getGeometryType() const
 {
     return geometryType;
 }
 
 inline void
-CSG::setGeometryType(GeometryTypes value)
+CSG::setGeometryType(BooleanSetOperations value)
 {
     geometryType = value;
 }
