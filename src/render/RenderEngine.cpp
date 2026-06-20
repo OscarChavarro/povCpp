@@ -269,125 +269,42 @@ RenderEngine::outputLine(RenderWorker &localWorker, int y)
 void
 RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color)
 {
-    struct TraceFrame {
-        RayWithSegments ray;
-        ColorRgba result;
-        ColorRgba multiplier;
-        java::ArrayList<RenderWorker::TraceEvent*> events;
-        std::size_t nextEvent;
-        int level;
-        bool intersectionFound;
-        double intersectionDistance;
-        TraceFrame()
-            : result(0.0, 0.0, 0.0, 0.0),
-              multiplier(0.0, 0.0, 0.0, 0.0), nextEvent(0), level(0),
-              intersectionFound(false), intersectionDistance(0.0) {}
-    };
+    BoundedGeometry *object;
+    Intersection localIntersection;
+    Intersection newIntersection;
+    bool intersectionFound;
 
-    java::ArrayList<TraceFrame*> stack;
+    this->getStatistics().incrementNumberOfRays();
+    color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
 
-    const auto initializeFrame = [this, &localWorker](TraceFrame &frame) {
-        BoundedGeometry *object;
-        Intersection localIntersection;
-        Intersection newIntersection;
+    intersectionFound = false;
 
-        this->getStatistics().incrementNumberOfRays();
-        frame.result.setR(0.0); frame.result.setG(0.0);
-        frame.result.setB(0.0); frame.result.setA(0.0);
-        frame.nextEvent = 0;
-        frame.intersectionFound = false;
-        frame.intersectionDistance = 0.0;
+    if (localWorker.getTraceLevel() > (int)this->getMaxTraceLevel()) {
+        return;
+    }
 
-        if (frame.level > (int)this->getMaxTraceLevel()) {
-            return;
-        }
+    if (this->getScene().getFogDistance() == 0.0) {
+        color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
+    } else {
+        *color = this->getScene().getFogColor();
+    }
 
-        const java::ArrayList<BoundedGeometry*> &sceneObjects =
-            this->getScene().getObjects();
-        for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
-            object = sceneObjects[i];
-            if (object->intersect(&frame.ray, newIntersection)) {
-                if (!frame.intersectionFound ||
-                    newIntersection.getT() < localIntersection.getT()) {
-                    localIntersection = newIntersection;
-                }
-                frame.intersectionFound = true;
+    const java::ArrayList<BoundedGeometry*> &sceneObjects =
+        this->getScene().getObjects();
+    for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
+        object = sceneObjects[i];
+        if (object->intersect(localRay, newIntersection)) {
+            if (!intersectionFound || newIntersection.getT() < localIntersection.getT()) {
+                localIntersection = newIntersection;
             }
+            intersectionFound = true;
         }
+    }
 
-        if (!frame.intersectionFound) {
-            if (this->getScene().getFogDistance() != 0.0) {
-                frame.result = this->getScene().getFogColor();
-            }
-            return;
-        }
-
-        frame.intersectionDistance = localIntersection.getT();
-        localWorker.setTraceLevel(frame.level);
-        localWorker.setActiveTraceEvents(&frame.events);
+    if (intersectionFound) {
         RayShaderPipeline::shadeSurface(
-            &localIntersection, &frame.result, &frame.ray, false,
+            &localIntersection, color, localRay, false,
             localWorker.getTraceService(), &this->getTextureUtils(), *context,
-            frame.level);
-        localWorker.setActiveTraceEvents(nullptr);
-    };
-
-    TraceFrame root;
-    root.ray = *localRay;
-    root.level = localWorker.getTraceLevel();
-    root.multiplier.setR(1.0); root.multiplier.setG(1.0);
-    root.multiplier.setB(1.0); root.multiplier.setA(0.0);
-    initializeFrame(root);
-    stack.add(new TraceFrame(root));
-
-    while (stack.size() > 0) {
-        TraceFrame &frame = *stack[stack.size() - 1];
-        if ((long int)frame.nextEvent < frame.events.size()) {
-            RenderWorker::TraceEvent *event = frame.events[frame.nextEvent++];
-            if (!event->childRay) {
-                frame.result.setR(frame.result.getR() + event->color.getR());
-                frame.result.setG(frame.result.getG() + event->color.getG());
-                frame.result.setB(frame.result.getB() + event->color.getB());
-                delete event;
-                continue;
-            }
-
-            TraceFrame child;
-            child.ray = event->ray;
-            child.level = frame.level + 1;
-            child.multiplier = event->color;
-            delete event;
-            initializeFrame(child);
-            stack.add(new TraceFrame(child));
-            continue;
-        }
-
-        if (frame.intersectionFound &&
-            this->getScene().getFogDistance() != 0.0) {
-            ExponentialFogShader::shade(frame.intersectionDistance,
-                &this->getScene().getFogColor(),
-                this->getScene().getFogDistance(), &frame.result);
-        }
-
-        const ColorRgba completed = frame.result;
-        const ColorRgba multiplier = frame.multiplier;
-        const long int completedIndex = stack.size() - 1;
-        TraceFrame *completedFrame = stack[completedIndex];
-        stack.remove(completedIndex);
-        if (stack.size() == 0) {
-            *color = completed;
-        } else {
-            TraceFrame &parent = *stack[stack.size() - 1];
-            parent.result.setR(parent.result.getR() +
-                completed.getR() * multiplier.getR());
-            parent.result.setG(parent.result.getG() +
-                completed.getG() * multiplier.getG());
-            parent.result.setB(parent.result.getB() +
-                completed.getB() * multiplier.getB());
-        }
-        for (long int i = completedFrame->nextEvent; i < completedFrame->events.size(); i++) {
-            delete completedFrame->events[i];
-        }
-        delete completedFrame;
+            localWorker.getTraceLevel());
     }
 }

@@ -21,7 +21,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     const RenderContext &context, int &traceLevel)
 {
     ColorRgba surfaceColor(0.0, 0.0, 0.0, 0.0);
-    ColorRgba refractedMultiplier(0.0, 0.0, 0.0, 0.0);
+    ColorRgba refractedColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba filterColor(0.0, 0.0, 0.0, 0.0);
     PovrayMaterial *tempTexture;
     PovrayMaterial *texture;
@@ -110,9 +110,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         // rays
         if (!shadowRay) {
             LocalSurfaceShader::shade(ray, tempTexture, rayIntersection,
-                &surfaceColor, &filterColor, traceService,
+                &surfaceColor, &filterColor, color, traceService,
                 context.getScene().getLightSources(),
-                context.getScene().getObjects(), textureUtils);
+                context.getScene().getObjects(), traceLevel, textureUtils);
         }
 
         filterColor.setR(filterColor.getR() * surfaceColor.getR());
@@ -146,9 +146,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
 
     if ((filterColor.getA() > 0.01) && (context.getConfig().getQuality() > 5)) {
-        refractedMultiplier.setR(filterColor.getR() * filterColor.getA());
-        refractedMultiplier.setG(filterColor.getG() * filterColor.getA());
-        refractedMultiplier.setB(filterColor.getB() * filterColor.getA());
+        refractedColor.setR(0.0); refractedColor.setG(0.0);
+        refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
             rayIntersection->getOwnerSimpleBody()->normal(
@@ -166,23 +165,32 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             }
 
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, &surfaceNormal,
-                &refractedMultiplier, traceService,
-                context.getScene().getAtmosphereIor());
+                &refractedColor, traceService,
+                context.getScene().getAtmosphereIor(), traceLevel);
         } else {
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
-                &refractedMultiplier, traceService,
-                context.getScene().getAtmosphereIor());
+                &refractedColor, traceService,
+                context.getScene().getAtmosphereIor(), traceLevel);
         }
+
+        color->setR(color->getR() + filterColor.getR() * refractedColor.getR() * filterColor.getA());
+        color->setG(color->getG() + filterColor.getG() * refractedColor.getG() * filterColor.getA());
+        color->setB(color->getB() + filterColor.getB() * refractedColor.getB() * filterColor.getA());
 
         if (texture->getObjectRefraction() > 0.0 &&
             texture->getObjectTransmit() > 0.0) {
+            refractedColor.setR(0.0); refractedColor.setG(0.0);
+            refractedColor.setB(0.0); refractedColor.setA(0);
             TransmissionRefractionShader::shade(texture, &rayIntersection->getPoint(), ray, nullptr,
-                &refractedMultiplier, traceService,
-                context.getScene().getAtmosphereIor());
+                &refractedColor, traceService,
+                context.getScene().getAtmosphereIor(), traceLevel);
+            color->setR(color->getR() + filterColor.getR() * refractedColor.getR() * filterColor.getA());
+            color->setG(color->getG() + filterColor.getG() * refractedColor.getG() * filterColor.getA());
+            color->setB(color->getB() + filterColor.getB() * refractedColor.getB() * filterColor.getA());
         }
     }
 
-    if (shadowRay && context.getScene().getFogDistance() != 0.0) {
+    if (context.getScene().getFogDistance() != 0.0) {
         ExponentialFogShader::shade(rayIntersection->getT(), &context.getScene().getFogColor(),
             context.getScene().getFogDistance(), color);
     }

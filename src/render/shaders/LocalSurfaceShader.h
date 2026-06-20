@@ -15,10 +15,10 @@ class LocalSurfaceShader {
 public:
     static void shade(const RayWithSegments *ray, PovrayMaterial *texture,
         Intersection *rayIntersection, ColorRgba *surfaceColor,
-        const ColorRgba *filterColor,
+        const ColorRgba *filterColor, ColorRgba *color,
         const TraceService *traceService, const Light *lightSources,
         const java::ArrayList<BoundedGeometry*> &objects,
-        TextureUtils *textureUtils);
+        int &traceLevel, TextureUtils *textureUtils);
 };
 
 #endif
