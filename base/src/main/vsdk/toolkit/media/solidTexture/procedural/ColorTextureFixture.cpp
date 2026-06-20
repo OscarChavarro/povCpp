@@ -154,7 +154,7 @@ ColorTextureFixture::checker(
     z += smallTolerance;
 
     // AAC: was just x + z
-    // AAC: GeometryConstants::Small_Tolerance added to get around Microsoft C (int) bug
+    // AAC: Small tolerance added to get around Microsoft C (int) bug
     index = (int)(textureUtils->floorInline(x) + textureUtils->floorInline(y) + textureUtils->floorInline(z));
 
     if (index & 1) {

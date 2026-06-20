@@ -1,6 +1,7 @@
 #include "java/lang/Math.h"
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Quadric.h"
@@ -171,13 +172,13 @@ Quadric::intersectQuadric(
         *depth2 = *depth1;
     }
 
-    if ((*depth1 < GeometryConstants::Small_Tolerance) || (*depth1 > GeometryConstants::Max_Distance)) {
-        if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
+    if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
+        if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
             return (false);
         }
         *depth1 = *depth2;
 
-    } else if ((*depth2 < GeometryConstants::Small_Tolerance) || (*depth2 > GeometryConstants::Max_Distance)) {
+    } else if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
         *depth2 = *depth1;
     }
 
@@ -198,7 +199,7 @@ Quadric::inside(Vector3Dd *testPoint)
               shape->objectMixedTerms.y() * (testPoint->x()) * (testPoint->z()) +
               shape->objectMixedTerms.z() * (testPoint->y()) * (testPoint->z());
 
-    if (result < GeometryConstants::Small_Tolerance) {
+    if (result < Config::SMALL_TOLERANCE) {
         return (true);
     }
 

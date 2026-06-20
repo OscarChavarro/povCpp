@@ -2,7 +2,6 @@
 #define __GEOMETRY__
 
 #include "environment/geometry/element/TransformableElement.h"
-#include "environment/geometry/GeometryConstants.h"
 
 class SimpleBody;
 

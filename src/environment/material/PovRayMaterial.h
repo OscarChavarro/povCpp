@@ -27,8 +27,13 @@ class PovRayMaterial : public Material {
     // build() round trip even while pigment/normal is still nullptr; once the pattern is
     // known they are folded into the concrete pigment/normal object and are not consulted
     // again at render time.
-    double pendingBumpAmount, pendingFrequency, pendingMortar, pendingPhase, pendingTurbulence;
-    int pendingNumberOfWaves, pendingOctaves;
+    double pendingBumpAmount;
+    double pendingFrequency;
+    double pendingMortar;
+    double pendingPhase;
+    double pendingTurbulence;
+    int pendingNumberOfWaves;
+    int pendingOctaves;
     ControlledRGBAImageHDRUncompressed *pendingBumpImage;
     RGBAColorPalette *pendingColorMap;
 

@@ -7,6 +7,18 @@
 #include "environment/geometry/volume/compound/BooleanSetOperations.h"
 
 class CSG : public Geometry {
+  private:
+    BooleanSetOperations geometryType;
+    java::ArrayList<TransformableElement*> shapes{4};
+
+    static int insideCsgChild(Vector3Dd *point, TransformableElement *shape);
+    int allCsgUnionIntersections(
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
+    int allCsgIntersectIntersections(
+        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
+    int insideCsgUnion(Vector3Dd *point);
+    int insideCsgIntersection(Vector3Dd *point);
+
   public:
     explicit CSG(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     CSG(const CSG &other);
@@ -31,18 +43,6 @@ class CSG : public Geometry {
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
-
-  private:
-    BooleanSetOperations geometryType;
-    java::ArrayList<TransformableElement*> shapes{4};
-
-    static int insideCsgChild(Vector3Dd *point, TransformableElement *shape);
-    int allCsgUnionIntersections(
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
-    int allCsgIntersectIntersections(
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
-    int insideCsgUnion(Vector3Dd *point);
-    int insideCsgIntersection(Vector3Dd *point);
 };
 
 inline BooleanSetOperations

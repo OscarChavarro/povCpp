@@ -1,7 +1,6 @@
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
-#include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 
 /**
@@ -61,7 +60,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     }
     double t = ray->getOrigin().dotProduct(*n);
     *depth = 0.0 - (d + t) / s;
-    if (*depth < GeometryConstants::Small_Tolerance) {
+    if (*depth < Config::SMALL_TOLERANCE) {
         return 0;
     }
     *ip = ray->getDirection().multiply(*depth);

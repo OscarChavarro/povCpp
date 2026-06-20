@@ -798,7 +798,7 @@ PolynomialShape::inside(Vector3Dd *testPoint)
     }
 
     result = PolynomialShape::evaluatePolynomial(&newPoint, shape->order, shape->Coeffs);
-    if (result < GeometryConstants::Small_Tolerance) {
+    if (result < Config::SMALL_TOLERANCE) {
         return ((int)(1 - shape->inverted));
     }
     return ((int)shape->inverted);

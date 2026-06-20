@@ -1,9 +1,9 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
+#include "common/Config.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/geometry/GeometryConstants.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
@@ -71,7 +71,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                     localIntersection = localQueue->poll();
 
                     if ((localIntersection.getT() <
-                            lightSourceDepth - GeometryConstants::Small_Tolerance) &&
+                            lightSourceDepth - Config::SMALL_TOLERANCE) &&
                         (localIntersection.getT() > SHADOW_TOLERANCE)) {
 
                         // Does the object not cast a shadow?
