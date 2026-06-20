@@ -36,7 +36,7 @@ AdaptiveAntiAliasing::superSample(
     const double dy = (double)y;
     int jitterSeedOffset = JITTER_SEED_INITIAL_OFFSET;
 
-    renderEngine->getStatistics().incrementNumberOfPixelsSupersampled();
+    renderEngine->getStatistics().incrementNumberOfPixelsSuperSampled();
 
     result->setR(0.0); result->setG(0.0); result->setB(0.0); result->setA(0);
 

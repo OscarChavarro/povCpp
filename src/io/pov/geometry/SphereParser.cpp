@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Sphere.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -43,7 +43,7 @@ SphereParser::parseSphere(ParserContext &ctx)
                 PrimitiveParser::parseVector(&localCenter, ctx);
                 localRadius = PrimitiveParser::parseFloat(ctx);
                 localShape = new Sphere(localCenter, localRadius);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
             }
@@ -115,7 +115,7 @@ SphereParser::parseSphere(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
             {
-                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
+                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }

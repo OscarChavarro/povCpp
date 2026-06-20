@@ -7,7 +7,7 @@
 #include "environment/geometry/element/TransformableElement.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/material/Material.h"
-class PovrayMaterial;
+class PovRayMaterial;
 
 class SimpleBody : public TransformableElement {
   private:
@@ -26,7 +26,7 @@ class SimpleBody : public TransformableElement {
     Material* getMaterial() const { return material; }
     ColorRgba* getShapeColor() const { return shapeColor; }
     ColorRgba* ensureShapeColor();
-    void prependMaterialLayers(PovrayMaterial *newHead);
+    void prependMaterialLayers(PovRayMaterial *newHead);
     Matrix4x4d& getTransform() { return transform; }
     const Matrix4x4d& getTransform() const { return transform; }
     Matrix4x4d& getTransformInverse() { return transformInverse; }

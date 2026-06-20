@@ -1,7 +1,7 @@
 #include "render/shaders/AmbientLightShader.h"
 
 void
-AmbientLightShader::shade(const PovrayMaterial *texture, const ColorRgba *surfaceColor,
+AmbientLightShader::shade(const PovRayMaterial *texture, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation)
 {
     if (texture->getObjectAmbient() == 0.0) {

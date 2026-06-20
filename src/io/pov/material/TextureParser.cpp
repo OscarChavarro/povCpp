@@ -8,7 +8,7 @@
 #include "environment/material/PovrayMaterialUtils.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/material/ValuesBuilder.h"
 #include "io/image/GifFormat.h"
 #include "io/image/IffFormat.h"
 #include "io/image/RawDumpFormat.h"
@@ -28,14 +28,14 @@ TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDR
     ti->allocate(idx->getXSize(), idx->getYSize());
 }
 
-PovrayMaterial *
-TextureParser::copyTexture(PovrayMaterial *texture)
+PovRayMaterial *
+TextureParser::copyTexture(PovRayMaterial *texture)
 {
     return PovrayMaterialUtils::copyTexture(texture);
 }
 
-PovrayMaterial *
-TextureParser::ensureWritableTexture(PovrayMaterial *texture)
+PovRayMaterial *
+TextureParser::ensureWritableTexture(PovRayMaterial *texture)
 {
     if (texture->isConstant()) {
         texture = TextureParser::copyTexture(texture);
@@ -44,29 +44,29 @@ TextureParser::ensureWritableTexture(PovrayMaterial *texture)
     return texture;
 }
 
-PovrayMaterial *
+PovRayMaterial *
 TextureParser::parseTexture()
 {
     ParserContext ctx;
     return TextureParser::parseTexture(ctx);
 }
 
-PovrayMaterial *
+PovRayMaterial *
 TextureParser::parseTexture(ParserContext &ctx)
 {
     return TextureParser::parseTexture(
         ctx.getDefaultTexture(), ctx);
 }
 
-PovrayMaterial *
-TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
+PovRayMaterial *
+TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
 {
     (void)ctx;
     Vector3Dd localVector;
     int constantId;
-    PovrayMaterial *texture;
-    PovrayMaterial *localTexture;
-    PovrayMaterial *firstTexture;
+    PovRayMaterial *texture;
+    PovRayMaterial *localTexture;
+    PovRayMaterial *firstTexture;
     int reg;
 
     texture = baseTexture;
@@ -82,7 +82,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::TEXTURE_CONSTANT) {
-                        texture = ((PovrayMaterial *)ctx.constants()[(int)constantId]
+                        texture = ((PovRayMaterial *)ctx.constants()[(int)constantId]
                                 .getConstantData());
                     } else {
                         ParseErrorReporter::typeError(ctx);
@@ -142,8 +142,8 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::COLOUR_TOKEN:
-                            texture->setColor1(ModelBuilder::getColor());
-                            texture->setColor2(ModelBuilder::getColor());
+                            texture->setColor1(ValuesBuilder::getColor());
+                            texture->setColor2(ValuesBuilder::getColor());
                             PrimitiveParser::parseColor(texture->getColor1(), ctx);
                             ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                             PrimitiveParser::parseColor(texture->getColor2(), ctx);
@@ -168,8 +168,8 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                         ctx.tokenStream().getToken();
                         switch (ctx.token().getTokenId()) {
                         case Tokenizer::COLOUR_TOKEN:
-                            texture->setColor1(ModelBuilder::getColor());
-                            texture->setColor2(ModelBuilder::getColor());
+                            texture->setColor1(ValuesBuilder::getColor());
+                            texture->setColor2(ValuesBuilder::getColor());
                             PrimitiveParser::parseColor(texture->getColor1(), ctx);
                             ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                             PrimitiveParser::parseColor(texture->getColor2(), ctx);
@@ -200,7 +200,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             localTexture = TextureParser::parseTexture(ctx);
                             localTexture = TextureParser::ensureWritableTexture(localTexture);
                             {
-                                PovrayMaterial *color1Head = (PovrayMaterial *)texture->getColor1();
+                                PovRayMaterial *color1Head = (PovRayMaterial *)texture->getColor1();
                                 PovrayMaterialUtils::prependTextureLayers(localTexture, color1Head);
                                 texture->setColor1((ColorRgba *)color1Head);
                             }
@@ -224,7 +224,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             localTexture = TextureParser::parseTexture(ctx);
                             localTexture = TextureParser::ensureWritableTexture(localTexture);
                             {
-                                PovrayMaterial *color2Head = (PovrayMaterial *)texture->getColor2();
+                                PovRayMaterial *color2Head = (PovRayMaterial *)texture->getColor2();
                                 PovrayMaterialUtils::prependTextureLayers(localTexture, color2Head);
                                 texture->setColor2((ColorRgba *)color2Head);
                             }
@@ -585,7 +585,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
 
             case Tokenizer::COLOUR_TOKEN:
                 texture = TextureParser::ensureWritableTexture(texture);
-                texture->setColor1(ModelBuilder::getColor());
+                texture->setColor1(ValuesBuilder::getColor());
                 PrimitiveParser::parseColor(texture->getColor1(), ctx);
                 texture->setTextureNumber(SolidTextureColorNames::COLOUR_TEXTURE);
                 break;
@@ -859,7 +859,7 @@ TextureParser::parseTexture(PovrayMaterial *baseTexture, ParserContext &ctx)
                             break;
 
                         case Tokenizer::TEXTURE_TOKEN: {
-                            PovrayMaterial * const newMat = TextureParser::parseTexture(ctx);
+                            PovRayMaterial * const newMat = TextureParser::parseTexture(ctx);
                             firstTexture->getMaterials().add(newMat);
                             texture = newMat;
                         } break;

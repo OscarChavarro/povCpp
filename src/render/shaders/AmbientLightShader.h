@@ -1,12 +1,12 @@
 #ifndef __AMBIENT_LIGHT_SHADER__
 #define __AMBIENT_LIGHT_SHADER__
 
+#include "environment/material/PovRayMaterial.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/material/PovrayMaterial.h"
 
 class AmbientLightShader {
 public:
-    static void shade(const PovrayMaterial *texture, const ColorRgba *surfaceColor,
+    static void shade(const PovRayMaterial *texture, const ColorRgba *surfaceColor,
         ColorRgba *color, double attenuation);
 };
 

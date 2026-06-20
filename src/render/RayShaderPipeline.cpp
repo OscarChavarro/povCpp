@@ -23,8 +23,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ColorRgba surfaceColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba refractedColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba filterColor(0.0, 0.0, 0.0, 0.0);
-    PovrayMaterial *tempTexture;
-    PovrayMaterial *texture;
+    PovRayMaterial *tempTexture;
+    PovRayMaterial *texture;
     Vector3Dd surfaceNormal;
     double normalDirection;
 
@@ -38,9 +38,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
     // Is there a texture in the shape?  If not, use the one in the object
-    texture = static_cast<PovrayMaterial *>(rayIntersection->getOwnerSimpleBody()->getMaterial());
+    texture = static_cast<PovRayMaterial *>(rayIntersection->getOwnerSimpleBody()->getMaterial());
     if (texture == nullptr) {
-        texture = static_cast<PovrayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
+        texture = static_cast<PovRayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture
@@ -78,8 +78,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
         } else if (tempTexture->getTextureNumber() == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
-            PovrayMaterial * const texture1 = (PovrayMaterial *)tempTexture->getColor1();
-            PovrayMaterial * const texture2 = (PovrayMaterial *)tempTexture->getColor2();
+            PovRayMaterial * const texture1 = (PovRayMaterial *)tempTexture->getColor1();
+            PovRayMaterial * const texture2 = (PovRayMaterial *)tempTexture->getColor2();
             fixturesFacade.colorAt(
                 &surfaceColor, tempTexture->getTextureNumber(),
                 tempTexture->getTextureTransformationInverse(), tempTexture->getImage(),

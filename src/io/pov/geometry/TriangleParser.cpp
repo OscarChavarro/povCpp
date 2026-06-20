@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "environment/geometry/element/Triangle.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -46,7 +46,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 PrimitiveParser::parseVector(&p2, ctx);
                 PrimitiveParser::parseVector(&p3, ctx);
                 localShape = new Triangle(p1, p2, p3);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 if (localShape->isDegenerate()) {
                     {
                         char _logMsg[1024];
@@ -126,7 +126,7 @@ TriangleParser::parseTriangle(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
             {
-                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
+                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
