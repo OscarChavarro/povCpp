@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/RendererConfiguration.h"
 #include "java/util/PriorityQueue.txx"
@@ -103,7 +103,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     for (const Intersection& candidate : *localDepthQueue) {
         localIntersection = candidate;
 
-        localIntersection.setObject(this);
+        localIntersection.setBoundedGeometry(this);
         intersectionFound = true;
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {

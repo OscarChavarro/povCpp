@@ -3,7 +3,7 @@
 
 #include "common/statistics/Statistics.h"
 
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
@@ -360,10 +360,10 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         if (!ray->isShadowRayEnabled()) {
             shape->incrementIntersectionCount();
         }
-        localElement.setDepth(depths[i]);
-        localElement.setObject(nullptr);
+        localElement.setT(depths[i]);
+        localElement.setBoundedGeometry(nullptr);
         localElement.setPoint(shape->getIntersectionPointAt(tcnt + i));
-        localElement.setShape(reinterpret_cast<SimpleBody *>(shape));
+        localElement.setSimpleBody(reinterpret_cast<SimpleBody *>(shape));
         depthQueue->offer(localElement);
         intersectionFound = 1;
     }

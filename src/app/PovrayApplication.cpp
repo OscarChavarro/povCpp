@@ -11,7 +11,7 @@
 #include "environment/material/PovrayMaterialUtils.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/RenderOutput.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/scene/Scene.h"
 #include "environment/light/Light.h"
 #include "environment/camera/Camera.h"

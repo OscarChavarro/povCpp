@@ -9,7 +9,7 @@ This module implements functions that manipulate planes.
 
 #include "common/statistics/Statistics.h"
 
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 
 InfinitePlane::InfinitePlane() :
@@ -52,12 +52,12 @@ InfinitePlane::allIntersectionsForOwner(
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > GeometryConstants::Small_Tolerance) {
-            localElement.setDepth(depth);
-            localElement.setObject(nullptr);
+            localElement.setT(depth);
+            localElement.setBoundedGeometry(nullptr);
             intersectionPoint = ray->getDirection().multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
-            localElement.setShape(owner);
+            localElement.setSimpleBody(owner);
             depthQueue->offer(localElement);
             return (true);
         }

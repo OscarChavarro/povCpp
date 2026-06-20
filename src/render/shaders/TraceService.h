@@ -2,7 +2,7 @@
 #define __TRACE_SERVICE__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 
 class TraceService {

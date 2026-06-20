@@ -18,7 +18,7 @@ This file was written by Alexander Enzmann.  He wrote the code for
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 
 /**
@@ -164,10 +164,10 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
         dv = intersectionPoint.subtract(ray->getOrigin());
         len = dv.length();
-        localElement.setDepth(len);
-        localElement.setObject(nullptr);
+        localElement.setT(len);
+        localElement.setBoundedGeometry(nullptr);
         localElement.setPoint(intersectionPoint);
-        localElement.setShape(reinterpret_cast<SimpleBody *>(shape));
+        localElement.setSimpleBody(reinterpret_cast<SimpleBody *>(shape));
         depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;

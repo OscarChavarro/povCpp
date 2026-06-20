@@ -6,7 +6,7 @@
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
 #include "environment/scene/Scene.h"
@@ -37,16 +37,16 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
 
     if (context.getConfig().hasOptionFlags(RenderingConfiguration::DEBUGGING)) {
-        if (rayIntersection->getShape()->getShapeColor()) {
+        if (rayIntersection->getSimpleBody()->getShapeColor()) {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour %f %f %f ", rayIntersection->getDepth(), rayIntersection->getShape()->getShapeColor()->getR(),                 rayIntersection->getShape()->getShapeColor()->getG(),                 rayIntersection->getShape()->getShapeColor()->getB());
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour %f %f %f ", rayIntersection->getT(), rayIntersection->getSimpleBody()->getShapeColor()->getR(),                 rayIntersection->getSimpleBody()->getShapeColor()->getG(),                 rayIntersection->getSimpleBody()->getShapeColor()->getB());
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         } else {
             {
                 char _logMsg[1024];
-                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour NIL ", rayIntersection->getDepth());
+                snprintf(_logMsg, sizeof(_logMsg), "Depth: %f Colour NIL ", rayIntersection->getT());
                 Logger::reportMessage("RayShaderPipeline", Logger::WARNING, "", _logMsg);
             }
         }
@@ -58,9 +58,9 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     SolidTextureFixturesFacade fixturesFacade(&textureUtils->getProceduralNoise(), textureUtils);
 
     // Is there a texture in the shape?  If not, use the one in the object
-    texture = static_cast<PovrayMaterial *>(rayIntersection->getShape()->getMaterial());
+    texture = static_cast<PovrayMaterial *>(rayIntersection->getSimpleBody()->getMaterial());
     if (texture == nullptr) {
-        texture = static_cast<PovrayMaterial *>(rayIntersection->getObject()->getObjectTexture());
+        texture = static_cast<PovrayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture - CdW 7/91
@@ -92,10 +92,10 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
         if (context.getConfig().getQuality() <= 5) {
-            if (rayIntersection->getShape()->getShapeColor() != nullptr) {
-                surfaceColor = *rayIntersection->getShape()->getShapeColor();
-            } else if (rayIntersection->getObject()->getObjectColor() != nullptr) {
-                surfaceColor = *rayIntersection->getObject()->getObjectColor();
+            if (rayIntersection->getSimpleBody()->getShapeColor() != nullptr) {
+                surfaceColor = *rayIntersection->getSimpleBody()->getShapeColor();
+            } else if (rayIntersection->getBoundedGeometry()->getObjectColor() != nullptr) {
+                surfaceColor = *rayIntersection->getBoundedGeometry()->getObjectColor();
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
@@ -189,7 +189,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         refractedColor.setR(0.0); refractedColor.setG(0.0); refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
-            rayIntersection->getShape()->normal(
+            rayIntersection->getSimpleBody()->normal(
                 &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
             if (context.getConfig().getQuality() > 7) {
@@ -232,7 +232,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
 
     if (context.getScene().getFogDistance() != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->getDepth(), &context.getScene().getFogColor(),
+        ExponentialFogShader::shade(rayIntersection->getT(), &context.getScene().getFogColor(),
             context.getScene().getFogDistance(), color);
     }
 }

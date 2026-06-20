@@ -1,5 +1,5 @@
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "java/util/PriorityQueue.txx"
 
 int
@@ -18,8 +18,8 @@ Geometry::allIntersectionsForOwner(
     SimpleBody * const sentinel = reinterpret_cast<SimpleBody *>(this);
     int updated = 0;
     for (Intersection &candidate : *depthQueue) {
-        if (candidate.getShape() == sentinel) {
-            candidate.setShape(owner);
+        if (candidate.getSimpleBody() == sentinel) {
+            candidate.setSimpleBody(owner);
             if (++updated == newCount) {
                 break;
             }

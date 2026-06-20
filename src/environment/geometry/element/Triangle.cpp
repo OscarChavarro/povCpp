@@ -6,7 +6,7 @@ This module implements primitives for triangles and smooth triangles.
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/Triangle.h"
 
 Triangle::Triangle() :
@@ -193,12 +193,12 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
     }
 
     if (intersectTriangle(ray, shape, &depth)) {
-        localElement.setDepth(depth);
-        localElement.setObject(nullptr);
+        localElement.setT(depth);
+        localElement.setBoundedGeometry(nullptr);
         intersectionPoint = ray->getDirection().multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
-        localElement.setShape(reinterpret_cast<SimpleBody *>(shape));
+        localElement.setSimpleBody(reinterpret_cast<SimpleBody *>(shape));
         depthQueue->offer(localElement);
         return (true);
     }

@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
 

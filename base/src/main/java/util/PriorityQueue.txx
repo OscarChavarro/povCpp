@@ -273,7 +273,7 @@ bool
 PriorityQueue<T>::contains(const T& elem) const
 {
     for (int i = 1; i <= currentSize; i++) {
-        if (!(data[i] < elem) && !(elem < data[i])) {
+        if (!lessThan(data[i], elem) && !lessThan(elem, data[i])) {
             return true;
         }
     }
@@ -285,7 +285,7 @@ bool
 PriorityQueue<T>::remove(const T& elem)
 {
     for (int i = 1; i <= currentSize; i++) {
-        if (!(data[i] < elem) && !(elem < data[i])) {
+        if (!lessThan(data[i], elem) && !lessThan(elem, data[i])) {
             data[i] = data[currentSize--];
             if (currentSize >= 1 && i <= currentSize) {
                 siftDown(i);

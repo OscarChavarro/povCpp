@@ -7,8 +7,8 @@ class PovrayMaterial;
 
 class BoundedGeometryFactory {
   public:
-    static BoundedGeometry *getObject(PovrayMaterial *defaultTexture);
-    static BoundedGeometry *getObject(TransformableElement *geometry, PovrayMaterial *defaultTexture);
+    static BoundedGeometry *getBoundedGeometry(PovrayMaterial *defaultTexture);
+    static BoundedGeometry *getBoundedGeometry(TransformableElement *geometry, PovrayMaterial *defaultTexture);
 };
 
 #endif

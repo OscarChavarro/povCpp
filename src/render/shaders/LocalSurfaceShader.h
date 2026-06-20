@@ -4,7 +4,7 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/light/Light.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/material/PovrayMaterial.h"

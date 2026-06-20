@@ -4,7 +4,7 @@
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/GeometryConstants.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
@@ -70,12 +70,12 @@ DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *interse
                 while (localQueue->size() > 0) {
                     localIntersection = localQueue->poll();
 
-                    if ((localIntersection.getDepth() <
+                    if ((localIntersection.getT() <
                             lightSourceDepth - GeometryConstants::Small_Tolerance) &&
-                        (localIntersection.getDepth() > SHADOW_TOLERANCE)) {
+                        (localIntersection.getT() > SHADOW_TOLERANCE)) {
 
                         // Does the object not cast a shadow?
-                        if (!localIntersection.getObject()->getNoShadowFlag()) {
+                        if (!localIntersection.getBoundedGeometry()->getNoShadowFlag()) {
                             if (ShadowShader::shade(&localIntersection, &lightColor,
                                     localQueue, traceService)) {
                                 intersectionFound = true;

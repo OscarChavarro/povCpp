@@ -52,8 +52,6 @@ class RenderEngine {
     IntersectionPriorityQueuePool &getIntersectionQueuePool() { return intersectionQueuePool; }
     void setScene(Scene *s) { scene = s; }
     Scene &getScene() { return *scene; }
-    RayWithSegments *&getPrimaryRay() { return primaryRay; }
-    int &getTraceLevel() { return traceLevel; }
     double &getMaxTraceLevel() { return context->getRuntime().getMaxTraceLevel(); }
     bool &getStopFlag() { return context->getRuntime().getStopFlag(); }
     void readRenderedPart(void);

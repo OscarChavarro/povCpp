@@ -8,13 +8,13 @@
 #include "java/util/PriorityQueue.txx"
 
 BoundedGeometry *
-BoundedGeometryFactory::getObject(PovrayMaterial *defaultTexture)
+BoundedGeometryFactory::getBoundedGeometry(PovrayMaterial *defaultTexture)
 {
-    return getObject(nullptr, defaultTexture);
+    return getBoundedGeometry(nullptr, defaultTexture);
 }
 
 BoundedGeometry *
-BoundedGeometryFactory::getObject(TransformableElement *geometry, PovrayMaterial *defaultTexture)
+BoundedGeometryFactory::getBoundedGeometry(TransformableElement *geometry, PovrayMaterial *defaultTexture)
 {
     BoundedGeometry *newObject = new BoundedGeometry(
         geometry,

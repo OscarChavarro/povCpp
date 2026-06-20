@@ -19,7 +19,7 @@ and Drew Wells.
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/HeightField.h"
 
 struct HeightFieldTraversalState {
@@ -211,20 +211,20 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     }
 
     if (depth2 < depth1) {
-        state.hfIntersection->setDepth(depth2);
-        state.hfIntersection->setObject(nullptr);
+        state.hfIntersection->setT(depth2);
+        state.hfIntersection->setBoundedGeometry(nullptr);
         t1V1 = state.rRay->getDirection().multiply(depth2);
         t1V1 = t1V1.add(state.rRay->getOrigin());
         state.hfIntersection->setPoint(t1V1);
-        state.hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
+        state.hfIntersection->setSimpleBody(reinterpret_cast<SimpleBody *>(hField));
         state.hfQueue->offer(*state.hfIntersection);
     } else {
-        state.hfIntersection->setDepth(depth1);
-        state.hfIntersection->setObject(nullptr);
+        state.hfIntersection->setT(depth1);
+        state.hfIntersection->setBoundedGeometry(nullptr);
         t1V1 = state.rRay->getDirection().multiply(depth1);
         t1V1 = t1V1.add(state.rRay->getOrigin());
         state.hfIntersection->setPoint(t1V1);
-        state.hfIntersection->setShape(reinterpret_cast<SimpleBody *>(hField));
+        state.hfIntersection->setSimpleBody(reinterpret_cast<SimpleBody *>(hField));
         state.hfQueue->offer(*state.hfIntersection);
     }
     stats.incrementRayHtFieldTestsSucceeded();

@@ -10,7 +10,7 @@ This module implements the code for the quadric shape primitive.
 
 #include "common/statistics/Statistics.h"
 
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Quadric.h"
 
 Quadric::Quadric() :
@@ -75,22 +75,22 @@ Quadric::allIntersectionsForOwner(
 
     bool intersectionFound = false;
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
-        localElement.setDepth(depth1);
-        localElement.setObject(nullptr);
+        localElement.setT(depth1);
+        localElement.setBoundedGeometry(nullptr);
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
-        localElement.setShape(owner);
+        localElement.setSimpleBody(owner);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
-            localElement.setDepth(depth2);
-            localElement.setObject(nullptr);
+            localElement.setT(depth2);
+            localElement.setBoundedGeometry(nullptr);
             intersectionPoint = ray->getDirection().multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
-            localElement.setShape(owner);
+            localElement.setSimpleBody(owner);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }
