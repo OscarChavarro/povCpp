@@ -44,6 +44,7 @@ objectives.
 | P8 | **No mutable global state** (singletons/globals removed, bridge pattern) | globals grep = 0; `globals_removal` notes | #4 prerequisite for parallelism |
 | P9 | **Per-engine intersection pooling** | `IntersectionPriorityQueuePool` in `RenderEngine` | #4 avoids per-ray malloc; base for per-thread |
 | P10 | **Modern, strict build** (`-Wall -pedantic`, clang-tidy/format present) | `CMakeLists`, `.clang-tidy` | #1/#2 sustained quality |
+| P11 | **Iterative reflection/refraction traversal** with weighted events and an explicit frame stack | `TraceService`, `RenderEngine::trace` | #5 removes CPU call recursion and prototypes the GPU execution model |
 
 ## Areas to improve
 
@@ -55,14 +56,13 @@ objectives.
 | M4 | **185 `new` vs 64 `delete`, zero smart pointers** | memory grep | #1, #2, #3 | Leak and double-management risk; the imbalance complicates the mapping to Java's GC. Consider value semantics or `unique_ptr` (still C++11) |
 | M5 | **Virtual dispatch + AoS of pointers in geometry** (`virtual allIntersections`, `PriorityQueue<Intersection>`) | `Geometry.h`, primitive headers | **#5** | GPU/SPIR-V has no virtuals or recursion; it will need a tagged-union/SoA. Plan a flat POD scene representation early |
 | M6 | **`double` throughout the pipeline** | `Vector3Dd`, `Matrix4x4d`, shaders | **#5** | FP64 is slow/scarce on the GPU. Since the GPU goal is AE-metric similarity (not bit-exact), decide the precision strategy and the acceptable AE tolerance early |
-| M7 | **True recursion for reflection/refraction** via function pointers | `TraceService`, `MirrorReflectionShader`, `TransmissionRefractionShader` | **#5** | The GPU kernel must be iterative with an explicit stack; worth prototyping now in CPU as a verifiable alternate mode |
-| M8 | **`RenderEngine.cpp` ~17 KB / mixed responsibilities** (loop, AA, line I/O, jitter, stats) | size and function grep | #1, #4 | Separate the *sampling driver* from *image writing*; eases swapping the driver for a parallel or GPU one |
-| M9 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
+| M7 | **`RenderEngine.cpp` ~17 KB / mixed responsibilities** (loop, AA, line I/O, jitter, stats) | size and function grep | #1, #4 | Separate the *sampling driver* from *image writing*; eases swapping the driver for a parallel or GPU one |
+| M8 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
 
 ## Reading by objective
 
-- **#1 Academic base** — Well on track (P1–P4, P7). What most reduces clarity: M8
-  (monolithic class) and M9 (no unit tests documenting contracts).
+- **#1 Academic base** — Well on track (P1–P4, P7). What most reduces clarity: M7
+  (monolithic class) and M8 (no unit tests documenting contracts).
 - **#2 C++11 migratable** — Solid (P6, P10). The only real pending item: M4 (manual
   memory management; optional `unique_ptr` use is still C++11 and reduces risk
   without breaking the version discipline).
@@ -74,7 +74,7 @@ objectives.
 - **#5 Vulkan 1.3** — The goal here is an AE-metric *close-to-similarity* match with
   the CPU reference, not a bit-exact one — that relaxation is what makes the GPU port
   tractable. The architecture helps (P2, P3, P5 as oracle), but M5 (virtuals/AoS),
-  M6 (double precision), and M7 (recursion) are the deep decisions to resolve
-  **before** writing SPIR-V. Recommended: prototype on CPU a flat-POD scene
-  representation and an iterative tracer, then measure GPU output against the CPU
-  reference with the existing AE tooling under an agreed tolerance.
+  M6 (double precision) remains a deep decision to resolve **before** writing SPIR-V.
+  P11 resolves CPU call recursion and provides the execution model to port; the next
+  prototype should flatten the scene into POD data, then measure GPU output against
+  the CPU reference with the existing AE tooling under an agreed tolerance.

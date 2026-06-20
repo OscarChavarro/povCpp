@@ -80,9 +80,10 @@ The diagram below was generated directly from the source code using
 | <span style="background-color:#99fcfe">base</span> | **Solid textures** | `base/src/main/vsdk/toolkit/media/solidTexture` | Solid texture evaluation (procedural noise, image-to-solid-texture projection), indexed palette images, image-map sampling |
 | <span style="background-color:#99fcfe">base</span> | **Processing** | `base/src/main/vsdk/toolkit/numericalAnalysis/polynomial` | Sturm-sequence polynomial root solver used by quartics and polys |
 
-The shader chain is assembled at startup by `RayShaderPipeline`. Recursive calls
-(reflection, refraction, shadow) are dispatched through a `TraceService` function-pointer
-pair so shaders remain decoupled from the top-level trace loop.
+The shader chain is assembled at startup by `RayShaderPipeline`. Reflection and
+refraction submit weighted child-ray events through `TraceService`; `RenderEngine`
+evaluates them iteratively with an explicit stack. Shadow queries use the same service,
+so shaders remain decoupled from the top-level trace loop without C++ call recursion.
 
 ## Building
 
