@@ -3,7 +3,6 @@
 #include "environment/material/PovRayMaterialUtils.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
-#include "environment/material/ValuesBuilder.h"
 #include "io/image/GifFormat.h"
 #include "io/image/IffFormat.h"
 #include "io/image/RawDumpFormat.h"
@@ -157,8 +156,8 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                             ctx.tokenStream().getToken();
                             switch (ctx.token().getTokenId()) {
                             case Tokenizer::COLOUR_TOKEN:
-                                b.setColor1(ValuesBuilder::getColor());
-                                b.setColor2(ValuesBuilder::getColor());
+                                b.setColor1(new ColorRgba(0.0, 0.0, 0.0, 0.0));
+                                b.setColor2(new ColorRgba(0.0, 0.0, 0.0, 0.0));
                                 PrimitiveParser::parseColor(b.getColor1(), ctx);
                                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                                 PrimitiveParser::parseColor(b.getColor2(), ctx);
@@ -186,8 +185,8 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                             ctx.tokenStream().getToken();
                             switch (ctx.token().getTokenId()) {
                             case Tokenizer::COLOUR_TOKEN:
-                                b.setColor1(ValuesBuilder::getColor());
-                                b.setColor2(ValuesBuilder::getColor());
+                                b.setColor1(new ColorRgba(0.0, 0.0, 0.0, 0.0));
+                                b.setColor2(new ColorRgba(0.0, 0.0, 0.0, 0.0));
                                 PrimitiveParser::parseColor(b.getColor1(), ctx);
                                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
                                 PrimitiveParser::parseColor(b.getColor2(), ctx);
@@ -701,7 +700,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
 
             case Tokenizer::COLOUR_TOKEN:
                 {
-                    ColorRgba *c = ValuesBuilder::getColor();
+                    ColorRgba *c = new ColorRgba(0.0, 0.0, 0.0, 0.0);
                     PrimitiveParser::parseColor(c, ctx);
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setColor1(c);

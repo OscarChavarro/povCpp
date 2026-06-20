@@ -5,7 +5,6 @@
 
 class DeclarationParser {
   public:
-    static void parseDeclare();
     static void parseDeclare(ParserContext &ctx);
 };
 

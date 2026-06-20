@@ -1,14 +1,7 @@
-/**
-PovrayMaterial utilities: global default texture management.
-
-Thin facade delegating to PovRayMaterial's own copy/transform engine.
-*/
-
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-
 #include "environment/material/PovRayMaterial.h"
 #include "environment/material/PovRayMaterialUtils.h"
+#include "io/pov/material/PovRayMaterialBuilder.h"
 
 void
 PovRayMaterialUtils::translateTexture(
@@ -35,9 +28,9 @@ void
 PovRayMaterialUtils::prependTextureLayers(
     PovRayMaterial *newHead, Material *&existingHead)
 {
-    PovRayMaterial *existingPovrayHead = static_cast<PovRayMaterial *>(existingHead);
-    PovRayMaterial::prependTextureLayers(newHead, existingPovrayHead);
-    existingHead = existingPovrayHead;
+    PovRayMaterial *existingPovRayHead = static_cast<PovRayMaterial *>(existingHead);
+    PovRayMaterial::prependTextureLayers(newHead, existingPovRayHead);
+    existingHead = existingPovRayHead;
 }
 
 void
@@ -56,9 +49,5 @@ PovRayMaterialUtils::copyTexture(PovRayMaterial *texture)
 PovRayMaterial *
 PovRayMaterialUtils::getTexture()
 {
-    PovRayMaterial * const newTexture = new PovRayMaterial;
-    if (newTexture == nullptr) {
-        Logger::reportMessage("PovrayMaterial", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate object");
-    }
-    return (newTexture);
+    return PovRayMaterialBuilder().build();
 }

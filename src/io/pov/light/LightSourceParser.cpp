@@ -6,7 +6,7 @@
 #include "environment/light/Light.h"
 #include "environment/light/PointLight.h"
 #include "environment/light/SpotLight.h"
-#include "environment/material/ValuesBuilder.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -54,7 +54,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 radius = 0.35;
                 falloff = 0.35;
                 spotlight = false;
-                localColor = ValuesBuilder::getColor();
+                localColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
                 localColor->setR(1.0); localColor->setG(1.0); localColor->setB(1.0); localColor->setA(0.0);
                 PrimitiveParser::parseVector(&center, ctx);
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);

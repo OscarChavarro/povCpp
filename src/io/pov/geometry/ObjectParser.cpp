@@ -16,7 +16,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/material/PovRayMaterialUtils.h"
-#include "environment/material/ValuesBuilder.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/scene/BoundedGeometryFactory.h"
 #include "environment/scene/SceneBuilder.h"
 #include "io/pov/light/LightGeometryAdapter.h"
@@ -363,7 +363,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                objectColor = ValuesBuilder::getColor();
+                objectColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
                 PrimitiveParser::parseColor(objectColor, ctx);
                 break;
 
