@@ -37,7 +37,7 @@ TextureParser::copyTexture(PovRayMaterial *texture)
 PovRayMaterialBuilder
 TextureParser::editorFor(PovRayMaterial *texture)
 {
-    return PovRayMaterialBuilder(texture).setConstant(false);
+    return PovRayMaterialBuilder(texture);
 }
 
 PovRayMaterial *
@@ -97,11 +97,6 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 break;
 
             case Tokenizer::ONCE_TOKEN:
-                {
-                    PovRayMaterialBuilder b = TextureParser::editorFor(texture);
-                    b.setOnceFlag(true);
-                    texture = b.build();
-                }
                 break;
 
             case Tokenizer::TURBULENCE_TOKEN:

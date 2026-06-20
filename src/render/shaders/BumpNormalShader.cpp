@@ -12,7 +12,7 @@ BumpNormalShader::shade(Vector3Dd *newNormal, const PovRayMaterial *texture,
 {
     Vector3Dd transformedPoint;
 
-    if (texture->getBumpNumber() == SolidTextureBumpyNames::NO_BUMPS) {
+    if (texture->getBumpPatternType() == SolidTextureBumpyNames::NO_BUMPS) {
         *newNormal = *surfaceNormal;
         return;
     }
@@ -31,18 +31,20 @@ BumpNormalShader::shade(Vector3Dd *newNormal, const PovRayMaterial *texture,
     BumpTextureFixture bumpFixture(&textureUtils->getProceduralNoise(), textureUtils);
     ImageTexture mapFixture;
 
-    switch (texture->getBumpNumber()) {
+    switch (texture->getBumpPatternType()) {
 
     case SolidTextureBumpyNames::WAVES:
         bumpFixture.waves(
-            x, y, z, texture->getBumpAmount(), texture->getFrequency(), texture->getPhase(),
-            texture->getNumberOfWaves(), newNormal);
+            x, y, z, texture->getBumpAmount(),
+            texture->getBumpFrequency(), texture->getBumpPhase(),
+            texture->getBumpNumberOfWaves(), newNormal);
         break;
 
     case SolidTextureBumpyNames::RIPPLES:
         bumpFixture.ripples(
-            x, y, z, texture->getBumpAmount(), texture->getFrequency(), texture->getPhase(),
-            texture->getNumberOfWaves(), newNormal);
+            x, y, z, texture->getBumpAmount(),
+            texture->getBumpFrequency(), texture->getBumpPhase(),
+            texture->getBumpNumberOfWaves(), newNormal);
         break;
 
     case SolidTextureBumpyNames::WRINKLES:

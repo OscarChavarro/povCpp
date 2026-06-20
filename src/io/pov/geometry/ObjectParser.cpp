@@ -36,12 +36,35 @@
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "io/pov/light/LightSourceParser.h"
+#include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
 namespace {
+
+// An untextured object/composite starts out wearing the scene's shared default
+// texture directly (see objectTexture initialization below). Transforming it in
+// place would mutate that shared instance for every other object relying on it,
+// so callers must copy it out first whenever it is still the canonical instance
+// AND the transform would actually touch it (matching PovRayMaterial's own
+// needsTransform gate) -- copying unconditionally would make objectTexture no
+// longer pointer-equal to ctx.getDefaultTexture(), which the TEXTURE_TOKEN
+// handling below relies on to decide between replacing and layering.
+Material *
+ensurePrivateTexture(Material *objectTexture)
+{
+    PovRayMaterial *texture = static_cast<PovRayMaterial *>(objectTexture);
+    bool needsTransform =
+        (texture->getColorPatternType() != SolidTextureColorNames::NO_TEXTURE &&
+         texture->getColorPatternType() != SolidTextureColorNames::COLOUR_TEXTURE) ||
+        texture->getBumpPatternType() != SolidTextureBumpyNames::NO_BUMPS;
+    if (needsTransform && PovRayMaterialConstancy::isConstant(texture)) {
+        return texture->copy();
+    }
+    return objectTexture;
+}
 
 BoundedGeometry *
 buildObject(
@@ -370,7 +393,7 @@ ObjectParser::parseObject(ParserContext &ctx)
             case Tokenizer::TEXTURE_TOKEN:
             {
                 PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->isConstant()) {
+                if (PovRayMaterialConstancy::isConstant(localTexture)) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
@@ -393,6 +416,7 @@ ObjectParser::parseObject(ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
             {
+                objectTexture = ensurePrivateTexture(objectTexture);
                 object = buildObject(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes);
@@ -408,6 +432,7 @@ ObjectParser::parseObject(ParserContext &ctx)
 
             case Tokenizer::ROTATE_TOKEN:
             {
+                objectTexture = ensurePrivateTexture(objectTexture);
                 object = buildObject(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes);
@@ -423,6 +448,7 @@ ObjectParser::parseObject(ParserContext &ctx)
 
             case Tokenizer::SCALE_TOKEN:
             {
+                objectTexture = ensurePrivateTexture(objectTexture);
                 object = buildObject(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes);
@@ -593,6 +619,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
             case Tokenizer::TRANSLATE_TOKEN:
             {
+                objectTexture = ensurePrivateTexture(objectTexture);
                 localComposite = buildComposite(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
@@ -610,6 +637,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
             case Tokenizer::ROTATE_TOKEN:
             {
+                objectTexture = ensurePrivateTexture(objectTexture);
                 localComposite = buildComposite(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
@@ -627,6 +655,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
             case Tokenizer::SCALE_TOKEN:
             {
+                objectTexture = ensurePrivateTexture(objectTexture);
                 localComposite = buildComposite(
                     geometry, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,

@@ -46,8 +46,6 @@ class PovRayMaterialBuilder {
     PovRayMaterialBuilder &setBumpImage(ControlledRGBAImageHDRUncompressed *v);
     PovRayMaterialBuilder &setMaterialImage(ControlledRGBAImageHDRUncompressed *v);
     PovRayMaterialBuilder &setMetallicFlag(bool v);
-    PovRayMaterialBuilder &setOnceFlag(bool v);
-    PovRayMaterialBuilder &setConstant(bool v);
     PovRayMaterialBuilder &setNumberOfWaves(int v);
     PovRayMaterialBuilder &setOctaves(int v);
     PovRayMaterialBuilder &setMortar(double v);
@@ -99,8 +97,6 @@ class PovRayMaterialBuilder {
     ControlledRGBAImageHDRUncompressed *bumpImage_;
     ControlledRGBAImageHDRUncompressed *materialImage_;
     bool metallicFlag_;
-    bool onceFlag_;
-    bool constantFlag_;
     int numberOfWaves_;
     int octaves_;
     double mortar_;

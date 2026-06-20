@@ -80,6 +80,7 @@ add_executable(povray
     src/io/pov/material/ColorMapParser.cpp
     src/io/pov/material/DefaultTextureParser.cpp
     src/io/pov/material/PovRayMaterialBuilder.cpp
+    src/io/pov/material/PovRayMaterialConstancy.cpp
     src/io/pov/geometry/SphereParser.cpp
     src/io/pov/light/LightSourceParser.cpp
     src/io/pov/geometry/PlaneParser.cpp
