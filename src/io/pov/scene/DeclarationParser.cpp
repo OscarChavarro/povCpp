@@ -4,7 +4,7 @@
 #include "environment/material/PovRayMaterialUtils.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "io/pov/camera/CameraParser.h"
-#include "io/pov/material/PovRayMaterialBuilder.h"
+#include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -190,12 +190,12 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                         case Tokenizer::TEXTURE_TOKEN:
                             localTexture = TextureParser::parseTexture(
                                 ctx.getDefaultTexture(), ctx);
-                            if (localTexture->isConstant()) {
+                            if (PovRayMaterialConstancy::isConstant(localTexture)) {
                                 localTexture =
                                     TextureParser::copyTexture(localTexture);
                             }
 
-                            localTexture = PovRayMaterialBuilder(localTexture).setConstant(true).build();
+                            PovRayMaterialConstancy::markConstant(localTexture);
 
                             {
                                 PovRayMaterial *existingHead =

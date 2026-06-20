@@ -13,6 +13,7 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/HeightFieldParser.h"
+#include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -201,7 +202,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
             case Tokenizer::TEXTURE_TOKEN:
             {
                 PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
-                if (localTexture->isConstant()) {
+                if (PovRayMaterialConstancy::isConstant(localTexture)) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 

@@ -20,7 +20,7 @@ class PovRayMaterial : public Material {
     static PovRayMaterial *copyTextureNode(const PovRayMaterial *src);
 
     java::ArrayList<PovRayMaterial *> layers; // Ordered list of additional texture layers
-    java::ArrayList<PovRayMaterial *> materials; // PovRayMaterial map variants
+    java::ArrayList<PovRayMaterial *> materialMapVariants;
     double objectReflection;
     double objectAmbient;
     double objectDiffuse;
@@ -34,10 +34,10 @@ class PovRayMaterial : public Material {
     double objectPhongSize;
     double bumpAmount;
     double textureRandomness;
-    double frequency;
-    double phase;
-    SolidTextureColorNames textureNumber;
-    SolidTextureBumpyNames bumpNumber;
+    double bumpFrequency;
+    double bumpPhase;
+    SolidTextureColorNames colorPatternType;
+    SolidTextureBumpyNames bumpPatternType;
     Matrix4x4d *textureTransformation;
     Matrix4x4d *textureTransformationInverse;
     ColorRgba *color1;
@@ -45,15 +45,13 @@ class PovRayMaterial : public Material {
     double turbulence;
     Vector3Dd textureGradient;
     RGBAColorPalette *colorMap;
-    ControlledRGBAImageHDRUncompressed *image;
+    ControlledRGBAImageHDRUncompressed *colorImage;
     ControlledRGBAImageHDRUncompressed *bumpImage;
-    ControlledRGBAImageHDRUncompressed *materialImage;
+    ControlledRGBAImageHDRUncompressed *materialMapImage;
     bool metallicFlag;
-    bool onceFlag;
-    bool constantFlag;
-    int numberOfWaves;
+    int bumpNumberOfWaves;
     int octaves;
-    double mortar;
+    double brickMortar;
 
   public:
     static constexpr int DEFAULT_NUMBER_OF_WAVES = 10;
@@ -70,12 +68,12 @@ class PovRayMaterial : public Material {
                    ControlledRGBAImageHDRUncompressed *image,
                    ControlledRGBAImageHDRUncompressed *bumpImage,
                    ControlledRGBAImageHDRUncompressed *materialImage, bool metallicFlag,
-                   bool onceFlag, bool constantFlag, int numberOfWaves, int octaves, double mortar,
+                   int numberOfWaves, int octaves, double mortar,
                    java::ArrayList<PovRayMaterial *> layers,
                    java::ArrayList<PovRayMaterial *> materials);
 
     const java::ArrayList<PovRayMaterial *>& getLayers() const;
-    const java::ArrayList<PovRayMaterial *>& getMaterials() const;
+    const java::ArrayList<PovRayMaterial *>&getMaterialMapVariants() const;
     double getObjectReflection() const;
     double getObjectAmbient() const;
     double getObjectDiffuse() const;
@@ -88,10 +86,10 @@ class PovRayMaterial : public Material {
     double getObjectPhongSize() const;
     double getBumpAmount() const;
     double getTextureRandomness() const;
-    double getFrequency() const;
-    double getPhase() const;
-    SolidTextureColorNames getTextureNumber() const;
-    SolidTextureBumpyNames getBumpNumber() const;
+    double getBumpFrequency() const;
+    double getBumpPhase() const;
+    SolidTextureColorNames getColorPatternType() const;
+    SolidTextureBumpyNames getBumpPatternType() const;
     Matrix4x4d* getTextureTransformation() const;
     Matrix4x4d* getTextureTransformationInverse() const;
     ColorRgba* getColor1() const;
@@ -99,15 +97,13 @@ class PovRayMaterial : public Material {
     double getTurbulence() const;
     const Vector3Dd& getTextureGradient() const;
     RGBAColorPalette* getColorMap() const;
-    ControlledRGBAImageHDRUncompressed* getImage() const;
+    ControlledRGBAImageHDRUncompressed*getColorImage() const;
     ControlledRGBAImageHDRUncompressed* getBumpImage() const;
-    ControlledRGBAImageHDRUncompressed* getMaterialImage() const;
+    ControlledRGBAImageHDRUncompressed*getMaterialMapImage() const;
     bool isMetallic() const;
-    bool getOnceFlag() const;
-    bool isConstant() const;
-    int getNumberOfWaves() const;
+    int getBumpNumberOfWaves() const;
     int getOctaves() const;
-    double getMortar() const;
+    double getBrickMortar() const;
     PovRayMaterial *copy() override;
     Material *translate(Vector3Dd *vector) override;
     Material *rotate(Vector3Dd *vector) override;
@@ -130,7 +126,7 @@ class PovRayMaterial : public Material {
 inline const java::ArrayList<PovRayMaterial *>&
 PovRayMaterial::getLayers() const { return layers; }
 inline const java::ArrayList<PovRayMaterial *>&
-PovRayMaterial::getMaterials() const { return materials; }
+PovRayMaterial::getMaterialMapVariants() const { return materialMapVariants; }
 inline double
 PovRayMaterial::getObjectReflection() const { return objectReflection; }
 inline double
@@ -158,13 +154,13 @@ PovRayMaterial::getBumpAmount() const { return bumpAmount; }
 inline double
 PovRayMaterial::getTextureRandomness() const { return textureRandomness; }
 inline double
-PovRayMaterial::getFrequency() const { return frequency; }
+PovRayMaterial::getBumpFrequency() const { return bumpFrequency; }
 inline double
-PovRayMaterial::getPhase() const { return phase; }
+PovRayMaterial::getBumpPhase() const { return bumpPhase; }
 inline SolidTextureColorNames
-PovRayMaterial::getTextureNumber() const { return textureNumber; }
+PovRayMaterial::getColorPatternType() const { return colorPatternType; }
 inline SolidTextureBumpyNames
-PovRayMaterial::getBumpNumber() const { return bumpNumber; }
+PovRayMaterial::getBumpPatternType() const { return bumpPatternType; }
 inline Matrix4x4d*
 PovRayMaterial::getTextureTransformation() const { return textureTransformation; }
 inline Matrix4x4d*
@@ -180,22 +176,18 @@ PovRayMaterial::getTextureGradient() const { return textureGradient; }
 inline RGBAColorPalette*
 PovRayMaterial::getColorMap() const { return colorMap; }
 inline ControlledRGBAImageHDRUncompressed*
-PovRayMaterial::getImage() const { return image; }
+PovRayMaterial::getColorImage() const { return colorImage; }
 inline ControlledRGBAImageHDRUncompressed*
 PovRayMaterial::getBumpImage() const { return bumpImage; }
 inline ControlledRGBAImageHDRUncompressed*
-PovRayMaterial::getMaterialImage() const { return materialImage; }
+PovRayMaterial::getMaterialMapImage() const { return materialMapImage; }
 inline bool
 PovRayMaterial::isMetallic() const { return metallicFlag; }
-inline bool
-PovRayMaterial::getOnceFlag() const { return onceFlag; }
-inline bool
-PovRayMaterial::isConstant() const { return constantFlag; }
 inline int
-PovRayMaterial::getNumberOfWaves() const { return numberOfWaves; }
+PovRayMaterial::getBumpNumberOfWaves() const { return bumpNumberOfWaves; }
 inline int
 PovRayMaterial::getOctaves() const { return octaves; }
 inline double
-PovRayMaterial::getMortar() const { return mortar; }
+PovRayMaterial::getBrickMortar() const { return brickMortar; }
 
 #endif

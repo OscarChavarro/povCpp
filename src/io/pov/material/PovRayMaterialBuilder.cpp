@@ -44,14 +44,15 @@ copyTextureNode(const PovRayMaterial *src)
         src->getObjectBrilliance(), src->getObjectIndexOfRefraction(), src->getObjectRefraction(),
         src->getObjectTransmit(), src->getObjectSpecular(), src->getObjectRoughness(),
         src->getObjectPhong(), src->getObjectPhongSize(), src->getBumpAmount(),
-        src->getTextureRandomness(), src->getFrequency(), src->getPhase(),
-        src->getTextureNumber(), src->getBumpNumber(),
+        src->getTextureRandomness(), src->getBumpFrequency(),
+        src->getBumpPhase(), src->getColorPatternType(),
+        src->getBumpPatternType(),
         transformation, transformationInverse,
         src->getColor1(), src->getColor2(), src->getTurbulence(),
         src->getTextureGradient(), deepCopyColorMap(src->getColorMap()),
-        src->getImage(), src->getBumpImage(), src->getMaterialImage(), src->isMetallic(),
-        src->getOnceFlag(), false, src->getNumberOfWaves(), src->getOctaves(), src->getMortar(),
-        src->getLayers(), src->getMaterials());
+        src->getColorImage(), src->getBumpImage(), src->getMaterialMapImage(), src->isMetallic(),
+        src->getBumpNumberOfWaves(), src->getOctaves(), src->getBrickMortar(),
+        src->getLayers(), src->getMaterialMapVariants());
 }
 
 } // namespace
@@ -85,8 +86,6 @@ PovRayMaterialBuilder::PovRayMaterialBuilder() :
     bumpImage_(nullptr),
     materialImage_(nullptr),
     metallicFlag_(false),
-    onceFlag_(false),
-    constantFlag_(true),
     numberOfWaves_(PovRayMaterial::DEFAULT_NUMBER_OF_WAVES),
     octaves_(6),
     mortar_(0.2)
@@ -107,10 +106,10 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
     objectPhongSize_(base->getObjectPhongSize()),
     bumpAmount_(base->getBumpAmount()),
     textureRandomness_(base->getTextureRandomness()),
-    frequency_(base->getFrequency()),
-    phase_(base->getPhase()),
-    textureNumber_(base->getTextureNumber()),
-    bumpNumber_(base->getBumpNumber()),
+    frequency_(base->getBumpFrequency()),
+    phase_(base->getBumpPhase()),
+    textureNumber_(base->getColorPatternType()),
+    bumpNumber_(base->getBumpPatternType()),
     textureTransformation_(nullptr),
     textureTransformationInverse_(nullptr),
     color1_(base->getColor1()),
@@ -118,15 +117,13 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
     turbulence_(base->getTurbulence()),
     textureGradient_(base->getTextureGradient()),
     colorMap_(deepCopyColorMap(base->getColorMap())),
-    image_(base->getImage()),
+    image_(base->getColorImage()),
     bumpImage_(base->getBumpImage()),
-    materialImage_(base->getMaterialImage()),
+    materialImage_(base->getMaterialMapImage()),
     metallicFlag_(base->isMetallic()),
-    onceFlag_(base->getOnceFlag()),
-    constantFlag_(base->isConstant()),
-    numberOfWaves_(base->getNumberOfWaves()),
+    numberOfWaves_(base->getBumpNumberOfWaves()),
     octaves_(base->getOctaves()),
-    mortar_(base->getMortar())
+    mortar_(base->getBrickMortar())
 {
     if (base->getTextureTransformation() != nullptr) {
         textureTransformation_ = new Matrix4x4d(*base->getTextureTransformation());
@@ -138,8 +135,8 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
     for (long int i = 0; i < base->getLayers().size(); i++) {
         layers_.add(copyTextureNode(base->getLayers()[i]));
     }
-    for (long int i = 0; i < base->getMaterials().size(); i++) {
-        materials_.add(base->getMaterials()[i]);
+    for (long int i = 0; i < base->getMaterialMapVariants().size(); i++) {
+        materials_.add(base->getMaterialMapVariants()[i]);
     }
 }
 
@@ -157,7 +154,7 @@ PovRayMaterialBuilder::build() const
         color1_, color2_, turbulence_,
         textureGradient_, colorMap_,
         image_, bumpImage_, materialImage_, metallicFlag_,
-        onceFlag_, constantFlag_, numberOfWaves_, octaves_, mortar_,
+        numberOfWaves_, octaves_, mortar_,
         layers_, materials_);
 }
 
@@ -354,20 +351,6 @@ PovRayMaterialBuilder &
 PovRayMaterialBuilder::setMetallicFlag(bool v)
 {
     metallicFlag_ = v;
-    return *this;
-}
-
-PovRayMaterialBuilder &
-PovRayMaterialBuilder::setOnceFlag(bool v)
-{
-    onceFlag_ = v;
-    return *this;
-}
-
-PovRayMaterialBuilder &
-PovRayMaterialBuilder::setConstant(bool v)
-{
-    constantFlag_ = v;
     return *this;
 }
 

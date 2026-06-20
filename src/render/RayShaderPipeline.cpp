@@ -44,13 +44,14 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture
-    if (texture->getTextureNumber() == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
+    if (texture->getColorPatternType() == (int)SolidTextureColorNames::MATERIAL_MAP_TEXTURE) {
         const int index = mapFixture.materialMap(
             &rayIntersection->getPoint(), texture->getTextureTransformationInverse(),
-            texture->getMaterialImage(), texture->getMaterials().size(),
+            texture->getMaterialMapImage(),
+            texture->getMaterialMapVariants().size(),
             GeometryConstants::Small_Tolerance);
         if (index != -1) {
-            texture = texture->getMaterials().get(index);
+            texture = texture->getMaterialMapVariants().get(index);
         }
     }
 
@@ -77,33 +78,40 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
-        } else if (tempTexture->getTextureNumber() == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
+        } else if (tempTexture->getColorPatternType() == (int)SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE) {
             PovRayMaterial * const texture1 = (PovRayMaterial *)tempTexture->getColor1();
             PovRayMaterial * const texture2 = (PovRayMaterial *)tempTexture->getColor2();
             fixturesFacade.colorAt(
-                &surfaceColor, tempTexture->getTextureNumber(),
-                tempTexture->getTextureTransformationInverse(), tempTexture->getImage(),
+                &surfaceColor,
+                tempTexture->getColorPatternType(),
+                tempTexture->getTextureTransformationInverse(),
+                tempTexture->getColorImage(),
                 tempTexture->getColor1(), tempTexture->getColor2(), tempTexture->getTurbulence(),
                 tempTexture->getOctaves(), tempTexture->getColorMap(),
-                tempTexture->getTextureGradient(), tempTexture->getMortar(),
+                tempTexture->getTextureGradient(),
+                tempTexture->getBrickMortar(),
                 &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance,
                 SolidTextureFixturesColorAtParameterSet(
-                    texture1->getTextureNumber(), texture1->getTextureTransformationInverse(),
-                    texture1->getImage(), texture1->getColor1(), texture1->getColor2(),
+                    texture1->getColorPatternType(), texture1->getTextureTransformationInverse(),
+                    texture1->getColorImage(), texture1->getColor1(), texture1->getColor2(),
                     texture1->getTurbulence(), texture1->getOctaves(), texture1->getColorMap(),
-                    texture1->getTextureGradient(), texture1->getMortar()),
+                    texture1->getTextureGradient(), texture1->getBrickMortar()),
                 SolidTextureFixturesColorAtParameterSet(
-                    texture2->getTextureNumber(), texture2->getTextureTransformationInverse(),
-                    texture2->getImage(), texture2->getColor1(), texture2->getColor2(),
+                    texture2->getColorPatternType(), texture2->getTextureTransformationInverse(),
+                    texture2->getColorImage(), texture2->getColor1(), texture2->getColor2(),
                     texture2->getTurbulence(), texture2->getOctaves(), texture2->getColorMap(),
-                    texture2->getTextureGradient(), texture2->getMortar()));
+                    texture2->getTextureGradient(),
+                    texture2->getBrickMortar()));
         } else {
             fixturesFacade.colorAt(
-                &surfaceColor, tempTexture->getTextureNumber(),
-                tempTexture->getTextureTransformationInverse(), tempTexture->getImage(),
+                &surfaceColor,
+                tempTexture->getColorPatternType(),
+                tempTexture->getTextureTransformationInverse(),
+                tempTexture->getColorImage(),
                 tempTexture->getColor1(), tempTexture->getColor2(), tempTexture->getTurbulence(),
                 tempTexture->getOctaves(), tempTexture->getColorMap(),
-                tempTexture->getTextureGradient(), tempTexture->getMortar(),
+                tempTexture->getTextureGradient(),
+                tempTexture->getBrickMortar(),
                 &rayIntersection->getPoint(), GeometryConstants::Small_Tolerance);
         }
         // We don't need to compute the lighting characteristics for shadow

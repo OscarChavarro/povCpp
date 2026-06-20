@@ -1,15 +1,9 @@
 #include "java/lang/Math.h"
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Sphere.h"
-
-Sphere::Sphere() :
-    Sphere(Vector3Dd(0.0, 0.0, 0.0), 1.0, false)
-{
-}
 
 Sphere::Sphere(const Vector3Dd &center, double radius, bool inverted) :
     Sphere(center, radius, radius * radius, 1.0 / radius, Vector3Dd(),
@@ -33,11 +27,11 @@ Sphere::Sphere(const Vector3Dd &center, double radius, double radiusSquared,
 }
 
 void
-Sphere::updateRadiusState(double radius)
+Sphere::updateRadiusState(double localRadius)
 {
-    this->radius = radius;
-    radiusSquared = radius * radius;
-    inverseRadius = 1.0 / radius;
+    this->radius = localRadius;
+    radiusSquared = localRadius * localRadius;
+    inverseRadius = 1.0 / localRadius;
 }
 
 int
@@ -211,5 +205,3 @@ Sphere::invertGeometry()
 {
     this->toggleInverted();
 }
-
-#include "java/util/PriorityQueue.txx"

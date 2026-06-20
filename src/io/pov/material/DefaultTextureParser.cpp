@@ -4,7 +4,7 @@
 
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/DefaultTextureParser.h"
-#include "io/pov/material/PovRayMaterialBuilder.h"
+#include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -41,6 +41,6 @@ DefaultTextureParser::parseDefault(ParserContext &ctx)
             }
         }
     }
-    parsedDefaultTexture = PovRayMaterialBuilder(parsedDefaultTexture).setConstant(true).build();
+    PovRayMaterialConstancy::markConstant(parsedDefaultTexture);
     ctx.setDefaultTexture(parsedDefaultTexture);
 }
