@@ -103,7 +103,7 @@ add_executable(povray
     src/io/pov/lexer/Tokenizer.cpp
     src/app/ImageOutputAdapter.cpp
     src/app/options/CommandLineOptions.cpp
-    src/app/PovrayApplication.cpp
+        src/app/PovRayApplication.cpp
     src/app/main.cpp
 )
 

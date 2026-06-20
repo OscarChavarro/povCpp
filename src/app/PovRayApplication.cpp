@@ -1,109 +1,99 @@
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
-#include <ctime>
 
-#include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-#include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/RenderRuntimeState.h"
+#include "app/ImageOutputAdapter.h"
+#include "app/PovRayApplication.h"
+#include "app/options/CommandLineOptions.h"
 #include "common/statistics/Statistics.h"
-#include "environment/material/PovrayMaterialUtils.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovrayMaterial.h"
 #include "environment/material/RenderOutput.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
-#include "environment/light/Light.h"
-#include "environment/camera/Camera.h"
-#include "io/image/ImageOutput.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
-#include "io/binaryIo/FileLocator.h"
-#include "io/pov/lexer/Tokenizer.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/scene/SceneParser.h"
-#include "render/RenderEngine.h"
-#include "app/ImageOutputAdapter.h"
-#include "app/PovrayApplication.h"
-#include "app/options/CommandLineOptions.h"
+#include "vsdk/toolkit/common/logging/Logger.h"
 
 void
-PovrayApplication::printStatistics(
+PovRayApplication::printStatistics(
     const Statistics &stats,
     const Scene &frame,
-    const RenderingConfiguration &configuration)
+    const RenderingConfiguration &inputConfiguration)
 {
-    FILE *statOut = stdout;
-    if (configuration.getOptions() & RenderingConfiguration::VERBOSE_FILE) {
-        statOut = fopen(configuration.getStatFileName(), "w+t");
-    }
-
+    char buffer[1024];
     const long pixelsInImage =
         (long)frame.getScreenWidth() * (long)frame.getScreenHeight();
 
-    fprintf(statOut, "\n%s statistics\n", configuration.getInputFileName());
+    snprintf(buffer, sizeof(buffer), "\n%s statistics",
+        inputConfiguration.getInputFileName());
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+
     if (pixelsInImage > stats.getNumberOfPixels()) {
-        fprintf(statOut, "  Partial Image Rendered");
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "  Partial Image Rendered");
     }
 
-    fprintf(statOut, "--------------------------------------\n");
-    fprintf(statOut, "Resolution %d x %d\n", frame.getScreenWidth(),
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "--------------------------------------");
+    snprintf(buffer, sizeof(buffer), "Resolution %d x %d", frame.getScreenWidth(),
         frame.getScreenHeight());
-    fprintf(statOut,
-        "# Rays:  %10ld     # Pixels:  %10ld  # Pixels supersampled: %10ld\n",
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+
+    snprintf(buffer, sizeof(buffer),
+        "# Rays:  %10ld     # Pixels:  %10ld  # Pixels super-sampled: %10ld",
         stats.getNumberOfRays(), stats.getNumberOfPixels(),
         stats.getNumberOfPixelsSupersampled());
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
 
-    fprintf(statOut, "  Ray->Shape Intersection Tests:\n");
-    fprintf(statOut,
-        "    type                 Tests     Succeeded    Percentage\n");
-    fprintf(statOut,
-        "  -----------------------------------------------------------\n");
-#define PRINT_INTERSECTION_ROW(label, tests, succeeded)                         \
-    if (tests) {                                                                 \
-        fprintf(statOut, label " %10ld  %10ld  %10.2f\n", tests, succeeded,    \
-            (((double)succeeded / (double)tests) * 100.0));                     \
-    }
-    PRINT_INTERSECTION_ROW("  Sphere        ", stats.getRaySphereTests(), stats.getRaySphereTestsSucceeded());
-    PRINT_INTERSECTION_ROW("  Plane         ", stats.getRayPlaneTests(), stats.getRayPlaneTestsSucceeded());
-    PRINT_INTERSECTION_ROW(
-        "  Triangle     ", stats.getRayTriangleTests(), stats.getRayTriangleTestsSucceeded());
-    PRINT_INTERSECTION_ROW("  Quadric       ", stats.getRayQuadricTests(), stats.getRayQuadricTestsSucceeded());
-    PRINT_INTERSECTION_ROW("  Blob          ", stats.getRayBlobTests(), stats.getRayBlobTestsSucceeded());
-    PRINT_INTERSECTION_ROW("  Box           ", stats.getRayBoxTests(), stats.getRayBoxTestsSucceeded());
-    PRINT_INTERSECTION_ROW("  Quartic\\Poly ", stats.getRayPolyTests(), stats.getRayPolyTestsSucceeded());
-    PRINT_INTERSECTION_ROW(
-        "  Bezier Patch ", stats.getRayBicubicTests(), stats.getRayBicubicTestsSucceeded());
-    PRINT_INTERSECTION_ROW(
-        "  Height Fld   ", stats.getRayHtFieldTests(), stats.getRayHtFieldTestsSucceeded());
-    PRINT_INTERSECTION_ROW(
-        "  Hght Fld Box ", stats.getRayHtFieldBoxTests(), stats.getRayHFieldBoxTestsSucceeded());
-    PRINT_INTERSECTION_ROW(
-        "  Bounds        ", stats.getBoundingRegionTests(), stats.getBoundingRegionTestsSucceeded());
-    PRINT_INTERSECTION_ROW(
-        "  Clips         ", stats.getClippingRegionTests(), stats.getClippingRegionTestsSucceeded());
-#undef PRINT_INTERSECTION_ROW
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "  Ray->Shape Intersection Tests:");
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "    type                 Tests     Succeeded    Percentage");
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "  -----------------------------------------------------------");
+
+    auto logIntersectionRow = [&buffer](const char *label, long tests, long succeeded) {
+        if (tests) {
+            snprintf(buffer, sizeof(buffer), "%s %10ld  %10ld  %10.2f", label, tests, succeeded,
+                (((double)succeeded / (double)tests) * 100.0));
+            Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
+        }
+    };
+
+    logIntersectionRow("  Sphere        ", stats.getRaySphereTests(), stats.getRaySphereTestsSucceeded());
+    logIntersectionRow("  Plane         ", stats.getRayPlaneTests(), stats.getRayPlaneTestsSucceeded());
+    logIntersectionRow("  Triangle     ", stats.getRayTriangleTests(), stats.getRayTriangleTestsSucceeded());
+    logIntersectionRow("  Quadric       ", stats.getRayQuadricTests(), stats.getRayQuadricTestsSucceeded());
+    logIntersectionRow("  Blob          ", stats.getRayBlobTests(), stats.getRayBlobTestsSucceeded());
+    logIntersectionRow("  Box           ", stats.getRayBoxTests(), stats.getRayBoxTestsSucceeded());
+    logIntersectionRow("  Quartic\\Poly ", stats.getRayPolyTests(), stats.getRayPolyTestsSucceeded());
+    logIntersectionRow("  Bezier Patch ", stats.getRayBicubicTests(), stats.getRayBicubicTestsSucceeded());
+    logIntersectionRow("  Height field   ", stats.getRayHtFieldTests(), stats.getRayHtFieldTestsSucceeded());
+    logIntersectionRow("  Height field Box ", stats.getRayHtFieldBoxTests(), stats.getRayHFieldBoxTestsSucceeded());
+    logIntersectionRow("  Bounds        ", stats.getBoundingRegionTests(), stats.getBoundingRegionTestsSucceeded());
+    logIntersectionRow("  Clips         ", stats.getClippingRegionTests(), stats.getClippingRegionTestsSucceeded());
 
     if (stats.getSolidTextureStatistics()->callsToNoise) {
-        fprintf(statOut, "  Calls to Noise:    %10ld\n", stats.getSolidTextureStatistics()->callsToNoise);
+        snprintf(buffer, sizeof(buffer), "  Calls to Noise:    %10ld", stats.getSolidTextureStatistics()->callsToNoise);
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
     if (stats.getSolidTextureStatistics()->callsToDNoise) {
-        fprintf(statOut, "  Calls to DNoise:  %10ld\n", stats.getSolidTextureStatistics()->callsToDNoise);
+        snprintf(buffer, sizeof(buffer), "  Calls to DNoise:  %10ld", stats.getSolidTextureStatistics()->callsToDNoise);
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
     if (stats.getShadowRayTests()) {
-        fprintf(statOut,
-            "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld\n",
+        snprintf(buffer, sizeof(buffer),
+            "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld",
             stats.getShadowRayTests(), stats.getShadowRaysSucceeded());
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
     if (stats.getReflectedRaysTraced()) {
-        fprintf(statOut, "  Reflected Rays:    %10ld\n", stats.getReflectedRaysTraced());
+        snprintf(buffer, sizeof(buffer), "  Reflected Rays:    %10ld", stats.getReflectedRaysTraced());
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
     if (stats.getRefractedRaysTraced()) {
-        fprintf(statOut, "  Refracted Rays:    %10ld\n", stats.getRefractedRaysTraced());
+        snprintf(buffer, sizeof(buffer), "  Refracted Rays:    %10ld", stats.getRefractedRaysTraced());
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
     if (stats.getTransmittedRaysTraced()) {
-        fprintf(statOut, "  Transmitted Rays: %10ld\n", stats.getTransmittedRaysTraced());
+        snprintf(buffer, sizeof(buffer), "  Transmitted Rays: %10ld", stats.getTransmittedRaysTraced());
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
 
     if (stats.getUsedTime() != 0.0) {
@@ -111,17 +101,15 @@ PovrayApplication::printStatistics(
         const int minutes = (int)(stats.getUsedTime() - hours * 3600) / 60;
         const double seconds =
             stats.getUsedTime() - (double)(hours * 3600 + minutes * 60);
-        fprintf(statOut,
-            "  Time For Trace:    %2d hours %2d minutes %4.2f seconds\n", hours,
+        snprintf(buffer, sizeof(buffer),
+            "  Time For Trace:    %2d hours %2d minutes %4.2f seconds", hours,
             minutes, seconds);
-    }
-    if (configuration.getOptions() & RenderingConfiguration::VERBOSE_FILE) {
-        fclose(statOut);
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
 }
 
 void
-PovrayApplication::run(int argc, char *argv[])
+PovRayApplication::run(int argc, char *argv[])
 {
     initializeFromCommandLine(argc, argv);
     configureOutputTarget();
@@ -132,7 +120,7 @@ PovrayApplication::run(int argc, char *argv[])
 }
 
 void
-PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
+PovRayApplication::initializeFromCommandLine(int argc, char *argv[])
 {
     if (argc == 1) {
         CommandLineOptions::usage();
@@ -151,7 +139,7 @@ PovrayApplication::initializeFromCommandLine(int argc, char *argv[])
 }
 
 void
-PovrayApplication::configureOutputTarget()
+PovRayApplication::configureOutputTarget()
 {
     if (!configuration.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
         return;
@@ -184,7 +172,7 @@ PovrayApplication::configureOutputTarget()
         {
             char _logMsg[1024];
             snprintf(_logMsg, sizeof(_logMsg), "Unrecognized output file format %c\n", configuration.getOutputFormat());
-            Logger::reportMessage("PovrayApplication", Logger::FATAL_ERROR, "", _logMsg);
+            Logger::reportMessage("PovRayApplication", Logger::FATAL_ERROR, "", _logMsg);
         }
     }
 
@@ -199,21 +187,14 @@ PovrayApplication::configureOutputTarget()
 }
 
 void
-PovrayApplication::parseSceneDescription()
+PovRayApplication::parseSceneDescription()
 {
-    FILE *statFile;
-
     ParserContext ctx;
     ctx.tokenizer().setCaseSensitiveIdentifiers(configuration.getTokenizerCaseSensitiveMode());
     ctx.tokenizer().setMaxSymbols(configuration.getTokenizerMaxSymbols());
     ctx.tokenizer().setFileLocator(&fileLocator);
     ctx.tokenizer().initializeTokenizer(configuration.getInputFileName());
-    fprintf(stderr, "Parsing...");
-    if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
-        statFile = fopen(configuration.getStatFileName(), "w+t");
-        fprintf(statFile, "Parsing...\n");
-        fclose(statFile);
-    }
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Parsing...");
 
     ctx.setDiagnostics(
         configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE),
@@ -225,10 +206,10 @@ PovrayApplication::parseSceneDescription()
 }
 
 void
-PovrayApplication::prepareRendering()
+PovRayApplication::prepareRendering()
 {
     if (configuration.hasOptionFlags(RenderingConfiguration::DISPLAY)) {
-        Logger::reportMessage("PovrayApplication", Logger::WARNING, "", "Displaying...\n");
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Displaying...\n");
     }
 
     if (configuration.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
@@ -238,9 +219,10 @@ PovrayApplication::prepareRendering()
                     &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::READ_MODE,
                     configuration.getFirstLine()) != 1) {
-                Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening continue trace output file\n");
-                fprintf(
-                    stderr, "Opening new output file %s.\n", configuration.getOutputFileName());
+                Logger::reportMessage("PovRayApplication", Logger::ERROR, "", "Error opening continue trace output file");
+                char buffer[512];
+                snprintf(buffer, sizeof(buffer), "Opening new output file %s.", configuration.getOutputFileName());
+                Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
                 configuration.clearOptionFlags(RenderingConfiguration::CONTINUE_TRACE);
 
                 if (configuration.getOutputFileInputStream()->open(
@@ -248,7 +230,7 @@ PovrayApplication::prepareRendering()
                         &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                         configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
                         configuration.getFirstLine()) != 1) {
-                    Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
+                    Logger::reportMessage("PovRayApplication", Logger::ERROR, "", "Error opening output file\n");
                     closeAll();
                     exit(1);
                 }
@@ -264,7 +246,7 @@ PovrayApplication::prepareRendering()
                     &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
                     configuration.getFileBufferSize(), RenderOutput::WRITE_MODE,
                     configuration.getFirstLine()) != 1) {
-                Logger::reportMessage("PovrayApplication", Logger::ERROR, "", "Error opening output file\n");
+                Logger::reportMessage("PovRayApplication", Logger::ERROR, "", "Error opening output file\n");
                 closeAll();
                 exit(1);
             }
@@ -281,51 +263,35 @@ PovrayApplication::prepareRendering()
 }
 
 void
-PovrayApplication::runRenderLoop()
+PovRayApplication::runRenderLoop()
 {
-    FILE *statFile;
-
     statistics.startTimer();
 
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() != '1')) {
-        Logger::reportMessage("PovrayApplication", Logger::WARNING, "", "Rendering...\n");
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Rendering...");
     } else if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() == '1')) {
-        fprintf(stderr, "POV-Ray rendering %s to %s :\n", configuration.getInputFileName(),
-            configuration.getOutputFileName());
-    }
-    if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
-        statFile = fopen(configuration.getStatFileName(), "w+t");
-        fprintf(statFile, "Parsed ok. Now rendering %s to %s :\n",
+        char buffer[512];
+        snprintf(buffer, sizeof(buffer), "POV-Ray rendering %s to %s :",
             configuration.getInputFileName(), configuration.getOutputFileName());
-        fclose(statFile);
+        Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
 
     engine.startTracing();
-
-    if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && configuration.getVerboseFormat() == '1') {
-        fprintf(stderr, "\n");
-    }
 }
 
 void
-PovrayApplication::finalizeRun()
+PovRayApplication::finalizeRun()
 {
-    FILE *statFile;
-
     statistics.stopTimer();
 
     closeAll();
     printStatistics(statistics, engine.getScene(), configuration);
 
-    if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
-        statFile = fopen(configuration.getStatFileName(), "a+t");
-        fprintf(statFile, "Done Tracing\n");
-        fclose(statFile);
-    }
+    Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Done Tracing");
 }
 
 void
-PovrayApplication::initVars()
+PovRayApplication::initVars()
 {
     configuration.reset();
     runtimeState.reset();
@@ -337,7 +303,7 @@ PovrayApplication::initVars()
 
 // Close all the stuff that has been opened
 void
-PovrayApplication::closeAll()
+PovRayApplication::closeAll()
 {
     if (configuration.getOutputFileInputStream()) {
         configuration.getOutputFileInputStream()->close();
@@ -349,5 +315,3 @@ PovrayApplication::closeAll()
         selectedImageOutput = nullptr;
     }
 }
-
-#include "java/util/PriorityQueue.txx"

@@ -1,9 +1,9 @@
-#include "app/PovrayApplication.h"
+#include "app/PovRayApplication.h"
 
 int
 main(int argc, char *argv[])
 {
-    PovrayApplication app;
+    PovRayApplication app;
     app.run(argc, argv);
 
     return 0;
