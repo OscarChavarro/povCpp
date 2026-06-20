@@ -1,4 +1,58 @@
+#include "java/util/ArrayList.txx"
 #include "common/statistics/Statistics.h"
+
+// Supports multi-thread ray tracing. Statistics must be totaled after all
+// worker threads have been joined.
+Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
+{
+    reset();
+
+    if (partsPerThread == nullptr) {
+        return;
+    }
+
+    for (long i = 0; i < partsPerThread->size(); ++i) {
+        const Statistics *part = partsPerThread->get(i);
+        if (part == nullptr) {
+            continue;
+        }
+
+        numberOfPixels += part->numberOfPixels;
+        numberOfRays += part->numberOfRays;
+        numberOfPixelsSuperSampled += part->numberOfPixelsSuperSampled;
+        raySphereTests += part->raySphereTests;
+        raySphereTestsSucceeded += part->raySphereTestsSucceeded;
+        rayBoxTests += part->rayBoxTests;
+        rayBoxTestsSucceeded += part->rayBoxTestsSucceeded;
+        rayBlobTests += part->rayBlobTests;
+        rayBlobTestsSucceeded += part->rayBlobTestsSucceeded;
+        rayPlaneTests += part->rayPlaneTests;
+        rayPlaneTestsSucceeded += part->rayPlaneTestsSucceeded;
+        rayTriangleTests += part->rayTriangleTests;
+        rayTriangleTestsSucceeded += part->rayTriangleTestsSucceeded;
+        rayQuadricTests += part->rayQuadricTests;
+        rayQuadricTestsSucceeded += part->rayQuadricTestsSucceeded;
+        rayPolyTests += part->rayPolyTests;
+        rayPolyTestsSucceeded += part->rayPolyTestsSucceeded;
+        rayBicubicTests += part->rayBicubicTests;
+        rayBicubicTestsSucceeded += part->rayBicubicTestsSucceeded;
+        rayHtFieldTests += part->rayHtFieldTests;
+        rayHtFieldTestsSucceeded += part->rayHtFieldTestsSucceeded;
+        boundingRegionTests += part->boundingRegionTests;
+        boundingRegionTestsSucceeded += part->boundingRegionTestsSucceeded;
+        clippingRegionTests += part->clippingRegionTests;
+        clippingRegionTestsSucceeded += part->clippingRegionTestsSucceeded;
+        solidTextureStatistics.callsToNoise +=
+            part->solidTextureStatistics.callsToNoise;
+        solidTextureStatistics.callsToDNoise +=
+            part->solidTextureStatistics.callsToDNoise;
+        shadowRayTests += part->shadowRayTests;
+        reflectedRaysTraced += part->reflectedRaysTraced;
+        refractedRaysTraced += part->refractedRaysTraced;
+        transmittedRaysTraced += part->transmittedRaysTraced;
+        usedTime += part->usedTime;
+    }
+}
 
 SolidTextureStatistics*
 Statistics::getSolidTextureStatistics()
