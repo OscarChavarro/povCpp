@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "render/RenderContext.h"
 #include "render/shaders/TraceService.h"

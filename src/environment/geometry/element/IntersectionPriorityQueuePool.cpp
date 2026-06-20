@@ -2,7 +2,7 @@
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "java/util/PriorityQueue.txx"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 
 IntersectionPriorityQueuePool::IntersectionPriorityQueuePool()

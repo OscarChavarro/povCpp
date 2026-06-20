@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/TransformableElement.h"
 
 bool

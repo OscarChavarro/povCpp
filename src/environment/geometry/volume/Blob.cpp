@@ -15,7 +15,7 @@ blobs and generously provided us these enhancements.
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Blob.h"
 
 static constexpr double COEFF_LIMIT = 1.0e-20;
@@ -477,10 +477,10 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                     }
                     dv = intersectionPoint.subtract(ray->getOrigin());
                     len = dv.length();
-                    localElement.setDepth(len);
-                    localElement.setObject(nullptr);
+                    localElement.setT(len);
+                    localElement.setBoundedGeometry(nullptr);
                     localElement.setPoint(intersectionPoint);
-                    localElement.setShape(reinterpret_cast<SimpleBody *>(blob));
+                    localElement.setSimpleBody(reinterpret_cast<SimpleBody *>(blob));
                     depthQueue->offer(localElement);
                     intersectionFound = true;
                 }

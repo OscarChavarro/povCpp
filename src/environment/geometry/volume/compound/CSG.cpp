@@ -5,7 +5,7 @@ This module implements routines for constructive solid geometry.
 */
 
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/SimpleBody.h"
 

@@ -1,6 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
 #include "render/shaders/AmbientLightShader.h"
@@ -29,7 +29,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
     emittedColor.setR(0.0); emittedColor.setG(0.0); emittedColor.setB(0.0); emittedColor.setA(0);
 
     if (texture == nullptr) {
-        texture = static_cast<PovrayMaterial *>(rayIntersection->getObject()->getObjectTexture());
+        texture = static_cast<PovrayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }
 
     if (ray->getConfig()->getQuality() <= 1) {
@@ -41,7 +41,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovrayMaterial *texture,
         return;
     }
 
-    rayIntersection->getShape()->normal(
+    rayIntersection->getSimpleBody()->normal(
         &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
 
     if (ray->getConfig()->getQuality() >= 8) {

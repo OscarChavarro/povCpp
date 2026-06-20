@@ -1,4 +1,4 @@
-#include "environment/geometry/Intersection.h"
+#include "environment/geometry/element/Intersection.h"
 
 #include "environment/geometry/SimpleBody.h"
 

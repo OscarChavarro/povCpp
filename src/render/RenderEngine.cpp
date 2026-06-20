@@ -483,7 +483,7 @@ RenderEngine::trace(RayWithSegments *ray, ColorRgba *color)
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
         if (object->intersect(ray, newIntersection)) {
-            if (!intersectionFound || newIntersection.getDepth() < localIntersection.getDepth()) {
+            if (!intersectionFound || newIntersection.getT() < localIntersection.getT()) {
                 localIntersection = newIntersection;
             }
             intersectionFound = true;
