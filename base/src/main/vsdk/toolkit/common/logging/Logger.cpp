@@ -31,7 +31,7 @@ void Logger::processFatalError(const java::String& method, const java::String& m
 
 void Logger::reportMessage(const java::String& className, int level, const java::String& method, const java::String& message)
 {
-    fprintf(stderr, "[VSDK][%s] %s: %s\n", className.c_str(), method.c_str(), message.c_str());
+    fprintf(stderr, "%s\n", message.c_str());
     if ( level == FATAL_ERROR ) {
         processFatalError(method, message, nullptr);
     }
@@ -40,9 +40,9 @@ void Logger::reportMessage(const java::String& className, int level, const java:
 void Logger::reportMessageWithException(const java::String& className, int level, const java::String& method, const java::String& message, const std::exception* cause)
 {
     if ( cause != nullptr ) {
-        fprintf(stderr, "[VSDK][%s] %s: %s | exception: %s\n", className.c_str(), method.c_str(), message.c_str(), cause->what());
+        fprintf(stderr, "%s | exception: %s\n", message.c_str(), cause->what());
     } else {
-        fprintf(stderr, "[VSDK][%s] %s: %s\n", className.c_str(), method.c_str(), message.c_str());
+        fprintf(stderr, "%s\n", message.c_str());
     }
     if ( level == FATAL_ERROR ) {
         processFatalError(method, message, cause);
