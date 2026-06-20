@@ -376,7 +376,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if (objectTexture == ctx.getDefaultTexture()) {
                     objectTexture = localTexture;
                 } else {
-                    TextureParser::prependTextureLayers(localTexture, objectTexture);
+                    PovrayMaterialUtils::prependTextureLayers(localTexture, objectTexture);
                 }
                 break;
             }

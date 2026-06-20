@@ -22,6 +22,27 @@ PovrayMaterialUtils::needsTransform(const PovrayMaterial *texture)
            (texture->getBumpNumber() != SolidTextureBumpyNames::NO_BUMPS);
 }
 void
+PovrayMaterialUtils::prependTextureLayers(PovrayMaterial *newHead, Material *&existingHead)
+{
+    PovrayMaterial *existingPovrayHead = static_cast<PovrayMaterial *>(existingHead);
+    prependTextureLayers(newHead, existingPovrayHead);
+    existingHead = existingPovrayHead;
+}
+
+void
+PovrayMaterialUtils::prependTextureLayers(PovrayMaterial *newHead, PovrayMaterial *&existingHead)
+{
+    if (existingHead != nullptr) {
+        newHead->getLayers().add(existingHead);
+        for (long int i = 0; i < existingHead->getLayers().size(); i++) {
+            newHead->getLayers().add(existingHead->getLayers()[i]);
+        }
+        existingHead->getLayers().clear();
+    }
+    existingHead = newHead;
+}
+
+void
 PovrayMaterialUtils::applyTranslationTransform(PovrayMaterial *texture, const Vector3Dd *vector)
 {
     if (!texture->getTextureTransformation()) {

@@ -10,6 +10,7 @@ sources/frequencies used by ripple/wave bump textures, and texture-space transfo
 #define __POVRAY_MATERIAL_UTILS__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "environment/material/Material.h"
 #include "environment/material/PovrayMaterial.h"
 
 class PovrayMaterialUtils {
@@ -24,6 +25,8 @@ class PovrayMaterialUtils {
     static void translateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector);
     static void rotateTexture(PovrayMaterial **texturePtr, Vector3Dd *vector);
     static void scaleTexture(PovrayMaterial **texturePtr, Vector3Dd *vector);
+    static void prependTextureLayers(PovrayMaterial *newHead, Material *&existingHead);
+    static void prependTextureLayers(PovrayMaterial *newHead, PovrayMaterial *&existingHead);
     static PovrayMaterial *copyTexture(PovrayMaterial *texture);
     static PovrayMaterial *getTexture();
 };

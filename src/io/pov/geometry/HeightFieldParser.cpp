@@ -206,7 +206,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     localTexture = TextureParser::copyTexture(localTexture);
                 }
 
-                TextureParser::prependTextureLayers(localTexture, body);
+                body->prependMaterialLayers(localTexture);
                 break;
             }
 
