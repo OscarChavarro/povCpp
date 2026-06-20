@@ -1,6 +1,6 @@
+#include "java/util/PriorityQueue.txx"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/Intersection.h"
-#include "java/util/PriorityQueue.txx"
 
 int
 Geometry::allIntersectionsForOwner(

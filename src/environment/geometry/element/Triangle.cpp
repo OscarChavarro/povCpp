@@ -1,8 +1,5 @@
-/**
-This module implements primitives for triangles and smooth triangles.
-*/
-
 #include "java/lang/Math.h"
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/statistics/Statistics.h"
@@ -378,9 +375,7 @@ Triangle::inside(Vector3Dd *point)
 void
 Triangle::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const Triangle *triangle = this;
-
-    *result = triangle->normalVector;
+    *result = normalVector;
 }
 
 void *
@@ -440,5 +435,3 @@ Triangle::invertGeometry()
 {
     this->inverted ^= true;
 }
-
-#include "java/util/PriorityQueue.txx"

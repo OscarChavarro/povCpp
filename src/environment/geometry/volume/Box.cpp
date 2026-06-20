@@ -1,16 +1,8 @@
-/**
-boxes.c
-
-This module implements the box primitive.
-*/
-
 #include "java/lang/Math.h"
-
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/Box.h"
 
@@ -371,5 +363,3 @@ Box::invertGeometry()
 {
     this->inverted = !this->inverted;
 }
-
-#include "java/util/PriorityQueue.txx"

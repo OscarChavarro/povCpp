@@ -53,7 +53,6 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     double x3;
     double y3;
     int signHolder;
-    int nextSign;
 
     // Calculate the point of intersection and the depth
     double s = ray->getDirection().dotProduct(*n);
@@ -113,6 +112,7 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
     }
 
     // Start of winding tests, test the segment from v1 to v2
+    int nextSign;
     if (y2 < 0) {
         nextSign = -1;
     } else {
@@ -172,7 +172,6 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
                 crossings++;
             }
         }
-        signHolder = nextSign;
     }
     if (crossings != 1) {
         return 0;
@@ -264,4 +263,3 @@ ParametricBiCubicIntersection::pointPlaneDistance(
     temp1 /= temp2;
     return temp1;
 }
-#include "java/util/PriorityQueue.txx"
