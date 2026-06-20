@@ -28,8 +28,10 @@ class PovRayMaterial : public Material {
     SolidTextureBumpyNames bumpPatternType;
     double bumpPhase;
 
-    ColorRgba *color1;
-    ColorRgba *color2;
+    ColorRgba *checkerColor1;
+    ColorRgba *checkerColor2;
+    PovRayMaterial *checkerTexture1;
+    PovRayMaterial *checkerTexture2;
     ControlledRGBAImageHDRUncompressed *colorImage;
     RGBAColorPalette *colorMap;
     SolidTextureColorNames colorPatternType;
@@ -67,7 +69,8 @@ class PovRayMaterial : public Material {
                    double texRandomness, double frequency, double phase,
                    SolidTextureColorNames textureNumber, SolidTextureBumpyNames bumpNumber,
                    Matrix4x4d *textureTransformation, Matrix4x4d *textureTransformationInverse,
-                   ColorRgba *color1, ColorRgba *color2, double turbulence,
+                   ColorRgba *checkerColor1, ColorRgba *checkerColor2,
+                   PovRayMaterial *checkerTexture1, PovRayMaterial *checkerTexture2, double turbulence,
                    const Vector3Dd &textureGradient, RGBAColorPalette *colorMap,
                    ControlledRGBAImageHDRUncompressed *image,
                    ControlledRGBAImageHDRUncompressed *bumpImage,
@@ -85,8 +88,10 @@ class PovRayMaterial : public Material {
     int getBumpNumberOfWaves() const;
     SolidTextureBumpyNames getBumpPatternType() const;
     double getBumpPhase() const;
-    ColorRgba* getColor1() const;
-    ColorRgba* getColor2() const;
+    ColorRgba* getCheckerColor1() const;
+    ColorRgba* getCheckerColor2() const;
+    PovRayMaterial* getCheckerTexture1() const;
+    PovRayMaterial* getCheckerTexture2() const;
     ControlledRGBAImageHDRUncompressed*getColorImage() const;
     RGBAColorPalette* getColorMap() const;
     SolidTextureColorNames getColorPatternType() const;
@@ -142,9 +147,13 @@ PovRayMaterial::getBumpPatternType() const { return bumpPatternType; }
 inline double
 PovRayMaterial::getBumpPhase() const { return bumpPhase; }
 inline ColorRgba*
-PovRayMaterial::getColor1() const { return color1; }
+PovRayMaterial::getCheckerColor1() const { return checkerColor1; }
 inline ColorRgba*
-PovRayMaterial::getColor2() const { return color2; }
+PovRayMaterial::getCheckerColor2() const { return checkerColor2; }
+inline PovRayMaterial*
+PovRayMaterial::getCheckerTexture1() const { return checkerTexture1; }
+inline PovRayMaterial*
+PovRayMaterial::getCheckerTexture2() const { return checkerTexture2; }
 inline ControlledRGBAImageHDRUncompressed*
 PovRayMaterial::getColorImage() const { return colorImage; }
 inline RGBAColorPalette*

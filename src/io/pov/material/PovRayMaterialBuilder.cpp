@@ -7,8 +7,10 @@ PovRayMaterialBuilder::PovRayMaterialBuilder() :
     bumpAmount(0.0),
     bumpImage(nullptr),
     bumpNumber(SolidTextureBumpyNames::NO_BUMPS),
-    color1(nullptr),
-    color2(nullptr),
+    checkerColor1(nullptr),
+    checkerColor2(nullptr),
+    checkerTexture1(nullptr),
+    checkerTexture2(nullptr),
     colorMap(nullptr),
     frequency(1.0),
     image(nullptr),
@@ -42,8 +44,10 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
     bumpAmount(base->getBumpAmount()),
     bumpImage(base->getBumpImage()),
     bumpNumber(base->getBumpPatternType()),
-    color1(base->getColor1()),
-    color2(base->getColor2()),
+    checkerColor1(base->getCheckerColor1()),
+    checkerColor2(base->getCheckerColor2()),
+    checkerTexture1(base->getCheckerTexture1()),
+    checkerTexture2(base->getCheckerTexture2()),
     colorMap(deepCopyColorMap(base->getColorMap())),
     frequency(base->getBumpFrequency()),
     image(base->getColorImage()),
@@ -94,7 +98,8 @@ PovRayMaterialBuilder::build() const
         objectTransmit, objectSpecular, objectRoughness, objectPhong,
         objectPhongSize, bumpAmount, textureRandomness, frequency, phase,
         textureNumber, bumpNumber, textureTransformation,
-        textureTransformationInverse, color1, color2, turbulence,
+        textureTransformationInverse, checkerColor1, checkerColor2,
+        checkerTexture1, checkerTexture2, turbulence,
         textureGradient, colorMap, image, bumpImage, materialImage,
         metallicFlag, numberOfWaves, octaves, mortar, layers, materials);
 }
@@ -117,7 +122,8 @@ PovRayMaterialBuilder::copyTextureNode(const PovRayMaterial *src)
         src->getBumpPhase(), src->getColorPatternType(),
         src->getBumpPatternType(),
         transformation, transformationInverse,
-        src->getColor1(), src->getColor2(), src->getTurbulence(),
+        src->getCheckerColor1(), src->getCheckerColor2(),
+        src->getCheckerTexture1(), src->getCheckerTexture2(), src->getTurbulence(),
         src->getTextureGradient(), deepCopyColorMap(src->getColorMap()),
         src->getColorImage(), src->getBumpImage(), src->getMaterialMapImage(), src->isMetallic(),
         src->getBumpNumberOfWaves(), src->getOctaves(), src->getBrickMortar(),
@@ -145,15 +151,27 @@ PovRayMaterialBuilder::deepCopyColorMap(const RGBAColorPalette *source)
 }
 
 ColorRgba *
-PovRayMaterialBuilder::getColor1() const
+PovRayMaterialBuilder::getCheckerColor1() const
 {
-    return color1;
+    return checkerColor1;
 }
 
 ColorRgba *
-PovRayMaterialBuilder::getColor2() const
+PovRayMaterialBuilder::getCheckerColor2() const
 {
-    return color2;
+    return checkerColor2;
+}
+
+PovRayMaterial *
+PovRayMaterialBuilder::getCheckerTexture1() const
+{
+    return checkerTexture1;
+}
+
+PovRayMaterial *
+PovRayMaterialBuilder::getCheckerTexture2() const
+{
+    return checkerTexture2;
 }
 
 ControlledRGBAImageHDRUncompressed *
@@ -251,16 +269,30 @@ PovRayMaterialBuilder::setBumpNumber(SolidTextureBumpyNames v)
 }
 
 PovRayMaterialBuilder &
-PovRayMaterialBuilder::setColor1(ColorRgba *v)
+PovRayMaterialBuilder::setCheckerColor1(ColorRgba *v)
 {
-    color1 = v;
+    checkerColor1 = v;
     return *this;
 }
 
 PovRayMaterialBuilder &
-PovRayMaterialBuilder::setColor2(ColorRgba *v)
+PovRayMaterialBuilder::setCheckerColor2(ColorRgba *v)
 {
-    color2 = v;
+    checkerColor2 = v;
+    return *this;
+}
+
+PovRayMaterialBuilder &
+PovRayMaterialBuilder::setCheckerTexture1(PovRayMaterial *v)
+{
+    checkerTexture1 = v;
+    return *this;
+}
+
+PovRayMaterialBuilder &
+PovRayMaterialBuilder::setCheckerTexture2(PovRayMaterial *v)
+{
+    checkerTexture2 = v;
     return *this;
 }
 
