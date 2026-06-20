@@ -64,7 +64,7 @@ GifFormat::readGifImage(IndexedColorImageHDRUncompressed *image, const char *fil
     unsigned char buffer[16];
     GifReadContext gif{image, 0, nullptr, nullptr, 0};
     GifInputContext input{getByte, outLine, &gif};
-    GifDecoderState decoderState{{0}, {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
+    GifDecoderState decoderState{nullptr, {0, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F,
         0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF, 0x0FFF}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         {0}, nullptr, nullptr, nullptr, nullptr};
 

@@ -27,7 +27,6 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     PovrayMaterial *texture;
     Vector3Dd surfaceNormal;
     double normalDirection;
-    int surface;
 
     if (!shadowRay) {
         color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
@@ -64,12 +63,10 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     filterColor.setR(1.0); filterColor.setG(1.0); filterColor.setB(1.0); filterColor.setA(1.0);
 
     // Now, we perform the lighting calculations
-    surface = 0;
     for (long int _layerIdx = -1;
         _layerIdx < texture->getLayers().size() && filterColor.getA() > 0.01;
         _layerIdx++) {
         tempTexture = (_layerIdx < 0) ? texture : texture->getLayers()[_layerIdx];
-        surface++;
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
         if (context.getConfig().getQuality() <= 5) {

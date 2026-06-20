@@ -41,8 +41,6 @@ class ParserContext {
     TokenizerStream mDefaultTokenStream;
     SymbolTable mSharedSymbols;
     int mSharedDegenerateTriangles;
-    ITokenStream *mForcedTokenStream;
-
     ITokenStream *mTokenStream;
     SymbolTable * const mSymbols;
     int * const mDegenerateTriangles;

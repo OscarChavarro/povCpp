@@ -49,7 +49,7 @@ ModelBuilder::getPolyShape(int order, const int *termCounts)
 CSG *
 ModelBuilder::getCsgUnion()
 {
-    CSG *newShape = new CSG(GeometryTypes::CSG_UNION_TYPE);
+    CSG *newShape = new CSG(BooleanSetOperations::UNION);
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }
@@ -59,7 +59,7 @@ ModelBuilder::getCsgUnion()
 CSG *
 ModelBuilder::getCsgIntersection()
 {
-    CSG *newShape = new CSG(GeometryTypes::CSG_INTERSECTION_TYPE);
+    CSG *newShape = new CSG(BooleanSetOperations::INTERSECTION);
     if (newShape == nullptr) {
         Logger::reportMessage("ModelBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate shape\n");
     }

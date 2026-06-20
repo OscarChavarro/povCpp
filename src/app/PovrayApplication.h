@@ -1,6 +1,7 @@
 #ifndef __POVRAY_APPLICATION__
 #define __POVRAY_APPLICATION__
 
+#include "java/util/ArrayList.txx"
 #include "common/statistics/Statistics.h"
 #include "common/RenderRuntimeState.h"
 #include "environment/material/RendererConfiguration.h"

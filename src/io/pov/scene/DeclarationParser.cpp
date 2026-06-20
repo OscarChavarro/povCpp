@@ -155,7 +155,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::INTERSECTION_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)ObjectParser::parseCsg(GeometryTypes::CSG_INTERSECTION_TYPE, ctx));
+                    (char *)ObjectParser::parseCsg(BooleanSetOperations::INTERSECTION, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_INTERSECTION_CONSTANT);
                 Exit_Flag = true;
                 break;
@@ -163,7 +163,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::UNION_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)ObjectParser::parseCsg(GeometryTypes::CSG_UNION_TYPE, ctx));
+                    (char *)ObjectParser::parseCsg(BooleanSetOperations::UNION, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_UNION_CONSTANT);
                 Exit_Flag = true;
                 break;
@@ -171,7 +171,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::DIFFERENCE_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData(
-                    (char *)ObjectParser::parseCsg(GeometryTypes::CSG_DIFFERENCE_TYPE, ctx));
+                    (char *)ObjectParser::parseCsg(BooleanSetOperations::DIFFERENCE, ctx));
                 constantPtr->setConstantType(ParseGlobals::CSG_DIFFERENCE_CONSTANT);
                 Exit_Flag = true;
                 break;

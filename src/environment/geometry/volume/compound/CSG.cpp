@@ -12,7 +12,7 @@ This module implements routines for constructive solid geometry.
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
-CSG::CSG(GeometryTypes initialGeometryType) :
+CSG::CSG(BooleanSetOperations initialGeometryType) :
     geometryType(initialGeometryType)
 {
 }
@@ -29,7 +29,7 @@ CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 int
 CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    if (getGeometryType() == GeometryTypes::CSG_INTERSECTION_TYPE) {
+    if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         return allCsgIntersectIntersections(ray, depthQueue);
     }
     return allCsgUnionIntersections(ray, depthQueue);
@@ -226,10 +226,10 @@ CSG::invertGeometry()
     TransformableElement *localShape;
     CSG * const csg = this;
 
-    if (csg->getGeometryType() == GeometryTypes::CSG_INTERSECTION_TYPE) {
-        csg->setGeometryType(GeometryTypes::CSG_UNION_TYPE);
-    } else if (csg->getGeometryType() == GeometryTypes::CSG_UNION_TYPE) {
-        csg->setGeometryType(GeometryTypes::CSG_INTERSECTION_TYPE);
+    if (csg->getGeometryType() == BooleanSetOperations::INTERSECTION) {
+        csg->setGeometryType(BooleanSetOperations::UNION);
+    } else if (csg->getGeometryType() == BooleanSetOperations::UNION) {
+        csg->setGeometryType(BooleanSetOperations::INTERSECTION);
     }
 
     for (long int i = csg->getShapes().size() - 1; i >= 0; i--) {
@@ -248,7 +248,7 @@ CSG::invert()
 int
 CSG::inside(Vector3Dd *point)
 {
-    if (getGeometryType() == GeometryTypes::CSG_INTERSECTION_TYPE) {
+    if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         return insideCsgIntersection(point);
     }
     return insideCsgUnion(point);
