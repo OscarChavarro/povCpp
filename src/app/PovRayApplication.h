@@ -1,5 +1,5 @@
-#ifndef __POVRAY_APPLICATION__
-#define __POVRAY_APPLICATION__
+#ifndef __POV_RAY_APPLICATION__
+#define __POV_RAY_APPLICATION__
 
 #include "java/util/ArrayList.txx"
 #include "common/statistics/Statistics.h"

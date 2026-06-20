@@ -5,7 +5,7 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
 #include "environment/geometry/volume/HeightField.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/image/GifFormat.h"
@@ -68,7 +68,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
                 localShape = new HeightField(localTransformation,
                     localTransformationInverse, minBounds, maxBounds);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
             }
@@ -95,7 +95,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
                 localShape = new HeightField(localTransformation,
                     localTransformationInverse, minBounds, maxBounds);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
             }
@@ -122,7 +122,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                     1.0 / localVector.x(), 1.0 / localVector.y(), 1.0 / localVector.z());
                 localShape = new HeightField(localTransformation,
                     localTransformationInverse, minBounds, maxBounds);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
             }
@@ -200,7 +200,7 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
             {
-                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
+                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }

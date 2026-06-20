@@ -6,7 +6,7 @@
 #include "render/shaders/BumpNormalShader.h"
 
 void
-BumpNormalShader::shade(Vector3Dd *newNormal, const PovrayMaterial *texture,
+BumpNormalShader::shade(Vector3Dd *newNormal, const PovRayMaterial *texture,
     const Vector3Dd *intersectionPoint, const Vector3Dd *surfaceNormal,
     TextureUtils *textureUtils)
 {

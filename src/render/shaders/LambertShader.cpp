@@ -5,7 +5,7 @@
 #include "render/shaders/LambertShader.h"
 
 void
-LambertShader::shade(const PovrayMaterial *texture, const RayWithSegments *lightSourceRay,
+LambertShader::shade(const PovRayMaterial *texture, const RayWithSegments *lightSourceRay,
     const Vector3Dd *surfaceNormal, ColorRgba *color, const ColorRgba *lightColor,
     const ColorRgba *surfaceColor, double attenuation)
 {

@@ -18,7 +18,7 @@
 static constexpr double SHADOW_TOLERANCE = 0.05;
 
 void
-DirectLightShader::shade(const PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
+DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
     const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
     const Light *lightSources, const java::ArrayList<BoundedGeometry*> &objects)

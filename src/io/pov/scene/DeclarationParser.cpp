@@ -3,9 +3,10 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
-#include "environment/material/PovrayMaterial.h"
+#include "environment/material/PovRayMaterial.h"
 #include "environment/material/PovrayMaterialUtils.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/camera/CameraBuilder.h"
+#include "environment/material/ValuesBuilder.h"
 
 #include "io/pov/camera/CameraParser.h"
 #include "io/pov/context/ParseGlobals.h"
@@ -39,7 +40,7 @@ DeclarationParser::parseDeclare()
 void
 DeclarationParser::parseDeclare(ParserContext &ctx)
 {
-    PovrayMaterial *localTexture;
+    PovRayMaterial *localTexture;
 
     ParseHelpers::getExpectedToken(Tokenizer::IDENTIFIER_TOKEN, ctx);
     Constant * const constantPtr =
@@ -208,8 +209,8 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                             localTexture->setConstant(true);
 
                             {
-                                PovrayMaterial *existingHead =
-                                    (PovrayMaterial *)constantPtr->getConstantData();
+                                PovRayMaterial *existingHead =
+                                    (PovRayMaterial *)constantPtr->getConstantData();
                                 PovrayMaterialUtils::prependTextureLayers(localTexture, existingHead);
                                 constantPtr->setConstantData((char *)existingHead);
                             }
@@ -227,7 +228,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
             case Tokenizer::VIEW_POINT_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
-                constantPtr->setConstantData((char *)ModelBuilder::getCamera());
+                constantPtr->setConstantData((char *)CameraBuilder::getCamera());
                 constantPtr->setConstantType(ParseGlobals::VIEW_POINT_CONSTANT);
                 CameraParser::parseCamera(
                     (Camera *)constantPtr->getConstantData(), ctx);
@@ -236,7 +237,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
             case Tokenizer::COLOUR_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
-                constantPtr->setConstantData((char *)ModelBuilder::getColor());
+                constantPtr->setConstantData((char *)ValuesBuilder::getColor());
                 constantPtr->setConstantType(ParseGlobals::COLOUR_CONSTANT);
                 PrimitiveParser::parseColor(
                     (ColorRgba *)constantPtr->getConstantData(), ctx);
@@ -254,7 +255,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
-                constantPtr->setConstantData((char *)ModelBuilder::getVector());
+                constantPtr->setConstantData((char *)ValuesBuilder::getVector());
                 constantPtr->setConstantType(ParseGlobals::VECTOR_CONSTANT);
                 PrimitiveParser::parseVector(
                     (Vector3Dd *)constantPtr->getConstantData(), ctx);
@@ -266,7 +267,7 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
-                constantPtr->setConstantData((char *)ModelBuilder::getFloat());
+                constantPtr->setConstantData((char *)ValuesBuilder::getFloat());
                 constantPtr->setConstantType(ParseGlobals::FLOAT_CONSTANT);
                 *((double *)constantPtr->getConstantData()) =
                     PrimitiveParser::parseFloat(ctx);

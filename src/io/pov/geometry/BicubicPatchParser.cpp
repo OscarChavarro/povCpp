@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -62,7 +62,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 }
                 localShape = new ParametricBiCubicPatch(
                     patchType, uSteps, vSteps, flatnessValue, controlPoints);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 ParametricBiCubicPatch::precomputePatchValues(
                     localShape); // interpolated mesh coords
                 Exit_Flag = true;
@@ -124,7 +124,7 @@ BicubicPatchParser::parseBicubicPatch(ParserContext &ctx)
                 break;
 
             case Tokenizer::TEXTURE_TOKEN: {
-                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
+                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }

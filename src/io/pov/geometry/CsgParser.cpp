@@ -13,7 +13,8 @@ full in/out ray classifications as in [ROTH1982].
 #include "io/pov/geometry/CsgParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/SimpleBody.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
+#include "environment/geometry/GeometryBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"
@@ -39,11 +40,11 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx)
     bool firstShapeParsed = false;
 
     if (booleanSetOperation == BooleanSetOperations::UNION) {
-        container = ModelBuilder::getCsgUnion();
+        container = GeometryBuilder::getCsgUnion();
 
     } else if ((booleanSetOperation == BooleanSetOperations::INTERSECTION) ||
                (booleanSetOperation == BooleanSetOperations::DIFFERENCE)) {
-        container = ModelBuilder::getCsgIntersection();
+        container = GeometryBuilder::getCsgIntersection();
     }
 
     if (container == nullptr) {
@@ -81,7 +82,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx)
             }
 
             case Tokenizer::LIGHT_SOURCE_TOKEN:
-                localShape = ModelBuilder::wrap(
+                localShape = SceneBuilder::wrap(
                     new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
                 if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
                     localShape->invert();
@@ -200,7 +201,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx)
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::UNION, ctx));
+                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::UNION, ctx));
                 if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
                     localShape->invert();
                 }
@@ -210,7 +211,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx)
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx));
+                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx));
                 if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
                     localShape->invert();
                 }
@@ -220,7 +221,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx)
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx));
+                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx));
                 if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed) {
                     localShape->invert();
                 }

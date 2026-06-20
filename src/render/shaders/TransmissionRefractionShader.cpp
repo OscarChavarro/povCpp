@@ -7,7 +7,7 @@
 #include "render/shaders/TransmissionRefractionShader.h"
 
 void
-TransmissionRefractionShader::shade(PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
+TransmissionRefractionShader::shade(PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
     const RayWithSegments *ray, const Vector3Dd *surfaceNormal, ColorRgba *color,
     const TraceService *traceService, double atmosphereIor, int &traceLevel)
 {

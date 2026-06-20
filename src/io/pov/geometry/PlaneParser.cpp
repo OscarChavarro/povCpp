@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -30,7 +30,7 @@ PlaneParser::parsePlane(ParserContext &ctx)
     Vector3Dd localVector;
     Vector3Dd localNormal;
     double localDistance;
-    PovrayMaterial *localTexture;
+    PovRayMaterial *localTexture;
 
     localShape = nullptr;
 
@@ -47,7 +47,7 @@ PlaneParser::parsePlane(ParserContext &ctx)
                 PrimitiveParser::parseVector(&localNormal, ctx);
                 localDistance = PrimitiveParser::parseFloat(ctx);
                 localShape = new InfinitePlane(localNormal, localDistance * -1.0);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
 

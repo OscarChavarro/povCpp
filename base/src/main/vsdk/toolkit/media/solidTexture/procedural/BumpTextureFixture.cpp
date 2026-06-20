@@ -7,6 +7,7 @@ References:
 */
 
 #include "java/lang/Math.h"
+#include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/BumpTextureFixture.h"
 #include "vsdk/toolkit/media/solidTexture/procedural/ProceduralNoise.h"

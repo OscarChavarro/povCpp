@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Box.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -54,7 +54,7 @@ BoxParser::parseBox(ParserContext &ctx)
                 PrimitiveParser::parseVector(&minBounds, ctx);
                 PrimitiveParser::parseVector(&maxBounds, ctx);
                 localShape = new Box(minBounds, maxBounds);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
             }
@@ -127,7 +127,7 @@ BoxParser::parseBox(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
             {
-                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
+                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }

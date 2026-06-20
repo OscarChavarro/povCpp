@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Quadric.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -32,7 +32,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
     Vector3Dd objectTerms;
     double objectConstant;
     int constantId;
-    PovrayMaterial *localTexture;
+    PovRayMaterial *localTexture;
 
     localShape = nullptr;
 
@@ -52,7 +52,7 @@ QuadricParser::parseQuadric(ParserContext &ctx)
                 objectConstant = PrimitiveParser::parseFloat(ctx);
                 localShape = new Quadric(
                     object2Terms, objectMixedTerms, objectTerms, objectConstant);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
 

@@ -18,7 +18,7 @@ DefaultTextureParser::parseDefault()
 void
 DefaultTextureParser::parseDefault(ParserContext &ctx)
 {
-    PovrayMaterial *parsedDefaultTexture = ctx.getDefaultTexture();
+    PovRayMaterial *parsedDefaultTexture = ctx.getDefaultTexture();
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
         bool Exit_Flag;

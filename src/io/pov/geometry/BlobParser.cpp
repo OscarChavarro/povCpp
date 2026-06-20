@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Blob.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -111,7 +111,7 @@ BlobParser::parseBlob(ParserContext &ctx)
                 }
 
                 localShape = new Blob(threshold, blobComponents, npoints, 0);
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 Exit_Flag = true;
                 break;
             }
@@ -192,7 +192,7 @@ BlobParser::parseBlob(ParserContext &ctx)
 
             case Tokenizer::TEXTURE_TOKEN:
             {
-                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
+                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }

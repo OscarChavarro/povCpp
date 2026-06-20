@@ -16,7 +16,8 @@
 #include "environment/light/Light.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "environment/material/PovrayMaterialUtils.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
+#include "environment/material/ValuesBuilder.h"
 #include "environment/scene/BoundedGeometryFactory.h"
 #include "environment/geometry/SimpleBody.h"
 
@@ -140,7 +141,7 @@ ObjectParser::parseShape(ParserContext &ctx)
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LIGHT_SOURCE_TOKEN:
-                localShape = ModelBuilder::wrap(
+                localShape = SceneBuilder::wrap(
                     new LightGeometryAdapter(LightSourceParser::parseLightSource(ctx)));
                 Exit_Flag = true;
                 break;
@@ -207,19 +208,19 @@ ObjectParser::parseShape(ParserContext &ctx)
 
             case Tokenizer::UNION_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::UNION, ctx));
+                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::UNION, ctx));
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx));
+                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx));
                 Exit_Flag = true;
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
                 localShape =
-                    ModelBuilder::wrap(CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx));
+                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx));
                 Exit_Flag = true;
                 break;
 
@@ -362,13 +363,13 @@ ObjectParser::parseObject(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
-                objectColor = ModelBuilder::getColor();
+                objectColor = ValuesBuilder::getColor();
                 PrimitiveParser::parseColor(objectColor, ctx);
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
             {
-                PovrayMaterial *localTexture = TextureParser::parseTexture(ctx);
+                PovRayMaterial *localTexture = TextureParser::parseTexture(ctx);
                 if (localTexture->isConstant()) {
                     localTexture = TextureParser::copyTexture(localTexture);
                 }

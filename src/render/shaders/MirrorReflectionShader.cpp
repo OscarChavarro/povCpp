@@ -6,7 +6,7 @@
 #include "render/shaders/TraceService.h"
 
 void
-MirrorReflectionShader::shade(const PovrayMaterial *texture, const Vector3Dd *intersectionPoint,
+MirrorReflectionShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
     const RayWithSegments *ray, const Vector3Dd *surfaceNormal,
     ColorRgba *color, const TraceService *traceService, int &traceLevel)
 {

@@ -4,7 +4,7 @@
 #include "app/PovRayApplication.h"
 #include "app/options/CommandLineOptions.h"
 #include "common/statistics/Statistics.h"
-#include "environment/material/PovrayMaterial.h"
+#include "environment/material/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
@@ -41,7 +41,7 @@ PovRayApplication::printStatistics(
     snprintf(buffer, sizeof(buffer),
         "# Rays:  %10ld     # Pixels:  %10ld  # Pixels super-sampled: %10ld",
         stats.getNumberOfRays(), stats.getNumberOfPixels(),
-        stats.getNumberOfPixelsSupersampled());
+        stats.getNumberOfPixelsSuperSampled());
     Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
 
     Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "  Ray->Shape Intersection Tests:");
@@ -65,7 +65,6 @@ PovRayApplication::printStatistics(
     logIntersectionRow("  Quartic\\Poly ", stats.getRayPolyTests(), stats.getRayPolyTestsSucceeded());
     logIntersectionRow("  Bezier Patch ", stats.getRayBicubicTests(), stats.getRayBicubicTestsSucceeded());
     logIntersectionRow("  Height field   ", stats.getRayHtFieldTests(), stats.getRayHtFieldTestsSucceeded());
-    logIntersectionRow("  Height field Box ", stats.getRayHtFieldBoxTests(), stats.getRayHFieldBoxTestsSucceeded());
     logIntersectionRow("  Bounds        ", stats.getBoundingRegionTests(), stats.getBoundingRegionTestsSucceeded());
     logIntersectionRow("  Clips         ", stats.getClippingRegionTests(), stats.getClippingRegionTestsSucceeded());
 
@@ -80,7 +79,7 @@ PovRayApplication::printStatistics(
     if (stats.getShadowRayTests()) {
         snprintf(buffer, sizeof(buffer),
             "  Shadow Ray Tests: %10ld      Blocking Objects Found:  %10ld",
-            stats.getShadowRayTests(), stats.getShadowRaysSucceeded());
+            stats.getShadowRayTests(), 0L);
         Logger::reportMessage("PovRayApplication", Logger::WARNING, "", buffer);
     }
     if (stats.getReflectedRaysTraced()) {
@@ -259,14 +258,12 @@ PovRayApplication::prepareRendering()
 
     engine.getIntersectionQueuePool().init();
     textureUtils.initialize(statistics.getSolidTextureStatistics());
-    textureUtils.initializeNoise(PovrayMaterial::DEFAULT_NUMBER_OF_WAVES);
+    textureUtils.initializeNoise(PovRayMaterial::DEFAULT_NUMBER_OF_WAVES);
 }
 
 void
 PovRayApplication::runRenderLoop()
 {
-    statistics.startTimer();
-
     if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() != '1')) {
         Logger::reportMessage("PovRayApplication", Logger::WARNING, "", "Rendering...");
     } else if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() == '1')) {
@@ -282,8 +279,6 @@ PovRayApplication::runRenderLoop()
 void
 PovRayApplication::finalizeRun()
 {
-    statistics.stopTimer();
-
     closeAll();
     printStatistics(statistics, engine.getScene(), configuration);
 

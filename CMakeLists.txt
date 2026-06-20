@@ -32,14 +32,17 @@ add_executable(povray
     src/environment/geometry/volume/polynomial/PolynomialShape.cpp
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
-    src/environment/scene/ModelBuilder.cpp
+    src/environment/material/ValuesBuilder.cpp
+    src/environment/camera/CameraBuilder.cpp
+    src/environment/geometry/GeometryBuilder.cpp
+    src/environment/scene/SceneBuilder.cpp
     src/environment/scene/Scene.cpp
     src/environment/scene/BoundedGeometryFactory.cpp
     src/environment/geometry/SimpleBody.cpp
     src/environment/geometry/element/Triangle.cpp
     src/environment/geometry/element/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp
-    src/environment/material/PovrayMaterial.cpp
+        src/environment/material/PovRayMaterial.cpp
     src/environment/material/PovrayMaterialUtils.cpp
     src/render/AdaptiveAntiAliasing.cpp
     src/render/ColorOperations.cpp

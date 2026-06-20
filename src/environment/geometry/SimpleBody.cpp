@@ -20,7 +20,7 @@ SimpleBody::ensureShapeColor()
 }
 
 void
-SimpleBody::prependMaterialLayers(PovrayMaterial *newHead)
+SimpleBody::prependMaterialLayers(PovRayMaterial *newHead)
 {
     PovrayMaterialUtils::prependTextureLayers(newHead, material);
 }

@@ -8,7 +8,7 @@
 #include "io/pov/context/SymbolTable.h"
 #include "io/pov/context/TokenizerStream.h"
 
-class PovrayMaterial;
+class PovRayMaterial;
 class RenderRuntimeState;
 
 class ParserContext {
@@ -25,8 +25,8 @@ class ParserContext {
     void resetTokenStreamHistory();
     Tokenizer &tokenizer() { return mTokenizer; }
 
-    PovrayMaterial *getDefaultTexture() const { return mDefaultTexture; }
-    void setDefaultTexture(PovrayMaterial *texture) { mDefaultTexture = texture; }
+    PovRayMaterial *getDefaultTexture() const { return mDefaultTexture; }
+    void setDefaultTexture(PovRayMaterial *texture) { mDefaultTexture = texture; }
 
     // Diagnostics needed by the error reporter, decoupled from the render-time
     // RenderingConfiguration so io/pov/context does not depend on environment.
@@ -51,7 +51,7 @@ class ParserContext {
     ITokenStream *mTokenStream;
     SymbolTable * const mSymbols;
     int * const mDegenerateTriangles;
-    PovrayMaterial *mDefaultTexture;
+    PovRayMaterial *mDefaultTexture;
     bool mVerboseErrors;
     const char *mStatFileName;
     double mAntialiasThreshold;

@@ -5,7 +5,8 @@
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/scene/ModelBuilder.h"
+#include "environment/scene/SceneBuilder.h"
+#include "environment/geometry/GeometryBuilder.h"
 #include "environment/geometry/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -75,12 +76,12 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
     Vector3Dd localVector;
     int constantId;
     int order;
-    PovrayMaterial *localTexture;
+    PovRayMaterial *localTexture;
 
     if (knownOrder > 0) {
-        localShape = ModelBuilder::getPolyShape(
+        localShape = GeometryBuilder::getPolyShape(
             knownOrder, PolynomialShape::termCountsByOrder());
-        body = ModelBuilder::wrap(localShape);
+        body = SceneBuilder::wrap(localShape);
     } else {
         localShape = nullptr;
     }
@@ -105,9 +106,9 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if (order < 2 || order > PolynomialSolver::MAX_ORDER) {
                     ParseErrorReporter::reportError("order of Poly is out of range", ctx);
                 }
-                localShape = ModelBuilder::getPolyShape(
+                localShape = GeometryBuilder::getPolyShape(
                     order, PolynomialShape::termCountsByOrder());
-                body = ModelBuilder::wrap(localShape);
+                body = SceneBuilder::wrap(localShape);
                 break;
 
             case Tokenizer::LEFT_ANGLE_TOKEN:
