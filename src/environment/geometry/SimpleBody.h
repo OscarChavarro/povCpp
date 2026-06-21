@@ -17,7 +17,7 @@ class SimpleBody : public TransformableElement {
     Matrix4x4d transformInverse;
 
   public:
-    SimpleBody() = default;
+    SimpleBody() {}
     SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor);
     SimpleBody(const SimpleBody &other);
     ~SimpleBody() override;

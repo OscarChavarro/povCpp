@@ -11,7 +11,7 @@
 // textureTransformationInverse before calling applyTo.
 class SolidTextureNormal {
   public:
-    virtual ~SolidTextureNormal() = default;
+    virtual ~SolidTextureNormal() {}
 
     virtual void applyTo(const Vector3Dd *point, Vector3Dd *newNormal,
         const BumpTextureFixture &bumpFixture, const ImageTexture &mapFixture) const = 0;

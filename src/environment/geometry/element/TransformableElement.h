@@ -27,7 +27,7 @@ class TransformableElement {
     virtual void  rotate(Vector3Dd *vector) {}
     virtual void  scale(Vector3Dd *vector) {}
     virtual void  invert() {}
-    virtual ~TransformableElement() = default;
+    virtual ~TransformableElement() {}
 };
 
 #endif

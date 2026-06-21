@@ -23,7 +23,17 @@ class Sphere : public Geometry {
     Sphere(const Vector3Dd &center, double radius, double radiusSquared,
         double inverseRadius, const Vector3Dd &vpOtoC, double vpOCSquared,
         short vpInside, bool vpCached, bool inverted);
-    Sphere(const Sphere &other) = default;
+    Sphere(const Sphere &other) :
+        center(other.center),
+        radius(other.radius),
+        radiusSquared(other.radiusSquared),
+        inverseRadius(other.inverseRadius),
+        vpOtoC(other.vpOtoC),
+        vpOCSquared(other.vpOCSquared),
+        vpInside(other.vpInside),
+        vpCached(other.vpCached),
+        inverted(other.inverted)
+    {}
 
     Vector3Dd& getCenter() { return center; }
     const Vector3Dd& getCenter() const { return center; }

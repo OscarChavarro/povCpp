@@ -13,7 +13,15 @@ class Quadric : public Geometry {
     Quadric(const Vector3Dd &object2Terms, const Vector3Dd &objectMixedTerms,
         const Vector3Dd &objectTerms, double objectConstant,
         double objectVpConstant, bool constantCached, bool nonZeroSquareTerm);
-    Quadric(const Quadric &other) = default;
+    Quadric(const Quadric &other) :
+        object2Terms(other.object2Terms),
+        objectMixedTerms(other.objectMixedTerms),
+        objectTerms(other.objectTerms),
+        objectConstant(other.objectConstant),
+        objectVpConstant(other.objectVpConstant),
+        constantCached(other.constantCached),
+        nonZeroSquareTerm(other.nonZeroSquareTerm)
+    {}
 
     Vector3Dd &getObject2Terms() { return object2Terms; }
     const Vector3Dd &getObject2Terms() const { return object2Terms; }

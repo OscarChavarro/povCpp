@@ -11,7 +11,19 @@ class Triangle : public Geometry {
     Triangle();
     Triangle(const Vector3Dd &p1, const Vector3Dd &p2, const Vector3Dd &p3,
         bool inverted = false);
-    Triangle(const Triangle &other) = default;
+    Triangle(const Triangle &other) :
+        normalVector(other.normalVector),
+        distance(other.distance),
+        vpNormDotOrigin(other.vpNormDotOrigin),
+        vpCached(other.vpCached),
+        dominantAxis(other.dominantAxis),
+        inverted(other.inverted),
+        vAxis(other.vAxis),
+        p1(other.p1),
+        p2(other.p2),
+        p3(other.p3),
+        degenerateFlag(other.degenerateFlag)
+    {}
 
     Vector3Dd &getNormalVector() { return normalVector; }
     double getDistance() const { return distance; }
