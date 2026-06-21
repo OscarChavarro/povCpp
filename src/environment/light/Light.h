@@ -45,7 +45,7 @@ class Light {
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
     void invert();
-    virtual ~Light() = default;
+    virtual ~Light();
 };
 
 inline ColorRgba *

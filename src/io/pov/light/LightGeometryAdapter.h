@@ -11,6 +11,7 @@ class LightGeometryAdapter : public Geometry {
         light(other.light != nullptr ? other.light->copy() : nullptr)
     {
     }
+    ~LightGeometryAdapter() override { delete light; }
 
     Light *getLight() const { return light; }
     void setLight(Light *lightSource) { light = lightSource; }

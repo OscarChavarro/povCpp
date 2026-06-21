@@ -18,9 +18,8 @@ class HeightField : public Geometry {
     HeightField(const Matrix4x4d &transformation,
         const Matrix4x4d &transformationInverse, const Vector3Dd &minBounds,
         const Vector3Dd &maxBounds);
-    // Intentionally shallow: copies share transformation/boundingBox/block/Map
-    // pointers with the original, matching the pre-existing copy() semantics.
-    HeightField(const HeightField &other) = default;
+    HeightField(const HeightField &other);
+    ~HeightField() override;
 
     Box *getBoundingBox() const { return boundingBox; }
 
@@ -49,6 +48,14 @@ class HeightField : public Geometry {
     double invBlkSize;
     HeightFieldBlock **block;
     float **Map;
+    // Block/Map are raw 2D calloc'd arrays with no self-describing size; these
+    // record the extents allocateHfBlocks() computed so the copy constructor and
+    // destructor can walk/clone/free them correctly.
+    int blockOuterSize; // number of HeightFieldBlock* rows in `block` (and the
+                        // number of HeightFieldBlock entries in each row)
+    int blockInnerSize;
+    int mapOuterSize;   // number of float* rows in `Map`
+    int mapInnerSize;   // number of float entries in each allocated `Map` row
 
     static void allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
         double width, double height);
