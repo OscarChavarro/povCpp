@@ -41,6 +41,7 @@ class Blob : public Geometry {
         int countValue, double thresholdValue, const BlobElement *listValue,
         int sturmFlagValue);
     Blob(const Blob &other);
+    ~Blob() override;
 
     int getSturmFlag() const { return sturmFlag; }
     Blob *copyWithSturmFlag(int flag) const;

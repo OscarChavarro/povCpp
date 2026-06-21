@@ -123,6 +123,10 @@ SceneParser::parse(Scene *framePtr, ParserContext &ctx)
     SceneParser::frameInit(framePtr, ctx);
     SceneParser::parseFrame(framePtr, ctx);
     postProcessPhase(framePtr);
+    // Captured after parsing (not in frameInit) so this picks up whatever the
+    // final default texture is, even if a `default { texture {...} }` block
+    // replaced the one frameInit set. framePtr now owns it; see ~Scene().
+    framePtr->captureDefaultTexture(ctx.getDefaultTexture());
     freeConstants(ctx);
     if (ctx.degenerateTriangles()) {
         fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");

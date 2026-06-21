@@ -15,6 +15,7 @@ class ParametricBiCubicPatch : public Geometry {
     ParametricBiCubicPatch(int patchType, int uSteps, int vSteps,
         double flatnessValue, const Vector3Dd (&controlPoints)[4][4]);
     ParametricBiCubicPatch(const ParametricBiCubicPatch &other);
+    ~ParametricBiCubicPatch() override;
 
     int getPatchType() const;
     int getUSteps() const;

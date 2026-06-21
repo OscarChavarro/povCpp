@@ -35,6 +35,12 @@ Box::Box(const Box &other) :
 {
 }
 
+Box::~Box()
+{
+    delete transformation;
+    delete transformationInverse;
+}
+
 
 int
 Box::closeTo(double x, double y)
