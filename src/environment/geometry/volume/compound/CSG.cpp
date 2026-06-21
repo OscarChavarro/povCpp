@@ -10,6 +10,13 @@ CSG::CSG(BooleanSetOperations initialGeometryType) :
 {
 }
 
+CSG::~CSG()
+{
+    for (long int i = 0; i < shapes.size(); i++) {
+        delete shapes[i];
+    }
+}
+
 int
 CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 {
