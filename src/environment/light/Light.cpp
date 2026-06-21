@@ -32,6 +32,11 @@ Light::Light(const ColorRgba *shapeColor, const Vector3Dd &center,
 {
 }
 
+Light::~Light()
+{
+    delete shapeColor;
+}
+
 void
 Light::applyLinearTransformation(const Matrix4x4d &transformation)
 {

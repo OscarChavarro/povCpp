@@ -8,6 +8,8 @@ the two triangles which form the pixel for an intersection with the ray at
 each step.
 */
 
+#include <cstdlib>
+
 #include "java/lang/Math.h"
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
@@ -25,7 +27,11 @@ HeightField::HeightField() :
     blockSize(0.0),
     invBlkSize(0.0),
     block(nullptr),
-    Map(nullptr)
+    Map(nullptr),
+    blockOuterSize(0),
+    blockInnerSize(0),
+    mapOuterSize(0),
+    mapInnerSize(0)
 {
 }
 
@@ -38,8 +44,68 @@ HeightField::HeightField(const Matrix4x4d &transformation,
     blockSize(0.0),
     invBlkSize(0.0),
     block(nullptr),
-    Map(nullptr)
+    Map(nullptr),
+    blockOuterSize(0),
+    blockInnerSize(0),
+    mapOuterSize(0),
+    mapInnerSize(0)
 {
+}
+
+HeightField::HeightField(const HeightField &other) :
+    transformation(other.transformation != nullptr ?
+        new Matrix4x4d(*other.transformation) : nullptr),
+    transformationInverse(other.transformationInverse != nullptr ?
+        new Matrix4x4d(*other.transformationInverse) : nullptr),
+    boundingBox(other.boundingBox != nullptr ? new Box(*other.boundingBox) : nullptr),
+    blockSize(other.blockSize),
+    invBlkSize(other.invBlkSize),
+    block(nullptr),
+    Map(nullptr),
+    blockOuterSize(other.blockOuterSize),
+    blockInnerSize(other.blockInnerSize),
+    mapOuterSize(other.mapOuterSize),
+    mapInnerSize(other.mapInnerSize)
+{
+    if (other.block != nullptr) {
+        block = (HeightFieldBlock **)calloc(blockOuterSize, sizeof(HeightFieldBlock *));
+        for (int i = 0; i < blockOuterSize; i++) {
+            block[i] = (HeightFieldBlock *)calloc(blockInnerSize, sizeof(HeightFieldBlock));
+            for (int j = 0; j < blockInnerSize; j++) {
+                block[i][j] = other.block[i][j];
+            }
+        }
+    }
+    if (other.Map != nullptr) {
+        Map = (float **)calloc(mapOuterSize, sizeof(float *));
+        for (int z = 0; z < mapOuterSize; z++) {
+            if (other.Map[z] != nullptr) {
+                Map[z] = (float *)calloc(mapInnerSize, sizeof(float));
+                for (int x = 0; x < mapInnerSize; x++) {
+                    Map[z][x] = other.Map[z][x];
+                }
+            }
+        }
+    }
+}
+
+HeightField::~HeightField()
+{
+    delete transformation;
+    delete transformationInverse;
+    delete boundingBox;
+    if (block != nullptr) {
+        for (int i = 0; i < blockOuterSize; i++) {
+            free(block[i]);
+        }
+        free(block);
+    }
+    if (Map != nullptr) {
+        for (int z = 0; z < mapOuterSize; z++) {
+            free(Map[z]);
+        }
+        free(Map);
+    }
 }
 
 inline int
@@ -613,6 +679,11 @@ HeightField::allocateHfBlocks(HeightField *hField, int maxX, int maxZ,
 
     const int w = (int)java::Math::ceil((width + 1.0) * hField->invBlkSize);
     const int h = (int)java::Math::ceil((height + 1.0) * hField->invBlkSize);
+
+    hField->blockOuterSize = w;
+    hField->blockInnerSize = h;
+    hField->mapOuterSize = maxZ + 1;
+    hField->mapInnerSize = maxX + 1;
 
     hField->Map = (float **)calloc(maxZ + 1, sizeof(float *));
     if (hField->Map == nullptr) {

@@ -17,6 +17,7 @@ class SceneParser {
 
   private:
     static void postProcessPhase(Scene *framePtr);
+    static void freeConstants(ParserContext &ctx);
 };
 
 #endif
