@@ -10,6 +10,7 @@
 #include "io/image/RawFormat.h"
 #include "io/image/TargaFormat.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/scene/SceneParser.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
@@ -285,6 +286,14 @@ PovRayApplication::finalizeRun()
 {
     closeAll();
     printStatistics(statistics, engine.getScene(), configuration);
+
+    // image_map/bump_map/material_map images are intentionally shared (not
+    // cloned) by every PovRayMaterial generation/clone that references them
+    // (see LoadedImageRegistry), so they can only be freed once rendering -
+    // the last thing that could still read one via a texture lookup - has
+    // fully finished. runRenderLoop() (called before finalizeRun() in run())
+    // is synchronous, so this is safe here.
+    LoadedImageRegistry::freeAll();
 
     printProgress("Done Tracing");
 }

@@ -35,7 +35,7 @@ Scene::~Scene()
 void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
-    viewPoint = Camera();
+    viewPoint = Camera{};
     lightSources = nullptr;
     Objects.clear();
     atmosphereIor = 1.0;

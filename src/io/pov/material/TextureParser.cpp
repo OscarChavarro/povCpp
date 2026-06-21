@@ -10,6 +10,7 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/ColorMapParser.h"
+#include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
@@ -466,6 +467,10 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                         ParseErrorReporter::reportError(
                             "Out of memory. Cannot allocate image map texture", ctx);
                     }
+                    // Shared (not cloned) by every later generation/clone of this
+                    // texture - see LoadedImageRegistry for why no single one of
+                    // them can safely own it.
+                    LoadedImageRegistry::registerImage(image);
                     image->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                     image->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
                     image->setInterpolationType(ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
@@ -805,6 +810,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                         ParseErrorReporter::reportError(
                             "Out of memory. Cannot allocate bump map texture", ctx);
                     }
+                    LoadedImageRegistry::registerImage(bumpImage);
                     bumpImage->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                     bumpImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
                     bumpImage->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
@@ -940,6 +946,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                         ParseErrorReporter::reportError(
                             "Out of memory. Cannot allocate material map texture", ctx);
                     }
+                    LoadedImageRegistry::registerImage(materialImage);
                     materialImage->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                     materialImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
                     materialImage->setInterpolationType((int)ImageToSolidTextureInterpolationTypes::NO_INTERPOLATION);
