@@ -2,6 +2,7 @@
 #define __RENDER_TARGET_IMAGE__
 
 #include "vsdk/toolkit/media/Image.h"
+#include "vsdk/toolkit/media/RGBPixel.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 
 // Full-frame, ColorRgba-precision render target. Implements the abstract Image
@@ -18,6 +19,13 @@ class RenderTargetImage : public Image {
 
     void allocate(int width, int height);   // (re)allocate; safe to call again
     bool isAllocated() const { return pixels != nullptr; }
+
+    bool init(int width, int height) override;
+    bool initNoFill(int width, int height) override;
+
+    void putPixelRgb(int x, int y, RGBPixel* p) override;
+    RGBPixel* getPixelRgb(int x, int y) const override;
+    void getPixelRgb(int x, int y, RGBPixel* p) const override;
 
     int getXSize() const override { return xSize; }
     int getYSize() const override { return ySize; }
