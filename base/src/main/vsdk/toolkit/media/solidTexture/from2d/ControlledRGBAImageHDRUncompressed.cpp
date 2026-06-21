@@ -1,4 +1,10 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+
+ControlledRGBAImageHDRUncompressed::~ControlledRGBAImageHDRUncompressed()
+{
+    delete indexedData;
+}
+
 int
 ControlledRGBAImageHDRUncompressed::getMapType() const
 {

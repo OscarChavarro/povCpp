@@ -16,6 +16,7 @@ class ControlledRGBAImageHDRUncompressed : public RGBAImageHDRUncompressed {
     IndexedColorImageHDRUncompressed *indexedData = nullptr;
 
   public:
+    ~ControlledRGBAImageHDRUncompressed() override;
     int getMapType() const;
     void setMapType(ImageToSolidTextureProjectionMethods v);
     void setMapType(int v);
