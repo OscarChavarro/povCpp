@@ -36,12 +36,6 @@ PovColorMapSpan::getStartColor() const
     return startColor;
 }
 
-ColorRgba &
-PovColorMapSpan::getStartColor()
-{
-    return startColor;
-}
-
 void
 PovColorMapSpan::setStartColor(const ColorRgba &value)
 {
@@ -50,12 +44,6 @@ PovColorMapSpan::setStartColor(const ColorRgba &value)
 
 const ColorRgba &
 PovColorMapSpan::getEndColor() const
-{
-    return endColor;
-}
-
-ColorRgba &
-PovColorMapSpan::getEndColor()
 {
     return endColor;
 }

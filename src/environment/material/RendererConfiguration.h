@@ -4,8 +4,26 @@
 #include "environment/material/RenderOutput.h"
 
 class RenderingConfiguration {
-  public:
+  private:
     static constexpr int RENDER_FILE_NAME_LENGTH = 150;
+
+    unsigned int options;
+    int quality;
+    char inputFileName[RENDER_FILE_NAME_LENGTH];
+    char outputFileName[RENDER_FILE_NAME_LENGTH];
+    char statFileName[RENDER_FILE_NAME_LENGTH];
+    RenderOutput *outputFileInputStream;
+    int fileBufferSize;
+    double antialiasThreshold;
+    int firstLine;
+    int lastLine;
+    char outputFormat;
+    char verboseFormat;
+    int tokenizerCaseSensitiveMode;
+    int tokenizerMaxSymbols;
+    int numberOfThreads;
+
+  public:
     static constexpr unsigned int DISPLAY = 1u;
     static constexpr unsigned int VERBOSE = 2u;
     static constexpr unsigned int DISK_WRITE = 4u;
@@ -19,7 +37,6 @@ class RenderingConfiguration {
 
     RenderingConfiguration();
 
-    unsigned int getOptions() const;
     void setOptionFlags(unsigned int flags);
     void clearOptionFlags(unsigned int flags);
     bool hasOptionFlags(unsigned int flags) const;
@@ -55,30 +72,7 @@ class RenderingConfiguration {
     void setNumberOfThreads(int n);
     bool hasOutputFileName() const;
     void reset();
-
-  private:
-    unsigned int options;
-    int quality;
-    char inputFileName[RENDER_FILE_NAME_LENGTH];
-    char outputFileName[RENDER_FILE_NAME_LENGTH];
-    char statFileName[RENDER_FILE_NAME_LENGTH];
-    RenderOutput *outputFileInputStream;
-    int fileBufferSize;
-    double antialiasThreshold;
-    int firstLine;
-    int lastLine;
-    char outputFormat;
-    char verboseFormat;
-    int tokenizerCaseSensitiveMode;
-    int tokenizerMaxSymbols;
-    int numberOfThreads;
 };
-
-inline unsigned int
-RenderingConfiguration::getOptions() const
-{
-    return options;
-}
 
 inline void
 RenderingConfiguration::setOptionFlags(unsigned int flags)

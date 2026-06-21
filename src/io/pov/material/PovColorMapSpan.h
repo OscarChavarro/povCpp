@@ -12,10 +12,8 @@ class PovColorMapSpan {
     double getEnd() const;
     void setEnd(double value);
     const ColorRgba &getStartColor() const;
-    ColorRgba &getStartColor();
     void setStartColor(const ColorRgba &value);
     const ColorRgba &getEndColor() const;
-    ColorRgba &getEndColor();
     void setEndColor(const ColorRgba &value);
 
   private:
