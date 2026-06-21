@@ -11,6 +11,7 @@
 #include "environment/scene/Scene.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/scene/SceneBodyParser.h"
 #include "io/pov/scene/SceneParser.h"
 #include "io/pov/scene/ScenePostProcessor.h"
@@ -85,6 +86,7 @@ SceneParser::freeConstants(ParserContext &ctx)
             delete static_cast<Composite *>(data);
             break;
         case ParseGlobals::TEXTURE_CONSTANT:
+            PovRayMaterialConstancy::unmarkConstant(static_cast<PovRayMaterial *>(data));
             delete static_cast<PovRayMaterial *>(data);
             break;
         case ParseGlobals::VIEW_POINT_CONSTANT:

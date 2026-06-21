@@ -10,6 +10,12 @@ class PovRayMaterialConstancy {
   public:
     static void markConstant(const PovRayMaterial *material);
     static bool isConstant(const PovRayMaterial *material);
+    // Must be called immediately before deleting a marked-constant PovRayMaterial
+    // (e.g. when #declare re-declaring an identifier frees its old backing
+    // object) - otherwise the registry keeps a dangling pointer that could later
+    // false-positive-match an unrelated PovRayMaterial allocated at the same
+    // (now-reused) address.
+    static void unmarkConstant(const PovRayMaterial *material);
 };
 
 #endif

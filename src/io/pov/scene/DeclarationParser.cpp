@@ -176,6 +176,23 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::TEXTURE_TOKEN:
+                // Re-declaring an already-#declare'd texture identifier reaches
+                // this same Constant slot via upsertByIdentifierNumber() - free
+                // the old backing PovRayMaterial first. Safe to delete: every
+                // consumer of a TEXTURE_CONSTANT either clones it on use
+                // (PovRayMaterialConstancy::isConstant() guard in
+                // TextureParser.cpp) or absorbs it into a fresh layer chain
+                // (PovRayMaterialUtils::prependTextureLayers, also a clone-on-
+                // construction path), so nothing still aliases the old object
+                // directly. unmarkConstant() first, since it was always
+                // markConstant()'d below and the registry must not keep a
+                // dangling pointer that a later allocation could reuse.
+                if (constantPtr->getConstantType() == ParseGlobals::TEXTURE_CONSTANT) {
+                    PovRayMaterial * const oldTexture =
+                        static_cast<PovRayMaterial *>(constantPtr->getConstantData());
+                    PovRayMaterialConstancy::unmarkConstant(oldTexture);
+                    delete oldTexture;
+                }
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 localTexture = nullptr;
                 constantPtr->setConstantData((char *)localTexture);
@@ -225,6 +242,13 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 break;
 
             case Tokenizer::COLOUR_TOKEN:
+                // Re-declaring an already-#declare'd identifier (#declare X = ...
+                // appearing twice for the same X) reaches this same Constant slot
+                // via upsertByIdentifierNumber() - free whatever it held before,
+                // if it was the same simple value type, before overwriting it.
+                if (constantPtr->getConstantType() == ParseGlobals::COLOUR_CONSTANT) {
+                    delete static_cast<ColorRgba *>(constantPtr->getConstantData());
+                }
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)new ColorRgba(0.0, 0.0, 0.0, 0.0));
                 constantPtr->setConstantType(ParseGlobals::COLOUR_CONSTANT);
@@ -243,6 +267,9 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
             case Tokenizer::LEFT_ANGLE_TOKEN:
                 ctx.tokenStream().ungetToken();
+                if (constantPtr->getConstantType() == ParseGlobals::VECTOR_CONSTANT) {
+                    delete static_cast<Vector3Dd *>(constantPtr->getConstantData());
+                }
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)new Vector3Dd);
                 constantPtr->setConstantType(ParseGlobals::VECTOR_CONSTANT);
@@ -255,6 +282,9 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
             case Tokenizer::PLUS_TOKEN:
             case Tokenizer::FLOAT_TOKEN:
                 ctx.tokenStream().ungetToken();
+                if (constantPtr->getConstantType() == ParseGlobals::FLOAT_CONSTANT) {
+                    delete static_cast<double *>(constantPtr->getConstantData());
+                }
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
                 constantPtr->setConstantData((char *)new double(0.0));
                 constantPtr->setConstantType(ParseGlobals::FLOAT_CONSTANT);

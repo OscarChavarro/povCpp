@@ -32,3 +32,9 @@ PovRayMaterialConstancy::isConstant(const PovRayMaterial *material)
     }
     return false;
 }
+
+void
+PovRayMaterialConstancy::unmarkConstant(const PovRayMaterial *material)
+{
+    constantMaterials().remove(material);
+}
