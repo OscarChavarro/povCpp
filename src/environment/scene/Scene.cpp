@@ -21,6 +21,16 @@ Scene::Scene() :
 {
 }
 
+Scene::~Scene()
+{
+    // lightSources is not deleted here: it is a non-owning traversal pointer
+    // into the same BoundedGeometry/LightGeometryAdapter tree already owned by
+    // Objects (see ScenePostProcessor::linkLights), not a separate allocation.
+    for (long int i = 0; i < Objects.size(); i++) {
+        delete Objects[i];
+    }
+}
+
 void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
