@@ -2,9 +2,7 @@
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/material/PovRayMaterial.h"
-#include "environment/material/DefaultTextureAliasTracker.h"
-#include "io/pov/material/PovRayMaterialConstancy.h"
+#include "environment/material/Material.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
@@ -221,18 +219,12 @@ BoundedGeometry::~BoundedGeometry()
 {
     delete geometry;
     delete objectColor;
-    // objectTexture starts out as the scene's shared default texture (see
-    // ObjectParser::parseObject/parseComposite) and stays that way for any
-    // untextured object - never delete the registered-constant instance, only a
-    // private copy of it. If it's still aliasing the (possibly already
-    // superseded) default texture, tell DefaultTextureAliasTracker this alias
-    // just ended - a safe no-op if it isn't the tracked default (e.g. some
-    // other #declare'd TEXTURE_CONSTANT).
-    if (objectTexture != nullptr &&
-        !PovRayMaterialConstancy::isConstant(static_cast<PovRayMaterial *>(objectTexture))) {
-        delete objectTexture;
-    } else if (objectTexture != nullptr) {
-        DefaultTextureAliasTracker::releaseAlias(static_cast<PovRayMaterial *>(objectTexture));
+    // objectTexture may be a private clone (delete it) or an alias to a shared
+    // constant such as the scene's default texture (do not delete, just close
+    // out its alias bookkeeping). releaseFromOwner() encapsulates that decision
+    // so this destructor needs to know nothing about the concrete material type.
+    if (objectTexture != nullptr) {
+        objectTexture->releaseFromOwner();
     }
     for (long int i = 0; i < boundingShapes.size(); i++) {
         delete boundingShapes[i];
