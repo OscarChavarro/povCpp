@@ -59,6 +59,7 @@ objectives.
 | P13 | **Image writing separated from the sampling driver** — `RenderImageWriter` (private state) owns scanline disk persistence, interrupted-render resume and the per-line buffer flush; `RenderEngine` delegates through a private member | `RenderImageWriter.h/.cpp`, `RenderEngine::readRenderedPart`/`startTracing` | #1 single responsibility; #4/#5 the driver can be swapped (parallel/GPU) without dragging file I/O |
 | P14 | **Procedural texturing is a polymorphic class hierarchy** — `SolidTexturePigment` (16 patterns) and `SolidTextureNormal` (8 patterns) | `src/environment/material/pigment/*`, `src/environment/material/normal/*` | #1 readable; #3 maps cleanly to a Java class hierarchy; #5 each pattern is an isolated GPU shading variant |
 | P15 | **`PovRayMaterial` immutable + constants centralized** — const getters and constructor-only state, assembled by `PovRayMaterialBuilder`; tolerances/epsilons consolidated in `Config` | `PovRayMaterial.h`, `Config.h`, `PovRayMaterialBuilder.*` | #4 a read-only material is safe to share across threads; #1/#2 no scattered magic numbers |
+| P16 | **Manual but robust memory management, verified by valgrind** — every class has an explicit destructor with a correct owner and lifetime; every shared resource is owned by exactly one place. **No smart pointers, by design** — explicit raw ownership throughout, for backwards-portability to pre-C++11 toolchains and forward-portability to a future Rust port (explicit, traceable ownership maps directly to Rust's move/borrow model). The full 108-scene corpus runs leak-free and error-free under valgrind memcheck | valgrind memcheck, full 108-scene corpus | #2 stays on raw `new`/`delete` only, no C++11+ ownership types to migrate away from; #1 ownership is explicit and traceable, not hidden behind a smart-pointer type |
 
 ## Areas to improve
 
@@ -66,10 +67,9 @@ objectives.
 |---|--------|-----------------|-----------|------------|
 | M1 | **Antialiasing couples neighboring scanlines** (`previousLine`/`currentLine`) | `AdaptiveAntiAliasing::doAntiAliasing`, `RenderWorker` line buffers/`swapLines` | **#4** | Now isolated in its own class, but it still reads the adjacent scanline. Blocks trivial tiling; redesign into independent tiles or resolve AA in two passes |
 | M2 | **Statistics incremented per pixel without synchronization** | `incrementNumberOfPixels()` in `RenderEngine::startTracing` loop | **#4** | Per-thread counters with final reduction, or `std::atomic` |
-| M3 | **241 `new` vs 48 `delete`, zero smart pointers** | memory grep | #1, #2, #3 | Leak and double-management risk; the imbalance complicates the mapping to Java's GC. Consider value semantics or `unique_ptr` (still C++11), especially for the per-pattern pigment/normal objects |
-| M4 | **Virtual dispatch across geometry and materials** (`virtual allIntersections` + `PriorityQueue<Intersection>`; plus the `SolidTexturePigment`/`SolidTextureNormal` virtuals) | `Geometry.h`, primitive headers, `pigment/*`, `normal/*` | **#5** | GPU/SPIR-V has no virtuals or recursion; it will need tagged-unions/SoA. The pigment/normal hierarchies aid CPU/Java clarity (P14) but are three families to flatten — plan a flat POD scene + pattern-id dispatch early |
-| M5 | **`double` throughout the pipeline** | `Vector3Dd`, `Matrix4x4d`, shaders | **#5** | FP64 is slow/scarce on the GPU. Since the GPU goal is AE-metric similarity (not bit-exact), decide the precision strategy and the acceptable AE tolerance early |
-| M6 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
+| M3 | **Virtual dispatch across geometry and materials** (`virtual allIntersections` + `PriorityQueue<Intersection>`; plus the `SolidTexturePigment`/`SolidTextureNormal` virtuals) | `Geometry.h`, primitive headers, `pigment/*`, `normal/*` | **#5** | GPU/SPIR-V has no virtuals or recursion; it will need tagged-unions/SoA. The pigment/normal hierarchies aid CPU/Java clarity (P14) but are three families to flatten — plan a flat POD scene + pattern-id dispatch early |
+| M4 | **`double` throughout the pipeline** | `Vector3Dd`, `Matrix4x4d`, shaders | **#5** | FP64 is slow/scarce on the GPU. Since the GPU goal is AE-metric similarity (not bit-exact), decide the precision strategy and the acceptable AE tolerance early |
+| M5 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
 
 ## Tile-based parallelism (`-parallel`) — readiness assessment
 
@@ -106,17 +106,19 @@ contiguous-range write, and reduce B4 to a single shared boundary row per seam
 
 ## Reading by objective
 
-- **#1 Academic base** — Well on track (P1–P4, P7, P13, P14, P15); the sampling driver
-  is separated from image writing, and procedural texturing is now a readable
-  one-class-per-pattern hierarchy instead of a switch/facade. The main item left
-  reducing clarity: M6 (no unit tests documenting contracts).
-- **#2 C++11 migratable** — Solid (P6, P10). The only real pending item: M3 (manual
-  memory management, with a wide `new`/`delete` imbalance). Optional `unique_ptr` use
-  is still C++11 and reduces risk without breaking the version discipline.
-- **#3 JDK alignment** — Ahead thanks to P7, P14 and P15: the pigment/normal class
+- **#1 Academic base** — Well on track (P1–P4, P7, P13, P14, P15, P16); the sampling
+  driver is separated from image writing, procedural texturing is now a readable
+  one-class-per-pattern hierarchy instead of a switch/facade, and ownership is now
+  explicit and fully traced (P16) rather than implicit. The main item left reducing
+  clarity: M5 (no unit tests documenting contracts).
+- **#2 C++11 migratable** — Solid (P6, P10, P16). `unique_ptr` was deliberately not the
+  fix for memory ownership — real destructors plus deep-cloning the pigment/normal
+  `copy()` hierarchy, staying on raw `new`/`delete` per the backwards/forwards
+  portability goals (P16).
+- **#3 JDK alignment** — Ahead thanks to P7, P14, P15 and P16: the pigment/normal class
   hierarchies and the immutable, builder-built `PovRayMaterial` map almost mechanically
-  to Java. The remaining obstacle is M3: raw `new`/`delete` and pointer aliasing do not
-  map cleanly to GC; the more value semantics, the more mechanical the port.
+  to Java, and every class has a real, traceable destructor with verified ownership
+  (P16), the closest C++ analogue to relying on GC-managed lifetimes.
 - **#4 pthreads parallelism** — The largest pending work. P12 already moved per-ray
   scratch out of `RenderEngine` into `RenderWorker`. The concrete `-parallel`
   (tile-based) blockers are now enumerated in **Tile-based parallelism — readiness
@@ -129,8 +131,8 @@ contiguous-range write, and reduce B4 to a single shared boundary row per seam
 - **#5 Vulkan 1.3** — The goal here is an AE-metric *close-to-similarity* match with
   the CPU reference, not a bit-exact one — that relaxation is what makes the GPU port
   tractable. The architecture helps (P2, P3, P5 as oracle, and P14: each pigment/normal
-  is an isolated shading variant). But M4 (virtuals/AoS spanning geometry and materials)
-  and M5 (double precision) remain deep decisions to resolve **before** writing SPIR-V.
+  is an isolated shading variant). But M3 (virtuals/AoS spanning geometry and materials)
+  and M4 (double precision) remain deep decisions to resolve **before** writing SPIR-V.
   P11 resolves CPU call recursion and provides the execution model to port; the next
   prototype should flatten the scene into POD data, then measure GPU output against
   the CPU reference with the existing AE tooling under an agreed tolerance.

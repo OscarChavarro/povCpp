@@ -406,6 +406,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                 }
 
                 if (objectTexture == ctx.getDefaultTexture()) {
+                    DefaultTextureAliasTracker::releaseAlias(
+                        static_cast<PovRayMaterial *>(objectTexture));
                     objectTexture = localTexture;
                 } else {
                     PovRayMaterialUtils::prependTextureLayers(localTexture, objectTexture);
