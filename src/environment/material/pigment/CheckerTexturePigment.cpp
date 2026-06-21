@@ -1,5 +1,5 @@
 #include "environment/material/pigment/CheckerTexturePigment.h"
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 CheckerTexturePigment::CheckerTexturePigment(PovRayMaterial *texture1, PovRayMaterial *texture2) :

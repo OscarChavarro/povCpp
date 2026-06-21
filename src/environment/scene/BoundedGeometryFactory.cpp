@@ -1,7 +1,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/scene/BoundedGeometryFactory.h"
 
 #include "java/util/ArrayList.txx"

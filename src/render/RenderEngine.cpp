@@ -6,7 +6,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
 #include "common/statistics/Statistics.h"
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
 #include "render/ColorOperations.h"

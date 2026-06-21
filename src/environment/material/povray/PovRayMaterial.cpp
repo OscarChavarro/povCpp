@@ -1,8 +1,8 @@
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/material/normal/SolidTextureNormal.h"
 #include "environment/material/DefaultTextureAliasTracker.h"
-#include "io/pov/material/PovRayMaterialConstancy.h"
+#include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 

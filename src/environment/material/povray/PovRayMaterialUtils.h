@@ -10,7 +10,7 @@ sources/frequencies used by ripple/wave bump textures, and texture-space transfo
 #define __POVRAY_MATERIAL_UTILS__
 
 #include "environment/material/Material.h"
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 // Thin facade over PovRayMaterial's own copy/transform engine. The actual writes to the
