@@ -17,6 +17,11 @@ LeopardPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTo
     colorFixture.leopard(x, y, z, turbulence, octaves, colorMap, color);
 }
 
+LeopardPigment::~LeopardPigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 LeopardPigment::copy() const
 {

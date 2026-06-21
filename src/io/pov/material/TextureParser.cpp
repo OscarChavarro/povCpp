@@ -10,6 +10,7 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/ColorMapParser.h"
+#include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
@@ -27,6 +28,27 @@ TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDR
     ti->setIndexedData(idx);
     ti->allocate(idx->getXSize(), idx->getYSize());
 }
+
+namespace {
+
+// TextureParser rebuilds the whole PovRayMaterial after every single attribute
+// token, discarding the previous generation. After the aliasing audit (see
+// doc/memoryAudit/ownership.md), every rebuilt generation owns its own
+// pigment/normal/colorMap/layers - the only thing the old generation could still
+// share with a sibling is being itself the registered "constant" backing a
+// #declare'd identifier or the scene's default texture, which nothing here is
+// allowed to delete.
+PovRayMaterial *
+rebuildAndDiscard(PovRayMaterial *oldTexture, const PovRayMaterialBuilder &builder)
+{
+    PovRayMaterial * const newTexture = builder.build();
+    if (oldTexture != nullptr && !PovRayMaterialConstancy::isConstant(oldTexture)) {
+        delete oldTexture;
+    }
+    return newTexture;
+}
+
+} // namespace
 
 PovRayMaterial *
 TextureParser::copyTexture(PovRayMaterial *texture)
@@ -79,6 +101,17 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                         ParseGlobals::TEXTURE_CONSTANT) {
                         texture = ((PovRayMaterial *)ctx.constants()[(int)constantId]
                                 .getConstantData());
+                        // texture{} may end here with no further attribute token, in
+                        // which case `texture` becomes the object's final material
+                        // as-is (no build() round trip to naturally copy it). Since
+                        // this is the constancy-tracked backing object of a #declare'd
+                        // identifier (or the scene's default texture), every reference
+                        // to it must get its own copy, mirroring the same isConstant()
+                        // check DeclarationParser.cpp already applies before mutating
+                        // one in place.
+                        if (PovRayMaterialConstancy::isConstant(texture)) {
+                            texture = PovRayMaterial::copyTexture(texture);
+                        }
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -92,7 +125,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureRandomness(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -103,7 +136,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTurbulence(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -117,7 +150,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     if (b.getOctaves() > 10) { // Avoid DOMAIN errors
                         b.setOctaves(10);
                     }
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -125,7 +158,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::BOZO_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -136,7 +169,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     if (b.getMortar() < 0) {
                         b.setMortar(0.2);
                     }
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -165,7 +198,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                             }
                         }
                     }
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -194,7 +227,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                             }
                         }
                     }
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -215,7 +248,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                                 localTexture = TextureParser::parseTexture(ctx);
                                 {
                                     PovRayMaterialBuilder lb = TextureParser::editorFor(localTexture);
-                                    localTexture = lb.build();
+                                    localTexture = rebuildAndDiscard(localTexture, lb);
                                     PovRayMaterial *checkerTexture1Head = b.getCheckerTexture1();
                                     PovRayMaterialUtils::prependTextureLayers(localTexture, checkerTexture1Head);
                                     b.setCheckerTexture1(checkerTexture1Head);
@@ -240,7 +273,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                                 localTexture = TextureParser::parseTexture(ctx);
                                 {
                                     PovRayMaterialBuilder lb = TextureParser::editorFor(localTexture);
-                                    localTexture = lb.build();
+                                    localTexture = rebuildAndDiscard(localTexture, lb);
                                     PovRayMaterial *checkerTexture2Head = b.getCheckerTexture2();
                                     PovRayMaterialUtils::prependTextureLayers(localTexture, checkerTexture2Head);
                                     b.setCheckerTexture2(checkerTexture2Head);
@@ -254,7 +287,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                         }
                     }
                     ParseHelpers::getExpectedToken(Tokenizer::RIGHT_CURLY_TOKEN, ctx);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -262,7 +295,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::MARBLE_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -270,7 +303,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::WOOD_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -278,7 +311,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::SPOTTED_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -286,7 +319,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::AGATE_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -294,7 +327,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::GRANITE_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -305,7 +338,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::GRADIENT_TEXTURE);
                     b.setTextureGradient(gradientVec);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -313,7 +346,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectAmbient(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -321,7 +354,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectBrilliance(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -334,7 +367,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     //     texture -> objectRoughness = 1.0;
                     // if (texture -> objectRoughness < 0.001)
                     //     texture -> objectRoughness = 0.001;
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -347,7 +380,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     //     texture -> objectPhongSize = 1.0;
                     // if (texture -> objectPhongSize > 100)
                     //     texture -> objectPhongSize = 100;
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -355,7 +388,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectDiffuse(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -363,7 +396,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectSpecular(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -371,7 +404,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectPhong(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -379,7 +412,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setMetallicFlag(true);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -388,7 +421,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectIndexOfRefraction(
                         PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -396,7 +429,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectRefraction(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -404,7 +437,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectTransmit(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -412,7 +445,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setObjectReflection(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -584,7 +617,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::IMAGE_MAP_TEXTURE);
                     b.setImage(image);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -610,7 +643,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                             }
                         }
                     }
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -618,7 +651,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setFrequency(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -626,7 +659,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setPhase(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -635,7 +668,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setBumpNumber(SolidTextureBumpyNames::RIPPLES);
                     b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -644,7 +677,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setBumpNumber(SolidTextureBumpyNames::WRINKLES);
                     b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -653,7 +686,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setBumpNumber(SolidTextureBumpyNames::BUMPS);
                     b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -662,14 +695,14 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setBumpNumber(SolidTextureBumpyNames::DENTS);
                     b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
             case Tokenizer::TRANSLATE_TOKEN:
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                     PrimitiveParser::parseVector(&localVector, ctx);
                     PovRayMaterialUtils::translateTexture(&texture, &localVector);
                 }
@@ -678,7 +711,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
             case Tokenizer::ROTATE_TOKEN:
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                     PrimitiveParser::parseVector(&localVector, ctx);
                     PovRayMaterialUtils::rotateTexture(&texture, &localVector);
                 }
@@ -687,7 +720,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
             case Tokenizer::SCALE_TOKEN:
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                     PrimitiveParser::parseVector(&localVector, ctx);
                     PovRayMaterialUtils::scaleTexture(&texture, &localVector);
                 }
@@ -700,7 +733,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setCheckerColor1(c);
                     b.setTextureNumber(SolidTextureColorNames::COLOUR_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -708,7 +741,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setColorMap(ColorMapParser::parseColorMap(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -716,7 +749,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::ONION_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -724,7 +757,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 {
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setTextureNumber(SolidTextureColorNames::LEOPARD_TEXTURE);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -733,7 +766,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setBumpNumber(SolidTextureBumpyNames::BUMPY1);
                     b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -742,7 +775,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setBumpNumber(SolidTextureBumpyNames::BUMPY2);
                     b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -751,7 +784,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     PovRayMaterialBuilder b = TextureParser::editorFor(texture);
                     b.setBumpNumber(SolidTextureBumpyNames::BUMPY3);
                     b.setBumpAmount(PrimitiveParser::parseFloat(ctx));
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -886,7 +919,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                     b.setBumpNumber(SolidTextureBumpyNames::BUMP_MAP);
                     b.setBumpImage(bumpImage);
                     b.setBumpAmount(bumpAmount);
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 
@@ -1014,7 +1047,7 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                         }
                     }
 
-                    texture = b.build();
+                    texture = rebuildAndDiscard(texture, b);
                 }
                 break;
 

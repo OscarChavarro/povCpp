@@ -15,6 +15,11 @@ ColourPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTol
     color->setA(color->getA() + color1->getA());
 }
 
+ColourPigment::~ColourPigment()
+{
+    delete color1;
+}
+
 SolidTexturePigment *
 ColourPigment::copy() const
 {

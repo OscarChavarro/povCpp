@@ -8,6 +8,13 @@ SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeC
 {
 }
 
+SimpleBody::~SimpleBody()
+{
+    delete geometry;
+    delete material;
+    delete shapeColor;
+}
+
 ColorRgba *
 SimpleBody::ensureShapeColor()
 {

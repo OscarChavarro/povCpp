@@ -8,6 +8,7 @@ class PovRayMaterial;
 class CheckerTexturePigment : public SolidTexturePigment {
   public:
     CheckerTexturePigment(PovRayMaterial *texture1, PovRayMaterial *texture2);
+    ~CheckerTexturePigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

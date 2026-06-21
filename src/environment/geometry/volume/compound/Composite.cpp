@@ -199,7 +199,8 @@ BoundedGeometry::BoundedGeometry(const BoundedGeometry &other) :
     geometry(other.getGeometry() != nullptr ?
         (TransformableElement *)other.getGeometry()->copy() : nullptr),
     noShadowFlag(other.getNoShadowFlag()),
-    objectColor(other.getObjectColor()),
+    objectColor(other.getObjectColor() != nullptr ?
+        new ColorRgba(*other.getObjectColor()) : nullptr),
     objectTexture(other.getObjectTexture() != nullptr ?
         other.getObjectTexture()->copy() : nullptr)
 {

@@ -29,6 +29,12 @@ CheckerTexturePigment::colorAt(const Vector3Dd *point, ColorRgba *color, double 
     }
 }
 
+CheckerTexturePigment::~CheckerTexturePigment()
+{
+    delete texture1;
+    delete texture2;
+}
+
 SolidTexturePigment *
 CheckerTexturePigment::copy() const
 {

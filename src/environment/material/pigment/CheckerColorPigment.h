@@ -6,6 +6,7 @@
 class CheckerColorPigment : public SolidTexturePigment {
   public:
     CheckerColorPigment(ColorRgba *color1, ColorRgba *color2);
+    ~CheckerColorPigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

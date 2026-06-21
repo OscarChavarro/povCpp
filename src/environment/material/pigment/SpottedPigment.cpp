@@ -15,6 +15,11 @@ SpottedPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTo
     colorFixture.spotted(x, y, z, colorMap, color);
 }
 
+SpottedPigment::~SpottedPigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 SpottedPigment::copy() const
 {

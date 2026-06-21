@@ -77,6 +77,7 @@ class PovRayMaterial : public Material {
                    double pendingMortar, double pendingBumpAmount, double pendingFrequency,
                    double pendingPhase, int pendingNumberOfWaves,
                    ControlledRGBAImageHDRUncompressed *pendingBumpImage);
+    ~PovRayMaterial() override;
 
     PovRayMaterial *copy() override;
     static PovRayMaterial *copyTexture(const PovRayMaterial *texture);

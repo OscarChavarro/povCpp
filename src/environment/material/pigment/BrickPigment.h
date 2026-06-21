@@ -6,6 +6,7 @@
 class BrickPigment : public SolidTexturePigment {
   public:
     BrickPigment(ColorRgba *color1, ColorRgba *color2, double mortar);
+    ~BrickPigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

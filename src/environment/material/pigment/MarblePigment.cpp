@@ -17,6 +17,11 @@ MarblePigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTol
     colorFixture.marble(x, y, z, turbulence, octaves, colorMap, color);
 }
 
+MarblePigment::~MarblePigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 MarblePigment::copy() const
 {

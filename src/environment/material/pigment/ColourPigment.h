@@ -6,6 +6,7 @@
 class ColourPigment : public SolidTexturePigment {
   public:
     explicit ColourPigment(ColorRgba *color1);
+    ~ColourPigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

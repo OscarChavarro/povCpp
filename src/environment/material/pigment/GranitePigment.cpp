@@ -15,6 +15,11 @@ GranitePigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTo
     colorFixture.granite(x, y, z, colorMap, color);
 }
 
+GranitePigment::~GranitePigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 GranitePigment::copy() const
 {
