@@ -32,7 +32,9 @@ CheckerTexturePigment::colorAt(const Vector3Dd *point, ColorRgba *color, double 
 SolidTexturePigment *
 CheckerTexturePigment::copy() const
 {
-    return new CheckerTexturePigment(texture1, texture2);
+    return new CheckerTexturePigment(
+        texture1 != nullptr ? PovRayMaterial::copyTexture(texture1) : nullptr,
+        texture2 != nullptr ? PovRayMaterial::copyTexture(texture2) : nullptr);
 }
 
 void

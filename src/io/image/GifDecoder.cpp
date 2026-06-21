@@ -116,9 +116,9 @@ GifDecoder::getNextCode(GifInputContext &input, GifDecoderState &state)
 void
 GifDecoder::cleanupGifDecoder(GifDecoderState &state)
 {
-    delete state.dstack;
-    delete state.suffix;
-    delete state.prefix;
+    delete[] state.dstack;
+    delete[] state.suffix;
+    delete[] state.prefix;
 }
 
 WORD

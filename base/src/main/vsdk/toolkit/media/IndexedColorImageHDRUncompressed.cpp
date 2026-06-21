@@ -4,6 +4,7 @@ IndexedColorImageHDRUncompressed::IndexedColorImageHDRUncompressed() : xSize(0),
 
 IndexedColorImageHDRUncompressed::~IndexedColorImageHDRUncompressed() {
     delete[] data;
+    delete[] colorTable;
 }
 
 int

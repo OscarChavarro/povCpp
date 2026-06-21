@@ -18,7 +18,7 @@ ColourPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTol
 SolidTexturePigment *
 ColourPigment::copy() const
 {
-    return new ColourPigment(color1);
+    return new ColourPigment(new ColorRgba(*color1));
 }
 
 ColorRgba *

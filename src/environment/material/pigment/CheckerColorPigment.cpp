@@ -19,7 +19,7 @@ CheckerColorPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double sm
 SolidTexturePigment *
 CheckerColorPigment::copy() const
 {
-    return new CheckerColorPigment(color1, color2);
+    return new CheckerColorPigment(new ColorRgba(*color1), new ColorRgba(*color2));
 }
 
 ColorRgba *

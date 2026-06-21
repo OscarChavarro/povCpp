@@ -2,6 +2,7 @@
 #define __INTERSECTION_PRIORITY_QUEUE_POOL__
 
 #include "java/util/PriorityQueue.h"
+#include "vsdk/toolkit/common/memoryManagement/MemoryPool.h"
 
 class Intersection;
 
@@ -18,6 +19,7 @@ class IntersectionPriorityQueuePool {
     static constexpr int NUMBER_OF_PRIOQS = 32;
     static constexpr int MAX_NUMBER_OF_ENTRIES = 128;
 
+    MemoryPool<java::PriorityQueue<Intersection>> storage;
     java::PriorityQueue<Intersection> *queues;
     int nextFreeIndex[NUMBER_OF_PRIOQS];
     int headIndex;

@@ -234,7 +234,10 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
                     }
                 }
 
-                delete rowBytes;
+                for (i = 0; i < nPlanes; i++) {
+                    delete[] rowBytes[i];
+                }
+                delete[] rowBytes;
                 fileStream->close();
                 delete fileStream;
                 return indexed;
@@ -334,7 +337,11 @@ IffFormat::readIffImage(RGBAImageHDRUncompressed *directOut, const char *filenam
                     }
                 }
 
-                delete rowBytes;
+                for (i = 0; i < nPlanes; i++) {
+                    delete[] rowBytes[i];
+                }
+                delete[] rowBytes;
+                delete[] iffColorMap;
                 fileStream->close();
                 delete fileStream;
                 return nullptr;
