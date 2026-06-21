@@ -33,10 +33,6 @@ class AdaptiveAntiAliasing {
     explicit AdaptiveAntiAliasing(RenderEngine *engine)
         : renderEngine(engine) {}
 
-    // `area` is the calling RenderTask's tile (full frame in serial mode);
-    // `pool`/`stats` are that task's own intersection queue pool and
-    // statistics, passed down to the supersample rays so concurrent tiles
-    // never share queues or pixel/ray counters.
     void doAntiAliasing(RenderWorker &worker, int x, int y, ColorRgba *color,
         const RasterTileArea &area, IntersectionPriorityQueuePool *pool,
         Statistics *stats);

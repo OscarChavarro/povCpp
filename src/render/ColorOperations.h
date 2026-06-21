@@ -10,7 +10,7 @@ class ColorOperations {
         ColorRgba *result, const ColorRgba *color1, const ColorRgba *color2);
     static void scaleColor(ColorRgba *result, const ColorRgba *color, double factor);
     static void clipColor(ColorRgba *result, const ColorRgba *color);
-    static inline double fabsInline(double x);
+    static inline double absoluteValue(double x);
 };
 
 #endif

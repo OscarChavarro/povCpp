@@ -1,17 +1,18 @@
 #include "render/ColorOperations.h"
 
 inline double
-ColorOperations::fabsInline(double x)
+ColorOperations::absoluteValue(double x)
 {
+    // Note this is not equivalent to Math.abs
     return (x < 0.0) ? (0.0 - x) : x;
 }
 
 double
 ColorOperations::colorDistance(const ColorRgba *color1, const ColorRgba *color2)
 {
-    return (ColorOperations::fabsInline(color1->getR() - color2->getR()) +
-            ColorOperations::fabsInline(color1->getG() - color2->getG()) +
-            ColorOperations::fabsInline(color1->getB() - color2->getB()));
+    return (ColorOperations::absoluteValue(color1->getR() - color2->getR()) +
+            ColorOperations::absoluteValue(color1->getG() - color2->getG()) +
+            ColorOperations::absoluteValue(color1->getB() - color2->getB()));
 }
 
 void

@@ -9,14 +9,15 @@
 #include "environment/material/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
+#include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/RenderTask.h"
-#include "render/shaders/TraceService.h"
+#include "render/RenderTileCallable.h"
 
 java::Void
-RenderEngine::RenderTileCallable::call()
+RenderTileCallable::call()
 {
     engine->renderTile(
         task->worker, task->pool, task->statistics, task->area);
