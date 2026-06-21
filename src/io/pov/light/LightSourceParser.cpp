@@ -35,6 +35,13 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     double falloff = 0.35;
     bool spotlight = false;
     ColorRgba *localColor = nullptr;
+    // Only the LEFT_ANGLE_TOKEN branch allocates localColor itself; the
+    // IDENTIFIER_TOKEN branch aliases the referenced LIGHT_SOURCE_CONSTANT's own
+    // shapeColor (owned by that constant, freed via SceneParser::freeConstants).
+    // Light/PointLight/SpotLight's constructor always clones shapeColor
+    // internally, so either way localColor itself is no longer needed once the
+    // Light below is built - but only the former is ours to delete.
+    bool ownsLocalColor = false;
     int constantId;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -55,6 +62,7 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                 falloff = 0.35;
                 spotlight = false;
                 localColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
+                ownsLocalColor = true;
                 localColor->setR(1.0); localColor->setG(1.0); localColor->setB(1.0); localColor->setA(0.0);
                 PrimitiveParser::parseVector(&center, ctx);
                 ParseHelpers::getExpectedToken(Tokenizer::COLOUR_TOKEN, ctx);
@@ -164,11 +172,15 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
         }
     }
 
-    return spotlight ?
+    Light * const result = spotlight ?
         static_cast<Light *>(new SpotLight(
             localColor, center, pointsAt, inverted, coefficient, radius,
             falloff)) :
         static_cast<Light *>(new PointLight(
             localColor, center, pointsAt, inverted, coefficient, radius,
             falloff));
+    if (ownsLocalColor) {
+        delete localColor;
+    }
+    return result;
 }

@@ -190,33 +190,38 @@ PovRayMaterialBuilder::buildPigment() const
 {
     switch (textureNumber) {
     case SolidTextureColorNames::COLOUR_TEXTURE:
-        return new ColourPigment(checkerColor1);
+        return new ColourPigment(checkerColor1 != nullptr ? new ColorRgba(*checkerColor1) : nullptr);
     case SolidTextureColorNames::BOZO_TEXTURE:
-        return new BozoPigment(turbulence, octaves, colorMap);
+        return new BozoPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::MARBLE_TEXTURE:
-        return new MarblePigment(turbulence, octaves, colorMap);
+        return new MarblePigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::WOOD_TEXTURE:
-        return new WoodPigment(turbulence, octaves, colorMap);
+        return new WoodPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::CHECKER_TEXTURE:
-        return new CheckerColorPigment(checkerColor1, checkerColor2);
+        return new CheckerColorPigment(
+            checkerColor1 != nullptr ? new ColorRgba(*checkerColor1) : nullptr,
+            checkerColor2 != nullptr ? new ColorRgba(*checkerColor2) : nullptr);
     case SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE:
         return new CheckerTexturePigment(checkerTexture1, checkerTexture2);
     case SolidTextureColorNames::SPOTTED_TEXTURE:
-        return new SpottedPigment(colorMap);
+        return new SpottedPigment(SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::AGATE_TEXTURE:
-        return new AgatePigment(octaves, colorMap);
+        return new AgatePigment(octaves, SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::GRANITE_TEXTURE:
-        return new GranitePigment(colorMap);
+        return new GranitePigment(SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::GRADIENT_TEXTURE:
-        return new GradientPigment(turbulence, octaves, colorMap, textureGradient);
+        return new GradientPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap), textureGradient);
     case SolidTextureColorNames::IMAGE_MAP_TEXTURE:
         return new ImageMapPigment(image);
     case SolidTextureColorNames::ONION_TEXTURE:
-        return new OnionPigment(turbulence, octaves, colorMap);
+        return new OnionPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::LEOPARD_TEXTURE:
-        return new LeopardPigment(turbulence, octaves, colorMap);
+        return new LeopardPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
     case SolidTextureColorNames::BRICK_TEXTURE:
-        return new BrickPigment(checkerColor1, checkerColor2, mortar);
+        return new BrickPigment(
+            checkerColor1 != nullptr ? new ColorRgba(*checkerColor1) : nullptr,
+            checkerColor2 != nullptr ? new ColorRgba(*checkerColor2) : nullptr,
+            mortar);
     case SolidTextureColorNames::MATERIAL_MAP_TEXTURE:
         return new MaterialMapPigment();
     case SolidTextureColorNames::NO_TEXTURE:
@@ -254,14 +259,33 @@ PovRayMaterialBuilder::buildNormal() const
 PovRayMaterial *
 PovRayMaterialBuilder::build() const
 {
+    SolidTexturePigment * const pigment = buildPigment();
+    SolidTextureNormal * const normal = buildNormal();
+    // buildPigment() now always clones colorMap/checkerColor1/checkerColor2 for
+    // the pigment types that use them (never aliases this builder's own copies
+    // - see the cloneColorMap/new ColorRgba calls above), and the
+    // PovRayMaterial below gets its own independent colorMap clone too, so
+    // none of these three are ever transferred anywhere and are always safe to
+    // free here once buildPigment() has made its own clones.
+    // checkerTexture1/checkerTexture2 are deliberately NOT freed here: unlike
+    // these, CheckerTexturePigment takes them as-is (no clone), and their only
+    // setters (setCheckerTexture1/2) absorb the *previous* value as a new
+    // layer via PovRayMaterialUtils::prependTextureLayers rather than
+    // discarding it - freeing them here would double-free an object still
+    // reachable through whatever they were just reassigned to.
+    RGBAColorPalette * const pendingColorMapClone =
+        SolidTexturePigment::cloneColorMap(colorMap);
+    delete colorMap;
+    delete checkerColor1;
+    delete checkerColor2;
     return new PovRayMaterial(objectReflection, objectAmbient, objectDiffuse,
         objectBrilliance, objectIndexOfRefraction, objectRefraction,
         objectTransmit, objectSpecular, objectRoughness, objectPhong,
         objectPhongSize, textureRandomness,
         textureTransformation, textureTransformationInverse,
-        buildPigment(), buildNormal(),
+        pigment, normal,
         materialImage, metallicFlag, layers, materials,
-        turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap),
+        turbulence, octaves, pendingColorMapClone,
         mortar, bumpAmount, frequency, phase, numberOfWaves, bumpImage);
 }
 
@@ -386,6 +410,16 @@ PovRayMaterialBuilder::setBumpNumber(SolidTextureBumpyNames v)
 PovRayMaterialBuilder &
 PovRayMaterialBuilder::setCheckerColor1(ColorRgba *v)
 {
+    // checkerColor1 may already hold a clone the "rebuild from base" constructor
+    // made (see the ColourPigment/CheckerColorPigment/BrickPigment branches
+    // above) that this attribute token's own fresh allocation is about to
+    // replace. Unlike setCheckerTexture1/2 below, every call site here passes a
+    // brand-new ColorRgba - never one derived from the current value via
+    // PovRayMaterialUtils::prependTextureLayers - so the old value is never
+    // aliased elsewhere and is safe to free.
+    if (checkerColor1 != v) {
+        delete checkerColor1;
+    }
     checkerColor1 = v;
     return *this;
 }
@@ -393,6 +427,9 @@ PovRayMaterialBuilder::setCheckerColor1(ColorRgba *v)
 PovRayMaterialBuilder &
 PovRayMaterialBuilder::setCheckerColor2(ColorRgba *v)
 {
+    if (checkerColor2 != v) {
+        delete checkerColor2;
+    }
     checkerColor2 = v;
     return *this;
 }
@@ -400,6 +437,11 @@ PovRayMaterialBuilder::setCheckerColor2(ColorRgba *v)
 PovRayMaterialBuilder &
 PovRayMaterialBuilder::setCheckerTexture1(PovRayMaterial *v)
 {
+    // Unlike setCheckerColor1/2 above, every call site here passes a value
+    // derived from the *current* checkerTexture1 via
+    // PovRayMaterialUtils::prependTextureLayers(), which absorbs the old
+    // PovRayMaterial as a layer of the new one rather than discarding it - so
+    // the old value must not be freed here, it is still reachable through `v`.
     checkerTexture1 = v;
     return *this;
 }
@@ -414,6 +456,14 @@ PovRayMaterialBuilder::setCheckerTexture2(PovRayMaterial *v)
 PovRayMaterialBuilder &
 PovRayMaterialBuilder::setColorMap(RGBAColorPalette *v)
 {
+    // colorMap always starts out as a clone of base->getPendingColorMap() (set
+    // in the constructor, for every pattern type) before any color_map{} token
+    // is parsed for this generation; the sole call site passes a freshly
+    // parsed RGBAColorPalette, never one derived from the current value, so
+    // the old clone is never aliased elsewhere and is safe to free here.
+    if (colorMap != v) {
+        delete colorMap;
+    }
     colorMap = v;
     return *this;
 }
