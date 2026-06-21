@@ -12,7 +12,6 @@ to encapsulate the span semantics specific to POV-ray scene parsing.
 class PovColorMap {
   private:
     java::ArrayList<PovColorMapSpan*> _spans;
-    bool _transparencyFlag;
 
   public:
     PovColorMap();
@@ -23,7 +22,6 @@ class PovColorMap {
 
     int size() const;
     const PovColorMapSpan *getSpanAt(int i) const;
-    ColorRgba evalLinear(double t) const;
 };
 
 #endif

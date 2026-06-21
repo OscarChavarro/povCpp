@@ -1,20 +1,3 @@
-#include "io/pov/material/TextureParser.h"
-#include "environment/material/povray/PovRayMaterialBuilder.h"
-#include "environment/material/povray/PovRayMaterialUtils.h"
-#include "environment/material/SolidTextureBumpyNames.h"
-#include "environment/material/SolidTextureColorNames.h"
-#include "io/image/GifFormat.h"
-#include "io/image/IffFormat.h"
-#include "io/image/RawDumpFormat.h"
-#include "io/image/TargaFormat.h"
-#include "io/pov/context/ParseGlobals.h"
-#include "io/pov/context/ParserContext.h"
-#include "io/pov/material/ColorMapParser.h"
-#include "io/pov/material/LoadedImageRegistry.h"
-#include "environment/material/povray/PovRayMaterialConstancy.h"
-#include "io/pov/parser/ParseErrorReporter.h"
-#include "io/pov/parser/ParseHelpers.h"
-#include "io/pov/parser/PrimitiveParser.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
@@ -22,6 +5,23 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureInterpolationTypes.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ImageToSolidTextureProjectionMethods.h"
+#include "environment/material/povray/PovRayMaterialBuilder.h"
+#include "environment/material/povray/PovRayMaterialUtils.h"
+#include "environment/material/SolidTextureBumpyNames.h"
+#include "environment/material/SolidTextureColorNames.h"
+#include "environment/material/povray/PovRayMaterialConstancy.h"
+#include "io/image/GifFormat.h"
+#include "io/image/IffFormat.h"
+#include "io/image/RawDumpFormat.h"
+#include "io/image/TargaFormat.h"
+#include "io/pov/material/TextureParser.h"
+#include "io/pov/context/ParseGlobals.h"
+#include "io/pov/context/ParserContext.h"
+#include "io/pov/material/ColorMapParser.h"
+#include "io/pov/material/LoadedImageRegistry.h"
+#include "io/pov/parser/ParseErrorReporter.h"
+#include "io/pov/parser/ParseHelpers.h"
+#include "io/pov/parser/PrimitiveParser.h"
 
 void
 TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDRUncompressed *ti, IndexedColorImageHDRUncompressed *idx)
@@ -452,13 +452,6 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
             case Tokenizer::IMAGEMAP_TOKEN:
                 {
                     ControlledRGBAImageHDRUncompressed *image = new ControlledRGBAImageHDRUncompressed;
-                    if (image == nullptr) {
-                        ParseErrorReporter::reportError(
-                            "Out of memory. Cannot allocate image map texture", ctx);
-                    }
-                    // Shared (not cloned) by every later generation/clone of this
-                    // texture - see LoadedImageRegistry for why no single one of
-                    // them can safely own it.
                     LoadedImageRegistry::registerImage(image);
                     image->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                     image->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
@@ -795,10 +788,6 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
             case Tokenizer::BUMPMAP_TOKEN:
                 {
                     ControlledRGBAImageHDRUncompressed *bumpImage = new ControlledRGBAImageHDRUncompressed;
-                    if (bumpImage == nullptr) {
-                        ParseErrorReporter::reportError(
-                            "Out of memory. Cannot allocate bump map texture", ctx);
-                    }
                     LoadedImageRegistry::registerImage(bumpImage);
                     bumpImage->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                     bumpImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);
@@ -931,10 +920,6 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
             case Tokenizer::MATERIAL_MAP_TOKEN:
                 {
                     ControlledRGBAImageHDRUncompressed *materialImage = new ControlledRGBAImageHDRUncompressed;
-                    if (materialImage == nullptr) {
-                        ParseErrorReporter::reportError(
-                            "Out of memory. Cannot allocate material map texture", ctx);
-                    }
                     LoadedImageRegistry::registerImage(materialImage);
                     materialImage->setImageGradient(Vector3Dd(1.0, -1.0, 0.0));
                     materialImage->setMapType(ImageToSolidTextureProjectionMethods::PLANAR_MAP);

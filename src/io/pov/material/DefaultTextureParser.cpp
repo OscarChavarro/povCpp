@@ -35,10 +35,6 @@ DefaultTextureParser::parseDefault(ParserContext &ctx)
     }
     PovRayMaterialConstancy::markConstant(parsedDefaultTexture);
     ctx.setDefaultTexture(parsedDefaultTexture);
-    // Only an actual replacement (a texture{} block fired above) retires the
-    // old default texture - objects placed earlier in the file may still be
-    // aliasing it directly (see DefaultTextureAliasTracker), so it can't just
-    // be freed here; the tracker defers until nothing aliases it anymore.
     if (parsedDefaultTexture != oldDefaultTexture) {
         DefaultTextureAliasTracker::retire(oldDefaultTexture);
     }

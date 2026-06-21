@@ -1,8 +1,7 @@
 #include "java/util/ArrayList.txx"
-
 #include "io/pov/material/PovColorMap.h"
 
-PovColorMap::PovColorMap() : _transparencyFlag(false) {
+PovColorMap::PovColorMap() {
 }
 
 PovColorMap::~PovColorMap() {
@@ -24,9 +23,6 @@ void PovColorMap::addSpan(
     s->setEnd(end);
     s->setStartColor(sc);
     s->setEndColor(ec);
-    if (sc.getA() != 0.0 || ec.getA() != 0.0) {
-        _transparencyFlag = true;
-    }
     _spans.add(s);
 }
 
@@ -39,22 +35,4 @@ const PovColorMapSpan *PovColorMap::getSpanAt(int i) const {
         return nullptr;
     }
     return _spans.get(i);
-}
-
-ColorRgba PovColorMap::evalLinear(double t) const {
-    ColorRgba result(0.0, 0.0, 0.0, 0.0);
-    if (t < 0.0) t = 0.0;
-    if (t > 1.0) t = 1.0;
-    for (int i = 0; i < (int)_spans.size(); i++) {
-        const PovColorMapSpan *s = _spans.get(i);
-        if (s != nullptr && t >= s->getStart() && t <= s->getEnd()) {
-            const double frac = (t - s->getStart()) / (s->getEnd() - s->getStart());
-            result.setR(s->getStartColor().getR() + frac * (s->getEndColor().getR() - s->getStartColor().getR()));
-            result.setG(s->getStartColor().getG() + frac * (s->getEndColor().getG() - s->getStartColor().getG()));
-            result.setB(s->getStartColor().getB() + frac * (s->getEndColor().getB() - s->getStartColor().getB()));
-            result.setA(s->getStartColor().getA() + frac * (s->getEndColor().getA() - s->getStartColor().getA()));
-            return result;
-        }
-    }
-    return result;
 }
