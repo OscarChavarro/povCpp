@@ -37,6 +37,7 @@
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "io/pov/light/LightSourceParser.h"
+#include "io/pov/material/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -61,6 +62,9 @@ ensurePrivateTexture(Material *objectTexture)
         (texture->getPigment() != nullptr && texture->getPigment()->needsTransform()) ||
         (texture->getNormal() != nullptr);
     if (needsTransform && PovRayMaterialConstancy::isConstant(texture)) {
+        // Safe no-op if `texture` isn't the tracked default-texture alias
+        // (e.g. it's some other #declare'd TEXTURE_CONSTANT).
+        DefaultTextureAliasTracker::releaseAlias(texture);
         return texture->copy();
     }
     return objectTexture;
@@ -268,6 +272,7 @@ ObjectParser::parseObject(ParserContext &ctx)
     ColorRgba *objectColor = nullptr;
     bool noShadowFlag = false;
     Material *objectTexture = ctx.getDefaultTexture();
+    DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(objectTexture));
 
     geometry = nullptr;
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -511,6 +516,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
     java::ArrayList<TransformableElement*> localClippingShapes(4);
     Vector3Dd localVector;
     Material *objectTexture = ctx.getDefaultTexture();
+    DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(objectTexture));
     ColorRgba *objectColor = nullptr;
     bool noShadowFlag = false;
 
