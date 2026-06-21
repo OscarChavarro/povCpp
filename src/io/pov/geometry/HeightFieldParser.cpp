@@ -228,5 +228,10 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
     } else if (directImage != nullptr) {
         HeightField::findHfMinMax(localShape, directImage, imageType);
     }
+    // indexedImage/directImage are scratch buffers: their pixel data is read
+    // into localShape's own block/Map arrays by allocateHfBlocks()/
+    // findHfMinMax() above, never aliased or referenced afterwards.
+    delete indexedImage;
+    delete directImage;
     return body;
 }
