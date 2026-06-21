@@ -6,6 +6,7 @@
 class MarblePigment : public SolidTexturePigment {
   public:
     MarblePigment(double turbulence, int octaves, const RGBAColorPalette *colorMap);
+    ~MarblePigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

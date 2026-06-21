@@ -6,6 +6,7 @@
 class OnionPigment : public SolidTexturePigment {
   public:
     OnionPigment(double turbulence, int octaves, const RGBAColorPalette *colorMap);
+    ~OnionPigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

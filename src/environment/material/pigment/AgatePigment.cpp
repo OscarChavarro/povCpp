@@ -16,6 +16,11 @@ AgatePigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTole
     colorFixture.agate(x, y, z, octaves, colorMap, color);
 }
 
+AgatePigment::~AgatePigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 AgatePigment::copy() const
 {

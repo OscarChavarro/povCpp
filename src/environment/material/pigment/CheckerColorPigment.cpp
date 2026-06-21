@@ -16,6 +16,12 @@ CheckerColorPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double sm
     colorFixture.checker(x, y, z, color, color1, color2, smallTolerance);
 }
 
+CheckerColorPigment::~CheckerColorPigment()
+{
+    delete color1;
+    delete color2;
+}
+
 SolidTexturePigment *
 CheckerColorPigment::copy() const
 {

@@ -6,6 +6,7 @@
 class GranitePigment : public SolidTexturePigment {
   public:
     explicit GranitePigment(const RGBAColorPalette *colorMap);
+    ~GranitePigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

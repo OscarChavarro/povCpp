@@ -181,7 +181,7 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
         layers.add(PovRayMaterial::copyTexture(base->getLayers()[i]));
     }
     for (long int i = 0; i < base->getMaterialMapVariants().size(); i++) {
-        materials.add(base->getMaterialMapVariants()[i]);
+        materials.add(PovRayMaterial::copyTexture(base->getMaterialMapVariants()[i]));
     }
 }
 

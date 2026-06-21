@@ -17,6 +17,11 @@ WoodPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallToler
     colorFixture.wood(x, y, z, turbulence, octaves, colorMap, color);
 }
 
+WoodPigment::~WoodPigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 WoodPigment::copy() const
 {

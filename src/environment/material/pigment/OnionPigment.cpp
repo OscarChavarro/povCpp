@@ -17,6 +17,11 @@ OnionPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTole
     colorFixture.onion(x, y, z, turbulence, octaves, colorMap, color);
 }
 
+OnionPigment::~OnionPigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 OnionPigment::copy() const
 {

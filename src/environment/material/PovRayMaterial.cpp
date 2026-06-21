@@ -50,6 +50,26 @@ PovRayMaterial::PovRayMaterial(
 {
 }
 
+PovRayMaterial::~PovRayMaterial()
+{
+    delete pigment;
+    delete normal;
+    delete textureTransformation;
+    delete textureTransformationInverse;
+    delete pendingColorMap;
+    // pendingBumpImage/materialMapImage are not owned here: they are allocated once
+    // per image_map{}/bump_map{}/material_map{} occurrence in the .pov source and
+    // threaded through every rebuild generation by reference (see ownership.md) -
+    // exactly one ImageMapPigment/BumpMapNormal/material_map consumer is responsible
+    // for them, never PovRayMaterial itself.
+    for (long int i = 0; i < layers.size(); i++) {
+        delete layers[i];
+    }
+    for (long int i = 0; i < materialMapVariants.size(); i++) {
+        delete materialMapVariants[i];
+    }
+}
+
 void
 PovRayMaterial::applyRotationTransform(
     PovRayMaterial *texture, Vector3Dd *vector)
@@ -117,6 +137,11 @@ PovRayMaterial::copyTexture(const PovRayMaterial *texture)
     newHead->layers.clear();
     for (long int i = 0; i < texture->layers.size(); i++) {
         newHead->layers.add(copyTextureNode(texture->layers[i]));
+    }
+
+    newHead->materialMapVariants.clear();
+    for (long int i = 0; i < texture->materialMapVariants.size(); i++) {
+        newHead->materialMapVariants.add(copyTexture(texture->materialMapVariants[i]));
     }
 
     return newHead;

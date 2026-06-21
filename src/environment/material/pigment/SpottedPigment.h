@@ -6,6 +6,7 @@
 class SpottedPigment : public SolidTexturePigment {
   public:
     explicit SpottedPigment(const RGBAColorPalette *colorMap);
+    ~SpottedPigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

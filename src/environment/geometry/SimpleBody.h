@@ -20,6 +20,7 @@ class SimpleBody : public TransformableElement {
     SimpleBody() = default;
     SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor);
     SimpleBody(const SimpleBody &other);
+    ~SimpleBody() override;
 
     Geometry* getGeometry() const { return geometry; }
     Material* getMaterial() const { return material; }

@@ -18,6 +18,11 @@ GradientPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallT
     colorFixture.gradient(x, y, z, turbulence, colorMap, textureGradient, octaves, color);
 }
 
+GradientPigment::~GradientPigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 GradientPigment::copy() const
 {

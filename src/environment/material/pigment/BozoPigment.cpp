@@ -17,6 +17,11 @@ BozoPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallToler
     colorFixture.bozo(x, y, z, turbulence, octaves, colorMap, color);
 }
 
+BozoPigment::~BozoPigment()
+{
+    delete colorMap;
+}
+
 SolidTexturePigment *
 BozoPigment::copy() const
 {

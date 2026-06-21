@@ -23,11 +23,13 @@ namespace {
 SimpleBody *
 rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
 {
-    SimpleBody *newBody = new SimpleBody(
-        geometry, body->getMaterial(), body->getShapeColor());
+    Material *clonedMaterial = (body->getMaterial() != nullptr) ?
+        body->getMaterial()->copy() : nullptr;
+    ColorRgba *clonedShapeColor = (body->getShapeColor() != nullptr) ?
+        new ColorRgba(*body->getShapeColor()) : nullptr;
+    SimpleBody *newBody = new SimpleBody(geometry, clonedMaterial, clonedShapeColor);
     newBody->getTransform() = body->getTransform();
     newBody->getTransformInverse() = body->getTransformInverse();
-    delete body->getGeometry();
     delete body;
     return newBody;
 }

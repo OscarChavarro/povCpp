@@ -6,6 +6,7 @@
 class AgatePigment : public SolidTexturePigment {
   public:
     AgatePigment(int octaves, const RGBAColorPalette *colorMap);
+    ~AgatePigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;

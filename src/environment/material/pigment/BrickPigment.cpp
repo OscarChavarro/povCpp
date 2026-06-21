@@ -17,6 +17,12 @@ BrickPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTole
     colorFixture.brick(x, y, z, color, color1, color2, mortar);
 }
 
+BrickPigment::~BrickPigment()
+{
+    delete color1;
+    delete color2;
+}
+
 SolidTexturePigment *
 BrickPigment::copy() const
 {
