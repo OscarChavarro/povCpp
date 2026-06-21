@@ -1,6 +1,9 @@
 #ifndef __DEFAULT_TEXTURE_ALIAS_TRACKER__
 #define __DEFAULT_TEXTURE_ALIAS_TRACKER__
 
+#include "java/util/ArrayList.h"
+#include "environment/material/TextureAliasEntry.h"
+
 class PovRayMaterial;
 
 // ObjectParser::parseObject/parseComposite initialize an untextured object's
@@ -35,6 +38,13 @@ class DefaultTextureAliasTracker {
     // currently aliasing it, otherwise defers the free until the last
     // releaseAlias() call brings its count to zero.
     static void retire(PovRayMaterial *oldDefaultTexture);
+
+  private:
+    // All currently tracked default-texture aliases, process-wide.
+    static java::ArrayList<TextureAliasEntry> &entries();
+
+    // Index of the entry tracking `material`, or -1 if it isn't tracked.
+    static long int findEntryIndex(PovRayMaterial *material);
 };
 
 #endif

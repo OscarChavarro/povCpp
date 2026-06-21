@@ -2,9 +2,12 @@
 #define __ADAPTIVE_ANTI_ALIASING__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
 
 class RenderEngine;
 class RenderWorker;
+class IntersectionPriorityQueuePool;
+class Statistics;
 
 class AdaptiveAntiAliasing {
   private:
@@ -21,15 +24,22 @@ class AdaptiveAntiAliasing {
 
     RenderEngine *renderEngine;
 
-    inline unsigned short rand3dInline(int a, int b);
+    inline unsigned short rand3dInline(RenderWorker &worker, int a, int b);
     void superSample(
-        RenderWorker &worker, ColorRgba *result, int x, int y, int width, int height);
+        RenderWorker &worker, ColorRgba *result, int x, int y, int width,
+        int height, IntersectionPriorityQueuePool *pool, Statistics *stats);
 
   public:
     explicit AdaptiveAntiAliasing(RenderEngine *engine)
         : renderEngine(engine) {}
 
-    void doAntiAliasing(RenderWorker &worker, int x, int y, ColorRgba *color);
+    // `area` is the calling RenderTask's tile (full frame in serial mode);
+    // `pool`/`stats` are that task's own intersection queue pool and
+    // statistics, passed down to the supersample rays so concurrent tiles
+    // never share queues or pixel/ray counters.
+    void doAntiAliasing(RenderWorker &worker, int x, int y, ColorRgba *color,
+        const RasterTileArea &area, IntersectionPriorityQueuePool *pool,
+        Statistics *stats);
 };
 
 #endif

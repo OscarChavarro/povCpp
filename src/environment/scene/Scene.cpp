@@ -2,12 +2,10 @@
 
 #include "environment/scene/Scene.h"
 
-namespace {
 ColorRgba
-blackFogColor()
+Scene::blackFogColor()
 {
     return ColorRgba(0.0, 0.0, 0.0, 0.0);
-}
 }
 
 Scene::Scene() :

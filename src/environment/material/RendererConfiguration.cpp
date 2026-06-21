@@ -40,5 +40,6 @@ RenderingConfiguration::reset()
     verboseFormat = '\0';
     tokenizerCaseSensitiveMode = 0;
     tokenizerMaxSymbols = 500;
+    numberOfThreads = 1;
     std::strcpy(inputFileName, "object.dat");
 }

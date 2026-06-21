@@ -1,36 +1,26 @@
-#include "io/pov/material/DefaultTextureAliasTracker.h"
+#include "environment/material/DefaultTextureAliasTracker.h"
 #include "environment/material/PovRayMaterial.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "java/util/ArrayList.txx"
 
-namespace {
-
-struct AliasEntry {
-    PovRayMaterial *material;
-    int count;
-    bool retired;
-};
-
-java::ArrayList<AliasEntry> &
-entries()
+java::ArrayList<TextureAliasEntry> &
+DefaultTextureAliasTracker::entries()
 {
-    static java::ArrayList<AliasEntry> instances{};
+    static java::ArrayList<TextureAliasEntry> instances{};
     return instances;
 }
 
 long int
-findEntryIndex(PovRayMaterial *material)
+DefaultTextureAliasTracker::findEntryIndex(PovRayMaterial *material)
 {
-    java::ArrayList<AliasEntry> &list = entries();
+    java::ArrayList<TextureAliasEntry> &list = entries();
     for (long int i = 0; i < list.size(); i++) {
-        if (list[i].material == material) {
+        if (list[i].getMaterial() == material) {
             return i;
         }
     }
     return -1;
 }
-
-} // namespace
 
 void
 DefaultTextureAliasTracker::trackAlias(PovRayMaterial *defaultTexture)
@@ -40,10 +30,10 @@ DefaultTextureAliasTracker::trackAlias(PovRayMaterial *defaultTexture)
     }
     const long int idx = findEntryIndex(defaultTexture);
     if (idx != -1) {
-        entries()[idx].count++;
+        entries()[idx].incrementCount();
         return;
     }
-    entries().add(AliasEntry{defaultTexture, 1, false});
+    entries().add(TextureAliasEntry(defaultTexture));
 }
 
 void
@@ -52,13 +42,13 @@ DefaultTextureAliasTracker::releaseAlias(PovRayMaterial *material)
     if (material == nullptr) {
         return;
     }
-    java::ArrayList<AliasEntry> &list = entries();
+    java::ArrayList<TextureAliasEntry> &list = entries();
     const long int idx = findEntryIndex(material);
     if (idx == -1) {
         return;
     }
-    list[idx].count--;
-    if (list[idx].retired && list[idx].count <= 0) {
+    list[idx].decrementCount();
+    if (list[idx].isRetired() && list[idx].getCount() <= 0) {
         PovRayMaterialConstancy::unmarkConstant(material);
         delete material;
         list.remove(idx);
@@ -71,7 +61,7 @@ DefaultTextureAliasTracker::retire(PovRayMaterial *oldDefaultTexture)
     if (oldDefaultTexture == nullptr) {
         return;
     }
-    java::ArrayList<AliasEntry> &list = entries();
+    java::ArrayList<TextureAliasEntry> &list = entries();
     const long int idx = findEntryIndex(oldDefaultTexture);
     if (idx == -1) {
         // Nothing ever aliased it (no untextured object was placed before
@@ -80,8 +70,8 @@ DefaultTextureAliasTracker::retire(PovRayMaterial *oldDefaultTexture)
         delete oldDefaultTexture;
         return;
     }
-    list[idx].retired = true;
-    if (list[idx].count <= 0) {
+    list[idx].markRetired();
+    if (list[idx].getCount() <= 0) {
         PovRayMaterialConstancy::unmarkConstant(oldDefaultTexture);
         delete oldDefaultTexture;
         list.remove(idx);

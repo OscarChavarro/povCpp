@@ -1,9 +1,9 @@
 #include "java/util/PriorityQueue.txx"
 
+#include "environment/material/DefaultTextureAliasTracker.h"
 #include "environment/material/PovRayMaterialUtils.h"
 
 #include "io/pov/context/ParserContext.h"
-#include "io/pov/material/DefaultTextureAliasTracker.h"
 #include "io/pov/material/DefaultTextureParser.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"

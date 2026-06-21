@@ -6,6 +6,7 @@
 #include "render/shaders/TraceService.h"
 
 class RenderEngine;
+class TextureUtils;
 
 class RenderWorker {
   private:
@@ -18,6 +19,11 @@ class RenderWorker {
     char *previousLineAntiAliasedFlags;
     char *currentLineAntiAliasedFlags;
     TraceService traceService;
+    // The TextureUtils this worker's shading/noise calls must use: the
+    // shared, engine-owned instance for the serial worker, or this task's
+    // own instance (so noise() call counters never race across threads).
+    // Not owned; set once before any tracing starts.
+    TextureUtils *textureUtils;
 
     static ColorRgba *allocateColorBuffer(int count);
     static void traceServiceTrace(void *context, const RayWithSegments *ray,
@@ -54,6 +60,8 @@ class RenderWorker {
         currentLineAntiAliasedFlags[x] = value ? 1 : 0;
     }
     TraceService *getTraceService() { return &traceService; }
+    void setTextureUtils(TextureUtils *utils) { textureUtils = utils; }
+    TextureUtils &getTextureUtils() { return *textureUtils; }
 };
 
 #endif

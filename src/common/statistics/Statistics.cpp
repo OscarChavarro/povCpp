@@ -11,11 +11,21 @@ Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
         return;
     }
 
+    // Collected alongside the scalar counters below and reduced through
+    // SolidTextureStatistics's own parts-summing constructor, rather than
+    // summing callsToNoise/callsToDNoise inline here, so the noise-counter
+    // reduction lives in one place (SolidTextureStatistics) and stays in
+    // sync however many fields it grows to.
+    java::ArrayList<SolidTextureStatistics*> solidTextureStatisticsParts;
+
     for (long i = 0; i < partsPerThread->size(); ++i) {
         const Statistics *part = partsPerThread->get(i);
         if (part == nullptr) {
             continue;
         }
+
+        solidTextureStatisticsParts.add(
+            const_cast<SolidTextureStatistics*>(&part->solidTextureStatistics));
 
         numberOfPixels += part->numberOfPixels;
         numberOfRays += part->numberOfRays;
@@ -42,16 +52,14 @@ Statistics::Statistics(java::ArrayList<Statistics*> *partsPerThread)
         boundingRegionTestsSucceeded += part->boundingRegionTestsSucceeded;
         clippingRegionTests += part->clippingRegionTests;
         clippingRegionTestsSucceeded += part->clippingRegionTestsSucceeded;
-        solidTextureStatistics.callsToNoise +=
-            part->solidTextureStatistics.callsToNoise;
-        solidTextureStatistics.callsToDNoise +=
-            part->solidTextureStatistics.callsToDNoise;
         shadowRayTests += part->shadowRayTests;
         reflectedRaysTraced += part->reflectedRaysTraced;
         refractedRaysTraced += part->refractedRaysTraced;
         transmittedRaysTraced += part->transmittedRaysTraced;
         usedTime += part->usedTime;
     }
+
+    solidTextureStatistics = SolidTextureStatistics(&solidTextureStatisticsParts);
 }
 
 SolidTextureStatistics*

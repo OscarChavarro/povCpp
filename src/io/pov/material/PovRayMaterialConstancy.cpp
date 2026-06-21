@@ -2,16 +2,12 @@
 #include "environment/material/PovRayMaterial.h"
 #include "java/util/ArrayList.txx"
 
-namespace {
-
 java::ArrayList<const PovRayMaterial *> &
-constantMaterials()
+PovRayMaterialConstancy::constantMaterials()
 {
     static java::ArrayList<const PovRayMaterial *> instances;
     return instances;
 }
-
-} // namespace
 
 void
 PovRayMaterialConstancy::markConstant(const PovRayMaterial *material)

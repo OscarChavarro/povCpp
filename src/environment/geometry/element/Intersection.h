@@ -98,14 +98,12 @@ Intersection::setOwnerSimpleBody(SimpleBody *value)
     ownerSimpleBody = value;
 }
 
-namespace java {
 template <>
 inline bool
-PriorityQueue<Intersection>::lessThan(
+java::PriorityQueue<Intersection>::lessThan(
     const Intersection& a, const Intersection& b) const
 {
     return a.getT() < b.getT();
-}
 }
 
 #endif

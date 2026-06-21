@@ -11,7 +11,8 @@ RenderWorker::RenderWorker(RenderEngine *owner)
       previousLineAntiAliasedFlags(nullptr),
       currentLineAntiAliasedFlags(nullptr),
       traceService(RenderWorker::traceServiceTrace,
-          RenderWorker::traceServiceShadeShadow, this)
+          RenderWorker::traceServiceShadeShadow, this),
+      textureUtils(nullptr)
 {
 }
 
@@ -94,5 +95,5 @@ RenderWorker::traceServiceShadeShadow(
     RenderEngine &engine = *worker->engine;
     RayShaderPipeline::shadeSurface(
         intersection, color, nullptr, true, worker->getTraceService(),
-        &engine.getTextureUtils(), engine.getRenderContext(), worker->traceLevel);
+        &worker->getTextureUtils(), engine.getRenderContext(), worker->traceLevel);
 }

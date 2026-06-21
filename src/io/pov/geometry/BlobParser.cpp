@@ -16,10 +16,8 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-namespace {
-
 SimpleBody *
-rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
+BlobParser::rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         body->getMaterial()->copy() : nullptr;
@@ -30,8 +28,6 @@ rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
     newBody->getTransformInverse() = body->getTransformInverse();
     delete body;
     return newBody;
-}
-
 }
 
 SimpleBody *
