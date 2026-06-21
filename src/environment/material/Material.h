@@ -5,7 +5,7 @@
 
 class Material {
   public:
-    virtual ~Material() = default;
+    virtual ~Material() {}
 
     virtual Material *copy() = 0;
     virtual Material *translate(Vector3Dd *vector) = 0;

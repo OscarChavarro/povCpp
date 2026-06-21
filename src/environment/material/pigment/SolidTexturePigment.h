@@ -14,7 +14,7 @@
 // textureTransformationInverse via transformToObjectSpace() before calling colorAt.
 class SolidTexturePigment {
   public:
-    virtual ~SolidTexturePigment() = default;
+    virtual ~SolidTexturePigment() {}
 
     virtual void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const = 0;
