@@ -19,10 +19,6 @@ class RenderWorker {
     char *previousLineAntiAliasedFlags;
     char *currentLineAntiAliasedFlags;
     TraceService traceService;
-    // The TextureUtils this worker's shading/noise calls must use: the
-    // shared, engine-owned instance for the serial worker, or this task's
-    // own instance (so noise() call counters never race across threads).
-    // Not owned; set once before any tracing starts.
     TextureUtils *textureUtils;
 
     static ColorRgba *allocateColorBuffer(int count);
@@ -41,7 +37,6 @@ class RenderWorker {
     RayWithSegments *getPrimaryRay() { return primaryRay; }
     RayWithSegments &getRay() { return ray; }
     int &getTraceLevel() { return traceLevel; }
-    int getTraceLevel() const { return traceLevel; }
     void setTraceLevel(int level) { traceLevel = level; }
     ColorRgba *getPreviousLine() { return previousLine; }
     ColorRgba *getCurrentLine() { return currentLine; }

@@ -1,11 +1,10 @@
 #ifndef __RENDER_CONTEXT__
 #define __RENDER_CONTEXT__
 
-class RenderingConfiguration;
-class Statistics;
-class Scene;
-class RenderRuntimeState;
-class TextureUtils;
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
+#include "common/RenderRuntimeState.h"
+#include "environment/scene/Scene.h"
+#include "render/RenderContext.h"
 
 class RenderContext {
   private:

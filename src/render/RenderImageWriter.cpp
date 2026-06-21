@@ -3,7 +3,6 @@
 #include "environment/material/RendererConfiguration.h"
 #include "render/RenderEngine.h"
 #include "render/RenderImageWriter.h"
-#include "render/RenderWorker.h"
 
 void
 RenderImageWriter::readRenderedPart(ColorRgba *lineBuffer)
@@ -35,23 +34,4 @@ RenderImageWriter::readRenderedPart(ColorRgba *lineBuffer)
 
     Logger::reportMessage("RenderImageWriter", Logger::ERROR, "",
         "Error reading aborted data file\n");
-}
-
-void
-RenderImageWriter::writeScanline(ColorRgba *lineData, int lineNumber)
-{
-    const RenderingConfiguration &config = renderEngine->getConfig();
-
-    if (config.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
-        config.getOutputFileInputStream()->writeLine(lineData, lineNumber);
-    }
-}
-
-void
-RenderImageWriter::outputLine(RenderWorker &localWorker, int y)
-{
-    if (y > renderEngine->getConfig().getFirstLine()) {
-        writeScanline(localWorker.getPreviousLine(), y - 1);
-    }
-    localWorker.swapLines();
 }

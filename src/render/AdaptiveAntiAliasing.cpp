@@ -1,6 +1,4 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
-
-#include "common/RenderRuntimeState.h"
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"
 #include "render/AdaptiveAntiAliasing.h"
@@ -11,8 +9,6 @@
 inline unsigned short
 AdaptiveAntiAliasing::rand3dInline(RenderWorker &worker, int a, int b)
 {
-    // worker's own TextureUtils (engine-shared in serial mode, task-private
-    // in parallel mode) — never renderEngine->getTextureUtils() directly.
     ProceduralNoise &noise = worker.getTextureUtils().getProceduralNoise();
     return noise.checksumTable().eval((int)(noise.hashTable()[(int)(noise.hashTable()[(int)(a & 0xfff)] ^ b) &
                                   0xfff]));
@@ -81,10 +77,6 @@ AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y,
     worker.setCurrentLineAntiAliasedFlag(x, false);
 
     if (x != area.getX0()) {
-        // M1 (future, symmetric to the row clip below): for vertical-strip
-        // tiles this would need (x - 1) >= area.getX0(), already true here
-        // since the branch only runs when x != area.getX0(). Not needed for
-        // horizontal bands, where x0 == 0 for every tile.
         if (ColorOperations::colorDistance(
                 worker.getCurrentLinePixel(x - 1),
                 worker.getCurrentLinePixel(x)) >=
@@ -105,8 +97,6 @@ AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y,
                 worker.getCurrentLinePixel(x)) >=
             renderEngine->getScene().getAntialiasThreshold()) {
             antialiasCenterFlag = 1;
-            // M1: never write a supersampled pixel into a row owned by
-            // another tile (the row above this task's RasterTileArea).
             if (!worker.getPreviousLineAntiAliasedFlag(x) &&
                 (y - 1) >= area.getY0()) {
                 superSample(worker, worker.getPreviousLinePixel(x), x, y - 1,

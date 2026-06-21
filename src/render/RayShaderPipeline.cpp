@@ -37,11 +37,11 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ImageTexture mapFixture;
     ColorTextureFixture colorFixture(&textureUtils->getProceduralNoise(), textureUtils);
 
-    // Is there a texture in the shape?  If not, use the one in the object
     texture = static_cast<PovRayMaterial *>(rayIntersection->getOwnerSimpleBody()->getMaterial());
     if (texture == nullptr) {
         texture = static_cast<PovRayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }
+
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture
     if (texture->getMaterialMapVariants().size() > 0) {
@@ -56,7 +56,6 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     }
 
     // If this is just a shadow ray, and we're rendering low quality, then return
-
     if (shadowRay && (context.getConfig().getQuality() <= 5)) {
         return;
     }
@@ -102,7 +101,6 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     // For shadow rays, we have the filter color now - time to return
     if (shadowRay) {
-
         if (filterColor.getA() < 0.01) {
             color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
             return;
