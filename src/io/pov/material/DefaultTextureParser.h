@@ -5,7 +5,6 @@
 
 class DefaultTextureParser {
   public:
-    static void parseDefault();
     static void parseDefault(ParserContext &ctx);
 };
 

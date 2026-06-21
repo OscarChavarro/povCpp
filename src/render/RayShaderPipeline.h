@@ -9,7 +9,7 @@
 #include "render/shaders/TraceService.h"
 
 class RayShaderPipeline {
-public:
+  public:
     static void shadeSurface(Intersection *rayIntersection,
         ColorRgba *color, const RayWithSegments *ray, int shadowRay,
         const TraceService *traceService, TextureUtils *textureUtils,

@@ -3,10 +3,12 @@
 
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/material/PovColorMap.h"
 
 class ColorMapParser {
+  private:
+    static RGBAColorPalette *toRGBAColorPalette(PovColorMap *map);
   public:
-    static RGBAColorPalette *parseColorMap();
     static RGBAColorPalette *parseColorMap(ParserContext &ctx);
 };
 
