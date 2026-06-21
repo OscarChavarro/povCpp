@@ -3,6 +3,7 @@
 #include "environment/material/PovRayMaterialUtils.h"
 
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/material/DefaultTextureAliasTracker.h"
 #include "io/pov/material/DefaultTextureParser.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
@@ -19,7 +20,8 @@ DefaultTextureParser::parseDefault()
 void
 DefaultTextureParser::parseDefault(ParserContext &ctx)
 {
-    PovRayMaterial *parsedDefaultTexture = ctx.getDefaultTexture();
+    PovRayMaterial * const oldDefaultTexture = ctx.getDefaultTexture();
+    PovRayMaterial *parsedDefaultTexture = oldDefaultTexture;
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
         bool Exit_Flag;
@@ -43,4 +45,11 @@ DefaultTextureParser::parseDefault(ParserContext &ctx)
     }
     PovRayMaterialConstancy::markConstant(parsedDefaultTexture);
     ctx.setDefaultTexture(parsedDefaultTexture);
+    // Only an actual replacement (a texture{} block fired above) retires the
+    // old default texture - objects placed earlier in the file may still be
+    // aliasing it directly (see DefaultTextureAliasTracker), so it can't just
+    // be freed here; the tracker defers until nothing aliases it anymore.
+    if (parsedDefaultTexture != oldDefaultTexture) {
+        DefaultTextureAliasTracker::retire(oldDefaultTexture);
+    }
 }

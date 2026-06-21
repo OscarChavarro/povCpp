@@ -3,6 +3,7 @@
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/PovRayMaterial.h"
+#include "io/pov/material/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
@@ -223,10 +224,15 @@ BoundedGeometry::~BoundedGeometry()
     // objectTexture starts out as the scene's shared default texture (see
     // ObjectParser::parseObject/parseComposite) and stays that way for any
     // untextured object - never delete the registered-constant instance, only a
-    // private copy of it.
+    // private copy of it. If it's still aliasing the (possibly already
+    // superseded) default texture, tell DefaultTextureAliasTracker this alias
+    // just ended - a safe no-op if it isn't the tracked default (e.g. some
+    // other #declare'd TEXTURE_CONSTANT).
     if (objectTexture != nullptr &&
         !PovRayMaterialConstancy::isConstant(static_cast<PovRayMaterial *>(objectTexture))) {
         delete objectTexture;
+    } else if (objectTexture != nullptr) {
+        DefaultTextureAliasTracker::releaseAlias(static_cast<PovRayMaterial *>(objectTexture));
     }
     for (long int i = 0; i < boundingShapes.size(); i++) {
         delete boundingShapes[i];
