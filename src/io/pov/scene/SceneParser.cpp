@@ -112,14 +112,18 @@ SceneParser::freeConstants(ParserContext &ctx)
 void
 SceneParser::parse(Scene *framePtr, ParserContext &ctx)
 {
-    Scene parsedFrame = *framePtr;
+    // Parses directly into *framePtr rather than building a local Scene and
+    // copying it in at the end: Scene owns its final Objects tree (see
+    // ~Scene() and doc/memoryAudit/ownership.md), and the compiler-generated
+    // copy constructor/assignment only shallow-copies that ArrayList. An
+    // intermediate by-value Scene here would have its destructor delete the
+    // same BoundedGeometry* the caller's framePtr still needs for the render.
     ctx.degenerateTriangles() = false;
     SceneParser::tokenInit(ctx);
-    SceneParser::frameInit(&parsedFrame, ctx);
-    SceneParser::parseFrame(&parsedFrame, ctx);
-    postProcessPhase(&parsedFrame);
+    SceneParser::frameInit(framePtr, ctx);
+    SceneParser::parseFrame(framePtr, ctx);
+    postProcessPhase(framePtr);
     freeConstants(ctx);
-    *framePtr = parsedFrame;
     if (ctx.degenerateTriangles()) {
         fprintf(stderr, "Degenerate triangles were found and are being ignored.\n");
     }

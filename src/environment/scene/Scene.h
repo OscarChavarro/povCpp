@@ -13,6 +13,14 @@ class Scene {
     static constexpr double DEFAULT_ANTIALIAS_THRESHOLD = 0.3;
 
     Scene();
+    // Objects is owned (see ~Scene()); a compiler-generated copy would only
+    // shallow-copy the ArrayList, leaving two Scenes pointing at the same
+    // BoundedGeometry* instances. Nothing in this codebase copies a Scene by
+    // value (SceneParser::parse() used to and was changed to parse in place
+    // instead) - deleted here to keep it that way.
+    Scene(const Scene &other) = delete;
+    Scene &operator=(const Scene &other) = delete;
+    ~Scene();
 
     const Camera& getViewPoint() const { return viewPoint; }
     void setViewPoint(const Camera &camera) { viewPoint = camera; }
