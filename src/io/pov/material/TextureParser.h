@@ -1,7 +1,7 @@
 #ifndef __TEXTURE_PARSER__
 #define __TEXTURE_PARSER__
 
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "io/pov/context/ParserContext.h"
 
 class PovRayMaterialBuilder;

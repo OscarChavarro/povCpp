@@ -39,6 +39,12 @@ objectives.
   `AdaptiveAntiAliasing` (super-sampling/jitter), `RayShaderPipeline` (surface
   shading) and `RenderImageWriter` (scanline persistence + interrupted-render
   resume), instead of one monolithic engine.
+- The renderer runs **serial or tile-parallel from the same sampling code**:
+  `-parallel[N]` detects `nproc`, splits the frame into horizontal bands via
+  `RasterTileGenerator`, and renders each band on its own `RenderTask` (per-thread
+  `RenderWorker`, intersection pool, `Statistics` and `TextureUtils`) through the
+  pthread-backed `java::Executors` pool, reducing the per-thread statistics at
+  join — **objective #4 fulfilled**, not a future step.
 
 ## Strengths
 
@@ -60,49 +66,16 @@ objectives.
 | P14 | **Procedural texturing is a polymorphic class hierarchy** — `SolidTexturePigment` (15 concrete patterns) and `SolidTextureNormal` (7 concrete patterns), each over an abstract base | `src/environment/material/pigment/*`, `src/environment/material/normal/*` | #1 readable; #3 maps cleanly to a Java class hierarchy; #5 each pattern is an isolated GPU shading variant |
 | P15 | **`PovRayMaterial` immutable + constants centralized** — const getters and constructor-only state, assembled by `PovRayMaterialBuilder`; tolerances/epsilons consolidated in `Config` | `PovRayMaterial.h`, `Config.h`, `PovRayMaterialBuilder.*` | #4 a read-only material is safe to share across threads; #1/#2 no scattered magic numbers |
 | P16 | **Manual but robust memory management, verified by valgrind** — every class has an explicit destructor with a correct owner and lifetime; every shared resource is owned by exactly one place. **No smart pointers, by design** — explicit raw ownership throughout, for backwards-portability to pre-C++11 toolchains and forward-portability to a future Rust port (explicit, traceable ownership maps directly to Rust's move/borrow model). The full 108-scene corpus runs leak-free and error-free under valgrind memcheck | valgrind memcheck, full 108-scene corpus | #2 stays on raw `new`/`delete` only, no C++11+ ownership types to migrate away from; #1 ownership is explicit and traceable, not hidden behind a smart-pointer type |
+| P17 | **Tile-based `-parallel` renderer, gate-green** — `-parallel[N]` detects `nproc`, splits the frame into horizontal bands (`RasterTileGenerator`) and renders each on its own `RenderTask` (own `RenderWorker`, intersection pool, `Statistics`, `TextureUtils`) via the pthread-backed `java::Executors` pool; tile bounds are explicit parameters, per-thread statistics/noise counters are reduced at join through their parts-summing constructors, the frame is assembled in a full-frame buffer and persisted after join, AA seams use a one-row halo, and abort is an atomic report-once. **Bit-exact against the serial path** on the golden corpus | `RenderEngine::startTracingParallel`, `RenderTask.h`, `RasterTileGenerator`, `renderParallel.sh` | **#4 fulfilled**: the concurrent multi-thread driver matches the serial reference image-for-image |
 
 ## Areas to improve
 
 | # | Aspect | Evidence / risk | Objective | Suggestion |
 |---|--------|-----------------|-----------|------------|
-| M1 | **Antialiasing couples neighboring scanlines** (`previousLine`/`currentLine`) | `AdaptiveAntiAliasing::doAntiAliasing`, `RenderWorker` line buffers/`swapLines` | **#4** | Now isolated in its own class, but it still reads the adjacent scanline. Blocks trivial tiling; redesign into independent tiles or resolve AA in two passes |
-| M2 | **Statistics incremented per pixel on a single shared instance** | `incrementNumberOfPixels()` in `RenderEngine::startTracing` loop | **#4** | The per-thread reduction is already designed in: `Statistics` has a parts-summing constructor `Statistics(ArrayList<Statistics*>*)` (present but not yet wired). Give each thread its own instance and reduce at join — no `std::atomic` needed |
-| M3 | **Virtual dispatch across geometry and materials** (`virtual allIntersectionsForOwner` + `PriorityQueue<Intersection>`; plus the `SolidTexturePigment`/`SolidTextureNormal` virtuals) | `Geometry.h`, primitive headers, `pigment/*`, `normal/*` | **#5** | GPU/SPIR-V has no virtuals or recursion; it will need tagged-unions/SoA. The pigment/normal hierarchies aid CPU/Java clarity (P14) but are three families to flatten — plan a flat POD scene + pattern-id dispatch early |
-| M4 | **`double` throughout the pipeline** | `Vector3Dd`, `Matrix4x4d`, shaders | **#5** | FP64 is slow/scarce on the GPU. Since the GPU goal is AE-metric similarity (not bit-exact), decide the precision strategy and the acceptable AE tolerance early |
-| M5 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
-
-## Tile-based parallelism (`-parallel`) — readiness assessment
-
-Target: a `-parallel` flag that detects `nproc`, spins up `nproc` threads via
-`java::Executors::newFixedThreadPool` (the pthread-backed wrapper in
-`base/.../util/concurrent`), and renders the frame as independent **tiles**.
-The render layer is already *closer* than the rest of the codebase thanks to P12
-(per-ray scratch lives in `RenderWorker`, and `trace`/AA/shading are parameterized
-over a worker) and P8/P9 (no globals, per-engine pooling). What remains are the
-following design-blocking items, in priority order.
-
-| # | Blocker | Evidence | Why it blocks tiling | Direction |
-|---|---------|----------|----------------------|-----------|
-| B1 | **One `RenderEngine` owns exactly one `RenderWorker`, one `IntersectionPriorityQueuePool` and one `AdaptiveAntiAliasing`** | `RenderEngine.h:16-18`; `getWorker()` returns the single member | All threads would share one worker (ray scratch, line buffers) and one intersection pool → data races. Need **one worker + one pool per thread** | Make the per-thread state a `RenderTask`/context object (worker + pool), created `nproc` times; keep `RenderEngine` as the shared, read-only sampling logic |
-| B2 | **`createRay` injects the engine-owned pool into every ray** | `RenderEngine.cpp:53` `localRay->setIntersectionQueuePool(&intersectionQueuePool)` | Couples ray scratch to the single shared pool even though `trace` already takes a `RenderWorker&` | Pass the pool (or the owning worker) as a parameter to `createRay`/`trace`; move the pool into the per-thread context (B1) |
-| B3 | **Tile/scanline window is carried in the shared `RenderingConfiguration`** | `startTracing` reads `getFirstLine()/getLastLine()`; `RenderImageWriter::readRenderedPart` calls `config.setFirstLine()` | Tiles must each render a different sub-window; mutating a shared config per tile is a race and breaks the resume logic | Pass tile bounds (`y0,y1[,x0,x1]`) as explicit parameters to a new per-tile entry point; keep `config` immutable during tracing |
-| B4 | **AA reads the adjacent scanline (M1)** | `AdaptiveAntiAliasing::doAntiAliasing`, `RenderWorker::swapLines` | Horizontal tile/band seams need the neighbor row that another thread owns | Per-band: render a one-scanline **halo** overlap; or resolve AA in a **second pass** over a full-frame buffer once all base samples exist |
-| B5 | **`Statistics` mutated per pixel/ray on one shared instance (M2)** | `incrementNumberOfPixels/Rays` in `startTracing`/`trace`; primitive test counters | Concurrent `long++` is a race; counters undercount | **Per-thread `Statistics`**, reduced once at join — the parts-summing constructor `Statistics(ArrayList<Statistics*>*)` already exists (unused); allocate one per thread and call it at join. Cleaner than atomics and maps to the Java port |
-| B6 | **`SolidTextureStatistics::callsToNoise/DNoise` incremented inside `noise()`** | `base/.../media/solidTexture/procedural/ProceduralNoise.cpp:200,269` (`solidTextureStatistics->callsToNoise++`) | Same race as B5 but hidden in the shared `TextureUtils` reached via `RenderContext` | Give each thread its own `SolidTextureStatistics` sink; the existing `Statistics` parts-constructor already sums `callsToNoise/DNoise` at join. Noise **tables** are `const`-read — safe to share |
-| B7 | **Output is streamed one scanline at a time, in order** | `RenderImageWriter::outputLine/writeScanline`; `RenderOutput::writeLine(line, lineNumber)` | Tiles finish out of order; the current writer assumes monotonically increasing lines and writes the *previous* line to avoid partial AA | Render into a **full-frame in-memory buffer**, then persist sequentially after join; or add a completion-ordered writer that buffers until the next expected line is ready |
-| B8 | **Single `fatalErrorFound` / `stopFlag` shared, non-atomic** | `RenderEngine.h:27`; `RenderRuntimeState::getStopFlag()` | Abort signalling across threads is racy (benign today, undefined under threads) | Make the abort flag atomic (`java::util::concurrent::atomic`) and report-once via a guarded flag |
-| B9 | **No CPU-count detection and no `-parallel` option plumbing** | `CommandLineOptions.*`, `RenderingConfiguration` (no thread flag) | Nothing reads `nproc` or selects the parallel driver | Add `Runtime.availableProcessors()`-style helper (`sysconf(_SC_NPROCESSORS_ONLN)`), a `PARALLEL` flag + thread count in `RenderingConfiguration`, parsed in `CommandLineOptions` |
-
-**Assets already in place** (reduce the work): `trace(RenderWorker&, …)` is
-worker-parameterized (P12); `RenderContext` is read-mostly (`config` and `scene`
-are `const` references) so it is safe to share across threads once B3/B5/B6 remove
-the writes; the `Executors`/`ExecutorService`/`Future`/`Callable` wrapper already
-exists and is pthread-backed; no global state to untangle (P8).
-
-**Recommended tiling shape:** start with **horizontal bands** (full-width strips of
-`height / nproc` rows). They keep `createRay`'s `x` math untouched, make B7 a simple
-contiguous-range write, and reduce B4 to a single shared boundary row per seam
-(solved by a 1-row halo). Rectangular tiles can come later for better load balance.
+| M1 | **Virtual dispatch across geometry and materials** (`virtual allIntersectionsForOwner` + `PriorityQueue<Intersection>`; plus the `SolidTexturePigment`/`SolidTextureNormal` virtuals) | `Geometry.h`, primitive headers, `pigment/*`, `normal/*` | **#5** | GPU/SPIR-V has no virtuals or recursion; it will need tagged-unions/SoA. The pigment/normal hierarchies aid CPU/Java clarity (P14) but are three families to flatten — plan a flat POD scene + pattern-id dispatch early |
+| M2 | **`double` throughout the pipeline** | `Vector3Dd`, `Matrix4x4d`, shaders | **#5** | FP64 is slow/scarce on the GPU. Since the GPU goal is AE-metric similarity (not bit-exact), decide the precision strategy and the acceptable AE tolerance early |
+| M3 | **No unit-test scaffolding** (only whole-image golden tests) | no unit-test directory | #1, #4, #5 | The golden test does not localize per-module regressions; missing `Vector3Dd`/`Matrix4x4d`/solver tests that would also pin the contract for the ports |
+| M4 | **Antialiasing still reads the adjacent scanline within a band** (optional refinement) | `AdaptiveAntiAliasing::doAntiAliasing`, `RenderWorker::swapLines` | #4 | Already safe across tiles (1-row halo + a guard that forbids supersampling a neighbour-owned row), so it does **not** block `-parallel`. A full two-pass AA over the frame buffer — plus rectangular tiles for better load balance — would remove even the remaining intra-band coupling |
 
 ## Reading by objective
 
@@ -110,7 +83,7 @@ contiguous-range write, and reduce B4 to a single shared boundary row per seam
   driver is separated from image writing, procedural texturing is now a readable
   one-class-per-pattern hierarchy instead of a switch/facade, and ownership is now
   explicit and fully traced (P16) rather than implicit. The main item left reducing
-  clarity: M5 (no unit tests documenting contracts).
+  clarity: M3 (no unit tests documenting contracts).
 - **#2 C++11 migratable** — Solid (P6, P10, P16). `unique_ptr` was deliberately not the
   fix for memory ownership — real destructors plus deep-cloning the pigment/normal
   `copy()` hierarchy, staying on raw `new`/`delete` per the backwards/forwards
@@ -119,20 +92,22 @@ contiguous-range write, and reduce B4 to a single shared boundary row per seam
   hierarchies and the immutable, builder-built `PovRayMaterial` map almost mechanically
   to Java, and every class has a real, traceable destructor with verified ownership
   (P16), the closest C++ analogue to relying on GC-managed lifetimes.
-- **#4 pthreads parallelism** — The largest pending work. P12 already moved per-ray
-  scratch out of `RenderEngine` into `RenderWorker`. The concrete `-parallel`
-  (tile-based) blockers are now enumerated in **Tile-based parallelism — readiness
-  assessment** (B1–B9): per-thread worker+pool (B1/B2), tile bounds out of the shared
-  config (B3), AA seam handling (B4, the old M1), per-thread stats reduction (B5/B6,
-  the old M2 plus the hidden noise counters), out-of-order tile output (B7), atomic
-  abort (B8) and CPU-count/option plumbing (B9). The good news: `trace` is already
-  worker-parameterized (P12), `RenderContext` is read-mostly, the pthread `Executors`
-  wrapper exists, and P8/P9 already removed the global obstacles.
+- **#4 pthreads parallelism** — Done (P17). `-parallel[N]` renders the frame as
+  independent horizontal bands on the pthread-backed `java::Executors` pool, one
+  `RenderTask` per thread carrying all mutable state (worker, intersection pool,
+  `Statistics`, `TextureUtils`); tile bounds are explicit parameters, the frame is
+  assembled in a full-frame buffer and persisted after join, AA seams use a one-row
+  halo, abort is atomic, and per-thread `Statistics`/`SolidTextureStatistics` are
+  reduced via their parts-summing constructors. The parallel path is bit-exact
+  against the serial one on the golden corpus (`renderParallel.sh`). Foundations that
+  made it cheap: `trace` worker-parameterized (P12), read-mostly `RenderContext`, the
+  pre-existing pthread `Executors` wrapper, and the global-free base (P8/P9). The one
+  remaining refinement is M4 (intra-band AA scanline coupling / rectangular tiles).
 - **#5 Vulkan 1.3** — The goal here is an AE-metric *close-to-similarity* match with
   the CPU reference, not a bit-exact one — that relaxation is what makes the GPU port
   tractable. The architecture helps (P2, P3, P5 as oracle, and P14: each pigment/normal
-  is an isolated shading variant). But M3 (virtuals/AoS spanning geometry and materials)
-  and M4 (double precision) remain deep decisions to resolve **before** writing SPIR-V.
+  is an isolated shading variant). But M1 (virtuals/AoS spanning geometry and materials)
+  and M2 (double precision) remain deep decisions to resolve **before** writing SPIR-V.
   P11 resolves CPU call recursion and provides the execution model to port; the next
   prototype should flatten the scene into POD data, then measure GPU output against
   the CPU reference with the existing AE tooling under an agreed tolerance.

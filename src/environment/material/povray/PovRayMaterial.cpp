@@ -1,6 +1,8 @@
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/material/normal/SolidTextureNormal.h"
+#include "environment/material/DefaultTextureAliasTracker.h"
+#include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "java/util/ArrayList.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 
@@ -196,6 +198,23 @@ PovRayMaterial::prependMaterialLayers(Material *existingMaterial)
         existingPovRay->layers.clear();
     }
     return this;
+}
+
+void
+PovRayMaterial::releaseFromOwner()
+{
+    // An owning object's objectTexture starts out as the scene's shared default
+    // texture (see ObjectParser::parseObject/parseComposite) and stays that way
+    // for any untextured object - never delete the registered-constant instance,
+    // only a private copy of it. If it's still aliasing the (possibly already
+    // superseded) default texture, tell DefaultTextureAliasTracker this alias
+    // just ended - a safe no-op if it isn't the tracked default (e.g. some other
+    // #declare'd TEXTURE_CONSTANT).
+    if (!PovRayMaterialConstancy::isConstant(this)) {
+        delete this;
+    } else {
+        DefaultTextureAliasTracker::releaseAlias(this);
+    }
 }
 
 void

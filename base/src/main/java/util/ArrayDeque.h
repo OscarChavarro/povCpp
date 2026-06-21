@@ -1,71 +1,59 @@
-#ifndef JAVA_UTIL_ARRAYDEQUE_H
-#define JAVA_UTIL_ARRAYDEQUE_H
+#ifndef ArrayDeque__
+#define ArrayDeque__
 
+#include "java/lang/Object.h"
 namespace java {
+    template <class E>
+    class ArrayDeque final : public Object {
+    private:
+        E *elements;
+        long head;
+        long tail;
+        long capacity;
+        static const long MIN_INITIAL_CAPACITY = 16;
 
-// Minimal FIFO double-ended queue, header-only (unlike ArrayList, which
-// splits declaration/.txx) since it is only ever needed inside the
-// concurrency package (Executors, ConcurrentLinkedQueue) for plain queue
-// usage: addLast / peekFirst / removeFirst / isEmpty.
-template <class T>
-class ArrayDeque {
-  private:
-    struct Node {
-        T value;
-        Node *next;
-        explicit Node(const T &v) : value(v), next(nullptr) {}
+        void doubleCapacity();
+        long mask() const;
+        void allocate(long numElements);
+
+    public:
+        ArrayDeque();
+        explicit ArrayDeque(long numElements);
+        ArrayDeque(const ArrayDeque& other);
+        ArrayDeque& operator=(const ArrayDeque& other);
+        ~ArrayDeque();
+
+        // Capacity operations
+        long size() const;
+        bool isEmpty() const;
+        void clear();
+
+        // Add operations
+        void addFirst(const E& e);
+        void addLast(const E& e);
+        void push(const E& e);
+
+        // Remove operations
+        E removeFirst();
+        E removeLast();
+        E pop();
+
+        // Peek operations
+        E peekFirst() const;
+        E peekLast() const;
+
+        // Poll operations
+        E pollFirst();
+        E pollLast();
+
+        // Utility
+        void dispose();
+
+        // Iterator-like access (minimal)
+        E get(long index) const;
     };
+}
 
-    Node *head;
-    Node *tail;
-    long int count;
-
-  public:
-    ArrayDeque() : head(nullptr), tail(nullptr), count(0) {}
-
-    ArrayDeque(const ArrayDeque &) = delete;
-    ArrayDeque &operator=(const ArrayDeque &) = delete;
-
-    ~ArrayDeque() { clear(); }
-
-    void addLast(const T &item) {
-        Node *node = new Node(item);
-        if (tail == nullptr) {
-            head = tail = node;
-        } else {
-            tail->next = node;
-            tail = node;
-        }
-        ++count;
-    }
-
-    T peekFirst() const { return head->value; }
-
-    void removeFirst() {
-        Node *old = head;
-        head = head->next;
-        if (head == nullptr) {
-            tail = nullptr;
-        }
-        delete old;
-        --count;
-    }
-
-    bool isEmpty() const { return head == nullptr; }
-
-    long int size() const { return count; }
-
-    void clear() {
-        while (head != nullptr) {
-            Node *old = head;
-            head = head->next;
-            delete old;
-        }
-        tail = nullptr;
-        count = 0;
-    }
-};
-
-} // namespace java
+#include "java/util/ArrayDeque.txx"
 
 #endif

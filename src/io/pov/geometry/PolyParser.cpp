@@ -12,7 +12,7 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/geometry/PolyParser.h"
-#include "io/pov/material/PovRayMaterialConstancy.h"
+#include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
