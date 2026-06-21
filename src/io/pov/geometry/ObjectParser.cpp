@@ -290,6 +290,9 @@ ObjectParser::parseObject(ParserContext &ctx)
                             object, geometry, objectTexture, objectColor,
                             noShadowFlag, localBoundingShapes,
                             localClippingShapes);
+                        object->detachOwnership();
+                        delete object;
+                        object = nullptr;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -425,6 +428,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 extractObjectState(
                     object, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes);
+                object->detachOwnership();
                 delete object;
                 object = nullptr;
                 break;
@@ -441,6 +445,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 extractObjectState(
                     object, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes);
+                object->detachOwnership();
                 delete object;
                 object = nullptr;
                 break;
@@ -457,6 +462,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 extractObjectState(
                     object, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes);
+                object->detachOwnership();
                 delete object;
                 object = nullptr;
                 break;
@@ -471,6 +477,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                 extractObjectState(
                     object, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes);
+                object->detachOwnership();
                 delete object;
                 object = nullptr;
                 break;
@@ -528,6 +535,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                             localComposite, geometry, objectTexture,
                             objectColor, noShadowFlag, localBoundingShapes,
                             localClippingShapes, localSimpleBodies);
+                        localComposite->detachOwnership();
                         delete localComposite;
                         localComposite = nullptr;
                     } else {
@@ -632,6 +640,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     localSimpleBodies);
+                localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
                 break;
@@ -650,6 +659,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     localSimpleBodies);
+                localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
                 break;
@@ -668,6 +678,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     localSimpleBodies);
+                localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
                 break;
@@ -684,6 +695,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                     localComposite, geometry, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
                     localSimpleBodies);
+                localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
                 break;

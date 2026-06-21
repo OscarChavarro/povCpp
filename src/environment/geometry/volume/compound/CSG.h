@@ -22,6 +22,7 @@ class CSG : public Geometry {
   public:
     explicit CSG(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     CSG(const CSG &other);
+    ~CSG() override;
 
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);

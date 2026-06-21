@@ -31,6 +31,8 @@ class Composite : public BoundedGeometry {
     {
     }
     Composite(const Composite &other);
+    ~Composite() override;
+    void detachOwnership() override;
 
     java::ArrayList<BoundedGeometry*> &getSimpleBodies();
     const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;

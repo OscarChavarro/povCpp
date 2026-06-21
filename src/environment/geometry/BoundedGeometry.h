@@ -10,7 +10,7 @@ class BoundedGeometry : public Geometry {
   private:
     java::ArrayList<TransformableElement*> boundingShapes{4};
     java::ArrayList<TransformableElement*> clippingShapes{4};
-    TransformableElement *const geometry;
+    TransformableElement *geometry;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
@@ -43,6 +43,18 @@ class BoundedGeometry : public Geometry {
     {
     }
     BoundedGeometry(const BoundedGeometry &other);
+    ~BoundedGeometry() override;
+
+    // ObjectParser builds short-lived BoundedGeometry/Composite wrappers purely to
+    // invoke their virtual translate/rotate/scale/invert (which know how to transform
+    // a bounded object's children in place), then extracts the resulting
+    // geometry/objectTexture/objectColor/bounding-and-clipping-shapes back into local
+    // parser variables before discarding the wrapper. detachOwnership() clears every
+    // owned field on the wrapper (without deleting them) so that subsequent
+    // `delete wrapper;` is a safe no-op for those fields - ownership has already moved
+    // to whoever called this. Virtual so Composite::detachOwnership() can also clear
+    // its own simpleBodies.
+    virtual void detachOwnership();
 
     java::ArrayList<TransformableElement*>& getBoundingShapes() { return boundingShapes; }
     const java::ArrayList<TransformableElement*>& getBoundingShapes() const { return boundingShapes; }
