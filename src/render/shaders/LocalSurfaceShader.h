@@ -5,7 +5,7 @@
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "java/util/ArrayList.h"
 #include "render/shaders/TraceService.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"

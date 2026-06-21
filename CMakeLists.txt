@@ -42,8 +42,10 @@ add_executable(povray
     src/environment/geometry/element/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp
         src/environment/material/DefaultTextureAliasTracker.cpp
-        src/environment/material/PovRayMaterial.cpp
-        src/environment/material/PovRayMaterialUtils.cpp
+        src/environment/material/povray/PovRayMaterial.cpp
+        src/environment/material/povray/PovRayMaterialUtils.cpp
+        src/environment/material/povray/PovRayMaterialBuilder.cpp
+        src/environment/material/povray/PovRayMaterialConstancy.cpp
         src/environment/material/normal/BumpMapNormal.cpp
         src/environment/material/normal/BumpsNormal.cpp
         src/environment/material/normal/DentsNormal.cpp
@@ -101,8 +103,6 @@ add_executable(povray
     src/io/pov/material/TextureParser.cpp
     src/io/pov/material/ColorMapParser.cpp
     src/io/pov/material/DefaultTextureParser.cpp
-    src/io/pov/material/PovRayMaterialBuilder.cpp
-    src/io/pov/material/PovRayMaterialConstancy.cpp
     src/io/pov/material/LoadedImageRegistry.cpp
     src/io/pov/geometry/SphereParser.cpp
     src/io/pov/light/LightSourceParser.cpp

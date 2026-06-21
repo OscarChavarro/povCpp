@@ -2,7 +2,7 @@
 #define __BLINN_PHONG_SPECULAR_SHADER__
 
 #include "environment/geometry/element/RayWithSegments.h"
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 

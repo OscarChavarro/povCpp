@@ -1,4 +1,4 @@
-#include "io/pov/material/PovRayMaterialBuilder.h"
+#include "environment/material/povray/PovRayMaterialBuilder.h"
 #include "environment/material/SolidTextureColorNames.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/normal/BumpMapNormal.h"

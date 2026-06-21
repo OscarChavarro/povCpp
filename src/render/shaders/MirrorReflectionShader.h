@@ -2,7 +2,7 @@
 #define __MIRROR_REFLECTION_SHADER__
 
 #include "environment/geometry/element/RayWithSegments.h"
-#include "environment/material/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "render/shaders/TraceService.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"

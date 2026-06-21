@@ -1,6 +1,6 @@
 #include "environment/material/DefaultTextureAliasTracker.h"
-#include "environment/material/PovRayMaterial.h"
-#include "io/pov/material/PovRayMaterialConstancy.h"
+#include "environment/material/povray/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "java/util/ArrayList.txx"
 
 java::ArrayList<TextureAliasEntry> &
