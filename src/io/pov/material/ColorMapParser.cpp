@@ -1,8 +1,4 @@
-#include "java/util/PriorityQueue.txx"
-
-#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
-
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/ColorMapParser.h"
 #include "io/pov/material/PovColorMap.h"
@@ -10,14 +6,9 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-// Convert a PovColorMap to an RGBAColorPalette with explicit stop positions.
-// Spans are sorted canonically by start value. Each span contributes its
-// startColor (at span.start) and endColor (at span.end). For contiguous spans
-// (the normal case) the endColor of span[i] and startColor of span[i+1] share
-// the same position — only one stop is emitted, using span[i].endColor.
-// Gaps between non-adjacent spans are left uncovered; evalLinear returns zero
-// for t values that fall in a gap, matching original PovColorMap behaviour.
-static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
+RGBAColorPalette *
+ColorMapParser::toRGBAColorPalette(PovColorMap *map)
+{
     const int n = map->size();
     RGBAColorPalette * const palette = new RGBAColorPalette();
 
@@ -41,11 +32,6 @@ static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
         sorted[j + 1] = key;
     }
 
-    // Build stops: for each span emit startColor at span.start and endColor at
-    // span.end. At shared boundaries between adjacent spans both the endColor
-    // of span[i] and the startColor of span[i+1] are emitted at the same
-    // position — this creates a zero-width pair that evalLinear skips, but
-    // preserves the correct colour on each side of any discontinuity.
     for (int i = 0; i < n; i++) {
         palette->addColorAt(sorted[i]->getStart(), sorted[i]->getStartColor());
         palette->addColorAt(sorted[i]->getEnd(),   sorted[i]->getEndColor());
@@ -56,24 +42,14 @@ static RGBAColorPalette* toRGBAColorPalette(PovColorMap* map) {
 }
 
 RGBAColorPalette *
-ColorMapParser::parseColorMap()
-{
-    ParserContext ctx;
-    return ColorMapParser::parseColorMap(ctx);
-}
-
-RGBAColorPalette *
 ColorMapParser::parseColorMap(ParserContext &ctx)
 {
     PovColorMap * const raw = new PovColorMap();
-    if (raw == nullptr) {
-        ParseErrorReporter::reportError("Not enough memory for color map.", ctx);
-    }
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
     {
-        bool Exit_Flag = false;
-        while (!Exit_Flag) {
+        bool exitFlag = false;
+        while (!exitFlag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::LEFT_SQUARE_TOKEN: {
@@ -94,7 +70,7 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
                 break;
             }
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = true;
+                exitFlag = true;
                 break;
 
             default:
@@ -104,5 +80,5 @@ ColorMapParser::parseColorMap(ParserContext &ctx)
         }
     }
 
-    return toRGBAColorPalette(raw);
+    return ColorMapParser::toRGBAColorPalette(raw);
 }

@@ -7,7 +7,6 @@
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/SimpleBody.h"
-#include "environment/scene/Scene.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"

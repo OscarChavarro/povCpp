@@ -2,9 +2,7 @@
 #define __RENDER_IMAGE_WRITER__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-
-class RenderEngine;
-class RenderWorker;
+#include "render/RenderEngine.h"
 
 class RenderImageWriter {
   private:
