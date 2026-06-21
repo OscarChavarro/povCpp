@@ -35,12 +35,13 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
     double falloff = 0.35;
     bool spotlight = false;
     ColorRgba *localColor = nullptr;
-    // Only the LEFT_ANGLE_TOKEN branch allocates localColor itself; the
-    // IDENTIFIER_TOKEN branch aliases the referenced LIGHT_SOURCE_CONSTANT's own
-    // shapeColor (owned by that constant, freed via SceneParser::freeConstants).
-    // Light/PointLight/SpotLight's constructor always clones shapeColor
-    // internally, so either way localColor itself is no longer needed once the
-    // Light below is built - but only the former is ours to delete.
+    // Both branches that set localColor (LEFT_ANGLE_TOKEN: fresh allocation;
+    // IDENTIFIER_TOKEN: a clone of the referenced LIGHT_SOURCE_CONSTANT's own
+    // shapeColor, never an alias - the constant is owned independently and
+    // could be freed by a #declare re-declare while this Light is still being
+    // built) leave this function owning localColor. Light/PointLight/
+    // SpotLight's constructor always clones shapeColor internally, so
+    // localColor itself is no longer needed once the Light below is built.
     bool ownsLocalColor = false;
     int constantId;
 
@@ -82,7 +83,15 @@ LightSourceParser::parseLightSource(ParserContext &ctx)
                         coefficient = constantLight->getCoefficient();
                         radius = constantLight->getRadius();
                         falloff = constantLight->getFalloff();
-                        localColor = constantLight->getShapeColor();
+                        // Clone, don't alias: the second token loop below may
+                        // mutate localColor in place via parseColor(), and
+                        // constantLight is owned by the LIGHT_SOURCE_CONSTANT
+                        // slot - it can be freed independently (e.g. by
+                        // DeclarationParser re-declaring this same identifier
+                        // later in the file) while this Light is still being
+                        // built.
+                        localColor = new ColorRgba(*constantLight->getShapeColor());
+                        ownsLocalColor = true;
                         spotlight = dynamic_cast<SpotLight *>(constantLight) != nullptr;
                     } else {
                         ParseErrorReporter::typeError(ctx);

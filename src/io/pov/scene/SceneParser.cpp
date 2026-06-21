@@ -52,61 +52,66 @@ SceneParser::parse(Scene *framePtr)
 // a copy constructor, never aliased directly into the final scene. So once parsing
 // is done, the constant table itself is safe to free.
 void
+SceneParser::freeConstant(int constantType, void *data)
+{
+    if (data == nullptr) {
+        return;
+    }
+    switch (constantType) {
+    case ParseGlobals::OBJECT_CONSTANT:
+        delete static_cast<BoundedGeometry *>(data);
+        break;
+    case ParseGlobals::SPHERE_CONSTANT:
+    case ParseGlobals::PLANE_CONSTANT:
+    case ParseGlobals::TRIANGLE_CONSTANT:
+    case ParseGlobals::SMOOTH_TRIANGLE_CONSTANT:
+    case ParseGlobals::QUADRIC_CONSTANT:
+    case ParseGlobals::POLY_CONSTANT:
+    case ParseGlobals::HEIGHT_FIELD_CONSTANT:
+    case ParseGlobals::BOX_CONSTANT:
+    case ParseGlobals::BLOB_CONSTANT:
+    case ParseGlobals::BICUBIC_PATCH_CONSTANT:
+        delete static_cast<SimpleBody *>(data);
+        break;
+    case ParseGlobals::CSG_INTERSECTION_CONSTANT:
+    case ParseGlobals::CSG_UNION_CONSTANT:
+    case ParseGlobals::CSG_DIFFERENCE_CONSTANT:
+        delete static_cast<CSG *>(data);
+        break;
+    case ParseGlobals::COMPOSITE_CONSTANT:
+        delete static_cast<Composite *>(data);
+        break;
+    case ParseGlobals::TEXTURE_CONSTANT:
+        PovRayMaterialConstancy::unmarkConstant(static_cast<PovRayMaterial *>(data));
+        delete static_cast<PovRayMaterial *>(data);
+        break;
+    case ParseGlobals::VIEW_POINT_CONSTANT:
+        delete static_cast<Camera *>(data);
+        break;
+    case ParseGlobals::COLOUR_CONSTANT:
+        delete static_cast<ColorRgba *>(data);
+        break;
+    case ParseGlobals::VECTOR_CONSTANT:
+        delete static_cast<Vector3Dd *>(data);
+        break;
+    case ParseGlobals::FLOAT_CONSTANT:
+        delete static_cast<double *>(data);
+        break;
+    case ParseGlobals::LIGHT_SOURCE_CONSTANT:
+        delete static_cast<Light *>(data);
+        break;
+    default:
+        break;
+    }
+}
+
+void
 SceneParser::freeConstants(ParserContext &ctx)
 {
     SymbolTable &symbols = ctx.symbols();
     for (int i = 1; i <= symbols.size(); i++) {
         Constant &constant = symbols.data()[i];
-        void * const data = constant.getConstantData();
-        if (data == nullptr) {
-            continue;
-        }
-        switch (constant.getConstantType()) {
-        case ParseGlobals::OBJECT_CONSTANT:
-            delete static_cast<BoundedGeometry *>(data);
-            break;
-        case ParseGlobals::SPHERE_CONSTANT:
-        case ParseGlobals::PLANE_CONSTANT:
-        case ParseGlobals::TRIANGLE_CONSTANT:
-        case ParseGlobals::SMOOTH_TRIANGLE_CONSTANT:
-        case ParseGlobals::QUADRIC_CONSTANT:
-        case ParseGlobals::POLY_CONSTANT:
-        case ParseGlobals::HEIGHT_FIELD_CONSTANT:
-        case ParseGlobals::BOX_CONSTANT:
-        case ParseGlobals::BLOB_CONSTANT:
-        case ParseGlobals::BICUBIC_PATCH_CONSTANT:
-            delete static_cast<SimpleBody *>(data);
-            break;
-        case ParseGlobals::CSG_INTERSECTION_CONSTANT:
-        case ParseGlobals::CSG_UNION_CONSTANT:
-        case ParseGlobals::CSG_DIFFERENCE_CONSTANT:
-            delete static_cast<CSG *>(data);
-            break;
-        case ParseGlobals::COMPOSITE_CONSTANT:
-            delete static_cast<Composite *>(data);
-            break;
-        case ParseGlobals::TEXTURE_CONSTANT:
-            PovRayMaterialConstancy::unmarkConstant(static_cast<PovRayMaterial *>(data));
-            delete static_cast<PovRayMaterial *>(data);
-            break;
-        case ParseGlobals::VIEW_POINT_CONSTANT:
-            delete static_cast<Camera *>(data);
-            break;
-        case ParseGlobals::COLOUR_CONSTANT:
-            delete static_cast<ColorRgba *>(data);
-            break;
-        case ParseGlobals::VECTOR_CONSTANT:
-            delete static_cast<Vector3Dd *>(data);
-            break;
-        case ParseGlobals::FLOAT_CONSTANT:
-            delete static_cast<double *>(data);
-            break;
-        case ParseGlobals::LIGHT_SOURCE_CONSTANT:
-            delete static_cast<Light *>(data);
-            break;
-        default:
-            break;
-        }
+        freeConstant(constant.getConstantType(), constant.getConstantData());
         constant.setConstantData(nullptr);
     }
 }
