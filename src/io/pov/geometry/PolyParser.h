@@ -10,6 +10,10 @@ class PolyParser {
   public:
     static SimpleBody *parsePoly(int order);
     static SimpleBody *parsePoly(int order, ParserContext &ctx);
+
+  private:
+    static SimpleBody *rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry);
+    static void parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx);
 };
 
 #endif

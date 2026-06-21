@@ -14,6 +14,7 @@ class RenderingConfiguration {
     static constexpr unsigned int EXIT_ENABLE = 128u;
     static constexpr unsigned int CONTINUE_TRACE = 256u;
     static constexpr unsigned int VERBOSE_FILE = 512u;
+    static constexpr unsigned int PARALLEL = 1024u;
     static constexpr char DEFAULT_OUTPUT_FORMAT = 'd';
 
     RenderingConfiguration();
@@ -50,6 +51,8 @@ class RenderingConfiguration {
     void setTokenizerCaseSensitiveMode(int mode);
     int getTokenizerMaxSymbols() const;
     void setTokenizerMaxSymbols(int maxSymbols);
+    int getNumberOfThreads() const;
+    void setNumberOfThreads(int n);
     bool hasOutputFileName() const;
     void reset();
 
@@ -68,6 +71,7 @@ class RenderingConfiguration {
     char verboseFormat;
     int tokenizerCaseSensitiveMode;
     int tokenizerMaxSymbols;
+    int numberOfThreads;
 };
 
 inline unsigned int
@@ -246,6 +250,18 @@ inline void
 RenderingConfiguration::setTokenizerMaxSymbols(int maxSymbols)
 {
     tokenizerMaxSymbols = maxSymbols;
+}
+
+inline int
+RenderingConfiguration::getNumberOfThreads() const
+{
+    return numberOfThreads;
+}
+
+inline void
+RenderingConfiguration::setNumberOfThreads(int n)
+{
+    numberOfThreads = n;
 }
 
 inline bool

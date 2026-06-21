@@ -18,10 +18,8 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-namespace {
-
 SimpleBody *
-rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
+PolyParser::rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         body->getMaterial()->copy() : nullptr;
@@ -35,7 +33,7 @@ rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
 }
 
 void
-parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
+PolyParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
 {
     int i;
 
@@ -59,8 +57,6 @@ parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
             }
         }
     }
-}
-
 }
 
 SimpleBody *

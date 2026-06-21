@@ -1,14 +1,11 @@
 #ifndef __HEIGHT_FIELD_TRAVERSAL_STATE__
 #define __HEIGHT_FIELD_TRAVERSAL_STATE__
 
+#include "java/util/PriorityQueue.h"
+
 class HeightField;
 class Intersection;
 class RayWithSegments;
-
-namespace java {
-template <class T>
-class PriorityQueue;
-}
 
 class HeightFieldTraversalState {
   private:

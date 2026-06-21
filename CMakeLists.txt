@@ -41,6 +41,7 @@ add_executable(povray
     src/environment/geometry/element/Triangle.cpp
     src/environment/geometry/element/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp
+        src/environment/material/DefaultTextureAliasTracker.cpp
         src/environment/material/PovRayMaterial.cpp
         src/environment/material/PovRayMaterialUtils.cpp
         src/environment/material/normal/BumpMapNormal.cpp
@@ -69,6 +70,7 @@ add_executable(povray
     src/render/AdaptiveAntiAliasing.cpp
     src/render/ColorOperations.cpp
     src/render/RenderWorker.cpp
+    src/render/RenderTargetImage.cpp
     src/render/shaders/LightSamplerShader.cpp
     src/render/shaders/ShadowShader.cpp
     src/render/shaders/PhongSpecularShader.cpp
@@ -102,7 +104,6 @@ add_executable(povray
     src/io/pov/material/PovRayMaterialBuilder.cpp
     src/io/pov/material/PovRayMaterialConstancy.cpp
     src/io/pov/material/LoadedImageRegistry.cpp
-    src/io/pov/material/DefaultTextureAliasTracker.cpp
     src/io/pov/geometry/SphereParser.cpp
     src/io/pov/light/LightSourceParser.cpp
     src/io/pov/geometry/PlaneParser.cpp

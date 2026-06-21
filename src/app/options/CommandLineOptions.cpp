@@ -1,6 +1,8 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <strings.h>
+#include <unistd.h>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/material/RendererConfiguration.h"
@@ -9,6 +11,13 @@
 #include "app/options/CommandLineOptions.h"
 
 static constexpr int MAX_FILE_NAMES = 1;
+
+static int
+detectProcessorCount()
+{
+    long n = sysconf(_SC_NPROCESSORS_ONLN);
+    return (n > 0) ? (int)n : 1;
+}
 
 // Print out usage error message
 void
@@ -148,6 +157,25 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
         addOption = false;
     } else {
         addOption = true;
+    }
+
+    // Multi-character option: parallel rendering. Both "-parallel" and
+    // "+parallel" enable it (project convention: the gate scripts invoke
+    // "-parallel" expecting it to turn parallel mode ON), optionally
+    // followed by a thread count ("-parallel4"); "...0" forces serial.
+    // Checked before the single-letter switch so it never collides with
+    // "-p" (PROMPT_EXIT).
+    if (strncasecmp(optionString, "parallel", 8) == 0) {
+        int n = 0;
+        if (sscanf(optionString + 8, "%d", &n) != 1 || n < 0) {
+            n = detectProcessorCount();
+        }
+        if (n == 0) {
+            n = 1;
+        }
+        config.setNumberOfThreads(n);
+        config.setOptionEnabled(RenderingConfiguration::PARALLEL, n > 1);
+        return;
     }
 
     switch (*optionString) {

@@ -30,17 +30,8 @@ TextureParser::TextureParser::wireIndexedInToTextureImage(ControlledRGBAImageHDR
     ti->allocate(idx->getXSize(), idx->getYSize());
 }
 
-namespace {
-
-// TextureParser rebuilds the whole PovRayMaterial after every single attribute
-// token, discarding the previous generation. After the aliasing audit (see
-// doc/memoryAudit/ownership.md), every rebuilt generation owns its own
-// pigment/normal/colorMap/layers - the only thing the old generation could still
-// share with a sibling is being itself the registered "constant" backing a
-// #declare'd identifier or the scene's default texture, which nothing here is
-// allowed to delete.
 PovRayMaterial *
-rebuildAndDiscard(PovRayMaterial *oldTexture, const PovRayMaterialBuilder &builder)
+TextureParser::rebuildAndDiscard(PovRayMaterial *oldTexture, const PovRayMaterialBuilder &builder)
 {
     PovRayMaterial * const newTexture = builder.build();
     if (oldTexture != nullptr && !PovRayMaterialConstancy::isConstant(oldTexture)) {
@@ -48,8 +39,6 @@ rebuildAndDiscard(PovRayMaterial *oldTexture, const PovRayMaterialBuilder &build
     }
     return newTexture;
 }
-
-} // namespace
 
 PovRayMaterial *
 TextureParser::copyTexture(PovRayMaterial *texture)

@@ -15,6 +15,7 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
+#include "environment/material/DefaultTextureAliasTracker.h"
 #include "environment/material/PovRayMaterialUtils.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
@@ -37,25 +38,14 @@
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "io/pov/light/LightSourceParser.h"
-#include "io/pov/material/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "io/pov/material/TextureParser.h"
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-namespace {
-
-// An untextured object/composite starts out wearing the scene's shared default
-// texture directly (see objectTexture initialization below). Transforming it in
-// place would mutate that shared instance for every other object relying on it,
-// so callers must copy it out first whenever it is still the canonical instance
-// AND the transform would actually touch it (matching PovRayMaterial's own
-// needsTransform gate) -- copying unconditionally would make objectTexture no
-// longer pointer-equal to ctx.getDefaultTexture(), which the TEXTURE_TOKEN
-// handling below relies on to decide between replacing and layering.
 Material *
-ensurePrivateTexture(Material *objectTexture)
+ObjectParser::ensurePrivateTexture(Material *objectTexture)
 {
     PovRayMaterial *texture = static_cast<PovRayMaterial *>(objectTexture);
     bool needsTransform =
@@ -71,7 +61,7 @@ ensurePrivateTexture(Material *objectTexture)
 }
 
 BoundedGeometry *
-buildObject(
+ObjectParser::buildObject(
     TransformableElement *geometry,
     Material *objectTexture,
     ColorRgba *objectColor,
@@ -85,7 +75,7 @@ buildObject(
 }
 
 Composite *
-buildComposite(
+ObjectParser::buildComposite(
     TransformableElement *geometry,
     Material *objectTexture,
     ColorRgba *objectColor,
@@ -100,7 +90,7 @@ buildComposite(
 }
 
 void
-extractObjectState(
+ObjectParser::extractObjectState(
     BoundedGeometry *object,
     TransformableElement *&geometry,
     Material *&objectTexture,
@@ -118,7 +108,7 @@ extractObjectState(
 }
 
 void
-extractCompositeState(
+ObjectParser::extractCompositeState(
     Composite *object,
     TransformableElement *&geometry,
     Material *&objectTexture,
@@ -132,8 +122,6 @@ extractCompositeState(
         object, geometry, objectTexture, objectColor, noShadowFlag,
         boundingShapes, clippingShapes);
     simpleBodies = object->getSimpleBodies();
-}
-
 }
 
 SimpleBody *

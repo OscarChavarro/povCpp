@@ -1,14 +1,27 @@
 #include "java/io/FileOutputStream.h"
 #include "java/util/ArrayList.txx"
+#include "java/util/concurrent/Executors.h"
+#include "java/util/concurrent/Void.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
 #include "common/statistics/Statistics.h"
+#include "environment/material/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
+#include "render/RenderTask.h"
 #include "render/shaders/TraceService.h"
+
+java::Void
+RenderEngine::RenderTileCallable::call()
+{
+    engine->renderTile(
+        task->worker, task->pool, task->statistics, task->area);
+    return java::Void();
+}
 
 RenderEngine::~RenderEngine()
 {
@@ -22,7 +35,8 @@ RenderEngine::getMutableConfig()
 
 void
 RenderEngine::createRay(
-    RayWithSegments *localRay, int width, int height, double x, double y)
+    RayWithSegments *localRay, int width, int height, double x, double y,
+    IntersectionPriorityQueuePool *pool, Statistics *stats)
 {
     double xScalar;
     double yScalar;
@@ -48,9 +62,14 @@ RenderEngine::createRay(
     localRay->setPrimaryRay(true);
     localRay->setQuadricConstantsCached(false);
     if (context) {
-        localRay->setStatistics(&context->getStatistics());
+        // The whole recursive ray tree (reflection/refraction/shadow rays)
+        // inherits this pointer via setStatistics(parent->getStatistics()),
+        // so routing the primary ray to the calling task's own Statistics is
+        // enough to make every per-primitive intersection counter (B5)
+        // thread-safe without touching any shader/geometry call site.
+        localRay->setStatistics(stats);
         localRay->setConfig(&context->getConfig());
-        localRay->setIntersectionQueuePool(&intersectionQueuePool);
+        localRay->setIntersectionQueuePool(pool);
     }
     localRay->setOrigin(this->getScene().getViewPoint().getLocation());
 }
@@ -62,29 +81,54 @@ RenderEngine::readRenderedPart()
 }
 
 void
-RenderEngine::startTracing()
+RenderEngine::copyLineToImage(
+    const ColorRgba *line, int row, const RasterTileArea &area)
+{
+    for (int x = area.getX0(); x < area.getX1(); x++) {
+        destinationImage.setPixel(x, row, line[x]);
+    }
+}
+
+void
+RenderEngine::persistDestinationImage()
+{
+    const RenderingConfiguration &config = this->getConfig();
+    if (!config.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
+        return;
+    }
+    RenderOutput *out = config.getOutputFileInputStream();
+    for (int y = config.getFirstLine(); y < config.getLastLine(); y++) {
+        out->writeLine(destinationImage.rowPointer(y), y);
+    }
+}
+
+void
+RenderEngine::renderTile(
+    RenderWorker &localWorker, IntersectionPriorityQueuePool &pool,
+    Statistics &stats, const RasterTileArea &area)
 {
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
-    RenderWorker &localWorker = this->getWorker();
     int x;
     int y;
     for (y = this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)
-                ? this->getConfig().getFirstLine() - 1
-                : this->getConfig().getFirstLine();
-        y < this->getConfig().getLastLine();
+                ? area.getY0() - 1
+                : area.getY0();
+        y < area.getY1();
         y++) {
 
         this->checkStats(y);
 
-        for (x = 0; x < this->getScene().getScreenWidth(); x++) {
+        for (x = area.getX0(); x < area.getX1(); x++) {
 
             if (this->getStopFlag()) {
                 // Image not completed / user abort. Previously this terminated
                 // the whole process with exit(2); under a multi-thread driver
-                // that is hostile, so instead report once and fall back to a
-                // default (black) colour for the remaining pixels.
-                if (!this->fatalErrorFound) {
-                    this->fatalErrorFound = true;
+                // that is hostile, so instead report once (atomically, so
+                // concurrent RenderTask threads never double-report) and fall
+                // back to a default (black) colour for the remaining pixels.
+                bool alreadyReported = false;
+                if (this->fatalErrorFound.compare_exchange_strong(
+                        alreadyReported, true)) {
                     Logger::reportMessage("RenderEngine", Logger::ERROR,
                         "startTracing",
                         "Rendering aborted before completion; "
@@ -95,11 +139,12 @@ RenderEngine::startTracing()
                 continue;
             }
 
-            this->getStatistics().incrementNumberOfPixels();
+            stats.incrementNumberOfPixels();
 
             this->createRay(localWorker.getPrimaryRay(),
                 this->getScene().getScreenWidth(),
-                this->getScene().getScreenHeight(), (double)x, (double)y);
+                this->getScene().getScreenHeight(), (double)x, (double)y,
+                &pool, &stats);
             localWorker.setTraceLevel(0);
             this->trace(localWorker, &localWorker.getRay(), &color);
             ColorOperations::clipColor(&color, &color);
@@ -107,21 +152,119 @@ RenderEngine::startTracing()
             localWorker.getCurrentLine()[x] = color;
 
             if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
-                adaptiveAntiAliasing.doAntiAliasing(localWorker, x, y, &color);
+                adaptiveAntiAliasing.doAntiAliasing(
+                    localWorker, x, y, &color, area, &pool, &stats);
             }
 
-            if (y != this->getConfig().getFirstLine() - 1) {
+            if (y != area.getY0() - 1) {
                 if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
                     (void)x;
                     (void)y;
                 }
             }
         }
-        imageWriter.outputLine(localWorker, y);
+        // previousLine (row y-1) is final, post-AA, exactly when the streaming
+        // writer used to flush it (y > area.getY0()); copy it into the image
+        // instead of writing it straight to disk, then recycle the buffers.
+        if (y > area.getY0()) {
+            copyLineToImage(localWorker.getPreviousLine(), y - 1, area);
+        }
+        localWorker.swapLines();
     }
 
-    imageWriter.writeScanline(
-        localWorker.getPreviousLine(), this->getConfig().getLastLine() - 1);
+    copyLineToImage(localWorker.getPreviousLine(), area.getY1() - 1, area);
+}
+
+void
+RenderEngine::startTracing()
+{
+    renderTile(worker, intersectionQueuePool, context->getStatistics(), renderArea);
+    persistDestinationImage();
+}
+
+void
+RenderEngine::startTracingParallel()
+{
+    const int threads = this->getConfig().getNumberOfThreads();
+
+    RasterTileGenerator generator(RasterTileGenerationStrategy::LINEAR,
+        &destinationImage, renderArea.getX0(), renderArea.getY0(),
+        renderArea.getDx(), renderArea.getDy(), threads);
+    const java::ArrayList<RasterTileArea> &tileAreas = generator.getTiles();
+
+    const int w = this->getScene().getScreenWidth();
+    const bool antialiasEnabled =
+        this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS);
+
+    java::ArrayList<RenderTask *> tasks;
+    tasks.reserve(tileAreas.size());
+    for (long i = 0; i < tileAreas.size(); i++) {
+        RenderTask *task = new RenderTask(this, tileAreas[i]);
+        // Each task's RenderWorker needs its own line buffers (this is only
+        // ever done once, engine-wide, for the serial worker member, in
+        // initializeRenderer); ray.setOrigin mirrors that same setup.
+        task->worker.initializeLineBuffers(w, antialiasEnabled);
+        task->worker.getRay().setOrigin(
+            this->getScene().getViewPoint().getLocation());
+
+        // B6: bind a TextureUtils private to this task, so noise()/
+        // differentialNoise() call counters land in task->statistics's own
+        // SolidTextureStatistics instead of racing on a shared one. This MUST
+        // run here, serially, one task at a time, before any thread starts:
+        // ProceduralNoise::initialize() reseeds the C `rand()` stream with
+        // srand(0) and consumes it deterministically (permutation shuffle,
+        // then the wave table), so calling it serially N times reproduces
+        // the exact same tables N times — bit-identical to each other and to
+        // the single serial-path instance. Calling it concurrently would
+        // corrupt that shared, process-wide rand() stream instead.
+        task->textureUtils.initialize(task->statistics.getSolidTextureStatistics());
+        task->textureUtils.initializeNoise(PovRayMaterial::DEFAULT_NUMBER_OF_WAVES);
+        task->worker.setTextureUtils(&task->textureUtils);
+
+        tasks.add(task);
+    }
+
+    java::ExecutorService *threadPool =
+        java::Executors::newFixedThreadPool((int)tasks.size());
+
+    {
+        char _logMsg[256];
+        snprintf(_logMsg, sizeof(_logMsg),
+            "Created %d render thread(s) for %ld tile(s)\n",
+            (int)tasks.size(), tasks.size());
+        Logger::reportMessage("RenderEngine", Logger::WARNING,
+            "startTracingParallel", _logMsg);
+    }
+
+    java::ArrayList<java::Future<java::Void>> futures;
+    futures.reserve(tasks.size());
+    for (long i = 0; i < tasks.size(); i++) {
+        futures.add(
+            threadPool->submit(new RenderTileCallable(this, tasks[i])));
+    }
+    // get() blocks until each tile's task has finished (join) and rethrows
+    // any exception the worker thread caught while rendering its tile.
+    for (long i = 0; i < futures.size(); i++) {
+        futures[i].get();
+    }
+    threadPool->shutdownNow();
+    delete threadPool;
+
+    // B5: reduce every task's own Statistics into the shared total using the
+    // existing parts-summing constructor, exactly as a single-task reduction
+    // would (so serial-equivalent numbers come out the other end).
+    java::ArrayList<Statistics *> statisticsParts;
+    statisticsParts.reserve(tasks.size());
+    for (long i = 0; i < tasks.size(); i++) {
+        statisticsParts.add(&tasks[i]->statistics);
+    }
+    context->getStatistics() = Statistics(&statisticsParts);
+
+    for (long i = 0; i < tasks.size(); i++) {
+        delete tasks[i];
+    }
+
+    persistDestinationImage();
 }
 
 void
@@ -197,10 +340,23 @@ RenderEngine::checkStats(int y)
 void
 RenderEngine::initializeRenderer()
 {
+    const int w = this->getScene().getScreenWidth();
+    const int h = this->getScene().getScreenHeight();
+    destinationImage.allocate(w, h);
+    // The engine's own render area is the [firstLine, lastLine) window it is
+    // responsible for tracing (the full image unless -s/-e narrow it), not
+    // necessarily the whole destination image. This is what the M1 AA clip
+    // in AdaptiveAntiAliasing compares against.
+    renderArea = RasterTileArea(&destinationImage, 0,
+        this->getConfig().getFirstLine(), w,
+        this->getConfig().getLastLine() - this->getConfig().getFirstLine());
     worker.initializeLineBuffers(
-        this->getScene().getScreenWidth(),
-        this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS));
+        w, this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS));
     worker.getRay().setOrigin(this->getScene().getViewPoint().getLocation());
+    // Serial mode: the engine's own worker shares the engine-wide TextureUtils
+    // (already initialized by PovRayApplication::prepareRendering), exactly
+    // like before this was made an explicit per-worker pointer.
+    worker.setTextureUtils(&context->getTextureUtils());
 }
 
 void
@@ -211,7 +367,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
     Intersection newIntersection;
     bool intersectionFound;
 
-    this->getStatistics().incrementNumberOfRays();
+    localRay->getStatistics()->incrementNumberOfRays();
     color->setR(0.0); color->setG(0.0); color->setB(0.0); color->setA(0);
 
     intersectionFound = false;
@@ -239,9 +395,12 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
     }
 
     if (intersectionFound) {
+        // localWorker's own TextureUtils (the shared engine instance in
+        // serial mode, or this task's private instance in parallel mode) —
+        // never the engine's, so noise() call counters never race (B6).
         RayShaderPipeline::shadeSurface(
             &localIntersection, color, localRay, false,
-            localWorker.getTraceService(), &this->getTextureUtils(), *context,
-            localWorker.getTraceLevel());
+            localWorker.getTraceService(), &localWorker.getTextureUtils(),
+            *context, localWorker.getTraceLevel());
     }
 }

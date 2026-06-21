@@ -13,18 +13,8 @@ Gif-format file reader.
 #include "io/image/GifDecoder.h"
 #include "io/image/GifFormat.h"
 
-namespace {
-
-struct GifReadContext {
-    IndexedColorImageHDRUncompressed *currentImage;
-    int bitmapLine;
-    java::FileInputStream *bitStream;
-    RGBAPixelHDR *gifColorMap;
-    int colorMapSize;
-};
-
 int
-outLine(void *context, const unsigned char *pixels, int linelen)
+GifFormat::outLine(void *context, const unsigned char *pixels, int linelen)
 {
     GifReadContext &gif = *static_cast<GifReadContext *>(context);
     for (int x = 0; x < linelen; x++) {
@@ -39,7 +29,7 @@ outLine(void *context, const unsigned char *pixels, int linelen)
 }
 
 int
-getByte(void *context)
+GifFormat::getByte(void *context)
 {
     GifReadContext &gif = *static_cast<GifReadContext *>(context);
     const int byte = gif.bitStream->read();
@@ -48,8 +38,6 @@ getByte(void *context)
     }
     Logger::reportMessage("GifFormat", Logger::FATAL_ERROR, "", "Premature End Of File reading GIF image\n");
     return 0;
-}
-
 }
 
 void

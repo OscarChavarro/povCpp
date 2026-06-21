@@ -2,16 +2,12 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "java/util/ArrayList.txx"
 
-namespace {
-
 java::ArrayList<ControlledRGBAImageHDRUncompressed *> &
-loadedImages()
+LoadedImageRegistry::loadedImages()
 {
     static java::ArrayList<ControlledRGBAImageHDRUncompressed *> instances{};
     return instances;
 }
-
-} // namespace
 
 void
 LoadedImageRegistry::registerImage(ControlledRGBAImageHDRUncompressed *image)

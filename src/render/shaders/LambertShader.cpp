@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <mutex>
 
 #include "java/lang/Math.h"
 #include "environment/geometry/element/RayWithSegments.h"
@@ -27,7 +28,26 @@ LambertShader::shade(const PovRayMaterial *texture, const RayWithSegments *light
 
     intensity *= texture->getObjectDiffuse() * attenuation;
 
-    randomNumber = (rand() & 0x7FFF) / (double)0x7FFF;
+    // texture_randomness dither. rand() is global, non-reentrant state, so
+    // concurrent RenderTask threads calling it under -parallel is a real
+    // data race (confirmed: it made parallel output non-deterministic
+    // run-to-run). Switching to a thread-local generator would remove the
+    // race but also change the exact value sequence vs. the single serial
+    // rand() stream, which broke byte-for-byte parity with several golden
+    // images (kscope/ntreal/piece1/pool/roman/snack/snail/tomb/wg5 - all use
+    // texture_randomness). So instead this keeps the SAME rand() call/stream
+    // (serial output unchanged, golden-safe) and only adds a mutex so
+    // concurrent calls under -parallel are serialized rather than racing.
+    // -parallel still won't reproduce serial's exact dither pattern (the
+    // interleaving order across threads differs from the single-threaded
+    // order) - an accepted AE-similar-not-bit-identical limitation, the same
+    // class as antialiasing (AdaptiveAntiAliasing, M1/B4). No gate scene
+    // sets texture_randomness, so the gate is unaffected either way.
+    static std::mutex randMutex;
+    {
+        std::lock_guard<std::mutex> lock(randMutex);
+        randomNumber = (rand() & 0x7FFF) / (double)0x7FFF;
+    }
 
     intensity -= randomNumber * texture->getTextureRandomness();
 

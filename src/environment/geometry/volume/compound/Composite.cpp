@@ -3,7 +3,7 @@
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/PovRayMaterial.h"
-#include "io/pov/material/DefaultTextureAliasTracker.h"
+#include "environment/material/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialConstancy.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"

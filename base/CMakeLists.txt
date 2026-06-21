@@ -42,6 +42,10 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.cpp
     src/main/vsdk/toolkit/media/solidTexture/from2d/SolidTextureCoordinateMapper.cpp
     src/main/vsdk/toolkit/media/solidTexture/from2d/ImageTexture.cpp
+    src/main/vsdk/toolkit/render/raytracing/RasterTileArea.cpp
+    src/main/vsdk/toolkit/render/raytracing/RasterTileGenerator.cpp
+    src/main/java/util/concurrent/Executors.cpp
+    src/main/vsdk/toolkit/common/statistics/SolidTextureStatistics.cpp
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ArrayListInstantiations.cpp" [=[
@@ -64,7 +68,10 @@ add_library(vitral_base SHARED ${VITRAL_BASE_SOURCES})
 
 target_include_directories(vitral_base PUBLIC src src/main)
 
-if(WITH_POSIX_THREADS)
-    target_compile_definitions(vitral_base PUBLIC VITRAL_WITH_POSIX_THREADS)
-    target_link_libraries(vitral_base PUBLIC pthread)
-endif()
+# Real pthreads are always available on the Linux build this project targets,
+# and the parallel raytracer (-parallel) needs java::Executors backed by real
+# threads, so this is enabled unconditionally rather than gated behind a
+# CMake option that compile.sh would have to know to pass.
+find_package(Threads REQUIRED)
+target_compile_definitions(vitral_base PUBLIC VITRAL_WITH_POSIX_THREADS)
+target_link_libraries(vitral_base PUBLIC Threads::Threads)

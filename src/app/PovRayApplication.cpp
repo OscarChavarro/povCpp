@@ -278,7 +278,11 @@ PovRayApplication::runRenderLoop()
         printProgress(buffer);
     }
 
-    engine.startTracing();
+    if (configuration.hasOptionFlags(RenderingConfiguration::PARALLEL)) {
+        engine.startTracingParallel();
+    } else {
+        engine.startTracing();
+    }
 }
 
 void
