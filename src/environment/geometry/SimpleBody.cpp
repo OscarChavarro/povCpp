@@ -56,7 +56,7 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
     geometry(other.geometry != nullptr ?
         (Geometry *)other.geometry->copy() : nullptr),
     material(other.material != nullptr ? other.material->copy() : nullptr),
-    shapeColor(other.shapeColor),
+    shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr),
     transform(other.transform),
     transformInverse(other.transformInverse)
 {

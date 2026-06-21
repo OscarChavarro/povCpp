@@ -276,7 +276,7 @@ PolynomialShape::intersect(
             t[i] = 0.0;
         }
     }
-    delete a;
+    delete[] a;
     for (i = 0, j = order; i <= order; i++) {
         if (t[i] != 0.0) {
             break;
@@ -508,7 +508,7 @@ PolynomialShape::transform(int order, double *coeffs, Matrix4x4d *q)
             coeffs[i] = b[i];
         }
     }
-    delete b;
+    delete[] b;
 }
 
 // Intersection of a ray and a quartic

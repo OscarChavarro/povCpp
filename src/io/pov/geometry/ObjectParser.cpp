@@ -528,6 +528,8 @@ ObjectParser::parseComposite(ParserContext &ctx)
                             localComposite, geometry, objectTexture,
                             objectColor, noShadowFlag, localBoundingShapes,
                             localClippingShapes, localSimpleBodies);
+                        delete localComposite;
+                        localComposite = nullptr;
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }

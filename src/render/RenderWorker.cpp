@@ -1,5 +1,3 @@
-#include <new>
-
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/RenderWorker.h"
@@ -28,12 +26,7 @@ RenderWorker::~RenderWorker()
 ColorRgba *
 RenderWorker::allocateColorBuffer(int count)
 {
-    ColorRgba *buffer = static_cast<ColorRgba *>(
-        ::operator new[](sizeof(ColorRgba) * count));
-    for (int i = 0; i < count; i++) {
-        new (&buffer[i]) ColorRgba(0.0, 0.0, 0.0, 0.0);
-    }
-    return buffer;
+    return new ColorRgba[count];
 }
 
 void

@@ -112,7 +112,7 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
     SolidTexturePigment * const pigment = base->getPigment();
     if (const ColourPigment *p = dynamic_cast<const ColourPigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::COLOUR_TEXTURE;
-        checkerColor1 = p->getColor1();
+        checkerColor1 = new ColorRgba(*p->getColor1());
     } else if (dynamic_cast<const BozoPigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::BOZO_TEXTURE;
     } else if (dynamic_cast<const MarblePigment *>(pigment)) {
@@ -121,12 +121,14 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
         textureNumber = SolidTextureColorNames::WOOD_TEXTURE;
     } else if (const CheckerColorPigment *p = dynamic_cast<const CheckerColorPigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::CHECKER_TEXTURE;
-        checkerColor1 = p->getColor1();
-        checkerColor2 = p->getColor2();
+        checkerColor1 = new ColorRgba(*p->getColor1());
+        checkerColor2 = new ColorRgba(*p->getColor2());
     } else if (const CheckerTexturePigment *p = dynamic_cast<const CheckerTexturePigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE;
-        checkerTexture1 = p->getTexture1();
-        checkerTexture2 = p->getTexture2();
+        checkerTexture1 = (p->getTexture1() != nullptr) ?
+            PovRayMaterial::copyTexture(p->getTexture1()) : nullptr;
+        checkerTexture2 = (p->getTexture2() != nullptr) ?
+            PovRayMaterial::copyTexture(p->getTexture2()) : nullptr;
     } else if (dynamic_cast<const SpottedPigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::SPOTTED_TEXTURE;
     } else if (dynamic_cast<const AgatePigment *>(pigment)) {
@@ -145,8 +147,8 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
         textureNumber = SolidTextureColorNames::LEOPARD_TEXTURE;
     } else if (const BrickPigment *p = dynamic_cast<const BrickPigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::BRICK_TEXTURE;
-        checkerColor1 = p->getColor1();
-        checkerColor2 = p->getColor2();
+        checkerColor1 = new ColorRgba(*p->getColor1());
+        checkerColor2 = new ColorRgba(*p->getColor2());
     } else if (dynamic_cast<const MaterialMapPigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::MATERIAL_MAP_TEXTURE;
     } else {

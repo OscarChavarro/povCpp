@@ -9,6 +9,7 @@ class ColorRgba {
     double _a;
 
   public:
+    ColorRgba() : _r(0.0), _g(0.0), _b(0.0), _a(0.0) {}
     ColorRgba(double r, double g, double b, double a)
         : _r(r), _g(g), _b(b), _a(a) {}
 

@@ -1,5 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 
@@ -17,16 +18,14 @@ IntersectionPriorityQueuePool::~IntersectionPriorityQueuePool()
     for (int i = 0; i < NUMBER_OF_PRIOQS; i++) {
         queues[i].~PriorityQueue<Intersection>();
     }
-    ::operator delete[](queues);
 }
 
 void
 IntersectionPriorityQueuePool::init()
 {
     if (queues == nullptr) {
-        void * const rawStorage =
-            ::operator new[](sizeof(java::PriorityQueue<Intersection>) * NUMBER_OF_PRIOQS);
-        queues = static_cast<java::PriorityQueue<Intersection> *>(rawStorage);
+        storage.init(sizeof(java::PriorityQueue<Intersection>) * NUMBER_OF_PRIOQS);
+        queues = storage.allocate(NUMBER_OF_PRIOQS);
         if (queues == nullptr) {
             Logger::reportMessage("IntersectionPriorityQueuePool", Logger::FATAL_ERROR, "", "\nOut of memory. Cannot allocate queue storage");
         }

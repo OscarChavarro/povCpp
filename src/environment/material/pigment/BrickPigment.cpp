@@ -20,7 +20,7 @@ BrickPigment::colorAt(const Vector3Dd *point, ColorRgba *color, double smallTole
 SolidTexturePigment *
 BrickPigment::copy() const
 {
-    return new BrickPigment(color1, color2, mortar);
+    return new BrickPigment(new ColorRgba(*color1), new ColorRgba(*color2), mortar);
 }
 
 ColorRgba *
