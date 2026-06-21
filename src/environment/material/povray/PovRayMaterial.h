@@ -111,6 +111,7 @@ class PovRayMaterial : public Material {
     Matrix4x4d* getTextureTransformationInverse() const;
     bool isMetallic() const;
     Material *prependMaterialLayers(Material *existingMaterial) override;
+    void releaseFromOwner() override;
 
     // Texture-space copy/transform engine. Because `friend` is forbidden, these member
     // functions are the only writers of the private state besides the constructors; they

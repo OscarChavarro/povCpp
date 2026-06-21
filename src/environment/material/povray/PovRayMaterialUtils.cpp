@@ -1,8 +1,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/material/PovRayMaterial.h"
-#include "environment/material/PovRayMaterialUtils.h"
-#include "io/pov/material/PovRayMaterialBuilder.h"
-#include "io/pov/material/PovRayMaterialConstancy.h"
+#include "environment/material/povray/PovRayMaterial.h"
+#include "environment/material/povray/PovRayMaterialUtils.h"
+#include "environment/material/povray/PovRayMaterialBuilder.h"
+#include "environment/material/povray/PovRayMaterialConstancy.h"
 
 void
 PovRayMaterialUtils::translateTexture(
