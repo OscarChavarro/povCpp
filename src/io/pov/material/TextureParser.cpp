@@ -99,6 +99,16 @@ TextureParser::parseTexture(PovRayMaterial *baseTexture, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::TEXTURE_CONSTANT) {
+                        // `texture` may already hold an intermediate generation built
+                        // by an earlier pending-field token in this same block (e.g.
+                        // "0.05 Bright_Blue_Sky" - the float sets textureRandomness
+                        // via rebuildAndDiscard before this identifier reference is
+                        // seen) - same discard-the-old-generation discipline as
+                        // rebuildAndDiscard() above, just done manually here since
+                        // this branch doesn't call build().
+                        if (texture != nullptr && !PovRayMaterialConstancy::isConstant(texture)) {
+                            delete texture;
+                        }
                         texture = ((PovRayMaterial *)ctx.constants()[(int)constantId]
                                 .getConstantData());
                         // texture{} may end here with no further attribute token, in

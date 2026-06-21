@@ -127,6 +127,13 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::POLY_CONSTANT) {
+                        // For cubic/quartic (knownOrder > 0), `body` was already
+                        // built above before this token was seen (the fixed order
+                        // is known up front, unlike generic `poly`) - this
+                        // identifier reference replaces it entirely, so the
+                        // pre-built one must be freed first. Brand new, never
+                        // shared, so safe to delete unconditionally.
+                        delete body;
                         body = new SimpleBody(
                                 *(SimpleBody *)ctx.constants()[(int)constantId]
                                     .getConstantData());
