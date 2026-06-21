@@ -29,6 +29,7 @@ Scene::~Scene()
     for (long int i = 0; i < Objects.size(); i++) {
         delete Objects[i];
     }
+    delete defaultTexture;
 }
 
 void

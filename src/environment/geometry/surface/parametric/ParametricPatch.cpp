@@ -1030,6 +1030,37 @@ ParametricBiCubicPatch::ParametricBiCubicPatch(const ParametricBiCubicPatch &oth
     ParametricBiCubicPatch::precomputePatchValues(this);
 }
 
+ParametricBiCubicPatch::~ParametricBiCubicPatch()
+{
+    if (interpolatedGrid != nullptr) {
+        for (int i = 0; i <= uSteps; i++) {
+            delete[] interpolatedGrid[i];
+        }
+        delete[] interpolatedGrid;
+    }
+    if (interpolatedNormals != nullptr) {
+        for (int i = 0; i <= uSteps; i++) {
+            delete[] interpolatedNormals[i];
+        }
+        delete[] interpolatedNormals;
+    }
+    if (smoothNormals != nullptr) {
+        for (int i = 0; i <= uSteps; i++) {
+            delete[] smoothNormals[i];
+        }
+        delete[] smoothNormals;
+    }
+    if (interpolatedD != nullptr) {
+        for (int i = 0; i <= uSteps; i++) {
+            delete[] interpolatedD[i];
+        }
+        delete[] interpolatedD;
+    }
+    if (nodeTree != nullptr) {
+        ParametricBiCubicPatch::parametricTreeDeleter(nodeTree);
+    }
+}
+
 void *
 ParametricBiCubicPatch::copy()
 {

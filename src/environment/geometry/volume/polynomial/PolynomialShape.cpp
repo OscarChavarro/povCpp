@@ -90,6 +90,12 @@ PolynomialShape::PolynomialShape(const PolynomialShape &other) :
     }
 }
 
+PolynomialShape::~PolynomialShape()
+{
+    delete transformation;
+    delete transformationInverse;
+    delete[] Coeffs;
+}
 
 int
 PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)

@@ -556,6 +556,14 @@ Blob::Blob(const Blob &other) :
 {
 }
 
+Blob::~Blob()
+{
+    delete transformation;
+    delete transformationInverse;
+    delete[] list;
+    delete[] intervals;
+}
+
 void *
 Blob::copy()
 {

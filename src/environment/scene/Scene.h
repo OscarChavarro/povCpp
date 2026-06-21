@@ -6,6 +6,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/camera/Camera.h"
 #include "environment/light/Light.h"
+#include "environment/material/Material.h"
 #include "environment/geometry/BoundedGeometry.h"
 
 class Scene {
@@ -51,6 +52,15 @@ class Scene {
     }
     void resetForSceneParse(double antialiasThreshold = DEFAULT_ANTIALIAS_THRESHOLD);
 
+    // The scene's default texture is aliased (not cloned) into every untextured
+    // object's BoundedGeometry::objectTexture for the entire render (see
+    // ~BoundedGeometry()'s PovRayMaterialConstancy guard) - it can only be freed
+    // once nothing will read it again, i.e. once Scene itself is destroyed.
+    // SceneParser::parse() calls this once, after parsing finishes, with
+    // whatever the final default texture turned out to be (it may have been
+    // replaced mid-parse by a `default { texture {...} }` block).
+    void captureDefaultTexture(Material *texture) { defaultTexture = texture; }
+
   private:
     Camera viewPoint;
     int screenHeight;
@@ -61,6 +71,7 @@ class Scene {
     double antialiasThreshold;
     double fogDistance;
     ColorRgba fogColor;
+    Material *defaultTexture = nullptr;
 };
 
 #endif

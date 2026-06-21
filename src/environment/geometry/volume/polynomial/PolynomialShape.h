@@ -12,6 +12,7 @@ class PolynomialShape : public Geometry {
     explicit PolynomialShape(int initialOrder);
     PolynomialShape(int initialOrder, int sturmFlagValue);
     PolynomialShape(const PolynomialShape &other);
+    ~PolynomialShape() override;
 
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }

@@ -13,6 +13,7 @@ class Box : public Geometry {
     Box(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
         const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted);
     Box(const Box &other);
+    ~Box() override;
 
     Matrix4x4d* getTransformation() const { return transformation; }
     void setTransformation(Matrix4x4d *value) { transformation = value; }
