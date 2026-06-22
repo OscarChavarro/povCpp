@@ -789,7 +789,7 @@ PolynomialShape::quarticNormal(
 }
 
 int
-PolynomialShape::doContainmentTest(Vector3Dd *testPoint)
+PolynomialShape::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     Vector3Dd newPoint;
     const PolynomialShape *shape = this;
@@ -797,16 +797,16 @@ PolynomialShape::doContainmentTest(Vector3Dd *testPoint)
 
     // Transform the point into polynomial's space
     if (shape->transformation != nullptr) {
-        newPoint = shape->transformationInverse->transformPoint(*testPoint);
+        newPoint = shape->transformationInverse->transformPoint(testPoint);
     } else {
-        newPoint = *testPoint;
+        newPoint = testPoint;
     }
 
     result = PolynomialShape::evaluatePolynomial(&newPoint, shape->order, shape->Coeffs);
-    if (result < Config::SMALL_TOLERANCE) {
-        return ((int)(1 - shape->inverted));
+    if (result < distanceTolerance) {
+        return shape->inverted ? OUTSIDE : INSIDE;
     }
-    return ((int)shape->inverted);
+    return shape->inverted ? INSIDE : OUTSIDE;
 }
 
 // Normal to a polynomial

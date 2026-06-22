@@ -367,9 +367,11 @@ Triangle::intersectTriangle(
 }
 
 int
-Triangle::doContainmentTest(Vector3Dd *point)
+Triangle::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    return (false);
+    (void)point;
+    (void)distanceTolerance;
+    return OUTSIDE;
 }
 
 void

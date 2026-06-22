@@ -22,10 +22,11 @@ LightGeometryAdapter::allIntersectionsForMaterial(
 }
 
 int
-LightGeometryAdapter::doContainmentTest(Vector3Dd *point)
+LightGeometryAdapter::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
     (void)point;
-    return false;
+    (void)distanceTolerance;
+    return OUTSIDE;
 }
 
 void *

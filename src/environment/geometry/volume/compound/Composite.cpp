@@ -1,3 +1,4 @@
+#include "common/Config.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
@@ -26,7 +27,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHit(ray, _boundingHit) &&
-                !boundingShape->doContainmentTest(&rayOrigin)) {
+                boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
+                    TransformableElement::OUTSIDE) {
                 return (false);
             }
         }
@@ -50,7 +52,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
             stats.incrementClippingRegionTests();
-            if (!clippingShape->doContainmentTest(&localIntersection.getIntersection().point)) {
+            if (clippingShape->doContainmentTest(localIntersection.getIntersection().point,
+                    Config::SMALL_TOLERANCE) == TransformableElement::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -86,7 +89,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         {
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHit(ray, _boundingHit) &&
-                !boundingShape->doContainmentTest(&rayOrigin)) {
+                boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
+                    TransformableElement::OUTSIDE) {
                 return (false);
             }
         }
@@ -109,7 +113,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             clippingShape = this->getClippingShapes()[i];
 
             stats.incrementClippingRegionTests();
-            if (!clippingShape->doContainmentTest(&localIntersection.getIntersection().point)) {
+            if (clippingShape->doContainmentTest(localIntersection.getIntersection().point,
+                    Config::SMALL_TOLERANCE) == TransformableElement::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -137,7 +142,7 @@ BoundedGeometry::allIntersectionsForMaterial(
 }
 
 int
-BoundedGeometry::doContainmentTest(Vector3Dd *point)
+BoundedGeometry::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
@@ -145,27 +150,27 @@ BoundedGeometry::doContainmentTest(Vector3Dd *point)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (!boundingShape->doContainmentTest(point)) {
-            return (false);
+        if (boundingShape->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
+            return OUTSIDE;
         }
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (!clippingShape->doContainmentTest(point)) {
-            return (false);
+        if (clippingShape->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
+            return OUTSIDE;
         }
     }
 
-    if (this->getGeometry()->doContainmentTest(point)) {
-        return (true);
+    if (this->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
+        return INSIDE;
     }
-    return (false);
+    return OUTSIDE;
 }
 
 int
-Composite::doContainmentTest(Vector3Dd *point)
+Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
@@ -174,28 +179,28 @@ Composite::doContainmentTest(Vector3Dd *point)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (!boundingShape->doContainmentTest(point)) {
-            return (false);
+        if (boundingShape->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
+            return OUTSIDE;
         }
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (!clippingShape->doContainmentTest(point)) {
-            return (false);
+        if (clippingShape->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
+            return OUTSIDE;
         }
     }
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
 
-        if (localObject->doContainmentTest(point)) {
-            return (true);
+        if (localObject->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
+            return INSIDE;
         }
     }
 
-    return (false);
+    return OUTSIDE;
 }
 
 BoundedGeometry::BoundedGeometry(const BoundedGeometry &other) :

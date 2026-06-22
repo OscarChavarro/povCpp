@@ -983,9 +983,11 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
 
 // A patch is not a solid, so an inside test doesn't make sense
 int
-ParametricBiCubicPatch::doContainmentTest(Vector3Dd *point)
+ParametricBiCubicPatch::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    return 0;
+    (void)point;
+    (void)distanceTolerance;
+    return OUTSIDE;
 }
 
 void

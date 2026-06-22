@@ -143,16 +143,16 @@ Sphere::allIntersectionsForMaterial(
 }
 
 int
-Sphere::doContainmentTest(Vector3Dd *testPoint)
+Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     const Sphere *sphere = this;
-    const Vector3Dd originToCenter = sphere->getCenter().subtract(*testPoint);
+    const Vector3Dd originToCenter = sphere->getCenter().subtract(testPoint);
     const double ocSquared = originToCenter.dotProduct(originToCenter);
 
     if (sphere->isInverted()) {
-        return (ocSquared - sphere->getRadiusSquared() > Config::SMALL_TOLERANCE);
+        return (ocSquared - sphere->getRadiusSquared() > distanceTolerance) ? INSIDE : OUTSIDE;
     }
-    return (ocSquared - sphere->getRadiusSquared() < Config::SMALL_TOLERANCE);
+    return (ocSquared - sphere->getRadiusSquared() < distanceTolerance) ? INSIDE : OUTSIDE;
 }
 
 void

@@ -1,5 +1,6 @@
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
+#include "common/Config.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/compound/CSG.h"
@@ -23,7 +24,7 @@ CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
     // so the stored TransformableElement is a SimpleBody; its doContainmentTest()
     // override forwards straight to the wrapped geometry, with no need to
     // know that concretely here.
-    return shape->doContainmentTest(point);
+    return shape->doContainmentTest(*point, Config::SMALL_TOLERANCE) != TransformableElement::OUTSIDE;
 }
 
 int
@@ -246,10 +247,15 @@ CSG::invert()
 }
 
 int
-CSG::doContainmentTest(Vector3Dd *point)
+CSG::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
+    (void)distanceTolerance;
+    Vector3Dd mutablePoint = point;
+    bool isInside;
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
-        return insideCsgIntersection(point);
+        isInside = insideCsgIntersection(&mutablePoint);
+    } else {
+        isInside = insideCsgUnion(&mutablePoint);
     }
-    return insideCsgUnion(point);
+    return isInside ? INSIDE : OUTSIDE;
 }

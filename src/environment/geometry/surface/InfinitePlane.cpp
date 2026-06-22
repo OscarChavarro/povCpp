@@ -108,12 +108,12 @@ InfinitePlane::intersectPlane(
 }
 
 int
-InfinitePlane::doContainmentTest(Vector3Dd *testPoint)
+InfinitePlane::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     const InfinitePlane *plane = this;
 
-    double temp = (*testPoint).dotProduct(plane->normalVector);
-    return ((temp + plane->distance) <= Config::SMALL_TOLERANCE);
+    double temp = testPoint.dotProduct(plane->normalVector);
+    return ((temp + plane->distance) <= distanceTolerance) ? INSIDE : OUTSIDE;
 }
 
 void
