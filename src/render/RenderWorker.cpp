@@ -89,7 +89,7 @@ RenderWorker::traceServiceTrace(void *context, const RayWithSegments *ray,
 
 void
 RenderWorker::traceServiceShadeShadow(
-    void *context, Intersection *intersection, ColorRgba *color)
+    void *context, IntersectionCandidate *intersection, ColorRgba *color)
 {
     RenderWorker *worker = static_cast<RenderWorker *>(context);
     RenderEngine &engine = *worker->engine;

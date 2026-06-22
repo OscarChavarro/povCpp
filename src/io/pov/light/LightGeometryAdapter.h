@@ -18,10 +18,10 @@ class LightGeometryAdapter : public Geometry {
 
     int allIntersections(
         RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue) override;
+        java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
     int allIntersectionsForMaterial(
         RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *material) override;
     int inside(Vector3Dd *point) override;
     void *copy() override;

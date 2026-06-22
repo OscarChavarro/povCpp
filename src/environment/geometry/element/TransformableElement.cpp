@@ -1,12 +1,12 @@
 #include "java/util/PriorityQueue.txx"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/TransformableElement.h"
 
 bool
-TransformableElement::intersect(RayWithSegments *ray, Intersection &out)
+TransformableElement::intersect(RayWithSegments *ray, IntersectionCandidate &out)
 {
-    java::PriorityQueue<Intersection> * const depthQueue =
+    java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
     bool hit = false;
     if (allIntersections(ray, depthQueue) && depthQueue->size() > 0) {

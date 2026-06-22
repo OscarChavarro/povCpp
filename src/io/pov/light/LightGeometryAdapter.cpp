@@ -2,7 +2,7 @@
 
 int
 LightGeometryAdapter::allIntersections(
-    RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+    RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     (void)ray;
     (void)depthQueue;
@@ -12,7 +12,7 @@ LightGeometryAdapter::allIntersections(
 int
 LightGeometryAdapter::allIntersectionsForMaterial(
     RayWithSegments *ray,
-    java::PriorityQueue<Intersection> *depthQueue,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *material)
 {
     (void)ray;

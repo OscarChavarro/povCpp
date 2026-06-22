@@ -65,10 +65,10 @@ class BoundedGeometry : public Geometry {
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
     int allIntersectionsForMaterial(
         RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *material) override;
     int inside(Vector3Dd *point) override;
     void *copy() override;

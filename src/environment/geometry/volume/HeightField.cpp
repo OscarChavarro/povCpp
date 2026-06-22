@@ -17,7 +17,7 @@ each step.
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/HeightField.h"
 
 HeightField::HeightField() :
@@ -244,18 +244,18 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     }
 
     if (depth2 < depth1) {
-        state.hfIntersection->setT(depth2);
+        state.hfIntersection->getIntersection().setT(depth2);
         t1V1 = state.rRay->getDirection().multiply(depth2);
         t1V1 = t1V1.add(state.rRay->getOrigin());
-        state.hfIntersection->setPoint(t1V1);
-        state.hfIntersection->setHitGeometry(hField);
+        state.hfIntersection->getIntersection().setPoint(t1V1);
+        state.hfIntersection->getAttributes().setHitGeometry(hField);
         state.hfQueue->offer(*state.hfIntersection);
     } else {
-        state.hfIntersection->setT(depth1);
+        state.hfIntersection->getIntersection().setT(depth1);
         t1V1 = state.rRay->getDirection().multiply(depth1);
         t1V1 = t1V1.add(state.rRay->getOrigin());
-        state.hfIntersection->setPoint(t1V1);
-        state.hfIntersection->setHitGeometry(hField);
+        state.hfIntersection->getIntersection().setPoint(t1V1);
+        state.hfIntersection->getAttributes().setHitGeometry(hField);
         state.hfQueue->offer(*state.hfIntersection);
     }
     stats.incrementRayHtFieldTestsSucceeded();
@@ -831,7 +831,7 @@ HeightField::findHfMinMax(HeightField *hField,
 }
 
 int
-HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
@@ -840,7 +840,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
     double depth2;
     bool retVal = false;
     HeightField * const hField = this;
-    Intersection localElement;
+    IntersectionCandidate localElement;
 
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayHtFieldTests();

@@ -8,7 +8,7 @@ class Geometry : public TransformableElement {
   public:
     virtual int allIntersectionsForMaterial(
         RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *material);
     virtual void translateGeometry(Vector3Dd *vector) {}
     virtual void rotateGeometry(Vector3Dd *vector) {}

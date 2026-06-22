@@ -25,7 +25,7 @@ class RenderWorker {
     static void traceServiceTrace(void *context, const RayWithSegments *ray,
         ColorRgba *color);
     static void traceServiceShadeShadow(
-        void *context, Intersection *intersection, ColorRgba *color);
+        void *context, IntersectionCandidate *intersection, ColorRgba *color);
 
   public:
     explicit RenderWorker(RenderEngine *owner);

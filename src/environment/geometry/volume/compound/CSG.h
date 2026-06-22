@@ -13,9 +13,9 @@ class CSG : public Geometry {
 
     static int insideCsgChild(Vector3Dd *point, TransformableElement *shape);
     int allCsgUnionIntersections(
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
+        RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
     int allCsgIntersectIntersections(
-        RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue);
+        RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
     int insideCsgUnion(Vector3Dd *point);
     int insideCsgIntersection(Vector3Dd *point);
 
@@ -29,10 +29,10 @@ class CSG : public Geometry {
     java::ArrayList<TransformableElement*> &getShapes();
     const java::ArrayList<TransformableElement*> &getShapes() const;
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
     int allIntersectionsForMaterial(
         RayWithSegments *ray,
-        java::PriorityQueue<Intersection> *depthQueue,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *material) override;
     int inside(Vector3Dd *point) override;
     void *copy() override;

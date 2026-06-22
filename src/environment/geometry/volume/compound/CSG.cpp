@@ -1,7 +1,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/compound/CSG.h"
 
 CSG::CSG(BooleanSetOperations initialGeometryType) :
@@ -27,7 +27,7 @@ CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 }
 
 int
-CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         return allCsgIntersectIntersections(ray, depthQueue);
@@ -38,7 +38,7 @@ CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *d
 int
 CSG::allIntersectionsForMaterial(
     RayWithSegments *ray,
-    java::PriorityQueue<Intersection> *depthQueue,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *material)
 {
     (void)material;
@@ -47,7 +47,7 @@ CSG::allIntersectionsForMaterial(
 
 int
 CSG::allCsgUnionIntersections(
-    RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+    RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     const CSG *shape = this;
     TransformableElement *localShape;
@@ -65,14 +65,14 @@ CSG::allCsgUnionIntersections(
 
 int
 CSG::allCsgIntersectIntersections(
-    RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+    RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     bool intersectionFound;
     const CSG *shape = this;
     TransformableElement *localShape;
     TransformableElement *shape2;
-    java::PriorityQueue<Intersection> *localDepthQueue;
-    Intersection localIntersection;
+    java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
+    IntersectionCandidate localIntersection;
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
 
@@ -83,7 +83,7 @@ CSG::allCsgIntersectIntersections(
 
         localShape->allIntersections(ray, localDepthQueue);
 
-        for (const Intersection& candidate : *localDepthQueue) {
+        for (const IntersectionCandidate& candidate : *localDepthQueue) {
             localIntersection = candidate;
 
             intersectionFound = true;
@@ -92,7 +92,7 @@ CSG::allCsgIntersectIntersections(
                 shape2 = shape->getShapes()[j];
 
                 if (shape2 != localShape) {
-                    if (!CSG::insideCsgChild(&localIntersection.getPoint(), shape2)) {
+                    if (!CSG::insideCsgChild(&localIntersection.getIntersection().getPoint(), shape2)) {
                         intersectionFound = false;
                         break;
                     }

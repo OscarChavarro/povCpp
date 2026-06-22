@@ -1,21 +1,21 @@
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/material/Material.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 
 int
-Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     bool intersectionFound;
     bool anyIntersectionFound;
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
-    Intersection localIntersection;
+    IntersectionCandidate localIntersection;
     BoundedGeometry *localObject;
-    java::PriorityQueue<Intersection> *localDepthQueue;
+    java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -24,7 +24,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 
         stats.incrementBoundingRegionTests();
         {
-            Intersection _boundingHit;
+            IntersectionCandidate _boundingHit;
             if (!boundingShape->intersect(ray, _boundingHit) &&
                 !boundingShape->inside(&rayOrigin)) {
                 return (false);
@@ -42,7 +42,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         localObject->allIntersections(ray, localDepthQueue);
     }
 
-    for (const Intersection& candidate : *localDepthQueue) {
+    for (const IntersectionCandidate& candidate : *localDepthQueue) {
         localIntersection = candidate;
 
         intersectionFound = true;
@@ -50,7 +50,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
             stats.incrementClippingRegionTests();
-            if (!clippingShape->inside(&localIntersection.getPoint())) {
+            if (!clippingShape->inside(&localIntersection.getIntersection().getPoint())) {
                 intersectionFound = false;
                 break;
             }
@@ -68,14 +68,14 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 }
 
 int
-BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    Intersection localIntersection;
+    IntersectionCandidate localIntersection;
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
-    java::PriorityQueue<Intersection> *localDepthQueue;
+    java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -84,7 +84,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
         stats.incrementBoundingRegionTests();
         {
-            Intersection _boundingHit;
+            IntersectionCandidate _boundingHit;
             if (!boundingShape->intersect(ray, _boundingHit) &&
                 !boundingShape->inside(&rayOrigin)) {
                 return (false);
@@ -97,19 +97,19 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     anyIntersectionFound = false;
     this->getGeometry()->allIntersections(ray, localDepthQueue);
 
-    for (const Intersection& candidate : *localDepthQueue) {
+    for (const IntersectionCandidate& candidate : *localDepthQueue) {
         localIntersection = candidate;
 
-        localIntersection.setObjectTexture(this->getObjectTexture());
-        localIntersection.setObjectColor(this->getObjectColor());
-        localIntersection.setNoShadowFlag(this->getNoShadowFlag());
+        localIntersection.getAttributes().setObjectTexture(this->getObjectTexture());
+        localIntersection.getAttributes().setObjectColor(this->getObjectColor());
+        localIntersection.getAttributes().setNoShadowFlag(this->getNoShadowFlag());
         intersectionFound = true;
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
 
             stats.incrementClippingRegionTests();
-            if (!clippingShape->inside(&localIntersection.getPoint())) {
+            if (!clippingShape->inside(&localIntersection.getIntersection().getPoint())) {
                 intersectionFound = false;
                 break;
             }
@@ -129,7 +129,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 int
 BoundedGeometry::allIntersectionsForMaterial(
     RayWithSegments *ray,
-    java::PriorityQueue<Intersection> *depthQueue,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *material)
 {
     (void)material;

@@ -8,7 +8,7 @@
 #include "vsdk/toolkit/numericalAnalysis/polynomial/QuarticSolver.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Blob.h"
 
 constexpr double Blob::COEFFICIENT_LIMIT;
@@ -314,10 +314,10 @@ This formula can now be solved for "t" by any of the quartic
 root solvers that are available.
 */
 int
-Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     Blob * const blob = this;
-    Intersection localElement;
+    IntersectionCandidate localElement;
     double dist;
     double len;
     double *tCoefficients;
@@ -458,9 +458,9 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                     }
                     dv = intersectionPoint.subtract(ray->getOrigin());
                     len = dv.length();
-                    localElement.setT(len);
-                    localElement.setPoint(intersectionPoint);
-                    localElement.setHitGeometry(blob);
+                    localElement.getIntersection().setT(len);
+                    localElement.getIntersection().setPoint(intersectionPoint);
+                    localElement.getAttributes().setHitGeometry(blob);
                     depthQueue->offer(localElement);
                     intersectionFound = true;
                 }

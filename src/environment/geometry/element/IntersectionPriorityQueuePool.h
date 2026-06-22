@@ -4,7 +4,7 @@
 #include "java/util/PriorityQueue.h"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.h"
 
-class Intersection;
+class IntersectionCandidate;
 
 class IntersectionPriorityQueuePool {
   public:
@@ -12,15 +12,15 @@ class IntersectionPriorityQueuePool {
     ~IntersectionPriorityQueuePool();
 
     void init();
-    java::PriorityQueue<Intersection> *pop(int indexSize);
-    void push(java::PriorityQueue<Intersection> *queue);
+    java::PriorityQueue<IntersectionCandidate> *pop(int indexSize);
+    void push(java::PriorityQueue<IntersectionCandidate> *queue);
 
   private:
     static constexpr int NUMBER_OF_PRIOQS = 32;
     static constexpr int MAX_NUMBER_OF_ENTRIES = 128;
 
-    MemoryPool<java::PriorityQueue<Intersection>> storage;
-    java::PriorityQueue<Intersection> *queues;
+    MemoryPool<java::PriorityQueue<IntersectionCandidate>> storage;
+    java::PriorityQueue<IntersectionCandidate> *queues;
     int nextFreeIndex[NUMBER_OF_PRIOQS];
     int headIndex;
 };

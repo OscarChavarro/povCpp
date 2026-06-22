@@ -1,11 +1,11 @@
 #include "java/util/PriorityQueue.txx"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 
 int
 Geometry::allIntersectionsForMaterial(
     RayWithSegments *ray,
-    java::PriorityQueue<Intersection> *depthQueue,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *material)
 {
     const int sizeBefore = depthQueue->size();
@@ -20,9 +20,9 @@ Geometry::allIntersectionsForMaterial(
     // creation - no sentinel cast needed here. Only the material pointer
     // itself needs deferred backfill.
     int updated = 0;
-    for (Intersection &candidate : *depthQueue) {
-        if (candidate.getHitGeometry() == this) {
-            candidate.setMaterial(material);
+    for (IntersectionCandidate &candidate : *depthQueue) {
+        if (candidate.getAttributes().getHitGeometry() == this) {
+            candidate.getAttributes().setMaterial(material);
             if (++updated == newCount) {
                 break;
             }
