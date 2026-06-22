@@ -4,9 +4,9 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/RayWithSegments.h"
+#include "environment/material/RendererConfiguration.h"
 
 class Intersection;
-class RenderingConfiguration;
 
 class TransformableElement {
   public:

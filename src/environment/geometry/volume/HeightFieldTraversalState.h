@@ -2,10 +2,10 @@
 #define __HEIGHT_FIELD_TRAVERSAL_STATE__
 
 #include "java/util/PriorityQueue.h"
+#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/RayWithSegments.h"
 
 class HeightField;
-class Intersection;
-class RayWithSegments;
 
 class HeightFieldTraversalState {
   private:

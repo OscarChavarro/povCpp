@@ -2,8 +2,7 @@
 #define __POV_RAY_MATERIAL_CONSTANCY__
 
 #include "java/util/ArrayList.h"
-
-class PovRayMaterial;
+#include "environment/material/povray/PovRayMaterial.h"
 
 class PovRayMaterialConstancy {
   public:

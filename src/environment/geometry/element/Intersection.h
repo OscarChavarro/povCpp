@@ -3,10 +3,9 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"
+#include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/BoundedGeometry.h"
-
-class Material;
 
 class Intersection {
   private:

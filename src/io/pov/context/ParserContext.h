@@ -1,15 +1,14 @@
 #ifndef __PARSER_CONTEXT__
 #define __PARSER_CONTEXT__
 
-#include "io/pov/lexer/ITokenStream.h"
-#include "io/pov/lexer/PovToken.h"
-#include "io/pov/lexer/ReservedWord.h"
+#include "common/RenderRuntimeState.h"
+#include "environment/material/povray/PovRayMaterial.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/SymbolTable.h"
 #include "io/pov/context/TokenizerStream.h"
-
-class PovRayMaterial;
-class RenderRuntimeState;
+#include "io/pov/lexer/ITokenStream.h"
+#include "io/pov/lexer/PovToken.h"
+#include "io/pov/lexer/ReservedWord.h"
 
 class ParserContext {
   public:

@@ -2,8 +2,7 @@
 #define __CHECKER_TEXTURE_PIGMENT__
 
 #include "environment/material/pigment/SolidTexturePigment.h"
-
-class PovRayMaterial;
+#include "environment/material/povray/PovRayMaterial.h"
 
 class CheckerTexturePigment : public SolidTexturePigment {
   public:

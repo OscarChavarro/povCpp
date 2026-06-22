@@ -8,9 +8,8 @@
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "environment/material/Material.h"
-
-class SolidTexturePigment;
-class SolidTextureNormal;
+#include "environment/material/normal/SolidTextureNormal.h"
+#include "environment/material/pigment/SolidTexturePigment.h"
 
 class PovRayMaterial : public Material {
   private:

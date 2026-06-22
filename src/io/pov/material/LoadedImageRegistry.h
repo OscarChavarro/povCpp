@@ -2,8 +2,7 @@
 #define __LOADED_IMAGE_REGISTRY__
 
 #include "java/util/ArrayList.h"
-
-class ControlledRGBAImageHDRUncompressed;
+#include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 
 class LoadedImageRegistry {
   public:

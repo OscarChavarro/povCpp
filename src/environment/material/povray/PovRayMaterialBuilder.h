@@ -7,12 +7,11 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/media/RGBAColorPalette.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
+#include "environment/material/normal/SolidTextureNormal.h"
+#include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/SolidTextureBumpyNames.h"
 #include "environment/material/SolidTextureColorNames.h"
-
-class SolidTexturePigment;
-class SolidTextureNormal;
 
 class PovRayMaterialBuilder {
   public:

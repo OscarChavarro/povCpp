@@ -4,9 +4,8 @@
 #include "java/io/FileInputStream.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
+#include "io/binaryIo/FileLocator.h"
 #include "io/image/ChunkHeader.h"
-
-class FileLocator;
 
 class IffFormat {
   public:

@@ -2,9 +2,8 @@
 #define __SMOOTH_TRIANGLE_PARSER__
 
 #include "environment/geometry/Geometry.h"
+#include "environment/scene/SimpleBody.h"
 #include "io/pov/context/ParserContext.h"
-
-class SimpleBody;
 
 class SmoothTriangleParser {
   public:
