@@ -28,7 +28,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     emittedColor.setR(0.0); emittedColor.setG(0.0); emittedColor.setB(0.0); emittedColor.setA(0);
 
     if (texture == nullptr) {
-        texture = static_cast<PovRayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
+        texture = static_cast<PovRayMaterial *>(rayIntersection->getObjectTexture());
     }
 
     if (ray->getConfig()->getQuality() <= 1) {

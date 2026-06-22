@@ -75,7 +75,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                         (localIntersection.getT() > SHADOW_TOLERANCE)) {
 
                         // Does the object not cast a shadow?
-                        if (!localIntersection.getBoundedGeometry()->getNoShadowFlag()) {
+                        if (!localIntersection.getNoShadowFlag()) {
                             if (ShadowShader::shade(&localIntersection, &lightColor,
                                     localQueue, traceService)) {
                                 intersectionFound = true;

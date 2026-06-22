@@ -459,7 +459,6 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *
                     dv = intersectionPoint.subtract(ray->getOrigin());
                     len = dv.length();
                     localElement.setT(len);
-                    localElement.setBoundedGeometry(nullptr);
                     localElement.setPoint(intersectionPoint);
                     localElement.setHitGeometry(blob);
                     depthQueue->offer(localElement);

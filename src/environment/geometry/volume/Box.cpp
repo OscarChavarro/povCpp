@@ -68,7 +68,6 @@ Box::allIntersectionsForMaterial(
     Box * const shape = this;
     if (Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
         localElement.setT(depth1);
-        localElement.setBoundedGeometry(nullptr);
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
@@ -79,7 +78,6 @@ Box::allIntersectionsForMaterial(
 
         if (depth2 != depth1) {
             localElement.setT(depth2);
-            localElement.setBoundedGeometry(nullptr);
             intersectionPoint = ray->getDirection().multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);

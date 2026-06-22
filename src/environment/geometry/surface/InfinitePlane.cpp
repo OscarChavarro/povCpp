@@ -45,7 +45,6 @@ InfinitePlane::allIntersectionsForMaterial(
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > Config::SMALL_TOLERANCE) {
             localElement.setT(depth);
-            localElement.setBoundedGeometry(nullptr);
             intersectionPoint = ray->getDirection().multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
