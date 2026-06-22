@@ -119,20 +119,20 @@ Sphere::allIntersectionsForMaterial(
 
     bool intersectionFound = false;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
-        localElement.getIntersection().setT(depth1);
+        localElement.getIntersection().t = depth1;
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
-        localElement.getIntersection().setPoint(intersectionPoint);
+        localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
         localElement.getAttributes().setMaterial(material);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
-            localElement.getIntersection().setT(depth2);
+            localElement.getIntersection().t = depth2;
             intersectionPoint = ray->getDirection().multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
-            localElement.getIntersection().setPoint(intersectionPoint);
+            localElement.getIntersection().point = intersectionPoint;
             localElement.getAttributes().setHitGeometry(shape);
             localElement.getAttributes().setMaterial(material);
             depthQueue->offer(localElement);

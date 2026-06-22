@@ -92,7 +92,7 @@ CSG::allCsgIntersectIntersections(
                 shape2 = shape->getShapes()[j];
 
                 if (shape2 != localShape) {
-                    if (!CSG::insideCsgChild(&localIntersection.getIntersection().getPoint(), shape2)) {
+                    if (!CSG::insideCsgChild(&localIntersection.getIntersection().point, shape2)) {
                         intersectionFound = false;
                         break;
                     }

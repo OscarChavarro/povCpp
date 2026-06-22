@@ -39,11 +39,11 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
         return;
     }
 
-    surfaceNormal = rayIntersection->getIntersection().getNormal();
+    surfaceNormal = rayIntersection->getIntersection().normal;
 
     if (ray->getConfig()->getQuality() >= 8) {
         BumpNormalShader::shade(
-            &surfaceNormal, texture, &rayIntersection->getIntersection().getPoint(), &surfaceNormal,
+            &surfaceNormal, texture, &rayIntersection->getIntersection().point, &surfaceNormal,
             textureUtils);
     }
 
@@ -56,7 +56,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     attenuation = filterColor->getA() * (1.0 - surfaceColor->getA());
 
     AmbientLightShader::shade(texture, surfaceColor, &emittedColor, attenuation);
-    DirectLightShader::shade(texture, &rayIntersection->getIntersection().getPoint(), ray, &surfaceNormal,
+    DirectLightShader::shade(texture, &rayIntersection->getIntersection().point, ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources, objects);
     color->setR(color->getR() + emittedColor.getR());
@@ -64,7 +64,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     color->setB(color->getB() + emittedColor.getB());
     if (ray->getConfig()->getQuality() >= 8) {
         MirrorReflectionShader::shade(
-            texture, &rayIntersection->getIntersection().getPoint(), ray, &surfaceNormal, color,
+            texture, &rayIntersection->getIntersection().point, ray, &surfaceNormal, color,
             traceService, traceLevel);
     }
 }

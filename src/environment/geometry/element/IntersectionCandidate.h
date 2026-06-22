@@ -2,7 +2,7 @@
 #define __INTERSECTION_CANDIDATE__
 
 #include "java/util/PriorityQueue.h"
-#include "environment/geometry/element/Intersection.h"
+#include "vsdk/toolkit/environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/IntersectionAttributes.h"
 
 // The unit travelling through the per-ray depth queues: the geometric record
@@ -51,7 +51,7 @@ inline bool
 java::PriorityQueue<IntersectionCandidate>::lessThan(
     const IntersectionCandidate& a, const IntersectionCandidate& b) const
 {
-    return a.getIntersection().getT() < b.getIntersection().getT();
+    return a.getIntersection().t < b.getIntersection().t;
 }
 
 #endif
