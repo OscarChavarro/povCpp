@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/surface/InfinitePlane.h"
 
 InfinitePlane::InfinitePlane() :
@@ -26,7 +26,7 @@ InfinitePlane::InfinitePlane(const Vector3Dd &normalVector, double distance,
 }
 
 int
-InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     return allIntersectionsForMaterial(ray, depthQueue, nullptr);
 }
@@ -34,22 +34,22 @@ InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inters
 int
 InfinitePlane::allIntersectionsForMaterial(
     RayWithSegments *ray,
-    java::PriorityQueue<Intersection> *depthQueue,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *material)
 {
     InfinitePlane * const shape = this;
     double depth;
     Vector3Dd intersectionPoint;
-    Intersection localElement;
+    IntersectionCandidate localElement;
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > Config::SMALL_TOLERANCE) {
-            localElement.setT(depth);
+            localElement.getIntersection().setT(depth);
             intersectionPoint = ray->getDirection().multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
-            localElement.setPoint(intersectionPoint);
-            localElement.setHitGeometry(shape);
-            localElement.setMaterial(material);
+            localElement.getIntersection().setPoint(intersectionPoint);
+            localElement.getAttributes().setHitGeometry(shape);
+            localElement.getAttributes().setMaterial(material);
             depthQueue->offer(localElement);
             return (true);
         }

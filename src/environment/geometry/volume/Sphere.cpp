@@ -3,7 +3,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Sphere.h"
 
 Sphere::Sphere(const Vector3Dd &center, double radius, bool inverted) :
@@ -100,7 +100,7 @@ Sphere::intersectSphere(
 }
 
 int
-Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     return allIntersectionsForMaterial(ray, depthQueue, nullptr);
 }
@@ -108,33 +108,33 @@ Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection>
 int
 Sphere::allIntersectionsForMaterial(
     RayWithSegments *ray,
-    java::PriorityQueue<Intersection> *depthQueue,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *material)
 {
     double depth1;
     double depth2;
     Vector3Dd intersectionPoint;
-    Intersection localElement;
+    IntersectionCandidate localElement;
     Sphere * const shape = this;
 
     bool intersectionFound = false;
     if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
-        localElement.setT(depth1);
+        localElement.getIntersection().setT(depth1);
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
-        localElement.setPoint(intersectionPoint);
-        localElement.setHitGeometry(shape);
-        localElement.setMaterial(material);
+        localElement.getIntersection().setPoint(intersectionPoint);
+        localElement.getAttributes().setHitGeometry(shape);
+        localElement.getAttributes().setMaterial(material);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
         if (depth2 != depth1) {
-            localElement.setT(depth2);
+            localElement.getIntersection().setT(depth2);
             intersectionPoint = ray->getDirection().multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
-            localElement.setPoint(intersectionPoint);
-            localElement.setHitGeometry(shape);
-            localElement.setMaterial(material);
+            localElement.getIntersection().setPoint(intersectionPoint);
+            localElement.getAttributes().setHitGeometry(shape);
+            localElement.getAttributes().setMaterial(material);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

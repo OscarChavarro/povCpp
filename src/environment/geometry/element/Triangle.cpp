@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/Triangle.h"
 
 Triangle::Triangle() :
@@ -179,23 +179,23 @@ Triangle::computeTriangle(Triangle *triangle)
 }
 
 int
-Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     Triangle * const shape = this;
     double depth;
     Vector3Dd intersectionPoint;
-    Intersection localElement;
+    IntersectionCandidate localElement;
 
     if (shape->degenerateFlag) {
         return (false);
     }
 
     if (intersectTriangle(ray, shape, &depth)) {
-        localElement.setT(depth);
+        localElement.getIntersection().setT(depth);
         intersectionPoint = ray->getDirection().multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
-        localElement.setPoint(intersectionPoint);
-        localElement.setHitGeometry(shape);
+        localElement.getIntersection().setPoint(intersectionPoint);
+        localElement.getAttributes().setHitGeometry(shape);
         depthQueue->offer(localElement);
         return (true);
     }

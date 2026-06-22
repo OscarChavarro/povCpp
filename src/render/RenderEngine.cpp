@@ -364,8 +364,8 @@ void
 RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color)
 {
     BoundedGeometry *object;
-    Intersection localIntersection;
-    Intersection newIntersection;
+    IntersectionCandidate localIntersection;
+    IntersectionCandidate newIntersection;
     bool intersectionFound;
 
     localRay->getStatistics()->incrementNumberOfRays();
@@ -388,7 +388,9 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
         if (object->intersect(localRay, newIntersection)) {
-            if (!intersectionFound || newIntersection.getT() < localIntersection.getT()) {
+            if (!intersectionFound ||
+                newIntersection.getIntersection().getT() <
+                    localIntersection.getIntersection().getT()) {
                 localIntersection = newIntersection;
             }
             intersectionFound = true;
@@ -402,9 +404,10 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         // sites (LocalSurfaceShader, RayShaderPipeline's refraction branch)
         // reuse it instead of each re-deriving it from the owner body.
         Vector3Dd winningNormal;
-        localIntersection.getHitGeometry()->normal(
-            &winningNormal, &localIntersection.getPoint(), localRay->getConfig());
-        localIntersection.setNormal(winningNormal);
+        localIntersection.getAttributes().getHitGeometry()->normal(
+            &winningNormal, &localIntersection.getIntersection().getPoint(),
+            localRay->getConfig());
+        localIntersection.getIntersection().setNormal(winningNormal);
 
         // localWorker's own TextureUtils (the shared engine instance in
         // serial mode, or this task's private instance in parallel mode) —

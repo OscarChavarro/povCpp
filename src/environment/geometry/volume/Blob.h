@@ -46,7 +46,7 @@ class Blob : public Geometry {
     int getSturmFlag() const { return sturmFlag; }
     Blob *copyWithSturmFlag(int flag) const;
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

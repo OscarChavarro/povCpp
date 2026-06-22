@@ -15,7 +15,7 @@ This module implements the code for general 3 variable polynomial shapes
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 
 /**
@@ -98,14 +98,14 @@ PolynomialShape::~PolynomialShape()
 }
 
 int
-PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     PolynomialShape * const shape = this;
     double depths[PolynomialSolver::MAX_ORDER];
     double len;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
-    Intersection localElement;
+    IntersectionCandidate localElement;
     int cnt;
     int i;
     int j;
@@ -167,9 +167,9 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
         dv = intersectionPoint.subtract(ray->getOrigin());
         len = dv.length();
-        localElement.setT(len);
-        localElement.setPoint(intersectionPoint);
-        localElement.setHitGeometry(shape);
+        localElement.getIntersection().setT(len);
+        localElement.getIntersection().setPoint(intersectionPoint);
+        localElement.getAttributes().setHitGeometry(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;

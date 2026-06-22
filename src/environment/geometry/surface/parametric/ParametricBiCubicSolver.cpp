@@ -2,7 +2,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
@@ -317,11 +317,11 @@ ParametricBiCubicSolver::intersectParametricBiCubicPatch4(
 
 int
 ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
-    BoundedGeometry *object, RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+    BoundedGeometry *object, RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     ParametricBiCubicPatch * const shape = (ParametricBiCubicPatch *)object;
     double depths[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Intersection localElement;
+    IntersectionCandidate localElement;
     int cnt = 0;
     int i;
     int intersectionFound = 0;
@@ -356,9 +356,9 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         if (!ray->isShadowRayEnabled()) {
             shape->incrementIntersectionCount();
         }
-        localElement.setT(depths[i]);
-        localElement.setPoint(shape->getIntersectionPointAt(intersectionCount + i));
-        localElement.setHitGeometry(shape);
+        localElement.getIntersection().setT(depths[i]);
+        localElement.getIntersection().setPoint(shape->getIntersectionPointAt(intersectionCount + i));
+        localElement.getAttributes().setHitGeometry(shape);
         depthQueue->offer(localElement);
         intersectionFound = 1;
     }

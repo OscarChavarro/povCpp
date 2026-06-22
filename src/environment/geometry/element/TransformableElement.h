@@ -6,12 +6,12 @@
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/material/RendererConfiguration.h"
 
-class Intersection;
+class IntersectionCandidate;
 
 class TransformableElement {
   public:
-    virtual int   allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) { return 0; }
-    bool intersect(RayWithSegments *ray, Intersection &out);
+    virtual int   allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) { return 0; }
+    bool intersect(RayWithSegments *ray, IntersectionCandidate &out);
     virtual int   inside(Vector3Dd *point) { return 0; }
     virtual void  normal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
     virtual void  normal(

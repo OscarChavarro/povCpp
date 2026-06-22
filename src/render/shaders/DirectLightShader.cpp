@@ -4,7 +4,7 @@
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
 #include "environment/material/RendererConfiguration.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
 #include "render/shaders/BlinnPhongSpecularShader.h"
@@ -28,10 +28,10 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     const Light *lightSource;
     BoundedGeometry *blockingObject;
     bool intersectionFound;
-    Intersection localIntersection;
+    IntersectionCandidate localIntersection;
     Vector3Dd rEye;
     ColorRgba lightColor(0.0, 0.0, 0.0, 0.0);
-    java::PriorityQueue<Intersection> *localQueue;
+    java::PriorityQueue<IntersectionCandidate> *localQueue;
 
     rEye = Vector3Dd(0, 0, 0);
 
@@ -70,12 +70,12 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                 while (localQueue->size() > 0) {
                     localIntersection = localQueue->poll();
 
-                    if ((localIntersection.getT() <
+                    if ((localIntersection.getIntersection().getT() <
                             lightSourceDepth - Config::SMALL_TOLERANCE) &&
-                        (localIntersection.getT() > SHADOW_TOLERANCE)) {
+                        (localIntersection.getIntersection().getT() > SHADOW_TOLERANCE)) {
 
                         // Does the object not cast a shadow?
-                        if (!localIntersection.getNoShadowFlag()) {
+                        if (!localIntersection.getAttributes().getNoShadowFlag()) {
                             if (ShadowShader::shade(&localIntersection, &lightColor,
                                     localQueue, traceService)) {
                                 intersectionFound = true;

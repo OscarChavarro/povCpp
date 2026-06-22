@@ -1,4 +1,4 @@
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/scene/SimpleBody.h"
 
 SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor) :
@@ -33,7 +33,7 @@ SimpleBody::prependMaterialLayers(Material *newHead)
 }
 
 int
-SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     return getGeometry()->allIntersectionsForMaterial(ray, depthQueue, getMaterial());
 }

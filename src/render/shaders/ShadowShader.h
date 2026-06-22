@@ -3,13 +3,13 @@
 
 #include "java/util/PriorityQueue.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "render/shaders/TraceService.h"
 
 class ShadowShader {
 public:
-    static int shade(Intersection *localIntersection,
-        ColorRgba *lightColor, java::PriorityQueue<Intersection> *localQueue,
+    static int shade(IntersectionCandidate *localIntersection,
+        ColorRgba *lightColor, java::PriorityQueue<IntersectionCandidate> *localQueue,
         const TraceService *traceService);
 };
 

@@ -1122,7 +1122,7 @@ ParametricBiCubicPatch::invertGeometry()
 }
 
 int
-ParametricBiCubicPatch::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
+ParametricBiCubicPatch::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     return ParametricBiCubicSolver::allParametricBiCubicPatchIntersections((BoundedGeometry *)this, ray, depthQueue);
 }

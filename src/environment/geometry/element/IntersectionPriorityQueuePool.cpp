@@ -1,7 +1,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
-#include "environment/geometry/element/Intersection.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 
 IntersectionPriorityQueuePool::IntersectionPriorityQueuePool()
@@ -16,7 +16,7 @@ IntersectionPriorityQueuePool::~IntersectionPriorityQueuePool()
     }
 
     for (int i = 0; i < NUMBER_OF_PRIOQS; i++) {
-        queues[i].~PriorityQueue<Intersection>();
+        queues[i].~PriorityQueue<IntersectionCandidate>();
     }
 }
 
@@ -24,27 +24,27 @@ void
 IntersectionPriorityQueuePool::init()
 {
     if (queues == nullptr) {
-        storage.init(sizeof(java::PriorityQueue<Intersection>) * NUMBER_OF_PRIOQS);
+        storage.init(sizeof(java::PriorityQueue<IntersectionCandidate>) * NUMBER_OF_PRIOQS);
         queues = storage.allocate(NUMBER_OF_PRIOQS);
         if (queues == nullptr) {
             Logger::reportMessage("IntersectionPriorityQueuePool", Logger::FATAL_ERROR, "", "\nOut of memory. Cannot allocate queue storage");
         }
 
         for (int i = 0; i < NUMBER_OF_PRIOQS; i++) {
-            new (queues + i) java::PriorityQueue<Intersection>(MAX_NUMBER_OF_ENTRIES);
+            new (queues + i) java::PriorityQueue<IntersectionCandidate>(MAX_NUMBER_OF_ENTRIES);
         }
     }
 
     for (int i = 0; i < NUMBER_OF_PRIOQS; i++) {
         queues[i].clear();
-        java::PriorityQueueAccess<Intersection>::setActiveLimit(queues[i], -1);
+        java::PriorityQueueAccess<IntersectionCandidate>::setActiveLimit(queues[i], -1);
         nextFreeIndex[i] = i + 1;
     }
     nextFreeIndex[NUMBER_OF_PRIOQS - 1] = -1;
     headIndex = 0;
 }
 
-java::PriorityQueue<Intersection> *
+java::PriorityQueue<IntersectionCandidate> *
 IntersectionPriorityQueuePool::pop(int indexSize)
 {
     static constexpr int MAX_NUMBER_OF_ENTRIES = 128;
@@ -59,15 +59,15 @@ IntersectionPriorityQueuePool::pop(int indexSize)
     }
 
     const int index = headIndex;
-    java::PriorityQueue<Intersection> * const pq = queues + index;
+    java::PriorityQueue<IntersectionCandidate> * const pq = queues + index;
     headIndex = nextFreeIndex[index];
     pq->clear();
-    java::PriorityQueueAccess<Intersection>::setActiveLimit(*pq, indexSize);
+    java::PriorityQueueAccess<IntersectionCandidate>::setActiveLimit(*pq, indexSize);
     return pq;
 }
 
 void
-IntersectionPriorityQueuePool::push(java::PriorityQueue<Intersection> *queue)
+IntersectionPriorityQueuePool::push(java::PriorityQueue<IntersectionCandidate> *queue)
 {
     if (queues == nullptr || queue < queues || queue >= queues + NUMBER_OF_PRIOQS) {
         Logger::reportMessage("IntersectionPriorityQueuePool", Logger::FATAL_ERROR, "", "\nInvalid prioq");
@@ -75,7 +75,7 @@ IntersectionPriorityQueuePool::push(java::PriorityQueue<Intersection> *queue)
 
     const int index = static_cast<int>(queue - queues);
     queue->clear();
-    java::PriorityQueueAccess<Intersection>::setActiveLimit(*queue, -1);
+    java::PriorityQueueAccess<IntersectionCandidate>::setActiveLimit(*queue, -1);
     nextFreeIndex[index] = headIndex;
     headIndex = index;
 }
