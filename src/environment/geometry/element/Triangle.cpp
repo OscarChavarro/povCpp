@@ -191,10 +191,10 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
     }
 
     if (intersectTriangle(ray, shape, &depth)) {
-        localElement.getIntersection().setT(depth);
+        localElement.getIntersection().t = depth;
         intersectionPoint = ray->getDirection().multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
-        localElement.getIntersection().setPoint(intersectionPoint);
+        localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
         depthQueue->offer(localElement);
         return (true);

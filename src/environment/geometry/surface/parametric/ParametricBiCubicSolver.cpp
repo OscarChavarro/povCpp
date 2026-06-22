@@ -356,8 +356,8 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         if (!ray->isShadowRayEnabled()) {
             shape->incrementIntersectionCount();
         }
-        localElement.getIntersection().setT(depths[i]);
-        localElement.getIntersection().setPoint(shape->getIntersectionPointAt(intersectionCount + i));
+        localElement.getIntersection().t = depths[i];
+        localElement.getIntersection().point = shape->getIntersectionPointAt(intersectionCount + i);
         localElement.getAttributes().setHitGeometry(shape);
         depthQueue->offer(localElement);
         intersectionFound = 1;

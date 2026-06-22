@@ -50,7 +50,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
             stats.incrementClippingRegionTests();
-            if (!clippingShape->inside(&localIntersection.getIntersection().getPoint())) {
+            if (!clippingShape->inside(&localIntersection.getIntersection().point)) {
                 intersectionFound = false;
                 break;
             }
@@ -109,7 +109,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             clippingShape = this->getClippingShapes()[i];
 
             stats.incrementClippingRegionTests();
-            if (!clippingShape->inside(&localIntersection.getIntersection().getPoint())) {
+            if (!clippingShape->inside(&localIntersection.getIntersection().point)) {
                 intersectionFound = false;
                 break;
             }

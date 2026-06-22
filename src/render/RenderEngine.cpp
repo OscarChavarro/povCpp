@@ -389,8 +389,8 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         object = sceneObjects[i];
         if (object->intersect(localRay, newIntersection)) {
             if (!intersectionFound ||
-                newIntersection.getIntersection().getT() <
-                    localIntersection.getIntersection().getT()) {
+                newIntersection.getIntersection().t <
+                    localIntersection.getIntersection().t) {
                 localIntersection = newIntersection;
             }
             intersectionFound = true;
@@ -405,9 +405,9 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         // reuse it instead of each re-deriving it from the owner body.
         Vector3Dd winningNormal;
         localIntersection.getAttributes().getHitGeometry()->normal(
-            &winningNormal, &localIntersection.getIntersection().getPoint(),
+            &winningNormal, &localIntersection.getIntersection().point,
             localRay->getConfig());
-        localIntersection.getIntersection().setNormal(winningNormal);
+        localIntersection.getIntersection().normal = winningNormal;
 
         // localWorker's own TextureUtils (the shared engine instance in
         // serial mode, or this task's private instance in parallel mode) —

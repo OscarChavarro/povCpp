@@ -244,17 +244,17 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
     }
 
     if (depth2 < depth1) {
-        state.hfIntersection->getIntersection().setT(depth2);
+        state.hfIntersection->getIntersection().t = depth2;
         t1V1 = state.rRay->getDirection().multiply(depth2);
         t1V1 = t1V1.add(state.rRay->getOrigin());
-        state.hfIntersection->getIntersection().setPoint(t1V1);
+        state.hfIntersection->getIntersection().point = t1V1;
         state.hfIntersection->getAttributes().setHitGeometry(hField);
         state.hfQueue->offer(*state.hfIntersection);
     } else {
-        state.hfIntersection->getIntersection().setT(depth1);
+        state.hfIntersection->getIntersection().t = depth1;
         t1V1 = state.rRay->getDirection().multiply(depth1);
         t1V1 = t1V1.add(state.rRay->getOrigin());
-        state.hfIntersection->getIntersection().setPoint(t1V1);
+        state.hfIntersection->getIntersection().point = t1V1;
         state.hfIntersection->getAttributes().setHitGeometry(hField);
         state.hfQueue->offer(*state.hfIntersection);
     }

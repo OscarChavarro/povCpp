@@ -167,8 +167,8 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
         dv = intersectionPoint.subtract(ray->getOrigin());
         len = dv.length();
-        localElement.getIntersection().setT(len);
-        localElement.getIntersection().setPoint(intersectionPoint);
+        localElement.getIntersection().t = len;
+        localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;

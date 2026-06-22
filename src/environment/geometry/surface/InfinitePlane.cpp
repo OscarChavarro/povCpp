@@ -44,10 +44,10 @@ InfinitePlane::allIntersectionsForMaterial(
 
     if (InfinitePlane::intersectPlane(ray, shape, &depth)) {
         if (depth > Config::SMALL_TOLERANCE) {
-            localElement.getIntersection().setT(depth);
+            localElement.getIntersection().t = depth;
             intersectionPoint = ray->getDirection().multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
-            localElement.getIntersection().setPoint(intersectionPoint);
+            localElement.getIntersection().point = intersectionPoint;
             localElement.getAttributes().setHitGeometry(shape);
             localElement.getAttributes().setMaterial(material);
             depthQueue->offer(localElement);
