@@ -12,7 +12,7 @@ full in/out ray classifications as in [ROTH1982].
 #include "java/util/ArrayList.txx"
 #include "io/pov/geometry/CsgParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 #include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/GeometryBuilder.h"
 #include "io/pov/context/ParseGlobals.h"

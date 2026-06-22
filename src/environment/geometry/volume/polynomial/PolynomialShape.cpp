@@ -170,7 +170,7 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         localElement.setT(len);
         localElement.setBoundedGeometry(nullptr);
         localElement.setPoint(intersectionPoint);
-        localElement.setOwnerSimpleBody(reinterpret_cast<SimpleBody *>(shape));
+        localElement.setHitGeometry(shape);
         depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;

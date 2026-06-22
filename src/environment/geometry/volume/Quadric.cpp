@@ -73,7 +73,8 @@ Quadric::allIntersectionsForOwner(
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
-        localElement.setOwnerSimpleBody(owner);
+        localElement.setHitGeometry(shape);
+        localElement.setOwner(owner);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -83,7 +84,8 @@ Quadric::allIntersectionsForOwner(
             intersectionPoint = ray->getDirection().multiply(depth2);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
-            localElement.setOwnerSimpleBody(owner);
+            localElement.setHitGeometry(shape);
+            localElement.setOwner(owner);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

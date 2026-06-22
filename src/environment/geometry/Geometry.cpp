@@ -15,11 +15,16 @@ Geometry::allIntersectionsForOwner(
         return result;
     }
 
-    SimpleBody * const sentinel = reinterpret_cast<SimpleBody *>(this);
+    // Every candidate this call just added carries hitGeometry set to the
+    // bare primitive (this) directly and type-safely at the point of
+    // creation - no sentinel cast needed here, unlike the old
+    // ownerSimpleBody backfill this replaces. Only the owner pointer itself
+    // needs deferred backfill; resolving its material is left to the render
+    // layer, so this geometry-layer file never needs SimpleBody's definition.
     int updated = 0;
     for (Intersection &candidate : *depthQueue) {
-        if (candidate.getOwnerSimpleBody() == sentinel) {
-            candidate.setOwnerSimpleBody(owner);
+        if (candidate.getHitGeometry() == this) {
+            candidate.setOwner(owner);
             if (++updated == newCount) {
                 break;
             }

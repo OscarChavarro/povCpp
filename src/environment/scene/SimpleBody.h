@@ -2,7 +2,6 @@
 #define __SIMPLE_BODY__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/element/TransformableElement.h"
 #include "environment/geometry/Geometry.h"
@@ -13,8 +12,6 @@ class SimpleBody : public TransformableElement {
     Geometry *const geometry = nullptr;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
-    Matrix4x4d transform;
-    Matrix4x4d transformInverse;
 
   public:
     SimpleBody() {}
@@ -27,10 +24,6 @@ class SimpleBody : public TransformableElement {
     ColorRgba* getShapeColor() const { return shapeColor; }
     ColorRgba* ensureShapeColor();
     void prependMaterialLayers(Material *newHead);
-    Matrix4x4d& getTransform() { return transform; }
-    const Matrix4x4d& getTransform() const { return transform; }
-    Matrix4x4d& getTransformInverse() { return transformInverse; }
-    const Matrix4x4d& getTransformInverse() const { return transformInverse; }
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
     int inside(Vector3Dd *point) override;

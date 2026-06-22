@@ -6,7 +6,7 @@
 
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/scene/SceneBuilder.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"

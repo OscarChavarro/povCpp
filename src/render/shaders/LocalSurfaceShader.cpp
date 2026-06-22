@@ -2,7 +2,6 @@
 #include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
-#include "environment/geometry/SimpleBody.h"
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/DirectLightShader.h"
@@ -40,8 +39,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
         return;
     }
 
-    rayIntersection->getOwnerSimpleBody()->normal(
-        &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
+    surfaceNormal = rayIntersection->getNormal();
 
     if (ray->getConfig()->getQuality() >= 8) {
         BumpNormalShader::shade(

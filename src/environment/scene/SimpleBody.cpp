@@ -1,5 +1,5 @@
 #include "environment/geometry/element/Intersection.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 
 SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor) :
     geometry(geometry),
@@ -63,9 +63,7 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
     geometry(other.geometry != nullptr ?
         (Geometry *)other.geometry->copy() : nullptr),
     material(other.material != nullptr ? other.material->copy() : nullptr),
-    shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr),
-    transform(other.transform),
-    transformInverse(other.transformInverse)
+    shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr)
 {
 }
 
@@ -82,12 +80,6 @@ SimpleBody::translate(Vector3Dd *vector)
     if (getMaterial() != nullptr) {
         material = getMaterial()->translate(vector);
     }
-    const Matrix4x4d delta = Matrix4x4d().translation(
-        vector->x(), vector->y(), vector->z()).transpose();
-    const Matrix4x4d deltaInverse = Matrix4x4d().translation(
-        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    getTransform() = getTransform().multiply(delta);
-    getTransformInverse() = deltaInverse.multiply(getTransformInverse());
 }
 
 void
@@ -97,11 +89,6 @@ SimpleBody::rotate(Vector3Dd *vector)
     if (getMaterial() != nullptr) {
         material = getMaterial()->rotate(vector);
     }
-    Matrix4x4d delta;
-    Matrix4x4d deltaInverse;
-    delta.axisRotationRodrigues(&deltaInverse, vector);
-    getTransform() = getTransform().multiply(delta);
-    getTransformInverse() = deltaInverse.multiply(getTransformInverse());
 }
 
 void
@@ -111,11 +98,6 @@ SimpleBody::scale(Vector3Dd *vector)
     if (getMaterial() != nullptr) {
         material = getMaterial()->scale(vector);
     }
-    const Matrix4x4d delta = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    const Matrix4x4d deltaInverse = Matrix4x4d().scale(
-        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    getTransform() = getTransform().multiply(delta);
-    getTransformInverse() = deltaInverse.multiply(getTransformInverse());
 }
 
 void

@@ -7,7 +7,7 @@
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/SceneBuilder.h"
 #include "environment/geometry/GeometryBuilder.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -26,8 +26,6 @@ PolyParser::rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry)
     ColorRgba *clonedShapeColor = (body->getShapeColor() != nullptr) ?
         new ColorRgba(*body->getShapeColor()) : nullptr;
     SimpleBody *newBody = new SimpleBody(geometry, clonedMaterial, clonedShapeColor);
-    newBody->getTransform() = body->getTransform();
-    newBody->getTransformInverse() = body->getTransformInverse();
     delete body;
     return newBody;
 }
