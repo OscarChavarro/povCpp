@@ -12,24 +12,27 @@ class Intersection {
   private:
     double t;
     Vector3Dd point;
-    Vector3Dd *normal = nullptr;
+    Vector3Dd normal;
 
     BoundedGeometry *boundedGeometry;
-    SimpleBody *ownerSimpleBody;
+    Geometry *hitGeometry = nullptr;
+    SimpleBody *owner = nullptr;
 
   public:
     double getT() const;
     void setT(double value);
     const Vector3Dd& getPoint() const;
     void setPoint(const Vector3Dd &value);
-    Vector3Dd *getNormal() const;
-    void setNormal(Vector3Dd *value);
+    const Vector3Dd& getNormal() const;
+    void setNormal(const Vector3Dd &value);
 
     BoundedGeometry *getBoundedGeometry() const;
     void setBoundedGeometry(BoundedGeometry *value);
     Vector3Dd& getPoint();
-    SimpleBody *getOwnerSimpleBody() const;
-    void setOwnerSimpleBody(SimpleBody *value);
+    Geometry *getHitGeometry() const;
+    void setHitGeometry(Geometry *value);
+    SimpleBody *getOwner() const;
+    void setOwner(SimpleBody *value);
 };
 
 inline double
@@ -56,14 +59,14 @@ Intersection::setPoint(const Vector3Dd &value)
     point = value;
 }
 
-inline Vector3Dd *
+inline const Vector3Dd&
 Intersection::getNormal() const
 {
     return normal;
 }
 
 inline void
-Intersection::setNormal(Vector3Dd *value)
+Intersection::setNormal(const Vector3Dd &value)
 {
     normal = value;
 }
@@ -86,16 +89,28 @@ Intersection::getPoint()
     return point;
 }
 
-inline SimpleBody *
-Intersection::getOwnerSimpleBody() const
+inline Geometry *
+Intersection::getHitGeometry() const
 {
-    return ownerSimpleBody;
+    return hitGeometry;
 }
 
 inline void
-Intersection::setOwnerSimpleBody(SimpleBody *value)
+Intersection::setHitGeometry(Geometry *value)
 {
-    ownerSimpleBody = value;
+    hitGeometry = value;
+}
+
+inline SimpleBody *
+Intersection::getOwner() const
+{
+    return owner;
+}
+
+inline void
+Intersection::setOwner(SimpleBody *value)
+{
+    owner = value;
 }
 
 template <>

@@ -37,7 +37,7 @@ add_executable(povray
     src/environment/scene/SceneBuilder.cpp
     src/environment/scene/Scene.cpp
     src/environment/scene/BoundedGeometryFactory.cpp
-    src/environment/geometry/SimpleBody.cpp
+    src/environment/scene/SimpleBody.cpp
     src/environment/geometry/element/Triangle.cpp
     src/environment/geometry/element/SmoothTriangle.cpp
     src/environment/camera/Camera.cpp

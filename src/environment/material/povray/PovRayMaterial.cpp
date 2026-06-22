@@ -46,6 +46,7 @@ PovRayMaterial::PovRayMaterial(
     objectTransmit(objTransmit),
     pigment(pig),
     normal(norm),
+    quickColor(nullptr),
     textureRandomness(texRandomness),
     textureTransformation(texTransform),
     textureTransformationInverse(texTransformInv)
@@ -56,6 +57,7 @@ PovRayMaterial::~PovRayMaterial()
 {
     delete pigment;
     delete normal;
+    delete quickColor;
     delete textureTransformation;
     delete textureTransformationInverse;
     delete pendingColorMap;
@@ -160,7 +162,7 @@ PovRayMaterial::copyTextureNode(const PovRayMaterial *src)
     }
     SolidTexturePigment *newPigment = (src->pigment != nullptr) ? src->pigment->copy() : nullptr;
     SolidTextureNormal *newNormal = (src->normal != nullptr) ? src->normal->copy() : nullptr;
-    return new PovRayMaterial(
+    PovRayMaterial * const newNode = new PovRayMaterial(
         src->objectReflection, src->objectAmbient, src->objectDiffuse,
         src->objectBrilliance, src->objectIndexOfRefraction, src->objectRefraction,
         src->objectTransmit, src->objectSpecular, src->objectRoughness,
@@ -172,6 +174,19 @@ PovRayMaterial::copyTextureNode(const PovRayMaterial *src)
         SolidTexturePigment::cloneColorMap(src->pendingColorMap),
         src->pendingMortar, src->pendingBumpAmount, src->pendingFrequency,
         src->pendingPhase, src->pendingNumberOfWaves, src->pendingBumpImage);
+    if (src->quickColor != nullptr) {
+        newNode->quickColor = new ColorRgba(*src->quickColor);
+    }
+    return newNode;
+}
+
+ColorRgba *
+PovRayMaterial::ensureQuickColor()
+{
+    if (quickColor == nullptr) {
+        quickColor = new ColorRgba(0.0, 0.0, 0.0, 0.0);
+    }
+    return quickColor;
 }
 
 // ---------------------------------------------------------------------------

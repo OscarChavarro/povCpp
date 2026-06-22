@@ -4,7 +4,7 @@
 
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/scene/SceneBuilder.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"

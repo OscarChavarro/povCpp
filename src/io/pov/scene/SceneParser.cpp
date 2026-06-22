@@ -2,7 +2,7 @@
 
 #include "environment/camera/Camera.h"
 #include "environment/geometry/BoundedGeometry.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"

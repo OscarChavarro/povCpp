@@ -50,7 +50,8 @@ InfinitePlane::allIntersectionsForOwner(
             intersectionPoint = ray->getDirection().multiply(depth);
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
-            localElement.setOwnerSimpleBody(owner);
+            localElement.setHitGeometry(shape);
+            localElement.setOwner(owner);
             depthQueue->offer(localElement);
             return (true);
         }

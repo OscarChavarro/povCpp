@@ -3,7 +3,6 @@
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/volume/compound/CSG.h"
-#include "environment/geometry/SimpleBody.h"
 
 CSG::CSG(BooleanSetOperations initialGeometryType) :
     geometryType(initialGeometryType)
@@ -21,9 +20,10 @@ int
 CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 {
     // CSG children are produced by the POV parsers through SceneBuilder::wrap,
-    // so the stored TransformableElement is a SimpleBody. CSG inside tests
-    // only need geometry, not material/colour ownership.
-    return static_cast<SimpleBody *>(shape)->getGeometry()->inside(point);
+    // so the stored TransformableElement is a SimpleBody; its inside()
+    // override forwards straight to the wrapped geometry, with no need to
+    // know that concretely here.
+    return shape->inside(point);
 }
 
 int

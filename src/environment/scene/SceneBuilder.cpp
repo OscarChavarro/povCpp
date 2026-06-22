@@ -1,7 +1,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "environment/scene/SceneBuilder.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 
 SimpleBody *
 SceneBuilder::wrap(Geometry *geometry)

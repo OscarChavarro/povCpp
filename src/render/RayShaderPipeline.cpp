@@ -6,7 +6,7 @@
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
-#include "environment/geometry/SimpleBody.h"
+#include "environment/scene/SimpleBody.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
@@ -36,7 +36,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ImageTexture mapFixture;
     ColorTextureFixture colorFixture(&textureUtils->getProceduralNoise(), textureUtils);
 
-    texture = static_cast<PovRayMaterial *>(rayIntersection->getOwnerSimpleBody()->getMaterial());
+    texture = static_cast<PovRayMaterial *>(rayIntersection->getOwner()->getMaterial());
     if (texture == nullptr) {
         texture = static_cast<PovRayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }
@@ -69,8 +69,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
         if (context.getConfig().getQuality() <= 5) {
-            if (rayIntersection->getOwnerSimpleBody()->getShapeColor() != nullptr) {
-                surfaceColor = *rayIntersection->getOwnerSimpleBody()->getShapeColor();
+            if (tempTexture->getQuickColor() != nullptr) {
+                surfaceColor = *tempTexture->getQuickColor();
             } else if (rayIntersection->getBoundedGeometry()->getObjectColor() != nullptr) {
                 surfaceColor = *rayIntersection->getBoundedGeometry()->getObjectColor();
             } else {
@@ -125,8 +125,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
-            rayIntersection->getOwnerSimpleBody()->normal(
-                &surfaceNormal, &rayIntersection->getPoint(), ray->getConfig());
+            surfaceNormal = rayIntersection->getNormal();
 
             if (context.getConfig().getQuality() > 7) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getPoint(),

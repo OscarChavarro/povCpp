@@ -396,6 +396,16 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
     }
 
     if (intersectionFound) {
+        // Compute the surface normal once, here, for the single winning hit
+        // only - never per-candidate, never for shadow rays at this call site -
+        // then carry it by value inside Intersection so both shading read
+        // sites (LocalSurfaceShader, RayShaderPipeline's refraction branch)
+        // reuse it instead of each re-deriving it from the owner body.
+        Vector3Dd winningNormal;
+        localIntersection.getHitGeometry()->normal(
+            &winningNormal, &localIntersection.getPoint(), localRay->getConfig());
+        localIntersection.setNormal(winningNormal);
+
         // localWorker's own TextureUtils (the shared engine instance in
         // serial mode, or this task's private instance in parallel mode) —
         // never the engine's, so noise() call counters never race (B6).

@@ -196,7 +196,7 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
         intersectionPoint = ray->getDirection().multiply(depth);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
-        localElement.setOwnerSimpleBody(reinterpret_cast<SimpleBody *>(shape));
+        localElement.setHitGeometry(shape);
         depthQueue->offer(localElement);
         return (true);
     }

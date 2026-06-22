@@ -56,6 +56,7 @@ class PovRayMaterial : public Material {
 
     SolidTexturePigment *pigment; // nullptr == NO_TEXTURE
     SolidTextureNormal *normal;   // nullptr == NO_BUMPS
+    ColorRgba *quickColor; // nullptr == no low-quality (quality<=5) override colour
 
     double textureRandomness;
     Matrix4x4d *textureTransformation;
@@ -97,6 +98,8 @@ class PovRayMaterial : public Material {
     double getObjectTransmit() const;
     SolidTexturePigment *getPigment() const;
     SolidTextureNormal *getNormal() const;
+    ColorRgba *getQuickColor() const;
+    ColorRgba *ensureQuickColor();
     double getPendingTurbulence() const;
     int getPendingOctaves() const;
     RGBAColorPalette *getPendingColorMap() const;
@@ -159,6 +162,8 @@ inline SolidTexturePigment *
 PovRayMaterial::getPigment() const { return pigment; }
 inline SolidTextureNormal *
 PovRayMaterial::getNormal() const { return normal; }
+inline ColorRgba *
+PovRayMaterial::getQuickColor() const { return quickColor; }
 inline double
 PovRayMaterial::getPendingTurbulence() const { return pendingTurbulence; }
 inline int
