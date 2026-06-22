@@ -37,7 +37,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
 
     texture = static_cast<PovRayMaterial *>(rayIntersection->getMaterial());
     if (texture == nullptr) {
-        texture = static_cast<PovRayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
+        texture = static_cast<PovRayMaterial *>(rayIntersection->getObjectTexture());
     }
 
     // Check to see if this object/shape has a material_map texture, if so
@@ -70,8 +70,8 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
         if (context.getConfig().getQuality() <= 5) {
             if (tempTexture->getQuickColor() != nullptr) {
                 surfaceColor = *tempTexture->getQuickColor();
-            } else if (rayIntersection->getBoundedGeometry()->getObjectColor() != nullptr) {
-                surfaceColor = *rayIntersection->getBoundedGeometry()->getObjectColor();
+            } else if (rayIntersection->getObjectColor() != nullptr) {
+                surfaceColor = *rayIntersection->getObjectColor();
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }

@@ -100,7 +100,9 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     for (const Intersection& candidate : *localDepthQueue) {
         localIntersection = candidate;
 
-        localIntersection.setBoundedGeometry(this);
+        localIntersection.setObjectTexture(this->getObjectTexture());
+        localIntersection.setObjectColor(this->getObjectColor());
+        localIntersection.setNoShadowFlag(this->getNoShadowFlag());
         intersectionFound = true;
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {

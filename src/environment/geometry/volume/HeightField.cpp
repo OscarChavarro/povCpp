@@ -245,7 +245,6 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
 
     if (depth2 < depth1) {
         state.hfIntersection->setT(depth2);
-        state.hfIntersection->setBoundedGeometry(nullptr);
         t1V1 = state.rRay->getDirection().multiply(depth2);
         t1V1 = t1V1.add(state.rRay->getOrigin());
         state.hfIntersection->setPoint(t1V1);
@@ -253,7 +252,6 @@ HeightField::intersectPixel(int x, int z, const RayWithSegments *ray,
         state.hfQueue->offer(*state.hfIntersection);
     } else {
         state.hfIntersection->setT(depth1);
-        state.hfIntersection->setBoundedGeometry(nullptr);
         t1V1 = state.rRay->getDirection().multiply(depth1);
         t1V1 = t1V1.add(state.rRay->getOrigin());
         state.hfIntersection->setPoint(t1V1);

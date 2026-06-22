@@ -2,10 +2,10 @@
 #define __INTERSECTION__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "java/util/PriorityQueue.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/BoundedGeometry.h"
 
 class Intersection {
   private:
@@ -13,9 +13,11 @@ class Intersection {
     Vector3Dd point;
     Vector3Dd normal;
 
-    BoundedGeometry *boundedGeometry;
     Geometry *hitGeometry = nullptr;
     Material *material = nullptr;
+    Material *objectTexture = nullptr;
+    ColorRgba *objectColor = nullptr;
+    bool noShadowFlag = false;
 
   public:
     double getT() const;
@@ -25,13 +27,17 @@ class Intersection {
     const Vector3Dd& getNormal() const;
     void setNormal(const Vector3Dd &value);
 
-    BoundedGeometry *getBoundedGeometry() const;
-    void setBoundedGeometry(BoundedGeometry *value);
     Vector3Dd& getPoint();
     Geometry *getHitGeometry() const;
     void setHitGeometry(Geometry *value);
     Material *getMaterial() const;
     void setMaterial(Material *value);
+    Material *getObjectTexture() const;
+    void setObjectTexture(Material *value);
+    ColorRgba *getObjectColor() const;
+    void setObjectColor(ColorRgba *value);
+    bool getNoShadowFlag() const;
+    void setNoShadowFlag(bool value);
 };
 
 inline double
@@ -70,18 +76,6 @@ Intersection::setNormal(const Vector3Dd &value)
     normal = value;
 }
 
-inline BoundedGeometry *
-Intersection::getBoundedGeometry() const
-{
-    return boundedGeometry;
-}
-
-inline void
-Intersection::setBoundedGeometry(BoundedGeometry *value)
-{
-    boundedGeometry = value;
-}
-
 inline Vector3Dd&
 Intersection::getPoint()
 {
@@ -110,6 +104,42 @@ inline void
 Intersection::setMaterial(Material *value)
 {
     material = value;
+}
+
+inline Material *
+Intersection::getObjectTexture() const
+{
+    return objectTexture;
+}
+
+inline void
+Intersection::setObjectTexture(Material *value)
+{
+    objectTexture = value;
+}
+
+inline ColorRgba *
+Intersection::getObjectColor() const
+{
+    return objectColor;
+}
+
+inline void
+Intersection::setObjectColor(ColorRgba *value)
+{
+    objectColor = value;
+}
+
+inline bool
+Intersection::getNoShadowFlag() const
+{
+    return noShadowFlag;
+}
+
+inline void
+Intersection::setNoShadowFlag(bool value)
+{
+    noShadowFlag = value;
 }
 
 template <>
