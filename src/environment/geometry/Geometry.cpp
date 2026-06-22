@@ -3,10 +3,10 @@
 #include "environment/geometry/element/Intersection.h"
 
 int
-Geometry::allIntersectionsForOwner(
+Geometry::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
     const int sizeBefore = depthQueue->size();
     const int result = allIntersections(ray, depthQueue);
@@ -17,14 +17,12 @@ Geometry::allIntersectionsForOwner(
 
     // Every candidate this call just added carries hitGeometry set to the
     // bare primitive (this) directly and type-safely at the point of
-    // creation - no sentinel cast needed here, unlike the old
-    // ownerSimpleBody backfill this replaces. Only the owner pointer itself
-    // needs deferred backfill; resolving its material is left to the render
-    // layer, so this geometry-layer file never needs SimpleBody's definition.
+    // creation - no sentinel cast needed here. Only the material pointer
+    // itself needs deferred backfill.
     int updated = 0;
     for (Intersection &candidate : *depthQueue) {
         if (candidate.getHitGeometry() == this) {
-            candidate.setOwner(owner);
+            candidate.setMaterial(material);
             if (++updated == newCount) {
                 break;
             }

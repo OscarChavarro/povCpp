@@ -6,7 +6,6 @@
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/geometry/element/Intersection.h"
 #include "environment/geometry/element/RayWithSegments.h"
-#include "environment/scene/SimpleBody.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
@@ -36,7 +35,7 @@ RayShaderPipeline::shadeSurface(Intersection *rayIntersection,
     ImageTexture mapFixture;
     ColorTextureFixture colorFixture(&textureUtils->getProceduralNoise(), textureUtils);
 
-    texture = static_cast<PovRayMaterial *>(rayIntersection->getOwner()->getMaterial());
+    texture = static_cast<PovRayMaterial *>(rayIntersection->getMaterial());
     if (texture == nullptr) {
         texture = static_cast<PovRayMaterial *>(rayIntersection->getBoundedGeometry()->getObjectTexture());
     }

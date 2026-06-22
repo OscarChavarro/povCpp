@@ -36,11 +36,12 @@ CSG::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *d
 }
 
 int
-CSG::allIntersectionsForOwner(
+CSG::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
+    (void)material;
     return allIntersections(ray, depthQueue);
 }
 
