@@ -186,23 +186,23 @@ Quadric::intersectQuadric(
 }
 
 int
-Quadric::doContainmentTest(Vector3Dd *testPoint)
+Quadric::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     const Quadric *shape = this;
-    const double linearTerm = (*testPoint).dotProduct(shape->objectTerms);
+    const double linearTerm = testPoint.dotProduct(shape->objectTerms);
     double result = linearTerm + shape->objectConstant;
-    const Vector3Dd newPoint = (*testPoint).multiply(*testPoint);
+    const Vector3Dd newPoint = testPoint.multiply(testPoint);
     const double squareTerm = newPoint.dotProduct(shape->object2Terms);
     result += squareTerm;
-    result += shape->objectMixedTerms.x() * (testPoint->x()) * (testPoint->y()) +
-              shape->objectMixedTerms.y() * (testPoint->x()) * (testPoint->z()) +
-              shape->objectMixedTerms.z() * (testPoint->y()) * (testPoint->z());
+    result += shape->objectMixedTerms.x() * (testPoint.x()) * (testPoint.y()) +
+              shape->objectMixedTerms.y() * (testPoint.x()) * (testPoint.z()) +
+              shape->objectMixedTerms.z() * (testPoint.y()) * (testPoint.z());
 
-    if (result < Config::SMALL_TOLERANCE) {
-        return (true);
+    if (result < distanceTolerance) {
+        return INSIDE;
     }
 
-    return (false);
+    return OUTSIDE;
 }
 
 void

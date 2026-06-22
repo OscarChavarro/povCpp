@@ -908,8 +908,9 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
 }
 
 int
-HeightField::doContainmentTest(Vector3Dd *testPoint)
+HeightField::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
+    (void)distanceTolerance;
     const HeightField *hField = this;
     int px;
     int pz;
@@ -928,7 +929,7 @@ HeightField::doContainmentTest(Vector3Dd *testPoint)
     Vector3Dd localNormal;
     Vector3Dd test;
 
-    test = hField->transformationInverse->transformPoint(*testPoint);
+    test = hField->transformationInverse->transformPoint(testPoint);
 
     px = (int)test.x();
     pz = (int)test.z();
@@ -962,9 +963,9 @@ HeightField::doContainmentTest(Vector3Dd *testPoint)
     dot2 = (int)dot2Value;
     if ((dot1 < dot2) &&
         (test.y() > (hField->getBoundingBox()->getBounds()[0].y()) + 1.0)) {
-        return (true);
+        return INSIDE;
     }
-    return (false);
+    return OUTSIDE;
 }
 
 void

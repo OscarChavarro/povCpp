@@ -239,30 +239,31 @@ Box::intersectBoxx(
 }
 
 int
-Box::doContainmentTest(Vector3Dd *testPoint)
+Box::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
+    (void)distanceTolerance;
     Vector3Dd newPoint;
     const Box *box = this;
 
     // Transform the point into the boxes space
     if (box->transformation != nullptr) {
-        newPoint = box->transformationInverse->transformPoint(*testPoint);
+        newPoint = box->transformationInverse->transformPoint(testPoint);
     } else {
-        newPoint = *testPoint;
+        newPoint = testPoint;
     }
 
     // Test to see if we are inside the box
     if (newPoint.x() < box->bounds[0].x() || newPoint.x() > box->bounds[1].x()) {
-        return ((int)box->inverted);
+        return box->inverted ? INSIDE : OUTSIDE;
     }
     if (newPoint.y() < box->bounds[0].y() || newPoint.y() > box->bounds[1].y()) {
-        return ((int)box->inverted);
+        return box->inverted ? INSIDE : OUTSIDE;
     }
     if (newPoint.z() < box->bounds[0].z() || newPoint.z() > box->bounds[1].z()) {
-        return ((int)box->inverted);
+        return box->inverted ? INSIDE : OUTSIDE;
     }
     // Inside the box
-    return 1 - box->inverted;
+    return box->inverted ? OUTSIDE : INSIDE;
 }
 
 void

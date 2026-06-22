@@ -38,7 +38,7 @@ class Composite : public BoundedGeometry {
     const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int doContainmentTest(Vector3Dd *point) override;
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     void translate(Vector3Dd *vector) override;
     void rotate(Vector3Dd *vector) override;

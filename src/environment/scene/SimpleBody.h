@@ -26,7 +26,7 @@ class SimpleBody : public TransformableElement {
     void prependMaterialLayers(Material *newHead);
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int doContainmentTest(Vector3Dd *point) override;
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void normal(
         Vector3Dd *result,

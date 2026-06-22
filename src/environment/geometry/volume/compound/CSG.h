@@ -34,7 +34,7 @@ class CSG : public Geometry {
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *material) override;
-    int doContainmentTest(Vector3Dd *point) override;
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     void translate(Vector3Dd *vector) override;
     void rotate(Vector3Dd *vector) override;

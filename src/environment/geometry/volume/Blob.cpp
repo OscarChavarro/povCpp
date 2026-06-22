@@ -478,23 +478,27 @@ Calculate the density at this point, then compare to
 the threshold to see if we are in or out of the blob
 */
 int
-Blob::doContainmentTest(Vector3Dd *testPoint)
+Blob::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
+    (void)distanceTolerance;
     Vector3Dd newPoint;
     const Blob *blob = this;
 
     // Transform the point into blob space
     if (blob->transformation != nullptr) {
-        newPoint = blob->transformationInverse->transformPoint(*testPoint);
+        newPoint = blob->transformationInverse->transformPoint(testPoint);
     } else {
-        newPoint = *testPoint;
+        newPoint = testPoint;
     }
 
+    // INSIDE_TOLERANCE is a density-threshold margin specific to the blob
+    // field function, not the geometric point-to-surface epsilon that
+    // distanceTolerance represents elsewhere; kept as-is on purpose.
     if (Blob::calculateFieldValue((BoundedGeometry *)this, &newPoint) >
         blob->threshold - INSIDE_TOLERANCE) {
-        return ((int)1 - blob->inverted);
+        return blob->inverted ? OUTSIDE : INSIDE;
     }
-    return ((int)blob->inverted);
+    return blob->inverted ? INSIDE : OUTSIDE;
 }
 
 void

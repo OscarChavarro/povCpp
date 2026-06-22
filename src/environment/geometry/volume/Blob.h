@@ -47,7 +47,7 @@ class Blob : public Geometry {
     Blob *copyWithSturmFlag(int flag) const;
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int doContainmentTest(Vector3Dd *point) override;
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
     void translateGeometry(Vector3Dd *vector) override;

@@ -6,6 +6,7 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
 #include "common/statistics/Statistics.h"
+#include "environment/geometry/element/PovRayHit.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
@@ -403,11 +404,11 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         // then carry it by value inside Intersection so both shading read
         // sites (LocalSurfaceShader, RayShaderPipeline's refraction branch)
         // reuse it instead of each re-deriving it from the owner body.
-        Vector3Dd winningNormal;
-        localIntersection.getAttributes().getHitGeometry()->normal(
-            &winningNormal, &localIntersection.getIntersection().point,
-            localRay->getConfig());
-        localIntersection.getIntersection().normal = winningNormal;
+        PovRayHit winningHit;
+        winningHit.p = localIntersection.getIntersection().point;
+        localIntersection.getAttributes().getHitGeometry()->doExtraInformation(
+            *localRay, localIntersection.getIntersection().t, &winningHit);
+        localIntersection.getIntersection().normal = winningHit.n;
 
         // localWorker's own TextureUtils (the shared engine instance in
         // serial mode, or this task's private instance in parallel mode) —
