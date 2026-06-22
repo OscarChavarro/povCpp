@@ -9,7 +9,7 @@
 class ShadowShader {
 public:
     static int shade(IntersectionCandidate *localIntersection,
-        ColorRgba *lightColor, java::PriorityQueue<IntersectionCandidate> *localQueue,
+        ColorRgba *lightColor, java::PriorityQueue<IntersectionCandidate> *localDepthQueue,
         const TraceService *traceService);
 };
 

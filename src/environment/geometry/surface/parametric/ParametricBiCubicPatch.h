@@ -50,7 +50,7 @@ class ParametricBiCubicPatch : public Geometry {
         int *depthCount, double *depths);
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int inside(Vector3Dd *point) override;
+    int doContainmentTest(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint) override;
     void normal(
         Vector3Dd *result,

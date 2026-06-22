@@ -387,7 +387,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         this->getScene().getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
-        if (object->intersect(localRay, newIntersection)) {
+        if (object->doIntersectionFirstHit(localRay, newIntersection)) {
             if (!intersectionFound ||
                 newIntersection.getIntersection().t <
                     localIntersection.getIntersection().t) {

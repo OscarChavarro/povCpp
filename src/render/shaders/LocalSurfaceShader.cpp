@@ -1,6 +1,7 @@
 #include "java/util/PriorityQueue.txx"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "render/shaders/AmbientLightShader.h"
 #include "render/shaders/BumpNormalShader.h"
@@ -17,6 +18,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     const java::ArrayList<BoundedGeometry*> &objects,
     int &traceLevel, TextureUtils *textureUtils)
 {
+    PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection);
     Vector3Dd surfaceNormal;
     double normalDirection;
     double attenuation;
@@ -28,7 +30,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     emittedColor.setR(0.0); emittedColor.setG(0.0); emittedColor.setB(0.0); emittedColor.setA(0);
 
     if (texture == nullptr) {
-        texture = static_cast<PovRayMaterial *>(rayIntersection->getAttributes().getObjectTexture());
+        texture = static_cast<PovRayMaterial *>(hit.objectTexture);
     }
 
     if (ray->getConfig()->getQuality() <= 1) {
@@ -39,11 +41,11 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
         return;
     }
 
-    surfaceNormal = rayIntersection->getIntersection().normal;
+    surfaceNormal = hit.n;
 
     if (ray->getConfig()->getQuality() >= 8) {
         BumpNormalShader::shade(
-            &surfaceNormal, texture, &rayIntersection->getIntersection().point, &surfaceNormal,
+            &surfaceNormal, texture, &hit.p, &surfaceNormal,
             textureUtils);
     }
 
@@ -56,7 +58,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     attenuation = filterColor->getA() * (1.0 - surfaceColor->getA());
 
     AmbientLightShader::shade(texture, surfaceColor, &emittedColor, attenuation);
-    DirectLightShader::shade(texture, &rayIntersection->getIntersection().point, ray, &surfaceNormal,
+    DirectLightShader::shade(texture, &hit.p, ray, &surfaceNormal,
         surfaceColor, &emittedColor, attenuation, traceService,
         lightSources, objects);
     color->setR(color->getR() + emittedColor.getR());
@@ -64,7 +66,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     color->setB(color->getB() + emittedColor.getB());
     if (ray->getConfig()->getQuality() >= 8) {
         MirrorReflectionShader::shade(
-            texture, &rayIntersection->getIntersection().point, ray, &surfaceNormal, color,
+            texture, &hit.p, ray, &surfaceNormal, color,
             traceService, traceLevel);
     }
 }

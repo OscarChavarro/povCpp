@@ -20,10 +20,10 @@ int
 CSG::insideCsgChild(Vector3Dd *point, TransformableElement *shape)
 {
     // CSG children are produced by the POV parsers through SceneBuilder::wrap,
-    // so the stored TransformableElement is a SimpleBody; its inside()
+    // so the stored TransformableElement is a SimpleBody; its doContainmentTest()
     // override forwards straight to the wrapped geometry, with no need to
     // know that concretely here.
-    return shape->inside(point);
+    return shape->doContainmentTest(point);
 }
 
 int
@@ -246,7 +246,7 @@ CSG::invert()
 }
 
 int
-CSG::inside(Vector3Dd *point)
+CSG::doContainmentTest(Vector3Dd *point)
 {
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         return insideCsgIntersection(point);

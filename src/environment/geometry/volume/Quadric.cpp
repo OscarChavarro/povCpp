@@ -186,7 +186,7 @@ Quadric::intersectQuadric(
 }
 
 int
-Quadric::inside(Vector3Dd *testPoint)
+Quadric::doContainmentTest(Vector3Dd *testPoint)
 {
     const Quadric *shape = this;
     const double linearTerm = (*testPoint).dotProduct(shape->objectTerms);

@@ -5,6 +5,7 @@
 #include "environment/material/RendererConfiguration.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
@@ -18,6 +19,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     const TraceService *traceService, TextureUtils *textureUtils,
     const RenderContext &context, int &traceLevel)
 {
+    PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection);
     ColorRgba surfaceColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba refractedColor(0.0, 0.0, 0.0, 0.0);
     ColorRgba filterColor(0.0, 0.0, 0.0, 0.0);
@@ -35,16 +37,16 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     ImageTexture mapFixture;
     ColorTextureFixture colorFixture(&textureUtils->getProceduralNoise(), textureUtils);
 
-    texture = static_cast<PovRayMaterial *>(rayIntersection->getAttributes().getMaterial());
+    texture = static_cast<PovRayMaterial *>(hit.material);
     if (texture == nullptr) {
-        texture = static_cast<PovRayMaterial *>(rayIntersection->getAttributes().getObjectTexture());
+        texture = static_cast<PovRayMaterial *>(hit.objectTexture);
     }
 
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture
     if (texture->getMaterialMapVariants().size() > 0) {
         const int index = mapFixture.materialMap(
-            &rayIntersection->getIntersection().point, texture->getTextureTransformationInverse(),
+            &hit.p, texture->getTextureTransformationInverse(),
             texture->getMaterialMapImage(),
             texture->getMaterialMapVariants().size(),
             Config::SMALL_TOLERANCE);
@@ -70,14 +72,14 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
         if (context.getConfig().getQuality() <= 5) {
             if (tempTexture->getQuickColor() != nullptr) {
                 surfaceColor = *tempTexture->getQuickColor();
-            } else if (rayIntersection->getAttributes().getObjectColor() != nullptr) {
-                surfaceColor = *rayIntersection->getAttributes().getObjectColor();
+            } else if (hit.objectColor != nullptr) {
+                surfaceColor = *hit.objectColor;
             } else {
                 surfaceColor.setR(0.5); surfaceColor.setG(0.5); surfaceColor.setB(0.5); surfaceColor.setA(0);
             }
         } else if (tempTexture->getPigment() != nullptr) {
             const Vector3Dd transformedPoint = SolidTexturePigment::transformToObjectSpace(
-                &rayIntersection->getIntersection().point, tempTexture->getTextureTransformationInverse());
+                &hit.p, tempTexture->getTextureTransformationInverse());
             tempTexture->getPigment()->colorAt(&transformedPoint, &surfaceColor,
                 Config::SMALL_TOLERANCE, colorFixture, mapFixture);
         }
@@ -124,10 +126,10 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
         refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
-            surfaceNormal = rayIntersection->getIntersection().normal;
+            surfaceNormal = hit.n;
 
             if (context.getConfig().getQuality() > 7) {
-                BumpNormalShader::shade(&surfaceNormal, texture, &rayIntersection->getIntersection().point,
+                BumpNormalShader::shade(&surfaceNormal, texture, &hit.p,
                     &surfaceNormal, textureUtils);
             }
 
@@ -137,11 +139,11 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
                 surfaceNormal = surfaceNormal.multiply(-1.0);
             }
 
-            TransmissionRefractionShader::shade(texture, &rayIntersection->getIntersection().point, ray, &surfaceNormal,
+            TransmissionRefractionShader::shade(texture, &hit.p, ray, &surfaceNormal,
                 &refractedColor, traceService,
                 context.getScene().getAtmosphereIor(), traceLevel);
         } else {
-            TransmissionRefractionShader::shade(texture, &rayIntersection->getIntersection().point, ray, nullptr,
+            TransmissionRefractionShader::shade(texture, &hit.p, ray, nullptr,
                 &refractedColor, traceService,
                 context.getScene().getAtmosphereIor(), traceLevel);
         }
@@ -154,7 +156,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
             texture->getObjectTransmit() > 0.0) {
             refractedColor.setR(0.0); refractedColor.setG(0.0);
             refractedColor.setB(0.0); refractedColor.setA(0);
-            TransmissionRefractionShader::shade(texture, &rayIntersection->getIntersection().point, ray, nullptr,
+            TransmissionRefractionShader::shade(texture, &hit.p, ray, nullptr,
                 &refractedColor, traceService,
                 context.getScene().getAtmosphereIor(), traceLevel);
             color->setR(color->getR() + filterColor.getR() * refractedColor.getR() * filterColor.getA());
@@ -164,7 +166,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     }
 
     if (context.getScene().getFogDistance() != 0.0) {
-        ExponentialFogShader::shade(rayIntersection->getIntersection().t, &context.getScene().getFogColor(),
+        ExponentialFogShader::shade(hit.hitDistance, &context.getScene().getFogColor(),
             context.getScene().getFogDistance(), color);
     }
 }

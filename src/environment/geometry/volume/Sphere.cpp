@@ -143,7 +143,7 @@ Sphere::allIntersectionsForMaterial(
 }
 
 int
-Sphere::inside(Vector3Dd *testPoint)
+Sphere::doContainmentTest(Vector3Dd *testPoint)
 {
     const Sphere *sphere = this;
     const Vector3Dd originToCenter = sphere->getCenter().subtract(*testPoint);
