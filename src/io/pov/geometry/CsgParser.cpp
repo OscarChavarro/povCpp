@@ -14,7 +14,7 @@ full in/out ray classifications as in [ROTH1982].
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/scene/SceneBuilder.h"
-#include "environment/geometry/GeometryBuilder.h"
+#include "io/pov/geometry/GeometryBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
 #include "io/pov/geometry/BlobParser.h"

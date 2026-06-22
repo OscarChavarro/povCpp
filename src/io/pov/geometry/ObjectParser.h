@@ -2,10 +2,9 @@
 #define __OBJECT_PARSER__
 
 #include "environment/geometry/BoundedGeometry.h"
+#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/scene/SimpleBody.h"
 #include "io/pov/context/ParserContext.h"
-
-class SimpleBody;
-class Composite;
 
 class ObjectParser {
   public:

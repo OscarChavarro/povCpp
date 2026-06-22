@@ -1,10 +1,9 @@
 #ifndef __SCENE_POST_PROCESSOR__
 #define __SCENE_POST_PROCESSOR__
 
-#include "environment/light/Light.h"
 #include "environment/geometry/BoundedGeometry.h"
-
-class SimpleBody;
+#include "environment/light/Light.h"
+#include "environment/scene/SimpleBody.h"
 
 class ScenePostProcessor {
   public:

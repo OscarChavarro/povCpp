@@ -1,9 +1,9 @@
 #ifndef __COMMAND_LINE_OPTIONS__
 #define __COMMAND_LINE_OPTIONS__
 
-class RenderingConfiguration;
-class FileLocator;
-class Scene;
+#include "environment/material/RendererConfiguration.h"
+#include "environment/scene/Scene.h"
+#include "io/binaryIo/FileLocator.h"
 
 class CommandLineOptions {
   private:

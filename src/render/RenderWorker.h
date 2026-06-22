@@ -4,9 +4,9 @@
 #include "java/util/ArrayList.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "render/shaders/TraceService.h"
+#include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
 class RenderEngine;
-class TextureUtils;
 
 class RenderWorker {
   private:

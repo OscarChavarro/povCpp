@@ -1,13 +1,13 @@
 #ifndef __ADAPTIVE_ANTI_ALIASING__
 #define __ADAPTIVE_ANTI_ALIASING__
 
+#include "common/statistics/Statistics.h"
+#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
+#include "render/RenderWorker.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
 
 class RenderEngine;
-class RenderWorker;
-class IntersectionPriorityQueuePool;
-class Statistics;
 
 class AdaptiveAntiAliasing {
   private:

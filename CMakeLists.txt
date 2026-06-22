@@ -33,7 +33,7 @@ add_executable(povray
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
     src/environment/camera/CameraBuilder.cpp
-    src/environment/geometry/GeometryBuilder.cpp
+    src/io/pov/geometry/GeometryBuilder.cpp
     src/environment/scene/SceneBuilder.cpp
     src/environment/scene/Scene.cpp
     src/environment/scene/BoundedGeometryFactory.cpp

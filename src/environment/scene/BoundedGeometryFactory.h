@@ -2,8 +2,7 @@
 #define __BOUNDED_GEOMETRY_FACTORY__
 
 #include "environment/geometry/BoundedGeometry.h"
-
-class PovRayMaterial;
+#include "environment/material/povray/PovRayMaterial.h"
 
 class BoundedGeometryFactory {
   public:

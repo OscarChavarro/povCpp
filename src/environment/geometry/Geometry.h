@@ -2,8 +2,7 @@
 #define __GEOMETRY__
 
 #include "environment/geometry/element/TransformableElement.h"
-
-class Material;
+#include "environment/material/Material.h"
 
 class Geometry : public TransformableElement {
   public:

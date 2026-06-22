@@ -6,7 +6,7 @@
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 #include "environment/scene/SceneBuilder.h"
-#include "environment/geometry/GeometryBuilder.h"
+#include "io/pov/geometry/GeometryBuilder.h"
 #include "environment/scene/SimpleBody.h"
 
 #include "io/pov/context/ParseGlobals.h"

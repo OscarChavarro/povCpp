@@ -3,7 +3,7 @@
 #include "environment/geometry/volume/compound/CSG.h"
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
 
-#include "environment/geometry/GeometryBuilder.h"
+#include "io/pov/geometry/GeometryBuilder.h"
 
 PolynomialShape *
 GeometryBuilder::getPolyShape(int order, const int *termCounts)
