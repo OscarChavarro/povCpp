@@ -3,7 +3,6 @@
 
 #include <atomic>
 
-#include "common/RenderRuntimeState.h"
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/scene/Scene.h"
 #include "render/AdaptiveAntiAliasing.h"
@@ -17,6 +16,8 @@ class RenderEngine {
   private:
     RenderContext *context;
     Scene *scene;
+    double *maxTraceLevelValue;
+    bool *stopFlagValue;
     RenderWorker worker;
     IntersectionPriorityQueuePool intersectionQueuePool;
     AdaptiveAntiAliasing adaptiveAntiAliasing;
@@ -34,6 +35,8 @@ class RenderEngine {
     ~RenderEngine();
 
     void setContext(RenderContext *ctx);
+    void setMaxTraceLevel(double &value);
+    void setStopFlag(bool &value);
     const RenderingConfiguration &getConfig() const;
     RenderingConfiguration &getMutableConfig();
     const RenderContext &getRenderContext() const;
@@ -58,7 +61,8 @@ class RenderEngine {
 
 inline
 RenderEngine::RenderEngine()
-    : context(nullptr), scene(nullptr), worker(this),
+    : context(nullptr), scene(nullptr), maxTraceLevelValue(nullptr),
+      stopFlagValue(nullptr), worker(this),
       adaptiveAntiAliasing(this),
       imageWriter(this),
       fatalErrorFound(false)
@@ -69,6 +73,18 @@ inline void
 RenderEngine::setContext(RenderContext *ctx)
 {
     context = ctx;
+}
+
+inline void
+RenderEngine::setMaxTraceLevel(double &value)
+{
+    maxTraceLevelValue = &value;
+}
+
+inline void
+RenderEngine::setStopFlag(bool &value)
+{
+    stopFlagValue = &value;
 }
 
 inline const RenderingConfiguration &
@@ -110,13 +126,13 @@ RenderEngine::getScene()
 inline double &
 RenderEngine::getMaxTraceLevel()
 {
-    return context->getRuntime().getMaxTraceLevel();
+    return *maxTraceLevelValue;
 }
 
 inline bool &
 RenderEngine::getStopFlag()
 {
-    return context->getRuntime().getStopFlag();
+    return *stopFlagValue;
 }
 
 #endif

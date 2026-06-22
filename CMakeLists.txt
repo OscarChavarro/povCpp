@@ -12,7 +12,7 @@ add_executable(povray
     src/environment/geometry/Geometry.cpp
     src/environment/geometry/element/TransformableElement.cpp
     src/environment/geometry/element/IntersectionPriorityQueuePool.cpp
-    src/common/RenderRuntimeState.cpp
+    src/io/context/RenderRuntimeState.cpp
     src/common/statistics/Statistics.cpp
     src/environment/material/RendererConfiguration.cpp
     src/environment/geometry/element/RayWithSegments.cpp

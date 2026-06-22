@@ -3,7 +3,7 @@
 
 #include "java/util/ArrayList.txx"
 #include "common/statistics/Statistics.h"
-#include "common/RenderRuntimeState.h"
+#include "io/context/RenderRuntimeState.h"
 #include "environment/material/RendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/binaryIo/FileLocator.h"
@@ -41,9 +41,11 @@ class PovRayApplication {
 
   public:
     PovRayApplication()
-        : context(configuration, statistics, scene, runtimeState, textureUtils) {
+        : context(configuration, statistics, scene, textureUtils) {
         engine.setScene(&scene);
         engine.setContext(&context);
+        engine.setMaxTraceLevel(runtimeState.getMaxTraceLevel());
+        engine.setStopFlag(runtimeState.getStopFlag());
     }
 
     void run(int argc, char *argv[]);
