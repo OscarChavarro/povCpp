@@ -1,5 +1,5 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "common/RenderRuntimeState.h"
+#include "io/context/RenderRuntimeState.h"
 
 void
 RenderRuntimeState::reset()

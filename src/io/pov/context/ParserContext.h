@@ -1,7 +1,7 @@
 #ifndef __PARSER_CONTEXT__
 #define __PARSER_CONTEXT__
 
-#include "common/RenderRuntimeState.h"
+#include "io/context/RenderRuntimeState.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/SymbolTable.h"
