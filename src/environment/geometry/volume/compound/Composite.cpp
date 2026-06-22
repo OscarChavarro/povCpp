@@ -25,8 +25,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         stats.incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
-            if (!boundingShape->intersect(ray, _boundingHit) &&
-                !boundingShape->inside(&rayOrigin)) {
+            if (!boundingShape->doIntersectionFirstHit(ray, _boundingHit) &&
+                !boundingShape->doContainmentTest(&rayOrigin)) {
                 return (false);
             }
         }
@@ -50,7 +50,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
             stats.incrementClippingRegionTests();
-            if (!clippingShape->inside(&localIntersection.getIntersection().point)) {
+            if (!clippingShape->doContainmentTest(&localIntersection.getIntersection().point)) {
                 intersectionFound = false;
                 break;
             }
@@ -85,8 +85,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         stats.incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
-            if (!boundingShape->intersect(ray, _boundingHit) &&
-                !boundingShape->inside(&rayOrigin)) {
+            if (!boundingShape->doIntersectionFirstHit(ray, _boundingHit) &&
+                !boundingShape->doContainmentTest(&rayOrigin)) {
                 return (false);
             }
         }
@@ -109,7 +109,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             clippingShape = this->getClippingShapes()[i];
 
             stats.incrementClippingRegionTests();
-            if (!clippingShape->inside(&localIntersection.getIntersection().point)) {
+            if (!clippingShape->doContainmentTest(&localIntersection.getIntersection().point)) {
                 intersectionFound = false;
                 break;
             }
@@ -137,7 +137,7 @@ BoundedGeometry::allIntersectionsForMaterial(
 }
 
 int
-BoundedGeometry::inside(Vector3Dd *point)
+BoundedGeometry::doContainmentTest(Vector3Dd *point)
 {
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
@@ -145,7 +145,7 @@ BoundedGeometry::inside(Vector3Dd *point)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (!boundingShape->inside(point)) {
+        if (!boundingShape->doContainmentTest(point)) {
             return (false);
         }
     }
@@ -153,19 +153,19 @@ BoundedGeometry::inside(Vector3Dd *point)
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (!clippingShape->inside(point)) {
+        if (!clippingShape->doContainmentTest(point)) {
             return (false);
         }
     }
 
-    if (this->getGeometry()->inside(point)) {
+    if (this->getGeometry()->doContainmentTest(point)) {
         return (true);
     }
     return (false);
 }
 
 int
-Composite::inside(Vector3Dd *point)
+Composite::doContainmentTest(Vector3Dd *point)
 {
     TransformableElement *boundingShape;
     TransformableElement *clippingShape;
@@ -174,7 +174,7 @@ Composite::inside(Vector3Dd *point)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (!boundingShape->inside(point)) {
+        if (!boundingShape->doContainmentTest(point)) {
             return (false);
         }
     }
@@ -182,7 +182,7 @@ Composite::inside(Vector3Dd *point)
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (!clippingShape->inside(point)) {
+        if (!clippingShape->doContainmentTest(point)) {
             return (false);
         }
     }
@@ -190,7 +190,7 @@ Composite::inside(Vector3Dd *point)
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
 
-        if (localObject->inside(point)) {
+        if (localObject->doContainmentTest(point)) {
             return (true);
         }
     }

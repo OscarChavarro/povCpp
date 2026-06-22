@@ -23,7 +23,7 @@ class LightGeometryAdapter : public Geometry {
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *material) override;
-    int inside(Vector3Dd *point) override;
+    int doContainmentTest(Vector3Dd *point) override;
     void *copy() override;
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;

@@ -239,7 +239,7 @@ Box::intersectBoxx(
 }
 
 int
-Box::inside(Vector3Dd *testPoint)
+Box::doContainmentTest(Vector3Dd *testPoint)
 {
     Vector3Dd newPoint;
     const Box *box = this;

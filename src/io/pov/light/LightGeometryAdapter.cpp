@@ -22,7 +22,7 @@ LightGeometryAdapter::allIntersectionsForMaterial(
 }
 
 int
-LightGeometryAdapter::inside(Vector3Dd *point)
+LightGeometryAdapter::doContainmentTest(Vector3Dd *point)
 {
     (void)point;
     return false;

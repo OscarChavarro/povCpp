@@ -39,9 +39,9 @@ SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersect
 }
 
 int
-SimpleBody::inside(Vector3Dd *point)
+SimpleBody::doContainmentTest(Vector3Dd *point)
 {
-    return getGeometry()->inside(point);
+    return getGeometry()->doContainmentTest(point);
 }
 
 void

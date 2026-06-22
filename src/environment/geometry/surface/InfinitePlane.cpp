@@ -108,7 +108,7 @@ InfinitePlane::intersectPlane(
 }
 
 int
-InfinitePlane::inside(Vector3Dd *testPoint)
+InfinitePlane::doContainmentTest(Vector3Dd *testPoint)
 {
     const InfinitePlane *plane = this;
 

@@ -908,7 +908,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
 }
 
 int
-HeightField::inside(Vector3Dd *testPoint)
+HeightField::doContainmentTest(Vector3Dd *testPoint)
 {
     const HeightField *hField = this;
     int px;

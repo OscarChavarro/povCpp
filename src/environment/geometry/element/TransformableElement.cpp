@@ -4,7 +4,7 @@
 #include "environment/geometry/element/TransformableElement.h"
 
 bool
-TransformableElement::intersect(RayWithSegments *ray, IntersectionCandidate &out)
+TransformableElement::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);

@@ -789,7 +789,7 @@ PolynomialShape::quarticNormal(
 }
 
 int
-PolynomialShape::inside(Vector3Dd *testPoint)
+PolynomialShape::doContainmentTest(Vector3Dd *testPoint)
 {
     Vector3Dd newPoint;
     const PolynomialShape *shape = this;

@@ -478,7 +478,7 @@ Calculate the density at this point, then compare to
 the threshold to see if we are in or out of the blob
 */
 int
-Blob::inside(Vector3Dd *testPoint)
+Blob::doContainmentTest(Vector3Dd *testPoint)
 {
     Vector3Dd newPoint;
     const Blob *blob = this;

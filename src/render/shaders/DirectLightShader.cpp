@@ -31,7 +31,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     IntersectionCandidate localIntersection;
     Vector3Dd rEye;
     ColorRgba lightColor(0.0, 0.0, 0.0, 0.0);
-    java::PriorityQueue<IntersectionCandidate> *localQueue;
+    java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
 
     rEye = Vector3Dd(0, 0, 0);
 
@@ -45,7 +45,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
             -eye->getDirection().x(), -eye->getDirection().y(), -eye->getDirection().z());
     }
 
-    localQueue = eye->getIntersectionQueuePool()->pop(128);
+    localDepthQueue = eye->getIntersectionQueuePool()->pop(128);
     lightSourceRay.setShadowRay(true);
     lightSourceRay.setPrimaryRay(false);
     lightSourceRay.setStatistics(eye->getStatistics());
@@ -66,9 +66,9 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                 blockingObject = objects[i];
 
                 stats.incrementShadowRayTests();
-                blockingObject->allIntersections(&lightSourceRay, localQueue);
-                while (localQueue->size() > 0) {
-                    localIntersection = localQueue->poll();
+                blockingObject->allIntersections(&lightSourceRay, localDepthQueue);
+                while (localDepthQueue->size() > 0) {
+                    localIntersection = localDepthQueue->poll();
 
                     if ((localIntersection.getIntersection().t <
                             lightSourceDepth - Config::SMALL_TOLERANCE) &&
@@ -77,7 +77,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                         // Does the object not cast a shadow?
                         if (!localIntersection.getAttributes().getNoShadowFlag()) {
                             if (ShadowShader::shade(&localIntersection, &lightColor,
-                                    localQueue, traceService)) {
+                                    localDepthQueue, traceService)) {
                                 intersectionFound = true;
                                 break;
                             }
@@ -110,5 +110,5 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
             }
         }
     }
-    eye->getIntersectionQueuePool()->push(localQueue);
+    eye->getIntersectionQueuePool()->push(localDepthQueue);
 }

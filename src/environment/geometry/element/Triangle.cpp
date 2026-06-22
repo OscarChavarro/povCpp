@@ -367,7 +367,7 @@ Triangle::intersectTriangle(
 }
 
 int
-Triangle::inside(Vector3Dd *point)
+Triangle::doContainmentTest(Vector3Dd *point)
 {
     return (false);
 }
