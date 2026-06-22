@@ -5,6 +5,7 @@
 #include "environment/geometry/element/IntersectionPriorityQueuePool.h"
 #include "environment/material/Material.h"
 #include "environment/material/RendererConfiguration.h"
+#include "java/util/ArrayList.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
 class RayWithSegments : public Ray {
@@ -17,8 +18,8 @@ class RayWithSegments : public Ray {
     Vector3Dd mixedDirectionDirection; // XvYv  XvZv  YvZv
     Vector3Dd mixedPositionDirection;  // XoYv+XvYo  XoZv+XvZo  YoZv+YvZo
     int containingIndex;
-    Material *containingTextures[MAX_CONTAINING_OBJECTS];
-    double containingIORs[MAX_CONTAINING_OBJECTS];
+    java::ArrayList<Material *> containingTextures;
+    java::ArrayList<double> containingIORs;
     bool quadricConstantsCached;
     bool isShadowRay;
     bool isPrimaryRay;
@@ -52,8 +53,8 @@ class RayWithSegments : public Ray {
     void setShadowRay(bool value) { isShadowRay = value; }
     bool isPrimaryRayEnabled() const { return isPrimaryRay; }
     void setPrimaryRay(bool value) { isPrimaryRay = value; }
-    Material *getContainingTextureAt(int index) const { return containingTextures[index]; }
-    double getContainingIORAt(int index) const { return containingIORs[index]; }
+    Material *getContainingTextureAt(int index) const { return containingTextures.get(index); }
+    double getContainingIORAt(int index) const { return containingIORs.get(index); }
     Statistics *getStatistics() const { return statistics; }
     void setStatistics(Statistics *stats) { statistics = stats; }
     const RenderingConfiguration *getConfig() const { return config; }

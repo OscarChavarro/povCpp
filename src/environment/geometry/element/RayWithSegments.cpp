@@ -5,8 +5,13 @@ This module implements the code pertaining to rays.
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/RayWithSegments.h"
+#include "java/util/ArrayList.txx"
 
-RayWithSegments::RayWithSegments()
+template class java::ArrayList<Material *>;
+
+RayWithSegments::RayWithSegments() :
+    containingTextures(RayWithSegments::MAX_CONTAINING_OBJECTS),
+    containingIORs(RayWithSegments::MAX_CONTAINING_OBJECTS)
 {
     containingIndex = -1;
     quadricConstantsCached = false;
@@ -58,19 +63,11 @@ RayWithSegments::initializeContainers()
 void
 RayWithSegments::copyContainersFrom(const RayWithSegments *sourceRay)
 {
-    int i;
-
-    if ((this->containingIndex = sourceRay->containingIndex) >=
-        RayWithSegments::MAX_CONTAINING_OBJECTS) {
-        Logger::reportMessage("RayWithSegments", Logger::FATAL_ERROR, "", "ERROR - Containing Index too high\n");
-    }
+    this->containingIndex = sourceRay->containingIndex;
     this->isShadowRay = sourceRay->isShadowRay;
     this->isPrimaryRay = false;
-
-    for (i = 0; i < RayWithSegments::MAX_CONTAINING_OBJECTS; i++) {
-        this->containingTextures[i] = sourceRay->containingTextures[i];
-        this->containingIORs[i] = sourceRay->containingIORs[i];
-    }
+    this->containingTextures = sourceRay->containingTextures;
+    this->containingIORs = sourceRay->containingIORs;
 }
 
 void
@@ -78,12 +75,15 @@ RayWithSegments::enterContainingMedium(Material *texture)
 {
     int index;
 
-    if ((index = ++(this->containingIndex)) >= RayWithSegments::MAX_CONTAINING_OBJECTS) {
-        Logger::reportMessage("RayWithSegments", Logger::FATAL_ERROR, "", "Too many nested refracting objects\n");
-    }
+    index = ++(this->containingIndex);
 
-    this->containingTextures[index] = texture;
-    this->containingIORs[index] = texture->getObjectIndexOfRefraction();
+    if (index < this->containingTextures.size()) {
+        this->containingTextures.set(index, texture);
+        this->containingIORs.set(index, texture->getObjectIndexOfRefraction());
+    } else {
+        this->containingTextures.add(texture);
+        this->containingIORs.add(texture->getObjectIndexOfRefraction());
+    }
 }
 
 void
