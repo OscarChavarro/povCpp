@@ -125,12 +125,12 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 }
 
 int
-BoundedGeometry::allIntersectionsForOwner(
+BoundedGeometry::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
-    (void)owner;
+    (void)material;
     return allIntersections(ray, depthQueue);
 }
 

@@ -50,15 +50,14 @@ Quadric::updateSquareTermFlag()
 int
 Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    return allIntersectionsForOwner(
-        ray, depthQueue, reinterpret_cast<SimpleBody *>(this));
+    return allIntersectionsForMaterial(ray, depthQueue, nullptr);
 }
 
 int
-Quadric::allIntersectionsForOwner(
+Quadric::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
     Quadric * const shape = this;
     double depth1;
@@ -74,7 +73,7 @@ Quadric::allIntersectionsForOwner(
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
         localElement.setHitGeometry(shape);
-        localElement.setOwner(owner);
+        localElement.setMaterial(material);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -85,7 +84,7 @@ Quadric::allIntersectionsForOwner(
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
             localElement.setHitGeometry(shape);
-            localElement.setOwner(owner);
+            localElement.setMaterial(material);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

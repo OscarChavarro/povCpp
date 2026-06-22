@@ -10,14 +10,14 @@ LightGeometryAdapter::allIntersections(
 }
 
 int
-LightGeometryAdapter::allIntersectionsForOwner(
+LightGeometryAdapter::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
     (void)ray;
     (void)depthQueue;
-    (void)owner;
+    (void)material;
     return false;
 }
 

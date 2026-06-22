@@ -35,7 +35,7 @@ SimpleBody::prependMaterialLayers(Material *newHead)
 int
 SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    return getGeometry()->allIntersectionsForOwner(ray, depthQueue, this);
+    return getGeometry()->allIntersectionsForMaterial(ray, depthQueue, getMaterial());
 }
 
 int

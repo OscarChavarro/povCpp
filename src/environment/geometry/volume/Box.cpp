@@ -51,15 +51,14 @@ Box::closeTo(double x, double y)
 int
 Box::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    return allIntersectionsForOwner(
-        ray, depthQueue, reinterpret_cast<SimpleBody *>(this));
+    return allIntersectionsForMaterial(ray, depthQueue, nullptr);
 }
 
 int
-Box::allIntersectionsForOwner(
+Box::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
     double depth1;
     double depth2;
@@ -74,7 +73,7 @@ Box::allIntersectionsForOwner(
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
         localElement.setHitGeometry(shape);
-        localElement.setOwner(owner);
+        localElement.setMaterial(material);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -85,7 +84,7 @@ Box::allIntersectionsForOwner(
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
             localElement.setHitGeometry(shape);
-            localElement.setOwner(owner);
+            localElement.setMaterial(material);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

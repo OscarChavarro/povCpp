@@ -30,10 +30,10 @@ class InfinitePlane : public Geometry {
         RayWithSegments *ray, InfinitePlane *plane, double *depth);
 
     int allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue) override;
-    int allIntersectionsForOwner(
+    int allIntersectionsForMaterial(
         RayWithSegments *ray,
         java::PriorityQueue<Intersection> *depthQueue,
-        SimpleBody *owner) override;
+        Material *material) override;
     int inside(Vector3Dd *point) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

@@ -6,7 +6,7 @@
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/BoundedGeometry.h"
 
-class SimpleBody;
+class Material;
 
 class Intersection {
   private:
@@ -16,7 +16,7 @@ class Intersection {
 
     BoundedGeometry *boundedGeometry;
     Geometry *hitGeometry = nullptr;
-    SimpleBody *owner = nullptr;
+    Material *material = nullptr;
 
   public:
     double getT() const;
@@ -31,8 +31,8 @@ class Intersection {
     Vector3Dd& getPoint();
     Geometry *getHitGeometry() const;
     void setHitGeometry(Geometry *value);
-    SimpleBody *getOwner() const;
-    void setOwner(SimpleBody *value);
+    Material *getMaterial() const;
+    void setMaterial(Material *value);
 };
 
 inline double
@@ -101,16 +101,16 @@ Intersection::setHitGeometry(Geometry *value)
     hitGeometry = value;
 }
 
-inline SimpleBody *
-Intersection::getOwner() const
+inline Material *
+Intersection::getMaterial() const
 {
-    return owner;
+    return material;
 }
 
 inline void
-Intersection::setOwner(SimpleBody *value)
+Intersection::setMaterial(Material *value)
 {
-    owner = value;
+    material = value;
 }
 
 template <>

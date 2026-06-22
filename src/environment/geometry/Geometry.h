@@ -3,14 +3,14 @@
 
 #include "environment/geometry/element/TransformableElement.h"
 
-class SimpleBody;
+class Material;
 
 class Geometry : public TransformableElement {
   public:
-    virtual int allIntersectionsForOwner(
+    virtual int allIntersectionsForMaterial(
         RayWithSegments *ray,
         java::PriorityQueue<Intersection> *depthQueue,
-        SimpleBody *owner);
+        Material *material);
     virtual void translateGeometry(Vector3Dd *vector) {}
     virtual void rotateGeometry(Vector3Dd *vector) {}
     virtual void scaleGeometry(Vector3Dd *vector) {}

@@ -28,15 +28,14 @@ InfinitePlane::InfinitePlane(const Vector3Dd &normalVector, double distance,
 int
 InfinitePlane::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    return allIntersectionsForOwner(
-        ray, depthQueue, reinterpret_cast<SimpleBody *>(this));
+    return allIntersectionsForMaterial(ray, depthQueue, nullptr);
 }
 
 int
-InfinitePlane::allIntersectionsForOwner(
+InfinitePlane::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
     InfinitePlane * const shape = this;
     double depth;
@@ -51,7 +50,7 @@ InfinitePlane::allIntersectionsForOwner(
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
             localElement.setHitGeometry(shape);
-            localElement.setOwner(owner);
+            localElement.setMaterial(material);
             depthQueue->offer(localElement);
             return (true);
         }

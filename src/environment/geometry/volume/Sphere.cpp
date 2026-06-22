@@ -102,15 +102,14 @@ Sphere::intersectSphere(
 int
 Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersection> *depthQueue)
 {
-    return allIntersectionsForOwner(
-        ray, depthQueue, reinterpret_cast<SimpleBody *>(this));
+    return allIntersectionsForMaterial(ray, depthQueue, nullptr);
 }
 
 int
-Sphere::allIntersectionsForOwner(
+Sphere::allIntersectionsForMaterial(
     RayWithSegments *ray,
     java::PriorityQueue<Intersection> *depthQueue,
-    SimpleBody *owner)
+    Material *material)
 {
     double depth1;
     double depth2;
@@ -126,7 +125,7 @@ Sphere::allIntersectionsForOwner(
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.setPoint(intersectionPoint);
         localElement.setHitGeometry(shape);
-        localElement.setOwner(owner);
+        localElement.setMaterial(material);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -137,7 +136,7 @@ Sphere::allIntersectionsForOwner(
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.setPoint(intersectionPoint);
             localElement.setHitGeometry(shape);
-            localElement.setOwner(owner);
+            localElement.setMaterial(material);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }
