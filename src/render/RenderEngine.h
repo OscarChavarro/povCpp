@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/PriorityQueuePool.h"
 #include "environment/scene/Scene.h"
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/RenderContext.h"
@@ -12,6 +12,8 @@
 #include "render/RenderWorker.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
 
+class IntersectionCandidate;
+
 class RenderEngine {
   private:
     RenderContext *context;
@@ -19,7 +21,7 @@ class RenderEngine {
     double *maxTraceLevelValue;
     bool *stopFlagValue;
     RenderWorker worker;
-    IntersectionPriorityQueuePool intersectionQueuePool;
+    PriorityQueuePool<IntersectionCandidate> intersectionQueuePool;
     AdaptiveAntiAliasing adaptiveAntiAliasing;
     RenderImageWriter imageWriter;
     RenderTargetImage destinationImage;
@@ -41,7 +43,7 @@ class RenderEngine {
     RenderingConfiguration &getMutableConfig();
     const RenderContext &getRenderContext() const;
     Statistics &getStatistics();
-    IntersectionPriorityQueuePool &getIntersectionQueuePool();
+    PriorityQueuePool<IntersectionCandidate> &getIntersectionQueuePool();
     void setScene(Scene *s);
     Scene &getScene();
     double &getMaxTraceLevel();
@@ -52,22 +54,12 @@ class RenderEngine {
     void trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color);
     void initializeRenderer(void);
     void createRay(RayWithSegments *localRay, int width, int height, double x,
-        double y, IntersectionPriorityQueuePool *pool, Statistics *stats);
+        double y, PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats);
     void checkStats(int y);
     void renderTile(
-        RenderWorker &localWorker, IntersectionPriorityQueuePool &pool,
+        RenderWorker &localWorker, PriorityQueuePool<IntersectionCandidate> &pool,
         Statistics &stats, const RasterTileArea &area);
 };
-
-inline
-RenderEngine::RenderEngine()
-    : context(nullptr), scene(nullptr), maxTraceLevelValue(nullptr),
-      stopFlagValue(nullptr), worker(this),
-      adaptiveAntiAliasing(this),
-      imageWriter(this),
-      fatalErrorFound(false)
-{
-}
 
 inline void
 RenderEngine::setContext(RenderContext *ctx)
@@ -105,7 +97,7 @@ RenderEngine::getStatistics()
     return context->getStatistics();
 }
 
-inline IntersectionPriorityQueuePool &
+inline PriorityQueuePool<IntersectionCandidate> &
 RenderEngine::getIntersectionQueuePool()
 {
     return intersectionQueuePool;

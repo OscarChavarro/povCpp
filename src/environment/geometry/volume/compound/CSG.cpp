@@ -1,7 +1,8 @@
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "common/Config.h"
-#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
+#include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
+#include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/compound/CSG.h"
 

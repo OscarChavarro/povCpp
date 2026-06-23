@@ -1,12 +1,16 @@
 #include "java/io/FileOutputStream.h"
 #include "java/util/ArrayList.txx"
+#include "java/util/PriorityQueue.txx"
 #include "java/util/concurrent/Executors.h"
 #include "java/util/concurrent/Void.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "vsdk/toolkit/render/raytracing/RasterTileGenerator.h"
 #include "common/statistics/Statistics.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
+#include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
 #include "environment/material/RendererConfiguration.h"
@@ -25,6 +29,15 @@ RenderTileCallable::call()
     return java::Void();
 }
 
+RenderEngine::RenderEngine()
+    : context(nullptr), scene(nullptr), maxTraceLevelValue(nullptr),
+      stopFlagValue(nullptr), worker(this),
+      adaptiveAntiAliasing(this),
+      imageWriter(this),
+      fatalErrorFound(false)
+{
+}
+
 RenderEngine::~RenderEngine()
 {
 }
@@ -38,7 +51,7 @@ RenderEngine::getMutableConfig()
 void
 RenderEngine::createRay(
     RayWithSegments *localRay, int width, int height, double x, double y,
-    IntersectionPriorityQueuePool *pool, Statistics *stats)
+    PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats)
 {
     double xScalar;
     double yScalar;
@@ -106,7 +119,7 @@ RenderEngine::persistDestinationImage()
 
 void
 RenderEngine::renderTile(
-    RenderWorker &localWorker, IntersectionPriorityQueuePool &pool,
+    RenderWorker &localWorker, PriorityQueuePool<IntersectionCandidate> &pool,
     Statistics &stats, const RasterTileArea &area)
 {
     ColorRgba color(0.0, 0.0, 0.0, 0.0);

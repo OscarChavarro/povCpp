@@ -1,5 +1,6 @@
 #include "java/util/PriorityQueue.txx"
-#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
+#include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
+#include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/TransformableElement.h"

@@ -58,7 +58,7 @@ objectives.
 | P6 | **Disciplined C++11**: `constexpr`, `nullptr`, `override`, `= default`, no extensions | `CMakeLists` (`STANDARD 11`, `EXTENSIONS OFF`), `RenderEngine.h` | #2 clean migration |
 | P7 | **JDK mirror already built** (`java::*`) | `base/src/main/java/**` | #3: the Java port will be nearly mechanical |
 | P8 | **No mutable global state** (singletons/globals removed, bridge pattern) | globals grep = 0; `globals_removal` notes | #4 prerequisite for parallelism |
-| P9 | **Per-engine intersection pooling** | `IntersectionPriorityQueuePool` in `RenderEngine` | #4 avoids per-ray malloc; base for per-thread |
+| P9 | **Per-engine intersection pooling** | `PriorityQueuePool` in `RenderEngine` | #4 avoids per-ray malloc; base for per-thread |
 | P10 | **Modern, strict build** (`-Wall -pedantic`, clang-tidy/format present) | `CMakeLists`, `.clang-tidy` | #1/#2 sustained quality |
 | P11 | **Iterative reflection/refraction traversal** with weighted events and an explicit frame stack | `TraceService`, `RenderEngine::trace` | #5 removes CPU call recursion and prototypes the GPU execution model |
 | P12 | **Per-ray scratch isolated in `RenderWorker`** (ray, primary ray, trace level, line buffers); `trace`/AA/shading parameterized over a worker | `RenderWorker.h`, `RenderEngine::trace(RenderWorker&, …)` | #4 prerequisite for one-worker-per-thread parallelism |

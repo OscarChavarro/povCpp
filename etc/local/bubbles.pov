@@ -13,11 +13,13 @@ object { light_source { <0 30 10> color White  }}
 
 object { sphere { <0 0 0> 1000 } texture { color DimGray } }
 
+// A glass marble (large sphere) with two small air bubbles carved out
+// of it (small spheres subtracted via difference), as a CSG showcase.
 object {
-   intersection {
+   difference {
       sphere { <0 0 0> 1 }
-      sphere { <0 0.25 0> 0.75 inverse}
-      plane {<0 1 0> 0.75 }
+      sphere { <-0.3 0.2 -0.1> 0.25 }
+      sphere { <0.25 -0.3 0.2> 0.18 }
    }
    texture { Glass3 reflection 0.25 }
    bounded_by { sphere { <0 0 0> 1.1 } }

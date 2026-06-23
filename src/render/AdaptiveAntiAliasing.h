@@ -2,12 +2,13 @@
 #define __ADAPTIVE_ANTI_ALIASING__
 
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/PriorityQueuePool.h"
 #include "render/RenderWorker.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/render/raytracing/RasterTileArea.h"
 
 class RenderEngine;
+class IntersectionCandidate;
 
 class AdaptiveAntiAliasing {
   private:
@@ -27,14 +28,14 @@ class AdaptiveAntiAliasing {
     inline unsigned short rand3dInline(RenderWorker &worker, int a, int b);
     void superSample(
         RenderWorker &worker, ColorRgba *result, int x, int y, int width,
-        int height, IntersectionPriorityQueuePool *pool, Statistics *stats);
+        int height, PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats);
 
   public:
     explicit AdaptiveAntiAliasing(RenderEngine *engine)
         : renderEngine(engine) {}
 
     void doAntiAliasing(RenderWorker &worker, int x, int y, ColorRgba *color,
-        const RasterTileArea &area, IntersectionPriorityQueuePool *pool,
+        const RasterTileArea &area, PriorityQueuePool<IntersectionCandidate> *pool,
         Statistics *stats);
 };
 
