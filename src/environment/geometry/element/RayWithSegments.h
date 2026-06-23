@@ -2,11 +2,13 @@
 #define __RAY_WITH_SEGMENTS__
 
 #include "common/statistics/Statistics.h"
-#include "environment/geometry/element/IntersectionPriorityQueuePool.h"
+#include "environment/geometry/element/PriorityQueuePool.h"
 #include "environment/material/Material.h"
 #include "environment/material/RendererConfiguration.h"
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
+
+class IntersectionCandidate;
 
 class RayWithSegments : public Ray {
   private:
@@ -25,7 +27,7 @@ class RayWithSegments : public Ray {
     bool isPrimaryRay;
     Statistics *statistics;
     const RenderingConfiguration *config;
-    IntersectionPriorityQueuePool *intersectionQueuePool;
+    PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool;
   public:
     RayWithSegments();
 
@@ -59,8 +61,8 @@ class RayWithSegments : public Ray {
     void setStatistics(Statistics *stats) { statistics = stats; }
     const RenderingConfiguration *getConfig() const { return config; }
     void setConfig(const RenderingConfiguration *cfg) { config = cfg; }
-    IntersectionPriorityQueuePool *getIntersectionQueuePool() const { return intersectionQueuePool; }
-    void setIntersectionQueuePool(IntersectionPriorityQueuePool *pool) { intersectionQueuePool = pool; }
+    PriorityQueuePool<IntersectionCandidate> *getIntersectionQueuePool() const { return intersectionQueuePool; }
+    void setIntersectionQueuePool(PriorityQueuePool<IntersectionCandidate> *pool) { intersectionQueuePool = pool; }
     void makeRay();
     void initializeContainers();
     void copyContainersFrom(const RayWithSegments *sourceRay);

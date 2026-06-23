@@ -40,7 +40,6 @@ add_executable(povray
     src/environment/material/RendererConfiguration.cpp
     src/environment/material/DefaultTextureAliasTracker.cpp
     src/environment/geometry/element/TransformableElement.cpp
-    src/environment/geometry/element/IntersectionPriorityQueuePool.cpp
     src/environment/geometry/element/RayWithSegments.cpp
     src/environment/geometry/surface/parametric/ParametricPatch.cpp
     src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp

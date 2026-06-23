@@ -17,7 +17,7 @@ AdaptiveAntiAliasing::rand3dInline(RenderWorker &worker, int a, int b)
 void
 AdaptiveAntiAliasing::superSample(
     RenderWorker &worker, ColorRgba *result, int x, int y, int width, int height,
-    IntersectionPriorityQueuePool *pool, Statistics *stats)
+    PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats)
 {
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
     static const double superSampleOffsets[SUPER_SAMPLE_COUNT][2] = {
@@ -70,7 +70,7 @@ AdaptiveAntiAliasing::superSample(
 void
 AdaptiveAntiAliasing::doAntiAliasing(RenderWorker &worker, int x, int y,
     ColorRgba *color, const RasterTileArea &area,
-    IntersectionPriorityQueuePool *pool, Statistics *stats)
+    PriorityQueuePool<IntersectionCandidate> *pool, Statistics *stats)
 {
     char antialiasCenterFlag = 0;
 
