@@ -203,6 +203,7 @@ PovRayApplication::parseSceneDescription()
     ctx.setDiagnostics(
         configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE),
         configuration.getStatFileName());
+    ctx.setCsgRoth(configuration.hasOptionFlags(RenderingConfiguration::CSG_ROTH));
     ctx.setAntialiasThreshold(configuration.getAntialiasThreshold());
     ctx.setRuntimeState(&runtimeState);
     SceneParser::parse(&engine.getScene(), ctx);

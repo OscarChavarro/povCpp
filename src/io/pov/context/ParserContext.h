@@ -36,6 +36,13 @@ class ParserContext {
     bool writesVerboseErrors() const { return mVerboseErrors; }
     const char *statFileName() const { return mStatFileName; }
 
+    // Selects the CSG classification algorithm at parse time (see
+    // doc/CSGByRaySegments.md): false (default) keeps point-membership CSG,
+    // true makes CsgParser build CSGByRaySegment nodes instead of CSG. Decoupled
+    // from RenderingConfiguration for the same reason as setDiagnostics().
+    void setCsgRoth(bool value) { mCsgRoth = value; }
+    bool usesCsgRoth() const { return mCsgRoth; }
+
     double getAntialiasThreshold() const { return mAntialiasThreshold; }
     void setAntialiasThreshold(double threshold) { mAntialiasThreshold = threshold; }
 
@@ -52,6 +59,7 @@ class ParserContext {
     int * const mDegenerateTriangles;
     PovRayMaterial *mDefaultTexture;
     bool mVerboseErrors;
+    bool mCsgRoth = false;
     const char *mStatFileName;
     double mAntialiasThreshold;
     RenderRuntimeState *mRuntimeState;

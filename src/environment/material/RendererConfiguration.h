@@ -33,6 +33,7 @@ class RenderingConfiguration {
     static constexpr unsigned int CONTINUE_TRACE = 256u;
     static constexpr unsigned int VERBOSE_FILE = 512u;
     static constexpr unsigned int PARALLEL = 1024u;
+    static constexpr unsigned int CSG_ROTH = 2048u;
     static constexpr char DEFAULT_OUTPUT_FORMAT = 'd';
 
     RenderingConfiguration();

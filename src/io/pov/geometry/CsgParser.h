@@ -7,7 +7,13 @@
 
 class CsgParser {
   public:
-    static CSG *parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx);
+    // isNested is true only for the recursive calls CsgParser::parse makes
+    // on itself, when a union/intersection/difference token appears inside
+    // another CSG block's own body; every other call site (an `object { ... }`
+    // body, or a top-level `#declare`) leaves it at the default false. See
+    // CSGByRaySegment::topLevel's doc comment for why this distinction
+    // matters under -csgRoth.
+    static CSG *parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested = false);
 };
 
 #endif
