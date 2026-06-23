@@ -47,6 +47,9 @@ add_executable(povray
     src/environment/geometry/volume/Blob.cpp
     src/environment/geometry/volume/Box.cpp
     src/environment/geometry/volume/compound/CSG.cpp
+    src/environment/geometry/volume/compound/CSGByRaySegment.cpp
+    src/environment/geometry/volume/compound/RaySegmentCrossing.cpp
+    src/environment/geometry/volume/compound/RaySegments.cpp
     src/environment/geometry/volume/HeightField.cpp
     src/environment/geometry/Geometry.cpp
     src/environment/geometry/volume/compound/Composite.cpp

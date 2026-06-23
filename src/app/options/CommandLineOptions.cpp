@@ -178,6 +178,18 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
         return;
     }
 
+    // Multi-character option: select the Roth (1982) ray-segment CSG
+    // classification algorithm instead of the default point-membership one.
+    // Both "-csgRoth" and "+csgRoth" enable it (same convention as
+    // "parallel" above: the gate scripts invoke "-csgRoth" expecting it to
+    // turn the algorithm ON; there is no use case for disabling it via a
+    // sign, since it already defaults to off). Checked before the
+    // single-letter switch so it never collides with "-c" (CONTINUE_TRACE).
+    if (strncasecmp(optionString, "csgRoth", 7) == 0) {
+        config.setOptionEnabled(RenderingConfiguration::CSG_ROTH, true);
+        return;
+    }
+
     switch (*optionString) {
     case 'B':
     case 'b':

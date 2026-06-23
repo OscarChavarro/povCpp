@@ -245,3 +245,60 @@ CSG operates on leaf children (via `SimpleBody`):
   investigations (mentioned in earlier-phase memories) or add it to the script.
 - **`copy()` of `CsgRoth`**: must return `CsgRoth` (not `CSG`) so scene copies
   preserve the algorithm; review `CSG`'s copy pattern.
+
+---
+
+## 8. Bug-fixing pass (see `doc/CSGFixesPlan.md`)
+
+Two bugs flagged from the first full 108-scene visual triage were root-caused
+and fixed in `CSGByRaySegment::buildRaySegments`, both in
+`src/environment/geometry/volume/compound/CSGByRaySegment.cpp`:
+
+- **Bug A** (`level1/cantelop`, hollow bowls rendering solid): per-crossing
+  in/out parity was derived from the raw surface normal
+  (`dir.normal < 0`), which does not consult a leaf's `inverse` flag
+  (`Sphere::normal()`/`PolynomialShape::normal()` always return the
+  unflipped geometric normal, unlike `doContainmentTest()`, which does flip).
+  An `inverse`-flagged leaf used as an `intersection`/`union` operand got
+  reversed parity, corrupting the merge.
+- **Bug B** (`math/trough`, a chunk of the clip box's "cap" missing): the same
+  family of bug, on a continuation/transparency ray. A secondary ray spawned
+  from a point sitting exactly on a child's own surface (e.g. continuing past
+  a `texture { color Clear }` clipping plane) hit the "no crossings" fallback,
+  which sampled containment with a **negative** tolerance
+  (`-Config::SMALL_TOLERANCE`) at a point offset by `2 * SMALL_TOLERANCE`
+  along the ray. Combining a negative tolerance with an offset of the same
+  order distorts the test into requiring `dir.normal <= -0.5`, misclassifying
+  the child as OUTSIDE for any but a near-head-on approach.
+
+**Fix, in two parts:**
+1. Parity is no longer sampled independently per crossing. Only ONE
+   `doContainmentTest()` sample is taken per child - the state just before
+   the first crossing (or along the whole ray, if there are none) - and every
+   later crossing simply **toggles** that state. This matches
+   [ROTH1982].3.3 directly ("a ray alternates in/out at each successive
+   crossing") and removes the fragility of re-sampling near every crossing
+   (which broke down whenever two crossings ended up closer together than the
+   sampling epsilon, e.g. near a tangential quartic crossing or where two
+   cutting planes meet).
+2. Both sampling sites (the first-crossing case and the no-crossings
+   fallback) use **zero** tolerance, not negative. The crossing/offset point
+   is already confidently off the surface by construction; a negative
+   tolerance of the same magnitude as the offset was the source of the
+   systematic misclassification in both Bug A and Bug B.
+
+**Verified:** `level1/cantelop` RMSE 0.055 -> 0.0056; `math/trough` RMSE
+0.048 -> 0.0053. Side effects (not separately investigated, just observed):
+`level2/room`, `level2/esp01`, `level2/pacman`, `level1/ballbox1`,
+`level3/snack` all dropped well under the 0.02 threshold; `level2/skyvase`
+improved (0.168 -> 0.117) but still fails - it is missing reflections of the
+vase on a separate reflective surface elsewhere in the scene, which looks
+like a distinct, not-yet-diagnosed bug in how secondary reflection rays
+interact with `CSGByRaySegment`. `level2/pawns` regressed slightly in degree
+(0.034 -> 0.050) from the toggle-based parity change but was already failing
+the gate before this fix (not a pass-to-fail regression); its CSG tree uses
+`difference` over `sturm`-flagged quartics and was not investigated further.
+`level2/iortest`, `level3/pool`, `level3/teapot`, `level3/wg5` also still fail
+the gate, unchanged or mildly improved, and are unrelated pre-existing bugs.
+`level1/blob`, `math/bezier`, `math/bezier0` remain in the accepted
+numeric-noise category (see `doc/CSGFixesPlan.md` §1.1).
