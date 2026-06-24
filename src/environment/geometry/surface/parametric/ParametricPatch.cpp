@@ -3,6 +3,7 @@ This module implements the code for Bezier bicubic patch shapes
 */
 
 #include <cstdio>
+#include <unordered_map>
 
 #include "java/lang/Math.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
@@ -16,6 +17,67 @@ static constexpr double EPSILON_PARAMETRIC_PATCH = 1.0e-10;
 
 int ParametricBiCubicPatch::maxDepthReached = 0;
 
+namespace {
+
+// Per-ray scratch a patch needs between allIntersections() (which fills it
+// in) and the later normal() call for the winning hit (which reads it back
+// by matching the intersection point - see ParametricBiCubicPatch::normal's
+// doc comment). Used to live as plain instance fields on the shared,
+// scene-wide ParametricBiCubicPatch object; under `-parallel`, two threads
+// hitting the same patch concurrently tore each other's writes (the
+// speckled/missing-pixel corruption on bezier.pov/teapot.pov - see
+// doc/CSGPerformance.md's sibling investigation for the analogous Blob bug).
+// Keyed by patch identity *and* scoped thread-local: within one thread, the
+// existing "store now, look up later by point" design is still exactly
+// correct (a single thread only works on one ray, hence one patch's hits,
+// at a time), so this only needs to stop *different threads* from sharing
+// the same backing storage - it does not change the single-threaded
+// behaviour at all.
+struct PatchScratch {
+    int intersectionCount = 0;
+    Vector3Dd intersectionPoint[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+    Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+};
+
+PatchScratch &
+patchScratchFor(const ParametricBiCubicPatch *patch)
+{
+    thread_local std::unordered_map<const ParametricBiCubicPatch *, PatchScratch> scratchByPatch;
+    return scratchByPatch[patch];
+}
+
+} // namespace
+
+int
+ParametricBiCubicPatch::getIntersectionCount() const
+{
+    return patchScratchFor(this).intersectionCount;
+}
+
+void
+ParametricBiCubicPatch::setIntersectionCount(int count)
+{
+    patchScratchFor(this).intersectionCount = count;
+}
+
+void
+ParametricBiCubicPatch::incrementIntersectionCount()
+{
+    patchScratchFor(this).intersectionCount++;
+}
+
+Vector3Dd &
+ParametricBiCubicPatch::getNormalVectorAt(int index)
+{
+    return patchScratchFor(this).normalVector[index];
+}
+
+Vector3Dd &
+ParametricBiCubicPatch::getIntersectionPointAt(int index)
+{
+    return patchScratchFor(this).intersectionPoint[index];
+}
+
 ParametricBiCubicPatch::ParametricBiCubicPatch() :
     patchType(0),
     uSteps(0),
@@ -23,7 +85,6 @@ ParametricBiCubicPatch::ParametricBiCubicPatch() :
     boundingSphereCenter(),
     boundingSphereRadius(0.0),
     flatnessValue(0.0),
-    intersectionCount(0),
     interpolatedGrid(nullptr),
     interpolatedNormals(nullptr),
     smoothNormals(nullptr),
@@ -41,7 +102,6 @@ ParametricBiCubicPatch::ParametricBiCubicPatch(int patchType, int uSteps,
     boundingSphereCenter(),
     boundingSphereRadius(0.0),
     flatnessValue(flatnessValue),
-    intersectionCount(0),
     interpolatedGrid(nullptr),
     interpolatedNormals(nullptr),
     smoothNormals(nullptr),
@@ -579,7 +639,7 @@ ParametricBiCubicPatch::parametricSubPatchIntersect(const RayWithSegments *ray,
     ParametricBiCubicPatch *shape, Vector3Dd (*patch)[4][4], int *depthCount,
     double *depths)
 {
-    const int intersectionCount = shape->intersectionCount;
+    const int intersectionCount = shape->getIntersectionCount();
     Vector3Dd vv0;
     Vector3Dd vv1;
     Vector3Dd vv2;
@@ -605,8 +665,8 @@ ParametricBiCubicPatch::parametricSubPatchIntersect(const RayWithSegments *ray,
         if (ParametricBiCubicIntersection::intersectSubpatch(shape->patchType,
                 ray, &vv0, &vv1, &vv2, &n, d, nullptr, nullptr, nullptr, &depth,
                 &ip, &n)) {
-            shape->intersectionPoint[intersectionCount + *depthCount] = ip;
-            shape->normalVector[intersectionCount + *depthCount] = n;
+            shape->getIntersectionPointAt(intersectionCount + *depthCount) = ip;
+            shape->getNormalVectorAt(intersectionCount + *depthCount) = n;
             depths[*depthCount] = depth;
             *depthCount += 1;
         }
@@ -621,8 +681,8 @@ ParametricBiCubicPatch::parametricSubPatchIntersect(const RayWithSegments *ray,
         if (ParametricBiCubicIntersection::intersectSubpatch(shape->patchType,
                 ray, &vv0, &vv2, &vv3, &n, d, nullptr, nullptr, nullptr, &depth,
                 &ip, &n)) {
-            shape->intersectionPoint[intersectionCount + *depthCount] = ip;
-            shape->normalVector[intersectionCount + *depthCount] = n;
+            shape->getIntersectionPointAt(intersectionCount + *depthCount) = ip;
+            shape->getNormalVectorAt(intersectionCount + *depthCount) = n;
             depths[*depthCount] = depth;
             *depthCount += 1;
         }
@@ -803,7 +863,7 @@ ParametricBiCubicPatch::parametricSubDivider(const RayWithSegments *ray,
     double ut;
     double vt;
     double radius;
-    const int intersectionCount = object->intersectionCount;
+    const int intersectionCount = object->getIntersectionCount();
 
     // Don't waste time if there are already too many intersections
     if (intersectionCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
@@ -914,7 +974,7 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
     double d;
     double hitDepth;
     int i;
-    const int intersectionCount = shape->intersectionCount;
+    const int intersectionCount = shape->getIntersectionCount();
 
     // Don't waste time if there are already too many intersections
     if (intersectionCount >= ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS) {
@@ -950,8 +1010,8 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
             if (ParametricBiCubicIntersection::intersectSubpatch(
                     shape->patchType, ray, &vv0, &vv1, &vv2, &n, d, nullptr,
                     nullptr, nullptr, &hitDepth, &ip, &n)) {
-                shape->intersectionPoint[intersectionCount + *depthCount] = ip;
-                shape->normalVector[intersectionCount + *depthCount] = n;
+                shape->getIntersectionPointAt(intersectionCount + *depthCount) = ip;
+                shape->getNormalVectorAt(intersectionCount + *depthCount) = n;
                 depths[*depthCount] = hitDepth;
                 *depthCount += 1;
             }
@@ -966,8 +1026,8 @@ ParametricBiCubicPatch::parametricTreeWalker(const RayWithSegments *ray,
             if (ParametricBiCubicIntersection::intersectSubpatch(
                     shape->patchType, ray, &vv0, &vv2, &vv3, &n, d, nullptr,
                     nullptr, nullptr, &hitDepth, &ip, &n)) {
-                shape->intersectionPoint[intersectionCount + *depthCount] = ip;
-                shape->normalVector[intersectionCount + *depthCount] = n;
+                shape->getIntersectionPointAt(intersectionCount + *depthCount) = ip;
+                shape->getNormalVectorAt(intersectionCount + *depthCount) = n;
                 depths[*depthCount] = hitDepth;
                 *depthCount += 1;
             }
@@ -1002,18 +1062,18 @@ ParametricBiCubicPatch::normal(
     Vector3Dd *localIntersectionPoint,
     const RenderingConfiguration * /*config*/)
 {
-    const ParametricBiCubicPatch *patch = this;
-
     /**
     If all is going well, the normal was computed at the time the
     intersection was computed.  Look on the list of associated intersection
     points and normals
     */
-    for (int i = 0; i < patch->intersectionCount; i++) {
-        if (localIntersectionPoint->x() == patch->intersectionPoint[i].x() &&
-            localIntersectionPoint->y() == patch->intersectionPoint[i].y() &&
-            localIntersectionPoint->z() == patch->intersectionPoint[i].z()) {
-            *result = patch->normalVector[i];
+    const int intersectionCount = this->getIntersectionCount();
+    for (int i = 0; i < intersectionCount; i++) {
+        const Vector3Dd &cachedPoint = this->getIntersectionPointAt(i);
+        if (localIntersectionPoint->x() == cachedPoint.x() &&
+            localIntersectionPoint->y() == cachedPoint.y() &&
+            localIntersectionPoint->z() == cachedPoint.z()) {
+            *result = this->getNormalVectorAt(i);
             return;
         }
     }
@@ -1024,11 +1084,12 @@ ParametricBiCubicPatch::ParametricBiCubicPatch(const ParametricBiCubicPatch &oth
     ParametricBiCubicPatch(other.patchType, other.uSteps, other.vSteps,
         other.flatnessValue, other.controlPoints)
 {
-    intersectionCount = other.intersectionCount;
-    for (int i = 0; i < intersectionCount; i++) {
-        normalVector[i] = other.normalVector[i];
-        intersectionPoint[i] = other.intersectionPoint[i];
-    }
+    // Deliberately NOT copying other's intersectionCount/normalVector/
+    // intersectionPoint scratch: that state is per-ray-per-thread, tied to
+    // whichever ray most recently hit `other` (see the thread-local scratch
+    // comment on ParametricBiCubicPatch's private section) - copying it into
+    // a freshly-constructed patch would just be a stale snapshot, never a
+    // value any future ray on `this` could meaningfully match against.
     ParametricBiCubicPatch::precomputePatchValues(this);
 }
 

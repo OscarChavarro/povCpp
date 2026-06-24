@@ -72,9 +72,19 @@ class ParametricBiCubicPatch : public Geometry {
     Vector3Dd boundingSphereCenter;
     double boundingSphereRadius;
     const double flatnessValue;
-    int intersectionCount;
-    Vector3Dd normalVector[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
-    Vector3Dd intersectionPoint[ParametricBiCubicPatch::MAX_BICUBIC_INTERSECTIONS];
+    // intersectionCount/normalVector/intersectionPoint used to live here as
+    // plain instance fields: scratch space written by allIntersections() and
+    // read back later by normal() (and by ParametricBiCubicSolver, which
+    // stores the *hit point itself* through getIntersectionPointAt() - see
+    // ParametricBiCubicSolver::allParametricBiCubicPatchIntersections).
+    // That is safe only when one thread touches one patch instance at a
+    // time; under `-parallel`, two threads hitting the SAME shared patch
+    // object concurrently tear each other's writes, which is exactly the
+    // speckled/missing-pixel corruption seen on bezier.pov/teapot.pov. The
+    // getters/setters below keep the exact same call-site contract but are
+    // now backed by thread-local storage keyed on `this` (see the .cpp), so
+    // each thread sees its own scratch state per patch instance instead of
+    // racing on a shared one.
     Vector3Dd **interpolatedGrid;
     Vector3Dd **interpolatedNormals;
     Vector3Dd **smoothNormals;
@@ -145,35 +155,9 @@ ParametricBiCubicPatch::getBoundingSphereRadius() const
     return boundingSphereRadius;
 }
 
-inline int
-ParametricBiCubicPatch::getIntersectionCount() const
-{
-    return intersectionCount;
-}
-
-inline void
-ParametricBiCubicPatch::setIntersectionCount(int count)
-{
-    intersectionCount = count;
-}
-
-inline void
-ParametricBiCubicPatch::incrementIntersectionCount()
-{
-    intersectionCount++;
-}
-
-inline Vector3Dd &
-ParametricBiCubicPatch::getNormalVectorAt(int index)
-{
-    return normalVector[index];
-}
-
-inline Vector3Dd &
-ParametricBiCubicPatch::getIntersectionPointAt(int index)
-{
-    return intersectionPoint[index];
-}
+// getIntersectionCount/setIntersectionCount/incrementIntersectionCount/
+// getNormalVectorAt/getIntersectionPointAt are defined in the .cpp (thread-
+// local backing storage, see the private section's comment above).
 
 inline Vector3Dd **
 ParametricBiCubicPatch::getInterpolatedGrid() const
