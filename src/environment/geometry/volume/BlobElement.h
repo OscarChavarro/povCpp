@@ -11,14 +11,21 @@ class BlobElement {
     void setRadius2(double value) { radius2 = value; }
     double *getCoeffs() { return coeffs; }
     const double *getCoeffs() const { return coeffs; }
-    double *getTCoeffs() { return tcoeffs; }
-    const double *getTCoeffs() const { return tcoeffs; }
 
   private:
     Vector3Dd pos;
     double radius2;
     double coeffs[3];
-    double tcoeffs[5];
+    // No tcoeffs[5] scratch field here on purpose: it used to cache the
+    // per-ray quartic-term contribution of this element between the two
+    // places Blob::allIntersections needs it (computed when the ray enters
+    // this element's influence, consumed when it leaves), but BlobElement is
+    // shared scene geometry visited by every rendering thread - under
+    // `-parallel`, two threads hitting the same blob concurrently tore each
+    // other's writes (the speckled/missing-pixel corruption on blob.pov).
+    // Blob::allIntersections now keeps that scratch in a local array instead
+    // (see doc/CSGPerformance.md's sibling investigation for the analogous
+    // ParametricBiCubicPatch bug).
 };
 
 #endif

@@ -15,7 +15,6 @@ class Blob : public Geometry {
     static constexpr double SHADOW_ROOT_MIN_DISTANCE = 0.05;
 
     static BlobElement *allocateBlobElements(int count);
-    static BlobInterval *allocateBlobIntervals(int count);
 
     Matrix4x4d *transformation;
     Matrix4x4d *transformationInverse;
@@ -23,11 +22,13 @@ class Blob : public Geometry {
     const int count;
     const double threshold;
     BlobElement *const list;
-    BlobInterval *const intervals;
     const int sturmFlag;
 
+    // intervals is supplied by the caller (allIntersections), sized to
+    // 2*blob->count, rather than read from a shared instance field: see
+    // BlobElement.h's comment on the analogous tcoeffs removal.
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
-        const Blob *blob, double minimumDistance);
+        const Blob *blob, double minimumDistance, BlobInterval *intervals);
     static double calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos);
     static bool validateHit(const Blob *blob, const Vector3Dd *p);
 
@@ -64,7 +65,6 @@ Blob::Blob() :
     count(0),
     threshold(0.0),
     list(nullptr),
-    intervals(nullptr),
     sturmFlag(0)
 {
 }

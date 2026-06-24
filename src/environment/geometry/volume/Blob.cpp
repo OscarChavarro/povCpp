@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "java/lang/Math.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
@@ -25,16 +27,6 @@ Blob::allocateBlobElements(int count)
     return new BlobElement[count];
 }
 
-BlobInterval *
-Blob::allocateBlobIntervals(int count)
-{
-    if (count < 1) {
-        return nullptr;
-    }
-
-    return new BlobInterval[2 * count];
-}
-
 Blob::Blob(double thresholdValue,
     java::ArrayList<BlobElement *> *blobElements, int numberOfPoints,
     int sturmFlagValue) :
@@ -44,7 +36,6 @@ Blob::Blob(double thresholdValue,
     count(numberOfPoints),
     threshold(thresholdValue),
     list(allocateBlobElements(numberOfPoints)),
-    intervals(allocateBlobIntervals(numberOfPoints)),
     sturmFlag(sturmFlagValue)
 {
     for (int i = 0; i < numberOfPoints; i++) {
@@ -79,7 +70,6 @@ Blob::Blob(const Matrix4x4d *transformationValue,
     count(countValue),
     threshold(thresholdValue),
     list(countValue > 0 ? allocateBlobElements(countValue) : nullptr),
-    intervals(allocateBlobIntervals(countValue)),
     sturmFlag(sturmFlagValue)
 {
     if (transformationValue != nullptr) {
@@ -111,7 +101,8 @@ to warrant the overhead of using a faster sort technique.
 */
 int
 Blob::determineInfluences(
-    const Vector3Dd *p, const Vector3Dd *d, const Blob *blob, double minimumDistance)
+    const Vector3Dd *p, const Vector3Dd *d, const Blob *blob, double minimumDistance,
+    BlobInterval *intervals)
 {
     int i;
     int j;
@@ -123,7 +114,6 @@ Blob::determineInfluences(
     double t1;
     double disc;
     Vector3Dd v;
-    BlobInterval * const intervals = blob->intervals;
     for (i = 0; i < blob->count; i++) {
         // Use standard sphere intersection routine
         // to determine where the ray hits the volume
@@ -339,7 +329,6 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCan
     double c2;
     Vector3Dd intersectionPoint;
     Vector3Dd dv;
-    const BlobInterval *internalIntervals = blob->intervals;
     bool intersectionFound = false;
     Statistics &stats = *ray->getStatistics();
 
@@ -361,12 +350,20 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCan
     d = Vector3Dd(d.x() / len, d.y() / len, d.z() / len);
 
     // Figure out the intervals along the ray where each
-    // component of the blob has an effect.
-    if ((cnt = Blob::determineInfluences(&p, &d, blob, 0.01)) == 0) {
+    // component of the blob has an effect. Local, not a field on the
+    // (shared, scene-wide) blob object: see BlobElement.h's comment on the
+    // analogous tcoeffs scratch below for why.
+    std::vector<BlobInterval> localIntervals(2 * blob->count);
+    if ((cnt = Blob::determineInfluences(&p, &d, blob, 0.01, localIntervals.data())) == 0) {
         // Ray doesn't hit the sphere of influence or any of
         // its component elements
         return 0;
     }
+    const BlobInterval *internalIntervals = localIntervals.data();
+    // Per-element scratch for the quartic-term contribution computed when a
+    // component starts influencing the ray, consumed when it stops (see the
+    // loop below) - local for the same reason as localIntervals above.
+    std::vector<double> localTCoeffs(blob->count * 5);
 
     // Clear out the coefficients
     for (i = 0; i < 4; i++) {
@@ -390,7 +387,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCan
             c2 = element->getCoeffs()[2];
             t0 = v.dotProduct(v);
             t1 = v.dotProduct(d);
-            tCoefficients = &(element->getTCoeffs()[0]);
+            tCoefficients = &localTCoeffs[internalIntervals[i].getIndex() * 5];
 
             tCoefficients[0] = c0;
             tCoefficients[1] = 4.0 * c0 * t1;
@@ -404,7 +401,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCan
         } else {
             // We are losing the influence of a component, so
             // subtract off its coefficients
-            tCoefficients = &(blob->list[internalIntervals[i].getIndex()].getTCoeffs()[0]);
+            tCoefficients = &localTCoeffs[internalIntervals[i].getIndex() * 5];
             for (j = 0; j < 5; j++) {
                 coefficients[j] -= tCoefficients[j];
             }
@@ -564,7 +561,6 @@ Blob::~Blob()
     delete transformation;
     delete transformationInverse;
     delete[] list;
-    delete[] intervals;
 }
 
 void *

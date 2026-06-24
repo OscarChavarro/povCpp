@@ -11,5 +11,5 @@ find . -type f -name '#*' -delete
 # Remove build and output directories
 rm -rf build
 rm -rf base/build
-rm -rf output
+rm -rf output outputCsgByRaySegments
 rm -rf compile_commands.json
