@@ -3,17 +3,18 @@ This file parses POV-style constructive solid geometry blocks.
 
 Note on algorithmic scope: by default the parsed CSG tree is evaluated by
 collecting surface intersections and filtering them with point-membership
-inside tests, not by merging full in/out ray classifications as in
-[ROTH1982] Scott D. Roth, "Ray Casting for Modeling Solids", Computer
-Graphics and Image Processing 18, 109-144 (1982). When ParserContext::
-usesCsgRoth() is set (-csgRoth), this builds CSGByRaySegment nodes instead,
-which do implement [ROTH1982]'s ray-segment classification (see
-environment/geometry/volume/compound/CSGByRaySegment.h).
+inside tests (ConstructiveSolidGeometryByMorganRules), not by merging full
+in/out ray classifications as in [ROTH1982] Scott D. Roth, "Ray Casting for
+Modeling Solids", Computer Graphics and Image Processing 18, 109-144 (1982).
+When ParserContext::usesCsgRoth() is set (-csgRoth), this builds
+ConstructiveSolidGeometryByRaySegment nodes instead, which do implement
+[ROTH1982]'s ray-segment classification (see
+environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h).
 */
 #include "java/util/ArrayList.txx"
 #include "io/pov/geometry/CsgParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/volume/compound/CSGByRaySegment.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/scene/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
@@ -34,19 +35,20 @@ environment/geometry/volume/compound/CSGByRaySegment.h).
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-CSG *
+ConstructiveSolidGeometry *
 CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested)
 {
-    CSG *container = nullptr;
+    ConstructiveSolidGeometry *container = nullptr;
     SimpleBody *localShape;
     bool firstShapeParsed = false;
 
     if (ctx.usesCsgRoth()) {
         // The Roth (ray-segment) algorithm needs DIFFERENCE kept as a
-        // distinct geometryType (see CSGByRaySegment), unlike the
-        // point-membership path below which folds it into an INTERSECTION
-        // container plus per-child invert().
-        CSGByRaySegment *rothContainer = new CSGByRaySegment(booleanSetOperation);
+        // distinct geometryType (see ConstructiveSolidGeometryByRaySegment),
+        // unlike the point-membership path below which folds it into an
+        // INTERSECTION container plus per-child invert().
+        ConstructiveSolidGeometryByRaySegment *rothContainer =
+            new ConstructiveSolidGeometryByRaySegment(booleanSetOperation);
         rothContainer->setTopLevel(!isNested);
         container = rothContainer;
 
@@ -80,10 +82,11 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                         (ctx.constants()[(int)constantId].getConstantType() ==
                             ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
-                        // copy() is virtual, so a declared CSGByRaySegment
-                        // constant (under -csgRoth) keeps its dynamic type
-                        // instead of being sliced down to CSG.
-                        container = (CSG *)((CSG *)ctx.constants()[(int)constantId]
+                        // copy() is virtual, so a declared
+                        // ConstructiveSolidGeometryByRaySegment constant
+                        // (under -csgRoth) keeps its dynamic type instead of
+                        // being sliced down to ConstructiveSolidGeometry.
+                        container = (ConstructiveSolidGeometry *)((ConstructiveSolidGeometry *)ctx.constants()[(int)constantId]
                             .getConstantData())->copy();
                     } else {
                         ParseErrorReporter::typeError(ctx);

@@ -36,10 +36,12 @@ class ParserContext {
     bool writesVerboseErrors() const { return mVerboseErrors; }
     const char *statFileName() const { return mStatFileName; }
 
-    // Selects the CSG classification algorithm at parse time (see
-    // doc/CSGByRaySegments.md): false (default) keeps point-membership CSG,
-    // true makes CsgParser build CSGByRaySegment nodes instead of CSG. Decoupled
-    // from RenderingConfiguration for the same reason as setDiagnostics().
+    // Selects the CSG classification algorithm at parse time: false
+    // (default) keeps point-membership classification
+    // (ConstructiveSolidGeometryByMorganRules), true makes CsgParser build
+    // ConstructiveSolidGeometryByRaySegment nodes instead ([ROTH1982]).
+    // Decoupled from RenderingConfiguration for the same reason as
+    // setDiagnostics().
     void setCsgRoth(bool value) { mCsgRoth = value; }
     bool usesCsgRoth() const { return mCsgRoth; }
 

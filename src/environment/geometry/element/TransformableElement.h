@@ -17,7 +17,7 @@ class TransformableElement {
     static constexpr int OUTSIDE = -1;
 
     virtual int   allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) { return 0; }
-    // Lets geometry-layer code (e.g. CSGByRaySegment's bare-planes-union
+    // Lets geometry-layer code (e.g. ConstructiveSolidGeometryByRaySegment's bare-planes-union
     // detection) ask "what shape does this node wrap?" without depending on
     // the scene layer's SimpleBody, which is the only subclass that wraps a
     // Geometry rather than being one. Distinct from BoundedGeometry's own
