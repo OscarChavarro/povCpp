@@ -33,4 +33,44 @@ class RaySegmentCrossing {
     const IntersectionCandidate &getHit() const;
 };
 
+// Defined here (not in the .cpp) so the optimizer can actually inline them at
+// every one of the hundreds of millions of call sites CSGByRaySegment makes
+// per render (see doc/CSGPerformance.md): a definition living in a separate
+// translation unit can never be inlined into its callers without LTO,
+// regardless of optimization level or the `inline` keyword on the .cpp
+// definition - the keyword only relaxes the one-definition rule, it does not
+// make the body visible to the caller's compilation.
+inline
+RaySegmentCrossing::RaySegmentCrossing() :
+    t(0.0),
+    entering(false)
+{
+}
+
+inline
+RaySegmentCrossing::RaySegmentCrossing(double t, bool entering, const IntersectionCandidate &hit) :
+    t(t),
+    entering(entering),
+    hit(hit)
+{
+}
+
+inline double
+RaySegmentCrossing::getT() const
+{
+    return t;
+}
+
+inline bool
+RaySegmentCrossing::isEntering() const
+{
+    return entering;
+}
+
+inline const IntersectionCandidate &
+RaySegmentCrossing::getHit() const
+{
+    return hit;
+}
+
 #endif

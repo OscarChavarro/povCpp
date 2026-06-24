@@ -1,3 +1,4 @@
+#include <utility>
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "common/Config.h"
@@ -93,8 +94,6 @@ CSGByRaySegment::copy()
 RaySegments
 CSGByRaySegment::buildRaySegments(RayWithSegments *ray, TransformableElement *child)
 {
-    java::ArrayList<RaySegmentCrossing> crossings{8};
-
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         ray->getIntersectionQueuePool()->pop(128);
 
@@ -147,6 +146,14 @@ CSGByRaySegment::buildRaySegments(RayWithSegments *ray, TransformableElement *ch
             child->doContainmentTest(samplePoint, 0.0) == TransformableElement::INSIDE;
     }
 
+    // Sized exactly to the crossings actually found (often 0, for a child
+    // the ray misses outright) instead of a fixed guess: see
+    // doc/CSGPerformance.md - java::ArrayList<T>'s `new T[n]` always
+    // default-constructs all n slots up front, so guessing high (a previous
+    // version used a fixed {8}) wasted that construction on every call for
+    // the common case of a leaf primitive contributing 0-2 real crossings,
+    // and ArrayList(0) skips allocating entirely.
+    java::ArrayList<RaySegmentCrossing> crossings{localDepthQueue->size()};
     bool currentlyInside = initialInside;
     while (localDepthQueue->size() > 0) {
         IntersectionCandidate candidate = localDepthQueue->poll();
@@ -155,7 +162,7 @@ CSGByRaySegment::buildRaySegments(RayWithSegments *ray, TransformableElement *ch
     }
 
     ray->getIntersectionQueuePool()->push(localDepthQueue);
-    return RaySegments(crossings, initialInside);
+    return RaySegments(std::move(crossings), initialInside);
 }
 
 static bool
@@ -193,13 +200,18 @@ CSGByRaySegment::mergeByMembership(
     const RaySegments &right,
     bool (*combine)(bool insideLeft, bool insideRight))
 {
-    java::ArrayList<RaySegmentCrossing> outCrossings{8};
+    const java::ArrayList<RaySegmentCrossing> &leftCrossings = left.getCrossings();
+    const java::ArrayList<RaySegmentCrossing> &rightCrossings = right.getCrossings();
+
+    // Sized to the worst case (every input crossing survives Table 3's
+    // simplification, step 3) instead of a fixed {8} guess - see the sizing
+    // note in buildRaySegments above and doc/CSGPerformance.md. The merged
+    // result can never have more crossings than its two inputs combined, and
+    // is usually fewer once same-classification segments collapse.
+    java::ArrayList<RaySegmentCrossing> outCrossings{leftCrossings.size() + rightCrossings.size()};
     bool insideLeft = left.isInitialInside();
     bool insideRight = right.isInitialInside();
     const bool initialCombined = combine(insideLeft, insideRight);
-
-    const java::ArrayList<RaySegmentCrossing> &leftCrossings = left.getCrossings();
-    const java::ArrayList<RaySegmentCrossing> &rightCrossings = right.getCrossings();
 
     bool previousCombined = initialCombined;
     long int i = 0;
@@ -231,7 +243,7 @@ CSGByRaySegment::mergeByMembership(
             previousCombined = newCombined;
         }
     }
-    return RaySegments(outCrossings, initialCombined);
+    return RaySegments(std::move(outCrossings), initialCombined);
 }
 
 RaySegments

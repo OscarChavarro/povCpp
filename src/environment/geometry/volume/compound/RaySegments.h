@@ -21,10 +21,27 @@ class RaySegments {
     bool initialInside;
 
   public:
-    RaySegments(const java::ArrayList<RaySegmentCrossing> &crossings, bool initialInside);
+    // Taken by value (not const&): a caller passing an rvalue (every call
+    // site in CSGByRaySegment.cpp passes std::move(localArray)) move-
+    // constructs this parameter instead of copying it, and the member-
+    // initializer below moves it again into `crossings` - two pointer-swap
+    // moves instead of one `new T[n]` deep copy (see doc/CSGPerformance.md).
+    RaySegments(java::ArrayList<RaySegmentCrossing> crossings, bool initialInside);
 
     const java::ArrayList<RaySegmentCrossing> &getCrossings() const;
     bool isInitialInside() const;
 };
+
+inline const java::ArrayList<RaySegmentCrossing> &
+RaySegments::getCrossings() const
+{
+    return crossings;
+}
+
+inline bool
+RaySegments::isInitialInside() const
+{
+    return initialInside;
+}
 
 #endif
