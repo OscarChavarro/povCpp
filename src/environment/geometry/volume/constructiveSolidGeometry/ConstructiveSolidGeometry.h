@@ -1,41 +1,29 @@
-#ifndef __CSG__
-#define __CSG__
+#ifndef __CONSTRUCTIVE_SOLID_GEOMETRY__
+#define __CONSTRUCTIVE_SOLID_GEOMETRY__
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/volume/compound/BooleanSetOperations.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 
-class CSG : public Geometry {
+class ConstructiveSolidGeometry : public Geometry {
   private:
     BooleanSetOperations geometryType;
     java::ArrayList<TransformableElement*> shapes{4};
 
-    static int insideCsgChild(Vector3Dd *point, TransformableElement *shape);
-    int allCsgUnionIntersections(
-        RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
-    int allCsgIntersectIntersections(
-        RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
-    int insideCsgUnion(Vector3Dd *point);
-    int insideCsgIntersection(Vector3Dd *point);
-
   public:
-    explicit CSG(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
-    CSG(const CSG &other);
-    ~CSG() override;
+    explicit ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
+    ~ConstructiveSolidGeometry() override;
 
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);
     java::ArrayList<TransformableElement*> &getShapes();
     const java::ArrayList<TransformableElement*> &getShapes() const;
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
     int allIntersectionsForMaterial(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *material) override;
-    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
-    void *copy() override;
     void translate(Vector3Dd *vector) override;
     void rotate(Vector3Dd *vector) override;
     void scale(Vector3Dd *vector) override;
@@ -43,29 +31,32 @@ class CSG : public Geometry {
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
-    void invertGeometry() override;
+
+    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override = 0;
+    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override = 0;
+    void invertGeometry() override = 0;
 };
 
 inline BooleanSetOperations
-CSG::getGeometryType() const
+ConstructiveSolidGeometry::getGeometryType() const
 {
     return geometryType;
 }
 
 inline void
-CSG::setGeometryType(BooleanSetOperations value)
+ConstructiveSolidGeometry::setGeometryType(BooleanSetOperations value)
 {
     geometryType = value;
 }
 
 inline java::ArrayList<TransformableElement*> &
-CSG::getShapes()
+ConstructiveSolidGeometry::getShapes()
 {
     return shapes;
 }
 
 inline const java::ArrayList<TransformableElement*> &
-CSG::getShapes() const
+ConstructiveSolidGeometry::getShapes() const
 {
     return shapes;
 }

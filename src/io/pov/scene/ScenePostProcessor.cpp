@@ -1,7 +1,7 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 
-#include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/scene/SimpleBody.h"
 #include "io/pov/light/LightGeometryAdapter.h"
@@ -26,7 +26,7 @@ ScenePostProcessor::linkLightsInShape(SimpleBody *shape, Light *&lightHead)
 {
     SimpleBody *tempShape;
 
-    if (CSG *csg = dynamic_cast<CSG *>(shape->getGeometry())) {
+    if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape->getGeometry())) {
         java::ArrayList<TransformableElement*> &shapes = csg->getShapes();
         for (long int i = shapes.size() - 1; i >= 0; i--) {
             tempShape = static_cast<SimpleBody*>(shapes[i]);

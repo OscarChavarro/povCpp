@@ -3,7 +3,7 @@
 #include "environment/camera/Camera.h"
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/scene/SimpleBody.h"
-#include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/material/povray/PovRayMaterial.h"
@@ -76,7 +76,7 @@ SceneParser::freeConstant(int constantType, void *data)
     case ParseGlobals::CSG_INTERSECTION_CONSTANT:
     case ParseGlobals::CSG_UNION_CONSTANT:
     case ParseGlobals::CSG_DIFFERENCE_CONSTANT:
-        delete static_cast<CSG *>(data);
+        delete static_cast<ConstructiveSolidGeometry *>(data);
         break;
     case ParseGlobals::COMPOSITE_CONSTANT:
         delete static_cast<Composite *>(data);

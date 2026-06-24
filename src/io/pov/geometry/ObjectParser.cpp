@@ -12,7 +12,7 @@
 #include "environment/geometry/volume/HeightField.h"
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
-#include "environment/geometry/volume/compound/CSG.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/material/DefaultTextureAliasTracker.h"
