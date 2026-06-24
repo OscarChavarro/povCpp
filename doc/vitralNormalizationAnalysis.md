@@ -149,14 +149,14 @@ ride along.
 | VITRAL `RayHit`            | povCpp                                          | Notes |
 |----------------------------|-------------------------------------------------|-------|
 | `p` (point)                | `Intersection::point` (`PovRayHit::p`)          | same concept |
-| `n` (normal)               | `Intersection::normal` (`PovRayHit::n`)         | povCpp computes it once for the winner (`RenderEngine::trace`) |
+| `n` (normal)               | `Intersection::normal` (`PovRayHit::n`)         | povCpp computes it once for the winner in `RenderEngine::trace`, and only when the ray's `requiredDetailMask` asks for it (`needsNormal()`) |
 | `t` (tangent)              | — (does not exist; `PovRayHit::t` reserved)     | povCpp's texturizers derive it if needed |
 | `u,v`                      | — (not in `Intersection`)                       | povCpp computes UV inside the texture pipeline |
 | `hitDistance` / `Ray.t`    | `Intersection::t` (`PovRayHit::hitDistance`)    | same concept |
 | `material`                 | `IntersectionAttributes::material`              | POV `Material` ≠ VITRAL `SimpleMaterial` |
 | `texture`                  | `IntersectionAttributes::objectTexture`         | |
 | `normalMap`                | — (lives in `Material`)                          | |
-| `requiredDetailMask`       | — (does not exist)                              | povCpp has no lazy per-mask computation |
+| `requiredDetailMask` (on `RayHit`) | `RayWithSegments::requiredDetailMask` | shared concept, same `DETAIL_NONE/POINT/NORMAL/UV/TANGENT/ALL` constants; povCpp keeps it on the *ray* (not the hit), because the decision is made before the hit exists, and gates only `NORMAL` (see §7) |
 | — (does not exist)         | `IntersectionAttributes::{hitGeometry,objectColor,noShadowFlag}` | POV/CSG-specific |
 
 **Summary:** `Intersection` (shared) = **geometric half** of `RayHit`;
@@ -174,7 +174,7 @@ is the named mirror that joins both halves with VITRAL's names.
 | Result               | nearest hit (1)                     | all hits (N), ordered |
 | CSG / booleans       | not supported                       | supported (needs the N) |
 | Nested refraction    | no                                  | yes (containing-media stack) |
-| Surface detail       | lazy by mask                        | normal computed once for the winner; UV in the texturizer |
+| Surface detail       | lazy by mask (point/normal/UV/tangent) | lazy by mask (normal only, all-or-nothing); UV in the texturizer |
 | Hit record           | `RayHit` (merged)                   | `Intersection` + `IntersectionAttributes` (projected into `PovRayHit`) |
 
 **`allIntersections` cannot be replaced by nearest-hit
@@ -252,30 +252,34 @@ is agnostic to which one is active.
 | `IntersectionCandidate` (Intersection + Attributes) | `RayHit` | mirrored via `PovRayHit` (read-only projection) |
 | `TransformableElement::doIntersectionFirstHit` | `Geometry::doIntersectionFirstHit(Ray&,RayHit*)` | **same name on both sides**; in VITRAL it is the pure-virtual primitive, in povCpp a non-virtual facade over `allIntersections` |
 | `doContainmentTest(const Vector3Dd&, double)` | `Geometry::doContainmentTest(const Vector3Dd&, double)` | **signature identical**; both return `int` with the same constant names *and* values `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1`. The only difference: VITRAL backs them with `enum class Containment`, povCpp with bare `static constexpr int` on `TransformableElement`. Implemented by 17 classes (leaves, CSG, `Composite`, `BoundedGeometry`, `SimpleBody`, `LightGeometryAdapter`) |
-| `doExtraInformation(RayWithSegments&, t, PovRayHit*)` | `doExtraInformation(Ray,t,RayHit)` | signature aligned; forwards to `normal()`; no lazy per-mask computation (no `requiredDetailMask`) |
+| `doExtraInformation(RayWithSegments&, t, PovRayHit*)` | `doExtraInformation(Ray,t,RayHit)` | signature aligned; forwards to `normal()`. Lazy: `RenderEngine::trace` calls it only when the ray's `requiredDetailMask` has `DETAIL_NORMAL` (`needsNormal()`), matching VITRAL's mask-gated `doExtraInformation` |
 | `PriorityQueuePool` | per-level `RayHit` workspace | same "no-alloc in hot path" pattern |
 | `Statistics` | `RaytraceStatistics` | **not unified**: povCpp keeps per-instance counters keyed by primitive type (`raySphereTests`, `rayBoxTests`, …, each with a `*Succeeded` pair); VITRAL exposes static, per-ray-category recorders (`recordPrimaryRay`, `recordShadowRay`, `recordObjectIntersectionTest`, …). Different granularity and different ownership model — no 1:1 mapping to align toward |
-| `RenderingConfiguration` (file `RendererConfiguration.h`) | `RendererConfiguration` | **not the same concept**: VITRAL's class configures *display* of a geometry in a GUI viewer (shading type, wireframe/points/normals visibility, bounding-volume color); povCpp's class configures the *render run itself* (I/O file names, antialiasing threshold, line range, thread count, CSG algorithm selection). Same-sounding name, unrelated responsibilities |
+| `RenderingConfiguration` (file `RendererConfiguration.h`) | `RendererConfiguration` | **shared feature-flag vocabulary, different scope**: both expose `withSurfaceLighting/withShadows/withTextures/withFilteredShadows/withRefraction/withBumpMapping/withReflection` predicates and a `shadingType` using the same `SHADING_TYPE_*` values; but VITRAL's class is GUI display config (wireframe/points/normals visibility, bounding-volume color) while povCpp's also carries render-run config (I/O file names, antialiasing, line range, threads, CSG algorithm). See §7 |
 | — (no general bounding box) | `Geometry::getMinMax()` | **divergence**: VITRAL mandates `virtual double* getMinMax() = 0` on every geometry; povCpp has no such method on `TransformableElement`/`Geometry`, only `HeightField::getBoundingBox()`/`findHfMinMax`, specific to that class |
 
 ---
 
 ## 6. Open divergences
 
-- **Lazy surface-detail mask**: VITRAL's `requiredDetailMask` lets the
-  raytracer skip normal/UV/tangent computation when not needed (e.g. shadow
-  rays only need `hitDistance`). povCpp always computes the normal for the
-  winning hit in `doExtraInformation`/`normal()` and has no equivalent
-  short-circuit.
-- **`doContainmentTest` backing type**: largely converged — same signature,
-  same `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1` constant names and values. The
-  residual difference is only that VITRAL derives them from `enum class
-  Containment` while povCpp declares bare `int` constants; povCpp does not
-  return the enum type itself.
-- **Statistics and `RendererConfiguration`**: as noted in §5, these are
-  structurally and conceptually different between the two codebases; there
-  is no pending rename or refactor that would unify them — they solve
-  different problems.
+- **Lazy surface-detail mask granularity**: `RayWithSegments::requiredDetailMask`
+  carries the same `DETAIL_*` constants as VITRAL, and `RenderEngine::trace`
+  skips the winner's normal when it is not needed (shadow rays and the `q0-1`
+  preview both request `DETAIL_NONE`). The divergence is *granularity*: VITRAL
+  gates `POINT`/`NORMAL`/`UV`/`TANGENT` independently, whereas povCpp's gate is
+  all-or-nothing on `NORMAL` (UV is produced inside the texture pipeline, not
+  requested through the mask).
+- **`doContainmentTest` backing type**: same signature, same `INSIDE=1`/
+  `LIMIT=0`/`OUTSIDE=-1` constant names and values. The divergence is only that
+  VITRAL derives them from `enum class Containment` while povCpp declares bare
+  `int` constants; povCpp does not return the enum type itself.
+- **Statistics**: structurally and conceptually different between the two
+  codebases (per-instance per-primitive counters vs static per-ray-category
+  recorders), solving different problems.
+- **`RendererConfiguration` scope**: the two classes share the feature-flag
+  vocabulary (§5, §7) but bundle different surrounding responsibilities (GUI
+  display config vs render-run/IO config), so they remain distinct objects
+  rather than one shared type.
 - **No general bounding-box primitive**: VITRAL requires every geometry to
   implement `getMinMax()`; povCpp has no such concept at the
   `TransformableElement`/`Geometry` level (only `HeightField` has a local
@@ -285,10 +289,11 @@ is agnostic to which one is active.
 
 ## 7. Lazy/selective work: VITRAL's detail mask vs povCpp's `+qN` quality
 
-Both engines have a mechanism to *skip work that the final image does not
-need*, but they express it very differently. This is the most promising place
-to bring the two designs closer, and it has its own work document:
-`doc/lazyQualitySelectionPlan.md`.
+Both engines skip work that the final image does not need, using the same two
+mechanisms: an orthogonal feature-flag set on the configuration object and a
+per-ray surface-detail mask. In povCpp `+qN` is a *named preset* over those
+flags. This section describes how the two map onto each other and where they
+still differ.
 
 ### 7.1. VITRAL: an orthogonal set of feature requirements
 
@@ -311,75 +316,79 @@ The key property is **orthogonality**: "with texture", "with bump map", "flat
 vs Phong shading", and "which surface details to fill in" are independent
 switches. Turning one off does not imply any particular state of the others.
 
-### 7.2. povCpp: one totally-ordered integer (`+qN`)
+### 7.2. povCpp: an orthogonal flag set with `+qN` as a preset
 
-povCpp inherits classic POV-Ray's **single quality integer** `quality`
-(`RenderingConfiguration::quality`, default `9`, set by `+qN` /
-`CommandLineOptions`). There is no detail mask; the normal of the winning hit
-is always computed (§6). Instead, scattered `getQuality()` comparisons across
-the shading pipeline switch features on as the number rises. The actual
-thresholds in the current code are:
+The shading pipeline queries **feature predicates** on
+`RenderingConfiguration`, each backed by a bit in the `options` bitmask:
 
-| Feature gated | Condition | Where |
+| Feature | Predicate (queried by the shaders) | Where read |
 |---|---|---|
-| Surface lit at all (normal + ambient + diffuse/specular) | `quality > 1` | `LocalSurfaceShader.cpp:36` |
-| Shadow-ray object tests (cast shadows) | `quality > 3` | `DirectLightShader.cpp:63` |
-| Full pigment/texture eval (else `quickColor`/`objectColor`/grey) | `quality > 5` | `RayShaderPipeline.cpp:72` |
-| Transparent/coloured shadows (shadow ray not short-circuited) | `quality > 5` | `RayShaderPipeline.cpp:59` |
-| Refraction / transmission | `quality > 5` | `RayShaderPipeline.cpp:124` |
-| Bump-mapped normal (surface and refraction paths) | `quality >= 8` / `> 7` | `LocalSurfaceShader.cpp:46`, `RayShaderPipeline.cpp:131` |
-| Mirror reflection | `quality >= 8` | `LocalSurfaceShader.cpp:67` |
+| Surface lit at all (normal + ambient + diffuse/specular) | `withSurfaceLighting()` | `LocalSurfaceShader.cpp:36` |
+| Shadow-ray object tests (cast shadows) | `withShadows()` | `DirectLightShader.cpp:67` |
+| Full pigment/texture eval (else `quickColor`/`objectColor`/grey) | `withTextures()` | `RayShaderPipeline.cpp:72` |
+| Transparent/coloured shadows (shadow ray not short-circuited) | `withFilteredShadows()` | `RayShaderPipeline.cpp:59` |
+| Refraction / transmission | `withRefraction()` | `RayShaderPipeline.cpp:124` |
+| Bump-mapped normal (surface and refraction paths) | `withBumpMapping()` | `LocalSurfaceShader.cpp:46`, `RayShaderPipeline.cpp:131` |
+| Mirror reflection | `withReflection()` | `LocalSurfaceShader.cpp:67` |
+| Shading model (derived, read-only) | `getShadingType()` → `SHADING_TYPE_NOLIGHT`/`PHONG` | — |
 
-So the ten levels collapse into a handful of **monotone bands** — each band is
-the previous one plus one or two features:
+`+qN` is **a preset over these flags**, exclusive to the command-line layer:
 
-- **q0–q1**: flat colour only (`quickColor`/`objectColor`/grey 0.5), no
-  normal, no lighting, no shadows, no textures, no refraction, no reflection.
-- **q2–q3**: + surface normal + ambient/diffuse/specular direct light, still
-  no shadows, still `quickColor`.
-- **q4–q5**: + cast shadows (opaque), still `quickColor`, no refraction.
-- **q6–q7**: + full procedural/image textures + coloured/transparent shadows
-  + refraction/transmission, no bump, no reflection.
-- **q8–q9**: + bump mapping + mirror reflection (the full model).
+- `setQuality(N)`, the only writer of the flags as a group, sets the seven bits
+  to reproduce classic POV-Ray's quality bands bit-for-bit (q0-1: nothing;
+  q2-3: +lighting; q4-5: +shadows; q6-7: +textures/filtered-shadows/refraction;
+  q8-9: +bump/reflection). The flags are the only stored state; no `quality`
+  integer is retained, since nothing reads one back.
+- The only caller of `setQuality()` is `CommandLineOptions::parseOption` (the
+  `+qN` switch). `+qflags<letters>` there toggles individual bits directly
+  (`L`/`S`/`T`/`F`/`R`/`B`/`M`), so any subset is reachable from the command
+  line (e.g. `+q9 -qflagsS` = full minus shadows), not only the band presets.
 
-This is exactly the "fast preview cheaper than the full model" lever: a low
-`+qN` deliberately drops the expensive parts (texture evaluation, shadow rays,
-refraction, reflection) to render a coarse-but-quick approximation. Measured
-on `etc/level2/iortest.pov` at 320×200 (the new quality fixture, §7.3), the
-output image is byte-identical *within* each band and only changes at the band
-boundaries `q1→q2`, `q5→q6`, `q7→q8` — i.e. four distinct images across the
-ten levels for that scene. (`q3→q4` adds shadows but they do not happen to
-change *this* scene, which already illustrates the core weakness below.)
+The configuration object is **owned by `PovRayApplication`** (a value member,
+`PovRayApplication::configuration`) and propagated by reference from
+construction: it is handed to `RenderContext` (`const RenderingConfiguration&`),
+reaches `RenderEngine` through the context, and each `RayWithSegments` carries
+a `const RenderingConfiguration*` (`setConfig`/`getConfig`) so the shaders read
+the same instance. No global, no per-shader copy, no re-derivation.
 
-### 7.3. Why this is the convergence opportunity — and the mismatch
+The **per-ray detail mask** is the second mechanism (§6): `RenderEngine::trace`
+sets the primary ray's `requiredDetailMask` to `DETAIL_ALL` when
+`withSurfaceLighting()` and `DETAIL_NONE` otherwise, and skips the winner's
+normal computation (`doExtraInformation`) when the mask does not request it;
+`DirectLightShader` marks shadow rays `DETAIL_NONE`. This is the "fast preview
+cheaper than the full model" lever, expressed exactly as VITRAL expresses it.
 
-povCpp's `quality` integer and VITRAL's `requiredDetailMask` +
-`RendererConfiguration` flags are **two encodings of the same idea**: *don't
-compute what the output does not need*. The differences:
+### 7.3. Shared structure and residual differences
 
-- **Total order vs orthogonal set.** `+qN` forces a fixed feature *staircase*:
-  you cannot ask for "textures but no shadows" or "reflection without bump".
-  VITRAL's booleans/mask can express any subset. The POV staircase is really
-  a hand-picked *path* through VITRAL's flag space.
-- **Conflation hides cost.** Because `quality` bundles unrelated features, a
-  scene that has no shadows (like `iortest` above at `q4`) still pays the
-  staircase's bookkeeping, and the user cannot isolate the one feature they
-  want. A flag set makes each cost individually switchable and measurable.
-- **No per-ray laziness.** povCpp's quality is a *global* setting for the
-  whole render; VITRAL additionally varies the detail mask *per ray*
-  (shadow vs primary). povCpp approximates this only with the ad-hoc
-  `shadowRay && quality <= 5` short-circuit.
-- **`RenderingConfiguration` would have to grow.** Today povCpp's
-  configuration object is about I/O and the run (§5); it carries `quality` as
-  a bare int. Reinterpreting `+qN` VITRAL-style means giving it real feature
-  predicates (`withShadows`, `withTexture`, `withRefraction`, `withReflection`,
-  `withBump`, a `shadingType`) that the shaders query instead of magic-number
-  comparisons — moving povCpp's configuration model toward VITRAL's
-  `RendererConfiguration` feature-flag shape.
+povCpp's selectivity and VITRAL's `requiredDetailMask` +
+`RendererConfiguration` flags are **the same two encodings of the same idea** —
+an orthogonal feature-flag set plus a per-ray detail mask. What they share:
 
-The plan in `doc/lazyQualitySelectionPlan.md` proposes decomposing the
-`quality` staircase into exactly such a flag set (kept gate-identical via the
-new `scripts/testQualities.sh` golden test), so that `+qN` becomes a *named
-preset* over orthogonal switches — the same switches VITRAL already exposes —
-and so that povCpp can additionally drive a VITRAL-style per-ray lazy mask
-from those switches.
+- **Feature flags.** The shaders query orthogonal predicates rather than a
+  numeric threshold. Arbitrary subsets ("textures but no shadows") are
+  expressible via the direct setters and `+qflags`; `+qN` is one hand-picked
+  path through that flag space, kept bit-identical and guarded by
+  `scripts/testQualities.sh` (which covers all 108 gate scenes at one quality
+  per band, plus `iortest` at all ten levels).
+- **Per-ray laziness.** Shadow and primary rays carry an explicit
+  `requiredDetailMask`, the same mechanism as VITRAL's `buildSurfaceDetailMask`.
+- **Shading vocabulary.** `getShadingType()` reports VITRAL's `SHADING_TYPE_*`
+  values, so povCpp's "no lighting" preview and full model map onto VITRAL's
+  `NOLIGHT`/`PHONG`.
+
+Residual differences:
+
+- **Engine traversal stays separate.** The flags select *what* to compute; they
+  do not touch the `allIntersections` + CSG + containing-media machinery that
+  povCpp needs and VITRAL's nearest-hit `SimpleRaytracer` lacks (§3). The
+  shared part is the selection vocabulary, not the traversal.
+- **Mask granularity.** povCpp gates `NORMAL` all-or-nothing; VITRAL gates
+  `POINT`/`NORMAL`/`UV`/`TANGENT` independently. povCpp computes UV inside the
+  texture pipeline, not on request through the mask.
+- **`shadingType` is derived, read-only.** povCpp implements no `FLAT`,
+  `GOURAUD` or `COOK_TERRANCE` shader, so `getShadingType()` only ever returns
+  `NOLIGHT` or `PHONG`; it is a view over `withSurfaceLighting()`, not settable
+  state, to avoid claiming support that does not exist.
+- **`RenderingConfiguration` scope.** The flag vocabulary is shared, but the
+  class also holds render-run/IO config that VITRAL's display-oriented
+  `RendererConfiguration` does not (§5) — they remain distinct objects.

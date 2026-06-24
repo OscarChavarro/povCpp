@@ -55,8 +55,9 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
         }
     }
 
-    // If this is just a shadow ray, and we're rendering low quality, then return
-    if (shadowRay && (context.getConfig().getQuality() <= 5)) {
+    // Shadow rays contribute filtering only when coloured/transparent shadows
+    // are enabled; otherwise an opaque shadow needs no surface shading here.
+    if (shadowRay && !context.getConfig().withFilteredShadows()) {
         return;
     }
 
@@ -69,7 +70,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
         tempTexture = (_layerIdx < 0) ? texture : texture->getLayers()[_layerIdx];
 
         surfaceColor.setR(0.0); surfaceColor.setG(0.0); surfaceColor.setB(0.0); surfaceColor.setA(0);
-        if (context.getConfig().getQuality() <= 5) {
+        if (!context.getConfig().withTextures()) {
             if (tempTexture->getQuickColor() != nullptr) {
                 surfaceColor = *tempTexture->getQuickColor();
             } else if (hit.objectColor != nullptr) {
@@ -121,14 +122,14 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
         return;
     }
 
-    if ((filterColor.getA() > 0.01) && (context.getConfig().getQuality() > 5)) {
+    if ((filterColor.getA() > 0.01) && context.getConfig().withRefraction()) {
         refractedColor.setR(0.0); refractedColor.setG(0.0);
         refractedColor.setB(0.0); refractedColor.setA(0);
 
         if (texture->getObjectRefraction() > 0.0) {
             surfaceNormal = hit.n;
 
-            if (context.getConfig().getQuality() > 7) {
+            if (context.getConfig().withBumpMapping()) {
                 BumpNormalShader::shade(&surfaceNormal, texture, &hit.p,
                     &surfaceNormal, textureUtils);
             }

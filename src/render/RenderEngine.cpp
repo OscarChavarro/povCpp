@@ -417,11 +417,24 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         // then carry it by value inside Intersection so both shading read
         // sites (LocalSurfaceShader, RayShaderPipeline's refraction branch)
         // reuse it instead of each re-deriving it from the owner body.
-        PovRayHit winningHit;
-        winningHit.p = localIntersection.getIntersection().point;
-        localIntersection.getAttributes().getHitGeometry()->doExtraInformation(
-            *localRay, localIntersection.getIntersection().t, &winningHit);
-        localIntersection.getIntersection().normal = winningHit.n;
+        //
+        // Only those two read sites ever look at the normal, and both are
+        // gated behind withSurfaceLighting()/withRefraction() (see
+        // doc/vitralNormalizationAnalysis.md §7.2); withRefraction() can only be
+        // true when withSurfaceLighting() already is, so a single flag check
+        // here is exactly the per-ray "needs normal" decision.
+        localRay->setRequiredDetailMask(
+            localRay->getConfig()->withSurfaceLighting()
+                ? RayWithSegments::DETAIL_ALL
+                : RayWithSegments::DETAIL_NONE);
+
+        if (localRay->needsNormal()) {
+            PovRayHit winningHit;
+            winningHit.p = localIntersection.getIntersection().point;
+            localIntersection.getAttributes().getHitGeometry()->doExtraInformation(
+                *localRay, localIntersection.getIntersection().t, &winningHit);
+            localIntersection.getIntersection().normal = winningHit.n;
+        }
 
         // localWorker's own TextureUtils (the shared engine instance in
         // serial mode, or this task's private instance in parallel mode) —

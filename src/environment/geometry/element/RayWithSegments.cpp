@@ -17,6 +17,7 @@ RayWithSegments::RayWithSegments() :
     quadricConstantsCached = false;
     isShadowRay = false;
     isPrimaryRay = false;
+    requiredDetailMask = RayWithSegments::DETAIL_ALL;
     statistics = nullptr;
     config = nullptr;
     intersectionQueuePool = nullptr;
@@ -58,6 +59,7 @@ RayWithSegments::initializeContainers()
     this->containingIndex = -1;
     this->isShadowRay = false;
     this->isPrimaryRay = false;
+    this->requiredDetailMask = RayWithSegments::DETAIL_ALL;
 }
 
 void
@@ -66,6 +68,7 @@ RayWithSegments::copyContainersFrom(const RayWithSegments *sourceRay)
     this->containingIndex = sourceRay->containingIndex;
     this->isShadowRay = sourceRay->isShadowRay;
     this->isPrimaryRay = false;
+    this->requiredDetailMask = sourceRay->requiredDetailMask;
     this->containingTextures = sourceRay->containingTextures;
     this->containingIORs = sourceRay->containingIORs;
 }

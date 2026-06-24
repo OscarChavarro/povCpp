@@ -37,6 +37,7 @@ CommandLineOptions::usage()
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     a  = perform antialiasing");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     c  = continue aborted trace");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     qx = image quality 0=rough, 9=full");
+    Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     qflags<letters> = toggle individual quality features (+/- sign"                     " selects on/off): L=lighting S=shadows T=textures F=filtered"                     " shadows R=refraction B=bump M=mirror, e.g. \"+q9 -qflagsS\"");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     l<pathname> = library path prefix");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     wxxx = width of the screen");
     Logger::reportMessage("CommandLineOptions", Logger::WARNING, "", "\n     hxxx = height of the screen");
@@ -187,6 +188,43 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
     // single-letter switch so it never collides with "-c" (CONTINUE_TRACE).
     if (strncasecmp(optionString, "csgRoth", 7) == 0) {
         config.setOptionEnabled(RenderingConfiguration::CSG_ROTH, true);
+        return;
+    }
+
+    // Multi-character option: direct feature-flag toggle, independent of the
+    // +qN preset (doc/vitralNormalizationAnalysis.md §7.2). Each letter in
+    // the spec selects one of the bits setQuality() otherwise sets in bulk;
+    // the option's own +/- sign (already parsed into addOption above) decides
+    // whether the listed flags are enabled or disabled, so e.g. "+q9 -qflagsS"
+    // is the full preset minus shadows, and "+q1 +qflagsT" is the preview plus
+    // textures - combinations no single +qN can express. Checked before the
+    // single-letter switch so "+qflagsB" never reaches 'q' (quality) or 'f'
+    // (output format). Letters: L=surface lighting, S=shadows, T=textures,
+    // F=filtered/coloured shadows, R=refraction, B=bump mapping, M=mirror
+    // reflection.
+    if (strncasecmp(optionString, "qflags", 6) == 0) {
+        unsigned int mask = 0;
+        for (const char *spec = optionString + 6; *spec != '\0'; spec++) {
+            switch (toupper(*spec)) {
+            case 'L': mask |= RenderingConfiguration::WITH_SURFACE_LIGHTING; break;
+            case 'S': mask |= RenderingConfiguration::WITH_SHADOWS; break;
+            case 'T': mask |= RenderingConfiguration::WITH_TEXTURES; break;
+            case 'F': mask |= RenderingConfiguration::WITH_FILTERED_SHADOWS; break;
+            case 'R': mask |= RenderingConfiguration::WITH_REFRACTION; break;
+            case 'B': mask |= RenderingConfiguration::WITH_BUMP_MAPPING; break;
+            case 'M': mask |= RenderingConfiguration::WITH_REFLECTION; break;
+            default:
+                {
+                    char _logMsg[256];
+                    snprintf(_logMsg, sizeof(_logMsg), "\nUnknown +qflags letter: %c\n", *spec);
+                    Logger::reportMessage("CommandLineOptions", Logger::ERROR, "", _logMsg);
+                }
+                break;
+            }
+        }
+        if (mask != 0) {
+            config.setOptionEnabled(mask, addOption);
+        }
         return;
     }
 

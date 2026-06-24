@@ -33,7 +33,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
         texture = static_cast<PovRayMaterial *>(hit.objectTexture);
     }
 
-    if (ray->getConfig()->getQuality() <= 1) {
+    if (!ray->getConfig()->withSurfaceLighting()) {
         surfaceColor->setA(0.0);
         color->setR(color->getR() + surfaceColor->getR() * filterColor->getA());
         color->setG(color->getG() + surfaceColor->getG() * filterColor->getA());
@@ -43,7 +43,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
 
     surfaceNormal = hit.n;
 
-    if (ray->getConfig()->getQuality() >= 8) {
+    if (ray->getConfig()->withBumpMapping()) {
         BumpNormalShader::shade(
             &surfaceNormal, texture, &hit.p, &surfaceNormal,
             textureUtils);
@@ -64,7 +64,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     color->setR(color->getR() + emittedColor.getR());
     color->setG(color->getG() + emittedColor.getG());
     color->setB(color->getB() + emittedColor.getB());
-    if (ray->getConfig()->getQuality() >= 8) {
+    if (ray->getConfig()->withReflection()) {
         MirrorReflectionShader::shade(
             texture, &hit.p, ray, &surfaceNormal, color,
             traceService, traceLevel);
