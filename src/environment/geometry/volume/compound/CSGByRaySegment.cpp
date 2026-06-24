@@ -1,4 +1,3 @@
-#include <utility>
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
 #include "common/Config.h"
@@ -7,7 +6,6 @@
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/compound/CSGByRaySegment.h"
 #include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/scene/SimpleBody.h"
 
 /**
  * True when every child of this node is a bare InfinitePlane: POV's classic
@@ -47,8 +45,7 @@ isUnionOfBarePlanes(BooleanSetOperations geometryType, java::ArrayList<Transform
         return false;
     }
     for (long int i = 0; i < children.size(); i++) {
-        SimpleBody *body = dynamic_cast<SimpleBody *>(children[i]);
-        if (body == nullptr || dynamic_cast<InfinitePlane *>(body->getGeometry()) == nullptr) {
+        if (dynamic_cast<InfinitePlane *>(children[i]->getWrappedGeometry()) == nullptr) {
             return false;
         }
     }
@@ -162,7 +159,7 @@ CSGByRaySegment::buildRaySegments(RayWithSegments *ray, TransformableElement *ch
     }
 
     ray->getIntersectionQueuePool()->push(localDepthQueue);
-    return RaySegments(std::move(crossings), initialInside);
+    return RaySegments(crossings, initialInside);
 }
 
 static bool
@@ -243,7 +240,7 @@ CSGByRaySegment::mergeByMembership(
             previousCombined = newCombined;
         }
     }
-    return RaySegments(std::move(outCrossings), initialCombined);
+    return RaySegments(outCrossings, initialCombined);
 }
 
 RaySegments

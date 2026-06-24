@@ -21,12 +21,12 @@ class RaySegments {
     bool initialInside;
 
   public:
-    // Taken by value (not const&): a caller passing an rvalue (every call
-    // site in CSGByRaySegment.cpp passes std::move(localArray)) move-
-    // constructs this parameter instead of copying it, and the member-
-    // initializer below moves it again into `crossings` - two pointer-swap
-    // moves instead of one `new T[n]` deep copy (see doc/CSGPerformance.md).
-    RaySegments(java::ArrayList<RaySegmentCrossing> crossings, bool initialInside);
+    // Taken by non-const reference and swapped into `crossings` in the
+    // constructor body (a handful of pointer/field exchanges) instead of
+    // being copied - see doc/CSGPerformance.md. Every call site in
+    // CSGByRaySegment.cpp passes a local ArrayList that is about to go out
+    // of scope, so leaving it emptied afterwards is fine.
+    RaySegments(java::ArrayList<RaySegmentCrossing> &crossingsSource, bool initialInside);
 
     const java::ArrayList<RaySegmentCrossing> &getCrossings() const;
     bool isInitialInside() const;
