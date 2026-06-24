@@ -66,6 +66,33 @@ ArrayList<T>::operator=(const ArrayList<T>& other)
     return *this;
 }
 
+template <class T>
+ArrayList<T>::ArrayList(ArrayList<T>&& other) noexcept
+    : increaseChunk(other.increaseChunk)
+    , currentSize(other.currentSize)
+    , maxSize(other.maxSize)
+    , Data(other.Data)
+{
+    other.Data = nullptr;
+    other.currentSize = 0;
+    other.maxSize = 0;
+}
+
+template <class T> ArrayList<T>&
+ArrayList<T>::operator=(ArrayList<T>&& other) noexcept
+{
+    if (this == &other) return *this;
+    delete[] Data;
+    increaseChunk = other.increaseChunk;
+    currentSize = other.currentSize;
+    maxSize = other.maxSize;
+    Data = other.Data;
+    other.Data = nullptr;
+    other.currentSize = 0;
+    other.maxSize = 0;
+    return *this;
+}
+
 template <class T> void
 ArrayList<T>::init() {
     if ( maxSize > 0 ) {
