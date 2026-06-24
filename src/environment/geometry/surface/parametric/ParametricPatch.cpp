@@ -3,9 +3,9 @@ This module implements the code for Bezier bicubic patch shapes
 */
 
 #include <cstdio>
-#include <unordered_map>
 
 #include "java/lang/Math.h"
+#include "java/util/HashMap.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
@@ -42,8 +42,13 @@ struct PatchScratch {
 PatchScratch &
 patchScratchFor(const ParametricBiCubicPatch *patch)
 {
-    thread_local std::unordered_map<const ParametricBiCubicPatch *, PatchScratch> scratchByPatch;
-    return scratchByPatch[patch];
+    thread_local java::HashMap<const ParametricBiCubicPatch *, PatchScratch> scratchByPatch;
+    PatchScratch *scratch = scratchByPatch.get(patch);
+    if (scratch == nullptr) {
+        scratchByPatch.put(patch, PatchScratch());
+        scratch = scratchByPatch.get(patch);
+    }
+    return *scratch;
 }
 
 } // namespace

@@ -1,5 +1,3 @@
-#include <vector>
-
 #include "java/lang/Math.h"
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
@@ -353,7 +351,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCan
     // component of the blob has an effect. Local, not a field on the
     // (shared, scene-wide) blob object: see BlobElement.h's comment on the
     // analogous tcoeffs scratch below for why.
-    std::vector<BlobInterval> localIntervals(2 * blob->count);
+    java::ArrayList<BlobInterval> localIntervals(2 * blob->count);
     if ((cnt = Blob::determineInfluences(&p, &d, blob, 0.01, localIntervals.data())) == 0) {
         // Ray doesn't hit the sphere of influence or any of
         // its component elements
@@ -363,7 +361,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCan
     // Per-element scratch for the quartic-term contribution computed when a
     // component starts influencing the ray, consumed when it stops (see the
     // loop below) - local for the same reason as localIntervals above.
-    std::vector<double> localTCoeffs(blob->count * 5);
+    java::ArrayList<double> localTCoeffs(blob->count * 5);
 
     // Clear out the coefficients
     for (i = 0; i < 4; i++) {
