@@ -27,7 +27,7 @@ void
 RenderingConfiguration::reset()
 {
     options = 0;
-    quality = 9;
+    setQuality(9);
     inputFileName[0] = '\0';
     outputFileName[0] = '\0';
     statFileName[0] = '\0';

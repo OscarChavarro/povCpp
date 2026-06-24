@@ -8,7 +8,6 @@ class RenderingConfiguration {
     static constexpr int RENDER_FILE_NAME_LENGTH = 150;
 
     unsigned int options;
-    int quality;
     char inputFileName[RENDER_FILE_NAME_LENGTH];
     char outputFileName[RENDER_FILE_NAME_LENGTH];
     char statFileName[RENDER_FILE_NAME_LENGTH];
@@ -34,7 +33,35 @@ class RenderingConfiguration {
     static constexpr unsigned int VERBOSE_FILE = 512u;
     static constexpr unsigned int PARALLEL = 1024u;
     static constexpr unsigned int CSG_ROTH = 2048u;
+    // Feature flags behind the +qN quality preset (see
+    // doc/vitralNormalizationAnalysis.md §7). setQuality() sets these in bulk;
+    // the direct setters below let callers select an arbitrary subset.
+    static constexpr unsigned int WITH_SURFACE_LIGHTING = 4096u;
+    static constexpr unsigned int WITH_SHADOWS = 8192u;
+    static constexpr unsigned int WITH_TEXTURES = 16384u;
+    static constexpr unsigned int WITH_FILTERED_SHADOWS = 32768u;
+    static constexpr unsigned int WITH_REFRACTION = 65536u;
+    static constexpr unsigned int WITH_BUMP_MAPPING = 131072u;
+    static constexpr unsigned int WITH_REFLECTION = 262144u;
     static constexpr char DEFAULT_OUTPUT_FORMAT = 'd';
+
+    // Same vocabulary and integer values as VITRAL's ShadingType enum /
+    // RendererConfiguration::SHADING_TYPE_* (see
+    // doc/vitralNormalizationAnalysis.md §7.3). povCpp's shading
+    // pipeline only ever implements two of these five points - a fixed
+    // ambient+Lambert+Blinn-Phong+Phong-highlight model when surface
+    // lighting is on, and no lighting at all when it is off (the q0-1
+    // preview) - so getShadingType() is a *derived* read-only view of
+    // withSurfaceLighting(), not separate state: there is no shader in this
+    // codebase that implements FLAT, GOURAUD or COOK_TERRANCE, so exposing a
+    // setter for them would claim support that does not exist. The point of
+    // this enum is solely to let povCpp's q0-1 "no lighting" preview and
+    // VITRAL's SHADING_NOLIGHT be recognised as the same concept.
+    static constexpr int SHADING_TYPE_NOLIGHT = 0;
+    static constexpr int SHADING_TYPE_FLAT = 1;
+    static constexpr int SHADING_TYPE_GOURAUD = 2;
+    static constexpr int SHADING_TYPE_PHONG = 3;
+    static constexpr int SHADING_TYPE_COOK_TERRANCE = 4;
 
     RenderingConfiguration();
 
@@ -42,8 +69,22 @@ class RenderingConfiguration {
     void clearOptionFlags(unsigned int flags);
     bool hasOptionFlags(unsigned int flags) const;
     void setOptionEnabled(unsigned int flags, bool enabled);
-    int getQuality() const;
     void setQuality(int q);
+    bool withSurfaceLighting() const;
+    void setSurfaceLightingEnabled(bool enabled);
+    bool withShadows() const;
+    void setShadowsEnabled(bool enabled);
+    bool withTextures() const;
+    void setTexturesEnabled(bool enabled);
+    bool withFilteredShadows() const;
+    void setFilteredShadowsEnabled(bool enabled);
+    bool withRefraction() const;
+    void setRefractionEnabled(bool enabled);
+    bool withBumpMapping() const;
+    void setBumpMappingEnabled(bool enabled);
+    bool withReflection() const;
+    void setReflectionEnabled(bool enabled);
+    int getShadingType() const;
     const char* getInputFileName() const;
     void setInputFileName(const char* name);
     const char* getOutputFileName() const;
@@ -103,16 +144,111 @@ RenderingConfiguration::setOptionEnabled(unsigned int flags, bool enabled)
     }
 }
 
-inline int
-RenderingConfiguration::getQuality() const
-{
-    return quality;
-}
-
 inline void
 RenderingConfiguration::setQuality(int q)
 {
-    quality = q;
+    // Preset over the feature flags below (doc/vitralNormalizationAnalysis.md
+    // §7.2): each of the five bands {0,1} {2,3} {4,5} {6,7} {8,9} reproduces
+    // today's images bit-for-bit. The flags are the only stored state; the
+    // quality integer is not retained (nothing reads it back - the shaders
+    // query the predicates, see §7 of doc/vitralNormalizationAnalysis.md).
+    setSurfaceLightingEnabled(q > 1);
+    setShadowsEnabled(q > 3);
+    setTexturesEnabled(q > 5);
+    setFilteredShadowsEnabled(q > 5);
+    setRefractionEnabled(q > 5);
+    setBumpMappingEnabled(q >= 8);
+    setReflectionEnabled(q >= 8);
+}
+
+inline bool
+RenderingConfiguration::withSurfaceLighting() const
+{
+    return hasOptionFlags(WITH_SURFACE_LIGHTING);
+}
+
+inline void
+RenderingConfiguration::setSurfaceLightingEnabled(bool enabled)
+{
+    setOptionEnabled(WITH_SURFACE_LIGHTING, enabled);
+}
+
+inline bool
+RenderingConfiguration::withShadows() const
+{
+    return hasOptionFlags(WITH_SHADOWS);
+}
+
+inline void
+RenderingConfiguration::setShadowsEnabled(bool enabled)
+{
+    setOptionEnabled(WITH_SHADOWS, enabled);
+}
+
+inline bool
+RenderingConfiguration::withTextures() const
+{
+    return hasOptionFlags(WITH_TEXTURES);
+}
+
+inline void
+RenderingConfiguration::setTexturesEnabled(bool enabled)
+{
+    setOptionEnabled(WITH_TEXTURES, enabled);
+}
+
+inline bool
+RenderingConfiguration::withFilteredShadows() const
+{
+    return hasOptionFlags(WITH_FILTERED_SHADOWS);
+}
+
+inline void
+RenderingConfiguration::setFilteredShadowsEnabled(bool enabled)
+{
+    setOptionEnabled(WITH_FILTERED_SHADOWS, enabled);
+}
+
+inline bool
+RenderingConfiguration::withRefraction() const
+{
+    return hasOptionFlags(WITH_REFRACTION);
+}
+
+inline void
+RenderingConfiguration::setRefractionEnabled(bool enabled)
+{
+    setOptionEnabled(WITH_REFRACTION, enabled);
+}
+
+inline bool
+RenderingConfiguration::withBumpMapping() const
+{
+    return hasOptionFlags(WITH_BUMP_MAPPING);
+}
+
+inline void
+RenderingConfiguration::setBumpMappingEnabled(bool enabled)
+{
+    setOptionEnabled(WITH_BUMP_MAPPING, enabled);
+}
+
+inline bool
+RenderingConfiguration::withReflection() const
+{
+    return hasOptionFlags(WITH_REFLECTION);
+}
+
+inline void
+RenderingConfiguration::setReflectionEnabled(bool enabled)
+{
+    setOptionEnabled(WITH_REFLECTION, enabled);
+}
+
+inline int
+RenderingConfiguration::getShadingType() const
+{
+    return withSurfaceLighting() ? SHADING_TYPE_PHONG : SHADING_TYPE_NOLIGHT;
 }
 
 inline const char*

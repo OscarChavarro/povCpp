@@ -55,7 +55,7 @@ class PovRayMaterial : public Material {
 
     SolidTexturePigment *pigment; // nullptr == NO_TEXTURE
     SolidTextureNormal *normal;   // nullptr == NO_BUMPS
-    ColorRgba *quickColor; // nullptr == no low-quality (quality<=5) override colour
+    ColorRgba *quickColor; // nullptr == no preview override colour (used when !withTextures())
 
     double textureRandomness;
     Matrix4x4d *textureTransformation;

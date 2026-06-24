@@ -11,6 +11,20 @@
 class IntersectionCandidate;
 
 class RayWithSegments : public Ray {
+  public:
+    // Mirrors VITRAL's RayHit::DETAIL_* mask (doc/vitralNormalizationAnalysis.md
+    // §7.2): which surface details the eventual hit actually needs, decided
+    // per ray before tracing so doExtraInformation() can skip work the
+    // shading path will never read. Lives on the ray (not the hit, unlike
+    // VITRAL) because in povCpp the decision is made before the hit exists -
+    // RenderEngine::trace must know whether to call doExtraInformation at all.
+    static constexpr int DETAIL_NONE = 0;
+    static constexpr int DETAIL_POINT = 1 << 0;
+    static constexpr int DETAIL_NORMAL = 1 << 1;
+    static constexpr int DETAIL_UV = 1 << 2;
+    static constexpr int DETAIL_TANGENT = 1 << 3;
+    static constexpr int DETAIL_ALL = DETAIL_POINT | DETAIL_NORMAL | DETAIL_UV | DETAIL_TANGENT;
+
   private:
     static constexpr int MAX_CONTAINING_OBJECTS = 10;
     Vector3Dd position2;               // Xo^2  Yo^2  Zo^2
@@ -25,6 +39,7 @@ class RayWithSegments : public Ray {
     bool quadricConstantsCached;
     bool isShadowRay;
     bool isPrimaryRay;
+    int requiredDetailMask;
     Statistics *statistics;
     const RenderingConfiguration *config;
     PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool;
@@ -55,6 +70,11 @@ class RayWithSegments : public Ray {
     void setShadowRay(bool value) { isShadowRay = value; }
     bool isPrimaryRayEnabled() const { return isPrimaryRay; }
     void setPrimaryRay(bool value) { isPrimaryRay = value; }
+    int getRequiredDetailMask() const { return requiredDetailMask; }
+    void setRequiredDetailMask(int mask) { requiredDetailMask = mask; }
+    bool needsNormal() const { return (requiredDetailMask & DETAIL_NORMAL) != 0; }
+    bool needsUv() const { return (requiredDetailMask & DETAIL_UV) != 0; }
+    bool needsTangent() const { return (requiredDetailMask & DETAIL_TANGENT) != 0; }
     Material *getContainingTextureAt(int index) const { return containingTextures.get(index); }
     double getContainingIORAt(int index) const { return containingIORs.get(index); }
     Statistics *getStatistics() const { return statistics; }

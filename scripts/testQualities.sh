@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 #
 # Golden-image gate for the per-quality renders produced by
-# scripts/renderQualities.sh. Compares output/qualities/iortest_q{0..9}.tga
-# byte-for-pixel against the reference baseline in ../referenceTestImagesQualities.
+# scripts/renderQualities.sh: byte-for-pixel comparison of everything under
+# output/qualities/ (recursively) against the matching path under
+# ../referenceTestImagesQualities/. That currently covers two tiers -
+# output/qualities/iortest_q{0..9}.tga (all ten quality levels on one
+# feature-spanning scene) and output/qualities/<level>/<scene>_q{0,2,4,6,8}.tga
+# (one representative quality per band, on all 108 gate scenes, mirroring
+# renderAll.sh's per-level output layout) - but this script does not know or
+# care about that structure: it just diffs whatever .tga files exist on both
+# sides by relative path, so widening renderQualities.sh's coverage needs no
+# change here.
 #
-# This protects the meaning of the +qN quality knob: any refactor that
-# reinterprets quality levels (see doc/lazyQualitySelectionPlan.md) must keep
-# each level producing exactly the image it produces today, unless the
+# This protects the meaning of the +qN quality knob (see
+# doc/vitralNormalizationAnalysis.md §7): any change to the quality model must
+# keep each level producing exactly the image it produces today, unless the
 # baseline is deliberately regenerated. Run after ./scripts/renderQualities.sh.
 set -euo pipefail
 

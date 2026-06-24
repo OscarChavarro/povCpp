@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Builds the performance baseline for doc/lazyQualitySelectionPlan.md: renders
-# all 108 gate scenes at each quality level 0..9 and records the wall-clock
-# render time of every (scene, quality) pair. The result is a 108 x 10 matrix
-# of seconds, written as a TSV to output/qualityMatrix.tsv.
+# Measures the performance of the quality model: renders all 108 gate scenes
+# at each quality level 0..9 and records the wall-clock render time of every
+# (scene, quality) pair. The result is a 108 x 10 matrix of seconds, written
+# as a TSV to output/qualityMatrix.tsv.
 #
-# This is the Step 0 baseline: run it BEFORE changing the quality model so the
-# reinterpreted (VITRAL-style flag/lazy-mask) implementation can be compared
-# cell-by-cell against it.
+# Use it to compare the cost of the quality bands (the lower +qN levels are the
+# fast preview) and to check that a change to the quality model has not made
+# any band slower: run it before and after, then diff the two TSVs cell by cell.
 #
 # Resolution defaults to a moderate 320x200 so the full 1080-render sweep is
 # cheap and repeatable; the *relative* quality-vs-time curve is essentially
