@@ -49,6 +49,8 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/render/raytracing/RasterTileGenerator.cpp
     src/main/java/util/concurrent/Executors.cpp
     src/main/vsdk/toolkit/common/statistics/SolidTextureStatistics.cpp
+    src/main/vsdk/toolkit/environment/material/ShadingType.cpp
+    src/main/vsdk/toolkit/environment/material/RendererConfiguration.cpp
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ArrayListInstantiations.cpp" [=[

@@ -4,7 +4,7 @@
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "environment/material/Material.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/environment/geometry/element/Ray.h"
 
@@ -41,7 +41,7 @@ class RayWithSegments : public Ray {
     bool isPrimaryRay;
     int requiredDetailMask;
     Statistics *statistics;
-    const RenderingConfiguration *config;
+    const PovRayRendererConfiguration *config;
     PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool;
   public:
     RayWithSegments();
@@ -79,8 +79,8 @@ class RayWithSegments : public Ray {
     double getContainingIORAt(int index) const { return containingIORs.get(index); }
     Statistics *getStatistics() const { return statistics; }
     void setStatistics(Statistics *stats) { statistics = stats; }
-    const RenderingConfiguration *getConfig() const { return config; }
-    void setConfig(const RenderingConfiguration *cfg) { config = cfg; }
+    const PovRayRendererConfiguration *getConfig() const { return config; }
+    void setConfig(const PovRayRendererConfiguration *cfg) { config = cfg; }
     PriorityQueuePool<IntersectionCandidate> *getIntersectionQueuePool() const { return intersectionQueuePool; }
     void setIntersectionQueuePool(PriorityQueuePool<IntersectionCandidate> *pool) { intersectionQueuePool = pool; }
     void makeRay();

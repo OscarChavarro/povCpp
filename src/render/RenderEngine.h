@@ -39,8 +39,8 @@ class RenderEngine {
     void setContext(RenderContext *ctx);
     void setMaxTraceLevel(double &value);
     void setStopFlag(bool &value);
-    const RenderingConfiguration &getConfig() const;
-    RenderingConfiguration &getMutableConfig();
+    const PovRayRendererConfiguration &getConfig() const;
+    PovRayRendererConfiguration &getMutableConfig();
     const RenderContext &getRenderContext() const;
     Statistics &getStatistics();
     PriorityQueuePool<IntersectionCandidate> &getIntersectionQueuePool();
@@ -79,7 +79,7 @@ RenderEngine::setStopFlag(bool &value)
     stopFlagValue = &value;
 }
 
-inline const RenderingConfiguration &
+inline const PovRayRendererConfiguration &
 RenderEngine::getConfig() const
 {
     return context->getConfig();

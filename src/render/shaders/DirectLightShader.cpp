@@ -3,7 +3,7 @@
 #include "common/Config.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 #include "common/statistics/Statistics.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"

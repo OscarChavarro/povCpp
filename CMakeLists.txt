@@ -37,7 +37,7 @@ add_executable(povray
     src/environment/material/pigment/SolidTexturePigment.cpp
     src/environment/material/pigment/SpottedPigment.cpp
     src/environment/material/pigment/WoodPigment.cpp
-    src/environment/material/RendererConfiguration.cpp
+    src/environment/material/PovRayRendererConfiguration.cpp
     src/environment/material/DefaultTextureAliasTracker.cpp
     src/environment/geometry/element/TransformableElement.cpp
     src/environment/geometry/element/RayWithSegments.cpp

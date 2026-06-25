@@ -1,16 +1,9 @@
 # Comparative analysis of the intersection model: povCpp ↔ VITRAL
 
-**Descriptive** document (not a plan). It compares how the `povCpp` raytracer
-(POV-Ray 1.0, 1992, rewritten in C++) and the **VITRAL** library
-(`/home/jedilink/VITRAL/vitral/cpp/base`) model ray-geometry intersection, so
-that work on either side can be reasoned about against the other. VITRAL stays
-frozen; povCpp is the side that moves toward it, gated by:
-
-```
-./scripts/clean.sh; ./scripts/compile.sh; ./scripts/renderAll.sh; ./scripts/testAgainstGoldenImages.sh   # => "Test passed."
-```
-
-and without losing performance.
+Status snapshot comparing how the `povCpp` raytracer (POV-Ray 1.0, 1992,
+rewritten in C++) and the **VITRAL** library
+(`/home/jedilink/VITRAL/vitral/cpp/base`) model ray-geometry intersection.
+VITRAL is the reference; povCpp is the side aligned against it.
 
 ---
 
@@ -58,7 +51,8 @@ geometric** record on both sides.
 ```cpp
 bool TransformableElement::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
 {
-    auto *depthQueue = ray->getIntersectionQueuePool()->pop(128);
+    java::PriorityQueue<IntersectionCandidate> * const depthQueue =
+        ray->getIntersectionQueuePool()->pop(128);
     bool hit = false;
     if (allIntersections(ray, depthQueue) && depthQueue->size() > 0) {
         out = depthQueue->peek();   // the nearest (the queue is a min-heap by t)
@@ -251,13 +245,13 @@ is agnostic to which one is active.
 | `Intersection` | `Intersection` (identical) | shared class |
 | `IntersectionCandidate` (Intersection + Attributes) | `RayHit` | mirrored via `PovRayHit` (read-only projection) |
 | `TransformableElement::doIntersectionFirstHit` | `Geometry::doIntersectionFirstHit(Ray&,RayHit*)` | **same name on both sides**; in VITRAL it is the pure-virtual primitive, in povCpp a non-virtual facade over `allIntersections` |
-| `doContainmentTest(const Vector3Dd&, double)` | `Geometry::doContainmentTest(const Vector3Dd&, double)` | **signature identical**; both return `int` with the same constant names *and* values `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1`. The only difference: VITRAL backs them with `enum class Containment`, povCpp with bare `static constexpr int` on `TransformableElement`. Implemented by 17 classes (leaves, CSG, `Composite`, `BoundedGeometry`, `SimpleBody`, `LightGeometryAdapter`) |
+| `doContainmentTest(const Vector3Dd&, double)` | `Geometry::doContainmentTest(const Vector3Dd&, double)` | **signature identical**; both return `int` with the same constant names *and* values `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1`. The only difference: VITRAL backs them with `enum class Containment`, povCpp with bare `static constexpr int` on `TransformableElement`. Implemented by 15 concrete classes (9 leaves, 2 CSG strategies, `Composite`, `BoundedGeometry`, `SimpleBody`, `LightGeometryAdapter`) |
 | `doExtraInformation(RayWithSegments&, t, PovRayHit*)` | `doExtraInformation(Ray,t,RayHit)` | signature aligned; forwards to `normal()`. Lazy: `RenderEngine::trace` calls it only when the ray's `requiredDetailMask` has `DETAIL_NORMAL` (`needsNormal()`), matching VITRAL's mask-gated `doExtraInformation` |
 | `PriorityQueuePool` | per-level `RayHit` workspace | same "no-alloc in hot path" pattern |
 | `Statistics` | `RaytraceStatistics` | **not unified**: povCpp keeps per-instance counters keyed by primitive type (`raySphereTests`, `rayBoxTests`, …, each with a `*Succeeded` pair); VITRAL exposes static, per-ray-category recorders (`recordPrimaryRay`, `recordShadowRay`, `recordObjectIntersectionTest`, …). Different granularity and different ownership model — no 1:1 mapping to align toward |
-| `RenderingConfiguration` (file `RendererConfiguration.h`) | `RendererConfiguration` | **shared feature-flag vocabulary, different scope**: both expose `withSurfaceLighting/withShadows/withTextures/withFilteredShadows/withRefraction/withBumpMapping/withReflection` predicates and a `shadingType` using the same `SHADING_TYPE_*` values; but VITRAL's class is GUI display config (wireframe/points/normals visibility, bounding-volume color) while povCpp's also carries render-run config (I/O file names, antialiasing, line range, threads, CSG algorithm). See §7 |
+| `PovRayRendererConfiguration : RendererConfiguration` (`PovRayRendererConfiguration.h`) | `RendererConfiguration` | **inherits from VITRAL's base**: `SHADING_TYPE_*` constants and `getShadingType()` come from the base; `setSurfaceLightingEnabled()` keeps the base's `shadingType` field in sync. povCpp adds an `options` bitmask with render/quality flags (`WITH_SURFACE_LIGHTING`, `WITH_SHADOWS`, …, plus IO/threading/antialias config) that have no equivalent in VITRAL's display-oriented base. Owned by `PovRayApplication`, propagated as `const PovRayRendererConfiguration&`. See §7 |
 | — (no general bounding box) | `Geometry::getMinMax()` | **divergence**: VITRAL mandates `virtual double* getMinMax() = 0` on every geometry; povCpp has no such method on `TransformableElement`/`Geometry`, only `HeightField::getBoundingBox()`/`findHfMinMax`, specific to that class |
-| `CameraSnapshot` in `Scene` + parser-local `PovCameraSpec` | `Camera` + `CameraSnapshot` (`vsdk/.../environment/camera/`) | **render-time storage unified**: povCpp now renders from VITRAL's `CameraSnapshot`, while the POV parser keeps a local five-vector `PovCameraSpec` so `look_at` and post-declaration transforms stay byte-identical. `RenderEngine::createRay` still uses povCpp's legacy sampling/normalization, but it now reads `eyePosition`/`dir`/`upWithScale`/`rightWithScale` directly from the snapshot. See §8 and `doc/cameraPlan.md` |
+| `CameraSnapshot` in `Scene` + parser-local `PovCameraSpec` | `Camera` + `CameraSnapshot` (`vsdk/.../environment/camera/`) | **render-time storage shared**: povCpp renders from VITRAL's `CameraSnapshot`, while the POV parser keeps a local five-vector `PovCameraSpec` so `look_at` and post-declaration transforms stay byte-identical. `RenderEngine::createRay` reads `eyePosition`/`dir`/`upWithScale`/`rightWithScale` directly from the snapshot but applies POV's own sampling/normalization. See §8 |
 
 ---
 
@@ -277,21 +271,22 @@ is agnostic to which one is active.
 - **Statistics**: structurally and conceptually different between the two
   codebases (per-instance per-primitive counters vs static per-ray-category
   recorders), solving different problems.
-- **`RendererConfiguration` scope**: the two classes share the feature-flag
-  vocabulary (§5, §7) but bundle different surrounding responsibilities (GUI
-  display config vs render-run/IO config), so they remain distinct objects
-  rather than one shared type.
+- **`PovRayRendererConfiguration` scope**: povCpp's class now inherits from
+  VITRAL's `RendererConfiguration`, sharing the `SHADING_TYPE_*` constants and
+  `getShadingType()`. The POV-specific `options` bitmask (render quality flags,
+  IO/threading/antialias config) lives only in the derived class; VITRAL's
+  display-only fields (`wires`, `points`, `normals`, `boundingVolume`, `wireColor`,
+  …) are inherited but unused in the rendering path.
 - **No general bounding-box primitive**: VITRAL requires every geometry to
   implement `getMinMax()`; povCpp has no such concept at the
   `TransformableElement`/`Geometry` level (only `HeightField` has a local
   one), so CSG and other compound geometries cannot be bounded generically.
-- **Camera generator still differs**: povCpp now stores the render-time camera
-  as VITRAL `CameraSnapshot`, fed from a parser-local `PovCameraSpec` that
-  preserves POV's five raw vectors. The remaining divergence is in sampling and
-  normalization only: VITRAL samples pixel **centres** with `+0.5` and leaves
-  the direction unnormalised, while povCpp samples integer coordinates and then
-  applies `normalizedFast()`. §8 and `doc/cameraPlan.md` describe that
-  remaining pixel-changing step.
+- **Camera generator differs**: povCpp stores the render-time camera as VITRAL
+  `CameraSnapshot`, fed from a parser-local `PovCameraSpec` that preserves POV's
+  five raw vectors. The divergence is in sampling and normalization only: VITRAL
+  samples pixel **centres** with `+0.5` and leaves the direction unnormalised,
+  while povCpp samples integer coordinates and then applies `normalizedFast()`.
+  See §8.
 
 ---
 
@@ -327,18 +322,18 @@ switches. Turning one off does not imply any particular state of the others.
 ### 7.2. povCpp: an orthogonal flag set with `+qN` as a preset
 
 The shading pipeline queries **feature predicates** on
-`RenderingConfiguration`, each backed by a bit in the `options` bitmask:
+`PovRayRendererConfiguration`, each backed by a bit in the `options` bitmask:
 
 | Feature | Predicate (queried by the shaders) | Where read |
 |---|---|---|
 | Surface lit at all (normal + ambient + diffuse/specular) | `withSurfaceLighting()` | `LocalSurfaceShader.cpp:36` |
 | Shadow-ray object tests (cast shadows) | `withShadows()` | `DirectLightShader.cpp:67` |
-| Full pigment/texture eval (else `quickColor`/`objectColor`/grey) | `withTextures()` | `RayShaderPipeline.cpp:72` |
-| Transparent/coloured shadows (shadow ray not short-circuited) | `withFilteredShadows()` | `RayShaderPipeline.cpp:59` |
-| Refraction / transmission | `withRefraction()` | `RayShaderPipeline.cpp:124` |
-| Bump-mapped normal (surface and refraction paths) | `withBumpMapping()` | `LocalSurfaceShader.cpp:46`, `RayShaderPipeline.cpp:131` |
+| Full pigment/texture eval (else `quickColor`/`objectColor`/grey) | `withTextures()` | `RayShaderPipeline.cpp:73` |
+| Transparent/coloured shadows (shadow ray not short-circuited) | `withFilteredShadows()` | `RayShaderPipeline.cpp:60` |
+| Refraction / transmission | `withRefraction()` | `RayShaderPipeline.cpp:125` |
+| Bump-mapped normal (surface and refraction paths) | `withBumpMapping()` | `LocalSurfaceShader.cpp:46`, `RayShaderPipeline.cpp:132` |
 | Mirror reflection | `withReflection()` | `LocalSurfaceShader.cpp:67` |
-| Shading model (derived, read-only) | `getShadingType()` → `SHADING_TYPE_NOLIGHT`/`PHONG` | — |
+| Shading model (synced to base field) | `getShadingType()` → `SHADING_TYPE_NOLIGHT`/`PHONG` (inherited from `RendererConfiguration`; `setSurfaceLightingEnabled()` calls `setShadingType()` to keep it current) | — |
 
 `+qN` is **a preset over these flags**, exclusive to the command-line layer:
 
@@ -349,7 +344,7 @@ The shading pipeline queries **feature predicates** on
   is retained, since nothing reads one back.
 - `setQuality()` is **exclusive to the command-line layer**: its only caller is
   `CommandLineOptions::parseOption` (the `+qN` switch). The default-construction
-  path does **not** route through it — `RenderingConfiguration::reset()` sets
+  path does **not** route through it — `PovRayRendererConfiguration::reset()` sets
   the seven feature bits on directly (full quality, identical to the `setQuality(9)`
   bit pattern) rather than invoking the `+qN` preset, so the band-preset code
   never executes outside the command line. `+qflags<letters>` likewise toggles
@@ -359,9 +354,9 @@ The shading pipeline queries **feature predicates** on
 
 The configuration object is **owned by `PovRayApplication`** (a value member,
 `PovRayApplication::configuration`) and propagated by reference from
-construction: it is handed to `RenderContext` (`const RenderingConfiguration&`),
+construction: it is handed to `RenderContext` (`const PovRayRendererConfiguration&`),
 reaches `RenderEngine` through the context, and each `RayWithSegments` carries
-a `const RenderingConfiguration*` (`setConfig`/`getConfig`) so the shaders read
+a `const PovRayRendererConfiguration*` (`setConfig`/`getConfig`) so the shaders read
 the same instance. No global, no per-shader copy, no re-derivation.
 
 The **per-ray detail mask** is the second mechanism (§6): `RenderEngine::trace`
@@ -374,7 +369,7 @@ cheaper than the full model" lever, expressed exactly as VITRAL expresses it.
 ### 7.3. Shared structure and residual differences
 
 povCpp's selectivity and VITRAL's `requiredDetailMask` +
-`RendererConfiguration` flags are **the same two encodings of the same idea** —
+`RendererConfiguration` (base) flags are **the same two encodings of the same idea** —
 an orthogonal feature-flag set plus a per-ray detail mask. What they share:
 
 - **Feature flags.** The shaders query orthogonal predicates rather than a
@@ -398,20 +393,21 @@ Residual differences:
 - **Mask granularity.** povCpp gates `NORMAL` all-or-nothing; VITRAL gates
   `POINT`/`NORMAL`/`UV`/`TANGENT` independently. povCpp computes UV inside the
   texture pipeline, not on request through the mask.
-- **`shadingType` is derived, read-only.** povCpp implements no `FLAT`,
-  `GOURAUD` or `COOK_TERRANCE` shader, so `getShadingType()` only ever returns
-  `NOLIGHT` or `PHONG`; it is a view over `withSurfaceLighting()`, not settable
-  state, to avoid claiming support that does not exist.
-- **`RenderingConfiguration` scope.** The flag vocabulary is shared, but the
-  class also holds render-run/IO config that VITRAL's display-oriented
-  `RendererConfiguration` does not (§5) — they remain distinct objects.
+- **`shadingType` synced, not independently settable.** `PovRayRendererConfiguration`
+  implements no `FLAT`, `GOURAUD` or `COOK_TERRANCE` shader, so `getShadingType()`
+  (inherited from `RendererConfiguration`) only ever returns `NOLIGHT` or `PHONG`.
+  `setSurfaceLightingEnabled()` calls `RendererConfiguration::setShadingType()` to
+  keep the inherited field current; there is no independent setter for shading mode.
+- **`PovRayRendererConfiguration` scope.** The class inherits the `SHADING_TYPE_*`
+  constants and `getShadingType()` from VITRAL's `RendererConfiguration`. The
+  POV-specific `options` bitmask (render-quality flags, IO/threading config) has no
+  equivalent in the base, and the base's display-only fields (`wires`, `points`,
+  `normals`, `wireColor`, …) are inherited but unused in the rendering path (§5).
 
 ---
 
 ## 8. The camera: `PovCameraSpec`/`CameraSnapshot` (povCpp) vs `Camera`/`CameraSnapshot` (VITRAL)
 
-This is a **descriptive** snapshot of where the two camera models stand today.
-The render-time migration described in `doc/cameraPlan.md` is now implemented:
 povCpp renders from VITRAL `CameraSnapshot`, while the parser keeps a local
 `PovCameraSpec` to preserve POV's mutable five-vector grammar.
 
@@ -464,7 +460,7 @@ direction = rightWithScale*u + upWithScale*v + dir;   // NOT normalized
 origin    = eyePosition;
 ```
 
-### 8.3. The 1:1 mapping, and the two reasons the generators are not yet byte-identical
+### 8.3. The 1:1 mapping, and the two ways the generators differ
 
 The two ray formulas are the **same expression** — `rightScale·u + upScale·v +
 dir` from an eye origin — and povCpp's raw vectors line up exactly with the
@@ -480,9 +476,8 @@ snapshot's baked vectors:
 
 Because `+` is commutative in IEEE-754, povCpp's `up*yScalar + right*xScalar`
 and VITRAL's `rightWithScale*u + upWithScale*v` produce **bit-identical** sums
-when fed the same vectors and the same `u/v`. That data convergence is now in
-place through `CameraSnapshot`. Only two deltas remain, and both live in the
-*generator*, not the data:
+when fed the same vectors and the same `u/v`. The data is shared through
+`CameraSnapshot`; the two differences both live in the *generator*, not the data:
 
 1. **Pixel sampling.** VITRAL samples pixel **centres** (`x+0.5`, `vpY-(y+0.5)`);
    povCpp samples integer coordinates with a `screenHeight-1` offset. The two
@@ -491,8 +486,6 @@ place through `CameraSnapshot`. Only two deltas remain, and both live in the
    (fast inverse-sqrt approximation, *not* scale-invariant at the bit level);
    VITRAL returns the direction unnormalised.
 
-So the storage is already reconcilable to VITRAL's `CameraSnapshot` with no
-arithmetic change, while the *sampling/normalization* differences are what a
-byte-identical migration must keep on povCpp's side (or defer, with golden
-regeneration, to a later pixel-changing step). `doc/cameraPlan.md` turns this
-into a staged plan.
+So the storage is shared with VITRAL's `CameraSnapshot` with no arithmetic
+change; the *sampling/normalization* steps are the only pixel-changing
+differences that remain on povCpp's side.

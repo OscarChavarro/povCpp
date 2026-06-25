@@ -4,7 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/RayWithSegments.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 
 class IntersectionCandidate;
 class PovRayHit;
@@ -32,7 +32,7 @@ class TransformableElement {
     virtual void  normal(
         Vector3Dd *result,
         Vector3Dd *intersectionPoint,
-        const RenderingConfiguration *config)
+        const PovRayRendererConfiguration *config)
     {
         (void)config;
         normal(result, intersectionPoint);

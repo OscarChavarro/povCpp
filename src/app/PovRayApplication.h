@@ -4,7 +4,7 @@
 #include "java/util/ArrayList.txx"
 #include "common/statistics/Statistics.h"
 #include "io/context/RenderRuntimeState.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/binaryIo/FileLocator.h"
 #include "io/image/ImageOutput.h"
@@ -14,7 +14,7 @@
 
 class PovRayApplication {
   private:
-    RenderingConfiguration configuration;
+    PovRayRendererConfiguration configuration;
     FileLocator fileLocator;
     Statistics statistics;
     RenderRuntimeState runtimeState;
@@ -28,7 +28,7 @@ class PovRayApplication {
     void printStatistics(
         const Statistics &stats,
         const Scene &frame,
-        const RenderingConfiguration &inputConfiguration);
+        const PovRayRendererConfiguration &inputConfiguration);
 
     void initializeFromCommandLine(int argc, char *argv[]);
     void configureOutputTarget();

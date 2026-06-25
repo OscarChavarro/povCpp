@@ -1,13 +1,13 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/material/RenderOutput.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "render/RenderEngine.h"
 #include "render/RenderImageWriter.h"
 
 void
 RenderImageWriter::readRenderedPart(ColorRgba *lineBuffer)
 {
-    RenderingConfiguration &config = renderEngine->getMutableConfig();
+    PovRayRendererConfiguration &config = renderEngine->getMutableConfig();
     Scene &scene = renderEngine->getScene();
     int rc;
     int lineNumber;

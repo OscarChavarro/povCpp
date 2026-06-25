@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "vsdk/toolkit/common/logging/Logger.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/binaryIo/FileLocator.h"
 #include "app/options/CommandLineOptions.h"
@@ -53,7 +53,7 @@ CommandLineOptions::usage()
 
 // Read the default parameters from povray.def
 void
-CommandLineOptions::loadDefaults(RenderingConfiguration &config, FileLocator &fileLocator,
+CommandLineOptions::loadDefaults(PovRayRendererConfiguration &config, FileLocator &fileLocator,
     Scene &scene)
 {
     FILE *defaultsFile;
@@ -68,8 +68,8 @@ CommandLineOptions::loadDefaults(RenderingConfiguration &config, FileLocator &fi
     defined in config.h.
     */
     // Set Diskwrite as default
-    config.setOptionFlags(RenderingConfiguration::DISK_WRITE);
-    config.setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
+    config.setOptionFlags(PovRayRendererConfiguration::DISK_WRITE);
+    config.setOutputFormat(PovRayRendererConfiguration::DEFAULT_OUTPUT_FORMAT);
 
     if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
         bool inFlag = false;
@@ -87,7 +87,7 @@ CommandLineOptions::loadDefaults(RenderingConfiguration &config, FileLocator &fi
 }
 
 void
-CommandLineOptions::parseArguments(int argc, char *argv[], RenderingConfiguration &config,
+CommandLineOptions::parseArguments(int argc, char *argv[], PovRayRendererConfiguration &config,
     FileLocator &fileLocator, Scene &scene)
 {
     int numberOfFiles = 0;
@@ -103,7 +103,7 @@ CommandLineOptions::parseArguments(int argc, char *argv[], RenderingConfiguratio
 }
 
 void
-CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &config,
+CommandLineOptions::readOptions(const char *optionLine, PovRayRendererConfiguration &config,
     FileLocator &fileLocator, Scene &scene, bool &inFlag, bool &outFlag)
 {
     int c;
@@ -145,7 +145,7 @@ CommandLineOptions::readOptions(const char *optionLine, RenderingConfiguration &
 
 // Parse the command line parameters
 void
-CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration &config,
+CommandLineOptions::parseOption(const char *optionString, PovRayRendererConfiguration &config,
     FileLocator &fileLocator, Scene &scene, bool &inFlag, bool &outFlag)
 {
     bool addOption;
@@ -175,7 +175,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
             n = 1;
         }
         config.setNumberOfThreads(n);
-        config.setOptionEnabled(RenderingConfiguration::PARALLEL, n > 1);
+        config.setOptionEnabled(PovRayRendererConfiguration::PARALLEL, n > 1);
         return;
     }
 
@@ -187,7 +187,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
     // sign, since it already defaults to off). Checked before the
     // single-letter switch so it never collides with "-c" (CONTINUE_TRACE).
     if (strncasecmp(optionString, "csgRoth", 7) == 0) {
-        config.setOptionEnabled(RenderingConfiguration::CSG_ROTH, true);
+        config.setOptionEnabled(PovRayRendererConfiguration::CSG_ROTH, true);
         return;
     }
 
@@ -206,13 +206,13 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
         unsigned int mask = 0;
         for (const char *spec = optionString + 6; *spec != '\0'; spec++) {
             switch (toupper(*spec)) {
-            case 'L': mask |= RenderingConfiguration::WITH_SURFACE_LIGHTING; break;
-            case 'S': mask |= RenderingConfiguration::WITH_SHADOWS; break;
-            case 'T': mask |= RenderingConfiguration::WITH_TEXTURES; break;
-            case 'F': mask |= RenderingConfiguration::WITH_FILTERED_SHADOWS; break;
-            case 'R': mask |= RenderingConfiguration::WITH_REFRACTION; break;
-            case 'B': mask |= RenderingConfiguration::WITH_BUMP_MAPPING; break;
-            case 'M': mask |= RenderingConfiguration::WITH_REFLECTION; break;
+            case 'L': mask |= PovRayRendererConfiguration::WITH_SURFACE_LIGHTING; break;
+            case 'S': mask |= PovRayRendererConfiguration::WITH_SHADOWS; break;
+            case 'T': mask |= PovRayRendererConfiguration::WITH_TEXTURES; break;
+            case 'F': mask |= PovRayRendererConfiguration::WITH_FILTERED_SHADOWS; break;
+            case 'R': mask |= PovRayRendererConfiguration::WITH_REFRACTION; break;
+            case 'B': mask |= PovRayRendererConfiguration::WITH_BUMP_MAPPING; break;
+            case 'M': mask |= PovRayRendererConfiguration::WITH_REFLECTION; break;
             default:
                 {
                     char _logMsg[256];
@@ -245,16 +245,16 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'C':
     case 'c':
-        optionNumber = RenderingConfiguration::CONTINUE_TRACE;
+        optionNumber = PovRayRendererConfiguration::CONTINUE_TRACE;
         break;
 
     case 'D':
     case 'd':
-        optionNumber = RenderingConfiguration::DISPLAY;
+        optionNumber = PovRayRendererConfiguration::DISPLAY;
         break;
 
     case '@':
-        optionNumber = RenderingConfiguration::VERBOSE_FILE;
+        optionNumber = PovRayRendererConfiguration::VERBOSE_FILE;
         if (optionString[1] == '\0') {
             config.setStatFileName("POVSTAT.OUT");
         } else {
@@ -263,7 +263,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
         break;
     case 'V':
     case 'v':
-        optionNumber = RenderingConfiguration::VERBOSE;
+        optionNumber = PovRayRendererConfiguration::VERBOSE;
         config.setVerboseFormat((char)toupper(optionString[1]));
         if (config.getVerboseFormat() == '\0') {
             config.setVerboseFormat('1');
@@ -284,7 +284,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'F':
     case 'f':
-        optionNumber = RenderingConfiguration::DISK_WRITE;
+        optionNumber = PovRayRendererConfiguration::DISK_WRITE;
         if (isupper(optionString[1])) {
             config.setOutputFormat((char)tolower(optionString[1]));
         } else {
@@ -293,13 +293,13 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
         // Default the output format to the default in the config file
         if (config.getOutputFormat() == '\0') {
-            config.setOutputFormat(RenderingConfiguration::DEFAULT_OUTPUT_FORMAT);
+            config.setOutputFormat(PovRayRendererConfiguration::DEFAULT_OUTPUT_FORMAT);
         }
         break;
 
     case 'P':
     case 'p':
-        optionNumber = RenderingConfiguration::PROMPT_EXIT;
+        optionNumber = PovRayRendererConfiguration::PROMPT_EXIT;
         break;
 
     case 'I':
@@ -324,7 +324,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'A':
     case 'a':
-        optionNumber = RenderingConfiguration::ANTIALIAS;
+        optionNumber = PovRayRendererConfiguration::ANTIALIAS;
         if (sscanf(&optionString[1], "%lf", &threshold) != EOF) {
             config.setAntialiasThreshold(threshold);
         }
@@ -332,7 +332,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 
     case 'X':
     case 'x':
-        optionNumber = RenderingConfiguration::EXIT_ENABLE;
+        optionNumber = PovRayRendererConfiguration::EXIT_ENABLE;
         break;
 
     case 'L':
@@ -423,7 +423,7 @@ CommandLineOptions::parseOption(const char *optionString, RenderingConfiguration
 }
 
 void
-CommandLineOptions::parseFileName(const char *fileName, RenderingConfiguration &config,
+CommandLineOptions::parseFileName(const char *fileName, PovRayRendererConfiguration &config,
     FileLocator &fileLocator, Scene &scene, int &numberOfFiles, bool &inFlag, bool &outFlag)
 {
     FILE *defaultsFile;

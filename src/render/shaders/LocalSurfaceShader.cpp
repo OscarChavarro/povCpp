@@ -1,5 +1,5 @@
 #include "java/util/PriorityQueue.txx"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayWithSegments.h"

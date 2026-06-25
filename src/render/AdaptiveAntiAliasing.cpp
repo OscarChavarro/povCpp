@@ -1,6 +1,6 @@
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 #include "common/statistics/Statistics.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "render/AdaptiveAntiAliasing.h"
 #include "render/ColorOperations.h"
 #include "render/RenderEngine.h"
@@ -63,7 +63,7 @@ AdaptiveAntiAliasing::superSample(
     }
 
     if ((y != renderEngine->getConfig().getFirstLine() - 1) &&
-        renderEngine->getConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
+        renderEngine->getConfig().hasOptionFlags(PovRayRendererConfiguration::DISPLAY)) {
     }
 }
 

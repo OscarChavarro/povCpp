@@ -4,7 +4,7 @@
 #include "common/statistics/Statistics.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/scene/Scene.h"
 #include "io/image/RawDumpFormat.h"
 #include "io/image/RawFormat.h"
@@ -24,7 +24,7 @@ void
 PovRayApplication::printStatistics(
     const Statistics &stats,
     const Scene &frame,
-    const RenderingConfiguration &inputConfiguration)
+    const PovRayRendererConfiguration &inputConfiguration)
 {
     char buffer[1024];
     const long pixelsInImage =
@@ -145,7 +145,7 @@ PovRayApplication::initializeFromCommandLine(int argc, char *argv[])
 void
 PovRayApplication::configureOutputTarget()
 {
-    if (!configuration.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
+    if (!configuration.hasOptionFlags(PovRayRendererConfiguration::DISK_WRITE)) {
         return;
     }
 
@@ -201,9 +201,9 @@ PovRayApplication::parseSceneDescription()
     printProgress("Parsing...");
 
     ctx.setDiagnostics(
-        configuration.hasOptionFlags(RenderingConfiguration::VERBOSE_FILE),
+        configuration.hasOptionFlags(PovRayRendererConfiguration::VERBOSE_FILE),
         configuration.getStatFileName());
-    ctx.setCsgRoth(configuration.hasOptionFlags(RenderingConfiguration::CSG_ROTH));
+    ctx.setCsgRoth(configuration.hasOptionFlags(PovRayRendererConfiguration::CSG_ROTH));
     ctx.setAntialiasThreshold(configuration.getAntialiasThreshold());
     ctx.setRuntimeState(&runtimeState);
     SceneParser::parse(&engine.getScene(), ctx);
@@ -213,12 +213,12 @@ PovRayApplication::parseSceneDescription()
 void
 PovRayApplication::prepareRendering()
 {
-    if (configuration.hasOptionFlags(RenderingConfiguration::DISPLAY)) {
+    if (configuration.hasOptionFlags(PovRayRendererConfiguration::DISPLAY)) {
         printProgress("Displaying...\n");
     }
 
-    if (configuration.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
-        if (configuration.hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
+    if (configuration.hasOptionFlags(PovRayRendererConfiguration::DISK_WRITE)) {
+        if (configuration.hasOptionFlags(PovRayRendererConfiguration::CONTINUE_TRACE)) {
             if (configuration.getOutputFileInputStream()->open(
                     configuration.getOutputFileNameBuffer(),
                     &engine.getScene().getScreenWidth(), &engine.getScene().getScreenHeight(),
@@ -228,7 +228,7 @@ PovRayApplication::prepareRendering()
                 char buffer[512];
                 snprintf(buffer, sizeof(buffer), "Opening new output file %s.", configuration.getOutputFileName());
                 printProgress(buffer);
-                configuration.clearOptionFlags(RenderingConfiguration::CONTINUE_TRACE);
+                configuration.clearOptionFlags(PovRayRendererConfiguration::CONTINUE_TRACE);
 
                 if (configuration.getOutputFileInputStream()->open(
                         configuration.getOutputFileNameBuffer(),
@@ -242,7 +242,7 @@ PovRayApplication::prepareRendering()
             }
 
             engine.initializeRenderer();
-            if (configuration.hasOptionFlags(RenderingConfiguration::CONTINUE_TRACE)) {
+            if (configuration.hasOptionFlags(PovRayRendererConfiguration::CONTINUE_TRACE)) {
                 engine.readRenderedPart();
             }
         } else {
@@ -270,16 +270,16 @@ PovRayApplication::prepareRendering()
 void
 PovRayApplication::runRenderLoop()
 {
-    if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() != '1')) {
+    if (configuration.hasOptionFlags(PovRayRendererConfiguration::VERBOSE) && (configuration.getVerboseFormat() != '1')) {
         printProgress("Rendering...");
-    } else if (configuration.hasOptionFlags(RenderingConfiguration::VERBOSE) && (configuration.getVerboseFormat() == '1')) {
+    } else if (configuration.hasOptionFlags(PovRayRendererConfiguration::VERBOSE) && (configuration.getVerboseFormat() == '1')) {
         char buffer[512];
         snprintf(buffer, sizeof(buffer), "POV-Ray rendering %s to %s :",
             configuration.getInputFileName(), configuration.getOutputFileName());
         printProgress(buffer);
     }
 
-    if (configuration.hasOptionFlags(RenderingConfiguration::PARALLEL)) {
+    if (configuration.hasOptionFlags(PovRayRendererConfiguration::PARALLEL)) {
         engine.startTracingParallel();
     } else {
         engine.startTracing();

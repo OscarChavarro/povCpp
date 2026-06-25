@@ -1065,7 +1065,7 @@ void
 ParametricBiCubicPatch::normal(
     Vector3Dd *result,
     Vector3Dd *localIntersectionPoint,
-    const RenderingConfiguration * /*config*/)
+    const PovRayRendererConfiguration * /*config*/)
 {
     /**
     If all is going well, the normal was computed at the time the

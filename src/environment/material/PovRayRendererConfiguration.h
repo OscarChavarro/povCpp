@@ -1,9 +1,10 @@
-#ifndef __RENDERING_CONFIGURATION__
-#define __RENDERING_CONFIGURATION__
+#ifndef __POV_RAY_RENDERER_CONFIGURATION__
+#define __POV_RAY_RENDERER_CONFIGURATION__
 
+#include "vsdk/toolkit/environment/material/RendererConfiguration.h"
 #include "environment/material/RenderOutput.h"
 
-class RenderingConfiguration {
+class PovRayRendererConfiguration : public RendererConfiguration {
   private:
     static constexpr int RENDER_FILE_NAME_LENGTH = 150;
 
@@ -33,9 +34,6 @@ class RenderingConfiguration {
     static constexpr unsigned int VERBOSE_FILE = 512u;
     static constexpr unsigned int PARALLEL = 1024u;
     static constexpr unsigned int CSG_ROTH = 2048u;
-    // Feature flags behind the +qN quality preset (see
-    // doc/vitralNormalizationAnalysis.md §7). setQuality() sets these in bulk;
-    // the direct setters below let callers select an arbitrary subset.
     static constexpr unsigned int WITH_SURFACE_LIGHTING = 4096u;
     static constexpr unsigned int WITH_SHADOWS = 8192u;
     static constexpr unsigned int WITH_TEXTURES = 16384u;
@@ -45,25 +43,7 @@ class RenderingConfiguration {
     static constexpr unsigned int WITH_REFLECTION = 262144u;
     static constexpr char DEFAULT_OUTPUT_FORMAT = 'd';
 
-    // Same vocabulary and integer values as VITRAL's ShadingType enum /
-    // RendererConfiguration::SHADING_TYPE_* (see
-    // doc/vitralNormalizationAnalysis.md §7.3). povCpp's shading
-    // pipeline only ever implements two of these five points - a fixed
-    // ambient+Lambert+Blinn-Phong+Phong-highlight model when surface
-    // lighting is on, and no lighting at all when it is off (the q0-1
-    // preview) - so getShadingType() is a *derived* read-only view of
-    // withSurfaceLighting(), not separate state: there is no shader in this
-    // codebase that implements FLAT, GOURAUD or COOK_TERRANCE, so exposing a
-    // setter for them would claim support that does not exist. The point of
-    // this enum is solely to let povCpp's q0-1 "no lighting" preview and
-    // VITRAL's SHADING_NOLIGHT be recognised as the same concept.
-    static constexpr int SHADING_TYPE_NOLIGHT = 0;
-    static constexpr int SHADING_TYPE_FLAT = 1;
-    static constexpr int SHADING_TYPE_GOURAUD = 2;
-    static constexpr int SHADING_TYPE_PHONG = 3;
-    static constexpr int SHADING_TYPE_COOK_TERRANCE = 4;
-
-    RenderingConfiguration();
+    PovRayRendererConfiguration();
 
     void setOptionFlags(unsigned int flags);
     void clearOptionFlags(unsigned int flags);
@@ -84,7 +64,6 @@ class RenderingConfiguration {
     void setBumpMappingEnabled(bool enabled);
     bool withReflection() const;
     void setReflectionEnabled(bool enabled);
-    int getShadingType() const;
     const char* getInputFileName() const;
     void setInputFileName(const char* name);
     const char* getOutputFileName() const;
@@ -117,25 +96,25 @@ class RenderingConfiguration {
 };
 
 inline void
-RenderingConfiguration::setOptionFlags(unsigned int flags)
+PovRayRendererConfiguration::setOptionFlags(unsigned int flags)
 {
     options |= flags;
 }
 
 inline void
-RenderingConfiguration::clearOptionFlags(unsigned int flags)
+PovRayRendererConfiguration::clearOptionFlags(unsigned int flags)
 {
     options &= ~flags;
 }
 
 inline bool
-RenderingConfiguration::hasOptionFlags(unsigned int flags) const
+PovRayRendererConfiguration::hasOptionFlags(unsigned int flags) const
 {
     return (options & flags) != 0;
 }
 
 inline void
-RenderingConfiguration::setOptionEnabled(unsigned int flags, bool enabled)
+PovRayRendererConfiguration::setOptionEnabled(unsigned int flags, bool enabled)
 {
     if (enabled) {
         setOptionFlags(flags);
@@ -145,13 +124,8 @@ RenderingConfiguration::setOptionEnabled(unsigned int flags, bool enabled)
 }
 
 inline void
-RenderingConfiguration::setQuality(int q)
+PovRayRendererConfiguration::setQuality(int q)
 {
-    // Preset over the feature flags below (doc/vitralNormalizationAnalysis.md
-    // §7.2): each of the five bands {0,1} {2,3} {4,5} {6,7} {8,9} reproduces
-    // today's images bit-for-bit. The flags are the only stored state; the
-    // quality integer is not retained (nothing reads it back - the shaders
-    // query the predicates, see §7 of doc/vitralNormalizationAnalysis.md).
     setSurfaceLightingEnabled(q > 1);
     setShadowsEnabled(q > 3);
     setTexturesEnabled(q > 5);
@@ -162,247 +136,242 @@ RenderingConfiguration::setQuality(int q)
 }
 
 inline bool
-RenderingConfiguration::withSurfaceLighting() const
+PovRayRendererConfiguration::withSurfaceLighting() const
 {
     return hasOptionFlags(WITH_SURFACE_LIGHTING);
 }
 
 inline void
-RenderingConfiguration::setSurfaceLightingEnabled(bool enabled)
+PovRayRendererConfiguration::setSurfaceLightingEnabled(bool enabled)
 {
     setOptionEnabled(WITH_SURFACE_LIGHTING, enabled);
+    RendererConfiguration::setShadingType(enabled ? SHADING_TYPE_PHONG : SHADING_TYPE_NOLIGHT);
 }
 
 inline bool
-RenderingConfiguration::withShadows() const
+PovRayRendererConfiguration::withShadows() const
 {
     return hasOptionFlags(WITH_SHADOWS);
 }
 
 inline void
-RenderingConfiguration::setShadowsEnabled(bool enabled)
+PovRayRendererConfiguration::setShadowsEnabled(bool enabled)
 {
     setOptionEnabled(WITH_SHADOWS, enabled);
 }
 
 inline bool
-RenderingConfiguration::withTextures() const
+PovRayRendererConfiguration::withTextures() const
 {
     return hasOptionFlags(WITH_TEXTURES);
 }
 
 inline void
-RenderingConfiguration::setTexturesEnabled(bool enabled)
+PovRayRendererConfiguration::setTexturesEnabled(bool enabled)
 {
     setOptionEnabled(WITH_TEXTURES, enabled);
 }
 
 inline bool
-RenderingConfiguration::withFilteredShadows() const
+PovRayRendererConfiguration::withFilteredShadows() const
 {
     return hasOptionFlags(WITH_FILTERED_SHADOWS);
 }
 
 inline void
-RenderingConfiguration::setFilteredShadowsEnabled(bool enabled)
+PovRayRendererConfiguration::setFilteredShadowsEnabled(bool enabled)
 {
     setOptionEnabled(WITH_FILTERED_SHADOWS, enabled);
 }
 
 inline bool
-RenderingConfiguration::withRefraction() const
+PovRayRendererConfiguration::withRefraction() const
 {
     return hasOptionFlags(WITH_REFRACTION);
 }
 
 inline void
-RenderingConfiguration::setRefractionEnabled(bool enabled)
+PovRayRendererConfiguration::setRefractionEnabled(bool enabled)
 {
     setOptionEnabled(WITH_REFRACTION, enabled);
 }
 
 inline bool
-RenderingConfiguration::withBumpMapping() const
+PovRayRendererConfiguration::withBumpMapping() const
 {
     return hasOptionFlags(WITH_BUMP_MAPPING);
 }
 
 inline void
-RenderingConfiguration::setBumpMappingEnabled(bool enabled)
+PovRayRendererConfiguration::setBumpMappingEnabled(bool enabled)
 {
     setOptionEnabled(WITH_BUMP_MAPPING, enabled);
 }
 
 inline bool
-RenderingConfiguration::withReflection() const
+PovRayRendererConfiguration::withReflection() const
 {
     return hasOptionFlags(WITH_REFLECTION);
 }
 
 inline void
-RenderingConfiguration::setReflectionEnabled(bool enabled)
+PovRayRendererConfiguration::setReflectionEnabled(bool enabled)
 {
     setOptionEnabled(WITH_REFLECTION, enabled);
 }
 
-inline int
-RenderingConfiguration::getShadingType() const
-{
-    return withSurfaceLighting() ? SHADING_TYPE_PHONG : SHADING_TYPE_NOLIGHT;
-}
-
 inline const char*
-RenderingConfiguration::getInputFileName() const
+PovRayRendererConfiguration::getInputFileName() const
 {
     return inputFileName;
 }
 
 inline const char*
-RenderingConfiguration::getOutputFileName() const
+PovRayRendererConfiguration::getOutputFileName() const
 {
     return outputFileName;
 }
 
 inline char*
-RenderingConfiguration::getOutputFileNameBuffer()
+PovRayRendererConfiguration::getOutputFileNameBuffer()
 {
     return outputFileName;
 }
 
 inline const char*
-RenderingConfiguration::getStatFileName() const
+PovRayRendererConfiguration::getStatFileName() const
 {
     return statFileName;
 }
 
 inline RenderOutput*
-RenderingConfiguration::getOutputFileInputStream() const
+PovRayRendererConfiguration::getOutputFileInputStream() const
 {
     return outputFileInputStream;
 }
 
 inline void
-RenderingConfiguration::setOutputFileInputStream(RenderOutput* out)
+PovRayRendererConfiguration::setOutputFileInputStream(RenderOutput* out)
 {
     outputFileInputStream = out;
 }
 
 inline int
-RenderingConfiguration::getFileBufferSize() const
+PovRayRendererConfiguration::getFileBufferSize() const
 {
     return fileBufferSize;
 }
 
 inline void
-RenderingConfiguration::setFileBufferSize(int size)
+PovRayRendererConfiguration::setFileBufferSize(int size)
 {
     fileBufferSize = size;
 }
 
 inline double
-RenderingConfiguration::getAntialiasThreshold() const
+PovRayRendererConfiguration::getAntialiasThreshold() const
 {
     return antialiasThreshold;
 }
 
 inline void
-RenderingConfiguration::setAntialiasThreshold(double threshold)
+PovRayRendererConfiguration::setAntialiasThreshold(double threshold)
 {
     antialiasThreshold = threshold;
 }
 
 inline int
-RenderingConfiguration::getFirstLine() const
+PovRayRendererConfiguration::getFirstLine() const
 {
     return firstLine;
 }
 
 inline void
-RenderingConfiguration::setFirstLine(int line)
+PovRayRendererConfiguration::setFirstLine(int line)
 {
     firstLine = line;
 }
 
 inline int
-RenderingConfiguration::getLastLine() const
+PovRayRendererConfiguration::getLastLine() const
 {
     return lastLine;
 }
 
 inline void
-RenderingConfiguration::setLastLine(int line)
+PovRayRendererConfiguration::setLastLine(int line)
 {
     lastLine = line;
 }
 
 inline char
-RenderingConfiguration::getOutputFormat() const
+PovRayRendererConfiguration::getOutputFormat() const
 {
     return outputFormat;
 }
 
 inline void
-RenderingConfiguration::setOutputFormat(char format)
+PovRayRendererConfiguration::setOutputFormat(char format)
 {
     outputFormat = format;
 }
 
 inline char
-RenderingConfiguration::getVerboseFormat() const
+PovRayRendererConfiguration::getVerboseFormat() const
 {
     return verboseFormat;
 }
 
 inline void
-RenderingConfiguration::setVerboseFormat(char format)
+PovRayRendererConfiguration::setVerboseFormat(char format)
 {
     verboseFormat = format;
 }
 
 inline int
-RenderingConfiguration::getTokenizerCaseSensitiveMode() const
+PovRayRendererConfiguration::getTokenizerCaseSensitiveMode() const
 {
     return tokenizerCaseSensitiveMode;
 }
 
 inline void
-RenderingConfiguration::setTokenizerCaseSensitiveMode(int mode)
+PovRayRendererConfiguration::setTokenizerCaseSensitiveMode(int mode)
 {
     tokenizerCaseSensitiveMode = mode;
 }
 
 inline int
-RenderingConfiguration::getTokenizerMaxSymbols() const
+PovRayRendererConfiguration::getTokenizerMaxSymbols() const
 {
     return tokenizerMaxSymbols;
 }
 
 inline void
-RenderingConfiguration::setTokenizerMaxSymbols(int maxSymbols)
+PovRayRendererConfiguration::setTokenizerMaxSymbols(int maxSymbols)
 {
     tokenizerMaxSymbols = maxSymbols;
 }
 
 inline int
-RenderingConfiguration::getNumberOfThreads() const
+PovRayRendererConfiguration::getNumberOfThreads() const
 {
     return numberOfThreads;
 }
 
 inline void
-RenderingConfiguration::setNumberOfThreads(int n)
+PovRayRendererConfiguration::setNumberOfThreads(int n)
 {
     numberOfThreads = n;
 }
 
 inline bool
-RenderingConfiguration::hasOutputFileName() const
+PovRayRendererConfiguration::hasOutputFileName() const
 {
     return outputFileName[0] != '\0';
 }
 
 inline
-RenderingConfiguration::RenderingConfiguration()
+PovRayRendererConfiguration::PovRayRendererConfiguration()
 {
     reset();
 }
