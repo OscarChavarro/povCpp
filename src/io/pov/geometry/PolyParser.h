@@ -7,7 +7,6 @@
 
 class PolyParser {
   public:
-    static SimpleBody *parsePoly(int order);
     static SimpleBody *parsePoly(int order, ParserContext &ctx);
 
   private:

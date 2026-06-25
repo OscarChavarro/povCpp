@@ -52,16 +52,6 @@ PolynomialShape::termCountsByOrder()
     return termCountsByOrderTable;
 }
 
-PolynomialShape::PolynomialShape() :
-    transformation(nullptr),
-    transformationInverse(nullptr),
-    inverted(false),
-    order(0),
-    sturmFlag(0),
-    Coeffs(nullptr)
-{
-}
-
 PolynomialShape::PolynomialShape(int initialOrder) :
     PolynomialShape(initialOrder, 0)
 {

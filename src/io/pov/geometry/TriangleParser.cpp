@@ -17,13 +17,6 @@
 #include "io/pov/parser/PrimitiveParser.h"
 
 SimpleBody *
-TriangleParser::parseTriangle()
-{
-    ParserContext ctx;
-    return TriangleParser::parseTriangle(ctx);
-}
-
-SimpleBody *
 TriangleParser::parseTriangle(ParserContext &ctx)
 {
     SimpleBody *body = nullptr;

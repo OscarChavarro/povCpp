@@ -8,7 +8,6 @@
 
 class PolynomialShape : public Geometry {
   public:
-    PolynomialShape();
     explicit PolynomialShape(int initialOrder);
     PolynomialShape(int initialOrder, int sturmFlagValue);
     PolynomialShape(const PolynomialShape &other);

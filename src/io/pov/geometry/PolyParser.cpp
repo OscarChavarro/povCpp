@@ -58,13 +58,6 @@ PolyParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
 }
 
 SimpleBody *
-PolyParser::parsePoly(int knownOrder)
-{
-    ParserContext ctx;
-    return PolyParser::parsePoly(knownOrder, ctx);
-}
-
-SimpleBody *
 PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 {
     (void)ctx;
