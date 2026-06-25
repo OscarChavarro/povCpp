@@ -11,7 +11,6 @@ class Light {
     ColorRgba *const shapeColor = nullptr;
     Vector3Dd center;
     Vector3Dd pointsAt;
-    Light *nextLightSource;
     bool inverted;
     const double coefficient;
     const double radius;
@@ -30,8 +29,6 @@ class Light {
     const Vector3Dd& getCenter() const { return center; }
     Vector3Dd& getPointsAt() { return pointsAt; }
     const Vector3Dd& getPointsAt() const { return pointsAt; }
-    Light *getNextLightSource() const { return nextLightSource; }
-    void setNextLightSource(Light *next) { nextLightSource = next; }
     bool isInverted() const { return inverted; }
     double getCoefficient() const { return coefficient; }
     double getRadius() const { return radius; }

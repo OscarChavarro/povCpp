@@ -41,7 +41,6 @@ Scene::Scene() :
     viewPoint(defaultViewPoint()),
     screenHeight(0),
     screenWidth(0),
-    lightSources(nullptr),
     atmosphereIor(1.0),
     antialiasThreshold(Scene::DEFAULT_ANTIALIAS_THRESHOLD),
     fogDistance(0.0),
@@ -51,9 +50,8 @@ Scene::Scene() :
 
 Scene::~Scene()
 {
-    // lightSources is not deleted here: it is a non-owning traversal pointer
-    // into the same BoundedGeometry/LightGeometryAdapter tree already owned by
-    // Objects (see ScenePostProcessor::linkLights), not a separate allocation.
+    // lightSources holds non-owning pointers into the LightGeometryAdapter
+    // tree already owned by Objects; the Light objects are freed via Objects.
     for (long int i = 0; i < Objects.size(); i++) {
         delete Objects[i];
     }
@@ -64,7 +62,7 @@ void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
     viewPoint = defaultViewPoint();
-    lightSources = nullptr;
+    lightSources.clear();
     Objects.clear();
     atmosphereIor = 1.0;
     this->antialiasThreshold = antialiasThreshold;

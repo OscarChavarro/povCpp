@@ -16,7 +16,7 @@ public:
     static void shade(const RayWithSegments *ray, PovRayMaterial *texture,
         IntersectionCandidate *rayIntersection, ColorRgba *surfaceColor,
         const ColorRgba *filterColor, ColorRgba *color,
-        const TraceService *traceService, const Light *lightSources,
+        const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
         const java::ArrayList<BoundedGeometry*> &objects,
         int &traceLevel, TextureUtils *textureUtils);
 };

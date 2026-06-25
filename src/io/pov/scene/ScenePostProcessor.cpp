@@ -8,34 +8,30 @@
 #include "io/pov/scene/ScenePostProcessor.h"
 
 void
-ScenePostProcessor::linkLights(BoundedGeometry *object, Light *&lightHead)
+ScenePostProcessor::linkLights(BoundedGeometry *object, java::ArrayList<Light*> &lights)
 {
     if (Composite *composite = dynamic_cast<Composite *>(object)) {
         java::ArrayList<BoundedGeometry*> &simpleBodies = composite->getSimpleBodies();
-        for (long int i = simpleBodies.size() - 1; i >= 0; i--) {
-            ScenePostProcessor::linkLights(simpleBodies[i], lightHead);
+        for (long int i = 0; i < simpleBodies.size(); i++) {
+            ScenePostProcessor::linkLights(simpleBodies[i], lights);
         }
     } else {
         ScenePostProcessor::linkLightsInShape(
-            static_cast<SimpleBody*>(object->getGeometry()), lightHead);
+            static_cast<SimpleBody*>(object->getGeometry()), lights);
     }
 }
 
 void
-ScenePostProcessor::linkLightsInShape(SimpleBody *shape, Light *&lightHead)
+ScenePostProcessor::linkLightsInShape(SimpleBody *shape, java::ArrayList<Light*> &lights)
 {
-    SimpleBody *tempShape;
-
     if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape->getGeometry())) {
         java::ArrayList<TransformableElement*> &shapes = csg->getShapes();
-        for (long int i = shapes.size() - 1; i >= 0; i--) {
-            tempShape = static_cast<SimpleBody*>(shapes[i]);
-            ScenePostProcessor::linkLightsInShape(tempShape, lightHead);
+        for (long int i = 0; i < shapes.size(); i++) {
+            ScenePostProcessor::linkLightsInShape(
+                static_cast<SimpleBody*>(shapes[i]), lights);
         }
     } else if (LightGeometryAdapter *lightAdapter =
                    dynamic_cast<LightGeometryAdapter *>(shape->getGeometry())) {
-        Light *light = lightAdapter->getLight();
-        light->setNextLightSource(lightHead);
-        lightHead = light;
+        lights.add(lightAdapter->getLight());
     }
 }

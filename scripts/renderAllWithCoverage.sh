@@ -20,6 +20,7 @@ echo "[2/4] Compiling with gcov instrumentation"
 
 echo "[3/4] Running all renders (accumulative coverage)"
 "${ROOT_DIR}/scripts/renderAll.sh"
+"${ROOT_DIR}/scripts/renderQualities.sh"
 
 mkdir -p "${COVERAGE_DIR}"
 
