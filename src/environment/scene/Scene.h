@@ -4,7 +4,7 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/camera/Camera.h"
+#include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "environment/light/Light.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/BoundedGeometry.h"
@@ -16,8 +16,8 @@ class Scene {
     Scene();
     ~Scene();
 
-    const Camera& getViewPoint() const { return viewPoint; }
-    void setViewPoint(const Camera &camera) { viewPoint = camera; }
+    const CameraSnapshot& getViewPoint() const { return viewPoint; }
+    void setViewPoint(const CameraSnapshot &camera) { viewPoint = camera; }
     int& getScreenHeight() { return screenHeight; }
     int getScreenHeight() const { return screenHeight; }
     void setScreenHeight(int h) { screenHeight = h; }
@@ -57,7 +57,7 @@ class Scene {
   private:
     static ColorRgba blackFogColor();
 
-    Camera viewPoint;
+    CameraSnapshot viewPoint;
     int screenHeight;
     int screenWidth;
     Light *lightSources;

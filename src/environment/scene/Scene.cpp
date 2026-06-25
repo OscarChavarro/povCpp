@@ -1,6 +1,35 @@
 #include "java/util/ArrayList.txx"
 
+#include "vsdk/toolkit/environment/camera/Camera.h"
+
 #include "environment/scene/Scene.h"
+
+namespace {
+CameraSnapshot
+defaultViewPoint()
+{
+    const Vector3Dd location(0.0, 0.0, 0.0);
+    const Vector3Dd direction(0.0, 0.0, 1.0);
+    const Vector3Dd up(0.0, 1.0, 0.0);
+    const Vector3Dd right(1.33, 0.0, 0.0);
+    const Vector3Dd front = direction.normalizedFast();
+    const Vector3Dd left = right.normalizedFast().multiply(-1.0);
+    const Vector3Dd upNormalized = up.normalizedFast();
+
+    return CameraSnapshot(
+        location,
+        front,
+        left,
+        upNormalized,
+        Camera::PROJECTION_MODE_PERSPECTIVE,
+        1.0,
+        0.0,
+        0.0,
+        direction,
+        up,
+        right);
+}
+}
 
 ColorRgba
 Scene::blackFogColor()
@@ -9,6 +38,7 @@ Scene::blackFogColor()
 }
 
 Scene::Scene() :
+    viewPoint(defaultViewPoint()),
     screenHeight(0),
     screenWidth(0),
     lightSources(nullptr),
@@ -33,7 +63,7 @@ Scene::~Scene()
 void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
-    viewPoint = Camera{};
+    viewPoint = defaultViewPoint();
     lightSources = nullptr;
     Objects.clear();
     atmosphereIor = 1.0;

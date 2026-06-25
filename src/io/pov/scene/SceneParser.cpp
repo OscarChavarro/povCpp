@@ -1,6 +1,5 @@
 #include <cstdio>
 
-#include "environment/camera/Camera.h"
 #include "environment/geometry/BoundedGeometry.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
@@ -12,6 +11,7 @@
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
+#include "io/pov/camera/PovCameraSpec.h"
 #include "io/pov/scene/SceneBodyParser.h"
 #include "io/pov/scene/SceneParser.h"
 #include "io/pov/scene/ScenePostProcessor.h"
@@ -86,7 +86,7 @@ SceneParser::freeConstant(int constantType, void *data)
         delete static_cast<PovRayMaterial *>(data);
         break;
     case ParseGlobals::VIEW_POINT_CONSTANT:
-        delete static_cast<Camera *>(data);
+        delete static_cast<PovCameraSpec *>(data);
         break;
     case ParseGlobals::COLOUR_CONSTANT:
         delete static_cast<ColorRgba *>(data);

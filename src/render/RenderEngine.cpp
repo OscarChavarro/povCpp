@@ -66,12 +66,12 @@ RenderEngine::createRay(
         (((double)(this->getScene().getScreenHeight() - 1) - y) - (double)height / 2.0) /
         (double)height;
 
-    const Camera &viewPoint = this->getScene().getViewPoint();
-    temporaryVector1 = viewPoint.getUp().multiply(yScalar);
-    temporaryVector2 = viewPoint.getRight().multiply(xScalar);
+    const CameraSnapshot &viewPoint = this->getScene().getViewPoint();
+    temporaryVector1 = viewPoint.getUpWithScale().multiply(yScalar);
+    temporaryVector2 = viewPoint.getRightWithScale().multiply(xScalar);
     localRay->setDirection(temporaryVector1.add(temporaryVector2));
     localRay->setDirection(
-        localRay->getDirection().add(viewPoint.getDirection()));
+        localRay->getDirection().add(viewPoint.getDir()));
     localRay->setDirection(localRay->getDirection().normalizedFast());
     localRay->initializeContainers();
     localRay->setPrimaryRay(true);
@@ -86,7 +86,7 @@ RenderEngine::createRay(
         localRay->setConfig(&context->getConfig());
         localRay->setIntersectionQueuePool(pool);
     }
-    localRay->setOrigin(this->getScene().getViewPoint().getLocation());
+    localRay->setOrigin(this->getScene().getViewPoint().getEyePosition());
 }
 
 void
@@ -220,7 +220,7 @@ RenderEngine::startTracingParallel()
         // initializeRenderer); ray.setOrigin mirrors that same setup.
         task->worker.initializeLineBuffers(w, antialiasEnabled);
         task->worker.getRay().setOrigin(
-            this->getScene().getViewPoint().getLocation());
+            this->getScene().getViewPoint().getEyePosition());
 
         // B6: bind a TextureUtils private to this task, so noise()/
         // differentialNoise() call counters land in task->statistics's own
@@ -367,7 +367,7 @@ RenderEngine::initializeRenderer()
         this->getConfig().getLastLine() - this->getConfig().getFirstLine());
     worker.initializeLineBuffers(
         w, this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS));
-    worker.getRay().setOrigin(this->getScene().getViewPoint().getLocation());
+    worker.getRay().setOrigin(this->getScene().getViewPoint().getEyePosition());
     // Serial mode: the engine's own worker shares the engine-wide TextureUtils
     // (already initialized by PovRayApplication::prepareRendering), exactly
     // like before this was made an explicit per-worker pointer.

@@ -62,12 +62,10 @@ add_executable(povray
     src/environment/light/Light.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
-    src/environment/camera/CameraBuilder.cpp
     src/environment/scene/SceneBuilder.cpp
     src/environment/scene/Scene.cpp
     src/environment/scene/BoundedGeometryFactory.cpp
     src/environment/scene/SimpleBody.cpp
-    src/environment/camera/Camera.cpp
     src/render/shaders/LightSamplerShader.cpp
     src/render/shaders/ShadowShader.cpp
     src/render/shaders/PhongSpecularShader.cpp
@@ -126,6 +124,7 @@ add_executable(povray
     src/io/pov/scene/ScenePostProcessor.cpp
     src/io/pov/scene/FogParser.cpp
     src/io/pov/scene/RenderSettingsParser.cpp
+    src/io/pov/camera/PovCameraSpec.cpp
     src/io/pov/camera/CameraParser.cpp
     src/io/pov/scene/DeclarationParser.cpp
     src/io/pov/scene/SceneBodyParser.cpp

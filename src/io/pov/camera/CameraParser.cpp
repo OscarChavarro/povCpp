@@ -1,5 +1,4 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/camera/Camera.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/parser/ParseErrorReporter.h"
@@ -7,34 +6,32 @@
 #include "io/pov/parser/PrimitiveParser.h"
 #include "io/pov/camera/CameraParser.h"
 
-Camera
+CameraSnapshot
 CameraParser::parseCamera()
 {
     ParserContext ctx;
     return CameraParser::parseCamera(ctx);
 }
 
-Camera
+CameraSnapshot
 CameraParser::parseCamera(ParserContext &ctx)
 {
-    Camera parsedCamera;
+    PovCameraSpec parsedCamera;
     CameraParser::parseCamera(&parsedCamera, ctx);
-    return parsedCamera;
+    return parsedCamera.bake();
 }
 
 void
-CameraParser::parseCamera(Camera *givenVp)
+CameraParser::parseCamera(PovCameraSpec *givenVp)
 {
     ParserContext ctx;
-    *givenVp = CameraParser::parseCamera(ctx);
+    CameraParser::parseCamera(givenVp, ctx);
 }
 
 void
-CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
+CameraParser::parseCamera(PovCameraSpec *givenVp, ParserContext &ctx)
 {
-    Vector3Dd localVector;
-    Vector3Dd tempVector;
-    Camera parsedCamera;
+    PovCameraSpec parsedCamera;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
@@ -49,7 +46,7 @@ CameraParser::parseCamera(Camera *givenVp, ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::VIEW_POINT_CONSTANT) {
-                        parsedCamera = *((Camera *)ctx.constants()[(int)constantId]
+                        parsedCamera = *((PovCameraSpec *)ctx.constants()[(int)constantId]
                                 .getConstantData());
                     } else {
                         ParseErrorReporter::typeError(ctx);
