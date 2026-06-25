@@ -25,11 +25,10 @@ SceneParser::postProcessPhase(Scene *framePtr)
 {
     const java::ArrayList<BoundedGeometry*> &objects =
         framePtr->getObjects();
-    Light *lightHead = nullptr;
-    for (long int i = objects.size() - 1; i >= 0; i--) {
-        ScenePostProcessor::linkLights(objects[i], lightHead);
+    java::ArrayList<Light*> &lights = framePtr->getLightSources();
+    for (long int i = 0; i < objects.size(); i++) {
+        ScenePostProcessor::linkLights(objects[i], lights);
     }
-    framePtr->setLightSources(lightHead);
 }
 
 

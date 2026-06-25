@@ -21,11 +21,10 @@ void
 DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
     const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
-    const Light *lightSources, const java::ArrayList<BoundedGeometry*> &objects)
+    const java::ArrayList<Light*> &lightSources, const java::ArrayList<BoundedGeometry*> &objects)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
-    const Light *lightSource;
     BoundedGeometry *blockingObject;
     bool intersectionFound;
     IntersectionCandidate localIntersection;
@@ -56,8 +55,8 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     lightSourceRay.setConfig(eye->getConfig());
     lightSourceRay.setIntersectionQueuePool(eye->getIntersectionQueuePool());
 
-    for (lightSource = lightSources; lightSource != nullptr;
-        lightSource = lightSource->getNextLightSource()) {
+    for (long int _li = 0; _li < lightSources.size(); _li++) {
+        const Light *lightSource = lightSources[_li];
         intersectionFound = false;
 
         LightSamplerShader::sample(lightSource, &lightSourceDepth, &lightSourceRay,

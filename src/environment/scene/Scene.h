@@ -24,8 +24,8 @@ class Scene {
     int& getScreenWidth() { return screenWidth; }
     int getScreenWidth() const { return screenWidth; }
     void setScreenWidth(int w) { screenWidth = w; }
-    Light* getLightSources() const { return lightSources; }
-    void setLightSources(Light* lights) { lightSources = lights; }
+    const java::ArrayList<Light*>& getLightSources() const { return lightSources; }
+    java::ArrayList<Light*>& getLightSources() { return lightSources; }
     double getAtmosphereIor() const { return atmosphereIor; }
     void setAtmosphereIor(double ior) { atmosphereIor = ior; }
     double getAntialiasThreshold() const { return antialiasThreshold; }
@@ -60,7 +60,7 @@ class Scene {
     CameraSnapshot viewPoint;
     int screenHeight;
     int screenWidth;
-    Light *lightSources;
+    java::ArrayList<Light*> lightSources;
     java::ArrayList<BoundedGeometry*> Objects{4};
     double atmosphereIor;
     double antialiasThreshold;
