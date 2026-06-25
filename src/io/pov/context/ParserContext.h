@@ -28,7 +28,7 @@ class ParserContext {
     void setDefaultTexture(PovRayMaterial *texture) { mDefaultTexture = texture; }
 
     // Diagnostics needed by the error reporter, decoupled from the render-time
-    // RenderingConfiguration so io/pov/context does not depend on environment.
+    // PovRayRendererConfiguration so io/pov/context does not depend on environment.
     void setDiagnostics(bool verboseErrors, const char *statFileName) {
         mVerboseErrors = verboseErrors;
         mStatFileName = statFileName;
@@ -40,7 +40,7 @@ class ParserContext {
     // (default) keeps point-membership classification
     // (ConstructiveSolidGeometryByMorganRules), true makes CsgParser build
     // ConstructiveSolidGeometryByRaySegment nodes instead ([ROTH1982]).
-    // Decoupled from RenderingConfiguration for the same reason as
+    // Decoupled from PovRayRendererConfiguration for the same reason as
     // setDiagnostics().
     void setCsgRoth(bool value) { mCsgRoth = value; }
     bool usesCsgRoth() const { return mCsgRoth; }

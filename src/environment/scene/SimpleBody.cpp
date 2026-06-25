@@ -54,7 +54,7 @@ void
 SimpleBody::normal(
     Vector3Dd *result,
     Vector3Dd *intersectionPoint,
-    const RenderingConfiguration *config)
+    const PovRayRendererConfiguration *config)
 {
     getGeometry()->normal(result, intersectionPoint, config);
 }

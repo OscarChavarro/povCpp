@@ -7,20 +7,20 @@
 
 class RenderContext {
   private:
-    const RenderingConfiguration &config;
+    const PovRayRendererConfiguration &config;
     Statistics &statistics;
     const Scene &scene;
     TextureUtils &textureUtils;
 
   public:
     RenderContext(
-        const RenderingConfiguration &cfg,
+        const PovRayRendererConfiguration &cfg,
         Statistics &stats,
         const Scene &scn,
         TextureUtils &tex)
         : config(cfg), statistics(stats), scene(scn), textureUtils(tex) {}
 
-    const RenderingConfiguration &getConfig() const { return config; }
+    const PovRayRendererConfiguration &getConfig() const { return config; }
     Statistics &getStatistics() { return statistics; }
     const Statistics &getStatistics() const { return statistics; }
     const Scene &getScene() const { return scene; }

@@ -13,7 +13,7 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/RenderOutput.h"
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
 #include "render/RayShaderPipeline.h"
@@ -42,10 +42,10 @@ RenderEngine::~RenderEngine()
 {
 }
 
-RenderingConfiguration &
+PovRayRendererConfiguration &
 RenderEngine::getMutableConfig()
 {
-    return const_cast<RenderingConfiguration &>(context->getConfig());
+    return const_cast<PovRayRendererConfiguration &>(context->getConfig());
 }
 
 void
@@ -107,8 +107,8 @@ RenderEngine::copyLineToImage(
 void
 RenderEngine::persistDestinationImage()
 {
-    const RenderingConfiguration &config = this->getConfig();
-    if (!config.hasOptionFlags(RenderingConfiguration::DISK_WRITE)) {
+    const PovRayRendererConfiguration &config = this->getConfig();
+    if (!config.hasOptionFlags(PovRayRendererConfiguration::DISK_WRITE)) {
         return;
     }
     RenderOutput *out = config.getOutputFileInputStream();
@@ -125,7 +125,7 @@ RenderEngine::renderTile(
     ColorRgba color(0.0, 0.0, 0.0, 0.0);
     int x;
     int y;
-    for (y = this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)
+    for (y = this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS)
                 ? area.getY0() - 1
                 : area.getY0();
         y < area.getY1();
@@ -166,13 +166,13 @@ RenderEngine::renderTile(
 
             localWorker.getCurrentLine()[x] = color;
 
-            if (this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+            if (this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS)) {
                 adaptiveAntiAliasing.doAntiAliasing(
                     localWorker, x, y, &color, area, &pool, &stats);
             }
 
             if (y != area.getY0() - 1) {
-                if (this->getConfig().hasOptionFlags(RenderingConfiguration::DISPLAY)) {
+                if (this->getConfig().hasOptionFlags(PovRayRendererConfiguration::DISPLAY)) {
                     (void)x;
                     (void)y;
                 }
@@ -209,7 +209,7 @@ RenderEngine::startTracingParallel()
 
     const int w = this->getScene().getScreenWidth();
     const bool antialiasEnabled =
-        this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS);
+        this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS);
 
     java::ArrayList<RenderTask *> tasks;
     tasks.reserve(tileAreas.size());
@@ -285,7 +285,7 @@ RenderEngine::startTracingParallel()
 void
 RenderEngine::checkStats(int y)
 {
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+    if (this->getConfig().hasOptionFlags(PovRayRendererConfiguration::VERBOSE) &&
         this->getConfig().getVerboseFormat() == '0') {
         {
             char _logMsg[1024];
@@ -316,11 +316,11 @@ RenderEngine::checkStats(int y)
                 this->getConfig().getLastLine() - this->getConfig().getFirstLine());
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
-        if (!this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+        if (!this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS)) {
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", ".");
         }
     }
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE_FILE)) {
+    if (this->getConfig().hasOptionFlags(PovRayRendererConfiguration::VERBOSE_FILE)) {
         java::FileOutputStream statFile(this->getConfig().getStatFileName());
         char buf[32];
         snprintf(buf, sizeof(buf), "Line %4d.\n", y);
@@ -331,7 +331,7 @@ RenderEngine::checkStats(int y)
     }
 
     // Use -vO for Old style verbose
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+    if (this->getConfig().hasOptionFlags(PovRayRendererConfiguration::VERBOSE) &&
         (this->getConfig().getVerboseFormat() == 'O')) {
         {
             char _logMsg[1024];
@@ -339,14 +339,14 @@ RenderEngine::checkStats(int y)
             Logger::reportMessage("RenderEngine", Logger::WARNING, "", _logMsg);
         }
     }
-    if (this->getConfig().hasOptionFlags(RenderingConfiguration::VERBOSE) &&
+    if (this->getConfig().hasOptionFlags(PovRayRendererConfiguration::VERBOSE) &&
         this->getConfig().getVerboseFormat() == '1') {
         fprintf(stderr, "Res %4d X %4d. Calc line %4d of %4d",
             this->getScene().getScreenWidth(),
             this->getScene().getScreenHeight(),
             (y - this->getConfig().getFirstLine()) + 1,
             this->getConfig().getLastLine() - this->getConfig().getFirstLine());
-        if (!this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS)) {
+        if (!this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS)) {
             fprintf(stderr, ".");
         }
     }
@@ -366,7 +366,7 @@ RenderEngine::initializeRenderer()
         this->getConfig().getFirstLine(), w,
         this->getConfig().getLastLine() - this->getConfig().getFirstLine());
     worker.initializeLineBuffers(
-        w, this->getConfig().hasOptionFlags(RenderingConfiguration::ANTIALIAS));
+        w, this->getConfig().hasOptionFlags(PovRayRendererConfiguration::ANTIALIAS));
     worker.getRay().setOrigin(this->getScene().getViewPoint().getEyePosition());
     // Serial mode: the engine's own worker shares the engine-wide TextureUtils
     // (already initialized by PovRayApplication::prepareRendering), exactly

@@ -1,35 +1,36 @@
 #include <cstring>
 
-#include "environment/material/RendererConfiguration.h"
+#include "environment/material/PovRayRendererConfiguration.h"
 
 void
-RenderingConfiguration::setInputFileName(const char* name)
+PovRayRendererConfiguration::setInputFileName(const char* name)
 {
     strncpy(inputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
     inputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
 }
 
 void
-RenderingConfiguration::setOutputFileName(const char* name)
+PovRayRendererConfiguration::setOutputFileName(const char* name)
 {
     strncpy(outputFileName, name, RENDER_FILE_NAME_LENGTH - 1);
     outputFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
 }
 
 void
-RenderingConfiguration::setStatFileName(const char* name)
+PovRayRendererConfiguration::setStatFileName(const char* name)
 {
     strncpy(statFileName, name, RENDER_FILE_NAME_LENGTH - 1);
     statFileName[RENDER_FILE_NAME_LENGTH - 1] = '\0';
 }
 
 void
-RenderingConfiguration::reset()
+PovRayRendererConfiguration::reset()
 {
     options = 0x00;
     setOptionFlags(WITH_SURFACE_LIGHTING | WITH_SHADOWS | WITH_TEXTURES |
         WITH_FILTERED_SHADOWS | WITH_REFRACTION | WITH_BUMP_MAPPING |
         WITH_REFLECTION);
+    RendererConfiguration::setShadingType(SHADING_TYPE_PHONG);
     inputFileName[0] = '\0';
     outputFileName[0] = '\0';
     statFileName[0] = '\0';

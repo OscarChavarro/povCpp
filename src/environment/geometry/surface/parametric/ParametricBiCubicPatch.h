@@ -55,7 +55,7 @@ class ParametricBiCubicPatch : public Geometry {
     void normal(
         Vector3Dd *result,
         Vector3Dd *localIntersectionPoint,
-        const RenderingConfiguration *config) override;
+        const PovRayRendererConfiguration *config) override;
     void *copy() override;
     void translateGeometry(Vector3Dd *vector) override;
     void rotateGeometry(Vector3Dd *vector) override;

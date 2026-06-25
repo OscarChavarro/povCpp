@@ -32,7 +32,7 @@ class SimpleBody : public TransformableElement {
     void normal(
         Vector3Dd *result,
         Vector3Dd *intersectionPoint,
-        const RenderingConfiguration *config) override;
+        const PovRayRendererConfiguration *config) override;
     void *copy() override;
     void translate(Vector3Dd *vector) override;
     void rotate(Vector3Dd *vector) override;
