@@ -30,7 +30,6 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/media/RGBPixel.cpp
     src/main/vsdk/toolkit/common/color/ColorRgb.cpp
     src/main/vsdk/toolkit/media/IndexedColorImageHDRUncompressed.cpp
-    src/main/vsdk/toolkit/environment/geometry/element/Ray.cpp
     src/main/vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableSine.cpp
     src/main/vsdk/toolkit/numericalAnalysis/lookUpTables/LookUpTableChecksum16.cpp
     src/main/vsdk/toolkit/numericalAnalysis/polynomial/QuadraticSolver.cpp
@@ -44,6 +43,8 @@ set(VITRAL_BASE_SOURCES
     src/main/vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.cpp
     src/main/vsdk/toolkit/media/solidTexture/from2d/SolidTextureCoordinateMapper.cpp
     src/main/vsdk/toolkit/media/solidTexture/from2d/ImageTexture.cpp
+    src/main/vsdk/toolkit/environment/geometry/element/Ray.cpp
+    src/main/vsdk/toolkit/environment/camera/Camera.cpp
     src/main/vsdk/toolkit/render/raytracing/RasterTileArea.cpp
     src/main/vsdk/toolkit/render/raytracing/RasterTileGenerator.cpp
     src/main/java/util/concurrent/Executors.cpp

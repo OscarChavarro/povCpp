@@ -26,8 +26,10 @@ RenderingConfiguration::setStatFileName(const char* name)
 void
 RenderingConfiguration::reset()
 {
-    options = 0;
-    setQuality(9);
+    options = 0x00;
+    setOptionFlags(WITH_SURFACE_LIGHTING | WITH_SHADOWS | WITH_TEXTURES |
+        WITH_FILTERED_SHADOWS | WITH_REFRACTION | WITH_BUMP_MAPPING |
+        WITH_REFLECTION);
     inputFileName[0] = '\0';
     outputFileName[0] = '\0';
     statFileName[0] = '\0';

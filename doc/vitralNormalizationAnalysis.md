@@ -257,6 +257,7 @@ is agnostic to which one is active.
 | `Statistics` | `RaytraceStatistics` | **not unified**: povCpp keeps per-instance counters keyed by primitive type (`raySphereTests`, `rayBoxTests`, …, each with a `*Succeeded` pair); VITRAL exposes static, per-ray-category recorders (`recordPrimaryRay`, `recordShadowRay`, `recordObjectIntersectionTest`, …). Different granularity and different ownership model — no 1:1 mapping to align toward |
 | `RenderingConfiguration` (file `RendererConfiguration.h`) | `RendererConfiguration` | **shared feature-flag vocabulary, different scope**: both expose `withSurfaceLighting/withShadows/withTextures/withFilteredShadows/withRefraction/withBumpMapping/withReflection` predicates and a `shadingType` using the same `SHADING_TYPE_*` values; but VITRAL's class is GUI display config (wireframe/points/normals visibility, bounding-volume color) while povCpp's also carries render-run config (I/O file names, antialiasing, line range, threads, CSG algorithm). See §7 |
 | — (no general bounding box) | `Geometry::getMinMax()` | **divergence**: VITRAL mandates `virtual double* getMinMax() = 0` on every geometry; povCpp has no such method on `TransformableElement`/`Geometry`, only `HeightField::getBoundingBox()`/`findHfMinMax`, specific to that class |
+| `CameraSnapshot` in `Scene` + parser-local `PovCameraSpec` | `Camera` + `CameraSnapshot` (`vsdk/.../environment/camera/`) | **render-time storage unified**: povCpp now renders from VITRAL's `CameraSnapshot`, while the POV parser keeps a local five-vector `PovCameraSpec` so `look_at` and post-declaration transforms stay byte-identical. `RenderEngine::createRay` still uses povCpp's legacy sampling/normalization, but it now reads `eyePosition`/`dir`/`upWithScale`/`rightWithScale` directly from the snapshot. See §8 and `doc/cameraPlan.md` |
 
 ---
 
@@ -284,6 +285,13 @@ is agnostic to which one is active.
   implement `getMinMax()`; povCpp has no such concept at the
   `TransformableElement`/`Geometry` level (only `HeightField` has a local
   one), so CSG and other compound geometries cannot be bounded generically.
+- **Camera generator still differs**: povCpp now stores the render-time camera
+  as VITRAL `CameraSnapshot`, fed from a parser-local `PovCameraSpec` that
+  preserves POV's five raw vectors. The remaining divergence is in sampling and
+  normalization only: VITRAL samples pixel **centres** with `+0.5` and leaves
+  the direction unnormalised, while povCpp samples integer coordinates and then
+  applies `normalizedFast()`. §8 and `doc/cameraPlan.md` describe that
+  remaining pixel-changing step.
 
 ---
 
@@ -334,15 +342,20 @@ The shading pipeline queries **feature predicates** on
 
 `+qN` is **a preset over these flags**, exclusive to the command-line layer:
 
-- `setQuality(N)`, the only writer of the flags as a group, sets the seven bits
-  to reproduce classic POV-Ray's quality bands bit-for-bit (q0-1: nothing;
-  q2-3: +lighting; q4-5: +shadows; q6-7: +textures/filtered-shadows/refraction;
-  q8-9: +bump/reflection). The flags are the only stored state; no `quality`
-  integer is retained, since nothing reads one back.
-- The only caller of `setQuality()` is `CommandLineOptions::parseOption` (the
-  `+qN` switch). `+qflags<letters>` there toggles individual bits directly
-  (`L`/`S`/`T`/`F`/`R`/`B`/`M`), so any subset is reachable from the command
-  line (e.g. `+q9 -qflagsS` = full minus shadows), not only the band presets.
+- `setQuality(N)` maps the integer band onto the seven bits to reproduce
+  classic POV-Ray's quality bands bit-for-bit (q0-1: nothing; q2-3: +lighting;
+  q4-5: +shadows; q6-7: +textures/filtered-shadows/refraction; q8-9:
+  +bump/reflection). The flags are the only stored state; no `quality` integer
+  is retained, since nothing reads one back.
+- `setQuality()` is **exclusive to the command-line layer**: its only caller is
+  `CommandLineOptions::parseOption` (the `+qN` switch). The default-construction
+  path does **not** route through it — `RenderingConfiguration::reset()` sets
+  the seven feature bits on directly (full quality, identical to the `setQuality(9)`
+  bit pattern) rather than invoking the `+qN` preset, so the band-preset code
+  never executes outside the command line. `+qflags<letters>` likewise toggles
+  individual bits directly (`L`/`S`/`T`/`F`/`R`/`B`/`M`), so any subset is
+  reachable from the command line (e.g. `+q9 -qflagsS` = full minus shadows),
+  not only the band presets.
 
 The configuration object is **owned by `PovRayApplication`** (a value member,
 `PovRayApplication::configuration`) and propagated by reference from
@@ -392,3 +405,94 @@ Residual differences:
 - **`RenderingConfiguration` scope.** The flag vocabulary is shared, but the
   class also holds render-run/IO config that VITRAL's display-oriented
   `RendererConfiguration` does not (§5) — they remain distinct objects.
+
+---
+
+## 8. The camera: `PovCameraSpec`/`CameraSnapshot` (povCpp) vs `Camera`/`CameraSnapshot` (VITRAL)
+
+This is a **descriptive** snapshot of where the two camera models stand today.
+The render-time migration described in `doc/cameraPlan.md` is now implemented:
+povCpp renders from VITRAL `CameraSnapshot`, while the parser keeps a local
+`PovCameraSpec` to preserve POV's mutable five-vector grammar.
+
+### 8.1. povCpp's parse-time camera: POV-Ray's five raw vectors
+
+`src/io/pov/camera/PovCameraSpec.h` stores exactly the classic POV-Ray 1.0 view
+record — five `Vector3Dd` with **magnitude semantics**:
+
+- `location` — eye position.
+- `direction` — view axis; its **length sets the focal length / field of view**.
+- `up`, `right` — half-extents of the projection window; their **lengths encode
+  the vertical FOV and the aspect ratio** (POV's default `right <1.33,0,0>` is
+  the 4:3 aspect), and they need be neither unit nor mutually orthogonal.
+- `sky` — only consumed transiently by `look_at` to re-derive `right`/`up`; it
+  is not read at render time.
+
+`CameraParser` mutates these vectors in place (`location`/`direction`/`up`/
+`right`/`sky`, plus `look_at`/`translate`/`rotate`/`scale`), then bakes the
+result into the `Scene`'s `CameraSnapshot` (`Scene::viewPoint`), and
+`RenderEngine::createRay` turns pixel `(x,y)` into a ray:
+
+```cpp
+xScalar = (x - width/2) / width;
+yScalar = ((screenHeight-1 - y) - height/2) / height;
+direction = up*yScalar + right*xScalar + cameraDirection;   // raw vectors
+direction = direction.normalizedFast();                     // POV fast inverse-sqrt
+origin    = location;
+```
+
+### 8.2. VITRAL's camera: orthonormal frame + FOV, baked into a snapshot
+
+`vsdk/.../environment/camera/Camera.h` parametrises the same view differently:
+an orthonormal basis (`front`/`left`/`up`), an eye position, and scalar `fov`/
+`projectionMode`/`near`/`far`/`viewport`. From these `updateVectors()` **bakes**
+the per-pixel scale vectors and `exportToCameraSnapshot()` freezes them into an
+immutable `CameraSnapshot`:
+
+- `eyePosition`,
+- `dir          = front · 0.5`,
+- `upWithScale  = up · tan(fov/2)`,
+- `rightWithScale = left · (−aspect · tan(fov/2))`.
+
+VITRAL's raytracer does **not** generate rays from `Camera`; it consumes the
+`CameraSnapshot` (`SimpleRaytracer::generateRay(const CameraSnapshot*, x, y)`):
+
+```cpp
+u = ((x+0.5) - vpX/2) / vpX;
+v = ((vpY - (y+0.5)) - vpY/2) / vpY;
+direction = rightWithScale*u + upWithScale*v + dir;   // NOT normalized
+origin    = eyePosition;
+```
+
+### 8.3. The 1:1 mapping, and the two reasons the generators are not yet byte-identical
+
+The two ray formulas are the **same expression** — `rightScale·u + upScale·v +
+dir` from an eye origin — and povCpp's raw vectors line up exactly with the
+snapshot's baked vectors:
+
+| povCpp `Camera` | VITRAL `CameraSnapshot` | role |
+|---|---|---|
+| `location`  | `eyePosition`     | ray origin |
+| `direction` | `dir`             | view-axis term |
+| `up`        | `upWithScale`     | vertical pixel scale |
+| `right`     | `rightWithScale`  | horizontal pixel scale |
+| `sky`       | — (parse-only)    | not needed at render time |
+
+Because `+` is commutative in IEEE-754, povCpp's `up*yScalar + right*xScalar`
+and VITRAL's `rightWithScale*u + upWithScale*v` produce **bit-identical** sums
+when fed the same vectors and the same `u/v`. That data convergence is now in
+place through `CameraSnapshot`. Only two deltas remain, and both live in the
+*generator*, not the data:
+
+1. **Pixel sampling.** VITRAL samples pixel **centres** (`x+0.5`, `vpY-(y+0.5)`);
+   povCpp samples integer coordinates with a `screenHeight-1` offset. The two
+   `u/v` differ by half a pixel on each axis.
+2. **Normalization.** povCpp normalises the direction with POV's `normalizedFast()`
+   (fast inverse-sqrt approximation, *not* scale-invariant at the bit level);
+   VITRAL returns the direction unnormalised.
+
+So the storage is already reconcilable to VITRAL's `CameraSnapshot` with no
+arithmetic change, while the *sampling/normalization* differences are what a
+byte-identical migration must keep on povCpp's side (or defer, with golden
+regeneration, to a later pixel-changing step). `doc/cameraPlan.md` turns this
+into a staged plan.

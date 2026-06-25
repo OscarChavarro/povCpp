@@ -1,10 +1,11 @@
-#ifndef __CAMERA__
-#define __CAMERA__
+#ifndef __POV_CAMERA_SPEC__
+#define __POV_CAMERA_SPEC__
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
+#include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 
-class Camera {
+class PovCameraSpec {
   private:
     Vector3Dd location;
     Vector3Dd direction;
@@ -13,8 +14,8 @@ class Camera {
     Vector3Dd sky;
 
   public:
-    Camera();
-    Camera(const Vector3Dd &location, const Vector3Dd &direction,
+    PovCameraSpec();
+    PovCameraSpec(const Vector3Dd &location, const Vector3Dd &direction,
         const Vector3Dd &up, const Vector3Dd &right, const Vector3Dd &sky);
 
     Vector3Dd& getLocation() { return location; }
@@ -29,11 +30,10 @@ class Camera {
     const Vector3Dd& getSky() const { return sky; }
 
     void applyLinearTransformation(const Matrix4x4d &transformation);
-
-    void *copy();
     void translate(Vector3Dd *vector);
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
+    CameraSnapshot bake() const;
 };
 
 #endif

@@ -1,9 +1,9 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/camera/CameraBuilder.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "environment/material/povray/PovRayMaterialUtils.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "io/pov/camera/CameraParser.h"
+#include "io/pov/camera/PovCameraSpec.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -230,10 +230,10 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
 
             case Tokenizer::VIEW_POINT_TOKEN:
                 constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
-                constantPtr->setConstantData((char *)CameraBuilder::getCamera());
+                constantPtr->setConstantData((char *)new PovCameraSpec());
                 constantPtr->setConstantType(ParseGlobals::VIEW_POINT_CONSTANT);
                 CameraParser::parseCamera(
-                    (Camera *)constantPtr->getConstantData(), ctx);
+                    (PovCameraSpec *)constantPtr->getConstantData(), ctx);
                 localExitFlag = true;
                 break;
 
