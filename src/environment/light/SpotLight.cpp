@@ -1,20 +1,10 @@
 #include "java/lang/Math.h"
 #include "environment/light/SpotLight.h"
 
-SpotLight::SpotLight() : Light()
-{
-}
-
 SpotLight::SpotLight(const ColorRgba *shapeColor, const Vector3Dd &center,
     const Vector3Dd &pointsAt, bool inverted, double coefficient,
     double radius, double falloff) :
     Light(shapeColor, center, pointsAt, inverted, coefficient, radius, falloff)
-{
-}
-
-SpotLight::SpotLight(const Vector3Dd &center, const Vector3Dd &pointsAt,
-    bool inverted, double coefficient, double radius, double falloff) :
-    Light(center, pointsAt, inverted, coefficient, radius, falloff)
 {
 }
 

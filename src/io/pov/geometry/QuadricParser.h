@@ -7,7 +7,6 @@
 
 class QuadricParser {
   public:
-    static SimpleBody *parseQuadric();
     static SimpleBody *parseQuadric(ParserContext &ctx);
 };
 

@@ -16,13 +16,6 @@
 #include "io/pov/parser/PrimitiveParser.h"
 
 SimpleBody *
-QuadricParser::parseQuadric()
-{
-    ParserContext ctx;
-    return QuadricParser::parseQuadric(ctx);
-}
-
-SimpleBody *
 QuadricParser::parseQuadric(ParserContext &ctx)
 {
     Quadric *localShape;

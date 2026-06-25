@@ -7,7 +7,6 @@
 
 class TriangleParser {
   public:
-    static SimpleBody *parseTriangle();
     static SimpleBody *parseTriangle(ParserContext &ctx);
 };
 
