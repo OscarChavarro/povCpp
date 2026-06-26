@@ -66,49 +66,6 @@ Triangle::findTriangleDominantAxis(Triangle *triangle)
     }
 }
 
-void
-Triangle::computeSmoothTriangle(SmoothTriangle *triangle)
-{
-    Vector3Dd p3MinusP2;
-    Vector3Dd vTemp1;
-    Vector3Dd vTemp2;
-    double uDenominator;
-    double proj;
-
-    p3MinusP2 = triangle->getP3().subtract(triangle->getP2());
-    double x = java::Math::abs(p3MinusP2.x());
-    double y = java::Math::abs(p3MinusP2.y());
-    double z = java::Math::abs(p3MinusP2.z());
-
-    switch (Triangle::max3Axis(x, y, z)) {
-    case 1:
-        triangle->setVAxis(X_AXIS);
-        triangle->setBaseDelta(p3MinusP2.x());
-        break;
-
-    case 2:
-        triangle->setVAxis(Y_AXIS);
-        triangle->setBaseDelta(p3MinusP2.y());
-        break;
-
-    case 3:
-        triangle->setVAxis(Z_AXIS);
-        triangle->setBaseDelta(p3MinusP2.z());
-        break;
-    }
-
-    vTemp1 = triangle->getP2().subtract(triangle->getP3());
-    vTemp1 = vTemp1.normalizedFast();
-    vTemp2 = triangle->getP1().subtract(triangle->getP3());
-    proj = vTemp2.dotProduct(vTemp1);
-    vTemp1 = vTemp1.multiply(proj);
-    triangle->getPerp() = vTemp1.subtract(vTemp2);
-    triangle->getPerp() = triangle->getPerp().normalizedFast();
-    uDenominator = vTemp2.dotProduct(triangle->getPerp());
-    uDenominator = -1.0 / uDenominator;
-    triangle->getPerp() = triangle->getPerp().multiply(uDenominator);
-}
-
 int
 Triangle::computeTriangle(Triangle *triangle)
 {

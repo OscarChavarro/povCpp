@@ -16,7 +16,6 @@
 #include "io/pov/geometry/PlaneParser.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "io/pov/geometry/QuadricParser.h"
-#include "io/pov/geometry/SmoothTriangleParser.h"
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "io/pov/light/LightSourceParser.h"
@@ -86,14 +85,6 @@ DeclarationParser::parseDeclare(ParserContext &ctx)
                 constantPtr->setConstantData(
                     (char *)TriangleParser::parseTriangle(ctx));
                 constantPtr->setConstantType(ParseGlobals::TRIANGLE_CONSTANT);
-                localExitFlag = true;
-                break;
-
-            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
-                constantPtr->setIdentifierNumber(ctx.token().getIdentifierNumber());
-                constantPtr->setConstantData(
-                    (char *)SmoothTriangleParser::parseSmoothTriangle(ctx));
-                constantPtr->setConstantType(ParseGlobals::SMOOTH_TRIANGLE_CONSTANT);
                 localExitFlag = true;
                 break;
 

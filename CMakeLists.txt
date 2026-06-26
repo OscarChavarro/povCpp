@@ -58,7 +58,6 @@ add_executable(povray
     src/environment/geometry/volume/Quadric.cpp
     src/environment/geometry/volume/Sphere.cpp
     src/environment/geometry/element/Triangle.cpp
-    src/environment/geometry/element/SmoothTriangle.cpp
     src/environment/light/Light.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
@@ -110,7 +109,6 @@ add_executable(povray
     src/io/pov/light/LightSourceParser.cpp
     src/io/pov/geometry/PlaneParser.cpp
     src/io/pov/geometry/TriangleParser.cpp
-    src/io/pov/geometry/SmoothTriangleParser.cpp
     src/io/pov/geometry/QuadricParser.cpp
     src/io/pov/geometry/PolyParser.cpp
     src/io/pov/geometry/BicubicPatchParser.cpp

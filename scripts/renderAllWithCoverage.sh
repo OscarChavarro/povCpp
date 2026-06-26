@@ -19,9 +19,12 @@ echo "[2/4] Compiling with gcov instrumentation"
   -DCMAKE_SHARED_LINKER_FLAGS="--coverage"
 
 echo "[3/4] Running all renders (accumulative coverage)"
-"${ROOT_DIR}/scripts/renderAll.sh"
-"${ROOT_DIR}/scripts/renderQualities.sh"
-"${ROOT_DIR}/scripts/renderCsgByRaySegments.sh"
+echo "  [3a] Round 1: normal render"
+SKIP_HEAVY_SCENES=1 "${ROOT_DIR}/scripts/renderAll.sh"
+echo "  [3b] Round 2: anti-aliasing render (+a)"
+SKIP_HEAVY_SCENES=1 EXTRA_POVRAY_OPTS="+a" "${ROOT_DIR}/scripts/renderAll.sh"
+SKIP_HEAVY_SCENES=1 "${ROOT_DIR}/scripts/renderQualities.sh"
+SKIP_HEAVY_SCENES=1 "${ROOT_DIR}/scripts/renderCsgByRaySegments.sh"
 
 mkdir -p "${COVERAGE_DIR}"
 
