@@ -9,14 +9,6 @@
 class Composite : public BoundedGeometry {
   public:
     Composite(
-        TransformableElement *geometry = nullptr,
-        Material *objectTexture = nullptr,
-        ColorRgba *objectColor = nullptr,
-        bool noShadowFlag = false) :
-        BoundedGeometry(geometry, objectTexture, objectColor, noShadowFlag)
-    {
-    }
-    Composite(
         TransformableElement *geometry,
         Material *objectTexture,
         ColorRgba *objectColor,

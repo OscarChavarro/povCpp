@@ -2,7 +2,6 @@
 #include "java/util/PriorityQueue.txx"
 
 #include "environment/scene/Scene.h"
-#include "environment/scene/BoundedGeometryFactory.h"
 
 #include "io/pov/camera/CameraParser.h"
 #include "io/pov/context/ParserContext.h"
