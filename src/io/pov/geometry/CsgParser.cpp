@@ -26,7 +26,6 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/geometry/PlaneParser.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "io/pov/geometry/QuadricParser.h"
-#include "io/pov/geometry/SmoothTriangleParser.h"
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "io/pov/light/LightGeometryAdapter.h"
@@ -138,15 +137,6 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                 container->getShapes().add(localShape);
                 break;
 
-            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
-                localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
-                if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
-                    !ctx.usesCsgRoth()) {
-                    localShape->invert();
-                }
-                firstShapeParsed = true;
-                container->getShapes().add(localShape);
-                break;
 
             case Tokenizer::QUADRIC_TOKEN:
                 localShape = QuadricParser::parseQuadric(ctx);

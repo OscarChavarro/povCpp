@@ -32,7 +32,6 @@
 #include "io/pov/geometry/PlaneParser.h"
 #include "io/pov/geometry/PolyParser.h"
 #include "io/pov/geometry/QuadricParser.h"
-#include "io/pov/geometry/SmoothTriangleParser.h"
 #include "io/pov/geometry/SphereParser.h"
 #include "io/pov/geometry/TriangleParser.h"
 #include "io/pov/light/LightSourceParser.h"
@@ -171,11 +170,6 @@ ObjectParser::parseShape(ParserContext &ctx)
 
             case Tokenizer::TRIANGLE_TOKEN:
                 localShape = TriangleParser::parseTriangle(ctx);
-                Exit_Flag = true;
-                break;
-
-            case Tokenizer::SMOOTH_TRIANGLE_TOKEN:
-                localShape = SmoothTriangleParser::parseSmoothTriangle(ctx);
                 Exit_Flag = true;
                 break;
 

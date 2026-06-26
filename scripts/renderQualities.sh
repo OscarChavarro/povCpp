@@ -41,7 +41,11 @@ fi
 mkdir -p "${OUT_DIR}"
 
 # --- Tier 1: iortest.pov at all ten quality levels ---
+if [[ -n "${SKIP_HEAVY_SCENES:-}" ]]; then
+    echo "  Skipping tier 1 (iortest.pov quality sweep)" >&2
+fi
 for quality in 0 1 2 3 4 5 6 7 8 9; do
+if [[ -n "${SKIP_HEAVY_SCENES:-}" ]]; then continue; fi
     base_name="iortest_q${quality}"
     ( cd etc/level2 && "${POVRAY_BIN}" \
         "+l../include" \
@@ -175,6 +179,7 @@ done
 
 for entry in "${scenes[@]}"; do
     IFS='|' read -r scene_dir scene_file include_path <<<"${entry}"
+    if [[ -n "${SKIP_HEAVY_SCENES:-}" && ( "${scene_file}" == "iortest.pov" || "${scene_file}" == "drums.pov" ) ]]; then continue; fi
     base_name="${scene_file%.pov}"
     level="${scene_dir%%/*}"
 

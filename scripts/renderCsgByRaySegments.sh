@@ -97,7 +97,7 @@ render_scene ../../outputCsgByRaySegments/level2 esp01.pov ../include
 render_scene ../../outputCsgByRaySegments/level2 hfclip.pov ../include
 render_scene ../../outputCsgByRaySegments/level2 illum1.pov ../include
 render_scene ../../outputCsgByRaySegments/level2 illum2.pov ../include
-render_scene ../../outputCsgByRaySegments/level2 iortest.pov ../include
+if [[ -z "${SKIP_HEAVY_SCENES:-}" ]]; then render_scene ../../outputCsgByRaySegments/level2 iortest.pov ../include; fi
 render_scene ../../outputCsgByRaySegments/level2 lpops1.pov ../include
 render_scene ../../outputCsgByRaySegments/level2 lpops2.pov ../include
 render_scene ../../outputCsgByRaySegments/level2 magglass.pov ../include
@@ -124,9 +124,11 @@ cd ..
 render_scene ../../outputCsgByRaySegments/level3 chess.pov ../include
 render_scene ../../outputCsgByRaySegments/level3 desk.pov ../include
 render_scene ../../outputCsgByRaySegments/level3 dfwood.pov ../include
+if [[ -z "${SKIP_HEAVY_SCENES:-}" ]]; then
 cd drums2
 render_scene ../../../outputCsgByRaySegments/level3 drums.pov ../../include
 cd ..
+fi
 cd fish13
 render_scene ../../../outputCsgByRaySegments/level3 fish13.pov ../../include
 cd ..

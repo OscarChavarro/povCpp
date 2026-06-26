@@ -4,8 +4,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 
-class SmoothTriangle;
-
 class Triangle : public Geometry {
   public:
     Triangle();
@@ -54,7 +52,6 @@ class Triangle : public Geometry {
   protected:
     virtual void swapVertexNormals() {}
     virtual void finalizeComputation() {}
-    static void computeSmoothTriangle(SmoothTriangle *triangle);
 
   private:
     Vector3Dd normalVector;
@@ -74,7 +71,5 @@ class Triangle : public Geometry {
     static int intersectTriangle(
         RayWithSegments *ray, Triangle *triangle, double *depth);
 };
-
-#include "environment/geometry/element/SmoothTriangle.h"
 
 #endif
