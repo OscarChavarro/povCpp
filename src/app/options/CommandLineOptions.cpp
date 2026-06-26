@@ -51,39 +51,12 @@ CommandLineOptions::usage()
     Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", "\n");
 }
 
-// Read the default parameters from povray.def
 void
 CommandLineOptions::loadDefaults(PovRayRendererConfiguration &config, FileLocator &fileLocator,
     Scene &scene)
 {
-    FILE *defaultsFile;
-    char optionString[256];
-    char *Option_String_Ptr;
-    /**
-    READ_ENV_VAR_? should be defined in config.h
-    Only one READ_ENV_VAR_? should ever be defined.
-    This allows some machines to read environment variable before
-    reading povray.def and others to do it after depending on the
-    operating system. IBM-PC is before. Default is after if not
-    defined in config.h.
-    */
-    // Set Diskwrite as default
     config.setOptionFlags(PovRayRendererConfiguration::DISK_WRITE);
     config.setOutputFormat(PovRayRendererConfiguration::DEFAULT_OUTPUT_FORMAT);
-
-    if ((Option_String_Ptr = getenv("POVRAYOPT")) != nullptr) {
-        bool inFlag = false;
-        bool outFlag = false;
-        readOptions(Option_String_Ptr, config, fileLocator, scene, inFlag, outFlag);
-    }
-    if ((defaultsFile = fileLocator.locate("povray.def", "r")) != nullptr) {
-        bool inFlag = false;
-        bool outFlag = false;
-        while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString, config, fileLocator, scene, inFlag, outFlag);
-        }
-        fclose(defaultsFile);
-    }
 }
 
 void
@@ -99,47 +72,6 @@ CommandLineOptions::parseArguments(int argc, char *argv[], PovRayRendererConfigu
         } else {
             parseFileName(argv[i], config, fileLocator, scene, numberOfFiles, inFlag, outFlag);
         }
-    }
-}
-
-void
-CommandLineOptions::readOptions(const char *optionLine, PovRayRendererConfiguration &config,
-    FileLocator &fileLocator, Scene &scene, bool &inFlag, bool &outFlag)
-{
-    int c;
-    short optionLineIndex = 0;
-    char optionString[80];
-
-    int stringIndex = 0;
-    bool optionStarted = false;
-    while ((c = optionLine[optionLineIndex++]) != '\0') {
-        if (optionStarted) {
-            if (isspace(c)) {
-                optionString[stringIndex] = '\0';
-                parseOption(optionString, config, fileLocator, scene, inFlag, outFlag);
-                optionStarted = false;
-                stringIndex = 0;
-            } else {
-                optionString[stringIndex++] = (char)c;
-            }
-
-        } else // Option_Started
-            if ((c == (int)'-') || (c == (int)'+')) {
-                stringIndex = 0;
-                optionString[stringIndex++] = (char)c;
-                optionStarted = true;
-            } else if (!isspace(c)) {
-                {
-                    char _logMsg[1024];
-                    snprintf(_logMsg, sizeof(_logMsg), "\nBad default file format.  Offending char: (%c), val: "                     "%d.\n", (char)c, c);
-                    Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", _logMsg);
-                }
-            }
-    }
-
-    if (optionStarted) {
-        optionString[stringIndex] = '\0';
-        parseOption(optionString, config, fileLocator, scene, inFlag, outFlag);
     }
 }
 
@@ -426,41 +358,21 @@ void
 CommandLineOptions::parseFileName(const char *fileName, PovRayRendererConfiguration &config,
     FileLocator &fileLocator, Scene &scene, int &numberOfFiles, bool &inFlag, bool &outFlag)
 {
-    FILE *defaultsFile;
-    char optionString[256];
-
-    if (inFlag) // File names may now be separated by spaces from cmdline option
-    {
+    if (inFlag) {
         config.setInputFileName(fileName);
         inFlag = false;
         return;
     }
 
-    if (outFlag) // File names may now be separated by spaces from cmdline option
-    {
+    if (outFlag) {
         config.setOutputFileName(fileName);
         outFlag = false;
         return;
     }
 
     if (++numberOfFiles > MAX_FILE_NAMES) {
-        {
-            char _logMsg[1024];
-            snprintf(_logMsg, sizeof(_logMsg), "\nOnly %d option file names are allowed in a command line.", MAX_FILE_NAMES);
-            Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", _logMsg);
-        }
-    }
-
-    if ((defaultsFile = fileLocator.locate(fileName, "r")) != nullptr) {
-        while (fgets(optionString, 256, defaultsFile) != nullptr) {
-            readOptions(optionString, config, fileLocator, scene, inFlag, outFlag);
-        }
-        fclose(defaultsFile);
-    } else {
-        {
-            char _logMsg[1024];
-            snprintf(_logMsg, sizeof(_logMsg), "\nError opening option file %s.", fileName);
-            Logger::reportMessage("CommandLineOptions", Logger::ERROR, "", _logMsg);
-        }
+        char _logMsg[1024];
+        snprintf(_logMsg, sizeof(_logMsg), "\nOnly %d file names are allowed in a command line.", MAX_FILE_NAMES);
+        Logger::reportMessage("CommandLineOptions", Logger::FATAL_ERROR, "", _logMsg);
     }
 }

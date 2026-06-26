@@ -17,17 +17,6 @@ class BoundedGeometry : public Geometry {
 
   public:
     BoundedGeometry(
-        TransformableElement *geometry = nullptr,
-        Material *objectTexture = nullptr,
-        ColorRgba *objectColor = nullptr,
-        bool noShadowFlag = false) :
-        geometry(geometry),
-        noShadowFlag(noShadowFlag),
-        objectColor(objectColor),
-        objectTexture(objectTexture)
-    {
-    }
-    BoundedGeometry(
         TransformableElement *geometry,
         Material *objectTexture,
         ColorRgba *objectColor,

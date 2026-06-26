@@ -18,7 +18,6 @@
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/scene/BoundedGeometryFactory.h"
 #include "environment/scene/SceneBuilder.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 

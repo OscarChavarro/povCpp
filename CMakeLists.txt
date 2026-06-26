@@ -64,7 +64,6 @@ add_executable(povray
     src/environment/light/SpotLight.cpp
     src/environment/scene/SceneBuilder.cpp
     src/environment/scene/Scene.cpp
-    src/environment/scene/BoundedGeometryFactory.cpp
     src/environment/scene/SimpleBody.cpp
     src/render/shaders/LightSamplerShader.cpp
     src/render/shaders/ShadowShader.cpp

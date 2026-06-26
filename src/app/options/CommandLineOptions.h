@@ -7,8 +7,6 @@
 
 class CommandLineOptions {
   private:
-    static void readOptions(const char *optionLine, PovRayRendererConfiguration &config,
-        FileLocator &fileLocator, Scene &scene, bool &inFlag, bool &outFlag);
     static void parseOption(const char *optionString, PovRayRendererConfiguration &config,
         FileLocator &fileLocator, Scene &scene, bool &inFlag, bool &outFlag);
     static void parseFileName(const char *fileName, PovRayRendererConfiguration &config,
