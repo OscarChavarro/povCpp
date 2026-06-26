@@ -28,20 +28,8 @@ LeopardPigment::copy() const
     return new LeopardPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
 }
 
-double
-LeopardPigment::getTurbulence() const
-{
-    return turbulence;
-}
-
 int
 LeopardPigment::getOctaves() const
 {
     return octaves;
-}
-
-const RGBAColorPalette *
-LeopardPigment::getColorMap() const
-{
-    return colorMap;
 }

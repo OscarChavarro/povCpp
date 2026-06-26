@@ -28,20 +28,8 @@ OnionPigment::copy() const
     return new OnionPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
 }
 
-double
-OnionPigment::getTurbulence() const
-{
-    return turbulence;
-}
-
 int
 OnionPigment::getOctaves() const
 {
     return octaves;
-}
-
-const RGBAColorPalette *
-OnionPigment::getColorMap() const
-{
-    return colorMap;
 }

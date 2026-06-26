@@ -20,9 +20,3 @@ WrinklesNormal::copy() const
 {
     return new WrinklesNormal(bumpAmount);
 }
-
-double
-WrinklesNormal::getBumpAmount() const
-{
-    return bumpAmount;
-}

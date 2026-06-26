@@ -32,9 +32,3 @@ AgatePigment::getOctaves() const
 {
     return octaves;
 }
-
-const RGBAColorPalette *
-AgatePigment::getColorMap() const
-{
-    return colorMap;
-}

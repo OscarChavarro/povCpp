@@ -11,8 +11,6 @@ class BumpMapNormal : public SolidTextureNormal {
     void applyTo(const Vector3Dd *point, Vector3Dd *newNormal,
         const BumpTextureFixture &bumpFixture, const ImageTexture &mapFixture) const override;
     SolidTextureNormal *copy() const override;
-    double getBumpAmount() const;
-    const ControlledRGBAImageHDRUncompressed *getBumpImage() const;
 
   private:
     double bumpAmount;

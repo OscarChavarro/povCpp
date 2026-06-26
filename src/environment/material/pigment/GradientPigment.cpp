@@ -29,22 +29,10 @@ GradientPigment::copy() const
     return new GradientPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap), textureGradient);
 }
 
-double
-GradientPigment::getTurbulence() const
-{
-    return turbulence;
-}
-
 int
 GradientPigment::getOctaves() const
 {
     return octaves;
-}
-
-const RGBAColorPalette *
-GradientPigment::getColorMap() const
-{
-    return colorMap;
 }
 
 const Vector3Dd &

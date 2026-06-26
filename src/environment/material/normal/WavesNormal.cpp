@@ -23,27 +23,3 @@ WavesNormal::copy() const
 {
     return new WavesNormal(bumpAmount, frequency, phase, numberOfWaves);
 }
-
-double
-WavesNormal::getBumpAmount() const
-{
-    return bumpAmount;
-}
-
-double
-WavesNormal::getFrequency() const
-{
-    return frequency;
-}
-
-double
-WavesNormal::getPhase() const
-{
-    return phase;
-}
-
-int
-WavesNormal::getNumberOfWaves() const
-{
-    return numberOfWaves;
-}

@@ -25,9 +25,3 @@ GranitePigment::copy() const
 {
     return new GranitePigment(SolidTexturePigment::cloneColorMap(colorMap));
 }
-
-const RGBAColorPalette *
-GranitePigment::getColorMap() const
-{
-    return colorMap;
-}

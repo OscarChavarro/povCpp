@@ -28,20 +28,8 @@ MarblePigment::copy() const
     return new MarblePigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
 }
 
-double
-MarblePigment::getTurbulence() const
-{
-    return turbulence;
-}
-
 int
 MarblePigment::getOctaves() const
 {
     return octaves;
-}
-
-const RGBAColorPalette *
-MarblePigment::getColorMap() const
-{
-    return colorMap;
 }

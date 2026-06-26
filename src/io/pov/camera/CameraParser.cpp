@@ -36,8 +36,8 @@ CameraParser::parseCamera(PovCameraSpec *givenVp, ParserContext &ctx)
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
 
     {
-        bool Exit_Flag = false;
-        while (!Exit_Flag) {
+        bool exitFlag = false;
+        while (!exitFlag) {
             ctx.tokenStream().getToken();
             switch (ctx.token().getTokenId()) {
             case Tokenizer::IDENTIFIER_TOKEN:
@@ -132,7 +132,7 @@ CameraParser::parseCamera(PovCameraSpec *givenVp, ParserContext &ctx)
             }
 
             case Tokenizer::RIGHT_CURLY_TOKEN:
-                Exit_Flag = true;
+                exitFlag = true;
                 break;
 
             default:

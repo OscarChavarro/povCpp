@@ -20,9 +20,3 @@ DentsNormal::copy() const
 {
     return new DentsNormal(bumpAmount);
 }
-
-double
-DentsNormal::getBumpAmount() const
-{
-    return bumpAmount;
-}
