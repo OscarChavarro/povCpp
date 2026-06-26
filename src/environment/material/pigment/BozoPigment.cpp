@@ -28,20 +28,8 @@ BozoPigment::copy() const
     return new BozoPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
 }
 
-double
-BozoPigment::getTurbulence() const
-{
-    return turbulence;
-}
-
 int
 BozoPigment::getOctaves() const
 {
     return octaves;
-}
-
-const RGBAColorPalette *
-BozoPigment::getColorMap() const
-{
-    return colorMap;
 }

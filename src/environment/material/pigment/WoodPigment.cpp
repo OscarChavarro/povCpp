@@ -28,20 +28,8 @@ WoodPigment::copy() const
     return new WoodPigment(turbulence, octaves, SolidTexturePigment::cloneColorMap(colorMap));
 }
 
-double
-WoodPigment::getTurbulence() const
-{
-    return turbulence;
-}
-
 int
 WoodPigment::getOctaves() const
 {
     return octaves;
-}
-
-const RGBAColorPalette *
-WoodPigment::getColorMap() const
-{
-    return colorMap;
 }

@@ -22,15 +22,3 @@ BumpMapNormal::copy() const
 {
     return new BumpMapNormal(bumpAmount, bumpImage);
 }
-
-double
-BumpMapNormal::getBumpAmount() const
-{
-    return bumpAmount;
-}
-
-const ControlledRGBAImageHDRUncompressed *
-BumpMapNormal::getBumpImage() const
-{
-    return bumpImage;
-}

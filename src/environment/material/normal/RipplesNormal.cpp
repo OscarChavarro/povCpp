@@ -23,27 +23,3 @@ RipplesNormal::copy() const
 {
     return new RipplesNormal(bumpAmount, frequency, phase, numberOfWaves);
 }
-
-double
-RipplesNormal::getBumpAmount() const
-{
-    return bumpAmount;
-}
-
-double
-RipplesNormal::getFrequency() const
-{
-    return frequency;
-}
-
-double
-RipplesNormal::getPhase() const
-{
-    return phase;
-}
-
-int
-RipplesNormal::getNumberOfWaves() const
-{
-    return numberOfWaves;
-}

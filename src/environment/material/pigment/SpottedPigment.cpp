@@ -25,9 +25,3 @@ SpottedPigment::copy() const
 {
     return new SpottedPigment(SolidTexturePigment::cloneColorMap(colorMap));
 }
-
-const RGBAColorPalette *
-SpottedPigment::getColorMap() const
-{
-    return colorMap;
-}

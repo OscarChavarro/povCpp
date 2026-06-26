@@ -11,9 +11,7 @@ class GradientPigment : public SolidTexturePigment {
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;
     SolidTexturePigment *copy() const override;
-    double getTurbulence() const;
     int getOctaves() const;
-    const RGBAColorPalette *getColorMap() const;
     const Vector3Dd &getTextureGradient() const;
 
   private:

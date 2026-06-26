@@ -10,10 +10,6 @@ class WavesNormal : public SolidTextureNormal {
     void applyTo(const Vector3Dd *point, Vector3Dd *newNormal,
         const BumpTextureFixture &bumpFixture, const ImageTexture &mapFixture) const override;
     SolidTextureNormal *copy() const override;
-    double getBumpAmount() const;
-    double getFrequency() const;
-    double getPhase() const;
-    int getNumberOfWaves() const;
 
   private:
     double bumpAmount;

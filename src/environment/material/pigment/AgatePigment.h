@@ -12,7 +12,6 @@ class AgatePigment : public SolidTexturePigment {
         const ColorTextureFixture &colorFixture, const ImageTexture &mapFixture) const override;
     SolidTexturePigment *copy() const override;
     int getOctaves() const;
-    const RGBAColorPalette *getColorMap() const;
 
   private:
     int octaves;

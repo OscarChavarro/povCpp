@@ -20,9 +20,3 @@ BumpsNormal::copy() const
 {
     return new BumpsNormal(bumpAmount);
 }
-
-double
-BumpsNormal::getBumpAmount() const
-{
-    return bumpAmount;
-}
