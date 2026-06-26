@@ -97,7 +97,7 @@ class PovRayMaterial : public Material, public ICheckerTextureSlot {
     double getObjectRoughness() const;
     double getObjectSpecular() const;
     double getObjectTransmit() const;
-    SolidTexturePigment *getPigment() const;
+    SolidTexturePigment *getPigment() const override;
     SolidTextureNormal *getNormal() const;
     ColorRgba *getQuickColor() const;
     ColorRgba *ensureQuickColor();
@@ -112,7 +112,7 @@ class PovRayMaterial : public Material, public ICheckerTextureSlot {
     ControlledRGBAImageHDRUncompressed *getPendingBumpImage() const;
     double getTextureRandomness() const;
     Matrix4x4d* getTextureTransformation() const;
-    Matrix4x4d* getTextureTransformationInverse() const;
+    Matrix4x4d* getTextureTransformationInverse() const override;
     bool isMetallic() const;
     Material *prependMaterialLayers(Material *existingMaterial) override;
     void releaseFromOwner() override;
