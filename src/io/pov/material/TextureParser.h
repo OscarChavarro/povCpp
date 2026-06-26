@@ -2,7 +2,7 @@
 #define __TEXTURE_PARSER__
 
 #include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/povray/PovRayMaterialBuilder.h"
+#include "io/pov/material/PovRayMaterialBuilder.h"
 #include "io/pov/context/ParserContext.h"
 #include "vsdk/toolkit/media/IndexedColorImageHDRUncompressed.h"
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
