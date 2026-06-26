@@ -10,8 +10,8 @@
 #include "environment/material/normal/SolidTextureNormal.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/SolidTextureBumpyNames.h"
-#include "environment/material/SolidTextureColorNames.h"
+#include "io/pov/material/SolidTextureBumpyNames.h"
+#include "io/pov/material/SolidTextureColorNames.h"
 
 class PovRayMaterialBuilder {
   public:

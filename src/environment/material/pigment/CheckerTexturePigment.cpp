@@ -1,8 +1,7 @@
 #include "environment/material/pigment/CheckerTexturePigment.h"
-#include "environment/material/povray/PovRayMaterial.h"
 #include "vsdk/toolkit/media/solidTexture/TextureUtils.h"
 
-CheckerTexturePigment::CheckerTexturePigment(PovRayMaterial *texture1, PovRayMaterial *texture2) :
+CheckerTexturePigment::CheckerTexturePigment(ICheckerTextureSlot *texture1, ICheckerTextureSlot *texture2) :
     texture1(texture1),
     texture2(texture2)
 {
@@ -18,7 +17,7 @@ CheckerTexturePigment::colorAt(const Vector3Dd *point, ColorRgba *color, double 
     const int index = (int)(TextureUtils::floorInline(x) + TextureUtils::floorInline(y) +
         TextureUtils::floorInline(z));
     const Vector3Dd offsetPoint(x, y, z);
-    PovRayMaterial * const chosen = (index & 1) ? texture1 : texture2;
+    ICheckerTextureSlot * const chosen = (index & 1) ? texture1 : texture2;
     const Vector3Dd transformedPoint = SolidTexturePigment::transformToObjectSpace(
         &offsetPoint, chosen->getTextureTransformationInverse());
 
@@ -39,8 +38,8 @@ SolidTexturePigment *
 CheckerTexturePigment::copy() const
 {
     return new CheckerTexturePigment(
-        texture1 != nullptr ? PovRayMaterial::copyTexture(texture1) : nullptr,
-        texture2 != nullptr ? PovRayMaterial::copyTexture(texture2) : nullptr);
+        texture1 != nullptr ? texture1->copySlot() : nullptr,
+        texture2 != nullptr ? texture2->copySlot() : nullptr);
 }
 
 void
@@ -76,13 +75,13 @@ CheckerTexturePigment::translate(Vector3Dd *vector)
     }
 }
 
-PovRayMaterial *
+ICheckerTextureSlot *
 CheckerTexturePigment::getTexture1() const
 {
     return texture1;
 }
 
-PovRayMaterial *
+ICheckerTextureSlot *
 CheckerTexturePigment::getTexture2() const
 {
     return texture2;

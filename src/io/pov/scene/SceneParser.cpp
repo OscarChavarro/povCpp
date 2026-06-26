@@ -6,7 +6,7 @@
 #include "environment/geometry/volume/compound/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/material/povray/PovRayMaterial.h"
-#include "environment/material/povray/PovRayMaterialUtils.h"
+#include "io/pov/material/PovRayMaterialUtils.h"
 #include "environment/scene/Scene.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"

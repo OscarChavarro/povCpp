@@ -1,6 +1,6 @@
-#include "environment/material/povray/PovRayMaterialBuilder.h"
-#include "environment/material/SolidTextureColorNames.h"
-#include "environment/material/SolidTextureBumpyNames.h"
+#include "io/pov/material/PovRayMaterialBuilder.h"
+#include "io/pov/material/SolidTextureColorNames.h"
+#include "io/pov/material/SolidTextureBumpyNames.h"
 #include "environment/material/normal/BumpMapNormal.h"
 #include "environment/material/normal/BumpsNormal.h"
 #include "environment/material/normal/DentsNormal.h"
@@ -126,9 +126,9 @@ PovRayMaterialBuilder::PovRayMaterialBuilder(const PovRayMaterial *base) :
     } else if (const CheckerTexturePigment *p = dynamic_cast<const CheckerTexturePigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::CHECKER_TEXTURE_TEXTURE;
         checkerTexture1 = (p->getTexture1() != nullptr) ?
-            PovRayMaterial::copyTexture(p->getTexture1()) : nullptr;
+            static_cast<PovRayMaterial *>(p->getTexture1()->copySlot()) : nullptr;
         checkerTexture2 = (p->getTexture2() != nullptr) ?
-            PovRayMaterial::copyTexture(p->getTexture2()) : nullptr;
+            static_cast<PovRayMaterial *>(p->getTexture2()->copySlot()) : nullptr;
     } else if (dynamic_cast<const SpottedPigment *>(pigment)) {
         textureNumber = SolidTextureColorNames::SPOTTED_TEXTURE;
     } else if (dynamic_cast<const AgatePigment *>(pigment)) {

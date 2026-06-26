@@ -1,12 +1,12 @@
 #ifndef __CHECKER_TEXTURE_PIGMENT__
 #define __CHECKER_TEXTURE_PIGMENT__
 
+#include "environment/material/pigment/ICheckerTextureSlot.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
-#include "environment/material/povray/PovRayMaterial.h"
 
 class CheckerTexturePigment : public SolidTexturePigment {
   public:
-    CheckerTexturePigment(PovRayMaterial *texture1, PovRayMaterial *texture2);
+    CheckerTexturePigment(ICheckerTextureSlot *texture1, ICheckerTextureSlot *texture2);
     ~CheckerTexturePigment() override;
 
     void colorAt(const Vector3Dd *point, ColorRgba *color, double smallTolerance,
@@ -16,12 +16,12 @@ class CheckerTexturePigment : public SolidTexturePigment {
     void scale(Vector3Dd *vector) override;
     void translate(Vector3Dd *vector) override;
 
-    PovRayMaterial *getTexture1() const;
-    PovRayMaterial *getTexture2() const;
+    ICheckerTextureSlot *getTexture1() const;
+    ICheckerTextureSlot *getTexture2() const;
 
   private:
-    PovRayMaterial *texture1;
-    PovRayMaterial *texture2;
+    ICheckerTextureSlot *texture1;
+    ICheckerTextureSlot *texture2;
 };
 
 #endif

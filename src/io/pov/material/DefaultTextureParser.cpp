@@ -1,5 +1,5 @@
-#include "environment/material/DefaultTextureAliasTracker.h"
-#include "environment/material/povray/PovRayMaterialUtils.h"
+#include "environment/material/povray/DefaultTextureAliasTracker.h"
+#include "io/pov/material/PovRayMaterialUtils.h"
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/DefaultTextureParser.h"
 #include "environment/material/povray/PovRayMaterialConstancy.h"

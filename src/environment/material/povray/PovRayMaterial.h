@@ -9,9 +9,10 @@
 #include "vsdk/toolkit/media/solidTexture/from2d/ControlledRGBAImageHDRUncompressed.h"
 #include "environment/material/Material.h"
 #include "environment/material/normal/SolidTextureNormal.h"
+#include "environment/material/pigment/ICheckerTextureSlot.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 
-class PovRayMaterial : public Material {
+class PovRayMaterial : public Material, public ICheckerTextureSlot {
   private:
     static void applyRotationTransform(PovRayMaterial *texture, Vector3Dd *vector);
     static void applyScaleTransform(PovRayMaterial *texture, const Vector3Dd *vector);
@@ -80,6 +81,7 @@ class PovRayMaterial : public Material {
     ~PovRayMaterial() override;
 
     PovRayMaterial *copy() override;
+    ICheckerTextureSlot *copySlot() const override;
     static PovRayMaterial *copyTexture(const PovRayMaterial *texture);
     const java::ArrayList<PovRayMaterial *>& getLayers() const;
     ControlledRGBAImageHDRUncompressed*getMaterialMapImage() const;
