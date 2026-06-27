@@ -63,19 +63,13 @@ SimpleBody::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &
 }
 
 int
-SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
-{
-    return getGeometry()->allIntersectionsForMaterial(ray, depthQueue, getMaterial());
-}
-
-int
-SimpleBody::allIntersectionsForMaterial(
+SimpleBody::doIntersectionForAllRayCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *mat)
+    Material *materialOverride)
 {
-    (void)mat;
-    return getGeometry()->allIntersectionsForMaterial(ray, depthQueue, getMaterial());
+    (void)materialOverride;
+    return getGeometry()->doIntersectionForAllRayCrossings(ray, depthQueue, getMaterial());
 }
 
 int

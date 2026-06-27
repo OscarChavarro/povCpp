@@ -16,13 +16,10 @@ class LightGeometryAdapter : public TransformedGeometry {
     Light *getLight() const { return light; }
     void setLight(Light *lightSource) { light = lightSource; }
 
-    int allIntersections(
-        RayWithSegments *ray,
-        java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int allIntersectionsForMaterial(
+    int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *material) override;
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     void translateGeometry(Vector3Dd *vector) override;

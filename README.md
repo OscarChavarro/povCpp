@@ -5,7 +5,7 @@ The renderer is **100% compatible** with the original POV-Ray 1 scene descriptio
 produces **pixel-identical output** to the reference implementation across the full original
 scene test suite (108 scenes).
 
-| `iortest.pov` — refraction / IOR | `car.pov` — complex scene |
+| `iortest.pov` — refraction / IOR | `car.pov` — sample scene |
 |:---:|:---:|
 | ![iortest](doc/iortest.png) | ![car](doc/car.png) |
 
@@ -60,7 +60,10 @@ lighting model, same numerical output.
 
 ## Architecture
 
-The codebase is organised in self-contained getLayers. Each layer depends only on those below it.
+The codebase is organised around five root packages inside `src`: `app`, `common`,
+`environment`, `io`, and `render`. Dependencies mostly flow downward from orchestration
+(`app`) to parsing / domain modelling (`io`, `environment`) and finally to the rendering
+kernel (`render`) plus shared support code (`common` and the external `base` toolkit).
 
 The diagram below was generated directly from the source code using
 [dependencyGraphAnalyzer](https://github.com/OscarChavarro/dependencyGraphAnalyzer).
@@ -81,43 +84,43 @@ The diagram below was generated directly from the source code using
       <td style="background-color:#f28682;color:#000;padding:8px">app</td>
       <td><strong>Application</strong></td>
       <td><code>src/app</code></td>
-      <td>Entry point, CLI option parsing, output adapter</td>
+      <td><code>main.cpp</code> and <code>PovRayApplication</code> coordinate CLI parsing, file lookup, scene loading, renderer setup, and final image output; <code>src/app/options</code> contains the command-line parser</td>
     </tr>
     <tr>
       <td style="background-color:#ffff8f;color:#000;padding:8px">io</td>
-      <td><strong>IO — Scene parser</strong></td>
+      <td><strong>IO — POV-Ray scene input</strong></td>
       <td><code>src/io/pov</code></td>
-      <td>Lexer (<code>Tokenizer</code>), recursive-descent parser, AST lowering into the scene model</td>
+      <td>Tokenizer, parser context, and specialised recursive-descent parsers for camera, geometry, lights, materials, declarations, and scene-level directives; these parsers build render-time objects directly rather than producing a separate AST</td>
     </tr>
     <tr>
       <td style="background-color:#ffff8f;color:#000;padding:8px">io</td>
-      <td><strong>IO — Image formats</strong></td>
-      <td><code>src/io/image</code></td>
-      <td>Reading and writing TGA, GIF, IFF, raw dump</td>
+      <td><strong>IO — Runtime support and image formats</strong></td>
+      <td><code>src/io</code></td>
+      <td><code>src/io/binaryIo</code> resolves include / asset paths, <code>src/io/context</code> stores mutable runtime state such as stop flags and max trace depth, and <code>src/io/image</code> implements <code>ImageOutput</code> backends for TGA, GIF, IFF, raw dump, and raw RGB data</td>
     </tr>
     <tr>
       <td style="background-color:#9bfc8c;color:#000;padding:8px">environment</td>
       <td><strong>Environment</strong></td>
       <td><code>src/environment</code></td>
-      <td>Scene graph (<code>SceneFrame</code>), geometry primitives, camera, lights, CSG tree</td>
+      <td>Render-time scene model: <code>Scene</code>, object wrappers in <code>scene/</code>, geometry and intersection code in <code>geometry/</code>, light sources in <code>light/</code>, and POV-Ray materials, pigments, normals, and renderer configuration in <code>material/</code>. Camera state is stored as Vitral <code>CameraSnapshot</code> data rather than a local camera implementation</td>
     </tr>
     <tr>
       <td style="background-color:#7d7ef8;color:#000;padding:8px">render</td>
       <td><strong>Render</strong></td>
       <td><code>src/render</code></td>
-      <td><code>RenderEngine</code> drives scanline rendering; <code>RayShaderPipeline</code> chains per-intersection shaders</td>
+      <td><code>RenderEngine</code> owns the trace loop, tile scheduling, adaptive antialiasing, per-thread workers, and output staging; <code>RenderContext</code> exposes immutable scene/config access plus shared statistics and texture services</td>
     </tr>
     <tr>
       <td style="background-color:#7d7ef8;color:#000;padding:8px">render</td>
       <td><strong>Shaders</strong></td>
       <td><code>src/render/shaders</code></td>
-      <td>One class per shading effect (ambient, Lambert, Phong, shadow, reflection, refraction, fog, bump)</td>
+      <td>One class per shading step (ambient, direct light, Lambert, Phong, Blinn-Phong, shadowing, reflection, refraction, fog, bump handling) plus <code>TraceService</code>, the callback interface shaders use to request secondary rays without depending on <code>RenderEngine</code> directly</td>
     </tr>
     <tr>
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
       <td><strong>Common</strong></td>
       <td><code>src/common</code></td>
-      <td>Cross-cutting utilities and statistics shared across getLayers</td>
+      <td>Small cross-cutting support code; today this is mostly configuration constants and the statistics subsystem used by both parsing and rendering</td>
     </tr>
     <tr>
       <td style="background-color:#99fcfe;color:#000;padding:8px">base</td>
@@ -140,10 +143,13 @@ The diagram below was generated directly from the source code using
   </tbody>
 </table>
 
-The shader chain is assembled at startup by `RayShaderPipeline`. Reflection and
-refraction submit weighted child-ray events through `TraceService`; `RenderEngine`
-evaluates them iteratively with an explicit stack. Shadow queries use the same service,
-so shaders remain decoupled from the top-level trace loop without C++ call recursion.
+At runtime, `PovRayApplication` parses the command line into
+`PovRayRendererConfiguration`, `FileLocator`, and `Scene`, then invokes the POV-Ray
+parsers in `src/io/pov` to populate geometry, lights, materials, and camera data. The
+renderer then traces the resulting `Scene` either serially or by dividing the image into
+tiles. For each hit, `RayShaderPipeline` dispatches the shading stages, while reflection,
+refraction, and shadow queries go back through `TraceService` so the shader code stays
+decoupled from the top-level iterative trace loop in `RenderEngine`.
 
 ## Building
 

@@ -47,7 +47,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
     localDepthQueue = eye->getIntersectionQueuePool()->pop(128);
     lightSourceRay.setShadowRay(true);
     lightSourceRay.setPrimaryRay(false);
-    // Shadow rays only ever need allIntersections()'s hitDistance (ShadowShader
+    // Shadow rays only ever need doIntersectionForAllRayCrossings()'s hitDistance (ShadowShader
     // never reads a normal); document that explicitly via the mask, mirroring
     // VITRAL's RayHit::DETAIL_NONE for the same case.
     lightSourceRay.setRequiredDetailMask(RayWithSegments::DETAIL_NONE);
@@ -69,7 +69,7 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
                 blockingObject = objects[i];
 
                 stats.incrementShadowRayTests();
-                blockingObject->allIntersections(&lightSourceRay, localDepthQueue);
+                blockingObject->doIntersectionForAllRayCrossings(&lightSourceRay, localDepthQueue);
                 while (localDepthQueue->size() > 0) {
                     localIntersection = localDepthQueue->poll();
 

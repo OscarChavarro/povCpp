@@ -48,16 +48,10 @@ Quadric::updateSquareTermFlag()
 }
 
 int
-Quadric::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
-{
-    return allIntersectionsForMaterial(ray, depthQueue, nullptr);
-}
-
-int
-Quadric::allIntersectionsForMaterial(
+Quadric::doIntersectionForAllRayCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *material)
+    Material *materialOverride)
 {
     Quadric * const shape = this;
     double depth1;
@@ -72,7 +66,7 @@ Quadric::allIntersectionsForMaterial(
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
-        localElement.getAttributes().setMaterial(material);
+        localElement.getAttributes().setMaterial(materialOverride);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -82,7 +76,7 @@ Quadric::allIntersectionsForMaterial(
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.getIntersection().point = intersectionPoint;
             localElement.getAttributes().setHitGeometry(shape);
-            localElement.getAttributes().setMaterial(material);
+            localElement.getAttributes().setMaterial(materialOverride);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

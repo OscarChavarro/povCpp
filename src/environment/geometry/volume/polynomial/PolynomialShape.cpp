@@ -85,7 +85,10 @@ PolynomialShape::~PolynomialShape()
 }
 
 int
-PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+PolynomialShape::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
     PolynomialShape * const shape = this;
     double depths[PolynomialSolver::MAX_ORDER];
@@ -157,6 +160,7 @@ PolynomialShape::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
         localElement.getIntersection().t = len;
         localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
+        localElement.getAttributes().setMaterial(materialOverride);
         depthQueue->offer(localElement);
         intersectionFound = true;
     l0:;

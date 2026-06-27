@@ -136,7 +136,10 @@ Triangle::computeTriangle(Triangle *triangle)
 }
 
 int
-Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+Triangle::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
     Triangle * const shape = this;
     double depth;
@@ -153,6 +156,7 @@ Triangle::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersectio
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
+        localElement.getAttributes().setMaterial(materialOverride);
         depthQueue->offer(localElement);
         return (true);
     }

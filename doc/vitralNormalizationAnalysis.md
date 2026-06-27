@@ -1,9 +1,15 @@
 # Comparative analysis of the intersection model: povCpp ↔ VITRAL
 
 Status snapshot comparing how the `povCpp` raytracer (POV-Ray 1.0, 1992,
-rewritten in C++) and the **VITRAL** library
-(`/home/jedilink/VITRAL/vitral/cpp/base`) model ray-geometry intersection.
-VITRAL is the reference; povCpp is the side aligned against it.
+rewritten in C++) and the
+[vitral library](`https://github.com/OscarChavarro/vitral`) model ray-geometry
+intersection and the placement transform.
+
+VITRAL is the reference both projects converge toward, but the convergence is
+**bidirectional**: the all-crossings primitive that povCpp needs for CSG and
+nested refraction is meant to migrate *upward* into VITRAL (see the alignment
+note in §3). The immediate goal is to make the two codebases share as much
+shape and naming as possible before that primitive is promoted.
 
 ---
 
@@ -54,7 +60,7 @@ bool Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidat
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
     bool hit = false;
-    if (allIntersections(ray, depthQueue) && depthQueue->size() > 0) {
+    if (doIntersectionForAllRayCrossings(ray, depthQueue) && depthQueue->size() > 0) {
         out = depthQueue->peek();   // the nearest (the queue is a min-heap by t)
         hit = true;
     }
@@ -68,13 +74,12 @@ This carries **exactly the same name** as VITRAL's canonical primitive
 nearest hit and tell me whether there was one". The name is fully reconciled
 on both sides; what differs is the *role* — in VITRAL `doIntersectionFirstHit`
 is the pure-virtual primitive each geometry implements directly, whereas in
-povCpp it is a non-virtual facade built over the `allIntersections`
-primitive (which VITRAL has no equivalent of).
+povCpp it is a non-virtual facade built over the `doIntersectionForAllRayCrossings`
+primitive (which VITRAL has no equivalent of, see §3).
 
 `SimpleBody` also exposes `doIntersectionFirstHit(RayWithSegments*, IntersectionCandidate&)`
 as a direct delegation to `getGeometry()->doIntersectionFirstHit(...)`, giving
-the same entry point at the scene-body level (used by bounding-volume tests in
-`BoundedGeometry`).
+the same entry point at the body level.
 
 ### 1.4. `PovRayHit` mirrors VITRAL's `RayHit`
 
@@ -109,23 +114,31 @@ depth queues.
   (`Box`, `Sphere`, `Cone`, …) also provide a `Ray* doIntersectionFirstHit(
   const Ray&)` convenience overload that returns the consumed ray.
 
-**VITRAL returns only the nearest hit.** It has no "all intersections"
+**VITRAL returns only the nearest hit.** It has no "all crossings"
 mechanism, so it **does not support CSG** (booleans) nor the media stack for
 nested refraction. Its `SimpleRaytracer` is, by design, simpler than povCpp's
 engine.
 
-### 2.2. povCpp's model: "all intersections in a depth queue"
+### 2.2. povCpp's model: "all ray crossings in a depth queue"
 
 Inherited from classic POV-Ray, because it needs it for CSG and nested
 refraction indices:
 
 ```cpp
-virtual int allIntersections(RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue);
+virtual int doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride = nullptr);
 ```
 
 Each surface crossed by the ray is pushed into a priority queue ordered by
-`t`. The unit travelling through that queue is:
+`t`. The optional `materialOverride` lets a CSG container hand each leaf the
+material it should stamp on its crossings (the leaf records it in the
+candidate's attributes); when omitted the leaf records `nullptr`. This single
+method replaces the older split between an "all intersections" call and a
+material-carrying variant — there is now one primitive.
+
+The unit travelling through that queue is:
 
 ```
 IntersectionCandidate  =  Intersection  +  IntersectionAttributes
@@ -155,7 +168,7 @@ ride along.
 | `material`                 | `IntersectionAttributes::material`              | POV `Material` ≠ VITRAL `SimpleMaterial` |
 | `texture`                  | `IntersectionAttributes::objectTexture`         | |
 | `normalMap`                | — (lives in `Material`)                          | |
-| `requiredDetailMask` (on `RayHit`) | `RayWithSegments::requiredDetailMask` | shared concept, same `DETAIL_NONE/POINT/NORMAL/UV/TANGENT/ALL` constants; povCpp keeps it on the *ray* (not the hit), because the decision is made before the hit exists, and gates only `NORMAL` (see §7) |
+| `requiredDetailMask` (on `RayHit`) | `RayWithSegments::requiredDetailMask` | shared concept, same `DETAIL_NONE/POINT/NORMAL/UV/TANGENT/ALL` constants; povCpp keeps it on the *ray* (not the hit), because the decision is made before the hit exists, and gates only `NORMAL` (see §8) |
 | — (does not exist)         | `IntersectionAttributes::{hitGeometry,objectColor,noShadowFlag}` | POV/CSG-specific |
 
 **Summary:** `Intersection` (shared) = **geometric half** of `RayHit`;
@@ -169,37 +182,159 @@ is the named mirror that joins both halves with VITRAL's names.
 
 | Aspect               | VITRAL                              | povCpp |
 |----------------------|--------------------------------------|--------|
-| Geometric primitive  | `doIntersectionFirstHit(Ray&, RayHit*)` | `allIntersections(Ray*, PriorityQueue*)` |
-| Result               | nearest hit (1)                     | all hits (N), ordered |
+| Geometric primitive  | `doIntersectionFirstHit(Ray&, RayHit*)` | `doIntersectionForAllRayCrossings(Ray*, PriorityQueue*, Material*)` |
+| Result               | nearest hit (1)                     | all crossings (N), ordered |
 | CSG / booleans       | not supported                       | supported (needs the N) |
 | Nested refraction    | no                                  | yes (containing-media stack) |
 | Surface detail       | lazy by mask (point/normal/UV/tangent) | lazy by mask (normal only, all-or-nothing); UV in the texturizer |
 | Hit record           | `RayHit` (merged)                   | `Intersection` + `IntersectionAttributes` (projected into `PovRayHit`) |
 
-**`allIntersections` cannot be replaced by nearest-hit
+**`doIntersectionForAllRayCrossings` cannot be replaced by nearest-hit
 `doIntersectionFirstHit`**: CSG and refraction need the full set of surface
 crossings. povCpp's `doIntersectionFirstHit` (§1.3) sits on top of
-`allIntersections` rather than replacing it.
+`doIntersectionForAllRayCrossings` rather than replacing it.
+
+> **Alignment intent.** It is an explicit intention to promote
+> `doIntersectionForAllRayCrossings` *from povCpp up into VITRAL*, so that
+> VITRAL gains an all-crossings primitive alongside its nearest-hit
+> `doIntersectionFirstHit` and can host CSG and nested refraction itself.
+> Before that promotion happens, the two projects are being aligned as much as
+> possible (shared `Ray`/`Intersection`, matching method names, the
+> transform-free `Geometry` base of §4) so the operation lands on top of an
+> already-converged surface rather than dragging divergence into VITRAL.
 
 ---
 
-## 4. CSG in povCpp: two interchangeable algorithms
+## 4. The transformation model: where placement lives
+
+Both projects keep their concrete shapes **canonical** and carry placement in a
+4×4 matrix applied to the *ray* at intersection time (transform the ray into
+object space, intersect, transform the result back; `t` is invariant under the
+affine ray-transform because the parameterization is linear). What differs is
+**which object owns that matrix**.
+
+### 4.1. VITRAL: the transform lives in `SimpleBody`
+
+`vsdk/.../environment/scene/SimpleBody.h` holds the placement, decomposed:
+
+- `Vector3Dd position`, `Vector3Dd scale` / `inverseScale`,
+  `Matrix4x4d rotation` / `rotationInverse`, plus
+  `Quaterniond rotationQuaternion` / `rotationInverseQuaternion`.
+- A set of **fast-path flags** computed by `updateTransformFlags()`:
+  `hasIdentityRotation`, `hasUnitScale`, `hasZeroTranslation`,
+  `hasTranslationOnlyTransform`, `hasIdentityTransform`, `hasInvertibleScale`.
+- `SimpleBody::doIntersectionFirstHit` applies the inverse transform to the
+  ray and dispatches to specialized paths
+  (`doIntersectionWithTranslationOnly`,
+  `doIntersectionWithTranslationOnlySphereFastPath`) when the flags allow.
+
+The `Geometry` it wraps stays **shared and canonical**: VITRAL's `Sphere`, for
+instance, carries only `radius_`/`radiusSquared_` and is centered at the
+origin — position, scale and rotation are entirely `SimpleBody`'s business. The
+same `Geometry` instance can in principle be placed by several bodies.
+
+### 4.2. povCpp: the transform lives in `TransformedGeometry` (the geometry)
+
+`src/environment/geometry/TransformedGeometry.h` is **a base class**, not a
+wrapper. Every concrete shape inherits it — `Sphere`, `Box`, `Quadric`,
+`Triangle`, `InfinitePlane`, `Blob`, `HeightField`, `ParametricBiCubicPatch`,
+`PolynomialShape`, `ConstructiveSolidGeometry`, `LightGeometryAdapter` — so the
+placement matrix is a member of the shape itself:
+
+```cpp
+class TransformedGeometry : public Geometry {
+  protected:
+    Matrix4x4d *transformation = nullptr;          // nullptr == identity
+    Matrix4x4d *transformationInverse = nullptr;
+  public:
+    virtual void translateGeometry(Vector3Dd *vector);
+    virtual void rotateGeometry(Vector3Dd *vector);
+    virtual void scaleGeometry(Vector3Dd *vector);
+};
+```
+
+- A **single combined matrix** (plus its inverse) is accumulated at parse time
+  by `translateGeometry`/`rotateGeometry`/`scaleGeometry`. There is no
+  position/scale/rotation decomposition and no fast-path flag set — the leaf
+  always goes through the general inverse-matrix path (`nullptr` short-circuits
+  to the identity case).
+- The matrices are lazily allocated (`ensureMatrices()`), so an untransformed
+  shape pays nothing and intersects in world space directly.
+- Each leaf's `doIntersectionForAllRayCrossings` does the object-space
+  transform itself: e.g. `Sphere::intersectSphere` maps `ray->getOrigin()`/
+  `getDirection()` through `transformationInverse`, intersects the canonical
+  unit sphere, and divides `t` back by the (non-unit) object-space direction
+  length. `normal()` maps the point through the inverse and back through
+  `withoutTranslation()` of the inverse.
+
+So povCpp's `Sphere` is a **strict canonical unit sphere at the origin**: even
+the radius is carried by the matrix (`scale(r)`), unlike VITRAL's radius-bearing
+`Sphere`.
+
+### 4.3. `Geometry` is transform-free on both sides
+
+This is the part that is now **aligned**. povCpp's `Geometry` base
+(`src/environment/geometry/Geometry.h`) declares no `translate/rotate/scale`
+and no matrix — only the intersection/containment/normal/copy primitives,
+exactly like VITRAL's `Geometry` (which also has no transform). The transform
+ops live one level down: in `TransformedGeometry` (povCpp) or in `SimpleBody`
+(VITRAL). The divergence is purely *which* level: povCpp pushes the matrix into
+the geometry subtype; VITRAL keeps it in the scene-level body.
+
+### 4.4. Compound and CSG transforms push down to children
+
+povCpp's container geometries do **not** accumulate a matrix of their own;
+they forward the transform into their children at parse time:
+
+- `ConstructiveSolidGeometry` (itself a `TransformedGeometry`) overrides
+  `translateGeometry`/`rotateGeometry`/`scaleGeometry` to walk its
+  `shapes` (`ArrayList<TransformedGeometry*>`) and call each child's own
+  `*Geometry` op, transforming the parallel `shapeMaterials` to match.
+- `BoundedGeometry`/`Composite` expose virtual `translate`/`rotate`/`scale`
+  that propagate into the bounded geometry and into nested composites'
+  children (the virtual dispatch is what lets an outer composite's transform
+  reach a nested composite's children).
+
+The result is that after parsing, every leaf carries the full
+already-composed world transform in its own `TransformedGeometry` matrix; there
+is no transform left to apply at the container level during traversal.
+
+### 4.5. `SimpleBody` is now a thin parse-time bundle
+
+povCpp's `SimpleBody` (`src/environment/scene/SimpleBody.h`) is **not** a
+`Geometry` subclass and is **not** the scene's render-time unit. It is a small
+holder of `{TransformedGeometry* + Material* + ColorRgba*}` used while parsing;
+its `translate`/`rotate`/`scale` delegate to the geometry's `*Geometry` ops
+*and* transform the held material, and `releaseGeometry()`/`releaseMaterial()`/
+`releaseShapeColor()` hand ownership off into the long-lived structures
+(`ConstructiveSolidGeometry::addShape`, `BoundedGeometry`). The render path
+iterates `Scene::getObjects()` as `ArrayList<BoundedGeometry*>`, where each
+`BoundedGeometry` holds its `TransformedGeometry* geometry` + `Material*
+geometryMaterial` directly — not a `SimpleBody`.
+
+This is the inverse of VITRAL, where `SimpleBody` *is* the render-time unit and
+the holder of the transform. The naming matches; the responsibility does not.
+
+---
+
+## 5. CSG in povCpp: two interchangeable algorithms
 
 `ConstructiveSolidGeometry` (`environment/geometry/volume/constructiveSolidGeometry/`)
-is an abstract base (owns the child list and the `UNION`/`INTERSECTION`/
-`DIFFERENCE` `geometryType`) with two concrete strategies. Which one is
-instantiated is decided by `CsgParser::parse`, based on
-`ParserContext::usesCsgRoth()` (the `-csgRoth` command-line flag):
+is an abstract base (a `TransformedGeometry` that owns the child list as
+`shapes`/`shapeMaterials` and the `UNION`/`INTERSECTION`/`DIFFERENCE`
+`geometryType`) with two concrete strategies. Which one is instantiated is
+decided by `CsgParser::parse`, based on `ParserContext::usesCsgRoth()` (the
+`-csgRoth` command-line flag):
 
-### 4.1. `ConstructiveSolidGeometryByMorganRules` (default)
+### 5.1. `ConstructiveSolidGeometryByMorganRules` (default)
 
 Point-membership classification, no `-csgRoth` flag needed:
 
-- Gathers **all** of each child's intersections into a queue
+- Gathers **all** of each child's crossings into a queue
   (`allCsgUnionIntersections`/`allCsgIntersectIntersections`).
 - For **each** candidate, walks **all the other children** and calls
   `doContainmentTest(point, tolerance)` to decide whether the crossing
-  survives (`insideCsgUnion`/`insideCsgIntersection`).
+  survives (`insideCsgUnion`/`insideCsgIntersection`, via `insideCsgChild`).
 - `difference` has no dedicated `geometryType`: `CsgParser` builds an
   `INTERSECTION` container and calls `invert()` on each non-first child.
   `ConstructiveSolidGeometryByMorganRules::invertGeometry()` flips
@@ -209,7 +344,7 @@ Point-membership classification, no `-csgRoth` flag needed:
   calls, and its correctness depends on `doContainmentTest` being reliable at
   points on the surface (where tolerance handling is fragile).
 
-### 4.2. `ConstructiveSolidGeometryByRaySegment` (`-csgRoth`)
+### 5.2. `ConstructiveSolidGeometryByRaySegment` (`-csgRoth`)
 
 Ray-segment classification per
 `doc/references/[ROTH1982]_RayCastingForModelingSolids.pdf` (Scott D. Roth,
@@ -226,8 +361,8 @@ Ray-segment classification per
 - `topLevel` (`setTopLevel`/`isTopLevel`, set by `CsgParser` from `!isNested`)
   marks the outermost CSG node so it can apply boundary handling that only
   makes sense once, at the top of a nested CSG tree.
-- The leaf solids (e.g. `Sphere::allIntersectionsForMaterial`) already emit
-  both crossings (entry `depth1`, exit `depth2`); this path consumes them
+- The leaf solids (e.g. `Sphere::doIntersectionForAllRayCrossings`) already
+  emit both crossings (entry `depth1`, exit `depth2`); this path consumes them
   directly as segment endpoints instead of re-deriving "inside" via
   point-membership.
 - Because segments *are* the "inside the solid" intervals, this path
@@ -236,35 +371,45 @@ Ray-segment classification per
   fragility at surface points.
 
 Both strategies implement the same `ConstructiveSolidGeometry` interface
-(`allIntersections`, `doContainmentTest`, `copy`, `invertGeometry`), so the
-rest of the engine (CSG composition, transforms, the depth-queue consumers)
-is agnostic to which one is active.
+(`doIntersectionForAllRayCrossings`, `doContainmentTest`, `copy`,
+`invertGeometry`), so the rest of the engine (CSG composition, transforms, the
+depth-queue consumers) is agnostic to which one is active.
 
 ---
 
-## 5. Correspondence table (current state)
+## 6. Correspondence table (current state)
 
 | povCpp concept | VITRAL equivalent | Status |
 |---|---|---|
 | `RayWithSegments : Ray` | `Ray` (+ segments) | shared base |
 | `Intersection` | `Intersection` (identical) | shared class |
 | `IntersectionCandidate` (Intersection + Attributes) | `RayHit` | mirrored via `PovRayHit` (read-only projection) |
-| `SimpleBody` (`{TransformedGeometry* + Material* + ColorRgba*}`) | `SimpleBody` (VITRAL's scene-level holder) | **aligned**: povCpp `SimpleBody` is now a plain holder, no longer a `Geometry` subclass; mirrors VITRAL's `{wrapped Geometry + material + color}` pattern. `SimpleBody::translate/rotate/scale` delegate to `TransformedGeometry::translateGeometry/rotateGeometry/scaleGeometry` (matrix accumulation at parse time) |
-| `TransformedGeometry` (wraps `Geometry* child` + `Matrix4x4d`) | `SimpleBody` ray-transform path | povCpp splits the concern: `TransformedGeometry` owns the matrix and ray-transform; `SimpleBody` owns material. VITRAL folds both into `SimpleBody` |
-| `Geometry` (pure intersection primitive) | `Geometry` (pure intersection primitive) | **aligned**: after migration, povCpp `Geometry` has no transform ops — only `allIntersections`, `doContainmentTest`, `doIntersectionFirstHit`, `normal`, `copy`, `invertGeometry`. `translate/rotate/scale` were removed from the base; they live only in `TransformedGeometry` and `SimpleBody` |
-| `Geometry::doIntersectionFirstHit` | `Geometry::doIntersectionFirstHit(Ray&,RayHit*)` | **same name on both sides**; in VITRAL it is the pure-virtual primitive, in povCpp a non-virtual facade over `allIntersections`. `SimpleBody` also exposes it by delegating to its wrapped `TransformedGeometry` |
-| `doContainmentTest(const Vector3Dd&, double)` | `Geometry::doContainmentTest(const Vector3Dd&, double)` | **signature identical**; both return `int` with the same constant names *and* values `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1`. The only difference: VITRAL backs them with `enum class Containment`, povCpp with bare `static constexpr int` on `Geometry`. Implemented by 15 concrete classes (9 leaves, 2 CSG strategies, `Composite`, `BoundedGeometry`, `SimpleBody`, `LightGeometryAdapter`) |
+| `Geometry` (pure intersection primitive) | `Geometry` (pure intersection primitive) | **aligned**: neither base carries any transform — only `doIntersectionForAllRayCrossings`/`doContainmentTest`/`doIntersectionFirstHit`/`normal`/`copy`/`invertGeometry` (povCpp) and `doIntersectionFirstHit`/`doContainmentTest`/`doExtraInformation`/`getMinMax` (VITRAL). `translate/rotate/scale` exist on neither `Geometry` |
+| `TransformedGeometry` (base class: matrix + `*Geometry` ops, inherited by every leaf) | `SimpleBody` (holds the transform) | **divergent ownership**: povCpp puts the placement matrix *in the geometry subtype*; VITRAL puts it in the scene-level `SimpleBody`. Same canonical-shape + inverse-matrix-on-ray idea, different owner. See §4 |
+| `SimpleBody` (`{TransformedGeometry* + Material* + ColorRgba*}`) | `SimpleBody` (render-time unit + transform holder) | **name shared, role divergent**: povCpp `SimpleBody` is a thin *parse-time* bundle, not a `Geometry` and not the render unit; the render path holds `BoundedGeometry*` directly. VITRAL `SimpleBody` is the render unit and owns the transform. See §4.5 |
+| `Geometry::doIntersectionForAllRayCrossings(Ray*, PriorityQueue*, Material* = nullptr)` | — (no equivalent) | **POV-only**, the all-crossings primitive CSG/refraction need. Intended to migrate into VITRAL (§3) |
+| `Geometry::doIntersectionFirstHit` | `Geometry::doIntersectionFirstHit(Ray&,RayHit*)` | **same name on both sides**; in VITRAL it is the pure-virtual primitive, in povCpp a non-virtual facade over `doIntersectionForAllRayCrossings`. `SimpleBody` also exposes it by delegating to its wrapped `TransformedGeometry` |
+| `doContainmentTest(const Vector3Dd&, double)` | `Geometry::doContainmentTest(const Vector3Dd&, double)` | **signature identical**; both return `int` with the same constant names *and* values `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1`. The only difference: VITRAL backs them with `enum class Containment`, povCpp with bare `static constexpr int` on `Geometry` |
 | `doExtraInformation(RayWithSegments&, t, PovRayHit*)` | `doExtraInformation(Ray,t,RayHit)` | signature aligned; forwards to `normal()`. Lazy: `RenderEngine::trace` calls it only when the ray's `requiredDetailMask` has `DETAIL_NORMAL` (`needsNormal()`), matching VITRAL's mask-gated `doExtraInformation` |
 | `PriorityQueuePool` | per-level `RayHit` workspace | same "no-alloc in hot path" pattern |
 | `Statistics` | `RaytraceStatistics` | **not unified**: povCpp keeps per-instance counters keyed by primitive type (`raySphereTests`, `rayBoxTests`, …, each with a `*Succeeded` pair); VITRAL exposes static, per-ray-category recorders (`recordPrimaryRay`, `recordShadowRay`, `recordObjectIntersectionTest`, …). Different granularity and different ownership model — no 1:1 mapping to align toward |
-| `PovRayRendererConfiguration : RendererConfiguration` (`PovRayRendererConfiguration.h`) | `RendererConfiguration` | **inherits from VITRAL's base**: `SHADING_TYPE_*` constants and `getShadingType()` come from the base; `setSurfaceLightingEnabled()` keeps the base's `shadingType` field in sync. povCpp adds an `options` bitmask with render/quality flags (`WITH_SURFACE_LIGHTING`, `WITH_SHADOWS`, …, plus IO/threading/antialias config) that have no equivalent in VITRAL's display-oriented base. Owned by `PovRayApplication`, propagated as `const PovRayRendererConfiguration&`. See §7 |
-| — (no general bounding box) | `Geometry::getMinMax()` | **divergence**: VITRAL mandates `virtual double* getMinMax() = 0` on every geometry; povCpp has no such method on `Geometry`, only `HeightField::getBoundingBox()`/`findHfMinMax`, specific to that class |
-| `CameraSnapshot` in `Scene` + parser-local `PovCameraSpec` | `Camera` + `CameraSnapshot` (`vsdk/.../environment/camera/`) | **render-time storage shared**: povCpp renders from VITRAL's `CameraSnapshot`, while the POV parser keeps a local five-vector `PovCameraSpec` so `look_at` and post-declaration transforms stay byte-identical. `RenderEngine::createRay` reads `eyePosition`/`dir`/`upWithScale`/`rightWithScale` directly from the snapshot but applies POV's own sampling/normalization. See §8 |
+| `PovRayRendererConfiguration : RendererConfiguration` (`PovRayRendererConfiguration.h`) | `RendererConfiguration` | **inherits from VITRAL's base**: `SHADING_TYPE_*` constants and `getShadingType()` come from the base; `setSurfaceLightingEnabled()` keeps the base's `shadingType` field in sync. povCpp adds an `options` bitmask with render/quality flags (`WITH_SURFACE_LIGHTING`, `WITH_SHADOWS`, …, plus IO/threading/antialias config) that have no equivalent in VITRAL's display-oriented base. Owned by `PovRayApplication`, propagated as `const PovRayRendererConfiguration&`. See §8 |
+| — (no general bounding box) | `Geometry::getMinMax()` | **divergence**: VITRAL mandates `virtual double* getMinMax() = 0` on every geometry; povCpp has no such method on `Geometry`, only `HeightField`'s class-specific bounds |
+| `CameraSnapshot` in `Scene` + parser-local `PovCameraSpec` | `Camera` + `CameraSnapshot` (`vsdk/.../environment/camera/`) | **render-time storage shared**: povCpp renders from VITRAL's `CameraSnapshot`, while the POV parser keeps a local five-vector `PovCameraSpec` so `look_at` and post-declaration transforms stay byte-identical. `RenderEngine::createRay` reads `eyePosition`/`dir`/`upWithScale`/`rightWithScale` directly from the snapshot but applies POV's own sampling/normalization. See §9 |
 
 ---
 
-## 6. Open divergences
+## 7. Open divergences
 
+- **Transform ownership (§4)**: povCpp carries the placement matrix inside the
+  geometry (`TransformedGeometry` base), VITRAL inside the scene-level
+  `SimpleBody`. The canonical-shape + inverse-matrix-on-ray mechanism is the
+  same; the owning object is not. VITRAL additionally decomposes the transform
+  (position/scale/rotation + fast-path flags) where povCpp keeps one combined
+  matrix and its inverse.
+- **All-crossings primitive (§3)**: `doIntersectionForAllRayCrossings` exists
+  only in povCpp; VITRAL has the nearest-hit primitive only. This is the
+  operation slated to migrate into VITRAL.
 - **Lazy surface-detail mask granularity**: `RayWithSegments::requiredDetailMask`
   carries the same `DETAIL_*` constants as VITRAL, and `RenderEngine::trace`
   skips the winner's normal when it is not needed (shadow rays and the `q0-1`
@@ -279,7 +424,7 @@ is agnostic to which one is active.
 - **Statistics**: structurally and conceptually different between the two
   codebases (per-instance per-primitive counters vs static per-ray-category
   recorders), solving different problems.
-- **`PovRayRendererConfiguration` scope**: povCpp's class now inherits from
+- **`PovRayRendererConfiguration` scope**: povCpp's class inherits from
   VITRAL's `RendererConfiguration`, sharing the `SHADING_TYPE_*` constants and
   `getShadingType()`. The POV-specific `options` bitmask (render quality flags,
   IO/threading/antialias config) lives only in the derived class; VITRAL's
@@ -294,11 +439,11 @@ is agnostic to which one is active.
   five raw vectors. The divergence is in sampling and normalization only: VITRAL
   samples pixel **centres** with `+0.5` and leaves the direction unnormalised,
   while povCpp samples integer coordinates and then applies `normalizedFast()`.
-  See §8.
+  See §9.
 
 ---
 
-## 7. Lazy/selective work: VITRAL's detail mask vs povCpp's `+qN` quality
+## 8. Lazy/selective work: VITRAL's detail mask vs povCpp's `+qN` quality
 
 Both engines skip work that the final image does not need, using the same two
 mechanisms: an orthogonal feature-flag set on the configuration object and a
@@ -306,7 +451,7 @@ per-ray surface-detail mask. In povCpp `+qN` is a *named preset* over those
 flags. This section describes how the two map onto each other and where they
 still differ.
 
-### 7.1. VITRAL: an orthogonal set of feature requirements
+### 8.1. VITRAL: an orthogonal set of feature requirements
 
 VITRAL's selectivity is **two cooperating, orthogonal mechanisms**:
 
@@ -327,7 +472,7 @@ The key property is **orthogonality**: "with texture", "with bump map", "flat
 vs Phong shading", and "which surface details to fill in" are independent
 switches. Turning one off does not imply any particular state of the others.
 
-### 7.2. povCpp: an orthogonal flag set with `+qN` as a preset
+### 8.2. povCpp: an orthogonal flag set with `+qN` as a preset
 
 The shading pipeline queries **feature predicates** on
 `PovRayRendererConfiguration`, each backed by a bit in the `options` bitmask:
@@ -367,14 +512,14 @@ reaches `RenderEngine` through the context, and each `RayWithSegments` carries
 a `const PovRayRendererConfiguration*` (`setConfig`/`getConfig`) so the shaders read
 the same instance. No global, no per-shader copy, no re-derivation.
 
-The **per-ray detail mask** is the second mechanism (§6): `RenderEngine::trace`
+The **per-ray detail mask** is the second mechanism (§7): `RenderEngine::trace`
 sets the primary ray's `requiredDetailMask` to `DETAIL_ALL` when
 `withSurfaceLighting()` and `DETAIL_NONE` otherwise, and skips the winner's
 normal computation (`doExtraInformation`) when the mask does not request it;
 `DirectLightShader` marks shadow rays `DETAIL_NONE`. This is the "fast preview
 cheaper than the full model" lever, expressed exactly as VITRAL expresses it.
 
-### 7.3. Shared structure and residual differences
+### 8.3. Shared structure and residual differences
 
 povCpp's selectivity and VITRAL's `requiredDetailMask` +
 `RendererConfiguration` (base) flags are **the same two encodings of the same idea** —
@@ -395,9 +540,9 @@ an orthogonal feature-flag set plus a per-ray detail mask. What they share:
 Residual differences:
 
 - **Engine traversal stays separate.** The flags select *what* to compute; they
-  do not touch the `allIntersections` + CSG + containing-media machinery that
-  povCpp needs and VITRAL's nearest-hit `SimpleRaytracer` lacks (§3). The
-  shared part is the selection vocabulary, not the traversal.
+  do not touch the `doIntersectionForAllRayCrossings` + CSG + containing-media
+  machinery that povCpp needs and VITRAL's nearest-hit `SimpleRaytracer` lacks
+  (§3). The shared part is the selection vocabulary, not the traversal.
 - **Mask granularity.** povCpp gates `NORMAL` all-or-nothing; VITRAL gates
   `POINT`/`NORMAL`/`UV`/`TANGENT` independently. povCpp computes UV inside the
   texture pipeline, not on request through the mask.
@@ -410,16 +555,16 @@ Residual differences:
   constants and `getShadingType()` from VITRAL's `RendererConfiguration`. The
   POV-specific `options` bitmask (render-quality flags, IO/threading config) has no
   equivalent in the base, and the base's display-only fields (`wires`, `points`,
-  `normals`, `wireColor`, …) are inherited but unused in the rendering path (§5).
+  `normals`, `wireColor`, …) are inherited but unused in the rendering path (§6).
 
 ---
 
-## 8. The camera: `PovCameraSpec`/`CameraSnapshot` (povCpp) vs `Camera`/`CameraSnapshot` (VITRAL)
+## 9. The camera: `PovCameraSpec`/`CameraSnapshot` (povCpp) vs `Camera`/`CameraSnapshot` (VITRAL)
 
 povCpp renders from VITRAL `CameraSnapshot`, while the parser keeps a local
 `PovCameraSpec` to preserve POV's mutable five-vector grammar.
 
-### 8.1. povCpp's parse-time camera: POV-Ray's five raw vectors
+### 9.1. povCpp's parse-time camera: POV-Ray's five raw vectors
 
 `src/io/pov/camera/PovCameraSpec.h` stores exactly the classic POV-Ray 1.0 view
 record — five `Vector3Dd` with **magnitude semantics**:
@@ -445,7 +590,7 @@ direction = direction.normalizedFast();                     // POV fast inverse-
 origin    = location;
 ```
 
-### 8.2. VITRAL's camera: orthonormal frame + FOV, baked into a snapshot
+### 9.2. VITRAL's camera: orthonormal frame + FOV, baked into a snapshot
 
 `vsdk/.../environment/camera/Camera.h` parametrises the same view differently:
 an orthonormal basis (`front`/`left`/`up`), an eye position, and scalar `fov`/
@@ -468,7 +613,7 @@ direction = rightWithScale*u + upWithScale*v + dir;   // NOT normalized
 origin    = eyePosition;
 ```
 
-### 8.3. The 1:1 mapping, and the two ways the generators differ
+### 9.3. The 1:1 mapping, and the two ways the generators differ
 
 The two ray formulas are the **same expression** — `rightScale·u + upScale·v +
 dir` from an eye origin — and povCpp's raw vectors line up exactly with the

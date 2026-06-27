@@ -29,11 +29,10 @@ class InfinitePlane : public TransformedGeometry {
     static int intersectPlane(
         RayWithSegments *ray, InfinitePlane *plane, double *depth);
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int allIntersectionsForMaterial(
+    int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *material) override;
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

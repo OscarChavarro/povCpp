@@ -302,7 +302,10 @@ This formula can now be solved for "t" by any of the quartic
 root solvers that are available.
 */
 int
-Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+Blob::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
     Blob * const blob = this;
     IntersectionCandidate localElement;
@@ -456,6 +459,7 @@ Blob::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCan
                     localElement.getIntersection().t = len;
                     localElement.getIntersection().point = intersectionPoint;
                     localElement.getAttributes().setHitGeometry(blob);
+                    localElement.getAttributes().setMaterial(materialOverride);
                     depthQueue->offer(localElement);
                     intersectionFound = true;
                 }

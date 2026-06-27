@@ -9,8 +9,12 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 
 int
-Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+Composite::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
+    (void)materialOverride;
     bool intersectionFound;
     bool anyIntersectionFound;
     TransformedGeometry *boundingShape;
@@ -42,7 +46,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
 
-        localObject->allIntersections(ray, localDepthQueue);
+        localObject->doIntersectionForAllRayCrossings(ray, localDepthQueue);
     }
 
     for (const IntersectionCandidate& candidate : *localDepthQueue) {
@@ -72,8 +76,12 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 }
 
 int
-BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+BoundedGeometry::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
+    (void)materialOverride;
     bool intersectionFound;
     bool anyIntersectionFound;
     IntersectionCandidate localIntersection;
@@ -100,7 +108,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
     anyIntersectionFound = false;
-    this->getGeometry()->allIntersectionsForMaterial(
+    this->getGeometry()->doIntersectionForAllRayCrossings(
         ray, localDepthQueue, this->getGeometryMaterial());
 
     for (const IntersectionCandidate& candidate : *localDepthQueue) {
@@ -131,16 +139,6 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     localDepthQueue->clear();
     ray->getIntersectionQueuePool()->push(localDepthQueue);
     return (anyIntersectionFound);
-}
-
-int
-BoundedGeometry::allIntersectionsForMaterial(
-    RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *material)
-{
-    (void)material;
-    return allIntersections(ray, depthQueue);
 }
 
 int

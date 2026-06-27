@@ -87,16 +87,10 @@ Sphere::intersectSphere(
 }
 
 int
-Sphere::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
-{
-    return allIntersectionsForMaterial(ray, depthQueue, nullptr);
-}
-
-int
-Sphere::allIntersectionsForMaterial(
+Sphere::doIntersectionForAllRayCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *material)
+    Material *materialOverride)
 {
     double depth1;
     double depth2;
@@ -108,7 +102,7 @@ Sphere::allIntersectionsForMaterial(
 
     IntersectionCandidate localElement;
     localElement.getAttributes().setHitGeometry(shape);
-    localElement.getAttributes().setMaterial(material);
+    localElement.getAttributes().setMaterial(materialOverride);
 
     // Intersection points use the original world-space ray + t (t is invariant
     // under the affine ray-transform because the parameterization is linear).

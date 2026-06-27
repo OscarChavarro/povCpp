@@ -46,16 +46,10 @@ Box::closeTo(double x, double y)
 }
 
 int
-Box::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
-{
-    return allIntersectionsForMaterial(ray, depthQueue, nullptr);
-}
-
-int
-Box::allIntersectionsForMaterial(
+Box::doIntersectionForAllRayCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *material)
+    Material *materialOverride)
 {
     double depth1;
     double depth2;
@@ -69,7 +63,7 @@ Box::allIntersectionsForMaterial(
         intersectionPoint = intersectionPoint.add(ray->getOrigin());
         localElement.getIntersection().point = intersectionPoint;
         localElement.getAttributes().setHitGeometry(shape);
-        localElement.getAttributes().setMaterial(material);
+        localElement.getAttributes().setMaterial(materialOverride);
         depthQueue->offer(localElement);
         intersectionFound = true;
 
@@ -79,7 +73,7 @@ Box::allIntersectionsForMaterial(
             intersectionPoint = intersectionPoint.add(ray->getOrigin());
             localElement.getIntersection().point = intersectionPoint;
             localElement.getAttributes().setHitGeometry(shape);
-            localElement.getAttributes().setMaterial(material);
+            localElement.getAttributes().setMaterial(materialOverride);
             depthQueue->offer(localElement);
             intersectionFound = true;
         }

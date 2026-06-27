@@ -1,23 +1,14 @@
 #include "io/pov/light/LightGeometryAdapter.h"
 
 int
-LightGeometryAdapter::allIntersections(
-    RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
-{
-    (void)ray;
-    (void)depthQueue;
-    return false;
-}
-
-int
-LightGeometryAdapter::allIntersectionsForMaterial(
+LightGeometryAdapter::doIntersectionForAllRayCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *material)
+    Material *materialOverride)
 {
     (void)ray;
     (void)depthQueue;
-    (void)material;
+    (void)materialOverride;
     return false;
 }
 

@@ -831,7 +831,10 @@ HeightField::findHfMinMax(HeightField *hField,
 }
 
 int
-HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+HeightField::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
@@ -844,6 +847,7 @@ HeightField::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersec
 
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayHtFieldTests();
+    localElement.getAttributes().setMaterial(materialOverride);
 
     tempRay.setOriginAndDirection(
         hField->transformationInverse->transformPoint(ray->getOrigin()),
