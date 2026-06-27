@@ -14,6 +14,17 @@ SimpleBodyBuilder::~SimpleBodyBuilder()
     delete geometry;
     delete material;
     delete shapeColor;
+    delete transformation;
+    delete transformationInverse;
+}
+
+void
+SimpleBodyBuilder::ensureMatrices()
+{
+    if (transformation == nullptr) {
+        transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
+    }
 }
 
 ColorRgba *
@@ -49,6 +60,22 @@ SimpleBodyBuilder::releaseShapeColor()
     return released;
 }
 
+Matrix4x4d *
+SimpleBodyBuilder::releaseTransformation()
+{
+    Matrix4x4d *released = transformation;
+    transformation = nullptr;
+    return released;
+}
+
+Matrix4x4d *
+SimpleBodyBuilder::releaseTransformationInverse()
+{
+    Matrix4x4d *released = transformationInverse;
+    transformationInverse = nullptr;
+    return released;
+}
+
 void
 SimpleBodyBuilder::prependMaterialLayers(Material *newHead)
 {
@@ -61,7 +88,11 @@ SimpleBodyBuilder::SimpleBodyBuilder(const SimpleBodyBuilder &other) :
     geometry(other.geometry != nullptr ?
         (Geometry *)other.geometry->copy() : nullptr),
     material(other.material != nullptr ? other.material->copy() : nullptr),
-    shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr)
+    shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr),
+    transformation(other.transformation != nullptr ?
+        new Matrix4x4d(*other.transformation) : nullptr),
+    transformationInverse(other.transformationInverse != nullptr ?
+        new Matrix4x4d(*other.transformationInverse) : nullptr)
 {
 }
 

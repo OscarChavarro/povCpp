@@ -45,10 +45,14 @@ static void
 releaseSimpleBody(
     SimpleBodyBuilder *body,
     Geometry *&geometry,
-    Material *&material)
+    Material *&material,
+    Matrix4x4d *&transformation,
+    Matrix4x4d *&transformationInverse)
 {
     geometry = body->releaseGeometry();
     material = body->releaseMaterial();
+    transformation = body->releaseTransformation();
+    transformationInverse = body->releaseTransformationInverse();
     delete body->releaseShapeColor();
     delete body;
 }
@@ -57,6 +61,8 @@ static SimpleBody *
 releaseSimpleBodyRegion(SimpleBodyBuilder *body)
 {
     Geometry *releasedGeometry = body->releaseGeometry();
+    Matrix4x4d *releasedTransformation = body->releaseTransformation();
+    Matrix4x4d *releasedTransformationInverse = body->releaseTransformationInverse();
     java::ArrayList<SimpleBody*> emptyBoundingShapes(0);
     java::ArrayList<SimpleBody*> emptyClippingShapes(0);
     delete body->releaseMaterial();
@@ -64,7 +70,8 @@ releaseSimpleBodyRegion(SimpleBodyBuilder *body)
     delete body;
     return new SimpleBody(
         releasedGeometry, nullptr, nullptr, nullptr, false,
-        emptyBoundingShapes, emptyClippingShapes);
+        emptyBoundingShapes, emptyClippingShapes,
+        releasedTransformation, releasedTransformationInverse);
 }
 
 Material *
@@ -352,7 +359,9 @@ ObjectParser::parseObject(ParserContext &ctx)
                 ctx.tokenStream().ungetToken();
                 localShape = ObjectParser::parseShape(ctx);
                 if (geometry == nullptr) {
-                    releaseSimpleBody(localShape, geometry, geometryMaterial);
+                    releaseSimpleBody(
+                        localShape, geometry, geometryMaterial,
+                        transformation, transformationInverse);
                 } else {
                     delete localShape;
                 }

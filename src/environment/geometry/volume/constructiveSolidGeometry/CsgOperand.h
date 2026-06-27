@@ -29,6 +29,18 @@ class CsgOperand {
     {
     }
 
+    CsgOperand(
+        Geometry *geometry,
+        Material *material,
+        Matrix4x4d *transformation,
+        Matrix4x4d *transformationInverse) :
+        geometry(geometry),
+        material(material),
+        transformation(transformation),
+        transformationInverse(transformationInverse)
+    {
+    }
+
     CsgOperand(const CsgOperand &other) :
         geometry(other.geometry != nullptr ?
             (Geometry *)other.geometry->copy() : nullptr),
