@@ -46,6 +46,8 @@ class Blob : public TransformedGeometry {
     int getSturmFlag() const { return sturmFlag; }
     Blob *copyWithSturmFlag(int flag) const;
 
+    AxisAlignedBox getMinMax() const override;
+
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

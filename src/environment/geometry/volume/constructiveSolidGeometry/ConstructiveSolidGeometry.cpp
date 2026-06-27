@@ -70,3 +70,13 @@ ConstructiveSolidGeometry::invert()
 {
     invertGeometry();
 }
+
+AxisAlignedBox
+ConstructiveSolidGeometry::getMinMax() const
+{
+    AxisAlignedBox result = AxisAlignedBox::empty();
+    for (long int i = 0; i < shapes.size(); i++) {
+        result = result.enclosing(shapes[i]->getMinMax());
+    }
+    return result;
+}

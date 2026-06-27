@@ -1216,3 +1216,15 @@ ParametricBiCubicPatch::doIntersectionForAllRayCrossings(
     }
     return result;
 }
+
+AxisAlignedBox
+ParametricBiCubicPatch::getMinMax() const
+{
+    AxisAlignedBox result = AxisAlignedBox::empty();
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            result = result.expandedBy(controlPoints[i][j]);
+        }
+    }
+    return result;
+}

@@ -3,6 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/Geometry.h"
+#include "environment/geometry/element/AxisAlignedBox.h"
 
 class TransformedGeometry : public Geometry {
   protected:
@@ -14,6 +15,8 @@ class TransformedGeometry : public Geometry {
 
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
+
+    virtual AxisAlignedBox getMinMax() const { return AxisAlignedBox::unbounded(); }
 
     virtual void translateGeometry(Vector3Dd *vector);
     virtual void rotateGeometry(Vector3Dd *vector);
