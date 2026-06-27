@@ -1,10 +1,10 @@
 #ifndef __LIGHT_GEOMETRY_ADAPTER__
 #define __LIGHT_GEOMETRY_ADAPTER__
 
-#include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 #include "environment/light/Light.h"
 
-class LightGeometryAdapter : public Geometry {
+class LightGeometryAdapter : public TransformedGeometry {
   public:
     explicit LightGeometryAdapter(Light *lightSource) : light(lightSource) {}
     LightGeometryAdapter(const LightGeometryAdapter &other) :

@@ -5,6 +5,22 @@ OUTPUT_DIR="${OUTPUT_DIR:-output}"
 REFERENCE_DIR="${REFERENCE_DIR:-../referenceTestImages}"
 TARGET_DIR="${TARGET_DIR:-/tmp/i}"
 
+# Difference visualization controls.
+# DIFF_GAMMA > 1 brightens the magnitude before the heat-map lookup so that
+# small (but non-zero) colour distances become visible while exact matches
+# stay black. DIFF_GRAYSCALE picks how the per-pixel colour distance is
+# collapsed to a single magnitude (RMS ~ Euclidean colour distance).
+DIFF_GAMMA="${DIFF_GAMMA:-2.2}"
+DIFF_GRAYSCALE="${DIFF_GRAYSCALE:-RMS}"
+
+# With -skip, pixel-perfect matches (AE == 0) are omitted from the final
+# listing: neither their name line nor their img2sixel preview is shown, so
+# only the failing scenes are displayed.
+SKIP_PERFECT=0
+if [[ "${1:-}" == "-skip" ]]; then
+  SKIP_PERFECT=1
+fi
+
 if [[ ! -d "${OUTPUT_DIR}" ]]; then
   echo "Missing output directory: ${OUTPUT_DIR}" >&2
   exit 1
@@ -15,11 +31,15 @@ if [[ ! -d "${REFERENCE_DIR}" ]]; then
   exit 1
 fi
 
-# Prefer ImageMagick v7 (magick), fallback to convert.
+# Prefer ImageMagick v7 (magick), fallback to convert. COMPARE_BIN is the
+# matching difference-metric tool: 'magick compare' on v7, the standalone
+# 'compare' on v6.
 if command -v magick >/dev/null 2>&1; then
   CONVERTER_BIN="magick"
+  COMPARE_BIN="magick compare"
 elif command -v convert >/dev/null 2>&1; then
   CONVERTER_BIN="convert"
+  COMPARE_BIN="compare"
 else
   echo "Neither 'magick' nor 'convert' is available in PATH" >&2
   exit 1
@@ -31,9 +51,22 @@ mkdir -p "${TARGET_DIR}"
 work_dir="$(mktemp -d /tmp/viewImages.XXXXXX)"
 trap 'rm -rf "${work_dir}"' EXIT
 
+# Build the heat-map colour lookup table once: a 256x1 strip mapping
+# magnitude 0 (left, exact match) to maximum (right). Stops:
+#   black -> blue -> cyan -> yellow -> red
+# Four 64-wide segments are appended vertically then rotated so that index 0
+# (black, "no difference") lands on the left, as -clut expects.
+clut_file="${work_dir}/heat.clut.png"
+"${CONVERTER_BIN}" \
+  \( -size 1x64 gradient:black-blue \) \
+  \( -size 1x64 gradient:blue-cyan \) \
+  \( -size 1x64 gradient:cyan-yellow \) \
+  \( -size 1x64 gradient:yellow-red \) \
+  -append -rotate -90 "${clut_file}"
+
 process_image() {
   local reference_file="$1"
-  local rel_path output_file comparison_file reference_size output_size safe_name mask_file diff_file
+  local rel_path output_file comparison_file reference_size output_size safe_name diff_file metric
 
   rel_path="${reference_file#${REFERENCE_DIR}/}"
   output_file="${OUTPUT_DIR}/${rel_path}"
@@ -53,15 +86,31 @@ process_image() {
   fi
 
   safe_name="$(printf '%s' "${rel_path}" | tr '/.' '__')"
-  mask_file="${work_dir}/${safe_name}.mask.png"
   diff_file="${work_dir}/${safe_name}.diff.png"
 
-  "${CONVERTER_BIN}" "${reference_file}" "${output_file}" -compose difference -composite -alpha off -threshold 0 "${mask_file}"
-  "${CONVERTER_BIN}" "${mask_file}" -alpha off -fill red -opaque white -fill white -opaque black "${diff_file}"
+  # Per-pixel colour distance -> single magnitude -> gamma lift -> heat-map.
+  # Exact matches stay black; the colour ramps blue/cyan/yellow/red with the
+  # size of the colour distance, so small texture shifts and missing objects
+  # are visually distinguishable instead of both being flat red.
+  "${CONVERTER_BIN}" "${reference_file}" "${output_file}" \
+    -alpha off -compose difference -composite \
+    -grayscale "${DIFF_GRAYSCALE}" \
+    -gamma "${DIFF_GAMMA}" \
+    "${clut_file}" -clut \
+    "${diff_file}"
   "${CONVERTER_BIN}" "${reference_file}" "${output_file}" "${diff_file}" +append "${comparison_file}"
+
+  # Absolute-error count: number of pixels that differ at all. 0 means an exact
+  # pixel match. Stored in a sidecar so the display loop can label the scene and
+  # honour -skip without recomputing. COMPARE_BIN is left unquoted on purpose so
+  # the two-word 'magick compare' form word-splits correctly.
+  metric="$(${COMPARE_BIN} -metric AE "${reference_file}" "${output_file}" null: 2>&1 || true)"
+  metric="${metric%% *}"
+  printf '%s' "${metric}" > "${work_dir}/${safe_name}.metric"
 }
 
-export OUTPUT_DIR REFERENCE_DIR TARGET_DIR work_dir CONVERTER_BIN
+export OUTPUT_DIR REFERENCE_DIR TARGET_DIR work_dir CONVERTER_BIN COMPARE_BIN
+export clut_file DIFF_GAMMA DIFF_GRAYSCALE
 export -f process_image
 
 reference_count="$(find "${REFERENCE_DIR}" -type f -name '*.tga' | wc -l)"
@@ -98,10 +147,23 @@ if [[ "${reference_count}" -ne 108 ]]; then
 fi
 
 while IFS= read -r file_path; do
+  rel_png="${file_path#${TARGET_DIR}/}"
+  safe_name="$(printf '%s' "${rel_png%.png}.tga" | tr '/.' '__')"
+  metric="$(cat "${work_dir}/${safe_name}.metric" 2>/dev/null || true)"
+
+  if [[ "${metric}" == "0" ]]; then
+    if [[ "${SKIP_PERFECT}" -eq 1 ]]; then
+      continue
+    fi
+    label="(pixel match)"
+  else
+    label="(AE=${metric:-?})"
+  fi
+
   echo ""
-  echo "${file_path}"
+  echo "${file_path} ${label}"
   img2sixel "${file_path}"
-done < <(find "${TARGET_DIR}" -type f | sort)
+done < <(find "${TARGET_DIR}" -type f -name '*.png' | sort)
 
 if [[ "${job_failed}" -ne 0 ]]; then
   exit 1

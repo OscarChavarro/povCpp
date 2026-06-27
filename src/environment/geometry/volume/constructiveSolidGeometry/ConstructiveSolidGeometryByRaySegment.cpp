@@ -11,7 +11,7 @@
 // classify (Table 3 of [ROTH1982].3.3 assumes bounded operands), so
 // allIntersections() skips the merge for it below.
 static bool
-isUnionOfBarePlanes(BooleanSetOperations geometryType, java::ArrayList<TransformableElement*> &children)
+isUnionOfBarePlanes(BooleanSetOperations geometryType, java::ArrayList<SimpleBody*> &children)
 {
     if (geometryType == BooleanSetOperations::DIFFERENCE ||
         geometryType == BooleanSetOperations::INTERSECTION) {
@@ -35,7 +35,7 @@ ConstructiveSolidGeometryByRaySegment::ConstructiveSolidGeometryByRaySegment(con
     topLevel(other.isTopLevel())
 {
     for (long int i = 0; i < other.getShapes().size(); i++) {
-        getShapes().add((TransformableElement *)other.getShapes()[i]->copy());
+        getShapes().add((SimpleBody *)other.getShapes()[i]->copy());
     }
 }
 
@@ -47,7 +47,7 @@ ConstructiveSolidGeometryByRaySegment::copy()
 
 // Per-child RAYCAST classification ([ROTH1982].3.3, "In-Out Classification").
 RaySegments
-ConstructiveSolidGeometryByRaySegment::buildRaySegments(RayWithSegments *ray, TransformableElement *child)
+ConstructiveSolidGeometryByRaySegment::buildRaySegments(RayWithSegments *ray, SimpleBody *child)
 {
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -63,7 +63,7 @@ ConstructiveSolidGeometryByRaySegment::buildRaySegments(RayWithSegments *ray, Tr
         Vector3Dd samplePoint = ray->getOrigin().add(
             ray->getDirection().multiply(0.5 * firstCandidate.getIntersection().t));
         initialInside =
-            child->doContainmentTest(samplePoint, 0.0) == TransformableElement::INSIDE;
+            child->doContainmentTest(samplePoint, 0.0) == Geometry::INSIDE;
     } else {
         // See [ROTH1982] Bug B (math/trough.pov): a continuation ray
         // starting exactly on this child's surface needs a positive offset,
@@ -71,7 +71,7 @@ ConstructiveSolidGeometryByRaySegment::buildRaySegments(RayWithSegments *ray, Tr
         Vector3Dd samplePoint =
             ray->getOrigin().add(ray->getDirection().multiply(2.0 * Config::SMALL_TOLERANCE));
         initialInside =
-            child->doContainmentTest(samplePoint, 0.0) == TransformableElement::INSIDE;
+            child->doContainmentTest(samplePoint, 0.0) == Geometry::INSIDE;
     }
 
     java::ArrayList<RaySegmentCrossing> crossings{localDepthQueue->size()};
@@ -176,7 +176,7 @@ ConstructiveSolidGeometryByRaySegment::mergeDifference(const RaySegments &left, 
 int
 ConstructiveSolidGeometryByRaySegment::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
-    java::ArrayList<TransformableElement*> &children = getShapes();
+    java::ArrayList<SimpleBody*> &children = getShapes();
     if (children.size() == 0) {
         return false;
     }
@@ -219,7 +219,7 @@ ConstructiveSolidGeometryByRaySegment::allIntersections(RayWithSegments *ray, ja
 int
 ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    java::ArrayList<TransformableElement*> &children = getShapes();
+    java::ArrayList<SimpleBody*> &children = getShapes();
     if (children.size() == 0) {
         return OUTSIDE;
     }
@@ -261,7 +261,7 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
 void
 ConstructiveSolidGeometryByRaySegment::invertGeometry()
 {
-    java::ArrayList<TransformableElement*> &children = getShapes();
+    java::ArrayList<SimpleBody*> &children = getShapes();
 
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         setGeometryType(BooleanSetOperations::UNION);

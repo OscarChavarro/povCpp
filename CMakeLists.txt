@@ -39,7 +39,6 @@ add_executable(povray
     src/environment/material/pigment/WoodPigment.cpp
     src/environment/material/PovRayRendererConfiguration.cpp
     src/io/pov/material/DefaultTextureAliasTracker.cpp
-    src/environment/geometry/element/TransformableElement.cpp
     src/environment/geometry/element/RayWithSegments.cpp
     src/environment/geometry/surface/parametric/ParametricPatch.cpp
     src/environment/geometry/surface/parametric/ParametricBiCubicIntersection.cpp
@@ -52,6 +51,7 @@ add_executable(povray
     src/environment/geometry/volume/constructiveSolidGeometry/RaySegments.cpp
     src/environment/geometry/volume/HeightField.cpp
     src/environment/geometry/Geometry.cpp
+    src/environment/geometry/TransformedGeometry.cpp
     src/environment/geometry/volume/compound/Composite.cpp
     src/environment/geometry/surface/InfinitePlane.cpp
     src/environment/geometry/volume/polynomial/PolynomialShape.cpp

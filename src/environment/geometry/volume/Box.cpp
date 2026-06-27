@@ -18,8 +18,6 @@ Box::Box(const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) 
 
 Box::Box(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
     const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) :
-    transformation(nullptr),
-    transformationInverse(nullptr),
     bounds{minBounds, maxBounds},
     inverted(inverted)
 {
@@ -37,8 +35,7 @@ Box::Box(const Box &other) :
 
 Box::~Box()
 {
-    delete transformation;
-    delete transformationInverse;
+    // transformation/transformationInverse deleted by TransformedGeometry::~TransformedGeometry()
 }
 
 
@@ -223,7 +220,6 @@ Box::intersectBoxx(
     *depth1 = tmin;
     *depth2 = tmax;
 
-    // Logger::info("Box intersects: %g, %g\n", *Depth1, *Depth2);
     if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
         if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
             return (false);
@@ -298,7 +294,7 @@ Box::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
         *result = result->withX(1.0);
     }
 
-    // Transform the point into the boxes space
+    // Transform the normal back to world space
     if (box->transformation != nullptr) {
         *result = box->transformationInverse->withoutTranslation().multiply(*result);
         *result = (*result).normalizedFast();
@@ -309,59 +305,6 @@ void *
 Box::copy()
 {
     return new Box(*this);
-}
-
-void
-Box::translateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    Box * const box = this;
-    if (box->transformation == nullptr) {
-        box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().translation(
-        vector->x(), vector->y(), vector->z()).transpose();
-    deltaTransformationInverse = Matrix4x4d().translation(
-        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    *box->transformation = box->transformation->multiply(deltaTransformation);
-    *box->transformationInverse =
-        deltaTransformationInverse.multiply(*box->transformationInverse);
-}
-
-void
-Box::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    Box * const box = this;
-    if (box->transformation == nullptr) {
-        box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
-    *box->transformation = box->transformation->multiply(deltaTransformation);
-    *box->transformationInverse =
-        deltaTransformationInverse.multiply(*box->transformationInverse);
-}
-
-void
-Box::scaleGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    Box * const box = this;
-    if (box->transformation == nullptr) {
-        box->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        box->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    deltaTransformationInverse = Matrix4x4d().scale(
-        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    *box->transformation = box->transformation->multiply(deltaTransformation);
-    *box->transformationInverse =
-        deltaTransformationInverse.multiply(*box->transformationInverse);
 }
 
 void

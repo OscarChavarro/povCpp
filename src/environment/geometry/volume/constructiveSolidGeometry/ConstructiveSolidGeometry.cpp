@@ -26,7 +26,7 @@ ConstructiveSolidGeometry::allIntersectionsForMaterial(
 void
 ConstructiveSolidGeometry::translateGeometry(Vector3Dd *vector)
 {
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = shapes.size() - 1; i >= 0; i--) {
         localShape = shapes[i];
@@ -43,7 +43,7 @@ ConstructiveSolidGeometry::translate(Vector3Dd *vector)
 void
 ConstructiveSolidGeometry::rotateGeometry(Vector3Dd *vector)
 {
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = shapes.size() - 1; i >= 0; i--) {
         localShape = shapes[i];
@@ -60,7 +60,7 @@ ConstructiveSolidGeometry::rotate(Vector3Dd *vector)
 void
 ConstructiveSolidGeometry::scaleGeometry(Vector3Dd *vector)
 {
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = shapes.size() - 1; i >= 0; i--) {
         localShape = shapes[i];

@@ -11,7 +11,7 @@
  */
 class ConstructiveSolidGeometryByRaySegment : public ConstructiveSolidGeometry {
   private:
-    static RaySegments buildRaySegments(RayWithSegments *ray, TransformableElement *child);
+    static RaySegments buildRaySegments(RayWithSegments *ray, SimpleBody *child);
     static RaySegments mergeUnion(const RaySegments &left, const RaySegments &right);
     static RaySegments mergeIntersection(const RaySegments &left, const RaySegments &right);
     static RaySegments mergeDifference(const RaySegments &left, const RaySegments &right);

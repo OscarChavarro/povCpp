@@ -4,11 +4,11 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/BoundedGeometry.h"
-#include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"
 
-class Blob : public Geometry {
+class Blob : public TransformedGeometry {
   private:
     static constexpr double COEFFICIENT_LIMIT = 1.0e-20;
     static constexpr double INSIDE_TOLERANCE = 1.0e-6;

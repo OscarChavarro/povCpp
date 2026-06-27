@@ -5,24 +5,25 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/material/Material.h"
+#include "environment/scene/SimpleBody.h"
 
 class BoundedGeometry : public Geometry {
   private:
-    java::ArrayList<TransformableElement*> boundingShapes{4};
-    java::ArrayList<TransformableElement*> clippingShapes{4};
-    TransformableElement *geometry;
+    java::ArrayList<SimpleBody*> boundingShapes{4};
+    java::ArrayList<SimpleBody*> clippingShapes{4};
+    SimpleBody *geometry;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
 
   public:
     BoundedGeometry(
-        TransformableElement *geometry,
+        SimpleBody *geometry,
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<TransformableElement*> &boundingShapes,
-        const java::ArrayList<TransformableElement*> &clippingShapes) :
+        const java::ArrayList<SimpleBody*> &boundingShapes,
+        const java::ArrayList<SimpleBody*> &clippingShapes) :
         boundingShapes(boundingShapes),
         clippingShapes(clippingShapes),
         geometry(geometry),
@@ -45,11 +46,11 @@ class BoundedGeometry : public Geometry {
     // its own simpleBodies.
     virtual void detachOwnership();
 
-    java::ArrayList<TransformableElement*>& getBoundingShapes() { return boundingShapes; }
-    const java::ArrayList<TransformableElement*>& getBoundingShapes() const { return boundingShapes; }
-    java::ArrayList<TransformableElement*>& getClippingShapes() { return clippingShapes; }
-    const java::ArrayList<TransformableElement*>& getClippingShapes() const { return clippingShapes; }
-    TransformableElement *getGeometry() const { return geometry; }
+    java::ArrayList<SimpleBody*>& getBoundingShapes() { return boundingShapes; }
+    const java::ArrayList<SimpleBody*>& getBoundingShapes() const { return boundingShapes; }
+    java::ArrayList<SimpleBody*>& getClippingShapes() { return clippingShapes; }
+    const java::ArrayList<SimpleBody*>& getClippingShapes() const { return clippingShapes; }
+    SimpleBody *getGeometry() const { return geometry; }
     bool getNoShadowFlag() const { return noShadowFlag; }
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }
@@ -61,10 +62,15 @@ class BoundedGeometry : public Geometry {
         Material *material) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
-    void translate(Vector3Dd *vector) override;
-    void rotate(Vector3Dd *vector) override;
-    void scale(Vector3Dd *vector) override;
-    void invert() override;
+    // Virtual so a nested Composite child reached through a BoundedGeometry*
+    // (e.g. from Composite::translate's simpleBodies loop) dispatches to
+    // Composite's override, which propagates the transform into its own
+    // simpleBodies. Without this, transforms applied to an outer composite
+    // never reach the children of a nested composite.
+    virtual void translate(Vector3Dd *vector);
+    virtual void rotate(Vector3Dd *vector);
+    virtual void scale(Vector3Dd *vector);
+    virtual void invert();
 };
 
 #endif

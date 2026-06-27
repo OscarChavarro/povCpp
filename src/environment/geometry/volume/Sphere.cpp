@@ -1,98 +1,85 @@
 #include "java/lang/Math.h"
 #include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
+#include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/Sphere.h"
 
-Sphere::Sphere(const Vector3Dd &center, double radius, bool inverted) :
-    Sphere(center, radius, radius * radius, 1.0 / radius, Vector3Dd(),
-        0.0, false, false, inverted)
+Sphere::Sphere() :
+    inverted(false)
 {
 }
 
-Sphere::Sphere(const Vector3Dd &center, double radius, double radiusSquared,
-    double inverseRadius, const Vector3Dd &vpOtoC, double vpOCSquared,
-    short vpInside, bool vpCached, bool inverted) :
-    center(center),
-    radius(radius),
-    radiusSquared(radiusSquared),
-    inverseRadius(inverseRadius),
-    vpOtoC(vpOtoC),
-    vpOCSquared(vpOCSquared),
-    vpInside(vpInside),
-    vpCached(vpCached),
+Sphere::Sphere(bool inverted) :
     inverted(inverted)
 {
 }
 
-void
-Sphere::updateRadiusState(double localRadius)
+Sphere::Sphere(const Sphere &other) :
+    inverted(other.inverted)
 {
-    this->radius = localRadius;
-    radiusSquared = localRadius * localRadius;
-    inverseRadius = 1.0 / localRadius;
+    if (other.getTransformation() != nullptr) {
+        transformation = new Matrix4x4d(*other.getTransformation());
+        transformationInverse = new Matrix4x4d(*other.getTransformationInverse());
+    }
 }
 
-int
+bool
 Sphere::intersectSphere(
-    const RayWithSegments *ray, Sphere *sphere, double *depth1, double *depth2)
+    const RayWithSegments *ray, const Sphere *sphere,
+    double *depth1, double *depth2)
 {
     Statistics &stats = *ray->getStatistics();
     stats.incrementRaySphereTests();
 
-    Vector3Dd originToCenter;
-    double ocSquared;
-    double tClosestApproach;
-    double tHalfChordSquared;
-    short inside;
-
-    if (ray->isPrimaryRayEnabled()) {
-        if (!sphere->isVpCached()) {
-            sphere->getVpOtoC() = sphere->getCenter().subtract(ray->getOrigin());
-            sphere->setVpOCSquared(sphere->getVpOtoC().dotProduct(sphere->getVpOtoC()));
-            sphere->setVpInside((sphere->getVpOCSquared() < sphere->getRadiusSquared()));
-            sphere->setVpCached(true);
-        }
-        tClosestApproach = sphere->getVpOtoC().dotProduct(ray->getDirection());
-        if (!sphere->getVpInside() &&
-            (tClosestApproach < Config::SMALL_TOLERANCE)) {
-            return false;
-        }
-        tHalfChordSquared = sphere->getRadiusSquared() - sphere->getVpOCSquared() +
-                            (tClosestApproach * tClosestApproach);
+    // Transform ray to object space (canonical unit sphere at origin).
+    Vector3Dd p, d;
+    if (sphere->getTransformation() != nullptr) {
+        p = sphere->getTransformationInverse()->transformPoint(ray->getOrigin());
+        d = sphere->getTransformationInverse()->transformDirection(ray->getDirection());
     } else {
-        originToCenter = sphere->getCenter().subtract(ray->getOrigin());
-        ocSquared = originToCenter.dotProduct(originToCenter);
-        inside = (ocSquared < sphere->getRadiusSquared());
-        tClosestApproach = originToCenter.dotProduct(ray->getDirection());
-        if (!inside && (tClosestApproach < Config::SMALL_TOLERANCE)) {
-            return false;
-        }
-
-        tHalfChordSquared = sphere->getRadiusSquared() - ocSquared +
-                            (tClosestApproach * tClosestApproach);
+        p = ray->getOrigin();
+        d = ray->getDirection();
     }
 
+    // The object-space direction is NOT unit length: transformPoint/Direction by
+    // the inverse of translate(center)*scale(r) leaves |d| = |worldDir| / r. The
+    // closed-form chord formula below assumes a unit direction, so normalize d
+    // here and convert the resulting (normalized-units) t back to world t by
+    // dividing by |d|. Because the ray parameterization is shared between world
+    // and object space (affine map), world t == object t; this division recovers
+    // it exactly. (Skipping this is what made every sphere with r != 1 render at
+    // the wrong size, and made r >~ 1.4 vanish entirely - the discriminant went
+    // negative.)
+    const double directionLength = java::Math::sqrt(d.dotProduct(d));
+    const Vector3Dd unitDirection = d.multiply(1.0 / directionLength);
+
+    // Unit sphere at origin: O2C = -p
+    const double ocSquared = p.dotProduct(p);
+    const bool inside = (ocSquared < 1.0);
+    const double tClosestApproach = -p.dotProduct(unitDirection);
+
+    if (!inside && tClosestApproach < Config::SMALL_TOLERANCE) {
+        return false;
+    }
+
+    const double tHalfChordSquared = 1.0 - ocSquared + tClosestApproach * tClosestApproach;
     if (tHalfChordSquared < Config::SMALL_TOLERANCE) {
         return false;
     }
 
     const double halfChord = java::Math::sqrt(tHalfChordSquared);
-    *depth1 = tClosestApproach + halfChord;
-    *depth2 = tClosestApproach - halfChord;
+    *depth1 = (tClosestApproach + halfChord) / directionLength;
+    *depth2 = (tClosestApproach - halfChord) / directionLength;
 
     if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
         if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
             return false;
         }
         *depth1 = *depth2;
-
-    } else {
-        if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
-            *depth2 = *depth1;
-        }
+    } else if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+        *depth2 = *depth1;
     }
 
     stats.incrementRaySphereTestsSucceeded();
@@ -113,55 +100,61 @@ Sphere::allIntersectionsForMaterial(
 {
     double depth1;
     double depth2;
-    Vector3Dd intersectionPoint;
-    IntersectionCandidate localElement;
     Sphere * const shape = this;
 
-    bool intersectionFound = false;
-    if (Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
-        localElement.getIntersection().t = depth1;
-        intersectionPoint = ray->getDirection().multiply(depth1);
-        intersectionPoint = intersectionPoint.add(ray->getOrigin());
-        localElement.getIntersection().point = intersectionPoint;
-        localElement.getAttributes().setHitGeometry(shape);
-        localElement.getAttributes().setMaterial(material);
-        depthQueue->offer(localElement);
-        intersectionFound = true;
-
-        if (depth2 != depth1) {
-            localElement.getIntersection().t = depth2;
-            intersectionPoint = ray->getDirection().multiply(depth2);
-            intersectionPoint = intersectionPoint.add(ray->getOrigin());
-            localElement.getIntersection().point = intersectionPoint;
-            localElement.getAttributes().setHitGeometry(shape);
-            localElement.getAttributes().setMaterial(material);
-            depthQueue->offer(localElement);
-            intersectionFound = true;
-        }
+    if (!Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
+        return 0;
     }
-    return intersectionFound;
+
+    IntersectionCandidate localElement;
+    localElement.getAttributes().setHitGeometry(shape);
+    localElement.getAttributes().setMaterial(material);
+
+    // Intersection points use the original world-space ray + t (t is invariant
+    // under the affine ray-transform because the parameterization is linear).
+    localElement.getIntersection().t = depth1;
+    localElement.getIntersection().point =
+        ray->getDirection().multiply(depth1).add(ray->getOrigin());
+    depthQueue->offer(localElement);
+
+    if (depth2 != depth1) {
+        localElement.getIntersection().t = depth2;
+        localElement.getIntersection().point =
+            ray->getDirection().multiply(depth2).add(ray->getOrigin());
+        depthQueue->offer(localElement);
+    }
+
+    return 1;
 }
 
 int
 Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
-    const Sphere *sphere = this;
-    const Vector3Dd originToCenter = sphere->getCenter().subtract(testPoint);
-    const double ocSquared = originToCenter.dotProduct(originToCenter);
-
-    if (sphere->isInverted()) {
-        return (ocSquared - sphere->getRadiusSquared() > distanceTolerance) ? INSIDE : OUTSIDE;
+    Vector3Dd q;
+    if (getTransformation() != nullptr) {
+        q = getTransformationInverse()->transformPoint(testPoint);
+    } else {
+        q = testPoint;
     }
-    return (ocSquared - sphere->getRadiusSquared() < distanceTolerance) ? INSIDE : OUTSIDE;
+    const double distSq = q.dotProduct(q);
+    if (inverted) {
+        return (distSq - 1.0 > distanceTolerance) ? INSIDE : OUTSIDE;
+    }
+    return (distSq - 1.0 < distanceTolerance) ? INSIDE : OUTSIDE;
 }
 
 void
 Sphere::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    const Sphere *sphere = this;
-
-    *result = intersectionPoint->subtract(sphere->getCenter());
-    *result = (*result).multiply(sphere->getInverseRadius());
+    // For a unit sphere at origin, the object-space normal equals the
+    // object-space intersection point (since center = (0,0,0), radius = 1).
+    if (getTransformation() != nullptr) {
+        *result = getTransformationInverse()->transformPoint(*intersectionPoint);
+        *result = getTransformationInverse()->withoutTranslation().multiply(*result);
+        *result = result->normalizedFast();
+    } else {
+        *result = intersectionPoint->normalizedFast();
+    }
 }
 
 void *
@@ -171,37 +164,9 @@ Sphere::copy()
 }
 
 void
-Sphere::translateGeometry(Vector3Dd *vector)
-{
-    this->getCenter() = this->getCenter().add(*vector);
-}
-
-void
-Sphere::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d transformation;
-    Matrix4x4d transformationInverse;
-
-    transformation.axisRotationRodrigues(&transformationInverse, vector);
-    this->getCenter() = transformation.transpose().multiply(this->getCenter());
-}
-
-void
-Sphere::scaleGeometry(Vector3Dd *vector)
-{
-    Sphere * const sphere = this;
-
-    if ((vector->x() != vector->y()) || (vector->x() != vector->z())) {
-        const double s = (java::Math::abs(vector->x()) + java::Math::abs(vector->y()) + java::Math::abs(vector->z())) / 3.0;
-        *vector = Vector3Dd(s, s, s);
-    }
-
-    sphere->getCenter() = sphere->getCenter().multiply(vector->x());
-    sphere->updateRadiusState(sphere->getRadius() * vector->x());
-}
-
-void
 Sphere::invertGeometry()
 {
-    this->toggleInverted();
+    inverted = !inverted;
 }
+
+#include "java/util/PriorityQueue.txx"

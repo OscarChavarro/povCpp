@@ -1,7 +1,7 @@
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/scene/SimpleBody.h"
 
-SimpleBody::SimpleBody(Geometry *geometry, Material *material, ColorRgba *shapeColor) :
+SimpleBody::SimpleBody(TransformedGeometry *geometry, Material *material, ColorRgba *shapeColor) :
     geometry(geometry),
     material(material),
     shapeColor(shapeColor)
@@ -32,9 +32,25 @@ SimpleBody::prependMaterialLayers(Material *newHead)
     }
 }
 
+bool
+SimpleBody::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
+{
+    return getGeometry()->doIntersectionFirstHit(ray, out);
+}
+
 int
 SimpleBody::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
+    return getGeometry()->allIntersectionsForMaterial(ray, depthQueue, getMaterial());
+}
+
+int
+SimpleBody::allIntersectionsForMaterial(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *mat)
+{
+    (void)mat;
     return getGeometry()->allIntersectionsForMaterial(ray, depthQueue, getMaterial());
 }
 
@@ -61,7 +77,7 @@ SimpleBody::normal(
 
 SimpleBody::SimpleBody(const SimpleBody &other) :
     geometry(other.geometry != nullptr ?
-        (Geometry *)other.geometry->copy() : nullptr),
+        (TransformedGeometry *)other.geometry->copy() : nullptr),
     material(other.material != nullptr ? other.material->copy() : nullptr),
     shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr)
 {

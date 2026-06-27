@@ -2,9 +2,9 @@
 #define __INFINITE_PLANE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 
-class InfinitePlane : public Geometry {
+class InfinitePlane : public TransformedGeometry {
   public:
     InfinitePlane();
     InfinitePlane(const Vector3Dd &normalVector, double distance);

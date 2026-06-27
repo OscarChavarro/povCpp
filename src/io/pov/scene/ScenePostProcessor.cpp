@@ -16,8 +16,7 @@ ScenePostProcessor::linkLights(BoundedGeometry *object, java::ArrayList<Light*> 
             ScenePostProcessor::linkLights(simpleBodies[i], lights);
         }
     } else {
-        ScenePostProcessor::linkLightsInShape(
-            static_cast<SimpleBody*>(object->getGeometry()), lights);
+        ScenePostProcessor::linkLightsInShape(object->getGeometry(), lights);
     }
 }
 
@@ -25,10 +24,9 @@ void
 ScenePostProcessor::linkLightsInShape(SimpleBody *shape, java::ArrayList<Light*> &lights)
 {
     if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape->getGeometry())) {
-        java::ArrayList<TransformableElement*> &shapes = csg->getShapes();
+        java::ArrayList<SimpleBody*> &shapes = csg->getShapes();
         for (long int i = 0; i < shapes.size(); i++) {
-            ScenePostProcessor::linkLightsInShape(
-                static_cast<SimpleBody*>(shapes[i]), lights);
+            ScenePostProcessor::linkLightsInShape(shapes[i], lights);
         }
     } else if (LightGeometryAdapter *lightAdapter =
                    dynamic_cast<LightGeometryAdapter *>(shape->getGeometry())) {
