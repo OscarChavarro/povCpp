@@ -5,7 +5,7 @@
 
 class ConstructiveSolidGeometryByMorganRules : public ConstructiveSolidGeometry {
   private:
-    static int insideCsgChild(Vector3Dd *point, TransformedGeometry *shape);
+    static int insideCsgChild(Vector3Dd *point, CsgOperand *operand);
     int allCsgUnionIntersections(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

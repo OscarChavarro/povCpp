@@ -20,9 +20,9 @@ ConstructiveSolidGeometryByMorganRules::ConstructiveSolidGeometryByMorganRules(c
 }
 
 int
-ConstructiveSolidGeometryByMorganRules::insideCsgChild(Vector3Dd *point, TransformedGeometry *shape)
+ConstructiveSolidGeometryByMorganRules::insideCsgChild(Vector3Dd *point, CsgOperand *operand)
 {
-    return shape->doContainmentTest(*point, Config::SMALL_TOLERANCE) != Geometry::OUTSIDE;
+    return operand->doContainmentTest(*point, Config::SMALL_TOLERANCE) != Geometry::OUTSIDE;
 }
 
 int
@@ -43,14 +43,11 @@ ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    TransformedGeometry *localShape;
-
     bool intersectionFound = false;
     for (long int i = getOperands().size() - 1; i >= 0; i--) {
         CsgOperand *operand = getOperands()[i];
-        localShape = operand->getGeometry();
-        if (localShape->doIntersectionForAllRayCrossings(
-                ray, depthQueue, operand->getEffectiveMaterial(materialOverride))) {
+        if (operand->doIntersectionForAllRayCrossings(
+                ray, depthQueue, materialOverride)) {
             intersectionFound = true;
         }
     }
@@ -65,8 +62,8 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
     Material *materialOverride)
 {
     bool intersectionFound;
-    TransformedGeometry *localShape;
-    TransformedGeometry *shape2;
+    CsgOperand *localShape;
+    CsgOperand *shape2;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     IntersectionCandidate localIntersection;
 
@@ -75,11 +72,10 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
     bool anyIntersectionFound = false;
 
     for (long int i = getOperands().size() - 1; i >= 0; i--) {
-        CsgOperand *operand = getOperands()[i];
-        localShape = operand->getGeometry();
+        localShape = getOperands()[i];
 
         localShape->doIntersectionForAllRayCrossings(
-            ray, localDepthQueue, operand->getEffectiveMaterial(materialOverride));
+            ray, localDepthQueue, materialOverride);
 
         for (const IntersectionCandidate& candidate : *localDepthQueue) {
             localIntersection = candidate;
@@ -87,10 +83,11 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
             intersectionFound = true;
 
             for (long int j = getOperands().size() - 1; j >= 0; j--) {
-                shape2 = getOperands()[j]->getGeometry();
+                shape2 = getOperands()[j];
 
                 if (shape2 != localShape) {
-                    if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(&localIntersection.getIntersection().point, shape2)) {
+                    if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(
+                            &localIntersection.getIntersection().point, shape2)) {
                         intersectionFound = false;
                         break;
                     }
@@ -114,12 +111,9 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
 int
 ConstructiveSolidGeometryByMorganRules::insideCsgUnion(Vector3Dd *testPoint)
 {
-    TransformedGeometry *localShape;
-
     for (long int i = getOperands().size() - 1; i >= 0; i--) {
-        localShape = getOperands()[i]->getGeometry();
-
-        if (ConstructiveSolidGeometryByMorganRules::insideCsgChild(testPoint, localShape)) {
+        if (ConstructiveSolidGeometryByMorganRules::insideCsgChild(
+                testPoint, getOperands()[i])) {
             return (true);
         }
     }
@@ -129,12 +123,9 @@ ConstructiveSolidGeometryByMorganRules::insideCsgUnion(Vector3Dd *testPoint)
 int
 ConstructiveSolidGeometryByMorganRules::insideCsgIntersection(Vector3Dd *testPoint)
 {
-    TransformedGeometry *localShape;
-
     for (long int i = getOperands().size() - 1; i >= 0; i--) {
-        localShape = getOperands()[i]->getGeometry();
-
-        if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(testPoint, localShape)) {
+        if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(
+                testPoint, getOperands()[i])) {
             return (false);
         }
     }

@@ -3,11 +3,11 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 
-class ConstructiveSolidGeometry : public TransformedGeometry {
+class ConstructiveSolidGeometry : public Geometry {
   private:
     BooleanSetOperations geometryType;
     java::ArrayList<CsgOperand*> operands{4};
@@ -18,7 +18,7 @@ class ConstructiveSolidGeometry : public TransformedGeometry {
 
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);
-    void addShape(TransformedGeometry *shape, Material *material);
+    void addShape(Geometry *shape, Material *material);
     void addOperand(CsgOperand *operand);
     java::ArrayList<CsgOperand*> &getOperands();
     const java::ArrayList<CsgOperand*> &getOperands() const;
@@ -27,9 +27,6 @@ class ConstructiveSolidGeometry : public TransformedGeometry {
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
     void invert();
-    void translateGeometry(Vector3Dd *vector) override;
-    void rotateGeometry(Vector3Dd *vector) override;
-    void scaleGeometry(Vector3Dd *vector) override;
 
     AxisAlignedBox getMinMax() const override;
 
@@ -54,7 +51,7 @@ ConstructiveSolidGeometry::setGeometryType(BooleanSetOperations value)
 }
 
 inline void
-ConstructiveSolidGeometry::addShape(TransformedGeometry *shape, Material *material)
+ConstructiveSolidGeometry::addShape(Geometry *shape, Material *material)
 {
     operands.add(new CsgOperand(shape, material));
 }
