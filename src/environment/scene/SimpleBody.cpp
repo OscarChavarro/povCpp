@@ -24,6 +24,30 @@ SimpleBody::ensureShapeColor()
     return shapeColor;
 }
 
+TransformedGeometry *
+SimpleBody::releaseGeometry()
+{
+    TransformedGeometry *released = geometry;
+    geometry = nullptr;
+    return released;
+}
+
+Material *
+SimpleBody::releaseMaterial()
+{
+    Material *released = material;
+    material = nullptr;
+    return released;
+}
+
+ColorRgba *
+SimpleBody::releaseShapeColor()
+{
+    ColorRgba *released = shapeColor;
+    shapeColor = nullptr;
+    return released;
+}
+
 void
 SimpleBody::prependMaterialLayers(Material *newHead)
 {

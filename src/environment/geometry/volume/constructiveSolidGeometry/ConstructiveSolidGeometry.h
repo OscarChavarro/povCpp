@@ -5,12 +5,12 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/TransformedGeometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
-#include "environment/scene/SimpleBody.h"
 
 class ConstructiveSolidGeometry : public TransformedGeometry {
   private:
     BooleanSetOperations geometryType;
-    java::ArrayList<SimpleBody*> shapes{4};
+    java::ArrayList<TransformedGeometry*> shapes{4};
+    java::ArrayList<Material*> shapeMaterials{4};
 
   public:
     explicit ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
@@ -18,8 +18,11 @@ class ConstructiveSolidGeometry : public TransformedGeometry {
 
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);
-    java::ArrayList<SimpleBody*> &getShapes();
-    const java::ArrayList<SimpleBody*> &getShapes() const;
+    void addShape(TransformedGeometry *shape, Material *material);
+    java::ArrayList<TransformedGeometry*> &getShapes();
+    const java::ArrayList<TransformedGeometry*> &getShapes() const;
+    java::ArrayList<Material*> &getShapeMaterials();
+    const java::ArrayList<Material*> &getShapeMaterials() const;
 
     int allIntersectionsForMaterial(
         RayWithSegments *ray,
@@ -50,15 +53,34 @@ ConstructiveSolidGeometry::setGeometryType(BooleanSetOperations value)
     geometryType = value;
 }
 
-inline java::ArrayList<SimpleBody*> &
+inline void
+ConstructiveSolidGeometry::addShape(TransformedGeometry *shape, Material *material)
+{
+    shapes.add(shape);
+    shapeMaterials.add(material);
+}
+
+inline java::ArrayList<TransformedGeometry*> &
 ConstructiveSolidGeometry::getShapes()
 {
     return shapes;
 }
 
-inline const java::ArrayList<SimpleBody*> &
+inline const java::ArrayList<TransformedGeometry*> &
 ConstructiveSolidGeometry::getShapes() const
 {
     return shapes;
+}
+
+inline java::ArrayList<Material*> &
+ConstructiveSolidGeometry::getShapeMaterials()
+{
+    return shapeMaterials;
+}
+
+inline const java::ArrayList<Material*> &
+ConstructiveSolidGeometry::getShapeMaterials() const
+{
+    return shapeMaterials;
 }
 #endif

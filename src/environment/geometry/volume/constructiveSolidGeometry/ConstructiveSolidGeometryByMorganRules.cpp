@@ -15,12 +15,15 @@ ConstructiveSolidGeometryByMorganRules::ConstructiveSolidGeometryByMorganRules(c
     ConstructiveSolidGeometry(other.getGeometryType())
 {
     for (long int i = other.getShapes().size() - 1; i >= 0; i--) {
-        getShapes().add((SimpleBody *)other.getShapes()[i]->copy());
+        addShape(
+            (TransformedGeometry *)other.getShapes()[i]->copy(),
+            other.getShapeMaterials()[i] != nullptr ?
+                other.getShapeMaterials()[i]->copy() : nullptr);
     }
 }
 
 int
-ConstructiveSolidGeometryByMorganRules::insideCsgChild(Vector3Dd *point, SimpleBody *shape)
+ConstructiveSolidGeometryByMorganRules::insideCsgChild(Vector3Dd *point, TransformedGeometry *shape)
 {
     return shape->doContainmentTest(*point, Config::SMALL_TOLERANCE) != Geometry::OUTSIDE;
 }
@@ -38,12 +41,13 @@ int
 ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
     RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     bool intersectionFound = false;
     for (long int i = getShapes().size() - 1; i >= 0; i--) {
         localShape = getShapes()[i];
-        if (localShape->allIntersections(ray, depthQueue)) {
+        if (localShape->allIntersectionsForMaterial(
+                ray, depthQueue, getShapeMaterials()[i])) {
             intersectionFound = true;
         }
     }
@@ -56,8 +60,8 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
     RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
 {
     bool intersectionFound;
-    SimpleBody *localShape;
-    SimpleBody *shape2;
+    TransformedGeometry *localShape;
+    TransformedGeometry *shape2;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     IntersectionCandidate localIntersection;
 
@@ -68,7 +72,8 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
     for (long int i = getShapes().size() - 1; i >= 0; i--) {
         localShape = getShapes()[i];
 
-        localShape->allIntersections(ray, localDepthQueue);
+        localShape->allIntersectionsForMaterial(
+            ray, localDepthQueue, getShapeMaterials()[i]);
 
         for (const IntersectionCandidate& candidate : *localDepthQueue) {
             localIntersection = candidate;
@@ -103,7 +108,7 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
 int
 ConstructiveSolidGeometryByMorganRules::insideCsgUnion(Vector3Dd *testPoint)
 {
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = getShapes().size() - 1; i >= 0; i--) {
         localShape = getShapes()[i];
@@ -118,7 +123,7 @@ ConstructiveSolidGeometryByMorganRules::insideCsgUnion(Vector3Dd *testPoint)
 int
 ConstructiveSolidGeometryByMorganRules::insideCsgIntersection(Vector3Dd *testPoint)
 {
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = getShapes().size() - 1; i >= 0; i--) {
         localShape = getShapes()[i];
@@ -140,8 +145,6 @@ ConstructiveSolidGeometryByMorganRules::copy()
 void
 ConstructiveSolidGeometryByMorganRules::invertGeometry()
 {
-    SimpleBody *localShape;
-
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         setGeometryType(BooleanSetOperations::UNION);
     } else if (getGeometryType() == BooleanSetOperations::UNION) {
@@ -149,9 +152,7 @@ ConstructiveSolidGeometryByMorganRules::invertGeometry()
     }
 
     for (long int i = getShapes().size() - 1; i >= 0; i--) {
-        localShape = getShapes()[i];
-
-        localShape->invert();
+        getShapes()[i]->invertGeometry();
     }
 }
 

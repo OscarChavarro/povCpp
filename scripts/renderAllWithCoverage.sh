@@ -19,9 +19,18 @@ echo "[2/4] Compiling with gcov instrumentation"
   -DCMAKE_SHARED_LINKER_FLAGS="--coverage"
 
 echo "[3/4] Running all renders (accumulative coverage)"
-echo "  [3a] Round 1: normal render"
+echo "  [3a] Usage guide (no parameters)"
+if "${BUILD_DIR}/povray"; then
+  :
+else
+  status=$?
+  if [[ "${status}" -ne 1 ]]; then
+    exit "${status}"
+  fi
+fi
+echo "  [3b] Round 1: normal render"
 SKIP_HEAVY_SCENES=1 "${ROOT_DIR}/scripts/renderAll.sh"
-echo "  [3b] Round 2: anti-aliasing render (+a)"
+echo "  [3c] Round 2: anti-aliasing render (+a)"
 SKIP_HEAVY_SCENES=1 EXTRA_POVRAY_OPTS="+a" "${ROOT_DIR}/scripts/renderAll.sh"
 SKIP_HEAVY_SCENES=1 "${ROOT_DIR}/scripts/renderQualities.sh"
 SKIP_HEAVY_SCENES=1 "${ROOT_DIR}/scripts/renderCsgByRaySegments.sh"

@@ -1,6 +1,10 @@
 #ifndef __CONFIG__
 #define __CONFIG__
 
+#include <cstdio>
+
+#include "vsdk/toolkit/common/logging/Logger.h"
+
 class Config {
   public:
     static constexpr double SMALL_TOLERANCE = 0.001;
@@ -8,6 +12,31 @@ class Config {
     static constexpr double INTERSECTION_EPSILON = 1.0e-5;
     static constexpr double POLYNOMIAL_SOLVER_EPSILON = 1.0e-10;
     static constexpr double PARAMETRIC_CURVE_EPSILON = 1.0e-10;
+
+    static void print();
 };
+
+inline void
+Config::print()
+{
+    char buffer[256];
+
+    Logger::reportMessage("Config", Logger::WARNING, "", "\nConfig:");
+
+    snprintf(buffer, sizeof(buffer), "    SMALL_TOLERANCE = %.17g", SMALL_TOLERANCE);
+    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+
+    snprintf(buffer, sizeof(buffer), "    MAX_DISTANCE = %.17g", MAX_DISTANCE);
+    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+
+    snprintf(buffer, sizeof(buffer), "    INTERSECTION_EPSILON = %.17g", INTERSECTION_EPSILON);
+    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+
+    snprintf(buffer, sizeof(buffer), "    POLYNOMIAL_SOLVER_EPSILON = %.17g", POLYNOMIAL_SOLVER_EPSILON);
+    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+
+    snprintf(buffer, sizeof(buffer), "    PARAMETRIC_CURVE_EPSILON = %.17g", PARAMETRIC_CURVE_EPSILON);
+    Logger::reportMessage("Config", Logger::WARNING, "", buffer);
+}
 
 #endif

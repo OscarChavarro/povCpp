@@ -9,7 +9,7 @@
 
 class SimpleBody {
   private:
-    TransformedGeometry *const geometry = nullptr;
+    TransformedGeometry *geometry = nullptr;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
 
@@ -23,6 +23,9 @@ class SimpleBody {
     Geometry* getWrappedGeometry() const { return geometry; }
     Material* getMaterial() const { return material; }
     ColorRgba* getShapeColor() const { return shapeColor; }
+    TransformedGeometry* releaseGeometry();
+    Material* releaseMaterial();
+    ColorRgba* releaseShapeColor();
     ColorRgba* ensureShapeColor();
     void prependMaterialLayers(Material *newHead);
 
