@@ -5,12 +5,12 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/TransformedGeometry.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 
 class ConstructiveSolidGeometry : public TransformedGeometry {
   private:
     BooleanSetOperations geometryType;
-    java::ArrayList<TransformedGeometry*> shapes{4};
-    java::ArrayList<Material*> shapeMaterials{4};
+    java::ArrayList<CsgOperand*> operands{4};
 
   public:
     explicit ConstructiveSolidGeometry(BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
@@ -19,10 +19,9 @@ class ConstructiveSolidGeometry : public TransformedGeometry {
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);
     void addShape(TransformedGeometry *shape, Material *material);
-    java::ArrayList<TransformedGeometry*> &getShapes();
-    const java::ArrayList<TransformedGeometry*> &getShapes() const;
-    java::ArrayList<Material*> &getShapeMaterials();
-    const java::ArrayList<Material*> &getShapeMaterials() const;
+    void addOperand(CsgOperand *operand);
+    java::ArrayList<CsgOperand*> &getOperands();
+    const java::ArrayList<CsgOperand*> &getOperands() const;
 
     void translate(Vector3Dd *vector);
     void rotate(Vector3Dd *vector);
@@ -57,31 +56,24 @@ ConstructiveSolidGeometry::setGeometryType(BooleanSetOperations value)
 inline void
 ConstructiveSolidGeometry::addShape(TransformedGeometry *shape, Material *material)
 {
-    shapes.add(shape);
-    shapeMaterials.add(material);
+    operands.add(new CsgOperand(shape, material));
 }
 
-inline java::ArrayList<TransformedGeometry*> &
-ConstructiveSolidGeometry::getShapes()
+inline void
+ConstructiveSolidGeometry::addOperand(CsgOperand *operand)
 {
-    return shapes;
+    operands.add(operand);
 }
 
-inline const java::ArrayList<TransformedGeometry*> &
-ConstructiveSolidGeometry::getShapes() const
+inline java::ArrayList<CsgOperand*> &
+ConstructiveSolidGeometry::getOperands()
 {
-    return shapes;
+    return operands;
 }
 
-inline java::ArrayList<Material*> &
-ConstructiveSolidGeometry::getShapeMaterials()
+inline const java::ArrayList<CsgOperand*> &
+ConstructiveSolidGeometry::getOperands() const
 {
-    return shapeMaterials;
-}
-
-inline const java::ArrayList<Material*> &
-ConstructiveSolidGeometry::getShapeMaterials() const
-{
-    return shapeMaterials;
+    return operands;
 }
 #endif

@@ -8,20 +8,16 @@ ConstructiveSolidGeometry::ConstructiveSolidGeometry(BooleanSetOperations initia
 
 ConstructiveSolidGeometry::~ConstructiveSolidGeometry()
 {
-    for (long int i = 0; i < shapes.size(); i++) {
-        delete shapes[i];
-        delete shapeMaterials[i];
+    for (long int i = 0; i < operands.size(); i++) {
+        delete operands[i];
     }
 }
 
 void
 ConstructiveSolidGeometry::translateGeometry(Vector3Dd *vector)
 {
-    for (long int i = shapes.size() - 1; i >= 0; i--) {
-        shapes[i]->translateGeometry(vector);
-        if (shapeMaterials[i] != nullptr) {
-            shapeMaterials[i] = shapeMaterials[i]->translate(vector);
-        }
+    for (long int i = operands.size() - 1; i >= 0; i--) {
+        operands[i]->translate(vector);
     }
 }
 
@@ -34,11 +30,8 @@ ConstructiveSolidGeometry::translate(Vector3Dd *vector)
 void
 ConstructiveSolidGeometry::rotateGeometry(Vector3Dd *vector)
 {
-    for (long int i = shapes.size() - 1; i >= 0; i--) {
-        shapes[i]->rotateGeometry(vector);
-        if (shapeMaterials[i] != nullptr) {
-            shapeMaterials[i] = shapeMaterials[i]->rotate(vector);
-        }
+    for (long int i = operands.size() - 1; i >= 0; i--) {
+        operands[i]->rotate(vector);
     }
 }
 
@@ -51,11 +44,8 @@ ConstructiveSolidGeometry::rotate(Vector3Dd *vector)
 void
 ConstructiveSolidGeometry::scaleGeometry(Vector3Dd *vector)
 {
-    for (long int i = shapes.size() - 1; i >= 0; i--) {
-        shapes[i]->scaleGeometry(vector);
-        if (shapeMaterials[i] != nullptr) {
-            shapeMaterials[i] = shapeMaterials[i]->scale(vector);
-        }
+    for (long int i = operands.size() - 1; i >= 0; i--) {
+        operands[i]->scale(vector);
     }
 }
 
@@ -75,8 +65,8 @@ AxisAlignedBox
 ConstructiveSolidGeometry::getMinMax() const
 {
     AxisAlignedBox result = AxisAlignedBox::empty();
-    for (long int i = 0; i < shapes.size(); i++) {
-        result = result.enclosing(shapes[i]->getMinMax());
+    for (long int i = 0; i < operands.size(); i++) {
+        result = result.enclosing(operands[i]->getGeometry()->getMinMax());
     }
     return result;
 }

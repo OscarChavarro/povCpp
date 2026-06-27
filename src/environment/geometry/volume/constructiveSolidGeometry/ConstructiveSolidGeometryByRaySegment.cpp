@@ -11,14 +11,14 @@
 // classify (Table 3 of [ROTH1982].3.3 assumes bounded operands), so
 // doIntersectionForAllRayCrossings() skips the merge for it below.
 static bool
-isUnionOfBarePlanes(BooleanSetOperations geometryType, java::ArrayList<TransformedGeometry*> &children)
+isUnionOfBarePlanes(BooleanSetOperations geometryType, java::ArrayList<CsgOperand*> &children)
 {
     if (geometryType == BooleanSetOperations::DIFFERENCE ||
         geometryType == BooleanSetOperations::INTERSECTION) {
         return false;
     }
     for (long int i = 0; i < children.size(); i++) {
-        if (dynamic_cast<InfinitePlane *>(children[i]) == nullptr) {
+        if (dynamic_cast<InfinitePlane *>(children[i]->getGeometry()) == nullptr) {
             return false;
         }
     }
@@ -34,11 +34,8 @@ ConstructiveSolidGeometryByRaySegment::ConstructiveSolidGeometryByRaySegment(con
     ConstructiveSolidGeometry(other.getGeometryType()),
     topLevel(other.isTopLevel())
 {
-    for (long int i = 0; i < other.getShapes().size(); i++) {
-        addShape(
-            (TransformedGeometry *)other.getShapes()[i]->copy(),
-            other.getShapeMaterials()[i] != nullptr ?
-                other.getShapeMaterials()[i]->copy() : nullptr);
+    for (long int i = 0; i < other.getOperands().size(); i++) {
+        addOperand(other.getOperands()[i]->copy());
     }
 }
 
@@ -183,8 +180,7 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    java::ArrayList<TransformedGeometry*> &children = getShapes();
-    java::ArrayList<Material*> &childMaterials = getShapeMaterials();
+    java::ArrayList<CsgOperand*> &children = getOperands();
     if (children.size() == 0) {
         return false;
     }
@@ -192,24 +188,20 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
     if (isTopLevel() && isUnionOfBarePlanes(getGeometryType(), children)) {
         bool anyFound = false;
         for (long int i = 0; i < children.size(); i++) {
-            Material *effectiveMaterial =
-                childMaterials[i] != nullptr ? childMaterials[i] : materialOverride;
-            if (children[i]->doIntersectionForAllRayCrossings(
-                    ray, depthQueue, effectiveMaterial)) {
+            if (children[i]->getGeometry()->doIntersectionForAllRayCrossings(
+                    ray, depthQueue, children[i]->getEffectiveMaterial(materialOverride))) {
                 anyFound = true;
             }
         }
         return anyFound;
     }
 
-    Material *effectiveMaterial0 =
-        childMaterials[0] != nullptr ? childMaterials[0] : materialOverride;
-    RaySegments result = buildRaySegments(ray, children[0], effectiveMaterial0);
+    RaySegments result = buildRaySegments(
+        ray, children[0]->getGeometry(), children[0]->getEffectiveMaterial(materialOverride));
     for (long int i = 1; i < children.size(); i++) {
-        Material *effectiveMaterial =
-            childMaterials[i] != nullptr ? childMaterials[i] : materialOverride;
         const RaySegments childSegments =
-            buildRaySegments(ray, children[i], effectiveMaterial);
+            buildRaySegments(
+                ray, children[i]->getGeometry(), children[i]->getEffectiveMaterial(materialOverride));
         switch (getGeometryType()) {
         case BooleanSetOperations::DIFFERENCE:
             result = mergeDifference(result, childSegments);
@@ -235,7 +227,7 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
 int
 ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    java::ArrayList<TransformedGeometry*> &children = getShapes();
+    java::ArrayList<CsgOperand*> &children = getOperands();
     if (children.size() == 0) {
         return OUTSIDE;
     }
@@ -244,9 +236,9 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
     switch (getGeometryType()) {
     case BooleanSetOperations::DIFFERENCE:
         // Table 3's "-" row in [ROTH1982].3.3.
-        isInside = children[0]->doContainmentTest(point, distanceTolerance) != OUTSIDE;
+        isInside = children[0]->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE;
         for (long int i = 1; isInside && (i < children.size()); i++) {
-            if (children[i]->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
+            if (children[i]->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
                 isInside = false;
             }
         }
@@ -255,7 +247,7 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
     case BooleanSetOperations::INTERSECTION:
         isInside = true;
         for (long int i = 0; isInside && (i < children.size()); i++) {
-            if (children[i]->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
+            if (children[i]->getGeometry()->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
                 isInside = false;
             }
         }
@@ -264,7 +256,7 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
     default:
         isInside = false;
         for (long int i = 0; !isInside && (i < children.size()); i++) {
-            if (children[i]->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
+            if (children[i]->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
                 isInside = true;
             }
         }
@@ -277,22 +269,22 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
 void
 ConstructiveSolidGeometryByRaySegment::invertGeometry()
 {
-    java::ArrayList<TransformedGeometry*> &children = getShapes();
+    java::ArrayList<CsgOperand*> &children = getOperands();
 
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
         setGeometryType(BooleanSetOperations::UNION);
         for (long int i = children.size() - 1; i >= 0; i--) {
-            children[i]->invertGeometry();
+            children[i]->invert();
         }
     } else if (getGeometryType() == BooleanSetOperations::UNION) {
         setGeometryType(BooleanSetOperations::INTERSECTION);
         for (long int i = children.size() - 1; i >= 0; i--) {
-            children[i]->invertGeometry();
+            children[i]->invert();
         }
     } else {
         setGeometryType(BooleanSetOperations::UNION);
         if (children.size() > 0) {
-            children[0]->invertGeometry();
+            children[0]->invert();
         }
     }
 }

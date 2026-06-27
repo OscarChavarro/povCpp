@@ -14,11 +14,8 @@ ConstructiveSolidGeometryByMorganRules::ConstructiveSolidGeometryByMorganRules(B
 ConstructiveSolidGeometryByMorganRules::ConstructiveSolidGeometryByMorganRules(const ConstructiveSolidGeometryByMorganRules &other) :
     ConstructiveSolidGeometry(other.getGeometryType())
 {
-    for (long int i = other.getShapes().size() - 1; i >= 0; i--) {
-        addShape(
-            (TransformedGeometry *)other.getShapes()[i]->copy(),
-            other.getShapeMaterials()[i] != nullptr ?
-                other.getShapeMaterials()[i]->copy() : nullptr);
+    for (long int i = other.getOperands().size() - 1; i >= 0; i--) {
+        addOperand(other.getOperands()[i]->copy());
     }
 }
 
@@ -49,12 +46,11 @@ ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
     TransformedGeometry *localShape;
 
     bool intersectionFound = false;
-    for (long int i = getShapes().size() - 1; i >= 0; i--) {
-        localShape = getShapes()[i];
-        Material *effectiveMaterial =
-            getShapeMaterials()[i] != nullptr ? getShapeMaterials()[i] : materialOverride;
+    for (long int i = getOperands().size() - 1; i >= 0; i--) {
+        CsgOperand *operand = getOperands()[i];
+        localShape = operand->getGeometry();
         if (localShape->doIntersectionForAllRayCrossings(
-                ray, depthQueue, effectiveMaterial)) {
+                ray, depthQueue, operand->getEffectiveMaterial(materialOverride))) {
             intersectionFound = true;
         }
     }
@@ -78,21 +74,20 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
 
     bool anyIntersectionFound = false;
 
-    for (long int i = getShapes().size() - 1; i >= 0; i--) {
-        localShape = getShapes()[i];
+    for (long int i = getOperands().size() - 1; i >= 0; i--) {
+        CsgOperand *operand = getOperands()[i];
+        localShape = operand->getGeometry();
 
-        Material *effectiveMaterial =
-            getShapeMaterials()[i] != nullptr ? getShapeMaterials()[i] : materialOverride;
         localShape->doIntersectionForAllRayCrossings(
-            ray, localDepthQueue, effectiveMaterial);
+            ray, localDepthQueue, operand->getEffectiveMaterial(materialOverride));
 
         for (const IntersectionCandidate& candidate : *localDepthQueue) {
             localIntersection = candidate;
 
             intersectionFound = true;
 
-            for (long int j = getShapes().size() - 1; j >= 0; j--) {
-                shape2 = getShapes()[j];
+            for (long int j = getOperands().size() - 1; j >= 0; j--) {
+                shape2 = getOperands()[j]->getGeometry();
 
                 if (shape2 != localShape) {
                     if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(&localIntersection.getIntersection().point, shape2)) {
@@ -121,8 +116,8 @@ ConstructiveSolidGeometryByMorganRules::insideCsgUnion(Vector3Dd *testPoint)
 {
     TransformedGeometry *localShape;
 
-    for (long int i = getShapes().size() - 1; i >= 0; i--) {
-        localShape = getShapes()[i];
+    for (long int i = getOperands().size() - 1; i >= 0; i--) {
+        localShape = getOperands()[i]->getGeometry();
 
         if (ConstructiveSolidGeometryByMorganRules::insideCsgChild(testPoint, localShape)) {
             return (true);
@@ -136,8 +131,8 @@ ConstructiveSolidGeometryByMorganRules::insideCsgIntersection(Vector3Dd *testPoi
 {
     TransformedGeometry *localShape;
 
-    for (long int i = getShapes().size() - 1; i >= 0; i--) {
-        localShape = getShapes()[i];
+    for (long int i = getOperands().size() - 1; i >= 0; i--) {
+        localShape = getOperands()[i]->getGeometry();
 
         if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(testPoint, localShape)) {
             return (false);
@@ -162,8 +157,8 @@ ConstructiveSolidGeometryByMorganRules::invertGeometry()
         setGeometryType(BooleanSetOperations::INTERSECTION);
     }
 
-    for (long int i = getShapes().size() - 1; i >= 0; i--) {
-        getShapes()[i]->invertGeometry();
+    for (long int i = getOperands().size() - 1; i >= 0; i--) {
+        getOperands()[i]->invert();
     }
 }
 
