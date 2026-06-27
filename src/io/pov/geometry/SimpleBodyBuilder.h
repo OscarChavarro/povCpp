@@ -2,6 +2,7 @@
 #define __SIMPLE_BODY_BUILDER__
 
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/TransformedGeometry.h"
@@ -12,6 +13,10 @@ class SimpleBodyBuilder {
     Geometry *geometry = nullptr;
     Material *material = nullptr;
     ColorRgba *shapeColor = nullptr;
+    Matrix4x4d *transformation = nullptr;
+    Matrix4x4d *transformationInverse = nullptr;
+
+    void ensureMatrices();
 
   public:
     SimpleBodyBuilder() {}
@@ -22,9 +27,13 @@ class SimpleBodyBuilder {
     Geometry* getGeometry() const { return geometry; }
     Material* getMaterial() const { return material; }
     ColorRgba* getShapeColor() const { return shapeColor; }
+    Matrix4x4d* getTransformation() const { return transformation; }
+    Matrix4x4d* getTransformationInverse() const { return transformationInverse; }
     Geometry* releaseGeometry();
     Material* releaseMaterial();
     ColorRgba* releaseShapeColor();
+    Matrix4x4d* releaseTransformation();
+    Matrix4x4d* releaseTransformationInverse();
     ColorRgba* ensureShapeColor();
     void prependMaterialLayers(Material *newHead);
 

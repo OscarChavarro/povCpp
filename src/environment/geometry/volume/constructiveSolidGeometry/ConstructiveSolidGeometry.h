@@ -19,6 +19,11 @@ class ConstructiveSolidGeometry : public Geometry {
     BooleanSetOperations getGeometryType() const;
     void setGeometryType(BooleanSetOperations value);
     void addShape(Geometry *shape, Material *material);
+    void addShape(
+        Geometry *shape,
+        Material *material,
+        Matrix4x4d *transformation,
+        Matrix4x4d *transformationInverse);
     void addOperand(CsgOperand *operand);
     java::ArrayList<CsgOperand*> &getOperands();
     const java::ArrayList<CsgOperand*> &getOperands() const;
@@ -54,6 +59,16 @@ inline void
 ConstructiveSolidGeometry::addShape(Geometry *shape, Material *material)
 {
     operands.add(new CsgOperand(shape, material));
+}
+
+inline void
+ConstructiveSolidGeometry::addShape(
+    Geometry *shape,
+    Material *material,
+    Matrix4x4d *transformation,
+    Matrix4x4d *transformationInverse)
+{
+    operands.add(new CsgOperand(shape, material, transformation, transformationInverse));
 }
 
 inline void
