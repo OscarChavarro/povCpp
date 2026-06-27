@@ -59,12 +59,12 @@ ObjectParser::ensurePrivateTexture(Material *objectTexture)
 
 BoundedGeometry *
 ObjectParser::buildObject(
-    TransformableElement *geometry,
+    SimpleBody *geometry,
     Material *objectTexture,
     ColorRgba *objectColor,
     bool noShadowFlag,
-    const java::ArrayList<TransformableElement*> &boundingShapes,
-    const java::ArrayList<TransformableElement*> &clippingShapes)
+    const java::ArrayList<SimpleBody*> &boundingShapes,
+    const java::ArrayList<SimpleBody*> &clippingShapes)
 {
     return new BoundedGeometry(
         geometry, objectTexture, objectColor, noShadowFlag, boundingShapes,
@@ -73,12 +73,12 @@ ObjectParser::buildObject(
 
 Composite *
 ObjectParser::buildComposite(
-    TransformableElement *geometry,
+    SimpleBody *geometry,
     Material *objectTexture,
     ColorRgba *objectColor,
     bool noShadowFlag,
-    const java::ArrayList<TransformableElement*> &boundingShapes,
-    const java::ArrayList<TransformableElement*> &clippingShapes,
+    const java::ArrayList<SimpleBody*> &boundingShapes,
+    const java::ArrayList<SimpleBody*> &clippingShapes,
     const java::ArrayList<BoundedGeometry*> &simpleBodies)
 {
     return new Composite(
@@ -89,12 +89,12 @@ ObjectParser::buildComposite(
 void
 ObjectParser::extractObjectState(
     BoundedGeometry *object,
-    TransformableElement *&geometry,
+    SimpleBody *&geometry,
     Material *&objectTexture,
     ColorRgba *&objectColor,
     bool &noShadowFlag,
-    java::ArrayList<TransformableElement*> &boundingShapes,
-    java::ArrayList<TransformableElement*> &clippingShapes)
+    java::ArrayList<SimpleBody*> &boundingShapes,
+    java::ArrayList<SimpleBody*> &clippingShapes)
 {
     geometry = object->getGeometry();
     objectTexture = object->getObjectTexture();
@@ -107,12 +107,12 @@ ObjectParser::extractObjectState(
 void
 ObjectParser::extractCompositeState(
     Composite *object,
-    TransformableElement *&geometry,
+    SimpleBody *&geometry,
     Material *&objectTexture,
     ColorRgba *&objectColor,
     bool &noShadowFlag,
-    java::ArrayList<TransformableElement*> &boundingShapes,
-    java::ArrayList<TransformableElement*> &clippingShapes,
+    java::ArrayList<SimpleBody*> &boundingShapes,
+    java::ArrayList<SimpleBody*> &clippingShapes,
     java::ArrayList<BoundedGeometry*> &simpleBodies)
 {
     extractObjectState(
@@ -245,9 +245,9 @@ ObjectParser::parseObject(ParserContext &ctx)
 {
     BoundedGeometry *object = nullptr;
     SimpleBody *localShape;
-    TransformableElement *geometry;
-    java::ArrayList<TransformableElement*> localBoundingShapes(4);
-    java::ArrayList<TransformableElement*> localClippingShapes(4);
+    SimpleBody *geometry;
+    java::ArrayList<SimpleBody*> localBoundingShapes(4);
+    java::ArrayList<SimpleBody*> localClippingShapes(4);
     Vector3Dd localVector;
     ColorRgba *objectColor = nullptr;
     bool noShadowFlag = false;
@@ -492,10 +492,10 @@ ObjectParser::parseComposite(ParserContext &ctx)
     Composite *localComposite = nullptr;
     BoundedGeometry *localObject;
     SimpleBody *localShape;
-    TransformableElement *geometry;
+    SimpleBody *geometry;
     java::ArrayList<BoundedGeometry*> localSimpleBodies(4);
-    java::ArrayList<TransformableElement*> localBoundingShapes(4);
-    java::ArrayList<TransformableElement*> localClippingShapes(4);
+    java::ArrayList<SimpleBody*> localBoundingShapes(4);
+    java::ArrayList<SimpleBody*> localClippingShapes(4);
     Vector3Dd localVector;
     Material *objectTexture = ctx.getDefaultTexture();
     DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(objectTexture));

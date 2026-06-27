@@ -58,8 +58,6 @@ PolynomialShape::PolynomialShape(int initialOrder) :
 }
 
 PolynomialShape::PolynomialShape(int initialOrder, int sturmFlagValue) :
-    transformation(nullptr),
-    transformationInverse(nullptr),
     inverted(false),
     order(initialOrder),
     sturmFlag(sturmFlagValue),
@@ -71,9 +69,9 @@ PolynomialShape::PolynomialShape(const PolynomialShape &other) :
     PolynomialShape(other.order, other.sturmFlag)
 {
     inverted = other.inverted;
-    if (other.transformation != nullptr) {
-        transformation = new Matrix4x4d(*other.transformation);
-        transformationInverse = new Matrix4x4d(*other.transformationInverse);
+    if (other.getTransformation() != nullptr) {
+        transformation = new Matrix4x4d(*other.getTransformation());
+        transformationInverse = new Matrix4x4d(*other.getTransformationInverse());
     }
     for (int i = 0; i < termCountsInstance[order]; i++) {
         Coeffs[i] = other.Coeffs[i];
@@ -82,8 +80,7 @@ PolynomialShape::PolynomialShape(const PolynomialShape &other) :
 
 PolynomialShape::~PolynomialShape()
 {
-    delete transformation;
-    delete transformationInverse;
+    // transformation/transformationInverse deleted by TransformedGeometry::~TransformedGeometry()
     delete[] Coeffs;
 }
 
@@ -845,69 +842,16 @@ PolynomialShape::copyWithSturmFlag(int flag) const
     newShape->inverted = shape->inverted;
 
     // Copy any associated transformation
-    if (shape->transformation != nullptr) {
-        newShape->transformation = new Matrix4x4d(*(shape->transformation));
+    if (shape->getTransformation() != nullptr) {
+        newShape->transformation = new Matrix4x4d(*(shape->getTransformation()));
         newShape->transformationInverse =
-            new Matrix4x4d(*(shape->transformationInverse));
+            new Matrix4x4d(*(shape->getTransformationInverse()));
     }
     for (i = 0; i < termCountsInstance[newShape->order]; i++) {
         newShape->Coeffs[i] = shape->Coeffs[i];
     }
 
     return newShape;
-}
-
-void
-PolynomialShape::translateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    PolynomialShape * const shape = this;
-    if (shape->transformation == nullptr) {
-        shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().translation(
-        vector->x(), vector->y(), vector->z()).transpose();
-    deltaTransformationInverse = Matrix4x4d().translation(
-        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    *shape->transformation = shape->transformation->multiply(deltaTransformation);
-    *shape->transformationInverse =
-        deltaTransformationInverse.multiply(*shape->transformationInverse);
-}
-
-void
-PolynomialShape::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    PolynomialShape * const shape = this;
-    if (shape->transformation == nullptr) {
-        shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
-    *shape->transformation = shape->transformation->multiply(deltaTransformation);
-    *shape->transformationInverse =
-        deltaTransformationInverse.multiply(*shape->transformationInverse);
-}
-
-void
-PolynomialShape::scaleGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    PolynomialShape * const shape = this;
-    if (shape->transformation == nullptr) {
-        shape->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        shape->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    deltaTransformationInverse = Matrix4x4d().scale(
-        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    *shape->transformation = shape->transformation->multiply(deltaTransformation);
-    *shape->transformationInverse =
-        deltaTransformationInverse.multiply(*shape->transformationInverse);
 }
 
 void

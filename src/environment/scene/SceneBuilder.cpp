@@ -4,7 +4,7 @@
 #include "environment/scene/SimpleBody.h"
 
 SimpleBody *
-SceneBuilder::wrap(Geometry *geometry)
+SceneBuilder::wrap(TransformedGeometry *geometry)
 {
     SimpleBody *body = new SimpleBody(geometry, nullptr, nullptr);
     if (body == nullptr) {

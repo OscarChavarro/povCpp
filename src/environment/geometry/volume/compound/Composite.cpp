@@ -13,8 +13,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    TransformableElement *boundingShape;
-    TransformableElement *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
     IntersectionCandidate localIntersection;
     BoundedGeometry *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
@@ -29,7 +29,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHit(ray, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
-                    TransformableElement::OUTSIDE) {
+                    Geometry::OUTSIDE) {
                 return (false);
             }
         }
@@ -54,7 +54,7 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
             clippingShape = this->getClippingShapes()[i];
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(localIntersection.getIntersection().point,
-                    Config::SMALL_TOLERANCE) == TransformableElement::OUTSIDE) {
+                    Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -77,8 +77,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     bool intersectionFound;
     bool anyIntersectionFound;
     IntersectionCandidate localIntersection;
-    TransformableElement *boundingShape;
-    TransformableElement *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
 
@@ -91,7 +91,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
             IntersectionCandidate _boundingHit;
             if (!boundingShape->doIntersectionFirstHit(ray, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
-                    TransformableElement::OUTSIDE) {
+                    Geometry::OUTSIDE) {
                 return (false);
             }
         }
@@ -115,7 +115,7 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(localIntersection.getIntersection().point,
-                    Config::SMALL_TOLERANCE) == TransformableElement::OUTSIDE) {
+                    Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
             }
@@ -145,8 +145,8 @@ BoundedGeometry::allIntersectionsForMaterial(
 int
 BoundedGeometry::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    TransformableElement *boundingShape;
-    TransformableElement *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
@@ -173,8 +173,8 @@ BoundedGeometry::doContainmentTest(const Vector3Dd &point, double distanceTolera
 int
 Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    TransformableElement *boundingShape;
-    TransformableElement *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
     BoundedGeometry *localObject;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -206,7 +206,7 @@ Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 
 BoundedGeometry::BoundedGeometry(const BoundedGeometry &other) :
     geometry(other.getGeometry() != nullptr ?
-        (TransformableElement *)other.getGeometry()->copy() : nullptr),
+        (SimpleBody *)other.getGeometry()->copy() : nullptr),
     noShadowFlag(other.getNoShadowFlag()),
     objectColor(other.getObjectColor() != nullptr ?
         new ColorRgba(*other.getObjectColor()) : nullptr),
@@ -215,11 +215,11 @@ BoundedGeometry::BoundedGeometry(const BoundedGeometry &other) :
 {
     for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShapes.add(
-            (TransformableElement *)other.getBoundingShapes()[i]->copy());
+            (SimpleBody *)other.getBoundingShapes()[i]->copy());
     }
     for (long int i = other.getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShapes.add(
-            (TransformableElement *)other.getClippingShapes()[i]->copy());
+            (SimpleBody *)other.getClippingShapes()[i]->copy());
     }
 }
 
@@ -290,7 +290,7 @@ Composite::copy()
 void
 BoundedGeometry::translate(Vector3Dd *vector)
 {
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -304,7 +304,9 @@ BoundedGeometry::translate(Vector3Dd *vector)
         localShape->translate(vector);
     }
 
-    this->getGeometry()->translate(vector);
+    if (this->getGeometry() != nullptr) {
+        this->getGeometry()->translate(vector);
+    }
 
     if (this->getObjectTexture() != nullptr) {
         this->getObjectTexture()->translate(vector);
@@ -314,7 +316,7 @@ BoundedGeometry::translate(Vector3Dd *vector)
 void
 BoundedGeometry::rotate(Vector3Dd *vector)
 {
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -328,7 +330,9 @@ BoundedGeometry::rotate(Vector3Dd *vector)
         localShape->rotate(vector);
     }
 
-    this->getGeometry()->rotate(vector);
+    if (this->getGeometry() != nullptr) {
+        this->getGeometry()->rotate(vector);
+    }
 
     if (this->getObjectTexture() != nullptr) {
         this->getObjectTexture()->rotate(vector);
@@ -338,7 +342,7 @@ BoundedGeometry::rotate(Vector3Dd *vector)
 void
 BoundedGeometry::scale(Vector3Dd *vector)
 {
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -352,7 +356,9 @@ BoundedGeometry::scale(Vector3Dd *vector)
         localShape->scale(vector);
     }
 
-    this->getGeometry()->scale(vector);
+    if (this->getGeometry() != nullptr) {
+        this->getGeometry()->scale(vector);
+    }
 
     if (this->getObjectTexture() != nullptr) {
         this->getObjectTexture()->scale(vector);
@@ -363,7 +369,7 @@ void
 Composite::translate(Vector3Dd *vector)
 {
     BoundedGeometry *localObject;
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -388,7 +394,7 @@ void
 Composite::rotate(Vector3Dd *vector)
 {
     BoundedGeometry *localObject;
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -413,7 +419,7 @@ void
 Composite::scale(Vector3Dd *vector)
 {
     BoundedGeometry *localObject;
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -437,7 +443,7 @@ Composite::scale(Vector3Dd *vector)
 void
 BoundedGeometry::invert()
 {
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -448,14 +454,16 @@ BoundedGeometry::invert()
         localShape = this->getClippingShapes()[i];
         localShape->invert();
     }
-    this->getGeometry()->invert();
+    if (this->getGeometry() != nullptr) {
+        this->getGeometry()->invert();
+    }
 }
 
 void
 Composite::invert()
 {
     BoundedGeometry *localObject;
-    TransformableElement *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];

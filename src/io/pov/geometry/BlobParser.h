@@ -1,7 +1,7 @@
 #ifndef __BLOB_PARSER__
 #define __BLOB_PARSER__
 
-#include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 #include "environment/scene/SimpleBody.h"
 #include "io/pov/context/ParserContext.h"
 
@@ -11,7 +11,7 @@ class BlobParser {
     static SimpleBody *parseBlob(ParserContext &ctx);
 
   private:
-    static SimpleBody *rebuildBodyWithGeometry(SimpleBody *body, Geometry *geometry);
+    static SimpleBody *rebuildBodyWithGeometry(SimpleBody *body, TransformedGeometry *geometry);
 };
 
 #endif

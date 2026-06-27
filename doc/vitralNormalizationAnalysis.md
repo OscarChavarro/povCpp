@@ -46,10 +46,10 @@ geometric** record on both sides.
 
 ### 1.3. The nearest-hit adapter: `doIntersectionFirstHit`
 
-`src/environment/geometry/element/TransformableElement.cpp`:
+`src/environment/geometry/Geometry.cpp`:
 
 ```cpp
-bool TransformableElement::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
+bool Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
 {
     java::PriorityQueue<IntersectionCandidate> * const depthQueue =
         ray->getIntersectionQueuePool()->pop(128);
@@ -70,6 +70,11 @@ on both sides; what differs is the *role* — in VITRAL `doIntersectionFirstHit`
 is the pure-virtual primitive each geometry implements directly, whereas in
 povCpp it is a non-virtual facade built over the `allIntersections`
 primitive (which VITRAL has no equivalent of).
+
+`SimpleBody` also exposes `doIntersectionFirstHit(RayWithSegments*, IntersectionCandidate&)`
+as a direct delegation to `getGeometry()->doIntersectionFirstHit(...)`, giving
+the same entry point at the scene-body level (used by bounding-volume tests in
+`BoundedGeometry`).
 
 ### 1.4. `PovRayHit` mirrors VITRAL's `RayHit`
 
@@ -244,13 +249,16 @@ is agnostic to which one is active.
 | `RayWithSegments : Ray` | `Ray` (+ segments) | shared base |
 | `Intersection` | `Intersection` (identical) | shared class |
 | `IntersectionCandidate` (Intersection + Attributes) | `RayHit` | mirrored via `PovRayHit` (read-only projection) |
-| `TransformableElement::doIntersectionFirstHit` | `Geometry::doIntersectionFirstHit(Ray&,RayHit*)` | **same name on both sides**; in VITRAL it is the pure-virtual primitive, in povCpp a non-virtual facade over `allIntersections` |
-| `doContainmentTest(const Vector3Dd&, double)` | `Geometry::doContainmentTest(const Vector3Dd&, double)` | **signature identical**; both return `int` with the same constant names *and* values `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1`. The only difference: VITRAL backs them with `enum class Containment`, povCpp with bare `static constexpr int` on `TransformableElement`. Implemented by 15 concrete classes (9 leaves, 2 CSG strategies, `Composite`, `BoundedGeometry`, `SimpleBody`, `LightGeometryAdapter`) |
+| `SimpleBody` (`{TransformedGeometry* + Material* + ColorRgba*}`) | `SimpleBody` (VITRAL's scene-level holder) | **aligned**: povCpp `SimpleBody` is now a plain holder, no longer a `Geometry` subclass; mirrors VITRAL's `{wrapped Geometry + material + color}` pattern. `SimpleBody::translate/rotate/scale` delegate to `TransformedGeometry::translateGeometry/rotateGeometry/scaleGeometry` (matrix accumulation at parse time) |
+| `TransformedGeometry` (wraps `Geometry* child` + `Matrix4x4d`) | `SimpleBody` ray-transform path | povCpp splits the concern: `TransformedGeometry` owns the matrix and ray-transform; `SimpleBody` owns material. VITRAL folds both into `SimpleBody` |
+| `Geometry` (pure intersection primitive) | `Geometry` (pure intersection primitive) | **aligned**: after migration, povCpp `Geometry` has no transform ops — only `allIntersections`, `doContainmentTest`, `doIntersectionFirstHit`, `normal`, `copy`, `invertGeometry`. `translate/rotate/scale` were removed from the base; they live only in `TransformedGeometry` and `SimpleBody` |
+| `Geometry::doIntersectionFirstHit` | `Geometry::doIntersectionFirstHit(Ray&,RayHit*)` | **same name on both sides**; in VITRAL it is the pure-virtual primitive, in povCpp a non-virtual facade over `allIntersections`. `SimpleBody` also exposes it by delegating to its wrapped `TransformedGeometry` |
+| `doContainmentTest(const Vector3Dd&, double)` | `Geometry::doContainmentTest(const Vector3Dd&, double)` | **signature identical**; both return `int` with the same constant names *and* values `INSIDE=1`/`LIMIT=0`/`OUTSIDE=-1`. The only difference: VITRAL backs them with `enum class Containment`, povCpp with bare `static constexpr int` on `Geometry`. Implemented by 15 concrete classes (9 leaves, 2 CSG strategies, `Composite`, `BoundedGeometry`, `SimpleBody`, `LightGeometryAdapter`) |
 | `doExtraInformation(RayWithSegments&, t, PovRayHit*)` | `doExtraInformation(Ray,t,RayHit)` | signature aligned; forwards to `normal()`. Lazy: `RenderEngine::trace` calls it only when the ray's `requiredDetailMask` has `DETAIL_NORMAL` (`needsNormal()`), matching VITRAL's mask-gated `doExtraInformation` |
 | `PriorityQueuePool` | per-level `RayHit` workspace | same "no-alloc in hot path" pattern |
 | `Statistics` | `RaytraceStatistics` | **not unified**: povCpp keeps per-instance counters keyed by primitive type (`raySphereTests`, `rayBoxTests`, …, each with a `*Succeeded` pair); VITRAL exposes static, per-ray-category recorders (`recordPrimaryRay`, `recordShadowRay`, `recordObjectIntersectionTest`, …). Different granularity and different ownership model — no 1:1 mapping to align toward |
 | `PovRayRendererConfiguration : RendererConfiguration` (`PovRayRendererConfiguration.h`) | `RendererConfiguration` | **inherits from VITRAL's base**: `SHADING_TYPE_*` constants and `getShadingType()` come from the base; `setSurfaceLightingEnabled()` keeps the base's `shadingType` field in sync. povCpp adds an `options` bitmask with render/quality flags (`WITH_SURFACE_LIGHTING`, `WITH_SHADOWS`, …, plus IO/threading/antialias config) that have no equivalent in VITRAL's display-oriented base. Owned by `PovRayApplication`, propagated as `const PovRayRendererConfiguration&`. See §7 |
-| — (no general bounding box) | `Geometry::getMinMax()` | **divergence**: VITRAL mandates `virtual double* getMinMax() = 0` on every geometry; povCpp has no such method on `TransformableElement`/`Geometry`, only `HeightField::getBoundingBox()`/`findHfMinMax`, specific to that class |
+| — (no general bounding box) | `Geometry::getMinMax()` | **divergence**: VITRAL mandates `virtual double* getMinMax() = 0` on every geometry; povCpp has no such method on `Geometry`, only `HeightField::getBoundingBox()`/`findHfMinMax`, specific to that class |
 | `CameraSnapshot` in `Scene` + parser-local `PovCameraSpec` | `Camera` + `CameraSnapshot` (`vsdk/.../environment/camera/`) | **render-time storage shared**: povCpp renders from VITRAL's `CameraSnapshot`, while the POV parser keeps a local five-vector `PovCameraSpec` so `look_at` and post-declaration transforms stay byte-identical. `RenderEngine::createRay` reads `eyePosition`/`dir`/`upWithScale`/`rightWithScale` directly from the snapshot but applies POV's own sampling/normalization. See §8 |
 
 ---
@@ -279,8 +287,8 @@ is agnostic to which one is active.
   …) are inherited but unused in the rendering path.
 - **No general bounding-box primitive**: VITRAL requires every geometry to
   implement `getMinMax()`; povCpp has no such concept at the
-  `TransformableElement`/`Geometry` level (only `HeightField` has a local
-  one), so CSG and other compound geometries cannot be bounded generically.
+  `Geometry` level (only `HeightField` has a local one), so CSG and other
+  compound geometries cannot be bounded generically.
 - **Camera generator differs**: povCpp stores the render-time camera as VITRAL
   `CameraSnapshot`, fed from a parser-local `PovCameraSpec` that preserves POV's
   five raw vectors. The divergence is in sampling and normalization only: VITRAL

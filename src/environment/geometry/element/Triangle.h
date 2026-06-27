@@ -2,9 +2,9 @@
 #define __TRIANGLE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 
-class Triangle : public Geometry {
+class Triangle : public TransformedGeometry {
   public:
     Triangle();
     Triangle(const Vector3Dd &p1, const Vector3Dd &p2, const Vector3Dd &p3,

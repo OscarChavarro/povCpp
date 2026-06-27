@@ -7,8 +7,9 @@
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
 #include "environment/geometry/volume/HeightFieldTraversalState.h"
+#include "environment/geometry/TransformedGeometry.h"
 
-class HeightField : public Geometry {
+class HeightField : public TransformedGeometry {
   public:
     static constexpr int GIF = 0;
     static constexpr int POT = 1;

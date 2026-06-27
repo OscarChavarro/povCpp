@@ -2,12 +2,12 @@
 #define __PARAMETRIC_BI_CUBIC_PATCH__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 #include "environment/geometry/surface/parametric/ParametricControlPoints.h"
 #include "environment/geometry/surface/parametric/ParametricPatchChild.h"
 #include "environment/geometry/surface/parametric/ParametricPatchNode.h"
 
-class ParametricBiCubicPatch : public Geometry {
+class ParametricBiCubicPatch : public TransformedGeometry {
   public:
     static constexpr int MAX_BICUBIC_INTERSECTIONS = 32;
 

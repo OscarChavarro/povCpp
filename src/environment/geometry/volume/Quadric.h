@@ -3,9 +3,9 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 
-class Quadric : public Geometry {
+class Quadric : public TransformedGeometry {
   public:
     Quadric();
     Quadric(const Vector3Dd &object2Terms, const Vector3Dd &objectMixedTerms,
