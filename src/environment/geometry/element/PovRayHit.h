@@ -7,6 +7,8 @@
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 
+class SimpleBody;
+
 // Read-only projection of IntersectionCandidate onto a record shaped like
 // VITRAL's RayHit: the core fields below use exactly its names (p/n/t/u/v/
 // hitDistance), so the two hit records can be diffed field by field. The
@@ -28,6 +30,7 @@ class PovRayHit {
 
     // --- POV-specific extensions (no equivalent in vsdk RayHit) ---
     Geometry *hitGeometry = nullptr;
+    SimpleBody *hitBody = nullptr;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
     ColorRgba *objectColor = nullptr;
@@ -48,6 +51,7 @@ PovRayHit::fromCandidate(const IntersectionCandidate &candidate)
     hit.hitDistance = intersection.t;
 
     hit.hitGeometry = attributes.getHitGeometry();
+    hit.hitBody = attributes.getHitBody();
     hit.material = attributes.getMaterial();
     hit.objectTexture = attributes.getObjectTexture();
     hit.objectColor = attributes.getObjectColor();
