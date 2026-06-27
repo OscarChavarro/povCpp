@@ -23,15 +23,24 @@ Composite::doIntersectionForAllRayCrossings(
     SimpleBody *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
+    RayWithSegments localRay = *ray;
+    RayWithSegments *compositeRay = ray;
+
+    if (getTransformationInverse() != nullptr) {
+        localRay.setOrigin(getTransformationInverse()->transformPoint(ray->getOrigin()));
+        localRay.setDirection(getTransformationInverse()->transformDirection(ray->getDirection()));
+        localRay.setQuadricConstantsCached(false);
+        compositeRay = &localRay;
+    }
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
-        Vector3Dd rayOrigin(ray->getOrigin());
+        Vector3Dd rayOrigin(compositeRay->getOrigin());
 
         stats.incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
-            if (!boundingShape->doIntersectionFirstHit(ray, _boundingHit) &&
+            if (!boundingShape->doIntersectionFirstHit(compositeRay, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
                     Geometry::OUTSIDE) {
                 return (false);
@@ -46,18 +55,23 @@ Composite::doIntersectionForAllRayCrossings(
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
 
-        localObject->doIntersectionForAllRayCrossings(ray, localDepthQueue);
+        localObject->doIntersectionForAllRayCrossings(compositeRay, localDepthQueue);
     }
 
     for (const IntersectionCandidate& candidate : *localDepthQueue) {
         localIntersection = candidate;
+        if (getTransformation() != nullptr) {
+            localIntersection.getIntersection().point =
+                getTransformation()->transformPoint(localIntersection.getIntersection().point);
+        }
 
         intersectionFound = true;
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
             stats.incrementClippingRegionTests();
-            if (clippingShape->doContainmentTest(localIntersection.getIntersection().point,
+            if (clippingShape->doContainmentTest(
+                    worldPointToLocal(localIntersection.getIntersection().point),
                     Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
@@ -81,32 +95,33 @@ Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
     TransformedGeometry *boundingShape;
     TransformedGeometry *clippingShape;
     SimpleBody *localObject;
+    const Vector3Dd localPoint = worldPointToLocal(point);
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (boundingShape->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
-            return OUTSIDE;
+        if (boundingShape->doContainmentTest(localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+            return Geometry::OUTSIDE;
         }
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (clippingShape->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
-            return OUTSIDE;
+        if (clippingShape->doContainmentTest(localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+            return Geometry::OUTSIDE;
         }
     }
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
 
-        if (localObject->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
-            return INSIDE;
+        if (localObject->doContainmentTest(localPoint, distanceTolerance) != Geometry::OUTSIDE) {
+            return Geometry::INSIDE;
         }
     }
 
-    return OUTSIDE;
+    return Geometry::OUTSIDE;
 }
 
 Composite::Composite(const Composite &other) :

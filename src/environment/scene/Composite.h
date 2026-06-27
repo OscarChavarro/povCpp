@@ -15,10 +15,13 @@ class Composite : public SimpleBody {
         bool noShadowFlag,
         const java::ArrayList<TransformedGeometry*> &boundingShapes,
         const java::ArrayList<TransformedGeometry*> &clippingShapes,
-        const java::ArrayList<SimpleBody*> &simpleBodies) :
+        const java::ArrayList<SimpleBody*> &simpleBodies,
+        Matrix4x4d *transformation = nullptr,
+        Matrix4x4d *transformationInverse = nullptr) :
         SimpleBody(
             geometry, geometryMaterial, objectTexture, objectColor,
-            noShadowFlag, boundingShapes, clippingShapes),
+            noShadowFlag, boundingShapes, clippingShapes,
+            transformation, transformationInverse),
         simpleBodies(simpleBodies)
     {
     }

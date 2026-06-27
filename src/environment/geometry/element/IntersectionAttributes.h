@@ -5,6 +5,8 @@
 #include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
 
+class SimpleBody;
+
 // Per-candidate attribution gathered while a ray is matched against the scene
 // (which geometry/material produced the hit, and the shading overrides a
 // containing SimpleBody applies) - kept apart from the candidate's own
@@ -13,6 +15,7 @@
 class IntersectionAttributes {
   private:
     Geometry *hitGeometry = nullptr;
+    SimpleBody *hitBody = nullptr;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
     ColorRgba *objectColor = nullptr;
@@ -21,6 +24,8 @@ class IntersectionAttributes {
   public:
     Geometry *getHitGeometry() const;
     void setHitGeometry(Geometry *value);
+    SimpleBody *getHitBody() const;
+    void setHitBody(SimpleBody *value);
     Material *getMaterial() const;
     void setMaterial(Material *value);
     Material *getObjectTexture() const;
@@ -41,6 +46,18 @@ inline void
 IntersectionAttributes::setHitGeometry(Geometry *value)
 {
     hitGeometry = value;
+}
+
+inline SimpleBody *
+IntersectionAttributes::getHitBody() const
+{
+    return hitBody;
+}
+
+inline void
+IntersectionAttributes::setHitBody(SimpleBody *value)
+{
+    hitBody = value;
 }
 
 inline Material *
