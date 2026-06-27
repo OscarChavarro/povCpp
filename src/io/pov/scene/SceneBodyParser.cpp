@@ -23,8 +23,8 @@ SceneBodyParser::parseFrame(Scene *framePtr)
 void
 SceneBodyParser::parseFrame(Scene *framePtr, ParserContext &ctx)
 {
-    BoundedGeometry *localObject = nullptr;
-    java::ArrayList<BoundedGeometry*> localObjects(4);
+    SimpleBody *localObject = nullptr;
+    java::ArrayList<SimpleBody*> localObjects(4);
 
     {
         bool Exit_Flag = false;

@@ -52,7 +52,6 @@ add_executable(povray
     src/environment/geometry/volume/HeightField.cpp
     src/environment/geometry/Geometry.cpp
     src/environment/geometry/TransformedGeometry.cpp
-    src/environment/geometry/volume/compound/Composite.cpp
     src/environment/geometry/surface/InfinitePlane.cpp
     src/environment/geometry/volume/polynomial/PolynomialShape.cpp
     src/environment/geometry/volume/Quadric.cpp
@@ -61,9 +60,11 @@ add_executable(povray
     src/environment/light/Light.cpp
     src/environment/light/PointLight.cpp
     src/environment/light/SpotLight.cpp
-    src/environment/scene/SceneBuilder.cpp
-    src/environment/scene/Scene.cpp
     src/environment/scene/SimpleBody.cpp
+    src/environment/scene/Composite.cpp
+    src/environment/scene/Scene.cpp
+    src/io/pov/geometry/SimpleBodyBuilder.cpp
+    src/io/pov/geometry/SceneBuilder.cpp
     src/render/shaders/LightSamplerShader.cpp
     src/render/shaders/ShadowShader.cpp
     src/render/shaders/PhongSpecularShader.cpp

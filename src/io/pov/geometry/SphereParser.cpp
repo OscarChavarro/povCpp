@@ -3,8 +3,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Sphere.h"
-#include "environment/scene/SceneBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SceneBuilder.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -15,17 +15,17 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-SimpleBody *
+SimpleBodyBuilder *
 SphereParser::parseSphere()
 {
     ParserContext ctx;
     return SphereParser::parseSphere(ctx);
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 SphereParser::parseSphere(ParserContext &ctx)
 {
-    SimpleBody *body = nullptr;
+    SimpleBodyBuilder *body = nullptr;
     Sphere *localShape = nullptr;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -64,8 +64,8 @@ SphereParser::parseSphere(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::SPHERE_CONSTANT) {
-                        body = new SimpleBody(
-                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                        body = new SimpleBodyBuilder(
+                                *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
                         localShape = (Sphere *)body->getGeometry();
                     } else {

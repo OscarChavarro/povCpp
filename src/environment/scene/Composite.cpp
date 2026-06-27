@@ -1,7 +1,7 @@
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-#include "environment/scene/SimpleBody.h"
+#include "environment/scene/Composite.h"
 #include "environment/material/Material.h"
 #include "java/util/PriorityQueue.txx"
 #include "java/util/ArrayList.txx"
@@ -9,7 +9,7 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 
 int
-SimpleBody::doIntersectionForAllRayCrossings(
+Composite::doIntersectionForAllRayCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
@@ -17,9 +17,10 @@ SimpleBody::doIntersectionForAllRayCrossings(
     (void)materialOverride;
     bool intersectionFound;
     bool anyIntersectionFound;
-    IntersectionCandidate localIntersection;
     TransformedGeometry *boundingShape;
     TransformedGeometry *clippingShape;
+    IntersectionCandidate localIntersection;
+    SimpleBody *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
 
@@ -41,20 +42,20 @@ SimpleBody::doIntersectionForAllRayCrossings(
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
     anyIntersectionFound = false;
-    this->getGeometry()->doIntersectionForAllRayCrossings(
-        ray, localDepthQueue, this->getGeometryMaterial());
+
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
+
+        localObject->doIntersectionForAllRayCrossings(ray, localDepthQueue);
+    }
 
     for (const IntersectionCandidate& candidate : *localDepthQueue) {
         localIntersection = candidate;
 
-        localIntersection.getAttributes().setObjectTexture(this->getObjectTexture());
-        localIntersection.getAttributes().setObjectColor(this->getObjectColor());
-        localIntersection.getAttributes().setNoShadowFlag(this->getNoShadowFlag());
         intersectionFound = true;
 
         for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
             clippingShape = this->getClippingShapes()[i];
-
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(localIntersection.getIntersection().point,
                     Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
@@ -75,10 +76,11 @@ SimpleBody::doIntersectionForAllRayCrossings(
 }
 
 int
-SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
+Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
     TransformedGeometry *boundingShape;
     TransformedGeometry *clippingShape;
+    SimpleBody *localObject;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
@@ -96,74 +98,57 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
         }
     }
 
-    if (this->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
-        return INSIDE;
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
+
+        if (localObject->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
+            return INSIDE;
+        }
     }
+
     return OUTSIDE;
 }
 
-SimpleBody::SimpleBody(const SimpleBody &other) :
-    geometry(other.getGeometry() != nullptr ?
-        (TransformedGeometry *)other.getGeometry()->copy() : nullptr),
-    geometryMaterial(other.getGeometryMaterial() != nullptr ?
-        other.getGeometryMaterial()->copy() : nullptr),
-    noShadowFlag(other.getNoShadowFlag()),
-    objectColor(other.getObjectColor() != nullptr ?
-        new ColorRgba(*other.getObjectColor()) : nullptr),
-    objectTexture(other.getObjectTexture() != nullptr ?
-        other.getObjectTexture()->copy() : nullptr)
+Composite::Composite(const Composite &other) :
+    SimpleBody(other)
 {
-    for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
-        boundingShapes.add(
-            (TransformedGeometry *)other.getBoundingShapes()[i]->copy());
-    }
-    for (long int i = other.getClippingShapes().size() - 1; i >= 0; i--) {
-        clippingShapes.add(
-            (TransformedGeometry *)other.getClippingShapes()[i]->copy());
+    for (long int i = other.getSimpleBodies().size() - 1; i >= 0; i--) {
+        simpleBodies.add(
+            (SimpleBody *)other.getSimpleBodies()[i]->copy());
     }
 }
 
-SimpleBody::~SimpleBody()
+Composite::~Composite()
 {
-    delete geometry;
-    delete geometryMaterial;
-    delete objectColor;
-    // objectTexture may be a private clone (delete it) or an alias to a shared
-    // constant such as the scene's default texture (do not delete, just close
-    // out its alias bookkeeping). releaseFromOwner() encapsulates that decision
-    // so this destructor needs to know nothing about the concrete material type.
-    if (objectTexture != nullptr) {
-        objectTexture->releaseFromOwner();
-    }
-    for (long int i = 0; i < boundingShapes.size(); i++) {
-        delete boundingShapes[i];
-    }
-    for (long int i = 0; i < clippingShapes.size(); i++) {
-        delete clippingShapes[i];
+    for (long int i = 0; i < simpleBodies.size(); i++) {
+        delete simpleBodies[i];
     }
 }
 
 void
-SimpleBody::detachOwnership()
+Composite::detachOwnership()
 {
-    geometry = nullptr;
-    geometryMaterial = nullptr;
-    objectColor = nullptr;
-    objectTexture = nullptr;
-    boundingShapes.clear();
-    clippingShapes.clear();
+    SimpleBody::detachOwnership();
+    simpleBodies.clear();
 }
 
 void *
-SimpleBody::copy()
+Composite::copy()
 {
-    return new SimpleBody(*this);
+    return new Composite(*this);
 }
 
 void
-SimpleBody::translate(Vector3Dd *vector)
+Composite::translate(Vector3Dd *vector)
 {
+    SimpleBody *localObject;
     TransformedGeometry *localShape;
+
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
+
+        localObject->translate(vector);
+    }
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -176,24 +161,19 @@ SimpleBody::translate(Vector3Dd *vector)
 
         localShape->translateGeometry(vector);
     }
-
-    if (this->getGeometry() != nullptr) {
-        this->getGeometry()->translateGeometry(vector);
-    }
-
-    if (this->getGeometryMaterial() != nullptr) {
-        geometryMaterial = this->getGeometryMaterial()->translate(vector);
-    }
-
-    if (this->getObjectTexture() != nullptr) {
-        objectTexture = this->getObjectTexture()->translate(vector);
-    }
 }
 
 void
-SimpleBody::rotate(Vector3Dd *vector)
+Composite::rotate(Vector3Dd *vector)
 {
+    SimpleBody *localObject;
     TransformedGeometry *localShape;
+
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
+
+        localObject->rotate(vector);
+    }
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -206,24 +186,19 @@ SimpleBody::rotate(Vector3Dd *vector)
 
         localShape->rotateGeometry(vector);
     }
-
-    if (this->getGeometry() != nullptr) {
-        this->getGeometry()->rotateGeometry(vector);
-    }
-
-    if (this->getGeometryMaterial() != nullptr) {
-        geometryMaterial = this->getGeometryMaterial()->rotate(vector);
-    }
-
-    if (this->getObjectTexture() != nullptr) {
-        objectTexture = this->getObjectTexture()->rotate(vector);
-    }
 }
 
 void
-SimpleBody::scale(Vector3Dd *vector)
+Composite::scale(Vector3Dd *vector)
 {
+    SimpleBody *localObject;
     TransformedGeometry *localShape;
+
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
+
+        localObject->scale(vector);
+    }
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -236,24 +211,18 @@ SimpleBody::scale(Vector3Dd *vector)
 
         localShape->scaleGeometry(vector);
     }
-
-    if (this->getGeometry() != nullptr) {
-        this->getGeometry()->scaleGeometry(vector);
-    }
-
-    if (this->getGeometryMaterial() != nullptr) {
-        geometryMaterial = this->getGeometryMaterial()->scale(vector);
-    }
-
-    if (this->getObjectTexture() != nullptr) {
-        objectTexture = this->getObjectTexture()->scale(vector);
-    }
 }
 
 void
-SimpleBody::invert()
+Composite::invert()
 {
+    SimpleBody *localObject;
     TransformedGeometry *localShape;
+
+    for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
+        localObject = this->getSimpleBodies()[i];
+        localObject->invert();
+    }
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
@@ -263,8 +232,5 @@ SimpleBody::invert()
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
         localShape->invertGeometry();
-    }
-    if (this->getGeometry() != nullptr) {
-        this->getGeometry()->invertGeometry();
     }
 }

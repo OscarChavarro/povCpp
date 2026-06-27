@@ -3,7 +3,6 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/TransformedGeometry.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"
@@ -29,7 +28,7 @@ class Blob : public TransformedGeometry {
     // BlobElement.h's comment on the analogous tcoeffs removal.
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
         const Blob *blob, double minimumDistance, BlobInterval *intervals);
-    static double calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos);
+    static double calculateFieldValue(const Blob *blob, const Vector3Dd *pos);
     static bool validateHit(const Blob *blob, const Vector3Dd *p);
 
   public:

@@ -1,19 +1,19 @@
 #ifndef __OBJECT_PARSER__
 #define __OBJECT_PARSER__
 
-#include "environment/geometry/BoundedGeometry.h"
-#include "environment/geometry/volume/compound/Composite.h"
 #include "environment/scene/SimpleBody.h"
+#include "environment/scene/Composite.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 #include "io/pov/context/ParserContext.h"
 
 class ObjectParser {
   public:
-    static SimpleBody *parseShape();
-    static SimpleBody *parseShape(ParserContext &ctx);
-    static BoundedGeometry *parseObject();
-    static BoundedGeometry *parseObject(ParserContext &ctx);
-    static BoundedGeometry *parseComposite();
-    static BoundedGeometry *parseComposite(ParserContext &ctx);
+    static SimpleBodyBuilder *parseShape();
+    static SimpleBodyBuilder *parseShape(ParserContext &ctx);
+    static SimpleBody *parseObject();
+    static SimpleBody *parseObject(ParserContext &ctx);
+    static SimpleBody *parseComposite();
+    static SimpleBody *parseComposite(ParserContext &ctx);
 
   private:
     // An untextured object/composite starts out wearing the scene's shared
@@ -28,7 +28,7 @@ class ObjectParser {
     // replacing and layering.
     static Material *ensurePrivateTexture(Material *objectTexture);
 
-    static BoundedGeometry *buildObject(
+    static SimpleBody *buildObject(
         TransformedGeometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
@@ -45,10 +45,10 @@ class ObjectParser {
         bool noShadowFlag,
         const java::ArrayList<TransformedGeometry*> &boundingShapes,
         const java::ArrayList<TransformedGeometry*> &clippingShapes,
-        const java::ArrayList<BoundedGeometry*> &simpleBodies);
+        const java::ArrayList<SimpleBody*> &simpleBodies);
 
     static void extractObjectState(
-        BoundedGeometry *object,
+        SimpleBody *object,
         TransformedGeometry *&geometry,
         Material *&geometryMaterial,
         Material *&objectTexture,
@@ -66,7 +66,7 @@ class ObjectParser {
         bool &noShadowFlag,
         java::ArrayList<TransformedGeometry*> &boundingShapes,
         java::ArrayList<TransformedGeometry*> &clippingShapes,
-        java::ArrayList<BoundedGeometry*> &simpleBodies);
+        java::ArrayList<SimpleBody*> &simpleBodies);
 };
 
 #endif

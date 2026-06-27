@@ -1,7 +1,6 @@
 #ifndef __PARAMETRIC_BI_CUBIC_SOLVER__
 #define __PARAMETRIC_BI_CUBIC_SOLVER__
 
-#include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicPatch.h"
 
@@ -17,7 +16,7 @@ class ParametricBiCubicSolver {
         ParametricBiCubicPatch *shape, double *depths);
     static int intersectParametricBiCubicPatch4(const RayWithSegments *ray,
         ParametricBiCubicPatch *shape, double *depths);
-    static int allParametricBiCubicPatchIntersections(BoundedGeometry *object,
+    static int allParametricBiCubicPatchIntersections(ParametricBiCubicPatch *shape,
         RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
 };
 

@@ -1,9 +1,9 @@
 #include <cstdio>
 
-#include "environment/geometry/BoundedGeometry.h"
 #include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/scene/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/material/povray/PovRayMaterial.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
@@ -23,7 +23,7 @@
 void
 SceneParser::postProcessPhase(Scene *framePtr)
 {
-    const java::ArrayList<BoundedGeometry*> &objects =
+    const java::ArrayList<SimpleBody*> &objects =
         framePtr->getObjects();
     java::ArrayList<Light*> &lights = framePtr->getLightSources();
     for (long int i = 0; i < objects.size(); i++) {
@@ -58,7 +58,7 @@ SceneParser::freeConstant(int constantType, void *data)
     }
     switch (constantType) {
     case ParseGlobals::OBJECT_CONSTANT:
-        delete static_cast<BoundedGeometry *>(data);
+        delete static_cast<SimpleBody *>(data);
         break;
     case ParseGlobals::SPHERE_CONSTANT:
     case ParseGlobals::PLANE_CONSTANT:
@@ -70,7 +70,7 @@ SceneParser::freeConstant(int constantType, void *data)
     case ParseGlobals::BOX_CONSTANT:
     case ParseGlobals::BLOB_CONSTANT:
     case ParseGlobals::BICUBIC_PATCH_CONSTANT:
-        delete static_cast<SimpleBody *>(data);
+        delete static_cast<SimpleBodyBuilder *>(data);
         break;
     case ParseGlobals::CSG_INTERSECTION_CONSTANT:
     case ParseGlobals::CSG_UNION_CONSTANT:
@@ -123,7 +123,7 @@ SceneParser::parse(Scene *framePtr, ParserContext &ctx)
     // ~Scene() and doc/memoryAudit/ownership.md), and the compiler-generated
     // copy constructor/assignment only shallow-copies that ArrayList. An
     // intermediate by-value Scene here would have its destructor delete the
-    // same BoundedGeometry* the caller's framePtr still needs for the render.
+    // same SimpleBody* the caller's framePtr still needs for the render.
     ctx.degenerateTriangles() = false;
     SceneParser::tokenInit(ctx);
     SceneParser::frameInit(framePtr, ctx);

@@ -3,10 +3,9 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/BoundedGeometry.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
+#include "environment/scene/SimpleBody.h"
 
-class Composite : public BoundedGeometry {
+class Composite : public SimpleBody {
   public:
     Composite(
         TransformedGeometry *geometry,
@@ -16,8 +15,8 @@ class Composite : public BoundedGeometry {
         bool noShadowFlag,
         const java::ArrayList<TransformedGeometry*> &boundingShapes,
         const java::ArrayList<TransformedGeometry*> &clippingShapes,
-        const java::ArrayList<BoundedGeometry*> &simpleBodies) :
-        BoundedGeometry(
+        const java::ArrayList<SimpleBody*> &simpleBodies) :
+        SimpleBody(
             geometry, geometryMaterial, objectTexture, objectColor,
             noShadowFlag, boundingShapes, clippingShapes),
         simpleBodies(simpleBodies)
@@ -27,8 +26,8 @@ class Composite : public BoundedGeometry {
     ~Composite() override;
     void detachOwnership() override;
 
-    java::ArrayList<BoundedGeometry*> &getSimpleBodies();
-    const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;
+    java::ArrayList<SimpleBody*> &getSimpleBodies();
+    const java::ArrayList<SimpleBody*> &getSimpleBodies() const;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
@@ -42,16 +41,16 @@ class Composite : public BoundedGeometry {
     void invert() override;
 
   private:
-    java::ArrayList<BoundedGeometry*> simpleBodies{4};
+    java::ArrayList<SimpleBody*> simpleBodies{4};
 };
 
-inline java::ArrayList<BoundedGeometry*> &
+inline java::ArrayList<SimpleBody*> &
 Composite::getSimpleBodies()
 {
     return simpleBodies;
 }
 
-inline const java::ArrayList<BoundedGeometry*> &
+inline const java::ArrayList<SimpleBody*> &
 Composite::getSimpleBodies() const
 {
     return simpleBodies;

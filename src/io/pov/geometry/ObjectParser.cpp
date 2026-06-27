@@ -3,7 +3,7 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 #include "environment/geometry/element/Triangle.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
 #include "environment/geometry/volume/Blob.h"
@@ -12,13 +12,13 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/scene/Composite.h"
 #include "environment/light/Light.h"
 #include "environment/material/povray/DefaultTextureAliasTracker.h"
 #include "io/pov/material/PovRayMaterialUtils.h"
 #include "environment/material/pigment/SolidTexturePigment.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
-#include "environment/scene/SceneBuilder.h"
+#include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 
 #include "io/pov/context/ParseGlobals.h"
@@ -43,7 +43,7 @@
 
 static void
 releaseSimpleBody(
-    SimpleBody *body,
+    SimpleBodyBuilder *body,
     TransformedGeometry *&geometry,
     Material *&material)
 {
@@ -54,7 +54,7 @@ releaseSimpleBody(
 }
 
 static TransformedGeometry *
-releaseSimpleBodyGeometry(SimpleBody *body)
+releaseSimpleBodyGeometry(SimpleBodyBuilder *body)
 {
     TransformedGeometry *geometry = body->releaseGeometry();
     delete body->releaseMaterial();
@@ -79,7 +79,7 @@ ObjectParser::ensurePrivateTexture(Material *objectTexture)
     return objectTexture;
 }
 
-BoundedGeometry *
+SimpleBody *
 ObjectParser::buildObject(
     TransformedGeometry *geometry,
     Material *geometryMaterial,
@@ -89,7 +89,7 @@ ObjectParser::buildObject(
     const java::ArrayList<TransformedGeometry*> &boundingShapes,
     const java::ArrayList<TransformedGeometry*> &clippingShapes)
 {
-    return new BoundedGeometry(
+    return new SimpleBody(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
         boundingShapes, clippingShapes);
 }
@@ -103,7 +103,7 @@ ObjectParser::buildComposite(
     bool noShadowFlag,
     const java::ArrayList<TransformedGeometry*> &boundingShapes,
     const java::ArrayList<TransformedGeometry*> &clippingShapes,
-    const java::ArrayList<BoundedGeometry*> &simpleBodies)
+    const java::ArrayList<SimpleBody*> &simpleBodies)
 {
     return new Composite(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
@@ -112,7 +112,7 @@ ObjectParser::buildComposite(
 
 void
 ObjectParser::extractObjectState(
-    BoundedGeometry *object,
+    SimpleBody *object,
     TransformedGeometry *&geometry,
     Material *&geometryMaterial,
     Material *&objectTexture,
@@ -140,7 +140,7 @@ ObjectParser::extractCompositeState(
     bool &noShadowFlag,
     java::ArrayList<TransformedGeometry*> &boundingShapes,
     java::ArrayList<TransformedGeometry*> &clippingShapes,
-    java::ArrayList<BoundedGeometry*> &simpleBodies)
+    java::ArrayList<SimpleBody*> &simpleBodies)
 {
     extractObjectState(
         object, geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
@@ -148,31 +148,31 @@ ObjectParser::extractCompositeState(
     simpleBodies = object->getSimpleBodies();
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 ObjectParser::parseShape()
 {
     ParserContext ctx;
     return ObjectParser::parseShape(ctx);
 }
 
-BoundedGeometry *
+SimpleBody *
 ObjectParser::parseObject()
 {
     ParserContext ctx;
     return ObjectParser::parseObject(ctx);
 }
 
-BoundedGeometry *
+SimpleBody *
 ObjectParser::parseComposite()
 {
     ParserContext ctx;
     return ObjectParser::parseComposite(ctx);
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 ObjectParser::parseShape(ParserContext &ctx)
 {
-    SimpleBody *localShape = nullptr;
+    SimpleBodyBuilder *localShape = nullptr;
 
     {
         bool Exit_Flag = false;
@@ -267,11 +267,11 @@ ObjectParser::parseShape(ParserContext &ctx)
     return (localShape);
 }
 
-BoundedGeometry *
+SimpleBody *
 ObjectParser::parseObject(ParserContext &ctx)
 {
-    BoundedGeometry *object = nullptr;
-    SimpleBody *localShape;
+    SimpleBody *object = nullptr;
+    SimpleBodyBuilder *localShape;
     TransformedGeometry *geometry;
     Material *geometryMaterial = nullptr;
     java::ArrayList<TransformedGeometry*> localBoundingShapes(4);
@@ -296,8 +296,8 @@ ObjectParser::parseObject(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::OBJECT_CONSTANT) {
-                        object = new BoundedGeometry(
-                            *(BoundedGeometry *)ctx.constants()[(int)constantId]
+                        object = new SimpleBody(
+                            *(SimpleBody *)ctx.constants()[(int)constantId]
                                 .getConstantData());
                         extractObjectState(
                             object, geometry, geometryMaterial, objectTexture, objectColor,
@@ -518,15 +518,15 @@ ObjectParser::parseObject(ParserContext &ctx)
         localBoundingShapes, localClippingShapes);
 }
 
-BoundedGeometry *
+SimpleBody *
 ObjectParser::parseComposite(ParserContext &ctx)
 {
     Composite *localComposite = nullptr;
-    BoundedGeometry *localObject;
-    SimpleBody *localShape;
+    SimpleBody *localObject;
+    SimpleBodyBuilder *localShape;
     TransformedGeometry *geometry;
     Material *geometryMaterial = nullptr;
-    java::ArrayList<BoundedGeometry*> localSimpleBodies(4);
+    java::ArrayList<SimpleBody*> localSimpleBodies(4);
     java::ArrayList<TransformedGeometry*> localBoundingShapes(4);
     java::ArrayList<TransformedGeometry*> localClippingShapes(4);
     Vector3Dd localVector;

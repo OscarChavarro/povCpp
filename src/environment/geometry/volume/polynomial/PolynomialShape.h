@@ -3,7 +3,6 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/BoundedGeometry.h"
 #include "environment/geometry/TransformedGeometry.h"
 
 class PolynomialShape : public TransformedGeometry {
@@ -43,7 +42,7 @@ class PolynomialShape : public TransformedGeometry {
         const double *coeffs, double *depths);
     static int intersectQuartic(const RayWithSegments *ray,
         const PolynomialShape *shape, double *depths);
-    static void quarticNormal(Vector3Dd *result, BoundedGeometry *object,
+    static void quarticNormal(Vector3Dd *result, const PolynomialShape *shape,
         const Vector3Dd *intersectionPoint);
     static double evaluatePolynomial(
         const Vector3Dd *point, int order, const double *coeffs);

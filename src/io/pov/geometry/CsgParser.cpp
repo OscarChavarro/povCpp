@@ -15,8 +15,8 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/geometry/CsgParser.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.h"
-#include "environment/scene/SimpleBody.h"
-#include "environment/scene/SceneBuilder.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
+#include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/geometry/BicubicPatchParser.h"
@@ -35,7 +35,7 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/parser/PrimitiveParser.h"
 
 static void
-addCsgShape(ConstructiveSolidGeometry *container, SimpleBody *shape)
+addCsgShape(ConstructiveSolidGeometry *container, SimpleBodyBuilder *shape)
 {
     container->addShape(shape->releaseGeometry(), shape->releaseMaterial());
     delete shape->releaseShapeColor();
@@ -46,7 +46,7 @@ ConstructiveSolidGeometry *
 CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested)
 {
     ConstructiveSolidGeometry *container = nullptr;
-    SimpleBody *localShape;
+    SimpleBodyBuilder *localShape;
     bool firstShapeParsed = false;
 
     if (ctx.usesCsgRoth()) {

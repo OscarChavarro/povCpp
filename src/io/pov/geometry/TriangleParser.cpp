@@ -4,8 +4,8 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 #include "environment/geometry/element/Triangle.h"
-#include "environment/scene/SceneBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SceneBuilder.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -16,10 +16,10 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-SimpleBody *
+SimpleBodyBuilder *
 TriangleParser::parseTriangle(ParserContext &ctx)
 {
-    SimpleBody *body = nullptr;
+    SimpleBodyBuilder *body = nullptr;
     Triangle *localShape = nullptr;
 
     ParseHelpers::getExpectedToken(Tokenizer::LEFT_CURLY_TOKEN, ctx);
@@ -59,8 +59,8 @@ TriangleParser::parseTriangle(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::TRIANGLE_CONSTANT) {
-                        body = new SimpleBody(
-                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                        body = new SimpleBodyBuilder(
+                                *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
                         localShape = (Triangle *)body->getGeometry();
                     } else {

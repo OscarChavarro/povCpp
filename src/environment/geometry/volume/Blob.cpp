@@ -197,12 +197,11 @@ Calculate the field value of a blob - the origin vector
 "Pos" must already have been transformed into blob space.
 */
 double
-Blob::calculateFieldValue(BoundedGeometry *obj, const Vector3Dd *pos)
+Blob::calculateFieldValue(const Blob *blob, const Vector3Dd *pos)
 {
     double density = 0.0;
     Vector3Dd v;
     BlobElement *ptr;
-    const Blob *blob = (Blob *)obj;
     ptr = &(blob->list[0]);
     for (int i = 0; i < blob->count; i++, ptr++) {
         v = ptr->getPos().subtract(*pos);
@@ -493,7 +492,7 @@ Blob::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
     // INSIDE_TOLERANCE is a density-threshold margin specific to the blob
     // field function, not the geometric point-to-surface epsilon that
     // distanceTolerance represents elsewhere; kept as-is on purpose.
-    if (Blob::calculateFieldValue((BoundedGeometry *)this, &newPoint) >
+    if (Blob::calculateFieldValue(blob, &newPoint) >
         blob->threshold - INSIDE_TOLERANCE) {
         return blob->inverted ? OUTSIDE : INSIDE;
     }

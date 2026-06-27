@@ -5,8 +5,8 @@
 #include "vsdk/toolkit/media/RGBAImageHDRUncompressed.h"
 
 #include "environment/geometry/volume/HeightField.h"
-#include "environment/scene/SceneBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SceneBuilder.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/image/GifFormat.h"
 #include "io/image/TargaFormat.h"
@@ -19,19 +19,19 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-SimpleBody *
+SimpleBodyBuilder *
 HeightFieldParser::parseHeightField()
 {
     ParserContext ctx;
     return HeightFieldParser::parseHeightField(ctx);
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 HeightFieldParser::parseHeightField(ParserContext &ctx)
 {
     (void)ctx;
     HeightField *localShape = nullptr;
-    SimpleBody *body = nullptr;
+    SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     IndexedColorImageHDRUncompressed *indexedImage = nullptr;
     RGBAImageHDRUncompressed *directImage = nullptr;
@@ -134,8 +134,8 @@ HeightFieldParser::parseHeightField(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::HEIGHT_FIELD_CONSTANT) {
-                        body = new SimpleBody(
-                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                        body = new SimpleBodyBuilder(
+                                *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
                         localShape = (HeightField *)body->getGeometry();
                     } else {

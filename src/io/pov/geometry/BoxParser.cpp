@@ -3,8 +3,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Box.h"
-#include "environment/scene/SceneBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SceneBuilder.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -14,18 +14,18 @@
 #include "io/pov/parser/ParseErrorReporter.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-SimpleBody *
+SimpleBodyBuilder *
 BoxParser::parseBox()
 {
     ParserContext ctx;
     return BoxParser::parseBox(ctx);
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 BoxParser::parseBox(ParserContext &ctx)
 {
     Box *localShape = nullptr;
-    SimpleBody *body = nullptr;
+    SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     Vector3Dd minBounds;
     Vector3Dd maxBounds;
@@ -66,8 +66,8 @@ BoxParser::parseBox(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::BOX_CONSTANT) {
-                        body = new SimpleBody(
-                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                        body = new SimpleBodyBuilder(
+                                *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
                         localShape = (Box *)body->getGeometry();
                     } else {

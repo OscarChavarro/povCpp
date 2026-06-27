@@ -1,12 +1,11 @@
 #include "vsdk/toolkit/common/logging/Logger.h"
 
-#include "environment/scene/SceneBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SceneBuilder.h"
 
-SimpleBody *
+SimpleBodyBuilder *
 SceneBuilder::wrap(TransformedGeometry *geometry)
 {
-    SimpleBody *body = new SimpleBody(geometry, nullptr, nullptr);
+    SimpleBodyBuilder *body = new SimpleBodyBuilder(geometry, nullptr, nullptr);
     if (body == nullptr) {
         Logger::reportMessage("SceneBuilder", Logger::FATAL_ERROR, "", "Out of memory. Cannot allocate body\n");
     }
