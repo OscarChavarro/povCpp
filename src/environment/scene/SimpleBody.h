@@ -3,17 +3,20 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
+#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/TransformedGeometry.h"
 #include "environment/geometry/element/AxisAlignedBox.h"
 #include "environment/material/Material.h"
 
-class SimpleBody : public Geometry {
+class SimpleBody {
   private:
     java::ArrayList<TransformedGeometry*> boundingShapes{4};
     java::ArrayList<TransformedGeometry*> clippingShapes{4};
     TransformedGeometry *geometry;
     Material *geometryMaterial;
+    Matrix4x4d *transformation = nullptr;
+    Matrix4x4d *transformationInverse = nullptr;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
@@ -26,18 +29,22 @@ class SimpleBody : public Geometry {
         ColorRgba *objectColor,
         bool noShadowFlag,
         const java::ArrayList<TransformedGeometry*> &boundingShapes,
-        const java::ArrayList<TransformedGeometry*> &clippingShapes) :
+        const java::ArrayList<TransformedGeometry*> &clippingShapes,
+        Matrix4x4d *transformation = nullptr,
+        Matrix4x4d *transformationInverse = nullptr) :
         boundingShapes(boundingShapes),
         clippingShapes(clippingShapes),
         geometry(geometry),
         geometryMaterial(geometryMaterial),
+        transformation(transformation),
+        transformationInverse(transformationInverse),
         noShadowFlag(noShadowFlag),
         objectColor(objectColor),
         objectTexture(objectTexture)
     {
     }
     SimpleBody(const SimpleBody &other);
-    ~SimpleBody() override;
+    virtual ~SimpleBody();
 
     // ObjectParser builds short-lived SimpleBody/Composite wrappers purely to
     // invoke their virtual translate/rotate/scale/invert (which know how to transform
@@ -56,18 +63,22 @@ class SimpleBody : public Geometry {
     const java::ArrayList<TransformedGeometry*>& getClippingShapes() const { return clippingShapes; }
     TransformedGeometry *getGeometry() const { return geometry; }
     Material *getGeometryMaterial() const { return geometryMaterial; }
+    Matrix4x4d *getTransformation() const { return transformation; }
+    Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
     bool getNoShadowFlag() const { return noShadowFlag; }
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }
 
     AxisAlignedBox getAABB() const;
 
-    int doIntersectionForAllRayCrossings(
+    virtual bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
+    virtual int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *materialOverride = nullptr) override;
-    int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
-    void *copy() override;
+        Material *materialOverride = nullptr);
+    virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
+    virtual void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit);
+    virtual void *copy();
     // Virtual so a nested Composite child reached through a SimpleBody*
     // (e.g. from Composite::translate's simpleBodies loop) dispatches to
     // Composite's override, which propagates the transform into its own
@@ -77,6 +88,18 @@ class SimpleBody : public Geometry {
     virtual void rotate(Vector3Dd *vector);
     virtual void scale(Vector3Dd *vector);
     virtual void invert();
+
+  protected:
+    void applyTranslationToBodyTransform(Vector3Dd *vector);
+    void applyRotationToBodyTransform(Vector3Dd *vector);
+    void applyScaleToBodyTransform(Vector3Dd *vector);
+    Vector3Dd worldPointToLocal(const Vector3Dd &point) const;
+    Vector3Dd localPointToWorld(const Vector3Dd &point) const;
+    Vector3Dd worldDirectionToLocal(const Vector3Dd &direction) const;
+    Vector3Dd localNormalToWorld(const Vector3Dd &normal) const;
+
+  private:
+    void ensureMatrices();
 };
 
 #endif

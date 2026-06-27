@@ -87,11 +87,13 @@ ObjectParser::buildObject(
     ColorRgba *objectColor,
     bool noShadowFlag,
     const java::ArrayList<TransformedGeometry*> &boundingShapes,
-    const java::ArrayList<TransformedGeometry*> &clippingShapes)
+    const java::ArrayList<TransformedGeometry*> &clippingShapes,
+    Matrix4x4d *transformation,
+    Matrix4x4d *transformationInverse)
 {
     return new SimpleBody(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        boundingShapes, clippingShapes);
+        boundingShapes, clippingShapes, transformation, transformationInverse);
 }
 
 Composite *
@@ -103,11 +105,14 @@ ObjectParser::buildComposite(
     bool noShadowFlag,
     const java::ArrayList<TransformedGeometry*> &boundingShapes,
     const java::ArrayList<TransformedGeometry*> &clippingShapes,
-    const java::ArrayList<SimpleBody*> &simpleBodies)
+    const java::ArrayList<SimpleBody*> &simpleBodies,
+    Matrix4x4d *transformation,
+    Matrix4x4d *transformationInverse)
 {
     return new Composite(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        boundingShapes, clippingShapes, simpleBodies);
+        boundingShapes, clippingShapes, simpleBodies,
+        transformation, transformationInverse);
 }
 
 void
@@ -119,10 +124,14 @@ ObjectParser::extractObjectState(
     ColorRgba *&objectColor,
     bool &noShadowFlag,
     java::ArrayList<TransformedGeometry*> &boundingShapes,
-    java::ArrayList<TransformedGeometry*> &clippingShapes)
+    java::ArrayList<TransformedGeometry*> &clippingShapes,
+    Matrix4x4d *&transformation,
+    Matrix4x4d *&transformationInverse)
 {
     geometry = object->getGeometry();
     geometryMaterial = object->getGeometryMaterial();
+    transformation = object->getTransformation();
+    transformationInverse = object->getTransformationInverse();
     objectTexture = object->getObjectTexture();
     objectColor = object->getObjectColor();
     noShadowFlag = object->getNoShadowFlag();
@@ -140,11 +149,13 @@ ObjectParser::extractCompositeState(
     bool &noShadowFlag,
     java::ArrayList<TransformedGeometry*> &boundingShapes,
     java::ArrayList<TransformedGeometry*> &clippingShapes,
-    java::ArrayList<SimpleBody*> &simpleBodies)
+    java::ArrayList<SimpleBody*> &simpleBodies,
+    Matrix4x4d *&transformation,
+    Matrix4x4d *&transformationInverse)
 {
     extractObjectState(
         object, geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        boundingShapes, clippingShapes);
+        boundingShapes, clippingShapes, transformation, transformationInverse);
     simpleBodies = object->getSimpleBodies();
 }
 
@@ -274,6 +285,8 @@ ObjectParser::parseObject(ParserContext &ctx)
     SimpleBodyBuilder *localShape;
     TransformedGeometry *geometry;
     Material *geometryMaterial = nullptr;
+    Matrix4x4d *transformation = nullptr;
+    Matrix4x4d *transformationInverse = nullptr;
     java::ArrayList<TransformedGeometry*> localBoundingShapes(4);
     java::ArrayList<TransformedGeometry*> localClippingShapes(4);
     Vector3Dd localVector;
@@ -302,7 +315,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                         extractObjectState(
                             object, geometry, geometryMaterial, objectTexture, objectColor,
                             noShadowFlag, localBoundingShapes,
-                            localClippingShapes);
+                            localClippingShapes, transformation, transformationInverse);
                         object->detachOwnership();
                         delete object;
                         object = nullptr;
@@ -441,12 +454,14 @@ ObjectParser::parseObject(ParserContext &ctx)
                 objectTexture = ensurePrivateTexture(objectTexture);
                 object = buildObject(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes);
+                    localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 object->translate(&localVector);
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes);
+                    noShadowFlag, localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -458,12 +473,14 @@ ObjectParser::parseObject(ParserContext &ctx)
                 objectTexture = ensurePrivateTexture(objectTexture);
                 object = buildObject(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes);
+                    localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 object->rotate(&localVector);
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes);
+                    noShadowFlag, localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -475,12 +492,14 @@ ObjectParser::parseObject(ParserContext &ctx)
                 objectTexture = ensurePrivateTexture(objectTexture);
                 object = buildObject(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes);
+                    localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 object->scale(&localVector);
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes);
+                    noShadowFlag, localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -491,11 +510,13 @@ ObjectParser::parseObject(ParserContext &ctx)
             {
                 object = buildObject(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-                    localBoundingShapes, localClippingShapes);
+                    localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 object->invert();
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
-                    noShadowFlag, localBoundingShapes, localClippingShapes);
+                    noShadowFlag, localBoundingShapes, localClippingShapes,
+                    transformation, transformationInverse);
                 object->detachOwnership();
                 delete object;
                 object = nullptr;
@@ -515,7 +536,8 @@ ObjectParser::parseObject(ParserContext &ctx)
 
     return buildObject(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        localBoundingShapes, localClippingShapes);
+        localBoundingShapes, localClippingShapes,
+        transformation, transformationInverse);
 }
 
 SimpleBody *
@@ -526,6 +548,8 @@ ObjectParser::parseComposite(ParserContext &ctx)
     SimpleBodyBuilder *localShape;
     TransformedGeometry *geometry;
     Material *geometryMaterial = nullptr;
+    Matrix4x4d *transformation = nullptr;
+    Matrix4x4d *transformationInverse = nullptr;
     java::ArrayList<SimpleBody*> localSimpleBodies(4);
     java::ArrayList<TransformedGeometry*> localBoundingShapes(4);
     java::ArrayList<TransformedGeometry*> localClippingShapes(4);
@@ -555,7 +579,8 @@ ObjectParser::parseComposite(ParserContext &ctx)
                         extractCompositeState(
                             localComposite, geometry, geometryMaterial, objectTexture,
                             objectColor, noShadowFlag, localBoundingShapes,
-                            localClippingShapes, localSimpleBodies);
+                            localClippingShapes, localSimpleBodies,
+                            transformation, transformationInverse);
                         localComposite->detachOwnership();
                         delete localComposite;
                         localComposite = nullptr;
@@ -656,13 +681,13 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 localComposite = buildComposite(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 localComposite->translate(&localVector);
                 extractCompositeState(
                     localComposite, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
@@ -675,13 +700,13 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 localComposite = buildComposite(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 localComposite->rotate(&localVector);
                 extractCompositeState(
                     localComposite, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
@@ -694,13 +719,13 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 localComposite = buildComposite(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
                 localComposite->scale(&localVector);
                 extractCompositeState(
                     localComposite, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
@@ -712,12 +737,12 @@ ObjectParser::parseComposite(ParserContext &ctx)
                 localComposite = buildComposite(
                     geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
                     localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 localComposite->invert();
                 extractCompositeState(
                     localComposite, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
-                    localSimpleBodies);
+                    localSimpleBodies, transformation, transformationInverse);
                 localComposite->detachOwnership();
                 delete localComposite;
                 localComposite = nullptr;
@@ -733,5 +758,6 @@ ObjectParser::parseComposite(ParserContext &ctx)
 
     return buildComposite(
         geometry, geometryMaterial, objectTexture, objectColor, noShadowFlag,
-        localBoundingShapes, localClippingShapes, localSimpleBodies);
+        localBoundingShapes, localClippingShapes, localSimpleBodies,
+        transformation, transformationInverse);
 }

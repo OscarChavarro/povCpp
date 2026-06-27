@@ -35,7 +35,9 @@ class ObjectParser {
         ColorRgba *objectColor,
         bool noShadowFlag,
         const java::ArrayList<TransformedGeometry*> &boundingShapes,
-        const java::ArrayList<TransformedGeometry*> &clippingShapes);
+        const java::ArrayList<TransformedGeometry*> &clippingShapes,
+        Matrix4x4d *transformation = nullptr,
+        Matrix4x4d *transformationInverse = nullptr);
 
     static Composite *buildComposite(
         TransformedGeometry *geometry,
@@ -45,7 +47,9 @@ class ObjectParser {
         bool noShadowFlag,
         const java::ArrayList<TransformedGeometry*> &boundingShapes,
         const java::ArrayList<TransformedGeometry*> &clippingShapes,
-        const java::ArrayList<SimpleBody*> &simpleBodies);
+        const java::ArrayList<SimpleBody*> &simpleBodies,
+        Matrix4x4d *transformation = nullptr,
+        Matrix4x4d *transformationInverse = nullptr);
 
     static void extractObjectState(
         SimpleBody *object,
@@ -55,7 +59,9 @@ class ObjectParser {
         ColorRgba *&objectColor,
         bool &noShadowFlag,
         java::ArrayList<TransformedGeometry*> &boundingShapes,
-        java::ArrayList<TransformedGeometry*> &clippingShapes);
+        java::ArrayList<TransformedGeometry*> &clippingShapes,
+        Matrix4x4d *&transformation,
+        Matrix4x4d *&transformationInverse);
 
     static void extractCompositeState(
         Composite *object,
@@ -66,7 +72,9 @@ class ObjectParser {
         bool &noShadowFlag,
         java::ArrayList<TransformedGeometry*> &boundingShapes,
         java::ArrayList<TransformedGeometry*> &clippingShapes,
-        java::ArrayList<SimpleBody*> &simpleBodies);
+        java::ArrayList<SimpleBody*> &simpleBodies,
+        Matrix4x4d *&transformation,
+        Matrix4x4d *&transformationInverse);
 };
 
 #endif

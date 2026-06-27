@@ -431,8 +431,16 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         if (localRay->needsNormal()) {
             PovRayHit winningHit;
             winningHit.p = localIntersection.getIntersection().point;
-            localIntersection.getAttributes().getHitGeometry()->doExtraInformation(
-                *localRay, localIntersection.getIntersection().t, &winningHit);
+            SimpleBody *hitBody = localIntersection.getAttributes().getHitBody();
+            Geometry *hitGeometry = localIntersection.getAttributes().getHitGeometry();
+            winningHit.hitGeometry = hitGeometry;
+            if (hitBody != nullptr) {
+                hitBody->doExtraInformation(
+                    *localRay, localIntersection.getIntersection().t, &winningHit);
+            } else if (hitGeometry != nullptr) {
+                hitGeometry->doExtraInformation(
+                    *localRay, localIntersection.getIntersection().t, &winningHit);
+            }
             localIntersection.getIntersection().normal = winningHit.n;
         }
 
