@@ -158,7 +158,7 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
 
 SimpleBody::SimpleBody(const SimpleBody &other) :
     geometry(other.getGeometry() != nullptr ?
-        (TransformedGeometry *)other.getGeometry()->copy() : nullptr),
+        (Geometry *)other.getGeometry()->copy() : nullptr),
     geometryMaterial(other.getGeometryMaterial() != nullptr ?
         other.getGeometryMaterial()->copy() : nullptr),
     transformation(other.getTransformation() != nullptr ?
@@ -312,7 +312,10 @@ SimpleBody::translate(Vector3Dd *vector)
     }
 
     if (this->getGeometry() != nullptr) {
-        this->getGeometry()->translateGeometry(vector);
+        if (TransformedGeometry *transformed =
+                dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
+            transformed->translateGeometry(vector);
+        }
     }
 
     if (this->getGeometryMaterial() != nullptr) {
@@ -342,7 +345,10 @@ SimpleBody::rotate(Vector3Dd *vector)
     }
 
     if (this->getGeometry() != nullptr) {
-        this->getGeometry()->rotateGeometry(vector);
+        if (TransformedGeometry *transformed =
+                dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
+            transformed->rotateGeometry(vector);
+        }
     }
 
     if (this->getGeometryMaterial() != nullptr) {
@@ -372,7 +378,10 @@ SimpleBody::scale(Vector3Dd *vector)
     }
 
     if (this->getGeometry() != nullptr) {
-        this->getGeometry()->scaleGeometry(vector);
+        if (TransformedGeometry *transformed =
+                dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
+            transformed->scaleGeometry(vector);
+        }
     }
 
     if (this->getGeometryMaterial() != nullptr) {

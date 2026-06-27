@@ -4,6 +4,7 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "java/util/PriorityQueue.h"
 #include "environment/geometry/element/RayWithSegments.h"
+#include "environment/geometry/element/AxisAlignedBox.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/material/Material.h"
 
@@ -33,6 +34,7 @@ class Geometry {
         normal(result, intersectionPoint);
     }
     virtual void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit);
+    virtual AxisAlignedBox getMinMax() const { return AxisAlignedBox::unbounded(); }
     virtual void *copy() = 0;
     virtual ~Geometry() {}
 
