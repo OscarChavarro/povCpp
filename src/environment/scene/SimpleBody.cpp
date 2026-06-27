@@ -3,6 +3,7 @@
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/material/Material.h"
 #include "java/util/PriorityQueue.txx"
@@ -316,6 +317,11 @@ SimpleBody::translate(Vector3Dd *vector)
         if (TransformedGeometry *transformed =
                 dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
             transformed->translateGeometry(vector);
+        } else if (ConstructiveSolidGeometry *csg =
+                dynamic_cast<ConstructiveSolidGeometry *>(this->getGeometry())) {
+            csg->translate(vector);
+        } else {
+            applyTranslationToBodyTransform(vector);
         }
     }
 
@@ -347,6 +353,11 @@ SimpleBody::rotate(Vector3Dd *vector)
         if (TransformedGeometry *transformed =
                 dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
             transformed->rotateGeometry(vector);
+        } else if (ConstructiveSolidGeometry *csg =
+                dynamic_cast<ConstructiveSolidGeometry *>(this->getGeometry())) {
+            csg->rotate(vector);
+        } else {
+            applyRotationToBodyTransform(vector);
         }
     }
 
@@ -378,6 +389,11 @@ SimpleBody::scale(Vector3Dd *vector)
         if (TransformedGeometry *transformed =
                 dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
             transformed->scaleGeometry(vector);
+        } else if (ConstructiveSolidGeometry *csg =
+                dynamic_cast<ConstructiveSolidGeometry *>(this->getGeometry())) {
+            csg->scale(vector);
+        } else {
+            applyScaleToBodyTransform(vector);
         }
     }
 

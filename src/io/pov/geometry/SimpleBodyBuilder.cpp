@@ -1,4 +1,5 @@
 #include "io/pov/geometry/SimpleBodyBuilder.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 
 SimpleBodyBuilder::SimpleBodyBuilder(
     Geometry *geometry, Material *material, ColorRgba *shapeColor) :
@@ -70,6 +71,9 @@ SimpleBodyBuilder::translate(Vector3Dd *vector)
     if (TransformedGeometry *transformed =
             dynamic_cast<TransformedGeometry *>(getGeometry())) {
         transformed->translateGeometry(vector);
+    } else if (ConstructiveSolidGeometry *csg =
+            dynamic_cast<ConstructiveSolidGeometry *>(getGeometry())) {
+        csg->translate(vector);
     }
     if (getMaterial() != nullptr) {
         material = getMaterial()->translate(vector);
@@ -82,6 +86,9 @@ SimpleBodyBuilder::rotate(Vector3Dd *vector)
     if (TransformedGeometry *transformed =
             dynamic_cast<TransformedGeometry *>(getGeometry())) {
         transformed->rotateGeometry(vector);
+    } else if (ConstructiveSolidGeometry *csg =
+            dynamic_cast<ConstructiveSolidGeometry *>(getGeometry())) {
+        csg->rotate(vector);
     }
     if (getMaterial() != nullptr) {
         material = getMaterial()->rotate(vector);
@@ -94,6 +101,9 @@ SimpleBodyBuilder::scale(Vector3Dd *vector)
     if (TransformedGeometry *transformed =
             dynamic_cast<TransformedGeometry *>(getGeometry())) {
         transformed->scaleGeometry(vector);
+    } else if (ConstructiveSolidGeometry *csg =
+            dynamic_cast<ConstructiveSolidGeometry *>(getGeometry())) {
+        csg->scale(vector);
     }
     if (getMaterial() != nullptr) {
         material = getMaterial()->scale(vector);

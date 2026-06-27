@@ -48,6 +48,7 @@ add_executable(povray
     src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.cpp
     src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByMorganRules.cpp
     src/environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryByRaySegment.cpp
+    src/environment/geometry/volume/constructiveSolidGeometry/CsgOperand.cpp
     src/environment/geometry/volume/constructiveSolidGeometry/RaySegments.cpp
     src/environment/geometry/volume/HeightField.cpp
     src/environment/geometry/Geometry.cpp

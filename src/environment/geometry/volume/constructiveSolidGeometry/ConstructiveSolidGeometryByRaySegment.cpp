@@ -48,12 +48,12 @@ ConstructiveSolidGeometryByRaySegment::copy()
 // Per-child RAYCAST classification ([ROTH1982].3.3, "In-Out Classification").
 RaySegments
 ConstructiveSolidGeometryByRaySegment::buildRaySegments(
-    RayWithSegments *ray, TransformedGeometry *child, Material *childMaterial)
+    RayWithSegments *ray, CsgOperand *child, Material *materialOverride)
 {
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         ray->getIntersectionQueuePool()->pop(128);
 
-    child->doIntersectionForAllRayCrossings(ray, localDepthQueue, childMaterial);
+    child->doIntersectionForAllRayCrossings(ray, localDepthQueue, materialOverride);
 
     // One containment sample per child suffices: later crossings just
     // toggle it ([ROTH1982].3.3 - a ray alternates in/out at each surface
@@ -188,8 +188,8 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
     if (isTopLevel() && isUnionOfBarePlanes(getGeometryType(), children)) {
         bool anyFound = false;
         for (long int i = 0; i < children.size(); i++) {
-            if (children[i]->getGeometry()->doIntersectionForAllRayCrossings(
-                    ray, depthQueue, children[i]->getEffectiveMaterial(materialOverride))) {
+            if (children[i]->doIntersectionForAllRayCrossings(
+                    ray, depthQueue, materialOverride)) {
                 anyFound = true;
             }
         }
@@ -197,11 +197,10 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
     }
 
     RaySegments result = buildRaySegments(
-        ray, children[0]->getGeometry(), children[0]->getEffectiveMaterial(materialOverride));
+        ray, children[0], materialOverride);
     for (long int i = 1; i < children.size(); i++) {
         const RaySegments childSegments =
-            buildRaySegments(
-                ray, children[i]->getGeometry(), children[i]->getEffectiveMaterial(materialOverride));
+            buildRaySegments(ray, children[i], materialOverride);
         switch (getGeometryType()) {
         case BooleanSetOperations::DIFFERENCE:
             result = mergeDifference(result, childSegments);
@@ -236,9 +235,9 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
     switch (getGeometryType()) {
     case BooleanSetOperations::DIFFERENCE:
         // Table 3's "-" row in [ROTH1982].3.3.
-        isInside = children[0]->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE;
+        isInside = children[0]->doContainmentTest(point, distanceTolerance) != OUTSIDE;
         for (long int i = 1; isInside && (i < children.size()); i++) {
-            if (children[i]->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
+            if (children[i]->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
                 isInside = false;
             }
         }
@@ -247,7 +246,7 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
     case BooleanSetOperations::INTERSECTION:
         isInside = true;
         for (long int i = 0; isInside && (i < children.size()); i++) {
-            if (children[i]->getGeometry()->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
+            if (children[i]->doContainmentTest(point, distanceTolerance) == OUTSIDE) {
                 isInside = false;
             }
         }
@@ -256,7 +255,7 @@ ConstructiveSolidGeometryByRaySegment::doContainmentTest(const Vector3Dd &point,
     default:
         isInside = false;
         for (long int i = 0; !isInside && (i < children.size()); i++) {
-            if (children[i]->getGeometry()->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
+            if (children[i]->doContainmentTest(point, distanceTolerance) != OUTSIDE) {
                 isInside = true;
             }
         }

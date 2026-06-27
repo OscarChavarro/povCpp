@@ -14,7 +14,7 @@ ConstructiveSolidGeometry::~ConstructiveSolidGeometry()
 }
 
 void
-ConstructiveSolidGeometry::translateGeometry(Vector3Dd *vector)
+ConstructiveSolidGeometry::translate(Vector3Dd *vector)
 {
     for (long int i = operands.size() - 1; i >= 0; i--) {
         operands[i]->translate(vector);
@@ -22,13 +22,7 @@ ConstructiveSolidGeometry::translateGeometry(Vector3Dd *vector)
 }
 
 void
-ConstructiveSolidGeometry::translate(Vector3Dd *vector)
-{
-    translateGeometry(vector);
-}
-
-void
-ConstructiveSolidGeometry::rotateGeometry(Vector3Dd *vector)
+ConstructiveSolidGeometry::rotate(Vector3Dd *vector)
 {
     for (long int i = operands.size() - 1; i >= 0; i--) {
         operands[i]->rotate(vector);
@@ -36,23 +30,11 @@ ConstructiveSolidGeometry::rotateGeometry(Vector3Dd *vector)
 }
 
 void
-ConstructiveSolidGeometry::rotate(Vector3Dd *vector)
-{
-    rotateGeometry(vector);
-}
-
-void
-ConstructiveSolidGeometry::scaleGeometry(Vector3Dd *vector)
+ConstructiveSolidGeometry::scale(Vector3Dd *vector)
 {
     for (long int i = operands.size() - 1; i >= 0; i--) {
         operands[i]->scale(vector);
     }
-}
-
-void
-ConstructiveSolidGeometry::scale(Vector3Dd *vector)
-{
-    scaleGeometry(vector);
 }
 
 void
@@ -66,7 +48,7 @@ ConstructiveSolidGeometry::getMinMax() const
 {
     AxisAlignedBox result = AxisAlignedBox::empty();
     for (long int i = 0; i < operands.size(); i++) {
-        result = result.enclosing(operands[i]->getGeometry()->getMinMax());
+        result = result.enclosing(operands[i]->getMinMax());
     }
     return result;
 }
