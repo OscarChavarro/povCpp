@@ -34,8 +34,8 @@ class ObjectParser {
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<TransformedGeometry*> &boundingShapes,
-        const java::ArrayList<TransformedGeometry*> &clippingShapes,
+        const java::ArrayList<SimpleBody*> &boundingShapes,
+        const java::ArrayList<SimpleBody*> &clippingShapes,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr);
 
@@ -45,8 +45,8 @@ class ObjectParser {
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<TransformedGeometry*> &boundingShapes,
-        const java::ArrayList<TransformedGeometry*> &clippingShapes,
+        const java::ArrayList<SimpleBody*> &boundingShapes,
+        const java::ArrayList<SimpleBody*> &clippingShapes,
         const java::ArrayList<SimpleBody*> &simpleBodies,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr);
@@ -58,8 +58,8 @@ class ObjectParser {
         Material *&objectTexture,
         ColorRgba *&objectColor,
         bool &noShadowFlag,
-        java::ArrayList<TransformedGeometry*> &boundingShapes,
-        java::ArrayList<TransformedGeometry*> &clippingShapes,
+        java::ArrayList<SimpleBody*> &boundingShapes,
+        java::ArrayList<SimpleBody*> &clippingShapes,
         Matrix4x4d *&transformation,
         Matrix4x4d *&transformationInverse);
 
@@ -70,8 +70,8 @@ class ObjectParser {
         Material *&objectTexture,
         ColorRgba *&objectColor,
         bool &noShadowFlag,
-        java::ArrayList<TransformedGeometry*> &boundingShapes,
-        java::ArrayList<TransformedGeometry*> &clippingShapes,
+        java::ArrayList<SimpleBody*> &boundingShapes,
+        java::ArrayList<SimpleBody*> &clippingShapes,
         java::ArrayList<SimpleBody*> &simpleBodies,
         Matrix4x4d *&transformation,
         Matrix4x4d *&transformationInverse);

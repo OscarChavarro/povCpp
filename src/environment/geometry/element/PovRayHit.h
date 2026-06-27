@@ -5,9 +5,8 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
+#include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
-
-class SimpleBody;
 
 // Read-only projection of IntersectionCandidate onto a record shaped like
 // VITRAL's RayHit: the core fields below use exactly its names (p/n/t/u/v/
@@ -30,7 +29,7 @@ class PovRayHit {
 
     // --- POV-specific extensions (no equivalent in vsdk RayHit) ---
     Geometry *hitGeometry = nullptr;
-    SimpleBody *hitBody = nullptr;
+    RayOperationOwner *hitBody = nullptr;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
     ColorRgba *objectColor = nullptr;

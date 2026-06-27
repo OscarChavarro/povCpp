@@ -4,18 +4,17 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/material/Material.h"
 #include "environment/geometry/Geometry.h"
-
-class SimpleBody;
+#include "environment/geometry/element/RayOperationOwner.h"
 
 // Per-candidate attribution gathered while a ray is matched against the scene
 // (which geometry/material produced the hit, and the shading overrides a
-// containing SimpleBody applies) - kept apart from the candidate's own
+// containing scene object applies) - kept apart from the candidate's own
 // geometric data (Intersection: t/point/normal) so that class can stay a
 // plain geometric record.
 class IntersectionAttributes {
   private:
     Geometry *hitGeometry = nullptr;
-    SimpleBody *hitBody = nullptr;
+    RayOperationOwner *hitBody = nullptr;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
     ColorRgba *objectColor = nullptr;
@@ -24,8 +23,8 @@ class IntersectionAttributes {
   public:
     Geometry *getHitGeometry() const;
     void setHitGeometry(Geometry *value);
-    SimpleBody *getHitBody() const;
-    void setHitBody(SimpleBody *value);
+    RayOperationOwner *getHitBody() const;
+    void setHitBody(RayOperationOwner *value);
     Material *getMaterial() const;
     void setMaterial(Material *value);
     Material *getObjectTexture() const;
@@ -48,14 +47,14 @@ IntersectionAttributes::setHitGeometry(Geometry *value)
     hitGeometry = value;
 }
 
-inline SimpleBody *
+inline RayOperationOwner *
 IntersectionAttributes::getHitBody() const
 {
     return hitBody;
 }
 
 inline void
-IntersectionAttributes::setHitBody(SimpleBody *value)
+IntersectionAttributes::setHitBody(RayOperationOwner *value)
 {
     hitBody = value;
 }

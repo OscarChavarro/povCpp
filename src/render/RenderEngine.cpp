@@ -431,7 +431,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         if (localRay->needsNormal()) {
             PovRayHit winningHit;
             winningHit.p = localIntersection.getIntersection().point;
-            SimpleBody *hitBody = localIntersection.getAttributes().getHitBody();
+            RayOperationOwner *hitBody = localIntersection.getAttributes().getHitBody();
             Geometry *hitGeometry = localIntersection.getAttributes().getHitGeometry();
             winningHit.hitGeometry = hitGeometry;
             if (hitBody != nullptr) {
