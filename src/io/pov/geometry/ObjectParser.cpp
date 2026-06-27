@@ -44,7 +44,7 @@
 static void
 releaseSimpleBody(
     SimpleBodyBuilder *body,
-    TransformedGeometry *&geometry,
+    Geometry *&geometry,
     Material *&material)
 {
     geometry = body->releaseGeometry();
@@ -56,7 +56,12 @@ releaseSimpleBody(
 static TransformedGeometry *
 releaseSimpleBodyGeometry(SimpleBodyBuilder *body)
 {
-    TransformedGeometry *geometry = body->releaseGeometry();
+    Geometry *releasedGeometry = body->releaseGeometry();
+    TransformedGeometry *geometry =
+        dynamic_cast<TransformedGeometry *>(releasedGeometry);
+    if (geometry == nullptr) {
+        delete releasedGeometry;
+    }
     delete body->releaseMaterial();
     delete body->releaseShapeColor();
     delete body;
@@ -81,7 +86,7 @@ ObjectParser::ensurePrivateTexture(Material *objectTexture)
 
 SimpleBody *
 ObjectParser::buildObject(
-    TransformedGeometry *geometry,
+    Geometry *geometry,
     Material *geometryMaterial,
     Material *objectTexture,
     ColorRgba *objectColor,
@@ -98,7 +103,7 @@ ObjectParser::buildObject(
 
 Composite *
 ObjectParser::buildComposite(
-    TransformedGeometry *geometry,
+    Geometry *geometry,
     Material *geometryMaterial,
     Material *objectTexture,
     ColorRgba *objectColor,
@@ -118,7 +123,7 @@ ObjectParser::buildComposite(
 void
 ObjectParser::extractObjectState(
     SimpleBody *object,
-    TransformedGeometry *&geometry,
+    Geometry *&geometry,
     Material *&geometryMaterial,
     Material *&objectTexture,
     ColorRgba *&objectColor,
@@ -142,7 +147,7 @@ ObjectParser::extractObjectState(
 void
 ObjectParser::extractCompositeState(
     Composite *object,
-    TransformedGeometry *&geometry,
+    Geometry *&geometry,
     Material *&geometryMaterial,
     Material *&objectTexture,
     ColorRgba *&objectColor,
@@ -283,7 +288,7 @@ ObjectParser::parseObject(ParserContext &ctx)
 {
     SimpleBody *object = nullptr;
     SimpleBodyBuilder *localShape;
-    TransformedGeometry *geometry;
+    Geometry *geometry;
     Material *geometryMaterial = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
@@ -546,7 +551,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
     Composite *localComposite = nullptr;
     SimpleBody *localObject;
     SimpleBodyBuilder *localShape;
-    TransformedGeometry *geometry;
+    Geometry *geometry;
     Material *geometryMaterial = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;

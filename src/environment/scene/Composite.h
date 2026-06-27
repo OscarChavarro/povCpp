@@ -8,7 +8,7 @@
 class Composite : public SimpleBody {
   public:
     Composite(
-        TransformedGeometry *geometry,
+        Geometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,

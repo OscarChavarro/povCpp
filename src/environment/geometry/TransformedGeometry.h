@@ -16,7 +16,7 @@ class TransformedGeometry : public Geometry {
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
 
-    virtual AxisAlignedBox getMinMax() const { return AxisAlignedBox::unbounded(); }
+    AxisAlignedBox getMinMax() const override { return AxisAlignedBox::unbounded(); }
 
     virtual void translateGeometry(Vector3Dd *vector);
     virtual void rotateGeometry(Vector3Dd *vector);

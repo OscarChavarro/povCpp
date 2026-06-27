@@ -1,7 +1,7 @@
 #include "io/pov/geometry/SimpleBodyBuilder.h"
 
 SimpleBodyBuilder::SimpleBodyBuilder(
-    TransformedGeometry *geometry, Material *material, ColorRgba *shapeColor) :
+    Geometry *geometry, Material *material, ColorRgba *shapeColor) :
     geometry(geometry),
     material(material),
     shapeColor(shapeColor)
@@ -24,10 +24,10 @@ SimpleBodyBuilder::ensureShapeColor()
     return shapeColor;
 }
 
-TransformedGeometry *
+Geometry *
 SimpleBodyBuilder::releaseGeometry()
 {
-    TransformedGeometry *released = geometry;
+    Geometry *released = geometry;
     geometry = nullptr;
     return released;
 }
@@ -58,7 +58,7 @@ SimpleBodyBuilder::prependMaterialLayers(Material *newHead)
 
 SimpleBodyBuilder::SimpleBodyBuilder(const SimpleBodyBuilder &other) :
     geometry(other.geometry != nullptr ?
-        (TransformedGeometry *)other.geometry->copy() : nullptr),
+        (Geometry *)other.geometry->copy() : nullptr),
     material(other.material != nullptr ? other.material->copy() : nullptr),
     shapeColor(other.shapeColor != nullptr ? new ColorRgba(*other.shapeColor) : nullptr)
 {
@@ -67,7 +67,10 @@ SimpleBodyBuilder::SimpleBodyBuilder(const SimpleBodyBuilder &other) :
 void
 SimpleBodyBuilder::translate(Vector3Dd *vector)
 {
-    getGeometry()->translateGeometry(vector);
+    if (TransformedGeometry *transformed =
+            dynamic_cast<TransformedGeometry *>(getGeometry())) {
+        transformed->translateGeometry(vector);
+    }
     if (getMaterial() != nullptr) {
         material = getMaterial()->translate(vector);
     }
@@ -76,7 +79,10 @@ SimpleBodyBuilder::translate(Vector3Dd *vector)
 void
 SimpleBodyBuilder::rotate(Vector3Dd *vector)
 {
-    getGeometry()->rotateGeometry(vector);
+    if (TransformedGeometry *transformed =
+            dynamic_cast<TransformedGeometry *>(getGeometry())) {
+        transformed->rotateGeometry(vector);
+    }
     if (getMaterial() != nullptr) {
         material = getMaterial()->rotate(vector);
     }
@@ -85,7 +91,10 @@ SimpleBodyBuilder::rotate(Vector3Dd *vector)
 void
 SimpleBodyBuilder::scale(Vector3Dd *vector)
 {
-    getGeometry()->scaleGeometry(vector);
+    if (TransformedGeometry *transformed =
+            dynamic_cast<TransformedGeometry *>(getGeometry())) {
+        transformed->scaleGeometry(vector);
+    }
     if (getMaterial() != nullptr) {
         material = getMaterial()->scale(vector);
     }

@@ -20,7 +20,7 @@ ScenePostProcessor::linkLights(SimpleBody *object, java::ArrayList<Light*> &ligh
 }
 
 void
-ScenePostProcessor::linkLightsInShape(TransformedGeometry *shape, java::ArrayList<Light*> &lights)
+ScenePostProcessor::linkLightsInShape(Geometry *shape, java::ArrayList<Light*> &lights)
 {
     if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape)) {
         java::ArrayList<TransformedGeometry*> &shapes = csg->getShapes();

@@ -37,7 +37,13 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 static void
 addCsgShape(ConstructiveSolidGeometry *container, SimpleBodyBuilder *shape)
 {
-    container->addShape(shape->releaseGeometry(), shape->releaseMaterial());
+    Geometry *releasedGeometry = shape->releaseGeometry();
+    TransformedGeometry *geometry =
+        dynamic_cast<TransformedGeometry *>(releasedGeometry);
+    if (geometry == nullptr) {
+        delete releasedGeometry;
+    }
+    container->addShape(geometry, shape->releaseMaterial());
     delete shape->releaseShapeColor();
     delete shape;
 }

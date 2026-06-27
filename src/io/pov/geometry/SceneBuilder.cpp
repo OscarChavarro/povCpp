@@ -3,7 +3,7 @@
 #include "io/pov/geometry/SceneBuilder.h"
 
 SimpleBodyBuilder *
-SceneBuilder::wrap(TransformedGeometry *geometry)
+SceneBuilder::wrap(Geometry *geometry)
 {
     SimpleBodyBuilder *body = new SimpleBodyBuilder(geometry, nullptr, nullptr);
     if (body == nullptr) {

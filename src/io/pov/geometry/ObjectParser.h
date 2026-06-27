@@ -29,7 +29,7 @@ class ObjectParser {
     static Material *ensurePrivateTexture(Material *objectTexture);
 
     static SimpleBody *buildObject(
-        TransformedGeometry *geometry,
+        Geometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
@@ -40,7 +40,7 @@ class ObjectParser {
         Matrix4x4d *transformationInverse = nullptr);
 
     static Composite *buildComposite(
-        TransformedGeometry *geometry,
+        Geometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
@@ -53,7 +53,7 @@ class ObjectParser {
 
     static void extractObjectState(
         SimpleBody *object,
-        TransformedGeometry *&geometry,
+        Geometry *&geometry,
         Material *&geometryMaterial,
         Material *&objectTexture,
         ColorRgba *&objectColor,
@@ -65,7 +65,7 @@ class ObjectParser {
 
     static void extractCompositeState(
         Composite *object,
-        TransformedGeometry *&geometry,
+        Geometry *&geometry,
         Material *&geometryMaterial,
         Material *&objectTexture,
         ColorRgba *&objectColor,

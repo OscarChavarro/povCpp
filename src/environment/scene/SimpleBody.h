@@ -13,7 +13,7 @@ class SimpleBody {
   private:
     java::ArrayList<TransformedGeometry*> boundingShapes{4};
     java::ArrayList<TransformedGeometry*> clippingShapes{4};
-    TransformedGeometry *geometry;
+    Geometry *geometry;
     Material *geometryMaterial;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
@@ -23,7 +23,7 @@ class SimpleBody {
 
   public:
     SimpleBody(
-        TransformedGeometry *geometry,
+        Geometry *geometry,
         Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
@@ -61,7 +61,7 @@ class SimpleBody {
     const java::ArrayList<TransformedGeometry*>& getBoundingShapes() const { return boundingShapes; }
     java::ArrayList<TransformedGeometry*>& getClippingShapes() { return clippingShapes; }
     const java::ArrayList<TransformedGeometry*>& getClippingShapes() const { return clippingShapes; }
-    TransformedGeometry *getGeometry() const { return geometry; }
+    Geometry *getGeometry() const { return geometry; }
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }

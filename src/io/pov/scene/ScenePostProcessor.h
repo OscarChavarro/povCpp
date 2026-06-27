@@ -10,7 +10,7 @@ class ScenePostProcessor {
     static void linkLights(SimpleBody *object, java::ArrayList<Light*> &lights);
 
   private:
-    static void linkLightsInShape(TransformedGeometry *shape, java::ArrayList<Light*> &lights);
+    static void linkLightsInShape(Geometry *shape, java::ArrayList<Light*> &lights);
 };
 
 #endif
