@@ -3,7 +3,6 @@
 
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/geometry/volume/compound/Composite.h"
-#include "environment/scene/SimpleBody.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/scene/ScenePostProcessor.h"
 
@@ -21,15 +20,15 @@ ScenePostProcessor::linkLights(BoundedGeometry *object, java::ArrayList<Light*> 
 }
 
 void
-ScenePostProcessor::linkLightsInShape(SimpleBody *shape, java::ArrayList<Light*> &lights)
+ScenePostProcessor::linkLightsInShape(TransformedGeometry *shape, java::ArrayList<Light*> &lights)
 {
-    if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape->getGeometry())) {
-        java::ArrayList<SimpleBody*> &shapes = csg->getShapes();
+    if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape)) {
+        java::ArrayList<TransformedGeometry*> &shapes = csg->getShapes();
         for (long int i = 0; i < shapes.size(); i++) {
             ScenePostProcessor::linkLightsInShape(shapes[i], lights);
         }
     } else if (LightGeometryAdapter *lightAdapter =
-                   dynamic_cast<LightGeometryAdapter *>(shape->getGeometry())) {
+                   dynamic_cast<LightGeometryAdapter *>(shape)) {
         lights.add(lightAdapter->getLight());
     }
 }

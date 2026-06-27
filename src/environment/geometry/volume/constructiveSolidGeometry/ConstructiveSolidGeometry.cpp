@@ -10,6 +10,7 @@ ConstructiveSolidGeometry::~ConstructiveSolidGeometry()
 {
     for (long int i = 0; i < shapes.size(); i++) {
         delete shapes[i];
+        delete shapeMaterials[i];
     }
 }
 
@@ -26,11 +27,11 @@ ConstructiveSolidGeometry::allIntersectionsForMaterial(
 void
 ConstructiveSolidGeometry::translateGeometry(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
-
     for (long int i = shapes.size() - 1; i >= 0; i--) {
-        localShape = shapes[i];
-        localShape->translate(vector);
+        shapes[i]->translateGeometry(vector);
+        if (shapeMaterials[i] != nullptr) {
+            shapeMaterials[i] = shapeMaterials[i]->translate(vector);
+        }
     }
 }
 
@@ -43,11 +44,11 @@ ConstructiveSolidGeometry::translate(Vector3Dd *vector)
 void
 ConstructiveSolidGeometry::rotateGeometry(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
-
     for (long int i = shapes.size() - 1; i >= 0; i--) {
-        localShape = shapes[i];
-        localShape->rotate(vector);
+        shapes[i]->rotateGeometry(vector);
+        if (shapeMaterials[i] != nullptr) {
+            shapeMaterials[i] = shapeMaterials[i]->rotate(vector);
+        }
     }
 }
 
@@ -60,11 +61,11 @@ ConstructiveSolidGeometry::rotate(Vector3Dd *vector)
 void
 ConstructiveSolidGeometry::scaleGeometry(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
-
     for (long int i = shapes.size() - 1; i >= 0; i--) {
-        localShape = shapes[i];
-        localShape->scale(vector);
+        shapes[i]->scaleGeometry(vector);
+        if (shapeMaterials[i] != nullptr) {
+            shapeMaterials[i] = shapeMaterials[i]->scale(vector);
+        }
     }
 }
 

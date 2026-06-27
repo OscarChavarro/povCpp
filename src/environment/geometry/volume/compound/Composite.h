@@ -9,16 +9,17 @@
 class Composite : public BoundedGeometry {
   public:
     Composite(
-        SimpleBody *geometry,
+        TransformedGeometry *geometry,
+        Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<SimpleBody*> &boundingShapes,
-        const java::ArrayList<SimpleBody*> &clippingShapes,
+        const java::ArrayList<TransformedGeometry*> &boundingShapes,
+        const java::ArrayList<TransformedGeometry*> &clippingShapes,
         const java::ArrayList<BoundedGeometry*> &simpleBodies) :
         BoundedGeometry(
-            geometry, objectTexture, objectColor, noShadowFlag, boundingShapes,
-            clippingShapes),
+            geometry, geometryMaterial, objectTexture, objectColor,
+            noShadowFlag, boundingShapes, clippingShapes),
         simpleBodies(simpleBodies)
     {
     }

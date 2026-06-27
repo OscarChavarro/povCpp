@@ -34,6 +34,14 @@ environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometryB
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
+static void
+addCsgShape(ConstructiveSolidGeometry *container, SimpleBody *shape)
+{
+    container->addShape(shape->releaseGeometry(), shape->releaseMaterial());
+    delete shape->releaseShapeColor();
+    delete shape;
+}
+
 ConstructiveSolidGeometry *
 CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested)
 {
@@ -104,7 +112,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::SPHERE_TOKEN:
@@ -114,7 +122,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::PLANE_TOKEN:
@@ -124,7 +132,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::TRIANGLE_TOKEN:
@@ -134,7 +142,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
 
@@ -145,7 +153,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::HEIGHT_FIELD_TOKEN:
@@ -155,7 +163,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::CUBIC_TOKEN:
@@ -165,7 +173,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::QUARTIC_TOKEN:
@@ -175,7 +183,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::POLY_TOKEN:
@@ -185,7 +193,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::BOX_TOKEN:
@@ -195,7 +203,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::BLOB_TOKEN:
@@ -205,7 +213,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::BICUBIC_PATCH_TOKEN:
@@ -215,7 +223,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::UNION_TOKEN:
@@ -226,7 +234,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
@@ -237,7 +245,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
@@ -248,7 +256,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                     localShape->invert();
                 }
                 firstShapeParsed = true;
-                container->getShapes().add(localShape);
+                addCsgShape(container, localShape);
                 break;
 
             default:

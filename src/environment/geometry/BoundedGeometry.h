@@ -4,29 +4,32 @@
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
+#include "environment/geometry/TransformedGeometry.h"
 #include "environment/material/Material.h"
-#include "environment/scene/SimpleBody.h"
 
 class BoundedGeometry : public Geometry {
   private:
-    java::ArrayList<SimpleBody*> boundingShapes{4};
-    java::ArrayList<SimpleBody*> clippingShapes{4};
-    SimpleBody *geometry;
+    java::ArrayList<TransformedGeometry*> boundingShapes{4};
+    java::ArrayList<TransformedGeometry*> clippingShapes{4};
+    TransformedGeometry *geometry;
+    Material *geometryMaterial;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
 
   public:
     BoundedGeometry(
-        SimpleBody *geometry,
+        TransformedGeometry *geometry,
+        Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<SimpleBody*> &boundingShapes,
-        const java::ArrayList<SimpleBody*> &clippingShapes) :
+        const java::ArrayList<TransformedGeometry*> &boundingShapes,
+        const java::ArrayList<TransformedGeometry*> &clippingShapes) :
         boundingShapes(boundingShapes),
         clippingShapes(clippingShapes),
         geometry(geometry),
+        geometryMaterial(geometryMaterial),
         noShadowFlag(noShadowFlag),
         objectColor(objectColor),
         objectTexture(objectTexture)
@@ -46,11 +49,12 @@ class BoundedGeometry : public Geometry {
     // its own simpleBodies.
     virtual void detachOwnership();
 
-    java::ArrayList<SimpleBody*>& getBoundingShapes() { return boundingShapes; }
-    const java::ArrayList<SimpleBody*>& getBoundingShapes() const { return boundingShapes; }
-    java::ArrayList<SimpleBody*>& getClippingShapes() { return clippingShapes; }
-    const java::ArrayList<SimpleBody*>& getClippingShapes() const { return clippingShapes; }
-    SimpleBody *getGeometry() const { return geometry; }
+    java::ArrayList<TransformedGeometry*>& getBoundingShapes() { return boundingShapes; }
+    const java::ArrayList<TransformedGeometry*>& getBoundingShapes() const { return boundingShapes; }
+    java::ArrayList<TransformedGeometry*>& getClippingShapes() { return clippingShapes; }
+    const java::ArrayList<TransformedGeometry*>& getClippingShapes() const { return clippingShapes; }
+    TransformedGeometry *getGeometry() const { return geometry; }
+    Material *getGeometryMaterial() const { return geometryMaterial; }
     bool getNoShadowFlag() const { return noShadowFlag; }
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }

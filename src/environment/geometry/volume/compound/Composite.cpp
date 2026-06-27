@@ -13,8 +13,8 @@ Composite::allIntersections(RayWithSegments *ray, java::PriorityQueue<Intersecti
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    SimpleBody *boundingShape;
-    SimpleBody *clippingShape;
+    TransformedGeometry *boundingShape;
+    TransformedGeometry *clippingShape;
     IntersectionCandidate localIntersection;
     BoundedGeometry *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
@@ -77,8 +77,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
     bool intersectionFound;
     bool anyIntersectionFound;
     IntersectionCandidate localIntersection;
-    SimpleBody *boundingShape;
-    SimpleBody *clippingShape;
+    TransformedGeometry *boundingShape;
+    TransformedGeometry *clippingShape;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
 
@@ -100,7 +100,8 @@ BoundedGeometry::allIntersections(RayWithSegments *ray, java::PriorityQueue<Inte
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
     anyIntersectionFound = false;
-    this->getGeometry()->allIntersections(ray, localDepthQueue);
+    this->getGeometry()->allIntersectionsForMaterial(
+        ray, localDepthQueue, this->getGeometryMaterial());
 
     for (const IntersectionCandidate& candidate : *localDepthQueue) {
         localIntersection = candidate;
@@ -145,8 +146,8 @@ BoundedGeometry::allIntersectionsForMaterial(
 int
 BoundedGeometry::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    SimpleBody *boundingShape;
-    SimpleBody *clippingShape;
+    TransformedGeometry *boundingShape;
+    TransformedGeometry *clippingShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
@@ -173,8 +174,8 @@ BoundedGeometry::doContainmentTest(const Vector3Dd &point, double distanceTolera
 int
 Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    SimpleBody *boundingShape;
-    SimpleBody *clippingShape;
+    TransformedGeometry *boundingShape;
+    TransformedGeometry *clippingShape;
     BoundedGeometry *localObject;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -206,7 +207,9 @@ Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 
 BoundedGeometry::BoundedGeometry(const BoundedGeometry &other) :
     geometry(other.getGeometry() != nullptr ?
-        (SimpleBody *)other.getGeometry()->copy() : nullptr),
+        (TransformedGeometry *)other.getGeometry()->copy() : nullptr),
+    geometryMaterial(other.getGeometryMaterial() != nullptr ?
+        other.getGeometryMaterial()->copy() : nullptr),
     noShadowFlag(other.getNoShadowFlag()),
     objectColor(other.getObjectColor() != nullptr ?
         new ColorRgba(*other.getObjectColor()) : nullptr),
@@ -215,17 +218,18 @@ BoundedGeometry::BoundedGeometry(const BoundedGeometry &other) :
 {
     for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShapes.add(
-            (SimpleBody *)other.getBoundingShapes()[i]->copy());
+            (TransformedGeometry *)other.getBoundingShapes()[i]->copy());
     }
     for (long int i = other.getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShapes.add(
-            (SimpleBody *)other.getClippingShapes()[i]->copy());
+            (TransformedGeometry *)other.getClippingShapes()[i]->copy());
     }
 }
 
 BoundedGeometry::~BoundedGeometry()
 {
     delete geometry;
+    delete geometryMaterial;
     delete objectColor;
     // objectTexture may be a private clone (delete it) or an alias to a shared
     // constant such as the scene's default texture (do not delete, just close
@@ -246,6 +250,7 @@ void
 BoundedGeometry::detachOwnership()
 {
     geometry = nullptr;
+    geometryMaterial = nullptr;
     objectColor = nullptr;
     objectTexture = nullptr;
     boundingShapes.clear();
@@ -290,78 +295,90 @@ Composite::copy()
 void
 BoundedGeometry::translate(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->translate(vector);
+        localShape->translateGeometry(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->translate(vector);
+        localShape->translateGeometry(vector);
     }
 
     if (this->getGeometry() != nullptr) {
-        this->getGeometry()->translate(vector);
+        this->getGeometry()->translateGeometry(vector);
+    }
+
+    if (this->getGeometryMaterial() != nullptr) {
+        geometryMaterial = this->getGeometryMaterial()->translate(vector);
     }
 
     if (this->getObjectTexture() != nullptr) {
-        this->getObjectTexture()->translate(vector);
+        objectTexture = this->getObjectTexture()->translate(vector);
     }
 }
 
 void
 BoundedGeometry::rotate(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->rotate(vector);
+        localShape->rotateGeometry(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->rotate(vector);
+        localShape->rotateGeometry(vector);
     }
 
     if (this->getGeometry() != nullptr) {
-        this->getGeometry()->rotate(vector);
+        this->getGeometry()->rotateGeometry(vector);
+    }
+
+    if (this->getGeometryMaterial() != nullptr) {
+        geometryMaterial = this->getGeometryMaterial()->rotate(vector);
     }
 
     if (this->getObjectTexture() != nullptr) {
-        this->getObjectTexture()->rotate(vector);
+        objectTexture = this->getObjectTexture()->rotate(vector);
     }
 }
 
 void
 BoundedGeometry::scale(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->scale(vector);
+        localShape->scaleGeometry(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->scale(vector);
+        localShape->scaleGeometry(vector);
     }
 
     if (this->getGeometry() != nullptr) {
-        this->getGeometry()->scale(vector);
+        this->getGeometry()->scaleGeometry(vector);
+    }
+
+    if (this->getGeometryMaterial() != nullptr) {
+        geometryMaterial = this->getGeometryMaterial()->scale(vector);
     }
 
     if (this->getObjectTexture() != nullptr) {
-        this->getObjectTexture()->scale(vector);
+        objectTexture = this->getObjectTexture()->scale(vector);
     }
 }
 
@@ -369,7 +386,7 @@ void
 Composite::translate(Vector3Dd *vector)
 {
     BoundedGeometry *localObject;
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -380,13 +397,13 @@ Composite::translate(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->translate(vector);
+        localShape->translateGeometry(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->translate(vector);
+        localShape->translateGeometry(vector);
     }
 }
 
@@ -394,7 +411,7 @@ void
 Composite::rotate(Vector3Dd *vector)
 {
     BoundedGeometry *localObject;
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -405,13 +422,13 @@ Composite::rotate(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->rotate(vector);
+        localShape->rotateGeometry(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->rotate(vector);
+        localShape->rotateGeometry(vector);
     }
 }
 
@@ -419,7 +436,7 @@ void
 Composite::scale(Vector3Dd *vector)
 {
     BoundedGeometry *localObject;
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -430,32 +447,32 @@ Composite::scale(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->scale(vector);
+        localShape->scaleGeometry(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->scale(vector);
+        localShape->scaleGeometry(vector);
     }
 }
 
 void
 BoundedGeometry::invert()
 {
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
-        localShape->invert();
+        localShape->invertGeometry();
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
-        localShape->invert();
+        localShape->invertGeometry();
     }
     if (this->getGeometry() != nullptr) {
-        this->getGeometry()->invert();
+        this->getGeometry()->invertGeometry();
     }
 }
 
@@ -463,7 +480,7 @@ void
 Composite::invert()
 {
     BoundedGeometry *localObject;
-    SimpleBody *localShape;
+    TransformedGeometry *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -472,11 +489,11 @@ Composite::invert()
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
-        localShape->invert();
+        localShape->invertGeometry();
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
-        localShape->invert();
+        localShape->invertGeometry();
     }
 }

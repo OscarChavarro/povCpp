@@ -29,39 +29,43 @@ class ObjectParser {
     static Material *ensurePrivateTexture(Material *objectTexture);
 
     static BoundedGeometry *buildObject(
-        SimpleBody *geometry,
+        TransformedGeometry *geometry,
+        Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<SimpleBody*> &boundingShapes,
-        const java::ArrayList<SimpleBody*> &clippingShapes);
+        const java::ArrayList<TransformedGeometry*> &boundingShapes,
+        const java::ArrayList<TransformedGeometry*> &clippingShapes);
 
     static Composite *buildComposite(
-        SimpleBody *geometry,
+        TransformedGeometry *geometry,
+        Material *geometryMaterial,
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<SimpleBody*> &boundingShapes,
-        const java::ArrayList<SimpleBody*> &clippingShapes,
+        const java::ArrayList<TransformedGeometry*> &boundingShapes,
+        const java::ArrayList<TransformedGeometry*> &clippingShapes,
         const java::ArrayList<BoundedGeometry*> &simpleBodies);
 
     static void extractObjectState(
         BoundedGeometry *object,
-        SimpleBody *&geometry,
+        TransformedGeometry *&geometry,
+        Material *&geometryMaterial,
         Material *&objectTexture,
         ColorRgba *&objectColor,
         bool &noShadowFlag,
-        java::ArrayList<SimpleBody*> &boundingShapes,
-        java::ArrayList<SimpleBody*> &clippingShapes);
+        java::ArrayList<TransformedGeometry*> &boundingShapes,
+        java::ArrayList<TransformedGeometry*> &clippingShapes);
 
     static void extractCompositeState(
         Composite *object,
-        SimpleBody *&geometry,
+        TransformedGeometry *&geometry,
+        Material *&geometryMaterial,
         Material *&objectTexture,
         ColorRgba *&objectColor,
         bool &noShadowFlag,
-        java::ArrayList<SimpleBody*> &boundingShapes,
-        java::ArrayList<SimpleBody*> &clippingShapes,
+        java::ArrayList<TransformedGeometry*> &boundingShapes,
+        java::ArrayList<TransformedGeometry*> &clippingShapes,
         java::ArrayList<BoundedGeometry*> &simpleBodies);
 };
 
