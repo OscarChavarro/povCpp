@@ -17,8 +17,8 @@ Composite::doIntersectionForAllRayCrossings(
     (void)materialOverride;
     bool intersectionFound;
     bool anyIntersectionFound;
-    TransformedGeometry *boundingShape;
-    TransformedGeometry *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
     IntersectionCandidate localIntersection;
     SimpleBody *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
@@ -92,8 +92,8 @@ Composite::doIntersectionForAllRayCrossings(
 int
 Composite::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    TransformedGeometry *boundingShape;
-    TransformedGeometry *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
     SimpleBody *localObject;
     const Vector3Dd localPoint = worldPointToLocal(point);
 
@@ -157,7 +157,7 @@ void
 Composite::translate(Vector3Dd *vector)
 {
     SimpleBody *localObject;
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -168,13 +168,13 @@ Composite::translate(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->translateGeometry(vector);
+        localShape->translate(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->translateGeometry(vector);
+        localShape->translate(vector);
     }
 }
 
@@ -182,7 +182,7 @@ void
 Composite::rotate(Vector3Dd *vector)
 {
     SimpleBody *localObject;
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -193,13 +193,13 @@ Composite::rotate(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->rotateGeometry(vector);
+        localShape->rotate(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->rotateGeometry(vector);
+        localShape->rotate(vector);
     }
 }
 
@@ -207,7 +207,7 @@ void
 Composite::scale(Vector3Dd *vector)
 {
     SimpleBody *localObject;
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -218,13 +218,13 @@ Composite::scale(Vector3Dd *vector)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
 
-        localShape->scaleGeometry(vector);
+        localShape->scale(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
 
-        localShape->scaleGeometry(vector);
+        localShape->scale(vector);
     }
 }
 
@@ -232,7 +232,7 @@ void
 Composite::invert()
 {
     SimpleBody *localObject;
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getSimpleBodies().size() - 1; i >= 0; i--) {
         localObject = this->getSimpleBodies()[i];
@@ -241,11 +241,11 @@ Composite::invert()
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
-        localShape->invertGeometry();
+        localShape->invert();
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
-        localShape->invertGeometry();
+        localShape->invert();
     }
 }

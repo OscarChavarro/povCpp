@@ -2,6 +2,7 @@
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
+#include "environment/geometry/TransformedGeometry.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/material/Material.h"
 #include "java/util/PriorityQueue.txx"
@@ -29,12 +30,11 @@ SimpleBody::doIntersectionForAllRayCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    (void)materialOverride;
     bool intersectionFound;
     bool anyIntersectionFound;
     IntersectionCandidate localIntersection;
-    TransformedGeometry *boundingShape;
-    TransformedGeometry *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
     RayWithSegments localRay = *ray;
@@ -65,8 +65,11 @@ SimpleBody::doIntersectionForAllRayCrossings(
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
     anyIntersectionFound = false;
+    Material *effectiveGeometryMaterial =
+        this->getGeometryMaterial() != nullptr ?
+            this->getGeometryMaterial() : materialOverride;
     this->getGeometry()->doIntersectionForAllRayCrossings(
-        geometryRay, localDepthQueue, this->getGeometryMaterial());
+        geometryRay, localDepthQueue, effectiveGeometryMaterial);
 
     for (const IntersectionCandidate& candidate : *localDepthQueue) {
         localIntersection = candidate;
@@ -107,8 +110,8 @@ SimpleBody::doIntersectionForAllRayCrossings(
 int
 SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
 {
-    TransformedGeometry *boundingShape;
-    TransformedGeometry *clippingShape;
+    SimpleBody *boundingShape;
+    SimpleBody *clippingShape;
     const Vector3Dd localPoint = worldPointToLocal(point);
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
@@ -173,11 +176,11 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
 {
     for (long int i = other.getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShapes.add(
-            (TransformedGeometry *)other.getBoundingShapes()[i]->copy());
+            (SimpleBody *)other.getBoundingShapes()[i]->copy());
     }
     for (long int i = other.getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShapes.add(
-            (TransformedGeometry *)other.getClippingShapes()[i]->copy());
+            (SimpleBody *)other.getClippingShapes()[i]->copy());
     }
 }
 
@@ -297,18 +300,16 @@ SimpleBody::copy()
 void
 SimpleBody::translate(Vector3Dd *vector)
 {
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
-
-        localShape->translateGeometry(vector);
+        localShape->translate(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
-
-        localShape->translateGeometry(vector);
+        localShape->translate(vector);
     }
 
     if (this->getGeometry() != nullptr) {
@@ -330,18 +331,16 @@ SimpleBody::translate(Vector3Dd *vector)
 void
 SimpleBody::rotate(Vector3Dd *vector)
 {
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
-
-        localShape->rotateGeometry(vector);
+        localShape->rotate(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
-
-        localShape->rotateGeometry(vector);
+        localShape->rotate(vector);
     }
 
     if (this->getGeometry() != nullptr) {
@@ -363,18 +362,16 @@ SimpleBody::rotate(Vector3Dd *vector)
 void
 SimpleBody::scale(Vector3Dd *vector)
 {
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
-
-        localShape->scaleGeometry(vector);
+        localShape->scale(vector);
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
-
-        localShape->scaleGeometry(vector);
+        localShape->scale(vector);
     }
 
     if (this->getGeometry() != nullptr) {
@@ -396,16 +393,16 @@ SimpleBody::scale(Vector3Dd *vector)
 void
 SimpleBody::invert()
 {
-    TransformedGeometry *localShape;
+    SimpleBody *localShape;
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getBoundingShapes()[i];
-        localShape->invertGeometry();
+        localShape->invert();
     }
 
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         localShape = this->getClippingShapes()[i];
-        localShape->invertGeometry();
+        localShape->invert();
     }
     if (this->getGeometry() != nullptr) {
         this->getGeometry()->invertGeometry();
@@ -420,7 +417,7 @@ SimpleBody::getAABB() const
     if (boundingShapes.size() > 0) {
         AxisAlignedBox result = AxisAlignedBox::unbounded();
         for (long int i = 0; i < boundingShapes.size(); i++) {
-            result = result.intersection(boundingShapes[i]->getMinMax());
+            result = result.intersection(boundingShapes[i]->getAABB());
         }
         return result;
     }

@@ -53,19 +53,18 @@ releaseSimpleBody(
     delete body;
 }
 
-static TransformedGeometry *
-releaseSimpleBodyGeometry(SimpleBodyBuilder *body)
+static SimpleBody *
+releaseSimpleBodyRegion(SimpleBodyBuilder *body)
 {
     Geometry *releasedGeometry = body->releaseGeometry();
-    TransformedGeometry *geometry =
-        dynamic_cast<TransformedGeometry *>(releasedGeometry);
-    if (geometry == nullptr) {
-        delete releasedGeometry;
-    }
+    java::ArrayList<SimpleBody*> emptyBoundingShapes(0);
+    java::ArrayList<SimpleBody*> emptyClippingShapes(0);
     delete body->releaseMaterial();
     delete body->releaseShapeColor();
     delete body;
-    return geometry;
+    return new SimpleBody(
+        releasedGeometry, nullptr, nullptr, nullptr, false,
+        emptyBoundingShapes, emptyClippingShapes);
 }
 
 Material *
@@ -91,8 +90,8 @@ ObjectParser::buildObject(
     Material *objectTexture,
     ColorRgba *objectColor,
     bool noShadowFlag,
-    const java::ArrayList<TransformedGeometry*> &boundingShapes,
-    const java::ArrayList<TransformedGeometry*> &clippingShapes,
+    const java::ArrayList<SimpleBody*> &boundingShapes,
+    const java::ArrayList<SimpleBody*> &clippingShapes,
     Matrix4x4d *transformation,
     Matrix4x4d *transformationInverse)
 {
@@ -108,8 +107,8 @@ ObjectParser::buildComposite(
     Material *objectTexture,
     ColorRgba *objectColor,
     bool noShadowFlag,
-    const java::ArrayList<TransformedGeometry*> &boundingShapes,
-    const java::ArrayList<TransformedGeometry*> &clippingShapes,
+    const java::ArrayList<SimpleBody*> &boundingShapes,
+    const java::ArrayList<SimpleBody*> &clippingShapes,
     const java::ArrayList<SimpleBody*> &simpleBodies,
     Matrix4x4d *transformation,
     Matrix4x4d *transformationInverse)
@@ -128,8 +127,8 @@ ObjectParser::extractObjectState(
     Material *&objectTexture,
     ColorRgba *&objectColor,
     bool &noShadowFlag,
-    java::ArrayList<TransformedGeometry*> &boundingShapes,
-    java::ArrayList<TransformedGeometry*> &clippingShapes,
+    java::ArrayList<SimpleBody*> &boundingShapes,
+    java::ArrayList<SimpleBody*> &clippingShapes,
     Matrix4x4d *&transformation,
     Matrix4x4d *&transformationInverse)
 {
@@ -152,8 +151,8 @@ ObjectParser::extractCompositeState(
     Material *&objectTexture,
     ColorRgba *&objectColor,
     bool &noShadowFlag,
-    java::ArrayList<TransformedGeometry*> &boundingShapes,
-    java::ArrayList<TransformedGeometry*> &clippingShapes,
+    java::ArrayList<SimpleBody*> &boundingShapes,
+    java::ArrayList<SimpleBody*> &clippingShapes,
     java::ArrayList<SimpleBody*> &simpleBodies,
     Matrix4x4d *&transformation,
     Matrix4x4d *&transformationInverse)
@@ -292,8 +291,8 @@ ObjectParser::parseObject(ParserContext &ctx)
     Material *geometryMaterial = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
-    java::ArrayList<TransformedGeometry*> localBoundingShapes(4);
-    java::ArrayList<TransformedGeometry*> localClippingShapes(4);
+    java::ArrayList<SimpleBody*> localBoundingShapes(4);
+    java::ArrayList<SimpleBody*> localClippingShapes(4);
     Vector3Dd localVector;
     ColorRgba *objectColor = nullptr;
     bool noShadowFlag = false;
@@ -391,7 +390,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             localBoundingShapes.add(
-                                releaseSimpleBodyGeometry(localShape));
+                                releaseSimpleBodyRegion(localShape));
                             break;
                         }
                     }
@@ -416,7 +415,7 @@ ObjectParser::parseObject(ParserContext &ctx)
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             localClippingShapes.add(
-                                releaseSimpleBodyGeometry(localShape));
+                                releaseSimpleBodyRegion(localShape));
                             break;
                         }
                     }
@@ -556,8 +555,8 @@ ObjectParser::parseComposite(ParserContext &ctx)
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
     java::ArrayList<SimpleBody*> localSimpleBodies(4);
-    java::ArrayList<TransformedGeometry*> localBoundingShapes(4);
-    java::ArrayList<TransformedGeometry*> localClippingShapes(4);
+    java::ArrayList<SimpleBody*> localBoundingShapes(4);
+    java::ArrayList<SimpleBody*> localClippingShapes(4);
     Vector3Dd localVector;
     Material *objectTexture = ctx.getDefaultTexture();
     DefaultTextureAliasTracker::trackAlias(static_cast<PovRayMaterial *>(objectTexture));
@@ -648,7 +647,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             localBoundingShapes.add(
-                                releaseSimpleBodyGeometry(localShape));
+                                releaseSimpleBodyRegion(localShape));
                             break;
                         }
                     }
@@ -673,7 +672,7 @@ ObjectParser::parseComposite(ParserContext &ctx)
                             ctx.tokenStream().ungetToken();
                             localShape = ObjectParser::parseShape(ctx);
                             localClippingShapes.add(
-                                releaseSimpleBodyGeometry(localShape));
+                                releaseSimpleBodyRegion(localShape));
                             break;
                         }
                     }

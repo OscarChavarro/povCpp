@@ -5,14 +5,14 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/TransformedGeometry.h"
 #include "environment/geometry/element/AxisAlignedBox.h"
+#include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/material/Material.h"
 
-class SimpleBody {
+class SimpleBody : public RayOperationOwner {
   private:
-    java::ArrayList<TransformedGeometry*> boundingShapes{4};
-    java::ArrayList<TransformedGeometry*> clippingShapes{4};
+    java::ArrayList<SimpleBody*> boundingShapes{4};
+    java::ArrayList<SimpleBody*> clippingShapes{4};
     Geometry *geometry;
     Material *geometryMaterial;
     Matrix4x4d *transformation = nullptr;
@@ -28,8 +28,8 @@ class SimpleBody {
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<TransformedGeometry*> &boundingShapes,
-        const java::ArrayList<TransformedGeometry*> &clippingShapes,
+        const java::ArrayList<SimpleBody*> &boundingShapes,
+        const java::ArrayList<SimpleBody*> &clippingShapes,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr) :
         boundingShapes(boundingShapes),
@@ -57,10 +57,10 @@ class SimpleBody {
     // its own simpleBodies.
     virtual void detachOwnership();
 
-    java::ArrayList<TransformedGeometry*>& getBoundingShapes() { return boundingShapes; }
-    const java::ArrayList<TransformedGeometry*>& getBoundingShapes() const { return boundingShapes; }
-    java::ArrayList<TransformedGeometry*>& getClippingShapes() { return clippingShapes; }
-    const java::ArrayList<TransformedGeometry*>& getClippingShapes() const { return clippingShapes; }
+    java::ArrayList<SimpleBody*>& getBoundingShapes() { return boundingShapes; }
+    const java::ArrayList<SimpleBody*>& getBoundingShapes() const { return boundingShapes; }
+    java::ArrayList<SimpleBody*>& getClippingShapes() { return clippingShapes; }
+    const java::ArrayList<SimpleBody*>& getClippingShapes() const { return clippingShapes; }
     Geometry *getGeometry() const { return geometry; }
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Matrix4x4d *getTransformation() const { return transformation; }
@@ -77,7 +77,7 @@ class SimpleBody {
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr);
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
-    virtual void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit);
+    void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit) override;
     virtual void *copy();
     // Virtual so a nested Composite child reached through a SimpleBody*
     // (e.g. from Composite::translate's simpleBodies loop) dispatches to

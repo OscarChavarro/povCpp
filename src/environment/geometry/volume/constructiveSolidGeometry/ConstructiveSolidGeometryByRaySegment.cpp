@@ -183,7 +183,6 @@ ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    (void)materialOverride;
     java::ArrayList<TransformedGeometry*> &children = getShapes();
     java::ArrayList<Material*> &childMaterials = getShapeMaterials();
     if (children.size() == 0) {

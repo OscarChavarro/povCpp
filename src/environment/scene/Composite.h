@@ -13,8 +13,8 @@ class Composite : public SimpleBody {
         Material *objectTexture,
         ColorRgba *objectColor,
         bool noShadowFlag,
-        const java::ArrayList<TransformedGeometry*> &boundingShapes,
-        const java::ArrayList<TransformedGeometry*> &clippingShapes,
+        const java::ArrayList<SimpleBody*> &boundingShapes,
+        const java::ArrayList<SimpleBody*> &clippingShapes,
         const java::ArrayList<SimpleBody*> &simpleBodies,
         Matrix4x4d *transformation = nullptr,
         Matrix4x4d *transformationInverse = nullptr) :
