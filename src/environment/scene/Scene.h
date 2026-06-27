@@ -7,7 +7,7 @@
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "environment/light/Light.h"
 #include "environment/material/Material.h"
-#include "environment/geometry/BoundedGeometry.h"
+#include "environment/scene/SimpleBody.h"
 
 class Scene {
   public:
@@ -38,16 +38,16 @@ class Scene {
         fogDistance = distance;
     }
     const ColorRgba& getFogColor() const { return fogColor; }
-    const java::ArrayList<BoundedGeometry*>& getObjects() const { return Objects; }
-    void setObjects(const java::ArrayList<BoundedGeometry*> &objects)
+    const java::ArrayList<SimpleBody*>& getObjects() const { return Objects; }
+    void setObjects(const java::ArrayList<SimpleBody*> &objects)
     {
         Objects = objects;
     }
     void resetForSceneParse(double antialiasThreshold = DEFAULT_ANTIALIAS_THRESHOLD);
 
     // The scene's default texture is aliased (not cloned) into every untextured
-    // object's BoundedGeometry::objectTexture for the entire render (see
-    // ~BoundedGeometry()'s PovRayMaterialConstancy guard) - it can only be freed
+    // object's SimpleBody::objectTexture for the entire render (see
+    // ~SimpleBody()'s PovRayMaterialConstancy guard) - it can only be freed
     // once nothing will read it again, i.e. once Scene itself is destroyed.
     // SceneParser::parse() calls this once, after parsing finishes, with
     // whatever the final default texture turned out to be (it may have been
@@ -61,7 +61,7 @@ class Scene {
     int screenHeight;
     int screenWidth;
     java::ArrayList<Light*> lightSources;
-    java::ArrayList<BoundedGeometry*> Objects{4};
+    java::ArrayList<SimpleBody*> Objects{4};
     double atmosphereIor;
     double antialiasThreshold;
     double fogDistance;

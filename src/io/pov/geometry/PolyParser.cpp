@@ -5,9 +5,9 @@
 #include "vsdk/toolkit/numericalAnalysis/polynomial/PolynomialSolver.h"
 
 #include "environment/geometry/volume/polynomial/PolynomialShape.h"
-#include "environment/scene/SceneBuilder.h"
+#include "io/pov/geometry/SceneBuilder.h"
 #include "io/pov/geometry/GeometryBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -18,14 +18,14 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-SimpleBody *
-PolyParser::rebuildBodyWithGeometry(SimpleBody *body, TransformedGeometry *geometry)
+SimpleBodyBuilder *
+PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, TransformedGeometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         body->getMaterial()->copy() : nullptr;
     ColorRgba *clonedShapeColor = (body->getShapeColor() != nullptr) ?
         new ColorRgba(*body->getShapeColor()) : nullptr;
-    SimpleBody *newBody = new SimpleBody(geometry, clonedMaterial, clonedShapeColor);
+    SimpleBodyBuilder *newBody = new SimpleBodyBuilder(geometry, clonedMaterial, clonedShapeColor);
     delete body;
     return newBody;
 }
@@ -57,12 +57,12 @@ PolyParser::parseCoeffs(int order, double *givenCoeffs, ParserContext &ctx)
     }
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
 {
     (void)ctx;
     PolynomialShape *localShape;
-    SimpleBody *body = nullptr;
+    SimpleBodyBuilder *body = nullptr;
     Vector3Dd localVector;
     int constantId;
     int order;
@@ -121,8 +121,8 @@ PolyParser::parsePoly(int knownOrder, ParserContext &ctx)
                         // pre-built one must be freed first. Brand new, never
                         // shared, so safe to delete unconditionally.
                         delete body;
-                        body = new SimpleBody(
-                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                        body = new SimpleBodyBuilder(
+                                *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
                         localShape = (PolynomialShape *)body->getGeometry();
                     } else {

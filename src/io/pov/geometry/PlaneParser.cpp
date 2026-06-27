@@ -3,8 +3,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/surface/InfinitePlane.h"
-#include "environment/scene/SceneBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SceneBuilder.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -15,18 +15,18 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-SimpleBody *
+SimpleBodyBuilder *
 PlaneParser::parsePlane()
 {
     ParserContext ctx;
     return PlaneParser::parsePlane(ctx);
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 PlaneParser::parsePlane(ParserContext &ctx)
 {
     InfinitePlane *localShape;
-    SimpleBody *body = nullptr;
+    SimpleBodyBuilder *body = nullptr;
     int constantId;
     Vector3Dd localVector;
     Vector3Dd localNormal;
@@ -56,8 +56,8 @@ PlaneParser::parsePlane(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::PLANE_CONSTANT) {
-                        body = new SimpleBody(
-                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                        body = new SimpleBodyBuilder(
+                                *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
                         localShape = (InfinitePlane *)body->getGeometry();
                     } else {

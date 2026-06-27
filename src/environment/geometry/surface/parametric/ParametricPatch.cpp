@@ -1199,7 +1199,7 @@ ParametricBiCubicPatch::doIntersectionForAllRayCrossings(
 {
     const int sizeBefore = depthQueue->size();
     const int result = ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
-        (BoundedGeometry *)this, ray, depthQueue);
+        this, ray, depthQueue);
     if (materialOverride == nullptr) {
         return result;
     }

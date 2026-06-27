@@ -721,9 +721,8 @@ PolynomialShape::intersectQuartic(
 // Normal to a quartic
 void
 PolynomialShape::quarticNormal(
-    Vector3Dd *result, BoundedGeometry *object, const Vector3Dd *intersectionPoint)
+    Vector3Dd *result, const PolynomialShape *shape, const Vector3Dd *intersectionPoint)
 {
-    const PolynomialShape *shape = (PolynomialShape *)object;
     double *a;
     double x;
     double y;
@@ -816,7 +815,7 @@ PolynomialShape::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     }
 
     if (shape->order == 4) {
-        PolynomialShape::quarticNormal(result, (BoundedGeometry *)this, &newPoint);
+        PolynomialShape::quarticNormal(result, shape, &newPoint);
     } else {
         PolynomialShape::normalp(
             result, shape->order, shape->Coeffs, &newPoint);

@@ -4,8 +4,8 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 
 #include "environment/geometry/volume/Blob.h"
-#include "environment/scene/SceneBuilder.h"
-#include "environment/scene/SimpleBody.h"
+#include "io/pov/geometry/SceneBuilder.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 #include "io/pov/context/ParseGlobals.h"
 #include "io/pov/context/ParserContext.h"
@@ -16,31 +16,31 @@
 #include "io/pov/parser/ParseHelpers.h"
 #include "io/pov/parser/PrimitiveParser.h"
 
-SimpleBody *
-BlobParser::rebuildBodyWithGeometry(SimpleBody *body, TransformedGeometry *geometry)
+SimpleBodyBuilder *
+BlobParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, TransformedGeometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         body->getMaterial()->copy() : nullptr;
     ColorRgba *clonedShapeColor = (body->getShapeColor() != nullptr) ?
         new ColorRgba(*body->getShapeColor()) : nullptr;
-    SimpleBody *newBody = new SimpleBody(geometry, clonedMaterial, clonedShapeColor);
+    SimpleBodyBuilder *newBody = new SimpleBodyBuilder(geometry, clonedMaterial, clonedShapeColor);
     delete body;
     return newBody;
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 BlobParser::parseBlob()
 {
     ParserContext ctx;
     return BlobParser::parseBlob(ctx);
 }
 
-SimpleBody *
+SimpleBodyBuilder *
 BlobParser::parseBlob(ParserContext &ctx)
 {
     (void)ctx;
     Blob *localShape = nullptr;
-    SimpleBody *body = nullptr;
+    SimpleBodyBuilder *body = nullptr;
     {
         bool Exit_Flag = false;
         while (!Exit_Flag) {
@@ -118,8 +118,8 @@ BlobParser::parseBlob(ParserContext &ctx)
                 if ((constantId = ctx.findConstant()) != -1) {
                     if (ctx.constants()[(int)constantId].getConstantType() ==
                         ParseGlobals::BLOB_CONSTANT) {
-                        body = new SimpleBody(
-                                *(SimpleBody *)ctx.constants()[(int)constantId]
+                        body = new SimpleBodyBuilder(
+                                *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
                                     .getConstantData());
                         localShape = (Blob *)body->getGeometry();
                     } else {

@@ -1,7 +1,7 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
 #include "common/Config.h"
-#include "environment/geometry/element/PriorityQueuePool.h"
+#include "environment/geometry/element/PriorityQueuePool.txx"
 #include "common/statistics/Statistics.h"
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
@@ -21,11 +21,11 @@ void
 DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
     const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
-    const java::ArrayList<Light*> &lightSources, const java::ArrayList<BoundedGeometry*> &objects)
+    const java::ArrayList<Light*> &lightSources, const java::ArrayList<SimpleBody*> &objects)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
-    BoundedGeometry *blockingObject;
+    SimpleBody *blockingObject;
     bool intersectionFound;
     IntersectionCandidate localIntersection;
     Vector3Dd rEye;

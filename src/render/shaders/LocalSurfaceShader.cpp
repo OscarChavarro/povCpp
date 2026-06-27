@@ -15,7 +15,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     IntersectionCandidate *rayIntersection, ColorRgba *surfaceColor,
     const ColorRgba *filterColor, ColorRgba *color,
     const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
-    const java::ArrayList<BoundedGeometry*> &objects,
+    const java::ArrayList<SimpleBody*> &objects,
     int &traceLevel, TextureUtils *textureUtils)
 {
     PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection);

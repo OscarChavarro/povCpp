@@ -2,15 +2,15 @@
 #include "java/util/PriorityQueue.txx"
 
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
-#include "environment/geometry/volume/compound/Composite.h"
+#include "environment/scene/Composite.h"
 #include "io/pov/light/LightGeometryAdapter.h"
 #include "io/pov/scene/ScenePostProcessor.h"
 
 void
-ScenePostProcessor::linkLights(BoundedGeometry *object, java::ArrayList<Light*> &lights)
+ScenePostProcessor::linkLights(SimpleBody *object, java::ArrayList<Light*> &lights)
 {
     if (Composite *composite = dynamic_cast<Composite *>(object)) {
-        java::ArrayList<BoundedGeometry*> &simpleBodies = composite->getSimpleBodies();
+        java::ArrayList<SimpleBody*> &simpleBodies = composite->getSimpleBodies();
         for (long int i = 0; i < simpleBodies.size(); i++) {
             ScenePostProcessor::linkLights(simpleBodies[i], lights);
         }

@@ -377,7 +377,7 @@ RenderEngine::initializeRenderer()
 void
 RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color)
 {
-    BoundedGeometry *object;
+    SimpleBody *object;
     IntersectionCandidate localIntersection;
     IntersectionCandidate newIntersection;
     bool intersectionFound;
@@ -397,7 +397,7 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         *color = this->getScene().getFogColor();
     }
 
-    const java::ArrayList<BoundedGeometry*> &sceneObjects =
+    const java::ArrayList<SimpleBody*> &sceneObjects =
         this->getScene().getObjects();
     for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
         object = sceneObjects[i];
