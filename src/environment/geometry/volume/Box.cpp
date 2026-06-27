@@ -306,3 +306,9 @@ Box::invertGeometry()
 {
     this->inverted = !this->inverted;
 }
+
+AxisAlignedBox
+Box::getMinMax() const
+{
+    return AxisAlignedBox::fromTransformedCorners(bounds[0], bounds[1], transformation);
+}

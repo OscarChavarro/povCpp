@@ -32,6 +32,8 @@ class ConstructiveSolidGeometry : public TransformedGeometry {
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
 
+    AxisAlignedBox getMinMax() const override;
+
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

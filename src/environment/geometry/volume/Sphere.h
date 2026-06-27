@@ -22,6 +22,8 @@ class Sphere : public TransformedGeometry {
     bool isInverted() const { return inverted; }
     void toggleInverted() { inverted ^= true; }
 
+    AxisAlignedBox getMinMax() const override;
+
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

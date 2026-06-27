@@ -5,6 +5,7 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/element/AxisAlignedBox.h"
 #include "environment/material/Material.h"
 
 class SimpleBody : public Geometry {
@@ -58,6 +59,8 @@ class SimpleBody : public Geometry {
     bool getNoShadowFlag() const { return noShadowFlag; }
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }
+
+    AxisAlignedBox getAABB() const;
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,

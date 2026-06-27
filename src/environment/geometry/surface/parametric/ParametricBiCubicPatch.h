@@ -49,6 +49,8 @@ class ParametricBiCubicPatch : public TransformedGeometry {
         ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
         int *depthCount, double *depths);
 
+    AxisAlignedBox getMinMax() const override;
+
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

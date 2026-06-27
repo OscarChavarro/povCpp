@@ -20,6 +20,16 @@ each step.
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/volume/HeightField.h"
 
+AxisAlignedBox
+HeightField::getMinMax() const
+{
+    if (boundingBox == nullptr) {
+        return AxisAlignedBox::unbounded();
+    }
+    const Vector3Dd *bb = boundingBox->getBounds();
+    return AxisAlignedBox::fromTransformedCorners(bb[0], bb[1], transformation);
+}
+
 HeightField::HeightField() :
     transformation(new Matrix4x4d(Matrix4x4d::identityMatrix())),
     transformationInverse(new Matrix4x4d(Matrix4x4d::identityMatrix())),

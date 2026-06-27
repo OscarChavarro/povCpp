@@ -40,6 +40,8 @@ class Triangle : public TransformedGeometry {
 
     static int computeTriangle(Triangle *triangle);
 
+    AxisAlignedBox getMinMax() const override;
+
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,

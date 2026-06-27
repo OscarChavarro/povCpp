@@ -163,4 +163,30 @@ Sphere::invertGeometry()
     inverted = !inverted;
 }
 
+AxisAlignedBox
+Sphere::getMinMax() const
+{
+    if (transformation == nullptr) {
+        return AxisAlignedBox{Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0)};
+    }
+    double cx = transformation->get(0, 3);
+    double cy = transformation->get(1, 3);
+    double cz = transformation->get(2, 3);
+    double rx = java::Math::sqrt(
+        transformation->get(0,0) * transformation->get(0,0) +
+        transformation->get(0,1) * transformation->get(0,1) +
+        transformation->get(0,2) * transformation->get(0,2));
+    double ry = java::Math::sqrt(
+        transformation->get(1,0) * transformation->get(1,0) +
+        transformation->get(1,1) * transformation->get(1,1) +
+        transformation->get(1,2) * transformation->get(1,2));
+    double rz = java::Math::sqrt(
+        transformation->get(2,0) * transformation->get(2,0) +
+        transformation->get(2,1) * transformation->get(2,1) +
+        transformation->get(2,2) * transformation->get(2,2));
+    return AxisAlignedBox{
+        Vector3Dd(cx - rx, cy - ry, cz - rz),
+        Vector3Dd(cx + rx, cy + ry, cz + rz)};
+}
+
 #include "java/util/PriorityQueue.txx"

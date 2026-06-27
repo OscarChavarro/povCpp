@@ -268,3 +268,21 @@ SimpleBody::invert()
         this->getGeometry()->invertGeometry();
     }
 }
+
+AxisAlignedBox
+SimpleBody::getAABB() const
+{
+    // If bounding shapes are present they define the visible extent; use the
+    // intersection of their AABBs (a tighter world-space bound than the geometry alone).
+    if (boundingShapes.size() > 0) {
+        AxisAlignedBox result = AxisAlignedBox::unbounded();
+        for (long int i = 0; i < boundingShapes.size(); i++) {
+            result = result.intersection(boundingShapes[i]->getMinMax());
+        }
+        return result;
+    }
+    if (geometry != nullptr) {
+        return geometry->getMinMax();
+    }
+    return AxisAlignedBox::unbounded();
+}
