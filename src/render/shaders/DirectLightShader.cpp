@@ -1,5 +1,6 @@
 #include "java/util/ArrayList.txx"
 #include "java/util/PriorityQueue.txx"
+#include "vsdk/toolkit/common/memoryManagement/MemoryPool.txx"
 #include "common/Config.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "common/statistics/Statistics.h"
