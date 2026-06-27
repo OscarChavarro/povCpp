@@ -23,9 +23,9 @@ void
 ScenePostProcessor::linkLightsInShape(Geometry *shape, java::ArrayList<Light*> &lights)
 {
     if (ConstructiveSolidGeometry *csg = dynamic_cast<ConstructiveSolidGeometry *>(shape)) {
-        java::ArrayList<TransformedGeometry*> &shapes = csg->getShapes();
-        for (long int i = 0; i < shapes.size(); i++) {
-            ScenePostProcessor::linkLightsInShape(shapes[i], lights);
+        java::ArrayList<CsgOperand*> &operands = csg->getOperands();
+        for (long int i = 0; i < operands.size(); i++) {
+            ScenePostProcessor::linkLightsInShape(operands[i]->getGeometry(), lights);
         }
     } else if (LightGeometryAdapter *lightAdapter =
                    dynamic_cast<LightGeometryAdapter *>(shape)) {
