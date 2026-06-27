@@ -28,7 +28,10 @@ class ConstructiveSolidGeometryByRaySegment : public ConstructiveSolidGeometry {
         BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     ConstructiveSolidGeometryByRaySegment(const ConstructiveSolidGeometryByRaySegment &other);
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
+    int doIntersectionForAllRayCrossings(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     void invertGeometry() override;

@@ -30,7 +30,10 @@ class Composite : public BoundedGeometry {
     java::ArrayList<BoundedGeometry*> &getSimpleBodies();
     const java::ArrayList<BoundedGeometry*> &getSimpleBodies() const;
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
+    int doIntersectionForAllRayCrossings(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     void translate(Vector3Dd *vector) override;

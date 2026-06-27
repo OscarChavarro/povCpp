@@ -49,7 +49,10 @@ class ParametricBiCubicPatch : public TransformedGeometry {
         ParametricBiCubicPatch *shape, ParametricPatchNode *node, int depth,
         int *depthCount, double *depths);
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
+    int doIntersectionForAllRayCrossings(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint) override;
     void normal(
@@ -73,7 +76,7 @@ class ParametricBiCubicPatch : public TransformedGeometry {
     double boundingSphereRadius;
     const double flatnessValue;
     // intersectionCount/normalVector/intersectionPoint used to live here as
-    // plain instance fields: scratch space written by allIntersections() and
+    // plain instance fields: scratch space written by doIntersectionForAllRayCrossings() and
     // read back later by normal() (and by ParametricBiCubicSolver, which
     // stores the *hit point itself* through getIntersectionPointAt() - see
     // ParametricBiCubicSolver::allParametricBiCubicPatchIntersections).

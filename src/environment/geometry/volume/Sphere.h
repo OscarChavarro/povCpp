@@ -22,11 +22,10 @@ class Sphere : public TransformedGeometry {
     bool isInverted() const { return inverted; }
     void toggleInverted() { inverted ^= true; }
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int allIntersectionsForMaterial(
+    int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *material) override;
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

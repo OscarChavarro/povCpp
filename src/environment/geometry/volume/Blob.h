@@ -24,7 +24,7 @@ class Blob : public TransformedGeometry {
     BlobElement *const list;
     const int sturmFlag;
 
-    // intervals is supplied by the caller (allIntersections), sized to
+    // intervals is supplied by the caller (doIntersectionForAllRayCrossings), sized to
     // 2*blob->count, rather than read from a shared instance field: see
     // BlobElement.h's comment on the analogous tcoeffs removal.
     static int determineInfluences(const Vector3Dd *p, const Vector3Dd *d,
@@ -47,7 +47,10 @@ class Blob : public TransformedGeometry {
     int getSturmFlag() const { return sturmFlag; }
     Blob *copyWithSturmFlag(int flag) const;
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
+    int doIntersectionForAllRayCrossings(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

@@ -24,10 +24,6 @@ class ConstructiveSolidGeometry : public TransformedGeometry {
     java::ArrayList<Material*> &getShapeMaterials();
     const java::ArrayList<Material*> &getShapeMaterials() const;
 
-    int allIntersectionsForMaterial(
-        RayWithSegments *ray,
-        java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *material) override;
     void translate(Vector3Dd *vector);
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
@@ -36,7 +32,10 @@ class ConstructiveSolidGeometry : public TransformedGeometry {
     void rotateGeometry(Vector3Dd *vector) override;
     void scaleGeometry(Vector3Dd *vector) override;
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override = 0;
+    int doIntersectionForAllRayCrossings(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override = 0;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override = 0;
     void invertGeometry() override = 0;
 };

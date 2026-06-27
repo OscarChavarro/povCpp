@@ -9,7 +9,7 @@
 
 // A top-level union of unbounded planes has no real in/out solid to
 // classify (Table 3 of [ROTH1982].3.3 assumes bounded operands), so
-// allIntersections() skips the merge for it below.
+// doIntersectionForAllRayCrossings() skips the merge for it below.
 static bool
 isUnionOfBarePlanes(BooleanSetOperations geometryType, java::ArrayList<TransformedGeometry*> &children)
 {
@@ -56,7 +56,7 @@ ConstructiveSolidGeometryByRaySegment::buildRaySegments(
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         ray->getIntersectionQueuePool()->pop(128);
 
-    child->allIntersectionsForMaterial(ray, localDepthQueue, childMaterial);
+    child->doIntersectionForAllRayCrossings(ray, localDepthQueue, childMaterial);
 
     // One containment sample per child suffices: later crossings just
     // toggle it ([ROTH1982].3.3 - a ray alternates in/out at each surface
@@ -178,8 +178,12 @@ ConstructiveSolidGeometryByRaySegment::mergeDifference(const RaySegments &left, 
 // RAYCAST descends the tree and combines left/right classifications on the
 // way back up ([ROTH1982].3.3), folded here over an n-ary children list.
 int
-ConstructiveSolidGeometryByRaySegment::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+ConstructiveSolidGeometryByRaySegment::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
+    (void)materialOverride;
     java::ArrayList<TransformedGeometry*> &children = getShapes();
     java::ArrayList<Material*> &childMaterials = getShapeMaterials();
     if (children.size() == 0) {
@@ -189,18 +193,24 @@ ConstructiveSolidGeometryByRaySegment::allIntersections(RayWithSegments *ray, ja
     if (isTopLevel() && isUnionOfBarePlanes(getGeometryType(), children)) {
         bool anyFound = false;
         for (long int i = 0; i < children.size(); i++) {
-            if (children[i]->allIntersectionsForMaterial(
-                    ray, depthQueue, childMaterials[i])) {
+            Material *effectiveMaterial =
+                childMaterials[i] != nullptr ? childMaterials[i] : materialOverride;
+            if (children[i]->doIntersectionForAllRayCrossings(
+                    ray, depthQueue, effectiveMaterial)) {
                 anyFound = true;
             }
         }
         return anyFound;
     }
 
-    RaySegments result = buildRaySegments(ray, children[0], childMaterials[0]);
+    Material *effectiveMaterial0 =
+        childMaterials[0] != nullptr ? childMaterials[0] : materialOverride;
+    RaySegments result = buildRaySegments(ray, children[0], effectiveMaterial0);
     for (long int i = 1; i < children.size(); i++) {
+        Material *effectiveMaterial =
+            childMaterials[i] != nullptr ? childMaterials[i] : materialOverride;
         const RaySegments childSegments =
-            buildRaySegments(ray, children[i], childMaterials[i]);
+            buildRaySegments(ray, children[i], effectiveMaterial);
         switch (getGeometryType()) {
         case BooleanSetOperations::DIFFERENCE:
             result = mergeDifference(result, childSegments);

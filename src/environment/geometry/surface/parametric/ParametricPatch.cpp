@@ -6,9 +6,11 @@ This module implements the code for Bezier bicubic patch shapes
 
 #include "java/lang/Math.h"
 #include "java/util/HashMap.h"
+#include "java/util/PriorityQueue.txx"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
+#include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -19,7 +21,7 @@ int ParametricBiCubicPatch::maxDepthReached = 0;
 
 namespace {
 
-// Per-ray scratch a patch needs between allIntersections() (which fills it
+// Per-ray scratch a patch needs between doIntersectionForAllRayCrossings() (which fills it
 // in) and the later normal() call for the winning hit (which reads it back
 // by matching the intersection point - see ParametricBiCubicPatch::normal's
 // doc comment). Used to live as plain instance fields on the shared,
@@ -1190,7 +1192,27 @@ ParametricBiCubicPatch::invertGeometry()
 }
 
 int
-ParametricBiCubicPatch::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+ParametricBiCubicPatch::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
-    return ParametricBiCubicSolver::allParametricBiCubicPatchIntersections((BoundedGeometry *)this, ray, depthQueue);
+    const int sizeBefore = depthQueue->size();
+    const int result = ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
+        (BoundedGeometry *)this, ray, depthQueue);
+    if (materialOverride == nullptr) {
+        return result;
+    }
+
+    const int newCount = depthQueue->size() - sizeBefore;
+    int updated = 0;
+    for (IntersectionCandidate &candidate : *depthQueue) {
+        if (candidate.getAttributes().getHitGeometry() == this) {
+            candidate.getAttributes().setMaterial(materialOverride);
+            if (++updated == newCount) {
+                break;
+            }
+        }
+    }
+    return result;
 }

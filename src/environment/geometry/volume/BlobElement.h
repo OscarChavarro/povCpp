@@ -18,12 +18,12 @@ class BlobElement {
     double coeffs[3];
     // No tcoeffs[5] scratch field here on purpose: it used to cache the
     // per-ray quartic-term contribution of this element between the two
-    // places Blob::allIntersections needs it (computed when the ray enters
+    // places Blob::doIntersectionForAllRayCrossings needs it (computed when the ray enters
     // this element's influence, consumed when it leaves), but BlobElement is
     // shared scene geometry visited by every rendering thread - under
     // `-parallel`, two threads hitting the same blob concurrently tore each
     // other's writes (the speckled/missing-pixel corruption on blob.pov).
-    // Blob::allIntersections now keeps that scratch in a local array instead
+    // Blob::doIntersectionForAllRayCrossings now keeps that scratch in a local array instead
     // (see doc/CSGPerformance.md's sibling investigation for the analogous
     // ParametricBiCubicPatch bug).
 };

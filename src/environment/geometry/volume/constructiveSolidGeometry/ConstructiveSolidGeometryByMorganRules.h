@@ -7,9 +7,13 @@ class ConstructiveSolidGeometryByMorganRules : public ConstructiveSolidGeometry 
   private:
     static int insideCsgChild(Vector3Dd *point, TransformedGeometry *shape);
     int allCsgUnionIntersections(
-        RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride);
     int allCsgIntersectIntersections(
-        RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride);
     int insideCsgUnion(Vector3Dd *point);
     int insideCsgIntersection(Vector3Dd *point);
 
@@ -18,7 +22,10 @@ class ConstructiveSolidGeometryByMorganRules : public ConstructiveSolidGeometry 
         BooleanSetOperations initialGeometryType = BooleanSetOperations::UNION);
     ConstructiveSolidGeometryByMorganRules(const ConstructiveSolidGeometryByMorganRules &other);
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
+    int doIntersectionForAllRayCrossings(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     void invertGeometry() override;

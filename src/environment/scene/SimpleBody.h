@@ -30,11 +30,10 @@ class SimpleBody {
     void prependMaterialLayers(Material *newHead);
 
     bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue);
-    int allIntersectionsForMaterial(
+    int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *material);
+        Material *materialOverride = nullptr);
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance);
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint);
     void normal(

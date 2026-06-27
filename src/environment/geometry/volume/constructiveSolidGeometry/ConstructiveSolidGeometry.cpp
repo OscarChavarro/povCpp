@@ -14,16 +14,6 @@ ConstructiveSolidGeometry::~ConstructiveSolidGeometry()
     }
 }
 
-int
-ConstructiveSolidGeometry::allIntersectionsForMaterial(
-    RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *material)
-{
-    (void)material;
-    return allIntersections(ray, depthQueue);
-}
-
 void
 ConstructiveSolidGeometry::translateGeometry(Vector3Dd *vector)
 {

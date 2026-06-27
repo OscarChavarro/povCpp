@@ -59,11 +59,10 @@ class BoundedGeometry : public Geometry {
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }
 
-    int allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue) override;
-    int allIntersectionsForMaterial(
+    int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
-        Material *material) override;
+        Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
     // Virtual so a nested Composite child reached through a BoundedGeometry*

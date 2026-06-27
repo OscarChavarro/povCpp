@@ -29,25 +29,32 @@ ConstructiveSolidGeometryByMorganRules::insideCsgChild(Vector3Dd *point, Transfo
 }
 
 int
-ConstructiveSolidGeometryByMorganRules::allIntersections(RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+ConstructiveSolidGeometryByMorganRules::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
     if (getGeometryType() == BooleanSetOperations::INTERSECTION) {
-        return allCsgIntersectIntersections(ray, depthQueue);
+        return allCsgIntersectIntersections(ray, depthQueue, materialOverride);
     }
-    return allCsgUnionIntersections(ray, depthQueue);
+    return allCsgUnionIntersections(ray, depthQueue, materialOverride);
 }
 
 int
 ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
-    RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
     TransformedGeometry *localShape;
 
     bool intersectionFound = false;
     for (long int i = getShapes().size() - 1; i >= 0; i--) {
         localShape = getShapes()[i];
-        if (localShape->allIntersectionsForMaterial(
-                ray, depthQueue, getShapeMaterials()[i])) {
+        Material *effectiveMaterial =
+            getShapeMaterials()[i] != nullptr ? getShapeMaterials()[i] : materialOverride;
+        if (localShape->doIntersectionForAllRayCrossings(
+                ray, depthQueue, effectiveMaterial)) {
             intersectionFound = true;
         }
     }
@@ -57,7 +64,9 @@ ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
 
 int
 ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
-    RayWithSegments *ray, java::PriorityQueue<IntersectionCandidate> *depthQueue)
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
 {
     bool intersectionFound;
     TransformedGeometry *localShape;
@@ -72,8 +81,10 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
     for (long int i = getShapes().size() - 1; i >= 0; i--) {
         localShape = getShapes()[i];
 
-        localShape->allIntersectionsForMaterial(
-            ray, localDepthQueue, getShapeMaterials()[i]);
+        Material *effectiveMaterial =
+            getShapeMaterials()[i] != nullptr ? getShapeMaterials()[i] : materialOverride;
+        localShape->doIntersectionForAllRayCrossings(
+            ray, localDepthQueue, effectiveMaterial);
 
         for (const IntersectionCandidate& candidate : *localDepthQueue) {
             localIntersection = candidate;
