@@ -37,7 +37,9 @@ class ObjectParser {
         const java::ArrayList<SimpleBody*> &boundingShapes,
         const java::ArrayList<SimpleBody*> &clippingShapes,
         Matrix4x4d *transformation = nullptr,
-        Matrix4x4d *transformationInverse = nullptr);
+        Matrix4x4d *transformationInverse = nullptr,
+        Matrix4x4d *geometryTransformation = nullptr,
+        Matrix4x4d *geometryTransformationInverse = nullptr);
 
     static Composite *buildComposite(
         Geometry *geometry,
@@ -49,7 +51,9 @@ class ObjectParser {
         const java::ArrayList<SimpleBody*> &clippingShapes,
         const java::ArrayList<SimpleBody*> &simpleBodies,
         Matrix4x4d *transformation = nullptr,
-        Matrix4x4d *transformationInverse = nullptr);
+        Matrix4x4d *transformationInverse = nullptr,
+        Matrix4x4d *geometryTransformation = nullptr,
+        Matrix4x4d *geometryTransformationInverse = nullptr);
 
     static void extractObjectState(
         SimpleBody *object,
@@ -61,7 +65,9 @@ class ObjectParser {
         java::ArrayList<SimpleBody*> &boundingShapes,
         java::ArrayList<SimpleBody*> &clippingShapes,
         Matrix4x4d *&transformation,
-        Matrix4x4d *&transformationInverse);
+        Matrix4x4d *&transformationInverse,
+        Matrix4x4d *&geometryTransformation,
+        Matrix4x4d *&geometryTransformationInverse);
 
     static void extractCompositeState(
         Composite *object,
@@ -74,7 +80,9 @@ class ObjectParser {
         java::ArrayList<SimpleBody*> &clippingShapes,
         java::ArrayList<SimpleBody*> &simpleBodies,
         Matrix4x4d *&transformation,
-        Matrix4x4d *&transformationInverse);
+        Matrix4x4d *&transformationInverse,
+        Matrix4x4d *&geometryTransformation,
+        Matrix4x4d *&geometryTransformationInverse);
 };
 
 #endif

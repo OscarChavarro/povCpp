@@ -51,7 +51,6 @@ ConstructiveSolidGeometryByMorganRules::allCsgUnionIntersections(
             intersectionFound = true;
         }
     }
-
     return (intersectionFound);
 }
 

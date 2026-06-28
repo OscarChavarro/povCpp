@@ -2,7 +2,7 @@
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/GeometryTransformMutator.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/material/Material.h"
@@ -39,23 +39,23 @@ SimpleBody::doIntersectionForAllRayCrossings(
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
     RayWithSegments localRay = *ray;
-    RayWithSegments *geometryRay = ray;
+    RayWithSegments *objectRay = ray;
 
     if (transformationInverse != nullptr) {
         localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
         localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
         localRay.setQuadricConstantsCached(false);
-        geometryRay = &localRay;
+        objectRay = &localRay;
     }
 
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
-        Vector3Dd rayOrigin(geometryRay->getOrigin());
+        Vector3Dd rayOrigin(objectRay->getOrigin());
 
         stats.incrementBoundingRegionTests();
         {
             IntersectionCandidate _boundingHit;
-            if (!boundingShape->doIntersectionFirstHit(geometryRay, _boundingHit) &&
+            if (!boundingShape->doIntersectionFirstHit(objectRay, _boundingHit) &&
                 boundingShape->doContainmentTest(rayOrigin, Config::SMALL_TOLERANCE) ==
                     Geometry::OUTSIDE) {
                 return (false);
@@ -69,6 +69,16 @@ SimpleBody::doIntersectionForAllRayCrossings(
     Material *effectiveGeometryMaterial =
         this->getGeometryMaterial() != nullptr ?
             this->getGeometryMaterial() : materialOverride;
+    RayWithSegments geometryLocalRay = *objectRay;
+    RayWithSegments *geometryRay = objectRay;
+    if (geometryTransformationInverse != nullptr) {
+        geometryLocalRay.setOrigin(
+            geometryTransformationInverse->transformPoint(objectRay->getOrigin()));
+        geometryLocalRay.setDirection(
+            geometryTransformationInverse->transformDirection(objectRay->getDirection()));
+        geometryLocalRay.setQuadricConstantsCached(false);
+        geometryRay = &geometryLocalRay;
+    }
     this->getGeometry()->doIntersectionForAllRayCrossings(
         geometryRay, localDepthQueue, effectiveGeometryMaterial);
 
@@ -79,9 +89,29 @@ SimpleBody::doIntersectionForAllRayCrossings(
         localIntersection.getAttributes().setObjectColor(this->getObjectColor());
         localIntersection.getAttributes().setNoShadowFlag(this->getNoShadowFlag());
         localIntersection.getAttributes().setHitBody(this);
+        if (geometryTransformation != nullptr) {
+            localIntersection.getIntersection().point =
+                geometryTransformation->transformPoint(
+                    localIntersection.getIntersection().point);
+        }
+        const Vector3Dd objectLocalPoint = localIntersection.getIntersection().point;
         if (transformation != nullptr) {
             localIntersection.getIntersection().point =
                 transformation->transformPoint(localIntersection.getIntersection().point);
+        }
+        // Re-express the (now world-space) crossing as a signed ray parameter
+        // along the original ray, not a bare distance: length() would force
+        // every crossing positive, so any crossing behind the ray origin -
+        // exactly the case for refracted/internal rays whose origin sits on or
+        // inside the body - would sort in front and corrupt the CSG in/out
+        // classification. The signed projection equals the geometry's native
+        // t for any ray direction.
+        {
+            const Vector3Dd rayDir = ray->getDirection();
+            localIntersection.getIntersection().t =
+                localIntersection.getIntersection().point
+                    .subtract(ray->getOrigin()).dotProduct(rayDir) /
+                rayDir.dotProduct(rayDir);
         }
         intersectionFound = true;
 
@@ -90,7 +120,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
 
             stats.incrementClippingRegionTests();
             if (clippingShape->doContainmentTest(
-                    worldPointToLocal(localIntersection.getIntersection().point),
+                    objectLocalPoint,
                     Config::SMALL_TOLERANCE) == Geometry::OUTSIDE) {
                 intersectionFound = false;
                 break;
@@ -131,7 +161,9 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
         }
     }
 
-    if (this->getGeometry()->doContainmentTest(localPoint, distanceTolerance) != Geometry::OUTSIDE) {
+    if (this->getGeometry()->doContainmentTest(
+            objectPointToGeometryLocal(localPoint),
+            distanceTolerance) != Geometry::OUTSIDE) {
         return Geometry::INSIDE;
     }
     return Geometry::OUTSIDE;
@@ -141,21 +173,51 @@ void
 SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit)
 {
     Geometry *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
+    // Consume the detail-owner chain outermost-first (popDetailOwnerBack): the
+    // owners were pushed innermost-first while collecting the hit, so for a
+    // nested CSG operand (e.g. an intersection nested inside a transformed
+    // union operand) the outer operand's transform must be peeled off the ray
+    // before the inner ones. Each CsgOperand::doExtraInformation then recurses
+    // into the next inner owner, and only the innermost owner evaluates the
+    // primitive normal; unwinding re-applies each operand transform to the
+    // normal from innermost to outermost. Popping only the first (innermost)
+    // owner here would drop every outer operand's transform.
+    RayOperationOwner *detailOwner = hit->popDetailOwnerBack();
     if (detailGeometry != nullptr) {
-        if (transformationInverse == nullptr) {
-            detailGeometry->doExtraInformation(ray, t, hit);
-            return;
-        }
-
         RayWithSegments localRay = ray;
-        localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
-        localRay.setDirection(transformationInverse->transformDirection(ray.getDirection()));
-        localRay.setQuadricConstantsCached(false);
-
         const Vector3Dd worldPoint = hit->p;
-        hit->p = transformationInverse->transformPoint(worldPoint);
-        detailGeometry->doExtraInformation(localRay, t, hit);
-        hit->n = localNormalToWorld(hit->n);
+        if (transformationInverse != nullptr) {
+            localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
+            localRay.setDirection(transformationInverse->transformDirection(ray.getDirection()));
+            localRay.setQuadricConstantsCached(false);
+            hit->p = transformationInverse->transformPoint(worldPoint);
+        }
+        if (detailOwner != nullptr) {
+            detailOwner->doExtraInformation(localRay, t, hit);
+        } else {
+            RayWithSegments geometryLocalRay = localRay;
+            if (geometryTransformationInverse != nullptr) {
+                geometryLocalRay.setOrigin(
+                    geometryTransformationInverse->transformPoint(localRay.getOrigin()));
+                geometryLocalRay.setDirection(
+                    geometryTransformationInverse->transformDirection(localRay.getDirection()));
+                geometryLocalRay.setQuadricConstantsCached(false);
+                hit->p = geometryTransformationInverse->transformPoint(hit->p);
+            }
+            detailGeometry->doExtraInformation(geometryLocalRay, t, hit);
+            if (geometryTransformationInverse != nullptr) {
+                hit->n = geometryNormalToObjectLocal(hit->n);
+            }
+        }
+        if (transformationInverse != nullptr) {
+            hit->n = localNormalToWorld(hit->n);
+        } else {
+            // The detail-owner chain defers normalization (see
+            // CsgOperand::doExtraInformation); when this body carries no
+            // object transform of its own, normalize once here so the chained
+            // normal is unit length before shading.
+            hit->n = hit->n.normalizedFast();
+        }
         hit->p = worldPoint;
     }
 }
@@ -169,6 +231,10 @@ SimpleBody::SimpleBody(const SimpleBody &other) :
         new Matrix4x4d(*other.getTransformation()) : nullptr),
     transformationInverse(other.getTransformationInverse() != nullptr ?
         new Matrix4x4d(*other.getTransformationInverse()) : nullptr),
+    geometryTransformation(other.getGeometryTransformation() != nullptr ?
+        new Matrix4x4d(*other.getGeometryTransformation()) : nullptr),
+    geometryTransformationInverse(other.getGeometryTransformationInverse() != nullptr ?
+        new Matrix4x4d(*other.getGeometryTransformationInverse()) : nullptr),
     noShadowFlag(other.getNoShadowFlag()),
     objectColor(other.getObjectColor() != nullptr ?
         new ColorRgba(*other.getObjectColor()) : nullptr),
@@ -191,6 +257,8 @@ SimpleBody::~SimpleBody()
     delete geometryMaterial;
     delete transformation;
     delete transformationInverse;
+    delete geometryTransformation;
+    delete geometryTransformationInverse;
     delete objectColor;
     // objectTexture may be a private clone (delete it) or an alias to a shared
     // constant such as the scene's default texture (do not delete, just close
@@ -250,6 +318,109 @@ SimpleBody::applyScaleToBodyTransform(Vector3Dd *vector)
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
 }
 
+void
+SimpleBody::applyOwnedTranslation(Vector3Dd *vector)
+{
+    if (this->getGeometryMaterial() != nullptr) {
+        geometryMaterial = this->getGeometryMaterial()->translate(vector);
+    }
+
+    if (this->getObjectTexture() != nullptr) {
+        objectTexture = this->getObjectTexture()->translate(vector);
+    }
+}
+
+void
+SimpleBody::applyOwnedRotation(Vector3Dd *vector)
+{
+    if (this->getGeometryMaterial() != nullptr) {
+        geometryMaterial = this->getGeometryMaterial()->rotate(vector);
+    }
+
+    if (this->getObjectTexture() != nullptr) {
+        objectTexture = this->getObjectTexture()->rotate(vector);
+    }
+}
+
+void
+SimpleBody::applyOwnedScale(Vector3Dd *vector)
+{
+    if (this->getGeometryMaterial() != nullptr) {
+        geometryMaterial = this->getGeometryMaterial()->scale(vector);
+    }
+
+    if (this->getObjectTexture() != nullptr) {
+        objectTexture = this->getObjectTexture()->scale(vector);
+    }
+}
+
+void
+SimpleBody::propagateOwnedTranslation(Vector3Dd *vector)
+{
+    for (long int i = boundingShapes.size() - 1; i >= 0; i--) {
+        boundingShapes[i]->propagateOwnedTranslation(vector);
+    }
+    for (long int i = clippingShapes.size() - 1; i >= 0; i--) {
+        clippingShapes[i]->propagateOwnedTranslation(vector);
+    }
+    applyOwnedTranslation(vector);
+}
+
+void
+SimpleBody::propagateOwnedRotation(Vector3Dd *vector)
+{
+    for (long int i = boundingShapes.size() - 1; i >= 0; i--) {
+        boundingShapes[i]->propagateOwnedRotation(vector);
+    }
+    for (long int i = clippingShapes.size() - 1; i >= 0; i--) {
+        clippingShapes[i]->propagateOwnedRotation(vector);
+    }
+    applyOwnedRotation(vector);
+}
+
+void
+SimpleBody::propagateOwnedScale(Vector3Dd *vector)
+{
+    for (long int i = boundingShapes.size() - 1; i >= 0; i--) {
+        boundingShapes[i]->propagateOwnedScale(vector);
+    }
+    for (long int i = clippingShapes.size() - 1; i >= 0; i--) {
+        clippingShapes[i]->propagateOwnedScale(vector);
+    }
+    applyOwnedScale(vector);
+}
+
+Vector3Dd
+SimpleBody::objectPointToGeometryLocal(const Vector3Dd &point) const
+{
+    return geometryTransformationInverse != nullptr ?
+        geometryTransformationInverse->transformPoint(point) : point;
+}
+
+Vector3Dd
+SimpleBody::geometryPointToObjectLocal(const Vector3Dd &point) const
+{
+    return geometryTransformation != nullptr ?
+        geometryTransformation->transformPoint(point) : point;
+}
+
+Vector3Dd
+SimpleBody::objectDirectionToGeometryLocal(const Vector3Dd &direction) const
+{
+    return geometryTransformationInverse != nullptr ?
+        geometryTransformationInverse->transformDirection(direction) : direction;
+}
+
+Vector3Dd
+SimpleBody::geometryNormalToObjectLocal(const Vector3Dd &normal) const
+{
+    if (geometryTransformationInverse == nullptr) {
+        return normal;
+    }
+    return geometryTransformationInverse->withoutTranslation()
+        .multiply(normal).normalizedFast();
+}
+
 Vector3Dd
 SimpleBody::worldPointToLocal(const Vector3Dd &point) const
 {
@@ -286,6 +457,8 @@ SimpleBody::detachOwnership()
     geometryMaterial = nullptr;
     transformation = nullptr;
     transformationInverse = nullptr;
+    geometryTransformation = nullptr;
+    geometryTransformationInverse = nullptr;
     objectColor = nullptr;
     objectTexture = nullptr;
     boundingShapes.clear();
@@ -301,109 +474,157 @@ SimpleBody::copy()
 void
 SimpleBody::translate(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
-
-    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getBoundingShapes()[i];
-        localShape->translate(vector);
-    }
-
-    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getClippingShapes()[i];
-        localShape->translate(vector);
-    }
+    bool propagateToChildren = true;
 
     if (this->getGeometry() != nullptr) {
-        if (TransformedGeometry *transformed =
-                dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
-            transformed->translateGeometry(vector);
-        } else if (ConstructiveSolidGeometry *csg =
-                dynamic_cast<ConstructiveSolidGeometry *>(this->getGeometry())) {
-            csg->translate(vector);
+        if (GeometryTransformMutator::translateIfSupported(this->getGeometry(), vector)) {
         } else {
             applyTranslationToBodyTransform(vector);
+            propagateToChildren = false;
+        }
+    } else {
+        applyTranslationToBodyTransform(vector);
+        propagateToChildren = false;
+    }
+
+    if (propagateToChildren) {
+        SimpleBody *localShape;
+        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+            localShape = this->getBoundingShapes()[i];
+            localShape->translate(vector);
+        }
+
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            localShape = this->getClippingShapes()[i];
+            localShape->translate(vector);
+        }
+    } else {
+        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+            this->getBoundingShapes()[i]->propagateOwnedTranslation(vector);
+        }
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            this->getClippingShapes()[i]->propagateOwnedTranslation(vector);
         }
     }
 
-    if (this->getGeometryMaterial() != nullptr) {
-        geometryMaterial = this->getGeometryMaterial()->translate(vector);
-    }
+    applyOwnedTranslation(vector);
+}
 
-    if (this->getObjectTexture() != nullptr) {
-        objectTexture = this->getObjectTexture()->translate(vector);
+void
+SimpleBody::translateOwnerOnly(Vector3Dd *vector)
+{
+    applyTranslationToBodyTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->propagateOwnedTranslation(vector);
     }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->propagateOwnedTranslation(vector);
+    }
+    applyOwnedTranslation(vector);
 }
 
 void
 SimpleBody::rotate(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
-
-    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getBoundingShapes()[i];
-        localShape->rotate(vector);
-    }
-
-    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getClippingShapes()[i];
-        localShape->rotate(vector);
-    }
+    bool propagateToChildren = true;
 
     if (this->getGeometry() != nullptr) {
-        if (TransformedGeometry *transformed =
-                dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
-            transformed->rotateGeometry(vector);
-        } else if (ConstructiveSolidGeometry *csg =
-                dynamic_cast<ConstructiveSolidGeometry *>(this->getGeometry())) {
-            csg->rotate(vector);
+        if (GeometryTransformMutator::rotateIfSupported(this->getGeometry(), vector)) {
         } else {
             applyRotationToBodyTransform(vector);
+            propagateToChildren = false;
+        }
+    } else {
+        applyRotationToBodyTransform(vector);
+        propagateToChildren = false;
+    }
+
+    if (propagateToChildren) {
+        SimpleBody *localShape;
+        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+            localShape = this->getBoundingShapes()[i];
+            localShape->rotate(vector);
+        }
+
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            localShape = this->getClippingShapes()[i];
+            localShape->rotate(vector);
+        }
+    } else {
+        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+            this->getBoundingShapes()[i]->propagateOwnedRotation(vector);
+        }
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            this->getClippingShapes()[i]->propagateOwnedRotation(vector);
         }
     }
 
-    if (this->getGeometryMaterial() != nullptr) {
-        geometryMaterial = this->getGeometryMaterial()->rotate(vector);
-    }
+    applyOwnedRotation(vector);
+}
 
-    if (this->getObjectTexture() != nullptr) {
-        objectTexture = this->getObjectTexture()->rotate(vector);
+void
+SimpleBody::rotateOwnerOnly(Vector3Dd *vector)
+{
+    applyRotationToBodyTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->propagateOwnedRotation(vector);
     }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->propagateOwnedRotation(vector);
+    }
+    applyOwnedRotation(vector);
 }
 
 void
 SimpleBody::scale(Vector3Dd *vector)
 {
-    SimpleBody *localShape;
-
-    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getBoundingShapes()[i];
-        localShape->scale(vector);
-    }
-
-    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-        localShape = this->getClippingShapes()[i];
-        localShape->scale(vector);
-    }
+    bool propagateToChildren = true;
 
     if (this->getGeometry() != nullptr) {
-        if (TransformedGeometry *transformed =
-                dynamic_cast<TransformedGeometry *>(this->getGeometry())) {
-            transformed->scaleGeometry(vector);
-        } else if (ConstructiveSolidGeometry *csg =
-                dynamic_cast<ConstructiveSolidGeometry *>(this->getGeometry())) {
-            csg->scale(vector);
+        if (GeometryTransformMutator::scaleIfSupported(this->getGeometry(), vector)) {
         } else {
             applyScaleToBodyTransform(vector);
+            propagateToChildren = false;
+        }
+    } else {
+        applyScaleToBodyTransform(vector);
+        propagateToChildren = false;
+    }
+
+    if (propagateToChildren) {
+        SimpleBody *localShape;
+        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+            localShape = this->getBoundingShapes()[i];
+            localShape->scale(vector);
+        }
+
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            localShape = this->getClippingShapes()[i];
+            localShape->scale(vector);
+        }
+    } else {
+        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+            this->getBoundingShapes()[i]->propagateOwnedScale(vector);
+        }
+        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+            this->getClippingShapes()[i]->propagateOwnedScale(vector);
         }
     }
 
-    if (this->getGeometryMaterial() != nullptr) {
-        geometryMaterial = this->getGeometryMaterial()->scale(vector);
-    }
+    applyOwnedScale(vector);
+}
 
-    if (this->getObjectTexture() != nullptr) {
-        objectTexture = this->getObjectTexture()->scale(vector);
+void
+SimpleBody::scaleOwnerOnly(Vector3Dd *vector)
+{
+    applyScaleToBodyTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->propagateOwnedScale(vector);
     }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->propagateOwnedScale(vector);
+    }
+    applyOwnedScale(vector);
 }
 
 void
@@ -439,6 +660,10 @@ SimpleBody::getAABB() const
     }
     if (geometry != nullptr) {
         AxisAlignedBox box = geometry->getMinMax();
+        if (geometryTransformation != nullptr && !box.isUnbounded()) {
+            box = AxisAlignedBox::fromTransformedCorners(
+                box.min, box.max, geometryTransformation);
+        }
         if (transformation != nullptr && !box.isUnbounded()) {
             return AxisAlignedBox::fromTransformedCorners(
                 box.min, box.max, transformation);

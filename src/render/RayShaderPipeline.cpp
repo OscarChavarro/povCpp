@@ -7,6 +7,7 @@
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/element/RayWithSegments.h"
+#include "environment/scene/SimpleBody.h"
 #include "render/RayShaderPipeline.h"
 #include "render/shaders/BumpNormalShader.h"
 #include "render/shaders/ExponentialFogShader.h"
@@ -26,6 +27,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     PovRayMaterial *tempTexture;
     PovRayMaterial *texture;
     Vector3Dd surfaceNormal;
+    Vector3Dd texturePoint;
     double normalDirection;
 
     if (!shadowRay) {
@@ -37,16 +39,23 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
     ImageTexture mapFixture;
     ColorTextureFixture colorFixture(&textureUtils->getProceduralNoise(), textureUtils);
 
+    const bool usingMaterialTexture = (hit.material != nullptr);
     texture = static_cast<PovRayMaterial *>(hit.material);
     if (texture == nullptr) {
         texture = static_cast<PovRayMaterial *>(hit.objectTexture);
+    }
+    texturePoint = hit.p;
+    if (usingMaterialTexture &&
+        hit.materialUsesObjectLocalPoint &&
+        hit.hitBody != nullptr) {
+        texturePoint = static_cast<SimpleBody *>(hit.hitBody)->worldPointToLocal(hit.p);
     }
 
     // Check to see if this object/shape has a material_map texture, if so
     // then change the texture pointer to point to the mapped texture
     if (texture->getMaterialMapVariants().size() > 0) {
         const int index = mapFixture.materialMap(
-            &hit.p, texture->getTextureTransformationInverse(),
+            &texturePoint, texture->getTextureTransformationInverse(),
             texture->getMaterialMapImage(),
             texture->getMaterialMapVariants().size(),
             Config::SMALL_TOLERANCE);
@@ -80,7 +89,7 @@ RayShaderPipeline::shadeSurface(IntersectionCandidate *rayIntersection,
             }
         } else if (tempTexture->getPigment() != nullptr) {
             const Vector3Dd transformedPoint = SolidTexturePigment::transformToObjectSpace(
-                &hit.p, tempTexture->getTextureTransformationInverse());
+                &texturePoint, tempTexture->getTextureTransformationInverse());
             tempTexture->getPigment()->colorAt(&transformedPoint, &surfaceColor,
                 Config::SMALL_TOLERANCE, colorFixture, mapFixture);
         }

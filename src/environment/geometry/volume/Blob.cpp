@@ -578,59 +578,6 @@ Blob::copyWithSturmFlag(int flag) const
 }
 
 void
-Blob::translateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    Blob * const blob = this;
-    if (blob->transformation == nullptr) {
-        blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().translation(
-        vector->x(), vector->y(), vector->z()).transpose();
-    deltaTransformationInverse = Matrix4x4d().translation(
-        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    *blob->transformation = blob->transformation->multiply(deltaTransformation);
-    *blob->transformationInverse =
-        deltaTransformationInverse.multiply(*blob->transformationInverse);
-}
-
-void
-Blob::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    Blob * const blob = this;
-    if (blob->transformation == nullptr) {
-        blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
-    *blob->transformation = blob->transformation->multiply(deltaTransformation);
-    *blob->transformationInverse =
-        deltaTransformationInverse.multiply(*blob->transformationInverse);
-}
-
-void
-Blob::scaleGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    Blob * const blob = this;
-    if (blob->transformation == nullptr) {
-        blob->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        blob->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    deltaTransformationInverse = Matrix4x4d().scale(
-        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    *blob->transformation = blob->transformation->multiply(deltaTransformation);
-    *blob->transformationInverse =
-        deltaTransformationInverse.multiply(*blob->transformationInverse);
-}
-
-void
 Blob::invertGeometry()
 {
     this->inverted = !this->inverted;

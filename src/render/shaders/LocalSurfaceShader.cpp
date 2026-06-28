@@ -9,6 +9,7 @@
 #include "render/shaders/LocalSurfaceShader.h"
 #include "render/shaders/MirrorReflectionShader.h"
 #include "render/shaders/TraceService.h"
+#include "environment/scene/SimpleBody.h"
 
 void
 LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
@@ -20,6 +21,7 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
 {
     PovRayHit hit = PovRayHit::fromCandidate(*rayIntersection);
     Vector3Dd surfaceNormal;
+    Vector3Dd texturePoint;
     double normalDirection;
     double attenuation;
     ColorRgba emittedColor(0.0, 0.0, 0.0, 0.0);
@@ -29,6 +31,17 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
 
     emittedColor.setR(0.0); emittedColor.setG(0.0); emittedColor.setB(0.0); emittedColor.setA(0);
 
+    // Only a *per-operand* CSG material (hit.material) is defined in the
+    // operand's local frame and therefore wants the object-local point below;
+    // a top-level object texture must be evaluated in world space. The incoming
+    // `texture` argument has already been resolved to hit.material OR
+    // hit.objectTexture by the caller, so `texture != nullptr` can no longer
+    // tell the two apart - it is true even for a plain object texture. Mirror
+    // RayShaderPipeline and key off hit.material directly, otherwise a CSG
+    // object's own texture (e.g. fish13's swamp water: an intersection scaled
+    // <10000 1 500> with a `ripples 0.7 frequency 0.08` normal) gets its bump
+    // sampled in the unit-cube local frame, flattening the waves to nothing.
+    const bool usingMaterialTexture = (hit.material != nullptr);
     if (texture == nullptr) {
         texture = static_cast<PovRayMaterial *>(hit.objectTexture);
     }
@@ -42,10 +55,16 @@ LocalSurfaceShader::shade(const RayWithSegments *ray, PovRayMaterial *texture,
     }
 
     surfaceNormal = hit.n;
+    texturePoint = hit.p;
+    if (usingMaterialTexture &&
+        hit.materialUsesObjectLocalPoint &&
+        hit.hitBody != nullptr) {
+        texturePoint = static_cast<SimpleBody *>(hit.hitBody)->worldPointToLocal(hit.p);
+    }
 
     if (ray->getConfig()->withBumpMapping()) {
         BumpNormalShader::shade(
-            &surfaceNormal, texture, &hit.p, &surfaceNormal,
+            &surfaceNormal, texture, &texturePoint, &surfaceNormal,
             textureUtils);
     }
 

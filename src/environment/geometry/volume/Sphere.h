@@ -2,12 +2,12 @@
 #define __SPHERE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 
-// Canonical unit sphere centered at the origin with radius 1.
-// All placement and scaling is carried by the TransformedGeometry matrix,
-// accumulated at parse time via translateGeometry/scaleGeometry.
-class Sphere : public TransformedGeometry {
+// Canonical unit sphere centered at the origin. Placement and scaling are
+// owned by the caller (SimpleBody/CsgOperand), which transforms the ray into
+// local space before invoking this geometry.
+class Sphere : public Geometry {
   private:
     bool inverted;
 

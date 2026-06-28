@@ -1,5 +1,4 @@
 #include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
@@ -120,40 +119,6 @@ void *
 InfinitePlane::copy()
 {
     return new InfinitePlane(*this);
-}
-
-void
-InfinitePlane::translateGeometry(Vector3Dd *vector)
-{
-    InfinitePlane * const plane = this;
-
-    Vector3Dd translation = plane->normalVector.multiply(*vector);
-    plane->distance -= translation.x() + translation.y() + translation.z();
-}
-
-void
-InfinitePlane::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d transformation;
-    Matrix4x4d transformationInverse;
-
-    transformation.axisRotationRodrigues(&transformationInverse, vector);
-    this->normalVector = transformation.transpose().multiply(this->normalVector);
-}
-
-void
-InfinitePlane::scaleGeometry(Vector3Dd *vector)
-{
-    InfinitePlane * const plane = this;
-
-    plane->normalVector = Vector3Dd(
-        plane->normalVector.x() / vector->x(),
-        plane->normalVector.y() / vector->y(),
-        plane->normalVector.z() / vector->z());
-
-    const double length = plane->normalVector.length();
-    plane->normalVector = plane->normalVector.multiply(1.0 / length);
-    plane->distance /= length;
 }
 
 void

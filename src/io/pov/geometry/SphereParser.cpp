@@ -44,16 +44,13 @@ SphereParser::parseSphere(ParserContext &ctx)
                 PrimitiveParser::parseVector(&localCenter, ctx);
                 localRadius = PrimitiveParser::parseFloat(ctx);
                 localShape = new Sphere();
-                // Bake radius then center into the TransformedGeometry matrix so
-                // the canonical unit sphere is scaled FIRST and translated AFTER
-                // (world = translate(center) . scale(radius) . unitSphere). Order
-                // matters: doing translate before scale would place the centre at
-                // radius*center (off-origin spheres land far outside the frustum
-                // and vanish). Centre-at-origin spheres are unaffected.
-                Vector3Dd radiusScale(localRadius, localRadius, localRadius);
-                localShape->scaleGeometry(&radiusScale);
-                localShape->translateGeometry(&localCenter);
                 body = SceneBuilder::wrap(localShape);
+                // Keep the sphere canonical and accumulate primitive
+                // placement on the owner only: center/radius belong to the
+                // geometry definition, not to the material/texture transform path.
+                Vector3Dd radiusScale(localRadius, localRadius, localRadius);
+                body->scaleOwnerOnly(&radiusScale);
+                body->translateOwnerOnly(&localCenter);
                 Exit_Flag = true;
                 break;
             }

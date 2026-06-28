@@ -1,6 +1,5 @@
 #include "java/lang/Math.h"
 #include "java/util/PriorityQueue.txx"
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "common/Config.h"
 #include "common/statistics/Statistics.h"
@@ -345,52 +344,6 @@ void *
 Triangle::copy()
 {
     return new Triangle(*this);
-}
-
-void
-Triangle::translateGeometry(Vector3Dd *vector)
-{
-    Triangle * const triangle = this;
-
-    Vector3Dd translation = triangle->normalVector.multiply(*vector);
-    triangle->distance -= translation.x() + translation.y() + translation.z();
-    triangle->p1 = triangle->p1.add(*vector);
-    triangle->p2 = triangle->p2.add(*vector);
-    triangle->p3 = triangle->p3.add(*vector);
-}
-
-void
-Triangle::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d transformation;
-    Matrix4x4d transformationInverse;
-    Triangle * const triangle = this;
-
-    transformation.axisRotationRodrigues(&transformationInverse, vector);
-    triangle->normalVector = transformation.transpose().multiply(triangle->normalVector);
-    triangle->p1 = transformation.transpose().multiply(triangle->p1);
-    triangle->p2 = transformation.transpose().multiply(triangle->p2);
-    triangle->p3 = transformation.transpose().multiply(triangle->p3);
-    Triangle::computeTriangle(triangle);
-}
-
-void
-Triangle::scaleGeometry(Vector3Dd *vector)
-{
-    Triangle * const triangle = this;
-
-    triangle->normalVector = Vector3Dd(
-        triangle->normalVector.x() / vector->x(),
-        triangle->normalVector.y() / vector->y(),
-        triangle->normalVector.z() / vector->z());
-
-    const double length = triangle->normalVector.length();
-    triangle->normalVector = triangle->normalVector.multiply(1.0 / length);
-    triangle->distance /= length;
-
-    triangle->p1 = triangle->p1.multiply(*vector);
-    triangle->p2 = triangle->p2.multiply(*vector);
-    triangle->p3 = triangle->p3.multiply(*vector);
 }
 
 void

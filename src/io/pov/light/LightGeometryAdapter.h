@@ -1,10 +1,10 @@
 #ifndef __LIGHT_GEOMETRY_ADAPTER__
 #define __LIGHT_GEOMETRY_ADAPTER__
 
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 #include "environment/light/Light.h"
 
-class LightGeometryAdapter : public TransformedGeometry {
+class LightGeometryAdapter : public Geometry {
   public:
     explicit LightGeometryAdapter(Light *lightSource) : light(lightSource) {}
     LightGeometryAdapter(const LightGeometryAdapter &other) :
@@ -22,9 +22,6 @@ class LightGeometryAdapter : public TransformedGeometry {
         Material *materialOverride = nullptr) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void *copy() override;
-    void translateGeometry(Vector3Dd *vector) override;
-    void rotateGeometry(Vector3Dd *vector) override;
-    void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
 
   private:

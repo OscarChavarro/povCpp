@@ -1,17 +1,14 @@
 #ifndef __BOX__
 #define __BOX__
 
-#include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 
-class Box : public TransformedGeometry {
+class Box : public Geometry {
   public:
     Box();
     Box(const Vector3Dd &minBounds, const Vector3Dd &maxBounds,
         bool inverted = false);
-    Box(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
-        const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted);
     Box(const Box &other);
     ~Box() override;
 

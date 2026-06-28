@@ -2,8 +2,8 @@
 #define __CSG_PARSER__
 
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
-#include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "io/pov/context/ParserContext.h"
+#include "io/pov/geometry/SimpleBodyBuilder.h"
 
 class CsgParser {
   public:
@@ -13,7 +13,10 @@ class CsgParser {
     // body, or a top-level `#declare`) leaves it at the default false. See
     // ConstructiveSolidGeometryByRaySegment::topLevel's doc comment for why
     // this distinction matters under -csgRoth.
-    static ConstructiveSolidGeometry *parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested = false);
+    static SimpleBodyBuilder *parse(
+        BooleanSetOperations booleanSetOperation,
+        ParserContext &ctx,
+        bool isNested = false);
 };
 
 #endif

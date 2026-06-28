@@ -5,10 +5,12 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "environment/geometry/Geometry.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/PovRayHit.h"
+#include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/material/Material.h"
 
-class CsgOperand {
+class CsgOperand : public RayOperationOwner {
   private:
     Geometry *geometry = nullptr;
     Material *material = nullptr;
@@ -64,6 +66,8 @@ class CsgOperand {
 
     Geometry *getGeometry() const { return geometry; }
     Material *getMaterial() const { return material; }
+    Matrix4x4d *getTransformation() const { return transformation; }
+    Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
     Material *getEffectiveMaterial(Material *materialOverride) const
     {
         return material != nullptr ? material : materialOverride;
@@ -87,22 +91,28 @@ class CsgOperand {
             geometryRay = &localRay;
         }
 
-        if (transformation == nullptr) {
-            return geometry->doIntersectionForAllRayCrossings(
-                geometryRay, depthQueue, getEffectiveMaterial(materialOverride));
-        }
-
         java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
             ray->getIntersectionQueuePool()->pop(128);
         const int found = geometry->doIntersectionForAllRayCrossings(
             geometryRay, localDepthQueue, getEffectiveMaterial(materialOverride));
         for (const IntersectionCandidate &candidate : *localDepthQueue) {
             IntersectionCandidate transformedCandidate = candidate;
+            transformedCandidate.getAttributes().pushDetailOwner(this);
+            transformedCandidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
             if (transformation != nullptr) {
                 transformedCandidate.getIntersection().point =
                     transformation->transformPoint(
                         transformedCandidate.getIntersection().point);
             }
+            // Signed ray parameter, not a bare distance: see the matching note
+            // in SimpleBody::doIntersectionForAllRayCrossings. length() would
+            // flip crossings behind the origin to the front and break CSG
+            // membership for internal/refracted rays.
+            const Vector3Dd rayDir = ray->getDirection();
+            transformedCandidate.getIntersection().t =
+                transformedCandidate.getIntersection().point
+                    .subtract(ray->getOrigin()).dotProduct(rayDir) /
+                rayDir.dotProduct(rayDir);
             depthQueue->offer(transformedCandidate);
         }
         localDepthQueue->clear();
@@ -136,6 +146,42 @@ class CsgOperand {
     void translate(Vector3Dd *vector);
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
+    void doExtraInformation(
+        const RayWithSegments &ray, double t, PovRayHit *hit) override
+    {
+        // Peel this operand's transform off the ray/point, then recurse into
+        // the next inner detail owner (outermost-first consumption). The
+        // owners were pushed innermost-first while collecting the hit, so for
+        // a nested CSG operand (e.g. a declared intersection scaled inside an
+        // outer union operand) the outer operand's transform must be removed
+        // before the inner ones. Only the innermost owner (no further owner
+        // left) evaluates its own primitive geometry's normal; each level then
+        // re-applies its inverse to the normal while unwinding.
+        RayWithSegments localRay = ray;
+        const Vector3Dd parentPoint = hit->p;
+        if (transformationInverse != nullptr) {
+            localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
+            localRay.setDirection(transformationInverse->transformDirection(ray.getDirection()));
+            localRay.setQuadricConstantsCached(false);
+            hit->p = transformationInverse->transformPoint(parentPoint);
+        }
+
+        RayOperationOwner *next = hit->popDetailOwnerBack();
+        if (next != nullptr) {
+            next->doExtraInformation(localRay, t, hit);
+        } else if (geometry != nullptr) {
+            geometry->doExtraInformation(localRay, t, hit);
+        }
+        if (transformationInverse != nullptr) {
+            // Deferred normalization: apply the inverse-transpose but do NOT
+            // normalize here. With several nested non-uniform operand scales,
+            // renormalizing between levels rescales the normal before the next
+            // non-uniform multiply and corrupts the composition. The final
+            // normalize happens once at the top of the chain (SimpleBody).
+            hit->n = transformationInverse->withoutTranslation().multiply(hit->n);
+        }
+        hit->p = parentPoint;
+    }
 
     void invert()
     {

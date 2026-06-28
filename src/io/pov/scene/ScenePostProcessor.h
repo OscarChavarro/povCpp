@@ -10,7 +10,20 @@ class ScenePostProcessor {
     static void linkLights(SimpleBody *object, java::ArrayList<Light*> &lights);
 
   private:
-    static void linkLightsInShape(Geometry *shape, java::ArrayList<Light*> &lights);
+    static void applyTransformsToLight(
+        Light *light, const java::ArrayList<const Matrix4x4d*> &transforms);
+    static void linkLights(
+        SimpleBody *object,
+        java::ArrayList<Light*> &lights,
+        java::ArrayList<const Matrix4x4d*> &transforms);
+    static void linkLightsInOperand(
+        CsgOperand *operand,
+        java::ArrayList<Light*> &lights,
+        java::ArrayList<const Matrix4x4d*> &transforms);
+    static void linkLightsInShape(
+        Geometry *shape,
+        java::ArrayList<Light*> &lights,
+        java::ArrayList<const Matrix4x4d*> &transforms);
 };
 
 #endif

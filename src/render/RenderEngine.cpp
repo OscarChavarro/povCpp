@@ -434,6 +434,12 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
             RayOperationOwner *hitBody = localIntersection.getAttributes().getHitBody();
             Geometry *hitGeometry = localIntersection.getAttributes().getHitGeometry();
             winningHit.hitGeometry = hitGeometry;
+            winningHit.detailOwnerCount =
+                localIntersection.getAttributes().getDetailOwnerCount();
+            for (int i = 0; i < winningHit.detailOwnerCount; i++) {
+                winningHit.detailOwners[i] =
+                    localIntersection.getAttributes().getDetailOwnerAt(i);
+            }
             if (hitBody != nullptr) {
                 hitBody->doExtraInformation(
                     *localRay, localIntersection.getIntersection().t, &winningHit);

@@ -7,9 +7,9 @@
 #include "environment/geometry/volume/Box.h"
 #include "environment/geometry/volume/HeightFieldBlock.h"
 #include "environment/geometry/volume/HeightFieldTraversalState.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 
-class HeightField : public TransformedGeometry {
+class HeightField : public Geometry {
   public:
     static constexpr int GIF = 0;
     static constexpr int POT = 1;
@@ -41,9 +41,6 @@ class HeightField : public TransformedGeometry {
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
-    void translateGeometry(Vector3Dd *vector) override;
-    void rotateGeometry(Vector3Dd *vector) override;
-    void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
 
   private:

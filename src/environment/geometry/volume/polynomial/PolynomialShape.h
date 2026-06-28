@@ -3,9 +3,9 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 
-class PolynomialShape : public TransformedGeometry {
+class PolynomialShape : public Geometry {
   public:
     explicit PolynomialShape(int initialOrder);
     PolynomialShape(int initialOrder, int sturmFlagValue);
@@ -13,6 +13,7 @@ class PolynomialShape : public TransformedGeometry {
     ~PolynomialShape() override;
 
     bool isInverted() const { return inverted; }
+    bool hasInternalTransformation() const { return transformation != nullptr; }
     int getOrder() const { return order; }
     int getSturmFlag() const { return sturmFlag; }
     double *getCoeffs() const { return Coeffs; }
@@ -27,9 +28,14 @@ class PolynomialShape : public TransformedGeometry {
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
     PolynomialShape *copyWithSturmFlag(int flag) const;
+    void translateGeometry(Vector3Dd *vector);
+    void rotateGeometry(Vector3Dd *vector);
+    void scaleGeometry(Vector3Dd *vector);
     void invertGeometry() override;
 
   private:
+    Matrix4x4d *transformation = nullptr;
+    Matrix4x4d *transformationInverse = nullptr;
     bool inverted;
     const int order;
     const int sturmFlag;
