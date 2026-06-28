@@ -13,12 +13,21 @@ TARGET_DIR="${TARGET_DIR:-/tmp/i}"
 DIFF_GAMMA="${DIFF_GAMMA:-2.2}"
 DIFF_GRAYSCALE="${DIFF_GRAYSCALE:-RMS}"
 
-# With -skip, pixel-perfect matches (AE == 0) are omitted from the final
-# listing: neither their name line nor their img2sixel preview is shown, so
-# only the failing scenes are displayed.
-SKIP_PERFECT=0
+# With -skip, scenes whose AE metric is below the threshold are omitted from
+# the final listing: neither their name line nor their img2sixel preview is
+# shown, so only the scenes at or above the threshold are displayed.
+# `-skip` alone is shorthand for `-skip 1`, i.e. skip only pixel-perfect
+# matches (AE == 0).
+SKIP_THRESHOLD=0
 if [[ "${1:-}" == "-skip" ]]; then
-  SKIP_PERFECT=1
+  SKIP_THRESHOLD=1
+  if [[ -n "${2:-}" ]]; then
+    if [[ ! "${2}" =~ ^[0-9]+$ ]]; then
+      echo "Invalid -skip threshold: ${2} (expected non-negative integer)" >&2
+      exit 1
+    fi
+    SKIP_THRESHOLD="${2}"
+  fi
 fi
 
 if [[ ! -d "${OUTPUT_DIR}" ]]; then
@@ -102,8 +111,8 @@ process_image() {
 
   # Absolute-error count: number of pixels that differ at all. 0 means an exact
   # pixel match. Stored in a sidecar so the display loop can label the scene and
-  # honour -skip without recomputing. COMPARE_BIN is left unquoted on purpose so
-  # the two-word 'magick compare' form word-splits correctly.
+  # honour -skip/-skip N without recomputing. COMPARE_BIN is left unquoted on
+  # purpose so the two-word 'magick compare' form word-splits correctly.
   metric="$(${COMPARE_BIN} -metric AE "${reference_file}" "${output_file}" null: 2>&1 || true)"
   metric="${metric%% *}"
   printf '%s' "${metric}" > "${work_dir}/${safe_name}.metric"
@@ -151,10 +160,11 @@ while IFS= read -r file_path; do
   safe_name="$(printf '%s' "${rel_png%.png}.tga" | tr '/.' '__')"
   metric="$(cat "${work_dir}/${safe_name}.metric" 2>/dev/null || true)"
 
+  if [[ -n "${metric}" && "${metric}" =~ ^[0-9]+$ && "${metric}" -lt "${SKIP_THRESHOLD}" ]]; then
+    continue
+  fi
+
   if [[ "${metric}" == "0" ]]; then
-    if [[ "${SKIP_PERFECT}" -eq 1 ]]; then
-      continue
-    fi
     label="(pixel match)"
   else
     label="(AE=${metric:-?})"

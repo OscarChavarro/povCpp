@@ -1031,62 +1031,6 @@ HeightField::copy()
 }
 
 void
-HeightField::translateGeometry(Vector3Dd *vector)
-{
-    HeightField * const hField = this;
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-
-    if (!hField->transformation) {
-        hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        hField->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().translation(
-        vector->x(), vector->y(), vector->z()).transpose();
-    deltaTransformationInverse = Matrix4x4d().translation(
-        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    *hField->transformation = hField->transformation->multiply(deltaTransformation);
-    *hField->transformationInverse =
-        deltaTransformationInverse.multiply(*hField->transformationInverse);
-}
-
-void
-HeightField::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-    HeightField * const hField = this;
-
-    if (!hField->transformation) {
-        hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        hField->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation.axisRotationRodrigues(&deltaTransformationInverse, vector);
-    *hField->transformation = hField->transformation->multiply(deltaTransformation);
-    *hField->transformationInverse =
-        deltaTransformationInverse.multiply(*hField->transformationInverse);
-}
-
-void
-HeightField::scaleGeometry(Vector3Dd *vector)
-{
-    HeightField * const hField = this;
-    Matrix4x4d deltaTransformation;
-    Matrix4x4d deltaTransformationInverse;
-
-    if (!hField->transformation) {
-        hField->transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        hField->transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    deltaTransformation = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    deltaTransformationInverse = Matrix4x4d().scale(
-        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    *hField->transformation = hField->transformation->multiply(deltaTransformation);
-    *hField->transformationInverse =
-        deltaTransformationInverse.multiply(*hField->transformationInverse);
-}
-
-void
 HeightField::invertGeometry()
 {
 }

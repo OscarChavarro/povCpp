@@ -3,9 +3,9 @@
 
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 
-class Quadric : public TransformedGeometry {
+class Quadric : public Geometry {
   public:
     Quadric();
     Quadric(const Vector3Dd &object2Terms, const Vector3Dd &objectMixedTerms,
@@ -48,9 +48,6 @@ class Quadric : public TransformedGeometry {
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
-    void translateGeometry(Vector3Dd *vector) override;
-    void rotateGeometry(Vector3Dd *vector) override;
-    void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
 
   private:
@@ -63,10 +60,5 @@ class Quadric : public TransformedGeometry {
     double objectVpConstant;
     bool constantCached;
     bool nonZeroSquareTerm;
-
-    static void quadricToMatrix(const Quadric *quadric, Matrix4x4d *matrix);
-    static void matrixToQuadric(const Matrix4x4d *matrix, Quadric *quadric);
-    static void transformQuadric(
-        Quadric *shape, const Matrix4x4d *transformationInverse);
 };
 #endif

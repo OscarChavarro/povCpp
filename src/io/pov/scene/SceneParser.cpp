@@ -75,7 +75,7 @@ SceneParser::freeConstant(int constantType, void *data)
     case ParseGlobals::CSG_INTERSECTION_CONSTANT:
     case ParseGlobals::CSG_UNION_CONSTANT:
     case ParseGlobals::CSG_DIFFERENCE_CONSTANT:
-        delete static_cast<ConstructiveSolidGeometry *>(data);
+        delete static_cast<SimpleBodyBuilder *>(data);
         break;
     case ParseGlobals::COMPOSITE_CONSTANT:
         delete static_cast<Composite *>(data);

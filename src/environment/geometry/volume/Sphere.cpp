@@ -19,10 +19,6 @@ Sphere::Sphere(bool inverted) :
 Sphere::Sphere(const Sphere &other) :
     inverted(other.inverted)
 {
-    if (other.getTransformation() != nullptr) {
-        transformation = new Matrix4x4d(*other.getTransformation());
-        transformationInverse = new Matrix4x4d(*other.getTransformationInverse());
-    }
 }
 
 bool
@@ -33,15 +29,10 @@ Sphere::intersectSphere(
     Statistics &stats = *ray->getStatistics();
     stats.incrementRaySphereTests();
 
-    // Transform ray to object space (canonical unit sphere at origin).
-    Vector3Dd p, d;
-    if (sphere->getTransformation() != nullptr) {
-        p = sphere->getTransformationInverse()->transformPoint(ray->getOrigin());
-        d = sphere->getTransformationInverse()->transformDirection(ray->getDirection());
-    } else {
-        p = ray->getOrigin();
-        d = ray->getDirection();
-    }
+    // The caller owns object placement and must transform the ray into object
+    // space before invoking this canonical unit sphere.
+    const Vector3Dd p = ray->getOrigin();
+    const Vector3Dd d = ray->getDirection();
 
     // The object-space direction is NOT unit length: transformPoint/Direction by
     // the inverse of translate(center)*scale(r) leaves |d| = |worldDir| / r. The
@@ -125,11 +116,7 @@ int
 Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     Vector3Dd q;
-    if (getTransformation() != nullptr) {
-        q = getTransformationInverse()->transformPoint(testPoint);
-    } else {
-        q = testPoint;
-    }
+    q = testPoint;
     const double distSq = q.dotProduct(q);
     if (inverted) {
         return (distSq - 1.0 > distanceTolerance) ? INSIDE : OUTSIDE;
@@ -140,15 +127,9 @@ Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 void
 Sphere::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
 {
-    // For a unit sphere at origin, the object-space normal equals the
-    // object-space intersection point (since center = (0,0,0), radius = 1).
-    if (getTransformation() != nullptr) {
-        *result = getTransformationInverse()->transformPoint(*intersectionPoint);
-        *result = getTransformationInverse()->withoutTranslation().multiply(*result);
-        *result = result->normalizedFast();
-    } else {
-        *result = intersectionPoint->normalizedFast();
-    }
+    // For the canonical unit sphere at origin, the local-space normal equals
+    // the local-space intersection point.
+    *result = intersectionPoint->normalizedFast();
 }
 
 void *
@@ -166,27 +147,7 @@ Sphere::invertGeometry()
 AxisAlignedBox
 Sphere::getMinMax() const
 {
-    if (transformation == nullptr) {
-        return AxisAlignedBox{Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0)};
-    }
-    double cx = transformation->get(0, 3);
-    double cy = transformation->get(1, 3);
-    double cz = transformation->get(2, 3);
-    double rx = java::Math::sqrt(
-        transformation->get(0,0) * transformation->get(0,0) +
-        transformation->get(0,1) * transformation->get(0,1) +
-        transformation->get(0,2) * transformation->get(0,2));
-    double ry = java::Math::sqrt(
-        transformation->get(1,0) * transformation->get(1,0) +
-        transformation->get(1,1) * transformation->get(1,1) +
-        transformation->get(1,2) * transformation->get(1,2));
-    double rz = java::Math::sqrt(
-        transformation->get(2,0) * transformation->get(2,0) +
-        transformation->get(2,1) * transformation->get(2,1) +
-        transformation->get(2,2) * transformation->get(2,2));
-    return AxisAlignedBox{
-        Vector3Dd(cx - rx, cy - ry, cz - rz),
-        Vector3Dd(cx + rx, cy + ry, cz + rz)};
+    return AxisAlignedBox{Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0)};
 }
 
 #include "java/util/PriorityQueue.txx"

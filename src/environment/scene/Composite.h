@@ -17,11 +17,14 @@ class Composite : public SimpleBody {
         const java::ArrayList<SimpleBody*> &clippingShapes,
         const java::ArrayList<SimpleBody*> &simpleBodies,
         Matrix4x4d *transformation = nullptr,
-        Matrix4x4d *transformationInverse = nullptr) :
+        Matrix4x4d *transformationInverse = nullptr,
+        Matrix4x4d *geometryTransformation = nullptr,
+        Matrix4x4d *geometryTransformationInverse = nullptr) :
         SimpleBody(
             geometry, geometryMaterial, objectTexture, objectColor,
             noShadowFlag, boundingShapes, clippingShapes,
-            transformation, transformationInverse),
+            transformation, transformationInverse,
+            geometryTransformation, geometryTransformationInverse),
         simpleBodies(simpleBodies)
     {
     }
@@ -45,6 +48,11 @@ class Composite : public SimpleBody {
 
   private:
     java::ArrayList<SimpleBody*> simpleBodies{4};
+
+  protected:
+    void propagateOwnedTranslation(Vector3Dd *vector) override;
+    void propagateOwnedRotation(Vector3Dd *vector) override;
+    void propagateOwnedScale(Vector3Dd *vector) override;
 };
 
 inline java::ArrayList<SimpleBody*> &

@@ -19,6 +19,8 @@
 // shading edge, from an already-resolved IntersectionCandidate.
 class PovRayHit {
   public:
+    static constexpr int MAX_DETAIL_OWNERS = 8;
+
     // --- core, same names as vsdk RayHit ---
     Vector3Dd p;
     Vector3Dd n;
@@ -30,12 +32,17 @@ class PovRayHit {
     // --- POV-specific extensions (no equivalent in vsdk RayHit) ---
     Geometry *hitGeometry = nullptr;
     RayOperationOwner *hitBody = nullptr;
+    RayOperationOwner *detailOwners[MAX_DETAIL_OWNERS] = {};
+    int detailOwnerCount = 0;
     Material *material = nullptr;
     Material *objectTexture = nullptr;
     ColorRgba *objectColor = nullptr;
     bool noShadowFlag = false;
+    bool materialUsesObjectLocalPoint = false;
 
     static PovRayHit fromCandidate(const IntersectionCandidate &candidate);
+    RayOperationOwner *popDetailOwner();
+    RayOperationOwner *popDetailOwnerBack();
 };
 
 inline PovRayHit
@@ -51,12 +58,42 @@ PovRayHit::fromCandidate(const IntersectionCandidate &candidate)
 
     hit.hitGeometry = attributes.getHitGeometry();
     hit.hitBody = attributes.getHitBody();
+    hit.detailOwnerCount = attributes.getDetailOwnerCount();
+    for (int i = 0; i < hit.detailOwnerCount; i++) {
+        hit.detailOwners[i] = attributes.getDetailOwnerAt(i);
+    }
     hit.material = attributes.getMaterial();
     hit.objectTexture = attributes.getObjectTexture();
     hit.objectColor = attributes.getObjectColor();
     hit.noShadowFlag = attributes.getNoShadowFlag();
+    hit.materialUsesObjectLocalPoint = attributes.getMaterialUsesObjectLocalPoint();
 
     return hit;
+}
+
+inline RayOperationOwner *
+PovRayHit::popDetailOwner()
+{
+    if (detailOwnerCount <= 0) {
+        return nullptr;
+    }
+    RayOperationOwner *owner = detailOwners[0];
+    for (int i = 1; i < detailOwnerCount; i++) {
+        detailOwners[i - 1] = detailOwners[i];
+    }
+    detailOwners[--detailOwnerCount] = nullptr;
+    return owner;
+}
+
+inline RayOperationOwner *
+PovRayHit::popDetailOwnerBack()
+{
+    if (detailOwnerCount <= 0) {
+        return nullptr;
+    }
+    RayOperationOwner *owner = detailOwners[--detailOwnerCount];
+    detailOwners[detailOwnerCount] = nullptr;
+    return owner;
 }
 
 #endif

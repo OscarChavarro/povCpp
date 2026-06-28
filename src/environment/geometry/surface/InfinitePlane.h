@@ -2,9 +2,9 @@
 #define __INFINITE_PLANE__
 
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 
-class InfinitePlane : public TransformedGeometry {
+class InfinitePlane : public Geometry {
   public:
     InfinitePlane();
     InfinitePlane(const Vector3Dd &normalVector, double distance);
@@ -36,9 +36,6 @@ class InfinitePlane : public TransformedGeometry {
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
-    void translateGeometry(Vector3Dd *vector) override;
-    void rotateGeometry(Vector3Dd *vector) override;
-    void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
 
   private:

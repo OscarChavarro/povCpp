@@ -1077,9 +1077,7 @@ ParametricBiCubicPatch::normal(
     const int intersectionCount = this->getIntersectionCount();
     for (int i = 0; i < intersectionCount; i++) {
         const Vector3Dd &cachedPoint = this->getIntersectionPointAt(i);
-        if (localIntersectionPoint->x() == cachedPoint.x() &&
-            localIntersectionPoint->y() == cachedPoint.y() &&
-            localIntersectionPoint->z() == cachedPoint.z()) {
+        if (localIntersectionPoint->subtract(cachedPoint).length() <= 1.0e-6) {
             *result = this->getNormalVectorAt(i);
             return;
         }

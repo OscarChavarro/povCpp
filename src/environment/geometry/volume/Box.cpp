@@ -12,30 +12,18 @@ Box::Box() :
 }
 
 Box::Box(const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) :
-    Box(nullptr, nullptr, minBounds, maxBounds, inverted)
-{
-}
-
-Box::Box(Matrix4x4d *transformation, Matrix4x4d *transformationInverse,
-    const Vector3Dd &minBounds, const Vector3Dd &maxBounds, bool inverted) :
     bounds{minBounds, maxBounds},
     inverted(inverted)
 {
-    if (transformation != nullptr) {
-        this->transformation = new Matrix4x4d(*transformation);
-        this->transformationInverse = new Matrix4x4d(*transformationInverse);
-    }
 }
 
 Box::Box(const Box &other) :
-    Box(other.transformation, other.transformationInverse, other.bounds[0],
-        other.bounds[1], other.inverted)
+    Box(other.bounds[0], other.bounds[1], other.inverted)
 {
 }
 
 Box::~Box()
 {
-    // transformation/transformationInverse deleted by TransformedGeometry::~TransformedGeometry()
 }
 
 
@@ -94,14 +82,8 @@ Box::intersectBoxx(
 
     stats.incrementRayBoxTests();
 
-    // Transform the point into the boxes space
-    if (box->transformation != nullptr) {
-        p = box->transformationInverse->transformPoint(ray->getOrigin());
-        d = box->transformationInverse->transformDirection(ray->getDirection());
-    } else {
-        p = Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z());
-        d = Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z());
-    }
+    p = Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z());
+    d = Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z());
 
     tmin = 0.0;
     tmax = HUGE_VAL;
@@ -235,12 +217,7 @@ Box::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
     Vector3Dd newPoint;
     const Box *box = this;
 
-    // Transform the point into the boxes space
-    if (box->transformation != nullptr) {
-        newPoint = box->transformationInverse->transformPoint(testPoint);
-    } else {
-        newPoint = testPoint;
-    }
+    newPoint = testPoint;
 
     // Test to see if we are inside the box
     if (newPoint.x() < box->bounds[0].x() || newPoint.x() > box->bounds[1].x()) {
@@ -262,13 +239,8 @@ Box::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
     Vector3Dd newPoint;
     const Box *box = this;
 
-    // Transform the point into the boxes space
-    if (box->transformation != nullptr) {
-        newPoint = box->transformationInverse->transformPoint(*intersectionPoint);
-    } else {
-        newPoint = Vector3Dd(
-            intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
-    }
+    newPoint = Vector3Dd(
+        intersectionPoint->x(), intersectionPoint->y(), intersectionPoint->z());
 
     *result = Vector3Dd(0.0, 0.0, 0.0);
     if (Box::closeTo(newPoint.x(), box->bounds[1].x())) {
@@ -287,12 +259,6 @@ Box::normal(Vector3Dd *result, Vector3Dd *intersectionPoint)
         // Bad result, should we do something with it?
         *result = result->withX(1.0);
     }
-
-    // Transform the normal back to world space
-    if (box->transformation != nullptr) {
-        *result = box->transformationInverse->withoutTranslation().multiply(*result);
-        *result = (*result).normalizedFast();
-    }
 }
 
 void *
@@ -310,5 +276,5 @@ Box::invertGeometry()
 AxisAlignedBox
 Box::getMinMax() const
 {
-    return AxisAlignedBox::fromTransformedCorners(bounds[0], bounds[1], transformation);
+    return AxisAlignedBox{bounds[0], bounds[1]};
 }

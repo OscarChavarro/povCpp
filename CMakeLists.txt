@@ -52,7 +52,7 @@ add_executable(povray
     src/environment/geometry/volume/constructiveSolidGeometry/RaySegments.cpp
     src/environment/geometry/volume/HeightField.cpp
     src/environment/geometry/Geometry.cpp
-    src/environment/geometry/TransformedGeometry.cpp
+    src/environment/geometry/GeometryTransformMutator.cpp
     src/environment/geometry/surface/InfinitePlane.cpp
     src/environment/geometry/volume/polynomial/PolynomialShape.cpp
     src/environment/geometry/volume/Quadric.cpp

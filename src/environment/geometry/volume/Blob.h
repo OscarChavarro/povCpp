@@ -3,11 +3,11 @@
 
 #include "java/util/ArrayList.h"
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
-#include "environment/geometry/TransformedGeometry.h"
+#include "environment/geometry/Geometry.h"
 #include "environment/geometry/volume/BlobElement.h"
 #include "environment/geometry/volume/BlobInterval.h"
 
-class Blob : public TransformedGeometry {
+class Blob : public Geometry {
   private:
     static constexpr double COEFFICIENT_LIMIT = 1.0e-20;
     static constexpr double INSIDE_TOLERANCE = 1.0e-6;
@@ -55,9 +55,6 @@ class Blob : public TransformedGeometry {
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
-    void translateGeometry(Vector3Dd *vector) override;
-    void rotateGeometry(Vector3Dd *vector) override;
-    void scaleGeometry(Vector3Dd *vector) override;
     void invertGeometry() override;
 };
 

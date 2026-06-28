@@ -5,7 +5,6 @@
 #include "vsdk/toolkit/common/linealAlgebra/Matrix4x4d.h"
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "environment/geometry/Geometry.h"
-#include "environment/geometry/TransformedGeometry.h"
 #include "environment/material/Material.h"
 
 class SimpleBodyBuilder {
@@ -40,6 +39,9 @@ class SimpleBodyBuilder {
     void translate(Vector3Dd *vector);
     void rotate(Vector3Dd *vector);
     void scale(Vector3Dd *vector);
+    void translateOwnerOnly(Vector3Dd *vector);
+    void rotateOwnerOnly(Vector3Dd *vector);
+    void scaleOwnerOnly(Vector3Dd *vector);
     void invert();
 };
 

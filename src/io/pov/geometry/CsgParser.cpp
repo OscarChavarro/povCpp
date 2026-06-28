@@ -46,10 +46,11 @@ addCsgShape(ConstructiveSolidGeometry *container, SimpleBodyBuilder *shape)
     delete shape;
 }
 
-ConstructiveSolidGeometry *
+SimpleBodyBuilder *
 CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, bool isNested)
 {
     ConstructiveSolidGeometry *container = nullptr;
+    SimpleBodyBuilder *containerShape = nullptr;
     SimpleBodyBuilder *localShape;
     bool firstShapeParsed = false;
 
@@ -93,12 +94,12 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                         (ctx.constants()[(int)constantId].getConstantType() ==
                             ParseGlobals::CSG_DIFFERENCE_CONSTANT)) {
                         delete container;
-                        // copy() is virtual, so a declared
-                        // ConstructiveSolidGeometryByRaySegment constant
-                        // (under -csgRoth) keeps its dynamic type instead of
-                        // being sliced down to ConstructiveSolidGeometry.
-                        container = (ConstructiveSolidGeometry *)((ConstructiveSolidGeometry *)ctx.constants()[(int)constantId]
-                            .getConstantData())->copy();
+                        delete containerShape;
+                        containerShape = new SimpleBodyBuilder(
+                            *(SimpleBodyBuilder *)ctx.constants()[(int)constantId]
+                                .getConstantData());
+                        container = static_cast<ConstructiveSolidGeometry *>(
+                            containerShape->getGeometry());
                     } else {
                         ParseErrorReporter::typeError(ctx);
                     }
@@ -231,8 +232,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                 break;
 
             case Tokenizer::UNION_TOKEN:
-                localShape =
-                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::UNION, ctx, true));
+                localShape = CsgParser::parse(BooleanSetOperations::UNION, ctx, true);
                 if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
@@ -242,8 +242,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                 break;
 
             case Tokenizer::INTERSECTION_TOKEN:
-                localShape =
-                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx, true));
+                localShape = CsgParser::parse(BooleanSetOperations::INTERSECTION, ctx, true);
                 if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
@@ -253,8 +252,7 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
                 break;
 
             case Tokenizer::DIFFERENCE_TOKEN:
-                localShape =
-                    SceneBuilder::wrap(CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx, true));
+                localShape = CsgParser::parse(BooleanSetOperations::DIFFERENCE, ctx, true);
                 if ((booleanSetOperation == BooleanSetOperations::DIFFERENCE) && firstShapeParsed &&
                     !ctx.usesCsgRoth()) {
                     localShape->invert();
@@ -284,7 +282,10 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
             {
                 Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
-                container->translate(&localVector);
+                if (containerShape == nullptr) {
+                    containerShape = SceneBuilder::wrap(container);
+                }
+                containerShape->translateOwnerOnly(&localVector);
                 break;
             }
 
@@ -292,7 +293,10 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
             {
                 Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
-                container->rotate(&localVector);
+                if (containerShape == nullptr) {
+                    containerShape = SceneBuilder::wrap(container);
+                }
+                containerShape->rotateOwnerOnly(&localVector);
                 break;
             }
 
@@ -300,12 +304,18 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
             {
                 Vector3Dd localVector;
                 PrimitiveParser::parseVector(&localVector, ctx);
-                container->scale(&localVector);
+                if (containerShape == nullptr) {
+                    containerShape = SceneBuilder::wrap(container);
+                }
+                containerShape->scaleOwnerOnly(&localVector);
                 break;
             }
 
             case Tokenizer::INVERSE_TOKEN:
-                container->invert();
+                if (containerShape == nullptr) {
+                    containerShape = SceneBuilder::wrap(container);
+                }
+                containerShape->invert();
                 break;
 
             default:
@@ -315,5 +325,8 @@ CsgParser::parse(BooleanSetOperations booleanSetOperation, ParserContext &ctx, b
         }
     }
 
-    return container;
+    if (containerShape == nullptr) {
+        containerShape = SceneBuilder::wrap(container);
+    }
+    return containerShape;
 }

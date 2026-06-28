@@ -1,4 +1,5 @@
 #include "io/pov/geometry/SimpleBodyBuilder.h"
+#include "environment/geometry/GeometryTransformMutator.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 
 SimpleBodyBuilder::SimpleBodyBuilder(
@@ -99,12 +100,14 @@ SimpleBodyBuilder::SimpleBodyBuilder(const SimpleBodyBuilder &other) :
 void
 SimpleBodyBuilder::translate(Vector3Dd *vector)
 {
-    if (TransformedGeometry *transformed =
-            dynamic_cast<TransformedGeometry *>(getGeometry())) {
-        transformed->translateGeometry(vector);
-    } else if (ConstructiveSolidGeometry *csg =
-            dynamic_cast<ConstructiveSolidGeometry *>(getGeometry())) {
-        csg->translate(vector);
+    if (!GeometryTransformMutator::translateIfSupported(getGeometry(), vector)) {
+        ensureMatrices();
+        Matrix4x4d delta = Matrix4x4d().translation(
+            vector->x(), vector->y(), vector->z()).transpose();
+        Matrix4x4d deltaInverse = Matrix4x4d().translation(
+            0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+        *transformation = transformation->multiply(delta);
+        *transformationInverse = deltaInverse.multiply(*transformationInverse);
     }
     if (getMaterial() != nullptr) {
         material = getMaterial()->translate(vector);
@@ -112,14 +115,27 @@ SimpleBodyBuilder::translate(Vector3Dd *vector)
 }
 
 void
+SimpleBodyBuilder::translateOwnerOnly(Vector3Dd *vector)
+{
+    ensureMatrices();
+    Matrix4x4d delta = Matrix4x4d().translation(
+        vector->x(), vector->y(), vector->z()).transpose();
+    Matrix4x4d deltaInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    *transformation = transformation->multiply(delta);
+    *transformationInverse = deltaInverse.multiply(*transformationInverse);
+}
+
+void
 SimpleBodyBuilder::rotate(Vector3Dd *vector)
 {
-    if (TransformedGeometry *transformed =
-            dynamic_cast<TransformedGeometry *>(getGeometry())) {
-        transformed->rotateGeometry(vector);
-    } else if (ConstructiveSolidGeometry *csg =
-            dynamic_cast<ConstructiveSolidGeometry *>(getGeometry())) {
-        csg->rotate(vector);
+    if (!GeometryTransformMutator::rotateIfSupported(getGeometry(), vector)) {
+        ensureMatrices();
+        Matrix4x4d delta;
+        Matrix4x4d deltaInverse;
+        delta.axisRotationRodrigues(&deltaInverse, vector);
+        *transformation = transformation->multiply(delta);
+        *transformationInverse = deltaInverse.multiply(*transformationInverse);
     }
     if (getMaterial() != nullptr) {
         material = getMaterial()->rotate(vector);
@@ -127,18 +143,41 @@ SimpleBodyBuilder::rotate(Vector3Dd *vector)
 }
 
 void
+SimpleBodyBuilder::rotateOwnerOnly(Vector3Dd *vector)
+{
+    ensureMatrices();
+    Matrix4x4d delta;
+    Matrix4x4d deltaInverse;
+    delta.axisRotationRodrigues(&deltaInverse, vector);
+    *transformation = transformation->multiply(delta);
+    *transformationInverse = deltaInverse.multiply(*transformationInverse);
+}
+
+void
 SimpleBodyBuilder::scale(Vector3Dd *vector)
 {
-    if (TransformedGeometry *transformed =
-            dynamic_cast<TransformedGeometry *>(getGeometry())) {
-        transformed->scaleGeometry(vector);
-    } else if (ConstructiveSolidGeometry *csg =
-            dynamic_cast<ConstructiveSolidGeometry *>(getGeometry())) {
-        csg->scale(vector);
+    if (!GeometryTransformMutator::scaleIfSupported(getGeometry(), vector)) {
+        ensureMatrices();
+        Matrix4x4d delta = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+        Matrix4x4d deltaInverse = Matrix4x4d().scale(
+            1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+        *transformation = transformation->multiply(delta);
+        *transformationInverse = deltaInverse.multiply(*transformationInverse);
     }
     if (getMaterial() != nullptr) {
         material = getMaterial()->scale(vector);
     }
+}
+
+void
+SimpleBodyBuilder::scaleOwnerOnly(Vector3Dd *vector)
+{
+    ensureMatrices();
+    Matrix4x4d delta = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    Matrix4x4d deltaInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+    *transformation = transformation->multiply(delta);
+    *transformationInverse = deltaInverse.multiply(*transformationInverse);
 }
 
 void

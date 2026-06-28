@@ -19,7 +19,7 @@
 #include "io/pov/parser/PrimitiveParser.h"
 
 SimpleBodyBuilder *
-PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, TransformedGeometry *geometry)
+PolyParser::rebuildBodyWithGeometry(SimpleBodyBuilder *body, Geometry *geometry)
 {
     Material *clonedMaterial = (body->getMaterial() != nullptr) ?
         body->getMaterial()->copy() : nullptr;

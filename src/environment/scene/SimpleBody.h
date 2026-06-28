@@ -10,13 +10,15 @@
 #include "environment/material/Material.h"
 
 class SimpleBody : public RayOperationOwner {
-  private:
+  protected:
     java::ArrayList<SimpleBody*> boundingShapes{4};
     java::ArrayList<SimpleBody*> clippingShapes{4};
     Geometry *geometry;
     Material *geometryMaterial;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
+    Matrix4x4d *geometryTransformation = nullptr;
+    Matrix4x4d *geometryTransformationInverse = nullptr;
     bool noShadowFlag;
     ColorRgba *objectColor;
     Material *objectTexture;
@@ -31,13 +33,17 @@ class SimpleBody : public RayOperationOwner {
         const java::ArrayList<SimpleBody*> &boundingShapes,
         const java::ArrayList<SimpleBody*> &clippingShapes,
         Matrix4x4d *transformation = nullptr,
-        Matrix4x4d *transformationInverse = nullptr) :
+        Matrix4x4d *transformationInverse = nullptr,
+        Matrix4x4d *geometryTransformation = nullptr,
+        Matrix4x4d *geometryTransformationInverse = nullptr) :
         boundingShapes(boundingShapes),
         clippingShapes(clippingShapes),
         geometry(geometry),
         geometryMaterial(geometryMaterial),
         transformation(transformation),
         transformationInverse(transformationInverse),
+        geometryTransformation(geometryTransformation),
+        geometryTransformationInverse(geometryTransformationInverse),
         noShadowFlag(noShadowFlag),
         objectColor(objectColor),
         objectTexture(objectTexture)
@@ -65,9 +71,12 @@ class SimpleBody : public RayOperationOwner {
     Material *getGeometryMaterial() const { return geometryMaterial; }
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
+    Matrix4x4d *getGeometryTransformation() const { return geometryTransformation; }
+    Matrix4x4d *getGeometryTransformationInverse() const { return geometryTransformationInverse; }
     bool getNoShadowFlag() const { return noShadowFlag; }
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }
+    Vector3Dd worldPointToLocal(const Vector3Dd &point) const;
 
     AxisAlignedBox getAABB() const;
 
@@ -87,13 +96,25 @@ class SimpleBody : public RayOperationOwner {
     virtual void translate(Vector3Dd *vector);
     virtual void rotate(Vector3Dd *vector);
     virtual void scale(Vector3Dd *vector);
+    void translateOwnerOnly(Vector3Dd *vector);
+    void rotateOwnerOnly(Vector3Dd *vector);
+    void scaleOwnerOnly(Vector3Dd *vector);
     virtual void invert();
+    virtual void propagateOwnedTranslation(Vector3Dd *vector);
+    virtual void propagateOwnedRotation(Vector3Dd *vector);
+    virtual void propagateOwnedScale(Vector3Dd *vector);
 
   protected:
     void applyTranslationToBodyTransform(Vector3Dd *vector);
     void applyRotationToBodyTransform(Vector3Dd *vector);
     void applyScaleToBodyTransform(Vector3Dd *vector);
-    Vector3Dd worldPointToLocal(const Vector3Dd &point) const;
+    void applyOwnedTranslation(Vector3Dd *vector);
+    void applyOwnedRotation(Vector3Dd *vector);
+    void applyOwnedScale(Vector3Dd *vector);
+    Vector3Dd objectPointToGeometryLocal(const Vector3Dd &point) const;
+    Vector3Dd geometryPointToObjectLocal(const Vector3Dd &point) const;
+    Vector3Dd objectDirectionToGeometryLocal(const Vector3Dd &direction) const;
+    Vector3Dd geometryNormalToObjectLocal(const Vector3Dd &normal) const;
     Vector3Dd localPointToWorld(const Vector3Dd &point) const;
     Vector3Dd worldDirectionToLocal(const Vector3Dd &direction) const;
     Vector3Dd localNormalToWorld(const Vector3Dd &normal) const;
