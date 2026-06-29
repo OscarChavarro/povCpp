@@ -38,16 +38,14 @@ SimpleBody::doIntersectionForAllRayCrossings(
     SimpleBody *clippingShape;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
-    RayWithSegments localRay = *ray;
-    RayWithSegments *objectRay = ray;
 
-    if (transformationInverse != nullptr) {
-        localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
-        localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
-        localRay.setQuadricConstantsCached(false);
-        objectRay = &localRay;
-    }
-
+    // The body of the intersection routine, parameterized on the ray already
+    // expressed in this body's object-local space. Factored into a lambda so the
+    // object-local clone below is built only when a transform actually exists:
+    // an untransformed body passes the parent ray straight through with no
+    // RayWithSegments construction at all, and RAII still destroys the clone
+    // across the early bounding-shape rejection return.
+    auto intersectInObjectSpace = [&](RayWithSegments *objectRay) -> int {
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(objectRay->getOrigin());
@@ -69,18 +67,24 @@ SimpleBody::doIntersectionForAllRayCrossings(
     Material *effectiveGeometryMaterial =
         this->getGeometryMaterial() != nullptr ?
             this->getGeometryMaterial() : materialOverride;
-    RayWithSegments geometryLocalRay = *objectRay;
-    RayWithSegments *geometryRay = objectRay;
+    // Only clone again for the geometry-local space when a geometry transform
+    // is present (the geometryTransformation layer is unused for most bodies,
+    // where the geometry bakes its own placement). The clone feeds nothing but
+    // the geometry call below, so otherwise pass objectRay straight through.
     if (geometryTransformationInverse != nullptr) {
+        RayWithSegments geometryLocalRay(
+            RayWithSegments::LocalIntersectionClone{}, *objectRay);
         geometryLocalRay.setOrigin(
             geometryTransformationInverse->transformPoint(objectRay->getOrigin()));
         geometryLocalRay.setDirection(
             geometryTransformationInverse->transformDirection(objectRay->getDirection()));
         geometryLocalRay.setQuadricConstantsCached(false);
-        geometryRay = &geometryLocalRay;
+        this->getGeometry()->doIntersectionForAllRayCrossings(
+            &geometryLocalRay, localDepthQueue, effectiveGeometryMaterial);
+    } else {
+        this->getGeometry()->doIntersectionForAllRayCrossings(
+            objectRay, localDepthQueue, effectiveGeometryMaterial);
     }
-    this->getGeometry()->doIntersectionForAllRayCrossings(
-        geometryRay, localDepthQueue, effectiveGeometryMaterial);
 
     for (const IntersectionCandidate& candidate : *localDepthQueue) {
         localIntersection = candidate;
@@ -136,6 +140,16 @@ SimpleBody::doIntersectionForAllRayCrossings(
     localDepthQueue->clear();
     ray->getIntersectionQueuePool()->push(localDepthQueue);
     return (anyIntersectionFound);
+    };
+
+    if (transformationInverse != nullptr) {
+        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
+        localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
+        localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
+        localRay.setQuadricConstantsCached(false);
+        return intersectInObjectSpace(&localRay);
+    }
+    return intersectInObjectSpace(ray);
 }
 
 int
@@ -184,7 +198,7 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
     // owner here would drop every outer operand's transform.
     RayOperationOwner *detailOwner = hit->popDetailOwnerBack();
     if (detailGeometry != nullptr) {
-        RayWithSegments localRay = ray;
+        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, ray);
         const Vector3Dd worldPoint = hit->p;
         if (transformationInverse != nullptr) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
@@ -195,7 +209,8 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
         if (detailOwner != nullptr) {
             detailOwner->doExtraInformation(localRay, t, hit);
         } else {
-            RayWithSegments geometryLocalRay = localRay;
+            RayWithSegments geometryLocalRay(
+                RayWithSegments::LocalIntersectionClone{}, localRay);
             if (geometryTransformationInverse != nullptr) {
                 geometryLocalRay.setOrigin(
                     geometryTransformationInverse->transformPoint(localRay.getOrigin()));

@@ -23,7 +23,7 @@ Composite::doIntersectionForAllRayCrossings(
     SimpleBody *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
-    RayWithSegments localRay = *ray;
+    RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
     RayWithSegments *compositeRay = ray;
 
     if (getTransformationInverse() != nullptr) {

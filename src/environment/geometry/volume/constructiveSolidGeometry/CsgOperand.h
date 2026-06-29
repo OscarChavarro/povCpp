@@ -82,19 +82,25 @@ class CsgOperand : public RayOperationOwner {
             return false;
         }
 
-        RayWithSegments localRay = *ray;
-        RayWithSegments *geometryRay = ray;
+        java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
+            ray->getIntersectionQueuePool()->pop(128);
+        // Build a local-space ray clone only when this operand actually carries
+        // a transform. The clone is consumed solely by the geometry call below,
+        // so when there is no transform the geometry can intersect the parent
+        // ray directly - avoiding a RayWithSegments construction/destruction per
+        // operand per ray, which is the hottest allocation on the CSG path.
+        int found;
         if (transformationInverse != nullptr) {
+            RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
             localRay.setOrigin(transformationInverse->transformPoint(ray->getOrigin()));
             localRay.setDirection(transformationInverse->transformDirection(ray->getDirection()));
             localRay.setQuadricConstantsCached(false);
-            geometryRay = &localRay;
+            found = geometry->doIntersectionForAllRayCrossings(
+                &localRay, localDepthQueue, getEffectiveMaterial(materialOverride));
+        } else {
+            found = geometry->doIntersectionForAllRayCrossings(
+                ray, localDepthQueue, getEffectiveMaterial(materialOverride));
         }
-
-        java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
-            ray->getIntersectionQueuePool()->pop(128);
-        const int found = geometry->doIntersectionForAllRayCrossings(
-            geometryRay, localDepthQueue, getEffectiveMaterial(materialOverride));
         for (const IntersectionCandidate &candidate : *localDepthQueue) {
             IntersectionCandidate transformedCandidate = candidate;
             transformedCandidate.getAttributes().pushDetailOwner(this);
@@ -157,7 +163,7 @@ class CsgOperand : public RayOperationOwner {
         // before the inner ones. Only the innermost owner (no further owner
         // left) evaluates its own primitive geometry's normal; each level then
         // re-applies its inverse to the normal while unwinding.
-        RayWithSegments localRay = ray;
+        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, ray);
         const Vector3Dd parentPoint = hit->p;
         if (transformationInverse != nullptr) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
