@@ -55,6 +55,7 @@ class ParametricBiCubicPatch : public Geometry {
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
+    void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint) override;
     void normal(
@@ -62,9 +63,6 @@ class ParametricBiCubicPatch : public Geometry {
         Vector3Dd *localIntersectionPoint,
         const PovRayRendererConfiguration *config) override;
     void *copy() override;
-    void translateGeometry(Vector3Dd *vector);
-    void rotateGeometry(Vector3Dd *vector);
-    void scaleGeometry(Vector3Dd *vector);
     void invertGeometry() override;
 
   private:

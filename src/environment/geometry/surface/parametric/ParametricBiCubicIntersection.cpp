@@ -229,19 +229,30 @@ ParametricBiCubicIntersection::intersectSubpatch(int patchType,
 
 int
 ParametricBiCubicIntersection::sphericalBoundsCheck(
-    const RayWithSegments *ray, const Vector3Dd *center, double radius)
+    const RayWithSegments *ray, const Vector3Dd *center, double radiusSquared)
 {
     double x = center->x() - ray->getOrigin().x();
     double y = center->y() - ray->getOrigin().y();
     double z = center->z() - ray->getOrigin().z();
     double dist1 = x * x + y * y + z * z;
-    if (dist1 < radius) {
+    if (dist1 < radiusSquared) {
         // Ray starts inside sphere - assume it intersects
         return 1;
     }
-    double dist2 = x * ray->getDirection().x() + y * ray->getDirection().y() + z * ray->getDirection().z();
-    dist2 = dist2 * dist2;
-    if (dist2 > 0 && (dist1 - dist2 < radius)) {
+    double projection = x * ray->getDirection().x() +
+        y * ray->getDirection().y() +
+        z * ray->getDirection().z();
+    if (projection <= 0.0) {
+        return 0;
+    }
+    double directionLengthSquared =
+        ray->getDirection().dotProduct(ray->getDirection());
+    if (directionLengthSquared <= Config::PARAMETRIC_CURVE_EPSILON) {
+        return 0;
+    }
+    double closestDistanceSquared =
+        dist1 - (projection * projection) / directionLengthSquared;
+    if (closestDistanceSquared < radiusSquared) {
         return 1;
     }
 

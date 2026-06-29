@@ -4,6 +4,7 @@ This module implements the code for Bezier bicubic patch shapes
 
 #include <cstdio>
 
+#include "common/Config.h"
 #include "java/lang/Math.h"
 #include "java/util/HashMap.h"
 #include "java/util/PriorityQueue.txx"
@@ -11,6 +12,7 @@ This module implements the code for Bezier bicubic patch shapes
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
+#include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicIntersection.h"
 #include "environment/geometry/surface/parametric/ParametricBiCubicSolver.h"
 #include "environment/geometry/surface/parametric/ParametricPatch.h"
@@ -1058,6 +1060,18 @@ ParametricBiCubicPatch::doContainmentTest(const Vector3Dd &point, double distanc
 }
 
 void
+ParametricBiCubicPatch::doExtraInformation(
+    const RayWithSegments &ray, double t, PovRayHit *hit)
+{
+    (void)t;
+    if (hit->n.length() > Config::PARAMETRIC_CURVE_EPSILON) {
+        hit->n = hit->n.normalizedFast();
+        return;
+    }
+    normal(&hit->n, &hit->p, ray.getConfig());
+}
+
+void
 ParametricBiCubicPatch::normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint)
 {
     normal(result, localIntersectionPoint, nullptr);
@@ -1133,55 +1147,6 @@ void *
 ParametricBiCubicPatch::copy()
 {
     return new ParametricBiCubicPatch(*this);
-}
-
-void
-ParametricBiCubicPatch::translateGeometry(Vector3Dd *vector)
-{
-    ParametricBiCubicPatch * const patch = this;
-    int i;
-    int j;
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            patch->controlPoints[i][j] =
-                patch->controlPoints[i][j].add(*vector);
-        }
-    }
-    ParametricBiCubicPatch::precomputePatchValues(patch);
-}
-
-void
-ParametricBiCubicPatch::rotateGeometry(Vector3Dd *vector)
-{
-    Matrix4x4d transformation;
-    Matrix4x4d transformationInverse;
-    ParametricBiCubicPatch * const patch = this;
-    int i;
-    int j;
-
-    transformation.axisRotationRodrigues(&transformationInverse, vector);
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            patch->controlPoints[i][j] = transformation.transpose().multiply(
-                patch->controlPoints[i][j]);
-        }
-    }
-    ParametricBiCubicPatch::precomputePatchValues(patch);
-}
-
-void
-ParametricBiCubicPatch::scaleGeometry(Vector3Dd *vector)
-{
-    ParametricBiCubicPatch * const patch = this;
-    int i;
-    int j;
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            patch->controlPoints[i][j] =
-                patch->controlPoints[i][j].multiply(*vector);
-        }
-    }
-    ParametricBiCubicPatch::precomputePatchValues(patch);
 }
 
 void

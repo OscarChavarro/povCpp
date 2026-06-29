@@ -527,7 +527,11 @@ ObjectParser::parseObject(ParserContext &ctx)
                     transformation, transformationInverse,
                     geometryTransformation, geometryTransformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                object->translate(&localVector);
+                if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
+                    object->translate(&localVector);
+                } else {
+                    object->translateGeometryLayer(&localVector);
+                }
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
@@ -549,7 +553,11 @@ ObjectParser::parseObject(ParserContext &ctx)
                     transformation, transformationInverse,
                     geometryTransformation, geometryTransformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                object->rotate(&localVector);
+                if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
+                    object->rotate(&localVector);
+                } else {
+                    object->rotateGeometryLayer(&localVector);
+                }
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,
@@ -571,7 +579,11 @@ ObjectParser::parseObject(ParserContext &ctx)
                     transformation, transformationInverse,
                     geometryTransformation, geometryTransformationInverse);
                 PrimitiveParser::parseVector(&localVector, ctx);
-                object->scale(&localVector);
+                if (dynamic_cast<ConstructiveSolidGeometry *>(geometry) != nullptr) {
+                    object->scale(&localVector);
+                } else {
+                    object->scaleGeometryLayer(&localVector);
+                }
                 extractObjectState(
                     object, geometry, geometryMaterial, objectTexture, objectColor,
                     noShadowFlag, localBoundingShapes, localClippingShapes,

@@ -357,6 +357,7 @@ ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         }
         localElement.getIntersection().t = depths[i];
         localElement.getIntersection().point = shape->getIntersectionPointAt(intersectionCount + i);
+        localElement.getIntersection().normal = shape->getNormalVectorAt(intersectionCount + i);
         localElement.getAttributes().setHitGeometry(shape);
         depthQueue->offer(localElement);
         intersectionFound = 1;
