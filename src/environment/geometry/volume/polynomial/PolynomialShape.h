@@ -28,9 +28,6 @@ class PolynomialShape : public Geometry {
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;
     PolynomialShape *copyWithSturmFlag(int flag) const;
-    void translateGeometry(Vector3Dd *vector);
-    void rotateGeometry(Vector3Dd *vector);
-    void scaleGeometry(Vector3Dd *vector);
     void invertGeometry() override;
 
   private:

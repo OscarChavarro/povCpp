@@ -2,7 +2,6 @@
 #include "common/statistics/Statistics.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/PovRayHit.h"
-#include "environment/geometry/GeometryTransformMutator.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/ConstructiveSolidGeometry.h"
 #include "environment/scene/SimpleBody.h"
 #include "environment/material/Material.h"
@@ -45,6 +44,16 @@ SimpleBody::doIntersectionForAllRayCrossings(
     // RayWithSegments construction at all, and RAII still destroys the clone
     // across the early bounding-shape rejection return.
     auto intersectInObjectSpace = [&](RayWithSegments *objectRay) -> int {
+    RayWithSegments geometryLocalRay(
+        RayWithSegments::LocalIntersectionClone{}, *objectRay);
+    bool hasGeometryLocalSpace = geometryTransformationInverse != nullptr;
+    if (hasGeometryLocalSpace) {
+        geometryLocalRay.setOrigin(
+            geometryTransformationInverse->transformPoint(objectRay->getOrigin()));
+        geometryLocalRay.setDirection(
+            geometryTransformationInverse->transformDirection(objectRay->getDirection()));
+        geometryLocalRay.setQuadricConstantsCached(false);
+    }
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(objectRay->getOrigin());
@@ -66,18 +75,7 @@ SimpleBody::doIntersectionForAllRayCrossings(
     Material *effectiveGeometryMaterial =
         this->getGeometryMaterial() != nullptr ?
             this->getGeometryMaterial() : materialOverride;
-    // Only clone again for the geometry-local space when a geometry transform
-    // is present (the geometryTransformation layer is unused for most bodies,
-    // where the geometry bakes its own placement). The clone feeds nothing but
-    // the geometry call below, so otherwise pass objectRay straight through.
-    if (geometryTransformationInverse != nullptr) {
-        RayWithSegments geometryLocalRay(
-            RayWithSegments::LocalIntersectionClone{}, *objectRay);
-        geometryLocalRay.setOrigin(
-            geometryTransformationInverse->transformPoint(objectRay->getOrigin()));
-        geometryLocalRay.setDirection(
-            geometryTransformationInverse->transformDirection(objectRay->getDirection()));
-        geometryLocalRay.setQuadricConstantsCached(false);
+    if (hasGeometryLocalSpace) {
         this->getGeometry()->doIntersectionForAllRayCrossings(
             &geometryLocalRay, localDepthQueue, effectiveGeometryMaterial);
     } else {
@@ -162,7 +160,8 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
 
-        if (boundingShape->doContainmentTest(localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+        if (boundingShape->doContainmentTest(
+                localPoint, distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
@@ -170,7 +169,8 @@ SimpleBody::doContainmentTest(const Vector3Dd &point, double distanceTolerance)
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         clippingShape = this->getClippingShapes()[i];
 
-        if (clippingShape->doContainmentTest(localPoint, distanceTolerance) == Geometry::OUTSIDE) {
+        if (clippingShape->doContainmentTest(
+                localPoint, distanceTolerance) == Geometry::OUTSIDE) {
             return Geometry::OUTSIDE;
         }
     }
@@ -300,6 +300,15 @@ SimpleBody::ensureMatrices()
 }
 
 void
+SimpleBody::ensureGeometryMatrices()
+{
+    if (geometryTransformation == nullptr) {
+        geometryTransformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
+        geometryTransformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
+    }
+}
+
+void
 SimpleBody::applyTranslationToBodyTransform(Vector3Dd *vector)
 {
     ensureMatrices();
@@ -309,6 +318,19 @@ SimpleBody::applyTranslationToBodyTransform(Vector3Dd *vector)
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+}
+
+void
+SimpleBody::applyTranslationToGeometryTransform(Vector3Dd *vector)
+{
+    ensureGeometryMatrices();
+    Matrix4x4d delta = Matrix4x4d().translation(
+        vector->x(), vector->y(), vector->z()).transpose();
+    Matrix4x4d deltaInverse = Matrix4x4d().translation(
+        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
+    *geometryTransformation = geometryTransformation->multiply(delta);
+    *geometryTransformationInverse =
+        deltaInverse.multiply(*geometryTransformationInverse);
 }
 
 void
@@ -323,14 +345,40 @@ SimpleBody::applyRotationToBodyTransform(Vector3Dd *vector)
 }
 
 void
+SimpleBody::applyRotationToGeometryTransform(Vector3Dd *vector)
+{
+    ensureGeometryMatrices();
+    Matrix4x4d delta;
+    Matrix4x4d deltaInverse;
+    delta.axisRotationRodrigues(&deltaInverse, vector);
+    *geometryTransformation = geometryTransformation->multiply(delta);
+    *geometryTransformationInverse =
+        deltaInverse.multiply(*geometryTransformationInverse);
+}
+
+void
 SimpleBody::applyScaleToBodyTransform(Vector3Dd *vector)
 {
     ensureMatrices();
-    Matrix4x4d delta = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
+    Matrix4x4d delta = Matrix4x4d().scale(
+        vector->x(), vector->y(), vector->z()).transpose();
     Matrix4x4d deltaInverse = Matrix4x4d().scale(
-        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+}
+
+void
+SimpleBody::applyScaleToGeometryTransform(Vector3Dd *vector)
+{
+    ensureGeometryMatrices();
+    Matrix4x4d delta = Matrix4x4d().scale(
+        vector->x(), vector->y(), vector->z()).transpose();
+    Matrix4x4d deltaInverse = Matrix4x4d().scale(
+        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z()).transpose();
+    *geometryTransformation = geometryTransformation->multiply(delta);
+    *geometryTransformationInverse =
+        deltaInverse.multiply(*geometryTransformationInverse);
 }
 
 void
@@ -489,39 +537,13 @@ SimpleBody::copy()
 void
 SimpleBody::translate(Vector3Dd *vector)
 {
-    bool propagateToChildren = true;
-
-    if (this->getGeometry() != nullptr) {
-        if (GeometryTransformMutator::translateIfSupported(this->getGeometry(), vector)) {
-        } else {
-            applyTranslationToBodyTransform(vector);
-            propagateToChildren = false;
-        }
-    } else {
-        applyTranslationToBodyTransform(vector);
-        propagateToChildren = false;
+    applyTranslationToBodyTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->propagateOwnedTranslation(vector);
     }
-
-    if (propagateToChildren) {
-        SimpleBody *localShape;
-        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-            localShape = this->getBoundingShapes()[i];
-            localShape->translate(vector);
-        }
-
-        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-            localShape = this->getClippingShapes()[i];
-            localShape->translate(vector);
-        }
-    } else {
-        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-            this->getBoundingShapes()[i]->propagateOwnedTranslation(vector);
-        }
-        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-            this->getClippingShapes()[i]->propagateOwnedTranslation(vector);
-        }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->propagateOwnedTranslation(vector);
     }
-
     applyOwnedTranslation(vector);
 }
 
@@ -539,41 +561,28 @@ SimpleBody::translateOwnerOnly(Vector3Dd *vector)
 }
 
 void
+SimpleBody::translateGeometryLayer(Vector3Dd *vector)
+{
+    applyTranslationToGeometryTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->translate(vector);
+    }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->translate(vector);
+    }
+    applyOwnedTranslation(vector);
+}
+
+void
 SimpleBody::rotate(Vector3Dd *vector)
 {
-    bool propagateToChildren = true;
-
-    if (this->getGeometry() != nullptr) {
-        if (GeometryTransformMutator::rotateIfSupported(this->getGeometry(), vector)) {
-        } else {
-            applyRotationToBodyTransform(vector);
-            propagateToChildren = false;
-        }
-    } else {
-        applyRotationToBodyTransform(vector);
-        propagateToChildren = false;
+    applyRotationToBodyTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->propagateOwnedRotation(vector);
     }
-
-    if (propagateToChildren) {
-        SimpleBody *localShape;
-        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-            localShape = this->getBoundingShapes()[i];
-            localShape->rotate(vector);
-        }
-
-        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-            localShape = this->getClippingShapes()[i];
-            localShape->rotate(vector);
-        }
-    } else {
-        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-            this->getBoundingShapes()[i]->propagateOwnedRotation(vector);
-        }
-        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-            this->getClippingShapes()[i]->propagateOwnedRotation(vector);
-        }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->propagateOwnedRotation(vector);
     }
-
     applyOwnedRotation(vector);
 }
 
@@ -591,41 +600,28 @@ SimpleBody::rotateOwnerOnly(Vector3Dd *vector)
 }
 
 void
+SimpleBody::rotateGeometryLayer(Vector3Dd *vector)
+{
+    applyRotationToGeometryTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->rotate(vector);
+    }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->rotate(vector);
+    }
+    applyOwnedRotation(vector);
+}
+
+void
 SimpleBody::scale(Vector3Dd *vector)
 {
-    bool propagateToChildren = true;
-
-    if (this->getGeometry() != nullptr) {
-        if (GeometryTransformMutator::scaleIfSupported(this->getGeometry(), vector)) {
-        } else {
-            applyScaleToBodyTransform(vector);
-            propagateToChildren = false;
-        }
-    } else {
-        applyScaleToBodyTransform(vector);
-        propagateToChildren = false;
+    applyScaleToBodyTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->propagateOwnedScale(vector);
     }
-
-    if (propagateToChildren) {
-        SimpleBody *localShape;
-        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-            localShape = this->getBoundingShapes()[i];
-            localShape->scale(vector);
-        }
-
-        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-            localShape = this->getClippingShapes()[i];
-            localShape->scale(vector);
-        }
-    } else {
-        for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
-            this->getBoundingShapes()[i]->propagateOwnedScale(vector);
-        }
-        for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
-            this->getClippingShapes()[i]->propagateOwnedScale(vector);
-        }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->propagateOwnedScale(vector);
     }
-
     applyOwnedScale(vector);
 }
 
@@ -638,6 +634,19 @@ SimpleBody::scaleOwnerOnly(Vector3Dd *vector)
     }
     for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
         this->getClippingShapes()[i]->propagateOwnedScale(vector);
+    }
+    applyOwnedScale(vector);
+}
+
+void
+SimpleBody::scaleGeometryLayer(Vector3Dd *vector)
+{
+    applyScaleToGeometryTransform(vector);
+    for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
+        this->getBoundingShapes()[i]->scale(vector);
+    }
+    for (long int i = this->getClippingShapes().size() - 1; i >= 0; i--) {
+        this->getClippingShapes()[i]->scale(vector);
     }
     applyOwnedScale(vector);
 }

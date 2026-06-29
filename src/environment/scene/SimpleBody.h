@@ -96,6 +96,9 @@ class SimpleBody : public RayOperationOwner {
     virtual void translate(Vector3Dd *vector);
     virtual void rotate(Vector3Dd *vector);
     virtual void scale(Vector3Dd *vector);
+    void translateGeometryLayer(Vector3Dd *vector);
+    void rotateGeometryLayer(Vector3Dd *vector);
+    void scaleGeometryLayer(Vector3Dd *vector);
     void translateOwnerOnly(Vector3Dd *vector);
     void rotateOwnerOnly(Vector3Dd *vector);
     void scaleOwnerOnly(Vector3Dd *vector);
@@ -108,6 +111,9 @@ class SimpleBody : public RayOperationOwner {
     void applyTranslationToBodyTransform(Vector3Dd *vector);
     void applyRotationToBodyTransform(Vector3Dd *vector);
     void applyScaleToBodyTransform(Vector3Dd *vector);
+    void applyTranslationToGeometryTransform(Vector3Dd *vector);
+    void applyRotationToGeometryTransform(Vector3Dd *vector);
+    void applyScaleToGeometryTransform(Vector3Dd *vector);
     void applyOwnedTranslation(Vector3Dd *vector);
     void applyOwnedRotation(Vector3Dd *vector);
     void applyOwnedScale(Vector3Dd *vector);
@@ -121,6 +127,7 @@ class SimpleBody : public RayOperationOwner {
 
   private:
     void ensureMatrices();
+    void ensureGeometryMatrices();
 };
 
 #endif

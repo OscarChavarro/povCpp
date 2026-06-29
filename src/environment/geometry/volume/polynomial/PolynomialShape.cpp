@@ -863,47 +863,4 @@ PolynomialShape::invertGeometry()
     this->inverted = !this->inverted;
 }
 
-void
-PolynomialShape::translateGeometry(Vector3Dd *vector)
-{
-    if (transformation == nullptr) {
-        transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    Matrix4x4d delta = Matrix4x4d().translation(
-        vector->x(), vector->y(), vector->z()).transpose();
-    Matrix4x4d deltaInverse = Matrix4x4d().translation(
-        0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
-    *transformation = transformation->multiply(delta);
-    *transformationInverse = deltaInverse.multiply(*transformationInverse);
-}
-
-void
-PolynomialShape::rotateGeometry(Vector3Dd *vector)
-{
-    if (transformation == nullptr) {
-        transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    Matrix4x4d delta;
-    Matrix4x4d deltaInverse;
-    delta.axisRotationRodrigues(&deltaInverse, vector);
-    *transformation = transformation->multiply(delta);
-    *transformationInverse = deltaInverse.multiply(*transformationInverse);
-}
-
-void
-PolynomialShape::scaleGeometry(Vector3Dd *vector)
-{
-    if (transformation == nullptr) {
-        transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
-        transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
-    }
-    Matrix4x4d delta = Matrix4x4d().scale(vector->x(), vector->y(), vector->z());
-    Matrix4x4d deltaInverse = Matrix4x4d().scale(
-        1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z());
-    *transformation = transformation->multiply(delta);
-    *transformationInverse = deltaInverse.multiply(*transformationInverse);
-}
-
 #include "java/util/PriorityQueue.txx"
