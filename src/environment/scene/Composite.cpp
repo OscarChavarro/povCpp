@@ -19,20 +19,15 @@ Composite::doIntersectionForAllRayCrossings(
     bool anyIntersectionFound;
     SimpleBody *boundingShape;
     SimpleBody *clippingShape;
-    IntersectionCandidate localIntersection;
     SimpleBody *localObject;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
     Statistics &stats = *ray->getStatistics();
-    RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
-    RayWithSegments *compositeRay = ray;
 
-    if (getTransformationInverse() != nullptr) {
-        localRay.setOrigin(getTransformationInverse()->transformPoint(ray->getOrigin()));
-        localRay.setDirection(getTransformationInverse()->transformDirection(ray->getDirection()));
-        localRay.setQuadricConstantsCached(false);
-        compositeRay = &localRay;
-    }
-
+    // Body parameterized on the composite-local ray, factored into a lambda so
+    // the local clone is built only when this composite carries a transform (an
+    // untransformed composite forwards the parent ray with no RayWithSegments
+    // construction); RAII still destroys it across the early bounding rejection.
+    auto intersectInCompositeSpace = [&](RayWithSegments *compositeRay) -> int {
     for (long int i = this->getBoundingShapes().size() - 1; i >= 0; i--) {
         boundingShape = this->getBoundingShapes()[i];
         Vector3Dd rayOrigin(compositeRay->getOrigin());
@@ -58,8 +53,7 @@ Composite::doIntersectionForAllRayCrossings(
         localObject->doIntersectionForAllRayCrossings(compositeRay, localDepthQueue);
     }
 
-    for (const IntersectionCandidate& candidate : *localDepthQueue) {
-        localIntersection = candidate;
+    for (IntersectionCandidate& localIntersection : *localDepthQueue) {
         // Append (not prepend) the child as a detail owner so the detail-owner
         // stack is built innermost-first, exactly like CsgOperand. The normal
         // chain is consumed outermost-first via PovRayHit::popDetailOwnerBack
@@ -104,6 +98,16 @@ Composite::doIntersectionForAllRayCrossings(
     localDepthQueue->clear();
     ray->getIntersectionQueuePool()->push(localDepthQueue);
     return (anyIntersectionFound);
+    };
+
+    if (getTransformationInverse() != nullptr) {
+        RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, *ray);
+        localRay.setOrigin(getTransformationInverse()->transformPoint(ray->getOrigin()));
+        localRay.setDirection(getTransformationInverse()->transformDirection(ray->getDirection()));
+        localRay.setQuadricConstantsCached(false);
+        return intersectInCompositeSpace(&localRay);
+    }
+    return intersectInCompositeSpace(ray);
 }
 
 int

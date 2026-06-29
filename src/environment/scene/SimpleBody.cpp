@@ -33,7 +33,6 @@ SimpleBody::doIntersectionForAllRayCrossings(
 {
     bool intersectionFound;
     bool anyIntersectionFound;
-    IntersectionCandidate localIntersection;
     SimpleBody *boundingShape;
     SimpleBody *clippingShape;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
@@ -86,9 +85,10 @@ SimpleBody::doIntersectionForAllRayCrossings(
             objectRay, localDepthQueue, effectiveGeometryMaterial);
     }
 
-    for (const IntersectionCandidate& candidate : *localDepthQueue) {
-        localIntersection = candidate;
-
+    // Mutate each crossing in place in the scratch queue (drained and recycled
+    // right after the loop) rather than copying the ~168-byte candidate into
+    // localIntersection and then again into depthQueue.
+    for (IntersectionCandidate& localIntersection : *localDepthQueue) {
         localIntersection.getAttributes().setObjectTexture(this->getObjectTexture());
         localIntersection.getAttributes().setObjectColor(this->getObjectColor());
         localIntersection.getAttributes().setNoShadowFlag(this->getNoShadowFlag());
