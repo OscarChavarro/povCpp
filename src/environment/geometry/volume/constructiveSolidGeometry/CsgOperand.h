@@ -101,25 +101,28 @@ class CsgOperand : public RayOperationOwner {
             found = geometry->doIntersectionForAllRayCrossings(
                 ray, localDepthQueue, getEffectiveMaterial(materialOverride));
         }
-        for (const IntersectionCandidate &candidate : *localDepthQueue) {
-            IntersectionCandidate transformedCandidate = candidate;
-            transformedCandidate.getAttributes().pushDetailOwner(this);
-            transformedCandidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
+        // Mutate each crossing in place in the scratch queue (which is cleared
+        // and recycled immediately below) and offer it once, rather than
+        // copying the ~168-byte candidate twice per crossing.
+        const Vector3Dd rayOrigin = ray->getOrigin();
+        const Vector3Dd rayDir = ray->getDirection();
+        const double dirLenSq = rayDir.dotProduct(rayDir);
+        for (IntersectionCandidate &candidate : *localDepthQueue) {
+            candidate.getAttributes().pushDetailOwner(this);
+            candidate.getAttributes().setMaterialUsesObjectLocalPoint(true);
             if (transformation != nullptr) {
-                transformedCandidate.getIntersection().point =
+                candidate.getIntersection().point =
                     transformation->transformPoint(
-                        transformedCandidate.getIntersection().point);
+                        candidate.getIntersection().point);
             }
             // Signed ray parameter, not a bare distance: see the matching note
             // in SimpleBody::doIntersectionForAllRayCrossings. length() would
             // flip crossings behind the origin to the front and break CSG
             // membership for internal/refracted rays.
-            const Vector3Dd rayDir = ray->getDirection();
-            transformedCandidate.getIntersection().t =
-                transformedCandidate.getIntersection().point
-                    .subtract(ray->getOrigin()).dotProduct(rayDir) /
-                rayDir.dotProduct(rayDir);
-            depthQueue->offer(transformedCandidate);
+            candidate.getIntersection().t =
+                candidate.getIntersection().point
+                    .subtract(rayOrigin).dotProduct(rayDir) / dirLenSq;
+            depthQueue->offer(candidate);
         }
         localDepthQueue->clear();
         ray->getIntersectionQueuePool()->push(localDepthQueue);

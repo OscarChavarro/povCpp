@@ -57,10 +57,13 @@ Quadric::doIntersectionForAllRayCrossings(
     double depth1;
     double depth2;
     Vector3Dd intersectionPoint;
-    IntersectionCandidate localElement;
 
     bool intersectionFound = false;
     if (Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
+        // Construct the candidate only on a real hit: ~89% of quadric tests miss
+        // (drum cylinders), so deferring the ~168-byte zeroing past the test
+        // removes it from the dominant miss path.
+        IntersectionCandidate localElement;
         localElement.getIntersection().t = depth1;
         intersectionPoint = ray->getDirection().multiply(depth1);
         intersectionPoint = intersectionPoint.add(ray->getOrigin());

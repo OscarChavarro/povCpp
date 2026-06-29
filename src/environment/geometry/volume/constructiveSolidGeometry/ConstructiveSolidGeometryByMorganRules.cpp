@@ -64,7 +64,6 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
     CsgOperand *localShape;
     CsgOperand *shape2;
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
-    IntersectionCandidate localIntersection;
 
     localDepthQueue = ray->getIntersectionQueuePool()->pop(128);
 
@@ -76,9 +75,10 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
         localShape->doIntersectionForAllRayCrossings(
             ray, localDepthQueue, materialOverride);
 
-        for (const IntersectionCandidate& candidate : *localDepthQueue) {
-            localIntersection = candidate;
-
+        // Read crossings straight from the scratch queue: nothing here mutates
+        // them, the survivors are copied once into depthQueue, and the scratch
+        // queue is cleared right after, so no defensive per-crossing copy.
+        for (IntersectionCandidate& candidate : *localDepthQueue) {
             intersectionFound = true;
 
             for (long int j = getOperands().size() - 1; j >= 0; j--) {
@@ -86,7 +86,7 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
 
                 if (shape2 != localShape) {
                     if (!ConstructiveSolidGeometryByMorganRules::insideCsgChild(
-                            &localIntersection.getIntersection().point, shape2)) {
+                            &candidate.getIntersection().point, shape2)) {
                         intersectionFound = false;
                         break;
                     }
@@ -94,7 +94,7 @@ ConstructiveSolidGeometryByMorganRules::allCsgIntersectIntersections(
             }
 
             if (intersectionFound) {
-                depthQueue->offer(localIntersection);
+                depthQueue->offer(candidate);
                 anyIntersectionFound = true;
             }
         }
