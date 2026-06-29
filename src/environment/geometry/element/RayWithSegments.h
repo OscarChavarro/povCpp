@@ -44,7 +44,20 @@ class RayWithSegments : public Ray {
     const PovRayRendererConfiguration *config;
     PriorityQueuePool<IntersectionCandidate> *intersectionQueuePool;
   public:
+    // Tag selecting the cheap local-space intersection clone constructor.
+    struct LocalIntersectionClone {};
+
     RayWithSegments();
+    // Build a local-space clone of source for intersection only. Copies the
+    // geometric quadric cache and the per-ray bookkeeping the intersection path
+    // reads, but leaves the containing-media stacks (containingTextures /
+    // containingIORs) empty instead of deep-copying them. Those stacks are
+    // consumed only by the shading pipeline (TransmissionRefraction /
+    // MirrorReflection shaders) on the world-space ray via copyContainersFrom,
+    // never during doIntersectionForAllRayCrossings or doExtraInformation, so
+    // skipping their per-ray-per-body heap allocation is behaviour-preserving
+    // and removes the dominant allocator cost from the ray/body hot path.
+    RayWithSegments(LocalIntersectionClone, const RayWithSegments &source);
 
     using Ray::setDirection;
     using Ray::setOrigin;
