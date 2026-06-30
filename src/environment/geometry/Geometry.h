@@ -23,6 +23,16 @@ class Geometry {
         Material *materialOverride = nullptr) { (void)ray; (void)depthQueue; (void)materialOverride; return 0; }
     virtual Geometry *getWrappedGeometry() const { return nullptr; }
     bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
+    virtual bool doIntersectionFirstHitNoQueue(
+        RayWithSegments *ray,
+        IntersectionCandidate &out,
+        Material *materialOverride = nullptr)
+    {
+        (void)ray;
+        (void)out;
+        (void)materialOverride;
+        return false;
+    }
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
     virtual void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
     virtual void normal(

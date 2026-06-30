@@ -69,6 +69,28 @@ Box::doIntersectionForAllRayCrossings(
     return (intersectionFound);
 }
 
+bool
+Box::doIntersectionFirstHitNoQueue(
+    RayWithSegments *ray,
+    IntersectionCandidate &out,
+    Material *materialOverride)
+{
+    double depth1;
+    double depth2;
+    Box * const shape = this;
+    if (!Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    const double nearestDepth = depth1 < depth2 ? depth1 : depth2;
+    out.getIntersection().t = nearestDepth;
+    out.getIntersection().point =
+        ray->getDirection().multiply(nearestDepth).add(ray->getOrigin());
+    out.getAttributes().setHitGeometry(shape);
+    out.getAttributes().setMaterial(materialOverride);
+    return true;
+}
+
 int
 Box::intersectBoxx(
     const RayWithSegments *ray, const Box *box, double *depth1, double *depth2)

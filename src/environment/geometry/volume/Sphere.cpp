@@ -112,6 +112,29 @@ Sphere::doIntersectionForAllRayCrossings(
     return 1;
 }
 
+bool
+Sphere::doIntersectionFirstHitNoQueue(
+    RayWithSegments *ray,
+    IntersectionCandidate &out,
+    Material *materialOverride)
+{
+    double depth1;
+    double depth2;
+    Sphere * const shape = this;
+
+    if (!Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    const double nearestDepth = depth1 < depth2 ? depth1 : depth2;
+    out.getIntersection().t = nearestDepth;
+    out.getIntersection().point =
+        ray->getDirection().multiply(nearestDepth).add(ray->getOrigin());
+    out.getAttributes().setHitGeometry(shape);
+    out.getAttributes().setMaterial(materialOverride);
+    return true;
+}
+
 int
 Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
