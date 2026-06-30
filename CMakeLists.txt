@@ -79,6 +79,10 @@ add_executable(povray
     src/render/shaders/LocalSurfaceShader.cpp
     src/render/AdaptiveAntiAliasing.cpp
     src/render/ColorOperations.cpp
+    src/render/BakedCsgTracing.cpp
+    src/render/BakedCompositeTracing.cpp
+    src/render/BakedSimpleBodyTracing.cpp
+    src/render/BakedTracingCommon.cpp
     src/render/RenderWorker.cpp
     src/render/RenderTargetImage.cpp
     src/render/RayShaderPipeline.cpp

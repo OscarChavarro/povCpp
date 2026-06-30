@@ -673,12 +673,18 @@ SimpleBody::invert()
 AxisAlignedBox
 SimpleBody::getAABB() const
 {
-    // If bounding shapes are present they define the visible extent; use the
-    // intersection of their AABBs (a tighter world-space bound than the geometry alone).
+    // Bounding shapes live in this body's object-local space, exactly like the
+    // object-local ray passed to them in doIntersectionForAllRayCrossings().
+    // Their combined box therefore still needs this body's own transform to be
+    // mapped into world space before top-level culling can consume it.
     if (boundingShapes.size() > 0) {
         AxisAlignedBox result = AxisAlignedBox::unbounded();
         for (long int i = 0; i < boundingShapes.size(); i++) {
             result = result.intersection(boundingShapes[i]->getAABB());
+        }
+        if (transformation != nullptr && !result.isUnbounded()) {
+            return AxisAlignedBox::fromTransformedCorners(
+                result.min, result.max, transformation);
         }
         return result;
     }

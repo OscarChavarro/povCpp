@@ -46,6 +46,11 @@ class Triangle : public Geometry {
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
+    int doIntersectionForAllRayCrossingsAnnotated(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        const GeometryIntersectionEmissionContext &context) override;
+    bool hasNativeAnnotatedCrossings() const override { return true; }
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) override;
     void *copy() override;

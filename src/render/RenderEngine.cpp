@@ -16,10 +16,50 @@
 #include "environment/material/PovRayRendererConfiguration.h"
 #include "render/shaders/TraceService.h"
 #include "render/ColorOperations.h"
+#include "render/BakedCompositeTracing.h"
+#include "render/BakedSimpleBodyTracing.h"
+#include "render/BakedTracingCommon.h"
 #include "render/RayShaderPipeline.h"
 #include "render/RenderEngine.h"
 #include "render/RenderTask.h"
 #include "render/RenderTileCallable.h"
+
+namespace {
+bool
+rayIntersectsAabbBefore(
+    const RayWithSegments &ray, const AxisAlignedBox &box, double maxT)
+{
+    const Vector3Dd origin = ray.getOrigin();
+    const Vector3Dd direction = ray.getDirection();
+    double tMin = 0.0;
+    double tMax = maxT;
+
+    auto updateAxis = [&](double originCoord, double directionCoord,
+                          double minCoord, double maxCoord) -> bool {
+        if (directionCoord > -1e-12 && directionCoord < 1e-12) {
+            return originCoord >= minCoord && originCoord <= maxCoord;
+        }
+        const double invDir = 1.0 / directionCoord;
+        double nearT = (minCoord - originCoord) * invDir;
+        double farT = (maxCoord - originCoord) * invDir;
+        if (nearT > farT) {
+            const double tmp = nearT;
+            nearT = farT;
+            farT = tmp;
+        }
+        tMin = nearT > tMin ? nearT : tMin;
+        tMax = farT < tMax ? farT : tMax;
+        return tMin <= tMax;
+    };
+
+    return
+        updateAxis(origin.x(), direction.x(), box.min.x(), box.max.x()) &&
+        updateAxis(origin.y(), direction.y(), box.min.y(), box.max.y()) &&
+        updateAxis(origin.z(), direction.z(), box.min.z(), box.max.z()) &&
+        tMax >= 0.0;
+}
+
+}
 
 java::Void
 RenderTileCallable::call()
@@ -377,7 +417,6 @@ RenderEngine::initializeRenderer()
 void
 RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorRgba *color)
 {
-    SimpleBody *object;
     IntersectionCandidate localIntersection;
     IntersectionCandidate newIntersection;
     bool intersectionFound;
@@ -397,11 +436,50 @@ RenderEngine::trace(RenderWorker &localWorker, RayWithSegments *localRay, ColorR
         *color = this->getScene().getFogColor();
     }
 
-    const java::ArrayList<SimpleBody*> &sceneObjects =
-        this->getScene().getObjects();
-    for (long int i = sceneObjects.size() - 1; i >= 0; i--) {
-        object = sceneObjects[i];
-        if (object->doIntersectionFirstHit(localRay, newIntersection)) {
+    const java::ArrayList<Scene::CompiledTracingObject> &boundedObjects =
+        this->getScene().getCompiledBoundedTracingObjects();
+    const java::ArrayList<Scene::CompiledTracingObject> &unboundedObjects =
+        this->getScene().getCompiledUnboundedTracingObjects();
+    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies =
+        this->getScene().getBakedSimpleBodies();
+    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs =
+        this->getScene().getBakedCsgs();
+    const java::ArrayList<Scene::BakedComposite> &bakedComposites =
+        this->getScene().getBakedComposites();
+    for (long int i = boundedObjects.size() - 1; i >= 0; i--) {
+        const Scene::CompiledTracingObject &entry = boundedObjects[i];
+        const double currentBestT =
+            (intersectionFound && localIntersection.getIntersection().t > 0.0) ?
+                localIntersection.getIntersection().t : 1e30;
+        if (!rayIntersectsAabbBefore(*localRay, entry.bounds, currentBestT)) {
+            continue;
+        }
+        const bool hit = BakedTracingCommon::traceObjectFirstHit(
+            entry,
+            bakedSimpleBodies,
+            bakedCsgs,
+            bakedComposites,
+            localRay,
+            newIntersection);
+        if (hit) {
+            if (!intersectionFound ||
+                newIntersection.getIntersection().t <
+                    localIntersection.getIntersection().t) {
+                localIntersection = newIntersection;
+            }
+            intersectionFound = true;
+        }
+    }
+    for (long int i = unboundedObjects.size() - 1; i >= 0; i--) {
+        const Scene::CompiledTracingObject &entry = unboundedObjects[i];
+        const bool hit = BakedTracingCommon::traceObjectFirstHit(
+            entry,
+            bakedSimpleBodies,
+            bakedCsgs,
+            bakedComposites,
+            localRay,
+            newIntersection);
+        if (hit) {
             if (!intersectionFound ||
                 newIntersection.getIntersection().t <
                     localIntersection.getIntersection().t) {

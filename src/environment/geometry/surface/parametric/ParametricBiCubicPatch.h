@@ -55,6 +55,11 @@ class ParametricBiCubicPatch : public Geometry {
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) override;
+    int doIntersectionForAllRayCrossingsAnnotated(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        const GeometryIntersectionEmissionContext &context) override;
+    bool hasNativeAnnotatedCrossings() const override { return true; }
     void doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit) override;
     int doContainmentTest(const Vector3Dd &point, double distanceTolerance) override;
     void normal(Vector3Dd *result, Vector3Dd *localIntersectionPoint) override;

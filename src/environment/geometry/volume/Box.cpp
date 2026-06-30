@@ -70,6 +70,63 @@ Box::doIntersectionForAllRayCrossings(
 }
 
 int
+Box::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    double depth1;
+    double depth2;
+    Box * const shape = this;
+    if (!Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    IntersectionCandidate localElement;
+    localElement.getAttributes().setHitGeometry(shape);
+    localElement.getAttributes().setMaterial(context.materialOverride);
+    localElement.getAttributes().pushDetailOwner(context.detailOwner);
+    localElement.getAttributes().setMaterialUsesObjectLocalPoint(
+        context.materialUsesObjectLocalPoint);
+
+    localElement.getIntersection().t = depth1;
+    localElement.getIntersection().point =
+        ray->getDirection().multiply(depth1).add(ray->getOrigin());
+    depthQueue->offer(localElement);
+
+    if (depth2 != depth1) {
+        localElement.getIntersection().t = depth2;
+        localElement.getIntersection().point =
+            ray->getDirection().multiply(depth2).add(ray->getOrigin());
+        depthQueue->offer(localElement);
+    }
+
+    return true;
+}
+
+bool
+Box::doIntersectionFirstHitNoQueue(
+    RayWithSegments *ray,
+    IntersectionCandidate &out,
+    Material *materialOverride)
+{
+    double depth1;
+    double depth2;
+    Box * const shape = this;
+    if (!Box::intersectBoxx(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    const double nearestDepth = depth1 < depth2 ? depth1 : depth2;
+    out.getIntersection().t = nearestDepth;
+    out.getIntersection().point =
+        ray->getDirection().multiply(nearestDepth).add(ray->getOrigin());
+    out.getAttributes().setHitGeometry(shape);
+    out.getAttributes().setMaterial(materialOverride);
+    return true;
+}
+
+int
 Box::intersectBoxx(
     const RayWithSegments *ray, const Box *box, double *depth1, double *depth2)
 {

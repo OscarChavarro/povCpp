@@ -1,7 +1,7 @@
 #ifndef __DIRECT_LIGHT_SHADER__
 #define __DIRECT_LIGHT_SHADER__
 
-#include "environment/scene/SimpleBody.h"
+#include "environment/scene/Scene.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
 #include "environment/material/povray/PovRayMaterial.h"
@@ -16,7 +16,11 @@ public:
         const RayWithSegments *eye, const Vector3Dd *surfaceNormal,
         const ColorRgba *surfaceColor, ColorRgba *color, double attenuation,
         const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
-        const java::ArrayList<SimpleBody*> &objects);
+        const java::ArrayList<Scene::CompiledTracingObject> &boundedTracingObjects,
+        const java::ArrayList<Scene::CompiledTracingObject> &unboundedTracingObjects,
+        const java::ArrayList<Scene::BakedComposite> &bakedComposites,
+        const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
+        const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies);
 };
 
 #endif

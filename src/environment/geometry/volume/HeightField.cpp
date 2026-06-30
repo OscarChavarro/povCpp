@@ -841,10 +841,11 @@ HeightField::findHfMinMax(HeightField *hField,
 }
 
 int
-HeightField::doIntersectionForAllRayCrossings(
+HeightField::traceCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *materialOverride)
+    Material *materialOverride,
+    const GeometryIntersectionEmissionContext *context)
 {
     Vector3Dd temp1;
     Vector3Dd temp2;
@@ -858,6 +859,11 @@ HeightField::doIntersectionForAllRayCrossings(
     Statistics &stats = *ray->getStatistics();
     stats.incrementRayHtFieldTests();
     localElement.getAttributes().setMaterial(materialOverride);
+    if (context != nullptr) {
+        localElement.getAttributes().pushDetailOwner(context->detailOwner);
+        localElement.getAttributes().setMaterialUsesObjectLocalPoint(
+            context->materialUsesObjectLocalPoint);
+    }
 
     tempRay.setOriginAndDirection(
         hField->transformationInverse->transformPoint(ray->getOrigin()),
@@ -919,6 +925,24 @@ HeightField::doIntersectionForAllRayCrossings(
         retVal = true;
     }
     return (retVal);
+}
+
+int
+HeightField::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
+{
+    return traceCrossings(ray, depthQueue, materialOverride, nullptr);
+}
+
+int
+HeightField::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    return traceCrossings(ray, depthQueue, context.materialOverride, &context);
 }
 
 int

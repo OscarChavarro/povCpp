@@ -5,11 +5,123 @@
 #include "vsdk/toolkit/common/linealAlgebra/Vector3Dd.h"
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
+#include "environment/geometry/element/AxisAlignedBox.h"
+#include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "environment/light/Light.h"
 #include "environment/material/Material.h"
 #include "environment/scene/SimpleBody.h"
 
+class Composite;
+class ConstructiveSolidGeometry;
+class CsgOperand;
+
 class Scene {
+  public:
+    struct CompiledTracingObject {
+        SimpleBody *object = nullptr;
+        AxisAlignedBox bounds = AxisAlignedBox::unbounded();
+        bool bounded = false;
+        bool castsShadow = true;
+        int bakedSimpleBodyIndex = -1;
+        int bakedCompositeIndex = -1;
+    };
+
+    struct BakedSimpleBody {
+        SimpleBody *object = nullptr;
+        Geometry *geometry = nullptr;
+        Material *geometryMaterial = nullptr;
+        Material *objectTexture = nullptr;
+        ColorRgba *objectColor = nullptr;
+        int bakedCsgIndex = -1;
+        AxisAlignedBox worldBounds = AxisAlignedBox::unbounded();
+        Matrix4x4d objectToWorld = Matrix4x4d::identityMatrix();
+        Matrix4x4d worldToObject = Matrix4x4d::identityMatrix();
+        Matrix4x4d geometryToObject = Matrix4x4d::identityMatrix();
+        Matrix4x4d objectToGeometry = Matrix4x4d::identityMatrix();
+        Matrix4x4d geometryToWorld = Matrix4x4d::identityMatrix();
+        Matrix4x4d worldToGeometry = Matrix4x4d::identityMatrix();
+        bool bounded = false;
+        bool noShadowFlag = false;
+        bool hasObjectTransform = false;
+        bool hasGeometryTransform = false;
+        bool hasBoundingShapes = false;
+        bool hasClippingShapes = false;
+        java::ArrayList<CompiledTracingObject> boundingObjects;
+        java::ArrayList<CompiledTracingObject> clippingObjects;
+    };
+
+    enum class BakedCsgAlgorithm {
+        MorganRules,
+        RaySegments,
+    };
+
+    enum class BakedCsgSpecialization {
+        None,
+        TopLevelPlaneUnion,
+        DisjointBoundedUnion,
+        SingleCorePlaneIntersection,
+    };
+
+    struct BakedCsgOperand {
+        CsgOperand *operand = nullptr;
+        Geometry *geometry = nullptr;
+        Material *material = nullptr;
+        int bakedCsgIndex = -1;
+        AxisAlignedBox bakedBounds = AxisAlignedBox::unbounded();
+        Matrix4x4d objectToLocal = Matrix4x4d::identityMatrix();
+        Matrix4x4d localToObject = Matrix4x4d::identityMatrix();
+        bool hasTransform = false;
+        bool bounded = false;
+        bool cullSafe = false;
+        bool isInfinitePlane = false;
+        Vector3Dd planeNormal = Vector3Dd(0.0, 1.0, 0.0);
+        double planeDistance = 0.0;
+    };
+
+    struct BakedConstructiveSolidGeometry {
+        ConstructiveSolidGeometry *geometry = nullptr;
+        BakedCsgAlgorithm algorithm = BakedCsgAlgorithm::MorganRules;
+        BakedCsgSpecialization specialization = BakedCsgSpecialization::None;
+        BooleanSetOperations geometryType = BooleanSetOperations::UNION;
+        bool topLevel = false;
+        int specializationCoreOperandIndex = -1;
+        java::ArrayList<BakedCsgOperand> operands;
+    };
+
+    struct BakedComposite {
+        Composite *object = nullptr;
+        AxisAlignedBox worldBounds = AxisAlignedBox::unbounded();
+        Matrix4x4d objectToWorld = Matrix4x4d::identityMatrix();
+        Matrix4x4d worldToObject = Matrix4x4d::identityMatrix();
+        bool bounded = false;
+        bool noShadowFlag = false;
+        bool hasObjectTransform = false;
+        bool hasBoundingShapes = false;
+        bool hasClippingShapes = false;
+        java::ArrayList<CompiledTracingObject> boundingObjects;
+        java::ArrayList<CompiledTracingObject> clippingObjects;
+        java::ArrayList<CompiledTracingObject> childObjects;
+        java::ArrayList<CompiledTracingObject> boundedChildObjects;
+        java::ArrayList<CompiledTracingObject> unboundedChildObjects;
+    };
+
+    struct CompiledTracingScene {
+        java::ArrayList<CompiledTracingObject> objects;
+        java::ArrayList<BakedSimpleBody> bakedSimpleBodies;
+        java::ArrayList<BakedConstructiveSolidGeometry> bakedCsgs;
+        java::ArrayList<BakedComposite> bakedComposites;
+        java::ArrayList<CompiledTracingObject> boundedObjects;
+        java::ArrayList<CompiledTracingObject> unboundedObjects;
+        java::ArrayList<CompiledTracingObject> shadowCastingObjects;
+        java::ArrayList<CompiledTracingObject> boundedShadowCastingObjects;
+        java::ArrayList<CompiledTracingObject> unboundedShadowCastingObjects;
+    };
+
+    struct TracingObjectEntry {
+        SimpleBody *object = nullptr;
+        AxisAlignedBox bounds = AxisAlignedBox::unbounded();
+    };
+
   public:
     static constexpr double DEFAULT_ANTIALIAS_THRESHOLD = 0.3;
 
@@ -42,7 +154,55 @@ class Scene {
     void setObjects(const java::ArrayList<SimpleBody*> &objects)
     {
         Objects = objects;
+        rebuildTracingStructures();
     }
+    const java::ArrayList<TracingObjectEntry>& getBoundedTracingObjects() const
+    {
+        return boundedTracingObjects;
+    }
+    const java::ArrayList<SimpleBody*>& getUnboundedTracingObjects() const
+    {
+        return unboundedTracingObjects;
+    }
+    const java::ArrayList<CompiledTracingObject>& getCompiledTracingObjects() const
+    {
+        return compiledTracingScene.objects;
+    }
+    const java::ArrayList<BakedSimpleBody>& getBakedSimpleBodies() const
+    {
+        return compiledTracingScene.bakedSimpleBodies;
+    }
+    const java::ArrayList<BakedConstructiveSolidGeometry>& getBakedCsgs() const
+    {
+        return compiledTracingScene.bakedCsgs;
+    }
+    const java::ArrayList<BakedComposite>& getBakedComposites() const
+    {
+        return compiledTracingScene.bakedComposites;
+    }
+    const java::ArrayList<CompiledTracingObject>& getCompiledBoundedTracingObjects() const
+    {
+        return compiledTracingScene.boundedObjects;
+    }
+    const java::ArrayList<CompiledTracingObject>& getCompiledUnboundedTracingObjects() const
+    {
+        return compiledTracingScene.unboundedObjects;
+    }
+    const java::ArrayList<CompiledTracingObject>& getCompiledShadowCastingTracingObjects() const
+    {
+        return compiledTracingScene.shadowCastingObjects;
+    }
+    const java::ArrayList<CompiledTracingObject>& getCompiledBoundedShadowCastingTracingObjects() const
+    {
+        return compiledTracingScene.boundedShadowCastingObjects;
+    }
+    const java::ArrayList<CompiledTracingObject>& getCompiledUnboundedShadowCastingTracingObjects() const
+    {
+        return compiledTracingScene.unboundedShadowCastingObjects;
+    }
+    void rebuildTracingStructures();
+    void buildTracingCache();
+    void buildCompiledTracingScene();
     void resetForSceneParse(double antialiasThreshold = DEFAULT_ANTIALIAS_THRESHOLD);
 
     // The scene's default texture is aliased (not cloned) into every untextured
@@ -67,6 +227,9 @@ class Scene {
     double fogDistance;
     ColorRgba fogColor;
     Material *defaultTexture = nullptr;
+    java::ArrayList<TracingObjectEntry> boundedTracingObjects;
+    java::ArrayList<SimpleBody*> unboundedTracingObjects;
+    CompiledTracingScene compiledTracingScene;
 };
 
 #endif

@@ -55,6 +55,37 @@ patchScratchFor(const ParametricBiCubicPatch *patch)
     return *scratch;
 }
 
+void
+applyPatchAttributes(
+    ParametricBiCubicPatch *patch,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    int newCount,
+    Material *materialOverride,
+    const GeometryIntersectionEmissionContext *context)
+{
+    if (newCount <= 0) {
+        return;
+    }
+
+    int updated = 0;
+    for (IntersectionCandidate &candidate : *depthQueue) {
+        if (candidate.getAttributes().getHitGeometry() != patch) {
+            continue;
+        }
+        if (materialOverride != nullptr) {
+            candidate.getAttributes().setMaterial(materialOverride);
+        }
+        if (context != nullptr) {
+            candidate.getAttributes().pushDetailOwner(context->detailOwner);
+            candidate.getAttributes().setMaterialUsesObjectLocalPoint(
+                context->materialUsesObjectLocalPoint);
+        }
+        if (++updated == newCount) {
+            break;
+        }
+    }
+}
+
 } // namespace
 
 int
@@ -1163,20 +1194,23 @@ ParametricBiCubicPatch::doIntersectionForAllRayCrossings(
     const int sizeBefore = depthQueue->size();
     const int result = ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
         this, ray, depthQueue);
-    if (materialOverride == nullptr) {
-        return result;
-    }
+    applyPatchAttributes(
+        this, depthQueue, depthQueue->size() - sizeBefore, materialOverride, nullptr);
+    return result;
+}
 
-    const int newCount = depthQueue->size() - sizeBefore;
-    int updated = 0;
-    for (IntersectionCandidate &candidate : *depthQueue) {
-        if (candidate.getAttributes().getHitGeometry() == this) {
-            candidate.getAttributes().setMaterial(materialOverride);
-            if (++updated == newCount) {
-                break;
-            }
-        }
-    }
+int
+ParametricBiCubicPatch::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    const int sizeBefore = depthQueue->size();
+    const int result = ParametricBiCubicSolver::allParametricBiCubicPatchIntersections(
+        this, ray, depthQueue);
+    applyPatchAttributes(
+        this, depthQueue, depthQueue->size() - sizeBefore,
+        context.materialOverride, &context);
     return result;
 }
 

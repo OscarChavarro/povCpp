@@ -5,6 +5,18 @@
 #include "environment/geometry/element/PovRayHit.h"
 #include "environment/geometry/Geometry.h"
 
+namespace {
+void
+applyAnnotatedEmissionContext(
+    IntersectionCandidate &candidate,
+    const GeometryIntersectionEmissionContext &context)
+{
+    IntersectionAttributes &attributes = candidate.getAttributes();
+    attributes.pushDetailOwner(context.detailOwner);
+    attributes.setMaterialUsesObjectLocalPoint(context.materialUsesObjectLocalPoint);
+}
+}
+
 bool
 Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out)
 {
@@ -17,6 +29,38 @@ Geometry::doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &ou
     }
     ray->getIntersectionQueuePool()->push(depthQueue);
     return hit;
+}
+
+int
+Geometry::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    if (depthQueue->size() == 0) {
+        const int found =
+            doIntersectionForAllRayCrossings(ray, depthQueue, context.materialOverride);
+        if (!found || depthQueue->size() == 0) {
+            return found;
+        }
+        for (IntersectionCandidate &candidate : *depthQueue) {
+            applyAnnotatedEmissionContext(candidate, context);
+        }
+        return found;
+    }
+
+    java::PriorityQueue<IntersectionCandidate> * const freshQueue =
+        ray->getIntersectionQueuePool()->pop(128);
+    const int found =
+        doIntersectionForAllRayCrossings(ray, freshQueue, context.materialOverride);
+    if (found && freshQueue->size() > 0) {
+        for (IntersectionCandidate &candidate : *freshQueue) {
+            applyAnnotatedEmissionContext(candidate, context);
+            depthQueue->offer(candidate);
+        }
+    }
+    ray->getIntersectionQueuePool()->push(freshQueue);
+    return found;
 }
 
 void
