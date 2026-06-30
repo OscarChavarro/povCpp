@@ -15,20 +15,138 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
+#include "render/BakedCompositeTracing.h"
+#include "render/BakedSimpleBodyTracing.h"
+#include "render/BakedTracingCommon.h"
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
+
+namespace {
+bool
+rayIntersectsAabbBefore(
+    const RayWithSegments &ray, const AxisAlignedBox &box, double maxT)
+{
+    const Vector3Dd origin = ray.getOrigin();
+    const Vector3Dd direction = ray.getDirection();
+    double tMin = 0.0;
+    double tMax = maxT;
+
+    auto updateAxis = [&](double originCoord, double directionCoord,
+                          double minCoord, double maxCoord) -> bool {
+        if (directionCoord > -1e-12 && directionCoord < 1e-12) {
+            return originCoord >= minCoord && originCoord <= maxCoord;
+        }
+        const double invDir = 1.0 / directionCoord;
+        double nearT = (minCoord - originCoord) * invDir;
+        double farT = (maxCoord - originCoord) * invDir;
+        if (nearT > farT) {
+            const double tmp = nearT;
+            nearT = farT;
+            farT = tmp;
+        }
+        tMin = nearT > tMin ? nearT : tMin;
+        tMax = farT < tMax ? farT : tMax;
+        return tMin <= tMax;
+    };
+
+    return
+        updateAxis(origin.x(), direction.x(), box.min.x(), box.max.x()) &&
+        updateAxis(origin.y(), direction.y(), box.min.y(), box.max.y()) &&
+        updateAxis(origin.z(), direction.z(), box.min.z(), box.max.z()) &&
+        tMax >= 0.0;
+}
+
+bool
+canUseCsgFirstHitForShadow(
+    const Scene::CompiledTracingObject &entry,
+    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies)
+{
+    return
+        entry.bakedSimpleBodyIndex >= 0 &&
+        bakedSimpleBodies[entry.bakedSimpleBodyIndex].bakedCsgIndex >= 0;
+}
+
+bool
+traceShadowObject(
+    const Scene::CompiledTracingObject &entry,
+    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
+    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
+    const java::ArrayList<Scene::BakedComposite> &bakedComposites,
+    RayWithSegments *lightSourceRay,
+    java::PriorityQueue<IntersectionCandidate> *localDepthQueue,
+    double lightSourceDepth,
+    ColorRgba *lightColor,
+    const TraceService *traceService)
+{
+    if (!lightSourceRay->getConfig()->withFilteredShadows() &&
+        canUseCsgFirstHitForShadow(entry, bakedSimpleBodies)) {
+        IntersectionCandidate firstHit;
+        if (!BakedTracingCommon::traceObjectFirstHit(
+                entry,
+                bakedSimpleBodies,
+                bakedCsgs,
+                bakedComposites,
+                lightSourceRay,
+                firstHit)) {
+            return false;
+        }
+
+        const double t = firstHit.getIntersection().t;
+        if (t > SHADOW_TOLERANCE &&
+            t < lightSourceDepth - Config::SMALL_TOLERANCE &&
+            !firstHit.getAttributes().getNoShadowFlag()) {
+            return true;
+        }
+    }
+
+    BakedTracingCommon::traceObjectAllCrossings(
+        entry,
+        bakedSimpleBodies,
+        bakedCsgs,
+        bakedComposites,
+        lightSourceRay,
+        localDepthQueue);
+
+    while (localDepthQueue->size() > 0) {
+        IntersectionCandidate localIntersection = localDepthQueue->poll();
+        const double t = localIntersection.getIntersection().t;
+        if (t >= lightSourceDepth - Config::SMALL_TOLERANCE ||
+            t <= SHADOW_TOLERANCE) {
+            continue;
+        }
+
+        if (localIntersection.getAttributes().getNoShadowFlag()) {
+            continue;
+        }
+
+        if (!lightSourceRay->getConfig()->withFilteredShadows()) {
+            localDepthQueue->clear();
+            return true;
+        }
+
+        if (ShadowShader::shade(&localIntersection, lightColor,
+                localDepthQueue, traceService)) {
+            return true;
+        }
+    }
+    return false;
+}
+}
 
 void
 DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *intersectionPoint,
     const RayWithSegments *eye, const Vector3Dd *surfaceNormal, const ColorRgba *surfaceColor,
     ColorRgba *color, double attenuation, const TraceService *traceService,
-    const java::ArrayList<Light*> &lightSources, const java::ArrayList<SimpleBody*> &objects)
+    const java::ArrayList<Light*> &lightSources,
+    const java::ArrayList<Scene::CompiledTracingObject> &boundedTracingObjects,
+    const java::ArrayList<Scene::CompiledTracingObject> &unboundedTracingObjects,
+    const java::ArrayList<Scene::BakedComposite> &bakedComposites,
+    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
+    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies)
 {
     double lightSourceDepth;
     RayWithSegments lightSourceRay;
-    SimpleBody *blockingObject;
     bool intersectionFound;
-    IntersectionCandidate localIntersection;
     Vector3Dd rEye;
     ColorRgba lightColor(0.0, 0.0, 0.0, 0.0);
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue;
@@ -66,29 +184,47 @@ DirectLightShader::shade(const PovRayMaterial *texture, const Vector3Dd *interse
         // What objects does this ray intersect?
         if (eye->getConfig()->withShadows()) {
             Statistics &stats = *eye->getStatistics();
-            for (long int i = objects.size() - 1; i >= 0; i--) {
-                blockingObject = objects[i];
+            for (long int i = boundedTracingObjects.size() - 1; i >= 0; i--) {
+                const Scene::CompiledTracingObject &entry = boundedTracingObjects[i];
+                if (entry.bounded &&
+                    !rayIntersectsAabbBefore(
+                        lightSourceRay,
+                        entry.bounds,
+                        lightSourceDepth - Config::SMALL_TOLERANCE)) {
+                    continue;
+                }
 
                 stats.incrementShadowRayTests();
-                blockingObject->doIntersectionForAllRayCrossings(&lightSourceRay, localDepthQueue);
-                while (localDepthQueue->size() > 0) {
-                    localIntersection = localDepthQueue->poll();
-
-                    if ((localIntersection.getIntersection().t <
-                            lightSourceDepth - Config::SMALL_TOLERANCE) &&
-                        (localIntersection.getIntersection().t > SHADOW_TOLERANCE)) {
-
-                        // Does the object not cast a shadow?
-                        if (!localIntersection.getAttributes().getNoShadowFlag()) {
-                            if (ShadowShader::shade(&localIntersection, &lightColor,
-                                    localDepthQueue, traceService)) {
-                                intersectionFound = true;
-                                break;
-                            }
-                        }
-                    }
+                if (traceShadowObject(
+                    entry,
+                    bakedSimpleBodies,
+                    bakedCsgs,
+                    bakedComposites,
+                    &lightSourceRay,
+                    localDepthQueue,
+                    lightSourceDepth,
+                    &lightColor,
+                    traceService)) {
+                    intersectionFound = true;
+                    break;
                 }
-                if (intersectionFound) {
+            }
+            for (long int i = unboundedTracingObjects.size() - 1;
+                !intersectionFound && i >= 0;
+                i--) {
+                const Scene::CompiledTracingObject &entry = unboundedTracingObjects[i];
+                stats.incrementShadowRayTests();
+                if (traceShadowObject(
+                    entry,
+                    bakedSimpleBodies,
+                    bakedCsgs,
+                    bakedComposites,
+                    &lightSourceRay,
+                    localDepthQueue,
+                    lightSourceDepth,
+                    &lightColor,
+                    traceService)) {
+                    intersectionFound = true;
                     break;
                 }
             }

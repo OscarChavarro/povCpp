@@ -1,7 +1,7 @@
 #ifndef __LOCAL_SURFACE_SHADER__
 #define __LOCAL_SURFACE_SHADER__
 
-#include "environment/scene/SimpleBody.h"
+#include "environment/scene/Scene.h"
 #include "environment/geometry/element/IntersectionCandidate.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/light/Light.h"
@@ -17,7 +17,11 @@ public:
         IntersectionCandidate *rayIntersection, ColorRgba *surfaceColor,
         const ColorRgba *filterColor, ColorRgba *color,
         const TraceService *traceService, const java::ArrayList<Light*> &lightSources,
-        const java::ArrayList<SimpleBody*> &objects,
+        const java::ArrayList<Scene::CompiledTracingObject> &boundedShadowTracingObjects,
+        const java::ArrayList<Scene::CompiledTracingObject> &unboundedShadowTracingObjects,
+        const java::ArrayList<Scene::BakedComposite> &bakedComposites,
+        const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
+        const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
         int &traceLevel, TextureUtils *textureUtils);
 };
 

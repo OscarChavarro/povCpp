@@ -9,6 +9,11 @@
 #include "environment/geometry/element/RayOperationOwner.h"
 #include "environment/geometry/element/RayWithSegments.h"
 #include "environment/material/Material.h"
+#include "environment/geometry/volume/Blob.h"
+#include "environment/geometry/volume/Box.h"
+#include "environment/geometry/volume/HeightField.h"
+#include "environment/geometry/volume/Quadric.h"
+#include "environment/geometry/volume/Sphere.h"
 
 class CsgOperand : public RayOperationOwner {
   private:
@@ -16,6 +21,10 @@ class CsgOperand : public RayOperationOwner {
     Material *material = nullptr;
     Matrix4x4d *transformation = nullptr;
     Matrix4x4d *transformationInverse = nullptr;
+    mutable bool bakedBoundsValid = false;
+    mutable AxisAlignedBox bakedBounds = AxisAlignedBox::unbounded();
+    mutable bool bakedBoundsBounded = false;
+    mutable bool bakedBoundsCullSafe = false;
 
     void ensureMatrices()
     {
@@ -23,6 +32,80 @@ class CsgOperand : public RayOperationOwner {
             transformation = new Matrix4x4d(Matrix4x4d::identityMatrix());
             transformationInverse = new Matrix4x4d(Matrix4x4d::identityMatrix());
         }
+    }
+
+    void invalidateBakedBounds()
+    {
+        bakedBoundsValid = false;
+        bakedBounds = AxisAlignedBox::unbounded();
+        bakedBoundsBounded = false;
+        bakedBoundsCullSafe = false;
+    }
+
+    void ensureBakedBounds() const
+    {
+        if (bakedBoundsValid) {
+            return;
+        }
+        if (geometry == nullptr) {
+            bakedBounds = AxisAlignedBox::unbounded();
+            bakedBoundsBounded = false;
+            bakedBoundsValid = true;
+            return;
+        }
+
+        bakedBounds = geometry->getMinMax();
+        if (transformation != nullptr && !bakedBounds.isUnbounded()) {
+            bakedBounds = AxisAlignedBox::fromTransformedCorners(
+                bakedBounds.min, bakedBounds.max, transformation);
+        }
+        if (!bakedBounds.isUnbounded()) {
+            const Vector3Dd padding(1e-6, 1e-6, 1e-6);
+            bakedBounds.min = bakedBounds.min.subtract(padding);
+            bakedBounds.max = bakedBounds.max.add(padding);
+        }
+        bakedBoundsBounded = !bakedBounds.isUnbounded();
+        bakedBoundsCullSafe =
+            bakedBoundsBounded &&
+            (dynamic_cast<Sphere *>(geometry) != nullptr ||
+             dynamic_cast<Box *>(geometry) != nullptr ||
+             dynamic_cast<Blob *>(geometry) != nullptr ||
+             dynamic_cast<Quadric *>(geometry) != nullptr ||
+             dynamic_cast<HeightField *>(geometry) != nullptr);
+        bakedBoundsValid = true;
+    }
+
+    static bool rayIntersectsAabbForward(
+        const RayWithSegments &ray, const AxisAlignedBox &box)
+    {
+        const Vector3Dd origin = ray.getOrigin();
+        const Vector3Dd direction = ray.getDirection();
+        double tMin = 0.0;
+        double tMax = 1e30;
+
+        auto updateAxis = [&](double originCoord, double directionCoord,
+                              double minCoord, double maxCoord) -> bool {
+            if (directionCoord > -1e-12 && directionCoord < 1e-12) {
+                return originCoord >= minCoord && originCoord <= maxCoord;
+            }
+            const double invDir = 1.0 / directionCoord;
+            double nearT = (minCoord - originCoord) * invDir;
+            double farT = (maxCoord - originCoord) * invDir;
+            if (nearT > farT) {
+                const double tmp = nearT;
+                nearT = farT;
+                farT = tmp;
+            }
+            tMin = nearT > tMin ? nearT : tMin;
+            tMax = farT < tMax ? farT : tMax;
+            return tMin <= tMax;
+        };
+
+        return
+            updateAxis(origin.x(), direction.x(), box.min.x(), box.max.x()) &&
+            updateAxis(origin.y(), direction.y(), box.min.y(), box.max.y()) &&
+            updateAxis(origin.z(), direction.z(), box.min.z(), box.max.z()) &&
+            tMax >= 0.0;
     }
 
   public:
@@ -72,6 +155,16 @@ class CsgOperand : public RayOperationOwner {
     {
         return material != nullptr ? material : materialOverride;
     }
+    const AxisAlignedBox &getBakedBounds() const
+    {
+        ensureBakedBounds();
+        return bakedBounds;
+    }
+    bool hasBoundedBakedBounds() const
+    {
+        ensureBakedBounds();
+        return bakedBoundsBounded;
+    }
 
     int doIntersectionForAllRayCrossings(
         RayWithSegments *ray,
@@ -79,6 +172,11 @@ class CsgOperand : public RayOperationOwner {
         Material *materialOverride)
     {
         if (geometry == nullptr) {
+            return false;
+        }
+        ensureBakedBounds();
+        if (bakedBoundsBounded && bakedBoundsCullSafe &&
+            !rayIntersectsAabbForward(*ray, bakedBounds)) {
             return false;
         }
 
@@ -141,15 +239,7 @@ class CsgOperand : public RayOperationOwner {
 
     AxisAlignedBox getMinMax() const
     {
-        if (geometry == nullptr) {
-            return AxisAlignedBox::unbounded();
-        }
-        AxisAlignedBox box = geometry->getMinMax();
-        if (transformation != nullptr && !box.isUnbounded()) {
-            return AxisAlignedBox::fromTransformedCorners(
-                box.min, box.max, transformation);
-        }
-        return box;
+        return getBakedBounds();
     }
 
     void translate(Vector3Dd *vector);

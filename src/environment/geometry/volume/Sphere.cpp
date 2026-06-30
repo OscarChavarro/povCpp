@@ -113,6 +113,65 @@ Sphere::doIntersectionForAllRayCrossings(
 }
 
 int
+Sphere::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    double depth1;
+    double depth2;
+    Sphere * const shape = this;
+
+    if (!Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    IntersectionCandidate localElement;
+    localElement.getAttributes().setHitGeometry(shape);
+    localElement.getAttributes().setMaterial(context.materialOverride);
+    localElement.getAttributes().pushDetailOwner(context.detailOwner);
+    localElement.getAttributes().setMaterialUsesObjectLocalPoint(
+        context.materialUsesObjectLocalPoint);
+
+    localElement.getIntersection().t = depth1;
+    localElement.getIntersection().point =
+        ray->getDirection().multiply(depth1).add(ray->getOrigin());
+    depthQueue->offer(localElement);
+
+    if (depth2 != depth1) {
+        localElement.getIntersection().t = depth2;
+        localElement.getIntersection().point =
+            ray->getDirection().multiply(depth2).add(ray->getOrigin());
+        depthQueue->offer(localElement);
+    }
+
+    return true;
+}
+
+bool
+Sphere::doIntersectionFirstHitNoQueue(
+    RayWithSegments *ray,
+    IntersectionCandidate &out,
+    Material *materialOverride)
+{
+    double depth1;
+    double depth2;
+    Sphere * const shape = this;
+
+    if (!Sphere::intersectSphere(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    const double nearestDepth = depth1 < depth2 ? depth1 : depth2;
+    out.getIntersection().t = nearestDepth;
+    out.getIntersection().point =
+        ray->getDirection().multiply(nearestDepth).add(ray->getOrigin());
+    out.getAttributes().setHitGeometry(shape);
+    out.getAttributes().setMaterial(materialOverride);
+    return true;
+}
+
+int
 Sphere::doContainmentTest(const Vector3Dd &testPoint, double distanceTolerance)
 {
     Vector3Dd q;

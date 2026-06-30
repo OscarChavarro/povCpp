@@ -53,6 +53,27 @@ InfinitePlane::doIntersectionForAllRayCrossings(
     return (false);
 }
 
+bool
+InfinitePlane::doIntersectionFirstHitNoQueue(
+    RayWithSegments *ray,
+    IntersectionCandidate &out,
+    Material *materialOverride)
+{
+    InfinitePlane * const shape = this;
+    double depth;
+    if (!InfinitePlane::intersectPlane(ray, shape, &depth) ||
+        depth <= Config::SMALL_TOLERANCE) {
+        return false;
+    }
+
+    out.getIntersection().t = depth;
+    out.getIntersection().point =
+        ray->getDirection().multiply(depth).add(ray->getOrigin());
+    out.getAttributes().setHitGeometry(shape);
+    out.getAttributes().setMaterial(materialOverride);
+    return true;
+}
+
 int
 InfinitePlane::intersectPlane(
     RayWithSegments *ray, InfinitePlane *plane, double *depth)

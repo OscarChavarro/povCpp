@@ -301,10 +301,11 @@ This formula can now be solved for "t" by any of the quartic
 root solvers that are available.
 */
 int
-Blob::doIntersectionForAllRayCrossings(
+Blob::traceCrossings(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *materialOverride)
+    Material *materialOverride,
+    const GeometryIntersectionEmissionContext *context)
 {
     Blob * const blob = this;
     IntersectionCandidate localElement;
@@ -458,7 +459,13 @@ Blob::doIntersectionForAllRayCrossings(
                     localElement.getIntersection().t = len;
                     localElement.getIntersection().point = intersectionPoint;
                     localElement.getAttributes().setHitGeometry(blob);
-                    localElement.getAttributes().setMaterial(materialOverride);
+                    localElement.getAttributes().setMaterial(
+                        context != nullptr ? context->materialOverride : materialOverride);
+                    if (context != nullptr) {
+                        localElement.getAttributes().pushDetailOwner(context->detailOwner);
+                        localElement.getAttributes().setMaterialUsesObjectLocalPoint(
+                            context->materialUsesObjectLocalPoint);
+                    }
                     depthQueue->offer(localElement);
                     intersectionFound = true;
                 }
@@ -469,6 +476,24 @@ Blob::doIntersectionForAllRayCrossings(
         stats.incrementRayBlobTestsSucceeded();
     }
     return intersectionFound;
+}
+
+int
+Blob::doIntersectionForAllRayCrossings(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    Material *materialOverride)
+{
+    return traceCrossings(ray, depthQueue, materialOverride, nullptr);
+}
+
+int
+Blob::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    return traceCrossings(ray, depthQueue, context.materialOverride, &context);
 }
 
 /**

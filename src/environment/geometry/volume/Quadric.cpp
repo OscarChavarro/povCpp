@@ -88,6 +88,64 @@ Quadric::doIntersectionForAllRayCrossings(
 }
 
 int
+Quadric::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    Quadric * const shape = this;
+    double depth1;
+    double depth2;
+
+    if (!Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    IntersectionCandidate localElement;
+    localElement.getAttributes().setHitGeometry(shape);
+    localElement.getAttributes().setMaterial(context.materialOverride);
+    localElement.getAttributes().pushDetailOwner(context.detailOwner);
+    localElement.getAttributes().setMaterialUsesObjectLocalPoint(
+        context.materialUsesObjectLocalPoint);
+
+    localElement.getIntersection().t = depth1;
+    localElement.getIntersection().point =
+        ray->getDirection().multiply(depth1).add(ray->getOrigin());
+    depthQueue->offer(localElement);
+
+    if (depth2 != depth1) {
+        localElement.getIntersection().t = depth2;
+        localElement.getIntersection().point =
+            ray->getDirection().multiply(depth2).add(ray->getOrigin());
+        depthQueue->offer(localElement);
+    }
+
+    return true;
+}
+
+bool
+Quadric::doIntersectionFirstHitNoQueue(
+    RayWithSegments *ray,
+    IntersectionCandidate &out,
+    Material *materialOverride)
+{
+    Quadric * const shape = this;
+    double depth1;
+    double depth2;
+    if (!Quadric::intersectQuadric(ray, shape, &depth1, &depth2)) {
+        return false;
+    }
+
+    const double nearestDepth = depth1 < depth2 ? depth1 : depth2;
+    out.getIntersection().t = nearestDepth;
+    out.getIntersection().point =
+        ray->getDirection().multiply(nearestDepth).add(ray->getOrigin());
+    out.getAttributes().setHitGeometry(shape);
+    out.getAttributes().setMaterial(materialOverride);
+    return true;
+}
+
+int
 Quadric::intersectQuadric(
     RayWithSegments *ray, Quadric *shape, double *depth1, double *depth2)
 {
@@ -240,6 +298,58 @@ void *
 Quadric::copy()
 {
     return new Quadric(*this);
+}
+
+AxisAlignedBox
+Quadric::getMinMax() const
+{
+    const double a11 = object2Terms.x();
+    const double a22 = object2Terms.y();
+    const double a33 = object2Terms.z();
+    const double a12 = objectMixedTerms.x() * 0.5;
+    const double a13 = objectMixedTerms.y() * 0.5;
+    const double a23 = objectMixedTerms.z() * 0.5;
+
+    const double minor1 = a11;
+    const double minor2 = a11 * a22 - a12 * a12;
+    const double det =
+        a11 * (a22 * a33 - a23 * a23) -
+        a12 * (a12 * a33 - a23 * a13) +
+        a13 * (a12 * a23 - a22 * a13);
+    if (minor1 <= 1e-12 || minor2 <= 1e-12 || det <= 1e-12) {
+        return AxisAlignedBox::unbounded();
+    }
+
+    const double invDet = 1.0 / det;
+    const double inv11 = (a22 * a33 - a23 * a23) * invDet;
+    const double inv12 = (a13 * a23 - a12 * a33) * invDet;
+    const double inv13 = (a12 * a23 - a13 * a22) * invDet;
+    const double inv22 = (a11 * a33 - a13 * a13) * invDet;
+    const double inv23 = (a12 * a13 - a11 * a23) * invDet;
+    const double inv33 = (a11 * a22 - a12 * a12) * invDet;
+
+    const Vector3Dd linear = objectTerms;
+    const Vector3Dd center(
+        -0.5 * (inv11 * linear.x() + inv12 * linear.y() + inv13 * linear.z()),
+        -0.5 * (inv12 * linear.x() + inv22 * linear.y() + inv23 * linear.z()),
+        -0.5 * (inv13 * linear.x() + inv23 * linear.y() + inv33 * linear.z()));
+    const Vector3Dd aCenter(
+        a11 * center.x() + a12 * center.y() + a13 * center.z(),
+        a12 * center.x() + a22 * center.y() + a23 * center.z(),
+        a13 * center.x() + a23 * center.y() + a33 * center.z());
+    const double radiusSquared = center.dotProduct(aCenter) - objectConstant;
+    if (radiusSquared <= 1e-12 ||
+        inv11 <= 0.0 || inv22 <= 0.0 || inv33 <= 0.0) {
+        return AxisAlignedBox::unbounded();
+    }
+
+    const Vector3Dd extent(
+        java::Math::sqrt(radiusSquared * inv11),
+        java::Math::sqrt(radiusSquared * inv22),
+        java::Math::sqrt(radiusSquared * inv33));
+    return AxisAlignedBox{
+        center.subtract(extent),
+        center.add(extent)};
 }
 
 void

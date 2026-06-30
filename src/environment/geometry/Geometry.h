@@ -10,6 +10,13 @@
 
 class IntersectionCandidate;
 class PovRayHit;
+class RayOperationOwner;
+
+struct GeometryIntersectionEmissionContext {
+    Material *materialOverride = nullptr;
+    RayOperationOwner *detailOwner = nullptr;
+    bool materialUsesObjectLocalPoint = false;
+};
 
 class Geometry {
   public:
@@ -21,8 +28,23 @@ class Geometry {
         RayWithSegments *ray,
         java::PriorityQueue<IntersectionCandidate> *depthQueue,
         Material *materialOverride = nullptr) { (void)ray; (void)depthQueue; (void)materialOverride; return 0; }
+    virtual int doIntersectionForAllRayCrossingsAnnotated(
+        RayWithSegments *ray,
+        java::PriorityQueue<IntersectionCandidate> *depthQueue,
+        const GeometryIntersectionEmissionContext &context);
+    virtual bool hasNativeAnnotatedCrossings() const { return false; }
     virtual Geometry *getWrappedGeometry() const { return nullptr; }
     bool doIntersectionFirstHit(RayWithSegments *ray, IntersectionCandidate &out);
+    virtual bool doIntersectionFirstHitNoQueue(
+        RayWithSegments *ray,
+        IntersectionCandidate &out,
+        Material *materialOverride = nullptr)
+    {
+        (void)ray;
+        (void)out;
+        (void)materialOverride;
+        return false;
+    }
     virtual int doContainmentTest(const Vector3Dd &point, double distanceTolerance) { (void)point; (void)distanceTolerance; return OUTSIDE; }
     virtual void normal(Vector3Dd *result, Vector3Dd *intersectionPoint) {}
     virtual void normal(

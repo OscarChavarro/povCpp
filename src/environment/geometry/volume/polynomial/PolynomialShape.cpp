@@ -168,6 +168,90 @@ PolynomialShape::doIntersectionForAllRayCrossings(
     return (intersectionFound);
 }
 
+int
+PolynomialShape::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    PolynomialShape * const shape = this;
+    double depths[PolynomialSolver::MAX_ORDER];
+    double len;
+    Vector3Dd intersectionPoint;
+    Vector3Dd dv;
+    IntersectionCandidate localElement;
+    int cnt;
+    int i;
+    int j;
+    bool intersectionFound;
+    RayWithSegments newRay;
+
+    if (shape->transformation != nullptr) {
+        newRay.setOriginAndDirection(
+            shape->transformationInverse->transformPoint(ray->getOrigin()),
+            shape->transformationInverse->transformDirection(ray->getDirection()));
+    } else {
+        newRay.setOriginAndDirection(
+            Vector3Dd(ray->getOrigin().x(), ray->getOrigin().y(), ray->getOrigin().z()),
+            Vector3Dd(ray->getDirection().x(), ray->getDirection().y(), ray->getDirection().z()));
+    }
+    newRay.setShadowRay(ray->isShadowRayEnabled());
+    newRay.setStatistics(ray->getStatistics());
+    newRay.setConfig(ray->getConfig());
+    newRay.setIntersectionQueuePool(ray->getIntersectionQueuePool());
+
+    len = java::Math::sqrt(newRay.getDirection().x() * newRay.getDirection().x() +
+               newRay.getDirection().y() * newRay.getDirection().y() +
+               newRay.getDirection().z() * newRay.getDirection().z());
+    if (len == 0.0) {
+        return 0;
+    }
+    newRay.setDirection(Vector3Dd(newRay.getDirection().x() / len,
+        newRay.getDirection().y() / len, newRay.getDirection().z() / len));
+
+    intersectionFound = false;
+    Statistics &stats = *ray->getStatistics();
+    stats.incrementRayPolyTests();
+    if (shape->order == 4) {
+        cnt = PolynomialShape::intersectQuartic(&newRay, shape, depths);
+    } else {
+        cnt = PolynomialShape::intersect(
+            &newRay, shape->order, shape->Coeffs, &depths[0]);
+    }
+
+    if (cnt > 0) {
+        stats.incrementRayPolyTestsSucceeded();
+    }
+    for (i = 0; i < cnt; i++) {
+        if (depths[i] < 0) {
+            goto l0;
+        }
+        for (j = 0; j < i; j++) {
+            if (depths[i] == depths[j]) {
+                goto l0;
+            }
+        }
+        intersectionPoint = newRay.getDirection().multiply(depths[j]);
+        intersectionPoint = intersectionPoint.add(newRay.getOrigin());
+        if (shape->transformation != nullptr) {
+            intersectionPoint = shape->transformation->transformPoint(intersectionPoint);
+        }
+        dv = intersectionPoint.subtract(ray->getOrigin());
+        len = dv.length();
+        localElement.getIntersection().t = len;
+        localElement.getIntersection().point = intersectionPoint;
+        localElement.getAttributes().setHitGeometry(shape);
+        localElement.getAttributes().setMaterial(context.materialOverride);
+        localElement.getAttributes().pushDetailOwner(context.detailOwner);
+        localElement.getAttributes().setMaterialUsesObjectLocalPoint(
+            context.materialUsesObjectLocalPoint);
+        depthQueue->offer(localElement);
+        intersectionFound = true;
+    l0:;
+    }
+    return (intersectionFound);
+}
+
 // Given the powers return the index into the polynomial
 int
 PolynomialShape::roll(int order, int x, int y, int z)

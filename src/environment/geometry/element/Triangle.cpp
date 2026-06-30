@@ -163,6 +163,36 @@ Triangle::doIntersectionForAllRayCrossings(
 }
 
 int
+Triangle::doIntersectionForAllRayCrossingsAnnotated(
+    RayWithSegments *ray,
+    java::PriorityQueue<IntersectionCandidate> *depthQueue,
+    const GeometryIntersectionEmissionContext &context)
+{
+    Triangle * const shape = this;
+    double depth;
+    IntersectionCandidate localElement;
+
+    if (shape->degenerateFlag) {
+        return false;
+    }
+
+    if (!intersectTriangle(ray, shape, &depth)) {
+        return false;
+    }
+
+    localElement.getIntersection().t = depth;
+    localElement.getIntersection().point =
+        ray->getDirection().multiply(depth).add(ray->getOrigin());
+    localElement.getAttributes().setHitGeometry(shape);
+    localElement.getAttributes().setMaterial(context.materialOverride);
+    localElement.getAttributes().pushDetailOwner(context.detailOwner);
+    localElement.getAttributes().setMaterialUsesObjectLocalPoint(
+        context.materialUsesObjectLocalPoint);
+    depthQueue->offer(localElement);
+    return true;
+}
+
+int
 Triangle::intersectTriangle(
     RayWithSegments *ray, Triangle *triangle, double *depth)
 {
