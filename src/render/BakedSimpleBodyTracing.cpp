@@ -186,9 +186,8 @@ BakedSimpleBodyTracing::traceFirstHit(
     }
 
     const bool canUseGeometryFirstHit =
-        baked.bakedCsgIndex < 0 &&
-        baked.boundingObjects.size() == 0 &&
-        !baked.hasClippingShapes;
+        baked.executionKind == Scene::BakedSimpleBodyExecutionKind::DirectPrimitive ||
+        baked.executionKind == Scene::BakedSimpleBodyExecutionKind::TransformedPrimitive;
 
     auto traceInObjectSpace = [&](RayWithSegments *objectRayPtr) -> bool {
 

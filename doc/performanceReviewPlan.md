@@ -1324,6 +1324,247 @@ Phase-20 result on 2026-07-01:
 Decision:
 keep `ParametricBiCubicPatch` native annotated emission. Phase 20 is complete.
 
+### Phase 21: Make `SingleCorePlaneIntersection` use its core operand
+
+Target:
+`BakedCsgTracing::traceSingleCorePlaneIntersection` currently receives a
+`coreIndex` selected during scene compilation, but the traversal still scans
+every operand generically and discards the index. This leaves an accepted
+specialization behaving mostly like the generic Morgan intersection path.
+
+Plan:
+
+- validate the baked `coreIndex` before using the specialized path
+- trace the single non-plane core operand explicitly
+- keep plane operand candidates, because clipping planes can still be visible
+  CSG boundaries
+- use core-first membership checks for plane candidates and plane-only checks
+  for core candidates
+- preserve candidate emission order unless a benchmark proves the order change
+  is exact across the full image gate
+
+Risks:
+
+- plane candidates can be real visible caps; removing them is not safe
+- changing containment-test order can expose tolerance-sensitive one-pixel
+  differences
+- any fallback for malformed baked data must preserve the generic Morgan
+  behavior
+
+Exit criterion:
+`drums` should show a measurable reduction in the single-core plane
+intersection path, with no new broad image differences.
+
+Phase-21 first pass:
+
+- `traceSingleCorePlaneIntersection` now validates and uses the baked
+  `coreIndex`
+- the traversal keeps plane candidates, but routes membership checks through a
+  core-first helper for plane candidates and a plane-only helper for core
+  candidates
+- `drums` at `320x200` measured `11.11`, `11.16`, `11.08` seconds
+- comparison against the previous current `drums` image stayed exact:
+  `AE=0`
+- comparison against the older baked baseline stayed at the known small delta:
+  `AE=71`
+
+Decision:
+keep the change. It is a small but safe improvement and makes the specialization
+match its baked classification data.
+
+### Phase 22: Reduce local-ray clone pressure
+
+Target:
+`drums` still reports very high `RayWithSegments::LocalIntersectionClone`
+traffic in baked CSG traversal.
+
+Plan:
+
+- introduce a lighter local-ray representation or resettable scratch ray for
+  operand-space transforms
+- avoid copying material/detail containers when a transformed operand only
+  needs origin, direction, and cached quadric state
+- keep the current full clone for paths that really need segment/material
+  container inheritance
+
+Risks:
+
+- refraction and material-stack behavior depend on the full `RayWithSegments`
+  state in some paths
+- a lighter ray must not silently drop data required by nested CSG or shading
+
+Exit criterion:
+local-ray clone counts fall materially in `gprof`, and the fixed panel plus
+`drums` keep the accepted image profile.
+
+Rejected first pass:
+
+- tried a reusable local-ray scratch stack inside `BakedCsgTracing` so
+  transformed operands could reset `RayWithSegments` instances instead of
+  constructing `LocalIntersectionClone` on the stack for every operand
+- added a reset method that copied origin, direction, `t`, flags, statistics,
+  configuration, and queue-pool ownership while leaving containing-media stacks
+  empty, matching the existing intersection-only clone semantics
+- the change compiled and kept the known `drums` baseline delta at `AE=71`
+- performance regressed: `drums` at `320x200` measured `12.08`, `12.15`,
+  `12.11` seconds, worse than the Phase-21 mean of about `11.12s`
+
+Decision:
+do not keep the reusable local-ray scratch stack. The heap-allocated scratch
+objects and borrow/return bookkeeping cost more than the already-cheap stack
+clone. A future Phase 22 attempt should avoid both allocation and extra
+bookkeeping, or target a narrower clone site proven hot by `gprof`.
+
+### Phase 23: Share CSG scratch queues from baked simple-body traversal
+
+Target:
+`BakedSimpleBodyTracing` still borrows temporary queues directly from
+`PriorityQueuePool` before entering baked CSG. That bypasses the reusable
+`CsgScratchContext` used inside `BakedCsgTracing`.
+
+Plan:
+
+- pass a scratch context from the outer baked simple-body crossing path into
+  CSG traversal
+- reuse the same scratch queue stack for object, geometry, and nested CSG
+  crossing work
+- keep queue clearing explicit at every borrow/return boundary
+
+Risks:
+
+- stale candidates in a reused queue can create hard-to-debug CSG artifacts
+- recursive CSG needs strict stack discipline or overflow fallback behavior
+
+Exit criterion:
+queue-pool traffic falls again in `gprof` without changing candidate ordering
+or image stability.
+
+Rejected first pass:
+
+- exposed the baked CSG scratch context so `BakedSimpleBodyTracing` could borrow
+  its local CSG result queue from the same reusable queue stack used inside
+  `BakedCsgTracing`
+- also routed baked CSG first-hit calls through the shared context
+- the change compiled and preserved image stability on `drums`: `AE=0` against
+  the previous current image and the known `AE=71` against the older baked
+  baseline
+- performance regressed: `drums` at `320x200` measured `11.74`, `11.76`,
+  `11.75` seconds, worse than the Phase-21 mean of about `11.12s`
+
+Decision:
+do not keep outer simple-body ownership of the CSG scratch context. The extra
+API boundary and context-management work outweighed any saved queue-pool
+traffic for `drums`. Retry Phase 23 only if a future profile shows a specific
+outer `pop/push` site dominating again.
+
+### Phase 24: Add a transformed simple-operand fast path
+
+Target:
+Transformed primitive CSG operands still pay for local scratch queues and
+candidate transfer even when they are not nested CSG nodes.
+
+Plan:
+
+- start with transformed simple primitives that already have native annotated
+  emission
+- intersect in operand-local space, transform candidates back, and emit into
+  the destination queue directly when ownership and point-space semantics are
+  proven equivalent
+- keep nested CSG and transformed planes on their current specialized paths
+  until they have separate correctness proof
+
+Risks:
+
+- material coordinate space and `doExtraInformation` owner stacks are fragile
+- previous transformed operand pre-baking experiments caused full-suite image
+  failures, so this must be narrower and easier to audit
+
+Exit criterion:
+the path reduces scratch queue transfer in `drums` while keeping `cantelop`,
+`pacman`, `kscope`, `pencil`, and the full gate inside the accepted AE profile.
+
+Rejected first pass:
+
+- tried routing transformed, non-nested, non-plane operands through native
+  annotated emission when `hasNativeAnnotatedCrossings()` was true
+- the local scratch queue was still required so candidate points and `t` could
+  be transformed back to the parent ray space, but the post-transfer
+  owner/material-space annotation pass could be skipped
+- first implementation measured `drums` at `11.18`, `11.28`, `11.23` seconds
+- after removing a per-candidate virtual `hasNativeAnnotatedCrossings()` check,
+  the variant measured `11.15`, `11.19`, `11.18` seconds
+- both variants were exact against the previous current `drums` image
+  (`AE=0`) and preserved the known `AE=71` delta against the older baked
+  baseline
+
+Decision:
+do not keep this transformed native-annotation path. It is visually safe, but
+the timing remains neutral relative to Phase 21 and does not reduce the core
+scratch queue / candidate-transfer cost. A future Phase 24 attempt must avoid
+the local scratch queue entirely or target a more specific transformed operand
+pattern.
+
+### Phase 25: Resolve the `drums` baseline image delta
+
+Target:
+The older baked baseline and the current scene-owned baked layer differ by
+`AE=71` at `320x200`. That is small, but it weakens performance comparisons
+because it means the two paths are not strictly identical.
+
+Plan:
+
+- localize the differing pixels in `drums`
+- identify whether they come from CSG containment tolerance, candidate ordering,
+  normal/detail reconstruction, or material point-space handling
+- fix only if the root cause is a real semantic drift; otherwise document why
+  the older baked branch is not an exact target for those pixels
+
+Risks:
+
+- chasing tiny numerical differences can consume time without improving the
+  performance target
+- changing tolerances globally can destabilize much larger parts of the suite
+
+Exit criterion:
+either `drums` becomes exact against the older baked baseline, or the remaining
+delta has a documented semantic explanation and does not mask timing work.
+
+Phase-25 result:
+
+- generated a direct pixel comparison between
+  `4af1a75e5b7356600bec34e12a4882560994a058` and the current Phase-21 code
+  using `drums` at `320x200`
+- the delta remains exactly the known `AE=71`, with
+  `RMSE=344.851 (0.00526208)`
+- the 71 differing pixels are sparse and non-contiguous; their bounding box is
+  `(26,35)-(294,178)`, and `70` of `71` have a mirrored counterpart around the
+  scene center
+- the differences are not just channel-rounding noise:
+  `10` pixels have Manhattan RGB delta `<=3`, `20` are in `4..30`, and `41`
+  are larger than `30`
+- render statistics also differ in the same narrow area of behavior:
+  baseline reports `141879` total rays and `46899` reflected rays, while the
+  current code reports `141821` total rays and `46841` reflected rays; the
+  transmitted-ray count stays identical at `30980`
+- visual inspection of an enlarged diff overlay shows isolated points on drum
+  silhouettes, small highlights, and CSG/edge details rather than a coherent
+  lighting or texture region
+
+Interpretation:
+the older baked branch and the scene-owned baked branch are not byte-identical
+on a tiny set of CSG/edge pixels. The current evidence points to hit
+classification / candidate ordering at reflective boundary pixels: a different
+surface choice on those pixels changes whether a reflection ray is spawned,
+which explains the exact `58`-ray drop in both total rays and reflected rays.
+This is not a global material, color, gamma, or image-output difference.
+
+Decision:
+do not change tolerances or CSG selection logic just to force `AE=0` against
+the older baked branch. The remaining `AE=71` is documented as a narrow
+semantic drift between two baked implementations and should not block
+performance work unless a later change increases the delta or turns it into a
+structured heatmap.
+
 Practical sequencing note:
 because the current worktree already contains the simplest scene-entry broad
 phase that measured well, the next iteration should not spend more time on
@@ -1362,6 +1603,11 @@ changes that were plausible locally but wrong globally.
 | Phase 18: Blob annotated emission | Complete | Added native annotated emission for `Blob` through a shared `traceCrossings` path; targeted blob scene was exact and full gate matched accepted AE pattern. |
 | Phase 19: HeightField annotated emission | Complete | Added native annotated emission for `HeightField` through a shared traversal path; targeted height-field scenes were exact and full gate matched accepted AE pattern. |
 | Phase 20: Parametric patch annotated emission | Complete | Added native annotated emission for `ParametricBiCubicPatch`; targeted patch scenes were exact and full gate matched accepted AE pattern. |
+| Phase 21: `SingleCorePlaneIntersection` core operand | Complete for first pass | `coreIndex` is now used explicitly; `drums` improved to an `11.12s` mean and stayed exact against the previous current image. |
+| Phase 22: local-ray clone pressure | Pending after rejected first pass | Reusable local-ray scratch inside `BakedCsgTracing` regressed `drums`; retry only with a narrower or allocation-free clone reduction. |
+| Phase 23: baked simple-body CSG scratch sharing | Pending after rejected first pass | Sharing CSG scratch ownership from `BakedSimpleBodyTracing` regressed `drums`; retry only if a future profile shows the outer queue site dominating again. |
+| Phase 24: transformed simple-operand fast path | Pending after rejected first pass | Native annotated emission for transformed simple operands was exact but timing-neutral; retry only with a design that removes the local scratch queue or targets a specific transformed operand pattern. |
+| Phase 25: `drums` baseline image delta | Complete as analysis | The persistent `AE=71` is sparse, mirrored, and tied to reflected-ray count changes at CSG/edge pixels; do not chase exactness unless future changes enlarge or structure the delta. |
 
 ### Current measured panel
 

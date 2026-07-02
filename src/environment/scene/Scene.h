@@ -14,6 +14,7 @@
 class Composite;
 class ConstructiveSolidGeometry;
 class CsgOperand;
+class Quadric;
 
 class Scene {
   public:
@@ -24,6 +25,17 @@ class Scene {
         bool castsShadow = true;
         int bakedSimpleBodyIndex = -1;
         int bakedCompositeIndex = -1;
+    };
+
+    enum class BakedSimpleBodyExecutionKind {
+        Empty,
+        DirectPrimitive,
+        TransformedPrimitive,
+        BoundedOrClippedPrimitive,
+        DirectCsg,
+        TransformedCsg,
+        BoundedOrClippedCsg,
+        GenericFallback,
     };
 
     struct BakedSimpleBody {
@@ -46,6 +58,8 @@ class Scene {
         bool hasGeometryTransform = false;
         bool hasBoundingShapes = false;
         bool hasClippingShapes = false;
+        BakedSimpleBodyExecutionKind executionKind =
+            BakedSimpleBodyExecutionKind::Empty;
         java::ArrayList<CompiledTracingObject> boundingObjects;
         java::ArrayList<CompiledTracingObject> clippingObjects;
     };
@@ -62,9 +76,32 @@ class Scene {
         SingleCorePlaneIntersection,
     };
 
+    enum class BakedCsgExecutionPlanKind {
+        GenericMorgan,
+        GenericRaySegments,
+        TopLevelPlaneUnion,
+        DisjointBoundedUnion,
+        SingleCorePlaneIntersection,
+        Fallback,
+    };
+
+    enum class BakedCsgOperandExecutionKind {
+        Empty,
+        DirectAnnotatedPrimitive,
+        DirectPrimitive,
+        DirectPlane,
+        TransformedPlane,
+        NestedCsg,
+        TransformedNestedCsg,
+        TransformedQuadric,
+        TransformedPrimitive,
+        GenericFallback,
+    };
+
     struct BakedCsgOperand {
         CsgOperand *operand = nullptr;
         Geometry *geometry = nullptr;
+        Quadric *quadricGeometry = nullptr;
         Material *material = nullptr;
         int bakedCsgIndex = -1;
         AxisAlignedBox bakedBounds = AxisAlignedBox::unbounded();
@@ -76,15 +113,32 @@ class Scene {
         bool isInfinitePlane = false;
         Vector3Dd planeNormal = Vector3Dd(0.0, 1.0, 0.0);
         double planeDistance = 0.0;
+        mutable double planeVpNormDotOrigin = 0.0;
+        mutable bool planeVpCached = false;
+        BakedCsgOperandExecutionKind executionKind =
+            BakedCsgOperandExecutionKind::Empty;
+        bool compiledTransformedNestedCorePlane = false;
+        int compiledNestedCoreOperandIndex = -1;
+        bool compiledNestedCoreDirectQuadric = false;
+        bool compiledNestedCoreTransformedQuadric = false;
+        java::ArrayList<int> compiledNestedPlaneOperandIndices;
+        java::ArrayList<int> compiledNestedContainmentOperandIndices;
     };
 
     struct BakedConstructiveSolidGeometry {
         ConstructiveSolidGeometry *geometry = nullptr;
         BakedCsgAlgorithm algorithm = BakedCsgAlgorithm::MorganRules;
         BakedCsgSpecialization specialization = BakedCsgSpecialization::None;
+        BakedCsgExecutionPlanKind executionPlanKind =
+            BakedCsgExecutionPlanKind::Fallback;
         BooleanSetOperations geometryType = BooleanSetOperations::UNION;
         bool topLevel = false;
+        bool specializationValid = false;
         int specializationCoreOperandIndex = -1;
+        java::ArrayList<int> executionPlanPlaneOperandIndices;
+        java::ArrayList<int> executionPlanNestedOperandIndices;
+        java::ArrayList<int> executionPlanTransformedPrimitiveOperandIndices;
+        java::ArrayList<int> executionPlanDirectPrimitiveOperandIndices;
         java::ArrayList<BakedCsgOperand> operands;
     };
 
@@ -154,6 +208,7 @@ class Scene {
     void setObjects(const java::ArrayList<SimpleBody*> &objects)
     {
         Objects = objects;
+        compiledTracingSceneFinalized = false;
         rebuildTracingStructures();
     }
     const java::ArrayList<TracingObjectEntry>& getBoundedTracingObjects() const
@@ -203,6 +258,8 @@ class Scene {
     void rebuildTracingStructures();
     void buildTracingCache();
     void buildCompiledTracingScene();
+    void finalizeCompiledTracingScene();
+    bool isCompiledTracingSceneFinalized() const { return compiledTracingSceneFinalized; }
     void resetForSceneParse(double antialiasThreshold = DEFAULT_ANTIALIAS_THRESHOLD);
 
     // The scene's default texture is aliased (not cloned) into every untextured
@@ -230,6 +287,7 @@ class Scene {
     java::ArrayList<TracingObjectEntry> boundedTracingObjects;
     java::ArrayList<SimpleBody*> unboundedTracingObjects;
     CompiledTracingScene compiledTracingScene;
+    bool compiledTracingSceneFinalized = false;
 };
 
 #endif
