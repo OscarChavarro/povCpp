@@ -8,79 +8,80 @@
 #include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/RaySegments.h"
-#include "render/BakedCsgTracing.h"
+#include "render/bakedScene/BakedCsgTracing.h"
+#include "render/bakedScene/CsgScratchContext.h"
 
-namespace {
-struct CsgScratchContext {
-    static constexpr int MAX_SCRATCH_QUEUES = 8;
 
-    java::PriorityQueue<IntersectionCandidate> *queues[MAX_SCRATCH_QUEUES] = {};
-    int used = 0;
-    RayWithSegments *ownerRay = nullptr;
 
-    java::PriorityQueue<IntersectionCandidate> *borrowQueue()
-    {
-        if (used >= MAX_SCRATCH_QUEUES) {
-            return ownerRay->getIntersectionQueuePool()->pop(128);
-        }
-        if (queues[used] == nullptr) {
-            queues[used] = ownerRay->getIntersectionQueuePool()->pop(128);
-        }
-        java::PriorityQueue<IntersectionCandidate> *queue = queues[used++];
-        queue->clear();
-        return queue;
-    }
 
-    void returnQueue(java::PriorityQueue<IntersectionCandidate> *queue)
-    {
-        queue->clear();
-        if (used > 0 && queues[used - 1] == queue) {
-            used--;
-            return;
-        }
-        ownerRay->getIntersectionQueuePool()->push(queue);
-    }
-};
 
-bool traceAllCrossingsWithScratch(
-    const Scene::BakedConstructiveSolidGeometry &bakedCsg,
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-    CsgScratchContext &scratch,
-    RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *materialOverride);
 
-bool traceFirstHitWithScratch(
-    const Scene::BakedConstructiveSolidGeometry &bakedCsg,
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-    CsgScratchContext &scratch,
-    RayWithSegments *ray,
-    IntersectionCandidate &out,
-    Material *materialOverride);
 
-int traceSingleCorePlaneIntersection(
-    const Scene::BakedConstructiveSolidGeometry &bakedCsg,
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-    CsgScratchContext &scratch,
-    RayWithSegments *ray,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *materialOverride,
-    long int coreIndex);
 
-bool canUseCompiledSingleCorePlanePlan(
-    const Scene::BakedConstructiveSolidGeometry &bakedCsg,
-    long int coreIndex);
 
-bool traceTransformedNestedSingleCorePlaneOperandAllCrossings(
-    const Scene::BakedCsgOperand &parentOperand,
-    const Scene::BakedConstructiveSolidGeometry &nestedCsg,
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-    RayWithSegments *parentRay,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue,
-    Material *materialOverride);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 bool
-rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
+BakedCsgTracing::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
 {
     const Vector3Dd origin = ray.getOrigin();
     const Vector3Dd direction = ray.getDirection();
@@ -113,7 +114,7 @@ rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
 }
 
 bool
-pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolerance)
+BakedCsgTracing::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolerance)
 {
     return
         point.x() >= box.min.x() - tolerance &&
@@ -125,7 +126,7 @@ pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolera
 }
 
 bool
-intersectBakedPlane(
+BakedCsgTracing::intersectBakedPlane(
     const Scene::BakedCsgOperand &operand,
     RayWithSegments *ray,
     const Vector3Dd &origin,
@@ -168,7 +169,7 @@ intersectBakedPlane(
 }
 
 int
-planeContainmentTest(
+BakedCsgTracing::planeContainmentTest(
     const Scene::BakedCsgOperand &operand,
     const Vector3Dd &point,
     double distanceTolerance)
@@ -179,13 +180,13 @@ planeContainmentTest(
 }
 
 void
-mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
+BakedCsgTracing::mixVectorTerms(Vector3Dd &a, const Vector3Dd &b, const Vector3Dd &c)
 {
     a = Vector3Dd(b.x() * c.y(), b.x() * c.z(), b.y() * c.z());
 }
 
 bool
-intersectBakedQuadric(
+BakedCsgTracing::intersectBakedQuadric(
     const Quadric &shape,
     RayWithSegments *ray,
     const Vector3Dd &origin,
@@ -222,9 +223,23 @@ intersectBakedQuadric(
     linearTerm += shape.getObjectTerms().dotProduct(direction);
     linearTerm += shape.getObjectMixedTerms().dotProduct(mixedPositionDirection);
 
-    double constantTerm = shape.getObject2Terms().dotProduct(position2);
-    constantTerm += shape.getObjectTerms().dotProduct(origin);
-    constantTerm += shape.getObjectConstant();
+    double constantTermWithoutMixed;
+    if (ray->isPrimaryRayEnabled()) {
+        if (!shape.isConstantCached()) {
+            constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
+            constantTermWithoutMixed += shape.getObjectTerms().dotProduct(origin);
+            constantTermWithoutMixed += shape.getObjectConstant();
+            shape.setObjectVpConstant(constantTermWithoutMixed);
+            shape.setConstantCached(true);
+        } else {
+            constantTermWithoutMixed = shape.getObjectVpConstant();
+        }
+    } else {
+        constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
+        constantTermWithoutMixed += shape.getObjectTerms().dotProduct(origin);
+        constantTermWithoutMixed += shape.getObjectConstant();
+    }
+    double constantTerm = constantTermWithoutMixed;
     constantTerm += shape.getObjectMixedTerms().dotProduct(mixedPositionPosition);
 
     if (squareTerm != 0.0) {
@@ -263,12 +278,109 @@ intersectBakedQuadric(
     return true;
 }
 
+// Like intersectBakedQuadric but also sets trueMiss=true when the discriminant indicates the
+// ray definitively misses the quadric (safe to skip plane candidate checks). Intended for the
+// hot path in traceTransformedNestedSingleCorePlaneOperandAllCrossings, where the three
+// polynomial coefficients (A/B/C) of intersectBakedQuadricWithCoeffs are not needed and
+// would add register pressure on every call.
+bool
+BakedCsgTracing::intersectBakedQuadricWithTrueMiss(
+    const Quadric &shape,
+    RayWithSegments *ray,
+    const Vector3Dd &origin,
+    const Vector3Dd &direction,
+    double *depth1,
+    double *depth2,
+    bool &trueMiss)
+{
+    Statistics &stats = *ray->getStatistics();
+    stats.incrementRayQuadricTests();
+
+    const Vector3Dd position2 = origin.multiply(origin);
+    const Vector3Dd direction2 = direction.multiply(direction);
+    const Vector3Dd positionDirection = origin.multiply(direction);
+    Vector3Dd mixedPositionPosition;
+    Vector3Dd mixedDirectionDirection;
+    Vector3Dd mixedPositionDirection;
+    Vector3Dd tempMixed;
+    mixVectorTerms(mixedPositionPosition, origin, origin);
+    mixVectorTerms(mixedDirectionDirection, direction, direction);
+    mixVectorTerms(tempMixed, origin, direction);
+    mixVectorTerms(mixedPositionDirection, direction, origin);
+    mixedPositionDirection = mixedPositionDirection.add(tempMixed);
+
+    trueMiss = false;
+
+    double squareTerm;
+    if (shape.hasNonZeroSquareTerm()) {
+        squareTerm = shape.getObject2Terms().dotProduct(direction2);
+        squareTerm += shape.getObjectMixedTerms().dotProduct(mixedDirectionDirection);
+    } else {
+        squareTerm = 0.0;
+    }
+
+    double linearTerm = shape.getObject2Terms().dotProduct(positionDirection);
+    linearTerm *= 2.0;
+    linearTerm += shape.getObjectTerms().dotProduct(direction);
+    linearTerm += shape.getObjectMixedTerms().dotProduct(mixedPositionDirection);
+
+    double constantTermWithoutMixed;
+    if (ray->isPrimaryRayEnabled()) {
+        if (!shape.isConstantCached()) {
+            constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
+            constantTermWithoutMixed += shape.getObjectTerms().dotProduct(origin);
+            constantTermWithoutMixed += shape.getObjectConstant();
+            shape.setObjectVpConstant(constantTermWithoutMixed);
+            shape.setConstantCached(true);
+        } else {
+            constantTermWithoutMixed = shape.getObjectVpConstant();
+        }
+    } else {
+        constantTermWithoutMixed = shape.getObject2Terms().dotProduct(position2);
+        constantTermWithoutMixed += shape.getObjectTerms().dotProduct(origin);
+        constantTermWithoutMixed += shape.getObjectConstant();
+    }
+    double constantTerm = constantTermWithoutMixed;
+    constantTerm += shape.getObjectMixedTerms().dotProduct(mixedPositionPosition);
+
+    if (squareTerm != 0.0) {
+        const double determinant2 = linearTerm * linearTerm - 4.0 * squareTerm * constantTerm;
+        if (determinant2 < 0.0) {
+            trueMiss = determinant2 < -4.0 * squareTerm * Config::SMALL_TOLERANCE;
+            return false;
+        }
+        const double determinant = java::Math::sqrt(determinant2);
+        const double a2 = squareTerm * 2.0;
+        const double bMinus = linearTerm * -1.0;
+        *depth1 = (bMinus + determinant) / a2;
+        *depth2 = (bMinus - determinant) / a2;
+    } else {
+        if (linearTerm == 0.0) {
+            return false;
+        }
+        *depth1 = constantTerm * -1.0 / linearTerm;
+        *depth2 = *depth1;
+    }
+
+    if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
+        if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+            return false;
+        }
+        *depth1 = *depth2;
+    } else if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+        *depth2 = *depth1;
+    }
+
+    stats.incrementRayQuadricTestsSucceeded();
+    return true;
+}
+
 // Like intersectBakedQuadric but also outputs the quadric polynomial coefficients A/B/C
 // (where Q(origin + t*direction) = A*t^2 + B*t + C) and sets trueMiss=true when the
 // discriminant is negative (ray definitively misses the quadric - safe to skip plane checks).
 // When trueMiss=false and the function returns false, the ray may be inside the quadric.
 bool
-intersectBakedQuadricWithCoeffs(
+BakedCsgTracing::intersectBakedQuadricWithCoeffs(
     const Quadric &shape,
     RayWithSegments *ray,
     const Vector3Dd &origin,
@@ -310,9 +422,23 @@ intersectBakedQuadricWithCoeffs(
     polyB += shape.getObjectTerms().dotProduct(direction);
     polyB += shape.getObjectMixedTerms().dotProduct(mixedPositionDirection);
 
-    polyC = shape.getObject2Terms().dotProduct(position2);
-    polyC += shape.getObjectTerms().dotProduct(origin);
-    polyC += shape.getObjectConstant();
+    double polyCWithoutMixed;
+    if (ray->isPrimaryRayEnabled()) {
+        if (!shape.isConstantCached()) {
+            polyCWithoutMixed = shape.getObject2Terms().dotProduct(position2);
+            polyCWithoutMixed += shape.getObjectTerms().dotProduct(origin);
+            polyCWithoutMixed += shape.getObjectConstant();
+            shape.setObjectVpConstant(polyCWithoutMixed);
+            shape.setConstantCached(true);
+        } else {
+            polyCWithoutMixed = shape.getObjectVpConstant();
+        }
+    } else {
+        polyCWithoutMixed = shape.getObject2Terms().dotProduct(position2);
+        polyCWithoutMixed += shape.getObjectTerms().dotProduct(origin);
+        polyCWithoutMixed += shape.getObjectConstant();
+    }
+    polyC = polyCWithoutMixed;
     polyC += shape.getObjectMixedTerms().dotProduct(mixedPositionPosition);
 
     if (polyA != 0.0) {
@@ -358,7 +484,7 @@ intersectBakedQuadricWithCoeffs(
 }
 
 void
-offerTransformedPrimitiveCandidate(
+BakedCsgTracing::offerTransformedPrimitiveCandidate(
     const Scene::BakedCsgOperand &operand,
     RayWithSegments *ray,
     Material *effectiveMaterial,
@@ -385,7 +511,7 @@ offerTransformedPrimitiveCandidate(
 }
 
 bool
-annotateDirectCandidates(
+BakedCsgTracing::annotateDirectCandidates(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     const Scene::BakedCsgOperand &operand)
 {
@@ -408,7 +534,7 @@ annotateDirectCandidates(
 }
 
 bool
-traceOperandAllCrossings(
+BakedCsgTracing::traceOperandAllCrossings(
     const Scene::BakedCsgOperand &operand,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -638,7 +764,7 @@ traceOperandAllCrossings(
 }
 
 int
-containmentTestOperand(
+BakedCsgTracing::containmentTestOperand(
     const Scene::BakedCsgOperand &operand,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     const Vector3Dd &point,
@@ -688,7 +814,7 @@ containmentTestOperand(
 }
 
 bool
-tracePlanOperandAllCrossings(
+BakedCsgTracing::tracePlanOperandAllCrossings(
     const Scene::BakedCsgOperand &operand,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -696,10 +822,10 @@ tracePlanOperandAllCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    if (!ray->isPrimaryRayEnabled() &&
-        operand.compiledTransformedNestedCorePlane &&
+    if (operand.compiledTransformedNestedCorePlane &&
         operand.bakedCsgIndex >= 0 &&
-        operand.bakedCsgIndex < bakedCsgs.size()) {
+        operand.bakedCsgIndex < bakedCsgs.size() &&
+        !ray->isPrimaryRayEnabled()) {
         Material *effectiveMaterial =
             operand.material != nullptr ? operand.material : materialOverride;
         return traceTransformedNestedSingleCorePlaneOperandAllCrossings(
@@ -721,7 +847,7 @@ tracePlanOperandAllCrossings(
 }
 
 RaySegments
-buildRaySegments(
+BakedCsgTracing::buildRaySegments(
     const Scene::BakedCsgOperand &operand,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -767,23 +893,26 @@ buildRaySegments(
     return RaySegments(crossings, initialInside);
 }
 
-static bool combineUnion(bool insideLeft, bool insideRight)
+bool
+BakedCsgTracing::combineUnion(bool insideLeft, bool insideRight)
 {
     return insideLeft || insideRight;
 }
 
-static bool combineIntersection(bool insideLeft, bool insideRight)
+bool
+BakedCsgTracing::combineIntersection(bool insideLeft, bool insideRight)
 {
     return insideLeft && insideRight;
 }
 
-static bool combineDifference(bool insideLeft, bool insideRight)
+bool
+BakedCsgTracing::combineDifference(bool insideLeft, bool insideRight)
 {
     return insideLeft && !insideRight;
 }
 
 RaySegments
-mergeByMembership(
+BakedCsgTracing::mergeByMembership(
     const RaySegments &left,
     const RaySegments &right,
     bool (*combine)(bool insideLeft, bool insideRight))
@@ -830,7 +959,7 @@ mergeByMembership(
 }
 
 int
-traceRaySegmentCsg(
+BakedCsgTracing::traceRaySegmentCsg(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -903,7 +1032,7 @@ traceRaySegmentCsg(
 }
 
 bool
-candidateInsideAllOtherOperands(
+BakedCsgTracing::candidateInsideAllOtherOperands(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     const Vector3Dd &point,
@@ -925,7 +1054,7 @@ candidateInsideAllOtherOperands(
 }
 
 bool
-candidateInsideOperandsCoreFirst(
+BakedCsgTracing::candidateInsideOperandsCoreFirst(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     const Vector3Dd &point,
@@ -958,7 +1087,7 @@ candidateInsideOperandsCoreFirst(
 }
 
 bool
-candidateInsideCompiledSingleCorePlaneOperands(
+BakedCsgTracing::candidateInsideCompiledSingleCorePlaneOperands(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     const Vector3Dd &point,
@@ -993,7 +1122,7 @@ candidateInsideCompiledSingleCorePlaneOperands(
 }
 
 bool
-candidateInsideCompiledNestedContainmentSequence(
+BakedCsgTracing::candidateInsideCompiledNestedContainmentSequence(
     const Scene::BakedCsgOperand &parentOperand,
     const Scene::BakedConstructiveSolidGeometry &nestedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
@@ -1022,7 +1151,7 @@ candidateInsideCompiledNestedContainmentSequence(
 // Inlined containment check for the compiled direct-quadric core + direct-plane descriptor.
 // Skips the containmentTestOperand switch for each check.
 bool
-candidateInsideDirectDescriptorOperands(
+BakedCsgTracing::candidateInsideDirectDescriptorOperands(
     const Scene::BakedCsgOperand &parentOperand,
     const Scene::BakedConstructiveSolidGeometry &nestedCsg,
     const Vector3Dd &point,
@@ -1058,7 +1187,7 @@ candidateInsideDirectDescriptorOperands(
 }
 
 bool
-tracePlaneOperandCandidate(
+BakedCsgTracing::tracePlaneOperandCandidate(
     const Scene::BakedCsgOperand &operand,
     RayWithSegments *ray,
     Material *materialOverride,
@@ -1129,7 +1258,7 @@ tracePlaneOperandCandidate(
 }
 
 bool
-tracePlaneOperandCandidateInRaySpace(
+BakedCsgTracing::tracePlaneOperandCandidateInRaySpace(
     const Scene::BakedCsgOperand &operand,
     RayWithSegments *statsRay,
     const Vector3Dd &rayOrigin,
@@ -1180,7 +1309,7 @@ tracePlaneOperandCandidateInRaySpace(
 }
 
 bool
-traceCompiledCoreOperandAllCrossings(
+BakedCsgTracing::traceCompiledCoreOperandAllCrossings(
     const Scene::BakedCsgOperand &operand,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -1276,7 +1405,7 @@ traceCompiledCoreOperandAllCrossings(
 }
 
 bool
-canUseCompiledSingleCorePlanePlan(
+BakedCsgTracing::canUseCompiledSingleCorePlanePlan(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     long int coreIndex)
 {
@@ -1291,7 +1420,7 @@ canUseCompiledSingleCorePlanePlan(
 }
 
 bool
-offerTransformedQuadricCoreCandidate(
+BakedCsgTracing::offerTransformedQuadricCoreCandidate(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     const Scene::BakedCsgOperand &coreOperand,
@@ -1335,7 +1464,7 @@ offerTransformedQuadricCoreCandidate(
 }
 
 bool
-traceTransformedQuadricCorePlaneIntersection(
+BakedCsgTracing::traceTransformedQuadricCorePlaneIntersection(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     RayWithSegments *ray,
@@ -1410,7 +1539,7 @@ traceTransformedQuadricCorePlaneIntersection(
 }
 
 void
-emitNestedCandidateToParentOperand(
+BakedCsgTracing::emitNestedCandidateToParentOperand(
     const Scene::BakedCsgOperand &parentOperand,
     RayWithSegments *parentRay,
     const Matrix4x4d &nestedToParent,
@@ -1430,7 +1559,7 @@ emitNestedCandidateToParentOperand(
 }
 
 bool
-makeTransformedQuadricCandidateInRaySpace(
+BakedCsgTracing::makeTransformedQuadricCandidateInRaySpace(
     const Scene::BakedCsgOperand &operand,
     RayWithSegments *statsRay,
     Material *effectiveMaterial,
@@ -1459,7 +1588,7 @@ makeTransformedQuadricCandidateInRaySpace(
 }
 
 bool
-makeDirectQuadricCandidateInRaySpace(
+BakedCsgTracing::makeDirectQuadricCandidateInRaySpace(
     const Scene::BakedCsgOperand &operand,
     Material *effectiveMaterial,
     const Vector3Dd &rayOrigin,
@@ -1482,7 +1611,7 @@ makeDirectQuadricCandidateInRaySpace(
 }
 
 bool
-traceTransformedNestedSingleCorePlaneOperandAllCrossings(
+BakedCsgTracing::traceTransformedNestedSingleCorePlaneOperandAllCrossings(
     const Scene::BakedCsgOperand &parentOperand,
     const Scene::BakedConstructiveSolidGeometry &nestedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
@@ -1526,20 +1655,20 @@ traceTransformedNestedSingleCorePlaneOperandAllCrossings(
     double depth2;
 
     if (directCoreQuadric != nullptr) {
-        // Direct-quadric path: use intersectBakedQuadricWithCoeffs to obtain the trueMiss
-        // flag and early-exit when the discriminant is negative (ray definitively misses
-        // the cylinder, ~89% of calls for drum shadow rays). This skips the plane candidate
-        // checks that would otherwise be performed even on a miss.
-        double polyA = 0, polyB = 0, polyC = 0;
+        // Direct-quadric path: use intersectBakedQuadricWithTrueMiss to detect ray misses
+        // early and skip plane candidate checks (~89% of calls for drum shadow rays miss
+        // the cylinder). intersectBakedQuadricWithCoeffs is intentionally NOT used here:
+        // it outputs polyA/polyB/polyC that are unused in this emitter, adding register
+        // pressure on every call. intersectBakedQuadricWithTrueMiss provides only the
+        // trueMiss flag without the unused output parameters.
         bool trueMiss = false;
-        const bool quadricHit = intersectBakedQuadricWithCoeffs(
+        const bool quadricHit = intersectBakedQuadricWithTrueMiss(
             *directCoreQuadric,
             parentRay,
             coreRayOrigin,
             coreRayDirection,
             &depth1,
             &depth2,
-            polyA, polyB, polyC,
             trueMiss);
 
         if (trueMiss) {
@@ -1659,7 +1788,7 @@ traceTransformedNestedSingleCorePlaneOperandAllCrossings(
 }
 
 int
-traceSingleCorePlaneIntersection(
+BakedCsgTracing::traceSingleCorePlaneIntersection(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -1814,7 +1943,7 @@ traceSingleCorePlaneIntersection(
 }
 
 int
-traceMorganIntersectionGeneric(
+BakedCsgTracing::traceMorganIntersectionGeneric(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -1822,6 +1951,31 @@ traceMorganIntersectionGeneric(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
+    // Pre-scan: if any positive-quadric (polyA>0) operand definitely misses the ray
+    // (trueMiss), all points along the ray are outside that operand. No crossing from
+    // any other operand can satisfy the containment check for it → the whole INTERSECTION
+    // produces no valid candidates. Early exit saves 3 operand evals per X_Tube miss.
+    for (long int i = 0; i < (long int)bakedCsg.operands.size(); i++) {
+        const Scene::BakedCsgOperand &op = bakedCsg.operands[i];
+        if (op.executionKind != Scene::BakedCsgOperandExecutionKind::TransformedQuadric ||
+            op.quadricGeometry == nullptr) {
+            continue;
+        }
+        const Vector3Dd localOrigin =
+            op.localToObject.transformPoint(ray->getOrigin());
+        const Vector3Dd localDirection =
+            op.localToObject.transformDirection(ray->getDirection());
+        double polyA = 0, polyB = 0, polyC = 0;
+        bool trueMiss = false;
+        double d1, d2;
+        intersectBakedQuadricWithCoeffs(
+            *op.quadricGeometry, ray, localOrigin, localDirection,
+            &d1, &d2, polyA, polyB, polyC, trueMiss);
+        if (trueMiss && polyA > 0.0) {
+            return false;
+        }
+    }
+
     java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
         scratch.borrowQueue();
     bool anyIntersectionFound = false;
@@ -1849,7 +2003,7 @@ traceMorganIntersectionGeneric(
 }
 
 int
-traceMorganIntersection(
+BakedCsgTracing::traceMorganIntersection(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -1878,7 +2032,7 @@ traceMorganIntersection(
 // Eliminates tracePlanOperandAllCrossings -> traceOperandAllCrossings dispatch
 // overhead for planes and direct primitives, which have no containment filtering.
 bool
-traceGenericMorganUnion(
+BakedCsgTracing::traceGenericMorganUnion(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -1968,7 +2122,7 @@ traceGenericMorganUnion(
 }
 
 int
-traceMorganCsg(
+BakedCsgTracing::traceMorganCsg(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -2003,7 +2157,7 @@ traceMorganCsg(
 }
 
 bool
-traceAllCrossingsWithScratch(
+BakedCsgTracing::traceAllCrossingsWithScratch(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -2020,7 +2174,7 @@ traceAllCrossingsWithScratch(
 }
 
 bool
-offerCompiledSingleCorePlaneFirstHitCandidate(
+BakedCsgTracing::offerCompiledSingleCorePlaneFirstHitCandidate(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     const IntersectionCandidate &candidate,
@@ -2047,7 +2201,7 @@ offerCompiledSingleCorePlaneFirstHitCandidate(
 }
 
 bool
-makeTransformedQuadricCandidate(
+BakedCsgTracing::makeTransformedQuadricCandidate(
     const Scene::BakedCsgOperand &operand,
     RayWithSegments *ray,
     Material *effectiveMaterial,
@@ -2077,7 +2231,7 @@ makeTransformedQuadricCandidate(
 }
 
 bool
-traceCompiledCoreFirstHitCandidates(
+BakedCsgTracing::traceCompiledCoreFirstHitCandidates(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -2187,7 +2341,7 @@ traceCompiledCoreFirstHitCandidates(
 }
 
 bool
-traceFirstHitCompiledSingleCorePlane(
+BakedCsgTracing::traceFirstHitCompiledSingleCorePlane(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -2236,7 +2390,7 @@ traceFirstHitCompiledSingleCorePlane(
 }
 
 bool
-traceFirstHitByIntersectionMembership(
+BakedCsgTracing::traceFirstHitByIntersectionMembership(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -2282,7 +2436,7 @@ traceFirstHitByIntersectionMembership(
 }
 
 bool
-traceFirstHitWithScratch(
+BakedCsgTracing::traceFirstHitWithScratch(
     const Scene::BakedConstructiveSolidGeometry &bakedCsg,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
     CsgScratchContext &scratch,
@@ -2326,7 +2480,7 @@ traceFirstHitWithScratch(
     scratch.returnQueue(depthQueue);
     return found;
 }
-}
+
 
 bool
 BakedCsgTracing::traceAllCrossings(
@@ -2336,8 +2490,7 @@ BakedCsgTracing::traceAllCrossings(
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride)
 {
-    CsgScratchContext scratch;
-    scratch.ownerRay = ray;
+    CsgScratchContext scratch(ray);
     const bool found = traceAllCrossingsWithScratch(
         bakedCsg,
         bakedCsgs,
@@ -2345,11 +2498,7 @@ BakedCsgTracing::traceAllCrossings(
         ray,
         depthQueue,
         materialOverride);
-    for (int i = CsgScratchContext::MAX_SCRATCH_QUEUES - 1; i >= 0; i--) {
-        if (scratch.queues[i] != nullptr) {
-            ray->getIntersectionQueuePool()->push(scratch.queues[i]);
-        }
-    }
+    scratch.releaseAll();
     return found;
 }
 
@@ -2361,8 +2510,7 @@ BakedCsgTracing::traceFirstHit(
     IntersectionCandidate &out,
     Material *materialOverride)
 {
-    CsgScratchContext scratch;
-    scratch.ownerRay = ray;
+    CsgScratchContext scratch(ray);
     const bool found = traceFirstHitWithScratch(
         bakedCsg,
         bakedCsgs,
@@ -2370,11 +2518,7 @@ BakedCsgTracing::traceFirstHit(
         ray,
         out,
         materialOverride);
-    for (int i = CsgScratchContext::MAX_SCRATCH_QUEUES - 1; i >= 0; i--) {
-        if (scratch.queues[i] != nullptr) {
-            ray->getIntersectionQueuePool()->push(scratch.queues[i]);
-        }
-    }
+    scratch.releaseAll();
     return found;
 }
 

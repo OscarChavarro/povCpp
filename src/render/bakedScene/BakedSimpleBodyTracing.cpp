@@ -3,13 +3,12 @@
 
 #include "common/Config.h"
 #include "environment/geometry/element/PriorityQueuePool.txx"
-#include "render/BakedCsgTracing.h"
-#include "render/BakedSimpleBodyTracing.h"
-#include "render/BakedTracingCommon.h"
+#include "render/bakedScene/BakedCsgTracing.h"
+#include "render/bakedScene/BakedSimpleBodyTracing.h"
+#include "render/bakedScene/BakedTracingCommon.h"
 
-namespace {
 bool
-finalizeCandidate(
+BakedSimpleBodyTracing::finalizeCandidate(
     const Scene::BakedSimpleBody &baked,
     const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
@@ -54,7 +53,7 @@ finalizeCandidate(
 }
 
 bool
-passesBoundingShapes(
+BakedSimpleBodyTracing::passesBoundingShapes(
     const Scene::BakedSimpleBody &baked,
     const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
@@ -82,8 +81,6 @@ passesBoundingShapes(
         }
     }
     return true;
-}
-
 }
 
 bool

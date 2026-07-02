@@ -3,12 +3,11 @@
 
 #include "common/Config.h"
 #include "environment/scene/Composite.h"
-#include "render/BakedCompositeTracing.h"
-#include "render/BakedTracingCommon.h"
+#include "render/bakedScene/BakedCompositeTracing.h"
+#include "render/bakedScene/BakedTracingCommon.h"
 
-namespace {
 bool
-rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
+BakedCompositeTracing::rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
 {
     const Vector3Dd origin = ray.getOrigin();
     const Vector3Dd direction = ray.getDirection();
@@ -41,7 +40,7 @@ rayIntersectsAabbForward(const RayWithSegments &ray, const AxisAlignedBox &box)
 }
 
 bool
-pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolerance)
+BakedCompositeTracing::pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolerance)
 {
     return
         point.x() >= box.min.x() - tolerance &&
@@ -51,16 +50,6 @@ pointInsideAabb(const Vector3Dd &point, const AxisAlignedBox &box, double tolera
         point.z() >= box.min.z() - tolerance &&
         point.z() <= box.max.z() + tolerance;
 }
-}
-
-static bool traceAllCrossingsInCompositeSpace(
-    const Scene::BakedComposite &bakedComposite,
-    const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
-    const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,
-    const java::ArrayList<Scene::BakedComposite> &bakedComposites,
-    RayWithSegments *ray,
-    RayWithSegments *compositeRayPtr,
-    java::PriorityQueue<IntersectionCandidate> *depthQueue);
 
 bool
 BakedCompositeTracing::traceAllCrossings(
@@ -106,8 +95,8 @@ BakedCompositeTracing::traceAllCrossings(
         depthQueue);
 }
 
-static bool
-traceAllCrossingsInCompositeSpace(
+bool
+BakedCompositeTracing::traceAllCrossingsInCompositeSpace(
     const Scene::BakedComposite &bakedComposite,
     const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
     const java::ArrayList<Scene::BakedConstructiveSolidGeometry> &bakedCsgs,

