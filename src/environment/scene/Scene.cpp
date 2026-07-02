@@ -55,6 +55,62 @@ copyOrIdentity(const Matrix4x4d *matrix)
     return matrix != nullptr ? Matrix4x4d(*matrix) : Matrix4x4d::identityMatrix();
 }
 
+Scene::BakedSimpleBodyExecutionKind
+classifyBakedSimpleBody(const Scene::BakedSimpleBody &baked)
+{
+    if (baked.geometry == nullptr) {
+        return Scene::BakedSimpleBodyExecutionKind::Empty;
+    }
+
+    const bool transformed =
+        baked.hasObjectTransform || baked.hasGeometryTransform;
+    const bool boundedOrClipped =
+        baked.hasBoundingShapes || baked.hasClippingShapes;
+
+    if (baked.bakedCsgIndex >= 0) {
+        if (boundedOrClipped) {
+            return Scene::BakedSimpleBodyExecutionKind::BoundedOrClippedCsg;
+        }
+        return transformed ?
+            Scene::BakedSimpleBodyExecutionKind::TransformedCsg :
+            Scene::BakedSimpleBodyExecutionKind::DirectCsg;
+    }
+
+    if (boundedOrClipped) {
+        return Scene::BakedSimpleBodyExecutionKind::BoundedOrClippedPrimitive;
+    }
+    return transformed ?
+        Scene::BakedSimpleBodyExecutionKind::TransformedPrimitive :
+        Scene::BakedSimpleBodyExecutionKind::DirectPrimitive;
+}
+
+Scene::BakedCsgOperandExecutionKind
+classifyBakedCsgOperand(const Scene::BakedCsgOperand &baked)
+{
+    if (baked.geometry == nullptr) {
+        return Scene::BakedCsgOperandExecutionKind::Empty;
+    }
+    if (baked.bakedCsgIndex >= 0) {
+        return baked.hasTransform ?
+            Scene::BakedCsgOperandExecutionKind::TransformedNestedCsg :
+            Scene::BakedCsgOperandExecutionKind::NestedCsg;
+    }
+    if (baked.isInfinitePlane) {
+        return baked.hasTransform ?
+            Scene::BakedCsgOperandExecutionKind::TransformedPlane :
+            Scene::BakedCsgOperandExecutionKind::DirectPlane;
+    }
+    if (baked.hasTransform) {
+        if (baked.quadricGeometry != nullptr) {
+            return Scene::BakedCsgOperandExecutionKind::TransformedQuadric;
+        }
+        return Scene::BakedCsgOperandExecutionKind::TransformedPrimitive;
+    }
+    return baked.geometry->hasNativeAnnotatedCrossings() ?
+        Scene::BakedCsgOperandExecutionKind::DirectAnnotatedPrimitive :
+        Scene::BakedCsgOperandExecutionKind::DirectPrimitive;
+}
+
 bool
 hasFiniteInteriorBounds(const Scene::BakedCsgOperand &operand)
 {
@@ -117,10 +173,12 @@ classifyBakedConstructiveSolidGeometry(
         }
         if (baked.topLevel && allPlanes) {
             baked.specialization = Scene::BakedCsgSpecialization::TopLevelPlaneUnion;
+            baked.specializationValid = true;
             return;
         }
         if (hasPairwiseDisjointFiniteOperands(baked.operands)) {
             baked.specialization = Scene::BakedCsgSpecialization::DisjointBoundedUnion;
+            baked.specializationValid = true;
         }
         return;
     }
@@ -145,7 +203,121 @@ classifyBakedConstructiveSolidGeometry(
         baked.specialization =
             Scene::BakedCsgSpecialization::SingleCorePlaneIntersection;
         baked.specializationCoreOperandIndex = coreIndex;
+        baked.specializationValid = true;
     }
+}
+
+void
+buildBakedCsgExecutionPlan(
+    Scene::BakedConstructiveSolidGeometry &baked,
+    const Scene::CompiledTracingScene &compiledScene)
+{
+    baked.executionPlanPlaneOperandIndices.clear();
+    baked.executionPlanNestedOperandIndices.clear();
+    baked.executionPlanTransformedPrimitiveOperandIndices.clear();
+    baked.executionPlanDirectPrimitiveOperandIndices.clear();
+
+    for (long int i = 0; i < baked.operands.size(); i++) {
+        Scene::BakedCsgOperand &operand = baked.operands[i];
+        operand.compiledTransformedNestedCorePlane = false;
+        operand.compiledNestedCoreOperandIndex = -1;
+        operand.compiledNestedCoreDirectQuadric = false;
+        operand.compiledNestedCoreTransformedQuadric = false;
+        operand.compiledNestedPlaneOperandIndices.clear();
+        operand.compiledNestedContainmentOperandIndices.clear();
+        switch (operand.executionKind) {
+        case Scene::BakedCsgOperandExecutionKind::DirectPlane:
+        case Scene::BakedCsgOperandExecutionKind::TransformedPlane:
+            baked.executionPlanPlaneOperandIndices.add((int)i);
+            break;
+        case Scene::BakedCsgOperandExecutionKind::NestedCsg:
+        case Scene::BakedCsgOperandExecutionKind::TransformedNestedCsg:
+            baked.executionPlanNestedOperandIndices.add((int)i);
+            if (operand.executionKind ==
+                    Scene::BakedCsgOperandExecutionKind::TransformedNestedCsg &&
+                operand.bakedCsgIndex >= 0 &&
+                operand.bakedCsgIndex < compiledScene.bakedCsgs.size()) {
+                const Scene::BakedConstructiveSolidGeometry &nestedCsg =
+                    compiledScene.bakedCsgs[operand.bakedCsgIndex];
+                const int coreIndex = nestedCsg.specializationCoreOperandIndex;
+                if (nestedCsg.executionPlanKind ==
+                        Scene::BakedCsgExecutionPlanKind::SingleCorePlaneIntersection &&
+                    nestedCsg.specializationValid &&
+                    coreIndex >= 0 &&
+                    coreIndex < nestedCsg.operands.size() &&
+                    nestedCsg.executionPlanPlaneOperandIndices.size() + 1 ==
+                        nestedCsg.operands.size()) {
+                    const Scene::BakedCsgOperand &coreOperand =
+                        nestedCsg.operands[coreIndex];
+                    const bool directQuadric =
+                        coreOperand.executionKind ==
+                            Scene::BakedCsgOperandExecutionKind::DirectAnnotatedPrimitive &&
+                        coreOperand.quadricGeometry != nullptr;
+                    const bool transformedQuadric =
+                        coreOperand.executionKind ==
+                            Scene::BakedCsgOperandExecutionKind::TransformedQuadric &&
+                        coreOperand.quadricGeometry != nullptr;
+                    if (directQuadric || transformedQuadric) {
+                        operand.compiledTransformedNestedCorePlane = true;
+                        operand.compiledNestedCoreOperandIndex = coreIndex;
+                        operand.compiledNestedCoreDirectQuadric = directQuadric;
+                        operand.compiledNestedCoreTransformedQuadric = transformedQuadric;
+                        operand.compiledNestedPlaneOperandIndices.reserve(
+                            nestedCsg.executionPlanPlaneOperandIndices.size());
+                        operand.compiledNestedContainmentOperandIndices.reserve(
+                            nestedCsg.executionPlanPlaneOperandIndices.size() + 1);
+                        operand.compiledNestedContainmentOperandIndices.add(coreIndex);
+                        for (long int p = 0;
+                             p < nestedCsg.executionPlanPlaneOperandIndices.size();
+                             p++) {
+                            const int planeOperandIndex =
+                                nestedCsg.executionPlanPlaneOperandIndices[p];
+                            operand.compiledNestedPlaneOperandIndices.add(
+                                planeOperandIndex);
+                            operand.compiledNestedContainmentOperandIndices.add(
+                                planeOperandIndex);
+                        }
+                    }
+                }
+            }
+            break;
+        case Scene::BakedCsgOperandExecutionKind::TransformedQuadric:
+        case Scene::BakedCsgOperandExecutionKind::TransformedPrimitive:
+            baked.executionPlanTransformedPrimitiveOperandIndices.add((int)i);
+            break;
+        case Scene::BakedCsgOperandExecutionKind::DirectAnnotatedPrimitive:
+        case Scene::BakedCsgOperandExecutionKind::DirectPrimitive:
+            baked.executionPlanDirectPrimitiveOperandIndices.add((int)i);
+            break;
+        case Scene::BakedCsgOperandExecutionKind::Empty:
+        case Scene::BakedCsgOperandExecutionKind::GenericFallback:
+            break;
+        }
+    }
+
+    if (baked.specializationValid) {
+        switch (baked.specialization) {
+        case Scene::BakedCsgSpecialization::TopLevelPlaneUnion:
+            baked.executionPlanKind =
+                Scene::BakedCsgExecutionPlanKind::TopLevelPlaneUnion;
+            return;
+        case Scene::BakedCsgSpecialization::DisjointBoundedUnion:
+            baked.executionPlanKind =
+                Scene::BakedCsgExecutionPlanKind::DisjointBoundedUnion;
+            return;
+        case Scene::BakedCsgSpecialization::SingleCorePlaneIntersection:
+            baked.executionPlanKind =
+                Scene::BakedCsgExecutionPlanKind::SingleCorePlaneIntersection;
+            return;
+        case Scene::BakedCsgSpecialization::None:
+            break;
+        }
+    }
+
+    baked.executionPlanKind =
+        baked.algorithm == Scene::BakedCsgAlgorithm::RaySegments ?
+            Scene::BakedCsgExecutionPlanKind::GenericRaySegments :
+            Scene::BakedCsgExecutionPlanKind::GenericMorgan;
 }
 
 Scene::CompiledTracingObject
@@ -215,6 +387,7 @@ bakeCsgOperand(
     baked.bakedBounds = operand->getBakedBounds();
     baked.bounded = operand->hasBoundedBakedBounds();
     baked.isInfinitePlane = dynamic_cast<InfinitePlane *>(baked.geometry) != nullptr;
+    baked.quadricGeometry = dynamic_cast<Quadric *>(baked.geometry);
     if (InfinitePlane *plane = dynamic_cast<InfinitePlane *>(baked.geometry)) {
         baked.planeNormal = plane->getNormalVector();
         baked.planeDistance = plane->getDistance();
@@ -234,6 +407,7 @@ bakeCsgOperand(
         baked.cullSafe = false;
         baked.isInfinitePlane = false;
     }
+    baked.executionKind = classifyBakedCsgOperand(baked);
     return baked;
 }
 
@@ -263,6 +437,7 @@ bakeConstructiveSolidGeometry(
         baked.operands.add(bakeCsgOperand(operands[i], compiledScene));
     }
     classifyBakedConstructiveSolidGeometry(baked);
+    buildBakedCsgExecutionPlan(baked, compiledScene);
     return baked;
 }
 
@@ -346,6 +521,7 @@ compileTracingObject(SimpleBody *object, Scene::CompiledTracingScene &compiledSc
             object->getClippingShapes(),
             compiledScene,
             baked.clippingObjects);
+        baked.executionKind = classifyBakedSimpleBody(baked);
         compiledScene.bakedSimpleBodies.set(entry.bakedSimpleBodyIndex, baked);
         return entry;
     }
@@ -426,6 +602,7 @@ Scene::buildTracingCache()
 void
 Scene::buildCompiledTracingScene()
 {
+    compiledTracingSceneFinalized = false;
     compiledTracingScene.objects.clear();
     compiledTracingScene.bakedSimpleBodies.clear();
     compiledTracingScene.bakedCsgs.clear();
@@ -472,6 +649,14 @@ Scene::buildCompiledTracingScene()
 }
 
 void
+Scene::finalizeCompiledTracingScene()
+{
+    buildCompiledTracingScene();
+    buildTracingCache();
+    compiledTracingSceneFinalized = true;
+}
+
+void
 Scene::resetForSceneParse(double antialiasThreshold)
 {
     viewPoint = defaultViewPoint();
@@ -488,6 +673,7 @@ Scene::resetForSceneParse(double antialiasThreshold)
     compiledTracingScene.shadowCastingObjects.clear();
     compiledTracingScene.boundedShadowCastingObjects.clear();
     compiledTracingScene.unboundedShadowCastingObjects.clear();
+    compiledTracingSceneFinalized = false;
     atmosphereIor = 1.0;
     this->antialiasThreshold = antialiasThreshold;
     setFog(blackFogColor(), 0.0);

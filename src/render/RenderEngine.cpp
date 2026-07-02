@@ -395,6 +395,8 @@ RenderEngine::checkStats(int y)
 void
 RenderEngine::initializeRenderer()
 {
+    BakedTracingCommon::resetFallbackCounters();
+
     const int w = this->getScene().getScreenWidth();
     const int h = this->getScene().getScreenHeight();
     destinationImage.allocate(w, h);

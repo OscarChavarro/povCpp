@@ -6,6 +6,15 @@
 #include "environment/scene/Scene.h"
 
 namespace BakedTracingCommon {
+struct FallbackCounters {
+    long firstHitObjectFallbacks = 0;
+    long allCrossingsObjectFallbacks = 0;
+    long containmentObjectFallbacks = 0;
+};
+
+void resetFallbackCounters();
+FallbackCounters getFallbackCounters();
+
 bool traceObjectFirstHit(
     const Scene::CompiledTracingObject &entry,
     const java::ArrayList<Scene::BakedSimpleBody> &bakedSimpleBodies,
