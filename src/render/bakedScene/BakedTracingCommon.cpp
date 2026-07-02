@@ -2,10 +2,10 @@
 
 #include <atomic>
 
-#include "render/BakedCsgTracing.h"
-#include "render/BakedCompositeTracing.h"
-#include "render/BakedSimpleBodyTracing.h"
-#include "render/BakedTracingCommon.h"
+#include "render/bakedScene/BakedCsgTracing.h"
+#include "render/bakedScene/BakedCompositeTracing.h"
+#include "render/bakedScene/BakedSimpleBodyTracing.h"
+#include "render/bakedScene/BakedTracingCommon.h"
 
 namespace {
 std::atomic<long> firstHitObjectFallbacks(0);

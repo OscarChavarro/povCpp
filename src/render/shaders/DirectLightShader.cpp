@@ -15,9 +15,9 @@
 #include "render/shaders/PhongSpecularShader.h"
 #include "render/shaders/ShadowShader.h"
 #include "render/shaders/TraceService.h"
-#include "render/BakedCompositeTracing.h"
-#include "render/BakedSimpleBodyTracing.h"
-#include "render/BakedTracingCommon.h"
+#include "render/bakedScene/BakedCompositeTracing.h"
+#include "render/bakedScene/BakedSimpleBodyTracing.h"
+#include "render/bakedScene/BakedTracingCommon.h"
 
 static constexpr double SHADOW_TOLERANCE = 0.05;
 

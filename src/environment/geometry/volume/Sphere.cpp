@@ -208,5 +208,3 @@ Sphere::getMinMax() const
 {
     return AxisAlignedBox{Vector3Dd(-1.0, -1.0, -1.0), Vector3Dd(1.0, 1.0, 1.0)};
 }
-
-#include "java/util/PriorityQueue.txx"

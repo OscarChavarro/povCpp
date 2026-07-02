@@ -32,9 +32,9 @@ class Quadric : public Geometry {
     double getObjectConstant() const { return objectConstant; }
     void setObjectConstant(double value) { objectConstant = value; }
     double getObjectVpConstant() const { return objectVpConstant; }
-    void setObjectVpConstant(double value) { objectVpConstant = value; }
+    void setObjectVpConstant(double value) const { objectVpConstant = value; }
     bool isConstantCached() const { return constantCached; }
-    void setConstantCached(bool value) { constantCached = value; }
+    void setConstantCached(bool value) const { constantCached = value; }
     bool hasNonZeroSquareTerm() const { return nonZeroSquareTerm; }
     void setNonZeroSquareTerm(bool value) { nonZeroSquareTerm = value; }
 
@@ -67,8 +67,8 @@ class Quadric : public Geometry {
     Vector3Dd objectMixedTerms;
     Vector3Dd objectTerms;
     double objectConstant;
-    double objectVpConstant;
-    bool constantCached;
+    mutable double objectVpConstant;
+    mutable bool constantCached;
     bool nonZeroSquareTerm;
 };
 #endif

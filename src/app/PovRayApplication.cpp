@@ -12,7 +12,7 @@
 #include "io/pov/context/ParserContext.h"
 #include "io/pov/material/LoadedImageRegistry.h"
 #include "io/pov/scene/SceneParser.h"
-#include "render/BakedTracingCommon.h"
+#include "render/bakedScene/BakedTracingCommon.h"
 #include "vsdk/toolkit/common/logging/Logger.h"
 
 void
