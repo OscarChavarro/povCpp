@@ -1,3 +1,6 @@
+#ifndef __PRIORITY_QUEUE_POOL_TXX__
+#define __PRIORITY_QUEUE_POOL_TXX__
+
 #include "vsdk/toolkit/common/logging/Logger.h"
 #include "environment/geometry/element/PriorityQueuePool.h"
 
@@ -46,7 +49,7 @@ PriorityQueuePool<T>::init()
 }
 
 template <class T>
-java::PriorityQueue<T> *
+inline java::PriorityQueue<T> *
 PriorityQueuePool<T>::pop(int indexSize)
 {
     if (indexSize >= MAX_NUMBER_OF_ENTRIES) {
@@ -68,7 +71,7 @@ PriorityQueuePool<T>::pop(int indexSize)
 }
 
 template <class T>
-void
+inline void
 PriorityQueuePool<T>::push(java::PriorityQueue<T> *queue)
 {
     if (queues == nullptr || queue < queues || queue >= queues + NUMBER_OF_PRIORITY_QUEUES) {
@@ -81,3 +84,5 @@ PriorityQueuePool<T>::push(java::PriorityQueue<T> *queue)
     nextFreeIndex[index] = headIndex;
     headIndex = index;
 }
+
+#endif

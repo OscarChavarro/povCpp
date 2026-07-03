@@ -1,3 +1,6 @@
+#ifndef __ARRAY_LIST_TXX__
+#define __ARRAY_LIST_TXX__
+
 #include "java/util/ArrayList.h"
 namespace java {
 
@@ -234,3 +237,5 @@ ArrayList<T>::clear() {
 }
 
 }
+
+#endif
