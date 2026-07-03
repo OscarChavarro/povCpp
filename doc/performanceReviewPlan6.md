@@ -1,0 +1,261 @@
+# Performance Review Plan 6: Full Rebuild of `render/bakedScene` Around a Truly Baked Model
+
+## Position in the Plan Sequence
+
+Second of six (Plans 5–10; see the sequence table in
+`doc/performanceReviewPlan5.md`). Requires Plan 5 completed: transformed
+quadric/sphere/plane operands already collapse to world-space baked copies,
+and `BakedGeometryBaker` exists.
+
+## Decision Being Executed
+
+Per the Plan 4 conclusions and the accepted decisions for this cycle:
+
+- The current `render/bakedScene` layer (`BakedCsgTracing`,
+  `BakedSimpleBodyTracing`, `BakedCompositeTracing`, `BakedTracingCommon`,
+  `CsgScratchContext`) **may be destroyed completely and re-implemented from
+  scratch**. It grew by accretion across Plans 1–3 into a trace-time
+  interpreter of routing metadata: 93 hot functions, per-ray `executionKind`
+  re-reads, per-ray effective-material re-resolution, 5–7 arguments per call
+  level.
+- The replacement must be a layer whose baked model **guarantees the math is
+  actually baked**: nothing that is constant across rays (transforms,
+  execution kinds, plan selection, effective materials, bounds, operand
+  ordering) is ever read, branched on, or resolved per ray. The baked model
+  is the *newly created coefficient rewriting* copy from Plan 5 plus
+  pre-resolved routing — not "routing metadata only".
+- The `environment/geometry` layer stays as it is. The decoupling between
+  geometry and baking is preserved: the new layer consumes `Geometry`
+  read-only and owns all baked state itself.
+- The parsed model in `environment/scene` remains the complete model that
+  `io` builds today. This plan **moves the `Baked*` structs out of
+  `Scene.h` into the rebuilt layer**, so `environment/scene` returns to
+  being the parsed-scene owner and `render/bakedScene` owns the baked
+  representation end to end. (`Scene.h:21-174` currently hosts
+  `CompiledTracingObject`, `BakedSimpleBody`, `BakedCsgOperand`,
+  `BakedConstructiveSolidGeometry`, `BakedComposite`,
+  `CompiledTracingScene` — all of that moves.)
+
+## Reference Commits and Benchmarks
+
+Identical to Plan 5 (baseline `4af1a75`, drums 320×200 primary, panel
+secondary, same gprof recipe — use `drums_plan6_*` output names). The gate
+reference state is the accepted-diff table produced at the end of Plan 5.
+
+## Design of the New Layer
+
+### Package layout
+
+```
+src/render/bakedScene/
+    BakedScene.h / .cpp          — the owned baked model + builder entry point
+    BakedGeometryBaker.h / .cpp  — carried over from Plan 5 unchanged
+    BakedSceneBuilder.h / .cpp   — parse-model → baked-model compilation
+    BakedTraceableObject.h       — one flat per-object record (see below)
+    BakedCsgProgram.h / .cpp     — compiled CSG operand tables + plan record
+    BakedTrace.h / .cpp          — the trace entry points RenderEngine calls
+    (Plan 8 will add per-plan fused kernels next to BakedTrace)
+```
+
+The old five files are deleted at cutover (Phase 5), not incrementally
+patched.
+
+### The core rule: one dispatch per (ray × object)
+
+Every constant-across-rays decision is resolved at build time into data:
+
+1. **`BakedTraceableObject`** — a flat record per top-level traceable:
+
+   ```cpp
+   struct BakedTraceableObject {
+       TraceKind kind;                 // read ONCE per (ray × object) at the
+                                       // single top-level switch — the only
+                                       // kind-branch on the hot path
+       const Geometry *geometry;       // world-space: parsed direct geometry
+                                       // or Plan 5 baked copy owned below
+       const Material *effectiveMaterial; // fully resolved at build time:
+                                       // object texture / geometry material /
+                                       // scene default — never re-resolved per ray
+       const ColorRgba *effectiveColor;
+       AxisAlignedBox worldBounds;     // by value, hot
+       bool bounded;
+       bool castsShadow;
+       int32_t csgProgramIndex;        // -1 unless kind == Csg
+       int32_t compositeIndex;         // -1 unless kind == Composite
+       // owned baked geometry copies (value storage, no pointer chase):
+       Quadric bakedQuadricStorage;    // valid when the geometry pointer
+                                       // points at it
+       ...
+   };
+   ```
+
+   `TraceKind` is a *small* enum over genuinely different trace algorithms
+   (DirectPrimitive, Csg, Composite, BoundedGeneric, GenericFallback), not
+   the current 8-way `BakedSimpleBodyExecutionKind` whose distinctions
+   (transformed vs direct) Plan 5 already erased for the hot kinds.
+
+2. **Material resolution is a build-time concern.** The current per-ray
+   resolution (object texture vs geometry material vs default) happens in
+   the tracing scaffolding today; in the new model
+   `BakedSceneBuilder` computes `effectiveMaterial` once. The shading
+   pipeline receives the resolved pointer from the hit record. If any scene
+   feature makes the effective material genuinely ray-dependent (layered
+   textures are per-point, not per-ray — they stay in shading), that feature
+   is documented and kept out of this rule rather than silently breaking it.
+
+3. **`BakedCsgProgram`** — per CSG object, flat operand tables in
+   struct-of-arrays form where the kernels iterate:
+
+   - `operandGeometry[]` (world-space `Geometry*`, baked copies included)
+   - `operandMaterial[]` (resolved)
+   - `operandBounds[]`, `operandCullSafe[]`
+   - plane fast-path arrays: `planeNormal[]`, `planeDistance[]`
+   - the plan kind (`GenericMorganUnion`, `MorganIntersection`,
+     `SingleCorePlaneIntersection`, `TopLevelPlaneUnion`,
+     `DisjointBoundedUnion`, `RaySegments`, `Fallback`) chosen once at build
+   - residual transformed operands (Box/Torus/nested non-bakeable — the ones
+     Plan 5 could not collapse) carry their matrix pair here, *grouped by
+     transform class* so Plan 7 can key its cache on the class index
+   - nested CSG children compile into their own `BakedCsgProgram` entries
+     referenced by index (no pointers back into parsed `CsgOperand` on the
+     hot path; the parsed pointer is kept in a cold debug field only)
+
+4. **Scratch state** stays per-render-task (thread-compatible with
+   `-parallel`, as today's `CsgScratchContext`), owned by the new
+   `BakedTrace` entry points.
+
+### What this plan does NOT change
+
+The per-plan *kernels* are ported, not redesigned: Phase 3 re-implements the
+existing traversal semantics (same candidate order, same queue usage, same
+Morgan logic) on top of the new data model. Kernel fusion and the
+interpreter collapse are Plan 8; the shared ray cache is Plan 7; queue
+replacement is Plan 9. This separation keeps each gate diff attributable.
+The goal of Plan 6 is byte-stable output with a strictly simpler dispatch
+structure and pre-resolved constants.
+
+## Phases
+
+### Phase 0 — Inventory and porting map
+
+Enumerate every public entry point `RenderEngine` and the shaders use from
+the old layer (`BakedTracingCommon::traceObjectAllCrossings`,
+`traceObjectFirstHit`, `traceShadowObject`, containment queries, …) and
+every behavior the old layer implements (bounding shapes, clipping shapes,
+composite recursion, no-shadow flags, primary-ray gates such as the
+`!isPrimaryRayEnabled()` Path G gate, viewpoint plane cache). Produce a
+porting table in this document: old function → new home. Anything the old
+layer does that the new design has no slot for gets a design decision here,
+before code.
+
+### Phase 1 — Build the new model alongside the old
+
+`BakedSceneBuilder` compiles the parsed scene into `BakedScene` at the same
+point `Scene::finalizeCompiledTracingScene` runs today. The old structures
+keep building in parallel. Add builder statistics (object counts per
+`TraceKind`, CSG plan inventory, residual-transformed-operand count with
+transform-class count) printed under the existing statistics facility.
+
+Gate: unchanged output (the new model is built but unused).
+
+### Phase 2 — Port the non-CSG paths
+
+Implement `BakedTrace` for DirectPrimitive, Composite, bounded/clipped and
+generic-fallback objects; switch `RenderEngine` to the new entry points for
+those kinds only (CSG still routes to the old layer through a temporary
+bridge). Bounding-shape tests are a plain inlined loop over
+`boundingObjects` — no lambda trampoline (the rank-10 hotspot from Plan 4 is
+a porting bug if it reappears).
+
+Gate: byte-identical to the Plan 5 reference state. This phase must be
+byte-exact because no numeric path changed.
+
+### Phase 3 — Port the CSG paths
+
+Re-implement the CSG traversal semantics over `BakedCsgProgram`: generic
+Morgan union/intersection/difference, the compiled specializations
+(`SingleCorePlaneIntersection`, `TopLevelPlaneUnion`,
+`DisjointBoundedUnion`), ray-segments algorithm scenes (`-csgRoth` path if
+still routed here), first-hit and shadow variants, containment queries.
+Port faithfully — same candidate ordering, same scratch-queue discipline —
+so the gate stays byte-identical. The known behavior gates (primary-ray
+gate on nested emitters; the mirror-corner top-level bare-planes-union
+bypass) are ported as build-time plan choices, not per-ray branches.
+
+Gate: byte-identical to the Plan 5 reference state.
+
+### Phase 4 — Move the structs out of `Scene.h`
+
+Delete `CompiledTracingScene` and all `Baked*` structs from
+`environment/scene/Scene.h`; `Scene` keeps only parsed data plus the
+`TransformStep` lists from Plan 5. `RenderEngine` (or `PovrayApplication`)
+owns the `BakedScene` instance and passes it to render workers.
+`environment/scene` no longer includes anything from `render/`.
+
+Gate: byte-identical; also verify include-graph direction
+(`environment` must not include `render` headers) with a grep check:
+
+```bash
+grep -rn '#include "render/' src/environment/ && echo "LAYERING VIOLATION" || echo "layering ok"
+```
+
+### Phase 5 — Cutover and deletion
+
+Remove the old five files and the temporary bridge; remove dead statistics;
+run the full gate, drums timing, panel, and a gprof capture as the Plan 6
+closing measurement.
+
+## Measurement Gate
+
+Every phase:
+
+```bash
+./scripts/clean.sh
+./scripts/compile.sh
+./scripts/renderAll.sh
+./scripts/testAgainstGoldenImages.sh
+```
+
+Byte-identical output vs the Plan 5 accepted state is required for **every**
+phase of this plan — this is a structural rebuild with zero numeric changes.
+Any image diff at all is a porting bug.
+
+Additionally at Phases 2, 3 and 5: drums timing (3 runs), benchmark panel,
+and `-parallel` smoke run (`./scripts/renderParallel.sh` or the documented
+parallel invocation) to confirm the per-task scratch design holds under
+threads.
+
+## Acceptance Criteria
+
+- Old layer deleted; new layer owns the baked model; `Scene.h` reduced to
+  parsed data.
+- Zero per-ray reads of execution-kind style metadata below the single
+  top-level `TraceKind` switch: verify by code review of the hot path and by
+  gprof (no function shaped like `classify*` / `resolve*` / plan-switch
+  helpers in the profile).
+- Effective materials resolved at build time (code review + one debug assert
+  path during development).
+- drums wall-clock: no regression vs the Plan 5 exit time; any improvement
+  is a bonus (the structural wins are mostly harvested in Plans 7–8, but
+  removing per-ray material resolution and argument-heavy call chains
+  usually pays something immediately).
+- gprof hot-function count over drums: the CSG-D + Body/Comp/BTC routing
+  categories (47.2% combined in Plan 4) must show visibly fewer distinct
+  functions; record the new table in this document.
+
+## Risks and Dead-End Reminders
+
+- Porting drift: the old layer encodes subtle accepted behaviors
+  (primary-ray gates, `takeoff.tga`-sensitive emitter ordering — see Plan 3's
+  rejected clone-reduction cut). Byte-exact gating per phase is the defense;
+  port semantics first, simplify later (Plan 8).
+- Do not "improve" candidate ordering or queue behavior in this plan
+  (append-only queues and reordered drains are recorded byte-exactness
+  breakers).
+- Keep scratch per task; the Plan 3 dead ends "reusable local-ray scratch
+  stacks" and "sharing scratch ownership from BakedSimpleBodyTracing" both
+  regressed wall-clock — the new design must not recreate them under a new
+  name without measuring.
+- RAM: the baked model remains a side-car copy of the scene (accepted).
+  Avoid gratuitous duplication beyond what the hot path needs; cold debug
+  pointers are fine.

@@ -497,3 +497,192 @@ The three most actionable targets in priority order:
 | 333 | 2026-05-17 09:52:22 +0200 | `7df7f49685cd57d4a45cd4a1d2c5f96c17695f04` | 24.077 | Each class in its own module |
 | 336 | 2026-05-17 05:38:01 +0200 | `84d5b98d6d84ec79d8cfdffaffd5d404d958d23b` | 24.683 | Putting functions inside classes as methods, part 6 |
 | 339 | 2026-05-17 02:56:07 +0200 | `ab777f5e70089476c8006ef3a26f7d7c7f17973c` | 24.868 | Using double in all modules |
+
+---
+
+## Conclusions: Why "Essentially the Same Program" Is Not the Same Program (2026-07-03)
+
+This section answers the central question directly: if the decoupling of
+`scene` and `geometry` did not change the parser, the I/O layer, or the
+primitive solvers, and both commits produce practically the same images,
+where does the extra time and memory come from?
+
+The short answer: **the two commits share the same parsed scene and the same
+primitive math, but they are two different programs at trace time.** The
+baseline was a *load-time specializer*: it destructively rewrote the scene
+data so that the render loop had no transforms, no local coordinate spaces,
+and no dispatch decisions left to make. The current branch is a *trace-time
+interpreter of baked metadata*: it preserves the parsed scene intact and
+re-derives, for every ray and every operand, decisions and coordinate
+conversions that the baseline had already erased from existence before the
+first ray was cast. The image output is nearly identical because the math is
+equivalent; the cost is not, because *when* the math happens is the whole
+game.
+
+### 1. What the old "baking" actually was
+
+The baseline's baking was not a cache and not a metadata layer. It was
+**destructive coefficient rewriting at parse time**:
+
+- `Quadric::transformQuadric` (baseline `Quadric.cpp:276`) folded every
+  `translate` / `rotate` / `scale` keyword into the quadric's 10 coefficients
+  via the matrix congruence `M' = T⁻¹ M T⁻ᵀ`, applied **incrementally, one
+  elementary transform at a time**, at parse time. Sphere and Plane had
+  analogous rewrites (moved centers, re-normalized plane equations).
+- After parsing, the concept "transformed operand" **did not exist**. Every
+  primitive was a world-space primitive. `TransformedGeometry` carried
+  matrices only as bookkeeping; the render loop never touched them.
+- Consequently the total transform cost was O(number of objects), paid once,
+  amortized over ~10⁷–10⁸ rays. Per (ray × quadric) the render loop paid
+  ~5 dot products.
+
+The new `bakedScene` implementation bakes something categorically weaker:
+**routing metadata** (execution kinds, plan kinds, operand role lists,
+bounds, containment sequences). The transform *math* is not baked — it is
+re-executed per ray:
+
+- `BakedCsgTracing::traceOperandAllCrossings` (`BakedCsgTracing.h:203-206`,
+  `240-243`, `283-286`, `308-309`) performs `localToObject.transformPoint`
+  + `transformDirection` (~33 mul/add) **per transformed operand per ray**,
+  then transforms every hit point back with `objectToLocal.transformPoint`
+  and recomputes `t` with two dot products and a division.
+- At 244.5 M calls to `traceOperandAllCrossings` across the suite, work the
+  baseline did a few hundred times at load is now done hundreds of millions
+  of times at trace.
+
+**This is the single structural answer to "why is a program that shows the
+same pixels slower": the old baking deleted work from the inner loop; the
+new baking only reorganizes how the inner loop finds its work.**
+
+### 2. The second casualty: the per-ray shared cache
+
+The baseline had a subtle but decisive property: because *all* geometry
+lived in one world space, `RayWithSegments::makeRay` computed the quadric
+aggregate vectors (`position2`, `direction2`, `positionDirection`, three
+mixed-term vectors — ~30 mul) **once per ray**, and every quadric, plane,
+and CSG operand in the scene reused them (baseline `Quadric::intersectQuadric`
+reads them straight off the ray). The per-viewpoint constant cache
+(`objectVpConstant`) added a second layer: for primary rays the constant
+term was computed once per shape per frame.
+
+The current branch fragments geometry into per-operand local spaces. A local
+origin/direction pair differs per operand, so `intersectBakedQuadric`
+(`BakedCsgTracing.cpp:201-212`) must **recompute all six aggregate vectors on
+every call** — 62.5 M + 34.1 M + 10.5 M calls in the sweep, ~45 mul each.
+The Phase E viewpoint cache recovered only the constant-term layer; the
+aggregate layer is unrecoverable while operands sit in private coordinate
+spaces, because the cache key would have to be (ray × transform), not (ray).
+
+So the arithmetic per transformed-quadric test went from roughly
+**~25 FLOPs (cached aggregates + dots)** to **~110+ FLOPs (forward
+transform + full aggregate recompute + dots + back-transform + t
+recompute)** — a 4–5× per-test ratio *before* counting dispatch. Given that
+primitive math was ~40% of baseline time, this alone predicts a large slice
+of the 1.68×.
+
+### 3. Dispatch depth: 3 hot functions became 93
+
+Baseline call path per ray per CSG object:
+`RenderEngine` scene loop → 1 virtual call → `allCsgIntersectIntersections`
+(a 50-line, two-nested-loop kernel) → 1 virtual call per operand → primitive
+math. Three functions held 62% of all time — meaning the instruction cache,
+branch predictor, and register allocator worked on three tight loops.
+
+Current path: `RenderEngine::trace` →
+`BakedTracingCommon::traceObjectAllCrossings` (index-based record switch) →
+`BakedCsgTracing::traceAllCrossings` → `traceAllCrossingsWithScratch` → plan
+dispatch → `traceOperandAllCrossings` (execution-kind switch + AABB test +
+material resolution) → `intersectBaked*`. No function exceeds 7.4%; the same
+total work is smeared over 93 functions. Each extra layer costs call/return
+overhead, argument shuffling (the baked tracers pass 5–7 arguments including
+three ArrayList references at every level), spilled registers, and icache
+pressure. The plan metadata is *interpreted per ray*: every ray re-reads
+`executionKind`, re-branches on it, and re-resolves the effective material,
+even though none of these can change between rays. That is the definition of
+an interpreter, and interpreters are what compilers (the baseline's
+load-time rewriting) exist to eliminate.
+
+### 4. Clone and queue churn — the memory answer
+
+- The `TransformedPrimitive` / `TransformedNestedCsg` paths clone the ray
+  (`BakedCsgTracing.h:307`) and borrow a scratch queue per operand visit.
+  260.9 M `LocalIntersectionClone` constructions each build ~200 bytes of
+  `RayWithSegments` including two `java::ArrayList` headers — the 260.9 M
+  `ArrayList::init` + 266.2 M `ArrayList::ArrayList` rows in the profile are
+  almost exactly the clone count. The baseline had **zero** ray clones: there
+  was no local space to clone into.
+- Candidates are staged into scratch queues and then re-offered into the
+  parent queue (`push` 303.7 M / `pop` 295.3 M), doubling heap traffic per
+  hit relative to the baseline's single-level Morgan local queue.
+- RAM: the baseline's baked state was **in place** — it overwrote 10 doubles
+  of quadric coefficients, net extra memory zero. The current baked
+  representation is a **side-car copy** of the scene: each `BakedCsgOperand`
+  carries two `Matrix4x4d` (256 bytes) plus bounds, plane data, and compiled
+  index lists; each `BakedConstructiveSolidGeometry` carries four role
+  lists; plus per-task `CsgScratchContext` queue pools that grow to the
+  high-water mark of candidate volume. The program uses more RAM because it
+  now stores the scene *twice* — once parsed, once baked — where the
+  baseline stored it once, already specialized.
+
+### 5. So the premises in the question, checked
+
+- *"We have essentially the same program"* — true for parser, I/O, solvers,
+  shading; **false for the execution model**. Baseline: specialize data
+  once, run generic code. Current: keep data generic, re-specialize per ray
+  through metadata interpretation.
+- *"Same scene data structure since I/O didn't change"* — the parse output
+  is the same, but the baseline **mutated it destructively after parsing**
+  (that mutation was exactly what the decoupling removed, and for good
+  architectural reasons). At trace time the data structures were never the
+  same.
+- *"We are re-implementing baking in `render/bakedScene`"* — what was
+  re-implemented is plan selection and routing, not baking in the original
+  sense. The original baking's value was **eliminating coordinate transforms
+  and dispatch from the per-ray path**; the new implementation still pays
+  both, per ray, and adds interpretation overhead on top.
+
+### 6. What would actually recover the baseline efficiency
+
+Ranked by expected impact, all compatible with the ownership boundary
+(scene-owned, geometry untouched):
+
+1. **Scene-owned coefficient baking with baseline-identical operation
+   order.** The recorded dead end ("quadric coeff-baking breaks
+   byte-exact") failed because the composed `Matrix4x4d` was applied in one
+   step, which rounds differently from the baseline's incremental
+   per-keyword `transformQuadric`. The fix is numeric, not architectural:
+   at scene-compile time, build a **baked copy** of each transformed quadric
+   by replaying the same elementary transform sequence (one congruence per
+   translate/rotate/scale, same formulas as baseline `Quadric.cpp:276`)
+   into a scene-owned `Quadric` stored in `BakedCsgOperand`. This requires
+   the scene to retain (or the parser to record) the elementary transform
+   steps instead of only the composed matrices at `Scene.h:110-111`. The
+   payoff cascades: `TransformedQuadric/Sphere/Plane` kinds collapse into
+   `Direct*` kinds; the per-ray forward/backward transforms disappear; the
+   world-space per-ray aggregate cache becomes shareable again; the clone
+   paths for these operands vanish. This is the only direction that attacks
+   all of §1, §2, and §4 at once. Note the golden-image caveat: it
+   reproduces *baseline* math, so scenes whose goldens were re-baselined to
+   current-branch output would shift back toward the baseline images
+   (cf. the accepted `AE=71` delta) — that shift is toward the older
+   reference, and should be evaluated as such rather than as a regression.
+2. **Per-transform-class ray caches.** If (1) is deferred: group operands
+   sharing the same `localToObject` matrix; compute local origin/direction
+   plus the six aggregate vectors once per (ray, transform class) in the
+   scratch context and reuse across all operands of that class. Recovers
+   most of §2 without touching numerics of individual intersections.
+3. **Collapse the interpreter layers.** For the dominant plan kinds, emit
+   one fused loop per plan (the plan is known at scene-compile time) instead
+   of re-dispatching through `traceAllCrossings` → `WithScratch` → plan
+   switch → `traceOperandAllCrossings` per ray. This is the §3 cost; it is
+   pure restructuring with zero numeric risk.
+4. **Replace heap staging with sort-on-demand vectors** where result order
+   is not consumed incrementally (§4 queue traffic), as already identified
+   in Strategy Implications #3.
+
+The honest summary: the decoupling did not make the algorithm slower — it
+made the *specialization illegal* under the new ownership rules, and the
+replacement specialization (plans + metadata) recovered the routing
+decisions but not the **coordinate-space unification** that was the actual
+source of the baseline's speed. Recovering that unification inside the
+scene-owned baked layer — item (1) — is the remaining structural move.
