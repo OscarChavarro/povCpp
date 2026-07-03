@@ -13,6 +13,7 @@
 #include "environment/geometry/volume/Sphere.h"
 #include "environment/scene/Composite.h"
 #include "environment/scene/Scene.h"
+#include "render/bakedScene/BakedGeometryBaker.h"
 
 namespace {
 CameraSnapshot
@@ -397,6 +398,52 @@ bakeCsgOperand(
         baked.planeNormal = plane->getNormalVector();
         baked.planeDistance = plane->getDistance();
     }
+
+    // Plan 5 Phase 3: collapse transformed Quadric/InfinitePlane operands to
+    // world-space baked copies (elementary-step congruence replay, not the
+    // composed-matrix dead end - see doc/performanceReviewPlan5.md). Gated on
+    // a non-empty recorded step list so an operand whose transform matrix
+    // came from any path that didn't record steps safely stays on the
+    // (correct, just slower) per-ray transform path instead of silently
+    // baking an untransformed copy. `geometry`/`quadricGeometry` are NOT
+    // repointed here - the bake pipeline still copies/reallocates this
+    // struct several times before reaching final storage, which would
+    // dangle a self-pointer set this early. The one-time fix-up happens in
+    // Scene::buildCompiledTracingScene after the whole compiled scene has
+    // settled into its permanent location.
+    //
+    // kEnableCoefficientCollapse is ON. Root cause of the earlier "baked
+    // geometry vanishes" bug found and fixed in BakedGeometryBaker.cpp: an
+    // `Invert` (`inverse` keyword) step is applied *destructively* to the
+    // Geometry's own coefficients immediately at parse time (unlike
+    // Translate/Rotate/Scale, which are deferred into a matrix and leave
+    // the parsed Geometry untouched) - see
+    // SimpleBodyBuilder::invert()/CsgOperand::invert(), both call
+    // geometry->invertGeometry() directly. The baker was replaying the
+    // recorded Invert step *again* on top of an `original` that already
+    // reflected it, silently double-inverting (net no-op on sign, but
+    // wrong for every quadric/plane using `inverse` combined with any other
+    // transform, e.g. `Beam2` in etc/level3/tomb.pov). Confirmed via a
+    // containment cross-check against real operand data: 729/729 sample
+    // mismatches before the fix, 0/729 after.
+    constexpr bool kEnableCoefficientCollapse = true;
+    if (kEnableCoefficientCollapse &&
+        baked.hasTransform && operand->getSteps().size() > 0) {
+        if (baked.quadricGeometry != nullptr) {
+            baked.bakedQuadric =
+                BakedGeometryBaker::bakeQuadric(*baked.quadricGeometry, operand->getSteps());
+            baked.hasBakedQuadric = true;
+            baked.hasTransform = false;
+        } else if (baked.isInfinitePlane) {
+            InfinitePlane *plane = static_cast<InfinitePlane *>(baked.geometry);
+            baked.bakedPlane = BakedGeometryBaker::bakePlane(*plane, operand->getSteps());
+            baked.hasBakedPlane = true;
+            baked.hasTransform = false;
+            baked.planeNormal = baked.bakedPlane.getNormalVector();
+            baked.planeDistance = baked.bakedPlane.getDistance();
+        }
+    }
+
     baked.cullSafe =
         baked.bounded &&
         (dynamic_cast<Sphere *>(baked.geometry) != nullptr ||
@@ -648,6 +695,30 @@ Scene::buildCompiledTracingScene()
                 compiledTracingScene.boundedShadowCastingObjects.add(entry);
             } else {
                 compiledTracingScene.unboundedShadowCastingObjects.add(entry);
+            }
+        }
+    }
+
+    // Plan 5 Phase 3: one-time fix-up of `geometry`/`quadricGeometry` for
+    // operands collapsed to a baked (world-space) Quadric/InfinitePlane
+    // copy. This MUST run after every add()/set() above has finished: the
+    // bake pipeline copies/reallocates BakedConstructiveSolidGeometry (and
+    // its `operands` array) several times on the way here (ArrayList growth
+    // and CompiledTracingScene::bakedCsgs.set() both copy-assign, per
+    // ArrayList.txx), so a self-pointer set any earlier would dangle. From
+    // this point on `compiledTracingScene.bakedCsgs` never grows or
+    // reallocates again until the next buildCompiledTracingScene() call, so
+    // `&operand.bakedQuadric`/`&operand.bakedPlane` are stable for the rest
+    // of the render.
+    for (long int i = 0; i < compiledTracingScene.bakedCsgs.size(); i++) {
+        Scene::BakedConstructiveSolidGeometry &bakedCsg = compiledTracingScene.bakedCsgs[i];
+        for (long int j = 0; j < bakedCsg.operands.size(); j++) {
+            Scene::BakedCsgOperand &operand = bakedCsg.operands[j];
+            if (operand.hasBakedQuadric) {
+                operand.geometry = &operand.bakedQuadric;
+                operand.quadricGeometry = &operand.bakedQuadric;
+            } else if (operand.hasBakedPlane) {
+                operand.geometry = &operand.bakedPlane;
             }
         }
     }

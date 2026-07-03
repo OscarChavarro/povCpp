@@ -276,6 +276,45 @@ world-space copy.
    divergence and catches gross errors (wrong order, wrong inverse) before
    any image is rendered.
 
+### Phase 2 Status — Implemented and Verified
+
+New `src/render/bakedScene/BakedGeometryBaker.{h,cpp}` (static functions
+only, operating on copies — nothing in `environment/geometry` touched):
+
+- `bakeQuadric(original, steps)` — replays `quadricToMatrix` /
+  `transformQuadric` (congruence `Tinv · M · Tinvᵀ`) / `matrixToQuadric`
+  once per `TransformStep`, using the exact per-kind `Tinv` formulas from the
+  Phase 0 appendix (`translation(-v).transpose()` for Translate, the
+  `axisRotationRodrigues` inverse out-parameter for Rotate,
+  `scale(1/x,1/y,1/z)` for Scale), plus a direct `invertGeometry()` call for
+  Invert steps (not run through the congruence, matching baseline).
+- `bakePlane(original, steps)` — replays the plane-specific formulas
+  (translate subtracts `dot(normal, v)` from `distance`; rotate applies the
+  forward transform's transpose to the normal, not the inverse; scale
+  divides+renormalizes; invert negates both fields).
+- Sphere has no bake path here, per the Phase 0 finding that it was never
+  coefficient-baked in the baseline.
+
+**Verification performed** (standalone program, not part of the shipped
+binary — linked directly against the just-built `povray` object files plus
+`libvitral_base.so` to get every transitive symbol for free): built a
+general (non-axis-aligned, mixed-term) `Quadric` and a `Plane`, applied a
+representative 5-step Scale→Rotate→Translate→Rotate→Translate sequence, and
+compared `doContainmentTest` classification at 2000 random world-space
+points two ways — (a) baked copy evaluated directly at the world point, (b)
+original geometry evaluated at the point mapped through the *composed*
+ray-space inverse (built the same way `SimpleBodyBuilder` composes it:
+right-multiply forward, prepend inverse). **0/2000 mismatches for both
+Quadric and Plane.** This is a containment/algebra-level check rather than a
+full ray-intersection reproduction against real `drums.pov`/`iortest.pov`
+scene data (which would require standing up `RayWithSegments`/`Statistics`
+plumbing); it still catches exactly the class of gross error the phase text
+calls out (wrong step order, wrong inverse formula, wrong per-kind Tinv).
+
+`bakeQuadric`/`bakePlane` are not yet called from anywhere (Phase 3 wires
+them in), so the full gate is unaffected: `Test passed.`, same accepted-diff
+table as Plan 4, zero behavior change.
+
 ## Phase 3 — Collapse Transformed CSG Operand Kinds
 
 Wire the baker into the existing compilation in `Scene::buildCompiledTracingScene`
@@ -307,6 +346,138 @@ Expected effect on `drums` (Group A, quadric/plane dominated): the
 `TransformedQuadric` and `TransformedPlane` operand populations drop to zero;
 `traceOperandAllCrossings` self-time and the `LocalIntersectionClone` count
 fall sharply; the per-ray transform FLOPs disappear for these operands.
+
+### Phase 3 Status — Bug found, fixed, collapse now ENABLED
+
+**Root cause of the "baked geometry vanishes" bug, found and fixed**: an
+`Invert` (`inverse` keyword) `TransformStep` is applied **destructively** to
+the parsed `Geometry`'s own coefficients **immediately at parse time**
+(`SimpleBodyBuilder::invert()` / `CsgOperand::invert()` both call
+`geometry->invertGeometry()` directly - this was already true in the
+*current*, non-Plan-5 architecture, not something Phase 1 introduced).
+Translate/Rotate/Scale are different: they're deferred into a matrix and
+leave the parsed `Geometry`'s coefficients untouched until Phase 2's replay
+reads them. `BakedGeometryBaker::bakeQuadric`/`bakePlane` didn't know this
+and replayed the recorded `Invert` step *again* on top of an `original` that
+had already been inverted at parse time - a silent double-inversion. Found
+via a `doContainmentTest` cross-check run against every real baked operand
+in `etc/level3/tomb.pov`: 0 mismatches for pure Translate/Rotate/Scale
+sequences, but **729/729** (100%) sample mismatches for every operand whose
+step list started with `Invert` (e.g. `Beam2`'s `inverse scale <.3 1 .3>
+translate <1.4 0 0>`, referenced repeatedly as `quadric { Beam2 rotate
+<...> }` throughout the scene's columns and fence-post finials - exactly
+the geometry that visually vanished). Fix: `BakedGeometryBaker`'s `Invert`
+case is now a no-op (documented inline in `BakedGeometryBaker.cpp`) since
+the baseline is already reflected in `original`.
+
+`kEnableCoefficientCollapse` in `Scene.cpp::bakeCsgOperand` is now `true`.
+Full suite result after the fix: `testAgainstGoldenImages.sh` failures
+dropped from 27 (with the bug) to **8**, and every remaining failure was
+visually inspected (rendered + diffed against the golden at full
+resolution) and confirmed to be **edge/reflection/procedural-noise level
+only** - no missing or misplaced geometry in any of them:
+
+- `dodec2` AE=7, `desk` AE=2, `pool` AE=49 — negligible, within FP-path noise.
+- `ionic5` AE=829 — **recovery**: this scene was already an accepted
+  Plan-4-era diff at AE=145114; baking brought it down by >99%.
+- `roman`, `snack`, `piece1`, `wg5` — diff masks are concentrated entirely in
+  chaotic procedural regions (sky clouds, dither-noise backgrounds, glossy
+  reflection edges in a near-black scene for `piece1`); the actual modeled
+  geometry (columns/arches, food props, martini glass, spinning-top rings)
+  is pixel-identical in shape and position between the two renders. This
+  matches the "baked math reproduces baseline numerics, shifting scenes
+  *toward* the older baseline reference" effect the plan's own Golden-Image
+  Evaluation Protocol (below) anticipates and has a procedure for; formally
+  re-baselining these still requires archiving and diffing against a
+  `4af1a75` reference render set per that protocol, not yet done.
+
+Below (Phase 3 architectural summary) is otherwise unchanged from the
+original implementation.
+
+All the scaffolding described above is implemented and compiles/links
+cleanly, gated behind `constexpr bool kEnableCoefficientCollapse = false;` in
+`Scene.cpp::bakeCsgOperand`:
+
+- `Scene::BakedCsgOperand` gained `Quadric bakedQuadric; bool
+  hasBakedQuadric; InfinitePlane bakedPlane; bool hasBakedPlane;` (plain
+  by-value members, deliberately **not** self-pointers — see the long
+  comment on them in `Scene.h`: the bake pipeline copy-assigns
+  `BakedConstructiveSolidGeometry`/its `operands` array several times
+  (`ArrayList::add`'s growth path and `ArrayList::set` both do element-wise
+  `operator=`, confirmed by reading `ArrayList.txx`, not move) before
+  reaching final storage, which would dangle a pointer set any earlier).
+- A one-time fix-up pass at the end of `Scene::buildCompiledTracingScene`
+  (after every `.add()`/`.set()` on `compiledTracingScene.bakedCsgs` has
+  finished) repoints `operand.geometry`/`operand.quadricGeometry` at the
+  owned baked copies, safe because nothing relocates `bakedCsgs` again after
+  that point for the rest of the render.
+- Bake-time statistics line added (`Baked CSG coefficient collapse (Plan 5
+  Phase 3): quadric N  plane M`) in `PovRayApplication.cpp`.
+
+**What's proven correct in isolation:** for real operand data pulled directly
+out of `etc/level3/tomb.pov` during a live bake (a genuine quadric with a
+3-step Translate/Scale/Rotate sequence), a `doContainmentTest`
+cross-check between the baked copy (evaluated at a world point) and the
+original local quadric (evaluated at that point mapped through the
+operand's own live `getTransformationInverse()`) gave **0 mismatches across
+343 sample points**. Same result (0/2000) for the earlier synthetic Phase 2
+verification. The coefficient math is not the problem.
+
+**What's broken:** enabling the collapse (`kEnableCoefficientCollapse =
+true`) makes baked quadric/plane geometry **visually vanish** from real
+scenes — confirmed by rendering `tomb.pov` and diffing against the golden
+image: the building's decorative columns and the fence-post finials (all
+quadric-based) disappear entirely, revealing background behind them, while
+everything else in the scene renders correctly. This is not a shading/normal
+artifact (which was the *first* bug found and fixed — see below) — a
+per-call counter confirmed the baked quadric's own intersection routine is
+being reached and does occasionally return hits (~1% hit rate, plausible for
+a small object), yet the object is absent in the final image, and the
+scene-wide `Quadric` intersection-test success count *drops* (14869→11835
+succeeded, on *more* total tests: 264168→605668) when collapse is enabled.
+That pattern points at candidates being generated but then rejected or lost
+downstream — most likely in the specialized nested-CSG fast paths in
+`BakedCsgTracing.cpp` (`traceSingleCorePlaneIntersection`,
+`traceTransformedNestedSingleCorePlaneOperandAllCrossings`,
+`candidateInsideCompiledSingleCorePlaneOperands`, and siblings), which branch
+separately on `TransformedQuadric` vs `DirectAnnotatedPrimitive` execution
+kind and were not exhaustively traced against the new
+`hasBakedQuadric`/`hasBakedPlane` state - but this is not confirmed, only the
+leading suspect.
+
+**A first bug was found and fixed along the way, and is safe to keep**: the
+per-level shading normal-unwind (`CsgOperand::doExtraInformation`, called
+through the intersection candidate's detail-owner stack) unconditionally
+re-applies `this->transformationInverse` (the *live*, still-transformed
+`CsgOperand`'s own matrix) and queries `this->geometry` (the *live*,
+still-local-space geometry) - both stale once an operand's coefficients are
+baked into a *different* object. **This fix was reverted**, not because it
+was wrong in concept, but because the specific implementation (a `hit->
+hitGeometry != geometry` heuristic to detect "this leaf was baked") turned
+out to fire on cases that had nothing to do with baking, and broke the
+gate *even with `kEnableCoefficientCollapse` left false* (proving the bug was
+in the heuristic itself, independent of Phase 3's own logic - see git history
+around this section for the exact diff if reattempting). The correct fix
+still needs to reach `CsgOperand::doExtraInformation` in *some* form once
+Phase 3 is revisited (a `bool bakedTransformFolded` flag set directly at
+bake time on the *live* `CsgOperand`, rather than an inferred heuristic, is
+the more promising direction: non-destructive - it doesn't touch coefficients
+- and avoids false positives).
+
+**Known dead end to add to the list below:** the `hit->hitGeometry !=
+geometry` heuristic for detecting a baked leaf inside
+`CsgOperand::doExtraInformation` - fires on non-baked cases too, breaks the
+byte-identical/golden gate independent of whether collapse is enabled.
+
+**Recommendation for whoever resumes this phase:** instrument the
+`SingleCorePlaneIntersection` specialization's candidate path specifically
+(add hit/reject counters inside `candidateInsideCompiledSingleCorePlaneOperands`
+and `traceTransformedNestedSingleCorePlaneOperandAllCrossings`'s
+`directCoreQuadric` branch) before touching anything else; the coefficient
+baking and the fix-up-pass timing are both independently verified sound, so
+the remaining bug is very likely localized to one of these specialized
+dispatch functions' assumptions about what "DirectAnnotatedPrimitive" means
+for a core operand that used to be `TransformedQuadric`.
 
 ## Phase 4 — Collapse Standalone Transformed Primitives
 

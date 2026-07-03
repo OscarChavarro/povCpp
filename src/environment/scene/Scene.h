@@ -6,6 +6,8 @@
 #include "vsdk/toolkit/common/color/ColorRgba.h"
 #include "vsdk/toolkit/environment/camera/CameraSnapshot.h"
 #include "environment/geometry/element/AxisAlignedBox.h"
+#include "environment/geometry/surface/InfinitePlane.h"
+#include "environment/geometry/volume/Quadric.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/BooleanSetOperations.h"
 #include "environment/light/Light.h"
 #include "environment/material/Material.h"
@@ -14,7 +16,6 @@
 class Composite;
 class ConstructiveSolidGeometry;
 class CsgOperand;
-class Quadric;
 
 class Scene {
   public:
@@ -117,6 +118,22 @@ class Scene {
         double planeDistance = 0.0;
         mutable double planeVpNormDotOrigin = 0.0;
         mutable bool planeVpCached = false;
+        // World-space coefficient-rewritten copies (Plan 5 Phase 3): when a
+        // Quadric/InfinitePlane operand had a non-empty recorded TransformStep
+        // list, BakedGeometryBaker replays it here at bake time and
+        // `geometry`/`quadricGeometry` are repointed at these owned copies
+        // (fixed up once, after the whole compiled scene has reached its
+        // final, never-again-relocated storage - see
+        // Scene::buildCompiledTracingScene's post-pass). hasTransform is
+        // cleared for these operands so the per-ray transform path is never
+        // reached. Plain by-value members (not accessed through a
+        // self-pointer during baking) to avoid dangling pointers across the
+        // several array reallocations the bake pipeline performs before
+        // settling into final storage.
+        Quadric bakedQuadric;
+        bool hasBakedQuadric = false;
+        InfinitePlane bakedPlane;
+        bool hasBakedPlane = false;
         BakedCsgOperandExecutionKind executionKind =
             BakedCsgOperandExecutionKind::Empty;
         bool compiledTransformedNestedCorePlane = false;
