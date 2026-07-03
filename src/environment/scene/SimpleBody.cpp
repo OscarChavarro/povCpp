@@ -187,6 +187,15 @@ void
 SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *hit)
 {
     Geometry *detailGeometry = hit->hitGeometry != nullptr ? hit->hitGeometry : geometry;
+    // Plan 5 Phase 4: a collapsed (baked) leaf's intersection was found
+    // directly against a world-space coefficient-rewritten copy, already
+    // folding in this body's own transform. `bakedTransformFolded` is an
+    // explicit flag set once at bake time (Scene.cpp::bakeSimpleBody) on
+    // this same live SimpleBody - deliberately NOT inferred from
+    // `hit->hitGeometry != geometry`, which also differs for unrelated
+    // reasons (bounded/clipped shapes, parametric/polynomial dispatch, ...)
+    // and produced widespread false positives when tried.
+    const bool bakedLeaf = bakedTransformFolded;
     // Consume the detail-owner chain outermost-first (popDetailOwnerBack): the
     // owners were pushed innermost-first while collecting the hit, so for a
     // nested CSG operand (e.g. an intersection nested inside a transformed
@@ -200,7 +209,7 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
     if (detailGeometry != nullptr) {
         RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, ray);
         const Vector3Dd worldPoint = hit->p;
-        if (transformationInverse != nullptr) {
+        if (transformationInverse != nullptr && !bakedLeaf) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
             localRay.setDirection(transformationInverse->transformDirection(ray.getDirection()));
             localRay.setQuadricConstantsCached(false);
@@ -211,7 +220,7 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
         } else {
             RayWithSegments geometryLocalRay(
                 RayWithSegments::LocalIntersectionClone{}, localRay);
-            if (geometryTransformationInverse != nullptr) {
+            if (geometryTransformationInverse != nullptr && !bakedLeaf) {
                 geometryLocalRay.setOrigin(
                     geometryTransformationInverse->transformPoint(localRay.getOrigin()));
                 geometryLocalRay.setDirection(
@@ -220,11 +229,11 @@ SimpleBody::doExtraInformation(const RayWithSegments &ray, double t, PovRayHit *
                 hit->p = geometryTransformationInverse->transformPoint(hit->p);
             }
             detailGeometry->doExtraInformation(geometryLocalRay, t, hit);
-            if (geometryTransformationInverse != nullptr) {
+            if (geometryTransformationInverse != nullptr && !bakedLeaf) {
                 hit->n = geometryNormalToObjectLocal(hit->n);
             }
         }
-        if (transformationInverse != nullptr) {
+        if (transformationInverse != nullptr && !bakedLeaf) {
             hit->n = localNormalToWorld(hit->n);
         } else {
             // The detail-owner chain defers normalization (see

@@ -30,6 +30,12 @@ class SimpleBody : public RayOperationOwner {
     // layer. See doc/performanceReviewPlan5.md Phase 1.
     java::ArrayList<TransformStep> bodySteps{4};
     java::ArrayList<TransformStep> geometrySteps{4};
+    // Set once at bake time (Scene.cpp::bakeSimpleBody, Plan 5 Phase 4) when
+    // this body's geometry was collapsed into a world-space baked copy whose
+    // coefficients already fold in transformation/geometryTransformation.
+    // Non-destructive: doesn't touch the transform matrices or geometry
+    // themselves, just tells doExtraInformation() not to re-apply them.
+    bool bakedTransformFolded = false;
 
   public:
     SimpleBody(
@@ -87,6 +93,8 @@ class SimpleBody : public RayOperationOwner {
     Matrix4x4d *getGeometryTransformationInverse() const { return geometryTransformationInverse; }
     const java::ArrayList<TransformStep> &getBodySteps() const { return bodySteps; }
     const java::ArrayList<TransformStep> &getGeometrySteps() const { return geometrySteps; }
+    bool isBakedTransformFolded() const { return bakedTransformFolded; }
+    void setBakedTransformFolded(bool value) { bakedTransformFolded = value; }
     bool getNoShadowFlag() const { return noShadowFlag; }
     ColorRgba *getObjectColor() const { return objectColor; }
     Material *getObjectTexture() const { return objectTexture; }

@@ -375,6 +375,45 @@ bakeSimpleBody(SimpleBody *object)
         copyOrIdentity(object->getGeometryTransformationInverse());
     baked.geometryToWorld = baked.objectToWorld.multiply(baked.geometryToObject);
     baked.worldToGeometry = baked.objectToGeometry.multiply(baked.worldToObject);
+
+    // Plan 5 Phase 4: same collapse as Phase 3 (bakeCsgOperand), for a
+    // standalone (non-CSG) transformed primitive. The geometry-layer steps
+    // are innermost (applied to the raw local geometry first), matching
+    // `geometryToWorld = objectToWorld * geometryToObject` above - so the
+    // combined replay order is geometry steps followed by object-layer
+    // steps, in that order. Gated on no bounding/clipping shapes: those are
+    // tested against the object-space ray/point in `passesBoundingShapes`/
+    // `finalizeCandidate`, keyed off these same hasObjectTransform/
+    // hasGeometryTransform flags - clearing them would feed those tests a
+    // world-space ray/point against object-local bounding geometry.
+    if (!baked.hasBoundingShapes && !baked.hasClippingShapes &&
+        (baked.hasObjectTransform || baked.hasGeometryTransform)) {
+        java::ArrayList<TransformStep> combinedSteps(
+            object->getGeometrySteps().size() + object->getBodySteps().size());
+        for (long int i = 0; i < object->getGeometrySteps().size(); i++) {
+            combinedSteps.add(object->getGeometrySteps()[i]);
+        }
+        for (long int i = 0; i < object->getBodySteps().size(); i++) {
+            combinedSteps.add(object->getBodySteps()[i]);
+        }
+        if (combinedSteps.size() > 0) {
+            if (baked.quadricGeometry != nullptr) {
+                baked.bakedQuadric =
+                    BakedGeometryBaker::bakeQuadric(*baked.quadricGeometry, combinedSteps);
+                baked.hasBakedQuadric = true;
+                baked.hasObjectTransform = false;
+                baked.hasGeometryTransform = false;
+                object->setBakedTransformFolded(true);
+            } else if (InfinitePlane *plane = dynamic_cast<InfinitePlane *>(baked.geometry)) {
+                baked.bakedPlane = BakedGeometryBaker::bakePlane(*plane, combinedSteps);
+                baked.hasBakedPlane = true;
+                baked.hasObjectTransform = false;
+                baked.hasGeometryTransform = false;
+                object->setBakedTransformFolded(true);
+            }
+        }
+    }
+
     return baked;
 }
 
@@ -434,6 +473,7 @@ bakeCsgOperand(
                 BakedGeometryBaker::bakeQuadric(*baked.quadricGeometry, operand->getSteps());
             baked.hasBakedQuadric = true;
             baked.hasTransform = false;
+            operand->setBakedTransformFolded(true);
         } else if (baked.isInfinitePlane) {
             InfinitePlane *plane = static_cast<InfinitePlane *>(baked.geometry);
             baked.bakedPlane = BakedGeometryBaker::bakePlane(*plane, operand->getSteps());
@@ -441,6 +481,7 @@ bakeCsgOperand(
             baked.hasTransform = false;
             baked.planeNormal = baked.bakedPlane.getNormalVector();
             baked.planeDistance = baked.bakedPlane.getDistance();
+            operand->setBakedTransformFolded(true);
         }
     }
 
@@ -720,6 +761,22 @@ Scene::buildCompiledTracingScene()
             } else if (operand.hasBakedPlane) {
                 operand.geometry = &operand.bakedPlane;
             }
+        }
+    }
+
+    // Plan 5 Phase 4: same one-time fix-up, for standalone baked bodies.
+    // `compiledTracingScene.bakedSimpleBodies` is filled by the same
+    // add()-then-set() pattern (via compileTracingObject, including
+    // recursive calls from bakeComposite() for nested composite children),
+    // all within the loop above, so it is equally safe only from this point
+    // on.
+    for (long int i = 0; i < compiledTracingScene.bakedSimpleBodies.size(); i++) {
+        Scene::BakedSimpleBody &body = compiledTracingScene.bakedSimpleBodies[i];
+        if (body.hasBakedQuadric) {
+            body.geometry = &body.bakedQuadric;
+            body.quadricGeometry = &body.bakedQuadric;
+        } else if (body.hasBakedPlane) {
+            body.geometry = &body.bakedPlane;
         }
     }
 }

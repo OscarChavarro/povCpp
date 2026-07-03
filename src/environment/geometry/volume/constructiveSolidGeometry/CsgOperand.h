@@ -25,6 +25,12 @@ class CsgOperand : public RayOperationOwner {
     // Elementary steps behind `transformation` above, chronologically
     // recorded (including Invert). See doc/performanceReviewPlan5.md Phase 1.
     java::ArrayList<TransformStep> steps{4};
+    // Set once at bake time (Scene.cpp::bakeCsgOperand, Plan 5 Phase 3) when
+    // this operand's geometry was collapsed into a world-space baked copy
+    // whose coefficients already fold in `transformation`. Non-destructive:
+    // doesn't touch the transform matrices or geometry themselves, just
+    // tells doExtraInformation() not to re-apply them.
+    bool bakedTransformFolded = false;
     mutable bool bakedBoundsValid = false;
     mutable AxisAlignedBox bakedBounds = AxisAlignedBox::unbounded();
     mutable bool bakedBoundsBounded = false;
@@ -171,6 +177,8 @@ class CsgOperand : public RayOperationOwner {
     Matrix4x4d *getTransformation() const { return transformation; }
     Matrix4x4d *getTransformationInverse() const { return transformationInverse; }
     const java::ArrayList<TransformStep> &getSteps() const { return steps; }
+    bool isBakedTransformFolded() const { return bakedTransformFolded; }
+    void setBakedTransformFolded(bool value) { bakedTransformFolded = value; }
     Material *getEffectiveMaterial(Material *materialOverride) const
     {
         return material != nullptr ? material : materialOverride;
@@ -276,9 +284,16 @@ class CsgOperand : public RayOperationOwner {
         // before the inner ones. Only the innermost owner (no further owner
         // left) evaluates its own primitive geometry's normal; each level then
         // re-applies its inverse to the normal while unwinding.
+        //
+        // Plan 5 Phase 3: when bakedTransformFolded is set (this operand was
+        // collapsed to a world-space baked copy at bake time), this
+        // operand's own transform is already folded into that copy's
+        // coefficients and must not be re-applied here; hit->hitGeometry
+        // (set to the baked copy's address at intersection time) is queried
+        // directly instead of the live, still-local-space `geometry`.
         RayWithSegments localRay(RayWithSegments::LocalIntersectionClone{}, ray);
         const Vector3Dd parentPoint = hit->p;
-        if (transformationInverse != nullptr) {
+        if (transformationInverse != nullptr && !bakedTransformFolded) {
             localRay.setOrigin(transformationInverse->transformPoint(ray.getOrigin()));
             localRay.setDirection(transformationInverse->transformDirection(ray.getDirection()));
             localRay.setQuadricConstantsCached(false);
@@ -288,10 +303,13 @@ class CsgOperand : public RayOperationOwner {
         RayOperationOwner *next = hit->popDetailOwnerBack();
         if (next != nullptr) {
             next->doExtraInformation(localRay, t, hit);
-        } else if (geometry != nullptr) {
-            geometry->doExtraInformation(localRay, t, hit);
+        } else {
+            Geometry *effectiveGeometry = bakedTransformFolded ? hit->hitGeometry : geometry;
+            if (effectiveGeometry != nullptr) {
+                effectiveGeometry->doExtraInformation(localRay, t, hit);
+            }
         }
-        if (transformationInverse != nullptr) {
+        if (transformationInverse != nullptr && !bakedTransformFolded) {
             // Deferred normalization: apply the inverse-transpose but do NOT
             // normalize here. With several nested non-uniform operand scales,
             // renormalizing between levels rescales the normal before the next
