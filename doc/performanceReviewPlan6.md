@@ -148,6 +148,101 @@ porting table in this document: old function → new home. Anything the old
 layer does that the new design has no slot for gets a design decision here,
 before code.
 
+**Status: DONE.** Full inventory performed (external entry points, every
+routing/execution-kind branch, every `Baked*` struct field with its
+populating function, and load-bearing subtleties). Summary below; see
+`git log` / this section for the record.
+
+#### External contract surface (only 5 methods are actually called from outside `render/bakedScene/`)
+
+| Old function | Caller(s) | New home |
+|---|---|---|
+| `BakedTracingCommon::resetFallbackCounters` | `RenderEngine.cpp:398` | `BakedTrace::resetFallbackCounters` (kept only while any fallback path remains; deleted in Phase 5 once fallbacks are gone) |
+| `BakedTracingCommon::getFallbackCounters` | `PovRayApplication.cpp:104` | same as above |
+| `BakedTracingCommon::traceObjectFirstHit` | `RenderEngine.cpp:459,477`; `DirectLightShader.cpp:84` | `BakedTrace::traceFirstHit(const BakedScene&, int objectIndex, ...)` |
+| `BakedTracingCommon::traceObjectAllCrossings` | `DirectLightShader.cpp:102` | `BakedTrace::traceAllCrossings(...)` |
+| `BakedTracingCommon::containmentTest` | no external caller (internal only) | `BakedTrace::containmentTest(...)`, kept for internal bounding/clipping recursion |
+
+`BakedCsgTracing`/`BakedSimpleBodyTracing`/`BakedCompositeTracing` have
+**zero** external call sites — the entire internal three-class split is
+free to be redesigned as long as these 5 signatures keep working.
+
+#### Behaviors that must survive the rewrite, verbatim
+
+1. **8-way `BakedSimpleBodyExecutionKind` collapses to the plan's 5-way
+   `TraceKind`.** Only one bit of it is actually read at trace time today
+   (the `canUseGeometryFirstHit` gate for DirectPrimitive/TransformedPrimitive,
+   `BakedSimpleBodyTracing.cpp:100-102`); everything else re-derives routing
+   from raw booleans per ray. `TraceKind` must still expose whatever
+   distinction feeds that first-hit-without-a-queue fast path.
+2. **10-way `BakedCsgOperandExecutionKind`, `BakedCsgSpecialization`
+   (`TopLevelPlaneUnion`/`DisjointBoundedUnion`/`SingleCorePlaneIntersection`)
+   and `BakedCsgExecutionPlanKind`** all get folded into `BakedCsgProgram`'s
+   per-operand-kind bucket arrays plus a single `planKind` — this is
+   already what Plan 6's design section describes; the porting job is
+   mechanical (bucket arrays already exist as
+   `executionPlan*OperandIndices`, just need to move into the new struct
+   as-is).
+3. **The `!ray->isPrimaryRayEnabled()` Path G gate** (nested-single-core-
+   plane compiled emitter bypass, `BakedCsgTracing.cpp:149-157`) and the
+   **primary-ray-only plane/quadric constant caches** (`planeVpCached`,
+   `Quadric::isConstantCached`) are ray-class-dependent, not object-
+   dependent — `takeoff.tga` broke when this was collapsed unconditionally
+   (Plan 3 history). The new design keeps this as an explicit
+   `ray->isPrimaryRayEnabled()` check at the same call sites; it is not a
+   per-ray "routing metadata read" of the kind Plan 6 eliminates (it's a
+   ray-property test, orthogonal to the object-constant data this plan
+   bakes) and is EXPLICITLY exempted from the "no per-ray branching" rule.
+4. **Composite child traversal order (reverse), the transform-conditional
+   AABB culling gate (`!hasObjectTransform`), and the `.length()` vs
+   parametric-`t` recomputation formula** (`BakedCompositeTracing.cpp:132-
+   134,137-139,179-180`) must be ported byte-for-byte; these are exactly
+   the kind of "obviously simplifiable" code a naive rewrite would collapse
+   and silently break.
+5. **`CsgScratchContext`'s LIFO borrow/return discipline** (max 8 local
+   slots, ray-pool overflow) is the accepted design (two prior Plan 3 dead
+   ends tried alternatives and regressed wall-clock) — ported as-is.
+6. **The reserve-then-fixup pointer pattern** for `bakedQuadric`/
+   `bakedPlane` self-referential copies is a workaround for
+   `java::ArrayList`'s reallocating `add()`/`set()`. The new design should
+   build each `BakedTraceableObject`/`BakedCsgProgram` tree bottom-up into
+   *final* storage sized up front, removing the need for the two-phase
+   fixup pass entirely — this is a real simplification opportunity, not
+   just a port.
+7. **Open questions carried into Phase 1-3 design** (flagged by the
+   inventory, not yet resolved): (a) whether `traceMorganCsg`'s DIFFERENCE
+   fallback branch (`BakedCsgTracing.cpp:1805-1817`, unconditional-offer
+   loop, looks semantically wrong for DIFFERENCE) is ever actually
+   exercised by any scene in the corpus — port faithfully regardless, but
+   verify with a build-time assertion/counter during Phase 3 rather than
+   silently "fixing" it; (b) `BakedComposite::boundedChildObjects`/
+   `unboundedChildObjects` are populated but never read anywhere — drop
+   them in the new struct unless Phase 2 porting finds a reader this
+   inventory missed; (c) `GenericFallback` enum values are declared but
+   never assigned by either classifier — keep the enum value for safety
+   but do not expect to hit it; (d) the mutable primary-ray caches
+   (`planeVpCached`/`Quadric`'s constant cache) are not thread-safe under
+   `-parallel` today (plain `mutable` fields, no synchronization) — Phase 1
+   must decide explicitly whether to move these into per-render-task
+   scratch or keep the current (apparently-tolerated) shared-mutable-state
+   behavior; default to keeping current behavior unless a race is observed,
+   since changing it is out of this plan's scope (structural rebuild, zero
+   numeric/behavioral change) — revisit under Plan 7 (raySharedCache).
+
+#### Baked struct → new home
+
+`Scene::CompiledTracingObject`, `BakedSimpleBody`, `BakedCsgOperand`,
+`BakedConstructiveSolidGeometry`, `BakedComposite`, `CompiledTracingScene`
+(`Scene.h:22-199`) all move out of `environment/scene` into
+`render/bakedScene/BakedScene.h` as Phase 4 of this plan, superseded in
+shape by `BakedTraceableObject`/`BakedCsgProgram` (Phase 1-3 build the new
+shape; Phase 4 only relocates + deletes the old one once nothing depends on
+it). Every populating function (`bakeSimpleBody`, `bakeCsgOperand`,
+`bakeConstructiveSolidGeometry`, `bakeComposite`, `classifyBaked*`,
+`buildBakedCsgExecutionPlan`, `compileTracingObject`,
+`buildCompiledTracingScene`'s two fixup passes — all in `Scene.cpp` today)
+moves into `BakedSceneBuilder.cpp`.
+
 ### Phase 1 — Build the new model alongside the old
 
 `BakedSceneBuilder` compiles the parsed scene into `BakedScene` at the same
