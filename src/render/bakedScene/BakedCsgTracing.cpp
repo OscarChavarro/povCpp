@@ -6,6 +6,7 @@
 #include "environment/geometry/element/PriorityQueuePool.txx"
 #include "environment/geometry/surface/InfinitePlane.h"
 #include "environment/geometry/volume/Quadric.h"
+#include "environment/geometry/volume/Sphere.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/CsgOperand.h"
 #include "environment/geometry/volume/constructiveSolidGeometry/RaySegments.h"
 #include "render/bakedScene/BakedCsgTracing.h"
@@ -583,6 +584,8 @@ BakedCsgTracing::traceOperandAllCrossings(
         operand.executionKind ==
             Scene::BakedCsgOperandExecutionKind::TransformedQuadric ||
         operand.executionKind ==
+            Scene::BakedCsgOperandExecutionKind::TransformedSphere ||
+        operand.executionKind ==
             Scene::BakedCsgOperandExecutionKind::TransformedPrimitive ||
         operand.executionKind ==
             Scene::BakedCsgOperandExecutionKind::TransformedNestedCsg) {
@@ -662,6 +665,32 @@ BakedCsgTracing::traceOperandAllCrossings(
                     localDirection,
                     depth2,
                     depthQueue);
+            }
+            return true;
+        }
+
+        if (operand.executionKind ==
+            Scene::BakedCsgOperandExecutionKind::TransformedSphere) {
+            const Vector3Dd localOrigin =
+                operand.localToObject.transformPoint(ray->getOrigin());
+            const Vector3Dd localDirection =
+                operand.localToObject.transformDirection(ray->getDirection());
+
+            double depth1;
+            double depth2;
+            if (!Sphere::intersectSphereLocalSpace(
+                    localOrigin, localDirection,
+                    ray->getStatistics(), &depth1, &depth2)) {
+                return false;
+            }
+
+            offerTransformedPrimitiveCandidate(
+                operand, ray, effectiveMaterial,
+                localOrigin, localDirection, depth1, depthQueue);
+            if (depth2 != depth1) {
+                offerTransformedPrimitiveCandidate(
+                    operand, ray, effectiveMaterial,
+                    localOrigin, localDirection, depth2, depthQueue);
             }
             return true;
         }
@@ -798,6 +827,7 @@ BakedCsgTracing::containmentTestOperand(
             distanceTolerance);
 
     case Scene::BakedCsgOperandExecutionKind::TransformedQuadric:
+    case Scene::BakedCsgOperandExecutionKind::TransformedSphere:
     case Scene::BakedCsgOperandExecutionKind::TransformedPrimitive:
         return operand.geometry->doContainmentTest(
             operand.localToObject.transformPoint(point),
@@ -1393,6 +1423,32 @@ BakedCsgTracing::traceCompiledCoreOperandAllCrossings(
         return true;
     }
 
+    case Scene::BakedCsgOperandExecutionKind::TransformedSphere:
+    {
+        const Vector3Dd localOrigin =
+            operand.localToObject.transformPoint(ray->getOrigin());
+        const Vector3Dd localDirection =
+            operand.localToObject.transformDirection(ray->getDirection());
+
+        double depth1;
+        double depth2;
+        if (!Sphere::intersectSphereLocalSpace(
+                localOrigin, localDirection,
+                ray->getStatistics(), &depth1, &depth2)) {
+            return false;
+        }
+
+        offerTransformedPrimitiveCandidate(
+            operand, ray, effectiveMaterial,
+            localOrigin, localDirection, depth1, depthQueue);
+        if (depth2 != depth1) {
+            offerTransformedPrimitiveCandidate(
+                operand, ray, effectiveMaterial,
+                localOrigin, localDirection, depth2, depthQueue);
+        }
+        return true;
+    }
+
     default:
         return traceOperandAllCrossings(
             operand,
@@ -1470,8 +1526,10 @@ BakedCsgTracing::traceTransformedQuadricCorePlaneIntersection(
     RayWithSegments *ray,
     java::PriorityQueue<IntersectionCandidate> *depthQueue,
     Material *materialOverride,
-    long int coreIndex)
+    long int coreIndex,
+    bool &coreTrueMiss)
 {
+    coreTrueMiss = false;
     const Scene::BakedCsgOperand &coreOperand = bakedCsg.operands[coreIndex];
     if (coreOperand.executionKind !=
         Scene::BakedCsgOperandExecutionKind::TransformedQuadric) {
@@ -1497,13 +1555,14 @@ BakedCsgTracing::traceTransformedQuadricCorePlaneIntersection(
     if (coreOperand.quadricGeometry == nullptr) {
         return false;
     }
-    if (!intersectBakedQuadric(
+    if (!intersectBakedQuadricWithTrueMiss(
             *coreOperand.quadricGeometry,
             ray,
             localOrigin,
             localDirection,
             &depth1,
-            &depth2)) {
+            &depth2,
+            coreTrueMiss)) {
         return false;
     }
 
@@ -1802,6 +1861,7 @@ BakedCsgTracing::traceSingleCorePlaneIntersection(
     }
 
     bool anyIntersectionFound = false;
+    bool coreTrueMiss = false;
     const Scene::BakedCsgOperand &coreOperand = bakedCsg.operands[coreIndex];
 
     if (canUseCompiledSingleCorePlanePlan(bakedCsg, coreIndex)) {
@@ -1814,7 +1874,8 @@ BakedCsgTracing::traceSingleCorePlaneIntersection(
                     ray,
                     depthQueue,
                     materialOverride,
-                    coreIndex);
+                    coreIndex,
+                    coreTrueMiss);
         } else {
             java::PriorityQueue<IntersectionCandidate> *localDepthQueue =
                 scratch.borrowQueue();
@@ -1836,27 +1897,37 @@ BakedCsgTracing::traceSingleCorePlaneIntersection(
                     anyIntersectionFound = true;
                 }
             }
+            if (localDepthQueue->size() == 0 &&
+                coreOperand.quadricGeometry != nullptr) {
+                double d1, d2;
+                intersectBakedQuadricWithTrueMiss(
+                    *coreOperand.quadricGeometry, ray,
+                    ray->getOrigin(), ray->getDirection(),
+                    &d1, &d2, coreTrueMiss);
+            }
             scratch.returnQueue(localDepthQueue);
         }
 
-        for (long int p = bakedCsg.executionPlanPlaneOperandIndices.size() - 1;
-             p >= 0; p--) {
-            const int operandIndex = bakedCsg.executionPlanPlaneOperandIndices[p];
-            const Scene::BakedCsgOperand &operand = bakedCsg.operands[operandIndex];
-            IntersectionCandidate candidate;
-            if (tracePlaneOperandCandidate(
-                    operand,
-                    ray,
-                    materialOverride,
-                    candidate) &&
-                candidateInsideCompiledSingleCorePlaneOperands(
-                    bakedCsg,
-                    bakedCsgs,
-                    candidate.getIntersection().point,
-                    operandIndex,
-                    coreIndex)) {
-                depthQueue->offer(candidate);
-                anyIntersectionFound = true;
+        if (!coreTrueMiss) {
+            for (long int p = bakedCsg.executionPlanPlaneOperandIndices.size() - 1;
+                 p >= 0; p--) {
+                const int operandIndex = bakedCsg.executionPlanPlaneOperandIndices[p];
+                const Scene::BakedCsgOperand &operand = bakedCsg.operands[operandIndex];
+                IntersectionCandidate candidate;
+                if (tracePlaneOperandCandidate(
+                        operand,
+                        ray,
+                        materialOverride,
+                        candidate) &&
+                    candidateInsideCompiledSingleCorePlaneOperands(
+                        bakedCsg,
+                        bakedCsgs,
+                        candidate.getIntersection().point,
+                        operandIndex,
+                        coreIndex)) {
+                    depthQueue->offer(candidate);
+                    anyIntersectionFound = true;
+                }
             }
         }
 
@@ -2238,8 +2309,10 @@ BakedCsgTracing::traceCompiledCoreFirstHitCandidates(
     RayWithSegments *ray,
     Material *materialOverride,
     double &bestT,
-    IntersectionCandidate &out)
+    IntersectionCandidate &out,
+    bool &coreTrueMiss)
 {
+    coreTrueMiss = false;
     const long int coreIndex = bakedCsg.specializationCoreOperandIndex;
     const Scene::BakedCsgOperand &coreOperand = bakedCsg.operands[coreIndex];
     Material *effectiveMaterial =
@@ -2262,13 +2335,14 @@ BakedCsgTracing::traceCompiledCoreFirstHitCandidates(
 
         double depth1;
         double depth2;
-        if (!intersectBakedQuadric(
+        if (!intersectBakedQuadricWithTrueMiss(
                 *coreOperand.quadricGeometry,
                 ray,
                 localOrigin,
                 localDirection,
                 &depth1,
-                &depth2)) {
+                &depth2,
+                coreTrueMiss)) {
             return false;
         }
 
@@ -2336,6 +2410,14 @@ BakedCsgTracing::traceCompiledCoreFirstHitCandidates(
             found = true;
         }
     }
+    if (localDepthQueue->size() == 0 &&
+        coreOperand.quadricGeometry != nullptr) {
+        double d1, d2;
+        intersectBakedQuadricWithTrueMiss(
+            *coreOperand.quadricGeometry, ray,
+            ray->getOrigin(), ray->getDirection(),
+            &d1, &d2, coreTrueMiss);
+    }
     scratch.returnQueue(localDepthQueue);
     return found;
 }
@@ -2355,6 +2437,7 @@ BakedCsgTracing::traceFirstHitCompiledSingleCorePlane(
     }
 
     double bestT = Config::MAX_DISTANCE;
+    bool coreTrueMiss = false;
     bool found = traceCompiledCoreFirstHitCandidates(
         bakedCsg,
         bakedCsgs,
@@ -2362,27 +2445,30 @@ BakedCsgTracing::traceFirstHitCompiledSingleCorePlane(
         ray,
         materialOverride,
         bestT,
-        out);
+        out,
+        coreTrueMiss);
 
-    for (long int p = bakedCsg.executionPlanPlaneOperandIndices.size() - 1;
-         p >= 0; p--) {
-        const int operandIndex = bakedCsg.executionPlanPlaneOperandIndices[p];
-        const Scene::BakedCsgOperand &operand = bakedCsg.operands[operandIndex];
-        IntersectionCandidate candidate;
-        if (tracePlaneOperandCandidate(
-                operand,
-                ray,
-                materialOverride,
-                candidate) &&
-            offerCompiledSingleCorePlaneFirstHitCandidate(
-                bakedCsg,
-                bakedCsgs,
-                candidate,
-                operandIndex,
-                coreIndex,
-                bestT,
-                out)) {
-            found = true;
+    if (!coreTrueMiss) {
+        for (long int p = bakedCsg.executionPlanPlaneOperandIndices.size() - 1;
+             p >= 0; p--) {
+            const int operandIndex = bakedCsg.executionPlanPlaneOperandIndices[p];
+            const Scene::BakedCsgOperand &operand = bakedCsg.operands[operandIndex];
+            IntersectionCandidate candidate;
+            if (tracePlaneOperandCandidate(
+                    operand,
+                    ray,
+                    materialOverride,
+                    candidate) &&
+                offerCompiledSingleCorePlaneFirstHitCandidate(
+                    bakedCsg,
+                    bakedCsgs,
+                    candidate,
+                    operandIndex,
+                    coreIndex,
+                    bestT,
+                    out)) {
+                found = true;
+            }
         }
     }
 

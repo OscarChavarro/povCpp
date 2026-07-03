@@ -104,6 +104,9 @@ classifyBakedCsgOperand(const Scene::BakedCsgOperand &baked)
         if (baked.quadricGeometry != nullptr) {
             return Scene::BakedCsgOperandExecutionKind::TransformedQuadric;
         }
+        if (dynamic_cast<Sphere *>(baked.geometry) != nullptr) {
+            return Scene::BakedCsgOperandExecutionKind::TransformedSphere;
+        }
         return Scene::BakedCsgOperandExecutionKind::TransformedPrimitive;
     }
     return baked.geometry->hasNativeAnnotatedCrossings() ?
@@ -282,6 +285,7 @@ buildBakedCsgExecutionPlan(
             }
             break;
         case Scene::BakedCsgOperandExecutionKind::TransformedQuadric:
+        case Scene::BakedCsgOperandExecutionKind::TransformedSphere:
         case Scene::BakedCsgOperandExecutionKind::TransformedPrimitive:
             baked.executionPlanTransformedPrimitiveOperandIndices.add((int)i);
             break;
@@ -350,6 +354,7 @@ bakeSimpleBody(SimpleBody *object)
     Scene::BakedSimpleBody baked;
     baked.object = object;
     baked.geometry = object->getGeometry();
+    baked.quadricGeometry = dynamic_cast<Quadric *>(baked.geometry);
     baked.geometryMaterial = object->getGeometryMaterial();
     baked.objectTexture = object->getObjectTexture();
     baked.objectColor = object->getObjectColor();
