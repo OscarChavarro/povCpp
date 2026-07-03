@@ -13,6 +13,7 @@ CsgOperand::translate(Vector3Dd *vector)
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
     invalidateBakedBounds();
+    steps.add(TransformStep(TransformStep::Kind::Translate, *vector));
     if (material != nullptr) {
         material = material->translate(vector);
     }
@@ -28,6 +29,7 @@ CsgOperand::rotate(Vector3Dd *vector)
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
     invalidateBakedBounds();
+    steps.add(TransformStep(TransformStep::Kind::Rotate, *vector));
     if (material != nullptr) {
         material = material->rotate(vector);
     }
@@ -44,6 +46,7 @@ CsgOperand::scale(Vector3Dd *vector)
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
     invalidateBakedBounds();
+    steps.add(TransformStep(TransformStep::Kind::Scale, *vector));
     if (material != nullptr) {
         material = material->scale(vector);
     }

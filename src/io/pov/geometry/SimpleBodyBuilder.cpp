@@ -92,7 +92,8 @@ SimpleBodyBuilder::SimpleBodyBuilder(const SimpleBodyBuilder &other) :
     transformation(other.transformation != nullptr ?
         new Matrix4x4d(*other.transformation) : nullptr),
     transformationInverse(other.transformationInverse != nullptr ?
-        new Matrix4x4d(*other.transformationInverse) : nullptr)
+        new Matrix4x4d(*other.transformationInverse) : nullptr),
+    steps(other.steps)
 {
 }
 
@@ -106,6 +107,7 @@ SimpleBodyBuilder::translate(Vector3Dd *vector)
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    steps.add(TransformStep(TransformStep::Kind::Translate, *vector));
     if (getMaterial() != nullptr) {
         material = getMaterial()->translate(vector);
     }
@@ -121,6 +123,7 @@ SimpleBodyBuilder::translateOwnerOnly(Vector3Dd *vector)
         0.0 - vector->x(), 0.0 - vector->y(), 0.0 - vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    steps.add(TransformStep(TransformStep::Kind::Translate, *vector));
 }
 
 void
@@ -132,6 +135,7 @@ SimpleBodyBuilder::rotate(Vector3Dd *vector)
     delta.axisRotationRodrigues(&deltaInverse, vector);
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    steps.add(TransformStep(TransformStep::Kind::Rotate, *vector));
     if (getMaterial() != nullptr) {
         material = getMaterial()->rotate(vector);
     }
@@ -146,6 +150,7 @@ SimpleBodyBuilder::rotateOwnerOnly(Vector3Dd *vector)
     delta.axisRotationRodrigues(&deltaInverse, vector);
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    steps.add(TransformStep(TransformStep::Kind::Rotate, *vector));
 }
 
 void
@@ -158,6 +163,7 @@ SimpleBodyBuilder::scale(Vector3Dd *vector)
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    steps.add(TransformStep(TransformStep::Kind::Scale, *vector));
     if (getMaterial() != nullptr) {
         material = getMaterial()->scale(vector);
     }
@@ -173,10 +179,12 @@ SimpleBodyBuilder::scaleOwnerOnly(Vector3Dd *vector)
         1.0 / vector->x(), 1.0 / vector->y(), 1.0 / vector->z()).transpose();
     *transformation = transformation->multiply(delta);
     *transformationInverse = deltaInverse.multiply(*transformationInverse);
+    steps.add(TransformStep(TransformStep::Kind::Scale, *vector));
 }
 
 void
 SimpleBodyBuilder::invert()
 {
     getGeometry()->invertGeometry();
+    steps.add(TransformStep(TransformStep::Kind::Invert, Vector3Dd(0.0, 0.0, 0.0)));
 }

@@ -41,7 +41,8 @@ addCsgShape(ConstructiveSolidGeometry *container, SimpleBodyBuilder *shape)
         shape->releaseGeometry(),
         shape->releaseMaterial(),
         shape->releaseTransformation(),
-        shape->releaseTransformationInverse());
+        shape->releaseTransformationInverse(),
+        shape->getSteps());
     delete shape->releaseShapeColor();
     delete shape;
 }
