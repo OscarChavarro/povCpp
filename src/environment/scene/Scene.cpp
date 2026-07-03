@@ -14,6 +14,7 @@
 #include "environment/scene/Composite.h"
 #include "environment/scene/Scene.h"
 #include "render/bakedScene/BakedGeometryBaker.h"
+#include "render/bakedScene/BakedSceneBuilder.h"
 
 namespace {
 CameraSnapshot
@@ -779,6 +780,10 @@ Scene::buildCompiledTracingScene()
             body.geometry = &body.bakedPlane;
         }
     }
+
+    // Plan 6 Phase 1: build the new flat model alongside the one above.
+    // Not read by any trace path yet - see doc/performanceReviewPlan6.md.
+    bakedScene = BakedSceneBuilder::build(compiledTracingScene);
 }
 
 void
@@ -806,6 +811,7 @@ Scene::resetForSceneParse(double antialiasThreshold)
     compiledTracingScene.shadowCastingObjects.clear();
     compiledTracingScene.boundedShadowCastingObjects.clear();
     compiledTracingScene.unboundedShadowCastingObjects.clear();
+    bakedScene = BakedScene();
     compiledTracingSceneFinalized = false;
     atmosphereIor = 1.0;
     this->antialiasThreshold = antialiasThreshold;

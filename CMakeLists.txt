@@ -85,6 +85,7 @@ add_executable(povray
     src/render/bakedScene/BakedSimpleBodyTracing.cpp
     src/render/bakedScene/BakedTracingCommon.cpp
     src/render/bakedScene/BakedGeometryBaker.cpp
+    src/render/bakedScene/BakedSceneBuilder.cpp
     src/render/RenderWorker.cpp
     src/render/RenderTargetImage.cpp
     src/render/RayShaderPipeline.cpp
